@@ -78,7 +78,6 @@ public class InQueryFilter extends QueryFilter
         {
             condition = field + " " + operator.getValue() + streamOfNonMissingValues( filterItems )
                 .filter( Objects::nonNull )
-                .map( this::toLowerIfNecessary )
                 .map( this::quoteIfNecessary )
                 .collect( Collectors.joining( ",", " (", ")" ) );
             if ( hasMissingValue( filterItems ) )

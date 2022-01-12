@@ -36,6 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.message.FakeMessageSender;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessage;
@@ -45,7 +46,9 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.JsonObject;
+import org.hisp.dhis.webapi.json.domain.JsonErrorReport;
 import org.hisp.dhis.webapi.json.domain.JsonImportSummary;
+import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -177,6 +180,18 @@ class UserControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
+    void testPutProperty_InvalidWhatsapp()
+    {
+        JsonWebMessage msg = assertWebMessage( "Conflict", 409, "ERROR",
+            "One more more errors occurred, please see full details in import report.",
+            PATCH( "/users/" + peter.getUid() + "?importReportMode=ERRORS",
+                "[{'op': 'add', 'path': '/whatsApp', 'value': 'not-a-phone-no'}]" ).content( HttpStatus.CONFLICT ) );
+        JsonErrorReport report = msg.getResponse()
+            .find( JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E4027 );
+        assertEquals( "whatsApp", report.getErrorProperty() );
+    }
+
+    @Test
     void testPostJsonObject()
     {
         assertWebMessage( "Created", 201, "OK", null,
@@ -187,10 +202,13 @@ class UserControllerTest extends DhisControllerConvenienceTest
     @Test
     void testPostJsonObjectInvalidUsername()
     {
-        assertWebMessage( "Conflict", 409, "ERROR",
+        JsonWebMessage msg = assertWebMessage( "Conflict", 409, "ERROR",
             "One more more errors occurred, please see full details in import report.",
             POST( "/users/", "{'surname':'S.','firstName':'Harry','userCredentials':{'username':'Harrys'}}" )
                 .content( HttpStatus.CONFLICT ) );
+        JsonErrorReport report = msg.getResponse()
+            .find( JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E4049 );
+        assertEquals( "username", report.getErrorProperty() );
     }
 
     @Test
