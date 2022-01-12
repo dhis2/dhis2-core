@@ -117,12 +117,13 @@ public class RequestExecutionPlanCache implements ExecutionPlanCache
 
     private JsonNode getExecutionPlan( String sql )
     {
-        SqlRowSet rowSet = jdbcTemplate.queryForRowSet( "EXPLAIN (ANALYZE true, COSTS true, FORMAT json) " + sql );
 
         ObjectMapper objectMapper = new ObjectMapper();
 
         try
         {
+            SqlRowSet rowSet = jdbcTemplate.queryForRowSet( "EXPLAIN (ANALYZE true, COSTS true, FORMAT json) " + sql );
+
             if ( rowSet.next() )
             {
                 String json = rowSet.getString( 1 );
