@@ -112,11 +112,11 @@ public abstract class AbstractAnalyticsService
 
         if ( params.hasHeaders() )
         {
-            populateGridWithDynamicDefaultHeaders( params, grid );
+            populateGridWithDynamicParamHeaders( params, grid );
         }
         else
         {
-            populateGridWithDynamicParamHeaders( params, grid );
+            populateGridWithDynamicDefaultHeaders( params, grid );
         }
 
         // ---------------------------------------------------------------------
