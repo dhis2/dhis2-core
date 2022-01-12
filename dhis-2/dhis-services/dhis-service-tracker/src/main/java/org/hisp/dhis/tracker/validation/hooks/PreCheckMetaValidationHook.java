@@ -96,10 +96,20 @@ public class PreCheckMetaValidationHook
         TrackerImportValidationContext context = reporter.getValidationContext();
 
         OrganisationUnit organisationUnit = context.getOrganisationUnit( enrollment.getOrgUnit() );
-        addErrorIfNull( organisationUnit, reporter, enrollment, E1070, enrollment.getOrgUnit() );
+        reporter.addErrorIf( () -> organisationUnit == null, () -> TrackerErrorReport.builder()
+            .uid( ((TrackerDto) enrollment).getUid() )
+            .trackerType( ((TrackerDto) enrollment).getTrackerType() )
+            .errorCode( E1070 )
+            .addArgs( enrollment.getOrgUnit() )
+            .build() );
 
         Program program = context.getProgram( enrollment.getProgram() );
-        addErrorIfNull( program, reporter, enrollment, E1069, enrollment.getProgram() );
+        reporter.addErrorIf( () -> program == null, () -> TrackerErrorReport.builder()
+            .uid( ((TrackerDto) enrollment).getUid() )
+            .trackerType( ((TrackerDto) enrollment).getTrackerType() )
+            .errorCode( E1069 )
+            .addArgs( enrollment.getProgram() )
+            .build() );
 
         reporter.addErrorIf( () -> !trackedEntityInstanceExist( context, enrollment.getTrackedEntity() ),
             () -> TrackerErrorReport.builder()
@@ -116,13 +126,28 @@ public class PreCheckMetaValidationHook
         TrackerImportValidationContext context = reporter.getValidationContext();
 
         OrganisationUnit organisationUnit = context.getOrganisationUnit( event.getOrgUnit() );
-        addErrorIfNull( organisationUnit, reporter, event, E1011, event.getOrgUnit() );
+        reporter.addErrorIf( () -> organisationUnit == null, () -> TrackerErrorReport.builder()
+            .uid( ((TrackerDto) event).getUid() )
+            .trackerType( ((TrackerDto) event).getTrackerType() )
+            .errorCode( E1011 )
+            .addArgs( event.getOrgUnit() )
+            .build() );
 
         Program program = context.getProgram( event.getProgram() );
-        addErrorIfNull( program, reporter, event, E1010, event.getProgram() );
+        reporter.addErrorIf( () -> program == null, () -> TrackerErrorReport.builder()
+            .uid( ((TrackerDto) event).getUid() )
+            .trackerType( ((TrackerDto) event).getTrackerType() )
+            .errorCode( E1010 )
+            .addArgs( event.getProgram() )
+            .build() );
 
         ProgramStage programStage = context.getProgramStage( event.getProgramStage() );
-        addErrorIfNull( programStage, reporter, event, E1013, event.getProgramStage() );
+        reporter.addErrorIf( () -> programStage == null, () -> TrackerErrorReport.builder()
+            .uid( ((TrackerDto) event).getUid() )
+            .trackerType( ((TrackerDto) event).getTrackerType() )
+            .errorCode( E1013 )
+            .addArgs( event.getProgramStage() )
+            .build() );
     }
 
     @Override
@@ -132,7 +157,12 @@ public class PreCheckMetaValidationHook
 
         RelationshipType relationshipType = context.getRelationShipType( relationship.getRelationshipType() );
 
-        addErrorIfNull( relationshipType, reporter, relationship, E4006, relationship.getRelationshipType() );
+        reporter.addErrorIf( () -> relationshipType == null, () -> TrackerErrorReport.builder()
+            .uid( ((TrackerDto) relationship).getUid() )
+            .trackerType( ((TrackerDto) relationship).getTrackerType() )
+            .errorCode( E4006 )
+            .addArgs( relationship.getRelationshipType() )
+            .build() );
     }
 
     @Override

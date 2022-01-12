@@ -252,7 +252,12 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
 
         FileResource fileResource = reporter.getValidationContext().getFileResource( attr.getValue() );
 
-        addErrorIfNull( fileResource, reporter, te, E1084, attr.getValue() );
+        reporter.addErrorIf( () -> fileResource == null, () -> TrackerErrorReport.builder()
+            .uid( te.getUid() )
+            .trackerType( te.getTrackerType() )
+            .errorCode( E1084 )
+            .addArgs( attr.getValue() )
+            .build() );
         reporter.addErrorIf( () -> fileResource != null && fileResource.isAssigned(), () -> TrackerErrorReport.builder()
             .uid( ((TrackerDto) te).getUid() )
             .trackerType( ((TrackerDto) te).getTrackerType() )

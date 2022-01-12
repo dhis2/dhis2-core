@@ -125,7 +125,12 @@ public class PreCheckMandatoryFieldsValidationHook
             // the event itself. This should be
             // fixed in the metadata import. For more see
             // https://jira.dhis2.org/browse/DHIS2-12123
-            addErrorIfNull( programStage.getProgram(), reporter, event, E1008, event.getProgramStage() );
+            reporter.addErrorIf( () -> programStage.getProgram() == null, () -> TrackerErrorReport.builder()
+                .uid( event.getUid() )
+                .trackerType( event.getTrackerType() )
+                .errorCode( E1008 )
+                .addArg( event.getProgramStage() )
+                .build() );
             // return since program is not a required field according to our API
             // and the issue is with the missing reference in
             // the DB entry of the program stage and not the payload itself
@@ -143,8 +148,18 @@ public class PreCheckMandatoryFieldsValidationHook
     @Override
     public void validateRelationship( ValidationErrorReporter reporter, Relationship relationship )
     {
-        addErrorIfNull( relationship.getFrom(), reporter, relationship, E1124, "from" );
-        addErrorIfNull( relationship.getTo(), reporter, relationship, E1124, "to" );
+        reporter.addErrorIf( () -> relationship.getFrom() == null, () -> TrackerErrorReport.builder()
+            .uid( relationship.getUid() )
+            .trackerType( relationship.getTrackerType() )
+            .errorCode( E1124 )
+            .addArg( "from" )
+            .build() );
+        reporter.addErrorIf( () -> relationship.getTo() == null, () -> TrackerErrorReport.builder()
+            .uid( relationship.getUid() )
+            .trackerType( relationship.getTrackerType() )
+            .errorCode( E1124 )
+            .addArg( "to" )
+            .build() );
         reporter.addErrorIf( () -> StringUtils.isEmpty( relationship.getRelationshipType() ),
             () -> TrackerErrorReport.builder()
                 .uid( ((TrackerDto) relationship).getUid() )

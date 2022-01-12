@@ -219,7 +219,12 @@ public class EventDataValuesValidationHook
 
         FileResource fileResource = reporter.getValidationContext().getFileResource( dataValue.getValue() );
 
-        addErrorIfNull( fileResource, reporter, event, E1084, dataValue.getValue() );
+        reporter.addErrorIf( () -> fileResource == null, () -> TrackerErrorReport.builder()
+            .uid( ((TrackerDto) event).getUid() )
+            .trackerType( ((TrackerDto) event).getTrackerType() )
+            .errorCode( E1084 )
+            .addArgs( dataValue.getValue() )
+            .build() );
         reporter.addErrorIf( () -> fileResource != null && fileResource.isAssigned(), () -> TrackerErrorReport.builder()
             .uid( ((TrackerDto) event).getUid() )
             .trackerType( ((TrackerDto) event).getTrackerType() )

@@ -47,6 +47,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
@@ -113,7 +114,12 @@ public class EventDateValidationHook
         {
             if ( event.getCompletedAt() == null )
             {
-                addErrorIfNull( event.getCompletedAt(), reporter, event, E1042, event );
+                reporter.addErrorIf( () -> event.getCompletedAt() == null, () -> TrackerErrorReport.builder()
+                    .uid( ((TrackerDto) event).getUid() )
+                    .trackerType( ((TrackerDto) event).getTrackerType() )
+                    .errorCode( E1042 )
+                    .addArgs( event )
+                    .build() );
             }
             else
             {

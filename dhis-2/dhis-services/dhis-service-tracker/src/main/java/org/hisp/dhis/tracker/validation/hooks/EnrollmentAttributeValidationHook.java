@@ -120,7 +120,12 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
     protected void validateRequiredProperties( ValidationErrorReporter reporter, Enrollment enrollment,
         Attribute attribute, Program program )
     {
-        addErrorIfNull( attribute.getAttribute(), reporter, enrollment, E1075, attribute );
+        reporter.addErrorIf( () -> attribute.getAttribute() == null, () -> TrackerErrorReport.builder()
+            .uid( ((TrackerDto) enrollment).getUid() )
+            .trackerType( ((TrackerDto) enrollment).getTrackerType() )
+            .errorCode( E1075 )
+            .addArgs( attribute )
+            .build() );
 
         Optional<ProgramTrackedEntityAttribute> optionalTrackedAttr = program.getProgramAttributes().stream()
             .filter( pa -> pa.getAttribute().getUid().equals( attribute.getAttribute() ) && pa.isMandatory() )
@@ -128,9 +133,12 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
 
         if ( optionalTrackedAttr.isPresent() )
         {
-            addErrorIfNull( attribute.getValue(), reporter, enrollment, E1076,
-                TrackedEntityAttribute.class.getSimpleName(),
-                attribute.getAttribute() );
+            reporter.addErrorIf( () -> attribute.getValue() == null, () -> TrackerErrorReport.builder()
+                .uid( ((TrackerDto) enrollment).getUid() )
+                .trackerType( ((TrackerDto) enrollment).getTrackerType() )
+                .errorCode( E1076 )
+                .addArgs( TrackedEntityAttribute.class.getSimpleName(), attribute.getAttribute() )
+                .build() );
         }
 
         if ( attribute.getAttribute() != null )
@@ -138,7 +146,12 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
             TrackedEntityAttribute teAttribute = reporter.getValidationContext()
                 .getTrackedEntityAttribute( attribute.getAttribute() );
 
-            addErrorIfNull( teAttribute, reporter, enrollment, E1006, attribute.getAttribute() );
+            reporter.addErrorIf( () -> teAttribute == null, () -> TrackerErrorReport.builder()
+                .uid( ((TrackerDto) enrollment).getUid() )
+                .trackerType( ((TrackerDto) enrollment).getTrackerType() )
+                .errorCode( E1006 )
+                .addArgs( attribute.getAttribute() )
+                .build() );
         }
     }
 

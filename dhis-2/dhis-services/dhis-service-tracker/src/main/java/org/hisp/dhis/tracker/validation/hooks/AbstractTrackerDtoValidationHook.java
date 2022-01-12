@@ -193,18 +193,6 @@ public abstract class AbstractTrackerDtoValidationHook
         report.addWarning( warn );
     }
 
-    protected void addErrorIfNull( Object object, ValidationErrorReporter report, TrackerDto dto,
-        TrackerErrorCode code,
-        Object... args )
-    {
-        report.addErrorIf( () -> object == null, () -> TrackerErrorReport.builder()
-            .uid( dto.getUid() )
-            .trackerType( dto.getTrackerType() )
-            .errorCode( code )
-            .addArgs( args )
-            .build() );
-    }
-
     public boolean needsToRun( TrackerImportStrategy strategy )
     {
         return strategy != TrackerImportStrategy.DELETE;
