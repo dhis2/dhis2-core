@@ -31,6 +31,7 @@ import static org.hisp.dhis.dxf2.Constants.PROGRAM_RULE_VARIABLE_NAME_INVALID_KE
 
 import java.util.List;
 import java.util.Set;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.IntStream;
 
@@ -38,12 +39,14 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableSourceType;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.ImmutableMap;
@@ -55,7 +58,7 @@ import com.google.common.collect.ImmutableSet;
 @Component
 public class ProgramRuleVariableObjectBundleHook extends AbstractObjectBundleHook<ProgramRuleVariable>
 {
-    private final ImmutableMap<ProgramRuleVariableSourceType, Consumer<ProgramRuleVariable>> SOURCE_TYPE_RESOLVER = new ImmutableMap.Builder<ProgramRuleVariableSourceType, Consumer<ProgramRuleVariable>>()
+    private final ImmutableMap<ProgramRuleVariableSourceType, BiConsumer<ProgramRuleVariable, ObjectBundle>> SOURCE_TYPE_RESOLVER = new ImmutableMap.Builder<ProgramRuleVariableSourceType, BiConsumer<ProgramRuleVariable, ObjectBundle>>()
         .put( ProgramRuleVariableSourceType.CALCULATED_VALUE, this::processCalculatedValue )
         .put( ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT, this::processDataElement )
         .put( ProgramRuleVariableSourceType.DATAELEMENT_NEWEST_EVENT_PROGRAM, this::processDataElement )
@@ -94,7 +97,7 @@ public class ProgramRuleVariableObjectBundleHook extends AbstractObjectBundleHoo
         {
             if ( !isLegitUpdate( programRuleVariable, prvWithSameNameAndSameProgram ) )
             {
-                failPrvWithSameNAmeAlreadyExists( programRuleVariable, addReports );
+                failPrvWithSameNameAlreadyExists( programRuleVariable, addReports );
             }
             return;
         }
@@ -102,7 +105,7 @@ public class ProgramRuleVariableObjectBundleHook extends AbstractObjectBundleHoo
         // insert
         if ( CollectionUtils.isNotEmpty( prvWithSameNameAndSameProgram ) )
         {
-            failPrvWithSameNAmeAlreadyExists( programRuleVariable, addReports );
+            failPrvWithSameNameAlreadyExists( programRuleVariable, addReports );
         }
     }
 
@@ -119,7 +122,7 @@ public class ProgramRuleVariableObjectBundleHook extends AbstractObjectBundleHoo
         return StringUtils.equals( existingPrv.getUid(), programRuleVariable.getUid() );
     }
 
-    private void failPrvWithSameNAmeAlreadyExists( ProgramRuleVariable programRuleVariable,
+    private void failPrvWithSameNameAlreadyExists( ProgramRuleVariable programRuleVariable,
         Consumer<ErrorReport> addReports )
     {
         addReports.accept(
@@ -153,33 +156,46 @@ public class ProgramRuleVariableObjectBundleHook extends AbstractObjectBundleHoo
     @Override
     public void preUpdate( ProgramRuleVariable variable, ProgramRuleVariable persistedObject, ObjectBundle bundle )
     {
-        Consumer<ProgramRuleVariable> mod = SOURCE_TYPE_RESOLVER.get( variable.getSourceType() );
+        BiConsumer<ProgramRuleVariable, ObjectBundle> mod = SOURCE_TYPE_RESOLVER.get( variable.getSourceType() );
         if ( mod != null )
         {
-            mod.accept( variable );
+            mod.accept( variable, bundle );
         }
     }
 
-    private void processCalculatedValue( ProgramRuleVariable variable )
+    @Override
+    public void preCreate( ProgramRuleVariable variable, ObjectBundle bundle )
+    {
+        preUpdate( variable, null, bundle );
+    }
+
+    private void processCalculatedValue( ProgramRuleVariable variable, ObjectBundle bundle )
     {
         variable.setAttribute( null );
         variable.setDataElement( null );
         variable.setProgramStage( null );
     }
 
-    private void processDataElement( ProgramRuleVariable variable )
+    private void processDataElement( ProgramRuleVariable variable, ObjectBundle bundle )
     {
+        DataElement dataElement = bundle.getPreheat().get( bundle.getPreheatIdentifier(), variable.getDataElement() );
         variable.setAttribute( null );
         variable.setProgramStage( null );
+        variable.setDataElement( dataElement );
+        variable.setValueType( dataElement.getValueType() );
     }
 
-    private void processTEA( ProgramRuleVariable variable )
+    private void processTEA( ProgramRuleVariable variable, ObjectBundle bundle )
     {
+        TrackedEntityAttribute trackedEntityAttribute = bundle.getPreheat().get( bundle.getPreheatIdentifier(),
+            variable.getAttribute() );
         variable.setDataElement( null );
         variable.setProgramStage( null );
+        variable.setAttribute( trackedEntityAttribute );
+        variable.setValueType( trackedEntityAttribute.getValueType() );
     }
 
-    private void processDataElementWithStage( ProgramRuleVariable variable )
+    private void processDataElementWithStage( ProgramRuleVariable variable, ObjectBundle bundle )
     {
         variable.setAttribute( null );
     }

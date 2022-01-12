@@ -234,6 +234,8 @@ public abstract class DhisConvenienceTest
 
     public static final String DEFAULT_USERNAME = "admin";
 
+    private static final String PROGRAM_RULE_VARIABLE = "ProgramRuleVariable";
+
     private static Date date;
 
     protected static final double DELTA = 0.01;
@@ -1590,9 +1592,40 @@ public abstract class DhisConvenienceTest
         ProgramRuleVariable programRuleVariable = new ProgramRuleVariable();
         programRuleVariable.setAutoFields();
 
-        programRuleVariable.setName( "ProgramRuleVariable" + uniqueCharacter );
+        programRuleVariable.setName( PROGRAM_RULE_VARIABLE + uniqueCharacter );
         programRuleVariable.setProgram( parentProgram );
         programRuleVariable.setSourceType( ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT );
+        programRuleVariable.setValueType( ValueType.TEXT );
+
+        return programRuleVariable;
+    }
+
+    public static ProgramRuleVariable createProgramRuleVariableWithDataElement( char uniqueCharacter,
+        Program parentProgram, DataElement dataElement )
+    {
+        ProgramRuleVariable programRuleVariable = new ProgramRuleVariable();
+        programRuleVariable.setAutoFields();
+
+        programRuleVariable.setName( PROGRAM_RULE_VARIABLE + uniqueCharacter );
+        programRuleVariable.setProgram( parentProgram );
+        programRuleVariable.setDataElement( dataElement );
+        programRuleVariable.setSourceType( ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT );
+        programRuleVariable.setValueType( dataElement.getValueType() );
+
+        return programRuleVariable;
+    }
+
+    public static ProgramRuleVariable createProgramRuleVariableWithTEA( char uniqueCharacter, Program parentProgram,
+        TrackedEntityAttribute attribute )
+    {
+        ProgramRuleVariable programRuleVariable = new ProgramRuleVariable();
+        programRuleVariable.setAutoFields();
+
+        programRuleVariable.setName( PROGRAM_RULE_VARIABLE + uniqueCharacter );
+        programRuleVariable.setProgram( parentProgram );
+        programRuleVariable.setAttribute( attribute );
+        programRuleVariable.setSourceType( ProgramRuleVariableSourceType.TEI_ATTRIBUTE );
+        programRuleVariable.setValueType( attribute.getValueType() );
 
         return programRuleVariable;
     }
