@@ -125,6 +125,8 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
             .object( programStageInstance.getUid() )
             .importStrategy( bundle.getImportStrategy() )
             .accessedBy( bundle.getUsername() )
+            .programStageInstance( programStageInstance )
+            .program( programStageInstance.getProgramStage().getProgram() )
             .build();
     }
 
