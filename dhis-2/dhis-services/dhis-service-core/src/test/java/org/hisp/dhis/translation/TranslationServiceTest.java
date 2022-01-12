@@ -384,15 +384,10 @@ class TranslationServiceTest extends DhisSpringTest
     }
 
     @Test
-    public void testDisplayNameWithNoUserSetting()
+    public void testDisplayNameWithNoTranslation()
     {
-        UserContext.setUserSetting( UserSettingKey.DB_LOCALE, null );
         DataElement dataElementA = createDataElement( 'A' );
         manager.save( dataElementA );
-        String translatedName = "translatedName";
-        Set<Translation> translations = new HashSet<>( dataElementA.getTranslations() );
-        translations.add( new Translation( locale.getLanguage(), "NAME", translatedName ) );
-        manager.updateTranslations( dataElementA, translations );
         assertEquals( "DataElementA", dataElementA.getDisplayName() );
     }
 }

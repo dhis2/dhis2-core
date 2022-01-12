@@ -407,18 +407,15 @@ public class BaseIdentifiableObject
     {
         Locale locale = UserContext.getUserSetting( UserSettingKey.DB_LOCALE );
 
-        defaultValue = defaultValue != null ? defaultValue.trim() : null;
+        final String defaultTranslation = defaultValue != null ? defaultValue.trim() : null;
 
         if ( locale == null || translationKey == null || CollectionUtils.isEmpty( translations ) )
         {
             return defaultValue;
         }
 
-        String translated = translationCache
-            .computeIfAbsent( Translation.getCacheKey( locale.toString(), translationKey ),
-                key -> getTranslationValue( locale.toString(), translationKey ) );
-
-        return StringUtils.isEmpty( translated ) ? defaultValue : translated;
+        return translationCache.computeIfAbsent( Translation.getCacheKey( locale.toString(), translationKey ),
+            key -> getTranslationValue( locale.toString(), translationKey, defaultTranslation ) );
     }
 
     private void loadAttributeValuesCacheIfEmpty()
@@ -789,9 +786,9 @@ public class BaseIdentifiableObject
      * Get Translation value from {@code Set<Translation>} by given locale and
      * translationKey
      *
-     * @return Translation value if exists, otherwise return null.
+     * @return Translation value if exists, otherwise return default value.
      */
-    private String getTranslationValue( String locale, String translationKey )
+    private String getTranslationValue( String locale, String translationKey, String defaultValue )
     {
         for ( Translation translation : translations )
         {
@@ -802,7 +799,7 @@ public class BaseIdentifiableObject
             }
         }
 
-        return null;
+        return defaultValue;
     }
 
 }
