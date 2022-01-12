@@ -129,7 +129,6 @@
         <htmlparser.version>2.1</htmlparser.version>
         <htmllexer.version>2.1</htmllexer.version>
         <poi.version>4.1.1</poi.version>
-        <jacoco.version>0.8.2</jacoco.version>
         <itext.version>2.1.7</itext.version>
         <jclouds.version>2.4.0</jclouds.version>
         <antlr.version>4.9.3</antlr.version>
@@ -401,6 +400,8 @@
             </build>
         </profile>
 
+
+
         <profile>
             <id>sonarqube</id>
             <build>
@@ -409,10 +410,10 @@
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-surefire-plugin</artifactId>
                         <configuration>
-                            <skipTests>true</skipTests>
+                            <skipTests>false</skipTests>
                             <trimStackTrace>false</trimStackTrace>
-                            <argLine>${argLine}${surefireArgLine}</argLine>
-                            <excludedGroups>integration</excludedGroups>
+                            <argLine>${argLine} ${surefireArgLine}</argLine>
+                            <excludedGroups>org.hisp.dhis.IntegrationTest</excludedGroups>
                         </configuration>
                         <dependencies>
                             <dependency>
@@ -443,6 +444,7 @@
                             </execution>
                         </executions>
                     </plugin>
+
                 </plugins>
             </build>
         </profile>
