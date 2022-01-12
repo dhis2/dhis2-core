@@ -27,22 +27,206 @@
  */
 package org.hisp.dhis.tracker.report;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.text.DateFormat;
+import java.time.Instant;
+import java.util.Date;
+
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.tracker.TrackerIdScheme;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.Relationship;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.junit.jupiter.api.Test;
+
 class TrackerErrorReportTest
 {
 
-    // @Test
-    // void addArgAddsInstantToError() {
-    //
-    // final Instant now = Instant.now();
-    // TrackerErrorReport error = TrackerErrorReport.builder()
-    // .errorCode(TrackerErrorCode.E1031)
-    // .addArg(now)
-    // .build();
-    //
-    // List<String> args = TrackerReportUtils.buildArgumentList( bundle,
-    // Arrays.asList( now ) );
-    // assertThat( args.size(), is( 1 ) );
-    // assertThat( args.get( 0 ), is( DateFormat.getInstance().format(
-    // Date.from( now ) ) ) );
-    // }
+    // The actual error message does not matter for the purpose of this test.
+    // The only important thing is that it contains one argument that will be
+    // interpolated.
+    // This argument is what we assert on.
+    private final static TrackerErrorCode SINGLE_ARG_ERROR = TrackerErrorCode.E1006;
+
+    private final static TrackerErrorCode DOUBLE_ARG_ERROR = TrackerErrorCode.E1000;
+
+    @Test
+    void addArgAddsObjectToErrorMessage()
+    {
+
+        TrackerErrorReport error = TrackerErrorReport.builder()
+            .errorCode( SINGLE_ARG_ERROR )
+            .addArg( (Object) "INTERPOLATED_ARGUMENT" )
+            .build();
+
+        assertNotNull( error.getErrorMessage() );
+        assertTrue( error.getErrorMessage().contains( "INTERPOLATED_ARGUMENT" ) );
+    }
+
+    @Test
+    void addArgAddsStringToErrorMessage()
+    {
+
+        TrackerErrorReport error = TrackerErrorReport.builder()
+            .errorCode( SINGLE_ARG_ERROR )
+            .addArg( "INTERPOLATED_ARGUMENT" )
+            .build();
+
+        assertNotNull( error.getErrorMessage() );
+        assertTrue( error.getErrorMessage().contains( "INTERPOLATED_ARGUMENT" ) );
+    }
+
+    @Test
+    void addArgDoesNotThrowIfInstantIsNull()
+    {
+
+        TrackerErrorReport error = TrackerErrorReport.builder()
+            .errorCode( SINGLE_ARG_ERROR )
+            .addArg( (Instant) null )
+            .build();
+
+        assertNotNull( error.getErrorMessage() );
+    }
+
+    @Test
+    void addArgAddsInstantToErrorMessage()
+    {
+
+        final Instant now = Instant.now();
+        TrackerErrorReport error = TrackerErrorReport.builder()
+            .errorCode( SINGLE_ARG_ERROR )
+            .addArg( now )
+            .build();
+
+        assertNotNull( error.getErrorMessage() );
+        assertTrue( error.getErrorMessage().contains(
+            DateFormat.getInstance().format( Date.from( now ) ) ) );
+    }
+
+    @Test
+    void addArgAddsDateToErrorMessage()
+    {
+
+        final Date now = Date.from( Instant.now() );
+        TrackerErrorReport error = TrackerErrorReport.builder()
+            .errorCode( SINGLE_ARG_ERROR )
+            .addArg( now )
+            .build();
+
+        assertNotNull( error.getErrorMessage() );
+        assertTrue( error.getErrorMessage().contains(
+            DateFormat.getInstance().format( now ) ) );
+    }
+
+    @Test
+    void addArgAddsIdentifiableObjectUsingUIDToErrorMessage()
+    {
+
+        OrganisationUnit orgUnit = new OrganisationUnit();
+        orgUnit.setUid( "1234" );
+        TrackerErrorReport error = TrackerErrorReport.builder()
+            .errorCode( SINGLE_ARG_ERROR )
+            .addArg( TrackerIdScheme.UID, orgUnit )
+            .build();
+
+        assertNotNull( error.getErrorMessage() );
+        assertTrue( error.getErrorMessage().contains( "`OrganisationUnit (1234)`" ) );
+    }
+
+    @Test
+    void addArgAddsIdentifiableObjectUsingNameToErrorMessage()
+    {
+
+        OrganisationUnit orgUnit = new OrganisationUnit();
+        orgUnit.setName( "Favorite Place" );
+        orgUnit.setUid( "1234" );
+        TrackerErrorReport error = TrackerErrorReport.builder()
+            .errorCode( SINGLE_ARG_ERROR )
+            .addArg( TrackerIdScheme.NAME, orgUnit )
+            .build();
+
+        assertNotNull( error.getErrorMessage() );
+        assertTrue( error.getErrorMessage().contains( "`OrganisationUnit (Favorite Place)`" ) );
+    }
+
+    @Test
+    void addArgAddsEnrollmentToErrorMessage()
+    {
+
+        Enrollment enrollment = Enrollment.builder()
+            .enrollment( "1234" )
+            .build();
+        TrackerErrorReport error = TrackerErrorReport.builder()
+            .errorCode( SINGLE_ARG_ERROR )
+            .addArg( enrollment )
+            .build();
+
+        assertNotNull( error.getErrorMessage() );
+        assertTrue( error.getErrorMessage().contains( "`Enrollment (1234)`" ) );
+    }
+
+    @Test
+    void addArgAddsEventToErrorMessage()
+    {
+
+        Event event = Event.builder()
+            .event( "1234" )
+            .build();
+        TrackerErrorReport error = TrackerErrorReport.builder()
+            .errorCode( SINGLE_ARG_ERROR )
+            .addArg( event )
+            .build();
+
+        assertNotNull( error.getErrorMessage() );
+        assertTrue( error.getErrorMessage().contains( "`Event (1234)`" ) );
+    }
+
+    @Test
+    void addArgAddsTrackedEntityToErrorMessage()
+    {
+
+        TrackedEntity trackedEntity = TrackedEntity.builder()
+            .trackedEntity( "1234" )
+            .build();
+        TrackerErrorReport error = TrackerErrorReport.builder()
+            .errorCode( SINGLE_ARG_ERROR )
+            .addArg( trackedEntity )
+            .build();
+
+        assertNotNull( error.getErrorMessage() );
+        assertTrue( error.getErrorMessage().contains( "`TrackedEntity (1234)`" ) );
+    }
+
+    @Test
+    void addArgAddsRelationshipToErrorMessage()
+    {
+
+        Relationship relationship = Relationship.builder()
+            .relationship( "1234" )
+            .build();
+        TrackerErrorReport error = TrackerErrorReport.builder()
+            .errorCode( SINGLE_ARG_ERROR )
+            .addArg( relationship )
+            .build();
+
+        assertNotNull( error.getErrorMessage() );
+        assertTrue( error.getErrorMessage().contains( "`Relationship (1234)`" ) );
+    }
+
+    @Test
+    void addArgsAddsObjectsToErrorMessage()
+    {
+
+        TrackerErrorReport error = TrackerErrorReport.builder()
+            .errorCode( DOUBLE_ARG_ERROR )
+            .addArgs( "INTERPOLATED_ARGUMENT", 981 )
+            .build();
+
+        assertNotNull( error.getErrorMessage() );
+        assertTrue( error.getErrorMessage().contains( "INTERPOLATED_ARGUMENT" ) );
+        assertTrue( error.getErrorMessage().contains( "981" ) );
+    }
 }

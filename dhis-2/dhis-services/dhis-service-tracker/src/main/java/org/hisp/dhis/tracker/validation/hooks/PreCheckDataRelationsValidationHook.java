@@ -107,7 +107,7 @@ public class PreCheckDataRelationsValidationHook
             .uid( ((TrackerDto) enrollment).getUid() )
             .trackerType( ((TrackerDto) enrollment).getTrackerType() )
             .errorCode( E1014 )
-            .addArgs( program )
+            .addArg( program )
             .build() );
 
         if ( !programHasOrgUnit( program, organisationUnit, context.getProgramWithOrgUnitsMap() ) )

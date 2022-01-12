@@ -42,9 +42,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.domain.TrackerDto;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -146,24 +144,9 @@ public class TrackerErrorReport
             return this;
         }
 
-        // TODO(TECH-880) try using TrackerDto. Can I still get the class name
-        // Enrollment, ...
-        public TrackerErrorReportBuilder addArg( Enrollment enrollment )
+        public TrackerErrorReportBuilder addArg( TrackerDto dto )
         {
-            this.arguments.add( enrollment.getClass().getSimpleName() + " (" + enrollment.getEnrollment() + ")" );
-            return this;
-        }
-
-        public TrackerErrorReportBuilder addArg( Event event )
-        {
-            this.arguments.add( event.getClass().getSimpleName() + " (" + event.getEnrollment() + ")" );
-            return this;
-        }
-
-        public TrackerErrorReportBuilder addArg( TrackedEntity trackedEntity )
-        {
-            this.arguments
-                .add( trackedEntity.getClass().getSimpleName() + " (" + trackedEntity.getTrackedEntity() + ")" );
+            this.arguments.add( dto.getClass().getSimpleName() + " (" + dto.getUid() + ")" );
             return this;
         }
 
@@ -180,11 +163,6 @@ public class TrackerErrorReport
                 MessageFormat.format( errorCode.getMessage(), arguments.toArray( new Object[0] ) ),
                 this.errorCode, this.trackerType, this.uid );
         }
-    }
-
-    public static TrackerErrorReportBuilder newReport( TrackerErrorCode errorCode )
-    {
-        return builder().errorCode( errorCode );
     }
 
     @Override

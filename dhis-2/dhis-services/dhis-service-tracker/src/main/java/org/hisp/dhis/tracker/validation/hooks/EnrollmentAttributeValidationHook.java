@@ -124,7 +124,7 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
             .uid( ((TrackerDto) enrollment).getUid() )
             .trackerType( ((TrackerDto) enrollment).getTrackerType() )
             .errorCode( E1075 )
-            .addArgs( attribute )
+            .addArg( attribute )
             .build() );
 
         Optional<ProgramTrackedEntityAttribute> optionalTrackedAttr = program.getProgramAttributes().stream()
@@ -137,7 +137,8 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
                 .uid( ((TrackerDto) enrollment).getUid() )
                 .trackerType( ((TrackerDto) enrollment).getTrackerType() )
                 .errorCode( E1076 )
-                .addArgs( TrackedEntityAttribute.class.getSimpleName(), attribute.getAttribute() )
+                .addArg( TrackedEntityAttribute.class.getSimpleName() )
+                .addArg( attribute.getAttribute() )
                 .build() );
         }
 
@@ -150,7 +151,7 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
                 .uid( ((TrackerDto) enrollment).getUid() )
                 .trackerType( ((TrackerDto) enrollment).getTrackerType() )
                 .errorCode( E1006 )
-                .addArgs( attribute.getAttribute() )
+                .addArg( attribute.getAttribute() )
                 .build() );
         }
     }
@@ -190,7 +191,9 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
                         .uid( ((TrackerDto) enrollment).getUid() )
                         .trackerType( ((TrackerDto) enrollment).getTrackerType() )
                         .errorCode( E1018 )
-                        .addArgs( mandatoryProgramAttributeUid, program.getUid(), enrollment.getEnrollment() )
+                        .addArg( mandatoryProgramAttributeUid )
+                        .addArg( program.getUid() )
+                        .addArg( enrollment.getEnrollment() )
                         .build() ) );
 
         // enrollment must not contain any attribute which is not defined in
@@ -202,7 +205,7 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
                         .uid( ((TrackerDto) enrollment).getUid() )
                         .trackerType( ((TrackerDto) enrollment).getTrackerType() )
                         .errorCode( E1019 )
-                        .addArgs( attrUid + "=" + attrVal )
+                        .addArg( attrUid + "=" + attrVal )
                         .build() ) );
     }
 

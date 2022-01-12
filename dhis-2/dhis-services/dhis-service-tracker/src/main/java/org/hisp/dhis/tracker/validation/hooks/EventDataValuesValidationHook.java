@@ -223,13 +223,13 @@ public class EventDataValuesValidationHook
             .uid( ((TrackerDto) event).getUid() )
             .trackerType( ((TrackerDto) event).getTrackerType() )
             .errorCode( E1084 )
-            .addArgs( dataValue.getValue() )
+            .addArg( dataValue.getValue() )
             .build() );
         reporter.addErrorIf( () -> fileResource != null && fileResource.isAssigned(), () -> TrackerErrorReport.builder()
             .uid( ((TrackerDto) event).getUid() )
             .trackerType( ((TrackerDto) event).getTrackerType() )
             .errorCode( E1009 )
-            .addArgs( dataValue.getValue() )
+            .addArg( dataValue.getValue() )
             .build() );
     }
 }

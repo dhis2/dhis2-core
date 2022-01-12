@@ -62,13 +62,13 @@ public class PreCheckMandatoryFieldsValidationHook
                 .uid( ((TrackerDto) trackedEntity).getUid() )
                 .trackerType( ((TrackerDto) trackedEntity).getTrackerType() )
                 .errorCode( E1121 )
-                .addArgs( "trackedEntityType" )
+                .addArg( "trackedEntityType" )
                 .build() );
         reporter.addErrorIf( () -> StringUtils.isEmpty( trackedEntity.getOrgUnit() ), () -> TrackerErrorReport.builder()
             .uid( ((TrackerDto) trackedEntity).getUid() )
             .trackerType( ((TrackerDto) trackedEntity).getTrackerType() )
             .errorCode( E1121 )
-            .addArgs( ORG_UNIT )
+            .addArg( ORG_UNIT )
             .build() );
     }
 
@@ -79,20 +79,20 @@ public class PreCheckMandatoryFieldsValidationHook
             .uid( ((TrackerDto) enrollment).getUid() )
             .trackerType( ((TrackerDto) enrollment).getTrackerType() )
             .errorCode( E1122 )
-            .addArgs( ORG_UNIT )
+            .addArg( ORG_UNIT )
             .build() );
         reporter.addErrorIf( () -> StringUtils.isEmpty( enrollment.getProgram() ), () -> TrackerErrorReport.builder()
             .uid( ((TrackerDto) enrollment).getUid() )
             .trackerType( ((TrackerDto) enrollment).getTrackerType() )
             .errorCode( E1122 )
-            .addArgs( "program" )
+            .addArg( "program" )
             .build() );
         reporter.addErrorIf( () -> StringUtils.isEmpty( enrollment.getTrackedEntity() ),
             () -> TrackerErrorReport.builder()
                 .uid( ((TrackerDto) enrollment).getUid() )
                 .trackerType( ((TrackerDto) enrollment).getTrackerType() )
                 .errorCode( E1122 )
-                .addArgs( "trackedEntity" )
+                .addArg( "trackedEntity" )
                 .build() );
     }
 
@@ -103,13 +103,13 @@ public class PreCheckMandatoryFieldsValidationHook
             .uid( ((TrackerDto) event).getUid() )
             .trackerType( ((TrackerDto) event).getTrackerType() )
             .errorCode( E1123 )
-            .addArgs( ORG_UNIT )
+            .addArg( ORG_UNIT )
             .build() );
         reporter.addErrorIf( () -> StringUtils.isEmpty( event.getProgramStage() ), () -> TrackerErrorReport.builder()
             .uid( ((TrackerDto) event).getUid() )
             .trackerType( ((TrackerDto) event).getTrackerType() )
             .errorCode( E1123 )
-            .addArgs( "programStage" )
+            .addArg( "programStage" )
             .build() );
 
         // TODO remove if once metadata import is fixed
@@ -141,7 +141,7 @@ public class PreCheckMandatoryFieldsValidationHook
             .uid( ((TrackerDto) event).getUid() )
             .trackerType( ((TrackerDto) event).getTrackerType() )
             .errorCode( E1123 )
-            .addArgs( "program" )
+            .addArg( "program" )
             .build() );
     }
 
@@ -165,7 +165,7 @@ public class PreCheckMandatoryFieldsValidationHook
                 .uid( ((TrackerDto) relationship).getUid() )
                 .trackerType( ((TrackerDto) relationship).getTrackerType() )
                 .errorCode( E1124 )
-                .addArgs( "relationshipType" )
+                .addArg( "relationshipType" )
                 .build() );
     }
 

@@ -118,7 +118,7 @@ public class EventDateValidationHook
                     .uid( ((TrackerDto) event).getUid() )
                     .trackerType( ((TrackerDto) event).getTrackerType() )
                     .errorCode( E1042 )
-                    .addArgs( event )
+                    .addArg( event )
                     .build() );
             }
             else

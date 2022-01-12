@@ -100,7 +100,7 @@ public class PreCheckMetaValidationHook
             .uid( ((TrackerDto) enrollment).getUid() )
             .trackerType( ((TrackerDto) enrollment).getTrackerType() )
             .errorCode( E1070 )
-            .addArgs( enrollment.getOrgUnit() )
+            .addArg( enrollment.getOrgUnit() )
             .build() );
 
         Program program = context.getProgram( enrollment.getProgram() );
@@ -108,7 +108,7 @@ public class PreCheckMetaValidationHook
             .uid( ((TrackerDto) enrollment).getUid() )
             .trackerType( ((TrackerDto) enrollment).getTrackerType() )
             .errorCode( E1069 )
-            .addArgs( enrollment.getProgram() )
+            .addArg( enrollment.getProgram() )
             .build() );
 
         reporter.addErrorIf( () -> !trackedEntityInstanceExist( context, enrollment.getTrackedEntity() ),
@@ -116,7 +116,7 @@ public class PreCheckMetaValidationHook
                 .uid( ((TrackerDto) enrollment).getUid() )
                 .trackerType( ((TrackerDto) enrollment).getTrackerType() )
                 .errorCode( E1068 )
-                .addArgs( enrollment.getTrackedEntity() )
+                .addArg( enrollment.getTrackedEntity() )
                 .build() );
     }
 
@@ -130,7 +130,7 @@ public class PreCheckMetaValidationHook
             .uid( ((TrackerDto) event).getUid() )
             .trackerType( ((TrackerDto) event).getTrackerType() )
             .errorCode( E1011 )
-            .addArgs( event.getOrgUnit() )
+            .addArg( event.getOrgUnit() )
             .build() );
 
         Program program = context.getProgram( event.getProgram() );
@@ -138,7 +138,7 @@ public class PreCheckMetaValidationHook
             .uid( ((TrackerDto) event).getUid() )
             .trackerType( ((TrackerDto) event).getTrackerType() )
             .errorCode( E1010 )
-            .addArgs( event.getProgram() )
+            .addArg( event.getProgram() )
             .build() );
 
         ProgramStage programStage = context.getProgramStage( event.getProgramStage() );
@@ -146,7 +146,7 @@ public class PreCheckMetaValidationHook
             .uid( ((TrackerDto) event).getUid() )
             .trackerType( ((TrackerDto) event).getTrackerType() )
             .errorCode( E1013 )
-            .addArgs( event.getProgramStage() )
+            .addArg( event.getProgramStage() )
             .build() );
     }
 
@@ -161,7 +161,7 @@ public class PreCheckMetaValidationHook
             .uid( ((TrackerDto) relationship).getUid() )
             .trackerType( ((TrackerDto) relationship).getTrackerType() )
             .errorCode( E4006 )
-            .addArgs( relationship.getRelationshipType() )
+            .addArg( relationship.getRelationshipType() )
             .build() );
     }
 

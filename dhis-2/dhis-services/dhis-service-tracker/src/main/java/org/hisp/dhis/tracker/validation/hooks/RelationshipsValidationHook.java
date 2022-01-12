@@ -101,7 +101,8 @@ public class RelationshipsValidationHook
                 .uid( ((TrackerDto) relationship).getUid() )
                 .trackerType( ((TrackerDto) relationship).getTrackerType() )
                 .errorCode( E4001 )
-                .addArgs( "from", relationship.getRelationship() )
+                .addArg( "from" )
+                .addArg( relationship.getRelationship() )
                 .build() );
         reporter.addErrorIf(
             () -> relationship.getTo() != null && countMatches( onlyValues( relationship.getTo() ), "null" ) < 2,
@@ -109,7 +110,8 @@ public class RelationshipsValidationHook
                 .uid( ((TrackerDto) relationship).getUid() )
                 .trackerType( ((TrackerDto) relationship).getTrackerType() )
                 .errorCode( E4001 )
-                .addArgs( "to", relationship.getRelationship() )
+                .addArg( "to" )
+                .addArg( relationship.getRelationship() )
                 .build() );
     }
 
@@ -134,7 +136,7 @@ public class RelationshipsValidationHook
                 .uid( ((TrackerDto) relationship).getUid() )
                 .trackerType( ((TrackerDto) relationship).getTrackerType() )
                 .errorCode( E4009 )
-                .addArgs( relationship.getRelationshipType() )
+                .addArg( relationship.getRelationshipType() )
                 .build() );
 
         final Optional<TrackerErrorReport> any = reporter.getReportList().stream()
@@ -271,7 +273,9 @@ public class RelationshipsValidationHook
                 .uid( ((TrackerDto) relationship).getUid() )
                 .trackerType( ((TrackerDto) relationship).getTrackerType() )
                 .errorCode( E4011 )
-                .addArgs( relationship.getRelationship(), trackerType.getName(), s )
+                .addArg( relationship.getRelationship() )
+                .addArg( trackerType.getName() )
+                .addArg( s )
                 .build() ) );
     }
 

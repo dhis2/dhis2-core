@@ -205,7 +205,8 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
             .uid( ((TrackerDto) te).getUid() )
             .trackerType( ((TrackerDto) te).getTrackerType() )
             .errorCode( E1077 )
-            .addArgs( value, Constant.MAX_ATTR_VALUE_LENGTH )
+            .addArg( value )
+            .addArg( Constant.MAX_ATTR_VALUE_LENGTH )
             .build() );
 
         // Validate if that encryption is configured properly if someone sets
@@ -216,7 +217,7 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
             .uid( ((TrackerDto) te).getUid() )
             .trackerType( ((TrackerDto) te).getTrackerType() )
             .errorCode( E1112 )
-            .addArgs( value )
+            .addArg( value )
             .build() );
 
         // Uses ValidationUtils to check that the data value corresponds to the
@@ -226,7 +227,8 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
             .uid( ((TrackerDto) te).getUid() )
             .trackerType( ((TrackerDto) te).getTrackerType() )
             .errorCode( E1085 )
-            .addArgs( tea, result )
+            .addArg( tea )
+            .addArg( result )
             .build() );
     }
 
@@ -256,13 +258,13 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
             .uid( te.getUid() )
             .trackerType( te.getTrackerType() )
             .errorCode( E1084 )
-            .addArgs( attr.getValue() )
+            .addArg( attr.getValue() )
             .build() );
         reporter.addErrorIf( () -> fileResource != null && fileResource.isAssigned(), () -> TrackerErrorReport.builder()
             .uid( ((TrackerDto) te).getUid() )
             .trackerType( ((TrackerDto) te).getTrackerType() )
             .errorCode( E1009 )
-            .addArgs( attr.getValue() )
+            .addArg( attr.getValue() )
             .build() );
     }
 }

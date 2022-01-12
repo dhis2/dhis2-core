@@ -69,7 +69,7 @@ public class PreCheckUpdatableFieldsValidationHook
                 .uid( ((TrackerDto) trackedEntity).getUid() )
                 .trackerType( ((TrackerDto) trackedEntity).getTrackerType() )
                 .errorCode( E1126 )
-                .addArgs( "trackedEntityType" )
+                .addArg( "trackedEntityType" )
                 .build() );
     }
 
@@ -87,14 +87,14 @@ public class PreCheckUpdatableFieldsValidationHook
                 .uid( ((TrackerDto) enrollment).getUid() )
                 .trackerType( ((TrackerDto) enrollment).getTrackerType() )
                 .errorCode( E1127 )
-                .addArgs( "program" )
+                .addArg( "program" )
                 .build() );
         reporter.addErrorIf( () -> !trackedEntityInstance.getUid().equals( enrollment.getTrackedEntity() ),
             () -> TrackerErrorReport.builder()
                 .uid( ((TrackerDto) enrollment).getUid() )
                 .trackerType( ((TrackerDto) enrollment).getTrackerType() )
                 .errorCode( E1127 )
-                .addArgs( "trackedEntity" )
+                .addArg( "trackedEntity" )
                 .build() );
     }
 
@@ -112,7 +112,7 @@ public class PreCheckUpdatableFieldsValidationHook
                 .uid( ((TrackerDto) event).getUid() )
                 .trackerType( ((TrackerDto) event).getTrackerType() )
                 .errorCode( E1128 )
-                .addArgs( "programStage" )
+                .addArg( "programStage" )
                 .build() );
         reporter.addErrorIf(
             () -> event.getEnrollment() != null && !event.getEnrollment().equals( programInstance.getUid() ),
@@ -120,7 +120,7 @@ public class PreCheckUpdatableFieldsValidationHook
                 .uid( ((TrackerDto) event).getUid() )
                 .trackerType( ((TrackerDto) event).getTrackerType() )
                 .errorCode( E1128 )
-                .addArgs( "enrollment" )
+                .addArg( "enrollment" )
                 .build() );
     }
 

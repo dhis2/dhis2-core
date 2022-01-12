@@ -131,10 +131,12 @@ public abstract class AbstractTrackerDtoValidationHook
                     .uid( dto.getUid() )
                     .trackerType( dto.getTrackerType() )
                     .errorCode( E1125 )
-                    .addArgs( value, optionalObject.getUid(), optionalObject.getClass().getSimpleName(),
-                        optionalObject.getOptionSet().getOptions().stream().filter( Objects::nonNull )
-                            .map( Option::getCode )
-                            .collect( Collectors.joining( "," ) ) )
+                    .addArg( value )
+                    .addArg( optionalObject.getUid() )
+                    .addArg( optionalObject.getClass().getSimpleName() )
+                    .addArg( optionalObject.getOptionSet().getOptions().stream().filter( Objects::nonNull )
+                        .map( Option::getCode )
+                        .collect( Collectors.joining( "," ) ) )
                     .build() ) );
     }
 
