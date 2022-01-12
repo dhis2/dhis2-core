@@ -32,6 +32,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BooleanSupplier;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
@@ -108,9 +109,9 @@ public class TrackerValidationReport
         return this;
     }
 
-    public TrackerValidationReport addErrorIf( Supplier<Boolean> condition, Supplier<TrackerErrorReport> error )
+    public TrackerValidationReport addErrorIf( BooleanSupplier condition, Supplier<TrackerErrorReport> error )
     {
-        if ( condition.get() )
+        if ( condition.getAsBoolean() )
         {
             addErrorIfNotExisting( error.get() );
         }

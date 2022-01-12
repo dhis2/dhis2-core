@@ -38,7 +38,6 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.preheat.UniqueAttributeValue;
@@ -145,7 +144,6 @@ public abstract class AttributeValidationHook extends AbstractTrackerDtoValidati
                 && hasTheSameValue
                 && isNotSameTei )
             {
-                TrackerBundle bundle = errorReporter.getValidationContext().getBundle();
                 TrackerErrorReport err = TrackerErrorReport.builder()
                     .uid( dto.getUid() )
                     .trackerType( dto.getTrackerType() )

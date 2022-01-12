@@ -81,7 +81,7 @@ class TrackerValidationReportTest
 
         TrackerValidationReport report = new TrackerValidationReport();
 
-        report.addErrorIf( () -> false, () -> newError() );
+        report.addErrorIf( () -> false, this::newError );
 
         assertFalse( report.hasErrors() );
     }
@@ -179,7 +179,7 @@ class TrackerValidationReportTest
     }
 
     @Test
-    void hasPerfsReturnsFalse()
+    void hasTimingsReturnsFalse()
     {
 
         TrackerValidationReport report = new TrackerValidationReport();
@@ -188,7 +188,7 @@ class TrackerValidationReportTest
     }
 
     @Test
-    void hasPerfsReturnsTrue()
+    void hasTimingsReturnsTrue()
     {
 
         TrackerValidationReport report = new TrackerValidationReport();
