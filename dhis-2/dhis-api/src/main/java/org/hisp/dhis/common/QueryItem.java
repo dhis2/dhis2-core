@@ -68,6 +68,8 @@ public class QueryItem
 
     private ProgramStage programStage;
 
+    private int programStageOffset;
+
     private Boolean unique = false;
 
     private RelationshipType relationshipType;
@@ -281,8 +283,8 @@ public class QueryItem
     {
         return getQueryFilterItems().stream()
             .map( code -> optionSet.getOptionByCode( code ) )
-            .filter( option -> option != null )
-            .map( option -> option.getUid() )
+            .filter( Objects::nonNull )
+            .map( BaseIdentifiableObject::getUid )
             .collect( Collectors.toList() );
     }
 
@@ -347,7 +349,7 @@ public class QueryItem
     @Override
     public int hashCode()
     {
-        return Objects.hash( item, program, programStage );
+        return Objects.hash( item, program, programStage, programStageOffset );
     }
 
     @Override
@@ -372,7 +374,8 @@ public class QueryItem
 
         return Objects.equals( item, other.getItem() ) &&
             Objects.equals( program, other.getProgram() ) &&
-            Objects.equals( programStage, other.getProgramStage() );
+            Objects.equals( programStage, other.getProgramStage() ) &&
+            programStageOffset == other.getProgramStageOffset();
     }
 
     @Override
@@ -380,7 +383,8 @@ public class QueryItem
     {
         return "[Item: " + item + ", legend set: " + legendSet + ", filters: " + filters +
             ", value type: " + valueType + ", optionSet: " + optionSet +
-            ", program: " + program + ", program stage: " + programStage + "]";
+            ", program: " + program + ", program stage: " + programStage +
+            "program stage offset: " + programStageOffset + "]";
     }
 
     // -------------------------------------------------------------------------
@@ -462,9 +466,19 @@ public class QueryItem
         return programStage;
     }
 
+    public int getProgramStageOffset()
+    {
+        return programStageOffset;
+    }
+
     public void setProgramStage( ProgramStage programStage )
     {
         this.programStage = programStage;
+    }
+
+    public void setProgramStageOffset( int programStageOffset )
+    {
+        this.programStageOffset = programStageOffset;
     }
 
     public Boolean isUnique()
