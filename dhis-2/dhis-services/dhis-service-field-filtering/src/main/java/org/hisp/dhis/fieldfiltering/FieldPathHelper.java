@@ -44,6 +44,7 @@ import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.user.UserCredentials;
 import org.springframework.stereotype.Component;
 
 /**
@@ -112,12 +113,11 @@ public class FieldPathHelper
 
         Property property = fieldPath.getProperty();
 
-        if ( property.is( PropertyType.COMPLEX ) || property.itemIs( PropertyType.COMPLEX )
-            || property.isEmbeddedObject() )
+        if ( isComplex( property ) )
         {
             expandComplex( fieldPathMap, paths, schema );
         }
-        else if ( property.is( PropertyType.REFERENCE ) || property.itemIs( PropertyType.REFERENCE ) )
+        else if ( isReference( property ) )
         {
             expandReference( fieldPathMap, paths, schema );
         }
@@ -144,12 +144,11 @@ public class FieldPathHelper
             return;
         }
 
-        if ( property.is( PropertyType.COMPLEX ) || property.itemIs( PropertyType.COMPLEX )
-            || property.isEmbeddedObject() )
+        if ( isComplex( property ) )
         {
             expandComplex( fieldPathMap, paths, schema );
         }
-        else if ( property.is( PropertyType.REFERENCE ) || property.itemIs( PropertyType.REFERENCE ) )
+        else if ( isReference( property ) )
         {
             expandReference( fieldPathMap, paths, schema );
         }
@@ -230,6 +229,17 @@ public class FieldPathHelper
     // ----------------------------------------------------------------------------------------------------------------
     // Helpers
     // ----------------------------------------------------------------------------------------------------------------
+
+    private boolean isReference( Property property )
+    {
+        return property.is( PropertyType.REFERENCE ) || property.itemIs( PropertyType.REFERENCE );
+    }
+
+    private boolean isComplex( Property property )
+    {
+        return property.is( PropertyType.COMPLEX ) || property.itemIs( PropertyType.COMPLEX )
+            || property.isEmbeddedObject() || UserCredentials.class.isAssignableFrom( property.getKlass() );
+    }
 
     /**
      * Calculates a weighted map of paths to find candidates for default
