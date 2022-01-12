@@ -389,7 +389,7 @@ public class JdbcEventAnalyticsManager
 
     private List<String> getProgramColumnsOrEmpty( final EventQueryParams params )
     {
-        if ( params.getProgram().isRegistration() )
+        if ( params.getProgram() != null && params.getProgram().isRegistration() )
         {
             return new ArrayList<>( PROGRAM_REGISTRATION_COLUMNS.values() );
         }

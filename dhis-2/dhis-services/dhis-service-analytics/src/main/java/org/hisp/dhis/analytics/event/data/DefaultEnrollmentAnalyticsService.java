@@ -28,8 +28,8 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.analytics.event.data.EnrollmentGridHeaderHandler.createGridUsingHeaders;
 import static org.hisp.dhis.analytics.event.data.EnrollmentGridHeaderHandler.createGridWithDefaultHeaders;
-import static org.hisp.dhis.analytics.event.data.EnrollmentGridHeaderHandler.createGridWithParamHeaders;
 
 import java.util.ArrayList;
 
@@ -86,7 +86,7 @@ public class DefaultEnrollmentAnalyticsService
         // along with their respective data.
         if ( params.hasHeaders() )
         {
-            return createGridWithParamHeaders( new ArrayList<>( params.getHeaders() ) );
+            return createGridUsingHeaders( new ArrayList<>( params.getHeaders() ) );
         }
         else
         {

@@ -59,12 +59,21 @@ import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.system.grid.ListGrid;
 
+/**
+ * Grid handler for events. It encapsulates the logic to build and populate Grid
+ * along with the respective GridHeader.
+ *
+ * @author maikel arabori
+ */
 public final class EventGridHeaderHandler
 {
     private EventGridHeaderHandler()
     {
     }
 
+    /**
+     * Pretty column names used for displaying purposes.
+     */
     public static final String NAME_EVENT = "Event";
 
     public static final String NAME_TRACKED_ENTITY_INSTANCE = "Tracked entity instance";
@@ -101,6 +110,9 @@ public final class EventGridHeaderHandler
 
     public static final String NAME_POINTS = "Points";
 
+    /**
+     * Items descriptions that are used as column names for the headers.
+     */
     public static final String ITEM_EVENT = "psi";
 
     public static final String ITEM_TRACKED_ENTITY_INSTANCE = "tei";
@@ -156,6 +168,13 @@ public final class EventGridHeaderHandler
             // @formatter:on
     }
 
+    /**
+     * Creates the default Grid and its headers for event, based on the given
+     * params (some headers values are extracted from params).
+     *
+     * @param params the {@link EventQueryParams}
+     * @return the Grid along with its respective GridHeaders
+     */
     static Grid createGridWithDefaultHeaders( final EventQueryParams params )
     {
         final Grid grid = new ListGrid();
@@ -168,7 +187,7 @@ public final class EventGridHeaderHandler
             .addHeader( new GridHeader( ITEM_STORED_BY, NAME_STORED_BY, TEXT, false, true ) )
             .addHeader( new GridHeader( ITEM_LAST_UPDATED, NAME_LAST_UPDATED, DATE, false, true ) );
 
-        if ( params.getProgram().isRegistration() )
+        if ( params.getProgram() != null && params.getProgram().isRegistration() )
         {
             grid
                 .addHeader( new GridHeader( ITEM_ENROLLMENT_DATE,
@@ -197,7 +216,14 @@ public final class EventGridHeaderHandler
         return grid;
     }
 
-    static Grid createGridWithParamHeaders( final List<String> headers, final EventQueryParams params )
+    /**
+     * Creates Grid and its headers for event, based only on the given params
+     * (some headers values are extracted from params).
+     *
+     * @param params the {@link EventQueryParams}
+     * @return the Grid along with its respective GridHeaders
+     */
+    static Grid createGridUsingParamHeaders( final List<String> headers, final EventQueryParams params )
     {
         final Grid grid = new ListGrid( headers.size() );
         final Map<String, GridHeader> gridHeadersWithDynamicNames = getGridHeadersWithDynamicNames( params );
@@ -217,6 +243,11 @@ public final class EventGridHeaderHandler
         return grid;
     }
 
+    /**
+     * Creates the default Grid and its headers for event cluster.
+     *
+     * @return the Grid along with its respective GridHeaders
+     */
     static Grid createGridWithClusterHeaders()
     {
         final Grid grid = new ListGrid();
@@ -230,6 +261,12 @@ public final class EventGridHeaderHandler
         return grid;
     }
 
+    /**
+     * Creates the aggregated Grid and its headers for events, based on the
+     * given params.
+     *
+     * @return the Grid along with its respective GridHeaders
+     */
     static Grid createGridWithAggregatedHeaders( final EventQueryParams params )
     {
         final Grid grid = new ListGrid();
@@ -240,7 +277,7 @@ public final class EventGridHeaderHandler
         }
         else
         {
-            for ( QueryItem item : params.getItems() )
+            for ( final QueryItem item : params.getItems() )
             {
                 grid.addHeader( new GridHeader(
                     item.getItem().getUid(), item.getItem().getDisplayProperty( params.getDisplayProperty() ),
@@ -248,7 +285,7 @@ public final class EventGridHeaderHandler
             }
         }
 
-        for ( DimensionalObject dimension : params.getDimensions() )
+        for ( final DimensionalObject dimension : params.getDimensions() )
         {
             grid.addHeader( new GridHeader(
                 dimension.getDimension(), dimension.getDisplayProperty( params.getDisplayProperty() ),

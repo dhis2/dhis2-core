@@ -39,12 +39,21 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.system.grid.ListGrid;
 
+/**
+ * Grid handler for enrollments. It encapsulates the logic to build and populate
+ * Grid along with the respective GridHeader.
+ *
+ * @author maikel arabori
+ */
 public final class EnrollmentGridHeaderHandler
 {
     private EnrollmentGridHeaderHandler()
     {
     }
 
+    /**
+     * Pretty column names used for displaying purposes.
+     */
     private static final String NAME_TRACKED_ENTITY_INSTANCE = "Tracked entity instance";
 
     private static final String NAME_PROGRAM_INSTANCE = "Enrollment";
@@ -67,6 +76,9 @@ public final class EnrollmentGridHeaderHandler
 
     private static final String NAME_ORG_UNIT_CODE = "Organisation unit code";
 
+    /**
+     * Items descriptions that are used as column names for the headers.
+     */
     public static final String ITEM_TRACKED_ENTITY_INSTANCE = "tei";
 
     public static final String ITEM_PROGRAM_INSTANCE = "pi";
@@ -108,6 +120,11 @@ public final class EnrollmentGridHeaderHandler
         // @formatter:on
     }
 
+    /**
+     * Creates the default Grid and its headers for enrollments.
+     *
+     * @return the Grid along with its respective GridHeaders
+     */
     static Grid createGridWithDefaultHeaders()
     {
         return new ListGrid()
@@ -135,7 +152,14 @@ public final class EnrollmentGridHeaderHandler
                 ITEM_ORG_UNIT_CODE, NAME_ORG_UNIT_CODE, TEXT, false, true ) );
     }
 
-    static Grid createGridWithParamHeaders( final List<String> headers )
+    /**
+     * Creates Grid and its headers for enrollments, based only on the given
+     * params (some headers values are extracted from params).
+     *
+     * @param headers the list of headers
+     * @return the Grid along with its respective GridHeaders
+     */
+    static Grid createGridUsingHeaders( final List<String> headers )
     {
         final Grid grid = new ListGrid( headers.size() );
 

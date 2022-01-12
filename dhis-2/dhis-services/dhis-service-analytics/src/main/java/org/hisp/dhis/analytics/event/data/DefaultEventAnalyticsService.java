@@ -30,10 +30,10 @@ package org.hisp.dhis.analytics.event.data;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.DIMENSIONS;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ITEMS;
+import static org.hisp.dhis.analytics.event.data.EventGridHeaderHandler.createGridUsingParamHeaders;
 import static org.hisp.dhis.analytics.event.data.EventGridHeaderHandler.createGridWithAggregatedHeaders;
 import static org.hisp.dhis.analytics.event.data.EventGridHeaderHandler.createGridWithClusterHeaders;
 import static org.hisp.dhis.analytics.event.data.EventGridHeaderHandler.createGridWithDefaultHeaders;
-import static org.hisp.dhis.analytics.event.data.EventGridHeaderHandler.createGridWithParamHeaders;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.common.DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
@@ -620,7 +620,7 @@ public class DefaultEventAnalyticsService
         // along with their respective data.
         if ( params.hasHeaders() )
         {
-            return createGridWithParamHeaders( new ArrayList<>( params.getHeaders() ), params );
+            return createGridUsingParamHeaders( new ArrayList<>( params.getHeaders() ), params );
         }
         else
         {
