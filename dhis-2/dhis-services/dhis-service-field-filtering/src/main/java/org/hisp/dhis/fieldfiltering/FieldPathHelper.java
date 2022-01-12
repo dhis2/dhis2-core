@@ -112,7 +112,8 @@ public class FieldPathHelper
 
         Property property = fieldPath.getProperty();
 
-        if ( property.is( PropertyType.COMPLEX ) || property.itemIs( PropertyType.COMPLEX ) )
+        if ( property.is( PropertyType.COMPLEX ) || property.itemIs( PropertyType.COMPLEX )
+            || property.isEmbeddedObject() )
         {
             expandComplex( fieldPathMap, paths, schema );
         }
