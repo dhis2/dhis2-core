@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.event.data;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -40,6 +41,7 @@ import static org.hisp.dhis.DhisConvenienceTest.createProgramIndicator;
 import static org.hisp.dhis.DhisConvenienceTest.getDate;
 import static org.hisp.dhis.analytics.AnalyticsAggregationType.fromAggregationType;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+import static org.hisp.dhis.feedback.ErrorCode.E7230;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -47,6 +49,8 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
@@ -57,6 +61,7 @@ import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
@@ -385,5 +390,37 @@ class AbstractJdbcEventAnalyticsManagerTest extends
         assertThat( whereClause,
             containsString(
                 "and ax.\"uidlevel0\" in ('ouabcdefghA','ouabcdefghB','ouabcdefghC')" ) );
+    }
+
+    @Test
+    void testGetSelectableDbColumnsSuccessfully()
+    {
+        // Given
+        final Set<String> headersParam = Set.of( "eventdate" );
+        final Map<String, String> dbColumns = Map.of( "eventdate", "db_eventdate", "ou", "db_ou" );
+
+        // When
+        final Set<String> result = subject.getSelectableDbColumns( headersParam, dbColumns );
+
+        // Then
+        assertThat( result.contains( "db_eventdate" ), is( equalTo( true ) ) );
+    }
+
+    @Test
+    void testGetSelectableDbColumnsThrowsException()
+    {
+        // Given
+        final Set<String> invalidHeadersParam = Set.of( "nonExistingColumn" );
+        final Map<String, String> dbColumns = Map.of( "eventdate", "db_eventdate", "ou", "db_ou" );
+
+        // When
+        final IllegalQueryException expectedException = assertThrows(
+            IllegalQueryException.class,
+            () -> subject.getSelectableDbColumns( invalidHeadersParam, dbColumns ) );
+
+        // Then
+        assertThat( expectedException.getMessage(),
+            is( equalTo( "Header param `nonExistingColumn` does not exist" ) ) );
+        assertThat( expectedException.getErrorCode(), is( equalTo( E7230 ) ) );
     }
 }
