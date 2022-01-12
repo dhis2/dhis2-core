@@ -59,6 +59,11 @@ public interface JsonErrorReport extends JsonObject
         return getString( "errorKlass" ).parsedClass();
     }
 
+    default String getErrorProperty()
+    {
+        return getString( "errorProperty" ).string();
+    }
+
     default List<String> getErrorProperties()
     {
         return getArray( "errorProperties" ).stringValues();

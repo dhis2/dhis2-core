@@ -83,8 +83,8 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
         if ( user.getWhatsApp() != null && !ValidationUtils.validateWhatsapp( user.getWhatsApp() ) )
         {
             addReports.accept(
-                new ErrorReport( User.class, ErrorCode.E4027, user.getWhatsApp(), "whatsapp" )
-                    .setErrorProperty( "whatsapp" ) );
+                new ErrorReport( User.class, ErrorCode.E4027, user.getWhatsApp(), "whatsApp" )
+                    .setErrorProperty( "whatsApp" ) );
         }
     }
 
