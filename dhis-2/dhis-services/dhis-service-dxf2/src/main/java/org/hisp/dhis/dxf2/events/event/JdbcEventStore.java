@@ -31,8 +31,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang.StringEscapeUtils.escapeSql;
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
-import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
 import static org.hisp.dhis.commons.util.TextUtils.splitToArray;
@@ -88,6 +86,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
@@ -949,8 +948,6 @@ public class JdbcEventStore implements EventStore
 
     private String getEventSelectQuery( EventSearchParams params, List<OrganisationUnit> organisationUnits, User user )
     {
-        List<Long> orgUnitIds = getIdentifiers( organisationUnits );
-
         SqlHelper hlp = new SqlHelper();
 
         StringBuilder sqlBuilder = new StringBuilder().append( "select "
@@ -1129,10 +1126,9 @@ public class JdbcEventStore implements EventStore
                 .append( params.getCategoryOptionCombo().getId() ).append( " " );
         }
 
-        if ( orgUnitIds != null && !orgUnitIds.isEmpty() )
+        if ( !organisationUnits.isEmpty() || params.getOrgUnit() != null )
         {
-            sqlBuilder.append( hlp.whereAnd() ).append( " psi.organisationunitid in (" )
-                .append( getCommaDelimitedString( orgUnitIds ) ).append( ") " );
+            sqlBuilder.append( hlp.whereAnd() ).append( getOrgUnitSql( hlp, params, organisationUnits ) );
         }
 
         if ( params.getStartDate() != null )
@@ -1305,10 +1301,9 @@ public class JdbcEventStore implements EventStore
             sqlBuilder.append( hlp.whereAnd() ).append( eventDataValuesWhereSql ).append( " " );
         }
 
-        if ( organisationUnits != null && !organisationUnits.isEmpty() )
+        if ( !organisationUnits.isEmpty() || params.getOrgUnit() != null )
         {
-            sqlBuilder.append( hlp.whereAnd() ).append( " psi.organisationunitid in (" )
-                .append( getCommaDelimitedString( getIdentifiers( organisationUnits ) ) ).append( ") " );
+            sqlBuilder.append( hlp.whereAnd() ).append( getOrgUnitSql( hlp, params, organisationUnits ) );
         }
 
         if ( params.getProgramStage() != null )
@@ -1897,4 +1892,47 @@ public class JdbcEventStore implements EventStore
         return batch.stream().sorted( Comparator.comparing( ProgramStageInstance::getUid ) ).collect( toList() );
     }
 
+    private String getOrgUnitSql( SqlHelper hlp, EventSearchParams params, List<OrganisationUnit> organisationUnits )
+    {
+        StringBuilder orgUnitSql = new StringBuilder();
+
+        if ( params.getOrgUnit() != null && !params.isPathOrganisationUnitMode() )
+        {
+            orgUnitSql.append( " ou.organisationunitid = " + params.getOrgUnit().getId() + " " );
+        }
+
+        else
+        {
+            SqlHelper orHlp = new SqlHelper( true );
+            String path = "ou.path LIKE '";
+            for ( OrganisationUnit organisationUnit : organisationUnits )
+            {
+                if ( params.isOrganisationUnitMode( OrganisationUnitSelectionMode.DESCENDANTS ) )
+                {
+                    orgUnitSql.append( orHlp.or() ).append( path )
+                        .append( organisationUnit.getPath() ).append( "%' " )
+                        .append( hlp.whereAnd() ).append( " ou.hierarchylevel > " + organisationUnit.getLevel() );
+                }
+                else if ( params.isOrganisationUnitMode( OrganisationUnitSelectionMode.CHILDREN ) )
+                {
+                    orgUnitSql.append( orHlp.or() ).append( path )
+                        .append( organisationUnit.getPath() ).append( "%' " )
+                        .append( hlp.whereAnd() ).append( " ou.hierarchylevel = " + (organisationUnit.getLevel() + 1) );
+                }
+                else
+                {
+                    orgUnitSql.append( orHlp.or() ).append( path )
+                        .append( organisationUnit.getPath() ).append( "%' " );
+                }
+            }
+
+            if ( !organisationUnits.isEmpty() )
+            {
+                orgUnitSql.insert( 0, " (" );
+                orgUnitSql.append( ") " );
+            }
+        }
+
+        return orgUnitSql.toString();
+    }
 }
