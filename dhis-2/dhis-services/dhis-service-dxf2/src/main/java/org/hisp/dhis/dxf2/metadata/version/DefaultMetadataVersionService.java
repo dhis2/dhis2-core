@@ -53,12 +53,12 @@ import org.hisp.dhis.metadata.version.MetadataVersionService;
 import org.hisp.dhis.metadata.version.MetadataVersionStore;
 import org.hisp.dhis.metadata.version.VersionType;
 import org.hisp.dhis.node.NodeService;
-import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
 
 /**
@@ -389,8 +389,8 @@ public class DefaultMetadataVersionService
             }
 
             os = new ByteArrayOutputStream( 1024 );
-            RootNode metadata = metadataExportService.getMetadataAsNode( exportParams );
-            nodeService.serialize( metadata, "application/json", os );
+            ObjectNode metadata = metadataExportService.getMetadataAsNode( exportParams );
+            renderService.toJson( os, metadata );
         }
         catch ( Exception ex ) // We have to catch the "Exception" object as no
                                // specific exception on the contract.

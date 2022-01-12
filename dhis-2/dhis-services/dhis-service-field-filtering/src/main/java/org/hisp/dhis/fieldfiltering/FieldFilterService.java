@@ -64,6 +64,11 @@ public class FieldFilterService
     @Qualifier( "jsonMapper" )
     private final ObjectMapper jsonMapper;
 
+    public ObjectNode createObjectNode()
+    {
+        return jsonMapper.createObjectNode();
+    }
+
     private static class IgnoreJsonSerializerRefinementAnnotationInspector extends JacksonAnnotationIntrospector
     {
         /**

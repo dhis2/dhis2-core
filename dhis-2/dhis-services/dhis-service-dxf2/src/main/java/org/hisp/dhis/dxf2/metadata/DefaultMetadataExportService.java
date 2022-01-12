@@ -32,6 +32,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.annotation.Nonnull;
 
@@ -62,21 +63,14 @@ import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventreport.EventReport;
 import org.hisp.dhis.eventvisualization.EventVisualization;
-import org.hisp.dhis.fieldfilter.Defaults;
-import org.hisp.dhis.fieldfilter.FieldFilterParams;
-import org.hisp.dhis.fieldfilter.FieldFilterService;
+import org.hisp.dhis.fieldfiltering.FieldFilterParams;
+import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.interpretation.Interpretation;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.mapping.MapView;
-import org.hisp.dhis.node.NodeUtils;
-import org.hisp.dhis.node.config.InclusionStrategy;
-import org.hisp.dhis.node.types.CollectionNode;
-import org.hisp.dhis.node.types.ComplexNode;
-import org.hisp.dhis.node.types.RootNode;
-import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.program.Program;
@@ -103,12 +97,13 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.visualization.Visualization;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Enums;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 /**
@@ -205,32 +200,64 @@ public class DefaultMetadataExportService implements MetadataExportService
     }
 
     @Override
-    public RootNode getMetadataAsNode( MetadataExportParams params )
+    public ObjectNode getMetadataAsNode( MetadataExportParams params )
     {
-        RootNode rootNode = NodeUtils.createMetadata();
-        rootNode.getConfig().setInclusionStrategy( params.getInclusionStrategy() );
-
+        ObjectNode rootNode = fieldFilterService.createObjectNode();
         SystemInfo systemInfo = systemService.getSystemInfo();
 
-        ComplexNode system = rootNode.addChild( new ComplexNode( "system" ) );
-        system.addChild( new SimpleNode( "id", systemInfo.getSystemId() ) );
-        system.addChild( new SimpleNode( "rev", systemInfo.getRevision() ) );
-        system.addChild( new SimpleNode( "version", systemInfo.getVersion() ) );
-        system.addChild( new SimpleNode( "date", systemInfo.getServerDate() ) );
+        rootNode.putObject( "system" )
+            .put( "id", systemInfo.getSystemId() )
+            .put( "rev", systemInfo.getRevision() )
+            .put( "version", systemInfo.getVersion() )
+            .put( "date", DateUtils.getIso8601( systemInfo.getServerDate() ) );
 
         Map<Class<? extends IdentifiableObject>, List<? extends IdentifiableObject>> metadata = getMetadata( params );
 
         for ( Class<? extends IdentifiableObject> klass : metadata.keySet() )
         {
-            FieldFilterParams fieldFilterParams = new FieldFilterParams( metadata.get( klass ),
-                params.getFields( klass ), params.getDefaults(), params.getSkipSharing() );
-            fieldFilterParams.setUser( params.getUser() );
+            FieldFilterParams<?> fieldFilterParams = FieldFilterParams.builder()
+                .objects( new ArrayList<>( metadata.get( klass ) ) )
+                .build();
 
-            CollectionNode collectionNode = fieldFilterService.toCollectionNode( klass, fieldFilterParams );
+            List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes( fieldFilterParams );
 
-            if ( !collectionNode.getChildren().isEmpty() )
+            if ( !objectNodes.isEmpty() )
             {
-                rootNode.addChild( collectionNode );
+                String plural = schemaService.getDynamicSchema( klass ).getPlural();
+                rootNode.putArray( plural ).addAll( objectNodes );
+            }
+        }
+
+        return rootNode;
+    }
+
+    @Override
+    public ObjectNode getMetadataWithDependenciesAsNode( IdentifiableObject object,
+        @Nonnull MetadataExportParams params )
+    {
+        ObjectNode rootNode = fieldFilterService.createObjectNode()
+            .putObject( "system" )
+            .put( "date", DateUtils.getIso8601( new Date() ) );
+
+        SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata = getMetadataWithDependencies(
+            object );
+
+        for ( Class<? extends IdentifiableObject> klass : metadata.keySet() )
+        {
+            FieldFilterParams<?> fieldFilterParams = FieldFilterParams.builder()
+                .objects( new ArrayList<>( metadata.get( klass ) ) )
+                .filters( Set.of( ":owner" ) )
+                .build();
+
+            List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes( fieldFilterParams );
+
+            System.err.println( klass );
+            System.err.println( klass.getSuperclass() );
+
+            if ( !objectNodes.isEmpty() )
+            {
+                String plural = schemaService.getDynamicSchema( klass ).getPlural();
+                rootNode.putArray( plural ).addAll( objectNodes );
             }
         }
 
@@ -268,11 +295,6 @@ public class DefaultMetadataExportService implements MetadataExportService
     {
         MetadataExportParams params = new MetadataExportParams();
         Map<Class<? extends IdentifiableObject>, Map<String, List<String>>> map = new HashMap<>();
-
-        params.setDefaults( getEnumWithDefault( Defaults.class, parameters, "defaults", Defaults.INCLUDE ) );
-        params
-            .setInclusionStrategy( getEnumWithDefault( InclusionStrategy.Include.class, parameters, "inclusionStrategy",
-                InclusionStrategy.Include.NON_NULL ) );
 
         if ( parameters.containsKey( "fields" ) )
         {
@@ -394,38 +416,36 @@ public class DefaultMetadataExportService implements MetadataExportService
         SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata = new SetMap<>();
 
         if ( OptionSet.class.isInstance( object ) )
-            return handleOptionSet( metadata, (OptionSet) object );
-        if ( DataSet.class.isInstance( object ) )
-            return handleDataSet( metadata, (DataSet) object );
-        if ( Program.class.isInstance( object ) )
-            return handleProgram( metadata, (Program) object );
-        if ( CategoryCombo.class.isInstance( object ) )
-            return handleCategoryCombo( metadata, (CategoryCombo) object );
-        if ( Dashboard.class.isInstance( object ) )
-            return handleDashboard( metadata, (Dashboard) object );
-        if ( DataElementGroup.class.isInstance( object ) )
-            return handleDataElementGroup( metadata, (DataElementGroup) object );
-        return metadata;
-    }
-
-    @Override
-    public RootNode getMetadataWithDependenciesAsNode( IdentifiableObject object, @Nonnull MetadataExportParams params )
-    {
-        RootNode rootNode = NodeUtils.createMetadata();
-        rootNode.addChild( new SimpleNode( "date", new Date(), true ) );
-
-        SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata = getMetadataWithDependencies(
-            object );
-
-        for ( Class<? extends IdentifiableObject> klass : metadata.keySet() )
         {
-            FieldFilterParams fieldFilterParams = new FieldFilterParams( Lists.newArrayList( metadata.get( klass ) ),
-                Lists.newArrayList( ":owner" ) );
-            fieldFilterParams.setSkipSharing( params.getSkipSharing() );
-            rootNode.addChild( fieldFilterService.toCollectionNode( klass, fieldFilterParams ) );
+            return handleOptionSet( metadata, (OptionSet) object );
         }
 
-        return rootNode;
+        if ( DataSet.class.isInstance( object ) )
+        {
+            return handleDataSet( metadata, (DataSet) object );
+        }
+
+        if ( Program.class.isInstance( object ) )
+        {
+            return handleProgram( metadata, (Program) object );
+        }
+
+        if ( CategoryCombo.class.isInstance( object ) )
+        {
+            return handleCategoryCombo( metadata, (CategoryCombo) object );
+        }
+
+        if ( Dashboard.class.isInstance( object ) )
+        {
+            return handleDashboard( metadata, (Dashboard) object );
+        }
+
+        if ( DataElementGroup.class.isInstance( object ) )
+        {
+            return handleDataElementGroup( metadata, (DataElementGroup) object );
+        }
+
+        return metadata;
     }
 
     // -----------------------------------------------------------------------------------
