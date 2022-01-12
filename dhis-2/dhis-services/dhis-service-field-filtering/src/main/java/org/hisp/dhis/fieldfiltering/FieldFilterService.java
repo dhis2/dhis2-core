@@ -37,6 +37,7 @@ import org.hisp.dhis.fieldfiltering.transformers.IsNotEmptyFieldTransformer;
 import org.hisp.dhis.fieldfiltering.transformers.PluckFieldTransformer;
 import org.hisp.dhis.fieldfiltering.transformers.RenameFieldTransformer;
 import org.hisp.dhis.fieldfiltering.transformers.SizeFieldTransformer;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.OrderComparator;
 import org.springframework.stereotype.Service;
@@ -116,7 +117,11 @@ public class FieldFilterService
         }
 
         List<FieldPath> fieldPaths = FieldFilterParser.parse( params.getFilters() );
-        fieldPathHelper.apply( fieldPaths, params.getObjects().iterator().next().getClass() );
+
+        // In case we get a proxied object in we can't just use o.getClass(), we
+        // need to figure out the real class name by using HibernateProxyUtils.
+        Object firstObject = params.getObjects().iterator().next();
+        fieldPathHelper.apply( fieldPaths, HibernateProxyUtils.getRealClass( firstObject ) );
 
         SimpleFilterProvider filterProvider = getSimpleFilterProvider( fieldPaths );
         ObjectMapper objectMapper = jsonMapper.setFilterProvider( filterProvider );
