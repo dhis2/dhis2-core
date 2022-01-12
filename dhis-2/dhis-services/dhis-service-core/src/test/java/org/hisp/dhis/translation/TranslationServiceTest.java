@@ -382,4 +382,17 @@ class TranslationServiceTest extends DhisSpringTest
         assertEquals( "translated descriptionA", predictor.getGenerator().getDisplayDescription() );
         assertEquals( "translated descriptionB", predictor.getSampleSkipTest().getDisplayDescription() );
     }
+
+    @Test
+    public void testDisplayNameWithNoUserSetting()
+    {
+        UserContext.setUserSetting( UserSettingKey.DB_LOCALE, null );
+        DataElement dataElementA = createDataElement( 'A' );
+        manager.save( dataElementA );
+        String translatedName = "translatedName";
+        Set<Translation> translations = new HashSet<>( dataElementA.getTranslations() );
+        translations.add( new Translation( locale.getLanguage(), "NAME", translatedName ) );
+        manager.updateTranslations( dataElementA, translations );
+        assertEquals( "DataElementA", dataElementA.getDisplayName() );
+    }
 }

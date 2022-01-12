@@ -414,8 +414,11 @@ public class BaseIdentifiableObject
             return defaultValue;
         }
 
-        return translationCache.computeIfAbsent( Translation.getCacheKey( locale.toString(), translationKey ),
-            key -> getTranslationValue( locale.toString(), translationKey ) );
+        String translated = translationCache
+            .computeIfAbsent( Translation.getCacheKey( locale.toString(), translationKey ),
+                key -> getTranslationValue( locale.toString(), translationKey ) );
+
+        return StringUtils.isEmpty( translated ) ? defaultValue : translated;
     }
 
     private void loadAttributeValuesCacheIfEmpty()
@@ -801,4 +804,5 @@ public class BaseIdentifiableObject
 
         return null;
     }
+
 }
