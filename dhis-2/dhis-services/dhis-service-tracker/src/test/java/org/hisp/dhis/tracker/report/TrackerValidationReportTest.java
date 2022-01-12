@@ -31,6 +31,7 @@ import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
@@ -39,6 +40,7 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.TrackerDto;
+import org.hisp.dhis.tracker.validation.ValidationFailFastException;
 import org.junit.jupiter.api.Test;
 
 class TrackerValidationReportTest
@@ -63,6 +65,23 @@ class TrackerValidationReportTest
     }
 
     @Test
+    void addErrorThrowsInFailFastModeIrrespectiveOfWhetherErrorExisted()
+    {
+
+        TrackerValidationReport report = new TrackerValidationReport( true );
+        TrackerErrorReport error = newError();
+
+        ValidationFailFastException exception = assertThrows( ValidationFailFastException.class,
+            () -> report.addError( error ) );
+
+        assertContainsOnly( exception.getErrors(), error );
+
+        exception = assertThrows( ValidationFailFastException.class, () -> report.addError( error ) );
+
+        assertContainsOnly( exception.getErrors(), error );
+    }
+
+    @Test
     void addErrorIfExpressionIsTrue()
     {
 
@@ -76,6 +95,19 @@ class TrackerValidationReportTest
     }
 
     @Test
+    void addErrorIfInFailFastModeThrowsIfExpressionIsTrue()
+    {
+
+        TrackerValidationReport report = new TrackerValidationReport( true );
+        TrackerErrorReport error = newError();
+
+        ValidationFailFastException exception = assertThrows( ValidationFailFastException.class,
+            () -> report.addErrorIf( () -> true, () -> error ) );
+
+        assertContainsOnly( exception.getErrors(), error );
+    }
+
+    @Test
     void addErrorIfDoesNotAddErrorIfExpressionIsFalse()
     {
 
@@ -84,6 +116,34 @@ class TrackerValidationReportTest
         report.addErrorIf( () -> false, this::newError );
 
         assertFalse( report.hasErrors() );
+    }
+
+    @Test
+    void addErrorsThrowsInFailFastModeIrrespectiveOfWhetherAnyErrorExisted()
+    {
+
+        TrackerValidationReport report = new TrackerValidationReport( true );
+        TrackerErrorReport error1 = newError( CodeGenerator.generateUid(), TrackerErrorCode.E1001 );
+        TrackerErrorReport error2 = newError( CodeGenerator.generateUid(), TrackerErrorCode.E1002 );
+
+        // swallow this one to test only non-existing errors are added and
+        // exception is thrown by addErrors
+        try
+        {
+            report.addError( error1 );
+        }
+        catch ( Exception e )
+        {
+            // another test is concerned with whether addError throws and what
+            // the exception contains
+        }
+
+        assertContainsOnly( report.getErrors(), error1 );
+
+        ValidationFailFastException exception = assertThrows( ValidationFailFastException.class,
+            () -> report.addErrors( List.of( error1, error2 ) ) );
+
+        assertContainsOnly( exception.getErrors(), error1, error2 );
     }
 
     @Test

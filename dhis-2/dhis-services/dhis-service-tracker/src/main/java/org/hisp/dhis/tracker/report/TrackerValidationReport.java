@@ -41,6 +41,7 @@ import lombok.ToString;
 
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.domain.TrackerDto;
+import org.hisp.dhis.tracker.validation.ValidationFailFastException;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -69,12 +70,21 @@ public class TrackerValidationReport
     @JsonIgnore
     private final Map<TrackerType, List<String>> invalidDTOs;
 
+    @JsonIgnore
+    private final boolean isFailFast;
+
     public TrackerValidationReport()
+    {
+        this( false );
+    }
+
+    public TrackerValidationReport( boolean isFailFast )
     {
         this.errorReports = new ArrayList<>();
         this.warningReports = new ArrayList<>();
         this.timings = new ArrayList<>();
         this.invalidDTOs = new HashMap<>();
+        this.isFailFast = isFailFast;
     }
 
     // -----------------------------------------------------------------------------------
@@ -106,6 +116,10 @@ public class TrackerValidationReport
     public TrackerValidationReport addError( TrackerErrorReport error )
     {
         addErrorIfNotExisting( error );
+        if ( this.isFailFast )
+        {
+            throw new ValidationFailFastException( this.getErrors() );
+        }
         return this;
     }
 
@@ -114,6 +128,10 @@ public class TrackerValidationReport
         if ( condition.getAsBoolean() )
         {
             addErrorIfNotExisting( error.get() );
+            if ( this.isFailFast )
+            {
+                throw new ValidationFailFastException( this.getErrors() );
+            }
         }
         return this;
     }
@@ -123,6 +141,10 @@ public class TrackerValidationReport
         for ( TrackerErrorReport error : errors )
         {
             addErrorIfNotExisting( error );
+        }
+        if ( this.isFailFast )
+        {
+            throw new ValidationFailFastException( this.getErrors() );
         }
         return this;
     }
