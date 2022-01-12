@@ -48,6 +48,8 @@ public class FieldFilterParams<T>
     @Builder.Default
     private final Set<String> filters = Collections.singleton( "*" );
 
+    private final boolean skipSharing;
+
     public static <O> FieldFilterParams<O> of( List<O> objects, List<String> filters )
     {
         return FieldFilterParams
@@ -66,8 +68,8 @@ public class FieldFilterParams<T>
             .build();
     }
 
-    public FieldFilterParams<T> copy()
+    public FieldFilterParams<T> copyOf()
     {
-        return new FieldFilterParams<>( objects, filters );
+        return new FieldFilterParams<>( objects, filters, skipSharing );
     }
 }

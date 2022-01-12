@@ -219,6 +219,7 @@ public class DefaultMetadataExportService implements MetadataExportService
             FieldFilterParams<?> fieldFilterParams = FieldFilterParams.builder()
                 .objects( new ArrayList<>( metadata.get( klass ) ) )
                 .filters( new HashSet<>( params.getFields( klass ) ) )
+                .skipSharing( params.getSkipSharing() )
                 .build();
 
             List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes( fieldFilterParams );
@@ -249,6 +250,7 @@ public class DefaultMetadataExportService implements MetadataExportService
             FieldFilterParams<?> fieldFilterParams = FieldFilterParams.builder()
                 .objects( new ArrayList<>( metadata.get( klass ) ) )
                 .filters( Set.of( ":owner" ) )
+                .skipSharing( params.getSkipSharing() )
                 .build();
 
             List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes( fieldFilterParams );

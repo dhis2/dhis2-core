@@ -157,7 +157,9 @@ public class MetadataImportExportController
         {
             return startAsyncMetadata( params );
         }
+
         ImportReport importReport = metadataImportService.importMetadata( params );
+
         return importReport( importReport ).withPlainResponseBefore( DhisApiVersion.V38 );
     }
 
@@ -187,7 +189,9 @@ public class MetadataImportExportController
         {
             return startAsyncMetadata( params );
         }
+
         ImportReport importReport = metadataImportService.importMetadata( params );
+
         return importReport( importReport ).withPlainResponseBefore( DhisApiVersion.V38 );
     }
 
@@ -203,24 +207,6 @@ public class MetadataImportExportController
             return startAsyncGml( params, request );
         }
         ImportReport importReport = gmlImportService.importGml( request.getInputStream(), params );
-        return importReport( importReport ).withPlainResponseBefore( DhisApiVersion.V38 );
-    }
-
-    @PostMapping( value = "", consumes = APPLICATION_XML_VALUE )
-    @ResponseBody
-    public WebMessage postXmlMetadata( HttpServletRequest request )
-        throws IOException
-    {
-        MetadataImportParams params = metadataImportService.getParamsFromMap( contextService.getParameterValuesMap() );
-        Metadata metadata = renderService
-            .fromXml( StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() ), Metadata.class );
-        params.addMetadata( schemaService.getMetadataSchemas(), metadata );
-
-        if ( params.hasJobId() )
-        {
-            return startAsyncMetadata( params );
-        }
-        ImportReport importReport = metadataImportService.importMetadata( params );
         return importReport( importReport ).withPlainResponseBefore( DhisApiVersion.V38 );
     }
 
