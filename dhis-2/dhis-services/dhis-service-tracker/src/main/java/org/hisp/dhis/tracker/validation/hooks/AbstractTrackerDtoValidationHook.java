@@ -35,7 +35,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiConsumer;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
@@ -127,11 +126,18 @@ public abstract class AbstractTrackerDtoValidationHook
         T optionalObject, String value )
     {
         Optional.ofNullable( optionalObject.getOptionSet() )
-            .ifPresent( optionSet -> addErrorIf( () -> optionSet.getOptions().stream().filter( Objects::nonNull )
-                .noneMatch( o -> o.getCode().equalsIgnoreCase( value ) ), reporter, dto, E1125, value,
-                optionalObject.getUid(), optionalObject.getClass().getSimpleName(),
-                optionalObject.getOptionSet().getOptions().stream().filter( Objects::nonNull ).map( Option::getCode )
-                    .collect( Collectors.joining( "," ) ) ) );
+            .ifPresent( optionSet -> reporter.addErrorIf(
+                () -> optionSet.getOptions().stream().filter( Objects::nonNull )
+                    .noneMatch( o -> o.getCode().equalsIgnoreCase( value ) ),
+                () -> TrackerErrorReport.builder()
+                    .uid( dto.getUid() )
+                    .trackerType( dto.getTrackerType() )
+                    .errorCode( E1125 )
+                    .addArgs( value, optionalObject.getUid(), optionalObject.getClass().getSimpleName(),
+                        optionalObject.getOptionSet().getOptions().stream().filter( Objects::nonNull )
+                            .map( Option::getCode )
+                            .collect( Collectors.joining( "," ) ) )
+                    .build() ) );
     }
 
     /**
@@ -185,17 +191,6 @@ public abstract class AbstractTrackerDtoValidationHook
             .addArgs( args )
             .build( report.getValidationContext().getBundle() );
         report.addWarning( warn );
-    }
-
-    protected void addErrorIf( Supplier<Boolean> expression, ValidationErrorReporter report, TrackerDto dto,
-        TrackerErrorCode code, Object... args )
-    {
-        report.addErrorIf( expression, () -> TrackerErrorReport.builder()
-            .uid( dto.getUid() )
-            .trackerType( dto.getTrackerType() )
-            .errorCode( code )
-            .addArgs( args )
-            .build() );
     }
 
     protected void addErrorIfNull( Object object, ValidationErrorReporter report, TrackerDto dto,

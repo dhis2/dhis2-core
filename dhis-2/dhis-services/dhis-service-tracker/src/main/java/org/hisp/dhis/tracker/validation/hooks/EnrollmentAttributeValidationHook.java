@@ -52,7 +52,9 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.preheat.ReferenceTrackerEntity;
+import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.tracker.validation.service.attribute.TrackedAttributeValidationService;
@@ -169,18 +171,26 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
             .stream()
             .filter( Map.Entry::getValue ) // <--- filter on mandatory flag
             .map( Map.Entry::getKey )
-            .forEach( mandatoryProgramAttributeUid -> addErrorIf(
-                () -> !mergedAttributes.contains( mandatoryProgramAttributeUid ), reporter,
-                enrollment, E1018,
-                mandatoryProgramAttributeUid, program.getUid(), enrollment.getEnrollment() ) );
+            .forEach( mandatoryProgramAttributeUid -> reporter
+                .addErrorIf( () -> !mergedAttributes.contains( mandatoryProgramAttributeUid ),
+                    () -> TrackerErrorReport.builder()
+                        .uid( ((TrackerDto) enrollment).getUid() )
+                        .trackerType( ((TrackerDto) enrollment).getTrackerType() )
+                        .errorCode( E1018 )
+                        .addArgs( mandatoryProgramAttributeUid, program.getUid(), enrollment.getEnrollment() )
+                        .build() ) );
 
         // enrollment must not contain any attribute which is not defined in
         // program
         enrollmentNonEmptyAttributeUids
             .forEach(
-                ( attrUid, attrVal ) -> addErrorIf( () -> !programAttributesMap.containsKey( attrUid ), reporter,
-                    enrollment, E1019,
-                    attrUid + "=" + attrVal ) );
+                ( attrUid, attrVal ) -> reporter.addErrorIf( () -> !programAttributesMap.containsKey( attrUid ),
+                    () -> TrackerErrorReport.builder()
+                        .uid( ((TrackerDto) enrollment).getUid() )
+                        .trackerType( ((TrackerDto) enrollment).getTrackerType() )
+                        .errorCode( E1019 )
+                        .addArgs( attrUid + "=" + attrVal )
+                        .build() ) );
     }
 
     private Set<String> buildTeiAttributeUids( ValidationErrorReporter reporter, String trackedEntityInstanceUid )

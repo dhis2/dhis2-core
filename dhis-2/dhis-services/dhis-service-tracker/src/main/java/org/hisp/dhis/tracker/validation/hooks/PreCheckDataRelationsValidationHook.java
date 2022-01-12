@@ -103,7 +103,12 @@ public class PreCheckDataRelationsValidationHook
         Program program = context.getProgram( enrollment.getProgram() );
         OrganisationUnit organisationUnit = context.getOrganisationUnit( enrollment.getOrgUnit() );
 
-        addErrorIf( () -> !program.isRegistration(), reporter, enrollment, E1014, program );
+        reporter.addErrorIf( () -> !program.isRegistration(), () -> TrackerErrorReport.builder()
+            .uid( ((TrackerDto) enrollment).getUid() )
+            .trackerType( ((TrackerDto) enrollment).getTrackerType() )
+            .errorCode( E1014 )
+            .addArgs( program )
+            .build() );
 
         if ( !programHasOrgUnit( program, organisationUnit, context.getProgramWithOrgUnitsMap() ) )
         {

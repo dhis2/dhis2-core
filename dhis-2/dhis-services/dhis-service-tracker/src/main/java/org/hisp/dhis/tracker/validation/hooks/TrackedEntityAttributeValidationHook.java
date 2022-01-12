@@ -201,21 +201,33 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
         checkNotNull( value, TRACKED_ENTITY_ATTRIBUTE_VALUE_CANT_BE_NULL );
 
         // Validate value (string) don't exceed the max length
-        addErrorIf( () -> value.length() > Constant.MAX_ATTR_VALUE_LENGTH, reporter, te,
-            E1077, value,
-            Constant.MAX_ATTR_VALUE_LENGTH );
+        reporter.addErrorIf( () -> value.length() > Constant.MAX_ATTR_VALUE_LENGTH, () -> TrackerErrorReport.builder()
+            .uid( ((TrackerDto) te).getUid() )
+            .trackerType( ((TrackerDto) te).getTrackerType() )
+            .errorCode( E1077 )
+            .addArgs( value, Constant.MAX_ATTR_VALUE_LENGTH )
+            .build() );
 
         // Validate if that encryption is configured properly if someone sets
         // value to (confidential)
         boolean isConfidential = tea.isConfidentialBool();
         boolean encryptionStatusOk = dhisConfigurationProvider.getEncryptionStatus().isOk();
-        addErrorIf( () -> isConfidential && !encryptionStatusOk, reporter, te, E1112,
-            value );
+        reporter.addErrorIf( () -> isConfidential && !encryptionStatusOk, () -> TrackerErrorReport.builder()
+            .uid( ((TrackerDto) te).getUid() )
+            .trackerType( ((TrackerDto) te).getTrackerType() )
+            .errorCode( E1112 )
+            .addArgs( value )
+            .build() );
 
         // Uses ValidationUtils to check that the data value corresponds to the
         // data value type set on the attribute
         final String result = dataValueIsValid( value, tea.getValueType() );
-        addErrorIf( () -> result != null, reporter, te, E1085, tea, result );
+        reporter.addErrorIf( () -> result != null, () -> TrackerErrorReport.builder()
+            .uid( ((TrackerDto) te).getUid() )
+            .trackerType( ((TrackerDto) te).getTrackerType() )
+            .errorCode( E1085 )
+            .addArgs( tea, result )
+            .build() );
     }
 
     protected void validateFileNotAlreadyAssigned( ValidationErrorReporter reporter, TrackedEntity te,
@@ -241,6 +253,11 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
         FileResource fileResource = reporter.getValidationContext().getFileResource( attr.getValue() );
 
         addErrorIfNull( fileResource, reporter, te, E1084, attr.getValue() );
-        addErrorIf( () -> fileResource != null && fileResource.isAssigned(), reporter, te, E1009, attr.getValue() );
+        reporter.addErrorIf( () -> fileResource != null && fileResource.isAssigned(), () -> TrackerErrorReport.builder()
+            .uid( ((TrackerDto) te).getUid() )
+            .trackerType( ((TrackerDto) te).getTrackerType() )
+            .errorCode( E1009 )
+            .addArgs( attr.getValue() )
+            .build() );
     }
 }

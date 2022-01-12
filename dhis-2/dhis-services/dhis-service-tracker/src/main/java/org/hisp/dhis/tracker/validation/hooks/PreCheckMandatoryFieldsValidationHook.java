@@ -39,6 +39,8 @@ import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.domain.TrackerDto;
+import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
@@ -55,25 +57,60 @@ public class PreCheckMandatoryFieldsValidationHook
     @Override
     public void validateTrackedEntity( ValidationErrorReporter reporter, TrackedEntity trackedEntity )
     {
-        addErrorIf( () -> StringUtils.isEmpty( trackedEntity.getTrackedEntityType() ), reporter, trackedEntity, E1121,
-            "trackedEntityType" );
-        addErrorIf( () -> StringUtils.isEmpty( trackedEntity.getOrgUnit() ), reporter, trackedEntity, E1121, ORG_UNIT );
+        reporter.addErrorIf( () -> StringUtils.isEmpty( trackedEntity.getTrackedEntityType() ),
+            () -> TrackerErrorReport.builder()
+                .uid( ((TrackerDto) trackedEntity).getUid() )
+                .trackerType( ((TrackerDto) trackedEntity).getTrackerType() )
+                .errorCode( E1121 )
+                .addArgs( "trackedEntityType" )
+                .build() );
+        reporter.addErrorIf( () -> StringUtils.isEmpty( trackedEntity.getOrgUnit() ), () -> TrackerErrorReport.builder()
+            .uid( ((TrackerDto) trackedEntity).getUid() )
+            .trackerType( ((TrackerDto) trackedEntity).getTrackerType() )
+            .errorCode( E1121 )
+            .addArgs( ORG_UNIT )
+            .build() );
     }
 
     @Override
     public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
     {
-        addErrorIf( () -> StringUtils.isEmpty( enrollment.getOrgUnit() ), reporter, enrollment, E1122, ORG_UNIT );
-        addErrorIf( () -> StringUtils.isEmpty( enrollment.getProgram() ), reporter, enrollment, E1122, "program" );
-        addErrorIf( () -> StringUtils.isEmpty( enrollment.getTrackedEntity() ), reporter, enrollment, E1122,
-            "trackedEntity" );
+        reporter.addErrorIf( () -> StringUtils.isEmpty( enrollment.getOrgUnit() ), () -> TrackerErrorReport.builder()
+            .uid( ((TrackerDto) enrollment).getUid() )
+            .trackerType( ((TrackerDto) enrollment).getTrackerType() )
+            .errorCode( E1122 )
+            .addArgs( ORG_UNIT )
+            .build() );
+        reporter.addErrorIf( () -> StringUtils.isEmpty( enrollment.getProgram() ), () -> TrackerErrorReport.builder()
+            .uid( ((TrackerDto) enrollment).getUid() )
+            .trackerType( ((TrackerDto) enrollment).getTrackerType() )
+            .errorCode( E1122 )
+            .addArgs( "program" )
+            .build() );
+        reporter.addErrorIf( () -> StringUtils.isEmpty( enrollment.getTrackedEntity() ),
+            () -> TrackerErrorReport.builder()
+                .uid( ((TrackerDto) enrollment).getUid() )
+                .trackerType( ((TrackerDto) enrollment).getTrackerType() )
+                .errorCode( E1122 )
+                .addArgs( "trackedEntity" )
+                .build() );
     }
 
     @Override
     public void validateEvent( ValidationErrorReporter reporter, Event event )
     {
-        addErrorIf( () -> StringUtils.isEmpty( event.getOrgUnit() ), reporter, event, E1123, ORG_UNIT );
-        addErrorIf( () -> StringUtils.isEmpty( event.getProgramStage() ), reporter, event, E1123, "programStage" );
+        reporter.addErrorIf( () -> StringUtils.isEmpty( event.getOrgUnit() ), () -> TrackerErrorReport.builder()
+            .uid( ((TrackerDto) event).getUid() )
+            .trackerType( ((TrackerDto) event).getTrackerType() )
+            .errorCode( E1123 )
+            .addArgs( ORG_UNIT )
+            .build() );
+        reporter.addErrorIf( () -> StringUtils.isEmpty( event.getProgramStage() ), () -> TrackerErrorReport.builder()
+            .uid( ((TrackerDto) event).getUid() )
+            .trackerType( ((TrackerDto) event).getTrackerType() )
+            .errorCode( E1123 )
+            .addArgs( "programStage" )
+            .build() );
 
         // TODO remove if once metadata import is fixed
         TrackerImportValidationContext context = reporter.getValidationContext();
@@ -95,7 +132,12 @@ public class PreCheckMandatoryFieldsValidationHook
             return;
         }
 
-        addErrorIf( () -> StringUtils.isEmpty( event.getProgram() ), reporter, event, E1123, "program" );
+        reporter.addErrorIf( () -> StringUtils.isEmpty( event.getProgram() ), () -> TrackerErrorReport.builder()
+            .uid( ((TrackerDto) event).getUid() )
+            .trackerType( ((TrackerDto) event).getTrackerType() )
+            .errorCode( E1123 )
+            .addArgs( "program" )
+            .build() );
     }
 
     @Override
@@ -103,8 +145,13 @@ public class PreCheckMandatoryFieldsValidationHook
     {
         addErrorIfNull( relationship.getFrom(), reporter, relationship, E1124, "from" );
         addErrorIfNull( relationship.getTo(), reporter, relationship, E1124, "to" );
-        addErrorIf( () -> StringUtils.isEmpty( relationship.getRelationshipType() ), reporter, relationship, E1124,
-            "relationshipType" );
+        reporter.addErrorIf( () -> StringUtils.isEmpty( relationship.getRelationshipType() ),
+            () -> TrackerErrorReport.builder()
+                .uid( ((TrackerDto) relationship).getUid() )
+                .trackerType( ((TrackerDto) relationship).getTrackerType() )
+                .errorCode( E1124 )
+                .addArgs( "relationshipType" )
+                .build() );
     }
 
     @Override

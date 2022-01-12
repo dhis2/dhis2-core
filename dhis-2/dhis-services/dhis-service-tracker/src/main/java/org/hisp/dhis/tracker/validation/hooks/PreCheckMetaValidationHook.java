@@ -46,6 +46,7 @@ import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
@@ -100,8 +101,13 @@ public class PreCheckMetaValidationHook
         Program program = context.getProgram( enrollment.getProgram() );
         addErrorIfNull( program, reporter, enrollment, E1069, enrollment.getProgram() );
 
-        addErrorIf( () -> !trackedEntityInstanceExist( context, enrollment.getTrackedEntity() ), reporter, enrollment,
-            E1068, enrollment.getTrackedEntity() );
+        reporter.addErrorIf( () -> !trackedEntityInstanceExist( context, enrollment.getTrackedEntity() ),
+            () -> TrackerErrorReport.builder()
+                .uid( ((TrackerDto) enrollment).getUid() )
+                .trackerType( ((TrackerDto) enrollment).getTrackerType() )
+                .errorCode( E1068 )
+                .addArgs( enrollment.getTrackedEntity() )
+                .build() );
     }
 
     @Override

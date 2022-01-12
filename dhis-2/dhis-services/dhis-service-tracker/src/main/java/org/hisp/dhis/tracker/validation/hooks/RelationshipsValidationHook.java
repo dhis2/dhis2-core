@@ -95,12 +95,22 @@ public class RelationshipsValidationHook
     {
         // make sure that both Relationship Item only contain *one* reference
         // (tei, enrollment or event)
-        addErrorIf(
+        reporter.addErrorIf(
             () -> relationship.getFrom() != null && countMatches( onlyValues( relationship.getFrom() ), "null" ) < 2,
-            reporter, relationship, E4001, "from", relationship.getRelationship() );
-        addErrorIf(
+            () -> TrackerErrorReport.builder()
+                .uid( ((TrackerDto) relationship).getUid() )
+                .trackerType( ((TrackerDto) relationship).getTrackerType() )
+                .errorCode( E4001 )
+                .addArgs( "from", relationship.getRelationship() )
+                .build() );
+        reporter.addErrorIf(
             () -> relationship.getTo() != null && countMatches( onlyValues( relationship.getTo() ), "null" ) < 2,
-            reporter, relationship, E4001, "to", relationship.getRelationship() );
+            () -> TrackerErrorReport.builder()
+                .uid( ((TrackerDto) relationship).getUid() )
+                .trackerType( ((TrackerDto) relationship).getTrackerType() )
+                .errorCode( E4001 )
+                .addArgs( "to", relationship.getRelationship() )
+                .build() );
     }
 
     private void validateRelationshipConstraint( ValidationErrorReporter reporter, Relationship relationship,
@@ -118,8 +128,14 @@ public class RelationshipsValidationHook
     private boolean validateMandatoryData( ValidationErrorReporter reporter, Relationship relationship,
         List<RelationshipType> relationshipsTypes )
     {
-        addErrorIf( () -> !getRelationshipType( relationshipsTypes, relationship.getRelationshipType() ).isPresent(),
-            reporter, relationship, E4009, relationship.getRelationshipType() );
+        reporter.addErrorIf(
+            () -> !getRelationshipType( relationshipsTypes, relationship.getRelationshipType() ).isPresent(),
+            () -> TrackerErrorReport.builder()
+                .uid( ((TrackerDto) relationship).getUid() )
+                .trackerType( ((TrackerDto) relationship).getTrackerType() )
+                .errorCode( E4009 )
+                .addArgs( relationship.getRelationshipType() )
+                .build() );
 
         final Optional<TrackerErrorReport> any = reporter.getReportList().stream()
             .filter( r -> relationship.getRelationship().equals( r.getUid() ) ).findAny();
@@ -250,9 +266,13 @@ public class RelationshipsValidationHook
         TrackerType trackerType = relationshipItemValueType( item );
         Optional<String> itemUid = getUidFromRelationshipItem( item );
 
-        itemUid.ifPresent( s -> addErrorIf( () -> reporter.isInvalid( trackerType, s ), reporter,
-            relationship, E4011, relationship.getRelationship(),
-            trackerType.getName(), s ) );
+        itemUid.ifPresent( s -> reporter.addErrorIf( () -> reporter.isInvalid( trackerType, s ),
+            () -> TrackerErrorReport.builder()
+                .uid( ((TrackerDto) relationship).getUid() )
+                .trackerType( ((TrackerDto) relationship).getTrackerType() )
+                .errorCode( E4011 )
+                .addArgs( relationship.getRelationship(), trackerType.getName(), s )
+                .build() ) );
     }
 
     private Optional<String> getRelationshipTypeUidFromTrackedEntity( TrackerImportValidationContext ctx, String uid )
