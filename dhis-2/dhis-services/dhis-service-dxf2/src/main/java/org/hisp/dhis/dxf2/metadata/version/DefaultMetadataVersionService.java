@@ -52,7 +52,6 @@ import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.metadata.version.MetadataVersionService;
 import org.hisp.dhis.metadata.version.MetadataVersionStore;
 import org.hisp.dhis.metadata.version.VersionType;
-import org.hisp.dhis.node.NodeService;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
@@ -81,21 +80,17 @@ public class DefaultMetadataVersionService
 
     private final MetadataKeyJsonService metaDataKeyJsonService;
 
-    private final NodeService nodeService;
-
     private final MetadataSystemSettingService metadataSystemSettingService;
 
     private final RenderService renderService;
 
     public DefaultMetadataVersionService( MetadataVersionStore metadataVersionStore,
         MetadataExportService metadataExportService, MetadataKeyJsonService metaDataKeyJsonService,
-        NodeService nodeService, MetadataSystemSettingService metadataSystemSettingService,
-        RenderService renderService )
+        MetadataSystemSettingService metadataSystemSettingService, RenderService renderService )
     {
         this.versionStore = metadataVersionStore;
         this.metadataExportService = metadataExportService;
         this.metaDataKeyJsonService = metaDataKeyJsonService;
-        this.nodeService = nodeService;
         this.metadataSystemSettingService = metadataSystemSettingService;
         this.renderService = renderService;
     }

@@ -104,7 +104,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.base.Enums;
 import com.google.common.collect.Sets;
 
 /**
@@ -1041,18 +1040,5 @@ public class DefaultMetadataExportService implements MetadataExportService
             av -> metadata.putValue( Attribute.class, attributeService.getAttribute( av.getAttribute().getUid() ) ) );
 
         return metadata;
-    }
-
-    private <T extends Enum<T>> T getEnumWithDefault( Class<T> enumKlass, Map<String, List<String>> parameters,
-        String key, T defaultValue )
-    {
-        if ( parameters == null || parameters.get( key ) == null || parameters.get( key ).isEmpty() )
-        {
-            return defaultValue;
-        }
-
-        String value = String.valueOf( parameters.get( key ).get( 0 ) );
-
-        return Enums.getIfPresent( enumKlass, value ).or( defaultValue );
     }
 }
