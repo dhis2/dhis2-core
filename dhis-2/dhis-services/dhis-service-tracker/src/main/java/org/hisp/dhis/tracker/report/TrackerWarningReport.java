@@ -27,18 +27,22 @@
  */
 package org.hisp.dhis.tracker.report;
 
-import static org.hisp.dhis.tracker.report.TrackerReportUtils.buildArgumentList;
-
+import java.text.DateFormat;
 import java.text.MessageFormat;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 import lombok.Builder;
 import lombok.Data;
 
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.tracker.TrackerIdScheme;
+import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.TrackerDto;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -103,22 +107,58 @@ public class TrackerWarningReport
             return this;
         }
 
+        public TrackerWarningReportBuilder addArg( String arg )
+        {
+            this.arguments.add( arg );
+            return this;
+        }
+
+        public TrackerWarningReportBuilder addArg( Instant instant )
+        {
+            // TODO EnrollmendDateValidationHook uses E1025 and E1025 for
+            // malformed and null occuredAt, enrolledAt
+            // EventDateValidationHook uses errors like E1031 without args to
+            // report a required instant that is null.
+            if ( instant == null )
+            {
+                this.arguments.add( "" );
+                return this;
+            }
+            this.arguments.add( DateFormat.getInstance().format( Date.from( instant ) ) );
+            return this;
+        }
+
+        public TrackerWarningReportBuilder addArg( Date date )
+        {
+            this.arguments.add( DateFormat.getInstance().format( date ) );
+            return this;
+        }
+
+        public TrackerWarningReportBuilder addArg( TrackerIdScheme idScheme, IdentifiableObject arg )
+        {
+            final TrackerIdentifier identifier = TrackerIdentifier.builder().idScheme( idScheme ).build();
+            this.arguments.add( identifier.getIdAndName( arg ) );
+            return this;
+        }
+
+        public TrackerWarningReportBuilder addArg( TrackerDto dto )
+        {
+            this.arguments.add( dto.getClass().getSimpleName() + " (" + dto.getUid() + ")" );
+            return this;
+        }
+
         public TrackerWarningReportBuilder addArgs( Object... args )
         {
             this.arguments.addAll( Arrays.asList( args ) );
             return this;
         }
 
-        public TrackerWarningReport build( TrackerBundle bundle )
+        public TrackerWarningReport build()
         {
-            return new TrackerWarningReport( MessageFormat.format( warningCode.getMessage(),
-                buildArgumentList( bundle, arguments ).toArray( new Object[0] ) ), this.warningCode, trackerType, uid );
+            return new TrackerWarningReport(
+                MessageFormat.format( warningCode.getMessage(), arguments.toArray( new Object[0] ) ),
+                this.warningCode, this.trackerType, this.uid );
         }
-    }
-
-    public static TrackerWarningReportBuilder newWarningReport( TrackerErrorCode errorCode )
-    {
-        return builder().warningCode( errorCode );
     }
 
     @Override

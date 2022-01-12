@@ -264,7 +264,7 @@ class TrackerValidationServiceReportTest
                             .warningCode( TrackerErrorCode.E1120 )
                             .trackerType( TrackerType.EVENT )
                             .uid( event.getUid() )
-                            .build( reporter.getValidationContext().getBundle() ) );
+                            .build() );
                 }
             } )
             .build();

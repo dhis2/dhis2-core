@@ -110,7 +110,7 @@ public class ValidationUtils
                         .trackerType( dto.getTrackerType() )
                         .warningCode( TrackerErrorCode.E1119 )
                         .addArg( note.getNote() )
-                        .build( reporter.getValidationContext().getBundle() );
+                        .build();
                     reporter.addWarning( warning );
                 }
                 else
@@ -194,7 +194,7 @@ public class ValidationUtils
                         .trackerType( dto.getTrackerType() )
                         .warningCode( issue.getIssueCode() )
                         .addArgs( args.toArray() )
-                        .build( reporter.getValidationContext().getBundle() );
+                        .build();
                     reporter.addWarning( warning );
                 } );
     }

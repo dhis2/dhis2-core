@@ -29,10 +29,8 @@ package org.hisp.dhis.tracker.report;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.mock;
 
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.junit.jupiter.api.Test;
 
 class ValidationErrorReporterTest
@@ -71,11 +69,10 @@ class ValidationErrorReporterTest
     {
 
         ValidationErrorReporter reporter = ValidationErrorReporter.emptyReporter();
-        TrackerBundle bundle = mock( TrackerBundle.class );
         TrackerWarningReport warning = TrackerWarningReport.builder()
             .warningCode( TrackerErrorCode.E1000 )
             .trackerType( TrackerType.EVENT )
-            .build( bundle );
+            .build();
         reporter.getWarningsReportList().add( warning );
 
         assertTrue( reporter.hasWarningReport( r -> TrackerType.EVENT.equals( r.getTrackerType() ) ) );
@@ -86,11 +83,10 @@ class ValidationErrorReporterTest
     {
 
         ValidationErrorReporter reporter = ValidationErrorReporter.emptyReporter();
-        TrackerBundle bundle = mock( TrackerBundle.class );
         TrackerWarningReport warning = TrackerWarningReport.builder()
             .warningCode( TrackerErrorCode.E1000 )
             .trackerType( TrackerType.EVENT )
-            .build( bundle );
+            .build();
         reporter.getWarningsReportList().add( warning );
 
         assertFalse( reporter.hasWarningReport( r -> TrackerType.TRACKED_ENTITY.equals( r.getTrackerType() ) ) );

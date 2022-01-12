@@ -100,8 +100,6 @@ public class TrackerErrorReport
 
     public static class TrackerErrorReportBuilder
     {
-        // TODO(TECH-880) turn into List<String> as this is what
-        // buildArgumentList does
         private final List<Object> arguments = new ArrayList<>();
 
         public TrackerErrorReportBuilder addArg( Object arg )
@@ -150,7 +148,6 @@ public class TrackerErrorReport
             return this;
         }
 
-        // TODO(TECH-880) how to adapt this one? Its only ever used once
         public TrackerErrorReportBuilder addArgs( Object... args )
         {
             this.arguments.addAll( Arrays.asList( args ) );

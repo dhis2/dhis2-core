@@ -66,7 +66,7 @@ public class AssignedUserValidationHook
                     .trackerType( event.getTrackerType() )
                     .warningCode( E1120 )
                     .addArg( event.getProgramStage() )
-                    .build( reporter.getValidationContext().getBundle() );
+                    .build();
                 reporter.addWarning( warn );
             }
         }

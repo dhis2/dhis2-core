@@ -203,7 +203,7 @@ public class PreCheckExistenceValidationHook
                 .trackerType( relationship.getTrackerType() )
                 .warningCode( E4015 )
                 .addArg( relationship.getRelationship() )
-                .build( reporter.getValidationContext().getBundle() );
+                .build();
             reporter.addWarning( warn );
         }
     }
