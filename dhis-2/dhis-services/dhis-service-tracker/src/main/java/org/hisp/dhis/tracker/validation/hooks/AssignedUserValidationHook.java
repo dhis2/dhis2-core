@@ -35,6 +35,7 @@ import java.util.Optional;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
+import org.hisp.dhis.tracker.report.TrackerWarningReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
@@ -60,7 +61,13 @@ public class AssignedUserValidationHook
             }
             if ( isNotEnabledUserAssignment( reporter, event ) )
             {
-                addWarning( reporter, event, E1120, event.getProgramStage() );
+                TrackerWarningReport warn = TrackerWarningReport.builder()
+                    .uid( event.getUid() )
+                    .trackerType( event.getTrackerType() )
+                    .warningCode( E1120 )
+                    .addArg( event.getProgramStage() )
+                    .build( reporter.getValidationContext().getBundle() );
+                reporter.addWarning( warn );
             }
         }
     }

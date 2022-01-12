@@ -47,9 +47,7 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.domain.TrackerDto;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
-import org.hisp.dhis.tracker.report.TrackerWarningReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.tracker.validation.TrackerValidationHook;
@@ -179,18 +177,6 @@ public abstract class AbstractTrackerDtoValidationHook
                 }
             }
         }
-    }
-
-    protected void addWarning( ValidationErrorReporter report, TrackerDto dto, TrackerErrorCode code,
-        Object... args )
-    {
-        TrackerWarningReport warn = TrackerWarningReport.builder()
-            .uid( dto.getUid() )
-            .trackerType( dto.getTrackerType() )
-            .warningCode( code )
-            .addArgs( args )
-            .build( report.getValidationContext().getBundle() );
-        report.addWarning( warn );
     }
 
     public boolean needsToRun( TrackerImportStrategy strategy )

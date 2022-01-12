@@ -47,6 +47,7 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
+import org.hisp.dhis.tracker.report.TrackerWarningReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
@@ -197,8 +198,13 @@ public class PreCheckExistenceValidationHook
 
         if ( existingRelationship != null )
         {
-            addWarning( reporter, relationship, E4015,
-                relationship.getRelationship() );
+            TrackerWarningReport warn = TrackerWarningReport.builder()
+                .uid( relationship.getUid() )
+                .trackerType( relationship.getTrackerType() )
+                .warningCode( E4015 )
+                .addArg( relationship.getRelationship() )
+                .build( reporter.getValidationContext().getBundle() );
+            reporter.addWarning( warn );
         }
     }
 
