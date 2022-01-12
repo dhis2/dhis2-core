@@ -47,6 +47,7 @@ import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValue;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValueEntry;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValueQuery;
+import org.hisp.dhis.keyjsonvalue.KeyJsonValueQuery.Order;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValueStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.SqlUtils;
@@ -119,19 +120,52 @@ public class HibernateKeyJsonValueStore
     public <T> T getEntries( KeyJsonValueQuery query, Function<Stream<KeyJsonValueEntry>, T> transform )
     {
         List<String> fieldExtracts = query.getFields().stream()
-            .map( f -> "jsonb_extract_path(jbvalue, " + toPathSegments( f.getPath() ) + " )" )
+            .map( f -> toValueAtPathHQL( f.getPath() ) )
             .collect( toList() );
 
-        String hql = String.format( "select key, %s from KeyJsonValue where namespace = :namespace and (%s)",
-            String.join( ",", fieldExtracts ),
-            query.isIncludeAll() ? "1=1"
-                : fieldExtracts.stream().map( f -> f + "is not null" ).collect( joining( " or " ) ) );
+        String fields = String.join( ",", fieldExtracts );
+        String nonNullFilters = query.isIncludeAll()
+            ? "1=1"
+            : fieldExtracts.stream().map( f -> f + "is not null" ).collect( joining( " or " ) );
 
-        return transform.apply( getSession().createQuery( hql, Object[].class )
+        String orders = toOrderHQL( query.getOrder() );
+        String hql = String.format(
+            "select key, %s from KeyJsonValue where namespace = :namespace and (%s) order by %s",
+            fields, nonNullFilters, orders );
+
+        Query<Object[]> hQuery = getSession().createQuery( hql, Object[].class )
             .setParameter( "namespace", query.getNamespace() )
+            .setCacheable( false );
+        if ( query.isPaging() )
+        {
+            int size = Math.min( 1000, Math.max( 1, query.getPageSize() ) );
+            int offset = Math.max( 0, (query.getPage() - 1) * size );
+            hQuery.setMaxResults( size );
+            hQuery.setFirstResult( offset );
+        }
+        return transform.apply( hQuery
             .stream()
             .map( row -> new KeyJsonValueEntry( (String) row[0],
                 asList( copyOfRange( row, 1, row.length, String[].class ) ) ) ) );
+    }
+
+    private String toOrderHQL( Order order )
+    {
+        String dir = order.getDirection().name().toLowerCase();
+        if ( order.isKeyOrder() )
+        {
+            return "key " + dir;
+        }
+        if ( order.isDirectValueOrder() )
+        {
+            return "cast(jbvalue as text) " + dir;
+        }
+        return toValueAtPathHQL( order.getPath() ) + " " + dir;
+    }
+
+    private static String toValueAtPathHQL( String path )
+    {
+        return "jsonb_extract_path(jbvalue, " + toPathSegments( path ) + " )";
     }
 
     private static String toPathSegments( String path )

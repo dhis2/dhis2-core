@@ -55,6 +55,7 @@ import org.hisp.dhis.feedback.ErrorMessage;
 @AllArgsConstructor( access = AccessLevel.PRIVATE )
 public final class KeyJsonValueQuery
 {
+    public static final Order KEY_ASC = new Order( "_", Direction.ASC );
 
     private final String namespace;
 
@@ -66,24 +67,78 @@ public final class KeyJsonValueQuery
     private final boolean includeAll;
 
     @Builder.Default
+    private final boolean paging = true;
+
+    @Builder.Default
+    private final int page = 1;
+
+    @Builder.Default
+    private final int pageSize = 50;
+
+    @Builder.Default
+    private final Mode mode = Mode.TEXT;
+
+    @Builder.Default
     private final List<Field> fields = emptyList();
+
+    @Builder.Default
+    private final Order order = KEY_ASC;
+
+    public enum Mode
+    {
+        TEXT,
+        NUMERIC
+    }
+
+    public enum Direction
+    {
+        ASC,
+        DESC
+    }
+
+    @ToString
+    @Getter
+    public static final class Order
+    {
+        private final String path;
+
+        private final Direction direction;
+
+        public Order( String path, Direction direction )
+        {
+            this.path = normalisePath( path );
+            this.direction = direction;
+        }
+
+        public static Order parse( String order )
+        {
+            String[] parts = order.split( "(?:::|:|~|@)" );
+            if ( parts.length == 1 )
+            {
+                return new Order( order, Direction.ASC );
+            }
+            if ( parts.length == 2 )
+            {
+                return new Order( parts[0], Direction.valueOf( parts[1].toUpperCase() ) );
+            }
+            throw new IllegalArgumentException( "Not a valid order expression: " + order );
+        }
+
+        public boolean isKeyOrder()
+        {
+            return path.equals( "_" );
+        }
+
+        public boolean isDirectValueOrder()
+        {
+            return path.equals( "." );
+        }
+    }
 
     @ToString
     @Getter
     public static final class Field
     {
-        /**
-         * A valid path can have up to 5 levels each with an alphanumeric name
-         * between 1 and 32 characters long and levels being separated by a dot.
-         *
-         * The path needs to be protected since it becomes part of the SQL when
-         * the path is extracted from the JSON values. Therefore, the
-         * limitations on the path are quite strict even if this will not allow
-         * some corner case names to be used that would be valid JSON member
-         * names.
-         */
-        private static final String PATH_PATTERN = "^[-_a-zA-Z0-9]{1,32}(?:\\.[-_a-zA-Z0-9]{1,32}){0,5}$";
-
         private final String path;
 
         private final String alias;
@@ -95,29 +150,41 @@ public final class KeyJsonValueQuery
 
         public Field( String path, String alias )
         {
-            if ( path == null || !path.matches( PATH_PATTERN ) )
-            {
-                throw new IllegalQueryException( new ErrorMessage( ErrorCode.E7650, path ) );
-            }
-            this.path = path;
+            this.path = normalisePath( path );
             this.alias = alias != null ? alias : path;
         }
     }
 
+    @ToString
+    @Getter
+    public static final class Filter
+    {
+        private final String path;
+
+        private final Comparison operator;
+
+        private final String value;
+
+        public Filter( String path, Comparison operator, String value )
+        {
+            this.path = normalisePath( path );
+            this.operator = operator;
+            this.value = value;
+        }
+    }
+
+    public enum Comparison
+    {
+    }
+
     public KeyJsonValueQuery with( NamedParams params )
     {
-        String fieldsParam = params.getString( "fields", null );
-        String namespaceParam = params.getString( "namespace", null );
-        KeyJsonValueQueryBuilder queryBuilder = toBuilder();
-        if ( fieldsParam != null )
-        {
-            queryBuilder = queryBuilder.fields( parseFields( fieldsParam ) );
-        }
-        if ( namespaceParam != null )
-        {
-            queryBuilder = queryBuilder.namespace( namespaceParam );
-        }
-        return queryBuilder.build();
+        return toBuilder()
+            .order( Order.parse( params.getString( "order", KEY_ASC.path ) ) )
+            .paging( params.getBoolean( "paging", true ) )
+            .page( params.getInt( "page", 1 ) )
+            .pageSize( params.getInt( "pageSize", 50 ) )
+            .build();
     }
 
     /**
@@ -243,5 +310,30 @@ public final class KeyJsonValueQuery
     private static boolean isNameCharacter( char c )
     {
         return isLetterOrDigit( c ) || c == '.';
+    }
+
+    /**
+     * A valid path can have up to 5 levels each with an alphanumeric name
+     * between 1 and 32 characters long and levels being separated by a dot.
+     * <p>
+     * The path needs to be protected since it becomes part of the SQL when the
+     * path is extracted from the JSON values. Therefore, the limitations on the
+     * path are quite strict even if this will not allow some corner case names
+     * to be used that would be valid JSON member names.
+     */
+    private static final String PATH_PATTERN = "^[-_a-zA-Z0-9]{1,32}(?:\\.[-_a-zA-Z0-9]{1,32}){0,5}$";
+
+    static String normalisePath( String path )
+    {
+        if ( path == null )
+        {
+            throw new IllegalQueryException( new ErrorMessage( ErrorCode.E7650, "(null)" ) );
+        }
+        String normalised = path.replaceAll( "\\[(\\d+)]", ".$1" );
+        if ( !".".equals( path ) && !normalised.matches( PATH_PATTERN ) )
+        {
+            throw new IllegalQueryException( new ErrorMessage( ErrorCode.E7650, path ) );
+        }
+        return normalised;
     }
 }

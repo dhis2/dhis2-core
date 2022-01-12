@@ -42,6 +42,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.beanutils.BeanUtils;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.NamedParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValue;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValueQuery;
@@ -107,19 +108,21 @@ public class KeyJsonValueController
     }
 
     @GetMapping( value = "/{namespace}", params = "fields", produces = APPLICATION_JSON_VALUE )
-    public void getEntries( @PathVariable String namespace, @RequestParam( required = true ) String fields,
+    public void getEntries( @PathVariable String namespace,
+        @RequestParam( required = true ) String fields,
         @RequestParam( required = false, defaultValue = "false" ) boolean includeAll,
-        HttpServletResponse response )
+        HttpServletRequest request, HttpServletResponse response )
         throws Exception
     {
         response.setContentType( APPLICATION_JSON_VALUE );
+
         setNoStore( response );
 
         KeyJsonValueQuery query = KeyJsonValueQuery.builder()
             .namespace( namespace )
             .fields( parseFields( fields ) )
             .includeAll( includeAll )
-            .build();
+            .build().with( new NamedParams( request::getParameter, request::getParameterValues ) );
 
         try ( JsonWriter out = new JsonWriter( response.getWriter() ) )
         {
