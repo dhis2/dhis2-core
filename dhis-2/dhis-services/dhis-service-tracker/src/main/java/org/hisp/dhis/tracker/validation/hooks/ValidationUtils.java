@@ -31,9 +31,6 @@ import static com.google.api.client.util.Preconditions.checkNotNull;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.hisp.dhis.tracker.programrule.IssueType.ERROR;
 import static org.hisp.dhis.tracker.programrule.IssueType.WARNING;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1012;
-import static org.hisp.dhis.tracker.report.TrackerErrorReport.newReport;
-import static org.hisp.dhis.tracker.report.TrackerWarningReport.newWarningReport;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.GEOMETRY_CANT_BE_NULL;
 
 import java.util.ArrayList;
@@ -48,8 +45,11 @@ import org.hisp.dhis.program.ValidationStrategy;
 import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Note;
+import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
+import org.hisp.dhis.tracker.report.TrackerErrorReport;
+import org.hisp.dhis.tracker.report.TrackerWarningReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.locationtech.jts.geom.Geometry;
@@ -61,13 +61,19 @@ import com.google.common.collect.Lists;
  */
 public class ValidationUtils
 {
-    static void validateGeometry( ValidationErrorReporter errorReporter, Geometry geometry, FeatureType featureType )
+    static void validateGeometry( ValidationErrorReporter reporter, TrackerDto dto, Geometry geometry,
+        FeatureType featureType )
     {
         checkNotNull( geometry, GEOMETRY_CANT_BE_NULL );
 
         if ( featureType == null )
         {
-            errorReporter.addError( newReport( TrackerErrorCode.E1074 ) );
+            TrackerErrorReport error = TrackerErrorReport.builder()
+                .uid( dto.getUid() )
+                .trackerType( dto.getTrackerType() )
+                .errorCode( TrackerErrorCode.E1074 )
+                .build( reporter.getValidationContext().getBundle() );
+            reporter.addError( error );
             return;
         }
 
@@ -75,11 +81,18 @@ public class ValidationUtils
 
         if ( FeatureType.NONE == featureType || featureType != typeFromName )
         {
-            errorReporter.addError( newReport( E1012 ).addArgs( featureType.name() ) );
+            TrackerErrorReport error = TrackerErrorReport.builder()
+                .uid( dto.getUid() )
+                .trackerType( dto.getTrackerType() )
+                .errorCode( TrackerErrorCode.E1012 )
+                .addArg( featureType.name() )
+                .build( reporter.getValidationContext().getBundle() );
+            reporter.addError( error );
         }
     }
 
-    protected static List<Note> validateNotes( ValidationErrorReporter reporter, List<Note> notesToCheck )
+    protected static List<Note> validateNotes( ValidationErrorReporter reporter, TrackerDto dto,
+        List<Note> notesToCheck )
     {
         TrackerImportValidationContext context = reporter.getValidationContext();
 
@@ -92,7 +105,13 @@ public class ValidationUtils
                 // warning, ignore the note and continue
                 if ( isNotEmpty( note.getNote() ) && context.getNote( note.getNote() ).isPresent() )
                 {
-                    reporter.addWarning( newWarningReport( TrackerErrorCode.E1119 ).addArg( note.getNote() ) );
+                    TrackerWarningReport warning = TrackerWarningReport.builder()
+                        .uid( dto.getUid() )
+                        .trackerType( dto.getTrackerType() )
+                        .warningCode( TrackerErrorCode.E1119 )
+                        .addArg( note.getNote() )
+                        .build( reporter.getValidationContext().getBundle() );
+                    reporter.addWarning( warning );
                 }
                 else
                 {
@@ -145,7 +164,8 @@ public class ValidationUtils
         }
     }
 
-    public static void addIssuesToReporter( ValidationErrorReporter reporter, List<ProgramRuleIssue> programRuleIssues )
+    public static void addIssuesToReporter( ValidationErrorReporter reporter, TrackerDto dto,
+        List<ProgramRuleIssue> programRuleIssues )
     {
         programRuleIssues
             .stream()
@@ -153,7 +173,13 @@ public class ValidationUtils
             .forEach( issue -> {
                 List<String> args = Lists.newArrayList( issue.getRuleUid() );
                 args.addAll( issue.getArgs() );
-                reporter.addError( newReport( issue.getIssueCode() ).addArgs( args.toArray() ) );
+                TrackerErrorReport error = TrackerErrorReport.builder()
+                    .uid( dto.getUid() )
+                    .trackerType( dto.getTrackerType() )
+                    .errorCode( issue.getIssueCode() )
+                    .addArgs( args.toArray() )
+                    .build( reporter.getValidationContext().getBundle() );
+                reporter.addError( error );
             } );
 
         programRuleIssues
@@ -163,8 +189,13 @@ public class ValidationUtils
                 issue -> {
                     List<String> args = Lists.newArrayList( issue.getRuleUid() );
                     args.addAll( issue.getArgs() );
-                    reporter.addWarning( newWarningReport( issue.getIssueCode() )
-                        .addArgs( args.toArray() ) );
+                    TrackerWarningReport warning = TrackerWarningReport.builder()
+                        .uid( dto.getUid() )
+                        .trackerType( dto.getTrackerType() )
+                        .warningCode( issue.getIssueCode() )
+                        .addArgs( args.toArray() )
+                        .build( reporter.getValidationContext().getBundle() );
+                    reporter.addWarning( warning );
                 } );
     }
 

@@ -40,6 +40,7 @@ public class EventNoteValidationHook extends AbstractTrackerDtoValidationHook
     @Override
     public void validateEvent( ValidationErrorReporter reporter, Event event )
     {
-        event.setNotes( ValidationUtils.validateNotes( reporter, event.getNotes() ) );
+        event
+            .setNotes( ValidationUtils.validateNotes( reporter, event, event.getNotes() ) );
     }
 }

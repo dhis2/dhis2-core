@@ -70,7 +70,7 @@ class EnrollmentAttrValidationTest extends AbstractImportValidationTest
         setUpMetadata( "tracker/tracker_basic_metadata_mandatory_attr.json" );
         TrackerImportParams trackerBundleParams = fromJson( "tracker/validations/enrollments_te_te-data_2.json" );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
-        assertEquals( 0, trackerImportReport.getValidationReport().getErrorReports().size() );
+        assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
         assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
         manager.flush();
     }
@@ -83,8 +83,8 @@ class EnrollmentAttrValidationTest extends AbstractImportValidationTest
             "tracker/validations/enrollments_te_with_invalid_option_value.json" );
         params.setImportStrategy( TrackerImportStrategy.CREATE );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
-        assertEquals( 1, trackerImportReport.getValidationReport().getErrorReports().size() );
-        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
+        assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
+        assertThat( trackerImportReport.getValidationReport().getErrors(),
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1125 ) ) ) );
     }
 
@@ -96,7 +96,7 @@ class EnrollmentAttrValidationTest extends AbstractImportValidationTest
             "tracker/validations/enrollments_te_with_valid_option_value.json" );
         params.setImportStrategy( TrackerImportStrategy.CREATE );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
-        assertEquals( 0, trackerImportReport.getValidationReport().getErrorReports().size() );
+        assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
     }
 
     @Test
@@ -107,8 +107,8 @@ class EnrollmentAttrValidationTest extends AbstractImportValidationTest
             "tracker/validations/enrollments_te_attr-missing-uuid.json" );
         params.setImportStrategy( TrackerImportStrategy.CREATE );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
-        assertEquals( 1, trackerImportReport.getValidationReport().getErrorReports().size() );
-        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
+        assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
+        assertThat( trackerImportReport.getValidationReport().getErrors(),
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1075 ) ) ) );
     }
 
@@ -120,8 +120,8 @@ class EnrollmentAttrValidationTest extends AbstractImportValidationTest
             "tracker/validations/enrollments_te_attr-missing-value.json" );
         params.setImportStrategy( TrackerImportStrategy.CREATE );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
-        assertEquals( 1, trackerImportReport.getValidationReport().getErrorReports().size() );
-        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
+        assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
+        assertThat( trackerImportReport.getValidationReport().getErrors(),
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1076 ) ) ) );
     }
 
@@ -138,8 +138,8 @@ class EnrollmentAttrValidationTest extends AbstractImportValidationTest
         trackedEntityAttributeService.deleteTrackedEntityAttribute( sTJvSLN7Kcb );
         TrackerImportParams params = createBundleFromJson( "tracker/validations/enrollments_te_attr-data.json" );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
-        assertEquals( 1, trackerImportReport.getValidationReport().getErrorReports().size() );
-        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
+        assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
+        assertThat( trackerImportReport.getValidationReport().getErrors(),
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1006 ) ) ) );
     }
 
@@ -151,8 +151,8 @@ class EnrollmentAttrValidationTest extends AbstractImportValidationTest
             "tracker/validations/enrollments_te_attr-missing-mandatory.json" );
         params.setImportStrategy( TrackerImportStrategy.CREATE );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
-        assertEquals( 1, trackerImportReport.getValidationReport().getErrorReports().size() );
-        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
+        assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
+        assertThat( trackerImportReport.getValidationReport().getErrors(),
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1018 ) ) ) );
     }
 
@@ -164,7 +164,7 @@ class EnrollmentAttrValidationTest extends AbstractImportValidationTest
             "tracker/validations/enrollments_te_unique_attr_same_tei.json" );
         params.setImportStrategy( TrackerImportStrategy.CREATE );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
-        assertEquals( 0, trackerImportReport.getValidationReport().getErrorReports().size() );
+        assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
     }
 
     @Test
@@ -173,21 +173,21 @@ class EnrollmentAttrValidationTest extends AbstractImportValidationTest
     {
         TrackerImportParams params = fromJson( "tracker/validations/enrollments_te_te-data_3.json" );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
-        assertEquals( 0, trackerImportReport.getValidationReport().getErrorReports().size() );
+        assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
         assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
         manager.flush();
         manager.clear();
         params = createBundleFromJson( "tracker/validations/enrollments_te_unique_attr_same_tei.json" );
         params.setImportStrategy( TrackerImportStrategy.CREATE );
         trackerImportReport = trackerImportService.importTracker( params );
-        assertEquals( 0, trackerImportReport.getValidationReport().getErrorReports().size() );
+        assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
         manager.flush();
         manager.clear();
         params = createBundleFromJson( "tracker/validations/enrollments_te_unique_attr_in_db.json" );
         params.setImportStrategy( TrackerImportStrategy.CREATE );
         trackerImportReport = trackerImportService.importTracker( params );
-        assertEquals( 1, trackerImportReport.getValidationReport().getErrorReports().size() );
-        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
+        assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
+        assertThat( trackerImportReport.getValidationReport().getErrors(),
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1064 ) ) ) );
     }
 
@@ -197,15 +197,15 @@ class EnrollmentAttrValidationTest extends AbstractImportValidationTest
     {
         TrackerImportParams params = fromJson( "tracker/validations/enrollments_te_te-data_3.json" );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
-        assertEquals( 0, trackerImportReport.getValidationReport().getErrorReports().size() );
+        assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
         assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
         manager.flush();
         manager.clear();
         params = createBundleFromJson( "tracker/validations/enrollments_te_unique_attr.json" );
         params.setImportStrategy( TrackerImportStrategy.CREATE );
         trackerImportReport = trackerImportService.importTracker( params );
-        assertEquals( 2, trackerImportReport.getValidationReport().getErrorReports().size() );
-        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
+        assertEquals( 2, trackerImportReport.getValidationReport().getErrors().size() );
+        assertThat( trackerImportReport.getValidationReport().getErrors(),
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1064 ) ) ) );
     }
 
@@ -217,8 +217,8 @@ class EnrollmentAttrValidationTest extends AbstractImportValidationTest
             "tracker/validations/enrollments_te_attr-only-program-attr.json" );
         params.setImportStrategy( TrackerImportStrategy.CREATE );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
-        assertEquals( 1, trackerImportReport.getValidationReport().getErrorReports().size() );
-        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
+        assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
+        assertThat( trackerImportReport.getValidationReport().getErrors(),
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1019 ) ) ) );
     }
 }

@@ -157,7 +157,7 @@ class EventCategoryOptValidationHookTest extends DhisConvenienceTest
         when( i18nManager.getI18nFormat() )
             .thenReturn( I18N_FORMAT );
 
-        reporter = new ValidationErrorReporter( validationContext, event );
+        reporter = new ValidationErrorReporter( validationContext );
     }
 
     @Test

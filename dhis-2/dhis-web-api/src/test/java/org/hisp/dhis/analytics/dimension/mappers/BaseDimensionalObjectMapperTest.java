@@ -33,17 +33,17 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.analytics.dimension.DimensionResponse;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import com.google.common.collect.ImmutableList;
 
-public class BaseDimensionalObjectMapperTest
+class BaseDimensionalObjectMapperTest
 {
 
     private static final DimensionType DIMENSION_TYPE = DimensionType.PERIOD;
 
     @Test
-    public void testDimensionalObjectMapper()
+    void testDimensionalObjectMapper()
     {
         asserter( new BaseDimensionalObjectMapper(),
             BaseDimensionalObject::new,

@@ -53,7 +53,7 @@ public class EnrollmentGeoValidationHook
 
         if ( enrollment.getGeometry() != null )
         {
-            ValidationUtils.validateGeometry( reporter,
+            ValidationUtils.validateGeometry( reporter, enrollment,
                 enrollment.getGeometry(),
                 program.getFeatureType() );
         }

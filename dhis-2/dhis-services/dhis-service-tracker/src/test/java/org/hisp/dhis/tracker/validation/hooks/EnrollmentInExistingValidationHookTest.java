@@ -103,6 +103,7 @@ class EnrollmentInExistingValidationHookTest
         when( enrollment.getStatus() ).thenReturn( EnrollmentStatus.ACTIVE );
         when( enrollment.getEnrollment() ).thenReturn( enrollmentUid );
         when( enrollment.getUid() ).thenReturn( enrollmentUid );
+        when( enrollment.getTrackerType() ).thenCallRealMethod();
 
         when( validationContext.getTrackedEntityInstance( trackedEntity ) ).thenReturn( trackedEntityInstance );
         when( trackedEntityInstance.getUid() ).thenReturn( trackedEntity );
@@ -114,7 +115,7 @@ class EnrollmentInExistingValidationHookTest
         program.setUid( programUid );
 
         when( validationContext.getProgram( programUid ) ).thenReturn( program );
-        reporter = new ValidationErrorReporter( validationContext, enrollment );
+        reporter = new ValidationErrorReporter( validationContext );
     }
 
     @Test

@@ -33,17 +33,17 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.analytics.dimension.DimensionResponse;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DimensionItemType;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import com.google.common.collect.ImmutableList;
 
-public class BaseDimensionalItemObjectMapperTest
+class BaseDimensionalItemObjectMapperTest
 {
 
     private static final DimensionItemType DIMENSION_ITEM_TYPE = DimensionItemType.INDICATOR;
 
     @Test
-    public void testDimensionalItemObjectMapper()
+    void testDimensionalItemObjectMapper()
     {
         asserter( new BaseDimensionalItemObjectMapper(),
             BaseDimensionalItemObject::new,

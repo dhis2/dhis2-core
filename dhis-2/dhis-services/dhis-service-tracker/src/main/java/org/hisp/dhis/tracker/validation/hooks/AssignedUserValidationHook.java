@@ -49,11 +49,11 @@ public class AssignedUserValidationHook
         {
             if ( isNotValidAssignedUserUid( event ) || assignedUserNotPresentInPreheat( reporter, event ) )
             {
-                addError( reporter, E1118, event.getAssignedUser() );
+                addError( reporter, event, E1118, event.getAssignedUser() );
             }
             if ( isNotEnabledUserAssignment( reporter, event ) )
             {
-                addWarning( reporter, E1120, event.getProgramStage() );
+                addWarning( reporter, event, E1120, event.getProgramStage() );
             }
         }
     }

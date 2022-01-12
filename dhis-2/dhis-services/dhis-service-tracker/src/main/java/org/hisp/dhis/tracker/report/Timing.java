@@ -27,8 +27,10 @@
  */
 package org.hisp.dhis.tracker.report;
 
-import lombok.Builder;
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -38,13 +40,16 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Data
-@Builder
-public class TrackerValidationHookTimerReport
+@RequiredArgsConstructor
+@ToString
+@EqualsAndHashCode
+public class Timing
 {
+    @NonNull
     @JsonProperty
-    public String totalTime;
+    public final String totalTime;
 
+    @NonNull
     @JsonProperty
-    public String name;
+    public final String name;
 }

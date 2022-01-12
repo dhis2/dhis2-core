@@ -35,11 +35,11 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import com.google.common.collect.ImmutableList;
 
-public class ProgramStageDataElementMapperTest
+class ProgramStageDataElementMapperTest
 {
 
     private static final ValueType VALUE_TYPE = ValueType.TEXT;
@@ -49,7 +49,7 @@ public class ProgramStageDataElementMapperTest
     private static final String PROGRAM_STAGE_UID = "PSUID";
 
     @Test
-    public void testProgramStageDataElementMapper()
+    void testProgramStageDataElementMapper()
     {
         asserter( new ProgramStageDataElementMapper(),
             ProgramStageDataElement::new,

@@ -113,7 +113,7 @@ class PreCheckUpdatableFieldsValidationHookTest
         TrackedEntity trackedEntity = validTei();
 
         // when
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, trackedEntity );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx );
         validationHook.validateTrackedEntity( reporter, trackedEntity );
 
         // then
@@ -128,7 +128,7 @@ class PreCheckUpdatableFieldsValidationHookTest
         trackedEntity.setTrackedEntityType( "NewTrackedEntityTypeId" );
 
         // when
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, trackedEntity );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx );
         validationHook.validateTrackedEntity( reporter, trackedEntity );
 
         // then
@@ -142,7 +142,7 @@ class PreCheckUpdatableFieldsValidationHookTest
         Enrollment enrollment = validEnrollment();
 
         // when
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, enrollment );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx );
         validationHook.validateEnrollment( reporter, enrollment );
 
         // then
@@ -157,7 +157,7 @@ class PreCheckUpdatableFieldsValidationHookTest
         enrollment.setProgram( "NewProgramId" );
 
         // when
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, enrollment );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx );
         validationHook.validateEnrollment( reporter, enrollment );
 
         // then
@@ -173,7 +173,7 @@ class PreCheckUpdatableFieldsValidationHookTest
         enrollment.setTrackedEntity( "NewTrackedEntityId" );
 
         // when
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, enrollment );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx );
         validationHook.validateEnrollment( reporter, enrollment );
 
         // then
@@ -188,7 +188,7 @@ class PreCheckUpdatableFieldsValidationHookTest
         Event event = validEvent();
 
         // when
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, event );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx );
         validationHook.validateEvent( reporter, event );
 
         // then
@@ -203,7 +203,7 @@ class PreCheckUpdatableFieldsValidationHookTest
         event.setProgramStage( "NewProgramStageId" );
 
         // when
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, event );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx );
         validationHook.validateEvent( reporter, event );
 
         // then
@@ -219,7 +219,7 @@ class PreCheckUpdatableFieldsValidationHookTest
         event.setEnrollment( "NewEnrollmentId" );
 
         // when
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, event );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx );
         validationHook.validateEvent( reporter, event );
 
         // then
