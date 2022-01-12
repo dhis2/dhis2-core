@@ -238,11 +238,6 @@ public class RequestToSearchParamsMapper
             }
         }
 
-        if ( orgUnitSelectionMode == null )
-        {
-            orgUnitSelectionMode = OrganisationUnitSelectionMode.ACCESSIBLE;
-        }
-
         if ( assignedUserSelectionMode != null && assignedUsers != null && !assignedUsers.isEmpty()
             && !assignedUserSelectionMode.equals( AssignedUserSelectionMode.PROVIDED ) )
         {
