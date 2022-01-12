@@ -72,7 +72,7 @@ public class ValidationUtils
                 .uid( dto.getUid() )
                 .trackerType( dto.getTrackerType() )
                 .errorCode( TrackerErrorCode.E1074 )
-                .build( reporter.getValidationContext().getBundle() );
+                .build();
             reporter.addError( error );
             return;
         }
@@ -86,7 +86,7 @@ public class ValidationUtils
                 .trackerType( dto.getTrackerType() )
                 .errorCode( TrackerErrorCode.E1012 )
                 .addArg( featureType.name() )
-                .build( reporter.getValidationContext().getBundle() );
+                .build();
             reporter.addError( error );
         }
     }
@@ -178,7 +178,7 @@ public class ValidationUtils
                     .trackerType( dto.getTrackerType() )
                     .errorCode( issue.getIssueCode() )
                     .addArgs( args.toArray() )
-                    .build( reporter.getValidationContext().getBundle() );
+                    .build();
                 reporter.addError( error );
             } );
 

@@ -48,7 +48,9 @@ import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
+import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
@@ -77,7 +79,13 @@ public class EventDataValuesValidationHook
 
             if ( dataElement == null )
             {
-                addError( reporter, event, TrackerErrorCode.E1304, dataValue.getDataElement() );
+                TrackerErrorReport error = TrackerErrorReport.builder()
+                    .uid( event.getUid() )
+                    .trackerType( event.getTrackerType() )
+                    .errorCode( TrackerErrorCode.E1304 )
+                    .addArg( dataValue.getDataElement() )
+                    .build();
+                reporter.addError( error );
                 continue;
             }
 
@@ -105,7 +113,15 @@ public class EventDataValuesValidationHook
                 .collect( Collectors.toList() );
             List<String> wrongMandatoryDataValue = validateMandatoryDataValue( programStage, event,
                 mandatoryDataElements );
-            wrongMandatoryDataValue.forEach( de -> addError( reporter, event, E1303, de ) );
+            wrongMandatoryDataValue.forEach( de -> {
+                TrackerErrorReport error = TrackerErrorReport.builder()
+                    .uid( event.getUid() )
+                    .trackerType( event.getTrackerType() )
+                    .errorCode( E1303 )
+                    .addArg( de )
+                    .build();
+                reporter.addError( error );
+            } );
         }
     }
 
@@ -116,8 +132,14 @@ public class EventDataValuesValidationHook
 
         if ( status != null )
         {
-            addError( reporter, event, TrackerErrorCode.E1302, dataElement.getUid(),
-                status );
+            TrackerErrorReport error = TrackerErrorReport.builder()
+                .uid( event.getUid() )
+                .trackerType( event.getTrackerType() )
+                .errorCode( TrackerErrorCode.E1302 )
+                .addArg( dataElement.getUid() )
+                .addArg( status )
+                .build();
+            reporter.addError( error );
         }
         else
         {
@@ -142,8 +164,14 @@ public class EventDataValuesValidationHook
 
         if ( optionalPsde.isPresent() )
         {
-            addError( reporter, event, E1076, DataElement.class.getSimpleName(),
-                dataElement.getUid() );
+            TrackerErrorReport error = TrackerErrorReport.builder()
+                .uid( event.getUid() )
+                .trackerType( event.getTrackerType() )
+                .errorCode( E1076 )
+                .addArg( DataElement.class.getSimpleName() )
+                .addArg( dataElement.getUid() )
+                .build();
+            reporter.addError( error );
         }
     }
 
@@ -163,8 +191,14 @@ public class EventDataValuesValidationHook
         {
             if ( !dataElements.contains( payloadDataElement ) )
             {
-                addError( reporter, event, TrackerErrorCode.E1305, payloadDataElement,
-                    programStage.getUid() );
+                TrackerErrorReport error = TrackerErrorReport.builder()
+                    .uid( ((TrackerDto) event).getUid() )
+                    .trackerType( ((TrackerDto) event).getTrackerType() )
+                    .errorCode( TrackerErrorCode.E1305 )
+                    .addArg( payloadDataElement )
+                    .addArg( programStage.getUid() )
+                    .build();
+                reporter.addError( error );
             }
         }
     }

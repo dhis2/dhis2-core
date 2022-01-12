@@ -63,6 +63,30 @@ class TrackerValidationReportTest
     }
 
     @Test
+    void addErrorIfExpressionIsTrue()
+    {
+
+        TrackerValidationReport report = new TrackerValidationReport();
+        TrackerErrorReport error = newError();
+
+        report.addErrorIf( () -> true, () -> error );
+
+        assertNotNull( report.getErrors() );
+        assertContainsOnly( report.getErrors(), error );
+    }
+
+    @Test
+    void addErrorIfDoesNotAddErrorIfExpressionIsFalse()
+    {
+
+        TrackerValidationReport report = new TrackerValidationReport();
+
+        report.addErrorIf( () -> false, () -> newError() );
+
+        assertFalse( report.hasErrors() );
+    }
+
+    @Test
     void addErrorsIfTheyDoNotExist()
     {
 

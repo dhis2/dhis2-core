@@ -27,18 +27,24 @@
  */
 package org.hisp.dhis.tracker.report;
 
-import static org.hisp.dhis.tracker.report.TrackerReportUtils.buildArgumentList;
-
+import java.text.DateFormat;
 import java.text.MessageFormat;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 import lombok.Builder;
 import lombok.Data;
 
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.tracker.TrackerIdScheme;
+import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -96,6 +102,8 @@ public class TrackerErrorReport
 
     public static class TrackerErrorReportBuilder
     {
+        // TODO(TECH-880) turn into List<String> as this is what
+        // buildArgumentList does
         private final List<Object> arguments = new ArrayList<>();
 
         public TrackerErrorReportBuilder addArg( Object arg )
@@ -104,17 +112,72 @@ public class TrackerErrorReport
             return this;
         }
 
+        public TrackerErrorReportBuilder addArg( String arg )
+        {
+            this.arguments.add( arg );
+            return this;
+        }
+
+        public TrackerErrorReportBuilder addArg( Instant instant )
+        {
+            // TODO EnrollmendDateValidationHook uses E1025 and E1025 for
+            // malformed and null occuredAt, enrolledAt
+            // EventDateValidationHook uses errors like E1031 without args to
+            // report a required instant that is null.
+            if ( instant == null )
+            {
+                this.arguments.add( "" );
+                return this;
+            }
+            this.arguments.add( DateFormat.getInstance().format( Date.from( instant ) ) );
+            return this;
+        }
+
+        public TrackerErrorReportBuilder addArg( Date date )
+        {
+            this.arguments.add( DateFormat.getInstance().format( date ) );
+            return this;
+        }
+
+        public TrackerErrorReportBuilder addArg( TrackerIdScheme idScheme, IdentifiableObject arg )
+        {
+            final TrackerIdentifier identifier = TrackerIdentifier.builder().idScheme( idScheme ).build();
+            this.arguments.add( identifier.getIdAndName( arg ) );
+            return this;
+        }
+
+        // TODO(TECH-880) try using TrackerDto. Can I still get the class name
+        // Enrollment, ...
+        public TrackerErrorReportBuilder addArg( Enrollment enrollment )
+        {
+            this.arguments.add( enrollment.getClass().getSimpleName() + " (" + enrollment.getEnrollment() + ")" );
+            return this;
+        }
+
+        public TrackerErrorReportBuilder addArg( Event event )
+        {
+            this.arguments.add( event.getClass().getSimpleName() + " (" + event.getEnrollment() + ")" );
+            return this;
+        }
+
+        public TrackerErrorReportBuilder addArg( TrackedEntity trackedEntity )
+        {
+            this.arguments
+                .add( trackedEntity.getClass().getSimpleName() + " (" + trackedEntity.getTrackedEntity() + ")" );
+            return this;
+        }
+
+        // TODO(TECH-880) how to adapt this one? Its only ever used once
         public TrackerErrorReportBuilder addArgs( Object... args )
         {
             this.arguments.addAll( Arrays.asList( args ) );
             return this;
         }
 
-        public TrackerErrorReport build( TrackerBundle bundle )
+        public TrackerErrorReport build()
         {
             return new TrackerErrorReport(
-                MessageFormat.format( errorCode.getMessage(),
-                    buildArgumentList( bundle, arguments ).toArray( new Object[0] ) ),
+                MessageFormat.format( errorCode.getMessage(), arguments.toArray( new Object[0] ) ),
                 this.errorCode, this.trackerType, this.uid );
         }
     }

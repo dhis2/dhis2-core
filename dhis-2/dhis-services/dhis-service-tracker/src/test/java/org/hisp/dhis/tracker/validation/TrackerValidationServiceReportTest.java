@@ -141,7 +141,7 @@ class TrackerValidationServiceReportTest
                         TrackerErrorReport.builder()
                             .errorCode( TrackerErrorCode.E1032 )
                             .trackerType( TrackerType.EVENT )
-                            .uid( event.getUid() ).build( reporter.getValidationContext().getBundle() ) );
+                            .uid( event.getUid() ).build() );
                 }
             } )
             .build();
@@ -155,7 +155,7 @@ class TrackerValidationServiceReportTest
                             .errorCode( TrackerErrorCode.E1069 )
                             .trackerType( TrackerType.ENROLLMENT )
                             .uid( enrollment.getUid() )
-                            .build( reporter.getValidationContext().getBundle() ) );
+                            .build() );
                 }
             } )
             .build();
@@ -221,7 +221,7 @@ class TrackerValidationServiceReportTest
                         TrackerErrorReport.builder()
                             .errorCode( TrackerErrorCode.E1032 )
                             .trackerType( TrackerType.EVENT )
-                            .uid( event.getUid() ).build( reporter.getValidationContext().getBundle() ) );
+                            .uid( event.getUid() ).build() );
                 }
             } ).build();
         TrackerValidationHook hook2 = mock( TrackerValidationHook.class );

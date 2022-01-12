@@ -47,6 +47,7 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
+import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
@@ -66,13 +67,25 @@ public class PreCheckMetaValidationHook
         OrganisationUnit organisationUnit = context.getOrganisationUnit( tei.getOrgUnit() );
         if ( organisationUnit == null )
         {
-            addError( reporter, tei, TrackerErrorCode.E1049, tei.getOrgUnit() );
+            TrackerErrorReport error = TrackerErrorReport.builder()
+                .uid( tei.getUid() )
+                .trackerType( tei.getTrackerType() )
+                .errorCode( TrackerErrorCode.E1049 )
+                .addArg( tei.getOrgUnit() )
+                .build();
+            reporter.addError( error );
         }
 
         TrackedEntityType entityType = context.getTrackedEntityType( tei.getTrackedEntityType() );
         if ( entityType == null )
         {
-            addError( reporter, tei, E1005, tei.getTrackedEntityType() );
+            TrackerErrorReport error = TrackerErrorReport.builder()
+                .uid( tei.getUid() )
+                .trackerType( tei.getTrackerType() )
+                .errorCode( E1005 )
+                .addArg( tei.getTrackedEntityType() )
+                .build();
+            reporter.addError( error );
         }
     }
 

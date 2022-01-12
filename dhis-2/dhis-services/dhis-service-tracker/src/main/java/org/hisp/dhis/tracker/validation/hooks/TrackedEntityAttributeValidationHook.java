@@ -57,6 +57,8 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.domain.TrackerDto;
+import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.util.Constant;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
@@ -111,8 +113,17 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
                 .map( BaseIdentifiableObject::getUid )
                 .filter( mandatoryAttributeUid -> !trackedEntityAttributes.contains( mandatoryAttributeUid ) )
                 .forEach(
-                    attribute -> addError( reporter, trackedEntity, E1090, attribute, trackedEntityType.getUid(),
-                        trackedEntity.getTrackedEntity() ) );
+                    attribute -> {
+                        TrackerErrorReport error = TrackerErrorReport.builder()
+                            .uid( ((TrackerDto) trackedEntity).getUid() )
+                            .trackerType( ((TrackerDto) trackedEntity).getTrackerType() )
+                            .errorCode( E1090 )
+                            .addArg( attribute )
+                            .addArg( trackedEntityType.getUid() )
+                            .addArg( trackedEntity.getTrackedEntity() )
+                            .build();
+                        reporter.addError( error );
+                    } );
         }
     }
 
@@ -138,7 +149,13 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
 
             if ( tea == null )
             {
-                addError( reporter, trackedEntity, E1006, attribute.getAttribute() );
+                TrackerErrorReport error = TrackerErrorReport.builder()
+                    .uid( trackedEntity.getUid() )
+                    .trackerType( trackedEntity.getTrackerType() )
+                    .errorCode( E1006 )
+                    .addArg( attribute.getAttribute() )
+                    .build();
+                reporter.addError( error );
                 continue;
             }
 
@@ -152,8 +169,16 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
                         .findFirst() );
 
                 if ( optionalTea.isPresent() )
-                    addError( reporter, trackedEntity, E1076, TrackedEntityAttribute.class.getSimpleName(),
-                        attribute.getAttribute() );
+                {
+                    TrackerErrorReport error = TrackerErrorReport.builder()
+                        .uid( ((TrackerDto) trackedEntity).getUid() )
+                        .trackerType( ((TrackerDto) trackedEntity).getTrackerType() )
+                        .errorCode( E1076 )
+                        .addArg( TrackedEntityAttribute.class.getSimpleName() )
+                        .addArg( attribute.getAttribute() )
+                        .build();
+                    reporter.addError( error );
+                }
 
                 continue;
             }

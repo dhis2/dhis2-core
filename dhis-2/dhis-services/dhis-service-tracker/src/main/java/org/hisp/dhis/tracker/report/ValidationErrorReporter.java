@@ -32,6 +32,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 import lombok.Data;
 
@@ -117,6 +118,14 @@ public class ValidationErrorReporter
         if ( isFailFast() )
         {
             throw new ValidationFailFastException( getReportList() );
+        }
+    }
+
+    public void addErrorIf( Supplier<Boolean> condition, Supplier<TrackerErrorReport> error )
+    {
+        if ( condition.get() )
+        {
+            addError( error.get() );
         }
     }
 

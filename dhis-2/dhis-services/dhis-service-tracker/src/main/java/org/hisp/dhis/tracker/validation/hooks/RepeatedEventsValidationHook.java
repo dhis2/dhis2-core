@@ -38,6 +38,7 @@ import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
+import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
@@ -74,7 +75,13 @@ public class RepeatedEventsValidationHook
             {
                 for ( Event event : mapEntry.getValue() )
                 {
-                    addError( reporter, event, TrackerErrorCode.E1039, mapEntry.getKey().getLeft() );
+                    TrackerErrorReport error = TrackerErrorReport.builder()
+                        .uid( event.getUid() )
+                        .trackerType( event.getTrackerType() )
+                        .errorCode( TrackerErrorCode.E1039 )
+                        .addArg( mapEntry.getKey().getLeft() )
+                        .build();
+                    reporter.addError( error );
                 }
             }
         }
@@ -95,7 +102,13 @@ public class RepeatedEventsValidationHook
             && !programStage.getRepeatable()
             && context.programStageHasEvents( programStage.getUid(), programInstance.getUid() ) )
         {
-            addError( reporter, event, TrackerErrorCode.E1039, event.getProgramStage() );
+            TrackerErrorReport error = TrackerErrorReport.builder()
+                .uid( event.getUid() )
+                .trackerType( event.getTrackerType() )
+                .errorCode( TrackerErrorCode.E1039 )
+                .addArg( event.getProgramStage() )
+                .build();
+            reporter.addError( error );
         }
     }
 

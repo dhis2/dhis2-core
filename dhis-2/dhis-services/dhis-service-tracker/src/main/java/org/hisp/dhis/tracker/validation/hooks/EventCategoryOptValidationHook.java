@@ -43,7 +43,9 @@ import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
+import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.util.DateUtils;
@@ -85,7 +87,12 @@ public class EventCategoryOptValidationHook
             && program.getCategoryCombo() != null
             && !program.getCategoryCombo().isDefault() )
         {
-            addError( reporter, event, TrackerErrorCode.E1055 );
+            TrackerErrorReport error = TrackerErrorReport.builder()
+                .uid( event.getUid() )
+                .trackerType( event.getTrackerType() )
+                .errorCode( TrackerErrorCode.E1055 )
+                .build();
+            reporter.addError( error );
             return;
         }
 
@@ -107,15 +114,29 @@ public class EventCategoryOptValidationHook
         {
             if ( option.getStartDate() != null && eventDate.compareTo( option.getStartDate() ) < 0 )
             {
-                addError( reporter, event, E1056, i18nFormat.formatDate( eventDate ),
-                    i18nFormat.formatDate( option.getStartDate() ), option.getName() );
+                TrackerErrorReport error = TrackerErrorReport.builder()
+                    .uid( ((TrackerDto) event).getUid() )
+                    .trackerType( ((TrackerDto) event).getTrackerType() )
+                    .errorCode( E1056 )
+                    .addArg( i18nFormat.formatDate( eventDate ) )
+                    .addArg( i18nFormat.formatDate( option.getStartDate() ) )
+                    .addArg( option.getName() )
+                    .build();
+                reporter.addError( error );
             }
 
             if ( option.getEndDate() != null && eventDate.compareTo( option.getAdjustedEndDate( program ) ) > 0 )
             {
-                addError( reporter, event, E1057, i18nFormat.formatDate( eventDate ),
-                    i18nFormat.formatDate( option.getAdjustedEndDate( program ) ), option.getName(),
-                    program.getName() );
+                TrackerErrorReport error = TrackerErrorReport.builder()
+                    .uid( ((TrackerDto) event).getUid() )
+                    .trackerType( ((TrackerDto) event).getTrackerType() )
+                    .errorCode( E1057 )
+                    .addArg( i18nFormat.formatDate( eventDate ) )
+                    .addArg( i18nFormat.formatDate( option.getAdjustedEndDate( program ) ) )
+                    .addArg( option.getName() )
+                    .addArg( program.getName() )
+                    .build();
+                reporter.addError( error );
             }
         }
     }

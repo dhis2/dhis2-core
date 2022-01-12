@@ -43,11 +43,10 @@ class ValidationErrorReporterTest
     {
 
         ValidationErrorReporter reporter = ValidationErrorReporter.emptyReporter();
-        TrackerBundle bundle = mock( TrackerBundle.class );
         TrackerErrorReport error = TrackerErrorReport.builder()
             .errorCode( TrackerErrorCode.E1000 )
             .trackerType( TrackerType.EVENT )
-            .build( bundle );
+            .build();
         reporter.getReportList().add( error );
 
         assertTrue( reporter.hasErrorReport( r -> TrackerType.EVENT.equals( r.getTrackerType() ) ) );
@@ -58,11 +57,10 @@ class ValidationErrorReporterTest
     {
 
         ValidationErrorReporter reporter = ValidationErrorReporter.emptyReporter();
-        TrackerBundle bundle = mock( TrackerBundle.class );
         TrackerErrorReport error = TrackerErrorReport.builder()
             .errorCode( TrackerErrorCode.E1000 )
             .trackerType( TrackerType.EVENT )
-            .build( bundle );
+            .build();
         reporter.getReportList().add( error );
 
         assertFalse( reporter.hasErrorReport( r -> TrackerType.TRACKED_ENTITY.equals( r.getTrackerType() ) ) );

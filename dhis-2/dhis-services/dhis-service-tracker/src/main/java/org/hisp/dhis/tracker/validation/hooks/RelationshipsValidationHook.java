@@ -50,6 +50,7 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.RelationshipItem;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
@@ -136,7 +137,13 @@ public class RelationshipsValidationHook
     {
         if ( Objects.equals( relationship.getFrom(), relationship.getTo() ) )
         {
-            addError( reporter, relationship, E4000, relationship.getRelationship() );
+            TrackerErrorReport error = TrackerErrorReport.builder()
+                .uid( relationship.getUid() )
+                .trackerType( relationship.getTrackerType() )
+                .errorCode( E4000 )
+                .addArg( relationship.getRelationship() )
+                .build();
+            reporter.addError( error );
         }
     }
 
@@ -147,7 +154,14 @@ public class RelationshipsValidationHook
     {
         if ( relationshipItemValueType( item ) == null )
         {
-            addError( reporter, relationship, TrackerErrorCode.E4013, relSide, TrackerType.TRACKED_ENTITY.getName() );
+            TrackerErrorReport error = TrackerErrorReport.builder()
+                .uid( ((TrackerDto) relationship).getUid() )
+                .trackerType( ((TrackerDto) relationship).getTrackerType() )
+                .errorCode( TrackerErrorCode.E4013 )
+                .addArg( relSide )
+                .addArg( TrackerType.TRACKED_ENTITY.getName() )
+                .build();
+            reporter.addError( error );
             return;
         }
 
@@ -155,8 +169,15 @@ public class RelationshipsValidationHook
         {
             if ( item.getTrackedEntity() == null )
             {
-                addError( reporter, relationship, TrackerErrorCode.E4010, relSide,
-                    TrackerType.TRACKED_ENTITY.getName(), relationshipItemValueType( item ).getName() );
+                TrackerErrorReport error = TrackerErrorReport.builder()
+                    .uid( ((TrackerDto) relationship).getUid() )
+                    .trackerType( ((TrackerDto) relationship).getTrackerType() )
+                    .errorCode( TrackerErrorCode.E4010 )
+                    .addArg( relSide )
+                    .addArg( TrackerType.TRACKED_ENTITY.getName() )
+                    .addArg( relationshipItemValueType( item ).getName() )
+                    .build();
+                reporter.addError( error );
             }
             else
             {
@@ -169,8 +190,15 @@ public class RelationshipsValidationHook
 
                     if ( !type.equals( constraint.getTrackedEntityType().getUid() ) )
                     {
-                        addError( reporter, relationship,
-                            TrackerErrorCode.E4014, relSide, constraint.getTrackedEntityType().getUid(), type );
+                        TrackerErrorReport error = TrackerErrorReport.builder()
+                            .uid( ((TrackerDto) relationship).getUid() )
+                            .trackerType( ((TrackerDto) relationship).getTrackerType() )
+                            .errorCode( TrackerErrorCode.E4014 )
+                            .addArg( relSide )
+                            .addArg( constraint.getTrackedEntityType().getUid() )
+                            .addArg( type )
+                            .build();
+                        reporter.addError( error );
                     }
 
                 } );
@@ -180,9 +208,15 @@ public class RelationshipsValidationHook
         {
             if ( item.getEnrollment() == null )
             {
-                addError( reporter, relationship,
-                    TrackerErrorCode.E4010, relSide, TrackerType.ENROLLMENT.getName(),
-                    relationshipItemValueType( item ).getName() );
+                TrackerErrorReport error = TrackerErrorReport.builder()
+                    .uid( ((TrackerDto) relationship).getUid() )
+                    .trackerType( ((TrackerDto) relationship).getTrackerType() )
+                    .errorCode( TrackerErrorCode.E4010 )
+                    .addArg( relSide )
+                    .addArg( TrackerType.ENROLLMENT.getName() )
+                    .addArg( relationshipItemValueType( item ).getName() )
+                    .build();
+                reporter.addError( error );
             }
 
         }
@@ -190,8 +224,15 @@ public class RelationshipsValidationHook
         {
             if ( item.getEvent() == null )
             {
-                addError( reporter, relationship, TrackerErrorCode.E4010, relSide,
-                    TrackerType.EVENT.getName(), relationshipItemValueType( item ).getName() );
+                TrackerErrorReport error = TrackerErrorReport.builder()
+                    .uid( ((TrackerDto) relationship).getUid() )
+                    .trackerType( ((TrackerDto) relationship).getTrackerType() )
+                    .errorCode( TrackerErrorCode.E4010 )
+                    .addArg( relSide )
+                    .addArg( TrackerType.EVENT.getName() )
+                    .addArg( relationshipItemValueType( item ).getName() )
+                    .build();
+                reporter.addError( error );
             }
         }
     }

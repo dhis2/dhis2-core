@@ -69,9 +69,11 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.RelationshipItem;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.preheat.ReferenceTrackerEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
+import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
@@ -105,14 +107,28 @@ public class PreCheckDataRelationsValidationHook
 
         if ( !programHasOrgUnit( program, organisationUnit, context.getProgramWithOrgUnitsMap() ) )
         {
-            addError( reporter, enrollment, E1041, organisationUnit, program );
+            TrackerErrorReport error = TrackerErrorReport.builder()
+                .uid( ((TrackerDto) enrollment).getUid() )
+                .trackerType( ((TrackerDto) enrollment).getTrackerType() )
+                .errorCode( E1041 )
+                .addArg( reporter.getValidationContext().getBundle().getIdentifier(), organisationUnit )
+                .addArg( reporter.getValidationContext().getBundle().getIdentifier(), program )
+                .build();
+            reporter.addError( error );
         }
 
         if ( program.getTrackedEntityType() != null
             && !program.getTrackedEntityType().getUid()
                 .equals( getTrackedEntityTypeUidFromEnrollment( context, enrollment ) ) )
         {
-            addError( reporter, enrollment, E1022, enrollment.getTrackedEntity(), program );
+            TrackerErrorReport error = TrackerErrorReport.builder()
+                .uid( ((TrackerDto) enrollment).getUid() )
+                .trackerType( ((TrackerDto) enrollment).getTrackerType() )
+                .errorCode( E1022 )
+                .addArg( enrollment.getTrackedEntity() )
+                .addArg( reporter.getValidationContext().getBundle().getIdentifier(), program )
+                .build();
+            reporter.addError( error );
         }
     }
 
@@ -127,14 +143,28 @@ public class PreCheckDataRelationsValidationHook
 
         if ( !program.getUid().equals( programStage.getProgram().getUid() ) )
         {
-            addError( reporter, event, E1089, event, programStage, program );
+            TrackerErrorReport error = TrackerErrorReport.builder()
+                .uid( event.getUid() )
+                .trackerType( event.getTrackerType() )
+                .errorCode( E1089 )
+                .addArg( event )
+                .addArg( reporter.getValidationContext().getBundle().getIdentifier(), programStage )
+                .addArg( reporter.getValidationContext().getBundle().getIdentifier(), program )
+                .build();
+            reporter.addError( error );
         }
 
         if ( program.isRegistration() )
         {
             if ( StringUtils.isEmpty( event.getEnrollment() ) )
             {
-                addError( reporter, event, E1033, event.getEvent() );
+                TrackerErrorReport error = TrackerErrorReport.builder()
+                    .uid( event.getUid() )
+                    .trackerType( event.getTrackerType() )
+                    .errorCode( E1033 )
+                    .addArg( event.getEvent() )
+                    .build();
+                reporter.addError( error );
             }
             else
             {
@@ -142,14 +172,29 @@ public class PreCheckDataRelationsValidationHook
 
                 if ( !program.getUid().equals( programUid ) )
                 {
-                    addError( reporter, event, E1079, event, program, event.getEnrollment() );
+                    TrackerErrorReport error = TrackerErrorReport.builder()
+                        .uid( ((TrackerDto) event).getUid() )
+                        .trackerType( ((TrackerDto) event).getTrackerType() )
+                        .errorCode( E1079 )
+                        .addArg( event )
+                        .addArg( reporter.getValidationContext().getBundle().getIdentifier(), program )
+                        .addArg( event.getEnrollment() )
+                        .build();
+                    reporter.addError( error );
                 }
             }
         }
 
         if ( !programHasOrgUnit( program, organisationUnit, context.getProgramWithOrgUnitsMap() ) )
         {
-            addError( reporter, event, E1029, organisationUnit, program );
+            TrackerErrorReport error = TrackerErrorReport.builder()
+                .uid( event.getUid() )
+                .trackerType( event.getTrackerType() )
+                .errorCode( E1029 )
+                .addArg( reporter.getValidationContext().getBundle().getIdentifier(), organisationUnit )
+                .addArg( reporter.getValidationContext().getBundle().getIdentifier(), program )
+                .build();
+            reporter.addError( error );
         }
 
         validateEventCategoryCombo( reporter, event, program );
@@ -174,21 +219,42 @@ public class PreCheckDataRelationsValidationHook
         {
             if ( uid.isPresent() && !ValidationUtils.trackedEntityInstanceExist( ctx, uid.get() ) )
             {
-                addError( reporter, relationship, E4012, trackerType.getName(), uid.get() );
+                TrackerErrorReport error = TrackerErrorReport.builder()
+                    .uid( ((TrackerDto) relationship).getUid() )
+                    .trackerType( ((TrackerDto) relationship).getTrackerType() )
+                    .errorCode( E4012 )
+                    .addArg( trackerType.getName() )
+                    .addArg( uid.get() )
+                    .build();
+                reporter.addError( error );
             }
         }
         else if ( ENROLLMENT.equals( trackerType ) )
         {
             if ( uid.isPresent() && !ValidationUtils.enrollmentExist( ctx, uid.get() ) )
             {
-                addError( reporter, relationship, E4012, trackerType.getName(), uid.get() );
+                TrackerErrorReport error = TrackerErrorReport.builder()
+                    .uid( ((TrackerDto) relationship).getUid() )
+                    .trackerType( ((TrackerDto) relationship).getTrackerType() )
+                    .errorCode( E4012 )
+                    .addArg( trackerType.getName() )
+                    .addArg( uid.get() )
+                    .build();
+                reporter.addError( error );
             }
         }
         else if ( EVENT.equals( trackerType ) )
         {
             if ( uid.isPresent() && !ValidationUtils.eventExist( ctx, uid.get() ) )
             {
-                addError( reporter, relationship, E4012, trackerType.getName(), uid.get() );
+                TrackerErrorReport error = TrackerErrorReport.builder()
+                    .uid( ((TrackerDto) relationship).getUid() )
+                    .trackerType( ((TrackerDto) relationship).getTrackerType() )
+                    .errorCode( E4012 )
+                    .addArg( trackerType.getName() )
+                    .addArg( uid.get() )
+                    .build();
+                reporter.addError( error );
             }
         }
     }
@@ -221,7 +287,13 @@ public class PreCheckDataRelationsValidationHook
 
         if ( categoryOptionCombo == null )
         {
-            addError( reporter, event, E1115, event.getAttributeOptionCombo() );
+            TrackerErrorReport error = TrackerErrorReport.builder()
+                .uid( event.getUid() )
+                .trackerType( event.getTrackerType() )
+                .errorCode( E1115 )
+                .addArg( event.getAttributeOptionCombo() )
+                .build();
+            reporter.addError( error );
         }
         else
         {
@@ -294,7 +366,13 @@ public class PreCheckDataRelationsValidationHook
             CategoryOption categoryOption = reporter.getValidationContext().getCategoryOption( uid );
             if ( categoryOption == null )
             {
-                addError( reporter, event, E1116, uid );
+                TrackerErrorReport error = TrackerErrorReport.builder()
+                    .uid( event.getUid() )
+                    .trackerType( event.getTrackerType() )
+                    .errorCode( E1116 )
+                    .addArg( uid )
+                    .build();
+                reporter.addError( error );
                 return null;
             }
 
@@ -306,8 +384,14 @@ public class PreCheckDataRelationsValidationHook
 
         if ( attrOptCombo == null )
         {
-            addError( reporter, event, TrackerErrorCode.E1117, programCategoryCombo,
-                categoryOptions );
+            TrackerErrorReport error = TrackerErrorReport.builder()
+                .uid( event.getUid() )
+                .trackerType( event.getTrackerType() )
+                .errorCode( TrackerErrorCode.E1117 )
+                .addArg( reporter.getValidationContext().getBundle().getIdentifier(), programCategoryCombo )
+                .addArg( categoryOptions )
+                .build();
+            reporter.addError( error );
         }
         else
         {

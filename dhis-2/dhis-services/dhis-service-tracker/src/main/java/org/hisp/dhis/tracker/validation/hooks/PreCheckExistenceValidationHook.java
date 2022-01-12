@@ -46,6 +46,7 @@ import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
@@ -69,17 +70,35 @@ public class PreCheckExistenceValidationHook
         // If the tracked entity is soft-deleted no operation is allowed
         if ( existingTe != null && existingTe.isDeleted() )
         {
-            addError( reporter, trackedEntity, E1114, trackedEntity.getTrackedEntity() );
+            TrackerErrorReport error = TrackerErrorReport.builder()
+                .uid( trackedEntity.getUid() )
+                .trackerType( trackedEntity.getTrackerType() )
+                .errorCode( E1114 )
+                .addArg( trackedEntity.getTrackedEntity() )
+                .build();
+            reporter.addError( error );
             return;
         }
 
         if ( existingTe != null && importStrategy.isCreate() )
         {
-            addError( reporter, trackedEntity, E1002, trackedEntity.getTrackedEntity() );
+            TrackerErrorReport error = TrackerErrorReport.builder()
+                .uid( trackedEntity.getUid() )
+                .trackerType( trackedEntity.getTrackerType() )
+                .errorCode( E1002 )
+                .addArg( trackedEntity.getTrackedEntity() )
+                .build();
+            reporter.addError( error );
         }
         else if ( existingTe == null && importStrategy.isUpdateOrDelete() )
         {
-            addError( reporter, trackedEntity, E1063, trackedEntity.getTrackedEntity() );
+            TrackerErrorReport error = TrackerErrorReport.builder()
+                .uid( trackedEntity.getUid() )
+                .trackerType( trackedEntity.getTrackerType() )
+                .errorCode( E1063 )
+                .addArg( trackedEntity.getTrackedEntity() )
+                .build();
+            reporter.addError( error );
         }
     }
 
@@ -94,17 +113,35 @@ public class PreCheckExistenceValidationHook
         // If the tracked entity is soft-deleted no operation is allowed
         if ( existingPi != null && existingPi.isDeleted() )
         {
-            addError( reporter, enrollment, E1113, enrollment.getEnrollment() );
+            TrackerErrorReport error = TrackerErrorReport.builder()
+                .uid( enrollment.getUid() )
+                .trackerType( enrollment.getTrackerType() )
+                .errorCode( E1113 )
+                .addArg( enrollment.getEnrollment() )
+                .build();
+            reporter.addError( error );
             return;
         }
 
         if ( existingPi != null && importStrategy.isCreate() )
         {
-            addError( reporter, enrollment, E1080, enrollment.getEnrollment() );
+            TrackerErrorReport error = TrackerErrorReport.builder()
+                .uid( enrollment.getUid() )
+                .trackerType( enrollment.getTrackerType() )
+                .errorCode( E1080 )
+                .addArg( enrollment.getEnrollment() )
+                .build();
+            reporter.addError( error );
         }
         else if ( existingPi == null && importStrategy.isUpdateOrDelete() )
         {
-            addError( reporter, enrollment, E1081, enrollment.getEnrollment() );
+            TrackerErrorReport error = TrackerErrorReport.builder()
+                .uid( enrollment.getUid() )
+                .trackerType( enrollment.getTrackerType() )
+                .errorCode( E1081 )
+                .addArg( enrollment.getEnrollment() )
+                .build();
+            reporter.addError( error );
         }
     }
 
@@ -119,17 +156,35 @@ public class PreCheckExistenceValidationHook
         // If the event is soft-deleted no operation is allowed
         if ( existingPsi != null && existingPsi.isDeleted() )
         {
-            addError( reporter, event, E1082, event.getEvent() );
+            TrackerErrorReport error = TrackerErrorReport.builder()
+                .uid( event.getUid() )
+                .trackerType( event.getTrackerType() )
+                .errorCode( E1082 )
+                .addArg( event.getEvent() )
+                .build();
+            reporter.addError( error );
             return;
         }
 
         if ( existingPsi != null && importStrategy.isCreate() )
         {
-            addError( reporter, event, E1030, event.getEvent() );
+            TrackerErrorReport error = TrackerErrorReport.builder()
+                .uid( event.getUid() )
+                .trackerType( event.getTrackerType() )
+                .errorCode( E1030 )
+                .addArg( event.getEvent() )
+                .build();
+            reporter.addError( error );
         }
         else if ( existingPsi == null && importStrategy.isUpdateOrDelete() )
         {
-            addError( reporter, event, E1032, event.getEvent() );
+            TrackerErrorReport error = TrackerErrorReport.builder()
+                .uid( event.getUid() )
+                .trackerType( event.getTrackerType() )
+                .errorCode( E1032 )
+                .addArg( event.getEvent() )
+                .build();
+            reporter.addError( error );
         }
     }
 

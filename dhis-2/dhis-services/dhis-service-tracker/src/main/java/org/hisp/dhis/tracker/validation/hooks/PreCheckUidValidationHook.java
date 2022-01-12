@@ -37,6 +37,7 @@ import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
+import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.springframework.stereotype.Component;
 
@@ -50,14 +51,35 @@ public class PreCheckUidValidationHook
     @Override
     public void validateTrackedEntity( ValidationErrorReporter reporter, TrackedEntity trackedEntity )
     {
-        checkUidFormat( trackedEntity.getTrackedEntity(), reporter, trackedEntity, trackedEntity,
-            trackedEntity.getTrackedEntity() );
+        if ( !CodeGenerator.isValidUid( trackedEntity.getTrackedEntity() ) )
+        {
+            TrackerErrorReport error = TrackerErrorReport.builder()
+                .uid( trackedEntity.getUid() )
+                .trackerType( trackedEntity.getTrackerType() )
+                .errorCode( TrackerErrorCode.E1048 )
+                .addArg( trackedEntity.getTrackedEntity() )
+                .addArg( trackedEntity )
+                .addArg( trackedEntity.getTrackedEntity() )
+                .build();
+            reporter.addError( error );
+        }
     }
 
     @Override
     public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
     {
-        checkUidFormat( enrollment.getEnrollment(), reporter, enrollment, enrollment, enrollment.getEnrollment() );
+        if ( !CodeGenerator.isValidUid( enrollment.getEnrollment() ) )
+        {
+            TrackerErrorReport error = TrackerErrorReport.builder()
+                .uid( enrollment.getUid() )
+                .trackerType( enrollment.getTrackerType() )
+                .errorCode( TrackerErrorCode.E1048 )
+                .addArg( enrollment.getEnrollment() )
+                .addArg( enrollment )
+                .addArg( enrollment.getEnrollment() )
+                .build();
+            reporter.addError( error );
+        }
 
         validateNotesUid( enrollment.getNotes(), reporter, enrollment );
     }
@@ -65,7 +87,18 @@ public class PreCheckUidValidationHook
     @Override
     public void validateEvent( ValidationErrorReporter reporter, Event event )
     {
-        checkUidFormat( event.getEvent(), reporter, event, event, event.getEvent() );
+        if ( !CodeGenerator.isValidUid( event.getEvent() ) )
+        {
+            TrackerErrorReport error = TrackerErrorReport.builder()
+                .uid( event.getUid() )
+                .trackerType( event.getTrackerType() )
+                .errorCode( TrackerErrorCode.E1048 )
+                .addArg( event.getEvent() )
+                .addArg( event )
+                .addArg( event.getEvent() )
+                .build();
+            reporter.addError( error );
+        }
 
         validateNotesUid( event.getNotes(), reporter, event );
     }
@@ -73,33 +106,36 @@ public class PreCheckUidValidationHook
     @Override
     public void validateRelationship( ValidationErrorReporter reporter, Relationship relationship )
     {
-        checkUidFormat( relationship.getRelationship(), reporter, relationship, relationship,
-            relationship.getRelationship() );
+        if ( !CodeGenerator.isValidUid( relationship.getRelationship() ) )
+        {
+            TrackerErrorReport error = TrackerErrorReport.builder()
+                .uid( relationship.getUid() )
+                .trackerType( relationship.getTrackerType() )
+                .errorCode( TrackerErrorCode.E1048 )
+                .addArg( relationship.getRelationship() )
+                .addArg( relationship )
+                .addArg( relationship.getRelationship() )
+                .build();
+            reporter.addError( error );
+        }
     }
 
     private void validateNotesUid( List<Note> notes, ValidationErrorReporter reporter, TrackerDto dto )
     {
         for ( Note note : notes )
         {
-            checkUidFormat( note.getNote(), reporter, dto, note, note.getNote() );
-        }
-    }
-
-    /**
-     * Check if the given UID has a valid format.
-     *
-     * @param checkUid a UID to be checked
-     * @param reporter a {@see ValidationErrorReporter} to which the error is
-     *        added
-     * @param dto the dto to which the report will be linked to
-     * @param args list of arguments for the Error report
-     */
-    private void checkUidFormat( String checkUid, ValidationErrorReporter reporter, TrackerDto dto,
-        Object... args )
-    {
-        if ( !CodeGenerator.isValidUid( checkUid ) )
-        {
-            addError( reporter, dto, TrackerErrorCode.E1048, checkUid, args[0], args[1] );
+            if ( !CodeGenerator.isValidUid( note.getNote() ) )
+            {
+                TrackerErrorReport error = TrackerErrorReport.builder()
+                    .uid( dto.getUid() )
+                    .trackerType( dto.getTrackerType() )
+                    .errorCode( TrackerErrorCode.E1048 )
+                    .addArg( note.getNote() )
+                    .addArg( note )
+                    .addArg( note.getNote() )
+                    .build();
+                reporter.addError( error );
+            }
         }
     }
 

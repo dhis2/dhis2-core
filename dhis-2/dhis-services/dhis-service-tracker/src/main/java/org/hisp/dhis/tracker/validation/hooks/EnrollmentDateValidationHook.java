@@ -41,6 +41,7 @@ import java.util.Objects;
 
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
@@ -66,7 +67,13 @@ public class EnrollmentDateValidationHook
         if ( Boolean.TRUE.equals( program.getDisplayIncidentDate() ) &&
             Objects.isNull( enrollment.getOccurredAt() ) )
         {
-            addError( reporter, enrollment, E1023, enrollment.getOccurredAt() );
+            TrackerErrorReport error = TrackerErrorReport.builder()
+                .uid( enrollment.getUid() )
+                .trackerType( enrollment.getTrackerType() )
+                .errorCode( E1023 )
+                .addArg( enrollment.getOccurredAt() )
+                .build();
+            reporter.addError( error );
         }
     }
 
@@ -76,7 +83,13 @@ public class EnrollmentDateValidationHook
 
         if ( Objects.isNull( enrollment.getEnrolledAt() ) )
         {
-            addError( reporter, enrollment, E1025, enrollment.getEnrolledAt() );
+            TrackerErrorReport error = TrackerErrorReport.builder()
+                .uid( enrollment.getUid() )
+                .trackerType( enrollment.getTrackerType() )
+                .errorCode( E1025 )
+                .addArg( enrollment.getEnrolledAt() )
+                .build();
+            reporter.addError( error );
         }
     }
 
@@ -91,14 +104,26 @@ public class EnrollmentDateValidationHook
             && Boolean.FALSE.equals( program.getSelectEnrollmentDatesInFuture() )
             && enrollment.getEnrolledAt().atOffset( ZoneOffset.UTC ).toLocalDate().isAfter( now ) )
         {
-            addError( reporter, enrollment, E1020, enrollment.getEnrolledAt() );
+            TrackerErrorReport error = TrackerErrorReport.builder()
+                .uid( enrollment.getUid() )
+                .trackerType( enrollment.getTrackerType() )
+                .errorCode( E1020 )
+                .addArg( enrollment.getEnrolledAt() )
+                .build();
+            reporter.addError( error );
         }
 
         if ( Objects.nonNull( enrollment.getOccurredAt() )
             && Boolean.FALSE.equals( program.getSelectIncidentDatesInFuture() )
             && enrollment.getOccurredAt().atOffset( ZoneOffset.UTC ).toLocalDate().isAfter( now ) )
         {
-            addError( reporter, enrollment, E1021, enrollment.getOccurredAt() );
+            TrackerErrorReport error = TrackerErrorReport.builder()
+                .uid( enrollment.getUid() )
+                .trackerType( enrollment.getTrackerType() )
+                .errorCode( E1021 )
+                .addArg( enrollment.getOccurredAt() )
+                .build();
+            reporter.addError( error );
         }
     }
 }

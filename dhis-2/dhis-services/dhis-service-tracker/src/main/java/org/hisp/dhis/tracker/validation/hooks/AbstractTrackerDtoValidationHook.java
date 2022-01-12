@@ -175,18 +175,6 @@ public abstract class AbstractTrackerDtoValidationHook
         }
     }
 
-    protected void addError( ValidationErrorReporter report, TrackerDto dto, TrackerErrorCode code,
-        Object... args )
-    {
-        TrackerErrorReport error = TrackerErrorReport.builder()
-            .uid( dto.getUid() )
-            .trackerType( dto.getTrackerType() )
-            .errorCode( code )
-            .addArgs( args )
-            .build( report.getValidationContext().getBundle() );
-        report.addError( error );
-    }
-
     protected void addWarning( ValidationErrorReporter report, TrackerDto dto, TrackerErrorCode code,
         Object... args )
     {
@@ -202,20 +190,24 @@ public abstract class AbstractTrackerDtoValidationHook
     protected void addErrorIf( Supplier<Boolean> expression, ValidationErrorReporter report, TrackerDto dto,
         TrackerErrorCode code, Object... args )
     {
-        if ( expression.get() )
-        {
-            addError( report, dto, code, args );
-        }
+        report.addErrorIf( expression, () -> TrackerErrorReport.builder()
+            .uid( dto.getUid() )
+            .trackerType( dto.getTrackerType() )
+            .errorCode( code )
+            .addArgs( args )
+            .build() );
     }
 
     protected void addErrorIfNull( Object object, ValidationErrorReporter report, TrackerDto dto,
         TrackerErrorCode code,
         Object... args )
     {
-        if ( object == null )
-        {
-            addError( report, dto, code, args );
-        }
+        report.addErrorIf( () -> object == null, () -> TrackerErrorReport.builder()
+            .uid( dto.getUid() )
+            .trackerType( dto.getTrackerType() )
+            .errorCode( code )
+            .addArgs( args )
+            .build() );
     }
 
     public boolean needsToRun( TrackerImportStrategy strategy )

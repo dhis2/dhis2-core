@@ -33,6 +33,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -104,6 +105,15 @@ public class TrackerValidationReport
     public TrackerValidationReport addError( TrackerErrorReport error )
     {
         addErrorIfNotExisting( error );
+        return this;
+    }
+
+    public TrackerValidationReport addErrorIf( Supplier<Boolean> condition, Supplier<TrackerErrorReport> error )
+    {
+        if ( condition.get() )
+        {
+            addErrorIfNotExisting( error.get() );
+        }
         return this;
     }
 

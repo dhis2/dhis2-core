@@ -128,9 +128,9 @@ public class PreCheckSecurityOwnershipValidationHook
                     .uid( trackedEntity.getUid() )
                     .trackerType( TrackerType.TRACKED_ENTITY )
                     .errorCode( E1100 )
-                    .addArg( user )
-                    .addArg( tei )
-                    .build( bundle );
+                    .addArg( reporter.getValidationContext().getBundle().getIdentifier(), user )
+                    .addArg( reporter.getValidationContext().getBundle().getIdentifier(), tei )
+                    .build();
                 reporter.addError( error );
             }
         }
@@ -155,9 +155,9 @@ public class PreCheckSecurityOwnershipValidationHook
                 .uid( teUid )
                 .trackerType( TrackerType.TRACKED_ENTITY )
                 .errorCode( TrackerErrorCode.E1001 )
-                .addArg( user )
-                .addArg( trackedEntityType )
-                .build( bundle );
+                .addArg( reporter.getValidationContext().getBundle().getIdentifier(), user )
+                .addArg( reporter.getValidationContext().getBundle().getIdentifier(), trackedEntityType )
+                .build();
             reporter.addError( error );
         }
     }
@@ -197,9 +197,9 @@ public class PreCheckSecurityOwnershipValidationHook
                     .uid( enrollment.getUid() )
                     .trackerType( TrackerType.ENROLLMENT )
                     .errorCode( E1103 )
-                    .addArg( user )
+                    .addArg( reporter.getValidationContext().getBundle().getIdentifier(), user )
                     .addArg( enrollment.getEnrollment() )
-                    .build( bundle );
+                    .build();
                 reporter.addError( error );
             }
         }
@@ -307,8 +307,8 @@ public class PreCheckSecurityOwnershipValidationHook
                 .uid( event.getUid() )
                 .trackerType( TrackerType.EVENT )
                 .errorCode( E1083 )
-                .addArg( user )
-                .build( reporter.getValidationContext().getBundle() );
+                .addArg( reporter.getValidationContext().getBundle().getIdentifier(), user )
+                .build();
             reporter.addError( error );
         }
     }
@@ -362,9 +362,9 @@ public class PreCheckSecurityOwnershipValidationHook
                 .uid( dto.getUid() )
                 .trackerType( dto.getTrackerType() )
                 .errorCode( TrackerErrorCode.E1000 )
-                .addArg( user )
-                .addArg( orgUnit )
-                .build( bundle );
+                .addArg( reporter.getValidationContext().getBundle().getIdentifier(), user )
+                .addArg( reporter.getValidationContext().getBundle().getIdentifier(), orgUnit )
+                .build();
             reporter.addError( error );
         }
     }
@@ -384,9 +384,9 @@ public class PreCheckSecurityOwnershipValidationHook
                 .uid( dto.getUid() )
                 .trackerType( dto.getTrackerType() )
                 .errorCode( TrackerErrorCode.E1003 )
-                .addArg( orgUnit )
-                .addArg( user )
-                .build( reporter.getValidationContext().getBundle() );
+                .addArg( reporter.getValidationContext().getBundle().getIdentifier(), orgUnit )
+                .addArg( reporter.getValidationContext().getBundle().getIdentifier(), user )
+                .build();
             reporter.addError( error );
         }
     }
@@ -408,10 +408,10 @@ public class PreCheckSecurityOwnershipValidationHook
                 .uid( dto.getUid() )
                 .trackerType( dto.getTrackerType() )
                 .errorCode( TrackerErrorCode.E1104 )
-                .addArg( user )
-                .addArg( program )
-                .addArg( program.getTrackedEntityType() )
-                .build( reporter.getValidationContext().getBundle() );
+                .addArg( reporter.getValidationContext().getBundle().getIdentifier(), user )
+                .addArg( reporter.getValidationContext().getBundle().getIdentifier(), program )
+                .addArg( reporter.getValidationContext().getBundle().getIdentifier(), program.getTrackedEntityType() )
+                .build();
             reporter.addError( error );
         }
 
@@ -423,10 +423,10 @@ public class PreCheckSecurityOwnershipValidationHook
                 .uid( dto.getUid() )
                 .trackerType( dto.getTrackerType() )
                 .errorCode( TrackerErrorCode.E1102 )
-                .addArg( user )
+                .addArg( reporter.getValidationContext().getBundle().getIdentifier(), user )
                 .addArg( trackedEntityInstance )
-                .addArg( program )
-                .build( reporter.getValidationContext().getBundle() );
+                .addArg( reporter.getValidationContext().getBundle().getIdentifier(), program )
+                .build();
             reporter.addError( error );
         }
     }
@@ -471,9 +471,9 @@ public class PreCheckSecurityOwnershipValidationHook
                 .uid( event.getUid() )
                 .trackerType( TrackerType.EVENT )
                 .errorCode( TrackerErrorCode.E1000 )
-                .addArg( user )
-                .addArg( eventOrgUnit )
-                .build( bundle );
+                .addArg( reporter.getValidationContext().getBundle().getIdentifier(), user )
+                .addArg( reporter.getValidationContext().getBundle().getIdentifier(), eventOrgUnit )
+                .build();
             reporter.addError( error );
         }
 
@@ -513,9 +513,9 @@ public class PreCheckSecurityOwnershipValidationHook
                 .uid( dto.getUid() )
                 .trackerType( dto.getTrackerType() )
                 .errorCode( TrackerErrorCode.E1096 )
-                .addArg( user )
-                .addArg( program )
-                .build( reporter.getValidationContext().getBundle() );
+                .addArg( reporter.getValidationContext().getBundle().getIdentifier(), user )
+                .addArg( reporter.getValidationContext().getBundle().getIdentifier(), program )
+                .build();
             reporter.addError( error );
         }
     }
@@ -533,9 +533,9 @@ public class PreCheckSecurityOwnershipValidationHook
                 .uid( dto.getUid() )
                 .trackerType( dto.getTrackerType() )
                 .errorCode( TrackerErrorCode.E1095 )
-                .addArg( user )
-                .addArg( programStage )
-                .build( reporter.getValidationContext().getBundle() );
+                .addArg( reporter.getValidationContext().getBundle().getIdentifier(), user )
+                .addArg( reporter.getValidationContext().getBundle().getIdentifier(), programStage )
+                .build();
             reporter.addError( error );
         }
     }
@@ -553,9 +553,9 @@ public class PreCheckSecurityOwnershipValidationHook
                 .uid( dto.getUid() )
                 .trackerType( dto.getTrackerType() )
                 .errorCode( TrackerErrorCode.E1091 )
-                .addArg( user )
-                .addArg( program )
-                .build( reporter.getValidationContext().getBundle() );
+                .addArg( reporter.getValidationContext().getBundle().getIdentifier(), user )
+                .addArg( reporter.getValidationContext().getBundle().getIdentifier(), program )
+                .build();
             reporter.addError( error );
         }
     }
@@ -577,9 +577,9 @@ public class PreCheckSecurityOwnershipValidationHook
                     .uid( dto.getUid() )
                     .trackerType( dto.getTrackerType() )
                     .errorCode( TrackerErrorCode.E1099 )
-                    .addArg( user )
-                    .addArg( categoryOption )
-                    .build( reporter.getValidationContext().getBundle() );
+                    .addArg( reporter.getValidationContext().getBundle().getIdentifier(), user )
+                    .addArg( reporter.getValidationContext().getBundle().getIdentifier(), categoryOption )
+                    .build();
                 reporter.addError( error );
             }
         }

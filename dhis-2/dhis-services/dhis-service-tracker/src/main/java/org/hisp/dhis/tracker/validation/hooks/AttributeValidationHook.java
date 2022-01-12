@@ -102,14 +102,13 @@ public abstract class AttributeValidationHook extends AbstractTrackerDtoValidati
 
         if ( error != null )
         {
-            TrackerBundle bundle = context.getBundle();
             TrackerErrorReport err = TrackerErrorReport.builder()
                 .uid( dto.getUid() )
                 .trackerType( dto.getTrackerType() )
                 .errorCode( TrackerErrorCode.E1007 )
                 .addArg( valueType.toString() )
                 .addArg( error )
-                .build( bundle );
+                .build();
             errorReporter.addError( err );
         }
     }
@@ -153,7 +152,7 @@ public abstract class AttributeValidationHook extends AbstractTrackerDtoValidati
                     .errorCode( TrackerErrorCode.E1064 )
                     .addArg( value )
                     .addArg( trackedEntityAttribute.getUid() )
-                    .build( bundle );
+                    .build();
                 errorReporter.addError( err );
                 return;
             }

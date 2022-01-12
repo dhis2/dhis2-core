@@ -30,16 +30,24 @@ package org.hisp.dhis.tracker.validation.hooks;
 import static com.google.api.client.util.Preconditions.checkNotNull;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1015;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1016;
-import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.*;
+import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ENROLLMENT_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.TRACKED_ENTITY_INSTANCE_CANT_BE_NULL;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.hisp.dhis.program.*;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.EnrollmentStatus;
+import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
@@ -118,13 +126,27 @@ public class EnrollmentInExistingValidationHook
 
             if ( !activeOnly.isEmpty() )
             {
-                addError( reporter, enrollment, E1015, tei, program );
+                TrackerErrorReport error = TrackerErrorReport.builder()
+                    .uid( enrollment.getUid() )
+                    .trackerType( enrollment.getTrackerType() )
+                    .errorCode( E1015 )
+                    .addArg( reporter.getValidationContext().getBundle().getIdentifier(), tei )
+                    .addArg( reporter.getValidationContext().getBundle().getIdentifier(), program )
+                    .build();
+                reporter.addError( error );
             }
         }
 
         if ( Boolean.TRUE.equals( program.getOnlyEnrollOnce() ) && !mergedEnrollments.isEmpty() )
         {
-            addError( reporter, enrollment, E1016, tei, program );
+            TrackerErrorReport error = TrackerErrorReport.builder()
+                .uid( enrollment.getUid() )
+                .trackerType( enrollment.getTrackerType() )
+                .errorCode( E1016 )
+                .addArg( reporter.getValidationContext().getBundle().getIdentifier(), tei )
+                .addArg( reporter.getValidationContext().getBundle().getIdentifier(), program )
+                .build();
+            reporter.addError( error );
         }
     }
 

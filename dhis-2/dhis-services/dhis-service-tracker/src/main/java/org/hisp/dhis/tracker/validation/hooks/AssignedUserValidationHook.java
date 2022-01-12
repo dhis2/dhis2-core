@@ -34,6 +34,7 @@ import java.util.Optional;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
@@ -49,7 +50,13 @@ public class AssignedUserValidationHook
         {
             if ( isNotValidAssignedUserUid( event ) || assignedUserNotPresentInPreheat( reporter, event ) )
             {
-                addError( reporter, event, E1118, event.getAssignedUser() );
+                TrackerErrorReport error = TrackerErrorReport.builder()
+                    .uid( event.getUid() )
+                    .trackerType( event.getTrackerType() )
+                    .errorCode( E1118 )
+                    .addArg( event.getAssignedUser() )
+                    .build();
+                reporter.addError( error );
             }
             if ( isNotEnabledUserAssignment( reporter, event ) )
             {

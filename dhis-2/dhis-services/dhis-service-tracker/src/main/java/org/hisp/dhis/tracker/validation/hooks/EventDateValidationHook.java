@@ -47,6 +47,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.user.User;
@@ -68,13 +69,25 @@ public class EventDateValidationHook
 
         if ( event.getOccurredAt() == null && occuredAtDateIsMandatory( event, program ) )
         {
-            addError( reporter, event, E1031, event );
+            TrackerErrorReport error = TrackerErrorReport.builder()
+                .uid( event.getUid() )
+                .trackerType( event.getTrackerType() )
+                .errorCode( E1031 )
+                .addArg( event )
+                .build();
+            reporter.addError( error );
             return;
         }
 
         if ( event.getScheduledAt() == null && EventStatus.SCHEDULE == event.getStatus() )
         {
-            addError( reporter, event, E1050, event );
+            TrackerErrorReport error = TrackerErrorReport.builder()
+                .uid( event.getUid() )
+                .trackerType( event.getTrackerType() )
+                .errorCode( E1050 )
+                .addArg( event )
+                .build();
+            reporter.addError( error );
             return;
         }
 
@@ -106,7 +119,13 @@ public class EventDateValidationHook
             {
                 if ( now().isAfter( event.getCompletedAt().plus( ofDays( program.getCompleteEventsExpiryDays() ) ) ) )
                 {
-                    addError( reporter, event, E1043, event );
+                    TrackerErrorReport error = TrackerErrorReport.builder()
+                        .uid( event.getUid() )
+                        .trackerType( event.getTrackerType() )
+                        .errorCode( E1043 )
+                        .addArg( event )
+                        .build();
+                    reporter.addError( error );
                 }
             }
         }
@@ -131,7 +150,13 @@ public class EventDateValidationHook
 
         if ( referenceDate == null )
         {
-            addError( reporter, event, E1046, event );
+            TrackerErrorReport error = TrackerErrorReport.builder()
+                .uid( event.getUid() )
+                .trackerType( event.getTrackerType() )
+                .errorCode( E1046 )
+                .addArg( event )
+                .build();
+            reporter.addError( error );
             return;
         }
 
@@ -139,7 +164,13 @@ public class EventDateValidationHook
 
         if ( referenceDate.isBefore( period.getStartDate().toInstant() ) )
         {
-            addError( reporter, event, E1047, event );
+            TrackerErrorReport error = TrackerErrorReport.builder()
+                .uid( event.getUid() )
+                .trackerType( event.getTrackerType() )
+                .errorCode( E1047 )
+                .addArg( event )
+                .build();
+            reporter.addError( error );
         }
     }
 
