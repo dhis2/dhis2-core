@@ -31,7 +31,7 @@ import static org.hisp.dhis.analytics.event.data.AnalyticsDimensionsTestSupport.
 import static org.hisp.dhis.analytics.event.data.AnalyticsDimensionsTestSupport.allValueTypeTEAs;
 import static org.hisp.dhis.analytics.event.data.DimensionsServiceCommon.AGGREGATE_ALLOWED_VALUE_TYPES;
 import static org.hisp.dhis.analytics.event.data.DimensionsServiceCommon.QUERY_DISALLOWED_VALUE_TYPES;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -47,15 +47,15 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-public class EventAnalyticsDimensionsServiceTest
+class EventAnalyticsDimensionsServiceTest
 {
     private EventAnalyticsDimensionsService eventAnalyticsDimensionsService;
 
-    @Before
-    public void setup()
+    @BeforeEach
+    void setup()
     {
         ProgramStageService programStageService = mock( ProgramStageService.class );
         CategoryService categoryService = mock( CategoryService.class );
@@ -74,7 +74,7 @@ public class EventAnalyticsDimensionsServiceTest
     }
 
     @Test
-    public void testQueryDoesntContainDisallowedValueTypes()
+    void testQueryDoesntContainDisallowedValueTypes()
     {
         Collection<BaseIdentifiableObject> analyticsDimensions = eventAnalyticsDimensionsService
             .getQueryDimensionsByProgramStageId( "anUid" );
@@ -96,7 +96,7 @@ public class EventAnalyticsDimensionsServiceTest
     }
 
     @Test
-    public void testAggregateOnlyContainsAllowedValueTypes()
+    void testAggregateOnlyContainsAllowedValueTypes()
     {
         Collection<BaseIdentifiableObject> analyticsDimensions = eventAnalyticsDimensionsService
             .getAggregateDimensionsByProgramStageId( "anUid" );

@@ -36,7 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.report.TrackerValidationHookTimerReport;
+import org.hisp.dhis.tracker.report.Timing;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.user.User;
@@ -87,6 +87,10 @@ public class DefaultTrackerValidationService
         // Note that the bundle gets cloned internally, so the original bundle
         // is always available
         TrackerImportValidationContext context = new TrackerImportValidationContext( bundle );
+        // TODO(TECH-880) remove reliance on context from reporter, then context
+        // altogether.
+        // the bundle is probably enough
+        ValidationErrorReporter reporter = new ValidationErrorReporter( context );
 
         try
         {
@@ -94,19 +98,24 @@ public class DefaultTrackerValidationService
             {
                 Timer hookTimer = Timer.startTimer();
 
-                validationReport.add( hook.validate( context ) );
+                hook.validate( reporter, context );
 
-                validationReport.add( TrackerValidationHookTimerReport.builder()
-                    .name( hook.getClass().getName() )
-                    .totalTime( hookTimer.toString() ).build() );
+                validationReport.addTiming( new Timing(
+                    hook.getClass().getName(),
+                    hookTimer.toString() ) );
             }
         }
         catch ( ValidationFailFastException e )
         {
-            validationReport.add( e.getErrors() );
+            // exit early when in FAIL_FAST validation mode
         }
+        // TODO(TECH-880) can be removed once the ValidationErrorReporter is
+        // removed and we only work with TrackerValidationReport
+        validationReport
+            .addErrors( reporter.getReportList() )
+            .addWarnings( reporter.getWarningsReportList() );
 
-        removeInvalidObjects( bundle, context.getRootReporter() );
+        removeInvalidObjects( bundle, reporter );
 
         return validationReport;
     }

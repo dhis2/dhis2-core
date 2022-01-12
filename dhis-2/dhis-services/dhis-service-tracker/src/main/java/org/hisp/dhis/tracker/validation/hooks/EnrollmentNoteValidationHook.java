@@ -40,6 +40,7 @@ public class EnrollmentNoteValidationHook extends AbstractTrackerDtoValidationHo
     @Override
     public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
     {
-        enrollment.setNotes( ValidationUtils.validateNotes( reporter, enrollment.getNotes() ) );
+        enrollment.setNotes( ValidationUtils.validateNotes( reporter, enrollment,
+            enrollment.getNotes() ) );
     }
 }

@@ -27,9 +27,6 @@
  */
 package org.hisp.dhis.tracker.validation;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertIterableEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -42,12 +39,6 @@ import java.util.List;
 
 import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
-import org.hisp.dhis.tracker.report.TrackerValidationReport;
-import org.hisp.dhis.tracker.report.ValidationErrorReporter;
-import org.hisp.dhis.tracker.validation.hooks.EventDataValuesValidationHook;
-import org.hisp.dhis.tracker.validation.hooks.TrackedEntityAttributeValidationHook;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -57,7 +48,7 @@ class DefaultTrackerValidationServiceTest
 
     private DefaultTrackerValidationService service;
 
-    private TrackedEntityAttributeValidationHook hook1;
+    private TrackerValidationHook hook1;
 
     private TrackerBundle bundle;
 
@@ -68,7 +59,7 @@ class DefaultTrackerValidationServiceTest
     {
         user = mock( User.class );
         bundle = mock( TrackerBundle.class );
-        hook1 = mock( TrackedEntityAttributeValidationHook.class );
+        hook1 = mock( TrackerValidationHook.class );
     }
 
     @Test
@@ -85,7 +76,6 @@ class DefaultTrackerValidationServiceTest
     @Test
     void shouldNotValidateSuperUserSkip()
     {
-        when( bundle.getValidationMode() ).thenReturn( ValidationMode.SKIP );
         when( bundle.getUser() ).thenReturn( user );
         when( user.isSuper() ).thenReturn( true );
         when( bundle.getValidationMode() ).thenReturn( ValidationMode.SKIP );
@@ -99,59 +89,15 @@ class DefaultTrackerValidationServiceTest
     @Test
     void shouldValidateSuperUserNoSkip()
     {
-        when( hook1.validate( any() ) )
-            .thenReturn( ValidationErrorReporter.emptyReporter() );
         when( bundle.getUser() ).thenReturn( user );
         when( user.isSuper() ).thenReturn( true );
         when( bundle.getValidationMode() ).thenReturn( ValidationMode.FULL );
-        service = new DefaultTrackerValidationService( List.of( hook1 ), Collections.emptyList() );
-
-        TrackerValidationReport validationErrorReporter = service.validate( bundle );
-
-        verify( hook1, times( 1 ) ).validate( any() );
-        assertFalse( validationErrorReporter.hasErrors() );
-    }
-
-    @Test
-    void shouldValidateHookNoError()
-    {
-        when( hook1.validate( any() ) )
-            .thenReturn( ValidationErrorReporter.emptyReporter() );
-        TrackerBundle bundle = mock( TrackerBundle.class );
-        when( bundle.getUser() ).thenReturn( user );
-        when( user.isSuper() ).thenReturn( false );
-        service = new DefaultTrackerValidationService( List.of( hook1 ), Collections.emptyList() );
-
-        TrackerValidationReport validationErrorReporter = service.validate( bundle );
-
-        verify( hook1, times( 1 ) ).validate( any() );
-        assertFalse( validationErrorReporter.hasErrors() );
-    }
-
-    @Test
-    void shouldValidateHookWithErrors()
-    {
-        EventDataValuesValidationHook hook2 = mock( EventDataValuesValidationHook.class );
-        TrackerImportValidationContext trackerImportValidationContext = mock( TrackerImportValidationContext.class );
-        when( trackerImportValidationContext.getBundle() ).thenReturn( bundle );
-        ValidationErrorReporter validationErrorReporterReturn = new ValidationErrorReporter(
-            trackerImportValidationContext );
-        validationErrorReporterReturn.addError( TrackerErrorReport.newReport( TrackerErrorCode.E1000 ) );
-        when( hook1.validate( any() ) )
-            .thenReturn( validationErrorReporterReturn );
-        when( hook2.validate( any() ) )
-            .thenReturn( ValidationErrorReporter.emptyReporter() );
-        when( bundle.getUser() ).thenReturn( user );
-        when( bundle.getValidationMode() ).thenReturn( ValidationMode.FULL );
-        when( user.isSuper() ).thenReturn( false );
+        TrackerValidationHook hook2 = mock( TrackerValidationHook.class );
         service = new DefaultTrackerValidationService( List.of( hook1, hook2 ), Collections.emptyList() );
 
-        TrackerValidationReport validationErrorReporter = service.validate( bundle );
+        service.validate( bundle );
 
-        verify( hook1, times( 1 ) ).validate( any() );
-        verify( hook2, times( 1 ) ).validate( any() );
-        assertTrue( validationErrorReporter.hasErrors() );
-        assertIterableEquals( validationErrorReporterReturn.getReportList(),
-            validationErrorReporter.getErrorReports() );
+        verify( hook1, times( 1 ) ).validate( any(), any() );
+        verify( hook2, times( 1 ) ).validate( any(), any() );
     }
 }

@@ -28,7 +28,11 @@
 package org.hisp.dhis.tracker.validation.hooks;
 
 import static com.google.api.client.util.Preconditions.checkNotNull;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.*;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1006;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1018;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1019;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1075;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1076;
 
 import java.util.Collections;
 import java.util.Map;
@@ -86,7 +90,7 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
 
         for ( Attribute attribute : enrollment.getAttributes() )
         {
-            validateRequiredProperties( reporter, attribute, program );
+            validateRequiredProperties( reporter, enrollment, attribute, program );
 
             TrackedEntityAttribute teAttribute = context.getTrackedEntityAttribute( attribute.getAttribute() );
 
@@ -95,10 +99,12 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
 
                 attributeValueMap.put( attribute.getAttribute(), attribute.getValue() );
 
-                validateAttrValueType( reporter, attribute, teAttribute );
-                validateOptionSet( reporter, teAttribute, attribute.getValue() );
+                validateAttrValueType( reporter, enrollment, attribute, teAttribute );
+                validateOptionSet( reporter, enrollment, teAttribute,
+                    attribute.getValue() );
 
                 validateAttributeUniqueness( reporter,
+                    enrollment,
                     attribute.getValue(),
                     teAttribute,
                     tei,
@@ -109,9 +115,10 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
         validateMandatoryAttributes( reporter, program, attributeValueMap, enrollment );
     }
 
-    protected void validateRequiredProperties( ValidationErrorReporter reporter, Attribute attribute, Program program )
+    protected void validateRequiredProperties( ValidationErrorReporter reporter, Enrollment enrollment,
+        Attribute attribute, Program program )
     {
-        addErrorIfNull( attribute.getAttribute(), reporter, E1075, attribute );
+        addErrorIfNull( attribute.getAttribute(), reporter, enrollment, E1075, attribute );
 
         Optional<ProgramTrackedEntityAttribute> optionalTrackedAttr = program.getProgramAttributes().stream()
             .filter( pa -> pa.getAttribute().getUid().equals( attribute.getAttribute() ) && pa.isMandatory() )
@@ -119,7 +126,8 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
 
         if ( optionalTrackedAttr.isPresent() )
         {
-            addErrorIfNull( attribute.getValue(), reporter, E1076, TrackedEntityAttribute.class.getSimpleName(),
+            addErrorIfNull( attribute.getValue(), reporter, enrollment, E1076,
+                TrackedEntityAttribute.class.getSimpleName(),
                 attribute.getAttribute() );
         }
 
@@ -128,7 +136,7 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
             TrackedEntityAttribute teAttribute = reporter.getValidationContext()
                 .getTrackedEntityAttribute( attribute.getAttribute() );
 
-            addErrorIfNull( teAttribute, reporter, E1006, attribute.getAttribute() );
+            addErrorIfNull( teAttribute, reporter, enrollment, E1006, attribute.getAttribute() );
         }
     }
 
@@ -162,14 +170,16 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
             .filter( Map.Entry::getValue ) // <--- filter on mandatory flag
             .map( Map.Entry::getKey )
             .forEach( mandatoryProgramAttributeUid -> addErrorIf(
-                () -> !mergedAttributes.contains( mandatoryProgramAttributeUid ), reporter, E1018,
+                () -> !mergedAttributes.contains( mandatoryProgramAttributeUid ), reporter,
+                enrollment, E1018,
                 mandatoryProgramAttributeUid, program.getUid(), enrollment.getEnrollment() ) );
 
         // enrollment must not contain any attribute which is not defined in
         // program
         enrollmentNonEmptyAttributeUids
             .forEach(
-                ( attrUid, attrVal ) -> addErrorIf( () -> !programAttributesMap.containsKey( attrUid ), reporter, E1019,
+                ( attrUid, attrVal ) -> addErrorIf( () -> !programAttributesMap.containsKey( attrUid ), reporter,
+                    enrollment, E1019,
                     attrUid + "=" + attrVal ) );
     }
 

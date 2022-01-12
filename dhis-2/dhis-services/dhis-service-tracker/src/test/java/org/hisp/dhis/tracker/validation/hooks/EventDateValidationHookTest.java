@@ -115,7 +115,7 @@ class EventDateValidationHookTest extends DhisConvenienceTest
 
         when( validationContext.getBundle() ).thenReturn( bundle );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, event );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
 
         // when
         this.hookToTest.validateEvent( reporter, event );
@@ -132,7 +132,7 @@ class EventDateValidationHookTest extends DhisConvenienceTest
         event.setEvent( CodeGenerator.generateUid() );
         event.setProgram( PROGRAM_WITHOUT_REGISTRATION_ID );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, event );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
 
         // when
         this.hookToTest.validateEvent( reporter, event );
@@ -150,7 +150,7 @@ class EventDateValidationHookTest extends DhisConvenienceTest
         event.setProgram( PROGRAM_WITH_REGISTRATION_ID );
         event.setStatus( EventStatus.ACTIVE );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, event );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
 
         // when
         this.hookToTest.validateEvent( reporter, event );
@@ -168,7 +168,7 @@ class EventDateValidationHookTest extends DhisConvenienceTest
         event.setProgram( PROGRAM_WITH_REGISTRATION_ID );
         event.setStatus( EventStatus.COMPLETED );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, event );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
 
         // when
         this.hookToTest.validateEvent( reporter, event );
@@ -187,7 +187,7 @@ class EventDateValidationHookTest extends DhisConvenienceTest
         event.setOccurredAt( Instant.now() );
         event.setStatus( EventStatus.SCHEDULE );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, event );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
 
         // when
         this.hookToTest.validateEvent( reporter, event );
@@ -206,7 +206,7 @@ class EventDateValidationHookTest extends DhisConvenienceTest
         event.setOccurredAt( now() );
         event.setStatus( EventStatus.COMPLETED );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, event );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
 
         // when
         this.hookToTest.validateEvent( reporter, event );
@@ -226,7 +226,7 @@ class EventDateValidationHookTest extends DhisConvenienceTest
         event.setCompletedAt( sevenDaysAgo() );
         event.setStatus( EventStatus.COMPLETED );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, event );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
 
         // when
         this.hookToTest.validateEvent( reporter, event );
@@ -246,7 +246,7 @@ class EventDateValidationHookTest extends DhisConvenienceTest
         event.setScheduledAt( null );
         event.setStatus( EventStatus.SKIPPED );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, event );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
 
         // when
         this.hookToTest.validateEvent( reporter, event );
@@ -265,7 +265,7 @@ class EventDateValidationHookTest extends DhisConvenienceTest
         event.setOccurredAt( sevenDaysAgo() );
         event.setStatus( EventStatus.ACTIVE );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, event );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
 
         // when
         this.hookToTest.validateEvent( reporter, event );

@@ -28,7 +28,6 @@
 package org.hisp.dhis.tracker.validation.hooks;
 
 import static com.google.api.client.util.Preconditions.checkNotNull;
-import static org.hisp.dhis.tracker.report.TrackerErrorReport.newReport;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ATTRIBUTE_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.TRACKED_ENTITY_ATTRIBUTE_CANT_BE_NULL;
 
@@ -39,9 +38,12 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
+import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.preheat.UniqueAttributeValue;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
+import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.tracker.validation.service.attribute.TrackedAttributeValidationService;
@@ -59,7 +61,7 @@ public abstract class AttributeValidationHook extends AbstractTrackerDtoValidati
         this.teAttrService = teAttrService;
     }
 
-    protected void validateAttrValueType( ValidationErrorReporter errorReporter, Attribute attr,
+    protected void validateAttrValueType( ValidationErrorReporter errorReporter, TrackerDto dto, Attribute attr,
         TrackedEntityAttribute teAttr )
     {
         checkNotNull( attr, ATTRIBUTE_CANT_BE_NULL );
@@ -100,13 +102,20 @@ public abstract class AttributeValidationHook extends AbstractTrackerDtoValidati
 
         if ( error != null )
         {
-            errorReporter.addError( newReport( TrackerErrorCode.E1007 )
+            TrackerBundle bundle = context.getBundle();
+            TrackerErrorReport err = TrackerErrorReport.builder()
+                .uid( dto.getUid() )
+                .trackerType( dto.getTrackerType() )
+                .errorCode( TrackerErrorCode.E1007 )
                 .addArg( valueType.toString() )
-                .addArg( error ) );
+                .addArg( error )
+                .build( bundle );
+            errorReporter.addError( err );
         }
     }
 
     protected void validateAttributeUniqueness( ValidationErrorReporter errorReporter,
+        TrackerDto dto,
         String value,
         TrackedEntityAttribute trackedEntityAttribute,
         TrackedEntityInstance trackedEntityInstance,
@@ -137,9 +146,15 @@ public abstract class AttributeValidationHook extends AbstractTrackerDtoValidati
                 && hasTheSameValue
                 && isNotSameTei )
             {
-                errorReporter.addError( newReport( TrackerErrorCode.E1064 )
+                TrackerBundle bundle = errorReporter.getValidationContext().getBundle();
+                TrackerErrorReport err = TrackerErrorReport.builder()
+                    .uid( dto.getUid() )
+                    .trackerType( dto.getTrackerType() )
+                    .errorCode( TrackerErrorCode.E1064 )
                     .addArg( value )
-                    .addArg( trackedEntityAttribute.getUid() ) );
+                    .addArg( trackedEntityAttribute.getUid() )
+                    .build( bundle );
+                errorReporter.addError( err );
                 return;
             }
         }
