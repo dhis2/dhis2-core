@@ -273,15 +273,15 @@ public final class EventGridHeaderHandler
     private static Map<String, GridHeader> getGridHeadersWithDynamicNames( final EventQueryParams params )
     {
         // @formatter:off
-            return Map.of(
-                ITEM_ENROLLMENT_DATE, new GridHeader( ITEM_ENROLLMENT_DATE,
-                    getEnrollmentDateLabel( params.getProgramStage(), NAME_ENROLLMENT_DATE ), DATE, false, true ),
+        return Map.of(
+            ITEM_ENROLLMENT_DATE, new GridHeader( ITEM_ENROLLMENT_DATE,
+                getEnrollmentDateLabel( params.getProgramStage(), NAME_ENROLLMENT_DATE ), DATE, false, true ),
 
-                ITEM_INCIDENT_DATE, new GridHeader( ITEM_INCIDENT_DATE,
-                    LabelMapper.getIncidentDateLabel( params.getProgramStage(), NAME_INCIDENT_DATE ), DATE, false, true ),
+            ITEM_INCIDENT_DATE, new GridHeader( ITEM_INCIDENT_DATE,
+                LabelMapper.getIncidentDateLabel( params.getProgramStage(), NAME_INCIDENT_DATE ), DATE, false, true ),
 
-                ITEM_EVENT_DATE, new GridHeader( ITEM_EVENT_DATE,
-                    LabelMapper.getEventDateLabel( params.getProgramStage(), NAME_EVENT_DATE ), DATE, false, true ) );
-            // @formatter:on
+            ITEM_EVENT_DATE, new GridHeader( ITEM_EVENT_DATE,
+                LabelMapper.getEventDateLabel( params.getProgramStage(), NAME_EVENT_DATE ), DATE, false, true ) );
+        // @formatter:on
     }
 }

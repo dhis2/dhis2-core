@@ -94,18 +94,18 @@ public final class EnrollmentGridHeaderHandler
     static
     {
         // @formatter:off
-            ALLOWED_GRID_HEADER_MAP.put( ITEM_STORED_BY, new GridHeader( ITEM_STORED_BY, NAME_STORED_BY, TEXT, false, true ) );
-            ALLOWED_GRID_HEADER_MAP.put( ITEM_LAST_UPDATED, new GridHeader( ITEM_LAST_UPDATED, NAME_LAST_UPDATED, DATE, false, true ) );
-            ALLOWED_GRID_HEADER_MAP.put( ITEM_TRACKED_ENTITY_INSTANCE, new GridHeader( ITEM_TRACKED_ENTITY_INSTANCE, NAME_TRACKED_ENTITY_INSTANCE, TEXT, false, true ) );
-            ALLOWED_GRID_HEADER_MAP.put( ITEM_PROGRAM_INSTANCE, new GridHeader( ITEM_PROGRAM_INSTANCE, NAME_PROGRAM_INSTANCE, TEXT, false, true ) );
-            ALLOWED_GRID_HEADER_MAP.put( ITEM_GEOMETRY, new GridHeader( ITEM_GEOMETRY, NAME_GEOMETRY, TEXT, false, true ) );
-            ALLOWED_GRID_HEADER_MAP.put( ITEM_LONGITUDE, new GridHeader( ITEM_LONGITUDE, NAME_LONGITUDE, NUMBER, false, true ) );
-            ALLOWED_GRID_HEADER_MAP.put( ITEM_LATITUDE, new GridHeader( ITEM_LATITUDE, NAME_LATITUDE, NUMBER, false, true ) );
-            ALLOWED_GRID_HEADER_MAP.put( ITEM_ORG_UNIT_NAME, new GridHeader( ITEM_ORG_UNIT_NAME, NAME_ORG_UNIT_NAME, TEXT, false, true ) );
-            ALLOWED_GRID_HEADER_MAP.put( ITEM_ORG_UNIT_CODE, new GridHeader( ITEM_ORG_UNIT_CODE, NAME_ORG_UNIT_CODE, TEXT, false, true ) );
-            ALLOWED_GRID_HEADER_MAP.put( ITEM_INCIDENT_DATE, new GridHeader( ITEM_INCIDENT_DATE, NAME_INCIDENT_DATE, TEXT, false, true ) );
-            ALLOWED_GRID_HEADER_MAP.put( ITEM_ENROLLMENT_DATE, new GridHeader( ITEM_ENROLLMENT_DATE, NAME_ENROLLMENT_DATE, TEXT, false, true ) );
-            // @formatter:on
+        ALLOWED_GRID_HEADER_MAP.put( ITEM_STORED_BY, new GridHeader( ITEM_STORED_BY, NAME_STORED_BY, TEXT, false, true ) );
+        ALLOWED_GRID_HEADER_MAP.put( ITEM_LAST_UPDATED, new GridHeader( ITEM_LAST_UPDATED, NAME_LAST_UPDATED, DATE, false, true ) );
+        ALLOWED_GRID_HEADER_MAP.put( ITEM_TRACKED_ENTITY_INSTANCE, new GridHeader( ITEM_TRACKED_ENTITY_INSTANCE, NAME_TRACKED_ENTITY_INSTANCE, TEXT, false, true ) );
+        ALLOWED_GRID_HEADER_MAP.put( ITEM_PROGRAM_INSTANCE, new GridHeader( ITEM_PROGRAM_INSTANCE, NAME_PROGRAM_INSTANCE, TEXT, false, true ) );
+        ALLOWED_GRID_HEADER_MAP.put( ITEM_GEOMETRY, new GridHeader( ITEM_GEOMETRY, NAME_GEOMETRY, TEXT, false, true ) );
+        ALLOWED_GRID_HEADER_MAP.put( ITEM_LONGITUDE, new GridHeader( ITEM_LONGITUDE, NAME_LONGITUDE, NUMBER, false, true ) );
+        ALLOWED_GRID_HEADER_MAP.put( ITEM_LATITUDE, new GridHeader( ITEM_LATITUDE, NAME_LATITUDE, NUMBER, false, true ) );
+        ALLOWED_GRID_HEADER_MAP.put( ITEM_ORG_UNIT_NAME, new GridHeader( ITEM_ORG_UNIT_NAME, NAME_ORG_UNIT_NAME, TEXT, false, true ) );
+        ALLOWED_GRID_HEADER_MAP.put( ITEM_ORG_UNIT_CODE, new GridHeader( ITEM_ORG_UNIT_CODE, NAME_ORG_UNIT_CODE, TEXT, false, true ) );
+        ALLOWED_GRID_HEADER_MAP.put( ITEM_INCIDENT_DATE, new GridHeader( ITEM_INCIDENT_DATE, NAME_INCIDENT_DATE, TEXT, false, true ) );
+        ALLOWED_GRID_HEADER_MAP.put( ITEM_ENROLLMENT_DATE, new GridHeader( ITEM_ENROLLMENT_DATE, NAME_ENROLLMENT_DATE, TEXT, false, true ) );
+        // @formatter:on
     }
 
     static Grid createGridWithDefaultHeaders()
