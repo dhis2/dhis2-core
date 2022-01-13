@@ -30,6 +30,8 @@ package org.hisp.dhis.trackedentityattributevalue;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.String.format;
 
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -84,33 +86,57 @@ public class TrackerTrigramIndexingJob implements Job
         log.info( "Starting Trigram Indexing Job. Attributes Provided to Index: {}", parameters.getAttributes() );
         progress.startingProcess( "Starting Trigram indexing process" );
 
-        if ( !CollectionUtils.isEmpty( parameters.getAttributes() ) )
+        Set<TrackedEntityAttribute> allIndexableAttributes = null;
+
+        // fetch all indexable attributes only if needed
+        if ( !CollectionUtils.isEmpty( parameters.getAttributes() ) || !parameters.isSkipIndexDeletion() )
         {
-            createTrigramIndexesOnIndexableAttributes( progress, parameters );
+            log.debug( "Fetching all indexable attributes from db" );
+            allIndexableAttributes = trackedEntityAttributeService
+                .getAllTrigramIndexableTrackedEntityAttributes();
         }
 
-        runVacuum( progress, parameters );
+        // Trigram index only need to be created if requested in the job
+        // parameters.
+        if ( !CollectionUtils.isEmpty( parameters.getAttributes() ) )
+        {
+            createTrigramIndexesOnIndexableAttributes( progress, parameters, allIndexableAttributes );
+        }
 
-        runAnalyze( progress, parameters );
+        // Obsolete index deletion
+        if ( !parameters.isSkipIndexDeletion() )
+        {
+            removeObsoleteTrigramIndexes( progress, allIndexableAttributes );
+        }
 
         progress.completedProcess( "Job completed" );
         log.info( "Trigram Indexing job completed" );
     }
 
     private void createTrigramIndexesOnIndexableAttributes( JobProgress progress,
-        TrackerTrigramIndexJobParameters parameters )
+        TrackerTrigramIndexJobParameters parameters, Set<TrackedEntityAttribute> allIndexableAttributes )
     {
-        log.debug( "Fetching all indexable attributes from db" );
-        Set<TrackedEntityAttribute> indexableAttributes = trackedEntityAttributeService
-            .getAllTrigramIndexableTrackedEntityAttributes();
 
-        log.debug( "Found total {} indexable attributes", indexableAttributes.size() );
-        indexableAttributes = indexableAttributes.stream()
+        log.debug( "Found total {} indexable attributes", allIndexableAttributes.size() );
+
+        // Remove indexableAttributes that have not been requested to be indexed
+        // and
+        // Also remove attributes that are requested to be indexed but are not
+        // indexable
+        Set<TrackedEntityAttribute> indexableAttributes = allIndexableAttributes.stream().map( itea -> {
+            if ( !parameters.getAttributes().contains( itea.getUid() ) )
+            {
+                log.debug( "Filtering out attribute uid : {} as it is not indexable", itea.getUid() );
+            }
+            return itea;
+        } )
             .filter( itea -> parameters.getAttributes().contains( itea.getUid() ) ).collect( Collectors.toSet() );
 
         log.debug( "Number of Attributes provided in job parameters that are indexable: {}",
             indexableAttributes.size() );
 
+        // Create indexes for the indexable attributes specified in the job
+        // parameters
         if ( !indexableAttributes.isEmpty() )
         {
             createTrigramIndexes( progress, indexableAttributes );
@@ -121,44 +147,74 @@ public class TrackerTrigramIndexingJob implements Job
         }
     }
 
+    private void removeObsoleteTrigramIndexes( JobProgress progress,
+        Set<TrackedEntityAttribute> allIndexableAttributes )
+    {
+
+        log.debug( "Checking existence obsolete trigram indexes" );
+
+        /*
+         * Fetch primary key ids of attributes based on existing trigram index
+         * in db. Trigram index will be present with the naming convention
+         * in_gin_teavalue_XXXXX where the last XXXXX denotes the attribute id
+         * which will be matched and extracted in the query.
+         */
+        List<Long> teaIdList = trackedEntityAttributeTableManager.getAttributeIdsWithTrigramIndexCreated();
+
+        if ( teaIdList.isEmpty() )
+        {
+            log.debug( "No obsolete trigram indexes to drop" );
+            return;
+        }
+
+        Set<Long> teaIds = new HashSet<>( teaIdList );
+
+        // Collect tea ids of all indexable attributets
+        Set<Long> allIndexableAttributeIds = allIndexableAttributes.stream().map( tea -> tea.getId() ).collect(
+            Collectors.toSet() );
+
+        log.debug( "Found total {} trigram indexes in db", teaIds.size() );
+
+        /*
+         * Remove all tea ids that are indexable. What remains in this set will
+         * be attribute ids that have indexes present in the db but the
+         * corresponding tea is not indexable anymore. hence an obsolete index
+         */
+        teaIds.removeAll( allIndexableAttributeIds );
+
+        log.debug( "Found total {} obsolete trigram indexes in db", teaIds.size() );
+
+        progress.startingStage( "Deleting obsolete trigram indexes", teaIds.size() );
+        progress.runStage( teaIds.stream(), Object::toString,
+            teaId -> trackedEntityAttributeTableManager.dropTrigramIndex( teaId ),
+            TrackerTrigramIndexingJob::computeTrigramIndexingDropSummary );
+        progress.completedStage( "Obsolete trigram indexes dropped" );
+        log.debug( "Dropped {} obsolete trigram indexes", teaIds.size() );
+    }
+
     private void createTrigramIndexes( JobProgress progress, Set<TrackedEntityAttribute> indexableAttributes )
     {
         log.debug( "Creating {} trigram indexes", indexableAttributes.size() );
         progress.startingStage( "Creating trigram indexes for attributes", indexableAttributes.size() );
         progress.runStage( indexableAttributes.stream(), TrackedEntityAttribute::getName,
             tea -> trackedEntityAttributeTableManager.createTrigramIndex( tea ),
-            TrackerTrigramIndexingJob::computeTrigramIndexingSummary );
+            TrackerTrigramIndexingJob::computeTrigramIndexingCreationSummary );
         progress.completedStage( "Trigram indexes created" );
         log.debug( "Created {} trigram indexes", indexableAttributes.size() );
     }
 
-    private void runAnalyze( JobProgress progress, TrackerTrigramIndexJobParameters parameters )
-    {
-        if ( parameters.isRunAnalyze() )
-        {
-            log.debug( "Running ANALYZE" );
-            progress.startingStage( "Running ANALYZE on tracker tables", 1 );
-            progress.runStage( () -> trackedEntityAttributeTableManager.runAnalyze() );
-            progress.completedStage( "ANALYZE run completed" );
-            log.debug( "ANALYZE completed" );
-        }
-    }
-
-    private void runVacuum( JobProgress progress, TrackerTrigramIndexJobParameters parameters )
-    {
-        if ( parameters.isRunVacuum() )
-        {
-            log.debug( "Running VACUUM" );
-            progress.startingStage( "Running VACUUM on tracker tables", 1 );
-            progress.runStage( () -> trackedEntityAttributeTableManager.runVacuum() );
-            progress.completedStage( "VACUUM run completed" );
-            log.debug( "VACUUM completed" );
-        }
-    }
-
-    private static String computeTrigramIndexingSummary( int successful, int failed )
+    private static String computeTrigramIndexingCreationSummary( int successful, int failed )
     {
         String summary = format( "Number of trigram index created: %d. Number of trigram index creation failed: %d",
+            successful, failed );
+        log.debug( summary );
+        return summary;
+    }
+
+    private static String computeTrigramIndexingDropSummary( int successful, int failed )
+    {
+        String summary = format(
+            "Number of obsolete trigram index dropped: %d. Number of obsoletet trigram index drop failed: %d",
             successful, failed );
         log.debug( summary );
         return summary;
