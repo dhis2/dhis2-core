@@ -70,6 +70,18 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
         {
             String fullPath = FULL_PATH_CACHE.computeIfAbsent( fieldPath, FieldPath::toFullPath );
 
+            // TODO fix this later
+            if ( path.startsWith( "sharing.users" ) && fullPath.startsWith( "sharing.users" ) )
+            {
+                return true;
+            }
+
+            // TODO fix this later
+            if ( path.startsWith( "sharing.userGroups" ) && fullPath.startsWith( "sharing.userGroups" ) )
+            {
+                return true;
+            }
+
             if ( fullPath.equals( path ) )
             {
                 return true;

@@ -45,6 +45,9 @@ import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.user.sharing.Sharing;
+import org.hisp.dhis.user.sharing.UserAccess;
+import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.springframework.stereotype.Component;
 
 /**
@@ -238,7 +241,10 @@ public class FieldPathHelper
     private boolean isComplex( Property property )
     {
         return property.is( PropertyType.COMPLEX ) || property.itemIs( PropertyType.COMPLEX )
-            || property.isEmbeddedObject() || UserCredentials.class.isAssignableFrom( property.getKlass() );
+            || property.isEmbeddedObject() || UserCredentials.class.isAssignableFrom( property.getKlass() )
+            || Sharing.class.isAssignableFrom( property.getKlass() )
+            || UserAccess.class.isAssignableFrom( property.getKlass() )
+            || UserGroupAccess.class.isAssignableFrom( property.getKlass() );
     }
 
     /**
