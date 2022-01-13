@@ -33,7 +33,4 @@ package org.hisp.dhis.tracker.validation;
 public class ValidationFailFastException
     extends RuntimeException
 {
-    public ValidationFailFastException()
-    {
-    }
 }
