@@ -382,4 +382,12 @@ class TranslationServiceTest extends DhisSpringTest
         assertEquals( "translated descriptionA", predictor.getGenerator().getDisplayDescription() );
         assertEquals( "translated descriptionB", predictor.getSampleSkipTest().getDisplayDescription() );
     }
+
+    @Test
+    public void testDisplayNameWithNoTranslation()
+    {
+        DataElement dataElementA = createDataElement( 'A' );
+        manager.save( dataElementA );
+        assertEquals( "DataElementA", dataElementA.getDisplayName() );
+    }
 }
