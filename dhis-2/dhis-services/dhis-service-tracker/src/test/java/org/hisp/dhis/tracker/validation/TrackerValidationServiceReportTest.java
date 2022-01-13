@@ -46,10 +46,10 @@ import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.report.Error;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
-import org.hisp.dhis.tracker.report.TrackerWarningReport;
+import org.hisp.dhis.tracker.report.Warning;
 import org.hisp.dhis.tracker.validation.hooks.AbstractTrackerDtoValidationHook;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
@@ -143,7 +143,7 @@ class TrackerValidationServiceReportTest
                 if ( invalidEvent.equals( event ) )
                 {
                     reporter.addError(
-                        TrackerErrorReport.builder()
+                        Error.builder()
                             .errorCode( TrackerErrorCode.E1032 )
                             .trackerType( TrackerType.EVENT )
                             .uid( event.getUid() ).build() );
@@ -156,7 +156,7 @@ class TrackerValidationServiceReportTest
                 if ( invalidEnrollment.equals( enrollment ) )
                 {
                     reporter.addError(
-                        TrackerErrorReport.builder()
+                        Error.builder()
                             .errorCode( TrackerErrorCode.E1069 )
                             .trackerType( TrackerType.ENROLLMENT )
                             .uid( enrollment.getUid() )
@@ -223,7 +223,7 @@ class TrackerValidationServiceReportTest
                 if ( invalidEvent.equals( event ) )
                 {
                     reporter.addError(
-                        TrackerErrorReport.builder()
+                        Error.builder()
                             .errorCode( TrackerErrorCode.E1032 )
                             .trackerType( TrackerType.EVENT )
                             .uid( event.getUid() ).build() );
@@ -265,7 +265,7 @@ class TrackerValidationServiceReportTest
                 if ( validEvent.equals( event ) )
                 {
                     reporter.addWarning(
-                        TrackerWarningReport.builder()
+                        Warning.builder()
                             .warningCode( TrackerErrorCode.E1120 )
                             .trackerType( TrackerType.EVENT )
                             .uid( event.getUid() )

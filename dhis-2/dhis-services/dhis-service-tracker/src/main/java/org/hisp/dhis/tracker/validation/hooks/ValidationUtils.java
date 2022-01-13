@@ -47,10 +47,10 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Note;
 import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
+import org.hisp.dhis.tracker.report.Error;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
-import org.hisp.dhis.tracker.report.TrackerWarningReport;
+import org.hisp.dhis.tracker.report.Warning;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.locationtech.jts.geom.Geometry;
 
@@ -68,7 +68,7 @@ public class ValidationUtils
 
         if ( featureType == null )
         {
-            TrackerErrorReport error = TrackerErrorReport.builder()
+            Error error = Error.builder()
                 .uid( dto.getUid() )
                 .trackerType( dto.getTrackerType() )
                 .errorCode( TrackerErrorCode.E1074 )
@@ -81,7 +81,7 @@ public class ValidationUtils
 
         if ( FeatureType.NONE == featureType || featureType != typeFromName )
         {
-            TrackerErrorReport error = TrackerErrorReport.builder()
+            Error error = Error.builder()
                 .uid( dto.getUid() )
                 .trackerType( dto.getTrackerType() )
                 .errorCode( TrackerErrorCode.E1012 )
@@ -104,7 +104,7 @@ public class ValidationUtils
                 // warning, ignore the note and continue
                 if ( isNotEmpty( note.getNote() ) && context.getNote( note.getNote() ).isPresent() )
                 {
-                    TrackerWarningReport warning = TrackerWarningReport.builder()
+                    Warning warning = Warning.builder()
                         .uid( dto.getUid() )
                         .trackerType( dto.getTrackerType() )
                         .warningCode( TrackerErrorCode.E1119 )
@@ -172,7 +172,7 @@ public class ValidationUtils
             .forEach( issue -> {
                 List<String> args = Lists.newArrayList( issue.getRuleUid() );
                 args.addAll( issue.getArgs() );
-                TrackerErrorReport error = TrackerErrorReport.builder()
+                Error error = Error.builder()
                     .uid( dto.getUid() )
                     .trackerType( dto.getTrackerType() )
                     .errorCode( issue.getIssueCode() )
@@ -188,7 +188,7 @@ public class ValidationUtils
                 issue -> {
                     List<String> args = Lists.newArrayList( issue.getRuleUid() );
                     args.addAll( issue.getArgs() );
-                    TrackerWarningReport warning = TrackerWarningReport.builder()
+                    Warning warning = Warning.builder()
                         .uid( dto.getUid() )
                         .trackerType( dto.getTrackerType() )
                         .warningCode( issue.getIssueCode() )

@@ -57,7 +57,7 @@ class TrackerImportReportTest
         TrackerBundleReport bundleReport = new TrackerBundleReport( TrackerStatus.OK, trackerTypeReportMap );
         // Create validation report with 3 objects
         TrackerValidationReport validationReport = new TrackerValidationReport();
-        validationReport.addErrors( rnd.objects( TrackerErrorReport.class, 3 ).collect( Collectors.toList() ) );
+        validationReport.addErrors( rnd.objects( Error.class, 3 ).collect( Collectors.toList() ) );
         // Create empty Timing Stats report
         TrackerTimingsStats timingsStats = new TrackerTimingsStats();
         // Create payload map

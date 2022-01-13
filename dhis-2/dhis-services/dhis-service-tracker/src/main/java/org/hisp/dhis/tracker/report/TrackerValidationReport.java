@@ -53,11 +53,15 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @EqualsAndHashCode
 public class TrackerValidationReport
 {
-    @JsonProperty
-    private final List<TrackerErrorReport> errorReports;
+    // TODO keeping old JSON property name to not break consumers. investigate
+    // if we can rename the JSON property to 'errors' as well
+    @JsonProperty( "errorReports" )
+    private final List<Error> errors;
 
-    @JsonProperty
-    private final List<TrackerWarningReport> warningReports;
+    // TODO keeping old JSON property name to not break consumers. investigate
+    // if we can rename the JSON property to 'warnings' as well
+    @JsonProperty( "warningReports" )
+    private final List<Warning> warnings;
 
     @JsonIgnore
     private final List<Timing> timings;
@@ -80,8 +84,8 @@ public class TrackerValidationReport
 
     public TrackerValidationReport( boolean isFailFast )
     {
-        this.errorReports = new ArrayList<>();
-        this.warningReports = new ArrayList<>();
+        this.errors = new ArrayList<>();
+        this.warnings = new ArrayList<>();
         this.timings = new ArrayList<>();
         this.invalidDTOs = new HashMap<>();
         this.isFailFast = isFailFast;
@@ -98,14 +102,14 @@ public class TrackerValidationReport
         addTimings( report.getTimings() );
     }
 
-    public List<TrackerErrorReport> getErrors()
+    public List<Error> getErrors()
     {
-        return Collections.unmodifiableList( errorReports );
+        return Collections.unmodifiableList( errors );
     }
 
-    public List<TrackerWarningReport> getWarnings()
+    public List<Warning> getWarnings()
     {
-        return Collections.unmodifiableList( warningReports );
+        return Collections.unmodifiableList( warnings );
     }
 
     public List<Timing> getTimings()
@@ -113,7 +117,7 @@ public class TrackerValidationReport
         return Collections.unmodifiableList( timings );
     }
 
-    public TrackerValidationReport addError( TrackerErrorReport error )
+    public TrackerValidationReport addError( Error error )
     {
         addErrorIfNotExisting( error );
         if ( this.isFailFast )
@@ -123,7 +127,7 @@ public class TrackerValidationReport
         return this;
     }
 
-    public TrackerValidationReport addErrorIf( BooleanSupplier condition, Supplier<TrackerErrorReport> error )
+    public TrackerValidationReport addErrorIf( BooleanSupplier condition, Supplier<Error> error )
     {
         if ( condition.getAsBoolean() )
         {
@@ -136,9 +140,9 @@ public class TrackerValidationReport
         return this;
     }
 
-    public TrackerValidationReport addErrors( List<TrackerErrorReport> errors )
+    public TrackerValidationReport addErrors( List<Error> errors )
     {
-        for ( TrackerErrorReport error : errors )
+        for ( Error error : errors )
         {
             addErrorIfNotExisting( error );
         }
@@ -149,15 +153,15 @@ public class TrackerValidationReport
         return this;
     }
 
-    public TrackerValidationReport addWarning( TrackerWarningReport warning )
+    public TrackerValidationReport addWarning( Warning warning )
     {
         addWarningIfNotExisting( warning );
         return this;
     }
 
-    public TrackerValidationReport addWarnings( List<TrackerWarningReport> warnings )
+    public TrackerValidationReport addWarnings( List<Warning> warnings )
     {
-        for ( TrackerWarningReport warning : warnings )
+        for ( Warning warning : warnings )
         {
             addWarningIfNotExisting( warning );
         }
@@ -178,22 +182,22 @@ public class TrackerValidationReport
 
     public boolean hasErrors()
     {
-        return !errorReports.isEmpty();
+        return !errors.isEmpty();
     }
 
-    public boolean hasError( Predicate<TrackerErrorReport> test )
+    public boolean hasError( Predicate<Error> test )
     {
-        return errorReports.stream().anyMatch( test );
+        return errors.stream().anyMatch( test );
     }
 
     public boolean hasWarnings()
     {
-        return !warningReports.isEmpty();
+        return !warnings.isEmpty();
     }
 
-    public boolean hasWarning( Predicate<TrackerWarningReport> test )
+    public boolean hasWarning( Predicate<Warning> test )
     {
-        return warningReports.stream().anyMatch( test );
+        return warnings.stream().anyMatch( test );
     }
 
     public boolean hasTimings()
@@ -207,23 +211,23 @@ public class TrackerValidationReport
     public long size()
     {
 
-        return this.getErrors().stream().map( TrackerErrorReport::getUid ).distinct().count();
+        return this.getErrors().stream().map( Error::getUid ).distinct().count();
     }
 
-    private void addErrorIfNotExisting( TrackerErrorReport error )
+    private void addErrorIfNotExisting( Error error )
     {
-        if ( !this.errorReports.contains( error ) )
+        if ( !this.errors.contains( error ) )
         {
-            this.errorReports.add( error );
+            this.errors.add( error );
             this.invalidDTOs.computeIfAbsent( error.getTrackerType(), k -> new ArrayList<>() ).add( error.getUid() );
         }
     }
 
-    private void addWarningIfNotExisting( TrackerWarningReport warning )
+    private void addWarningIfNotExisting( Warning warning )
     {
-        if ( !this.warningReports.contains( warning ) )
+        if ( !this.warnings.contains( warning ) )
         {
-            this.warningReports.add( warning );
+            this.warnings.add( warning );
         }
     }
 

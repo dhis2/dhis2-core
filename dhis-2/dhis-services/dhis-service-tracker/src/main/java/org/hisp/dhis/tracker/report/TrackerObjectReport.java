@@ -63,7 +63,7 @@ public class TrackerObjectReport
     @JsonProperty
     private String uid;
 
-    private Map<TrackerErrorCode, List<TrackerErrorReport>> errorReportsByCode = new HashMap<>();
+    private Map<TrackerErrorCode, List<Error>> errorReportsByCode = new HashMap<>();
 
     public TrackerObjectReport( TrackerType trackerType )
     {
@@ -80,15 +80,15 @@ public class TrackerObjectReport
     @JsonCreator
     public TrackerObjectReport( @JsonProperty( "trackerType" ) TrackerType trackerType,
         @JsonProperty( "uid" ) String uid, @JsonProperty( "index" ) Integer index,
-        @JsonProperty( "errorReports" ) List<TrackerErrorReport> errorReports )
+        @JsonProperty( "errorReports" ) List<Error> errorReports )
     {
         this.trackerType = trackerType;
         this.uid = uid;
         this.index = index;
         if ( errorReports != null )
         {
-            List<TrackerErrorReport> errorCodeReportList;
-            for ( TrackerErrorReport errorReport : errorReports )
+            List<Error> errorCodeReportList;
+            for ( Error errorReport : errorReports )
             {
                 errorCodeReportList = this.errorReportsByCode.get( errorReport.getErrorCode() );
 
@@ -103,9 +103,9 @@ public class TrackerObjectReport
     }
 
     @JsonProperty
-    public List<TrackerErrorReport> getErrorReports()
+    public List<Error> getErrorReports()
     {
-        List<TrackerErrorReport> errorReports = new ArrayList<>();
+        List<Error> errorReports = new ArrayList<>();
         errorReportsByCode.values().forEach( errorReports::addAll );
 
         return errorReports;

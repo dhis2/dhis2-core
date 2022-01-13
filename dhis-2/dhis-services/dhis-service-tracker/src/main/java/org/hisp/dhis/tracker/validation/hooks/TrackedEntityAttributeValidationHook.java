@@ -58,7 +58,7 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.domain.TrackerDto;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
+import org.hisp.dhis.tracker.report.Error;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.util.Constant;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
@@ -111,7 +111,7 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
                 .filter( mandatoryAttributeUid -> !trackedEntityAttributes.contains( mandatoryAttributeUid ) )
                 .forEach(
                     attribute -> {
-                        TrackerErrorReport error = TrackerErrorReport.builder()
+                        Error error = Error.builder()
                             .uid( ((TrackerDto) trackedEntity).getUid() )
                             .trackerType( ((TrackerDto) trackedEntity).getTrackerType() )
                             .errorCode( E1090 )
@@ -146,7 +146,7 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
 
             if ( tea == null )
             {
-                TrackerErrorReport error = TrackerErrorReport.builder()
+                Error error = Error.builder()
                     .uid( trackedEntity.getUid() )
                     .trackerType( trackedEntity.getTrackerType() )
                     .errorCode( E1006 )
@@ -167,7 +167,7 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
 
                 if ( optionalTea.isPresent() )
                 {
-                    TrackerErrorReport error = TrackerErrorReport.builder()
+                    Error error = Error.builder()
                         .uid( ((TrackerDto) trackedEntity).getUid() )
                         .trackerType( ((TrackerDto) trackedEntity).getTrackerType() )
                         .errorCode( E1076 )
@@ -198,7 +198,7 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
         checkNotNull( value, TRACKED_ENTITY_ATTRIBUTE_VALUE_CANT_BE_NULL );
 
         // Validate value (string) don't exceed the max length
-        report.addErrorIf( () -> value.length() > Constant.MAX_ATTR_VALUE_LENGTH, () -> TrackerErrorReport.builder()
+        report.addErrorIf( () -> value.length() > Constant.MAX_ATTR_VALUE_LENGTH, () -> Error.builder()
             .uid( ((TrackerDto) te).getUid() )
             .trackerType( ((TrackerDto) te).getTrackerType() )
             .errorCode( E1077 )
@@ -210,7 +210,7 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
         // value to (confidential)
         boolean isConfidential = tea.isConfidentialBool();
         boolean encryptionStatusOk = dhisConfigurationProvider.getEncryptionStatus().isOk();
-        report.addErrorIf( () -> isConfidential && !encryptionStatusOk, () -> TrackerErrorReport.builder()
+        report.addErrorIf( () -> isConfidential && !encryptionStatusOk, () -> Error.builder()
             .uid( ((TrackerDto) te).getUid() )
             .trackerType( ((TrackerDto) te).getTrackerType() )
             .errorCode( E1112 )
@@ -220,7 +220,7 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
         // Uses ValidationUtils to check that the data value corresponds to the
         // data value type set on the attribute
         final String result = dataValueIsValid( value, tea.getValueType() );
-        report.addErrorIf( () -> result != null, () -> TrackerErrorReport.builder()
+        report.addErrorIf( () -> result != null, () -> Error.builder()
             .uid( ((TrackerDto) te).getUid() )
             .trackerType( ((TrackerDto) te).getTrackerType() )
             .errorCode( E1085 )
@@ -252,13 +252,13 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
 
         FileResource fileResource = context.getFileResource( attr.getValue() );
 
-        report.addErrorIf( () -> fileResource == null, () -> TrackerErrorReport.builder()
+        report.addErrorIf( () -> fileResource == null, () -> Error.builder()
             .uid( te.getUid() )
             .trackerType( te.getTrackerType() )
             .errorCode( E1084 )
             .addArg( attr.getValue() )
             .build() );
-        report.addErrorIf( () -> fileResource != null && fileResource.isAssigned(), () -> TrackerErrorReport.builder()
+        report.addErrorIf( () -> fileResource != null && fileResource.isAssigned(), () -> Error.builder()
             .uid( ((TrackerDto) te).getUid() )
             .trackerType( ((TrackerDto) te).getTrackerType() )
             .errorCode( E1009 )

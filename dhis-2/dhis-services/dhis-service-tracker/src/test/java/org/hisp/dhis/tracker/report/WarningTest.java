@@ -42,7 +42,7 @@ import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.junit.jupiter.api.Test;
 
-class TrackerWarningReportTest
+class WarningTest
 {
 
     // The actual warning message does not matter for the purpose of this test.
@@ -57,7 +57,7 @@ class TrackerWarningReportTest
     void addArgAddsObjectToErrorMessage()
     {
 
-        TrackerWarningReport warning = TrackerWarningReport.builder()
+        Warning warning = Warning.builder()
             .warningCode( SINGLE_ARG_ERROR )
             .addArg( (Object) "INTERPOLATED_ARGUMENT" )
             .build();
@@ -70,7 +70,7 @@ class TrackerWarningReportTest
     void addArgAddsStringToErrorMessage()
     {
 
-        TrackerWarningReport warning = TrackerWarningReport.builder()
+        Warning warning = Warning.builder()
             .warningCode( SINGLE_ARG_ERROR )
             .addArg( "INTERPOLATED_ARGUMENT" )
             .build();
@@ -83,7 +83,7 @@ class TrackerWarningReportTest
     void addArgDoesNotThrowIfInstantIsNull()
     {
 
-        TrackerWarningReport warning = TrackerWarningReport.builder()
+        Warning warning = Warning.builder()
             .warningCode( SINGLE_ARG_ERROR )
             .addArg( (Instant) null )
             .build();
@@ -96,7 +96,7 @@ class TrackerWarningReportTest
     {
 
         final Instant now = Instant.now();
-        TrackerWarningReport warning = TrackerWarningReport.builder()
+        Warning warning = Warning.builder()
             .warningCode( SINGLE_ARG_ERROR )
             .addArg( now )
             .build();
@@ -111,7 +111,7 @@ class TrackerWarningReportTest
     {
 
         final Date now = Date.from( Instant.now() );
-        TrackerWarningReport warning = TrackerWarningReport.builder()
+        Warning warning = Warning.builder()
             .warningCode( SINGLE_ARG_ERROR )
             .addArg( now )
             .build();
@@ -127,7 +127,7 @@ class TrackerWarningReportTest
 
         OrganisationUnit orgUnit = new OrganisationUnit();
         orgUnit.setUid( "1234" );
-        TrackerWarningReport warning = TrackerWarningReport.builder()
+        Warning warning = Warning.builder()
             .warningCode( SINGLE_ARG_ERROR )
             .addArg( TrackerIdScheme.UID, orgUnit )
             .build();
@@ -143,7 +143,7 @@ class TrackerWarningReportTest
         OrganisationUnit orgUnit = new OrganisationUnit();
         orgUnit.setName( "Favorite Place" );
         orgUnit.setUid( "1234" );
-        TrackerWarningReport warning = TrackerWarningReport.builder()
+        Warning warning = Warning.builder()
             .warningCode( SINGLE_ARG_ERROR )
             .addArg( TrackerIdScheme.NAME, orgUnit )
             .build();
@@ -159,7 +159,7 @@ class TrackerWarningReportTest
         Enrollment enrollment = Enrollment.builder()
             .enrollment( "1234" )
             .build();
-        TrackerWarningReport warning = TrackerWarningReport.builder()
+        Warning warning = Warning.builder()
             .warningCode( SINGLE_ARG_ERROR )
             .addArg( enrollment )
             .build();
@@ -175,7 +175,7 @@ class TrackerWarningReportTest
         Event event = Event.builder()
             .event( "1234" )
             .build();
-        TrackerWarningReport warning = TrackerWarningReport.builder()
+        Warning warning = Warning.builder()
             .warningCode( SINGLE_ARG_ERROR )
             .addArg( event )
             .build();
@@ -191,7 +191,7 @@ class TrackerWarningReportTest
         TrackedEntity trackedEntity = TrackedEntity.builder()
             .trackedEntity( "1234" )
             .build();
-        TrackerWarningReport warning = TrackerWarningReport.builder()
+        Warning warning = Warning.builder()
             .warningCode( SINGLE_ARG_ERROR )
             .addArg( trackedEntity )
             .build();
@@ -207,7 +207,7 @@ class TrackerWarningReportTest
         Relationship relationship = Relationship.builder()
             .relationship( "1234" )
             .build();
-        TrackerWarningReport warning = TrackerWarningReport.builder()
+        Warning warning = Warning.builder()
             .warningCode( SINGLE_ARG_ERROR )
             .addArg( relationship )
             .build();
@@ -220,7 +220,7 @@ class TrackerWarningReportTest
     void addArgsAddsObjectsToErrorMessage()
     {
 
-        TrackerWarningReport warning = TrackerWarningReport.builder()
+        Warning warning = Warning.builder()
             .warningCode( DOUBLE_ARG_ERROR )
             .addArgs( "INTERPOLATED_ARGUMENT", 981 )
             .build();

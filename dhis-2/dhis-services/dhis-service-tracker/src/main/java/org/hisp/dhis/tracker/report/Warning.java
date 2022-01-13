@@ -52,7 +52,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 @Data
 @Builder
-public class TrackerWarningReport
+public class Warning
 {
     private final String warningMessage;
 
@@ -63,7 +63,7 @@ public class TrackerWarningReport
     private final String uid;
 
     @JsonCreator
-    public TrackerWarningReport( @JsonProperty( "message" ) String warningMessage,
+    public Warning( @JsonProperty( "message" ) String warningMessage,
         @JsonProperty( "errorCode" ) TrackerErrorCode warningCode,
         @JsonProperty( "trackerType" ) TrackerType trackerType, @JsonProperty( "uid" ) String uid )
     {
@@ -97,23 +97,23 @@ public class TrackerWarningReport
         return uid;
     }
 
-    public static class TrackerWarningReportBuilder
+    public static class WarningBuilder
     {
         private final List<Object> arguments = new ArrayList<>();
 
-        public TrackerWarningReportBuilder addArg( Object arg )
+        public WarningBuilder addArg( Object arg )
         {
             this.arguments.add( arg );
             return this;
         }
 
-        public TrackerWarningReportBuilder addArg( String arg )
+        public WarningBuilder addArg( String arg )
         {
             this.arguments.add( arg );
             return this;
         }
 
-        public TrackerWarningReportBuilder addArg( Instant instant )
+        public WarningBuilder addArg( Instant instant )
         {
             // TODO EnrollmendDateValidationHook uses E1025 and E1025 for
             // malformed and null occuredAt, enrolledAt
@@ -128,34 +128,34 @@ public class TrackerWarningReport
             return this;
         }
 
-        public TrackerWarningReportBuilder addArg( Date date )
+        public WarningBuilder addArg( Date date )
         {
             this.arguments.add( DateFormat.getInstance().format( date ) );
             return this;
         }
 
-        public TrackerWarningReportBuilder addArg( TrackerIdScheme idScheme, IdentifiableObject arg )
+        public WarningBuilder addArg( TrackerIdScheme idScheme, IdentifiableObject arg )
         {
             final TrackerIdentifier identifier = TrackerIdentifier.builder().idScheme( idScheme ).build();
             this.arguments.add( identifier.getIdAndName( arg ) );
             return this;
         }
 
-        public TrackerWarningReportBuilder addArg( TrackerDto dto )
+        public WarningBuilder addArg( TrackerDto dto )
         {
             this.arguments.add( dto.getClass().getSimpleName() + " (" + dto.getUid() + ")" );
             return this;
         }
 
-        public TrackerWarningReportBuilder addArgs( Object... args )
+        public WarningBuilder addArgs( Object... args )
         {
             this.arguments.addAll( Arrays.asList( args ) );
             return this;
         }
 
-        public TrackerWarningReport build()
+        public Warning build()
         {
-            return new TrackerWarningReport(
+            return new Warning(
                 MessageFormat.format( warningCode.getMessage(), arguments.toArray( new Object[0] ) ),
                 this.warningCode, this.trackerType, this.uid );
         }
@@ -164,7 +164,7 @@ public class TrackerWarningReport
     @Override
     public String toString()
     {
-        return "TrackerWarningReport{" +
+        return "Warning{" +
             "message=" + warningMessage +
             ", warningCode=" + warningCode +
             '}';

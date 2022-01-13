@@ -41,9 +41,9 @@ import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.TrackerType;
+import org.hisp.dhis.tracker.report.Error;
 import org.hisp.dhis.tracker.report.TrackerBundleReport;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.junit.jupiter.api.Test;
@@ -132,8 +132,8 @@ class ReportSummaryDeleteIntegrationTest extends TrackerTest
         TrackerImportReport importReport = trackerImportService.importTracker( params );
         assertEquals( TrackerStatus.ERROR, importReport.getStatus() );
         assertTrue( importReport.getValidationReport().hasErrors() );
-        List<TrackerErrorReport> trackerErrorReports = importReport.getValidationReport().getErrors();
-        assertEquals( TrackerErrorCode.E1081, trackerErrorReports.get( 0 ).getErrorCode() );
+        List<Error> errors = importReport.getValidationReport().getErrors();
+        assertEquals( TrackerErrorCode.E1081, errors.get( 0 ).getErrorCode() );
     }
 
     @Test

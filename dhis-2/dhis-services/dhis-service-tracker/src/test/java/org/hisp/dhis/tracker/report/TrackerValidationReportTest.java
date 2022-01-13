@@ -51,7 +51,7 @@ class TrackerValidationReportTest
     {
 
         TrackerValidationReport report = new TrackerValidationReport();
-        TrackerErrorReport error = newError();
+        Error error = newError();
 
         report.addError( error );
 
@@ -69,7 +69,7 @@ class TrackerValidationReportTest
     {
 
         TrackerValidationReport report = new TrackerValidationReport( true );
-        TrackerErrorReport error = newError();
+        Error error = newError();
 
         assertThrows( ValidationFailFastException.class, () -> report.addError( error ) );
 
@@ -85,7 +85,7 @@ class TrackerValidationReportTest
     {
 
         TrackerValidationReport report = new TrackerValidationReport();
-        TrackerErrorReport error = newError();
+        Error error = newError();
 
         report.addErrorIf( () -> true, () -> error );
 
@@ -98,7 +98,7 @@ class TrackerValidationReportTest
     {
 
         TrackerValidationReport report = new TrackerValidationReport( true );
-        TrackerErrorReport error = newError();
+        Error error = newError();
 
         assertThrows( ValidationFailFastException.class, () -> report.addErrorIf( () -> true, () -> error ) );
 
@@ -121,8 +121,8 @@ class TrackerValidationReportTest
     {
 
         TrackerValidationReport report = new TrackerValidationReport( true );
-        TrackerErrorReport error1 = newError( CodeGenerator.generateUid(), TrackerErrorCode.E1001 );
-        TrackerErrorReport error2 = newError( CodeGenerator.generateUid(), TrackerErrorCode.E1002 );
+        Error error1 = newError( CodeGenerator.generateUid(), TrackerErrorCode.E1001 );
+        Error error2 = newError( CodeGenerator.generateUid(), TrackerErrorCode.E1002 );
 
         // swallow this one to test only non-existing errors are added and
         // exception is thrown by addErrors
@@ -148,8 +148,8 @@ class TrackerValidationReportTest
     {
 
         TrackerValidationReport report = new TrackerValidationReport();
-        TrackerErrorReport error1 = newError( CodeGenerator.generateUid(), TrackerErrorCode.E1001 );
-        TrackerErrorReport error2 = newError( CodeGenerator.generateUid(), TrackerErrorCode.E1002 );
+        Error error1 = newError( CodeGenerator.generateUid(), TrackerErrorCode.E1001 );
+        Error error2 = newError( CodeGenerator.generateUid(), TrackerErrorCode.E1002 );
 
         report.addError( error1 );
 
@@ -165,7 +165,7 @@ class TrackerValidationReportTest
     {
 
         TrackerValidationReport report = new TrackerValidationReport();
-        TrackerWarningReport warning = newWarning();
+        Warning warning = newWarning();
 
         report.addWarning( warning );
 
@@ -183,8 +183,8 @@ class TrackerValidationReportTest
     {
 
         TrackerValidationReport report = new TrackerValidationReport();
-        TrackerWarningReport warning1 = newWarning( CodeGenerator.generateUid(), TrackerErrorCode.E1001 );
-        TrackerWarningReport warning2 = newWarning( CodeGenerator.generateUid(), TrackerErrorCode.E1002 );
+        Warning warning1 = newWarning( CodeGenerator.generateUid(), TrackerErrorCode.E1001 );
+        Warning warning2 = newWarning( CodeGenerator.generateUid(), TrackerErrorCode.E1002 );
 
         report.addWarning( warning1 );
 
@@ -260,7 +260,7 @@ class TrackerValidationReportTest
     {
 
         TrackerValidationReport report = new TrackerValidationReport();
-        TrackerErrorReport error = newError();
+        Error error = newError();
         report.addError( error );
 
         assertTrue( report.hasError( r -> error.getUid().equals( r.getUid() ) ) );
@@ -271,7 +271,7 @@ class TrackerValidationReportTest
     {
 
         TrackerValidationReport report = new TrackerValidationReport();
-        TrackerErrorReport error = newError( TrackerErrorCode.E1006 );
+        Error error = newError( TrackerErrorCode.E1006 );
         report.addError( error );
 
         assertFalse( report.hasError( r -> TrackerErrorCode.E1048 == r.getErrorCode() ) );
@@ -282,7 +282,7 @@ class TrackerValidationReportTest
     {
 
         TrackerValidationReport report = new TrackerValidationReport();
-        TrackerWarningReport warning = newWarning();
+        Warning warning = newWarning();
         report.addWarning( warning );
 
         assertTrue( report.hasWarning( r -> warning.getUid().equals( r.getUid() ) ) );
@@ -293,7 +293,7 @@ class TrackerValidationReportTest
     {
 
         TrackerValidationReport report = new TrackerValidationReport();
-        TrackerWarningReport warning = newWarning( TrackerErrorCode.E1006 );
+        Warning warning = newWarning( TrackerErrorCode.E1006 );
         report.addWarning( warning );
 
         assertFalse( report.hasWarning( r -> TrackerErrorCode.E1048 == r.getWarningCode() ) );
@@ -304,9 +304,9 @@ class TrackerValidationReportTest
     {
 
         TrackerValidationReport report = new TrackerValidationReport();
-        TrackerErrorReport error1 = newError( CodeGenerator.generateUid(), TrackerErrorCode.E1006 );
-        TrackerErrorReport error2 = newError( error1.getUid(), TrackerErrorCode.E1000 );
-        TrackerErrorReport error3 = newError( CodeGenerator.generateUid(), TrackerErrorCode.E1000 );
+        Error error1 = newError( CodeGenerator.generateUid(), TrackerErrorCode.E1006 );
+        Error error2 = newError( error1.getUid(), TrackerErrorCode.E1000 );
+        Error error3 = newError( CodeGenerator.generateUid(), TrackerErrorCode.E1000 );
 
         report
             .addError( error1 )
@@ -340,38 +340,38 @@ class TrackerValidationReportTest
         assertFalse( report.isInvalid( event ) );
     }
 
-    private TrackerErrorReport newError()
+    private Error newError()
     {
         return newError( TrackerErrorCode.E9999 );
     }
 
-    private TrackerErrorReport newError( TrackerErrorCode code )
+    private Error newError( TrackerErrorCode code )
     {
         return newError( CodeGenerator.generateUid(), code );
     }
 
-    private TrackerErrorReport newError( String uid, TrackerErrorCode code )
+    private Error newError( String uid, TrackerErrorCode code )
     {
-        return new TrackerErrorReport( "", code, TrackerType.EVENT, uid );
+        return new Error( "", code, TrackerType.EVENT, uid );
     }
 
-    private TrackerErrorReport newError( TrackerDto dto )
+    private Error newError( TrackerDto dto )
     {
-        return new TrackerErrorReport( "", TrackerErrorCode.E9999, dto.getTrackerType(), dto.getUid() );
+        return new Error( "", TrackerErrorCode.E9999, dto.getTrackerType(), dto.getUid() );
     }
 
-    private TrackerWarningReport newWarning()
+    private Warning newWarning()
     {
         return newWarning( CodeGenerator.generateUid(), TrackerErrorCode.E9999 );
     }
 
-    private TrackerWarningReport newWarning( TrackerErrorCode code )
+    private Warning newWarning( TrackerErrorCode code )
     {
         return newWarning( CodeGenerator.generateUid(), code );
     }
 
-    private TrackerWarningReport newWarning( String uid, TrackerErrorCode code )
+    private Warning newWarning( String uid, TrackerErrorCode code )
     {
-        return new TrackerWarningReport( "", code, TrackerType.EVENT, uid );
+        return new Warning( "", code, TrackerType.EVENT, uid );
     }
 }

@@ -36,8 +36,8 @@ import org.hisp.dhis.tracker.domain.Note;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.domain.TrackerDto;
+import org.hisp.dhis.tracker.report.Error;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
@@ -55,7 +55,7 @@ public class PreCheckUidValidationHook
     {
         if ( !CodeGenerator.isValidUid( trackedEntity.getTrackedEntity() ) )
         {
-            TrackerErrorReport error = TrackerErrorReport.builder()
+            Error error = Error.builder()
                 .uid( trackedEntity.getUid() )
                 .trackerType( trackedEntity.getTrackerType() )
                 .errorCode( TrackerErrorCode.E1048 )
@@ -73,7 +73,7 @@ public class PreCheckUidValidationHook
     {
         if ( !CodeGenerator.isValidUid( enrollment.getEnrollment() ) )
         {
-            TrackerErrorReport error = TrackerErrorReport.builder()
+            Error error = Error.builder()
                 .uid( enrollment.getUid() )
                 .trackerType( enrollment.getTrackerType() )
                 .errorCode( TrackerErrorCode.E1048 )
@@ -92,7 +92,7 @@ public class PreCheckUidValidationHook
     {
         if ( !CodeGenerator.isValidUid( event.getEvent() ) )
         {
-            TrackerErrorReport error = TrackerErrorReport.builder()
+            Error error = Error.builder()
                 .uid( event.getUid() )
                 .trackerType( event.getTrackerType() )
                 .errorCode( TrackerErrorCode.E1048 )
@@ -112,7 +112,7 @@ public class PreCheckUidValidationHook
     {
         if ( !CodeGenerator.isValidUid( relationship.getRelationship() ) )
         {
-            TrackerErrorReport error = TrackerErrorReport.builder()
+            Error error = Error.builder()
                 .uid( relationship.getUid() )
                 .trackerType( relationship.getTrackerType() )
                 .errorCode( TrackerErrorCode.E1048 )
@@ -130,7 +130,7 @@ public class PreCheckUidValidationHook
         {
             if ( !CodeGenerator.isValidUid( note.getNote() ) )
             {
-                TrackerErrorReport error = TrackerErrorReport.builder()
+                Error error = Error.builder()
                     .uid( dto.getUid() )
                     .trackerType( dto.getTrackerType() )
                     .errorCode( TrackerErrorCode.E1048 )

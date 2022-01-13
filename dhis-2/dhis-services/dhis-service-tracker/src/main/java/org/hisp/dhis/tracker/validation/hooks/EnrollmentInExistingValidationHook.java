@@ -47,7 +47,7 @@ import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.EnrollmentStatus;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
+import org.hisp.dhis.tracker.report.Error;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
@@ -126,7 +126,7 @@ public class EnrollmentInExistingValidationHook
 
             if ( !activeOnly.isEmpty() )
             {
-                TrackerErrorReport error = TrackerErrorReport.builder()
+                Error error = Error.builder()
                     .uid( enrollment.getUid() )
                     .trackerType( enrollment.getTrackerType() )
                     .errorCode( E1015 )
@@ -139,7 +139,7 @@ public class EnrollmentInExistingValidationHook
 
         if ( Boolean.TRUE.equals( program.getOnlyEnrollOnce() ) && !mergedEnrollments.isEmpty() )
         {
-            TrackerErrorReport error = TrackerErrorReport.builder()
+            Error error = Error.builder()
                 .uid( enrollment.getUid() )
                 .trackerType( enrollment.getTrackerType() )
                 .errorCode( E1016 )

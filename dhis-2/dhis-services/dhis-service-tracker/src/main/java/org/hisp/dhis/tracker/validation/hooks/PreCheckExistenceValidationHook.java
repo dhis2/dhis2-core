@@ -46,9 +46,9 @@ import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
+import org.hisp.dhis.tracker.report.Error;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
-import org.hisp.dhis.tracker.report.TrackerWarningReport;
+import org.hisp.dhis.tracker.report.Warning;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
 
@@ -71,7 +71,7 @@ public class PreCheckExistenceValidationHook
         // If the tracked entity is soft-deleted no operation is allowed
         if ( existingTe != null && existingTe.isDeleted() )
         {
-            TrackerErrorReport error = TrackerErrorReport.builder()
+            Error error = Error.builder()
                 .uid( trackedEntity.getUid() )
                 .trackerType( trackedEntity.getTrackerType() )
                 .errorCode( E1114 )
@@ -83,7 +83,7 @@ public class PreCheckExistenceValidationHook
 
         if ( existingTe != null && importStrategy.isCreate() )
         {
-            TrackerErrorReport error = TrackerErrorReport.builder()
+            Error error = Error.builder()
                 .uid( trackedEntity.getUid() )
                 .trackerType( trackedEntity.getTrackerType() )
                 .errorCode( E1002 )
@@ -93,7 +93,7 @@ public class PreCheckExistenceValidationHook
         }
         else if ( existingTe == null && importStrategy.isUpdateOrDelete() )
         {
-            TrackerErrorReport error = TrackerErrorReport.builder()
+            Error error = Error.builder()
                 .uid( trackedEntity.getUid() )
                 .trackerType( trackedEntity.getTrackerType() )
                 .errorCode( E1063 )
@@ -114,7 +114,7 @@ public class PreCheckExistenceValidationHook
         // If the tracked entity is soft-deleted no operation is allowed
         if ( existingPi != null && existingPi.isDeleted() )
         {
-            TrackerErrorReport error = TrackerErrorReport.builder()
+            Error error = Error.builder()
                 .uid( enrollment.getUid() )
                 .trackerType( enrollment.getTrackerType() )
                 .errorCode( E1113 )
@@ -126,7 +126,7 @@ public class PreCheckExistenceValidationHook
 
         if ( existingPi != null && importStrategy.isCreate() )
         {
-            TrackerErrorReport error = TrackerErrorReport.builder()
+            Error error = Error.builder()
                 .uid( enrollment.getUid() )
                 .trackerType( enrollment.getTrackerType() )
                 .errorCode( E1080 )
@@ -136,7 +136,7 @@ public class PreCheckExistenceValidationHook
         }
         else if ( existingPi == null && importStrategy.isUpdateOrDelete() )
         {
-            TrackerErrorReport error = TrackerErrorReport.builder()
+            Error error = Error.builder()
                 .uid( enrollment.getUid() )
                 .trackerType( enrollment.getTrackerType() )
                 .errorCode( E1081 )
@@ -156,7 +156,7 @@ public class PreCheckExistenceValidationHook
         // If the event is soft-deleted no operation is allowed
         if ( existingPsi != null && existingPsi.isDeleted() )
         {
-            TrackerErrorReport error = TrackerErrorReport.builder()
+            Error error = Error.builder()
                 .uid( event.getUid() )
                 .trackerType( event.getTrackerType() )
                 .errorCode( E1082 )
@@ -168,7 +168,7 @@ public class PreCheckExistenceValidationHook
 
         if ( existingPsi != null && importStrategy.isCreate() )
         {
-            TrackerErrorReport error = TrackerErrorReport.builder()
+            Error error = Error.builder()
                 .uid( event.getUid() )
                 .trackerType( event.getTrackerType() )
                 .errorCode( E1030 )
@@ -178,7 +178,7 @@ public class PreCheckExistenceValidationHook
         }
         else if ( existingPsi == null && importStrategy.isUpdateOrDelete() )
         {
-            TrackerErrorReport error = TrackerErrorReport.builder()
+            Error error = Error.builder()
                 .uid( event.getUid() )
                 .trackerType( event.getTrackerType() )
                 .errorCode( E1032 )
@@ -196,7 +196,7 @@ public class PreCheckExistenceValidationHook
 
         if ( existingRelationship != null )
         {
-            TrackerWarningReport warn = TrackerWarningReport.builder()
+            Warning warn = Warning.builder()
                 .uid( relationship.getUid() )
                 .trackerType( relationship.getTrackerType() )
                 .warningCode( E4015 )

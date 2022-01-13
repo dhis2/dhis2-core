@@ -107,9 +107,9 @@ public class TrackerTypeReport
         this.objectReportMap.put( objectReport.getIndex(), objectReport );
     }
 
-    private List<TrackerErrorReport> getErrorReports()
+    private List<Error> getErrorReports()
     {
-        List<TrackerErrorReport> errorReports = new ArrayList<>();
+        List<Error> errorReports = new ArrayList<>();
         objectReportMap.values().forEach( objectReport -> errorReports.addAll( objectReport.getErrorReports() ) );
 
         return errorReports;

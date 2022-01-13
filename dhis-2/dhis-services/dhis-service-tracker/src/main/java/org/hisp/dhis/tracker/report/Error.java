@@ -53,7 +53,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 @Data
 @Builder
-public class TrackerErrorReport
+public class Error
 {
     private final String errorMessage;
 
@@ -64,7 +64,7 @@ public class TrackerErrorReport
     private final String uid;
 
     @JsonCreator
-    public TrackerErrorReport( @JsonProperty( "message" ) String errorMessage,
+    public Error( @JsonProperty( "message" ) String errorMessage,
         @JsonProperty( "errorCode" ) TrackerErrorCode errorCode,
         @JsonProperty( "trackerType" ) TrackerType trackerType, @JsonProperty( "uid" ) String uid )
     {
@@ -98,23 +98,23 @@ public class TrackerErrorReport
         return uid;
     }
 
-    public static class TrackerErrorReportBuilder
+    public static class ErrorBuilder
     {
         private final List<Object> arguments = new ArrayList<>();
 
-        public TrackerErrorReportBuilder addArg( Object arg )
+        public ErrorBuilder addArg( Object arg )
         {
             this.arguments.add( arg );
             return this;
         }
 
-        public TrackerErrorReportBuilder addArg( String arg )
+        public ErrorBuilder addArg( String arg )
         {
             this.arguments.add( arg );
             return this;
         }
 
-        public TrackerErrorReportBuilder addArg( Instant instant )
+        public ErrorBuilder addArg( Instant instant )
         {
             // TODO EnrollmendDateValidationHook uses E1025 and E1025 for
             // malformed and null occuredAt, enrolledAt
@@ -129,34 +129,34 @@ public class TrackerErrorReport
             return this;
         }
 
-        public TrackerErrorReportBuilder addArg( Date date )
+        public ErrorBuilder addArg( Date date )
         {
             this.arguments.add( DateFormat.getInstance().format( date ) );
             return this;
         }
 
-        public TrackerErrorReportBuilder addArg( TrackerIdScheme idScheme, IdentifiableObject arg )
+        public ErrorBuilder addArg( TrackerIdScheme idScheme, IdentifiableObject arg )
         {
             final TrackerIdentifier identifier = TrackerIdentifier.builder().idScheme( idScheme ).build();
             this.arguments.add( identifier.getIdAndName( arg ) );
             return this;
         }
 
-        public TrackerErrorReportBuilder addArg( TrackerDto dto )
+        public ErrorBuilder addArg( TrackerDto dto )
         {
             this.arguments.add( dto.getClass().getSimpleName() + " (" + dto.getUid() + ")" );
             return this;
         }
 
-        public TrackerErrorReportBuilder addArgs( Object... args )
+        public ErrorBuilder addArgs( Object... args )
         {
             this.arguments.addAll( Arrays.asList( args ) );
             return this;
         }
 
-        public TrackerErrorReport build()
+        public Error build()
         {
-            return new TrackerErrorReport(
+            return new Error(
                 MessageFormat.format( errorCode.getMessage(), arguments.toArray( new Object[0] ) ),
                 this.errorCode, this.trackerType, this.uid );
         }
@@ -165,7 +165,7 @@ public class TrackerErrorReport
     @Override
     public String toString()
     {
-        return "TrackerErrorReport{" +
+        return "Error{" +
             "message=" + errorMessage +
             ", errorCode=" + errorCode +
             ", trackerEntityType=" + trackerType +

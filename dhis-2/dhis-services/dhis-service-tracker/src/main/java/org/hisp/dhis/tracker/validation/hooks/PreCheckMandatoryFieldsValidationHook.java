@@ -40,7 +40,7 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.domain.TrackerDto;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
+import org.hisp.dhis.tracker.report.Error;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
@@ -59,13 +59,13 @@ public class PreCheckMandatoryFieldsValidationHook
         TrackedEntity trackedEntity )
     {
         report.addErrorIf( () -> StringUtils.isEmpty( trackedEntity.getTrackedEntityType() ),
-            () -> TrackerErrorReport.builder()
+            () -> Error.builder()
                 .uid( ((TrackerDto) trackedEntity).getUid() )
                 .trackerType( ((TrackerDto) trackedEntity).getTrackerType() )
                 .errorCode( E1121 )
                 .addArg( "trackedEntityType" )
                 .build() );
-        report.addErrorIf( () -> StringUtils.isEmpty( trackedEntity.getOrgUnit() ), () -> TrackerErrorReport.builder()
+        report.addErrorIf( () -> StringUtils.isEmpty( trackedEntity.getOrgUnit() ), () -> Error.builder()
             .uid( ((TrackerDto) trackedEntity).getUid() )
             .trackerType( ((TrackerDto) trackedEntity).getTrackerType() )
             .errorCode( E1121 )
@@ -77,20 +77,20 @@ public class PreCheckMandatoryFieldsValidationHook
     public void validateEnrollment( TrackerValidationReport report, TrackerImportValidationContext context,
         Enrollment enrollment )
     {
-        report.addErrorIf( () -> StringUtils.isEmpty( enrollment.getOrgUnit() ), () -> TrackerErrorReport.builder()
+        report.addErrorIf( () -> StringUtils.isEmpty( enrollment.getOrgUnit() ), () -> Error.builder()
             .uid( ((TrackerDto) enrollment).getUid() )
             .trackerType( ((TrackerDto) enrollment).getTrackerType() )
             .errorCode( E1122 )
             .addArg( ORG_UNIT )
             .build() );
-        report.addErrorIf( () -> StringUtils.isEmpty( enrollment.getProgram() ), () -> TrackerErrorReport.builder()
+        report.addErrorIf( () -> StringUtils.isEmpty( enrollment.getProgram() ), () -> Error.builder()
             .uid( ((TrackerDto) enrollment).getUid() )
             .trackerType( ((TrackerDto) enrollment).getTrackerType() )
             .errorCode( E1122 )
             .addArg( "program" )
             .build() );
         report.addErrorIf( () -> StringUtils.isEmpty( enrollment.getTrackedEntity() ),
-            () -> TrackerErrorReport.builder()
+            () -> Error.builder()
                 .uid( ((TrackerDto) enrollment).getUid() )
                 .trackerType( ((TrackerDto) enrollment).getTrackerType() )
                 .errorCode( E1122 )
@@ -101,13 +101,13 @@ public class PreCheckMandatoryFieldsValidationHook
     @Override
     public void validateEvent( TrackerValidationReport report, TrackerImportValidationContext context, Event event )
     {
-        report.addErrorIf( () -> StringUtils.isEmpty( event.getOrgUnit() ), () -> TrackerErrorReport.builder()
+        report.addErrorIf( () -> StringUtils.isEmpty( event.getOrgUnit() ), () -> Error.builder()
             .uid( ((TrackerDto) event).getUid() )
             .trackerType( ((TrackerDto) event).getTrackerType() )
             .errorCode( E1123 )
             .addArg( ORG_UNIT )
             .build() );
-        report.addErrorIf( () -> StringUtils.isEmpty( event.getProgramStage() ), () -> TrackerErrorReport.builder()
+        report.addErrorIf( () -> StringUtils.isEmpty( event.getProgramStage() ), () -> Error.builder()
             .uid( ((TrackerDto) event).getUid() )
             .trackerType( ((TrackerDto) event).getTrackerType() )
             .errorCode( E1123 )
@@ -126,7 +126,7 @@ public class PreCheckMandatoryFieldsValidationHook
             // the event itself. This should be
             // fixed in the metadata import. For more see
             // https://jira.dhis2.org/browse/DHIS2-12123
-            report.addErrorIf( () -> programStage.getProgram() == null, () -> TrackerErrorReport.builder()
+            report.addErrorIf( () -> programStage.getProgram() == null, () -> Error.builder()
                 .uid( event.getUid() )
                 .trackerType( event.getTrackerType() )
                 .errorCode( E1008 )
@@ -138,7 +138,7 @@ public class PreCheckMandatoryFieldsValidationHook
             return;
         }
 
-        report.addErrorIf( () -> StringUtils.isEmpty( event.getProgram() ), () -> TrackerErrorReport.builder()
+        report.addErrorIf( () -> StringUtils.isEmpty( event.getProgram() ), () -> Error.builder()
             .uid( ((TrackerDto) event).getUid() )
             .trackerType( ((TrackerDto) event).getTrackerType() )
             .errorCode( E1123 )
@@ -150,20 +150,20 @@ public class PreCheckMandatoryFieldsValidationHook
     public void validateRelationship( TrackerValidationReport report, TrackerImportValidationContext context,
         Relationship relationship )
     {
-        report.addErrorIf( () -> relationship.getFrom() == null, () -> TrackerErrorReport.builder()
+        report.addErrorIf( () -> relationship.getFrom() == null, () -> Error.builder()
             .uid( relationship.getUid() )
             .trackerType( relationship.getTrackerType() )
             .errorCode( E1124 )
             .addArg( "from" )
             .build() );
-        report.addErrorIf( () -> relationship.getTo() == null, () -> TrackerErrorReport.builder()
+        report.addErrorIf( () -> relationship.getTo() == null, () -> Error.builder()
             .uid( relationship.getUid() )
             .trackerType( relationship.getTrackerType() )
             .errorCode( E1124 )
             .addArg( "to" )
             .build() );
         report.addErrorIf( () -> StringUtils.isEmpty( relationship.getRelationshipType() ),
-            () -> TrackerErrorReport.builder()
+            () -> Error.builder()
                 .uid( ((TrackerDto) relationship).getUid() )
                 .trackerType( ((TrackerDto) relationship).getTrackerType() )
                 .errorCode( E1124 )

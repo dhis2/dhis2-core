@@ -44,8 +44,8 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.TrackerDto;
+import org.hisp.dhis.tracker.report.Error;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.util.DateUtils;
@@ -84,7 +84,7 @@ public class EventCategoryOptValidationHook
             && program.getCategoryCombo() != null
             && !program.getCategoryCombo().isDefault() )
         {
-            TrackerErrorReport error = TrackerErrorReport.builder()
+            Error error = Error.builder()
                 .uid( event.getUid() )
                 .trackerType( event.getTrackerType() )
                 .errorCode( TrackerErrorCode.E1055 )
@@ -111,7 +111,7 @@ public class EventCategoryOptValidationHook
         {
             if ( option.getStartDate() != null && eventDate.compareTo( option.getStartDate() ) < 0 )
             {
-                TrackerErrorReport error = TrackerErrorReport.builder()
+                Error error = Error.builder()
                     .uid( ((TrackerDto) event).getUid() )
                     .trackerType( ((TrackerDto) event).getTrackerType() )
                     .errorCode( E1056 )
@@ -124,7 +124,7 @@ public class EventCategoryOptValidationHook
 
             if ( option.getEndDate() != null && eventDate.compareTo( option.getAdjustedEndDate( program ) ) > 0 )
             {
-                TrackerErrorReport error = TrackerErrorReport.builder()
+                Error error = Error.builder()
                     .uid( ((TrackerDto) event).getUid() )
                     .trackerType( ((TrackerDto) event).getTrackerType() )
                     .errorCode( E1057 )

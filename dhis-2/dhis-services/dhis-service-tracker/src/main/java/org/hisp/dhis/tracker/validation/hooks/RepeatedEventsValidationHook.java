@@ -37,8 +37,8 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.report.Error;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
@@ -75,7 +75,7 @@ public class RepeatedEventsValidationHook
             {
                 for ( Event event : mapEntry.getValue() )
                 {
-                    TrackerErrorReport error = TrackerErrorReport.builder()
+                    Error error = Error.builder()
                         .uid( event.getUid() )
                         .trackerType( event.getTrackerType() )
                         .errorCode( TrackerErrorCode.E1039 )
@@ -102,7 +102,7 @@ public class RepeatedEventsValidationHook
             && !programStage.getRepeatable()
             && context.programStageHasEvents( programStage.getUid(), programInstance.getUid() ) )
         {
-            TrackerErrorReport error = TrackerErrorReport.builder()
+            Error error = Error.builder()
                 .uid( event.getUid() )
                 .trackerType( event.getTrackerType() )
                 .errorCode( TrackerErrorCode.E1039 )

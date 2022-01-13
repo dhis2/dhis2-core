@@ -49,8 +49,8 @@ import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.TrackerDto;
+import org.hisp.dhis.tracker.report.Error;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
@@ -77,7 +77,7 @@ public class EventDataValuesValidationHook
 
             if ( dataElement == null )
             {
-                TrackerErrorReport error = TrackerErrorReport.builder()
+                Error error = Error.builder()
                     .uid( event.getUid() )
                     .trackerType( event.getTrackerType() )
                     .errorCode( TrackerErrorCode.E1304 )
@@ -112,7 +112,7 @@ public class EventDataValuesValidationHook
             List<String> wrongMandatoryDataValue = validateMandatoryDataValue( programStage, event,
                 mandatoryDataElements );
             wrongMandatoryDataValue.forEach( de -> {
-                TrackerErrorReport error = TrackerErrorReport.builder()
+                Error error = Error.builder()
                     .uid( event.getUid() )
                     .trackerType( event.getTrackerType() )
                     .errorCode( E1303 )
@@ -131,7 +131,7 @@ public class EventDataValuesValidationHook
 
         if ( status != null )
         {
-            TrackerErrorReport error = TrackerErrorReport.builder()
+            Error error = Error.builder()
                 .uid( event.getUid() )
                 .trackerType( event.getTrackerType() )
                 .errorCode( TrackerErrorCode.E1302 )
@@ -163,7 +163,7 @@ public class EventDataValuesValidationHook
 
         if ( optionalPsde.isPresent() )
         {
-            TrackerErrorReport error = TrackerErrorReport.builder()
+            Error error = Error.builder()
                 .uid( event.getUid() )
                 .trackerType( event.getTrackerType() )
                 .errorCode( E1076 )
@@ -190,7 +190,7 @@ public class EventDataValuesValidationHook
         {
             if ( !dataElements.contains( payloadDataElement ) )
             {
-                TrackerErrorReport error = TrackerErrorReport.builder()
+                Error error = Error.builder()
                     .uid( ((TrackerDto) event).getUid() )
                     .trackerType( ((TrackerDto) event).getTrackerType() )
                     .errorCode( TrackerErrorCode.E1305 )
@@ -219,13 +219,13 @@ public class EventDataValuesValidationHook
 
         FileResource fileResource = context.getFileResource( dataValue.getValue() );
 
-        report.addErrorIf( () -> fileResource == null, () -> TrackerErrorReport.builder()
+        report.addErrorIf( () -> fileResource == null, () -> Error.builder()
             .uid( ((TrackerDto) event).getUid() )
             .trackerType( ((TrackerDto) event).getTrackerType() )
             .errorCode( E1084 )
             .addArg( dataValue.getValue() )
             .build() );
-        report.addErrorIf( () -> fileResource != null && fileResource.isAssigned(), () -> TrackerErrorReport.builder()
+        report.addErrorIf( () -> fileResource != null && fileResource.isAssigned(), () -> Error.builder()
             .uid( ((TrackerDto) event).getUid() )
             .trackerType( ((TrackerDto) event).getTrackerType() )
             .errorCode( E1009 )

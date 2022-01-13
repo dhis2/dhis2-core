@@ -62,8 +62,8 @@ import org.hisp.dhis.tracker.domain.RelationshipItem;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.ReferenceTrackerEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.report.Error;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -355,7 +355,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
 
         assertTrue( reporter.hasErrors() );
         assertThat(
-            reporter.getErrors().stream().map( TrackerErrorReport::getErrorCode ).collect( Collectors.toList() ),
+            reporter.getErrors().stream().map( Error::getErrorCode ).collect( Collectors.toList() ),
             hasItem( TrackerErrorCode.E1089 ) );
     }
 
@@ -376,7 +376,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
 
         assertTrue( reporter.hasErrors() );
         assertThat(
-            reporter.getErrors().stream().map( TrackerErrorReport::getErrorCode ).collect( Collectors.toList() ),
+            reporter.getErrors().stream().map( Error::getErrorCode ).collect( Collectors.toList() ),
             hasItem( TrackerErrorCode.E1033 ) );
     }
 
@@ -398,7 +398,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
 
         assertTrue( reporter.hasErrors() );
         assertThat(
-            reporter.getErrors().stream().map( TrackerErrorReport::getErrorCode ).collect( Collectors.toList() ),
+            reporter.getErrors().stream().map( Error::getErrorCode ).collect( Collectors.toList() ),
             hasItem( TrackerErrorCode.E1079 ) );
     }
 
@@ -420,7 +420,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
 
         assertTrue( reporter.hasErrors() );
         assertThat(
-            reporter.getErrors().stream().map( TrackerErrorReport::getErrorCode ).collect( Collectors.toList() ),
+            reporter.getErrors().stream().map( Error::getErrorCode ).collect( Collectors.toList() ),
             hasItem( TrackerErrorCode.E1029 ) );
     }
 
@@ -446,13 +446,13 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
 
         assertTrue( reporter.hasErrors() );
         assertThat(
-            reporter.getErrors().stream().map( TrackerErrorReport::getErrorCode ).collect( Collectors.toList() ),
+            reporter.getErrors().stream().map( Error::getErrorCode ).collect( Collectors.toList() ),
             hasItem( TrackerErrorCode.E4012 ) );
         assertThat(
-            reporter.getErrors().stream().map( TrackerErrorReport::getErrorMessage ).collect( Collectors.toList() ),
+            reporter.getErrors().stream().map( Error::getErrorMessage ).collect( Collectors.toList() ),
             hasItem( "Could not find `trackedEntity`: `validTrackedEntity`, linked to Relationship." ) );
         assertThat(
-            reporter.getErrors().stream().map( TrackerErrorReport::getErrorMessage ).collect( Collectors.toList() ),
+            reporter.getErrors().stream().map( Error::getErrorMessage ).collect( Collectors.toList() ),
             hasItem( "Could not find `trackedEntity`: `anotherValidTrackedEntity`, linked to Relationship." ) );
     }
 

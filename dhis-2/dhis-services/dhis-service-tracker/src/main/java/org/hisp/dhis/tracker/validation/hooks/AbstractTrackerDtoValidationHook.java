@@ -46,7 +46,7 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.domain.TrackerDto;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
+import org.hisp.dhis.tracker.report.Error;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.tracker.validation.TrackerValidationHook;
@@ -141,7 +141,7 @@ public abstract class AbstractTrackerDtoValidationHook
             .ifPresent( optionSet -> report.addErrorIf(
                 () -> optionSet.getOptions().stream().filter( Objects::nonNull )
                     .noneMatch( o -> o.getCode().equalsIgnoreCase( value ) ),
-                () -> TrackerErrorReport.builder()
+                () -> Error.builder()
                     .uid( dto.getUid() )
                     .trackerType( dto.getTrackerType() )
                     .errorCode( E1125 )

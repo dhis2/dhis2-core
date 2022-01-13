@@ -54,7 +54,7 @@ import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.preheat.ReferenceTrackerEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
+import org.hisp.dhis.tracker.report.Error;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.tracker.validation.service.attribute.TrackedAttributeValidationService;
@@ -121,7 +121,7 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
         Enrollment enrollment,
         Attribute attribute, Program program )
     {
-        report.addErrorIf( () -> attribute.getAttribute() == null, () -> TrackerErrorReport.builder()
+        report.addErrorIf( () -> attribute.getAttribute() == null, () -> Error.builder()
             .uid( ((TrackerDto) enrollment).getUid() )
             .trackerType( ((TrackerDto) enrollment).getTrackerType() )
             .errorCode( E1075 )
@@ -134,7 +134,7 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
 
         if ( optionalTrackedAttr.isPresent() )
         {
-            report.addErrorIf( () -> attribute.getValue() == null, () -> TrackerErrorReport.builder()
+            report.addErrorIf( () -> attribute.getValue() == null, () -> Error.builder()
                 .uid( ((TrackerDto) enrollment).getUid() )
                 .trackerType( ((TrackerDto) enrollment).getTrackerType() )
                 .errorCode( E1076 )
@@ -147,7 +147,7 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
         {
             TrackedEntityAttribute teAttribute = context.getTrackedEntityAttribute( attribute.getAttribute() );
 
-            report.addErrorIf( () -> teAttribute == null, () -> TrackerErrorReport.builder()
+            report.addErrorIf( () -> teAttribute == null, () -> Error.builder()
                 .uid( ((TrackerDto) enrollment).getUid() )
                 .trackerType( ((TrackerDto) enrollment).getTrackerType() )
                 .errorCode( E1006 )
@@ -188,7 +188,7 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
             .map( Map.Entry::getKey )
             .forEach( mandatoryProgramAttributeUid -> report
                 .addErrorIf( () -> !mergedAttributes.contains( mandatoryProgramAttributeUid ),
-                    () -> TrackerErrorReport.builder()
+                    () -> Error.builder()
                         .uid( ((TrackerDto) enrollment).getUid() )
                         .trackerType( ((TrackerDto) enrollment).getTrackerType() )
                         .errorCode( E1018 )
@@ -202,7 +202,7 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
         enrollmentNonEmptyAttributeUids
             .forEach(
                 ( attrUid, attrVal ) -> report.addErrorIf( () -> !programAttributesMap.containsKey( attrUid ),
-                    () -> TrackerErrorReport.builder()
+                    () -> Error.builder()
                         .uid( ((TrackerDto) enrollment).getUid() )
                         .trackerType( ((TrackerDto) enrollment).getTrackerType() )
                         .errorCode( E1019 )

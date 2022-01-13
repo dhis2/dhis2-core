@@ -48,7 +48,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.TrackerDto;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
+import org.hisp.dhis.tracker.report.Error;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.user.User;
@@ -68,7 +68,7 @@ public class EventDateValidationHook
 
         if ( event.getOccurredAt() == null && occuredAtDateIsMandatory( event, program ) )
         {
-            TrackerErrorReport error = TrackerErrorReport.builder()
+            Error error = Error.builder()
                 .uid( event.getUid() )
                 .trackerType( event.getTrackerType() )
                 .errorCode( E1031 )
@@ -80,7 +80,7 @@ public class EventDateValidationHook
 
         if ( event.getScheduledAt() == null && EventStatus.SCHEDULE == event.getStatus() )
         {
-            TrackerErrorReport error = TrackerErrorReport.builder()
+            Error error = Error.builder()
                 .uid( event.getUid() )
                 .trackerType( event.getTrackerType() )
                 .errorCode( E1050 )
@@ -112,7 +112,7 @@ public class EventDateValidationHook
         {
             if ( event.getCompletedAt() == null )
             {
-                report.addErrorIf( () -> event.getCompletedAt() == null, () -> TrackerErrorReport.builder()
+                report.addErrorIf( () -> event.getCompletedAt() == null, () -> Error.builder()
                     .uid( ((TrackerDto) event).getUid() )
                     .trackerType( ((TrackerDto) event).getTrackerType() )
                     .errorCode( E1042 )
@@ -123,7 +123,7 @@ public class EventDateValidationHook
             {
                 if ( now().isAfter( event.getCompletedAt().plus( ofDays( program.getCompleteEventsExpiryDays() ) ) ) )
                 {
-                    TrackerErrorReport error = TrackerErrorReport.builder()
+                    Error error = Error.builder()
                         .uid( event.getUid() )
                         .trackerType( event.getTrackerType() )
                         .errorCode( E1043 )
@@ -154,7 +154,7 @@ public class EventDateValidationHook
 
         if ( referenceDate == null )
         {
-            TrackerErrorReport error = TrackerErrorReport.builder()
+            Error error = Error.builder()
                 .uid( event.getUid() )
                 .trackerType( event.getTrackerType() )
                 .errorCode( E1046 )
@@ -168,7 +168,7 @@ public class EventDateValidationHook
 
         if ( referenceDate.isBefore( period.getStartDate().toInstant() ) )
         {
-            TrackerErrorReport error = TrackerErrorReport.builder()
+            Error error = Error.builder()
                 .uid( event.getUid() )
                 .trackerType( event.getTrackerType() )
                 .errorCode( E1047 )

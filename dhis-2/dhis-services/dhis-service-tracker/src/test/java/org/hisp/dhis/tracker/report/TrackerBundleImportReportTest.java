@@ -127,15 +127,15 @@ class TrackerBundleImportReportTest extends DhisSpringTest
         Map<TrackerType, TrackerTypeReport> typeReportMap = new HashMap<>();
         TrackerTypeReport typeReport = new TrackerTypeReport( TRACKED_ENTITY );
         TrackerObjectReport trackerObjectReport = new TrackerObjectReport( TRACKED_ENTITY );
-        List<TrackerErrorReport> trackerErrorReports = new ArrayList<>();
-        TrackerErrorReport errorReport1 = new TrackerErrorReport(
+        List<Error> errors = new ArrayList<>();
+        Error errorReport1 = new Error(
             "Could not find OrganisationUnit: ``, linked to Tracked Entity.", TrackerErrorCode.E1049, TRACKED_ENTITY,
             "BltTZV9HvEZ" );
-        TrackerErrorReport errorReport2 = new TrackerErrorReport( "Could not find TrackedEntityType: `Q9GufDoplCL`.",
+        Error errorReport2 = new Error( "Could not find TrackedEntityType: `Q9GufDoplCL`.",
             TrackerErrorCode.E1049, TRACKED_ENTITY, "BltTZV9HvEZ" );
-        trackerErrorReports.add( errorReport1 );
-        trackerErrorReports.add( errorReport2 );
-        trackerObjectReport.getErrorReports().addAll( trackerErrorReports );
+        errors.add( errorReport1 );
+        errors.add( errorReport2 );
+        trackerObjectReport.getErrorReports().addAll( errors );
         trackerObjectReport.setIndex( 0 );
         trackerObjectReport.setUid( "BltTZV9HvEZ" );
         typeReport.addObjectReport( trackerObjectReport );
@@ -156,9 +156,9 @@ class TrackerBundleImportReportTest extends DhisSpringTest
         // Build ValidationReport
         TrackerValidationReport tvr = new TrackerValidationReport();
         // Error Reports - Validation Report
-        tvr.addError( new TrackerErrorReport( "Could not find OrganisationUnit: ``, linked to Tracked Entity.",
+        tvr.addError( new Error( "Could not find OrganisationUnit: ``, linked to Tracked Entity.",
             TrackerErrorCode.E1049, TRACKED_ENTITY, "BltTZV9HvEZ" ) )
-            .addWarning( new TrackerWarningReport( "ProgramStage `l8oDIfJJhtg` does not allow user assignment",
+            .addWarning( new Warning( "ProgramStage `l8oDIfJJhtg` does not allow user assignment",
                 TrackerErrorCode.E1120, TrackerType.EVENT, "BltTZV9HvEZ" ) );
         // Create the TrackerImportReport
         final Map<TrackerType, Integer> bundleSize = new HashMap<>();
@@ -268,9 +268,9 @@ class TrackerBundleImportReportTest extends DhisSpringTest
     {
         return new TrackerValidationReport()
             .addError(
-                new TrackerErrorReport( "", TrackerErrorCode.E9999, TrackerType.EVENT, CodeGenerator.generateUid() ) )
+                new Error( "", TrackerErrorCode.E9999, TrackerType.EVENT, CodeGenerator.generateUid() ) )
             .addWarning(
-                new TrackerWarningReport( "", TrackerErrorCode.E9999, TrackerType.EVENT, CodeGenerator.generateUid() ) )
+                new Warning( "", TrackerErrorCode.E9999, TrackerType.EVENT, CodeGenerator.generateUid() ) )
             .addTiming( new Timing( "1min", "validation" ) );
     }
 

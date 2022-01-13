@@ -42,7 +42,7 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.domain.TrackerDto;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
+import org.hisp.dhis.tracker.report.Error;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
@@ -63,7 +63,7 @@ public class PreCheckUpdatableFieldsValidationHook
             .getTrackedEntityInstance( trackedEntity.getTrackedEntity() );
 
         report.addErrorIf( () -> !trackedEntityInstance.getTrackedEntityType().getUid()
-            .equals( trackedEntity.getTrackedEntityType() ), () -> TrackerErrorReport.builder()
+            .equals( trackedEntity.getTrackedEntityType() ), () -> Error.builder()
                 .uid( ((TrackerDto) trackedEntity).getUid() )
                 .trackerType( ((TrackerDto) trackedEntity).getTrackerType() )
                 .errorCode( E1126 )
@@ -80,14 +80,14 @@ public class PreCheckUpdatableFieldsValidationHook
         TrackedEntityInstance trackedEntityInstance = pi.getEntityInstance();
 
         report.addErrorIf( () -> !program.getUid().equals( enrollment.getProgram() ),
-            () -> TrackerErrorReport.builder()
+            () -> Error.builder()
                 .uid( ((TrackerDto) enrollment).getUid() )
                 .trackerType( ((TrackerDto) enrollment).getTrackerType() )
                 .errorCode( E1127 )
                 .addArg( "program" )
                 .build() );
         report.addErrorIf( () -> !trackedEntityInstance.getUid().equals( enrollment.getTrackedEntity() ),
-            () -> TrackerErrorReport.builder()
+            () -> Error.builder()
                 .uid( ((TrackerDto) enrollment).getUid() )
                 .trackerType( ((TrackerDto) enrollment).getTrackerType() )
                 .errorCode( E1127 )
@@ -103,7 +103,7 @@ public class PreCheckUpdatableFieldsValidationHook
         ProgramInstance programInstance = programStageInstance.getProgramInstance();
 
         report.addErrorIf( () -> !event.getProgramStage().equals( programStage.getUid() ),
-            () -> TrackerErrorReport.builder()
+            () -> Error.builder()
                 .uid( ((TrackerDto) event).getUid() )
                 .trackerType( ((TrackerDto) event).getTrackerType() )
                 .errorCode( E1128 )
@@ -111,7 +111,7 @@ public class PreCheckUpdatableFieldsValidationHook
                 .build() );
         report.addErrorIf(
             () -> event.getEnrollment() != null && !event.getEnrollment().equals( programInstance.getUid() ),
-            () -> TrackerErrorReport.builder()
+            () -> Error.builder()
                 .uid( ((TrackerDto) event).getUid() )
                 .trackerType( ((TrackerDto) event).getTrackerType() )
                 .errorCode( E1128 )

@@ -66,8 +66,8 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.domain.TrackerDto;
+import org.hisp.dhis.tracker.report.Error;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.user.User;
@@ -124,7 +124,7 @@ public class PreCheckSecurityOwnershipValidationHook
             if ( tei.getProgramInstances().stream().anyMatch( pi -> !pi.isDeleted() )
                 && !user.isAuthorized( Authorities.F_TEI_CASCADE_DELETE.getAuthority() ) )
             {
-                TrackerErrorReport error = TrackerErrorReport.builder()
+                Error error = Error.builder()
                     .uid( trackedEntity.getUid() )
                     .trackerType( TrackerType.TRACKED_ENTITY )
                     .errorCode( E1100 )
@@ -152,7 +152,7 @@ public class PreCheckSecurityOwnershipValidationHook
 
         if ( !aclService.canDataWrite( user, trackedEntityType ) )
         {
-            TrackerErrorReport error = TrackerErrorReport.builder()
+            Error error = Error.builder()
                 .uid( teUid )
                 .trackerType( TrackerType.TRACKED_ENTITY )
                 .errorCode( TrackerErrorCode.E1001 )
@@ -194,7 +194,7 @@ public class PreCheckSecurityOwnershipValidationHook
 
             if ( hasNonDeletedEvents && hasNotCascadeDeleteAuthority )
             {
-                TrackerErrorReport error = TrackerErrorReport.builder()
+                Error error = Error.builder()
                     .uid( enrollment.getUid() )
                     .trackerType( TrackerType.ENROLLMENT )
                     .errorCode( E1103 )
@@ -306,7 +306,7 @@ public class PreCheckSecurityOwnershipValidationHook
             && event.getStatus() != programStageInstance.getStatus()
             && (!user.isSuper() && !user.isAuthorized( "F_UNCOMPLETE_EVENT" )) )
         {
-            TrackerErrorReport error = TrackerErrorReport.builder()
+            Error error = Error.builder()
                 .uid( event.getUid() )
                 .trackerType( TrackerType.EVENT )
                 .errorCode( E1083 )
@@ -362,7 +362,7 @@ public class PreCheckSecurityOwnershipValidationHook
 
         if ( !organisationUnitService.isInUserHierarchyCached( user, orgUnit ) )
         {
-            TrackerErrorReport error = TrackerErrorReport.builder()
+            Error error = Error.builder()
                 .uid( dto.getUid() )
                 .trackerType( dto.getTrackerType() )
                 .errorCode( TrackerErrorCode.E1000 )
@@ -385,7 +385,7 @@ public class PreCheckSecurityOwnershipValidationHook
 
         if ( !organisationUnitService.isInUserSearchHierarchyCached( user, orgUnit ) )
         {
-            TrackerErrorReport error = TrackerErrorReport.builder()
+            Error error = Error.builder()
                 .uid( dto.getUid() )
                 .trackerType( dto.getTrackerType() )
                 .errorCode( TrackerErrorCode.E1003 )
@@ -410,7 +410,7 @@ public class PreCheckSecurityOwnershipValidationHook
 
         if ( !aclService.canDataRead( user, program.getTrackedEntityType() ) )
         {
-            TrackerErrorReport error = TrackerErrorReport.builder()
+            Error error = Error.builder()
                 .uid( dto.getUid() )
                 .trackerType( dto.getTrackerType() )
                 .errorCode( TrackerErrorCode.E1104 )
@@ -425,7 +425,7 @@ public class PreCheckSecurityOwnershipValidationHook
             && !ownershipAccessManager.hasAccess( user, trackedEntityInstance, ownerOrganisationUnit,
                 program ) )
         {
-            TrackerErrorReport error = TrackerErrorReport.builder()
+            Error error = Error.builder()
                 .uid( dto.getUid() )
                 .trackerType( dto.getTrackerType() )
                 .errorCode( TrackerErrorCode.E1102 )
@@ -475,7 +475,7 @@ public class PreCheckSecurityOwnershipValidationHook
             : !organisationUnitService.isInUserHierarchyCached( user, eventOrgUnit ) )
         {
 
-            TrackerErrorReport error = TrackerErrorReport.builder()
+            Error error = Error.builder()
                 .uid( event.getUid() )
                 .trackerType( TrackerType.EVENT )
                 .errorCode( TrackerErrorCode.E1000 )
@@ -518,7 +518,7 @@ public class PreCheckSecurityOwnershipValidationHook
 
         if ( !aclService.canDataRead( user, program ) )
         {
-            TrackerErrorReport error = TrackerErrorReport.builder()
+            Error error = Error.builder()
                 .uid( dto.getUid() )
                 .trackerType( dto.getTrackerType() )
                 .errorCode( TrackerErrorCode.E1096 )
@@ -539,7 +539,7 @@ public class PreCheckSecurityOwnershipValidationHook
 
         if ( !aclService.canDataWrite( user, programStage ) )
         {
-            TrackerErrorReport error = TrackerErrorReport.builder()
+            Error error = Error.builder()
                 .uid( dto.getUid() )
                 .trackerType( dto.getTrackerType() )
                 .errorCode( TrackerErrorCode.E1095 )
@@ -560,7 +560,7 @@ public class PreCheckSecurityOwnershipValidationHook
 
         if ( !aclService.canDataWrite( user, program ) )
         {
-            TrackerErrorReport error = TrackerErrorReport.builder()
+            Error error = Error.builder()
                 .uid( dto.getUid() )
                 .trackerType( dto.getTrackerType() )
                 .errorCode( TrackerErrorCode.E1091 )
@@ -585,7 +585,7 @@ public class PreCheckSecurityOwnershipValidationHook
         {
             if ( !aclService.canDataWrite( user, categoryOption ) )
             {
-                TrackerErrorReport error = TrackerErrorReport.builder()
+                Error error = Error.builder()
                     .uid( dto.getUid() )
                     .trackerType( dto.getTrackerType() )
                     .errorCode( TrackerErrorCode.E1099 )

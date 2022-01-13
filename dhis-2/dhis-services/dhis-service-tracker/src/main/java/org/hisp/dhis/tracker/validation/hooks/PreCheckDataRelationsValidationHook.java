@@ -72,8 +72,8 @@ import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.preheat.ReferenceTrackerEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.report.Error;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
@@ -102,7 +102,7 @@ public class PreCheckDataRelationsValidationHook
         Program program = context.getProgram( enrollment.getProgram() );
         OrganisationUnit organisationUnit = context.getOrganisationUnit( enrollment.getOrgUnit() );
 
-        report.addErrorIf( () -> !program.isRegistration(), () -> TrackerErrorReport.builder()
+        report.addErrorIf( () -> !program.isRegistration(), () -> Error.builder()
             .uid( ((TrackerDto) enrollment).getUid() )
             .trackerType( ((TrackerDto) enrollment).getTrackerType() )
             .errorCode( E1014 )
@@ -111,7 +111,7 @@ public class PreCheckDataRelationsValidationHook
 
         if ( !programHasOrgUnit( program, organisationUnit, context.getProgramWithOrgUnitsMap() ) )
         {
-            TrackerErrorReport error = TrackerErrorReport.builder()
+            Error error = Error.builder()
                 .uid( ((TrackerDto) enrollment).getUid() )
                 .trackerType( ((TrackerDto) enrollment).getTrackerType() )
                 .errorCode( E1041 )
@@ -125,7 +125,7 @@ public class PreCheckDataRelationsValidationHook
             && !program.getTrackedEntityType().getUid()
                 .equals( getTrackedEntityTypeUidFromEnrollment( context, enrollment ) ) )
         {
-            TrackerErrorReport error = TrackerErrorReport.builder()
+            Error error = Error.builder()
                 .uid( ((TrackerDto) enrollment).getUid() )
                 .trackerType( ((TrackerDto) enrollment).getTrackerType() )
                 .errorCode( E1022 )
@@ -145,7 +145,7 @@ public class PreCheckDataRelationsValidationHook
 
         if ( !program.getUid().equals( programStage.getProgram().getUid() ) )
         {
-            TrackerErrorReport error = TrackerErrorReport.builder()
+            Error error = Error.builder()
                 .uid( event.getUid() )
                 .trackerType( event.getTrackerType() )
                 .errorCode( E1089 )
@@ -160,7 +160,7 @@ public class PreCheckDataRelationsValidationHook
         {
             if ( StringUtils.isEmpty( event.getEnrollment() ) )
             {
-                TrackerErrorReport error = TrackerErrorReport.builder()
+                Error error = Error.builder()
                     .uid( event.getUid() )
                     .trackerType( event.getTrackerType() )
                     .errorCode( E1033 )
@@ -174,7 +174,7 @@ public class PreCheckDataRelationsValidationHook
 
                 if ( !program.getUid().equals( programUid ) )
                 {
-                    TrackerErrorReport error = TrackerErrorReport.builder()
+                    Error error = Error.builder()
                         .uid( ((TrackerDto) event).getUid() )
                         .trackerType( ((TrackerDto) event).getTrackerType() )
                         .errorCode( E1079 )
@@ -189,7 +189,7 @@ public class PreCheckDataRelationsValidationHook
 
         if ( !programHasOrgUnit( program, organisationUnit, context.getProgramWithOrgUnitsMap() ) )
         {
-            TrackerErrorReport error = TrackerErrorReport.builder()
+            Error error = Error.builder()
                 .uid( event.getUid() )
                 .trackerType( event.getTrackerType() )
                 .errorCode( E1029 )
@@ -221,7 +221,7 @@ public class PreCheckDataRelationsValidationHook
         {
             if ( uid.isPresent() && !ValidationUtils.trackedEntityInstanceExist( ctx, uid.get() ) )
             {
-                TrackerErrorReport error = TrackerErrorReport.builder()
+                Error error = Error.builder()
                     .uid( ((TrackerDto) relationship).getUid() )
                     .trackerType( ((TrackerDto) relationship).getTrackerType() )
                     .errorCode( E4012 )
@@ -235,7 +235,7 @@ public class PreCheckDataRelationsValidationHook
         {
             if ( uid.isPresent() && !ValidationUtils.enrollmentExist( ctx, uid.get() ) )
             {
-                TrackerErrorReport error = TrackerErrorReport.builder()
+                Error error = Error.builder()
                     .uid( ((TrackerDto) relationship).getUid() )
                     .trackerType( ((TrackerDto) relationship).getTrackerType() )
                     .errorCode( E4012 )
@@ -249,7 +249,7 @@ public class PreCheckDataRelationsValidationHook
         {
             if ( uid.isPresent() && !ValidationUtils.eventExist( ctx, uid.get() ) )
             {
-                TrackerErrorReport error = TrackerErrorReport.builder()
+                Error error = Error.builder()
                     .uid( ((TrackerDto) relationship).getUid() )
                     .trackerType( ((TrackerDto) relationship).getTrackerType() )
                     .errorCode( E4012 )
@@ -288,7 +288,7 @@ public class PreCheckDataRelationsValidationHook
 
         if ( categoryOptionCombo == null )
         {
-            TrackerErrorReport error = TrackerErrorReport.builder()
+            Error error = Error.builder()
                 .uid( event.getUid() )
                 .trackerType( event.getTrackerType() )
                 .errorCode( E1115 )
@@ -366,7 +366,7 @@ public class PreCheckDataRelationsValidationHook
             CategoryOption categoryOption = context.getCategoryOption( uid );
             if ( categoryOption == null )
             {
-                TrackerErrorReport error = TrackerErrorReport.builder()
+                Error error = Error.builder()
                     .uid( event.getUid() )
                     .trackerType( event.getTrackerType() )
                     .errorCode( E1116 )
@@ -384,7 +384,7 @@ public class PreCheckDataRelationsValidationHook
 
         if ( attrOptCombo == null )
         {
-            TrackerErrorReport error = TrackerErrorReport.builder()
+            Error error = Error.builder()
                 .uid( event.getUid() )
                 .trackerType( event.getTrackerType() )
                 .errorCode( TrackerErrorCode.E1117 )

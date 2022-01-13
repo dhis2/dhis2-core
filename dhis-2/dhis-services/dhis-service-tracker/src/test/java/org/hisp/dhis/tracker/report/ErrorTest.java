@@ -42,7 +42,7 @@ import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.junit.jupiter.api.Test;
 
-class TrackerErrorReportTest
+class ErrorTest
 {
 
     // The actual error message does not matter for the purpose of this test.
@@ -57,7 +57,7 @@ class TrackerErrorReportTest
     void addArgAddsObjectToErrorMessage()
     {
 
-        TrackerErrorReport error = TrackerErrorReport.builder()
+        Error error = Error.builder()
             .errorCode( SINGLE_ARG_ERROR )
             .addArg( (Object) "INTERPOLATED_ARGUMENT" )
             .build();
@@ -70,7 +70,7 @@ class TrackerErrorReportTest
     void addArgAddsStringToErrorMessage()
     {
 
-        TrackerErrorReport error = TrackerErrorReport.builder()
+        Error error = Error.builder()
             .errorCode( SINGLE_ARG_ERROR )
             .addArg( "INTERPOLATED_ARGUMENT" )
             .build();
@@ -83,7 +83,7 @@ class TrackerErrorReportTest
     void addArgDoesNotThrowIfInstantIsNull()
     {
 
-        TrackerErrorReport error = TrackerErrorReport.builder()
+        Error error = Error.builder()
             .errorCode( SINGLE_ARG_ERROR )
             .addArg( (Instant) null )
             .build();
@@ -96,7 +96,7 @@ class TrackerErrorReportTest
     {
 
         final Instant now = Instant.now();
-        TrackerErrorReport error = TrackerErrorReport.builder()
+        Error error = Error.builder()
             .errorCode( SINGLE_ARG_ERROR )
             .addArg( now )
             .build();
@@ -111,7 +111,7 @@ class TrackerErrorReportTest
     {
 
         final Date now = Date.from( Instant.now() );
-        TrackerErrorReport error = TrackerErrorReport.builder()
+        Error error = Error.builder()
             .errorCode( SINGLE_ARG_ERROR )
             .addArg( now )
             .build();
@@ -127,7 +127,7 @@ class TrackerErrorReportTest
 
         OrganisationUnit orgUnit = new OrganisationUnit();
         orgUnit.setUid( "1234" );
-        TrackerErrorReport error = TrackerErrorReport.builder()
+        Error error = Error.builder()
             .errorCode( SINGLE_ARG_ERROR )
             .addArg( TrackerIdScheme.UID, orgUnit )
             .build();
@@ -143,7 +143,7 @@ class TrackerErrorReportTest
         OrganisationUnit orgUnit = new OrganisationUnit();
         orgUnit.setName( "Favorite Place" );
         orgUnit.setUid( "1234" );
-        TrackerErrorReport error = TrackerErrorReport.builder()
+        Error error = Error.builder()
             .errorCode( SINGLE_ARG_ERROR )
             .addArg( TrackerIdScheme.NAME, orgUnit )
             .build();
@@ -159,7 +159,7 @@ class TrackerErrorReportTest
         Enrollment enrollment = Enrollment.builder()
             .enrollment( "1234" )
             .build();
-        TrackerErrorReport error = TrackerErrorReport.builder()
+        Error error = Error.builder()
             .errorCode( SINGLE_ARG_ERROR )
             .addArg( enrollment )
             .build();
@@ -175,7 +175,7 @@ class TrackerErrorReportTest
         Event event = Event.builder()
             .event( "1234" )
             .build();
-        TrackerErrorReport error = TrackerErrorReport.builder()
+        Error error = Error.builder()
             .errorCode( SINGLE_ARG_ERROR )
             .addArg( event )
             .build();
@@ -191,7 +191,7 @@ class TrackerErrorReportTest
         TrackedEntity trackedEntity = TrackedEntity.builder()
             .trackedEntity( "1234" )
             .build();
-        TrackerErrorReport error = TrackerErrorReport.builder()
+        Error error = Error.builder()
             .errorCode( SINGLE_ARG_ERROR )
             .addArg( trackedEntity )
             .build();
@@ -207,7 +207,7 @@ class TrackerErrorReportTest
         Relationship relationship = Relationship.builder()
             .relationship( "1234" )
             .build();
-        TrackerErrorReport error = TrackerErrorReport.builder()
+        Error error = Error.builder()
             .errorCode( SINGLE_ARG_ERROR )
             .addArg( relationship )
             .build();
@@ -220,7 +220,7 @@ class TrackerErrorReportTest
     void addArgsAddsObjectsToErrorMessage()
     {
 
-        TrackerErrorReport error = TrackerErrorReport.builder()
+        Error error = Error.builder()
             .errorCode( DOUBLE_ARG_ERROR )
             .addArgs( "INTERPOLATED_ARGUMENT", 981 )
             .build();

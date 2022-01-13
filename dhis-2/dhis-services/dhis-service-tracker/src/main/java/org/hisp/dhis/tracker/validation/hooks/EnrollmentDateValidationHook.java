@@ -41,7 +41,7 @@ import java.util.Objects;
 
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
+import org.hisp.dhis.tracker.report.Error;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
@@ -66,7 +66,7 @@ public class EnrollmentDateValidationHook
         if ( Boolean.TRUE.equals( program.getDisplayIncidentDate() ) &&
             Objects.isNull( enrollment.getOccurredAt() ) )
         {
-            TrackerErrorReport error = TrackerErrorReport.builder()
+            Error error = Error.builder()
                 .uid( enrollment.getUid() )
                 .trackerType( enrollment.getTrackerType() )
                 .errorCode( E1023 )
@@ -82,7 +82,7 @@ public class EnrollmentDateValidationHook
 
         if ( Objects.isNull( enrollment.getEnrolledAt() ) )
         {
-            TrackerErrorReport error = TrackerErrorReport.builder()
+            Error error = Error.builder()
                 .uid( enrollment.getUid() )
                 .trackerType( enrollment.getTrackerType() )
                 .errorCode( E1025 )
@@ -103,7 +103,7 @@ public class EnrollmentDateValidationHook
             && Boolean.FALSE.equals( program.getSelectEnrollmentDatesInFuture() )
             && enrollment.getEnrolledAt().atOffset( ZoneOffset.UTC ).toLocalDate().isAfter( now ) )
         {
-            TrackerErrorReport error = TrackerErrorReport.builder()
+            Error error = Error.builder()
                 .uid( enrollment.getUid() )
                 .trackerType( enrollment.getTrackerType() )
                 .errorCode( E1020 )
@@ -116,7 +116,7 @@ public class EnrollmentDateValidationHook
             && Boolean.FALSE.equals( program.getSelectIncidentDatesInFuture() )
             && enrollment.getOccurredAt().atOffset( ZoneOffset.UTC ).toLocalDate().isAfter( now ) )
         {
-            TrackerErrorReport error = TrackerErrorReport.builder()
+            Error error = Error.builder()
                 .uid( enrollment.getUid() )
                 .trackerType( enrollment.getTrackerType() )
                 .errorCode( E1021 )

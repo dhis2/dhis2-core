@@ -64,8 +64,8 @@ import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.RelationshipItem;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.report.Error;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -410,7 +410,7 @@ class RelationshipsValidationHookTest
                 .build() )
             .relationshipType( relType.getUid() )
             .build();
-        TrackerErrorReport error = TrackerErrorReport.builder()
+        Error error = Error.builder()
             .uid( relationship.getTo().getTrackedEntity() )
             .trackerType( TRACKED_ENTITY )
             .errorCode( TrackerErrorCode.E9999 )
@@ -421,7 +421,7 @@ class RelationshipsValidationHookTest
 
         hasError( reporter, TrackerErrorCode.E4011, RELATIONSHIP, relationship.getUid() );
         assertThat(
-            reporter.getErrors().stream().map( TrackerErrorReport::getErrorMessage ).collect( Collectors.toList() ),
+            reporter.getErrors().stream().map( Error::getErrorMessage ).collect( Collectors.toList() ),
             hasItem( "Relationship: `" + relationship.getRelationship() +
                 "` cannot be persisted because trackedEntity notValidTrackedEntity referenced by this relationship is not valid." ) );
     }
@@ -444,7 +444,7 @@ class RelationshipsValidationHookTest
                 .build() )
             .relationshipType( relType.getUid() )
             .build();
-        TrackerErrorReport error = TrackerErrorReport.builder()
+        Error error = Error.builder()
             .uid( "notValidTrackedEntity" )
             .trackerType( TRACKED_ENTITY )
             .errorCode( TrackerErrorCode.E9999 )
@@ -455,7 +455,7 @@ class RelationshipsValidationHookTest
 
         assertTrue( reporter.hasErrors() );
         assertThat(
-            reporter.getErrors().stream().map( TrackerErrorReport::getErrorCode ).collect( Collectors.toList() ),
+            reporter.getErrors().stream().map( Error::getErrorCode ).collect( Collectors.toList() ),
             not( hasItem( TrackerErrorCode.E4011 ) ) );
     }
 

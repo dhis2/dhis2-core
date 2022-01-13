@@ -65,7 +65,7 @@ import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.tracker.report.TrackerStatus;
-import org.hisp.dhis.tracker.report.TrackerWarningReport;
+import org.hisp.dhis.tracker.report.Warning;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
@@ -198,7 +198,7 @@ class ProgramRuleIntegrationTest extends TransactionalIntegrationTest
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
         assertNotNull( trackerImportReport );
         assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
-        List<TrackerWarningReport> warningReports = trackerImportReport.getValidationReport().getWarnings();
+        List<Warning> warningReports = trackerImportReport.getValidationReport().getWarnings();
         assertEquals( 4, warningReports.size() );
         assertEquals( 3,
             warningReports.stream().filter( w -> w.getTrackerType().equals( TrackerType.EVENT ) ).count() );
