@@ -25,30 +25,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.json.domain;
+package org.hisp.dhis.datastore;
 
-import org.hisp.dhis.datastore.DatastoreEntry;
-import org.hisp.dhis.webapi.json.JsonValue;
+import java.util.List;
+import java.util.Map.Entry;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 /**
- * Web API equivalent of a {@link DatastoreEntry}.
+ * Represents an entry in the datatore in the form that it is extracted with
+ * field filtering. The {@link #key} is the key of the datastore entry, the
+ * {@link #values} are the values for the extracted fields in the order of the
+ * fields.
+ * <p>
+ * It is also made an {@link Entry} to allow usage in pipeline not specifically
+ * linked to this class.
  *
  * @author Jan Bernitt
  */
-public interface JsonKeyJsonValue extends JsonIdentifiableObject
+@Getter
+@AllArgsConstructor
+public final class DatastoreFields implements Entry<String, List<String>>
 {
-    default String getNamespace()
+    private final String key;
+
+    private final List<String> values;
+
+    @Override
+    public List<String> getValue()
     {
-        return getString( "namespace" ).string();
+        return getValues();
     }
 
-    default String getKey()
+    @Override
+    public List<String> setValue( List<String> strings )
     {
-        return getString( "key" ).string();
-    }
-
-    default JsonValue getValue()
-    {
-        return get( "value" );
+        throw new UnsupportedOperationException();
     }
 }

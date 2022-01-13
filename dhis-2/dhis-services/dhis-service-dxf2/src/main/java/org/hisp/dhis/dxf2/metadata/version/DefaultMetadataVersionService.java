@@ -40,14 +40,14 @@ import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.datastore.DatastoreEntry;
+import org.hisp.dhis.datastore.MetadataDatastoreService;
 import org.hisp.dhis.dxf2.common.HashCodeGenerator;
 import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;
 import org.hisp.dhis.dxf2.metadata.MetadataWrapper;
 import org.hisp.dhis.dxf2.metadata.systemsettings.MetadataSystemSettingService;
 import org.hisp.dhis.dxf2.metadata.version.exception.MetadataVersionServiceException;
-import org.hisp.dhis.keyjsonvalue.KeyJsonValue;
-import org.hisp.dhis.keyjsonvalue.MetadataKeyJsonService;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.metadata.version.MetadataVersionService;
 import org.hisp.dhis.metadata.version.MetadataVersionStore;
@@ -79,7 +79,7 @@ public class DefaultMetadataVersionService
 
     private final MetadataExportService metadataExportService;
 
-    private final MetadataKeyJsonService metaDataKeyJsonService;
+    private final MetadataDatastoreService metaDataDatastoreService;
 
     private final NodeService nodeService;
 
@@ -88,13 +88,13 @@ public class DefaultMetadataVersionService
     private final RenderService renderService;
 
     public DefaultMetadataVersionService( MetadataVersionStore metadataVersionStore,
-        MetadataExportService metadataExportService, MetadataKeyJsonService metaDataKeyJsonService,
+        MetadataExportService metadataExportService, MetadataDatastoreService metaDataDatastoreService,
         NodeService nodeService, MetadataSystemSettingService metadataSystemSettingService,
         RenderService renderService )
     {
         this.versionStore = metadataVersionStore;
         this.metadataExportService = metadataExportService;
-        this.metaDataKeyJsonService = metaDataKeyJsonService;
+        this.metaDataDatastoreService = metaDataDatastoreService;
         this.nodeService = nodeService;
         this.metadataSystemSettingService = metadataSystemSettingService;
         this.renderService = renderService;
@@ -274,13 +274,13 @@ public class DefaultMetadataVersionService
     @Transactional( readOnly = true )
     public String getVersionData( String versionName )
     {
-        KeyJsonValue keyJsonValue = metaDataKeyJsonService.getMetaDataVersion( versionName );
+        DatastoreEntry entry = metaDataDatastoreService.getMetaDataVersion( versionName );
 
-        if ( keyJsonValue != null )
+        if ( entry != null )
         {
             try
             {
-                return renderService.fromJson( keyJsonValue.getValue(), MetadataWrapper.class ).getMetadata();
+                return renderService.fromJson( entry.getValue(), MetadataWrapper.class ).getMetadata();
             }
             catch ( IOException e )
             {
@@ -301,17 +301,17 @@ public class DefaultMetadataVersionService
                 "The Metadata Snapshot is null while trying to create a Metadata Version entry in DataStore." );
         }
 
-        KeyJsonValue keyJsonValue = new KeyJsonValue();
-        keyJsonValue.setKey( versionName );
-        keyJsonValue.setNamespace( MetadataKeyJsonService.METADATA_STORE_NS );
+        DatastoreEntry entry = new DatastoreEntry();
+        entry.setKey( versionName );
+        entry.setNamespace( MetadataDatastoreService.METADATA_STORE_NS );
 
         // MetadataWrapper is used to avoid Metadata keys reordering by jsonb
         // (jsonb does not preserve keys order)
-        keyJsonValue.setValue( renderService.toJsonAsString( new MetadataWrapper( versionSnapshot ) ) );
+        entry.setValue( renderService.toJsonAsString( new MetadataWrapper( versionSnapshot ) ) );
 
         try
         {
-            metaDataKeyJsonService.addMetaDataKeyJsonValue( keyJsonValue );
+            metaDataDatastoreService.addMetaEntry( entry );
 
         }
         catch ( Exception ex )
@@ -326,11 +326,11 @@ public class DefaultMetadataVersionService
     @Transactional
     public void deleteMetadataVersionInDataStore( String nameSpaceKey )
     {
-        KeyJsonValue keyJsonValue = metaDataKeyJsonService.getMetaDataVersion( nameSpaceKey );
+        DatastoreEntry entry = metaDataDatastoreService.getMetaDataVersion( nameSpaceKey );
 
         try
         {
-            metaDataKeyJsonService.deleteMetaDataKeyJsonValue( keyJsonValue );
+            metaDataDatastoreService.deleteMetaEntry( entry );
         }
         catch ( Exception ex )
         {

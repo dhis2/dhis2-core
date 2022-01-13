@@ -25,30 +25,62 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.json.domain;
+package org.hisp.dhis.datastore;
 
-import org.hisp.dhis.datastore.DatastoreEntry;
-import org.hisp.dhis.webapi.json.JsonValue;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Web API equivalent of a {@link DatastoreEntry}.
- *
- * @author Jan Bernitt
+ * @author Lars Helge Overland
  */
-public interface JsonKeyJsonValue extends JsonIdentifiableObject
+public class Dog
 {
-    default String getNamespace()
+    private String id;
+
+    private String name;
+
+    private String color;
+
+    public Dog()
     {
-        return getString( "namespace" ).string();
     }
 
-    default String getKey()
+    public Dog( String id, String name, String color )
     {
-        return getString( "key" ).string();
+        this.id = id;
+        this.name = name;
+        this.color = color;
     }
 
-    default JsonValue getValue()
+    @JsonProperty
+    public String getId()
     {
-        return get( "value" );
+        return id;
+    }
+
+    public void setId( String id )
+    {
+        this.id = id;
+    }
+
+    @JsonProperty
+    public String getName()
+    {
+        return name;
+    }
+
+    public void setName( String name )
+    {
+        this.name = name;
+    }
+
+    @JsonProperty
+    public String getColor()
+    {
+        return color;
+    }
+
+    public void setColor( String color )
+    {
+        this.color = color;
     }
 }

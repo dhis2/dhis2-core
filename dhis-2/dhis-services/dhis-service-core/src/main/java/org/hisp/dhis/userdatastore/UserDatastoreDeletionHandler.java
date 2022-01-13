@@ -25,30 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.json.domain;
+package org.hisp.dhis.userdatastore;
 
-import org.hisp.dhis.datastore.DatastoreEntry;
-import org.hisp.dhis.webapi.json.JsonValue;
+import lombok.AllArgsConstructor;
 
-/**
- * Web API equivalent of a {@link DatastoreEntry}.
- *
- * @author Jan Bernitt
- */
-public interface JsonKeyJsonValue extends JsonIdentifiableObject
+import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.hisp.dhis.user.User;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Component;
+
+@Component
+@AllArgsConstructor
+public class UserDatastoreDeletionHandler extends DeletionHandler
 {
-    default String getNamespace()
+    private final JdbcTemplate jdbcTemplate;
+
+    @Override
+    protected void register()
     {
-        return getString( "namespace" ).string();
+        whenDeleting( User.class, this::deleteUser );
     }
 
-    default String getKey()
+    private void deleteUser( User user )
     {
-        return getString( "key" ).string();
-    }
-
-    default JsonValue getValue()
-    {
-        return get( "value" );
+        jdbcTemplate.execute( "DELETE FROM userkeyjsonvalue WHERE userid = " + user.getId() );
     }
 }
