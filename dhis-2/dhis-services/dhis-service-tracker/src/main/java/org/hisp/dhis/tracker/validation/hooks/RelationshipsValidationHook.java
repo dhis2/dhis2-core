@@ -94,12 +94,12 @@ public class RelationshipsValidationHook
     {
         // make sure that both Relationship Item only contain *one* reference
         // (tei, enrollment or event)
-        addErrorIf(
+        reporter.addErrorIf(
             () -> relationship.getFrom() != null && countMatches( onlyValues( relationship.getFrom() ), "null" ) < 2,
-            reporter, relationship, E4001, "from", relationship.getRelationship() );
-        addErrorIf(
+            relationship, E4001, "from", relationship.getRelationship() );
+        reporter.addErrorIf(
             () -> relationship.getTo() != null && countMatches( onlyValues( relationship.getTo() ), "null" ) < 2,
-            reporter, relationship, E4001, "to", relationship.getRelationship() );
+            relationship, E4001, "to", relationship.getRelationship() );
     }
 
     private void validateRelationshipConstraint( ValidationErrorReporter reporter, Relationship relationship,
@@ -117,8 +117,9 @@ public class RelationshipsValidationHook
     private boolean validateMandatoryData( ValidationErrorReporter reporter, Relationship relationship,
         List<RelationshipType> relationshipsTypes )
     {
-        addErrorIf( () -> !getRelationshipType( relationshipsTypes, relationship.getRelationshipType() ).isPresent(),
-            reporter, relationship, E4009, relationship.getRelationshipType() );
+        reporter.addErrorIf(
+            () -> !getRelationshipType( relationshipsTypes, relationship.getRelationshipType() ).isPresent(),
+            relationship, E4009, relationship.getRelationshipType() );
 
         final Optional<TrackerErrorReport> any = reporter.getReportList().stream()
             .filter( r -> relationship.getRelationship().equals( r.getUid() ) ).findAny();
@@ -136,7 +137,7 @@ public class RelationshipsValidationHook
     {
         if ( Objects.equals( relationship.getFrom(), relationship.getTo() ) )
         {
-            addError( reporter, relationship, E4000, relationship.getRelationship() );
+            reporter.addError( relationship, E4000, relationship.getRelationship() );
         }
     }
 
@@ -147,7 +148,7 @@ public class RelationshipsValidationHook
     {
         if ( relationshipItemValueType( item ) == null )
         {
-            addError( reporter, relationship, TrackerErrorCode.E4013, relSide, TrackerType.TRACKED_ENTITY.getName() );
+            reporter.addError( relationship, TrackerErrorCode.E4013, relSide, TrackerType.TRACKED_ENTITY.getName() );
             return;
         }
 
@@ -155,7 +156,7 @@ public class RelationshipsValidationHook
         {
             if ( item.getTrackedEntity() == null )
             {
-                addError( reporter, relationship, TrackerErrorCode.E4010, relSide,
+                reporter.addError( relationship, TrackerErrorCode.E4010, relSide,
                     TrackerType.TRACKED_ENTITY.getName(), relationshipItemValueType( item ).getName() );
             }
             else
@@ -169,7 +170,7 @@ public class RelationshipsValidationHook
 
                     if ( !type.equals( constraint.getTrackedEntityType().getUid() ) )
                     {
-                        addError( reporter, relationship,
+                        reporter.addError( relationship,
                             TrackerErrorCode.E4014, relSide, constraint.getTrackedEntityType().getUid(), type );
                     }
 
@@ -180,7 +181,7 @@ public class RelationshipsValidationHook
         {
             if ( item.getEnrollment() == null )
             {
-                addError( reporter, relationship,
+                reporter.addError( relationship,
                     TrackerErrorCode.E4010, relSide, TrackerType.ENROLLMENT.getName(),
                     relationshipItemValueType( item ).getName() );
             }
@@ -190,7 +191,7 @@ public class RelationshipsValidationHook
         {
             if ( item.getEvent() == null )
             {
-                addError( reporter, relationship, TrackerErrorCode.E4010, relSide,
+                reporter.addError( relationship, TrackerErrorCode.E4010, relSide,
                     TrackerType.EVENT.getName(), relationshipItemValueType( item ).getName() );
             }
         }
@@ -209,7 +210,7 @@ public class RelationshipsValidationHook
         TrackerType trackerType = relationshipItemValueType( item );
         Optional<String> itemUid = getUidFromRelationshipItem( item );
 
-        itemUid.ifPresent( s -> addErrorIf( () -> reporter.isInvalid( trackerType, s ), reporter,
+        itemUid.ifPresent( s -> reporter.addErrorIf( () -> reporter.isInvalid( trackerType, s ),
             relationship, E4011, relationship.getRelationship(),
             trackerType.getName(), s ) );
     }

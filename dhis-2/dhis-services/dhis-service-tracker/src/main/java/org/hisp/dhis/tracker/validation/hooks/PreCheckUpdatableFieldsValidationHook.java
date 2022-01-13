@@ -62,8 +62,8 @@ public class PreCheckUpdatableFieldsValidationHook
         TrackedEntityInstance trackedEntityInstance = context
             .getTrackedEntityInstance( trackedEntity.getTrackedEntity() );
 
-        addErrorIf( () -> !trackedEntityInstance.getTrackedEntityType().getUid()
-            .equals( trackedEntity.getTrackedEntityType() ), reporter, trackedEntity, E1126, "trackedEntityType" );
+        reporter.addErrorIf( () -> !trackedEntityInstance.getTrackedEntityType().getUid()
+            .equals( trackedEntity.getTrackedEntityType() ), trackedEntity, E1126, "trackedEntityType" );
     }
 
     @Override
@@ -75,8 +75,8 @@ public class PreCheckUpdatableFieldsValidationHook
         Program program = pi.getProgram();
         TrackedEntityInstance trackedEntityInstance = pi.getEntityInstance();
 
-        addErrorIf( () -> !program.getUid().equals( enrollment.getProgram() ), reporter, enrollment, E1127, "program" );
-        addErrorIf( () -> !trackedEntityInstance.getUid().equals( enrollment.getTrackedEntity() ), reporter, enrollment,
+        reporter.addErrorIf( () -> !program.getUid().equals( enrollment.getProgram() ), enrollment, E1127, "program" );
+        reporter.addErrorIf( () -> !trackedEntityInstance.getUid().equals( enrollment.getTrackedEntity() ), enrollment,
             E1127, "trackedEntity" );
     }
 
@@ -89,10 +89,11 @@ public class PreCheckUpdatableFieldsValidationHook
         ProgramStage programStage = programStageInstance.getProgramStage();
         ProgramInstance programInstance = programStageInstance.getProgramInstance();
 
-        addErrorIf( () -> !event.getProgramStage().equals( programStage.getUid() ), reporter, event, E1128,
+        reporter.addErrorIf( () -> !event.getProgramStage().equals( programStage.getUid() ), event, E1128,
             "programStage" );
-        addErrorIf( () -> event.getEnrollment() != null && !event.getEnrollment().equals( programInstance.getUid() ),
-            reporter, event, E1128, "enrollment" );
+        reporter.addErrorIf(
+            () -> event.getEnrollment() != null && !event.getEnrollment().equals( programInstance.getUid() ),
+            event, E1128, "enrollment" );
     }
 
     @Override

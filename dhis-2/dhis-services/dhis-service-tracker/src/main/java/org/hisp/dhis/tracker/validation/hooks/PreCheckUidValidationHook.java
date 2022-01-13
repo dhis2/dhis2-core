@@ -99,7 +99,7 @@ public class PreCheckUidValidationHook
     {
         if ( !CodeGenerator.isValidUid( checkUid ) )
         {
-            addError( reporter, dto, TrackerErrorCode.E1048, checkUid, args[0], args[1] );
+            reporter.addError( dto, TrackerErrorCode.E1048, checkUid, args[0], args[1] );
         }
     }
 

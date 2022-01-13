@@ -77,7 +77,7 @@ public class EventDataValuesValidationHook
 
             if ( dataElement == null )
             {
-                addError( reporter, event, TrackerErrorCode.E1304, dataValue.getDataElement() );
+                reporter.addError( event, TrackerErrorCode.E1304, dataValue.getDataElement() );
                 continue;
             }
 
@@ -105,7 +105,8 @@ public class EventDataValuesValidationHook
                 .collect( Collectors.toList() );
             List<String> wrongMandatoryDataValue = validateMandatoryDataValue( programStage, event,
                 mandatoryDataElements );
-            wrongMandatoryDataValue.forEach( de -> addError( reporter, event, E1303, de ) );
+            wrongMandatoryDataValue
+                .forEach( de -> reporter.addError( event, E1303, de ) );
         }
     }
 
@@ -116,7 +117,7 @@ public class EventDataValuesValidationHook
 
         if ( status != null )
         {
-            addError( reporter, event, TrackerErrorCode.E1302, dataElement.getUid(),
+            reporter.addError( event, TrackerErrorCode.E1302, dataElement.getUid(),
                 status );
         }
         else
@@ -142,7 +143,7 @@ public class EventDataValuesValidationHook
 
         if ( optionalPsde.isPresent() )
         {
-            addError( reporter, event, E1076, DataElement.class.getSimpleName(),
+            reporter.addError( event, E1076, DataElement.class.getSimpleName(),
                 dataElement.getUid() );
         }
     }
@@ -163,7 +164,7 @@ public class EventDataValuesValidationHook
         {
             if ( !dataElements.contains( payloadDataElement ) )
             {
-                addError( reporter, event, TrackerErrorCode.E1305, payloadDataElement,
+                reporter.addError( event, TrackerErrorCode.E1305, payloadDataElement,
                     programStage.getUid() );
             }
         }
@@ -185,8 +186,8 @@ public class EventDataValuesValidationHook
 
         FileResource fileResource = reporter.getValidationContext().getFileResource( dataValue.getValue() );
 
-        addErrorIfNull( fileResource, reporter, event, E1084, dataValue.getValue() );
-        addErrorIf( () -> fileResource != null && fileResource.isAssigned(), reporter, event,
+        reporter.addErrorIfNull( fileResource, event, E1084, dataValue.getValue() );
+        reporter.addErrorIf( () -> fileResource != null && fileResource.isAssigned(), event,
             E1009, dataValue.getValue() );
     }
 }
