@@ -27,12 +27,12 @@
  */
 package org.hisp.dhis.tracker.validation;
 
-import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.report.TrackerValidationReport;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public interface TrackerValidationHook
 {
-    void validate( ValidationErrorReporter report, TrackerImportValidationContext bundle );
+    void validate( TrackerValidationReport report, TrackerImportValidationContext bundle );
 }

@@ -31,7 +31,7 @@ import static com.google.api.client.util.Preconditions.checkNotNull;
 
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
 
@@ -43,14 +43,14 @@ public class EventGeoValidationHook
     extends AbstractTrackerDtoValidationHook
 {
     @Override
-    public void validateEvent( ValidationErrorReporter reporter, TrackerImportValidationContext context, Event event )
+    public void validateEvent( TrackerValidationReport report, TrackerImportValidationContext context, Event event )
     {
         ProgramStage programStage = context.getProgramStage( event.getProgramStage() );
         checkNotNull( programStage, TrackerImporterAssertErrors.PROGRAM_STAGE_CANT_BE_NULL );
 
         if ( event.getGeometry() != null )
         {
-            ValidationUtils.validateGeometry( reporter, event,
+            ValidationUtils.validateGeometry( report, event,
                 event.getGeometry(),
                 programStage.getFeatureType() );
         }

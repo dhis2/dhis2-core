@@ -30,7 +30,7 @@ package org.hisp.dhis.tracker.validation.hooks;
 import static org.hisp.dhis.tracker.TrackerType.ENROLLMENT;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1015;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1016;
-import static org.hisp.dhis.tracker.validation.hooks.AssertValidationErrorReporter.hasTrackerError;
+import static org.hisp.dhis.tracker.validation.hooks.AssertValidationReport.hasError;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -51,7 +51,7 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -83,7 +83,7 @@ class EnrollmentInExistingValidationHookTest
     @Mock
     private TrackedEntityInstance trackedEntityInstance;
 
-    private ValidationErrorReporter reporter;
+    private TrackerValidationReport reporter;
 
     private static final String programUid = "program";
 
@@ -115,7 +115,7 @@ class EnrollmentInExistingValidationHookTest
         program.setUid( programUid );
 
         when( validationContext.getProgram( programUid ) ).thenReturn( program );
-        reporter = new ValidationErrorReporter();
+        reporter = new TrackerValidationReport();
     }
 
     @Test
@@ -182,9 +182,9 @@ class EnrollmentInExistingValidationHookTest
         hookToTest.validateEnrollment( reporter, validationContext, enrollment );
 
         assertTrue( reporter.hasErrors() );
-        assertEquals( 1, reporter.getReportList().size() );
+        assertEquals( 1, reporter.getErrors().size() );
 
-        hasTrackerError( reporter, E1015, ENROLLMENT, enrollment.getUid() );
+        hasError( reporter, E1015, ENROLLMENT, enrollment.getUid() );
     }
 
     @Test
@@ -200,9 +200,9 @@ class EnrollmentInExistingValidationHookTest
         hookToTest.validateEnrollment( reporter, validationContext, enrollment );
 
         assertTrue( reporter.hasErrors() );
-        assertEquals( 1, reporter.getReportList().size() );
+        assertEquals( 1, reporter.getErrors().size() );
 
-        hasTrackerError( reporter, E1016, ENROLLMENT, enrollment.getUid() );
+        hasError( reporter, E1016, ENROLLMENT, enrollment.getUid() );
     }
 
     @Test
@@ -223,9 +223,9 @@ class EnrollmentInExistingValidationHookTest
         hookToTest.validateEnrollment( reporter, validationContext, enrollment );
 
         assertTrue( reporter.hasErrors() );
-        assertEquals( 1, reporter.getReportList().size() );
+        assertEquals( 1, reporter.getErrors().size() );
 
-        hasTrackerError( reporter, E1015, ENROLLMENT, enrollment.getUid() );
+        hasError( reporter, E1015, ENROLLMENT, enrollment.getUid() );
     }
 
     @Test
@@ -241,8 +241,8 @@ class EnrollmentInExistingValidationHookTest
         hookToTest.validateEnrollment( reporter, validationContext, enrollment );
 
         assertTrue( reporter.hasErrors() );
-        assertEquals( 1, reporter.getReportList().size() );
-        hasTrackerError( reporter, E1016, ENROLLMENT, enrollment.getUid() );
+        assertEquals( 1, reporter.getErrors().size() );
+        hasError( reporter, E1016, ENROLLMENT, enrollment.getUid() );
     }
 
     @Test
@@ -269,8 +269,8 @@ class EnrollmentInExistingValidationHookTest
         hookToTest.validateEnrollment( reporter, validationContext, enrollment );
 
         assertTrue( reporter.hasErrors() );
-        assertEquals( 1, reporter.getReportList().size() );
-        hasTrackerError( reporter, E1016, ENROLLMENT, enrollment.getUid() );
+        assertEquals( 1, reporter.getErrors().size() );
+        hasError( reporter, E1016, ENROLLMENT, enrollment.getUid() );
     }
 
     @Test

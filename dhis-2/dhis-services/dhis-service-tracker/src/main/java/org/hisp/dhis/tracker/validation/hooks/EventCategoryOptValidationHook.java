@@ -46,7 +46,7 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
-import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Component;
@@ -68,7 +68,7 @@ public class EventCategoryOptValidationHook
     }
 
     @Override
-    public void validateEvent( ValidationErrorReporter reporter, TrackerImportValidationContext context, Event event )
+    public void validateEvent( TrackerValidationReport report, TrackerImportValidationContext context, Event event )
     {
         Program program = context.getProgram( event.getProgram() );
         checkNotNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );
@@ -89,7 +89,7 @@ public class EventCategoryOptValidationHook
                 .trackerType( event.getTrackerType() )
                 .errorCode( TrackerErrorCode.E1055 )
                 .build();
-            reporter.addError( error );
+            report.addError( error );
             return;
         }
 
@@ -119,7 +119,7 @@ public class EventCategoryOptValidationHook
                     .addArg( i18nFormat.formatDate( option.getStartDate() ) )
                     .addArg( option.getName() )
                     .build();
-                reporter.addError( error );
+                report.addError( error );
             }
 
             if ( option.getEndDate() != null && eventDate.compareTo( option.getAdjustedEndDate( program ) ) > 0 )
@@ -133,7 +133,7 @@ public class EventCategoryOptValidationHook
                     .addArg( option.getName() )
                     .addArg( program.getName() )
                     .build();
-                reporter.addError( error );
+                report.addError( error );
             }
         }
     }

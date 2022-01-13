@@ -36,8 +36,8 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
+import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.report.TrackerWarningReport;
-import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
@@ -47,7 +47,7 @@ public class AssignedUserValidationHook
     extends AbstractTrackerDtoValidationHook
 {
     @Override
-    public void validateEvent( ValidationErrorReporter reporter, TrackerImportValidationContext context, Event event )
+    public void validateEvent( TrackerValidationReport report, TrackerImportValidationContext context, Event event )
     {
         if ( event.getAssignedUser() != null )
         {
@@ -60,7 +60,7 @@ public class AssignedUserValidationHook
                     .errorCode( E1118 )
                     .addArg( event.getAssignedUser() )
                     .build();
-                reporter.addError( error );
+                report.addError( error );
             }
             if ( isNotEnabledUserAssignment( context, event ) )
             {
@@ -70,7 +70,7 @@ public class AssignedUserValidationHook
                     .warningCode( E1120 )
                     .addArg( event.getProgramStage() )
                     .build();
-                reporter.addWarning( warn );
+                report.addWarning( warn );
             }
         }
     }

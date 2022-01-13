@@ -48,7 +48,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
-import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
 
@@ -60,7 +60,7 @@ public class EnrollmentInExistingValidationHook
     extends AbstractTrackerDtoValidationHook
 {
     @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, TrackerImportValidationContext context,
+    public void validateEnrollment( TrackerValidationReport report, TrackerImportValidationContext context,
         Enrollment enrollment )
     {
         checkNotNull( enrollment, ENROLLMENT_CANT_BE_NULL );
@@ -80,10 +80,10 @@ public class EnrollmentInExistingValidationHook
             return;
         }
 
-        validateTeiNotEnrolledAlready( reporter, context, enrollment, program );
+        validateTeiNotEnrolledAlready( report, context, enrollment, program );
     }
 
-    private void validateTeiNotEnrolledAlready( ValidationErrorReporter reporter,
+    private void validateTeiNotEnrolledAlready( TrackerValidationReport report,
         TrackerImportValidationContext context,
         Enrollment enrollment, Program program )
     {
@@ -133,7 +133,7 @@ public class EnrollmentInExistingValidationHook
                     .addArg( context.getBundle().getIdentifier(), tei )
                     .addArg( context.getBundle().getIdentifier(), program )
                     .build();
-                reporter.addError( error );
+                report.addError( error );
             }
         }
 
@@ -146,7 +146,7 @@ public class EnrollmentInExistingValidationHook
                 .addArg( context.getBundle().getIdentifier(), tei )
                 .addArg( context.getBundle().getIdentifier(), program )
                 .build();
-            reporter.addError( error );
+            report.addError( error );
         }
     }
 

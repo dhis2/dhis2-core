@@ -35,7 +35,7 @@ import static org.hisp.dhis.tracker.TrackerType.EVENT;
 import static org.hisp.dhis.tracker.TrackerType.RELATIONSHIP;
 import static org.hisp.dhis.tracker.TrackerType.TRACKED_ENTITY;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1008;
-import static org.hisp.dhis.tracker.validation.hooks.AssertValidationErrorReporter.hasTrackerError;
+import static org.hisp.dhis.tracker.validation.hooks.AssertValidationReport.hasError;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -54,7 +54,7 @@ import org.hisp.dhis.tracker.domain.RelationshipItem;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -103,7 +103,7 @@ class PreCheckMandatoryFieldsValidationHookTest
             .orgUnit( CodeGenerator.generateUid() )
             .build();
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter();
+        TrackerValidationReport reporter = new TrackerValidationReport();
         validationHook.validateTrackedEntity( reporter, ctx, trackedEntity );
 
         assertFalse( reporter.hasErrors() );
@@ -118,7 +118,7 @@ class PreCheckMandatoryFieldsValidationHookTest
             .orgUnit( null )
             .build();
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter();
+        TrackerValidationReport reporter = new TrackerValidationReport();
         validationHook.validateTrackedEntity( reporter, ctx, trackedEntity );
 
         assertMissingPropertyForTrackedEntity( reporter, trackedEntity.getUid(), "orgUnit" );
@@ -133,7 +133,7 @@ class PreCheckMandatoryFieldsValidationHookTest
             .orgUnit( CodeGenerator.generateUid() )
             .build();
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter();
+        TrackerValidationReport reporter = new TrackerValidationReport();
         validationHook.validateTrackedEntity( reporter, ctx, trackedEntity );
 
         assertMissingPropertyForTrackedEntity( reporter, trackedEntity.getUid(), "trackedEntityType" );
@@ -149,7 +149,7 @@ class PreCheckMandatoryFieldsValidationHookTest
             .trackedEntity( CodeGenerator.generateUid() )
             .build();
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter();
+        TrackerValidationReport reporter = new TrackerValidationReport();
         validationHook.validateEnrollment( reporter, ctx, enrollment );
 
         assertFalse( reporter.hasErrors() );
@@ -165,7 +165,7 @@ class PreCheckMandatoryFieldsValidationHookTest
             .trackedEntity( null )
             .build();
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter();
+        TrackerValidationReport reporter = new TrackerValidationReport();
         validationHook.validateEnrollment( reporter, ctx, enrollment );
 
         assertMissingPropertyForEnrollment( reporter, enrollment.getUid(), "trackedEntity" );
@@ -181,7 +181,7 @@ class PreCheckMandatoryFieldsValidationHookTest
             .trackedEntity( CodeGenerator.generateUid() )
             .build();
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter();
+        TrackerValidationReport reporter = new TrackerValidationReport();
         validationHook.validateEnrollment( reporter, ctx, enrollment );
 
         assertMissingPropertyForEnrollment( reporter, enrollment.getUid(), "program" );
@@ -197,7 +197,7 @@ class PreCheckMandatoryFieldsValidationHookTest
             .trackedEntity( CodeGenerator.generateUid() )
             .build();
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter();
+        TrackerValidationReport reporter = new TrackerValidationReport();
         validationHook.validateEnrollment( reporter, ctx, enrollment );
 
         assertMissingPropertyForEnrollment( reporter, enrollment.getUid(), "orgUnit" );
@@ -213,7 +213,7 @@ class PreCheckMandatoryFieldsValidationHookTest
             .program( CodeGenerator.generateUid() )
             .build();
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter();
+        TrackerValidationReport reporter = new TrackerValidationReport();
         validationHook.validateEvent( reporter, ctx, event );
 
         assertFalse( reporter.hasErrors() );
@@ -229,7 +229,7 @@ class PreCheckMandatoryFieldsValidationHookTest
             .program( null )
             .build();
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter();
+        TrackerValidationReport reporter = new TrackerValidationReport();
         validationHook.validateEvent( reporter, ctx, event );
 
         assertMissingPropertyForEvent( reporter, event.getUid(), "program" );
@@ -247,12 +247,12 @@ class PreCheckMandatoryFieldsValidationHookTest
         programStage.setUid( event.getProgramStage() );
         when( ctx.getProgramStage( anyString() ) ).thenReturn( programStage );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter();
+        TrackerValidationReport reporter = new TrackerValidationReport();
         validationHook.validateEvent( reporter, ctx, event );
 
         assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList(), hasSize( 1 ) );
-        hasTrackerError( reporter, E1008, EVENT, event.getUid() );
+        assertThat( reporter.getErrors(), hasSize( 1 ) );
+        hasError( reporter, E1008, EVENT, event.getUid() );
     }
 
     @Test
@@ -265,7 +265,7 @@ class PreCheckMandatoryFieldsValidationHookTest
             .program( CodeGenerator.generateUid() )
             .build();
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter();
+        TrackerValidationReport reporter = new TrackerValidationReport();
         validationHook.validateEvent( reporter, ctx, event );
 
         assertMissingPropertyForEvent( reporter, event.getUid(), "programStage" );
@@ -281,7 +281,7 @@ class PreCheckMandatoryFieldsValidationHookTest
             .program( CodeGenerator.generateUid() )
             .build();
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter();
+        TrackerValidationReport reporter = new TrackerValidationReport();
         validationHook.validateEvent( reporter, ctx, event );
 
         assertMissingPropertyForEvent( reporter, event.getUid(), "orgUnit" );
@@ -301,7 +301,7 @@ class PreCheckMandatoryFieldsValidationHookTest
                 .build() )
             .build();
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter();
+        TrackerValidationReport reporter = new TrackerValidationReport();
         validationHook.validateRelationship( reporter, ctx, relationship );
 
         assertFalse( reporter.hasErrors() );
@@ -318,7 +318,7 @@ class PreCheckMandatoryFieldsValidationHookTest
                 .build() )
             .build();
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter();
+        TrackerValidationReport reporter = new TrackerValidationReport();
         validationHook.validateRelationship( reporter, ctx, relationship );
 
         assertMissingPropertyForRelationship( reporter, relationship.getUid(), "from" );
@@ -335,7 +335,7 @@ class PreCheckMandatoryFieldsValidationHookTest
                 .build() )
             .build();
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter();
+        TrackerValidationReport reporter = new TrackerValidationReport();
         validationHook.validateRelationship( reporter, ctx, relationship );
 
         assertMissingPropertyForRelationship( reporter, relationship.getUid(), "to" );
@@ -354,40 +354,40 @@ class PreCheckMandatoryFieldsValidationHookTest
                 .build() )
             .build();
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter();
+        TrackerValidationReport reporter = new TrackerValidationReport();
         validationHook.validateRelationship( reporter, ctx, relationship );
 
         assertMissingPropertyForRelationship( reporter, relationship.getUid(), "relationshipType" );
     }
 
-    private void assertMissingPropertyForTrackedEntity( ValidationErrorReporter reporter, String uid, String property )
+    private void assertMissingPropertyForTrackedEntity( TrackerValidationReport reporter, String uid, String property )
     {
         assertMissingProperty( reporter, TRACKED_ENTITY, "tracked entity", uid, property, TrackerErrorCode.E1121 );
     }
 
-    private void assertMissingPropertyForEnrollment( ValidationErrorReporter reporter, String uid, String property )
+    private void assertMissingPropertyForEnrollment( TrackerValidationReport reporter, String uid, String property )
     {
         assertMissingProperty( reporter, ENROLLMENT, "enrollment", uid, property, TrackerErrorCode.E1122 );
     }
 
-    private void assertMissingPropertyForEvent( ValidationErrorReporter reporter, String uid, String property )
+    private void assertMissingPropertyForEvent( TrackerValidationReport reporter, String uid, String property )
     {
         assertMissingProperty( reporter, EVENT, "event", uid, property, TrackerErrorCode.E1123 );
     }
 
-    private void assertMissingPropertyForRelationship( ValidationErrorReporter reporter, String uid, String property )
+    private void assertMissingPropertyForRelationship( TrackerValidationReport reporter, String uid, String property )
     {
         assertMissingProperty( reporter, RELATIONSHIP, "relationship", uid, property, TrackerErrorCode.E1124 );
     }
 
-    private void assertMissingProperty( ValidationErrorReporter reporter, TrackerType type, String entity, String uid,
+    private void assertMissingProperty( TrackerValidationReport reporter, TrackerType type, String entity, String uid,
         String property,
         TrackerErrorCode errorCode )
     {
         assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList(), hasSize( 1 ) );
-        hasTrackerError( reporter, errorCode, type, uid );
-        assertThat( reporter.getReportList().get( 0 ).getErrorMessage(),
+        assertThat( reporter.getErrors(), hasSize( 1 ) );
+        hasError( reporter, errorCode, type, uid );
+        assertThat( reporter.getErrors().get( 0 ).getErrorMessage(),
             is( "Missing required " + entity + " property: `" + property + "`." ) );
     }
 }

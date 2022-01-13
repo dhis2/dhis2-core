@@ -71,14 +71,13 @@ class TrackerValidationReportTest
         TrackerValidationReport report = new TrackerValidationReport( true );
         TrackerErrorReport error = newError();
 
-        ValidationFailFastException exception = assertThrows( ValidationFailFastException.class,
-            () -> report.addError( error ) );
+        assertThrows( ValidationFailFastException.class, () -> report.addError( error ) );
 
-        assertContainsOnly( exception.getErrors(), error );
+        assertContainsOnly( report.getErrors(), error );
 
-        exception = assertThrows( ValidationFailFastException.class, () -> report.addError( error ) );
+        assertThrows( ValidationFailFastException.class, () -> report.addError( error ) );
 
-        assertContainsOnly( exception.getErrors(), error );
+        assertContainsOnly( report.getErrors(), error );
     }
 
     @Test
@@ -101,10 +100,9 @@ class TrackerValidationReportTest
         TrackerValidationReport report = new TrackerValidationReport( true );
         TrackerErrorReport error = newError();
 
-        ValidationFailFastException exception = assertThrows( ValidationFailFastException.class,
-            () -> report.addErrorIf( () -> true, () -> error ) );
+        assertThrows( ValidationFailFastException.class, () -> report.addErrorIf( () -> true, () -> error ) );
 
-        assertContainsOnly( exception.getErrors(), error );
+        assertContainsOnly( report.getErrors(), error );
     }
 
     @Test
@@ -140,10 +138,9 @@ class TrackerValidationReportTest
 
         assertContainsOnly( report.getErrors(), error1 );
 
-        ValidationFailFastException exception = assertThrows( ValidationFailFastException.class,
-            () -> report.addErrors( List.of( error1, error2 ) ) );
+        assertThrows( ValidationFailFastException.class, () -> report.addErrors( List.of( error1, error2 ) ) );
 
-        assertContainsOnly( exception.getErrors(), error1, error2 );
+        assertContainsOnly( report.getErrors(), error1, error2 );
     }
 
     @Test

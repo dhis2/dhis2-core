@@ -53,7 +53,7 @@ import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
-import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
 
@@ -65,12 +65,12 @@ public class RelationshipsValidationHook
     extends AbstractTrackerDtoValidationHook
 {
 
-    public void validateRelationship( ValidationErrorReporter reporter, TrackerImportValidationContext context,
+    public void validateRelationship( TrackerValidationReport report, TrackerImportValidationContext context,
         Relationship relationship )
     {
         TrackerBundle bundle = context.getBundle();
 
-        boolean isValid = validateMandatoryData( reporter, relationship,
+        boolean isValid = validateMandatoryData( report, relationship,
             bundle.getPreheat().getAll( RelationshipType.class ) );
 
         // No need to check additional data if there are missing information on
@@ -78,23 +78,23 @@ public class RelationshipsValidationHook
         // Relationship
         if ( isValid )
         {
-            validateRelationshipLinkToOneEntity( reporter, relationship );
-            validateRelationshipConstraint( reporter, context, relationship, bundle );
+            validateRelationshipLinkToOneEntity( report, relationship );
+            validateRelationshipConstraint( report, context, relationship, bundle );
 
-            validateAutoRelationship( reporter, relationship );
+            validateAutoRelationship( report, relationship );
 
-            validateReferences( reporter, relationship, relationship.getFrom() );
-            validateReferences( reporter, relationship, relationship.getTo() );
+            validateReferences( report, relationship, relationship.getFrom() );
+            validateReferences( report, relationship, relationship.getTo() );
         }
 
     }
 
-    private void validateRelationshipLinkToOneEntity( ValidationErrorReporter reporter,
+    private void validateRelationshipLinkToOneEntity( TrackerValidationReport report,
         Relationship relationship )
     {
         // make sure that both Relationship Item only contain *one* reference
         // (tei, enrollment or event)
-        reporter.addErrorIf(
+        report.addErrorIf(
             () -> relationship.getFrom() != null && countMatches( onlyValues( relationship.getFrom() ), "null" ) < 2,
             () -> TrackerErrorReport.builder()
                 .uid( ((TrackerDto) relationship).getUid() )
@@ -103,7 +103,7 @@ public class RelationshipsValidationHook
                 .addArg( "from" )
                 .addArg( relationship.getRelationship() )
                 .build() );
-        reporter.addErrorIf(
+        report.addErrorIf(
             () -> relationship.getTo() != null && countMatches( onlyValues( relationship.getTo() ), "null" ) < 2,
             () -> TrackerErrorReport.builder()
                 .uid( ((TrackerDto) relationship).getUid() )
@@ -114,23 +114,23 @@ public class RelationshipsValidationHook
                 .build() );
     }
 
-    private void validateRelationshipConstraint( ValidationErrorReporter reporter,
+    private void validateRelationshipConstraint( TrackerValidationReport report,
         TrackerImportValidationContext context, Relationship relationship,
         TrackerBundle bundle )
     {
         getRelationshipType( bundle.getPreheat().getAll( RelationshipType.class ),
             relationship.getRelationshipType() ).ifPresent( relationshipType -> {
-                validateRelationshipConstraint( reporter, context, relationship, "from", relationship.getFrom(),
+                validateRelationshipConstraint( report, context, relationship, "from", relationship.getFrom(),
                     relationshipType.getFromConstraint() );
-                validateRelationshipConstraint( reporter, context, relationship, "to", relationship.getTo(),
+                validateRelationshipConstraint( report, context, relationship, "to", relationship.getTo(),
                     relationshipType.getToConstraint() );
             } );
     }
 
-    private boolean validateMandatoryData( ValidationErrorReporter reporter, Relationship relationship,
+    private boolean validateMandatoryData( TrackerValidationReport report, Relationship relationship,
         List<RelationshipType> relationshipsTypes )
     {
-        reporter.addErrorIf(
+        report.addErrorIf(
             () -> !getRelationshipType( relationshipsTypes, relationship.getRelationshipType() ).isPresent(),
             () -> TrackerErrorReport.builder()
                 .uid( ((TrackerDto) relationship).getUid() )
@@ -139,7 +139,7 @@ public class RelationshipsValidationHook
                 .addArg( relationship.getRelationshipType() )
                 .build() );
 
-        final Optional<TrackerErrorReport> any = reporter.getReportList().stream()
+        final Optional<TrackerErrorReport> any = report.getErrors().stream()
             .filter( r -> relationship.getRelationship().equals( r.getUid() ) ).findAny();
 
         return !any.isPresent();
@@ -151,7 +151,7 @@ public class RelationshipsValidationHook
         return relationshipsTypes.stream().filter( r -> r.getUid().equals( relationshipTypeUid ) ).findFirst();
     }
 
-    private void validateAutoRelationship( ValidationErrorReporter reporter, Relationship relationship )
+    private void validateAutoRelationship( TrackerValidationReport report, Relationship relationship )
     {
         if ( Objects.equals( relationship.getFrom(), relationship.getTo() ) )
         {
@@ -161,11 +161,11 @@ public class RelationshipsValidationHook
                 .errorCode( E4000 )
                 .addArg( relationship.getRelationship() )
                 .build();
-            reporter.addError( error );
+            report.addError( error );
         }
     }
 
-    private void validateRelationshipConstraint( ValidationErrorReporter reporter, TrackerImportValidationContext ctx,
+    private void validateRelationshipConstraint( TrackerValidationReport report, TrackerImportValidationContext ctx,
         Relationship relationship,
         String relSide,
         RelationshipItem item,
@@ -180,7 +180,7 @@ public class RelationshipsValidationHook
                 .addArg( relSide )
                 .addArg( TrackerType.TRACKED_ENTITY.getName() )
                 .build();
-            reporter.addError( error );
+            report.addError( error );
             return;
         }
 
@@ -196,7 +196,7 @@ public class RelationshipsValidationHook
                     .addArg( TrackerType.TRACKED_ENTITY.getName() )
                     .addArg( relationshipItemValueType( item ).getName() )
                     .build();
-                reporter.addError( error );
+                report.addError( error );
             }
             else
             {
@@ -217,7 +217,7 @@ public class RelationshipsValidationHook
                             .addArg( constraint.getTrackedEntityType().getUid() )
                             .addArg( type )
                             .build();
-                        reporter.addError( error );
+                        report.addError( error );
                     }
 
                 } );
@@ -235,7 +235,7 @@ public class RelationshipsValidationHook
                     .addArg( TrackerType.ENROLLMENT.getName() )
                     .addArg( relationshipItemValueType( item ).getName() )
                     .build();
-                reporter.addError( error );
+                report.addError( error );
             }
 
         }
@@ -251,7 +251,7 @@ public class RelationshipsValidationHook
                     .addArg( TrackerType.EVENT.getName() )
                     .addArg( relationshipItemValueType( item ).getName() )
                     .build();
-                reporter.addError( error );
+                report.addError( error );
             }
         }
     }
@@ -262,14 +262,14 @@ public class RelationshipsValidationHook
             : "null-null-null";
     }
 
-    private void validateReferences( ValidationErrorReporter reporter, Relationship relationship,
+    private void validateReferences( TrackerValidationReport report, Relationship relationship,
         RelationshipItem item )
 
     {
         TrackerType trackerType = relationshipItemValueType( item );
         Optional<String> itemUid = getUidFromRelationshipItem( item );
 
-        itemUid.ifPresent( s -> reporter.addErrorIf( () -> reporter.isInvalid( trackerType, s ),
+        itemUid.ifPresent( s -> report.addErrorIf( () -> report.isInvalid( trackerType, s ),
             () -> TrackerErrorReport.builder()
                 .uid( ((TrackerDto) relationship).getUid() )
                 .trackerType( ((TrackerDto) relationship).getTrackerType() )

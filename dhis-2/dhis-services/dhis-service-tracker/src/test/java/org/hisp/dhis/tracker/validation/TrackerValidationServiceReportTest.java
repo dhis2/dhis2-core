@@ -50,7 +50,6 @@ import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.report.TrackerWarningReport;
-import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.hooks.AbstractTrackerDtoValidationHook;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
@@ -68,12 +67,12 @@ class TrackerValidationServiceReportTest
 
         boolean removeOnError;
 
-        private TriConsumer<ValidationErrorReporter, TrackerImportValidationContext, Event> validateEvent;
+        private TriConsumer<TrackerValidationReport, TrackerImportValidationContext, Event> validateEvent;
 
-        private TriConsumer<ValidationErrorReporter, TrackerImportValidationContext, Enrollment> validateEnrollment;
+        private TriConsumer<TrackerValidationReport, TrackerImportValidationContext, Enrollment> validateEnrollment;
 
         @Override
-        public void validateEvent( ValidationErrorReporter reporter, TrackerImportValidationContext context,
+        public void validateEvent( TrackerValidationReport reporter, TrackerImportValidationContext context,
             Event event )
         {
             if ( this.validateEvent != null )
@@ -83,7 +82,7 @@ class TrackerValidationServiceReportTest
         }
 
         @Override
-        public void validateEnrollment( ValidationErrorReporter reporter, TrackerImportValidationContext context,
+        public void validateEnrollment( TrackerValidationReport reporter, TrackerImportValidationContext context,
             Enrollment enrollment )
         {
             if ( this.validateEnrollment != null )

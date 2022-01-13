@@ -38,7 +38,6 @@ import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.report.Timing;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
-import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -73,7 +72,11 @@ public class DefaultTrackerValidationService
 
     private TrackerValidationReport validate( TrackerBundle bundle, List<TrackerValidationHook> hooks )
     {
-        TrackerValidationReport validationReport = new TrackerValidationReport();
+        // Note that the bundle gets cloned internally, so the original bundle
+        // is always available
+        TrackerImportValidationContext context = new TrackerImportValidationContext( bundle );
+        TrackerValidationReport report = new TrackerValidationReport(
+            bundle.getValidationMode() == ValidationMode.FAIL_FAST );
 
         User user = bundle.getUser();
 
@@ -81,16 +84,8 @@ public class DefaultTrackerValidationService
         {
             log.warn( "Skipping validation for metadata import by user '" +
                 bundle.getUsername() + "'. Not recommended." );
-            return validationReport;
+            return report;
         }
-
-        // Note that the bundle gets cloned internally, so the original bundle
-        // is always available
-        TrackerImportValidationContext context = new TrackerImportValidationContext( bundle );
-        // TODO(TECH-880) remove reliance on context from reporter, then context
-        // altogether.
-        // the bundle is probably enough
-        ValidationErrorReporter reporter = new ValidationErrorReporter( context.getBundle().getValidationMode() );
 
         try
         {
@@ -98,9 +93,9 @@ public class DefaultTrackerValidationService
             {
                 Timer hookTimer = Timer.startTimer();
 
-                hook.validate( reporter, context );
+                hook.validate( report, context );
 
-                validationReport.addTiming( new Timing(
+                report.addTiming( new Timing(
                     hook.getClass().getName(),
                     hookTimer.toString() ) );
             }
@@ -109,30 +104,25 @@ public class DefaultTrackerValidationService
         {
             // exit early when in FAIL_FAST validation mode
         }
-        // TODO(TECH-880) can be removed once the ValidationErrorReporter is
-        // removed and we only work with TrackerValidationReport
-        validationReport
-            .addErrors( reporter.getReportList() )
-            .addWarnings( reporter.getWarningsReportList() );
 
-        removeInvalidObjects( bundle, reporter );
+        removeInvalidObjects( bundle, report );
 
-        return validationReport;
+        return report;
     }
 
-    private void removeInvalidObjects( TrackerBundle bundle, ValidationErrorReporter reporter )
+    private void removeInvalidObjects( TrackerBundle bundle, TrackerValidationReport report )
     {
         bundle.setEvents( bundle.getEvents().stream().filter(
-            e -> !reporter.isInvalid( e ) )
+            e -> !report.isInvalid( e ) )
             .collect( Collectors.toList() ) );
         bundle.setEnrollments( bundle.getEnrollments().stream().filter(
-            e -> !reporter.isInvalid( e ) )
+            e -> !report.isInvalid( e ) )
             .collect( Collectors.toList() ) );
         bundle.setTrackedEntities( bundle.getTrackedEntities().stream().filter(
-            e -> !reporter.isInvalid( e ) )
+            e -> !report.isInvalid( e ) )
             .collect( Collectors.toList() ) );
         bundle.setRelationships( bundle.getRelationships().stream().filter(
-            e -> !reporter.isInvalid( e ) )
+            e -> !report.isInvalid( e ) )
             .collect( Collectors.toList() ) );
     }
 }

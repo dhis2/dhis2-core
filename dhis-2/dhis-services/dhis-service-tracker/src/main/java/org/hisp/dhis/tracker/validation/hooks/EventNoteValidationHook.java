@@ -28,7 +28,7 @@
 package org.hisp.dhis.tracker.validation.hooks;
 
 import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
 
@@ -39,9 +39,9 @@ import org.springframework.stereotype.Component;
 public class EventNoteValidationHook extends AbstractTrackerDtoValidationHook
 {
     @Override
-    public void validateEvent( ValidationErrorReporter reporter, TrackerImportValidationContext context, Event event )
+    public void validateEvent( TrackerValidationReport report, TrackerImportValidationContext context, Event event )
     {
         event
-            .setNotes( ValidationUtils.validateNotes( reporter, context, event, event.getNotes() ) );
+            .setNotes( ValidationUtils.validateNotes( report, context, event, event.getNotes() ) );
     }
 }

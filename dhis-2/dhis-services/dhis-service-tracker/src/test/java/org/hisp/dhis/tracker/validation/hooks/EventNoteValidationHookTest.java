@@ -42,13 +42,12 @@ import java.util.stream.Collectors;
 import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Note;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -91,7 +90,7 @@ class EventNoteValidationHookTest
         when( ctx.getBundle() ).thenReturn( trackerBundle );
         when( trackerBundle.getPreheat() ).thenReturn( preheat );
         when( ctx.getNote( note.getNote() ) ).thenReturn( Optional.of( new TrackedEntityComment() ) );
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ValidationMode.FULL );
+        TrackerValidationReport reporter = new TrackerValidationReport();
 
         event.setNotes( Collections.singletonList( note ) );
 
@@ -100,7 +99,7 @@ class EventNoteValidationHookTest
 
         // Then
         assertTrue( reporter.hasWarnings() );
-        assertTrue( reporter.hasWarningReport( r -> TrackerErrorCode.E1119.equals( r.getWarningCode() ) &&
+        assertTrue( reporter.hasWarning( r -> TrackerErrorCode.E1119.equals( r.getWarningCode() ) &&
             TrackerType.EVENT.equals( r.getTrackerType() ) &&
             event.getUid().equals( r.getUid() ) ) );
         assertThat( event.getNotes(), hasSize( 0 ) );
@@ -117,7 +116,7 @@ class EventNoteValidationHookTest
 
         when( ctx.getBundle() ).thenReturn( trackerBundle );
         when( ctx.getNote( note.getNote() ) ).thenReturn( Optional.of( new TrackedEntityComment() ) );
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ValidationMode.FULL );
+        TrackerValidationReport reporter = new TrackerValidationReport();
 
         event.setNotes( Collections.singletonList( note ) );
 
@@ -138,7 +137,7 @@ class EventNoteValidationHookTest
         TrackerImportValidationContext ctx = mock( TrackerImportValidationContext.class );
 
         when( ctx.getBundle() ).thenReturn( trackerBundle );
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ValidationMode.FULL );
+        TrackerValidationReport reporter = new TrackerValidationReport();
 
         event.setNotes( notes );
 

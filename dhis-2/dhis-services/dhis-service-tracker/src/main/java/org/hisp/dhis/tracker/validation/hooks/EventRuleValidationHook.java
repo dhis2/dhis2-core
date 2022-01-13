@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
-import static org.hisp.dhis.tracker.validation.hooks.ValidationUtils.addIssuesToReporter;
+import static org.hisp.dhis.tracker.validation.hooks.ValidationUtils.addIssuesToreport;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
 import org.hisp.dhis.tracker.programrule.RuleActionImplementer;
-import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -58,7 +58,7 @@ public class EventRuleValidationHook
     }
 
     @Override
-    public void validateEvent( ValidationErrorReporter reporter, TrackerImportValidationContext context, Event event )
+    public void validateEvent( TrackerValidationReport report, TrackerImportValidationContext context, Event event )
     {
         List<ProgramRuleIssue> programRuleIssues = validators
             .stream()
@@ -67,6 +67,6 @@ public class EventRuleValidationHook
                     .getOrDefault( event.getEvent(), Lists.newArrayList() ).stream() )
             .collect( Collectors.toList() );
 
-        addIssuesToReporter( reporter, event, programRuleIssues );
+        addIssuesToreport( report, event, programRuleIssues );
     }
 }

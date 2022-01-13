@@ -28,7 +28,7 @@
 package org.hisp.dhis.tracker.validation.hooks;
 
 import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
 
@@ -39,10 +39,10 @@ import org.springframework.stereotype.Component;
 public class EnrollmentNoteValidationHook extends AbstractTrackerDtoValidationHook
 {
     @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, TrackerImportValidationContext context,
+    public void validateEnrollment( TrackerValidationReport report, TrackerImportValidationContext context,
         Enrollment enrollment )
     {
-        enrollment.setNotes( ValidationUtils.validateNotes( reporter, context, enrollment,
+        enrollment.setNotes( ValidationUtils.validateNotes( report, context, enrollment,
             enrollment.getNotes() ) );
     }
 }

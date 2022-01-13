@@ -39,7 +39,7 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
-import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
 
@@ -54,13 +54,13 @@ public class RepeatedEventsValidationHook
     extends AbstractTrackerDtoValidationHook
 {
     @Override
-    public void validate( ValidationErrorReporter reporter, TrackerImportValidationContext context )
+    public void validate( TrackerValidationReport report, TrackerImportValidationContext context )
     {
         TrackerBundle bundle = context.getBundle();
 
         Map<Pair<String, String>, List<Event>> eventsByEnrollmentAndNotRepeatableProgramStage = bundle.getEvents()
             .stream()
-            .filter( e -> !reporter.isInvalid( e ) )
+            .filter( e -> !report.isInvalid( e ) )
             .filter( e -> !context.getStrategy( e ).isDelete() )
             .filter( e -> {
                 ProgramStage programStage = context.getProgramStage( e.getProgramStage() );
@@ -81,16 +81,16 @@ public class RepeatedEventsValidationHook
                         .errorCode( TrackerErrorCode.E1039 )
                         .addArg( mapEntry.getKey().getLeft() )
                         .build();
-                    reporter.addError( error );
+                    report.addError( error );
                 }
             }
         }
 
         bundle.getEvents()
-            .forEach( e -> validateNotMultipleEvents( reporter, context, e ) );
+            .forEach( e -> validateNotMultipleEvents( report, context, e ) );
     }
 
-    private void validateNotMultipleEvents( ValidationErrorReporter reporter,
+    private void validateNotMultipleEvents( TrackerValidationReport report,
         TrackerImportValidationContext context, Event event )
     {
         ProgramInstance programInstance = context.getProgramInstance( event.getEnrollment() );
@@ -108,7 +108,7 @@ public class RepeatedEventsValidationHook
                 .errorCode( TrackerErrorCode.E1039 )
                 .addArg( event.getProgramStage() )
                 .build();
-            reporter.addError( error );
+            report.addError( error );
         }
     }
 

@@ -47,7 +47,7 @@ import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
-import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.tracker.validation.TrackerValidationHook;
 
@@ -64,8 +64,8 @@ public abstract class AbstractTrackerDtoValidationHook
         void accept( T t, U u, V v );
     }
 
-    private final Map<TrackerType, TriConsumer<ValidationErrorReporter, TrackerImportValidationContext, TrackerDto>> validationMap = ImmutableMap
-        .<TrackerType, TriConsumer<ValidationErrorReporter, TrackerImportValidationContext, TrackerDto>> builder()
+    private final Map<TrackerType, TriConsumer<TrackerValidationReport, TrackerImportValidationContext, TrackerDto>> validationMap = ImmutableMap
+        .<TrackerType, TriConsumer<TrackerValidationReport, TrackerImportValidationContext, TrackerDto>> builder()
         .put( TrackerType.TRACKED_ENTITY,
             (( report, context, dto ) -> validateTrackedEntity( report, context, (TrackedEntity) dto )) )
         .put( TrackerType.ENROLLMENT,
@@ -86,11 +86,11 @@ public abstract class AbstractTrackerDtoValidationHook
      * Template method Must be implemented if dtoTypeClass == Event or
      * dtoTypeClass == null
      *
-     * @param reporter ValidationErrorReporter instance
+     * @param report TrackerValidationReport instance
      * @param context TrackerValidationContext
      * @param event entity to validate
      */
-    public void validateEvent( ValidationErrorReporter reporter, TrackerImportValidationContext context, Event event )
+    public void validateEvent( TrackerValidationReport report, TrackerImportValidationContext context, Event event )
     {
     }
 
@@ -98,11 +98,11 @@ public abstract class AbstractTrackerDtoValidationHook
      * Template method Must be implemented if dtoTypeClass == Enrollment or
      * dtoTypeClass == null
      *
-     * @param reporter ValidationErrorReporter instance
+     * @param report TrackerValidationReport instance
      * @param context TrackerValidationContext
      * @param enrollment entity to validate
      */
-    public void validateEnrollment( ValidationErrorReporter reporter, TrackerImportValidationContext context,
+    public void validateEnrollment( TrackerValidationReport report, TrackerImportValidationContext context,
         Enrollment enrollment )
     {
     }
@@ -111,11 +111,11 @@ public abstract class AbstractTrackerDtoValidationHook
      * Template method Must be implemented if dtoTypeClass == Relationship or
      * dtoTypeClass == null
      *
-     * @param reporter ValidationErrorReporter instance
+     * @param report TrackerValidationReport instance
      * @param context TrackerValidationContext
      * @param relationship entity to validate
      */
-    public void validateRelationship( ValidationErrorReporter reporter, TrackerImportValidationContext context,
+    public void validateRelationship( TrackerValidationReport report, TrackerImportValidationContext context,
         Relationship relationship )
     {
     }
@@ -124,21 +124,21 @@ public abstract class AbstractTrackerDtoValidationHook
      * Template method Must be implemented if dtoTypeClass == TrackedEntity or
      * dtoTypeClass == null
      *
-     * @param reporter ValidationErrorReporter instance
+     * @param report TrackerValidationReport instance
      * @param context TrackerValidationContext
      * @param tei entity to validate
      */
-    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackerImportValidationContext context,
+    public void validateTrackedEntity( TrackerValidationReport report, TrackerImportValidationContext context,
         TrackedEntity tei )
     {
     }
 
-    protected <T extends ValueTypedDimensionalItemObject> void validateOptionSet( ValidationErrorReporter reporter,
+    protected <T extends ValueTypedDimensionalItemObject> void validateOptionSet( TrackerValidationReport report,
         TrackerDto dto,
         T optionalObject, String value )
     {
         Optional.ofNullable( optionalObject.getOptionSet() )
-            .ifPresent( optionSet -> reporter.addErrorIf(
+            .ifPresent( optionSet -> report.addErrorIf(
                 () -> optionSet.getOptions().stream().filter( Objects::nonNull )
                     .noneMatch( o -> o.getCode().equalsIgnoreCase( value ) ),
                 () -> TrackerErrorReport.builder()
@@ -161,7 +161,7 @@ public abstract class AbstractTrackerDtoValidationHook
      * @param context validation context
      */
     @Override
-    public void validate( ValidationErrorReporter reporter, TrackerImportValidationContext context )
+    public void validate( TrackerValidationReport report, TrackerImportValidationContext context )
     {
         TrackerBundle bundle = context.getBundle();
         /*
@@ -171,13 +171,13 @@ public abstract class AbstractTrackerDtoValidationHook
          * removed from the bundle.
          */
 
-        validateTrackerDtos( reporter, context, bundle.getTrackedEntities() );
-        validateTrackerDtos( reporter, context, bundle.getEnrollments() );
-        validateTrackerDtos( reporter, context, bundle.getEvents() );
-        validateTrackerDtos( reporter, context, bundle.getRelationships() );
+        validateTrackerDtos( report, context, bundle.getTrackedEntities() );
+        validateTrackerDtos( report, context, bundle.getEnrollments() );
+        validateTrackerDtos( report, context, bundle.getEvents() );
+        validateTrackerDtos( report, context, bundle.getRelationships() );
     }
 
-    private void validateTrackerDtos( ValidationErrorReporter reporter, TrackerImportValidationContext context,
+    private void validateTrackerDtos( TrackerValidationReport report, TrackerImportValidationContext context,
         List<? extends TrackerDto> dtos )
     {
         Iterator<? extends TrackerDto> iter = dtos.iterator();
@@ -186,8 +186,8 @@ public abstract class AbstractTrackerDtoValidationHook
             TrackerDto dto = iter.next();
             if ( needsToRun( context.getStrategy( dto ) ) )
             {
-                validationMap.get( dto.getTrackerType() ).accept( reporter, context, dto );
-                if ( removeOnError() && didNotPassValidation( reporter, dto.getUid() ) )
+                validationMap.get( dto.getTrackerType() ).accept( report, context, dto );
+                if ( removeOnError() && didNotPassValidation( report, dto.getUid() ) )
                 {
                     iter.remove();
                 }
@@ -210,8 +210,8 @@ public abstract class AbstractTrackerDtoValidationHook
         return false;
     }
 
-    private boolean didNotPassValidation( ValidationErrorReporter reporter, String uid )
+    private boolean didNotPassValidation( TrackerValidationReport report, String uid )
     {
-        return reporter.getReportList().stream().anyMatch( r -> r.getUid().equals( uid ) );
+        return report.getErrors().stream().anyMatch( r -> r.getUid().equals( uid ) );
     }
 }

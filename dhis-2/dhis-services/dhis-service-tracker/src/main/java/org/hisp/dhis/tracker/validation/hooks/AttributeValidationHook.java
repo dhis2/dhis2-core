@@ -43,7 +43,7 @@ import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.preheat.UniqueAttributeValue;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
-import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.tracker.validation.service.attribute.TrackedAttributeValidationService;
 
@@ -60,7 +60,7 @@ public abstract class AttributeValidationHook extends AbstractTrackerDtoValidati
         this.teAttrService = teAttrService;
     }
 
-    protected void validateAttrValueType( ValidationErrorReporter errorReporter, TrackerImportValidationContext context,
+    protected void validateAttrValueType( TrackerValidationReport report, TrackerImportValidationContext context,
         TrackerDto dto, Attribute attr,
         TrackedEntityAttribute teAttr )
     {
@@ -107,11 +107,11 @@ public abstract class AttributeValidationHook extends AbstractTrackerDtoValidati
                 .addArg( valueType.toString() )
                 .addArg( error )
                 .build();
-            errorReporter.addError( err );
+            report.addError( err );
         }
     }
 
-    protected void validateAttributeUniqueness( ValidationErrorReporter errorReporter,
+    protected void validateAttributeUniqueness( TrackerValidationReport report,
         TrackerImportValidationContext context,
         TrackerDto dto,
         String value,
@@ -150,7 +150,7 @@ public abstract class AttributeValidationHook extends AbstractTrackerDtoValidati
                     .addArg( value )
                     .addArg( trackedEntityAttribute.getUid() )
                     .build();
-                errorReporter.addError( err );
+                report.addError( err );
                 return;
             }
         }

@@ -34,7 +34,7 @@ import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1043;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1046;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1047;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1050;
-import static org.hisp.dhis.tracker.validation.hooks.AssertValidationErrorReporter.hasTrackerError;
+import static org.hisp.dhis.tracker.validation.hooks.AssertValidationReport.hasError;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.Mockito.when;
 
@@ -52,7 +52,7 @@ import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
@@ -115,7 +115,7 @@ class EventDateValidationHookTest extends DhisConvenienceTest
 
         when( validationContext.getBundle() ).thenReturn( bundle );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter();
+        TrackerValidationReport reporter = new TrackerValidationReport();
 
         // when
         this.hookToTest.validateEvent( reporter, validationContext, event );
@@ -132,13 +132,13 @@ class EventDateValidationHookTest extends DhisConvenienceTest
         event.setEvent( CodeGenerator.generateUid() );
         event.setProgram( PROGRAM_WITHOUT_REGISTRATION_ID );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter();
+        TrackerValidationReport reporter = new TrackerValidationReport();
 
         // when
         this.hookToTest.validateEvent( reporter, validationContext, event );
 
         // then
-        hasTrackerError( reporter, E1031, EVENT, event.getUid() );
+        hasError( reporter, E1031, EVENT, event.getUid() );
     }
 
     @Test
@@ -150,13 +150,13 @@ class EventDateValidationHookTest extends DhisConvenienceTest
         event.setProgram( PROGRAM_WITH_REGISTRATION_ID );
         event.setStatus( EventStatus.ACTIVE );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter();
+        TrackerValidationReport reporter = new TrackerValidationReport();
 
         // when
         this.hookToTest.validateEvent( reporter, validationContext, event );
 
         // then
-        hasTrackerError( reporter, E1031, EVENT, event.getUid() );
+        hasError( reporter, E1031, EVENT, event.getUid() );
     }
 
     @Test
@@ -168,13 +168,13 @@ class EventDateValidationHookTest extends DhisConvenienceTest
         event.setProgram( PROGRAM_WITH_REGISTRATION_ID );
         event.setStatus( EventStatus.COMPLETED );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter();
+        TrackerValidationReport reporter = new TrackerValidationReport();
 
         // when
         this.hookToTest.validateEvent( reporter, validationContext, event );
 
         // then
-        hasTrackerError( reporter, E1031, EVENT, event.getUid() );
+        hasError( reporter, E1031, EVENT, event.getUid() );
     }
 
     @Test
@@ -187,13 +187,13 @@ class EventDateValidationHookTest extends DhisConvenienceTest
         event.setOccurredAt( Instant.now() );
         event.setStatus( EventStatus.SCHEDULE );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter();
+        TrackerValidationReport reporter = new TrackerValidationReport();
 
         // when
         this.hookToTest.validateEvent( reporter, validationContext, event );
 
         // then
-        hasTrackerError( reporter, E1050, EVENT, event.getUid() );
+        hasError( reporter, E1050, EVENT, event.getUid() );
     }
 
     @Test
@@ -206,13 +206,13 @@ class EventDateValidationHookTest extends DhisConvenienceTest
         event.setOccurredAt( now() );
         event.setStatus( EventStatus.COMPLETED );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter();
+        TrackerValidationReport reporter = new TrackerValidationReport();
 
         // when
         this.hookToTest.validateEvent( reporter, validationContext, event );
 
         // then
-        hasTrackerError( reporter, E1042, EVENT, event.getUid() );
+        hasError( reporter, E1042, EVENT, event.getUid() );
     }
 
     @Test
@@ -226,13 +226,13 @@ class EventDateValidationHookTest extends DhisConvenienceTest
         event.setCompletedAt( sevenDaysAgo() );
         event.setStatus( EventStatus.COMPLETED );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter();
+        TrackerValidationReport reporter = new TrackerValidationReport();
 
         // when
         this.hookToTest.validateEvent( reporter, validationContext, event );
 
         // then
-        hasTrackerError( reporter, E1043, EVENT, event.getUid() );
+        hasError( reporter, E1043, EVENT, event.getUid() );
     }
 
     @Test
@@ -246,13 +246,13 @@ class EventDateValidationHookTest extends DhisConvenienceTest
         event.setScheduledAt( null );
         event.setStatus( EventStatus.SKIPPED );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter();
+        TrackerValidationReport reporter = new TrackerValidationReport();
 
         // when
         this.hookToTest.validateEvent( reporter, validationContext, event );
 
         // then
-        hasTrackerError( reporter, E1046, EVENT, event.getUid() );
+        hasError( reporter, E1046, EVENT, event.getUid() );
     }
 
     @Test
@@ -265,13 +265,13 @@ class EventDateValidationHookTest extends DhisConvenienceTest
         event.setOccurredAt( sevenDaysAgo() );
         event.setStatus( EventStatus.ACTIVE );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter();
+        TrackerValidationReport reporter = new TrackerValidationReport();
 
         // when
         this.hookToTest.validateEvent( reporter, validationContext, event );
 
         // then
-        hasTrackerError( reporter, E1047, EVENT, event.getUid() );
+        hasError( reporter, E1047, EVENT, event.getUid() );
     }
 
     private Program getProgramWithRegistration()

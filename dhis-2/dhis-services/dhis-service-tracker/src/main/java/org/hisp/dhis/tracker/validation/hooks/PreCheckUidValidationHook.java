@@ -38,7 +38,7 @@ import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
-import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
 
@@ -50,7 +50,7 @@ public class PreCheckUidValidationHook
     extends AbstractTrackerDtoValidationHook
 {
     @Override
-    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackerImportValidationContext context,
+    public void validateTrackedEntity( TrackerValidationReport report, TrackerImportValidationContext context,
         TrackedEntity trackedEntity )
     {
         if ( !CodeGenerator.isValidUid( trackedEntity.getTrackedEntity() ) )
@@ -63,12 +63,12 @@ public class PreCheckUidValidationHook
                 .addArg( trackedEntity )
                 .addArg( trackedEntity.getTrackedEntity() )
                 .build();
-            reporter.addError( error );
+            report.addError( error );
         }
     }
 
     @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, TrackerImportValidationContext context,
+    public void validateEnrollment( TrackerValidationReport report, TrackerImportValidationContext context,
         Enrollment enrollment )
     {
         if ( !CodeGenerator.isValidUid( enrollment.getEnrollment() ) )
@@ -81,14 +81,14 @@ public class PreCheckUidValidationHook
                 .addArg( enrollment )
                 .addArg( enrollment.getEnrollment() )
                 .build();
-            reporter.addError( error );
+            report.addError( error );
         }
 
-        validateNotesUid( enrollment.getNotes(), reporter, enrollment );
+        validateNotesUid( enrollment.getNotes(), report, enrollment );
     }
 
     @Override
-    public void validateEvent( ValidationErrorReporter reporter, TrackerImportValidationContext context, Event event )
+    public void validateEvent( TrackerValidationReport report, TrackerImportValidationContext context, Event event )
     {
         if ( !CodeGenerator.isValidUid( event.getEvent() ) )
         {
@@ -100,14 +100,14 @@ public class PreCheckUidValidationHook
                 .addArg( event )
                 .addArg( event.getEvent() )
                 .build();
-            reporter.addError( error );
+            report.addError( error );
         }
 
-        validateNotesUid( event.getNotes(), reporter, event );
+        validateNotesUid( event.getNotes(), report, event );
     }
 
     @Override
-    public void validateRelationship( ValidationErrorReporter reporter, TrackerImportValidationContext context,
+    public void validateRelationship( TrackerValidationReport report, TrackerImportValidationContext context,
         Relationship relationship )
     {
         if ( !CodeGenerator.isValidUid( relationship.getRelationship() ) )
@@ -120,11 +120,11 @@ public class PreCheckUidValidationHook
                 .addArg( relationship )
                 .addArg( relationship.getRelationship() )
                 .build();
-            reporter.addError( error );
+            report.addError( error );
         }
     }
 
-    private void validateNotesUid( List<Note> notes, ValidationErrorReporter reporter, TrackerDto dto )
+    private void validateNotesUid( List<Note> notes, TrackerValidationReport report, TrackerDto dto )
     {
         for ( Note note : notes )
         {
@@ -138,7 +138,7 @@ public class PreCheckUidValidationHook
                     .addArg( note )
                     .addArg( note.getNote() )
                     .build();
-                reporter.addError( error );
+                report.addError( error );
             }
         }
     }

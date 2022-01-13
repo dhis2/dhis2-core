@@ -53,7 +53,7 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -122,11 +122,11 @@ class EventDataValuesValidationHookTest
         when( event.getDataValues() ).thenReturn( Sets.newHashSet( getDataValue() ) );
 
         // When
-        ValidationErrorReporter reporter = new ValidationErrorReporter();
+        TrackerValidationReport reporter = new TrackerValidationReport();
         hookToTest.validateEvent( reporter, validationContext, event );
 
         // Then
-        assertThat( reporter.getReportList(), empty() );
+        assertThat( reporter.getErrors(), empty() );
     }
 
     @Test
@@ -138,11 +138,11 @@ class EventDataValuesValidationHookTest
         when( event.getDataValues() ).thenReturn( Sets.newHashSet( validDataValue ) );
 
         // When
-        ValidationErrorReporter reporter = new ValidationErrorReporter();
+        TrackerValidationReport reporter = new TrackerValidationReport();
         hookToTest.validateEvent( reporter, validationContext, event );
 
         // Then
-        assertThat( reporter.getReportList(), hasSize( 0 ) );
+        assertThat( reporter.getErrors(), hasSize( 0 ) );
     }
 
     @Test
@@ -154,11 +154,11 @@ class EventDataValuesValidationHookTest
         when( event.getDataValues() ).thenReturn( Sets.newHashSet( validDataValue ) );
 
         // When
-        ValidationErrorReporter reporter = new ValidationErrorReporter();
+        TrackerValidationReport reporter = new TrackerValidationReport();
         hookToTest.validateEvent( reporter, validationContext, event );
 
         // Then
-        assertThat( reporter.getReportList(), hasSize( 0 ) );
+        assertThat( reporter.getErrors(), hasSize( 0 ) );
     }
 
     @Test
@@ -171,12 +171,12 @@ class EventDataValuesValidationHookTest
         when( event.getDataValues() ).thenReturn( Sets.newHashSet( validDataValue ) );
         when( validationContext.getDataElement( dataElementUid ) ).thenReturn( null );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter();
+        TrackerValidationReport reporter = new TrackerValidationReport();
         hookToTest.validateEvent( reporter, validationContext, event );
 
         // Then
-        assertThat( reporter.getReportList(), hasSize( 1 ) );
-        assertEquals( TrackerErrorCode.E1304, reporter.getReportList().get( 0 ).getErrorCode() );
+        assertThat( reporter.getErrors(), hasSize( 1 ) );
+        assertEquals( TrackerErrorCode.E1304, reporter.getErrors().get( 0 ).getErrorCode() );
     }
 
     @Test
@@ -204,12 +204,12 @@ class EventDataValuesValidationHookTest
         when( validationContext.getProgramStage( "PROGRAM_STAGE" ) ).thenReturn( programStage );
 
         // When
-        ValidationErrorReporter reporter = new ValidationErrorReporter();
+        TrackerValidationReport reporter = new TrackerValidationReport();
         hookToTest.validateEvent( reporter, validationContext, event );
 
         // Then
-        assertThat( reporter.getReportList(), hasSize( 1 ) );
-        assertEquals( TrackerErrorCode.E1303, reporter.getReportList().get( 0 ).getErrorCode() );
+        assertThat( reporter.getErrors(), hasSize( 1 ) );
+        assertEquals( TrackerErrorCode.E1303, reporter.getErrors().get( 0 ).getErrorCode() );
     }
 
     @Test
@@ -236,11 +236,11 @@ class EventDataValuesValidationHookTest
         when( validationContext.getProgramStage( "PROGRAM_STAGE" ) ).thenReturn( programStage );
 
         // When
-        ValidationErrorReporter reporter = new ValidationErrorReporter();
+        TrackerValidationReport reporter = new TrackerValidationReport();
         hookToTest.validateEvent( reporter, validationContext, event );
 
         // Then
-        assertThat( reporter.getReportList(), empty() );
+        assertThat( reporter.getErrors(), empty() );
     }
 
     @Test
@@ -270,12 +270,12 @@ class EventDataValuesValidationHookTest
             .thenReturn( notPresentDataElement );
 
         // When
-        ValidationErrorReporter reporter = new ValidationErrorReporter();
+        TrackerValidationReport reporter = new TrackerValidationReport();
         hookToTest.validateEvent( reporter, validationContext, event );
 
         // Then
-        assertThat( reporter.getReportList(), hasSize( 1 ) );
-        assertEquals( TrackerErrorCode.E1305, reporter.getReportList().get( 0 ).getErrorCode() );
+        assertThat( reporter.getErrors(), hasSize( 1 ) );
+        assertEquals( TrackerErrorCode.E1305, reporter.getErrors().get( 0 ).getErrorCode() );
     }
 
     @Test
@@ -292,12 +292,12 @@ class EventDataValuesValidationHookTest
         when( event.getDataValues() ).thenReturn( Sets.newHashSet( validDataValue ) );
 
         // When
-        ValidationErrorReporter reporter = new ValidationErrorReporter();
+        TrackerValidationReport reporter = new TrackerValidationReport();
         hookToTest.validateEvent( reporter, validationContext, event );
 
         // Then
-        assertThat( reporter.getReportList(), hasSize( 1 ) );
-        assertEquals( TrackerErrorCode.E1302, reporter.getReportList().get( 0 ).getErrorCode() );
+        assertThat( reporter.getErrors(), hasSize( 1 ) );
+        assertEquals( TrackerErrorCode.E1302, reporter.getErrors().get( 0 ).getErrorCode() );
     }
 
     @Test
@@ -316,12 +316,12 @@ class EventDataValuesValidationHookTest
         when( event.getDataValues() ).thenReturn( Sets.newHashSet( validDataValue ) );
 
         // When
-        ValidationErrorReporter reporter = new ValidationErrorReporter();
+        TrackerValidationReport reporter = new TrackerValidationReport();
         hookToTest.validateEvent( reporter, validationContext, event );
 
         // Then
-        assertThat( reporter.getReportList(), hasSize( 1 ) );
-        assertEquals( TrackerErrorCode.E1084, reporter.getReportList().get( 0 ).getErrorCode() );
+        assertThat( reporter.getErrors(), hasSize( 1 ) );
+        assertEquals( TrackerErrorCode.E1084, reporter.getErrors().get( 0 ).getErrorCode() );
     }
 
     @Test
@@ -343,11 +343,11 @@ class EventDataValuesValidationHookTest
         when( validationContext.getDataElement( validDataValue.getDataElement() ) ).thenReturn( validDataElement );
 
         // When
-        ValidationErrorReporter reporter = new ValidationErrorReporter();
+        TrackerValidationReport reporter = new TrackerValidationReport();
         hookToTest.validateEvent( reporter, validationContext, event );
 
         // Then
-        assertThat( reporter.getReportList(), hasSize( 0 ) );
+        assertThat( reporter.getErrors(), hasSize( 0 ) );
     }
 
     @Test
@@ -373,12 +373,12 @@ class EventDataValuesValidationHookTest
         when( validationContext.getProgramStage( event.getProgramStage() ) ).thenReturn( programStage );
 
         // When
-        ValidationErrorReporter reporter = new ValidationErrorReporter();
+        TrackerValidationReport reporter = new TrackerValidationReport();
         hookToTest.validateEvent( reporter, validationContext, event );
 
         // Then
-        assertThat( reporter.getReportList(), hasSize( 1 ) );
-        assertEquals( TrackerErrorCode.E1076, reporter.getReportList().get( 0 ).getErrorCode() );
+        assertThat( reporter.getErrors(), hasSize( 1 ) );
+        assertEquals( TrackerErrorCode.E1076, reporter.getErrors().get( 0 ).getErrorCode() );
     }
 
     @Test
@@ -405,22 +405,22 @@ class EventDataValuesValidationHookTest
         when( event.getStatus() ).thenReturn( EventStatus.ACTIVE );
 
         // When
-        ValidationErrorReporter reporter = new ValidationErrorReporter();
+        TrackerValidationReport reporter = new TrackerValidationReport();
         hookToTest.validateEvent( reporter, validationContext, event );
 
         // Then
-        assertThat( reporter.getReportList(), hasSize( 1 ) );
-        assertEquals( TrackerErrorCode.E1076, reporter.getReportList().get( 0 ).getErrorCode() );
+        assertThat( reporter.getErrors(), hasSize( 1 ) );
+        assertEquals( TrackerErrorCode.E1076, reporter.getErrors().get( 0 ).getErrorCode() );
 
         when( event.getStatus() ).thenReturn( EventStatus.COMPLETED );
 
         // When
-        reporter = new ValidationErrorReporter();
+        reporter = new TrackerValidationReport();
         hookToTest.validateEvent( reporter, validationContext, event );
 
         // Then
-        assertThat( reporter.getReportList(), hasSize( 1 ) );
-        assertEquals( TrackerErrorCode.E1076, reporter.getReportList().get( 0 ).getErrorCode() );
+        assertThat( reporter.getErrors(), hasSize( 1 ) );
+        assertEquals( TrackerErrorCode.E1076, reporter.getErrors().get( 0 ).getErrorCode() );
     }
 
     @Test
@@ -446,21 +446,21 @@ class EventDataValuesValidationHookTest
         when( event.getStatus() ).thenReturn( EventStatus.ACTIVE );
 
         // When
-        ValidationErrorReporter reporter = new ValidationErrorReporter();
+        TrackerValidationReport reporter = new TrackerValidationReport();
         hookToTest.validateEvent( reporter, validationContext, event );
 
         // Then
-        assertThat( reporter.getReportList(), hasSize( 0 ) );
+        assertThat( reporter.getErrors(), hasSize( 0 ) );
 
         when( event.getStatus() ).thenReturn( EventStatus.COMPLETED );
 
         // When
-        reporter = new ValidationErrorReporter();
+        reporter = new TrackerValidationReport();
         hookToTest.validateEvent( reporter, validationContext, event );
 
         // Then
-        assertThat( reporter.getReportList(), hasSize( 1 ) );
-        assertEquals( TrackerErrorCode.E1076, reporter.getReportList().get( 0 ).getErrorCode() );
+        assertThat( reporter.getErrors(), hasSize( 1 ) );
+        assertEquals( TrackerErrorCode.E1076, reporter.getErrors().get( 0 ).getErrorCode() );
     }
 
     @Test
@@ -485,20 +485,20 @@ class EventDataValuesValidationHookTest
         when( event.getStatus() ).thenReturn( EventStatus.SCHEDULE );
 
         // When
-        ValidationErrorReporter reporter = new ValidationErrorReporter();
+        TrackerValidationReport reporter = new TrackerValidationReport();
         hookToTest.validateEvent( reporter, validationContext, event );
 
         // Then
-        assertThat( reporter.getReportList(), hasSize( 0 ) );
+        assertThat( reporter.getErrors(), hasSize( 0 ) );
 
         when( event.getStatus() ).thenReturn( EventStatus.SKIPPED );
 
         // When
-        reporter = new ValidationErrorReporter();
+        reporter = new TrackerValidationReport();
         hookToTest.validateEvent( reporter, validationContext, event );
 
         // Then
-        assertThat( reporter.getReportList(), hasSize( 0 ) );
+        assertThat( reporter.getErrors(), hasSize( 0 ) );
     }
 
     @Test
@@ -524,11 +524,11 @@ class EventDataValuesValidationHookTest
         when( event.getStatus() ).thenReturn( EventStatus.COMPLETED );
 
         // When
-        ValidationErrorReporter reporter = new ValidationErrorReporter();
+        TrackerValidationReport reporter = new TrackerValidationReport();
         hookToTest.validateEvent( reporter, validationContext, event );
 
         // Then
-        assertThat( reporter.getReportList(), hasSize( 0 ) );
+        assertThat( reporter.getErrors(), hasSize( 0 ) );
     }
 
     @Test
@@ -550,12 +550,12 @@ class EventDataValuesValidationHookTest
         when( event.getDataValues() ).thenReturn( Sets.newHashSet( validDataValue ) );
 
         // When
-        ValidationErrorReporter reporter = new ValidationErrorReporter();
+        TrackerValidationReport reporter = new TrackerValidationReport();
         hookToTest.validateEvent( reporter, validationContext, event );
 
         // Then
-        assertThat( reporter.getReportList(), hasSize( 1 ) );
-        assertEquals( TrackerErrorCode.E1009, reporter.getReportList().get( 0 ).getErrorCode() );
+        assertThat( reporter.getErrors(), hasSize( 1 ) );
+        assertEquals( TrackerErrorCode.E1009, reporter.getErrors().get( 0 ).getErrorCode() );
     }
 
     @Test
@@ -604,11 +604,11 @@ class EventDataValuesValidationHookTest
         when( validationContext.getDataElement( dataElementUid ) ).thenReturn( dataElement );
         when( event.getDataValues() ).thenReturn( Sets.newHashSet( validDataValue, nullDataValue ) );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter();
+        TrackerValidationReport reporter = new TrackerValidationReport();
         hookToTest.validateEvent( reporter, validationContext, event );
 
         assertFalse( reporter.hasErrors() );
-        assertThat( reporter.getReportList(), hasSize( 0 ) );
+        assertThat( reporter.getErrors(), hasSize( 0 ) );
     }
 
     @Test
@@ -636,12 +636,12 @@ class EventDataValuesValidationHookTest
         when( validationContext.getDataElement( dataElementUid ) ).thenReturn( dataElement );
         when( event.getDataValues() ).thenReturn( Sets.newHashSet( validDataValue ) );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter();
+        TrackerValidationReport reporter = new TrackerValidationReport();
         hookToTest.validateEvent( reporter, validationContext, event );
 
         assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList(), hasSize( 1 ) );
-        assertEquals( 1, reporter.getReportList().stream()
+        assertThat( reporter.getErrors(), hasSize( 1 ) );
+        assertEquals( 1, reporter.getErrors().stream()
             .filter( e -> e.getErrorCode() == TrackerErrorCode.E1125 ).count() );
     }
 
@@ -660,12 +660,12 @@ class EventDataValuesValidationHookTest
         when( event.getDataValues() ).thenReturn( Sets.newHashSet( validDataValue ) );
 
         // When
-        ValidationErrorReporter reporter = new ValidationErrorReporter();
+        TrackerValidationReport reporter = new TrackerValidationReport();
         hookToTest.validateEvent( reporter, validationContext, event );
 
         // Then
-        assertThat( reporter.getReportList(), hasSize( 1 ) );
-        assertEquals( TrackerErrorCode.E1302, reporter.getReportList().get( 0 ).getErrorCode() );
+        assertThat( reporter.getErrors(), hasSize( 1 ) );
+        assertEquals( TrackerErrorCode.E1302, reporter.getErrors().get( 0 ).getErrorCode() );
     }
 
     private DataValue getDataValue()

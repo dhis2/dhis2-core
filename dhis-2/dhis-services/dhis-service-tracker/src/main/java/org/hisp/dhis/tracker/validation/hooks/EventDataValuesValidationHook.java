@@ -51,7 +51,7 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
-import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
 
@@ -63,7 +63,7 @@ public class EventDataValuesValidationHook
     extends AbstractTrackerDtoValidationHook
 {
     @Override
-    public void validateEvent( ValidationErrorReporter reporter, TrackerImportValidationContext context, Event event )
+    public void validateEvent( TrackerValidationReport report, TrackerImportValidationContext context, Event event )
     {
         ProgramStage programStage = context.getProgramStage( event.getProgramStage() );
 
@@ -83,23 +83,23 @@ public class EventDataValuesValidationHook
                     .errorCode( TrackerErrorCode.E1304 )
                     .addArg( dataValue.getDataElement() )
                     .build();
-                reporter.addError( error );
+                report.addError( error );
                 continue;
             }
 
-            validateDataElement( reporter, context, dataElement, dataValue, programStage, event );
+            validateDataElement( report, context, dataElement, dataValue, programStage, event );
             if ( dataValue.getValue() != null )
             {
-                validateOptionSet( reporter, event, dataElement, dataValue.getValue() );
+                validateOptionSet( report, event, dataElement, dataValue.getValue() );
             }
         }
 
-        validateMandatoryDataValues( event, context, reporter );
-        validateDataValueDataElementIsConnectedToProgramStage( reporter, event, programStage );
+        validateMandatoryDataValues( event, context, report );
+        validateDataValueDataElementIsConnectedToProgramStage( report, event, programStage );
     }
 
     private void validateMandatoryDataValues( Event event, TrackerImportValidationContext context,
-        ValidationErrorReporter reporter )
+        TrackerValidationReport report )
     {
         if ( StringUtils.isNotEmpty( event.getProgramStage() ) )
         {
@@ -118,12 +118,12 @@ public class EventDataValuesValidationHook
                     .errorCode( E1303 )
                     .addArg( de )
                     .build();
-                reporter.addError( error );
+                report.addError( error );
             } );
         }
     }
 
-    private void validateDataElement( ValidationErrorReporter reporter, TrackerImportValidationContext context,
+    private void validateDataElement( TrackerValidationReport report, TrackerImportValidationContext context,
         DataElement dataElement,
         DataValue dataValue, ProgramStage programStage, Event event )
     {
@@ -138,16 +138,16 @@ public class EventDataValuesValidationHook
                 .addArg( dataElement.getUid() )
                 .addArg( status )
                 .build();
-            reporter.addError( error );
+            report.addError( error );
         }
         else
         {
-            validateNullDataValues( reporter, dataElement, programStage, dataValue, event );
-            validateFileNotAlreadyAssigned( reporter, context, event, dataValue, dataElement );
+            validateNullDataValues( report, dataElement, programStage, dataValue, event );
+            validateFileNotAlreadyAssigned( report, context, event, dataValue, dataElement );
         }
     }
 
-    private void validateNullDataValues( ValidationErrorReporter reporter, DataElement dataElement,
+    private void validateNullDataValues( TrackerValidationReport report, DataElement dataElement,
         ProgramStage programStage, DataValue dataValue, Event event )
     {
         if ( dataValue.getValue() != null || !needsToValidateDataValues( event, programStage ) )
@@ -170,11 +170,11 @@ public class EventDataValuesValidationHook
                 .addArg( DataElement.class.getSimpleName() )
                 .addArg( dataElement.getUid() )
                 .build();
-            reporter.addError( error );
+            report.addError( error );
         }
     }
 
-    private void validateDataValueDataElementIsConnectedToProgramStage( ValidationErrorReporter reporter, Event event,
+    private void validateDataValueDataElementIsConnectedToProgramStage( TrackerValidationReport report, Event event,
         ProgramStage programStage )
     {
         final Set<String> dataElements = programStage.getProgramStageDataElements()
@@ -197,12 +197,12 @@ public class EventDataValuesValidationHook
                     .addArg( payloadDataElement )
                     .addArg( programStage.getUid() )
                     .build();
-                reporter.addError( error );
+                report.addError( error );
             }
         }
     }
 
-    private void validateFileNotAlreadyAssigned( ValidationErrorReporter reporter,
+    private void validateFileNotAlreadyAssigned( TrackerValidationReport report,
         TrackerImportValidationContext context, Event event, DataValue dataValue,
         DataElement dataElement )
     {
@@ -219,13 +219,13 @@ public class EventDataValuesValidationHook
 
         FileResource fileResource = context.getFileResource( dataValue.getValue() );
 
-        reporter.addErrorIf( () -> fileResource == null, () -> TrackerErrorReport.builder()
+        report.addErrorIf( () -> fileResource == null, () -> TrackerErrorReport.builder()
             .uid( ((TrackerDto) event).getUid() )
             .trackerType( ((TrackerDto) event).getTrackerType() )
             .errorCode( E1084 )
             .addArg( dataValue.getValue() )
             .build() );
-        reporter.addErrorIf( () -> fileResource != null && fileResource.isAssigned(), () -> TrackerErrorReport.builder()
+        report.addErrorIf( () -> fileResource != null && fileResource.isAssigned(), () -> TrackerErrorReport.builder()
             .uid( ((TrackerDto) event).getUid() )
             .trackerType( ((TrackerDto) event).getTrackerType() )
             .errorCode( E1009 )

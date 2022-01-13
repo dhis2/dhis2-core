@@ -55,7 +55,7 @@ import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.preheat.ReferenceTrackerEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
-import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.tracker.validation.service.attribute.TrackedAttributeValidationService;
 import org.springframework.stereotype.Component;
@@ -76,7 +76,7 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
     }
 
     @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, TrackerImportValidationContext context,
+    public void validateEnrollment( TrackerValidationReport report, TrackerImportValidationContext context,
         Enrollment enrollment )
     {
         Program program = context.getProgram( enrollment.getProgram() );
@@ -91,7 +91,7 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
 
         for ( Attribute attribute : enrollment.getAttributes() )
         {
-            validateRequiredProperties( reporter, context, enrollment, attribute, program );
+            validateRequiredProperties( report, context, enrollment, attribute, program );
 
             TrackedEntityAttribute teAttribute = context.getTrackedEntityAttribute( attribute.getAttribute() );
 
@@ -100,11 +100,11 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
 
                 attributeValueMap.put( attribute.getAttribute(), attribute.getValue() );
 
-                validateAttrValueType( reporter, context, enrollment, attribute, teAttribute );
-                validateOptionSet( reporter, enrollment, teAttribute,
+                validateAttrValueType( report, context, enrollment, attribute, teAttribute );
+                validateOptionSet( report, enrollment, teAttribute,
                     attribute.getValue() );
 
-                validateAttributeUniqueness( reporter,
+                validateAttributeUniqueness( report,
                     context,
                     enrollment,
                     attribute.getValue(),
@@ -114,14 +114,14 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
             }
         }
 
-        validateMandatoryAttributes( reporter, context, program, attributeValueMap, enrollment );
+        validateMandatoryAttributes( report, context, program, attributeValueMap, enrollment );
     }
 
-    protected void validateRequiredProperties( ValidationErrorReporter reporter, TrackerImportValidationContext context,
+    protected void validateRequiredProperties( TrackerValidationReport report, TrackerImportValidationContext context,
         Enrollment enrollment,
         Attribute attribute, Program program )
     {
-        reporter.addErrorIf( () -> attribute.getAttribute() == null, () -> TrackerErrorReport.builder()
+        report.addErrorIf( () -> attribute.getAttribute() == null, () -> TrackerErrorReport.builder()
             .uid( ((TrackerDto) enrollment).getUid() )
             .trackerType( ((TrackerDto) enrollment).getTrackerType() )
             .errorCode( E1075 )
@@ -134,7 +134,7 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
 
         if ( optionalTrackedAttr.isPresent() )
         {
-            reporter.addErrorIf( () -> attribute.getValue() == null, () -> TrackerErrorReport.builder()
+            report.addErrorIf( () -> attribute.getValue() == null, () -> TrackerErrorReport.builder()
                 .uid( ((TrackerDto) enrollment).getUid() )
                 .trackerType( ((TrackerDto) enrollment).getTrackerType() )
                 .errorCode( E1076 )
@@ -147,7 +147,7 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
         {
             TrackedEntityAttribute teAttribute = context.getTrackedEntityAttribute( attribute.getAttribute() );
 
-            reporter.addErrorIf( () -> teAttribute == null, () -> TrackerErrorReport.builder()
+            report.addErrorIf( () -> teAttribute == null, () -> TrackerErrorReport.builder()
                 .uid( ((TrackerDto) enrollment).getUid() )
                 .trackerType( ((TrackerDto) enrollment).getTrackerType() )
                 .errorCode( E1006 )
@@ -156,7 +156,7 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
         }
     }
 
-    private void validateMandatoryAttributes( ValidationErrorReporter reporter, TrackerImportValidationContext context,
+    private void validateMandatoryAttributes( TrackerValidationReport report, TrackerImportValidationContext context,
         Program program, Map<String, String> enrollmentNonEmptyAttributeUids, Enrollment enrollment )
     {
         // Build a data structures of attributes eligible for mandatory
@@ -186,7 +186,7 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
             .stream()
             .filter( Map.Entry::getValue ) // <--- filter on mandatory flag
             .map( Map.Entry::getKey )
-            .forEach( mandatoryProgramAttributeUid -> reporter
+            .forEach( mandatoryProgramAttributeUid -> report
                 .addErrorIf( () -> !mergedAttributes.contains( mandatoryProgramAttributeUid ),
                     () -> TrackerErrorReport.builder()
                         .uid( ((TrackerDto) enrollment).getUid() )
@@ -201,7 +201,7 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
         // program
         enrollmentNonEmptyAttributeUids
             .forEach(
-                ( attrUid, attrVal ) -> reporter.addErrorIf( () -> !programAttributesMap.containsKey( attrUid ),
+                ( attrUid, attrVal ) -> report.addErrorIf( () -> !programAttributesMap.containsKey( attrUid ),
                     () -> TrackerErrorReport.builder()
                         .uid( ((TrackerDto) enrollment).getUid() )
                         .trackerType( ((TrackerDto) enrollment).getTrackerType() )

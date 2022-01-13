@@ -30,7 +30,7 @@ package org.hisp.dhis.tracker.validation.hooks;
 import static org.hisp.dhis.tracker.TrackerType.ENROLLMENT;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1012;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1074;
-import static org.hisp.dhis.tracker.validation.hooks.AssertValidationErrorReporter.hasTrackerError;
+import static org.hisp.dhis.tracker.validation.hooks.AssertValidationReport.hasError;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
@@ -40,7 +40,7 @@ import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -88,7 +88,7 @@ class EnrollmentGeoValidationHookTest
         enrollment.setProgram( PROGRAM );
         enrollment.setGeometry( new GeometryFactory().createPoint() );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter();
+        TrackerValidationReport reporter = new TrackerValidationReport();
 
         // when
         this.hookToTest.validateEnrollment( reporter, validationContext, enrollment );
@@ -105,7 +105,7 @@ class EnrollmentGeoValidationHookTest
         enrollment.setProgram( null );
         enrollment.setGeometry( new GeometryFactory().createPoint() );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter();
+        TrackerValidationReport reporter = new TrackerValidationReport();
 
         assertThrows( NullPointerException.class,
             () -> this.hookToTest.validateEnrollment( reporter, validationContext, enrollment ) );
@@ -120,7 +120,7 @@ class EnrollmentGeoValidationHookTest
         enrollment.setProgram( PROGRAM );
         enrollment.setGeometry( new GeometryFactory().createPoint() );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter();
+        TrackerValidationReport reporter = new TrackerValidationReport();
 
         // when
         Program program = new Program();
@@ -129,7 +129,7 @@ class EnrollmentGeoValidationHookTest
         this.hookToTest.validateEnrollment( reporter, validationContext, enrollment );
 
         // then
-        hasTrackerError( reporter, E1074, ENROLLMENT, enrollment.getUid() );
+        hasError( reporter, E1074, ENROLLMENT, enrollment.getUid() );
     }
 
     @Test
@@ -141,7 +141,7 @@ class EnrollmentGeoValidationHookTest
         enrollment.setProgram( PROGRAM );
         enrollment.setGeometry( new GeometryFactory().createPoint() );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter();
+        TrackerValidationReport reporter = new TrackerValidationReport();
 
         // when
         Program program = new Program();
@@ -151,7 +151,7 @@ class EnrollmentGeoValidationHookTest
         this.hookToTest.validateEnrollment( reporter, validationContext, enrollment );
 
         // then
-        hasTrackerError( reporter, E1012, ENROLLMENT, enrollment.getUid() );
+        hasError( reporter, E1012, ENROLLMENT, enrollment.getUid() );
     }
 
     @Test
@@ -163,7 +163,7 @@ class EnrollmentGeoValidationHookTest
         enrollment.setProgram( PROGRAM );
         enrollment.setGeometry( new GeometryFactory().createPoint() );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter();
+        TrackerValidationReport reporter = new TrackerValidationReport();
 
         // when
         Program program = new Program();
@@ -173,6 +173,6 @@ class EnrollmentGeoValidationHookTest
         this.hookToTest.validateEnrollment( reporter, validationContext, enrollment );
 
         // then
-        hasTrackerError( reporter, E1012, ENROLLMENT, enrollment.getUid() );
+        hasError( reporter, E1012, ENROLLMENT, enrollment.getUid() );
     }
 }

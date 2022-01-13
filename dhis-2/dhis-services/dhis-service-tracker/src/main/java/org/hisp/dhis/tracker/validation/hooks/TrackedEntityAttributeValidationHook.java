@@ -59,7 +59,7 @@ import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
-import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.util.Constant;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.tracker.validation.service.attribute.TrackedAttributeValidationService;
@@ -82,18 +82,18 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
     }
 
     @Override
-    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackerImportValidationContext context,
+    public void validateTrackedEntity( TrackerValidationReport report, TrackerImportValidationContext context,
         TrackedEntity trackedEntity )
     {
         TrackedEntityType trackedEntityType = context.getTrackedEntityType( trackedEntity.getTrackedEntityType() );
         TrackedEntityInstance tei = context.getTrackedEntityInstance( trackedEntity.getTrackedEntity() );
         OrganisationUnit organisationUnit = context.getOrganisationUnit( trackedEntity.getOrgUnit() );
 
-        validateMandatoryAttributes( reporter, trackedEntity, trackedEntityType );
-        validateAttributes( reporter, context, trackedEntity, tei, organisationUnit, trackedEntityType );
+        validateMandatoryAttributes( report, trackedEntity, trackedEntityType );
+        validateAttributes( report, context, trackedEntity, tei, organisationUnit, trackedEntityType );
     }
 
-    private void validateMandatoryAttributes( ValidationErrorReporter reporter, TrackedEntity trackedEntity,
+    private void validateMandatoryAttributes( TrackerValidationReport report, TrackedEntity trackedEntity,
         TrackedEntityType trackedEntityType )
     {
         if ( trackedEntityType != null )
@@ -119,12 +119,12 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
                             .addArg( trackedEntityType.getUid() )
                             .addArg( trackedEntity.getTrackedEntity() )
                             .build();
-                        reporter.addError( error );
+                        report.addError( error );
                     } );
         }
     }
 
-    protected void validateAttributes( ValidationErrorReporter reporter,
+    protected void validateAttributes( TrackerValidationReport report,
         TrackerImportValidationContext context,
         TrackedEntity trackedEntity, TrackedEntityInstance tei, OrganisationUnit orgUnit,
         TrackedEntityType trackedEntityType )
@@ -152,7 +152,7 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
                     .errorCode( E1006 )
                     .addArg( attribute.getAttribute() )
                     .build();
-                reporter.addError( error );
+                report.addError( error );
                 continue;
             }
 
@@ -174,31 +174,31 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
                         .addArg( TrackedEntityAttribute.class.getSimpleName() )
                         .addArg( attribute.getAttribute() )
                         .build();
-                    reporter.addError( error );
+                    report.addError( error );
                 }
 
                 continue;
             }
 
-            validateAttributeValue( reporter, trackedEntity, tea, attribute.getValue() );
-            validateAttrValueType( reporter, context, trackedEntity, attribute, tea );
-            validateOptionSet( reporter, trackedEntity, tea,
+            validateAttributeValue( report, trackedEntity, tea, attribute.getValue() );
+            validateAttrValueType( report, context, trackedEntity, attribute, tea );
+            validateOptionSet( report, trackedEntity, tea,
                 attribute.getValue() );
 
-            validateAttributeUniqueness( reporter, context, trackedEntity, attribute.getValue(), tea, tei, orgUnit );
+            validateAttributeUniqueness( report, context, trackedEntity, attribute.getValue(), tea, tei, orgUnit );
 
-            validateFileNotAlreadyAssigned( reporter, context, trackedEntity, attribute, valueMap );
+            validateFileNotAlreadyAssigned( report, context, trackedEntity, attribute, valueMap );
         }
     }
 
-    public void validateAttributeValue( ValidationErrorReporter reporter, TrackedEntity te, TrackedEntityAttribute tea,
+    public void validateAttributeValue( TrackerValidationReport report, TrackedEntity te, TrackedEntityAttribute tea,
         String value )
     {
         checkNotNull( tea, TRACKED_ENTITY_ATTRIBUTE_VALUE_CANT_BE_NULL );
         checkNotNull( value, TRACKED_ENTITY_ATTRIBUTE_VALUE_CANT_BE_NULL );
 
         // Validate value (string) don't exceed the max length
-        reporter.addErrorIf( () -> value.length() > Constant.MAX_ATTR_VALUE_LENGTH, () -> TrackerErrorReport.builder()
+        report.addErrorIf( () -> value.length() > Constant.MAX_ATTR_VALUE_LENGTH, () -> TrackerErrorReport.builder()
             .uid( ((TrackerDto) te).getUid() )
             .trackerType( ((TrackerDto) te).getTrackerType() )
             .errorCode( E1077 )
@@ -210,7 +210,7 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
         // value to (confidential)
         boolean isConfidential = tea.isConfidentialBool();
         boolean encryptionStatusOk = dhisConfigurationProvider.getEncryptionStatus().isOk();
-        reporter.addErrorIf( () -> isConfidential && !encryptionStatusOk, () -> TrackerErrorReport.builder()
+        report.addErrorIf( () -> isConfidential && !encryptionStatusOk, () -> TrackerErrorReport.builder()
             .uid( ((TrackerDto) te).getUid() )
             .trackerType( ((TrackerDto) te).getTrackerType() )
             .errorCode( E1112 )
@@ -220,7 +220,7 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
         // Uses ValidationUtils to check that the data value corresponds to the
         // data value type set on the attribute
         final String result = dataValueIsValid( value, tea.getValueType() );
-        reporter.addErrorIf( () -> result != null, () -> TrackerErrorReport.builder()
+        report.addErrorIf( () -> result != null, () -> TrackerErrorReport.builder()
             .uid( ((TrackerDto) te).getUid() )
             .trackerType( ((TrackerDto) te).getTrackerType() )
             .errorCode( E1085 )
@@ -229,7 +229,7 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
             .build() );
     }
 
-    protected void validateFileNotAlreadyAssigned( ValidationErrorReporter reporter,
+    protected void validateFileNotAlreadyAssigned( TrackerValidationReport report,
         TrackerImportValidationContext context, TrackedEntity te,
         Attribute attr, Map<String, TrackedEntityAttributeValue> valueMap )
     {
@@ -252,13 +252,13 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
 
         FileResource fileResource = context.getFileResource( attr.getValue() );
 
-        reporter.addErrorIf( () -> fileResource == null, () -> TrackerErrorReport.builder()
+        report.addErrorIf( () -> fileResource == null, () -> TrackerErrorReport.builder()
             .uid( te.getUid() )
             .trackerType( te.getTrackerType() )
             .errorCode( E1084 )
             .addArg( attr.getValue() )
             .build() );
-        reporter.addErrorIf( () -> fileResource != null && fileResource.isAssigned(), () -> TrackerErrorReport.builder()
+        report.addErrorIf( () -> fileResource != null && fileResource.isAssigned(), () -> TrackerErrorReport.builder()
             .uid( ((TrackerDto) te).getUid() )
             .trackerType( ((TrackerDto) te).getTrackerType() )
             .errorCode( E1009 )

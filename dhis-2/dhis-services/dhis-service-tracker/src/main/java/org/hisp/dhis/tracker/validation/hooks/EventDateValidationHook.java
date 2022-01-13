@@ -49,7 +49,7 @@ import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
-import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
@@ -62,7 +62,7 @@ public class EventDateValidationHook
     extends AbstractTrackerDtoValidationHook
 {
     @Override
-    public void validateEvent( ValidationErrorReporter reporter, TrackerImportValidationContext context, Event event )
+    public void validateEvent( TrackerValidationReport report, TrackerImportValidationContext context, Event event )
     {
         Program program = context.getProgram( event.getProgram() );
 
@@ -74,7 +74,7 @@ public class EventDateValidationHook
                 .errorCode( E1031 )
                 .addArg( event )
                 .build();
-            reporter.addError( error );
+            report.addError( error );
             return;
         }
 
@@ -86,15 +86,15 @@ public class EventDateValidationHook
                 .errorCode( E1050 )
                 .addArg( event )
                 .build();
-            reporter.addError( error );
+            report.addError( error );
             return;
         }
 
-        validateExpiryDays( reporter, context, event, program );
-        validatePeriodType( reporter, event, program );
+        validateExpiryDays( report, context, event, program );
+        validatePeriodType( report, event, program );
     }
 
-    private void validateExpiryDays( ValidationErrorReporter reporter, TrackerImportValidationContext context,
+    private void validateExpiryDays( TrackerValidationReport report, TrackerImportValidationContext context,
         Event event, Program program )
     {
         User actingUser = context.getBundle().getUser();
@@ -112,7 +112,7 @@ public class EventDateValidationHook
         {
             if ( event.getCompletedAt() == null )
             {
-                reporter.addErrorIf( () -> event.getCompletedAt() == null, () -> TrackerErrorReport.builder()
+                report.addErrorIf( () -> event.getCompletedAt() == null, () -> TrackerErrorReport.builder()
                     .uid( ((TrackerDto) event).getUid() )
                     .trackerType( ((TrackerDto) event).getTrackerType() )
                     .errorCode( E1042 )
@@ -129,13 +129,13 @@ public class EventDateValidationHook
                         .errorCode( E1043 )
                         .addArg( event )
                         .build();
-                    reporter.addError( error );
+                    report.addError( error );
                 }
             }
         }
     }
 
-    private void validatePeriodType( ValidationErrorReporter reporter, Event event, Program program )
+    private void validatePeriodType( TrackerValidationReport report, Event event, Program program )
     {
         checkNotNull( event, TrackerImporterAssertErrors.EVENT_CANT_BE_NULL );
         checkNotNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );
@@ -160,7 +160,7 @@ public class EventDateValidationHook
                 .errorCode( E1046 )
                 .addArg( event )
                 .build();
-            reporter.addError( error );
+            report.addError( error );
             return;
         }
 
@@ -174,7 +174,7 @@ public class EventDateValidationHook
                 .errorCode( E1047 )
                 .addArg( event )
                 .build();
-            reporter.addError( error );
+            report.addError( error );
         }
     }
 

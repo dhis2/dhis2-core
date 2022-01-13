@@ -43,12 +43,11 @@ import java.util.stream.Collectors;
 
 import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
-import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Note;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -91,7 +90,7 @@ class EnrollmentNoteValidationHookTest
         when( ctx.getBundle() ).thenReturn( trackerBundle );
         when( trackerBundle.getPreheat() ).thenReturn( preheat );
         when( ctx.getNote( note.getNote() ) ).thenReturn( Optional.of( new TrackedEntityComment() ) );
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ValidationMode.FULL );
+        TrackerValidationReport reporter = new TrackerValidationReport();
 
         enrollment.setNotes( Collections.singletonList( note ) );
 
@@ -100,7 +99,7 @@ class EnrollmentNoteValidationHookTest
 
         // Then
         assertTrue( reporter.hasWarnings() );
-        assertTrue( reporter.hasWarningReport( warn -> E1119.equals( warn.getWarningCode() ) &&
+        assertTrue( reporter.hasWarning( warn -> E1119.equals( warn.getWarningCode() ) &&
             ENROLLMENT.equals( warn.getTrackerType() ) &&
             enrollment.getUid().equals( warn.getUid() ) ) );
         assertThat( enrollment.getNotes(), hasSize( 0 ) );
@@ -117,7 +116,7 @@ class EnrollmentNoteValidationHookTest
 
         when( ctx.getBundle() ).thenReturn( trackerBundle );
         when( ctx.getNote( note.getNote() ) ).thenReturn( Optional.of( new TrackedEntityComment() ) );
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ValidationMode.FULL );
+        TrackerValidationReport reporter = new TrackerValidationReport();
 
         enrollment.setNotes( Collections.singletonList( note ) );
 
@@ -138,7 +137,7 @@ class EnrollmentNoteValidationHookTest
         TrackerImportValidationContext ctx = mock( TrackerImportValidationContext.class );
 
         when( ctx.getBundle() ).thenReturn( trackerBundle );
-        ValidationErrorReporter reporter = new ValidationErrorReporter();
+        TrackerValidationReport reporter = new TrackerValidationReport();
 
         enrollment.setNotes( notes );
 

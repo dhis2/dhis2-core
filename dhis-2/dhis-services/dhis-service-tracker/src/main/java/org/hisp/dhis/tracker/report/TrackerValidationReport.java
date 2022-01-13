@@ -118,7 +118,7 @@ public class TrackerValidationReport
         addErrorIfNotExisting( error );
         if ( this.isFailFast )
         {
-            throw new ValidationFailFastException( this.getErrors() );
+            throw new ValidationFailFastException();
         }
         return this;
     }
@@ -130,7 +130,7 @@ public class TrackerValidationReport
             addErrorIfNotExisting( error.get() );
             if ( this.isFailFast )
             {
-                throw new ValidationFailFastException( this.getErrors() );
+                throw new ValidationFailFastException();
             }
         }
         return this;
@@ -144,7 +144,7 @@ public class TrackerValidationReport
         }
         if ( this.isFailFast )
         {
-            throw new ValidationFailFastException( this.getErrors() );
+            throw new ValidationFailFastException();
         }
         return this;
     }

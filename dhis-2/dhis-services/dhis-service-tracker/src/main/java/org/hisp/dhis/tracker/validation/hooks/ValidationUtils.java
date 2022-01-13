@@ -49,8 +49,8 @@ import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
+import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.report.TrackerWarningReport;
-import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.locationtech.jts.geom.Geometry;
 
@@ -61,7 +61,7 @@ import com.google.common.collect.Lists;
  */
 public class ValidationUtils
 {
-    static void validateGeometry( ValidationErrorReporter reporter, TrackerDto dto, Geometry geometry,
+    static void validateGeometry( TrackerValidationReport report, TrackerDto dto, Geometry geometry,
         FeatureType featureType )
     {
         checkNotNull( geometry, GEOMETRY_CANT_BE_NULL );
@@ -73,7 +73,7 @@ public class ValidationUtils
                 .trackerType( dto.getTrackerType() )
                 .errorCode( TrackerErrorCode.E1074 )
                 .build();
-            reporter.addError( error );
+            report.addError( error );
             return;
         }
 
@@ -87,11 +87,11 @@ public class ValidationUtils
                 .errorCode( TrackerErrorCode.E1012 )
                 .addArg( featureType.name() )
                 .build();
-            reporter.addError( error );
+            report.addError( error );
         }
     }
 
-    protected static List<Note> validateNotes( ValidationErrorReporter reporter, TrackerImportValidationContext context,
+    protected static List<Note> validateNotes( TrackerValidationReport report, TrackerImportValidationContext context,
         TrackerDto dto,
         List<Note> notesToCheck )
     {
@@ -110,7 +110,7 @@ public class ValidationUtils
                         .warningCode( TrackerErrorCode.E1119 )
                         .addArg( note.getNote() )
                         .build();
-                    reporter.addWarning( warning );
+                    report.addWarning( warning );
                 }
                 else
                 {
@@ -163,7 +163,7 @@ public class ValidationUtils
         }
     }
 
-    public static void addIssuesToReporter( ValidationErrorReporter reporter, TrackerDto dto,
+    public static void addIssuesToreport( TrackerValidationReport report, TrackerDto dto,
         List<ProgramRuleIssue> programRuleIssues )
     {
         programRuleIssues
@@ -178,7 +178,7 @@ public class ValidationUtils
                     .errorCode( issue.getIssueCode() )
                     .addArgs( args.toArray() )
                     .build();
-                reporter.addError( error );
+                report.addError( error );
             } );
 
         programRuleIssues
@@ -194,7 +194,7 @@ public class ValidationUtils
                         .warningCode( issue.getIssueCode() )
                         .addArgs( args.toArray() )
                         .build();
-                    reporter.addWarning( warning );
+                    report.addWarning( warning );
                 } );
     }
 

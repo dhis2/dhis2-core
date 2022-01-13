@@ -35,7 +35,7 @@ import static org.hisp.dhis.tracker.TrackerType.TRACKED_ENTITY;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1126;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1127;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1128;
-import static org.hisp.dhis.tracker.validation.hooks.AssertValidationErrorReporter.hasTrackerError;
+import static org.hisp.dhis.tracker.validation.hooks.AssertValidationReport.hasError;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -51,7 +51,7 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -113,7 +113,7 @@ class PreCheckUpdatableFieldsValidationHookTest
         TrackedEntity trackedEntity = validTei();
 
         // when
-        ValidationErrorReporter reporter = new ValidationErrorReporter();
+        TrackerValidationReport reporter = new TrackerValidationReport();
         validationHook.validateTrackedEntity( reporter, ctx, trackedEntity );
 
         // then
@@ -128,11 +128,11 @@ class PreCheckUpdatableFieldsValidationHookTest
         trackedEntity.setTrackedEntityType( "NewTrackedEntityTypeId" );
 
         // when
-        ValidationErrorReporter reporter = new ValidationErrorReporter();
+        TrackerValidationReport reporter = new TrackerValidationReport();
         validationHook.validateTrackedEntity( reporter, ctx, trackedEntity );
 
         // then
-        hasTrackerError( reporter, E1126, TRACKED_ENTITY, trackedEntity.getUid() );
+        hasError( reporter, E1126, TRACKED_ENTITY, trackedEntity.getUid() );
     }
 
     @Test
@@ -142,7 +142,7 @@ class PreCheckUpdatableFieldsValidationHookTest
         Enrollment enrollment = validEnrollment();
 
         // when
-        ValidationErrorReporter reporter = new ValidationErrorReporter();
+        TrackerValidationReport reporter = new TrackerValidationReport();
         validationHook.validateEnrollment( reporter, ctx, enrollment );
 
         // then
@@ -157,12 +157,12 @@ class PreCheckUpdatableFieldsValidationHookTest
         enrollment.setProgram( "NewProgramId" );
 
         // when
-        ValidationErrorReporter reporter = new ValidationErrorReporter();
+        TrackerValidationReport reporter = new TrackerValidationReport();
         validationHook.validateEnrollment( reporter, ctx, enrollment );
 
         // then
-        hasTrackerError( reporter, E1127, ENROLLMENT, enrollment.getUid() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorMessage(), containsString( "program" ) );
+        hasError( reporter, E1127, ENROLLMENT, enrollment.getUid() );
+        assertThat( reporter.getErrors().get( 0 ).getErrorMessage(), containsString( "program" ) );
     }
 
     @Test
@@ -173,12 +173,12 @@ class PreCheckUpdatableFieldsValidationHookTest
         enrollment.setTrackedEntity( "NewTrackedEntityId" );
 
         // when
-        ValidationErrorReporter reporter = new ValidationErrorReporter();
+        TrackerValidationReport reporter = new TrackerValidationReport();
         validationHook.validateEnrollment( reporter, ctx, enrollment );
 
         // then
-        hasTrackerError( reporter, E1127, ENROLLMENT, enrollment.getUid() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorMessage(), containsString( "trackedEntity" ) );
+        hasError( reporter, E1127, ENROLLMENT, enrollment.getUid() );
+        assertThat( reporter.getErrors().get( 0 ).getErrorMessage(), containsString( "trackedEntity" ) );
     }
 
     @Test
@@ -188,7 +188,7 @@ class PreCheckUpdatableFieldsValidationHookTest
         Event event = validEvent();
 
         // when
-        ValidationErrorReporter reporter = new ValidationErrorReporter();
+        TrackerValidationReport reporter = new TrackerValidationReport();
         validationHook.validateEvent( reporter, ctx, event );
 
         // then
@@ -203,12 +203,12 @@ class PreCheckUpdatableFieldsValidationHookTest
         event.setProgramStage( "NewProgramStageId" );
 
         // when
-        ValidationErrorReporter reporter = new ValidationErrorReporter();
+        TrackerValidationReport reporter = new TrackerValidationReport();
         validationHook.validateEvent( reporter, ctx, event );
 
         // then
-        hasTrackerError( reporter, E1128, EVENT, event.getUid() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorMessage(), containsString( "programStage" ) );
+        hasError( reporter, E1128, EVENT, event.getUid() );
+        assertThat( reporter.getErrors().get( 0 ).getErrorMessage(), containsString( "programStage" ) );
     }
 
     @Test
@@ -219,12 +219,12 @@ class PreCheckUpdatableFieldsValidationHookTest
         event.setEnrollment( "NewEnrollmentId" );
 
         // when
-        ValidationErrorReporter reporter = new ValidationErrorReporter();
+        TrackerValidationReport reporter = new TrackerValidationReport();
         validationHook.validateEvent( reporter, ctx, event );
 
         // then
-        hasTrackerError( reporter, E1128, EVENT, event.getUid() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorMessage(), containsString( "enrollment" ) );
+        hasError( reporter, E1128, EVENT, event.getUid() );
+        assertThat( reporter.getErrors().get( 0 ).getErrorMessage(), containsString( "enrollment" ) );
     }
 
     private TrackedEntity validTei()

@@ -47,8 +47,8 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
+import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.report.TrackerWarningReport;
-import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
 
@@ -60,7 +60,7 @@ public class PreCheckExistenceValidationHook
     extends AbstractTrackerDtoValidationHook
 {
     @Override
-    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackerImportValidationContext context,
+    public void validateTrackedEntity( TrackerValidationReport report, TrackerImportValidationContext context,
         TrackedEntity trackedEntity )
     {
         TrackerImportStrategy importStrategy = context.getStrategy( trackedEntity );
@@ -77,7 +77,7 @@ public class PreCheckExistenceValidationHook
                 .errorCode( E1114 )
                 .addArg( trackedEntity.getTrackedEntity() )
                 .build();
-            reporter.addError( error );
+            report.addError( error );
             return;
         }
 
@@ -89,7 +89,7 @@ public class PreCheckExistenceValidationHook
                 .errorCode( E1002 )
                 .addArg( trackedEntity.getTrackedEntity() )
                 .build();
-            reporter.addError( error );
+            report.addError( error );
         }
         else if ( existingTe == null && importStrategy.isUpdateOrDelete() )
         {
@@ -99,12 +99,12 @@ public class PreCheckExistenceValidationHook
                 .errorCode( E1063 )
                 .addArg( trackedEntity.getTrackedEntity() )
                 .build();
-            reporter.addError( error );
+            report.addError( error );
         }
     }
 
     @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, TrackerImportValidationContext context,
+    public void validateEnrollment( TrackerValidationReport report, TrackerImportValidationContext context,
         Enrollment enrollment )
     {
         TrackerImportStrategy importStrategy = context.getStrategy( enrollment );
@@ -120,7 +120,7 @@ public class PreCheckExistenceValidationHook
                 .errorCode( E1113 )
                 .addArg( enrollment.getEnrollment() )
                 .build();
-            reporter.addError( error );
+            report.addError( error );
             return;
         }
 
@@ -132,7 +132,7 @@ public class PreCheckExistenceValidationHook
                 .errorCode( E1080 )
                 .addArg( enrollment.getEnrollment() )
                 .build();
-            reporter.addError( error );
+            report.addError( error );
         }
         else if ( existingPi == null && importStrategy.isUpdateOrDelete() )
         {
@@ -142,12 +142,12 @@ public class PreCheckExistenceValidationHook
                 .errorCode( E1081 )
                 .addArg( enrollment.getEnrollment() )
                 .build();
-            reporter.addError( error );
+            report.addError( error );
         }
     }
 
     @Override
-    public void validateEvent( ValidationErrorReporter reporter, TrackerImportValidationContext context, Event event )
+    public void validateEvent( TrackerValidationReport report, TrackerImportValidationContext context, Event event )
     {
         TrackerImportStrategy importStrategy = context.getStrategy( event );
 
@@ -162,7 +162,7 @@ public class PreCheckExistenceValidationHook
                 .errorCode( E1082 )
                 .addArg( event.getEvent() )
                 .build();
-            reporter.addError( error );
+            report.addError( error );
             return;
         }
 
@@ -174,7 +174,7 @@ public class PreCheckExistenceValidationHook
                 .errorCode( E1030 )
                 .addArg( event.getEvent() )
                 .build();
-            reporter.addError( error );
+            report.addError( error );
         }
         else if ( existingPsi == null && importStrategy.isUpdateOrDelete() )
         {
@@ -184,12 +184,12 @@ public class PreCheckExistenceValidationHook
                 .errorCode( E1032 )
                 .addArg( event.getEvent() )
                 .build();
-            reporter.addError( error );
+            report.addError( error );
         }
     }
 
     @Override
-    public void validateRelationship( ValidationErrorReporter reporter, TrackerImportValidationContext context,
+    public void validateRelationship( TrackerValidationReport report, TrackerImportValidationContext context,
         Relationship relationship )
     {
         org.hisp.dhis.relationship.Relationship existingRelationship = context.getRelationship( relationship );
@@ -202,7 +202,7 @@ public class PreCheckExistenceValidationHook
                 .warningCode( E4015 )
                 .addArg( relationship.getRelationship() )
                 .build();
-            reporter.addWarning( warn );
+            report.addWarning( warn );
         }
     }
 

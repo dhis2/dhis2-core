@@ -31,7 +31,7 @@ import static com.google.api.client.util.Preconditions.checkNotNull;
 
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
 
@@ -43,7 +43,7 @@ public class EnrollmentGeoValidationHook
     extends AbstractTrackerDtoValidationHook
 {
     @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, TrackerImportValidationContext context,
+    public void validateEnrollment( TrackerValidationReport report, TrackerImportValidationContext context,
         Enrollment enrollment )
     {
         Program program = context.getProgram( enrollment.getProgram() );
@@ -52,7 +52,7 @@ public class EnrollmentGeoValidationHook
 
         if ( enrollment.getGeometry() != null )
         {
-            ValidationUtils.validateGeometry( reporter, enrollment,
+            ValidationUtils.validateGeometry( report, enrollment,
                 enrollment.getGeometry(),
                 program.getFeatureType() );
         }

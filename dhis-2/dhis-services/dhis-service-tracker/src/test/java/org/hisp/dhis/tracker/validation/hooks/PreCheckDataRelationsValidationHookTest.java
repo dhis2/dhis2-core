@@ -64,7 +64,7 @@ import org.hisp.dhis.tracker.preheat.ReferenceTrackerEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
-import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -121,7 +121,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     @Mock
     private TrackerPreheat preheat;
 
-    private ValidationErrorReporter reporter;
+    private TrackerValidationReport reporter;
 
     private OrganisationUnit organisationUnit;
 
@@ -227,7 +227,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .trackedEntity( TEI_ID )
             .build();
 
-        reporter = new ValidationErrorReporter();
+        reporter = new TrackerValidationReport();
 
         validatorToTest.validateEnrollment( reporter, ctx, enrollment );
 
@@ -245,12 +245,12 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .orgUnit( ORG_UNIT_ID )
             .build();
 
-        reporter = new ValidationErrorReporter();
+        reporter = new TrackerValidationReport();
 
         validatorToTest.validateEnrollment( reporter, ctx, enrollment );
 
         assertTrue( reporter.hasErrors() );
-        assertEquals( TrackerErrorCode.E1014, reporter.getReportList().get( 0 ).getErrorCode() );
+        assertEquals( TrackerErrorCode.E1014, reporter.getErrors().get( 0 ).getErrorCode() );
     }
 
     @Test
@@ -264,12 +264,12 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .orgUnit( ANOTHER_ORG_UNIT_ID )
             .build();
 
-        reporter = new ValidationErrorReporter();
+        reporter = new TrackerValidationReport();
 
         validatorToTest.validateEnrollment( reporter, ctx, enrollment );
 
         assertTrue( reporter.hasErrors() );
-        assertEquals( TrackerErrorCode.E1041, reporter.getReportList().get( 0 ).getErrorCode() );
+        assertEquals( TrackerErrorCode.E1041, reporter.getErrors().get( 0 ).getErrorCode() );
     }
 
     @Test
@@ -283,12 +283,12 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .trackedEntity( ANOTHER_TEI_ID )
             .build();
 
-        reporter = new ValidationErrorReporter();
+        reporter = new TrackerValidationReport();
 
         validatorToTest.validateEnrollment( reporter, ctx, enrollment );
 
         assertTrue( reporter.hasErrors() );
-        assertEquals( TrackerErrorCode.E1022, reporter.getReportList().get( 0 ).getErrorCode() );
+        assertEquals( TrackerErrorCode.E1022, reporter.getErrors().get( 0 ).getErrorCode() );
     }
 
     @Test
@@ -302,7 +302,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .trackedEntity( ANOTHER_TEI_ID )
             .build();
 
-        reporter = new ValidationErrorReporter();
+        reporter = new TrackerValidationReport();
 
         when( ctx.getTrackedEntityInstance( ANOTHER_TEI_ID ) ).thenReturn( null );
 
@@ -316,7 +316,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         validatorToTest.validateEnrollment( reporter, ctx, enrollment );
 
         assertTrue( reporter.hasErrors() );
-        assertEquals( TrackerErrorCode.E1022, reporter.getReportList().get( 0 ).getErrorCode() );
+        assertEquals( TrackerErrorCode.E1022, reporter.getErrors().get( 0 ).getErrorCode() );
     }
 
     @Test
@@ -331,7 +331,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .enrollment( ENROLLMENT_ID )
             .build();
 
-        reporter = new ValidationErrorReporter();
+        reporter = new TrackerValidationReport();
 
         validatorToTest.validateEvent( reporter, ctx, event );
 
@@ -349,13 +349,13 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .orgUnit( ANOTHER_ORG_UNIT_ID )
             .build();
 
-        reporter = new ValidationErrorReporter();
+        reporter = new TrackerValidationReport();
 
         validatorToTest.validateEvent( reporter, ctx, event );
 
         assertTrue( reporter.hasErrors() );
         assertThat(
-            reporter.getReportList().stream().map( TrackerErrorReport::getErrorCode ).collect( Collectors.toList() ),
+            reporter.getErrors().stream().map( TrackerErrorReport::getErrorCode ).collect( Collectors.toList() ),
             hasItem( TrackerErrorCode.E1089 ) );
     }
 
@@ -370,13 +370,13 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .orgUnit( ORG_UNIT_ID )
             .build();
 
-        reporter = new ValidationErrorReporter();
+        reporter = new TrackerValidationReport();
 
         validatorToTest.validateEvent( reporter, ctx, event );
 
         assertTrue( reporter.hasErrors() );
         assertThat(
-            reporter.getReportList().stream().map( TrackerErrorReport::getErrorCode ).collect( Collectors.toList() ),
+            reporter.getErrors().stream().map( TrackerErrorReport::getErrorCode ).collect( Collectors.toList() ),
             hasItem( TrackerErrorCode.E1033 ) );
     }
 
@@ -392,13 +392,13 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .enrollment( ANOTHER_ENROLLMENT_ID )
             .build();
 
-        reporter = new ValidationErrorReporter();
+        reporter = new TrackerValidationReport();
 
         validatorToTest.validateEvent( reporter, ctx, event );
 
         assertTrue( reporter.hasErrors() );
         assertThat(
-            reporter.getReportList().stream().map( TrackerErrorReport::getErrorCode ).collect( Collectors.toList() ),
+            reporter.getErrors().stream().map( TrackerErrorReport::getErrorCode ).collect( Collectors.toList() ),
             hasItem( TrackerErrorCode.E1079 ) );
     }
 
@@ -414,13 +414,13 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .enrollment( ENROLLMENT_ID )
             .build();
 
-        reporter = new ValidationErrorReporter();
+        reporter = new TrackerValidationReport();
 
         validatorToTest.validateEvent( reporter, ctx, event );
 
         assertTrue( reporter.hasErrors() );
         assertThat(
-            reporter.getReportList().stream().map( TrackerErrorReport::getErrorCode ).collect( Collectors.toList() ),
+            reporter.getErrors().stream().map( TrackerErrorReport::getErrorCode ).collect( Collectors.toList() ),
             hasItem( TrackerErrorCode.E1029 ) );
     }
 
@@ -440,19 +440,19 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .relationshipType( relType.getUid() )
             .build();
 
-        reporter = new ValidationErrorReporter();
+        reporter = new TrackerValidationReport();
 
         validatorToTest.validateRelationship( reporter, ctx, relationship );
 
         assertTrue( reporter.hasErrors() );
         assertThat(
-            reporter.getReportList().stream().map( TrackerErrorReport::getErrorCode ).collect( Collectors.toList() ),
+            reporter.getErrors().stream().map( TrackerErrorReport::getErrorCode ).collect( Collectors.toList() ),
             hasItem( TrackerErrorCode.E4012 ) );
         assertThat(
-            reporter.getReportList().stream().map( TrackerErrorReport::getErrorMessage ).collect( Collectors.toList() ),
+            reporter.getErrors().stream().map( TrackerErrorReport::getErrorMessage ).collect( Collectors.toList() ),
             hasItem( "Could not find `trackedEntity`: `validTrackedEntity`, linked to Relationship." ) );
         assertThat(
-            reporter.getReportList().stream().map( TrackerErrorReport::getErrorMessage ).collect( Collectors.toList() ),
+            reporter.getErrors().stream().map( TrackerErrorReport::getErrorMessage ).collect( Collectors.toList() ),
             hasItem( "Could not find `trackedEntity`: `anotherValidTrackedEntity`, linked to Relationship." ) );
     }
 
@@ -481,7 +481,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .relationshipType( relType.getUid() )
             .build();
 
-        reporter = new ValidationErrorReporter();
+        reporter = new TrackerValidationReport();
 
         validatorToTest.validateRelationship( reporter, ctx, relationship );
 

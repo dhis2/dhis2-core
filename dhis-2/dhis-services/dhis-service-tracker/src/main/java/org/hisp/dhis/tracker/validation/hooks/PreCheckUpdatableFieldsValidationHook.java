@@ -43,7 +43,7 @@ import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
-import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
 
@@ -56,13 +56,13 @@ public class PreCheckUpdatableFieldsValidationHook
     extends AbstractTrackerDtoValidationHook
 {
     @Override
-    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackerImportValidationContext context,
+    public void validateTrackedEntity( TrackerValidationReport report, TrackerImportValidationContext context,
         TrackedEntity trackedEntity )
     {
         TrackedEntityInstance trackedEntityInstance = context
             .getTrackedEntityInstance( trackedEntity.getTrackedEntity() );
 
-        reporter.addErrorIf( () -> !trackedEntityInstance.getTrackedEntityType().getUid()
+        report.addErrorIf( () -> !trackedEntityInstance.getTrackedEntityType().getUid()
             .equals( trackedEntity.getTrackedEntityType() ), () -> TrackerErrorReport.builder()
                 .uid( ((TrackerDto) trackedEntity).getUid() )
                 .trackerType( ((TrackerDto) trackedEntity).getTrackerType() )
@@ -72,21 +72,21 @@ public class PreCheckUpdatableFieldsValidationHook
     }
 
     @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, TrackerImportValidationContext context,
+    public void validateEnrollment( TrackerValidationReport report, TrackerImportValidationContext context,
         Enrollment enrollment )
     {
         ProgramInstance pi = context.getProgramInstance( enrollment.getEnrollment() );
         Program program = pi.getProgram();
         TrackedEntityInstance trackedEntityInstance = pi.getEntityInstance();
 
-        reporter.addErrorIf( () -> !program.getUid().equals( enrollment.getProgram() ),
+        report.addErrorIf( () -> !program.getUid().equals( enrollment.getProgram() ),
             () -> TrackerErrorReport.builder()
                 .uid( ((TrackerDto) enrollment).getUid() )
                 .trackerType( ((TrackerDto) enrollment).getTrackerType() )
                 .errorCode( E1127 )
                 .addArg( "program" )
                 .build() );
-        reporter.addErrorIf( () -> !trackedEntityInstance.getUid().equals( enrollment.getTrackedEntity() ),
+        report.addErrorIf( () -> !trackedEntityInstance.getUid().equals( enrollment.getTrackedEntity() ),
             () -> TrackerErrorReport.builder()
                 .uid( ((TrackerDto) enrollment).getUid() )
                 .trackerType( ((TrackerDto) enrollment).getTrackerType() )
@@ -96,20 +96,20 @@ public class PreCheckUpdatableFieldsValidationHook
     }
 
     @Override
-    public void validateEvent( ValidationErrorReporter reporter, TrackerImportValidationContext context, Event event )
+    public void validateEvent( TrackerValidationReport report, TrackerImportValidationContext context, Event event )
     {
         ProgramStageInstance programStageInstance = context.getProgramStageInstance( event.getEvent() );
         ProgramStage programStage = programStageInstance.getProgramStage();
         ProgramInstance programInstance = programStageInstance.getProgramInstance();
 
-        reporter.addErrorIf( () -> !event.getProgramStage().equals( programStage.getUid() ),
+        report.addErrorIf( () -> !event.getProgramStage().equals( programStage.getUid() ),
             () -> TrackerErrorReport.builder()
                 .uid( ((TrackerDto) event).getUid() )
                 .trackerType( ((TrackerDto) event).getTrackerType() )
                 .errorCode( E1128 )
                 .addArg( "programStage" )
                 .build() );
-        reporter.addErrorIf(
+        report.addErrorIf(
             () -> event.getEnrollment() != null && !event.getEnrollment().equals( programInstance.getUid() ),
             () -> TrackerErrorReport.builder()
                 .uid( ((TrackerDto) event).getUid() )
@@ -126,7 +126,7 @@ public class PreCheckUpdatableFieldsValidationHook
     }
 
     @Override
-    public void validateRelationship( ValidationErrorReporter reporter, TrackerImportValidationContext context,
+    public void validateRelationship( TrackerValidationReport report, TrackerImportValidationContext context,
         Relationship relationship )
     {
         // Nothing to do

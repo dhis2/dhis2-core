@@ -42,7 +42,7 @@ import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4009;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4010;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4013;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4014;
-import static org.hisp.dhis.tracker.validation.hooks.AssertValidationErrorReporter.hasTrackerError;
+import static org.hisp.dhis.tracker.validation.hooks.AssertValidationReport.hasError;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
@@ -66,7 +66,7 @@ import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
-import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -95,7 +95,7 @@ class RelationshipsValidationHookTest
     @Mock
     private TrackerPreheat preheat;
 
-    private ValidationErrorReporter reporter;
+    private TrackerValidationReport reporter;
 
     @BeforeEach
     public void setUp()
@@ -122,10 +122,10 @@ class RelationshipsValidationHookTest
                 .build() )
             .build();
 
-        reporter = new ValidationErrorReporter();
+        reporter = new TrackerValidationReport();
         validationHook.validateRelationship( reporter, ctx, relationship );
 
-        hasTrackerError( reporter, E4009, RELATIONSHIP, relationship.getUid() );
+        hasError( reporter, E4009, RELATIONSHIP, relationship.getUid() );
     }
 
     @Test
@@ -153,12 +153,12 @@ class RelationshipsValidationHookTest
         when( preheat.getAll( RelationshipType.class ) )
             .thenReturn( Collections.singletonList( relationshipType ) );
 
-        reporter = new ValidationErrorReporter();
+        reporter = new TrackerValidationReport();
         validationHook.validateRelationship( reporter, ctx, relationship );
 
         assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E4001 ) );
-        assertThat( reporter.getReportList().get( 0 ).getErrorMessage(), is(
+        assertThat( reporter.getErrors().get( 0 ).getErrorCode(), is( TrackerErrorCode.E4001 ) );
+        assertThat( reporter.getErrors().get( 0 ).getErrorMessage(), is(
             "Relationship Item `from` for Relationship `nBx6auGDUHG` is invalid: an Item can link only one Tracker entity." ) );
     }
 
@@ -185,11 +185,11 @@ class RelationshipsValidationHookTest
         when( preheat.getAll( RelationshipType.class ) )
             .thenReturn( Collections.singletonList( relationshipType ) );
 
-        reporter = new ValidationErrorReporter();
+        reporter = new TrackerValidationReport();
         validationHook.validateRelationship( reporter, ctx, relationship );
 
-        hasTrackerError( reporter, E4013, RELATIONSHIP, relationship.getUid() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorMessage(), is(
+        hasError( reporter, E4013, RELATIONSHIP, relationship.getUid() );
+        assertThat( reporter.getErrors().get( 0 ).getErrorMessage(), is(
             "Relationship Type `from` constraint is missing trackedEntity." ) );
     }
 
@@ -218,11 +218,11 @@ class RelationshipsValidationHookTest
         when( preheat.getAll( RelationshipType.class ) )
             .thenReturn( Collections.singletonList( relationshipType ) );
 
-        reporter = new ValidationErrorReporter();
+        reporter = new TrackerValidationReport();
         validationHook.validateRelationship( reporter, ctx, relationship );
 
-        hasTrackerError( reporter, E4001, RELATIONSHIP, relationship.getUid() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorMessage(), is(
+        hasError( reporter, E4001, RELATIONSHIP, relationship.getUid() );
+        assertThat( reporter.getErrors().get( 0 ).getErrorMessage(), is(
             "Relationship Item `to` for Relationship `nBx6auGDUHG` is invalid: an Item can link only one Tracker entity." ) );
     }
 
@@ -245,11 +245,11 @@ class RelationshipsValidationHookTest
         when( preheat.getAll( RelationshipType.class ) )
             .thenReturn( Collections.singletonList( relType ) );
 
-        reporter = new ValidationErrorReporter();
+        reporter = new TrackerValidationReport();
         validationHook.validateRelationship( reporter, ctx, relationship );
 
-        hasTrackerError( reporter, E4010, RELATIONSHIP, relationship.getUid() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorMessage(),
+        hasError( reporter, E4010, RELATIONSHIP, relationship.getUid() );
+        assertThat( reporter.getErrors().get( 0 ).getErrorMessage(),
             is( "Relationship Type `to` constraint requires a trackedEntity but a enrollment was found." ) );
     }
 
@@ -272,11 +272,11 @@ class RelationshipsValidationHookTest
         when( preheat.getAll( RelationshipType.class ) )
             .thenReturn( Collections.singletonList( relType ) );
 
-        reporter = new ValidationErrorReporter();
+        reporter = new TrackerValidationReport();
         validationHook.validateRelationship( reporter, ctx, relationship );
 
-        hasTrackerError( reporter, E4010, RELATIONSHIP, relationship.getUid() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorMessage(),
+        hasError( reporter, E4010, RELATIONSHIP, relationship.getUid() );
+        assertThat( reporter.getErrors().get( 0 ).getErrorMessage(),
             is( "Relationship Type `to` constraint requires a event but a enrollment was found." ) );
     }
 
@@ -299,11 +299,11 @@ class RelationshipsValidationHookTest
         when( preheat.getAll( RelationshipType.class ) )
             .thenReturn( Collections.singletonList( relType ) );
 
-        reporter = new ValidationErrorReporter();
+        reporter = new TrackerValidationReport();
         validationHook.validateRelationship( reporter, ctx, relationship );
 
-        hasTrackerError( reporter, E4010, RELATIONSHIP, relationship.getUid() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorMessage(),
+        hasError( reporter, E4010, RELATIONSHIP, relationship.getUid() );
+        assertThat( reporter.getErrors().get( 0 ).getErrorMessage(),
             is( "Relationship Type `from` constraint requires a enrollment but a event was found." ) );
     }
 
@@ -340,11 +340,11 @@ class RelationshipsValidationHookTest
 
         when( ctx.getTrackedEntityInstance( trackedEntityUid ) ).thenReturn( trackedEntityInstance );
 
-        reporter = new ValidationErrorReporter();
+        reporter = new TrackerValidationReport();
         validationHook.validateRelationship( reporter, ctx, relationship );
 
-        hasTrackerError( reporter, E4014, RELATIONSHIP, relationship.getUid() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorMessage(),
+        hasError( reporter, E4014, RELATIONSHIP, relationship.getUid() );
+        assertThat( reporter.getErrors().get( 0 ).getErrorMessage(),
             is( "Relationship Type `to` constraint requires a Tracked Entity having type `"
                 + constraintTrackedEntityType.getUid() + "` but `" + teiTrackedEntityType.getUid() + "` was found." ) );
     }
@@ -382,11 +382,11 @@ class RelationshipsValidationHookTest
 
         when( bundle.getTrackedEntities() ).thenReturn( trackedEntities );
 
-        reporter = new ValidationErrorReporter();
+        reporter = new TrackerValidationReport();
         validationHook.validateRelationship( reporter, ctx, relationship );
 
-        hasTrackerError( reporter, E4014, RELATIONSHIP, relationship.getUid() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorMessage(),
+        hasError( reporter, E4014, RELATIONSHIP, relationship.getUid() );
+        assertThat( reporter.getErrors().get( 0 ).getErrorMessage(),
             is( "Relationship Type `from` constraint requires a Tracked Entity having type `"
                 + constraintTrackedEntityType.getUid() + "` but `" + trackedEntity.getTrackedEntityType()
                 + "` was found." ) );
@@ -399,7 +399,7 @@ class RelationshipsValidationHookTest
         when( preheat.getAll( RelationshipType.class ) )
             .thenReturn( Collections.singletonList( relType ) );
 
-        reporter = new ValidationErrorReporter();
+        reporter = new TrackerValidationReport();
         Relationship relationship = Relationship.builder()
             .relationship( CodeGenerator.generateUid() )
             .from( RelationshipItem.builder()
@@ -419,9 +419,9 @@ class RelationshipsValidationHookTest
 
         validationHook.validateRelationship( reporter, ctx, relationship );
 
-        hasTrackerError( reporter, TrackerErrorCode.E4011, RELATIONSHIP, relationship.getUid() );
+        hasError( reporter, TrackerErrorCode.E4011, RELATIONSHIP, relationship.getUid() );
         assertThat(
-            reporter.getReportList().stream().map( TrackerErrorReport::getErrorMessage ).collect( Collectors.toList() ),
+            reporter.getErrors().stream().map( TrackerErrorReport::getErrorMessage ).collect( Collectors.toList() ),
             hasItem( "Relationship: `" + relationship.getRelationship() +
                 "` cannot be persisted because trackedEntity notValidTrackedEntity referenced by this relationship is not valid." ) );
     }
@@ -433,7 +433,7 @@ class RelationshipsValidationHookTest
         when( preheat.getAll( RelationshipType.class ) )
             .thenReturn( Collections.singletonList( relType ) );
 
-        reporter = new ValidationErrorReporter();
+        reporter = new TrackerValidationReport();
         Relationship relationship = Relationship.builder()
             .relationship( CodeGenerator.generateUid() )
             .from( RelationshipItem.builder()
@@ -455,7 +455,7 @@ class RelationshipsValidationHookTest
 
         assertTrue( reporter.hasErrors() );
         assertThat(
-            reporter.getReportList().stream().map( TrackerErrorReport::getErrorCode ).collect( Collectors.toList() ),
+            reporter.getErrors().stream().map( TrackerErrorReport::getErrorCode ).collect( Collectors.toList() ),
             not( hasItem( TrackerErrorCode.E4011 ) ) );
     }
 
@@ -478,11 +478,11 @@ class RelationshipsValidationHookTest
         when( preheat.getAll( RelationshipType.class ) )
             .thenReturn( Collections.singletonList( relType ) );
 
-        reporter = new ValidationErrorReporter();
+        reporter = new TrackerValidationReport();
         validationHook.validateRelationship( reporter, ctx, relationship );
 
-        hasTrackerError( reporter, E4000, RELATIONSHIP, relationship.getUid() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorMessage(),
+        hasError( reporter, E4000, RELATIONSHIP, relationship.getUid() );
+        assertThat( reporter.getErrors().get( 0 ).getErrorMessage(),
             is( "Relationship: `" + relationship.getRelationship() + "` cannot link to itself" ) );
     }
 

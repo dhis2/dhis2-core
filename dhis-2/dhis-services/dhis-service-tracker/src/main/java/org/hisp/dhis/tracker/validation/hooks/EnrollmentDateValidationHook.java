@@ -42,7 +42,7 @@ import java.util.Objects;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
-import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
 
@@ -54,14 +54,14 @@ public class EnrollmentDateValidationHook
     extends AbstractTrackerDtoValidationHook
 {
     @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, TrackerImportValidationContext context,
+    public void validateEnrollment( TrackerValidationReport report, TrackerImportValidationContext context,
         Enrollment enrollment )
     {
-        validateMandatoryDates( reporter, enrollment );
+        validateMandatoryDates( report, enrollment );
 
         Program program = context.getProgram( enrollment.getProgram() );
 
-        validateEnrollmentDatesNotInFuture( reporter, program, enrollment );
+        validateEnrollmentDatesNotInFuture( report, program, enrollment );
 
         if ( Boolean.TRUE.equals( program.getDisplayIncidentDate() ) &&
             Objects.isNull( enrollment.getOccurredAt() ) )
@@ -72,11 +72,11 @@ public class EnrollmentDateValidationHook
                 .errorCode( E1023 )
                 .addArg( enrollment.getOccurredAt() )
                 .build();
-            reporter.addError( error );
+            report.addError( error );
         }
     }
 
-    private void validateMandatoryDates( ValidationErrorReporter reporter, Enrollment enrollment )
+    private void validateMandatoryDates( TrackerValidationReport report, Enrollment enrollment )
     {
         checkNotNull( enrollment, ENROLLMENT_CANT_BE_NULL );
 
@@ -88,11 +88,11 @@ public class EnrollmentDateValidationHook
                 .errorCode( E1025 )
                 .addArg( enrollment.getEnrolledAt() )
                 .build();
-            reporter.addError( error );
+            report.addError( error );
         }
     }
 
-    private void validateEnrollmentDatesNotInFuture( ValidationErrorReporter reporter, Program program,
+    private void validateEnrollmentDatesNotInFuture( TrackerValidationReport report, Program program,
         Enrollment enrollment )
     {
         checkNotNull( program, PROGRAM_CANT_BE_NULL );
@@ -109,7 +109,7 @@ public class EnrollmentDateValidationHook
                 .errorCode( E1020 )
                 .addArg( enrollment.getEnrolledAt() )
                 .build();
-            reporter.addError( error );
+            report.addError( error );
         }
 
         if ( Objects.nonNull( enrollment.getOccurredAt() )
@@ -122,7 +122,7 @@ public class EnrollmentDateValidationHook
                 .errorCode( E1021 )
                 .addArg( enrollment.getOccurredAt() )
                 .build();
-            reporter.addError( error );
+            report.addError( error );
         }
     }
 }
