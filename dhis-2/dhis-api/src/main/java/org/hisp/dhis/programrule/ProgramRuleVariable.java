@@ -103,9 +103,12 @@ public class ProgramRuleVariable
     private ProgramStage programStage;
 
     /**
-     * Specify ValueType for CALCULATED_VALUE ProgramRuleVariable
+     * Specify ValueType for CALCULATED_VALUE ProgramRuleVariable. For other
+     * sourceTypes, valuetype will be fetched from attached DataElement or
+     * TrackedEntityAttribute. If non of these parameters are provided then
+     * ValueType.TEXT will be taken as default.
      */
-    private ValueType valueType;
+    private ValueType valueType = ValueType.TEXT;
 
     // -------------------------------------------------------------------------
     // Constructors
