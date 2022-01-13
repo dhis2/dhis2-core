@@ -72,7 +72,7 @@ public class DatastoreEntry extends BaseIdentifiableObject
     /**
      * Whether this KeyJsonValue is encrypted or not. Default is false.
      */
-    private boolean encrypted = false;
+    private Boolean encrypted = false;
 
     /**
      * Encrypted value if encrypted is set to true

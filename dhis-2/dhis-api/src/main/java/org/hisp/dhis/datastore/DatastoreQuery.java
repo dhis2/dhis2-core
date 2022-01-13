@@ -189,18 +189,41 @@ public final class DatastoreQuery
 
     public enum Comparison
     {
+        // unary
         NULL( "null" ),
         NOT_NULL( "!null" ),
         EMPTY( "empty" ),
         NOT_EMPTY( "!empty" ),
+
+        IN( "in" ),
+        NOT_IN( "!in" ),
+
+        // equality
         EQUAL( "eq" ),
         NOT_EQUAL( "!eq", "neq", "ne" ),
+
+        // numeric or alphabetic
         LESS_THAN( "lt" ),
         LESS_THAN_OR_EQUAL( "lte", "le" ),
         GREATER_THAN( "gt" ),
         GREATER_THAN_OR_EQUAL( "gte", "ge" ),
+
+        // case-sensitive pattern matching
         LIKE( "like" ),
-        NOT_LIKE( "!like" );
+        NOT_LIKE( "!like" ),
+        STARTS_LIKE( "$like" ),
+        NOT_STARTS_LIKE( "!$like" ),
+        ENDS_LIKE( "like$" ),
+        NOT_ENDS_LIKE( "!like$" ),
+
+        // case-insensitive pattern matching
+        IEQ( "ieq" ),
+        ILIKE( "ilike" ),
+        NOT_ILIKE( "!ilike" ),
+        STARTS_WITH( "$ilike", "startswith" ),
+        NOT_STARTS_WITH( "!$ilike", "!startswith" ),
+        ENDS_WITH( "ilike$", "endswith" ),
+        NOT_ENDS_WITH( "!ilike$", "!endswith" );
 
         private Set<String> operators;
 
@@ -212,6 +235,28 @@ public final class DatastoreQuery
         public boolean isUnary()
         {
             return ordinal() >= NULL.ordinal() && ordinal() <= NOT_EMPTY.ordinal();
+        }
+
+        public boolean isCaseInsensitive()
+        {
+            return ordinal() >= IEQ.ordinal();
+        }
+
+        public boolean isTextBased()
+        {
+            return ordinal() >= LIKE.ordinal();
+        }
+
+        public boolean isStartFlexible()
+        {
+            return isTextBased() && !Set.of( IEQ, STARTS_LIKE, STARTS_WITH, NOT_STARTS_LIKE, NOT_STARTS_WITH )
+                .contains( this );
+        }
+
+        public boolean isEndFlexible()
+        {
+            return isTextBased() && !Set.of( IEQ, ENDS_LIKE, ENDS_WITH, NOT_ENDS_LIKE, NOT_ENDS_WITH )
+                .contains( this );
         }
 
         public static Comparison parse( String operator )
@@ -233,11 +278,12 @@ public final class DatastoreQuery
     {
         int pageNo = max( 1, params.getInt( "page", 1 ) );
         int size = max( 1, min( 1000, params.getInt( "pageSize", 50 ) ) );
+        boolean isPaging = params.getBoolean( "paging", true );
         return toBuilder()
-            .headless( params.getBoolean( "headless", false ) )
+            .headless( isPaging && params.getBoolean( "headless", false ) )
             .anyFilter( params.getString( "rootJunction", "AND" ).equalsIgnoreCase( "OR" ) )
             .order( Order.parse( params.getString( "order", KEY_ASC.path ) ) )
-            .paging( params.getBoolean( "paging", true ) )
+            .paging( isPaging )
             .page( pageNo )
             .pageSize( size )
             .filters( parseFilters( params.getStrings( "filter" ) ) )

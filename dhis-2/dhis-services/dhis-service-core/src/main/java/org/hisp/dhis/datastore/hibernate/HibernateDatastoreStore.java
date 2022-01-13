@@ -29,6 +29,7 @@ package org.hisp.dhis.datastore.hibernate;
 
 import static java.util.Arrays.asList;
 import static java.util.Arrays.copyOfRange;
+import static java.util.Collections.emptyList;
 
 import java.util.Date;
 import java.util.List;
@@ -114,7 +115,9 @@ public class HibernateDatastoreStore
     public <T> T getFields( DatastoreQuery query, Function<Stream<DatastoreFields>, T> transform )
     {
         DatastoreQueryBuilder builder = new DatastoreQueryBuilder( query );
-        Query<Object[]> hQuery = getSession().createQuery( builder.createFetchHQL(), Object[].class )
+        String hql = builder.createFetchHQL();
+
+        Query<?> hQuery = getSession().createQuery( hql, Object[].class )
             .setParameter( "namespace", query.getNamespace() )
             .setCacheable( false );
 
@@ -127,7 +130,16 @@ public class HibernateDatastoreStore
             hQuery.setMaxResults( size );
             hQuery.setFirstResult( offset );
         }
-        return transform.apply( hQuery
+
+        if ( query.getFields().isEmpty() )
+        {
+            return transform.apply(
+                hQuery.stream().map( row -> new DatastoreFields( (String) row, emptyList() ) ) );
+        }
+
+        @SuppressWarnings( "unchecked" )
+        Query<Object[]> multiFieldQuery = (Query<Object[]>) hQuery;
+        return transform.apply( multiFieldQuery
             .stream()
             .map( row -> new DatastoreFields( (String) row[0],
                 asList( copyOfRange( row, 1, row.length, String[].class ) ) ) ) );

@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.datastore.hibernate;
 
+import static java.lang.String.format;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 
@@ -58,21 +59,14 @@ public class DatastoreQueryBuilder
 
     String createFetchHQL()
     {
-        String fields = String.join( ",", createExtractFieldValueExpressions( true ) );
-        String nonNullFilters = createNonNullFilters();
-        String orders = toOrderHQL();
-        String filters = toFilterHQL();
+        String fields = createFieldsHQL();
+        String nonNullFilters = createHasNonNullFieldsFilters();
+        String orders = createOrderHQL();
+        String filters = createFilterHQL();
 
-        return String.format(
-            "select key, %s from DatastoreEntry where namespace = :namespace and (%s) and (%s) order by %s",
+        return format(
+            "select key %s from DatastoreEntry where namespace = :namespace and (%s) and (%s) order by %s",
             fields, nonNullFilters, filters, orders );
-    }
-
-    private List<String> createExtractFieldValueExpressions( boolean asFields )
-    {
-        return query.getFields().stream()
-            .map( f -> toValueAtPathHQL( f.getPath(), asFields ) )
-            .collect( toList() );
     }
 
     void applyParameterValues( BiConsumer<String, Object> setParameter )
@@ -88,16 +82,21 @@ public class DatastoreQueryBuilder
         }
     }
 
-    private String createNonNullFilters()
+    private String createFieldsHQL()
     {
-        return query.isIncludeAll()
-            ? "1=1"
-            : createExtractFieldValueExpressions( false ).stream()
-                .map( f -> f + " is not null" )
-                .collect( joining( " or " ) );
+        return query.getFields().isEmpty()
+            ? ""
+            : "," + String.join( ",", createExtractFieldValueExpressions( true ) );
     }
 
-    private String toOrderHQL()
+    private List<String> createExtractFieldValueExpressions( boolean asFields )
+    {
+        return query.getFields().stream()
+            .map( f -> toValueAtPathHQL( f.getPath(), asFields ) )
+            .collect( toList() );
+    }
+
+    private String createOrderHQL()
     {
         Order order = query.getOrder();
         String dir = order.getDirection().name().toLowerCase();
@@ -112,7 +111,16 @@ public class DatastoreQueryBuilder
         return toValueAtPathHQL( order.getPath(), false ) + " " + dir;
     }
 
-    private String toFilterHQL()
+    private String createHasNonNullFieldsFilters()
+    {
+        return query.isIncludeAll() || query.getFields().isEmpty()
+            ? "1=1"
+            : createExtractFieldValueExpressions( false ).stream()
+                .map( f -> f + " is not null" )
+                .collect( joining( " or " ) );
+    }
+
+    private String createFilterHQL()
     {
         List<Filter> filters = query.getFilters();
         if ( filters.isEmpty() )
@@ -121,40 +129,84 @@ public class DatastoreQueryBuilder
         }
         AtomicInteger index = new AtomicInteger();
         return filters.stream()
-            .map( f -> toFilterHQL( f, index.getAndIncrement() ) )
+            .map( f -> createFilterHQL( f, index.getAndIncrement() ) )
             .collect( joining( query.isAnyFilter() ? " or " : " and " ) );
     }
 
-    private String toFilterHQL( Filter filter, int id )
+    private static String createFilterHQL( Filter filter, int id )
     {
-        String prop = toValueAtPathHQL( filter.getPath(), false );
-        Comparison cmp = filter.getOperator();
-        if ( cmp.isUnary() )
+        switch ( filter.getOperator() )
         {
-            if ( cmp == Comparison.EMPTY || cmp == Comparison.NOT_EMPTY )
-            {
-                return String.format( "(jsonb_typeof(%1$s) = 'string' and length(cast(%1$s as text) %2$s 0)"
-                    + " or (jsonb_typeof(%1$s) = 'array' and %1$s %2$s to_jsonb(cast('[]' as text)))"
-                    + " or (jsonb_typeof(%1$s) = 'object' and %1$s %2$s to_jsonb(cast('{}' as text)))",
-                    prop, cmp == Comparison.EMPTY ? "=" : "!=" );
-            }
-            return String.format( "jsonb_typeof(%1$s) %2$s 'null'", prop, cmp == Comparison.NULL ? "=" : "!=" );
+        case EMPTY:
+        case NOT_EMPTY:
+            return createEmptinessFilterHQL( filter );
+        case NULL:
+        case NOT_NULL:
+            return createNullnessFilterHQL( filter );
+        case IN:
+        case NOT_IN:
+            return createInFilterHQL( filter, id );
+        default:
+            return createBinaryFilterHQL( filter, id );
         }
+    }
+
+    private static String createBinaryFilterHQL( Filter filter, int id )
+    {
+        Comparison cmp = filter.getOperator();
+        String prop = toValueAtPathHQL( filter.getPath(), false );
         String placeholder = ":f_" + id;
+        if ( filter.isKeyPath() )
+        {
+            return format( "key %s %s", createOperatorHQL( cmp ), placeholder );
+        }
         String type = deriveNodeType( filter );
         String template = "(jsonb_typeof(%1$s) = '%2$s' and %1$s %3$s to_jsonb(%4$s))";
-        if ( "string".equals( type ) )
+        boolean isTextFilter = "string".equals( type );
+        if ( isTextFilter )
         {
-            template = "(jsonb_typeof(%1$s) = 'string' and cast(%1$s as text) %3$s '%4$s')";
+            template = cmp.isCaseInsensitive()
+                ? "(jsonb_typeof(%1$s) = 'string' and lower(%5$s) %3$s %4$s)"
+                : "(jsonb_typeof(%1$s) = 'string' and %5$s %3$s %4$s)";
         }
         else if ( "object".equals( type ) || "array".equals( type ) )
         {
-            template = "(jsonb_typeof(%1$s) = '%2$s' and %1$s %3$s to_jsonb(cast('%4$s' as text)))";
+            template = "(jsonb_typeof(%1$s) = '%2$s' and %1$s %3$s to_jsonb(cast(%4$s as text)))";
         }
-        return String.format( template, prop, type, toOperatorHQL( cmp ), placeholder );
+        String propAsText = prop.replace( "jsonb_extract_path(", "jsonb_extract_path_text(" );
+        return format( template, prop, type, createOperatorHQL( cmp ), placeholder, propAsText );
     }
 
-    private static String toOperatorHQL( Comparison op )
+    private static String createInFilterHQL( Filter filter, int id )
+    {
+        String prop = toValueAtPathHQL( filter.getPath(), false );
+        String placeholder = ":f_" + id;
+        return format( "(jsonb_typeof(%1$s) = 'string') and %1$s %2$s %3$s",
+            prop, createOperatorHQL( filter.getOperator() ), placeholder );
+    }
+
+    private static String createNullnessFilterHQL( Filter filter )
+    {
+        String prop = toValueAtPathHQL( filter.getPath(), false );
+        if ( filter.getOperator() == Comparison.NOT_NULL )
+        {
+            return prop + " is not null";
+        }
+        return format(
+            "((jsonb_typeof(%1$s) is 'object' or jsonb_typeof(%1$s) is 'array') and %2$s is null)",
+            toValueAtParentPathHQL( filter.getPath() ), prop );
+    }
+
+    private static String createEmptinessFilterHQL( Filter filter )
+    {
+        String prop = toValueAtPathHQL( filter.getPath(), false );
+        return format( "(jsonb_typeof(%1$s) = 'string' and %1$s %2$s to_jsonb(cast('\"\"' as text)))"
+            + " or (jsonb_typeof(%1$s) = 'array' and %1$s %2$s to_jsonb(cast('[]' as text)))"
+            + " or (jsonb_typeof(%1$s) = 'object' and %1$s %2$s to_jsonb(cast('{}' as text)))",
+            prop, filter.getOperator() == Comparison.EMPTY ? "=" : "!=" );
+    }
+
+    private static String createOperatorHQL( Comparison op )
     {
         switch ( op )
         {
@@ -167,9 +219,23 @@ public class DatastoreQueryBuilder
         case GREATER_THAN_OR_EQUAL:
             return ">=";
         case LIKE:
+        case ILIKE:
+        case STARTS_LIKE:
+        case ENDS_LIKE:
+        case STARTS_WITH:
+        case ENDS_WITH:
             return "like";
         case NOT_LIKE:
+        case NOT_ILIKE:
+        case NOT_STARTS_LIKE:
+        case NOT_ENDS_LIKE:
+        case NOT_STARTS_WITH:
+        case NOT_ENDS_WITH:
             return "not like";
+        case IN:
+            return "in";
+        case NOT_IN:
+            return "not in";
         case NOT_EQUAL:
             return "!=";
         default:
@@ -177,7 +243,7 @@ public class DatastoreQueryBuilder
         }
     }
 
-    private String deriveNodeType( Filter filter )
+    private static String deriveNodeType( Filter filter )
     {
         String value = filter.getValue();
         switch ( value )
@@ -193,7 +259,7 @@ public class DatastoreQueryBuilder
         }
     }
 
-    private Object toTypedFilterValue( Filter filter )
+    private static Object toTypedFilterValue( Filter filter )
     {
         String type = deriveNodeType( filter );
         String value = filter.getValue();
@@ -205,7 +271,23 @@ public class DatastoreQueryBuilder
         {
             return Double.parseDouble( value );
         }
-        return value.startsWith( "'" ) && value.endsWith( "'" ) ? value.substring( 1, value.length() - 1 ) : value;
+        String str = value.startsWith( "'" ) && value.endsWith( "'" )
+            ? value.substring( 1, value.length() - 1 )
+            : value;
+        Comparison cmp = filter.getOperator();
+        if ( cmp.isCaseInsensitive() )
+        {
+            str = str.toLowerCase();
+        }
+        if ( cmp.isStartFlexible() )
+        {
+            str = "%" + str;
+        }
+        if ( cmp.isEndFlexible() )
+        {
+            str += "%";
+        }
+        return cmp.isTextBased() && cmp != Comparison.IEQ ? str.replace( '*', '%' ) : str;
     }
 
     private static String toValueAtPathHQL( String path, boolean asField )
@@ -219,6 +301,13 @@ public class DatastoreQueryBuilder
             return "key";
         }
         return "jsonb_extract_path(jbvalue, " + toPathSegments( path ) + " )";
+    }
+
+    private static String toValueAtParentPathHQL( String path )
+    {
+        return !path.contains( "." )
+            ? toValueAtPathHQL( ".", false )
+            : toValueAtPathHQL( path.substring( 0, path.lastIndexOf( '.' ) + 1 ), false );
     }
 
     private static String toPathSegments( String path )

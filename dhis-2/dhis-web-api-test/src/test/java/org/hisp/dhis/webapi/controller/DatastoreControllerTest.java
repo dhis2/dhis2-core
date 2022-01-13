@@ -358,7 +358,7 @@ class DatastoreControllerTest extends DhisControllerConvenienceTest
         // there is no way to see in the exposed metadata that a value is
         // encrypted, user service
         DatastoreEntry entry = service.getEntry( "pets", "cat" );
-        assertTrue( entry.isEncrypted() );
+        assertTrue( entry.getEncrypted() );
         assertNull( entry.getJbPlainValue() );
         assertNotNull( entry.getEncryptedValue() );
     }
