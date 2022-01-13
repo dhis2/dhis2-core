@@ -62,7 +62,7 @@ public class AssignedUserValidationHook
                     .build();
                 report.addError( error );
             }
-            if ( isNotEnabledUserAssignment( context, event ) )
+            if ( Boolean.TRUE.equals( isNotEnabledUserAssignment( context, event ) ) )
             {
                 TrackerWarningReport warn = TrackerWarningReport.builder()
                     .uid( event.getUid() )
