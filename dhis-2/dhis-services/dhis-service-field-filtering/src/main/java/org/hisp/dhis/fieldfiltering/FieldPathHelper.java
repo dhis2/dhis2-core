@@ -267,8 +267,7 @@ public class FieldPathHelper
                     ( key, count ) -> count == null ? 1L : count + 1L );
             }
 
-            if ( property.is( PropertyType.COMPLEX, PropertyType.REFERENCE )
-                || property.itemIs( PropertyType.COMPLEX, PropertyType.REFERENCE ) )
+            if ( isReference( property ) || isComplex( property ) )
             {
                 pathCount.compute( fieldPath.toFullPath(),
                     ( key, count ) -> count == null ? 1L : count + 1L );
