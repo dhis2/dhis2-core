@@ -65,6 +65,7 @@ public class RelationshipsValidationHook
     extends AbstractTrackerDtoValidationHook
 {
 
+    @Override
     public void validateRelationship( TrackerValidationReport report, TrackerImportValidationContext context,
         Relationship relationship )
     {
