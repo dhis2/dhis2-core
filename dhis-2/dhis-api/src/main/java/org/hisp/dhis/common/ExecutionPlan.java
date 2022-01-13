@@ -54,6 +54,6 @@ public class ExecutionPlan implements Serializable
     @JsonProperty
     private String query;
 
-    @JsonProperty
-    private JsonNode plan;
+    @JsonProperty( "plan" )
+    private transient JsonNode plan;
 }
