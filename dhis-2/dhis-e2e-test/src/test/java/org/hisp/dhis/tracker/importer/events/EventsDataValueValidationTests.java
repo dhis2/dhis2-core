@@ -243,7 +243,8 @@ public class EventsDataValueValidationTests
         assertNotNull( programStageId, "Failed to create a programStage" );
 
         ApiResponse dataelements = dataElementActions
-            .get( "?fields=id&filter=domainType:eq:TRACKER&filter=valueType:in:[TEXT,LONG_TEXT]&pageSize=2" );
+            .get(
+                "?fields=id&filter=domainType:eq:TRACKER&filter=valueType:in:[TEXT,LONG_TEXT]&filter=optionSetValue:eq:false&pageSize=2" );
         dataelements.validate().body( "dataElements", hasSize( 2 ) );
 
         mandatoryDataElementId = dataelements
