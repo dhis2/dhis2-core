@@ -572,11 +572,6 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
             return ItemValueType.NUMBER;
         }
 
-        if ( valueType.isText() )
-        {
-            return ItemValueType.TEXT;
-        }
-
         if ( valueType.isBoolean() )
         {
             return ItemValueType.BOOLEAN;
