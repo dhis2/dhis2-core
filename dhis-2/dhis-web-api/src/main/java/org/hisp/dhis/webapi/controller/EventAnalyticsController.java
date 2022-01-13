@@ -40,8 +40,6 @@ import lombok.NonNull;
 
 import org.hisp.dhis.analytics.Rectangle;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanCache;
-import org.hisp.dhis.analytics.dataitem.DimensionalItemFilteringAndPagingService;
-import org.hisp.dhis.analytics.event.EventAnalyticsDimensionalItemService;
 import org.hisp.dhis.analytics.dimension.DimensionFilteringAndPagingService;
 import org.hisp.dhis.analytics.event.EventAnalyticsDimensionsService;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;

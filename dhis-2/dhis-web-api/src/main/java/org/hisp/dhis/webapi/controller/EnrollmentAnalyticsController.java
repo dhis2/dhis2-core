@@ -34,11 +34,11 @@ import java.util.List;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.NotNull;
 
-import org.hisp.dhis.analytics.dimension.DimensionFilteringAndPagingService;
-import org.hisp.dhis.analytics.event.EnrollmentAnalyticsDimensionsService;
 import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.analytics.analyze.ExecutionPlanCache;
+import org.hisp.dhis.analytics.dimension.DimensionFilteringAndPagingService;
+import org.hisp.dhis.analytics.event.EnrollmentAnalyticsDimensionsService;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsService;
 import org.hisp.dhis.analytics.event.EventDataQueryService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -83,6 +83,12 @@ public class EnrollmentAnalyticsController
     @NotNull
     private final ExecutionPlanCache executionPlanCache;
 
+    @NotNull
+    private DimensionFilteringAndPagingService dimensionFilteringAndPagingService;
+
+    @NotNull
+    private EnrollmentAnalyticsDimensionsService enrollmentAnalyticsDimensionsService;
+
     @GetMapping( value = "/query/{program}/analyze", produces = { APPLICATION_JSON_VALUE, "application/javascript" } )
     public @ResponseBody Grid getAnalyzeQueryJson( // JSON, JSONP
         @PathVariable String program,
@@ -101,12 +107,6 @@ public class EnrollmentAnalyticsController
 
         return grid;
     }
-
-    @Autowired
-    private DimensionFilteringAndPagingService dimensionFilteringAndPagingService;
-
-    @Autowired
-    private EnrollmentAnalyticsDimensionsService enrollmentAnalyticsDimensionsService;
 
     @GetMapping( value = "/query/{program}", produces = { APPLICATION_JSON_VALUE, "application/javascript" } )
     public @ResponseBody Grid getQueryJson( // JSON, JSONP
