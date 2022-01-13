@@ -56,6 +56,7 @@ import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
@@ -68,6 +69,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
+import org.hisp.dhis.system.util.MathUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.jdbc.BadSqlGrammarException;
@@ -701,6 +703,27 @@ public abstract class AbstractJdbcEventAnalyticsManager
         {
             log.warn( ErrorCode.E7131.getMessage(), ex );
             throw new QueryRuntimeException( ErrorCode.E7131, ex );
+        }
+    }
+
+    protected void addGridValue( Grid grid, GridHeader header, int index, SqlRowSet sqlRowSet, EventQueryParams params )
+    {
+        if ( Double.class.getName().equals( header.getType() ) && !header.hasLegendSet() )
+        {
+            double val = sqlRowSet.getDouble( index );
+
+            if ( Double.isNaN( val ) )
+            {
+                grid.addValue( "" );
+            }
+            else
+            {
+                grid.addValue( params.isSkipRounding() ? val : MathUtils.getRounded( val ) );
+            }
+        }
+        else
+        {
+            grid.addValue( sqlRowSet.getString( index ) );
         }
     }
 

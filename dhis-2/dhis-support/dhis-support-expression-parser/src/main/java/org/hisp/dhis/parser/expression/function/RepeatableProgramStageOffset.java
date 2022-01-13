@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,24 +27,38 @@
  */
 package org.hisp.dhis.parser.expression.function;
 
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
-
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ExpressionItem;
+import org.hisp.dhis.parser.expression.antlr.ExpressionParser;
 
 /**
- * Function periodOffset
- *
- * @author Enrico Colasante
+ * @author Dusan Bernat
  */
-public class PeriodOffset
-    implements ExpressionItem
+
+public class RepeatableProgramStageOffset implements ExpressionItem
 {
     @Override
-    public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
+    public Object evaluate( ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        int offset = ctx.period != null ? Integer.valueOf( ctx.period.getText() ) : 0;
+        return next( ctx, visitor );
+    }
 
-        return visitor.visitWithPeriodOffset( ctx.expr( 0 ), offset );
+    @Override
+    public Object getSql( ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor )
+    {
+        return next( ctx, visitor );
+    }
+
+    private Object next( ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor )
+    {
+        int oldStageOffset = visitor.getStageOffset();
+
+        visitor.setStageOffset( Integer.parseInt( ctx.stage.getText() ) );
+
+        Object ret = visitor.visit( ctx.expr( 0 ) );
+
+        visitor.setStageOffset( oldStageOffset );
+
+        return ret;
     }
 }

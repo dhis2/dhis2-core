@@ -123,8 +123,8 @@ class ProgramRuleIntegrationTest extends TransactionalIntegrationTest
         DataElement dataElement1 = bundle.getPreheat().get( PreheatIdentifier.UID, DataElement.class, "DATAEL00001" );
         DataElement dataElement2 = bundle.getPreheat().get( PreheatIdentifier.UID, DataElement.class, "DATAEL00002" );
         ProgramStage programStage = bundle.getPreheat().get( PreheatIdentifier.UID, ProgramStage.class, "NpsdDv6kKSO" );
-        ProgramRuleVariable programRuleVariable = createProgramRuleVariable( 'A', program );
-        programRuleVariable.setDataElement( dataElement2 );
+        ProgramRuleVariable programRuleVariable = createProgramRuleVariableWithDataElement( 'A', program,
+            dataElement2 );
         programRuleVariableService.addProgramRuleVariable( programRuleVariable );
         ProgramRule programRuleA = createProgramRule( 'A', program );
         programRuleA.setUid( "ProgramRule" );

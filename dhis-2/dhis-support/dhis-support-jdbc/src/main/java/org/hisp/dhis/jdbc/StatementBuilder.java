@@ -332,4 +332,28 @@ public interface StatementBuilder
      */
     String getProgramIndicatorEventColumnSql( String programStageUid, String columnName, Date reportingStartDate,
         Date reportingEndDate, ProgramIndicator programIndicator );
+
+    /**
+     * Get a SQL for selecting a single data value in a program indicator
+     * expression, abiding to boundaries. Internally adds quotes to the param
+     * dataElementUid and calls the
+     * {@link StatementBuilder#getProgramIndicatorEventColumnSql(String, String, Date, Date, ProgramIndicator)}
+     * function.
+     *
+     * @param programStageUid the program stage to get data for
+     * @param stageOffset the program stage offset to get data (repeatable
+     *        stages)
+     * @param columnName the column to get data for
+     * @param reportingStartDate the reporting start date
+     * @param reportingEndDate the reporting end date
+     * @param programIndicator the program indicator context
+     * @return
+     */
+    default String getProgramIndicatorEventColumnSql( String programStageUid, String stageOffset, String columnName,
+        Date reportingStartDate,
+        Date reportingEndDate, ProgramIndicator programIndicator )
+    {
+        return getProgramIndicatorDataValueSelectSql( programStageUid, columnName, reportingStartDate,
+            reportingEndDate, programIndicator );
+    }
 }
