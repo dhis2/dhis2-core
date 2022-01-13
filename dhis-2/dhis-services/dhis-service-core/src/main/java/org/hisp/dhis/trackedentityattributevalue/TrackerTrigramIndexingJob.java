@@ -86,29 +86,27 @@ public class TrackerTrigramIndexingJob implements Job
         log.info( "Starting Trigram Indexing Job. Attributes Provided to Index: {}", parameters.getAttributes() );
         progress.startingProcess( "Starting Trigram indexing process" );
 
-        Set<TrackedEntityAttribute> allIndexableAttributes = null;
-
         // fetch all indexable attributes only if needed
         if ( !CollectionUtils.isEmpty( parameters.getAttributes() ) || !parameters.isSkipIndexDeletion() )
         {
             log.debug( "Fetching all indexable attributes from db" );
-            allIndexableAttributes = trackedEntityAttributeService
+            Set<TrackedEntityAttribute> allIndexableAttributes = allIndexableAttributes = trackedEntityAttributeService
                 .getAllTrigramIndexableTrackedEntityAttributes();
-        }
 
-        // Trigram index only need to be created if requested in the job
-        // parameters.
-        if ( !CollectionUtils.isEmpty( parameters.getAttributes() ) )
-        {
-            createTrigramIndexesOnIndexableAttributes( progress, parameters, allIndexableAttributes );
-        }
+            // Trigram index only need to be created if requested in the job
+            // parameters.
+            if ( !CollectionUtils.isEmpty( parameters.getAttributes() ) )
+            {
+                createTrigramIndexesOnIndexableAttributes( progress, parameters, allIndexableAttributes );
+            }
 
-        // Obsolete index deletion
-        if ( !parameters.isSkipIndexDeletion() )
-        {
-            removeObsoleteTrigramIndexes( progress, allIndexableAttributes );
-        }
+            // Obsolete index deletion
+            if ( !parameters.isSkipIndexDeletion() )
+            {
+                removeObsoleteTrigramIndexes( progress, allIndexableAttributes );
+            }
 
+        }
         progress.completedProcess( "Job completed" );
         log.info( "Trigram Indexing job completed" );
     }
