@@ -69,17 +69,17 @@ public class PreCheckExistenceValidationHook
         // If the tracked entity is soft-deleted no operation is allowed
         if ( existingTe != null && existingTe.isDeleted() )
         {
-            addError( reporter, trackedEntity, E1114, trackedEntity.getTrackedEntity() );
+            reporter.addError( trackedEntity, E1114, trackedEntity.getTrackedEntity() );
             return;
         }
 
         if ( existingTe != null && importStrategy.isCreate() )
         {
-            addError( reporter, trackedEntity, E1002, trackedEntity.getTrackedEntity() );
+            reporter.addError( trackedEntity, E1002, trackedEntity.getTrackedEntity() );
         }
         else if ( existingTe == null && importStrategy.isUpdateOrDelete() )
         {
-            addError( reporter, trackedEntity, E1063, trackedEntity.getTrackedEntity() );
+            reporter.addError( trackedEntity, E1063, trackedEntity.getTrackedEntity() );
         }
     }
 
@@ -94,17 +94,17 @@ public class PreCheckExistenceValidationHook
         // If the tracked entity is soft-deleted no operation is allowed
         if ( existingPi != null && existingPi.isDeleted() )
         {
-            addError( reporter, enrollment, E1113, enrollment.getEnrollment() );
+            reporter.addError( enrollment, E1113, enrollment.getEnrollment() );
             return;
         }
 
         if ( existingPi != null && importStrategy.isCreate() )
         {
-            addError( reporter, enrollment, E1080, enrollment.getEnrollment() );
+            reporter.addError( enrollment, E1080, enrollment.getEnrollment() );
         }
         else if ( existingPi == null && importStrategy.isUpdateOrDelete() )
         {
-            addError( reporter, enrollment, E1081, enrollment.getEnrollment() );
+            reporter.addError( enrollment, E1081, enrollment.getEnrollment() );
         }
     }
 
@@ -119,17 +119,17 @@ public class PreCheckExistenceValidationHook
         // If the event is soft-deleted no operation is allowed
         if ( existingPsi != null && existingPsi.isDeleted() )
         {
-            addError( reporter, event, E1082, event.getEvent() );
+            reporter.addError( event, E1082, event.getEvent() );
             return;
         }
 
         if ( existingPsi != null && importStrategy.isCreate() )
         {
-            addError( reporter, event, E1030, event.getEvent() );
+            reporter.addError( event, E1030, event.getEvent() );
         }
         else if ( existingPsi == null && importStrategy.isUpdateOrDelete() )
         {
-            addError( reporter, event, E1032, event.getEvent() );
+            reporter.addError( event, E1032, event.getEvent() );
         }
     }
 
@@ -142,7 +142,7 @@ public class PreCheckExistenceValidationHook
 
         if ( existingRelationship != null )
         {
-            addWarning( reporter, relationship, E4015,
+            reporter.addWarning( relationship, E4015,
                 relationship.getRelationship() );
         }
     }

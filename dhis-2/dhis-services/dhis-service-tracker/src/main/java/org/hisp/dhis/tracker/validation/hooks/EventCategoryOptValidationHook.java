@@ -85,7 +85,7 @@ public class EventCategoryOptValidationHook
             && program.getCategoryCombo() != null
             && !program.getCategoryCombo().isDefault() )
         {
-            addError( reporter, event, TrackerErrorCode.E1055 );
+            reporter.addError( event, TrackerErrorCode.E1055 );
             return;
         }
 
@@ -107,13 +107,13 @@ public class EventCategoryOptValidationHook
         {
             if ( option.getStartDate() != null && eventDate.compareTo( option.getStartDate() ) < 0 )
             {
-                addError( reporter, event, E1056, i18nFormat.formatDate( eventDate ),
+                reporter.addError( event, E1056, i18nFormat.formatDate( eventDate ),
                     i18nFormat.formatDate( option.getStartDate() ), option.getName() );
             }
 
             if ( option.getEndDate() != null && eventDate.compareTo( option.getAdjustedEndDate( program ) ) > 0 )
             {
-                addError( reporter, event, E1057, i18nFormat.formatDate( eventDate ),
+                reporter.addError( event, E1057, i18nFormat.formatDate( eventDate ),
                     i18nFormat.formatDate( option.getAdjustedEndDate( program ) ), option.getName(),
                     program.getName() );
             }

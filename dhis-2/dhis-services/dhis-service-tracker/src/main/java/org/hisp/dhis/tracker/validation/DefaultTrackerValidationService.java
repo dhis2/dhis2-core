@@ -87,9 +87,6 @@ public class DefaultTrackerValidationService
         // Note that the bundle gets cloned internally, so the original bundle
         // is always available
         TrackerImportValidationContext context = new TrackerImportValidationContext( bundle );
-        // TODO(TECH-880) remove reliance on context from reporter, then context
-        // altogether.
-        // the bundle is probably enough
         ValidationErrorReporter reporter = new ValidationErrorReporter( context );
 
         try
@@ -109,8 +106,6 @@ public class DefaultTrackerValidationService
         {
             // exit early when in FAIL_FAST validation mode
         }
-        // TODO(TECH-880) can be removed once the ValidationErrorReporter is
-        // removed and we only work with TrackerValidationReport
         validationReport
             .addErrors( reporter.getReportList() )
             .addWarnings( reporter.getWarningsReportList() );
