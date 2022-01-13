@@ -98,10 +98,9 @@ public class EnrollmentAnalyticsController
     {
         EventQueryParams params = getEventQueryParams( program, criteria, apiVersion, true );
 
+        Grid grid = analyticsService.getEnrollments( params );
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON,
             CacheStrategy.RESPECT_SYSTEM_SETTING );
-
-        Grid grid = analyticsService.getEnrollments( params );
 
         PerformanceMetricsUtils.addPerformanceMetrics( executionPlanCache, params, grid );
 
