@@ -18,8 +18,6 @@ concurrency:
     cancel-in-progress: true
 jobs:
   sonarqube:
-    env:
-    
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
