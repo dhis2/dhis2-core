@@ -107,7 +107,7 @@ class PreCheckMetaValidationHookTest
         // given
         TrackedEntity tei = validTei();
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, tei );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx );
 
         // when
         when( ctx.getOrganisationUnit( ORG_UNIT_UID ) ).thenReturn( new OrganisationUnit() );
@@ -125,7 +125,7 @@ class PreCheckMetaValidationHookTest
         // given
         TrackedEntity tei = validTei();
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, tei );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx );
 
         // when
         when( ctx.getTrackedEntityType( TRACKED_ENTITY_TYPE_UID ) ).thenReturn( new TrackedEntityType() );
@@ -142,7 +142,7 @@ class PreCheckMetaValidationHookTest
         // given
         TrackedEntity tei = validTei();
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, tei );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx );
 
         // when
         when( ctx.getOrganisationUnit( ORG_UNIT_UID ) ).thenReturn( new OrganisationUnit() );
@@ -159,7 +159,7 @@ class PreCheckMetaValidationHookTest
         // given
         Enrollment enrollment = validEnrollment();
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, enrollment );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx );
 
         // when
         when( ctx.getOrganisationUnit( ORG_UNIT_UID ) ).thenReturn( new OrganisationUnit() );
@@ -178,7 +178,7 @@ class PreCheckMetaValidationHookTest
         // given
         Enrollment enrollment = validEnrollment();
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, enrollment );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx );
 
         // when
         when( ctx.getReference( TRACKED_ENTITY_UID ) )
@@ -198,7 +198,7 @@ class PreCheckMetaValidationHookTest
         // given
         Enrollment enrollment = validEnrollment();
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, enrollment );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx );
 
         // when
         when( ctx.getProgram( PROGRAM_UID ) ).thenReturn( new Program() );
@@ -216,7 +216,7 @@ class PreCheckMetaValidationHookTest
         // given
         Enrollment enrollment = validEnrollment();
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, enrollment );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx );
 
         // when
         when( ctx.getOrganisationUnit( ORG_UNIT_UID ) ).thenReturn( new OrganisationUnit() );
@@ -234,7 +234,7 @@ class PreCheckMetaValidationHookTest
         // given
         Enrollment enrollment = validEnrollment();
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, enrollment );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx );
 
         // when
         when( ctx.getOrganisationUnit( ORG_UNIT_UID ) ).thenReturn( new OrganisationUnit() );
@@ -252,7 +252,7 @@ class PreCheckMetaValidationHookTest
         // given
         Event event = validEvent();
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, event );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx );
 
         // when
         when( ctx.getOrganisationUnit( ORG_UNIT_UID ) ).thenReturn( new OrganisationUnit() );
@@ -271,7 +271,7 @@ class PreCheckMetaValidationHookTest
         // given
         Event event = validEvent();
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, event );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx );
 
         // when
         when( ctx.getOrganisationUnit( ORG_UNIT_UID ) ).thenReturn( new OrganisationUnit() );
@@ -289,7 +289,7 @@ class PreCheckMetaValidationHookTest
         // given
         Event event = validEvent();
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, event );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx );
 
         // when
         when( ctx.getOrganisationUnit( ORG_UNIT_UID ) ).thenReturn( new OrganisationUnit() );
@@ -307,7 +307,7 @@ class PreCheckMetaValidationHookTest
         // given
         Event event = validEvent();
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, event );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx );
 
         // when
         when( ctx.getProgram( PROGRAM_UID ) ).thenReturn( new Program() );
@@ -325,7 +325,7 @@ class PreCheckMetaValidationHookTest
         // given
         Relationship relationship = validRelationship();
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, relationship );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx );
 
         // when
         when( ctx.getRelationShipType( RELATIONSHIP_TYPE_UID ) ).thenReturn( new RelationshipType() );
@@ -342,7 +342,7 @@ class PreCheckMetaValidationHookTest
         // given
         Relationship relationship = validRelationship();
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, relationship );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx );
 
         // when
         validatorToTest.validateRelationship( reporter, relationship );

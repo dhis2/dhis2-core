@@ -116,6 +116,8 @@ public class CommonExpressionVisitor
      */
     private int periodOffset = 0;
 
+    private int stageOffset = Integer.MIN_VALUE;
+
     /**
      * Used to collect the string replacements to build a description.
      */
@@ -181,6 +183,11 @@ public class CommonExpressionVisitor
      * Periods to sample over for predictor sample functions.
      */
     private List<Period> samplePeriods;
+
+    /**
+     * Flag to check if a null date was found.
+     */
+    private boolean unprotectedNullDateFound = false;
 
     /**
      * Count of dimension items found.
@@ -313,7 +320,7 @@ public class CommonExpressionVisitor
      * @param ctx any context
      * @return the value with the applied offset
      */
-    public Object visitWithOffset( ParserRuleContext ctx, int offset )
+    public Object visitWithPeriodOffset( ParserRuleContext ctx, int offset )
     {
         int savedPeriodOffset = periodOffset;
 
@@ -346,8 +353,12 @@ public class CommonExpressionVisitor
         if ( replaceNulls )
         {
             itemsFound++;
-
-            if ( value == null )
+            if ( value == null && valueType.isDate() )
+            {
+                unprotectedNullDateFound = true;
+                return null;
+            }
+            else if ( value == null )
             {
                 return ValidationUtils.getNullReplacementValue( valueType );
             }
@@ -527,6 +538,16 @@ public class CommonExpressionVisitor
         return periodOffset;
     }
 
+    public int getStageOffset()
+    {
+        return stageOffset;
+    }
+
+    public void setStageOffset( int stageOffset )
+    {
+        this.stageOffset = stageOffset;
+    }
+
     public Set<DimensionalItemId> getItemIds()
     {
         return itemIds;
@@ -645,6 +666,11 @@ public class CommonExpressionVisitor
     public void setItemValuesFound( int itemValuesFound )
     {
         this.itemValuesFound = itemValuesFound;
+    }
+
+    public boolean isUnprotectedNullDateFound()
+    {
+        return unprotectedNullDateFound;
     }
 
     public MissingValueStrategy getMissingValueStrategy()

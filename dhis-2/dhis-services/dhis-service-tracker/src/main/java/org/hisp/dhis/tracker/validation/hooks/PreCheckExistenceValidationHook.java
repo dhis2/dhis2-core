@@ -27,7 +27,16 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.*;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1002;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1030;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1032;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1063;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1080;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1081;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1082;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1113;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1114;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4015;
 
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
@@ -60,17 +69,17 @@ public class PreCheckExistenceValidationHook
         // If the tracked entity is soft-deleted no operation is allowed
         if ( existingTe != null && existingTe.isDeleted() )
         {
-            addError( reporter, E1114, trackedEntity.getTrackedEntity() );
+            addError( reporter, trackedEntity, E1114, trackedEntity.getTrackedEntity() );
             return;
         }
 
         if ( existingTe != null && importStrategy.isCreate() )
         {
-            addError( reporter, E1002, trackedEntity.getTrackedEntity() );
+            addError( reporter, trackedEntity, E1002, trackedEntity.getTrackedEntity() );
         }
         else if ( existingTe == null && importStrategy.isUpdateOrDelete() )
         {
-            addError( reporter, E1063, trackedEntity.getTrackedEntity() );
+            addError( reporter, trackedEntity, E1063, trackedEntity.getTrackedEntity() );
         }
     }
 
@@ -85,17 +94,17 @@ public class PreCheckExistenceValidationHook
         // If the tracked entity is soft-deleted no operation is allowed
         if ( existingPi != null && existingPi.isDeleted() )
         {
-            addError( reporter, E1113, enrollment.getEnrollment() );
+            addError( reporter, enrollment, E1113, enrollment.getEnrollment() );
             return;
         }
 
         if ( existingPi != null && importStrategy.isCreate() )
         {
-            addError( reporter, E1080, enrollment.getEnrollment() );
+            addError( reporter, enrollment, E1080, enrollment.getEnrollment() );
         }
         else if ( existingPi == null && importStrategy.isUpdateOrDelete() )
         {
-            addError( reporter, E1081, enrollment.getEnrollment() );
+            addError( reporter, enrollment, E1081, enrollment.getEnrollment() );
         }
     }
 
@@ -110,17 +119,17 @@ public class PreCheckExistenceValidationHook
         // If the event is soft-deleted no operation is allowed
         if ( existingPsi != null && existingPsi.isDeleted() )
         {
-            addError( reporter, E1082, event.getEvent() );
+            addError( reporter, event, E1082, event.getEvent() );
             return;
         }
 
         if ( existingPsi != null && importStrategy.isCreate() )
         {
-            addError( reporter, E1030, event.getEvent() );
+            addError( reporter, event, E1030, event.getEvent() );
         }
         else if ( existingPsi == null && importStrategy.isUpdateOrDelete() )
         {
-            addError( reporter, E1032, event.getEvent() );
+            addError( reporter, event, E1032, event.getEvent() );
         }
     }
 
@@ -133,7 +142,8 @@ public class PreCheckExistenceValidationHook
 
         if ( existingRelationship != null )
         {
-            addWarning( reporter, E4015, relationship.getRelationship() );
+            addWarning( reporter, relationship, E4015,
+                relationship.getRelationship() );
         }
     }
 

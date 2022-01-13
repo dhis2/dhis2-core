@@ -626,41 +626,38 @@ class ProgramRuleEngineTest extends DhisSpringTest
         programRuleS = createProgramRule( 'S', programS );
         programRuleS.setCondition( expressionS );
         programRuleService.addProgramRule( programRuleS );
-        ProgramRuleVariable programRuleVariableEmail = createProgramRuleVariable( 'E', programB );
-        programRuleVariableEmail.setSourceType( ProgramRuleVariableSourceType.TEI_ATTRIBUTE );
-        programRuleVariableEmail.setAttribute( attributeEmail );
+        ProgramRuleVariable programRuleVariableEmail = createProgramRuleVariableWithTEA( 'E', programB,
+            attributeEmail );
         programRuleVariableEmail.setName( "attribute_email" );
         programRuleVariableService.addProgramRuleVariable( programRuleVariableEmail );
-        ProgramRuleVariable programRuleVariableA = createProgramRuleVariable( 'A', programA );
-        programRuleVariableA.setSourceType( ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT );
-        programRuleVariableA.setDataElement( dataElementA );
+        ProgramRuleVariable programRuleVariableA = createProgramRuleVariableWithDataElement( 'A', programA,
+            dataElementA );
         programRuleVariableService.addProgramRuleVariable( programRuleVariableA );
-        ProgramRuleVariable programRuleVariableB = createProgramRuleVariable( 'B', programA );
-        programRuleVariableB.setSourceType( ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT );
-        programRuleVariableB.setDataElement( dataElementB );
+        ProgramRuleVariable programRuleVariableB = createProgramRuleVariableWithDataElement( 'B', programA,
+            dataElementB );
         programRuleVariableService.addProgramRuleVariable( programRuleVariableB );
-        ProgramRuleVariable programRuleVariableDate = createProgramRuleVariable( 'X', programA );
+        ProgramRuleVariable programRuleVariableDate = createProgramRuleVariableWithDataElement( 'X', programA,
+            dataElementDate );
         programRuleVariableDate.setName( "DOB" );
-        programRuleVariableDate.setSourceType( ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT );
-        programRuleVariableDate.setDataElement( dataElementDate );
         programRuleVariableService.addProgramRuleVariable( programRuleVariableDate );
-        ProgramRuleVariable programRuleVariableAge = createProgramRuleVariable( 'K', programA );
-        programRuleVariableAge.setSourceType( ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT );
+        ProgramRuleVariable programRuleVariableAge = createProgramRuleVariableWithDataElement( 'K', programA,
+            dataElementAge );
         programRuleVariableAge.setName( "AGE" );
-        programRuleVariableAge.setDataElement( dataElementAge );
         programRuleVariableService.addProgramRuleVariable( programRuleVariableAge );
-        ProgramRuleVariable programRuleVariableC = createConstantProgramRuleVariable( 'C', programA );
-        programRuleVariableC.setSourceType( ProgramRuleVariableSourceType.TEI_ATTRIBUTE );
-        programRuleVariableC.setAttribute( attributeA );
-        programRuleVariableService.addProgramRuleVariable( programRuleVariableC );
-        ProgramRuleVariable programRuleVariableD = createProgramRuleVariable( 'D', programA );
-        programRuleVariableD.setSourceType( ProgramRuleVariableSourceType.TEI_ATTRIBUTE );
-        programRuleVariableD.setAttribute( attributeB );
+        ProgramRuleVariable programRuleVariableD = createProgramRuleVariableWithTEA( 'D', programA, attributeB );
         programRuleVariableService.addProgramRuleVariable( programRuleVariableD );
+
         ProgramRuleVariable programRuleVariableS = createConstantProgramRuleVariable( 'S', programS );
         programRuleVariableS.setSourceType( ProgramRuleVariableSourceType.TEI_ATTRIBUTE );
         programRuleVariableS.setAttribute( attributeB );
+        programRuleVariableS.setValueType( attributeB.getValueType() );
         programRuleVariableService.addProgramRuleVariable( programRuleVariableS );
+        ProgramRuleVariable programRuleVariableC = createConstantProgramRuleVariable( 'C', programA );
+        programRuleVariableC.setSourceType( ProgramRuleVariableSourceType.TEI_ATTRIBUTE );
+        programRuleVariableC.setAttribute( attributeA );
+        programRuleVariableC.setValueType( attributeA.getValueType() );
+        programRuleVariableService.addProgramRuleVariable( programRuleVariableC );
+
     }
 
     private void setUpSendMessageForEnrollment()

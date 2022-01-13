@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.parser.expression.literal;
 
-import static org.apache.commons.lang.StringEscapeUtils.escapeSql;
 import static org.apache.commons.text.StringEscapeUtils.unescapeJava;
 import static org.hisp.dhis.antlr.AntlrParserUtils.trimQuotes;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.BooleanLiteralContext;
@@ -35,6 +34,7 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.NumericLite
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.StringLiteralContext;
 
 import org.hisp.dhis.antlr.AntlrExprLiteral;
+import org.hisp.dhis.system.util.SqlUtils;
 
 /**
  * Gets literal value Strings from an ANTLR parse tree for use in SQL queries.
@@ -51,7 +51,7 @@ public class SqlLiteral
     @Override
     public Object getStringLiteral( StringLiteralContext ctx )
     {
-        return "'" + escapeSql( unescapeJava( trimQuotes( ctx.getText() ) ) ) + "'";
+        return "'" + SqlUtils.escapeSql( unescapeJava( trimQuotes( ctx.getText() ) ) ) + "'";
     }
 
     @Override

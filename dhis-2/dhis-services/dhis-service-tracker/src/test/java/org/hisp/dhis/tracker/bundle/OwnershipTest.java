@@ -236,7 +236,7 @@ class OwnershipTest extends TrackerTest
         updatedReport = trackerImportService.importTracker( enrollmentParams );
         assertEquals( 1, updatedReport.getStats().getIgnored() );
         assertEquals( TrackerErrorCode.E1102,
-            updatedReport.getValidationReport().getErrorReports().get( 0 ).getErrorCode() );
+            updatedReport.getValidationReport().getErrors().get( 0 ).getErrorCode() );
     }
 
     @Test
@@ -253,7 +253,7 @@ class OwnershipTest extends TrackerTest
         TrackerImportReport updatedReport = trackerImportService.importTracker( enrollmentParams );
         assertEquals( 1, updatedReport.getStats().getIgnored() );
         assertEquals( TrackerErrorCode.E1102,
-            updatedReport.getValidationReport().getErrorReports().get( 0 ).getErrorCode() );
+            updatedReport.getValidationReport().getErrors().get( 0 ).getErrorCode() );
     }
 
     @Test
@@ -270,7 +270,7 @@ class OwnershipTest extends TrackerTest
         TrackerImportReport updatedReport = trackerImportService.importTracker( enrollmentParams );
         assertEquals( 1, updatedReport.getStats().getIgnored() );
         assertEquals( TrackerErrorCode.E1102,
-            updatedReport.getValidationReport().getErrorReports().get( 0 ).getErrorCode() );
+            updatedReport.getValidationReport().getErrors().get( 0 ).getErrorCode() );
     }
 
     private void compareEnrollmentBasicProperties( ProgramInstance pi, Enrollment enrollment )

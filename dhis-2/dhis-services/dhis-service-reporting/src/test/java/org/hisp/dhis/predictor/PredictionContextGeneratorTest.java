@@ -30,7 +30,7 @@ package org.hisp.dhis.predictor;
 import static com.google.common.collect.Maps.immutableEntry;
 import static org.hisp.dhis.predictor.PredictionContextGenerator.getContexts;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -53,7 +53,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -63,7 +63,8 @@ import com.google.common.collect.Lists;
  *
  * @author Jim Grace
  */
-public class PredictionContextGeneratorTest
+
+class PredictionContextGeneratorTest
     extends DhisConvenienceTest
 {
     private final OrganisationUnit ouA = createOrganisationUnit( 'A' );
@@ -263,7 +264,7 @@ public class PredictionContextGeneratorTest
     // -------------------------------------------------------------------------
 
     @Test
-    public void testGetContextsWithAocData()
+    void testGetContextsWithAocData()
     {
         // valueMap for attributeOptionCombo A, period B:
         Map<DimensionalItemObject, Object> aocAPerBValueMap = ImmutableMap.of(
@@ -304,7 +305,7 @@ public class PredictionContextGeneratorTest
     }
 
     @Test
-    public void testGetContextsWithNonAocData()
+    void testGetContextsWithNonAocData()
     {
         // valueMap for attributeOptionCombo X, period B:
         Map<DimensionalItemObject, Object> aocXPerBValueMap = ImmutableMap.of(
@@ -331,7 +332,7 @@ public class PredictionContextGeneratorTest
     }
 
     @Test
-    public void testGetContextsWithAocAndNonAocData()
+    void testGetContextsWithAocAndNonAocData()
     {
         // valueMap for attributeOptionCombo A, period B:
         Map<DimensionalItemObject, Object> aocAPerBValueMap = ImmutableMap.of(
@@ -380,7 +381,7 @@ public class PredictionContextGeneratorTest
     }
 
     @Test
-    public void testGetContextsWithNoData()
+    void testGetContextsWithNoData()
     {
         PredictionContext expected1 = new PredictionContext( aocX, periodB, emptyPeriodValueMap, emptyValueMap );
         PredictionContext expected2 = new PredictionContext( aocX, periodC, emptyPeriodValueMap, emptyValueMap );

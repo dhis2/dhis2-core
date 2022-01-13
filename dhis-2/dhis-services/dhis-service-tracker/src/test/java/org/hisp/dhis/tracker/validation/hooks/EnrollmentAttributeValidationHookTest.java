@@ -118,6 +118,7 @@ class EnrollmentAttributeValidationHookTest
         String uid = CodeGenerator.generateUid();
         when( enrollment.getUid() ).thenReturn( uid );
         when( enrollment.getEnrollment() ).thenReturn( uid );
+        when( enrollment.getTrackerType() ).thenCallRealMethod();
         enrollment.setTrackedEntity( trackedEntity );
 
         TrackerBundle bundle = TrackerBundle.builder().build();
@@ -147,7 +148,7 @@ class EnrollmentAttributeValidationHookTest
         when( preheat.getTrackedEntity( TrackerIdScheme.UID, enrollment.getTrackedEntity() ) )
             .thenReturn( trackedEntityInstance );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, enrollment );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
         hookToTest.validateEnrollment( reporter, enrollment );
 
         assertThat( reporter.getReportList(), hasSize( 1 ) );
@@ -175,7 +176,7 @@ class EnrollmentAttributeValidationHookTest
         when( preheat.getTrackedEntity( TrackerIdScheme.UID, enrollment.getTrackedEntity() ) )
             .thenReturn( trackedEntityInstance );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, enrollment );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
         hookToTest.validateEnrollment( reporter, enrollment );
 
         assertThat( reporter.getReportList(), hasSize( 0 ) );
@@ -201,7 +202,7 @@ class EnrollmentAttributeValidationHookTest
         when( preheat.getTrackedEntity( TrackerIdScheme.UID, enrollment.getTrackedEntity() ) )
             .thenReturn( trackedEntityInstance );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, enrollment );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
         hookToTest.validateEnrollment( reporter, enrollment );
 
         assertThat( reporter.getReportList(), hasSize( 2 ) );
@@ -227,7 +228,7 @@ class EnrollmentAttributeValidationHookTest
         when( preheat.getTrackedEntity( TrackerIdScheme.UID, enrollment.getTrackedEntity() ) )
             .thenReturn( trackedEntityInstance );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, enrollment );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
         hookToTest.validateEnrollment( reporter, enrollment );
 
         assertThat( reporter.getReportList(), hasSize( 1 ) );

@@ -82,7 +82,7 @@ public class ValidateAndCommitTestUnit
 
         validationReport = trackerValidationService.validate( trackerBundle );
 
-        if ( validationReport.getErrorReports().isEmpty() || forceCommit )
+        if ( validationReport.getErrors().isEmpty() || forceCommit )
         {
             try
             {

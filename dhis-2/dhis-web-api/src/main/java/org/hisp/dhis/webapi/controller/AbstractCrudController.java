@@ -42,6 +42,7 @@ import static org.springframework.http.MediaType.TEXT_XML_VALUE;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -62,10 +63,9 @@ import org.hisp.dhis.dxf2.metadata.MetadataImportService;
 import org.hisp.dhis.dxf2.metadata.collection.CollectionService;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.feedback.TypeReport;
@@ -107,7 +107,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Lists;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -171,58 +170,35 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
             return notFound( getEntityClass(), pvUid );
         }
 
-        T persistedObject = entities.get( 0 );
+        BaseIdentifiableObject persistedObject = (BaseIdentifiableObject) entities.get( 0 );
 
         if ( !aclService.canUpdate( currentUser, persistedObject ) )
         {
             throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
         }
 
-        T object = renderService.fromJson( request.getInputStream(), getEntityClass() );
+        T inputObject = renderService.fromJson( request.getInputStream(), getEntityClass() );
 
-        TypeReport typeReport = new TypeReport( Translation.class );
+        HashSet<Translation> translations = new HashSet<>( inputObject.getTranslations() );
 
-        List<Translation> objectTranslations = Lists.newArrayList( object.getTranslations() );
+        persistedObject.setTranslations( translations );
 
-        for ( int idx = 0; idx < object.getTranslations().size(); idx++ )
+        MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() );
+
+        params.setUser( currentUser )
+            .setImportStrategy( ImportStrategy.UPDATE )
+            .addObject( persistedObject )
+            .setImportMode( ObjectBundleMode.VALIDATE );
+
+        ImportReport importReport = importService.importMetadata( params );
+
+        if ( !importReport.hasErrorReports() )
         {
-            ObjectReport objectReport = new ObjectReport( Translation.class, idx );
-            Translation translation = objectTranslations.get( idx );
-
-            if ( translation.getLocale() == null )
-            {
-                objectReport.addErrorReport(
-                    new ErrorReport( Translation.class, ErrorCode.E4000, "locale" ).setErrorKlass( getEntityClass() ) );
-            }
-
-            if ( translation.getProperty() == null )
-            {
-                objectReport.addErrorReport( new ErrorReport( Translation.class, ErrorCode.E4000, "property" )
-                    .setErrorKlass( getEntityClass() ) );
-            }
-
-            if ( translation.getValue() == null )
-            {
-                objectReport.addErrorReport(
-                    new ErrorReport( Translation.class, ErrorCode.E4000, "value" ).setErrorKlass( getEntityClass() ) );
-            }
-
-            typeReport.addObjectReport( objectReport );
-
-            if ( !objectReport.isEmpty() )
-            {
-                typeReport.getStats().incIgnored();
-            }
+            manager.save( persistedObject );
+            return null;
         }
 
-        if ( typeReport.hasErrorReports() )
-        {
-            return typeReport( typeReport );
-        }
-
-        validateAndThrowErrors( () -> schemaValidator.validate( persistedObject ) );
-        manager.updateTranslations( persistedObject, object.getTranslations() );
-        return null;
+        return importReport( importReport );
     }
 
     // --------------------------------------------------------------------------

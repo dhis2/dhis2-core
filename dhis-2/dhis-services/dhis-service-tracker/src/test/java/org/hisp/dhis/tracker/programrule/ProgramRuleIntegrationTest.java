@@ -123,8 +123,8 @@ class ProgramRuleIntegrationTest extends TransactionalIntegrationTest
         DataElement dataElement1 = bundle.getPreheat().get( PreheatIdentifier.UID, DataElement.class, "DATAEL00001" );
         DataElement dataElement2 = bundle.getPreheat().get( PreheatIdentifier.UID, DataElement.class, "DATAEL00002" );
         ProgramStage programStage = bundle.getPreheat().get( PreheatIdentifier.UID, ProgramStage.class, "NpsdDv6kKSO" );
-        ProgramRuleVariable programRuleVariable = createProgramRuleVariable( 'A', program );
-        programRuleVariable.setDataElement( dataElement2 );
+        ProgramRuleVariable programRuleVariable = createProgramRuleVariableWithDataElement( 'A', program,
+            dataElement2 );
         programRuleVariableService.addProgramRuleVariable( programRuleVariable );
         ProgramRule programRuleA = createProgramRule( 'A', program );
         programRuleA.setUid( "ProgramRule" );
@@ -166,7 +166,7 @@ class ProgramRuleIntegrationTest extends TransactionalIntegrationTest
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
         assertNotNull( trackerImportReport );
         assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
-        assertEquals( 1, trackerImportReport.getValidationReport().getWarningReports().size() );
+        assertEquals( 1, trackerImportReport.getValidationReport().getWarnings().size() );
     }
 
     @Test
@@ -185,7 +185,7 @@ class ProgramRuleIntegrationTest extends TransactionalIntegrationTest
         assertEquals( TrackerStatus.OK, trackerImportTeiReport.getStatus() );
         assertNotNull( trackerImportEnrollmentReport );
         assertEquals( TrackerStatus.OK, trackerImportEnrollmentReport.getStatus() );
-        assertEquals( 1, trackerImportEnrollmentReport.getValidationReport().getWarningReports().size() );
+        assertEquals( 1, trackerImportEnrollmentReport.getValidationReport().getWarnings().size() );
     }
 
     @Test
@@ -198,7 +198,7 @@ class ProgramRuleIntegrationTest extends TransactionalIntegrationTest
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
         assertNotNull( trackerImportReport );
         assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
-        List<TrackerWarningReport> warningReports = trackerImportReport.getValidationReport().getWarningReports();
+        List<TrackerWarningReport> warningReports = trackerImportReport.getValidationReport().getWarnings();
         assertEquals( 4, warningReports.size() );
         assertEquals( 3,
             warningReports.stream().filter( w -> w.getTrackerType().equals( TrackerType.EVENT ) ).count() );
@@ -211,7 +211,7 @@ class ProgramRuleIntegrationTest extends TransactionalIntegrationTest
         trackerImportReport = trackerImportService.importTracker( params );
         assertNotNull( trackerImportReport );
         assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
-        warningReports = trackerImportReport.getValidationReport().getWarningReports();
+        warningReports = trackerImportReport.getValidationReport().getWarnings();
         assertEquals( 3, warningReports.size() );
         assertEquals( TrackerErrorCode.E1308, warningReports.get( 0 ).getWarningCode() );
         assertEquals(
@@ -224,7 +224,7 @@ class ProgramRuleIntegrationTest extends TransactionalIntegrationTest
         trackerImportReport = trackerImportService.importTracker( params );
         assertNotNull( trackerImportReport );
         assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
-        warningReports = trackerImportReport.getValidationReport().getWarningReports();
+        warningReports = trackerImportReport.getValidationReport().getWarnings();
         assertEquals( 3, warningReports.size() );
         assertEquals( TrackerErrorCode.E1308, warningReports.get( 0 ).getWarningCode() );
         assertEquals(

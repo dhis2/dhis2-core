@@ -634,6 +634,11 @@ public class DefaultExpressionService
         int itemsFound = visitor.getItemsFound();
         int itemValuesFound = visitor.getItemValuesFound();
 
+        if ( visitor.isUnprotectedNullDateFound() )
+        {
+            return null;
+        }
+
         switch ( missingValueStrategy )
         {
         case SKIP_IF_ANY_VALUE_MISSING:

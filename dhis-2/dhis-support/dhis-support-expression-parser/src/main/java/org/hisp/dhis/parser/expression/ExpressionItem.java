@@ -185,7 +185,7 @@ public interface ExpressionItem
      */
     default Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        throw new ParserExceptionWithoutContext( "getSql not implemnted for " + ctx.getText() );
+        throw new ParserExceptionWithoutContext( "getSql not implemented for " + ctx.getText() );
     }
 
     /**

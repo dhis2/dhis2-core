@@ -156,8 +156,7 @@ class TrackerImportControllerTest
             TrackerBundleReport.builder()
                 .status( TrackerStatus.OK )
                 .build(),
-            TrackerValidationReport.builder()
-                .build(),
+            new TrackerValidationReport(),
             new TrackerTimingsStats(),
             new HashMap<>() ) );
 
@@ -195,8 +194,7 @@ class TrackerImportControllerTest
             TrackerBundleReport.builder()
                 .status( TrackerStatus.OK )
                 .build(),
-            TrackerValidationReport.builder()
-                .build(),
+            new TrackerValidationReport(),
             new TrackerTimingsStats(),
             new HashMap<>() ) );
 
@@ -231,8 +229,7 @@ class TrackerImportControllerTest
         String errorMessage = "errorMessage";
         // When
         when( importStrategy.importReport( any() ) ).thenReturn( TrackerImportReport.withError( "errorMessage",
-            TrackerValidationReport.builder()
-                .build(),
+            new TrackerValidationReport(),
             new TrackerTimingsStats() ) );
 
         // Then
@@ -266,8 +263,7 @@ class TrackerImportControllerTest
         String errorMessage = "errorMessage";
         // When
         when( importStrategy.importReport( any() ) ).thenReturn( TrackerImportReport.withError( "errorMessage",
-            TrackerValidationReport.builder()
-                .build(),
+            new TrackerValidationReport(),
             new TrackerTimingsStats() ) );
 
         // Then
@@ -332,8 +328,7 @@ class TrackerImportControllerTest
             TrackerBundleReport.builder()
                 .status( TrackerStatus.OK )
                 .build(),
-            TrackerValidationReport.builder()
-                .build(),
+            new TrackerValidationReport(),
             new TrackerTimingsStats(),
             new HashMap<>() );
 

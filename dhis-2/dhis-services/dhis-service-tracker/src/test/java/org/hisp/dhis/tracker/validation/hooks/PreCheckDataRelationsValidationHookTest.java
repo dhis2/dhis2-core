@@ -227,7 +227,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .trackedEntity( TEI_ID )
             .build();
 
-        reporter = new ValidationErrorReporter( ctx, enrollment );
+        reporter = new ValidationErrorReporter( ctx );
 
         validatorToTest.validateEnrollment( reporter, enrollment );
 
@@ -245,7 +245,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .orgUnit( ORG_UNIT_ID )
             .build();
 
-        reporter = new ValidationErrorReporter( ctx, enrollment );
+        reporter = new ValidationErrorReporter( ctx );
 
         validatorToTest.validateEnrollment( reporter, enrollment );
 
@@ -264,7 +264,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .orgUnit( ANOTHER_ORG_UNIT_ID )
             .build();
 
-        reporter = new ValidationErrorReporter( ctx, enrollment );
+        reporter = new ValidationErrorReporter( ctx );
 
         validatorToTest.validateEnrollment( reporter, enrollment );
 
@@ -283,7 +283,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .trackedEntity( ANOTHER_TEI_ID )
             .build();
 
-        reporter = new ValidationErrorReporter( ctx, enrollment );
+        reporter = new ValidationErrorReporter( ctx );
 
         validatorToTest.validateEnrollment( reporter, enrollment );
 
@@ -302,7 +302,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .trackedEntity( ANOTHER_TEI_ID )
             .build();
 
-        reporter = new ValidationErrorReporter( ctx, enrollment );
+        reporter = new ValidationErrorReporter( ctx );
 
         when( ctx.getTrackedEntityInstance( ANOTHER_TEI_ID ) ).thenReturn( null );
 
@@ -331,7 +331,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .enrollment( ENROLLMENT_ID )
             .build();
 
-        reporter = new ValidationErrorReporter( ctx, event );
+        reporter = new ValidationErrorReporter( ctx );
 
         validatorToTest.validateEvent( reporter, event );
 
@@ -349,7 +349,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .orgUnit( ANOTHER_ORG_UNIT_ID )
             .build();
 
-        reporter = new ValidationErrorReporter( ctx, event );
+        reporter = new ValidationErrorReporter( ctx );
 
         validatorToTest.validateEvent( reporter, event );
 
@@ -370,7 +370,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .orgUnit( ORG_UNIT_ID )
             .build();
 
-        reporter = new ValidationErrorReporter( ctx, event );
+        reporter = new ValidationErrorReporter( ctx );
 
         validatorToTest.validateEvent( reporter, event );
 
@@ -392,7 +392,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .enrollment( ANOTHER_ENROLLMENT_ID )
             .build();
 
-        reporter = new ValidationErrorReporter( ctx, event );
+        reporter = new ValidationErrorReporter( ctx );
 
         validatorToTest.validateEvent( reporter, event );
 
@@ -414,7 +414,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .enrollment( ENROLLMENT_ID )
             .build();
 
-        reporter = new ValidationErrorReporter( ctx, event );
+        reporter = new ValidationErrorReporter( ctx );
 
         validatorToTest.validateEvent( reporter, event );
 
@@ -440,7 +440,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .relationshipType( relType.getUid() )
             .build();
 
-        reporter = new ValidationErrorReporter( ctx, relationship );
+        reporter = new ValidationErrorReporter( ctx );
 
         validatorToTest.validateRelationship( reporter, relationship );
 
@@ -481,7 +481,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .relationshipType( relType.getUid() )
             .build();
 
-        reporter = new ValidationErrorReporter( ctx, relationship );
+        reporter = new ValidationErrorReporter( ctx );
 
         validatorToTest.validateRelationship( reporter, relationship );
 

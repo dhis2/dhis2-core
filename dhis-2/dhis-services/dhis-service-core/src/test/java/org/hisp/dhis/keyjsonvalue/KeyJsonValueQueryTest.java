@@ -33,24 +33,24 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.List;
 
 import org.hisp.dhis.keyjsonvalue.KeyJsonValueQuery.Field;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests the parsing and manipulation of {@link KeyJsonValueQuery}s.
  *
  * @author Jan Bernitt
  */
-public class KeyJsonValueQueryTest
+class KeyJsonValueQueryTest
 {
 
     @Test
-    public void testParseFields_FlatSingle()
+    void testParseFields_FlatSingle()
     {
         assertFields( "name", "name" );
     }
 
     @Test
-    public void testParseFields_FlatMultiple()
+    void testParseFields_FlatMultiple()
     {
         assertFields( "name,code",
             "name", "code" );
@@ -59,42 +59,42 @@ public class KeyJsonValueQueryTest
     }
 
     @Test
-    public void testParseFields_NestedSingle()
+    void testParseFields_NestedSingle()
     {
         assertFields( "elements[name]",
             "elements.name" );
     }
 
     @Test
-    public void testParseFields_NestedMultiple()
+    void testParseFields_NestedMultiple()
     {
         assertFields( "elements[name,code]",
             "elements.name", "elements.code" );
     }
 
     @Test
-    public void testParseFields_NestedMultipleList()
+    void testParseFields_NestedMultipleList()
     {
         assertFields( "elements[name,code],desc,parent[name]",
             "elements.name", "elements.code", "desc", "parent.name" );
     }
 
     @Test
-    public void testParseFields_DeepSingle()
+    void testParseFields_DeepSingle()
     {
         assertFields( "elements[parents[name]]",
             "elements.parents.name" );
     }
 
     @Test
-    public void testParseFields_DeepMultiple()
+    void testParseFields_DeepMultiple()
     {
         assertFields( "elements[parents[name,code],desc]",
             "elements.parents.name", "elements.parents.code", "elements.desc" );
     }
 
     @Test
-    public void testParseFields_DeepMultipleList()
+    void testParseFields_DeepMultipleList()
     {
         assertFields( "a[x,y[Q]],b,c[z[1,2.t]],d.w",
             "a.x", "a.y.Q", "b", "c.z.1", "c.z.2.t", "d.w" );

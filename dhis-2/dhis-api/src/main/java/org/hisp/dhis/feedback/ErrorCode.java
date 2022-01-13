@@ -44,6 +44,8 @@ public enum ErrorCode
     E1103( "Category option combo not found or not accessible: `{0}`" ),
     E1104( "Attribute option combo not found or not accessible: `{0}`" ),
     E1105( "Data set not found or not accessible: `{0}`" ),
+    E1106( "There are duplicate translation record for property `{0}` and locale `{1}`" ),
+    E1107( "Object type `{0}` is not translatable." ),
 
     /* Org unit merge */
     E1500( "At least two source orgs unit must be specified" ),
@@ -107,6 +109,7 @@ public enum ErrorCode
     E2036( "Combination not supported: `{0}`" ),
     E2037( "Order not supported: `{0}`" ),
     E2038( "Field not supported: `{0}`" ),
+    E2039( "StageOffset is allowed only for repeatable stages (`{0}` is not repeatable)" ),
 
     /* Outlier detection */
     E2200( "At least one data element must be specified" ),
