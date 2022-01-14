@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,6 +37,7 @@ import static org.mockito.Mockito.when;
 import java.util.Arrays;
 import java.util.Collections;
 
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -45,6 +46,7 @@ import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
+import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
@@ -105,12 +107,12 @@ class TrackedEntityAttributeValidationHookTest
             .trackedEntityType( "trackedEntityType" )
             .build();
 
-        ValidationErrorReporter validationErrorReporter = new ValidationErrorReporter( validationContext );
-        trackedEntityAttributeValidationHook.validateTrackedEntity( validationErrorReporter,
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
+        trackedEntityAttributeValidationHook.validateTrackedEntity( reporter,
             trackedEntity );
 
-        assertFalse( validationErrorReporter.hasErrors() );
-        assertEquals( 0, validationErrorReporter.getReportList().size() );
+        assertFalse( reporter.hasErrors() );
+        assertEquals( 0, reporter.getReportList().size() );
     }
 
     @Test
@@ -142,13 +144,13 @@ class TrackedEntityAttributeValidationHookTest
 
         when( validationContext.getTrackedEntityAttribute( anyString() ) ).thenReturn( contextAttribute );
 
-        ValidationErrorReporter validationErrorReporter = new ValidationErrorReporter( validationContext );
-        trackedEntityAttributeValidationHook.validateTrackedEntity( validationErrorReporter,
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
+        trackedEntityAttributeValidationHook.validateTrackedEntity( reporter,
             trackedEntity );
 
-        assertTrue( validationErrorReporter.hasErrors() );
-        assertEquals( 1, validationErrorReporter.getReportList().size() );
-        assertEquals( 1, validationErrorReporter.getReportList().stream()
+        assertTrue( reporter.hasErrors() );
+        assertEquals( 1, reporter.getReportList().size() );
+        assertEquals( 1, reporter.getReportList().stream()
             .filter( e -> e.getErrorCode() == TrackerErrorCode.E1090 ).count() );
     }
 
@@ -163,13 +165,13 @@ class TrackedEntityAttributeValidationHookTest
 
         when( validationContext.getTrackedEntityType( anyString() ) ).thenReturn( new TrackedEntityType() );
 
-        ValidationErrorReporter validationErrorReporter = new ValidationErrorReporter( validationContext );
-        trackedEntityAttributeValidationHook.validateTrackedEntity( validationErrorReporter,
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
+        trackedEntityAttributeValidationHook.validateTrackedEntity( reporter,
             trackedEntity );
 
-        assertTrue( validationErrorReporter.hasErrors() );
-        assertEquals( 2, validationErrorReporter.getReportList().size() );
-        assertEquals( 2, validationErrorReporter.getReportList().stream()
+        assertTrue( reporter.hasErrors() );
+        assertEquals( 2, reporter.getReportList().size() );
+        assertEquals( 2, reporter.getReportList().stream()
             .filter( e -> e.getErrorCode() == TrackerErrorCode.E1006 ).count() );
     }
 
@@ -197,20 +199,20 @@ class TrackedEntityAttributeValidationHookTest
         when( validationContext.getTrackedEntityType( tet ) ).thenReturn( trackedEntityType );
         when( validationContext.getTrackedEntityAttribute( tea ) ).thenReturn( trackedEntityAttribute );
 
-        ValidationErrorReporter validationErrorReporter = new ValidationErrorReporter( validationContext );
-        trackedEntityAttributeValidationHook.validateTrackedEntity( validationErrorReporter,
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
+        trackedEntityAttributeValidationHook.validateTrackedEntity( reporter,
             trackedEntity );
 
-        assertTrue( validationErrorReporter.hasErrors() );
-        assertEquals( 1, validationErrorReporter.getReportList().size() );
-        assertEquals( 1, validationErrorReporter.getReportList().stream()
+        assertTrue( reporter.hasErrors() );
+        assertEquals( 1, reporter.getReportList().size() );
+        assertEquals( 1, reporter.getReportList().stream()
             .filter( e -> e.getErrorCode() == TrackerErrorCode.E1076 ).count() );
     }
 
     @Test
     void shouldFailValueTooLong()
     {
-        ValidationErrorReporter validationErrorReporter = new ValidationErrorReporter( validationContext );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
 
         when( trackedEntityAttribute.getValueType() ).thenReturn( ValueType.TEXT );
 
@@ -221,29 +223,33 @@ class TrackedEntityAttributeValidationHookTest
             sbString.append( "a" );
         }
 
-        trackedEntityAttributeValidationHook.validateAttributeValue( validationErrorReporter,
+        TrackedEntity te = TrackedEntity.builder().trackedEntity( CodeGenerator.generateUid() ).build();
+        trackedEntityAttributeValidationHook.validateAttributeValue( reporter, te,
             trackedEntityAttribute, sbString.toString() );
 
-        assertTrue( validationErrorReporter.hasErrors() );
-        assertEquals( 1, validationErrorReporter.getReportList().size() );
-        assertEquals( 1, validationErrorReporter.getReportList().stream()
-            .filter( e -> e.getErrorCode() == TrackerErrorCode.E1077 ).count() );
+        assertTrue( reporter.hasErrors() );
+        assertEquals( 1, reporter.getReportList().size() );
+        assertTrue( reporter.hasErrorReport( err -> TrackerErrorCode.E1077.equals( err.getErrorCode() ) &&
+            TrackerType.TRACKED_ENTITY.equals( err.getTrackerType() ) &&
+            te.getTrackedEntity().equals( err.getUid() ) ) );
     }
 
     @Test
     void shouldFailDataValueIsValid()
     {
-        ValidationErrorReporter validationErrorReporter = new ValidationErrorReporter( validationContext );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
 
         when( trackedEntityAttribute.getValueType() ).thenReturn( ValueType.NUMBER );
 
-        trackedEntityAttributeValidationHook.validateAttributeValue( validationErrorReporter,
+        TrackedEntity te = TrackedEntity.builder().trackedEntity( CodeGenerator.generateUid() ).build();
+        trackedEntityAttributeValidationHook.validateAttributeValue( reporter, te,
             trackedEntityAttribute, "value" );
 
-        assertTrue( validationErrorReporter.hasErrors() );
-        assertEquals( 1, validationErrorReporter.getReportList().size() );
-        assertEquals( 1, validationErrorReporter.getReportList().stream()
-            .filter( e -> e.getErrorCode() == TrackerErrorCode.E1085 ).count() );
+        assertTrue( reporter.hasErrors() );
+        assertEquals( 1, reporter.getReportList().size() );
+        assertTrue( reporter.hasErrorReport( err -> TrackerErrorCode.E1085.equals( err.getErrorCode() ) &&
+            TrackerType.TRACKED_ENTITY.equals( err.getTrackerType() ) &&
+            te.getTrackedEntity().equals( err.getUid() ) ) );
     }
 
     @Test
@@ -259,14 +265,16 @@ class TrackedEntityAttributeValidationHookTest
 
         when( validationContext.getTrackedEntityAttribute( anyString() ) ).thenReturn( trackedEntityAttribute );
 
-        ValidationErrorReporter validationErrorReporter = new ValidationErrorReporter( validationContext );
-        trackedEntityAttributeValidationHook.validateAttributeValue( validationErrorReporter,
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
+        TrackedEntity te = TrackedEntity.builder().trackedEntity( CodeGenerator.generateUid() ).build();
+        trackedEntityAttributeValidationHook.validateAttributeValue( reporter, te,
             trackedEntityAttribute, "value" );
 
-        assertTrue( validationErrorReporter.hasErrors() );
-        assertEquals( 1, validationErrorReporter.getReportList().size() );
-        assertEquals( 1, validationErrorReporter.getReportList().stream()
-            .filter( e -> e.getErrorCode() == TrackerErrorCode.E1112 ).count() );
+        assertTrue( reporter.hasErrors() );
+        assertEquals( 1, reporter.getReportList().size() );
+        assertTrue( reporter.hasErrorReport( err -> TrackerErrorCode.E1112.equals( err.getErrorCode() ) &&
+            TrackerType.TRACKED_ENTITY.equals( err.getTrackerType() ) &&
+            te.getTrackedEntity().equals( err.getUid() ) ) );
     }
 
     @Test
@@ -283,13 +291,13 @@ class TrackedEntityAttributeValidationHookTest
             .trackedEntityType( "trackedEntityType" )
             .build();
 
-        ValidationErrorReporter validationErrorReporter = new ValidationErrorReporter( validationContext );
-        trackedEntityAttributeValidationHook.validateTrackedEntity( validationErrorReporter,
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
+        trackedEntityAttributeValidationHook.validateTrackedEntity( reporter,
             trackedEntity );
 
-        assertTrue( validationErrorReporter.hasErrors() );
-        assertEquals( 1, validationErrorReporter.getReportList().size() );
-        assertEquals( 1, validationErrorReporter.getReportList().stream()
+        assertTrue( reporter.hasErrors() );
+        assertEquals( 1, reporter.getReportList().size() );
+        assertEquals( 1, reporter.getReportList().stream()
             .filter( e -> e.getErrorCode() == TrackerErrorCode.E1125 ).count() );
     }
 
@@ -307,12 +315,12 @@ class TrackedEntityAttributeValidationHookTest
             .trackedEntityType( "trackedEntityType" )
             .build();
 
-        ValidationErrorReporter validationErrorReporter = new ValidationErrorReporter( validationContext );
-        trackedEntityAttributeValidationHook.validateTrackedEntity( validationErrorReporter,
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
+        trackedEntityAttributeValidationHook.validateTrackedEntity( reporter,
             trackedEntity );
 
-        assertFalse( validationErrorReporter.hasErrors() );
-        assertEquals( 0, validationErrorReporter.getReportList().size() );
+        assertFalse( reporter.hasErrors() );
+        assertEquals( 0, reporter.getReportList().size() );
     }
 
     @Test
@@ -338,12 +346,12 @@ class TrackedEntityAttributeValidationHookTest
             .trackedEntityType( "trackedEntityType" )
             .build();
 
-        ValidationErrorReporter validationErrorReporter = new ValidationErrorReporter( validationContext );
-        trackedEntityAttributeValidationHook.validateTrackedEntity( validationErrorReporter,
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
+        trackedEntityAttributeValidationHook.validateTrackedEntity( reporter,
             trackedEntity );
 
-        assertFalse( validationErrorReporter.hasErrors() );
-        assertEquals( 0, validationErrorReporter.getReportList().size() );
+        assertFalse( reporter.hasErrors() );
+        assertEquals( 0, reporter.getReportList().size() );
     }
 
     @Test
@@ -371,13 +379,13 @@ class TrackedEntityAttributeValidationHookTest
 
         when( validationContext.getTrackedEntityType( anyString() ) ).thenReturn( trackedEntityType );
 
-        ValidationErrorReporter validationErrorReporter = new ValidationErrorReporter( validationContext );
-        trackedEntityAttributeValidationHook.validateTrackedEntity( validationErrorReporter,
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
+        trackedEntityAttributeValidationHook.validateTrackedEntity( reporter,
             trackedEntity );
 
-        assertTrue( validationErrorReporter.hasErrors() );
-        assertEquals( 1, validationErrorReporter.getReportList().size() );
-        assertEquals( TrackerErrorCode.E1076, validationErrorReporter.getReportList().get( 0 ).getErrorCode() );
+        assertTrue( reporter.hasErrors() );
+        assertEquals( 1, reporter.getReportList().size() );
+        assertEquals( TrackerErrorCode.E1076, reporter.getReportList().get( 0 ).getErrorCode() );
     }
 
     private TrackedEntityAttribute getTrackedEntityAttributeWithOptionSet()

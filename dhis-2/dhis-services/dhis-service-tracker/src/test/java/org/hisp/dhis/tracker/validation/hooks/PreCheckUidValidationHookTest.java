@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +27,13 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static org.hisp.dhis.tracker.TrackerType.ENROLLMENT;
+import static org.hisp.dhis.tracker.TrackerType.EVENT;
+import static org.hisp.dhis.tracker.TrackerType.RELATIONSHIP;
+import static org.hisp.dhis.tracker.TrackerType.TRACKED_ENTITY;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1048;
+import static org.hisp.dhis.tracker.validation.hooks.AssertValidationErrorReporter.hasTrackerError;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
@@ -72,7 +74,7 @@ class PreCheckUidValidationHookTest
         // given
         TrackedEntity trackedEntity = TrackedEntity.builder().trackedEntity( CodeGenerator.generateUid() )
             .orgUnit( CodeGenerator.generateUid() ).build();
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, trackedEntity );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx );
         validationHook.validateTrackedEntity( reporter, trackedEntity );
         assertFalse( reporter.hasErrors() );
     }
@@ -84,11 +86,10 @@ class PreCheckUidValidationHookTest
         TrackedEntity trackedEntity = TrackedEntity.builder().trackedEntity( INVALID_UID )
             .orgUnit( CodeGenerator.generateUid() ).build();
         // when
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, trackedEntity );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx );
         validationHook.validateTrackedEntity( reporter, trackedEntity );
         // then
-        assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( E1048 ) );
+        hasTrackerError( reporter, E1048, TRACKED_ENTITY, trackedEntity.getUid() );
     }
 
     @Test
@@ -98,7 +99,7 @@ class PreCheckUidValidationHookTest
         Note note = Note.builder().note( CodeGenerator.generateUid() ).build();
         Enrollment enrollment = Enrollment.builder().enrollment( CodeGenerator.generateUid() )
             .notes( Lists.newArrayList( note ) ).build();
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, enrollment );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx );
         validationHook.validateEnrollment( reporter, enrollment );
         // then
         assertFalse( reporter.hasErrors() );
@@ -109,11 +110,10 @@ class PreCheckUidValidationHookTest
     {
         // given
         Enrollment enrollment = Enrollment.builder().enrollment( INVALID_UID ).build();
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, enrollment );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx );
         validationHook.validateEnrollment( reporter, enrollment );
         // then
-        assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( E1048 ) );
+        hasTrackerError( reporter, E1048, ENROLLMENT, enrollment.getUid() );
     }
 
     @Test
@@ -123,11 +123,10 @@ class PreCheckUidValidationHookTest
         Note note = Note.builder().note( INVALID_UID ).build();
         Enrollment enrollment = Enrollment.builder().enrollment( CodeGenerator.generateUid() )
             .notes( Lists.newArrayList( note ) ).build();
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, enrollment );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx );
         validationHook.validateEnrollment( reporter, enrollment );
         // then
-        assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( E1048 ) );
+        hasTrackerError( reporter, E1048, ENROLLMENT, enrollment.getUid() );
     }
 
     @Test
@@ -136,7 +135,7 @@ class PreCheckUidValidationHookTest
         // given
         Note note = Note.builder().note( CodeGenerator.generateUid() ).build();
         Event event = Event.builder().event( CodeGenerator.generateUid() ).notes( Lists.newArrayList( note ) ).build();
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, event );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx );
         validationHook.validateEvent( reporter, event );
         // then
         assertFalse( reporter.hasErrors() );
@@ -147,11 +146,10 @@ class PreCheckUidValidationHookTest
     {
         // given
         Event event = Event.builder().event( INVALID_UID ).build();
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, event );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx );
         validationHook.validateEvent( reporter, event );
         // then
-        assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( E1048 ) );
+        hasTrackerError( reporter, E1048, EVENT, event.getUid() );
     }
 
     @Test
@@ -160,11 +158,10 @@ class PreCheckUidValidationHookTest
         // given
         Note note = Note.builder().note( INVALID_UID ).build();
         Event event = Event.builder().event( CodeGenerator.generateUid() ).notes( Lists.newArrayList( note ) ).build();
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, event );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx );
         validationHook.validateEvent( reporter, event );
         // then
-        assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( E1048 ) );
+        hasTrackerError( reporter, E1048, EVENT, event.getUid() );
     }
 
     @Test
@@ -172,7 +169,7 @@ class PreCheckUidValidationHookTest
     {
         // given
         Relationship relationship = Relationship.builder().relationship( CodeGenerator.generateUid() ).build();
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, relationship );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx );
         validationHook.validateRelationship( reporter, relationship );
         // then
         assertFalse( reporter.hasErrors() );
@@ -183,10 +180,9 @@ class PreCheckUidValidationHookTest
     {
         // given
         Relationship relationship = Relationship.builder().relationship( INVALID_UID ).build();
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, relationship );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx );
         validationHook.validateRelationship( reporter, relationship );
         // then
-        assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( E1048 ) );
+        hasTrackerError( reporter, E1048, RELATIONSHIP, relationship.getUid() );
     }
 }

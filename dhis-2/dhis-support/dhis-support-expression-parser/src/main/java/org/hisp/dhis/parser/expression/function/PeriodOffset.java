@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,6 +45,6 @@ public class PeriodOffset
     {
         int offset = ctx.period != null ? Integer.valueOf( ctx.period.getText() ) : 0;
 
-        return visitor.visitWithOffset( ctx.expr( 0 ), offset );
+        return visitor.visitWithPeriodOffset( ctx.expr( 0 ), offset );
     }
 }

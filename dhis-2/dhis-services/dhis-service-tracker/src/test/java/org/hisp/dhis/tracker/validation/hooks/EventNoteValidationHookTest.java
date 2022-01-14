@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,7 +29,6 @@ package org.hisp.dhis.tracker.validation.hooks;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -42,6 +41,7 @@ import java.util.stream.Collectors;
 
 import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
+import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
@@ -92,7 +92,7 @@ class EventNoteValidationHookTest
         when( trackerBundle.getValidationMode() ).thenReturn( ValidationMode.FULL );
         when( trackerBundle.getPreheat() ).thenReturn( preheat );
         when( ctx.getNote( note.getNote() ) ).thenReturn( Optional.of( new TrackedEntityComment() ) );
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, event );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx );
 
         event.setNotes( Collections.singletonList( note ) );
 
@@ -101,7 +101,9 @@ class EventNoteValidationHookTest
 
         // Then
         assertTrue( reporter.hasWarnings() );
-        assertThat( reporter.getWarningsReportList().get( 0 ).getWarningCode(), is( TrackerErrorCode.E1119 ) );
+        assertTrue( reporter.hasWarningReport( r -> TrackerErrorCode.E1119.equals( r.getWarningCode() ) &&
+            TrackerType.EVENT.equals( r.getTrackerType() ) &&
+            event.getUid().equals( r.getUid() ) ) );
         assertThat( event.getNotes(), hasSize( 0 ) );
     }
 
@@ -117,7 +119,7 @@ class EventNoteValidationHookTest
         when( ctx.getBundle() ).thenReturn( trackerBundle );
         when( trackerBundle.getValidationMode() ).thenReturn( ValidationMode.FULL );
         when( ctx.getNote( note.getNote() ) ).thenReturn( Optional.of( new TrackedEntityComment() ) );
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, event );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx );
 
         event.setNotes( Collections.singletonList( note ) );
 
@@ -139,7 +141,7 @@ class EventNoteValidationHookTest
 
         when( ctx.getBundle() ).thenReturn( trackerBundle );
         when( trackerBundle.getValidationMode() ).thenReturn( ValidationMode.FULL );
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, event );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx );
 
         event.setNotes( notes );
 

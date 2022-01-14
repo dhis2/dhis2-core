@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.eventvisualization;
 
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.join;
 import static org.hisp.dhis.common.AnalyticsType.EVENT;
 import static org.hisp.dhis.common.DimensionalObjectUtils.TITLE_ITEM_SEP;
@@ -36,6 +34,9 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.getPrettyFilter;
 import static org.hisp.dhis.common.DimensionalObjectUtils.setDimensionItemsForFilters;
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.join;
+import static org.hisp.dhis.eventvisualization.Attribute.COLUMN;
+import static org.hisp.dhis.eventvisualization.Attribute.FILTER;
+import static org.hisp.dhis.eventvisualization.Attribute.ROW;
 import static org.hisp.dhis.schema.PropertyType.CONSTANT;
 import static org.hisp.dhis.schema.annotation.Property.Value.TRUE;
 import static org.hisp.dhis.util.ObjectUtils.firstNonNull;
@@ -53,6 +54,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DisplayDensity;
+import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EventAnalyticalObject;
 import org.hisp.dhis.common.FontSize;
 import org.hisp.dhis.common.Grid;
@@ -178,6 +180,16 @@ public class EventVisualization extends BaseAnalyticalObject
      * Dimensions to use as rows.
      */
     private List<String> rowDimensions = new ArrayList<>();
+
+    /**
+     * The non-typed dimensions for this event visualization.
+     */
+    private List<SimpleDimension> simpleDimensions = new ArrayList<>();
+
+    /**
+     * The list of existing event repetitions in this event visualization.
+     */
+    private List<EventRepetition> eventRepetitions = new ArrayList<>();
 
     /**
      * Indicates output type.
@@ -676,42 +688,24 @@ public class EventVisualization extends BaseAnalyticalObject
     // AnalyticalObject
     // -------------------------------------------------------------------------
 
+    /**
+     * Some EventVisualization's may not have columnDimensions.
+     *
+     * PIE, GAUGE and others don't not have rowDimensions.
+     */
     @Override
     public void populateAnalyticalProperties()
     {
-        // Some EventVisualization's may not have columnDimensions.
-        if ( isNotEmpty( columnDimensions ) )
-        {
-            for ( final String column : columnDimensions )
-            {
-                if ( isNotBlank( column ) )
-                {
-                    columns.add( getDimensionalObject( column ) );
-                }
-            }
-        }
-
-        // PIE, GAUGE and others don't not have rowDimensions.
-        if ( isNotEmpty( rowDimensions ) )
-        {
-            for ( final String row : rowDimensions )
-            {
-                if ( isNotBlank( row ) )
-                {
-                    rows.add( getDimensionalObject( row ) );
-                }
-            }
-        }
-
-        for ( final String filter : filterDimensions )
-        {
-            if ( isNotBlank( filter ) )
-            {
-                filters.add( getDimensionalObject( filter ) );
-            }
-        }
+        super.populateDimensions( columnDimensions, columns, COLUMN, this );
+        super.populateDimensions( rowDimensions, rows, ROW, this );
+        super.populateDimensions( filterDimensions, filters, FILTER, this );
 
         value = firstNonNull( dataElementValueDimension, attributeValueDimension );
+    }
+
+    public void associateSimpleDimensions()
+    {
+        new SimpleDimensionHandler( this ).associateDimensions();
     }
 
     public List<DimensionalItemObject> series()
@@ -825,6 +819,32 @@ public class EventVisualization extends BaseAnalyticalObject
     public void setRowDimensions( List<String> rowDimensions )
     {
         this.rowDimensions = rowDimensions;
+    }
+
+    @Override
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    public List<SimpleDimension> getSimpleDimensions()
+    {
+        return simpleDimensions;
+    }
+
+    public void setSimpleDimensions( final List<SimpleDimension> simpleDimensions )
+    {
+        this.simpleDimensions = simpleDimensions;
+    }
+
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "repetitions", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "repetition", namespace = DxfNamespaces.DXF_2_0 )
+    public List<EventRepetition> getEventRepetitions()
+    {
+        return eventRepetitions;
+    }
+
+    public void setEventRepetitions( final List<EventRepetition> eventRepetitions )
+    {
+        this.eventRepetitions = eventRepetitions;
     }
 
     @Override

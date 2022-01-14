@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,11 +49,11 @@ public class AssignedUserValidationHook
         {
             if ( isNotValidAssignedUserUid( event ) || assignedUserNotPresentInPreheat( reporter, event ) )
             {
-                addError( reporter, E1118, event.getAssignedUser() );
+                reporter.addError( event, E1118, event.getAssignedUser() );
             }
             if ( isNotEnabledUserAssignment( reporter, event ) )
             {
-                addWarning( reporter, E1120, event.getProgramStage() );
+                reporter.addWarning( event, E1120, event.getProgramStage() );
             }
         }
     }

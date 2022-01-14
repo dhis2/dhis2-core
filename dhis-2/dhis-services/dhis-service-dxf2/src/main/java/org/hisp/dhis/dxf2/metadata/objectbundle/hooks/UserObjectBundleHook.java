@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -75,12 +75,16 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
     {
         if ( bundle.getImportMode().isCreate() && !ValidationUtils.usernameIsValid( user.getUsername() ) )
         {
-            addReports.accept( new ErrorReport( User.class, ErrorCode.E4049, "Username", user.getUsername() ) );
+            addReports.accept(
+                new ErrorReport( User.class, ErrorCode.E4049, "username", user.getUsername() )
+                    .setErrorProperty( "username" ) );
         }
 
         if ( user.getWhatsApp() != null && !ValidationUtils.validateWhatsapp( user.getWhatsApp() ) )
         {
-            addReports.accept( new ErrorReport( User.class, ErrorCode.E4027, user.getWhatsApp(), "Whatsapp" ) );
+            addReports.accept(
+                new ErrorReport( User.class, ErrorCode.E4027, user.getWhatsApp(), "whatsApp" )
+                    .setErrorProperty( "whatsApp" ) );
         }
     }
 

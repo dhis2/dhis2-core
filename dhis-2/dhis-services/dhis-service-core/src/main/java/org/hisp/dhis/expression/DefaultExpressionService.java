@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -62,6 +62,7 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ORGUNIT_ANC
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ORGUNIT_GROUP;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.OUG_BRACE;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.PERCENTILE_CONT;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.PERIOD_OFFSET;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.R_BRACE;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.STDDEV;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.STDDEV_POP;
@@ -119,6 +120,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ExpressionItem;
 import org.hisp.dhis.parser.expression.ExpressionItemMethod;
+import org.hisp.dhis.parser.expression.function.PeriodOffset;
 import org.hisp.dhis.parser.expression.function.VectorAvg;
 import org.hisp.dhis.parser.expression.function.VectorCount;
 import org.hisp.dhis.parser.expression.function.VectorMax;
@@ -210,6 +212,7 @@ public class DefaultExpressionService
         .<Integer, ExpressionItem> builder()
         .putAll( BASE_EXPRESSION_ITEMS )
         .put( N_BRACE, new DimItemIndicator() )
+        .put( PERIOD_OFFSET, new PeriodOffset() )
         .build();
 
     private static final ImmutableMap<ParseType, ImmutableMap<Integer, ExpressionItem>> PARSE_TYPE_EXPRESSION_ITEMS = ImmutableMap
@@ -630,6 +633,11 @@ public class DefaultExpressionService
 
         int itemsFound = visitor.getItemsFound();
         int itemValuesFound = visitor.getItemValuesFound();
+
+        if ( visitor.isUnprotectedNullDateFound() )
+        {
+            return null;
+        }
 
         switch ( missingValueStrategy )
         {

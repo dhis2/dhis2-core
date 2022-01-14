@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,17 +29,23 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import java.util.List;
+
 import javax.servlet.http.HttpServletResponse;
 
+import org.hisp.dhis.analytics.dimension.DimensionFilteringAndPagingService;
+import org.hisp.dhis.analytics.event.EnrollmentAnalyticsDimensionsService;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsService;
 import org.hisp.dhis.analytics.event.EventDataQueryService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.DimensionsCriteria;
 import org.hisp.dhis.common.EnrollmentAnalyticsQueryCriteria;
 import org.hisp.dhis.common.EventDataQueryRequest;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.system.grid.GridUtils;
+import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,7 +54,10 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * @author Markus Bekken
@@ -67,6 +76,12 @@ public class EnrollmentAnalyticsController
     @Autowired
     private ContextUtils contextUtils;
 
+    @Autowired
+    private DimensionFilteringAndPagingService dimensionFilteringAndPagingService;
+
+    @Autowired
+    private EnrollmentAnalyticsDimensionsService enrollmentAnalyticsDimensionsService;
+
     @GetMapping( value = "/query/{program}", produces = { APPLICATION_JSON_VALUE, "application/javascript" } )
     public @ResponseBody Grid getQueryJson( // JSON, JSONP
         @PathVariable String program,
@@ -78,6 +93,7 @@ public class EnrollmentAnalyticsController
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON,
             CacheStrategy.RESPECT_SYSTEM_SETTING );
+
         return analyticsService.getEnrollments( params );
     }
 
@@ -164,6 +180,38 @@ public class EnrollmentAnalyticsController
             "enrollments.html", false );
         Grid grid = analyticsService.getEnrollments( params );
         GridUtils.toHtmlCss( grid, response.getWriter() );
+    }
+
+    @GetMapping( "/query/dimensions" )
+    public @ResponseBody PagingWrapper<ObjectNode> getQueryDimensions(
+        @RequestParam String programId,
+        @RequestParam( defaultValue = "*" ) List<String> fields,
+        DimensionsCriteria dimensionsCriteria,
+        HttpServletResponse response )
+    {
+        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON,
+            CacheStrategy.RESPECT_SYSTEM_SETTING );
+        return dimensionFilteringAndPagingService
+            .pageAndFilter(
+                enrollmentAnalyticsDimensionsService.getQueryDimensionsByProgramStageId( programId ),
+                dimensionsCriteria,
+                fields );
+    }
+
+    @GetMapping( "/aggregate/dimensions" )
+    public @ResponseBody PagingWrapper<ObjectNode> getAggregateDimensions(
+        @RequestParam String programId,
+        @RequestParam( defaultValue = "*" ) List<String> fields,
+        DimensionsCriteria dimensionsCriteria,
+        HttpServletResponse response )
+    {
+        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON,
+            CacheStrategy.RESPECT_SYSTEM_SETTING );
+        return dimensionFilteringAndPagingService
+            .pageAndFilter(
+                enrollmentAnalyticsDimensionsService.getAggregateDimensionsByProgramStageId( programId ),
+                dimensionsCriteria,
+                fields );
     }
 
     private EventQueryParams getEventQueryParams( @PathVariable String program,

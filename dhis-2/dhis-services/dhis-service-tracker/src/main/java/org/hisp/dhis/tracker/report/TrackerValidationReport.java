@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,12 +28,17 @@
 package org.hisp.dhis.tracker.report;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Predicate;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+
+import org.hisp.dhis.tracker.TrackerType;
+import org.hisp.dhis.tracker.domain.TrackerDto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -41,70 +46,126 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
+@ToString
+@EqualsAndHashCode
 public class TrackerValidationReport
 {
     @JsonProperty
-    @Builder.Default
-    private List<TrackerErrorReport> errorReports = new ArrayList<>();
+    private final List<TrackerErrorReport> errorReports;
 
     @JsonProperty
-    @Builder.Default
-    private List<TrackerWarningReport> warningReports = new ArrayList<>();
+    private final List<TrackerWarningReport> warningReports;
 
     @JsonIgnore
-    @Builder.Default
-    private List<TrackerValidationHookTimerReport> performanceReport = new ArrayList<>();
+    private final List<Timing> timings;
+
+    /*
+     * Keeps track of all the invalid Tracker objects (i.e. objects with at
+     * least one TrackerErrorReport in the TrackerValidationReport) encountered
+     * during the validation process.
+     */
+    @JsonIgnore
+    private final Map<TrackerType, List<String>> invalidDTOs;
+
+    public TrackerValidationReport()
+    {
+        this.errorReports = new ArrayList<>();
+        this.warningReports = new ArrayList<>();
+        this.timings = new ArrayList<>();
+        this.invalidDTOs = new HashMap<>();
+    }
 
     // -----------------------------------------------------------------------------------
     // Utility Methods
     // -----------------------------------------------------------------------------------
 
-    public void add( TrackerValidationReport validationReport )
+    public void addValidationReport( TrackerValidationReport report )
     {
-        add( validationReport.getErrorReports() );
-        addWarnings( validationReport.getWarningReports() );
-        addPerfReports( validationReport.getPerformanceReport() );
+        addErrors( report.getErrors() );
+        addWarnings( report.getWarnings() );
+        addTimings( report.getTimings() );
     }
 
-    public void add( ValidationErrorReporter validationReporter )
+    public List<TrackerErrorReport> getErrors()
     {
-        add( validationReporter.getReportList() );
-        addWarnings( validationReporter.getWarningsReportList() );
+        return Collections.unmodifiableList( errorReports );
     }
 
-    public void add( List<TrackerErrorReport> errorReports )
+    public List<TrackerWarningReport> getWarnings()
     {
-        for ( TrackerErrorReport errorReport : errorReports )
+        return Collections.unmodifiableList( warningReports );
+    }
+
+    public List<Timing> getTimings()
+    {
+        return Collections.unmodifiableList( timings );
+    }
+
+    public TrackerValidationReport addError( TrackerErrorReport error )
+    {
+        addErrorIfNotExisting( error );
+        return this;
+    }
+
+    public TrackerValidationReport addErrors( List<TrackerErrorReport> errors )
+    {
+        for ( TrackerErrorReport error : errors )
         {
-            addErrorIfNotExisting( errorReport );
+            addErrorIfNotExisting( error );
         }
+        return this;
     }
 
-    public void addWarnings( List<TrackerWarningReport> warningReportsReports )
+    public TrackerValidationReport addWarning( TrackerWarningReport warning )
     {
-        for ( TrackerWarningReport warningReport : warningReportsReports )
+        addWarningIfNotExisting( warning );
+        return this;
+    }
+
+    public TrackerValidationReport addWarnings( List<TrackerWarningReport> warnings )
+    {
+        for ( TrackerWarningReport warning : warnings )
         {
-            addWarningIfNotExisting( warningReport );
+            addWarningIfNotExisting( warning );
         }
+        return this;
     }
 
-    public void addPerfReports( List<TrackerValidationHookTimerReport> reports )
+    public TrackerValidationReport addTiming( Timing timing )
     {
-        this.performanceReport.addAll( reports );
+        timings.add( timing );
+        return this;
     }
 
-    public void add( TrackerValidationHookTimerReport report )
+    public TrackerValidationReport addTimings( List<Timing> timings )
     {
-        performanceReport.add( report );
+        this.timings.addAll( timings );
+        return this;
     }
 
     public boolean hasErrors()
     {
         return !errorReports.isEmpty();
+    }
+
+    public boolean hasError( Predicate<TrackerErrorReport> test )
+    {
+        return errorReports.stream().anyMatch( test );
+    }
+
+    public boolean hasWarnings()
+    {
+        return !warningReports.isEmpty();
+    }
+
+    public boolean hasWarning( Predicate<TrackerWarningReport> test )
+    {
+        return warningReports.stream().anyMatch( test );
+    }
+
+    public boolean hasTimings()
+    {
+        return !timings.isEmpty();
     }
 
     /**
@@ -113,22 +174,41 @@ public class TrackerValidationReport
     public long size()
     {
 
-        return this.getErrorReports().stream().map( TrackerErrorReport::getUid ).distinct().count();
+        return this.getErrors().stream().map( TrackerErrorReport::getUid ).distinct().count();
     }
 
-    private void addErrorIfNotExisting( TrackerErrorReport report )
+    private void addErrorIfNotExisting( TrackerErrorReport error )
     {
-        if ( !this.errorReports.contains( report ) )
+        if ( !this.errorReports.contains( error ) )
         {
-            this.errorReports.add( report );
+            this.errorReports.add( error );
+            this.invalidDTOs.computeIfAbsent( error.getTrackerType(), k -> new ArrayList<>() ).add( error.getUid() );
         }
     }
 
-    private void addWarningIfNotExisting( TrackerWarningReport report )
+    private void addWarningIfNotExisting( TrackerWarningReport warning )
     {
-        if ( !this.warningReports.contains( report ) )
+        if ( !this.warningReports.contains( warning ) )
         {
-            this.warningReports.add( report );
+            this.warningReports.add( warning );
         }
+    }
+
+    /**
+     * Checks if a TrackerDto with given type and uid is invalid (i.e. has at
+     * least one TrackerErrorReport in the TrackerValidationReport).
+     */
+    public boolean isInvalid( TrackerType type, String uid )
+    {
+        return this.invalidDTOs.getOrDefault( type, new ArrayList<>() ).contains( uid );
+    }
+
+    /**
+     * Checks if the given TrackerDto is invalid (i.e. has at least one
+     * TrackerErrorReport in the TrackerValidationReport).
+     */
+    public boolean isInvalid( TrackerDto dto )
+    {
+        return this.isInvalid( dto.getTrackerType(), dto.getUid() );
     }
 }

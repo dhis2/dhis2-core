@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -51,7 +51,16 @@ import org.hisp.dhis.analytics.QueryKey;
 import org.hisp.dhis.analytics.QueryParamsBuilder;
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.analytics.TimeField;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.DimensionType;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.DisplayProperty;
+import org.hisp.dhis.common.FallbackCoordinateFieldType;
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
@@ -168,12 +177,6 @@ public class EventQueryParams
      * tracked entity instance.
      */
     private EventOutputType outputType;
-
-    /**
-     * Indicates the event output type which can be by event, enrollment type or
-     * tracked entity instance.
-     */
-    private IdScheme outputIdScheme;
 
     /**
      * Indicates the event status.

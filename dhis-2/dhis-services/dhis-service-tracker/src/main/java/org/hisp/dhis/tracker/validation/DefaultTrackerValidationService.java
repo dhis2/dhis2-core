@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.tracker.validation;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -37,11 +36,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.report.TrackerValidationHookTimerReport;
+import org.hisp.dhis.tracker.report.Timing;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.user.User;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 /**
@@ -53,19 +52,12 @@ import org.springframework.stereotype.Service;
 public class DefaultTrackerValidationService
     implements TrackerValidationService
 {
-    private List<TrackerValidationHook> validationHooks = new ArrayList<>();
 
-    private List<TrackerValidationHook> ruleEngineValidationHooks = new ArrayList<>();
+    @Qualifier( "validationHooks" )
+    private final List<TrackerValidationHook> validationHooks;
 
-    private final TrackerValidationHookService trackerValidationHookService;
-
-    @Autowired( required = false )
-    public void setValidationHooks( List<TrackerValidationHook> validationHooks )
-    {
-        this.validationHooks = trackerValidationHookService.sortValidationHooks( validationHooks );
-        this.ruleEngineValidationHooks = trackerValidationHookService
-            .getRuleEngineValidationHooks( validationHooks );
-    }
+    @Qualifier( "ruleEngineValidationHooks" )
+    private final List<TrackerValidationHook> ruleEngineValidationHooks;
 
     @Override
     public TrackerValidationReport validate( TrackerBundle bundle )
@@ -95,29 +87,30 @@ public class DefaultTrackerValidationService
         // Note that the bundle gets cloned internally, so the original bundle
         // is always available
         TrackerImportValidationContext context = new TrackerImportValidationContext( bundle );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( context );
 
         try
         {
             for ( TrackerValidationHook hook : hooks )
             {
-                if ( hook.isEnabled() )
-                {
-                    Timer hookTimer = Timer.startTimer();
+                Timer hookTimer = Timer.startTimer();
 
-                    validationReport.add( hook.validate( context ) );
+                hook.validate( reporter, context );
 
-                    validationReport.add( TrackerValidationHookTimerReport.builder()
-                        .name( hook.getClass().getName() )
-                        .totalTime( hookTimer.toString() ).build() );
-                }
+                validationReport.addTiming( new Timing(
+                    hook.getClass().getName(),
+                    hookTimer.toString() ) );
             }
         }
         catch ( ValidationFailFastException e )
         {
-            validationReport.add( e.getErrors() );
+            // exit early when in FAIL_FAST validation mode
         }
+        validationReport
+            .addErrors( reporter.getReportList() )
+            .addWarnings( reporter.getWarningsReportList() );
 
-        removeInvalidObjects( bundle, context.getRootReporter() );
+        removeInvalidObjects( bundle, reporter );
 
         return validationReport;
     }

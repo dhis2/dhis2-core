@@ -61,10 +61,6 @@
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-service-analytics</artifactId>
     </dependency>
-    <dependency>
-      <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-support-external</artifactId>
-    </dependency>
 	
   </dependencies>
   

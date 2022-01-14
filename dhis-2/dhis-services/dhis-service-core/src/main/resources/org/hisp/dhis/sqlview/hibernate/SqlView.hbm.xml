@@ -19,7 +19,7 @@
 
     <property name="sqlQuery" not-null="true" type="text" />
 
-    <property name="type" length="40">
+    <property name="type" length="40" not-null="true">
       <type name="org.hibernate.type.EnumType">
         <param name="enumClass">org.hisp.dhis.sqlview.SqlViewType</param>
         <param name="useNamed">true</param>
@@ -27,7 +27,7 @@
       </type>
     </property>
 
-    <property name="cacheStrategy" length="40">
+    <property name="cacheStrategy" length="40" not-null="true">
       <type name="org.hibernate.type.EnumType">
         <param name="enumClass">org.hisp.dhis.common.cache.CacheStrategy</param>
         <param name="useNamed">true</param>

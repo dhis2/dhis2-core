@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -82,7 +82,7 @@ public class ValidateAndCommitTestUnit
 
         validationReport = trackerValidationService.validate( trackerBundle );
 
-        if ( validationReport.getErrorReports().isEmpty() || forceCommit )
+        if ( validationReport.getErrors().isEmpty() || forceCommit )
         {
             try
             {

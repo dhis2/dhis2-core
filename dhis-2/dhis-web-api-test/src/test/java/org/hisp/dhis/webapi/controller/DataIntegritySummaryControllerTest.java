@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,7 +29,6 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.dataintegrity.DataIntegrityCheckType;
@@ -61,13 +60,13 @@ class DataIntegritySummaryControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    void testLegacyChecksOnly()
+    void testLegacyChecksHaveSummary()
     {
         for ( DataIntegrityCheckType type : DataIntegrityCheckType.values() )
         {
             JsonObject content = GET( "/dataIntegrity/summary?checks={name}", type.getName() ).content();
             JsonDataIntegritySummary summary = content.get( type.getName(), JsonDataIntegritySummary.class );
-            assertFalse( summary.exists() );
+            assertTrue( summary.exists() );
         }
     }
 

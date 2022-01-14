@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,6 +56,18 @@ class TextUtilsTest
         ANTIBIOTIC_RESISTANT_INFECTION,
         MALARIA,
         CHRONIC_WASTING_DISEASE
+    }
+
+    @Test
+    public void testRemoveNonEssentialChars()
+    {
+        String same = "abcdefghijkl-";
+        assertEquals( same, removeNonEssentialChars( same ) );
+
+        assertEquals( "abcdefghijkl-", removeNonEssentialChars( "abcdefghijkl-øæå" ) );
+        assertEquals( "abcdefghijkl-", removeNonEssentialChars( "abcdefghijkl-øæå§!" ) );
+        assertEquals( " abcdefghijkl-", removeNonEssentialChars( " abcdefghijkl-øæå§!" ) );
+        assertEquals( " abcde fghijkl-", removeNonEssentialChars( "/(/%å^{} abcde fghijkl-øæå§!&" ) );
     }
 
     @Test

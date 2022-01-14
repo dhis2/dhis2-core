@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -55,17 +55,27 @@ public class V2_36_6__Remove_duplicate_mappings_from_programstage_to_usergroups
 
     private static final String PROGRAMSTAGEID = "programstageid";
 
+    private static final String SAFE_COLUMN_RENAME_SQL = "DO $$ "
+        + "BEGIN "
+        + "  IF EXISTS(SELECT * "
+        + "    FROM information_schema.columns "
+        + "    WHERE table_name='programstageusergroupaccesses' and column_name='programid') "
+        + "  THEN "
+        + "alter table programstageusergroupaccesses rename COLUMN programid to programstageid; "
+        + "END IF; "
+        + "END $$; ";
+
     private static final String CHECK_DUPLICATE_PGMSTG_USERGROUP_MAPPING = "SELECT count(*),programstageid,name,usergroupid  "
         +
         "FROM   (SELECT ps.*,uga.* " +
         "       FROM   programstage ps " +
         "       LEFT JOIN programstageusergroupaccesses psuga " +
-        "               ON ps.programstageid = psuga.programid " +
+        "               ON ps.programstageid = psuga.programstageid " +
         "       LEFT JOIN usergroupaccess uga " +
         "               ON psuga.usergroupaccessid = uga.usergroupaccessid) AS pscouga " +
         "GROUP  BY programstageid,name,usergroupid HAVING count(*) > 1";
 
-    private static final String GET_ACCESS_STRING_FOR_PS_UG_COMBO = "SELECT usergroupaccessid,usergroupid,programid as programstageid, "
+    private static final String GET_ACCESS_STRING_FOR_PS_UG_COMBO = "SELECT usergroupaccessid,usergroupid,programstageid, "
         +
         "CASE " +
         "WHEN access = '--------' THEN 1 " +
@@ -75,11 +85,11 @@ public class V2_36_6__Remove_duplicate_mappings_from_programstage_to_usergroups
         "WHEN access LIKE '___w----' THEN 5 " +
         "ELSE 0 " +
         "END as accesslevel " +
-        "FROM   (SELECT psuga.programid,uga.*  " +
+        "FROM   (SELECT psuga.programstageid,uga.*  " +
         "       FROM  programstageusergroupaccesses psuga " +
         "       LEFT JOIN usergroupaccess uga " +
         "               ON psuga.usergroupaccessid = uga.usergroupaccessid " +
-        " WHERE  programid IN (%s)  and usergroupid IN (%s)) AS pstguga order by accesslevel desc";
+        " WHERE  programstageid IN (%s)  and usergroupid IN (%s)) AS pstguga order by accesslevel desc";
 
     private static final String DELETE_PS_USRGRP_ACCESS = "delete from programstageusergroupaccesses where usergroupaccessid in (%s)";
 
@@ -94,9 +104,16 @@ public class V2_36_6__Remove_duplicate_mappings_from_programstage_to_usergroups
         Set<String> userGroupIds = new HashSet<>();
         long totalCount = 0;
 
+        // 0. For backward compatibility, safely rename the psuga programid
+        // column to programstageid
+        try ( Statement stmt = context.getConnection().createStatement() )
+        {
+            stmt.execute( SAFE_COLUMN_RENAME_SQL );
+        }
+
         // 1. Check if there are duplicate mappings. If not simply return.
         try ( Statement stmt = context.getConnection().createStatement();
-            ResultSet rs = stmt.executeQuery( CHECK_DUPLICATE_PGMSTG_USERGROUP_MAPPING ); )
+            ResultSet rs = stmt.executeQuery( CHECK_DUPLICATE_PGMSTG_USERGROUP_MAPPING ) )
         {
             if ( rs.next() == false )
             {
@@ -159,7 +176,7 @@ public class V2_36_6__Remove_duplicate_mappings_from_programstage_to_usergroups
         try ( Statement stmt = context.getConnection().createStatement(); )
         {
             // Delete redundant usergroupaccessid from
-            // dataelementcategoryoptionusergroupaccesses table
+            // programstageusergroupaccesses table
             int deletedPsugaCount = stmt
                 .executeUpdate( String.format( DELETE_PS_USRGRP_ACCESS, usrGrpAccessIdsCommaSeparated ) );
             log.info( "Deleted userGroupAccessIds from programstageusergroupaccesses table : " + deletedPsugaCount );

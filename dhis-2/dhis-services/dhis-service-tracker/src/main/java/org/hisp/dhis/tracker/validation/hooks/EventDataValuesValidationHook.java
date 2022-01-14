@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,10 @@
 package org.hisp.dhis.tracker.validation.hooks;
 
 import static com.google.api.client.util.Preconditions.checkNotNull;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.*;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1009;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1076;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1084;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1303;
 import static org.hisp.dhis.tracker.validation.hooks.ValidationUtils.needsToValidateDataValues;
 import static org.hisp.dhis.tracker.validation.hooks.ValidationUtils.validateMandatoryDataValue;
 
@@ -74,14 +77,14 @@ public class EventDataValuesValidationHook
 
             if ( dataElement == null )
             {
-                addError( reporter, TrackerErrorCode.E1304, dataValue.getDataElement() );
+                reporter.addError( event, TrackerErrorCode.E1304, dataValue.getDataElement() );
                 continue;
             }
 
             validateDataElement( reporter, dataElement, dataValue, programStage, event );
             if ( dataValue.getValue() != null )
             {
-                validateOptionSet( reporter, dataElement, dataValue.getValue() );
+                validateOptionSet( reporter, event, dataElement, dataValue.getValue() );
             }
         }
 
@@ -102,7 +105,8 @@ public class EventDataValuesValidationHook
                 .collect( Collectors.toList() );
             List<String> wrongMandatoryDataValue = validateMandatoryDataValue( programStage, event,
                 mandatoryDataElements );
-            wrongMandatoryDataValue.forEach( de -> addError( reporter, E1303, de ) );
+            wrongMandatoryDataValue
+                .forEach( de -> reporter.addError( event, E1303, de ) );
         }
     }
 
@@ -113,12 +117,13 @@ public class EventDataValuesValidationHook
 
         if ( status != null )
         {
-            addError( reporter, TrackerErrorCode.E1302, dataElement.getUid(), status );
+            reporter.addError( event, TrackerErrorCode.E1302, dataElement.getUid(),
+                status );
         }
         else
         {
             validateNullDataValues( reporter, dataElement, programStage, dataValue, event );
-            validateFileNotAlreadyAssigned( reporter, dataValue, dataElement );
+            validateFileNotAlreadyAssigned( reporter, event, dataValue, dataElement );
         }
     }
 
@@ -138,7 +143,7 @@ public class EventDataValuesValidationHook
 
         if ( optionalPsde.isPresent() )
         {
-            addError( reporter, E1076, DataElement.class.getSimpleName(),
+            reporter.addError( event, E1076, DataElement.class.getSimpleName(),
                 dataElement.getUid() );
         }
     }
@@ -159,12 +164,13 @@ public class EventDataValuesValidationHook
         {
             if ( !dataElements.contains( payloadDataElement ) )
             {
-                addError( reporter, TrackerErrorCode.E1305, payloadDataElement, programStage.getUid() );
+                reporter.addError( event, TrackerErrorCode.E1305, payloadDataElement,
+                    programStage.getUid() );
             }
         }
     }
 
-    private void validateFileNotAlreadyAssigned( ValidationErrorReporter reporter, DataValue dataValue,
+    private void validateFileNotAlreadyAssigned( ValidationErrorReporter reporter, Event event, DataValue dataValue,
         DataElement dataElement )
     {
         if ( dataValue == null || dataValue.getValue() == null )
@@ -180,7 +186,8 @@ public class EventDataValuesValidationHook
 
         FileResource fileResource = reporter.getValidationContext().getFileResource( dataValue.getValue() );
 
-        addErrorIfNull( fileResource, reporter, E1084, dataValue.getValue() );
-        addErrorIf( () -> fileResource != null && fileResource.isAssigned(), reporter, E1009, dataValue.getValue() );
+        reporter.addErrorIfNull( fileResource, event, E1084, dataValue.getValue() );
+        reporter.addErrorIf( () -> fileResource != null && fileResource.isAssigned(), event,
+            E1009, dataValue.getValue() );
     }
 }

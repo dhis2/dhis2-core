@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,7 +53,13 @@ import org.springframework.stereotype.Component;
 public class HibernateDatabaseInfoProvider
     implements DatabaseInfoProvider
 {
-    private static final String POSTGIS_MISSING_ERROR = "Postgis extension is not installed. Execute \"CREATE EXTENSION postgis;\" as a superuser and start the application again.";
+    private static final String EXTENSION_MISSING_ERROR = "%s extension is not installed. Execute \"CREATE EXTENSION %s;\" as a superuser and restart the application.";
+
+    private static final String POSTGIS_EXTENSION = "postgis";
+
+    private static final String PG_TRIGRAM_EXTENSION = "pg_trgm";
+
+    private static final String BTREE_GIN_EXTENSION = "btree_gin";
 
     private static final String POSTGRES_VERSION_REGEX = "^([a-zA-Z_-]+ \\d+\\.+\\d+)?[ ,].*$";
 
@@ -90,16 +96,40 @@ public class HibernateDatabaseInfoProvider
 
         boolean spatialSupport = false;
 
-        // Check if postgis is installed, fail startup if not
+        boolean trigramSupport = false;
+
+        boolean btreeGinSupport = false;
 
         if ( !SystemUtils.isTestRun( environment.getActiveProfiles() ) )
         {
+            // Check if postgis extension is installed, fail startup if not
             spatialSupport = isSpatialSupport();
 
             if ( !spatialSupport )
             {
-                log.error( POSTGIS_MISSING_ERROR );
-                throw new IllegalStateException( POSTGIS_MISSING_ERROR );
+                log.error( String.format( EXTENSION_MISSING_ERROR, POSTGIS_EXTENSION, POSTGIS_EXTENSION ) );
+                throw new IllegalStateException(
+                    String.format( EXTENSION_MISSING_ERROR, POSTGIS_EXTENSION, POSTGIS_EXTENSION ) );
+            }
+
+            // Check if pg_trgm extension is installed, fail startup if not
+            trigramSupport = isTrigramExtensionCreated();
+
+            if ( !trigramSupport )
+            {
+                log.error( String.format( EXTENSION_MISSING_ERROR, PG_TRIGRAM_EXTENSION, PG_TRIGRAM_EXTENSION ) );
+                throw new IllegalStateException(
+                    String.format( EXTENSION_MISSING_ERROR, PG_TRIGRAM_EXTENSION, PG_TRIGRAM_EXTENSION ) );
+            }
+
+            // Check if btree_gin extension is installed, fail startup if not
+            btreeGinSupport = isBtreeGinExtensionCreated();
+
+            if ( !btreeGinSupport )
+            {
+                log.error( String.format( EXTENSION_MISSING_ERROR, BTREE_GIN_EXTENSION, BTREE_GIN_EXTENSION ) );
+                throw new IllegalStateException(
+                    String.format( EXTENSION_MISSING_ERROR, BTREE_GIN_EXTENSION, BTREE_GIN_EXTENSION ) );
             }
         }
 
@@ -191,6 +221,8 @@ public class HibernateDatabaseInfoProvider
         }
         catch ( Exception ex )
         {
+            // swallowing exception as this is just an attempt to create the
+            // extension if possible.
         }
 
         try
@@ -203,6 +235,66 @@ public class HibernateDatabaseInfoProvider
         {
             log.error( "Exception when checking postgis_full_version(), PostGIS not available" );
             log.debug( "Exception when checking postgis_full_version()", ex );
+            return false;
+        }
+    }
+
+    /**
+     * Attempts to create a pg_trgm database extension. Checks if extension is
+     * created
+     */
+    private boolean isTrigramExtensionCreated()
+    {
+        try
+        {
+            jdbcTemplate.execute( "create extension pg_trgm;" );
+        }
+        catch ( Exception ex )
+        {
+            // swallowing exception as this is just an attempt to create the
+            // extension if possible.
+        }
+
+        try
+        {
+            String pg_trgm_ext_name = jdbcTemplate
+                .queryForObject( "SELECT extname from pg_extension where extname='pg_trgm';", String.class );
+
+            return PG_TRIGRAM_EXTENSION.equals( pg_trgm_ext_name );
+        }
+        catch ( Exception ex )
+        {
+            log.error( "Exception when checking pg_trgm extension. Extension may not be created", ex );
+            return false;
+        }
+    }
+
+    /**
+     * Attempts to create a btree_gin database extension. Checks if extension is
+     * created
+     */
+    private boolean isBtreeGinExtensionCreated()
+    {
+        try
+        {
+            jdbcTemplate.execute( "create extension btree_gin;" );
+        }
+        catch ( Exception ex )
+        {
+            // swallowing exception as this is just an attempt to create the
+            // extension if possible.
+        }
+
+        try
+        {
+            String btree_ext_name = jdbcTemplate
+                .queryForObject( "SELECT extname from pg_extension where extname='btree_gin';", String.class );
+
+            return BTREE_GIN_EXTENSION.equals( btree_ext_name );
+        }
+        catch ( Exception ex )
+        {
+            log.error( "Exception when checking btree_gin extension. Extension may not be created", ex );
             return false;
         }
     }

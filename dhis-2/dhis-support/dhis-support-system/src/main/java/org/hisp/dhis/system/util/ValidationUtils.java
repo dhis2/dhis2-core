@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,7 @@ import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import static org.hisp.dhis.system.util.MathUtils.parseDouble;
 
 import java.awt.geom.Point2D;
+import java.util.Date;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
@@ -663,6 +664,10 @@ public class ValidationUtils
         else if ( valueType.isBoolean() )
         {
             return false;
+        }
+        else if ( valueType.isDate() )
+        {
+            return new Date();
         }
         else
         {

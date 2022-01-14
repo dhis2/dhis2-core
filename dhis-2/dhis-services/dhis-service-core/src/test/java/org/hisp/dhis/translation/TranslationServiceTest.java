@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -381,5 +381,13 @@ class TranslationServiceTest extends DhisSpringTest
         assertEquals( "translated Predictor Name", predictor.getDisplayName() );
         assertEquals( "translated descriptionA", predictor.getGenerator().getDisplayDescription() );
         assertEquals( "translated descriptionB", predictor.getSampleSkipTest().getDisplayDescription() );
+    }
+
+    @Test
+    public void testDisplayNameWithNoTranslation()
+    {
+        DataElement dataElementA = createDataElement( 'A' );
+        manager.save( dataElementA );
+        assertEquals( "DataElementA", dataElementA.getDisplayName() );
     }
 }

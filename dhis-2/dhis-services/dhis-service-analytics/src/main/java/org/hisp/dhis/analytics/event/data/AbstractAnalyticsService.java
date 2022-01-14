@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -116,10 +116,23 @@ public abstract class AbstractAnalyticsService
                     item.getItem().getDisplayProperty( params.getDisplayProperty() ), COORDINATE,
                     false, true, item.getOptionSet(), item.getLegendSet() ) );
             }
+            else if ( hasNonDefaultRepeatableProgramStageOffset( item ) )
+            {
+
+                String name = item.getProgramStage().getUid() + "[" + item.getProgramStageOffset() + "]." +
+                    item.getItem().getUid();
+
+                String column = item.getItem().getDisplayProperty( params.getDisplayProperty() );
+
+                grid.addHeader( new GridHeader( name, column, item.getValueType(),
+                    false, true, item.getOptionSet(), item.getLegendSet(),
+                    item.getProgramStage().getUid(), item.getProgramStageOffset() ) );
+            }
             else
             {
-                grid.addHeader( new GridHeader( item.getItem().getUid(),
-                    item.getItem().getDisplayProperty( params.getDisplayProperty() ), item.getValueType(),
+                String column = item.getItem().getDisplayProperty( params.getDisplayProperty() );
+
+                grid.addHeader( new GridHeader( item.getItem().getUid(), column, item.getValueType(),
                     false, true, item.getOptionSet(), item.getLegendSet() ) );
             }
         }
@@ -322,5 +335,10 @@ public abstract class AbstractAnalyticsService
                 grid.substituteMetaData( i, i, legendMap );
             }
         }
+    }
+
+    private boolean hasNonDefaultRepeatableProgramStageOffset( QueryItem item )
+    {
+        return item.getProgramStage() != null && item.getProgramStageOffset() != 0;
     }
 }

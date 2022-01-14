@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,6 +56,7 @@ import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
@@ -68,6 +69,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
+import org.hisp.dhis.system.util.MathUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.jdbc.BadSqlGrammarException;
@@ -590,17 +592,6 @@ public abstract class AbstractJdbcEventAnalyticsManager
     }
 
     /**
-     * Wraps the provided column name in Postgres 'lower' directive
-     *
-     * @param column a column name
-     * @return a String
-     */
-    private String wrapLower( String column )
-    {
-        return "lower(" + column + ")";
-    }
-
-    /**
      * Returns an SQL to select the expression or column of the item. If the
      * item is a program indicator, the program indicator expression is
      * returned; if the item is a data element, the item column name is
@@ -608,7 +599,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
      *
      * @param item the {@link QueryItem}.
      */
-    protected String getSelectSql( QueryItem item, Date startDate, Date endDate )
+    protected String getSelectSql( QueryFilter filter, QueryItem item, Date startDate, Date endDate )
     {
         if ( item.isProgramIndicator() )
         {
@@ -618,7 +609,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
         }
         else
         {
-            return item.isText() ? wrapLower( getColumn( item ) ) : getColumn( item );
+            return filter.getSqlFilterColumn( getColumn( item ), item.getValueType() );
         }
     }
 
@@ -712,6 +703,27 @@ public abstract class AbstractJdbcEventAnalyticsManager
         {
             log.warn( ErrorCode.E7131.getMessage(), ex );
             throw new QueryRuntimeException( ErrorCode.E7131, ex );
+        }
+    }
+
+    protected void addGridValue( Grid grid, GridHeader header, int index, SqlRowSet sqlRowSet, EventQueryParams params )
+    {
+        if ( Double.class.getName().equals( header.getType() ) && !header.hasLegendSet() )
+        {
+            double val = sqlRowSet.getDouble( index );
+
+            if ( Double.isNaN( val ) )
+            {
+                grid.addValue( "" );
+            }
+            else
+            {
+                grid.addValue( params.isSkipRounding() ? val : MathUtils.getRounded( val ) );
+            }
+        }
+        else
+        {
+            grid.addValue( sqlRowSet.getString( index ) );
         }
     }
 

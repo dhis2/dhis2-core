@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -113,12 +113,14 @@ public class DefaultProgramIndicatorSubqueryBuilder
         aggregateSql += getFrom( programIndicator );
 
         // Determine JOIN
-        aggregateSql += getWhere( outerSqlEntity, programIndicator, relationshipType );
+        String where = getWhere( outerSqlEntity, programIndicator, relationshipType );
+
+        aggregateSql += where;
 
         // Get WHERE condition from Program indicator filter
         if ( !Strings.isNullOrEmpty( programIndicator.getFilter() ) )
         {
-            aggregateSql += " AND "
+            aggregateSql += (where.isBlank() ? " WHERE " : " AND ")
                 + getPrgIndSql( programIndicator.getFilter(), programIndicator, earliestStartDate, latestDate );
         }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -62,8 +62,8 @@ public class PreCheckUpdatableFieldsValidationHook
         TrackedEntityInstance trackedEntityInstance = context
             .getTrackedEntityInstance( trackedEntity.getTrackedEntity() );
 
-        addErrorIf( () -> !trackedEntityInstance.getTrackedEntityType().getUid()
-            .equals( trackedEntity.getTrackedEntityType() ), reporter, E1126, "trackedEntityType" );
+        reporter.addErrorIf( () -> !trackedEntityInstance.getTrackedEntityType().getUid()
+            .equals( trackedEntity.getTrackedEntityType() ), trackedEntity, E1126, "trackedEntityType" );
     }
 
     @Override
@@ -75,9 +75,9 @@ public class PreCheckUpdatableFieldsValidationHook
         Program program = pi.getProgram();
         TrackedEntityInstance trackedEntityInstance = pi.getEntityInstance();
 
-        addErrorIf( () -> !program.getUid().equals( enrollment.getProgram() ), reporter, E1127, "program" );
-        addErrorIf( () -> !trackedEntityInstance.getUid().equals( enrollment.getTrackedEntity() ), reporter, E1127,
-            "trackedEntity" );
+        reporter.addErrorIf( () -> !program.getUid().equals( enrollment.getProgram() ), enrollment, E1127, "program" );
+        reporter.addErrorIf( () -> !trackedEntityInstance.getUid().equals( enrollment.getTrackedEntity() ), enrollment,
+            E1127, "trackedEntity" );
     }
 
     @Override
@@ -89,10 +89,11 @@ public class PreCheckUpdatableFieldsValidationHook
         ProgramStage programStage = programStageInstance.getProgramStage();
         ProgramInstance programInstance = programStageInstance.getProgramInstance();
 
-        addErrorIf( () -> !event.getProgramStage().equals( programStage.getUid() ), reporter, E1128,
+        reporter.addErrorIf( () -> !event.getProgramStage().equals( programStage.getUid() ), event, E1128,
             "programStage" );
-        addErrorIf( () -> event.getEnrollment() != null && !event.getEnrollment().equals( programInstance.getUid() ),
-            reporter, E1128, "enrollment" );
+        reporter.addErrorIf(
+            () -> event.getEnrollment() != null && !event.getEnrollment().equals( programInstance.getUid() ),
+            event, E1128, "enrollment" );
     }
 
     @Override

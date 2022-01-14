@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -55,7 +55,6 @@ import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
 import org.hisp.dhis.tracker.preprocess.TrackerPreprocessService;
 import org.hisp.dhis.tracker.report.TrackerBundleReport;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
-import org.hisp.dhis.tracker.report.TrackerImportReportFinalizer;
 import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.hisp.dhis.tracker.report.TrackerTimingsStats;
 import org.hisp.dhis.tracker.report.TrackerTypeReport;
@@ -119,7 +118,7 @@ public class DefaultTrackerImportService
 
             postCommit( trackerBundle );
 
-            TrackerImportReport trackerImportReport = TrackerImportReportFinalizer.withImportCompleted(
+            TrackerImportReport trackerImportReport = TrackerImportReport.withImportCompleted(
                 TrackerStatus.OK,
                 bundleReport, validationReport,
                 opsTimer.stopTimer(), bundleSize );
@@ -132,7 +131,7 @@ public class DefaultTrackerImportService
         {
             log.error( "Exception thrown during import.", e );
 
-            TrackerImportReport report = TrackerImportReportFinalizer.withError( "Exception:" + e.getMessage(),
+            TrackerImportReport report = TrackerImportReport.withError( "Exception:" + e.getMessage(),
                 validationReport, opsTimer.stopTimer() );
 
             endImportWithError( params, report, e );
@@ -160,7 +159,7 @@ public class DefaultTrackerImportService
     private boolean addToValidationReport( TrackerImportParams params, TrackerTimingsStats opsTimer,
         TrackerValidationReport validationReport, TrackerBundle trackerBundle )
     {
-        validationReport.add( opsTimer.exec( VALIDATION_OPS,
+        validationReport.addValidationReport( opsTimer.exec( VALIDATION_OPS,
             () -> validateBundle( params, trackerBundle, opsTimer ) ) );
 
         if ( exitOnError( validationReport, params ) )
@@ -170,7 +169,7 @@ public class DefaultTrackerImportService
 
         if ( !trackerBundle.isSkipRuleEngine() && !params.getImportStrategy().isDelete() )
         {
-            validationReport.add( execRuleEngine( params, opsTimer, trackerBundle ) );
+            validationReport.addValidationReport( execRuleEngine( params, opsTimer, trackerBundle ) );
         }
 
         return exitOnError( validationReport, params );
@@ -201,9 +200,7 @@ public class DefaultTrackerImportService
     protected TrackerValidationReport validateBundle( TrackerImportParams params, TrackerBundle trackerBundle,
         TrackerTimingsStats opsTimer )
     {
-        TrackerValidationReport validationReport = new TrackerValidationReport();
-
-        validationReport.add( trackerValidationService.validate( trackerBundle ) );
+        TrackerValidationReport validationReport = trackerValidationService.validate( trackerBundle );
 
         notifyOps( params, VALIDATION_OPS, opsTimer );
 
@@ -230,7 +227,7 @@ public class DefaultTrackerImportService
     {
         TrackerValidationReport ruleEngineValidationReport = new TrackerValidationReport();
 
-        ruleEngineValidationReport.add( trackerValidationService.validateRuleEngine( trackerBundle ) );
+        ruleEngineValidationReport.addValidationReport( trackerValidationService.validateRuleEngine( trackerBundle ) );
 
         return ruleEngineValidationReport;
     }
@@ -239,7 +236,7 @@ public class DefaultTrackerImportService
         TrackerValidationReport validationReport,
         TrackerTimingsStats opsTimer, Map<TrackerType, Integer> bundleSize )
     {
-        TrackerImportReport trackerImportReport = TrackerImportReportFinalizer.withValidationErrors( validationReport,
+        TrackerImportReport trackerImportReport = TrackerImportReport.withValidationErrors( validationReport,
             opsTimer.stopTimer(),
             bundleSize.values().stream().mapToInt( Integer::intValue ).sum() );
 
@@ -373,39 +370,33 @@ public class DefaultTrackerImportService
      * @return a copy of the current TrackerImportReport
      */
     @Override
-    public TrackerImportReport buildImportReport( TrackerImportReport trackerImportReport,
+    public TrackerImportReport buildImportReport( TrackerImportReport originalImportReport,
         TrackerBundleReportMode reportMode )
     {
-        TrackerImportReport.TrackerImportReportBuilder trackerImportReportClone = TrackerImportReport.builder()
-            .status( trackerImportReport.getStatus() )
-            .stats( trackerImportReport.getStats() )
-            .bundleReport( trackerImportReport.getBundleReport() ).message( trackerImportReport.getMessage() );
+        TrackerImportReport.TrackerImportReportBuilder importReportBuilder = TrackerImportReport.builder()
+            .status( originalImportReport.getStatus() )
+            .stats( originalImportReport.getStats() )
+            .bundleReport( originalImportReport.getBundleReport() ).message( originalImportReport.getMessage() );
 
+        TrackerValidationReport originalValidationReport = originalImportReport.getValidationReport();
         TrackerValidationReport validationReport = new TrackerValidationReport();
-
-        Optional.ofNullable( trackerImportReport.getValidationReport() )
-            .ifPresent( trackerValidationReport -> {
-                validationReport.setErrorReports( trackerValidationReport.getErrorReports() );
-                validationReport.setWarningReports( trackerValidationReport.getWarningReports() );
-                validationReport.setPerformanceReport( trackerValidationReport.getPerformanceReport() );
-            } );
-
-        switch ( reportMode )
+        if ( originalValidationReport != null )
         {
-        case ERRORS:
-            validationReport.setPerformanceReport( null );
-            validationReport.setWarningReports( null );
-            break;
-        case WARNINGS:
-            validationReport.setPerformanceReport( null );
-            break;
-        case FULL:
-            trackerImportReportClone.timingsStats( trackerImportReport.getTimingsStats() );
-            break;
+            validationReport.addErrors( originalValidationReport.getErrors() );
         }
+        if ( originalValidationReport != null && TrackerBundleReportMode.WARNINGS == reportMode )
+        {
+            validationReport.addWarnings( originalValidationReport.getWarnings() );
+        }
+        else if ( originalValidationReport != null && TrackerBundleReportMode.FULL == reportMode )
+        {
+            validationReport
+                .addWarnings( originalValidationReport.getWarnings() )
+                .addTimings( originalValidationReport.getTimings() );
+            importReportBuilder.timingsStats( originalImportReport.getTimingsStats() );
+        }
+        importReportBuilder.validationReport( validationReport );
 
-        trackerImportReportClone.validationReport( validationReport );
-
-        return trackerImportReportClone.build();
+        return importReportBuilder.build();
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -87,7 +87,7 @@ public class SqlView
 
     private String sqlQuery;
 
-    private SqlViewType type;
+    private SqlViewType type = SqlViewType.VIEW;
 
     private CacheStrategy cacheStrategy = CacheStrategy.RESPECT_SYSTEM_SETTING;
 

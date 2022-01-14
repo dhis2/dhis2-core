@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,7 +43,6 @@ import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
-import org.hisp.dhis.programrule.ProgramRuleVariableSourceType;
 import org.hisp.dhis.rules.models.RuleValidationResult;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -155,22 +154,14 @@ class ProgramRuleEngineDescriptionTest extends DhisSpringTest
         attributeService.addTrackedEntityAttribute( numericAttribute );
         program = createProgram( 'P' );
         programService.addProgram( program );
-        programRuleVariableTextAtt = createProgramRuleVariable( 'R', program );
-        programRuleVariableNumericAtt = createProgramRuleVariable( 'S', program );
-        programRuleVariableTextDE = createProgramRuleVariable( 'T', program );
-        programRuleVariableNumericDE = createProgramRuleVariable( 'U', program );
+        programRuleVariableTextAtt = createProgramRuleVariableWithTEA( 'R', program, textAttribute );
+        programRuleVariableNumericAtt = createProgramRuleVariableWithTEA( 'S', program, numericAttribute );
+        programRuleVariableTextDE = createProgramRuleVariableWithDataElement( 'T', program, textDataElement );
+        programRuleVariableNumericDE = createProgramRuleVariableWithDataElement( 'U', program, numericDataElement );
         programRuleVariableTextAtt.setName( "Program_Rule_Variable_Text_Attr" );
-        programRuleVariableTextAtt.setAttribute( textAttribute );
-        programRuleVariableTextAtt.setSourceType( ProgramRuleVariableSourceType.TEI_ATTRIBUTE );
         programRuleVariableNumericAtt.setName( "Program_Rule_Variable_Numeric_Attr" );
-        programRuleVariableNumericAtt.setSourceType( ProgramRuleVariableSourceType.TEI_ATTRIBUTE );
-        programRuleVariableNumericAtt.setAttribute( numericAttribute );
         programRuleVariableTextDE.setName( "Program_Rule_Variable_Text_DE" );
-        programRuleVariableTextDE.setDataElement( textDataElement );
-        programRuleVariableTextDE.setSourceType( ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT );
         programRuleVariableNumericDE.setName( "Program_Rule_Variable_Numeric_DE" );
-        programRuleVariableNumericDE.setDataElement( numericDataElement );
-        programRuleVariableNumericDE.setSourceType( ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT );
         ruleVariableService.addProgramRuleVariable( programRuleVariableTextAtt );
         ruleVariableService.addProgramRuleVariable( programRuleVariableNumericAtt );
         ruleVariableService.addProgramRuleVariable( programRuleVariableTextDE );

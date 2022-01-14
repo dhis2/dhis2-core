@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -81,7 +81,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicatorService;
-import org.hisp.dhis.system.util.MathUtils;
 import org.postgresql.util.PSQLException;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -157,14 +156,9 @@ public class JdbcEventAnalyticsManager
                     double val = rowSet.getDouble( index );
                     grid.addValue( Precision.round( val, COORD_DEC ) );
                 }
-                else if ( Double.class.getName().equals( header.getType() ) && !header.hasLegendSet() )
-                {
-                    double val = rowSet.getDouble( index );
-                    grid.addValue( params.isSkipRounding() ? val : MathUtils.getRounded( val ) );
-                }
                 else
                 {
-                    grid.addValue( rowSet.getString( index ) );
+                    addGridValue( grid, header, index, rowSet, params );
                 }
 
                 index++;
@@ -465,7 +459,8 @@ public class JdbcEventAnalyticsManager
             {
                 for ( QueryFilter filter : item.getFilters() )
                 {
-                    String field = getSelectSql( item, params.getEarliestStartDate(), params.getLatestEndDate() );
+                    String field = getSelectSql( filter, item, params.getEarliestStartDate(),
+                        params.getLatestEndDate() );
 
                     if ( IN.equals( filter.getOperator() ) )
                     {
@@ -489,7 +484,7 @@ public class JdbcEventAnalyticsManager
                 for ( QueryFilter filter : item.getFilters() )
                 {
                     sql += hlp.whereAnd() + " "
-                        + getSelectSql( item, params.getEarliestStartDate(), params.getLatestEndDate() ) +
+                        + getSelectSql( filter, item, params.getEarliestStartDate(), params.getLatestEndDate() ) +
                         " " + filter.getSqlOperator() + " " + getSqlFilter( filter, item ) + " ";
                 }
             }

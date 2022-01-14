@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,8 +36,11 @@ import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
-import org.hisp.dhis.dataelement.*;
+import org.hisp.dhis.dataelement.DataElementGroup;
+import org.hisp.dhis.dataelement.DataElementGroupSet;
+import org.hisp.dhis.eventvisualization.EventRepetition;
 import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.program.ProgramStage;
@@ -134,6 +137,19 @@ public interface DimensionalObject
     String getDimensionDisplayName();
 
     /**
+     * Returns the value type of the dimension.
+     *
+     * NOTE: not all dimensional objects have a ValueType, hence this method
+     * will return null in such cases.
+     */
+    ValueType getValueType();
+
+    /**
+     * Returns the option set of the dimension, if any.
+     */
+    OptionSet getOptionSet();
+
+    /**
      * Dimension items.
      */
     List<DimensionalItemObject> getItems();
@@ -177,6 +193,11 @@ public interface DimensionalObject
      * Gets the filter. Contains operator and filter. Applicable for events.
      */
     String getFilter();
+
+    /**
+     * Gets the events repetition. Only applicable for events.
+     */
+    EventRepetition getEventRepetition();
 
     /**
      * Indicates the analytics type of this dimensional object.

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,6 +57,11 @@ public interface JsonErrorReport extends JsonObject
     default Class<?> getErrorKlass()
     {
         return getString( "errorKlass" ).parsedClass();
+    }
+
+    default String getErrorProperty()
+    {
+        return getString( "errorProperty" ).string();
     }
 
     default List<String> getErrorProperties()

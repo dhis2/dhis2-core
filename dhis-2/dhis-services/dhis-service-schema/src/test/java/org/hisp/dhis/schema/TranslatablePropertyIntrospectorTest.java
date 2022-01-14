@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,6 +38,7 @@ import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.predictor.Predictor;
+import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.schema.introspection.TranslatablePropertyIntrospector;
 import org.junit.jupiter.api.Test;
 
@@ -130,5 +131,31 @@ class TranslatablePropertyIntrospectorTest extends DhisSpringTest
         assertFalse( propertyMap.get( "generator" ).isTranslatable() );
         introspector.introspect( Predictor.class, propertyMap );
         assertTrue( propertyMap.get( "generator" ).isTranslatable() );
+    }
+
+    @Test
+    void testNotPersistedProperty()
+    {
+        Property propTranslation = createProperty( ProgramStageSection.class, "translations" );
+        propTranslation.setPersisted( true );
+
+        Property propShortName = createProperty( ProgramStageSection.class, "shortName" );
+        propShortName.setPersisted( false );
+
+        Map<String, Property> propertyMap = new HashMap<>();
+        propertyMap.put( "shortName", propShortName );
+        propertyMap.put( "translations", propTranslation );
+
+        introspector.introspect( ProgramStageSection.class, propertyMap );
+
+        assertFalse( propertyMap.get( "shortName" ).isTranslatable() );
+    }
+
+    private Property createProperty( Class klass, String name )
+    {
+        Property property = new Property( klass );
+        property.setName( name );
+        property.setFieldName( name );
+        return property;
     }
 }

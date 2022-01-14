@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -67,6 +67,18 @@ public class TextUtils
     private static final String DELIMITER = ", ";
 
     private static final String OPTION_SEP = ";";
+
+    /**
+     * Remove all non-alphanumeric characters within string
+     *
+     * @param str input string
+     * @return string with only alphanumeric characters and spaces, dash and
+     *         underscore
+     */
+    public static String removeNonEssentialChars( String str )
+    {
+        return str.replaceAll( "[^a-zA-Z0-9 ._-]", "" );
+    }
 
     /**
      * Performs the htmlNewline(String) and htmlLinks(String) methods against

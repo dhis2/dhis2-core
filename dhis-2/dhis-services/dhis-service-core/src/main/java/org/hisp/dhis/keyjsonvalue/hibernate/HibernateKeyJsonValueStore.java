@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +27,17 @@
  */
 package org.hisp.dhis.keyjsonvalue.hibernate;
 
+import static java.util.Arrays.asList;
+import static java.util.Arrays.copyOfRange;
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
+
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.persistence.criteria.CriteriaBuilder;
 
@@ -36,8 +45,11 @@ import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValue;
+import org.hisp.dhis.keyjsonvalue.KeyJsonValueEntry;
+import org.hisp.dhis.keyjsonvalue.KeyJsonValueQuery;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValueStore;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -101,6 +113,32 @@ public class HibernateKeyJsonValueStore
 
         return getList( builder,
             newJpaParameters().addPredicate( root -> builder.equal( root.get( "namespace" ), namespace ) ) );
+    }
+
+    @Override
+    public <T> T getEntries( KeyJsonValueQuery query, Function<Stream<KeyJsonValueEntry>, T> transform )
+    {
+        List<String> fieldExtracts = query.getFields().stream()
+            .map( f -> "jsonb_extract_path(jbvalue, " + toPathSegments( f.getPath() ) + " )" )
+            .collect( toList() );
+
+        String hql = String.format( "select key, %s from KeyJsonValue where namespace = :namespace and (%s)",
+            String.join( ",", fieldExtracts ),
+            query.isIncludeAll() ? "1=1"
+                : fieldExtracts.stream().map( f -> f + "is not null" ).collect( joining( " or " ) ) );
+
+        return transform.apply( getSession().createQuery( hql, Object[].class )
+            .setParameter( "namespace", query.getNamespace() )
+            .stream()
+            .map( row -> new KeyJsonValueEntry( (String) row[0],
+                asList( copyOfRange( row, 1, row.length, String[].class ) ) ) ) );
+    }
+
+    private static String toPathSegments( String path )
+    {
+        return Arrays.stream( path.split( "\\." ) )
+            .map( SqlUtils::singleQuote )
+            .collect( Collectors.joining( ", " ) );
     }
 
     @Override

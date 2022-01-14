@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -127,6 +127,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramSection;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageInstance;
@@ -232,6 +233,8 @@ public abstract class DhisConvenienceTest
     public static final String DEFAULT_ADMIN_PASSWORD = "district";
 
     public static final String DEFAULT_USERNAME = "admin";
+
+    private static final String PROGRAM_RULE_VARIABLE = "ProgramRuleVariable";
 
     private static Date date;
 
@@ -1589,9 +1592,40 @@ public abstract class DhisConvenienceTest
         ProgramRuleVariable programRuleVariable = new ProgramRuleVariable();
         programRuleVariable.setAutoFields();
 
-        programRuleVariable.setName( "ProgramRuleVariable" + uniqueCharacter );
+        programRuleVariable.setName( PROGRAM_RULE_VARIABLE + uniqueCharacter );
         programRuleVariable.setProgram( parentProgram );
         programRuleVariable.setSourceType( ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT );
+        programRuleVariable.setValueType( ValueType.TEXT );
+
+        return programRuleVariable;
+    }
+
+    public static ProgramRuleVariable createProgramRuleVariableWithDataElement( char uniqueCharacter,
+        Program parentProgram, DataElement dataElement )
+    {
+        ProgramRuleVariable programRuleVariable = new ProgramRuleVariable();
+        programRuleVariable.setAutoFields();
+
+        programRuleVariable.setName( PROGRAM_RULE_VARIABLE + uniqueCharacter );
+        programRuleVariable.setProgram( parentProgram );
+        programRuleVariable.setDataElement( dataElement );
+        programRuleVariable.setSourceType( ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT );
+        programRuleVariable.setValueType( dataElement.getValueType() );
+
+        return programRuleVariable;
+    }
+
+    public static ProgramRuleVariable createProgramRuleVariableWithTEA( char uniqueCharacter, Program parentProgram,
+        TrackedEntityAttribute attribute )
+    {
+        ProgramRuleVariable programRuleVariable = new ProgramRuleVariable();
+        programRuleVariable.setAutoFields();
+
+        programRuleVariable.setName( PROGRAM_RULE_VARIABLE + uniqueCharacter );
+        programRuleVariable.setProgram( parentProgram );
+        programRuleVariable.setAttribute( attribute );
+        programRuleVariable.setSourceType( ProgramRuleVariableSourceType.TEI_ATTRIBUTE );
+        programRuleVariable.setValueType( attribute.getValueType() );
 
         return programRuleVariable;
     }
@@ -2614,6 +2648,16 @@ public abstract class DhisConvenienceTest
         userService.addUser( user );
         userService.addUserCredentials( credentials );
         return user;
+    }
+
+    protected final ProgramSection createProgramSection( char uniqueCharacter, Program program )
+    {
+        ProgramSection programSection = new ProgramSection();
+        programSection.setProgram( program );
+        programSection.setSortOrder( 0 );
+        programSection.setName( "ProgramSection" + uniqueCharacter );
+        programSection.setAutoFields();
+        return programSection;
     }
 
 }
