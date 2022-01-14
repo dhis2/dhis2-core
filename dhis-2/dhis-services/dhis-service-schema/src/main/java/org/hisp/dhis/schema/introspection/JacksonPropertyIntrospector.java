@@ -135,6 +135,7 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector
             initFromDescription( property );
             initFromJacksonXmlProperty( property );
             initCollectionProperty( property );
+            initMapProperty( property );
 
             if ( !property.isCollection() && !hasProperties( property.getGetterMethod().getReturnType() ) )
             {
@@ -291,6 +292,23 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector
             property.setEmbeddedObject( EmbeddedObject.class.isAssignableFrom( klass ) );
             property.setAnalyticalObject( AnalyticalObject.class.isAssignableFrom( klass ) );
         }
+    }
+
+    private void initMapProperty( Property property )
+    {
+        Class<?> returnType = property.getGetterMethod().getReturnType();
+
+        if ( !Map.class.isAssignableFrom( returnType ) )
+        {
+            property.setMap( false );
+            return;
+        }
+
+        property.setMap( true );
+
+        List<Class<?>> actualTypeArguments = ReflectionUtils.getActualTypeArguments( property.getGetterMethod() );
+        property.setKeyType( actualTypeArguments.get( 0 ) );
+        property.setValueType( actualTypeArguments.get( 1 ) );
     }
 
     private static Property createSchemaProperty( Class<?> klass )
