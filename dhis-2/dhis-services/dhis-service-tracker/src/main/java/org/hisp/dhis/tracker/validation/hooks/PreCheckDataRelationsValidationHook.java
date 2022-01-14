@@ -101,18 +101,18 @@ public class PreCheckDataRelationsValidationHook
         Program program = context.getProgram( enrollment.getProgram() );
         OrganisationUnit organisationUnit = context.getOrganisationUnit( enrollment.getOrgUnit() );
 
-        addErrorIf( () -> !program.isRegistration(), reporter, enrollment, E1014, program );
+        reporter.addErrorIf( () -> !program.isRegistration(), enrollment, E1014, program );
 
         if ( !programHasOrgUnit( program, organisationUnit, context.getProgramWithOrgUnitsMap() ) )
         {
-            addError( reporter, enrollment, E1041, organisationUnit, program );
+            reporter.addError( enrollment, E1041, organisationUnit, program );
         }
 
         if ( program.getTrackedEntityType() != null
             && !program.getTrackedEntityType().getUid()
                 .equals( getTrackedEntityTypeUidFromEnrollment( context, enrollment ) ) )
         {
-            addError( reporter, enrollment, E1022, enrollment.getTrackedEntity(), program );
+            reporter.addError( enrollment, E1022, enrollment.getTrackedEntity(), program );
         }
     }
 
@@ -127,14 +127,14 @@ public class PreCheckDataRelationsValidationHook
 
         if ( !program.getUid().equals( programStage.getProgram().getUid() ) )
         {
-            addError( reporter, event, E1089, event, programStage, program );
+            reporter.addError( event, E1089, event, programStage, program );
         }
 
         if ( program.isRegistration() )
         {
             if ( StringUtils.isEmpty( event.getEnrollment() ) )
             {
-                addError( reporter, event, E1033, event.getEvent() );
+                reporter.addError( event, E1033, event.getEvent() );
             }
             else
             {
@@ -142,14 +142,14 @@ public class PreCheckDataRelationsValidationHook
 
                 if ( !program.getUid().equals( programUid ) )
                 {
-                    addError( reporter, event, E1079, event, program, event.getEnrollment() );
+                    reporter.addError( event, E1079, event, program, event.getEnrollment() );
                 }
             }
         }
 
         if ( !programHasOrgUnit( program, organisationUnit, context.getProgramWithOrgUnitsMap() ) )
         {
-            addError( reporter, event, E1029, organisationUnit, program );
+            reporter.addError( event, E1029, organisationUnit, program );
         }
 
         validateEventCategoryCombo( reporter, event, program );
@@ -174,21 +174,21 @@ public class PreCheckDataRelationsValidationHook
         {
             if ( uid.isPresent() && !ValidationUtils.trackedEntityInstanceExist( ctx, uid.get() ) )
             {
-                addError( reporter, relationship, E4012, trackerType.getName(), uid.get() );
+                reporter.addError( relationship, E4012, trackerType.getName(), uid.get() );
             }
         }
         else if ( ENROLLMENT.equals( trackerType ) )
         {
             if ( uid.isPresent() && !ValidationUtils.enrollmentExist( ctx, uid.get() ) )
             {
-                addError( reporter, relationship, E4012, trackerType.getName(), uid.get() );
+                reporter.addError( relationship, E4012, trackerType.getName(), uid.get() );
             }
         }
         else if ( EVENT.equals( trackerType ) )
         {
             if ( uid.isPresent() && !ValidationUtils.eventExist( ctx, uid.get() ) )
             {
-                addError( reporter, relationship, E4012, trackerType.getName(), uid.get() );
+                reporter.addError( relationship, E4012, trackerType.getName(), uid.get() );
             }
         }
     }
@@ -221,7 +221,7 @@ public class PreCheckDataRelationsValidationHook
 
         if ( categoryOptionCombo == null )
         {
-            addError( reporter, event, E1115, event.getAttributeOptionCombo() );
+            reporter.addError( event, E1115, event.getAttributeOptionCombo() );
         }
         else
         {
@@ -294,7 +294,7 @@ public class PreCheckDataRelationsValidationHook
             CategoryOption categoryOption = reporter.getValidationContext().getCategoryOption( uid );
             if ( categoryOption == null )
             {
-                addError( reporter, event, E1116, uid );
+                reporter.addError( event, E1116, uid );
                 return null;
             }
 
@@ -306,7 +306,7 @@ public class PreCheckDataRelationsValidationHook
 
         if ( attrOptCombo == null )
         {
-            addError( reporter, event, TrackerErrorCode.E1117, programCategoryCombo,
+            reporter.addError( event, TrackerErrorCode.E1117, programCategoryCombo,
                 categoryOptions );
         }
         else
