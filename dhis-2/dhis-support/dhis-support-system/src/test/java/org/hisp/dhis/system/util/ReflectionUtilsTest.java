@@ -130,7 +130,7 @@ class ReflectionUtilsTest
     @Test
     void testGetActualTypeArguments2()
     {
-        Method method = org.springframework.util.ReflectionUtils.findMethod( Simple.class, "getBooleanSimpleMap" );
+        Method method = org.springframework.util.ReflectionUtils.findMethod( Simple.class, "getBooleanStringKey" );
         assertNotNull( method );
 
         List<Class<?>> actualTypeArguments = ReflectionUtils.getActualTypeArguments( method );
@@ -139,9 +139,27 @@ class ReflectionUtilsTest
         assertEquals( String.class, actualTypeArguments.get( 0 ) );
         assertEquals( Boolean.class, actualTypeArguments.get( 1 ) );
     }
+
+    @Test
+    void testGetActualTypeArguments3()
+    {
+        Method method = org.springframework.util.ReflectionUtils.findMethod( Simple.class, "getIntegerStringValue" );
+        assertNotNull( method );
+
+        List<Class<?>> actualTypeArguments = ReflectionUtils.getActualTypeArguments( method );
+        assertFalse( actualTypeArguments.isEmpty() );
+
+        assertEquals( String.class, actualTypeArguments.get( 0 ) );
+        assertEquals( Integer.class, actualTypeArguments.get( 1 ) );
+    }
 }
 
-class SimpleMap<V> extends LinkedHashMap<String, V>
+class StringKey<V> extends LinkedHashMap<String, V>
+{
+
+}
+
+class StringValue<K> extends LinkedHashMap<K, String>
 {
 
 }
@@ -151,5 +169,7 @@ class Simple
 {
     private Map<String, Integer> stringIntegerMap;
 
-    private SimpleMap<Boolean> booleanSimpleMap;
+    private StringKey<Boolean> booleanStringKey;
+
+    private StringValue<Integer> integerStringValue;
 }
