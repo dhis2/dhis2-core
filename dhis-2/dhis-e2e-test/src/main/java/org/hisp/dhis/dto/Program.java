@@ -25,47 +25,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis;
 
-import org.hisp.dhis.dto.Program;
+package org.hisp.dhis.dto;
 
-import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class Constants
+public class Program
 {
-    public static final String USER_PASSWORD = "Test1212?";
+    private String uid;
+    private List<String> programStages;
 
-    public static final String TRACKED_ENTITY_TYPE = "Q9GufDoplCL";
 
-    public static String ORG_UNIT_GROUP_ID = "n9bh3KM5wmu";
+    public String getUid()
+    {
+        return uid;
+    }
 
-    public static String SUPER_USER_ID = "PQD6wXJ2r5j";
+    public Program setUid( String uid )
+    {
+        this.uid = uid;
 
-    public static String ADMIN_ID = "PQD6wXJ2r5k";
+        return this;
+    }
 
-    public static String USER_GROUP_ID = "OPVIvvXzNTw";
+    public List<String> getProgramStages()
+    {
+        return programStages;
+    }
 
-    public static String USER_ROLE_ID = "yrB6vc5Ip7r";
+    public Program setProgramStages( List<String> programStages )
+    {
+        this.programStages = programStages;
 
-    public static String EVENT_PROGRAM_ID = "Zd2rkv8FsWq";
-
-    public static String EVENT_PROGRAM_STAGE_ID = "jKLB23QZS4I";
-
-    public static Program TRACKER_PROGRAM = new Program()
-        .setUid( "f1AyMswryyQ" )
-        .setProgramStages( Arrays.asList( "PaOOjwLVW23", "nlXNK4b7LVr" ) );
-
-    public static String TRACKER_PROGRAM_ID = "f1AyMswryyQ"; // todo: remove and use TRACKER_PROGRAM with associated program stages to avoid GET /programs/id/programStages calls
-
-    public static String ANOTHER_TRACKER_PROGRAM_ID = "f1AyMswryyX";
-
-    public static String[] ORG_UNIT_IDS = {
-        "DiszpKrYNg8",
-        "g8upMTyEZGZ",
-        "O6uvpzGd5pu",
-        "YuQRtpLP10I"
-    };
+        return this;
+    }
 }
