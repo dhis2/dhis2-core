@@ -74,7 +74,7 @@ public class RepeatedEventsValidationHook
             {
                 for ( Event event : mapEntry.getValue() )
                 {
-                    addError( reporter, event, TrackerErrorCode.E1039, mapEntry.getKey().getLeft() );
+                    reporter.addError( event, TrackerErrorCode.E1039, mapEntry.getKey().getLeft() );
                 }
             }
         }
@@ -95,7 +95,7 @@ public class RepeatedEventsValidationHook
             && !programStage.getRepeatable()
             && context.programStageHasEvents( programStage.getUid(), programInstance.getUid() ) )
         {
-            addError( reporter, event, TrackerErrorCode.E1039, event.getProgramStage() );
+            reporter.addError( event, TrackerErrorCode.E1039, event.getProgramStage() );
         }
     }
 

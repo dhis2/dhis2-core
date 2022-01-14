@@ -25,20 +25,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.params;
+package org.hisp.dhis.tracker.programrule;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
 import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
@@ -46,26 +43,25 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.programrule.ProgramRuleVariable;
+import org.hisp.dhis.programrule.ProgramRuleVariableService;
+import org.hisp.dhis.programrule.ProgramRuleVariableSourceType;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
-import org.hisp.dhis.tracker.AtomicMode;
-import org.hisp.dhis.tracker.TrackerImportParams;
-import org.hisp.dhis.tracker.TrackerImportService;
-import org.hisp.dhis.tracker.report.TrackerImportReport;
-import org.hisp.dhis.tracker.report.TrackerStatus;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
-class AtomicModeIntegrationTest extends TransactionalIntegrationTest
+/**
+ * @author Zubair Asghar
+ */
+public class ProgramRuleVariableIntegrationTest extends TransactionalIntegrationTest
 {
-
-    @Autowired
-    private TrackerImportService trackerImportService;
-
     @Autowired
     private RenderService _renderService;
 
@@ -73,15 +69,19 @@ class AtomicModeIntegrationTest extends TransactionalIntegrationTest
     private UserService _userService;
 
     @Autowired
+    private ProgramRuleVariableService programRuleVariableService;
+
+    @Autowired
     private ObjectBundleService objectBundleService;
+
+    @Autowired
+    private ProgramService programService;
 
     @Autowired
     private ObjectBundleValidationService objectBundleValidationService;
 
     @Autowired
-    private TrackedEntityInstanceService trackedEntityInstanceService;
-
-    private User userA;
+    private TrackedEntityAttributeService trackedEntityAttributeService;
 
     @Override
     public void setUpTest()
@@ -90,7 +90,8 @@ class AtomicModeIntegrationTest extends TransactionalIntegrationTest
         renderService = _renderService;
         userService = _userService;
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "tracker/simple_metadata.json" ).getInputStream(), RenderFormat.JSON );
+            new ClassPathResource( "tracker/tracker_metadata_with_program_rules_variables.json" ).getInputStream(),
+            RenderFormat.JSON );
         ObjectBundleParams params = new ObjectBundleParams();
         params.setObjectBundleMode( ObjectBundleMode.COMMIT );
         params.setImportStrategy( ImportStrategy.CREATE );
@@ -99,40 +100,29 @@ class AtomicModeIntegrationTest extends TransactionalIntegrationTest
         ObjectBundleValidationReport validationReport = objectBundleValidationService.validate( bundle );
         assertFalse( validationReport.hasErrorReports() );
         objectBundleService.commit( bundle );
-        userA = userService.getUser( "M5zQapPyTZI" );
     }
 
     @Test
-    void testImportSuccessWithAtomicModeObjectIfThereIsAnErrorInOneTEI()
-        throws IOException
+    public void shouldAssignValueTypeFromTrackedEntityAttributeToProgramRuleVariable()
     {
-        InputStream inputStream = new ClassPathResource( "tracker/one_valid_tei_and_one_invalid.json" )
-            .getInputStream();
-        TrackerImportParams params = renderService.fromJson( inputStream, TrackerImportParams.class );
-        params.setUserId( userA.getUid() );
-        params.setAtomicMode( AtomicMode.OBJECT );
-        TrackerImportReport trackerImportTeiReport = trackerImportService.importTracker( params );
-        assertNotNull( trackerImportTeiReport );
-        assertEquals( TrackerStatus.OK, trackerImportTeiReport.getStatus() );
-        assertEquals( 1, trackerImportTeiReport.getValidationReport().getErrors().size() );
-        assertNotNull( trackedEntityInstanceService.getTrackedEntityInstance( "VALIDTEIAAA" ) );
-        assertNull( trackedEntityInstanceService.getTrackedEntityInstance( "INVALIDTEIA" ) );
+        Program program = programService.getProgram( "BFcipDERJne" );
+        TrackedEntityAttribute trackedEntityAttribute = trackedEntityAttributeService
+            .getTrackedEntityAttribute( "sYn3tkL3XKa" );
+        List<ProgramRuleVariable> ruleVariables = programRuleVariableService.getProgramRuleVariable( program );
+
+        ProgramRuleVariable prv = ruleVariables.stream()
+            .filter( r -> ProgramRuleVariableSourceType.TEI_ATTRIBUTE == r.getSourceType() ).findFirst().get();
+        assertEquals( trackedEntityAttribute.getValueType(), prv.getValueType() );
     }
 
     @Test
-    void testImportFailWithAtomicModeAllIfThereIsAnErrorInOneTEI()
-        throws IOException
+    public void shouldAssignDefaultValueTypeToProgramRuleVariable()
     {
-        InputStream inputStream = new ClassPathResource( "tracker/one_valid_tei_and_one_invalid.json" )
-            .getInputStream();
-        TrackerImportParams params = renderService.fromJson( inputStream, TrackerImportParams.class );
-        params.setUserId( userA.getUid() );
-        params.setAtomicMode( AtomicMode.ALL );
-        TrackerImportReport trackerImportTeiReport = trackerImportService.importTracker( params );
-        assertNotNull( trackerImportTeiReport );
-        assertEquals( TrackerStatus.ERROR, trackerImportTeiReport.getStatus() );
-        assertEquals( 1, trackerImportTeiReport.getValidationReport().getErrors().size() );
-        assertNull( trackedEntityInstanceService.getTrackedEntityInstance( "VALIDTEIAAA" ) );
-        assertNull( trackedEntityInstanceService.getTrackedEntityInstance( "INVALIDTEIA" ) );
+        Program program = programService.getProgram( "BFcipDERJne" );
+        List<ProgramRuleVariable> ruleVariables = programRuleVariableService.getProgramRuleVariable( program );
+
+        ProgramRuleVariable prv = ruleVariables.stream()
+            .filter( r -> ProgramRuleVariableSourceType.CALCULATED_VALUE == r.getSourceType() ).findFirst().get();
+        assertEquals( ValueType.TEXT, prv.getValueType() );
     }
 }

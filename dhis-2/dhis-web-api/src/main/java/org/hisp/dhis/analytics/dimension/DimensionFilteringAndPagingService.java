@@ -28,6 +28,7 @@
 package org.hisp.dhis.analytics.dimension;
 
 import static java.util.Comparator.comparing;
+import static java.util.Comparator.naturalOrder;
 import static java.util.Comparator.nullsFirst;
 
 import java.util.Collection;
@@ -67,11 +68,11 @@ public class DimensionFilteringAndPagingService
         comparing( DimensionResponse::getCreated ) );
 
     private static final Map<String, Comparator<DimensionResponse>> ORDERING_MAP = Map.of(
-        "lastUpdated", nullsFirst( comparing( DimensionResponse::getLastUpdated ) ),
-        "code", nullsFirst( comparing( DimensionResponse::getCode ) ),
-        "uid", nullsFirst( comparing( DimensionResponse::getId ) ),
-        "id", nullsFirst( comparing( DimensionResponse::getId ) ),
-        "name", nullsFirst( comparing( DimensionResponse::getName ) ) );
+        "lastUpdated", comparing( DimensionResponse::getLastUpdated, nullsFirst( naturalOrder() ) ),
+        "code", comparing( DimensionResponse::getCode, nullsFirst( naturalOrder() ) ),
+        "uid", comparing( DimensionResponse::getId, nullsFirst( naturalOrder() ) ),
+        "id", comparing( DimensionResponse::getId, nullsFirst( naturalOrder() ) ),
+        "name", comparing( DimensionResponse::getName, nullsFirst( naturalOrder() ) ) );
 
     public PagingWrapper<ObjectNode> pageAndFilter(
         Collection<BaseIdentifiableObject> dimensions,
@@ -132,8 +133,6 @@ public class DimensionFilteringAndPagingService
                 .map( ORDERING_MAP::get )
                 .findFirst()
                 .orElse( DEFAULT_COMPARATOR );
-
-            dimensions = dimensions.sorted( comparator );
 
             if ( Objects.nonNull( orderCriteria.getDirection() ) && !orderCriteria.getDirection().isAscending() )
             {

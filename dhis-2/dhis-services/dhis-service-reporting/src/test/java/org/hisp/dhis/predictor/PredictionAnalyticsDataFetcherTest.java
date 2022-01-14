@@ -55,12 +55,11 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -68,7 +67,8 @@ import com.google.common.collect.Sets;
 /**
  * @author Jim Grace
  */
-public class PredictionAnalyticsDataFetcherTest
+@ExtendWith( MockitoExtension.class )
+class PredictionAnalyticsDataFetcherTest
     extends DhisConvenienceTest
 {
     @Mock
@@ -76,9 +76,6 @@ public class PredictionAnalyticsDataFetcherTest
 
     @Mock
     private CategoryService categoryService;
-
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     private OrganisationUnit orgUnitA;
 
@@ -104,8 +101,8 @@ public class PredictionAnalyticsDataFetcherTest
     // Fixture
     // -------------------------------------------------------------------------
 
-    @Before
-    public void initTest()
+    @BeforeEach
+    void initTest()
     {
         periodA = createPeriod( "202101" );
         periodB = createPeriod( "202102" );
@@ -134,7 +131,7 @@ public class PredictionAnalyticsDataFetcherTest
     // -------------------------------------------------------------------------
 
     @Test
-    public void testGetValues()
+    void testGetValues()
     {
         // ---------------------------------------------------------------------
         // Items with Attribute Option Combos
@@ -278,7 +275,7 @@ public class PredictionAnalyticsDataFetcherTest
     }
 
     @Test
-    public void testGetValuesEmpty()
+    void testGetValuesEmpty()
     {
         fetcher.init( periods, Collections.emptySet() );
 

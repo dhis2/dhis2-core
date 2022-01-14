@@ -166,11 +166,11 @@ class TrackerValidationServiceReportTest
         TrackerValidationReport report = validationService.validate( bundle );
 
         assertTrue( report.hasErrors() );
-        assertEquals( 2, report.getErrorReports().size() );
-        assertTrue( report.getErrorReports().stream().anyMatch( err -> TrackerErrorCode.E1032 == err.getErrorCode()
+        assertEquals( 2, report.getErrors().size() );
+        assertTrue( report.getErrors().stream().anyMatch( err -> TrackerErrorCode.E1032 == err.getErrorCode()
             && TrackerType.EVENT == err.getTrackerType()
             && invalidEvent.getUid().equals( err.getUid() ) ) );
-        assertTrue( report.getErrorReports().stream().anyMatch( err -> TrackerErrorCode.E1069 == err.getErrorCode()
+        assertTrue( report.getErrors().stream().anyMatch( err -> TrackerErrorCode.E1069 == err.getErrorCode()
             && TrackerType.ENROLLMENT == err.getTrackerType()
             && invalidEnrollment.getUid().equals( err.getUid() ) ) );
 
@@ -231,7 +231,7 @@ class TrackerValidationServiceReportTest
         TrackerValidationReport report = validationService.validate( bundle );
 
         assertTrue( report.hasErrors() );
-        assertTrue( report.getErrorReports().stream().anyMatch( err -> TrackerErrorCode.E1032 == err.getErrorCode()
+        assertTrue( report.getErrors().stream().anyMatch( err -> TrackerErrorCode.E1032 == err.getErrorCode()
             && TrackerType.EVENT == err.getTrackerType()
             && invalidEvent.getUid().equals( err.getUid() ) ) );
 
@@ -275,9 +275,9 @@ class TrackerValidationServiceReportTest
         TrackerValidationReport report = validationService.validate( bundle );
 
         assertFalse( report.hasErrors() );
-        assertNotNull( report.getWarningReports() );
-        assertEquals( 1, report.getWarningReports().size() );
-        assertTrue( report.getWarningReports().stream().anyMatch( err -> TrackerErrorCode.E1120 == err.getWarningCode()
+        assertNotNull( report.getWarnings() );
+        assertEquals( 1, report.getWarnings().size() );
+        assertTrue( report.getWarnings().stream().anyMatch( err -> TrackerErrorCode.E1120 == err.getWarningCode()
             && TrackerType.EVENT == err.getTrackerType()
             && validEvent.getUid().equals( err.getUid() ) ) );
 

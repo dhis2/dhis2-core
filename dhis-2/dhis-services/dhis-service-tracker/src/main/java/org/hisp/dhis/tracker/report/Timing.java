@@ -25,26 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.parser.expression.function;
+package org.hisp.dhis.tracker.report;
 
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
+import lombok.EqualsAndHashCode;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 
-import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.parser.expression.ExpressionItem;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Function periodOffset
+ * This class is used for timing (performance) reports of the individual
+ * validation hook.
  *
- * @author Enrico Colasante
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class PeriodOffset
-    implements ExpressionItem
+@RequiredArgsConstructor
+@ToString
+@EqualsAndHashCode
+public class Timing
 {
-    @Override
-    public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        int offset = ctx.period != null ? Integer.valueOf( ctx.period.getText() ) : 0;
+    @NonNull
+    @JsonProperty
+    public final String totalTime;
 
-        return visitor.visitWithPeriodOffset( ctx.expr( 0 ), offset );
-    }
+    @NonNull
+    @JsonProperty
+    public final String name;
 }

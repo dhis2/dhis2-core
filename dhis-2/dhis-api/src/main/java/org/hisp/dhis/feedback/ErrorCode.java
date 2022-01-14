@@ -109,6 +109,7 @@ public enum ErrorCode
     E2036( "Combination not supported: `{0}`" ),
     E2037( "Order not supported: `{0}`" ),
     E2038( "Field not supported: `{0}`" ),
+    E2039( "StageOffset is allowed only for repeatable stages (`{0}` is not repeatable)" ),
 
     /* Outlier detection */
     E2200( "At least one data element must be specified" ),

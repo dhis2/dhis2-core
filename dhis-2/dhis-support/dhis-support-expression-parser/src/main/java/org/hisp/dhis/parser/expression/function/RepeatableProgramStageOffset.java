@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,26 +25,40 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.report;
+package org.hisp.dhis.parser.expression.function;
 
-import lombok.Builder;
-import lombok.Data;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
+import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import org.hisp.dhis.parser.expression.ExpressionItem;
+import org.hisp.dhis.parser.expression.antlr.ExpressionParser;
 
 /**
- * This class is used for timing (performance) reports of the individual
- * validation hook.
- *
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * @author Dusan Bernat
  */
-@Data
-@Builder
-public class TrackerValidationHookTimerReport
-{
-    @JsonProperty
-    public String totalTime;
 
-    @JsonProperty
-    public String name;
+public class RepeatableProgramStageOffset implements ExpressionItem
+{
+    @Override
+    public Object evaluate( ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor )
+    {
+        return next( ctx, visitor );
+    }
+
+    @Override
+    public Object getSql( ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor )
+    {
+        return next( ctx, visitor );
+    }
+
+    private Object next( ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor )
+    {
+        int oldStageOffset = visitor.getStageOffset();
+
+        visitor.setStageOffset( Integer.parseInt( ctx.stage.getText() ) );
+
+        Object ret = visitor.visit( ctx.expr( 0 ) );
+
+        visitor.setStageOffset( oldStageOffset );
+
+        return ret;
+    }
 }

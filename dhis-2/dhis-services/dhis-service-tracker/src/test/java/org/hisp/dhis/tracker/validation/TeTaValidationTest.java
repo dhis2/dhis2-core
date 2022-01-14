@@ -127,8 +127,8 @@ class TeTaValidationTest extends AbstractImportValidationTest
         assertTrue( fileResource.isAssigned() );
         trackerImportParams = createBundleFromJson( "tracker/validations/te-program_with_tea_fileresource_data2.json" );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        assertEquals( 1, trackerImportReport.getValidationReport().getErrorReports().size() );
-        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
+        assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
+        assertThat( trackerImportReport.getValidationReport().getErrors(),
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1009 ) ) ) );
     }
 
@@ -140,8 +140,8 @@ class TeTaValidationTest extends AbstractImportValidationTest
         TrackerImportParams trackerImportParams = createBundleFromJson(
             "tracker/validations/te-program_with_tea_fileresource_data.json" );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        assertEquals( 1, trackerImportReport.getValidationReport().getErrorReports().size() );
-        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
+        assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
+        assertThat( trackerImportReport.getValidationReport().getErrors(),
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1084 ) ) ) );
         List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
         assertEquals( 0, trackedEntityInstances.size() );
@@ -155,8 +155,8 @@ class TeTaValidationTest extends AbstractImportValidationTest
         TrackerImportParams trackerImportParams = createBundleFromJson(
             "tracker/validations/te-program_with_tea_too_long_text_value.json" );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        assertEquals( 1, trackerImportReport.getValidationReport().getErrorReports().size() );
-        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
+        assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
+        assertThat( trackerImportReport.getValidationReport().getErrors(),
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1077 ) ) ) );
     }
 
@@ -170,8 +170,8 @@ class TeTaValidationTest extends AbstractImportValidationTest
         H2DhisConfigurationProvider dhisConfigurationProvider = (H2DhisConfigurationProvider) this.dhisConfigurationProvider;
         dhisConfigurationProvider.setEncryptionStatus( EncryptionStatus.MISSING_ENCRYPTION_PASSWORD );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        assertEquals( 1, trackerImportReport.getValidationReport().getErrorReports().size() );
-        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
+        assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
+        assertThat( trackerImportReport.getValidationReport().getErrors(),
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1112 ) ) ) );
     }
 
@@ -187,11 +187,11 @@ class TeTaValidationTest extends AbstractImportValidationTest
             "tracker/validations/te-program_with_tea_unique_data_in_country.json" );
         trackerImportParams.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        assertEquals( 0, trackerImportReport.getValidationReport().getErrorReports().size() );
+        assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
         trackerImportParams = createBundleFromJson(
             "tracker/validations/te-program_with_tea_unique_data_in_region.json" );
         trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        assertEquals( 0, trackerImportReport.getValidationReport().getErrorReports().size() );
+        assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
     }
 
     @Test
@@ -204,8 +204,8 @@ class TeTaValidationTest extends AbstractImportValidationTest
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
         trackerImportParams = createBundleFromJson( "tracker/validations/te-program_with_tea_unique_data2.json" );
         trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        assertEquals( 1, trackerImportReport.getValidationReport().getErrorReports().size() );
-        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
+        assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
+        assertThat( trackerImportReport.getValidationReport().getErrors(),
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1064 ) ) ) );
     }
 
@@ -217,8 +217,8 @@ class TeTaValidationTest extends AbstractImportValidationTest
         TrackerImportParams trackerImportParams = createBundleFromJson(
             "tracker/validations/te-program_with_tea_invalid_format_value.json" );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        assertEquals( 1, trackerImportReport.getValidationReport().getErrorReports().size() );
-        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
+        assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
+        assertThat( trackerImportReport.getValidationReport().getErrors(),
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1085 ) ) ) );
     }
 
@@ -230,10 +230,10 @@ class TeTaValidationTest extends AbstractImportValidationTest
         TrackerImportParams trackerImportParams = createBundleFromJson(
             "tracker/validations/te-program_with_tea_invalid_image_value.json" );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        assertEquals( 2, trackerImportReport.getValidationReport().getErrorReports().size() );
-        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
+        assertEquals( 2, trackerImportReport.getValidationReport().getErrors().size() );
+        assertThat( trackerImportReport.getValidationReport().getErrors(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1085 ) ) ) );
-        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
+        assertThat( trackerImportReport.getValidationReport().getErrors(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1007 ) ) ) );
     }
 
@@ -245,8 +245,8 @@ class TeTaValidationTest extends AbstractImportValidationTest
         TrackerImportParams trackerImportParams = createBundleFromJson(
             "tracker/validations/te-program_with_tea_invalid_value_isnull.json" );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        assertEquals( 1, trackerImportReport.getValidationReport().getErrorReports().size() );
-        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
+        assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
+        assertThat( trackerImportReport.getValidationReport().getErrors(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1076 ) ) ) );
     }
 }

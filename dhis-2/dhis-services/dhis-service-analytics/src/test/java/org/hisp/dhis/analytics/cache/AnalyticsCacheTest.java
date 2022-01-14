@@ -27,8 +27,9 @@
  */
 package org.hisp.dhis.analytics.cache;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.any;
-import static org.mockito.junit.MockitoJUnit.rule;
 
 import java.time.Duration;
 import java.util.Optional;
@@ -45,19 +46,19 @@ import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.grid.ListGrid;
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.google.common.collect.Lists;
 
 /**
  * @author Dusan Bernat
  */
-public class AnalyticsCacheTest
+@ExtendWith( MockitoExtension.class )
+class AnalyticsCacheTest
 {
     @Mock
     private SystemSettingManager systemSettingManager;
@@ -65,11 +66,8 @@ public class AnalyticsCacheTest
     @Mock
     private DefaultCacheProvider cacheProvider;
 
-    @Rule
-    public MockitoRule mockitoRule = rule();
-
     @Test
-    public void returnSameObjectAfterModifyCachedObject()
+    void returnSameObjectAfterModifyCachedObject()
     {
         // arrange
         final AnalyticsCacheSettings settings = new AnalyticsCacheSettings( systemSettingManager );
@@ -105,11 +103,11 @@ public class AnalyticsCacheTest
 
         Optional<Grid> optCachedGrid = analyticsCache.get( params.getKey() );
 
-        Assert.assertTrue( optCachedGrid.isPresent() );
+        assertTrue( optCachedGrid.isPresent() );
 
-        Assert.assertEquals( 2, optCachedGrid.get().getHeaderWidth() );
+        assertEquals( 2, optCachedGrid.get().getHeaderWidth() );
 
-        Assert.assertEquals( 2, optCachedGrid.get().getRows().size() );
+        assertEquals( 2, optCachedGrid.get().getRows().size() );
 
         // when the cachedGrid is not the clone of grid, next actions will
         // modify it
@@ -120,10 +118,10 @@ public class AnalyticsCacheTest
 
         optCachedGrid = analyticsCache.get( params.getKey() );
 
-        Assert.assertTrue( optCachedGrid.isPresent() );
+        assertTrue( optCachedGrid.isPresent() );
 
-        Assert.assertEquals( 2, optCachedGrid.get().getHeaderWidth() );
+        assertEquals( 2, optCachedGrid.get().getHeaderWidth() );
 
-        Assert.assertEquals( 2, optCachedGrid.get().getRows().size() );
+        assertEquals( 2, optCachedGrid.get().getRows().size() );
     }
 }

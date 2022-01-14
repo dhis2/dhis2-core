@@ -213,7 +213,7 @@ class EnrollmentSecurityImportValidationTest extends AbstractImportValidationTes
         User user = userService.getUser( ADMIN_USER_UID );
         trackerBundleParams.setUserId( user.getUid() );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
-        assertEquals( 0, trackerImportReport.getValidationReport().getErrorReports().size() );
+        assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
         assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
     }
 
@@ -226,8 +226,8 @@ class EnrollmentSecurityImportValidationTest extends AbstractImportValidationTes
         params.setUser( user );
         params.setImportStrategy( TrackerImportStrategy.CREATE );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
-        assertEquals( 4, trackerImportReport.getValidationReport().getErrorReports().size() );
-        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
+        assertEquals( 4, trackerImportReport.getValidationReport().getErrors().size() );
+        assertThat( trackerImportReport.getValidationReport().getErrors(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1000 ) ) ) );
     }
 
@@ -247,8 +247,8 @@ class EnrollmentSecurityImportValidationTest extends AbstractImportValidationTes
         params.setUser( user );
         params.setImportStrategy( TrackerImportStrategy.CREATE );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
-        assertEquals( 1, trackerImportReport.getValidationReport().getErrorReports().size() );
-        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
+        assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
+        assertThat( trackerImportReport.getValidationReport().getErrors(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1104 ) ) ) );
     }
 
@@ -268,8 +268,8 @@ class EnrollmentSecurityImportValidationTest extends AbstractImportValidationTes
         params.setUser( user );
         params.setImportStrategy( TrackerImportStrategy.CREATE );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
-        assertEquals( 1, trackerImportReport.getValidationReport().getErrorReports().size() );
-        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
+        assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
+        assertThat( trackerImportReport.getValidationReport().getErrors(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1091 ) ) ) );
     }
 
@@ -289,7 +289,7 @@ class EnrollmentSecurityImportValidationTest extends AbstractImportValidationTes
         params.setUser( user );
         params.setImportStrategy( TrackerImportStrategy.CREATE );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
-        assertEquals( 0, trackerImportReport.getValidationReport().getErrorReports().size() );
+        assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
     }
 
     @Test
@@ -308,8 +308,8 @@ class EnrollmentSecurityImportValidationTest extends AbstractImportValidationTes
         params.setUser( user );
         params.setImportStrategy( TrackerImportStrategy.CREATE );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
-        assertEquals( 1, trackerImportReport.getValidationReport().getErrorReports().size() );
-        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
+        assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
+        assertThat( trackerImportReport.getValidationReport().getErrors(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1104 ) ) ) );
     }
 

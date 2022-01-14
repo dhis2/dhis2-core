@@ -80,7 +80,7 @@ class TrackerBundleImportReportTest extends DhisSpringTest
         assertNotNull( report.getValidationReport() );
         assertTrue( report.getValidationReport().hasErrors() );
         assertFalse( report.getValidationReport().hasWarnings() );
-        assertFalse( report.getValidationReport().hasPerfs() );
+        assertFalse( report.getValidationReport().hasTimings() );
         assertNull( report.getTimingsStats() );
     }
 
@@ -95,7 +95,7 @@ class TrackerBundleImportReportTest extends DhisSpringTest
         assertNotNull( report.getValidationReport() );
         assertTrue( report.getValidationReport().hasErrors() );
         assertTrue( report.getValidationReport().hasWarnings() );
-        assertFalse( report.getValidationReport().hasPerfs() );
+        assertFalse( report.getValidationReport().hasTimings() );
         assertNull( report.getTimingsStats() );
     }
 
@@ -110,7 +110,7 @@ class TrackerBundleImportReportTest extends DhisSpringTest
         assertNotNull( report.getValidationReport() );
         assertTrue( report.getValidationReport().hasErrors() );
         assertTrue( report.getValidationReport().hasWarnings() );
-        assertTrue( report.getValidationReport().hasPerfs() );
+        assertTrue( report.getValidationReport().hasTimings() );
         assertNotNull( report.getTimingsStats() );
         assertEquals( "1 sec.", report.getTimingsStats().getProgramRule() );
         assertEquals( "2 sec.", report.getTimingsStats().getCommit() );
@@ -157,10 +157,9 @@ class TrackerBundleImportReportTest extends DhisSpringTest
         TrackerValidationReport tvr = new TrackerValidationReport();
         // Error Reports - Validation Report
         tvr.addError( new TrackerErrorReport( "Could not find OrganisationUnit: ``, linked to Tracked Entity.",
-            TrackerErrorCode.E1049, TRACKED_ENTITY, "BltTZV9HvEZ" ) );
-        // Warning Reports - Validation Report
-        tvr.addWarning( new TrackerWarningReport( "ProgramStage `l8oDIfJJhtg` does not allow user assignment",
-            TrackerErrorCode.E1120, TrackerType.EVENT, "BltTZV9HvEZ" ) );
+            TrackerErrorCode.E1049, TRACKED_ENTITY, "BltTZV9HvEZ" ) )
+            .addWarning( new TrackerWarningReport( "ProgramStage `l8oDIfJJhtg` does not allow user assignment",
+                TrackerErrorCode.E1120, TrackerType.EVENT, "BltTZV9HvEZ" ) );
         // Create the TrackerImportReport
         final Map<TrackerType, Integer> bundleSize = new HashMap<>();
         bundleSize.put( TRACKED_ENTITY, 1 );
@@ -204,21 +203,21 @@ class TrackerBundleImportReportTest extends DhisSpringTest
             deserializedReportTrackerTypeReport.getObjectReports() );
         assertEquals( serializedReportTrackerTypeReport.getStats(), deserializedReportTrackerTypeReport.getStats() );
         // Verify Validation Report - Error Reports
-        assertEquals( toSerializeReport.getValidationReport().getErrorReports().get( 0 ).getErrorMessage(),
-            deserializedReport.getValidationReport().getErrorReports().get( 0 ).getErrorMessage() );
-        assertEquals( toSerializeReport.getValidationReport().getErrorReports().get( 0 ).getErrorCode(),
-            deserializedReport.getValidationReport().getErrorReports().get( 0 ).getErrorCode() );
-        assertEquals( toSerializeReport.getValidationReport().getErrorReports().get( 0 ).getUid(),
-            deserializedReport.getValidationReport().getErrorReports().get( 0 ).getUid() );
+        assertEquals( toSerializeReport.getValidationReport().getErrors().get( 0 ).getErrorMessage(),
+            deserializedReport.getValidationReport().getErrors().get( 0 ).getErrorMessage() );
+        assertEquals( toSerializeReport.getValidationReport().getErrors().get( 0 ).getErrorCode(),
+            deserializedReport.getValidationReport().getErrors().get( 0 ).getErrorCode() );
+        assertEquals( toSerializeReport.getValidationReport().getErrors().get( 0 ).getUid(),
+            deserializedReport.getValidationReport().getErrors().get( 0 ).getUid() );
         // Verify Validation Report - Warning Reports
-        assertEquals( toSerializeReport.getValidationReport().getWarningReports().get( 0 ).getWarningMessage(),
-            deserializedReport.getValidationReport().getWarningReports().get( 0 ).getWarningMessage() );
-        assertEquals( toSerializeReport.getValidationReport().getWarningReports().get( 0 ).getWarningCode(),
-            deserializedReport.getValidationReport().getWarningReports().get( 0 ).getWarningCode() );
-        assertEquals( toSerializeReport.getValidationReport().getWarningReports().get( 0 ).getUid(),
-            deserializedReport.getValidationReport().getWarningReports().get( 0 ).getUid() );
-        assertEquals( toSerializeReport.getValidationReport().getWarningReports().get( 0 ).getTrackerType(),
-            deserializedReport.getValidationReport().getWarningReports().get( 0 ).getTrackerType() );
+        assertEquals( toSerializeReport.getValidationReport().getWarnings().get( 0 ).getWarningMessage(),
+            deserializedReport.getValidationReport().getWarnings().get( 0 ).getWarningMessage() );
+        assertEquals( toSerializeReport.getValidationReport().getWarnings().get( 0 ).getWarningCode(),
+            deserializedReport.getValidationReport().getWarnings().get( 0 ).getWarningCode() );
+        assertEquals( toSerializeReport.getValidationReport().getWarnings().get( 0 ).getUid(),
+            deserializedReport.getValidationReport().getWarnings().get( 0 ).getUid() );
+        assertEquals( toSerializeReport.getValidationReport().getWarnings().get( 0 ).getTrackerType(),
+            deserializedReport.getValidationReport().getWarnings().get( 0 ).getTrackerType() );
         // Verify TimingsStats
         assertEquals( toSerializeReport.getTimingsStats().getCommit(),
             deserializedReport.getTimingsStats().getCommit() );
@@ -267,13 +266,12 @@ class TrackerBundleImportReportTest extends DhisSpringTest
 
     private TrackerValidationReport createValidationReport()
     {
-        TrackerValidationReport report = new TrackerValidationReport();
-        report.addError(
-            new TrackerErrorReport( "", TrackerErrorCode.E9999, TrackerType.EVENT, CodeGenerator.generateUid() ) );
-        report.addWarning(
-            new TrackerWarningReport( "", TrackerErrorCode.E9999, TrackerType.EVENT, CodeGenerator.generateUid() ) );
-        report.addPerfReport( new TrackerValidationHookTimerReport( "1min", "validation" ) );
-        return report;
+        return new TrackerValidationReport()
+            .addError(
+                new TrackerErrorReport( "", TrackerErrorCode.E9999, TrackerType.EVENT, CodeGenerator.generateUid() ) )
+            .addWarning(
+                new TrackerWarningReport( "", TrackerErrorCode.E9999, TrackerType.EVENT, CodeGenerator.generateUid() ) )
+            .addTiming( new Timing( "1min", "validation" ) );
     }
 
     private TrackerBundleReport createBundleReport()

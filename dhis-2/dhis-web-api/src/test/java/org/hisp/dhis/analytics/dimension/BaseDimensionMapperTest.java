@@ -36,10 +36,11 @@ import java.util.Set;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseNameableObject;
-import org.junit.Test;
-import org.testcontainers.shaded.com.google.common.collect.ImmutableList;
+import org.junit.jupiter.api.Test;
 
-public class BaseDimensionMapperTest
+import com.google.common.collect.ImmutableList;
+
+class BaseDimensionMapperTest
 {
 
     public static final String UID = "uid";
@@ -66,7 +67,7 @@ public class BaseDimensionMapperTest
     };
 
     @Test
-    public void testMapBaseIdentifiable()
+    void testMapBaseIdentifiable()
     {
 
         asserter(
@@ -90,7 +91,7 @@ public class BaseDimensionMapperTest
     }
 
     @Test
-    public void testMapBaseNameable()
+    void testMapBaseNameable()
     {
         asserter(
             mapper,
