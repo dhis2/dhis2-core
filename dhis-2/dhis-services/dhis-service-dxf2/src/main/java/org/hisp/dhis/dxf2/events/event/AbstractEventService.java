@@ -886,7 +886,7 @@ public abstract class AbstractEventService implements EventService
             throw new IllegalQueryException( "User is not authorized to use ALL organisation units. " );
         }
 
-        return Arrays.asList( params.getOrgUnit() );
+        return Collections.emptyList();
     }
 
     private List<OrganisationUnit> getChildrenOrgUnits( EventSearchParams params )
