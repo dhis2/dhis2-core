@@ -48,6 +48,8 @@ public class VectorCount
     @Override
     public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        return "count(" + visitor.visit( ctx.expr( 0 ) ) + ")";
+        String distinct = ctx.distinct != null ? "distinct " : "";
+
+        return "count(" + distinct + visitor.visit( ctx.expr( 0 ) ) + ")";
     }
 }
