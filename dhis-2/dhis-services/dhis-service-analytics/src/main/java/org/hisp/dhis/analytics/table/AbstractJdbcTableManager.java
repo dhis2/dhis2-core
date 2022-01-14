@@ -86,9 +86,11 @@ public abstract class AbstractJdbcTableManager
      * <li>1999-12-12T10:10:10</li>
      * <li>1999-10-10 10:10:10</li>
      * <li>1999-10-10 10:10</li>
+     * <li>2021-12-14T11:45:00.000Z</li>
+     * <li>2021-12-14T11:45:00.000</li>
      * </ul>
      */
-    protected static final String DATE_REGEXP = "^\\d{4}-\\d{2}-\\d{2}(\\s|T)?((\\d{2}:)(\\d{2}:)?(\\d{2}))?$";
+    protected static final String DATE_REGEXP = "^\\d{4}-\\d{2}-\\d{2}(\\s|T)?((\\d{2}:)(\\d{2}:)?(\\d{2}))?(|.(\\d{3})|.(\\d{3})Z)?$";
 
     protected static final Set<ValueType> NO_INDEX_VAL_TYPES = ImmutableSet.of( ValueType.TEXT, ValueType.LONG_TEXT );
 
