@@ -27,13 +27,27 @@
  */
 package org.hisp.dhis.system.util;
 
-import static org.hisp.dhis.system.util.ReflectionUtils.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.hisp.dhis.system.util.ReflectionUtils.getClassName;
+import static org.hisp.dhis.system.util.ReflectionUtils.getId;
+import static org.hisp.dhis.system.util.ReflectionUtils.getProperty;
+import static org.hisp.dhis.system.util.ReflectionUtils.isCollection;
+import static org.hisp.dhis.system.util.ReflectionUtils.setProperty;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+
+import lombok.Data;
 
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -45,7 +59,6 @@ import org.junit.jupiter.api.Test;
  */
 class ReflectionUtilsTest
 {
-
     private DataElement dataElementA;
 
     @BeforeEach
@@ -100,4 +113,43 @@ class ReflectionUtilsTest
         assertTrue( isCollection( colC ) );
         assertFalse( isCollection( dataElementA ) );
     }
+
+    @Test
+    void testGetActualTypeArguments1()
+    {
+        Method method = org.springframework.util.ReflectionUtils.findMethod( Simple.class, "getStringIntegerMap" );
+        assertNotNull( method );
+
+        List<Class<?>> actualTypeArguments = ReflectionUtils.getActualTypeArguments( method );
+        assertFalse( actualTypeArguments.isEmpty() );
+
+        assertEquals( String.class, actualTypeArguments.get( 0 ) );
+        assertEquals( Integer.class, actualTypeArguments.get( 1 ) );
+    }
+
+    @Test
+    void testGetActualTypeArguments2()
+    {
+        Method method = org.springframework.util.ReflectionUtils.findMethod( Simple.class, "getBooleanSimpleMap" );
+        assertNotNull( method );
+
+        List<Class<?>> actualTypeArguments = ReflectionUtils.getActualTypeArguments( method );
+        assertFalse( actualTypeArguments.isEmpty() );
+
+        assertEquals( String.class, actualTypeArguments.get( 0 ) );
+        assertEquals( Boolean.class, actualTypeArguments.get( 1 ) );
+    }
+}
+
+class SimpleMap<V> extends LinkedHashMap<String, V>
+{
+
+}
+
+@Data
+class Simple
+{
+    private Map<String, Integer> stringIntegerMap;
+
+    private SimpleMap<Boolean> booleanSimpleMap;
 }

@@ -70,6 +70,16 @@ public class Property implements Ordered, Klass
     private Class<?> itemKlass;
 
     /**
+     * If this property is a map, this is the type of the key.
+     */
+    private Class<?> keyType;
+
+    /**
+     * If this property is a map, this is the type of the value.
+     */
+    private Class<?> valueType;
+
+    /**
      * If this property is a collection, this is the normalized type of the
      * items inside the collection.
      */
@@ -147,6 +157,13 @@ public class Property implements Ordered, Klass
      * @see java.util.Collection
      */
     private boolean collection;
+
+    /**
+     * This property is true if the type of this property is a sub-class of Map.
+     *
+     * @see java.util.Map
+     */
+    private boolean map;
 
     /**
      * This property is true if collection=true and klass points to a
@@ -361,6 +378,30 @@ public class Property implements Ordered, Klass
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Class<?> getKeyType()
+    {
+        return keyType;
+    }
+
+    public void setKeyType( Class<?> keyType )
+    {
+        this.keyType = keyType;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Class<?> getValueType()
+    {
+        return valueType;
+    }
+
+    public void setValueType( Class<?> valueType )
+    {
+        this.valueType = valueType;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public PropertyType getItemPropertyType()
     {
         return itemPropertyType;
@@ -509,6 +550,18 @@ public class Property implements Ordered, Klass
     public void setCollection( boolean collection )
     {
         this.collection = collection;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isMap()
+    {
+        return map;
+    }
+
+    public void setMap( boolean map )
+    {
+        this.map = map;
     }
 
     @JsonProperty
@@ -950,10 +1003,9 @@ public class Property implements Ordered, Klass
     {
         return Objects.hash( klass, propertyType, itemKlass, itemPropertyType, getterMethod, setterMethod, name,
             fieldName, persisted, collectionName,
-            collectionWrapping, description, namespace, attribute, simple, collection, owner, identifiableObject,
-            nameableObject, readable, writable,
-            unique, required, length, max, min, cascade, manyToMany, oneToOne, manyToOne, owningRole, inverseRole,
-            constants, defaultValue );
+            collectionWrapping, description, namespace, attribute, simple, collection, map, owner,
+            identifiableObject, nameableObject, readable, writable, unique, required, length, max, min, cascade,
+            manyToMany, oneToOne, manyToOne, owningRole, inverseRole, constants, defaultValue );
     }
 
     @Override
@@ -987,6 +1039,7 @@ public class Property implements Ordered, Klass
             && Objects.equals( this.attribute, other.attribute )
             && Objects.equals( this.simple, other.simple )
             && Objects.equals( this.collection, other.collection )
+            && Objects.equals( this.map, other.map )
             && Objects.equals( this.owner, other.owner )
             && Objects.equals( this.identifiableObject, other.identifiableObject )
             && Objects.equals( this.nameableObject, other.nameableObject )
@@ -1026,7 +1079,8 @@ public class Property implements Ordered, Klass
             .add( "namespace", namespace )
             .add( "attribute", attribute )
             .add( "simple", simple )
-            .add( "collection", collection )
+            .add( "collectionLike", collection )
+            .add( "mapLike", map )
             .add( "owner", owner )
             .add( "identifiableObject", identifiableObject )
             .add( "nameableObject", nameableObject )

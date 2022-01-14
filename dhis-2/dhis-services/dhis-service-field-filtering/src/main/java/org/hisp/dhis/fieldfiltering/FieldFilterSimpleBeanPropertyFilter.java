@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -64,23 +65,22 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
 
     protected boolean include( final PropertyWriter writer, final JsonGenerator jgen )
     {
-        String path = getPath( writer, jgen );
+        PathValue pathValue = getPath( writer, jgen );
+        String path = pathValue.getPath();
+
+        if ( pathValue.getValue() == null )
+        {
+            return false;
+        }
+
+        if ( Map.class.isAssignableFrom( pathValue.getValue().getClass() ) )
+        {
+            return true;
+        }
 
         for ( FieldPath fieldPath : fieldPaths )
         {
             String fullPath = FULL_PATH_CACHE.computeIfAbsent( fieldPath, FieldPath::toFullPath );
-
-            // TODO fix this later
-            if ( path.startsWith( "sharing.users" ) && fullPath.startsWith( "sharing.users" ) )
-            {
-                return true;
-            }
-
-            // TODO fix this later
-            if ( path.startsWith( "sharing.userGroups" ) && fullPath.startsWith( "sharing.userGroups" ) )
-            {
-                return true;
-            }
 
             if ( fullPath.equals( path ) )
             {
@@ -91,19 +91,27 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
         return false;
     }
 
-    private String getPath( PropertyWriter writer, JsonGenerator jgen )
+    private PathValue getPath( PropertyWriter writer, JsonGenerator jgen )
     {
         StringBuilder nestedPath = new StringBuilder();
         JsonStreamContext sc = jgen.getOutputContext();
+        Object value = null;
 
         if ( sc != null )
         {
             nestedPath.append( writer.getName() );
+            value = sc.getCurrentValue();
             sc = sc.getParent();
         }
 
         while ( sc != null )
         {
+            if ( sc.getCurrentValue() != null && Map.class.isAssignableFrom( sc.getCurrentValue().getClass() ) )
+            {
+                sc = sc.getParent();
+                continue;
+            }
+
             if ( sc.getCurrentName() != null && sc.getCurrentValue() != null )
             {
                 nestedPath.insert( 0, "." );
@@ -113,7 +121,7 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
             sc = sc.getParent();
         }
 
-        return nestedPath.toString();
+        return new PathValue( nestedPath.toString(), value );
     }
 
     @Override
@@ -129,4 +137,13 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
             writer.serializeAsOmittedField( pojo, jgen, provider );
         }
     }
+}
+
+@Data
+@RequiredArgsConstructor
+class PathValue
+{
+    private final String path;
+
+    private final Object value;
 }

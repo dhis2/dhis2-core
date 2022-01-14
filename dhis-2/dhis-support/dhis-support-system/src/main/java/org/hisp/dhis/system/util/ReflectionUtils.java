@@ -576,4 +576,46 @@ public class ReflectionUtils
 
         return innerType.getActualTypeArguments()[0];
     }
+
+    public static List<Class<?>> getActualTypeArguments( Method method )
+    {
+        List<Class<?>> actualTypeArguments = new ArrayList<>();
+        List<ParameterizedType> parameterizedTypes = new ArrayList<>();
+
+        Class<?> klass = method.getReturnType();
+        Type genericReturnType = method.getGenericReturnType();
+
+        if ( klass.getGenericSuperclass() instanceof ParameterizedType )
+        {
+            parameterizedTypes.add( (ParameterizedType) klass.getGenericSuperclass() );
+        }
+
+        for ( Type type : klass.getGenericInterfaces() )
+        {
+            if ( type instanceof ParameterizedType )
+            {
+                parameterizedTypes.add( (ParameterizedType) type );
+            }
+        }
+
+        if ( genericReturnType instanceof ParameterizedType )
+        {
+            parameterizedTypes.add( (ParameterizedType) genericReturnType );
+        }
+
+        for ( ParameterizedType parameterizedType : parameterizedTypes )
+        {
+            Type[] typeArguments = parameterizedType.getActualTypeArguments();
+
+            for ( Type type : typeArguments )
+            {
+                if ( type instanceof Class<?> )
+                {
+                    actualTypeArguments.add( (Class<?>) type );
+                }
+            }
+        }
+
+        return actualTypeArguments;
+    }
 }
