@@ -577,6 +577,17 @@ public class ReflectionUtils
         return innerType.getActualTypeArguments()[0];
     }
 
+    /**
+     * Get type parameters from a Method. This is mostly useful for getting
+     * return types from methods which returns a generic map for example.
+     *
+     * This method does not guarantee the correct order of parameters. It will
+     * take the super classes / interfaces first, then add the types of the
+     * concrete class.
+     *
+     * @param method Method to return parameter types for
+     * @return List of resolved parameters
+     */
     public static List<Class<?>> getActualTypeArguments( Method method )
     {
         List<Class<?>> actualTypeArguments = new ArrayList<>();
