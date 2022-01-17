@@ -56,7 +56,7 @@ import org.hisp.dhis.tracker.validation.hooks.AbstractTrackerDtoValidationHook;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
-class TrackerValidationServiceReportTest
+class DefaultTrackerValidationServiceReportTest
 {
 
     @Builder
