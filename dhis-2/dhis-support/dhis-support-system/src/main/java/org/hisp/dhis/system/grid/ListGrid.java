@@ -1104,6 +1104,7 @@ public class ListGrid
      *
      * @param headers
      */
+    @Override
     public void keepOnlyThese( final Set<String> headers )
     {
         final List<String> exclusions = getHeaders().stream().map( GridHeader::getName ).collect( toList() );
@@ -1129,6 +1130,7 @@ public class ListGrid
      * @param headers
      * @return a Set of indexes that holds the holds the new order
      */
+    @Override
     public Set<Integer> repositionHeaders( final Set<String> headers )
     {
         verifyGridState();
@@ -1164,6 +1166,7 @@ public class ListGrid
      *
      * @param newColumnsIndexes
      */
+    @Override
     public void repositionColumns( final Set<Integer> newColumnsIndexes )
     {
         verifyGridState();
