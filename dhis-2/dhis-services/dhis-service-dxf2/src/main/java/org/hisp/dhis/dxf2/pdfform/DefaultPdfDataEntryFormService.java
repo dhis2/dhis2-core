@@ -30,11 +30,17 @@ package org.hisp.dhis.dxf2.pdfform;
 import java.awt.*;
 import java.io.IOException;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
@@ -58,6 +64,8 @@ import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.ProgramStageService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -127,6 +135,12 @@ public class DefaultPdfDataEntryFormService
     @Autowired
     private OptionService optionService;
 
+    @Autowired
+    private CategoryService categoryService;
+
+    @Autowired
+    private CurrentUserService currentUserService;
+
     // -------------------------------------------------------------------------
     // PdfDataEntryFormService implementation
     // -------------------------------------------------------------------------
@@ -183,6 +197,8 @@ public class DefaultPdfDataEntryFormService
         setMainTable( mainTable );
 
         insertTable_OrgAndPeriod( mainTable, writer, periods );
+
+        insertAttributeOptionCombos( mainTable, writer, dataSet, currentUserService.getCurrentUser() );
 
         insertTable_TextRow( writer, mainTable, TEXT_BLANK );
 
@@ -509,6 +525,25 @@ public class DefaultPdfDataEntryFormService
         mainTable.setHorizontalAlignment( Element.ALIGN_LEFT );
 
         return mainTable;
+    }
+
+    private void insertAttributeOptionCombos( PdfPTable mainTable, PdfWriter writer, DataSet dataset, User currentUser )
+    {
+        CategoryCombo catCombo = dataset.getCategoryCombo();
+
+        catCombo.getCategories().forEach( cat -> {
+            List<CategoryOption> categoryOptions = new ArrayList<>(
+                categoryService.getDataWriteCategoryOptions( cat, currentUser ) );
+            Collections.sort( categoryOptions );
+
+        } );
+
+        Set<CategoryOptionCombo> optionCombos = catCombo.getOptionCombos();
+
+        optionCombos.forEach( categoryOptionCombo -> {
+
+        } );
+
     }
 
     private void insertTable_OrgAndPeriod( PdfPTable mainTable, PdfWriter writer, List<Period> periods )
