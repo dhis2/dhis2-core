@@ -103,7 +103,7 @@ public interface Grid
 
     PerformanceMetrics getPerformanceMetrics();
 
-    Grid setPerformanceMetrics( PerformanceMetrics performanceMetrics );
+    // Grid setPerformanceMetrics( PerformanceMetrics performanceMetrics );
 
     /**
      * Sets a map of internal meta-data.
@@ -505,4 +505,6 @@ public interface Grid
      *        no limit.
      */
     Grid addRows( SqlRowSet rs, int maxLimit );
+
+    Grid maybeAddPerformanceMetrics( List<ExecutionPlan> plans );
 }

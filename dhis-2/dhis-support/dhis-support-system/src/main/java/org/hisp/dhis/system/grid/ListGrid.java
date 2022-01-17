@@ -48,6 +48,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.math3.stat.regression.SimpleRegression;
 import org.apache.commons.math3.util.Precision;
+import org.hisp.dhis.common.ExecutionPlan;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.PerformanceMetrics;
@@ -359,12 +360,13 @@ public class ListGrid
         return performanceMetrics;
     }
 
-    @Override
-    public Grid setPerformanceMetrics( PerformanceMetrics performanceMetrics )
-    {
-        this.performanceMetrics = performanceMetrics;
-        return this;
-    }
+    // @Override
+    // public Grid setPerformanceMetrics( PerformanceMetrics performanceMetrics
+    // )
+    // {
+    // this.performanceMetrics = performanceMetrics;
+    // return this;
+    // }
 
     @Override
     public int getVisibleWidth()
@@ -1095,6 +1097,25 @@ public class ListGrid
                 }
             }
         }
+
+        return this;
+    }
+
+    @Override
+    public Grid maybeAddPerformanceMetrics( List<ExecutionPlan> plans )
+    {
+        if ( plans.isEmpty() )
+        {
+            return this;
+        }
+
+        performanceMetrics = new PerformanceMetrics();
+
+        double total = plans.stream().map( ExecutionPlan::getTimeEstimation ).reduce( 0.0, Double::sum );
+
+        performanceMetrics.setTotalTimeEstimation( Precision.round( total, 3 ) );
+
+        performanceMetrics.setExecutionPlans( plans );
 
         return this;
     }

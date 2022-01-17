@@ -70,7 +70,7 @@ import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.analytics.MeasureFilter;
 import org.hisp.dhis.analytics.QueryPlanner;
-import org.hisp.dhis.analytics.analyze.ExecutionPlanCache;
+import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.table.PartitionUtils;
 import org.hisp.dhis.analytics.util.AnalyticsSqlUtils;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
@@ -128,18 +128,18 @@ public class JdbcAnalyticsManager
 
     private final JdbcTemplate jdbcTemplate;
 
-    private final ExecutionPlanCache executionPlanCache;
+    private final ExecutionPlanStore executionPlanStore;
 
     public JdbcAnalyticsManager( QueryPlanner queryPlanner,
-        @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate, ExecutionPlanCache executionPlanCache )
+        @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate, ExecutionPlanStore executionPlanStore )
     {
         checkNotNull( queryPlanner );
         checkNotNull( jdbcTemplate );
-        checkNotNull( executionPlanCache );
+        checkNotNull( executionPlanStore );
 
         this.queryPlanner = queryPlanner;
         this.jdbcTemplate = jdbcTemplate;
-        this.executionPlanCache = executionPlanCache;
+        this.executionPlanStore = executionPlanStore;
     }
 
     // -------------------------------------------------------------------------
@@ -184,7 +184,7 @@ public class JdbcAnalyticsManager
 
             if ( params.analyzeOnly() )
             {
-                executionPlanCache.addExecutionPlan( params.getAnalyzeOrderId(), sql );
+                executionPlanStore.addExecutionPlan( params.getAnalyzeOrderId(), sql );
                 return new AsyncResult<>( Maps.newHashMap() );
             }
 

@@ -57,7 +57,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.util.Precision;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.Rectangle;
-import org.hisp.dhis.analytics.analyze.ExecutionPlanCache;
+import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.ProgramIndicatorSubqueryBuilder;
@@ -116,10 +116,10 @@ public class JdbcEventAnalyticsManager
     public JdbcEventAnalyticsManager( JdbcTemplate jdbcTemplate, StatementBuilder statementBuilder,
         ProgramIndicatorService programIndicatorService,
         ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder,
-        EventTimeFieldSqlRenderer timeFieldSqlRenderer, ExecutionPlanCache executionPlanCache )
+        EventTimeFieldSqlRenderer timeFieldSqlRenderer, ExecutionPlanStore executionPlanStore )
     {
         super( jdbcTemplate, statementBuilder, programIndicatorService, programIndicatorSubqueryBuilder,
-            executionPlanCache );
+            executionPlanStore );
         this.timeFieldSqlRenderer = timeFieldSqlRenderer;
     }
 
@@ -130,7 +130,7 @@ public class JdbcEventAnalyticsManager
 
         if ( params.analyzeOnly() )
         {
-            executionPlanCache.addExecutionPlan( params.getAnalyzeOrderId(), sql );
+            executionPlanStore.addExecutionPlan( params.getAnalyzeOrderId(), sql );
         }
         else
         {
@@ -236,7 +236,7 @@ public class JdbcEventAnalyticsManager
 
             if ( params.analyzeOnly() )
             {
-                executionPlanCache.addExecutionPlan( params.getAnalyzeOrderId(), sql );
+                executionPlanStore.addExecutionPlan( params.getAnalyzeOrderId(), sql );
             }
             else
             {

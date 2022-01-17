@@ -41,7 +41,7 @@ import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.analytics.analyze.ExecutionPlanCache;
+import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.ProgramIndicatorSubqueryBuilder;
@@ -98,10 +98,10 @@ public class JdbcEnrollmentAnalyticsManager
     public JdbcEnrollmentAnalyticsManager( JdbcTemplate jdbcTemplate, StatementBuilder statementBuilder,
         ProgramIndicatorService programIndicatorService,
         ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder,
-        EnrollmentTimeFieldSqlRenderer timeFieldSqlRenderer, ExecutionPlanCache executionPlanCache )
+        EnrollmentTimeFieldSqlRenderer timeFieldSqlRenderer, ExecutionPlanStore executionPlanStore )
     {
         super( jdbcTemplate, statementBuilder, programIndicatorService, programIndicatorSubqueryBuilder,
-            executionPlanCache );
+            executionPlanStore );
         this.timeFieldSqlRenderer = timeFieldSqlRenderer;
     }
 
@@ -112,7 +112,7 @@ public class JdbcEnrollmentAnalyticsManager
 
         if ( params.analyzeOnly() )
         {
-            executionPlanCache.addExecutionPlan( params.getAnalyzeOrderId(), sql );
+            executionPlanStore.addExecutionPlan( params.getAnalyzeOrderId(), sql );
         }
         else
         {
@@ -163,7 +163,7 @@ public class JdbcEnrollmentAnalyticsManager
 
             if ( params.analyzeOnly() )
             {
-                executionPlanCache.addExecutionPlan( params.getAnalyzeOrderId(), sql );
+                executionPlanStore.addExecutionPlan( params.getAnalyzeOrderId(), sql );
             }
             else
             {

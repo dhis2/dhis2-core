@@ -48,7 +48,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.SortOrder;
-import org.hisp.dhis.analytics.analyze.ExecutionPlanCache;
+import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
@@ -102,23 +102,23 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
     protected final ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder;
 
-    protected final ExecutionPlanCache executionPlanCache;
+    protected final ExecutionPlanStore executionPlanStore;
 
     public AbstractJdbcEventAnalyticsManager( @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate,
         StatementBuilder statementBuilder, ProgramIndicatorService programIndicatorService,
-        ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder, ExecutionPlanCache executionPlanCache )
+        ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder, ExecutionPlanStore executionPlanStore )
     {
         checkNotNull( jdbcTemplate );
         checkNotNull( statementBuilder );
         checkNotNull( programIndicatorService );
         checkNotNull( programIndicatorSubqueryBuilder );
-        checkNotNull( executionPlanCache );
+        checkNotNull( executionPlanStore );
 
         this.jdbcTemplate = jdbcTemplate;
         this.statementBuilder = statementBuilder;
         this.programIndicatorService = programIndicatorService;
         this.programIndicatorSubqueryBuilder = programIndicatorSubqueryBuilder;
-        this.executionPlanCache = executionPlanCache;
+        this.executionPlanStore = executionPlanStore;
     }
 
     /**
@@ -363,7 +363,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
         {
             if ( params.analyzeOnly() )
             {
-                executionPlanCache.addExecutionPlan( params.getAnalyzeOrderId(), sql );
+                executionPlanStore.addExecutionPlan( params.getAnalyzeOrderId(), sql );
             }
             else
             {

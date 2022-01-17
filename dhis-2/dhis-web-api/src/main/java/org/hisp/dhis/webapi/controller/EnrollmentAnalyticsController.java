@@ -36,7 +36,7 @@ import javax.validation.constraints.NotNull;
 
 import lombok.AllArgsConstructor;
 
-import org.hisp.dhis.analytics.analyze.ExecutionPlanCache;
+import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.dimension.DimensionFilteringAndPagingService;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsDimensionsService;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsService;
@@ -52,7 +52,6 @@ import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.hisp.dhis.webapi.utils.PerformanceMetricsUtils;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -81,7 +80,7 @@ public class EnrollmentAnalyticsController
     private final ContextUtils contextUtils;
 
     @NotNull
-    private final ExecutionPlanCache executionPlanCache;
+    private final ExecutionPlanStore executionPlanStore;
 
     @NotNull
     private DimensionFilteringAndPagingService dimensionFilteringAndPagingService;
@@ -102,7 +101,11 @@ public class EnrollmentAnalyticsController
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON,
             CacheStrategy.RESPECT_SYSTEM_SETTING );
 
-        PerformanceMetricsUtils.addPerformanceMetrics( executionPlanCache, params, grid );
+        if ( params.analyzeOnly() )
+        {
+            String key = params.getAnalyzeOrderId();
+            grid.maybeAddPerformanceMetrics( executionPlanStore.getExecutionPlans( key ) );
+        }
 
         return grid;
     }

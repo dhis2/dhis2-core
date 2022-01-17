@@ -118,7 +118,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
-import org.apache.commons.math3.util.Precision;
 import org.hisp.dhis.analytics.AnalyticsManager;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.DataQueryGroups;
@@ -128,7 +127,7 @@ import org.hisp.dhis.analytics.QueryPlanner;
 import org.hisp.dhis.analytics.QueryPlannerParams;
 import org.hisp.dhis.analytics.QueryValidator;
 import org.hisp.dhis.analytics.RawAnalyticsManager;
-import org.hisp.dhis.analytics.analyze.ExecutionPlanCache;
+import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.resolver.ExpressionResolver;
@@ -140,7 +139,6 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.ExecutionPlan;
 import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.PerformanceMetrics;
 import org.hisp.dhis.common.ReportingRateMetric;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.constant.ConstantService;
@@ -193,13 +191,13 @@ public class DataHandler
 
     private DataAggregator dataAggregator;
 
-    private final ExecutionPlanCache executionPlanCache;
+    private final ExecutionPlanStore executionPlanStore;
 
     public DataHandler( EventAnalyticsService eventAnalyticsService, RawAnalyticsManager rawAnalyticsManager,
         ConstantService constantService, ExpressionResolvers resolvers, ExpressionService expressionService,
         QueryPlanner queryPlanner, QueryValidator queryValidator, SystemSettingManager systemSettingManager,
         AnalyticsManager analyticsManager, OrganisationUnitService organisationUnitService,
-        ExecutionPlanCache executionPlanCache )
+        ExecutionPlanStore executionPlanStore )
     {
         checkNotNull( eventAnalyticsService );
         checkNotNull( rawAnalyticsManager );
@@ -211,7 +209,7 @@ public class DataHandler
         checkNotNull( systemSettingManager );
         checkNotNull( analyticsManager );
         checkNotNull( organisationUnitService );
-        checkNotNull( executionPlanCache );
+        checkNotNull( executionPlanStore );
 
         this.eventAnalyticsService = eventAnalyticsService;
         this.rawAnalyticsManager = rawAnalyticsManager;
@@ -223,7 +221,7 @@ public class DataHandler
         this.systemSettingManager = systemSettingManager;
         this.analyticsManager = analyticsManager;
         this.organisationUnitService = organisationUnitService;
-        this.executionPlanCache = executionPlanCache;
+        this.executionPlanStore = executionPlanStore;
     }
 
     void addPerformanceMetrics( DataQueryParams params, Grid grid )
@@ -232,19 +230,11 @@ public class DataHandler
         {
             String key = params.getAnalyzeOrderId();
 
-            List<ExecutionPlan> plans = executionPlanCache.getExecutionPlans( key );
+            List<ExecutionPlan> plans = executionPlanStore.getExecutionPlans( key );
 
-            PerformanceMetrics performanceMetrics = new PerformanceMetrics();
+            grid.maybeAddPerformanceMetrics( plans );
 
-            double total = plans.stream().map( ExecutionPlan::getTimeEstimation ).reduce( 0.0, Double::sum );
-
-            performanceMetrics.setTotalTimeEstimation( Precision.round( total, 3 ) );
-
-            performanceMetrics.setExecutionPlans( plans );
-
-            grid.setPerformanceMetrics( performanceMetrics );
-
-            executionPlanCache.removeExecutionPlans( key );
+            executionPlanStore.removeExecutionPlans( key );
         }
     }
 

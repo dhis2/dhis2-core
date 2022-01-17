@@ -45,7 +45,7 @@ import org.hisp.dhis.analytics.AnalyticsManager;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.analytics.QueryPlanner;
-import org.hisp.dhis.analytics.analyze.ExecutionPlanCache;
+import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.period.Period;
@@ -72,7 +72,7 @@ class AnalyticsManagerTest extends DhisConvenienceTest
     private JdbcTemplate jdbcTemplate;
 
     @Mock
-    private ExecutionPlanCache executionPlanCache;
+    private ExecutionPlanStore executionPlanStore;
 
     private AnalyticsManager analyticsManager;
 
@@ -87,7 +87,7 @@ class AnalyticsManagerTest extends DhisConvenienceTest
     @MethodSource( "data" )
     public void testWeightedAverage( String financialYear, Double weightedAverage )
     {
-        analyticsManager = new JdbcAnalyticsManager( queryPlanner, jdbcTemplate, executionPlanCache );
+        analyticsManager = new JdbcAnalyticsManager( queryPlanner, jdbcTemplate, executionPlanStore );
         AnalyticsAggregationType aggregationType = new AnalyticsAggregationType(
             AggregationType.SUM, AggregationType.AVERAGE, DataType.NUMERIC, true );
 
@@ -120,7 +120,7 @@ class AnalyticsManagerTest extends DhisConvenienceTest
     @Test
     void testReplaceDataPeriodsWithAggregationPeriods()
     {
-        AnalyticsManager analyticsManager = new JdbcAnalyticsManager( queryPlanner, jdbcTemplate, executionPlanCache );
+        AnalyticsManager analyticsManager = new JdbcAnalyticsManager( queryPlanner, jdbcTemplate, executionPlanStore );
         Period y2012 = createPeriod( "2012" );
 
         AnalyticsAggregationType aggregationType = new AnalyticsAggregationType(

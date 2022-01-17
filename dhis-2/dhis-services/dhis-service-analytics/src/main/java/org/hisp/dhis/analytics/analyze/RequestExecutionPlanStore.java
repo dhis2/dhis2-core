@@ -52,7 +52,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * @author Dusan Bernat
  */
 @Service
-public class RequestExecutionPlanCache implements ExecutionPlanCache
+public class RequestExecutionPlanStore implements ExecutionPlanStore
 {
     private final Map<String, List<ExecutionPlan>> executionPlanMap = new HashMap<>();
 
@@ -61,7 +61,7 @@ public class RequestExecutionPlanCache implements ExecutionPlanCache
 
     private final ScheduledExecutorService executorService = Executors.newScheduledThreadPool( 10 );
 
-    public RequestExecutionPlanCache( @Qualifier( "executionPlanJdbcTemplate" ) JdbcTemplate jdbcTemplate )
+    public RequestExecutionPlanStore( @Qualifier( "executionPlanJdbcTemplate" ) JdbcTemplate jdbcTemplate )
     {
         this.jdbcTemplate = jdbcTemplate;
     }
@@ -69,6 +69,7 @@ public class RequestExecutionPlanCache implements ExecutionPlanCache
     @Override
     public void addExecutionPlan( String key, String sql )
     {
+
         ExecutionPlan executionPlan = new ExecutionPlan();
 
         executionPlan.setQuery( sql );
@@ -160,6 +161,6 @@ public class RequestExecutionPlanCache implements ExecutionPlanCache
     @Override
     public void removeExecutionPlans( String key )
     {
-        executorService.schedule( () -> executionPlanMap.remove( key ), 1, TimeUnit.SECONDS );
+        executorService.schedule( () -> executionPlanMap.remove( key ), 2, TimeUnit.SECONDS );
     }
 }

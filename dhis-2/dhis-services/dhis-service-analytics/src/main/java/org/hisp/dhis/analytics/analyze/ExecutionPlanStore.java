@@ -25,42 +25,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.utils;
+package org.hisp.dhis.analytics.analyze;
 
 import java.util.List;
 
-import org.apache.commons.math3.util.Precision;
-import org.hisp.dhis.analytics.DataQueryParams;
-import org.hisp.dhis.analytics.analyze.ExecutionPlanCache;
 import org.hisp.dhis.common.ExecutionPlan;
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.PerformanceMetrics;
 
-/**
- * @author Dusan Bernat
- */
-public class PerformanceMetricsUtils
+public interface ExecutionPlanStore
 {
-    public static void addPerformanceMetrics( final ExecutionPlanCache executionPlanCache, final DataQueryParams params,
-        final Grid grid )
-    {
-        if ( params.analyzeOnly() )
-        {
-            String key = params.getAnalyzeOrderId();
+    void addExecutionPlan( String params, String sql );
 
-            List<ExecutionPlan> plans = executionPlanCache.getExecutionPlans( key );
+    List<ExecutionPlan> getExecutionPlans( String key );
 
-            PerformanceMetrics performanceMetrics = new PerformanceMetrics();
-
-            double total = plans.stream().map( ExecutionPlan::getTimeEstimation ).reduce( 0.0, Double::sum );
-
-            performanceMetrics.setTotalTimeEstimation( Precision.round( total, 3 ) );
-
-            performanceMetrics.setExecutionPlans( plans );
-
-            grid.setPerformanceMetrics( performanceMetrics );
-
-            executionPlanCache.removeExecutionPlans( key );
-        }
-    }
+    void removeExecutionPlans( String key );
 }

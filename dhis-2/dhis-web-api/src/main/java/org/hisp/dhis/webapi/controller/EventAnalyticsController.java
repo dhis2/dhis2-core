@@ -39,7 +39,7 @@ import lombok.AllArgsConstructor;
 import lombok.NonNull;
 
 import org.hisp.dhis.analytics.Rectangle;
-import org.hisp.dhis.analytics.analyze.ExecutionPlanCache;
+import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.dimension.DimensionFilteringAndPagingService;
 import org.hisp.dhis.analytics.event.EventAnalyticsDimensionsService;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
@@ -55,7 +55,6 @@ import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.hisp.dhis.webapi.utils.PerformanceMetricsUtils;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -92,7 +91,7 @@ public class EventAnalyticsController
     private final EventAnalyticsDimensionsService eventAnalyticsDimensionsService;
 
     @NotNull
-    private final ExecutionPlanCache executionPlanCache;
+    private final ExecutionPlanStore executionPlanStore;
 
     // -------------------------------------------------------------------------
     // Aggregate
@@ -107,6 +106,7 @@ public class EventAnalyticsController
         HttpServletResponse response )
         throws Exception
     {
+
         EventQueryParams params = getEventQueryParams( program, criteria, apiVersion, true );
 
         configResponseForJson( response );
@@ -114,7 +114,10 @@ public class EventAnalyticsController
         Grid grid = analyticsService.getAggregatedEventData( params, getItemsFromParam( criteria.getColumns() ),
             getItemsFromParam( criteria.getRows() ) );
 
-        PerformanceMetricsUtils.addPerformanceMetrics( executionPlanCache, params, grid );
+        if ( params.analyzeOnly() )
+        {
+            grid.maybeAddPerformanceMetrics( executionPlanStore.getExecutionPlans( params.getAnalyzeOrderId() ) );
+        }
 
         return grid;
     }
@@ -277,7 +280,10 @@ public class EventAnalyticsController
 
         Grid grid = analyticsService.getEvents( params );
 
-        PerformanceMetricsUtils.addPerformanceMetrics( executionPlanCache, params, grid );
+        if ( params.analyzeOnly() )
+        {
+            grid.maybeAddPerformanceMetrics( executionPlanStore.getExecutionPlans( params.getAnalyzeOrderId() ) );
+        }
 
         return grid;
     }
