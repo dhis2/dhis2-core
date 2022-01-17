@@ -40,6 +40,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.BiConsumer;
@@ -169,27 +170,17 @@ class DefaultTrackerValidationServiceTest
         // 2. DefaultTrackerValidationService removes invalid DTOs if the hook
         // has removeOnError == false
 
-        // Note: the current AbstractTrackerDtoValidationHook relies on the
-        // bundle "DTO" lists to be mutable
-        // it uses iterator.remove() in validateTrackerDtos()
-        // which is why we cannot use List.of(), Arrays.asList()
         Event validEvent = event();
         Event invalidEvent = event();
-        List<Event> events = new ArrayList<>();
-        events.add( invalidEvent );
-        events.add( validEvent );
 
         Enrollment validEnrollment = enrollment();
         Enrollment invalidEnrollment = enrollment();
-        List<Enrollment> enrollments = new ArrayList<>();
-        enrollments.add( validEnrollment );
-        enrollments.add( invalidEnrollment );
 
         TrackerBundle bundle = TrackerBundle.builder()
             .validationMode( ValidationMode.FULL )
             .skipRuleEngine( true )
-            .events( events )
-            .enrollments( enrollments )
+            .events( events( invalidEvent, validEvent ) )
+            .enrollments( enrollments( validEnrollment, invalidEnrollment ) )
             .build();
 
         ValidationHook removeOnError = ValidationHook.builder()
@@ -225,14 +216,11 @@ class DefaultTrackerValidationServiceTest
 
         Event validEvent = event();
         Event invalidEvent = event();
-        List<Event> events = new ArrayList<>();
-        events.add( invalidEvent );
-        events.add( validEvent );
 
         TrackerBundle bundle = TrackerBundle.builder()
             .validationMode( ValidationMode.FAIL_FAST )
             .skipRuleEngine( true )
-            .events( events )
+            .events( events( invalidEvent, validEvent ) )
             .build();
 
         ValidationHook hook1 = ValidationHook.builder()
@@ -259,14 +247,12 @@ class DefaultTrackerValidationServiceTest
     void reportWarnings()
     {
 
-        List<Event> events = new ArrayList<>();
         Event validEvent = event();
-        events.add( validEvent );
 
         TrackerBundle bundle = TrackerBundle.builder()
             .validationMode( ValidationMode.FULL )
             .skipRuleEngine( true )
-            .events( events )
+            .events( events( validEvent ) )
             .build();
 
         ValidationHook hook = ValidationHook.builder()
@@ -306,4 +292,25 @@ class DefaultTrackerValidationServiceTest
         event.setEvent( CodeGenerator.generateUid() );
         return event;
     }
+
+    @NotNull
+    private List<Enrollment> enrollments( Enrollment... enrollments )
+    {
+        // Note: the current AbstractTrackerDtoValidationHook relies on the
+        // bundle "DTO" lists to be mutable
+        // it uses iterator.remove() in validateTrackerDtos()
+        // which is why we cannot use List.of(), Arrays.asList()
+        return new ArrayList<>( Arrays.asList( enrollments ) );
+    }
+
+    @NotNull
+    private List<Event> events( Event... events )
+    {
+        // Note: the current AbstractTrackerDtoValidationHook relies on the
+        // bundle "DTO" lists to be mutable
+        // it uses iterator.remove() in validateTrackerDtos()
+        // which is why we cannot use List.of(), Arrays.asList()
+        return new ArrayList<>( Arrays.asList( events ) );
+    }
+
 }
