@@ -219,22 +219,6 @@ class DefaultTrackerValidationServiceTest
         assertTrue( bundle.getEnrollments().contains( validEnrollment ) );
     }
 
-    @NotNull
-    private Enrollment enrollment()
-    {
-        Enrollment enrollment = new Enrollment();
-        enrollment.setEnrollment( CodeGenerator.generateUid() );
-        return enrollment;
-    }
-
-    @NotNull
-    private Event event()
-    {
-        Event event = new Event();
-        event.setEvent( CodeGenerator.generateUid() );
-        return event;
-    }
-
     @Test
     void failFastDoesNotCallHooksAfterFailure()
     {
@@ -307,4 +291,19 @@ class DefaultTrackerValidationServiceTest
         assertTrue( bundle.getEvents().contains( validEvent ) );
     }
 
+    @NotNull
+    private Enrollment enrollment()
+    {
+        Enrollment enrollment = new Enrollment();
+        enrollment.setEnrollment( CodeGenerator.generateUid() );
+        return enrollment;
+    }
+
+    @NotNull
+    private Event event()
+    {
+        Event event = new Event();
+        event.setEvent( CodeGenerator.generateUid() );
+        return event;
+    }
 }
