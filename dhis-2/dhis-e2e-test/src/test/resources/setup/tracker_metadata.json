@@ -1796,7 +1796,6 @@
       "created": "2022-01-07T11:13:40.871",
       "lastUpdated": "2022-01-07T12:45:47.427",
       "name": "TA AGE",
-      "valueType": "TEXT",
       "id": "bvSo9pP0reO",
       "programRuleVariableSourceType": "TEI_ATTRIBUTE",
       "useCodeForOptionSet": false,

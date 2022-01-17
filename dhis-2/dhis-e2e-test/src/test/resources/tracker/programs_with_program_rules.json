@@ -296,7 +296,6 @@
       "name": "TAComment",
       "id": "qXpTPGjuzuc",
       "programRuleVariableSourceType": "DATAELEMENT_CURRENT_EVENT",
-      "valueType": "TEXT",
       "useCodeForOptionSet": false,
       "program": {
         "id": "uHi4GZJOD3n"
@@ -311,7 +310,6 @@
       "name": "TADiabetes",
       "id": "qByqFfYUSlE",
       "programRuleVariableSourceType": "DATAELEMENT_CURRENT_EVENT",
-      "valueType": "TEXT",
       "useCodeForOptionSet": false,
       "program": {
         "id": "uHi4GZJOD3n"
@@ -325,7 +323,6 @@
       "name": "TaPlaceOfBirth",
       "displayName": "TaPlaceOfBirth",
       "programRuleVariableSourceType": "DATAELEMENT_CURRENT_EVENT",
-      "valueType": "TEXT",
       "externalAccess": false,
       "useCodeForOptionSet": false,
       "favorite": false,
