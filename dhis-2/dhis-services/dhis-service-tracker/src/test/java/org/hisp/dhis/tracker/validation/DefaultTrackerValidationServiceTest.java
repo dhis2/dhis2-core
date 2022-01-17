@@ -27,9 +27,10 @@
  */
 package org.hisp.dhis.tracker.validation;
 
+import static org.hisp.dhis.tracker.validation.hooks.AssertTrackerValidationReport.hasError;
+import static org.hisp.dhis.tracker.validation.hooks.AssertTrackerValidationReport.hasWarning;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -46,7 +47,6 @@ import java.util.function.BiConsumer;
 import lombok.Builder;
 
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
@@ -210,12 +210,8 @@ class DefaultTrackerValidationServiceTest
 
         assertTrue( report.hasErrors() );
         assertEquals( 2, report.getErrors().size() );
-        assertTrue( report.getErrors().stream().anyMatch( err -> TrackerErrorCode.E1032 == err.getErrorCode()
-            && TrackerType.EVENT == err.getTrackerType()
-            && invalidEvent.getUid().equals( err.getUid() ) ) );
-        assertTrue( report.getErrors().stream().anyMatch( err -> TrackerErrorCode.E1069 == err.getErrorCode()
-            && TrackerType.ENROLLMENT == err.getTrackerType()
-            && invalidEnrollment.getUid().equals( err.getUid() ) ) );
+        hasError( report, TrackerErrorCode.E1032, invalidEvent );
+        hasError( report, TrackerErrorCode.E1069, invalidEnrollment );
 
         assertFalse( bundle.getEvents().contains( invalidEvent ) );
         assertFalse( bundle.getEnrollments().contains( invalidEnrollment ) );
@@ -267,9 +263,7 @@ class DefaultTrackerValidationServiceTest
         TrackerValidationReport report = validationService.validate( bundle );
 
         assertTrue( report.hasErrors() );
-        assertTrue( report.getErrors().stream().anyMatch( err -> TrackerErrorCode.E1032 == err.getErrorCode()
-            && TrackerType.EVENT == err.getTrackerType()
-            && invalidEvent.getUid().equals( err.getUid() ) ) );
+        hasError( report, TrackerErrorCode.E1032, invalidEvent );
 
         assertFalse( bundle.getEvents().contains( invalidEvent ) );
         assertTrue( bundle.getEvents().contains( validEvent ) );
@@ -306,11 +300,9 @@ class DefaultTrackerValidationServiceTest
         TrackerValidationReport report = validationService.validate( bundle );
 
         assertFalse( report.hasErrors() );
-        assertNotNull( report.getWarnings() );
+        assertTrue( report.hasWarnings() );
         assertEquals( 1, report.getWarnings().size() );
-        assertTrue( report.getWarnings().stream().anyMatch( err -> TrackerErrorCode.E1120 == err.getWarningCode()
-            && TrackerType.EVENT == err.getTrackerType()
-            && validEvent.getUid().equals( err.getUid() ) ) );
+        hasWarning( report, TrackerErrorCode.E1120, validEvent );
 
         assertTrue( bundle.getEvents().contains( validEvent ) );
     }
