@@ -52,9 +52,7 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
-import org.hisp.dhis.tracker.report.TrackerWarningReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.hooks.AbstractTrackerDtoValidationHook;
 import org.hisp.dhis.user.User;
@@ -196,30 +194,13 @@ class DefaultTrackerValidationServiceTest
 
         ValidationHook removeOnError = ValidationHook.builder()
             .removeOnError( true )
-            .validateEvent( ( reporter, event ) -> {
-                if ( invalidEvent.equals( event ) )
-                {
-                    reporter.addError(
-                        TrackerErrorReport.builder()
-                            .errorCode( TrackerErrorCode.E1032 )
-                            .trackerType( TrackerType.EVENT )
-                            .uid( event.getUid() ).build( reporter.getValidationContext().getBundle() ) );
-                }
-            } )
+            .validateEvent( ( reporter, event ) -> reporter.addErrorIf( () -> invalidEvent.equals( event ), event,
+                TrackerErrorCode.E1032 ) )
             .build();
         ValidationHook doNotRemoveOnError = ValidationHook.builder()
             .removeOnError( false )
-            .validateEnrollment( ( reporter, enrollment ) -> {
-                if ( invalidEnrollment.equals( enrollment ) )
-                {
-                    reporter.addError(
-                        TrackerErrorReport.builder()
-                            .errorCode( TrackerErrorCode.E1069 )
-                            .trackerType( TrackerType.ENROLLMENT )
-                            .uid( enrollment.getUid() )
-                            .build( reporter.getValidationContext().getBundle() ) );
-                }
-            } )
+            .validateEnrollment( ( reporter, enrollment ) -> reporter
+                .addErrorIf( () -> invalidEnrollment.equals( enrollment ), enrollment, TrackerErrorCode.E1069 ) )
             .build();
         TrackerValidationService validationService = new DefaultTrackerValidationService(
             List.of( removeOnError, doNotRemoveOnError ),
@@ -276,16 +257,9 @@ class DefaultTrackerValidationServiceTest
 
         ValidationHook hook1 = ValidationHook.builder()
             .removeOnError( true )
-            .validateEvent( ( reporter, event ) -> {
-                if ( invalidEvent.equals( event ) )
-                {
-                    reporter.addError(
-                        TrackerErrorReport.builder()
-                            .errorCode( TrackerErrorCode.E1032 )
-                            .trackerType( TrackerType.EVENT )
-                            .uid( event.getUid() ).build( reporter.getValidationContext().getBundle() ) );
-                }
-            } ).build();
+            .validateEvent( ( reporter, event ) -> reporter.addErrorIf( () -> invalidEvent.equals( event ), event,
+                TrackerErrorCode.E1032 ) )
+            .build();
         TrackerValidationHook hook2 = mock( TrackerValidationHook.class );
         TrackerValidationService validationService = new DefaultTrackerValidationService( List.of( hook1, hook2 ),
             Collections.emptyList() );
@@ -321,12 +295,7 @@ class DefaultTrackerValidationServiceTest
             .validateEvent( ( reporter, event ) -> {
                 if ( validEvent.equals( event ) )
                 {
-                    reporter.addWarning(
-                        TrackerWarningReport.builder()
-                            .warningCode( TrackerErrorCode.E1120 )
-                            .trackerType( TrackerType.EVENT )
-                            .uid( event.getUid() )
-                            .build( reporter.getValidationContext().getBundle() ) );
+                    reporter.addWarning( event, TrackerErrorCode.E1120 );
                 }
             } )
             .build();
