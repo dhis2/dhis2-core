@@ -25,47 +25,56 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis;
 
-import org.hisp.dhis.dto.Program;
+package org.hisp.dhis.actions.analytics;
 
-import java.util.Arrays;
+import org.hisp.dhis.actions.RestApiActions;
+import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.helpers.QueryParamsBuilder;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class Constants
+public class AnalyticsEnrollmentsActions
+    extends RestApiActions
 {
-    public static final String USER_PASSWORD = "Test1212?";
+    public AnalyticsEnrollmentsActions()
+    {
+        super( "/analytics/enrollments" );
+    }
 
-    public static final String TRACKED_ENTITY_TYPE = "Q9GufDoplCL";
+    public AnalyticsEnrollmentsActions( String endpoint )
+    {
+        super( "/analytics/enrollments" + endpoint );
+    }
 
-    public static String ORG_UNIT_GROUP_ID = "n9bh3KM5wmu";
+    public AnalyticsEnrollmentsActions query()
+    {
+        return new AnalyticsEnrollmentsActions( "/query" );
+    }
 
-    public static String SUPER_USER_ID = "PQD6wXJ2r5j";
+    public AnalyticsEnrollmentsActions aggregate()
+    {
+        return new AnalyticsEnrollmentsActions( "/aggregate" );
+    }
 
-    public static String ADMIN_ID = "PQD6wXJ2r5k";
+    public ApiResponse getDimensions( String programId )
+    {
+        return this.get( "/dimensions", new QueryParamsBuilder().add( "programId", programId ) )
+            .validateStatus( 200 );
+    }
 
-    public static String USER_GROUP_ID = "OPVIvvXzNTw";
+    public ApiResponse getDimensions( String programId, QueryParamsBuilder queryParamsBuilder )
+    {
+        queryParamsBuilder.add( "programId", programId );
+        return this.get( "/dimensions", queryParamsBuilder )
+            .validateStatus( 200 );
+    }
 
-    public static String USER_ROLE_ID = "yrB6vc5Ip7r";
-
-    public static String EVENT_PROGRAM_ID = "Zd2rkv8FsWq";
-
-    public static String EVENT_PROGRAM_STAGE_ID = "jKLB23QZS4I";
-
-    public static Program TRACKER_PROGRAM = new Program()
-        .setUid( "f1AyMswryyQ" )
-        .setProgramStages( Arrays.asList( "PaOOjwLVW23", "nlXNK4b7LVr" ) );
-
-    public static String TRACKER_PROGRAM_ID = "f1AyMswryyQ"; // todo: remove and use TRACKER_PROGRAM with associated program stages to avoid GET /programs/id/programStages calls
-
-    public static String ANOTHER_TRACKER_PROGRAM_ID = "f1AyMswryyX";
-
-    public static String[] ORG_UNIT_IDS = {
-        "DiszpKrYNg8",
-        "g8upMTyEZGZ",
-        "O6uvpzGd5pu",
-        "YuQRtpLP10I"
-    };
+    public ApiResponse getDimensionsByDimensionType( String programId, String dimensionType )
+    {
+        return this.get( "/dimensions",
+            new QueryParamsBuilder().add( "programId", programId ).add( "filter", "dimensionType:eq:" + dimensionType ) )
+            .validateStatus( 200 );
+    }
 }
