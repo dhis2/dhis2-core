@@ -507,4 +507,31 @@ public interface Grid
     Grid addRows( SqlRowSet rs, int maxLimit );
 
     Grid maybeAddPerformanceMetrics( List<ExecutionPlan> plans );
+
+    /**
+     * This method will keep, in the Grid, only the given list of headers. All
+     * other GridHeaders and respective columns will be removed from the Grid.
+     *
+     * @param headers
+     */
+    void keepOnlyThese( final Set<String> headers );
+
+    /**
+     * Re-order the GridHeaders of current Grid based on the List headers. The
+     * final Grid will have the all its headers defined in the same order as the
+     * given List of headers.
+     *
+     * @param headers
+     * @return a Set of indexes that holds the holds the new order
+     */
+    Set<Integer> repositionHeaders( final Set<String> headers );
+
+    /**
+     * Based on the given column indexes, this method will order the current
+     * columns in the Grid. The new positions of the columns will respect the
+     * new indexes.
+     *
+     * @param newColumnsIndexes
+     */
+    void repositionColumns( final Set<Integer> newColumnsIndexes );
 }

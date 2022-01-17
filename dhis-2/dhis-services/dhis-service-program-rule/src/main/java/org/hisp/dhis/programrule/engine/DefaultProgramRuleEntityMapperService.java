@@ -422,14 +422,14 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
             return RuleValueType.BOOLEAN;
         }
 
-        if ( valueType.isText() )
-        {
-            return RuleValueType.TEXT;
-        }
-
         if ( valueType.isNumeric() )
         {
             return RuleValueType.NUMERIC;
+        }
+
+        if ( valueType.isDate() )
+        {
+            return RuleValueType.DATE;
         }
 
         return RuleValueType.TEXT;
@@ -570,11 +570,6 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
         if ( valueType.isNumeric() )
         {
             return ItemValueType.NUMBER;
-        }
-
-        if ( valueType.isText() )
-        {
-            return ItemValueType.TEXT;
         }
 
         if ( valueType.isBoolean() )

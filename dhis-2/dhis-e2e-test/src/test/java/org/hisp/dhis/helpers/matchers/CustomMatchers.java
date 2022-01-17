@@ -25,76 +25,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
 
-import java.util.Date;
-import java.util.Set;
+package org.hisp.dhis.helpers.matchers;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import org.hamcrest.Description;
+import org.hamcrest.Matcher;
+import org.hamcrest.TypeSafeDiagnosingMatcher;
 
-import org.hisp.dhis.analytics.SortOrder;
-import org.hisp.dhis.program.ProgramStatus;
+import java.util.Arrays;
+import java.util.List;
 
 /**
- * @author Jan Bernitt
+ * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-@Data
-@NoArgsConstructor
-public class EnrollmentAnalyticsQueryCriteria
+public class CustomMatchers
 {
-    private Date startDate;
 
-    private Date endDate;
+    public static TypeSafeDiagnosingMatcher<String> startsWithOneOf( List<String> strings) {
+        return new TypeSafeDiagnosingMatcher<>()
+        {
+            @Override
+            protected boolean matchesSafely( String item, Description mismatchDescription )
+            {
+                if ( strings != null )
+                {
+                    return strings.stream().anyMatch( item::startsWith );
+                }
+                return false;
+            }
 
-    private String timeField;
+            @Override
+            public void describeTo( Description description )
+            {
+                description.appendText( "string that starts with one of " + strings.toString());
+            }
+        };
+    }
 
-    private Set<String> dimension;
 
-    private Set<String> filter;
-
-    /**
-     * This parameter selects the headers to be returned as part of the
-     * response. The implementation for this Set will be LinkedHashSet as the
-     * ordering is important.
-     */
-    private Set<String> headers;
-
-    private OrganisationUnitSelectionMode ouMode;
-
-    private Set<String> asc;
-
-    private Set<String> desc;
-
-    private boolean skipMeta;
-
-    private boolean skipData;
-
-    private boolean completedOnly;
-
-    private boolean hierarchyMeta;
-
-    private boolean coordinatesOnly;
-
-    private boolean includeMetadataDetails;
-
-    private IdScheme dataIdScheme;
-
-    private ProgramStatus programStatus;
-
-    private Integer page;
-
-    private Integer pageSize;
-
-    private boolean paging;
-
-    private DisplayProperty displayProperty;
-
-    private Date relativePeriodDate;
-
-    private String userOrgUnit;
-
-    private String coordinateField;
-
-    private SortOrder sortOrder;
 }

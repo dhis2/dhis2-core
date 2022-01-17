@@ -207,6 +207,7 @@ public class DefaultEventDataQueryService
             .withOrgUnitField( request.getOrgUnitField() )
             .withCoordinateField( getCoordinateField( request.getCoordinateField() ) )
             .withFallbackCoordinateField( getFallbackCoordinateField( request.getFallbackCoordinateField() ) )
+            .withHeaders( request.getHeaders() )
             .withPage( request.getPage() )
             .withPageSize( request.getPageSize() )
             .withPaging( request.isPaging() )

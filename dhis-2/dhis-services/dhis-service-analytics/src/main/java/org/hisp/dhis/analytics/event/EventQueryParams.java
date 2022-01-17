@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.event;
 
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
@@ -38,6 +39,7 @@ import static org.hisp.dhis.common.FallbackCoordinateFieldType.PSI_GEOMETRY;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -117,6 +119,11 @@ public class EventQueryParams
      * The query item filters.
      */
     private List<QueryItem> itemFilters = new ArrayList<>();
+
+    /**
+     * The headers.
+     */
+    protected Set<String> headers = new LinkedHashSet<>();
 
     /**
      * The dimensional object for which to produce aggregated data.
@@ -270,6 +277,7 @@ public class EventQueryParams
 
         params.dimensions = new ArrayList<>( this.dimensions );
         params.filters = new ArrayList<>( this.filters );
+        params.headers = new LinkedHashSet<>( this.headers );
         params.includeNumDen = this.includeNumDen;
         params.displayProperty = this.displayProperty;
         params.aggregationType = this.aggregationType;
@@ -398,6 +406,7 @@ public class EventQueryParams
 
         items.forEach( e -> key.add( "item", "[" + e.getKey() + "]" ) );
         itemFilters.forEach( e -> key.add( "itemFilter", "[" + e.getKey() + "]" ) );
+        headers.forEach( header -> key.add( "headers", "[" + header + "]" ) );
         itemProgramIndicators.forEach( e -> key.add( "itemProgramIndicator", e.getUid() ) );
         asc.forEach( e -> e.getUid() );
         desc.forEach( e -> e.getUid() );
@@ -822,6 +831,11 @@ public class EventQueryParams
         return getFilterPeriods().size() > 0;
     }
 
+    public boolean hasHeaders()
+    {
+        return isNotEmpty( getHeaders() );
+    }
+
     /**
      * Indicates whether the program of this query requires registration of
      * tracked entity instances.
@@ -891,6 +905,11 @@ public class EventQueryParams
     public List<QueryItem> getItemFilters()
     {
         return itemFilters;
+    }
+
+    public Set<String> getHeaders()
+    {
+        return headers;
     }
 
     public DimensionalItemObject getValue()
@@ -1120,6 +1139,16 @@ public class EventQueryParams
         public Builder addFilter( DimensionalObject filter )
         {
             this.params.addFilter( filter );
+            return this;
+        }
+
+        public Builder withHeaders( Set<String> headers )
+        {
+            if ( isNotEmpty( headers ) )
+            {
+                this.params.headers.addAll( headers );
+            }
+
             return this;
         }
 

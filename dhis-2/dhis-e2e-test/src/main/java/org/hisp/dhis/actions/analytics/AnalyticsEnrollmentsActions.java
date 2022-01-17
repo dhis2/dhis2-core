@@ -25,76 +25,56 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
 
-import java.util.Date;
-import java.util.Set;
+package org.hisp.dhis.actions.analytics;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-import org.hisp.dhis.analytics.SortOrder;
-import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.actions.RestApiActions;
+import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.helpers.QueryParamsBuilder;
 
 /**
- * @author Jan Bernitt
+ * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-@Data
-@NoArgsConstructor
-public class EnrollmentAnalyticsQueryCriteria
+public class AnalyticsEnrollmentsActions
+    extends RestApiActions
 {
-    private Date startDate;
+    public AnalyticsEnrollmentsActions()
+    {
+        super( "/analytics/enrollments" );
+    }
 
-    private Date endDate;
+    public AnalyticsEnrollmentsActions( String endpoint )
+    {
+        super( "/analytics/enrollments" + endpoint );
+    }
 
-    private String timeField;
+    public AnalyticsEnrollmentsActions query()
+    {
+        return new AnalyticsEnrollmentsActions( "/query" );
+    }
 
-    private Set<String> dimension;
+    public AnalyticsEnrollmentsActions aggregate()
+    {
+        return new AnalyticsEnrollmentsActions( "/aggregate" );
+    }
 
-    private Set<String> filter;
+    public ApiResponse getDimensions( String programId )
+    {
+        return this.get( "/dimensions", new QueryParamsBuilder().add( "programId", programId ) )
+            .validateStatus( 200 );
+    }
 
-    /**
-     * This parameter selects the headers to be returned as part of the
-     * response. The implementation for this Set will be LinkedHashSet as the
-     * ordering is important.
-     */
-    private Set<String> headers;
+    public ApiResponse getDimensions( String programId, QueryParamsBuilder queryParamsBuilder )
+    {
+        queryParamsBuilder.add( "programId", programId );
+        return this.get( "/dimensions", queryParamsBuilder )
+            .validateStatus( 200 );
+    }
 
-    private OrganisationUnitSelectionMode ouMode;
-
-    private Set<String> asc;
-
-    private Set<String> desc;
-
-    private boolean skipMeta;
-
-    private boolean skipData;
-
-    private boolean completedOnly;
-
-    private boolean hierarchyMeta;
-
-    private boolean coordinatesOnly;
-
-    private boolean includeMetadataDetails;
-
-    private IdScheme dataIdScheme;
-
-    private ProgramStatus programStatus;
-
-    private Integer page;
-
-    private Integer pageSize;
-
-    private boolean paging;
-
-    private DisplayProperty displayProperty;
-
-    private Date relativePeriodDate;
-
-    private String userOrgUnit;
-
-    private String coordinateField;
-
-    private SortOrder sortOrder;
+    public ApiResponse getDimensionsByDimensionType( String programId, String dimensionType )
+    {
+        return this.get( "/dimensions",
+            new QueryParamsBuilder().add( "programId", programId ).add( "filter", "dimensionType:eq:" + dimensionType ) )
+            .validateStatus( 200 );
+    }
 }
