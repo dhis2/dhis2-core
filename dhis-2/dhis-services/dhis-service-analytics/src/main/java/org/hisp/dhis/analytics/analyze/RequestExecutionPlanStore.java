@@ -37,6 +37,8 @@ import java.util.concurrent.TimeUnit;
 
 import javax.validation.constraints.NotNull;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.math3.util.Precision;
 import org.hisp.dhis.common.ExecutionPlan;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -51,6 +53,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * @author Dusan Bernat
  */
+@Slf4j
 @Service
 public class RequestExecutionPlanStore implements ExecutionPlanStore
 {
@@ -140,6 +143,8 @@ public class RequestExecutionPlanStore implements ExecutionPlanStore
             }
             catch ( JsonProcessingException ex )
             {
+                log.error( ex.getMessage(), ex );
+
                 return null;
             }
         }
