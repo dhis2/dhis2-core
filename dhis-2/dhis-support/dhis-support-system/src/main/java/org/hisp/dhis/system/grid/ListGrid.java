@@ -55,8 +55,8 @@ import org.apache.commons.math3.util.Precision;
 import org.hisp.dhis.common.ExecutionPlan;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
-import org.hisp.dhis.common.PerformanceMetrics;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.PerformanceMetrics;
 import org.hisp.dhis.common.adapter.JacksonRowDataSerializer;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.system.util.MathUtils;
@@ -103,6 +103,9 @@ public class ListGrid
      */
     private Map<String, Object> metaData;
 
+    /**
+     * An Object which can hold execution plans and related data.
+     */
     private PerformanceMetrics performanceMetrics;
 
     /**
