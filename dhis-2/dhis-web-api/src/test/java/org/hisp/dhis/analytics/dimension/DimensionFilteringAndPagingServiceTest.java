@@ -90,7 +90,7 @@ public class DimensionFilteringAndPagingServiceTest
     public void testFiltering()
     {
         DimensionsCriteria criteria = new DimensionsCriteria();
-        criteria.setFilter( "name:eq:test" );
+        criteria.setFilter( List.of( "name:eq:test" ) );
 
         PagingWrapper<ObjectNode> pagingWrapper = service.pageAndFilter(
             Collections.emptyList(),
