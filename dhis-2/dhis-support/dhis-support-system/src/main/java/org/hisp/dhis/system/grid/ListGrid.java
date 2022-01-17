@@ -360,14 +360,6 @@ public class ListGrid
         return performanceMetrics;
     }
 
-    // @Override
-    // public Grid setPerformanceMetrics( PerformanceMetrics performanceMetrics
-    // )
-    // {
-    // this.performanceMetrics = performanceMetrics;
-    // return this;
-    // }
-
     @Override
     public int getVisibleWidth()
     {
@@ -1111,9 +1103,9 @@ public class ListGrid
 
         performanceMetrics = new PerformanceMetrics();
 
-        double total = plans.stream().map( ExecutionPlan::getTimeEstimation ).reduce( 0.0, Double::sum );
+        double total = plans.stream().map( ExecutionPlan::getTimeInMillis ).reduce( 0.0, Double::sum );
 
-        performanceMetrics.setTotalTimeEstimation( Precision.round( total, 3 ) );
+        performanceMetrics.setTotalTimeInMillis( Precision.round( total, 3 ) );
 
         performanceMetrics.setExecutionPlans( plans );
 

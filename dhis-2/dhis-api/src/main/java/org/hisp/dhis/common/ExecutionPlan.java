@@ -43,7 +43,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 public class ExecutionPlan implements Serializable
 {
     @JsonProperty
-    private Double timeEstimation;
+    private Double timeInMillis;
 
     @JsonProperty
     private Double planningTime;
@@ -54,6 +54,6 @@ public class ExecutionPlan implements Serializable
     @JsonProperty
     private String query;
 
-    @JsonProperty( "plan" )
+    @JsonProperty
     private transient JsonNode plan;
 }

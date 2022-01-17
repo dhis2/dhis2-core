@@ -51,6 +51,7 @@ import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -84,6 +85,7 @@ public class AnalyticsController
     // Resources
     // -------------------------------------------------------------------------
 
+    @PreAuthorize( "hasRole('F_PERFORM_MAINTENANCE')" )
     @GetMapping( value = RESOURCE_PATH + ANALYZE_PATH, produces = { APPLICATION_JSON_VALUE, "application/javascript" } )
     public @ResponseBody Grid getAnalyzeJson( // JSON, JSONP
         AggregateAnalyticsQueryCriteria criteria,

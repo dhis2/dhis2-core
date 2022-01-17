@@ -52,6 +52,7 @@ import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -88,6 +89,7 @@ public class EnrollmentAnalyticsController
     @NotNull
     private EnrollmentAnalyticsDimensionsService enrollmentAnalyticsDimensionsService;
 
+    @PreAuthorize( "hasRole('F_PERFORM_MAINTENANCE')" )
     @GetMapping( value = "/query/{program}/analyze", produces = { APPLICATION_JSON_VALUE, "application/javascript" } )
     public @ResponseBody Grid getAnalyzeQueryJson( // JSON, JSONP
         @PathVariable String program,

@@ -97,7 +97,7 @@ public class RequestExecutionPlanStore implements ExecutionPlanStore
 
             executionPlan.setPlanningTime( planTime );
 
-            executionPlan.setTimeEstimation( Precision.round( execTime + planTime, 3 ) );
+            executionPlan.setTimeInMillis( Precision.round( execTime + planTime, 3 ) );
         }
 
         synchronized ( this )

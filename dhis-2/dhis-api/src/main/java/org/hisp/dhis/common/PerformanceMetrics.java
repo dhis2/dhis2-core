@@ -40,7 +40,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class PerformanceMetrics implements Serializable
 {
     @JsonProperty
-    private double totalTimeEstimation;
+    private double totalTimeInMillis;
 
     @JsonProperty
     private List<ExecutionPlan> executionPlans;
