@@ -87,7 +87,7 @@ public class AnalyticsController
 
     @PreAuthorize( "hasRole('F_PERFORM_MAINTENANCE')" )
     @GetMapping( value = RESOURCE_PATH + ANALYZE_PATH, produces = { APPLICATION_JSON_VALUE, "application/javascript" } )
-    public @ResponseBody Grid getAnalyzeJson( // JSON, JSONP
+    public @ResponseBody Grid getAnalyzeJson( // JSON
         AggregateAnalyticsQueryCriteria criteria,
         DhisApiVersion apiVersion,
         HttpServletResponse response )
