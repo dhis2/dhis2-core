@@ -68,24 +68,15 @@ class DefaultTrackerValidationServiceTest
 
     private DefaultTrackerValidationService service;
 
-    private TrackerValidationHook hook1;
-
-    private TrackerBundle bundle;
-
-    private User user;
-
-    void setupMocks()
-    {
-        user = mock( User.class );
-        bundle = mock( TrackerBundle.class );
-        hook1 = mock( TrackerValidationHook.class );
-    }
-
     @Test
     void shouldNotValidateMissingUser()
     {
-        setupMocks();
-        when( bundle.getValidationMode() ).thenReturn( ValidationMode.SKIP );
+        TrackerBundle bundle = newBundle()
+            .validationMode( ValidationMode.SKIP )
+            .user( null )
+            .build();
+
+        TrackerValidationHook hook1 = mock( TrackerValidationHook.class );
         service = new DefaultTrackerValidationService( List.of( hook1 ), Collections.emptyList() );
 
         service.validate( bundle );
@@ -96,10 +87,11 @@ class DefaultTrackerValidationServiceTest
     @Test
     void shouldNotValidateSuperUserSkip()
     {
-        setupMocks();
-        when( bundle.getUser() ).thenReturn( user );
-        when( user.isSuper() ).thenReturn( true );
-        when( bundle.getValidationMode() ).thenReturn( ValidationMode.SKIP );
+        TrackerBundle bundle = newBundle()
+            .validationMode( ValidationMode.SKIP )
+            .user( superUser() )
+            .build();
+        TrackerValidationHook hook1 = mock( TrackerValidationHook.class );
         service = new DefaultTrackerValidationService( List.of( hook1 ), Collections.emptyList() );
 
         service.validate( bundle );
@@ -110,10 +102,11 @@ class DefaultTrackerValidationServiceTest
     @Test
     void shouldValidateSuperUserNoSkip()
     {
-        setupMocks();
-        when( bundle.getUser() ).thenReturn( user );
-        when( user.isSuper() ).thenReturn( true );
-        when( bundle.getValidationMode() ).thenReturn( ValidationMode.FULL );
+        TrackerBundle bundle = newBundle()
+            .validationMode( ValidationMode.FULL )
+            .user( superUser() )
+            .build();
+        TrackerValidationHook hook1 = mock( TrackerValidationHook.class );
         TrackerValidationHook hook2 = mock( TrackerValidationHook.class );
         service = new DefaultTrackerValidationService( List.of( hook1, hook2 ), Collections.emptyList() );
 
@@ -121,6 +114,14 @@ class DefaultTrackerValidationServiceTest
 
         verify( hook1, times( 1 ) ).validate( any(), any() );
         verify( hook2, times( 1 ) ).validate( any(), any() );
+    }
+
+    @NotNull
+    private User superUser()
+    {
+        User user = mock( User.class );
+        when( user.isSuper() ).thenReturn( true );
+        return user;
     }
 
     @Builder
