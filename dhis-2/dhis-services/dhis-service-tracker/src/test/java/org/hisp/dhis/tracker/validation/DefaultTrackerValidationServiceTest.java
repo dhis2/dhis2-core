@@ -27,20 +27,38 @@
  */
 package org.hisp.dhis.tracker.validation;
 
-import static org.mockito.Mockito.any;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.BiConsumer;
 
+import lombok.Builder;
+
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.report.TrackerErrorCode;
+import org.hisp.dhis.tracker.report.TrackerErrorReport;
+import org.hisp.dhis.tracker.report.TrackerValidationReport;
+import org.hisp.dhis.tracker.report.TrackerWarningReport;
+import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.hooks.AbstractTrackerDtoValidationHook;
 import org.hisp.dhis.user.User;
-import org.junit.jupiter.api.BeforeEach;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
 class DefaultTrackerValidationServiceTest
@@ -54,8 +72,7 @@ class DefaultTrackerValidationServiceTest
 
     private User user;
 
-    @BeforeEach
-    void setUp()
+    void setupMocks()
     {
         user = mock( User.class );
         bundle = mock( TrackerBundle.class );
@@ -65,6 +82,7 @@ class DefaultTrackerValidationServiceTest
     @Test
     void shouldNotValidateMissingUser()
     {
+        setupMocks();
         when( bundle.getValidationMode() ).thenReturn( ValidationMode.SKIP );
         service = new DefaultTrackerValidationService( List.of( hook1 ), Collections.emptyList() );
 
@@ -76,6 +94,7 @@ class DefaultTrackerValidationServiceTest
     @Test
     void shouldNotValidateSuperUserSkip()
     {
+        setupMocks();
         when( bundle.getUser() ).thenReturn( user );
         when( user.isSuper() ).thenReturn( true );
         when( bundle.getValidationMode() ).thenReturn( ValidationMode.SKIP );
@@ -89,6 +108,7 @@ class DefaultTrackerValidationServiceTest
     @Test
     void shouldValidateSuperUserNoSkip()
     {
+        setupMocks();
         when( bundle.getUser() ).thenReturn( user );
         when( user.isSuper() ).thenReturn( true );
         when( bundle.getValidationMode() ).thenReturn( ValidationMode.FULL );
@@ -100,4 +120,230 @@ class DefaultTrackerValidationServiceTest
         verify( hook1, times( 1 ) ).validate( any(), any() );
         verify( hook2, times( 1 ) ).validate( any(), any() );
     }
+
+    @Builder
+    private static class ValidationHook extends AbstractTrackerDtoValidationHook
+    {
+        boolean removeOnError;
+
+        private BiConsumer<ValidationErrorReporter, Event> validateEvent;
+
+        private BiConsumer<ValidationErrorReporter, Enrollment> validateEnrollment;
+
+        @Override
+        public void validateEvent( ValidationErrorReporter reporter, Event event )
+        {
+            if ( this.validateEvent != null )
+            {
+                this.validateEvent.accept( reporter, event );
+            }
+        }
+
+        @Override
+        public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
+        {
+            if ( this.validateEnrollment != null )
+            {
+                this.validateEnrollment.accept( reporter, enrollment );
+            }
+        }
+
+        @Override
+        public boolean removeOnError()
+        {
+            return this.removeOnError;
+        }
+    }
+
+    @Test
+    void reportAndRemoveInvalidFromBundleWithRemoveOnErrorHook()
+    {
+
+        // Test shows
+        // 1. all ValidationErrorReports created by the individual hooks
+        // are merged across hooks and DTOs and returned as one report from the
+        // TrackerValidationService
+        // 2. the TrackerBundle is mutated to only contain valid DTOs after
+        // validation
+        // Currently the bundle is mutated by
+        // 1. AbstractTrackerDtoValidationHook removes invalid DTOs if the hook
+        // has removeOnError == true
+        // 2. DefaultTrackerValidationService removes invalid DTOs if the hook
+        // has removeOnError == false
+
+        // Note: the current AbstractTrackerDtoValidationHook relies on the
+        // bundle "DTO" lists to be mutable
+        // it uses iterator.remove() in validateTrackerDtos()
+        // which is why we cannot use List.of(), Arrays.asList()
+        Event validEvent = event();
+        Event invalidEvent = event();
+        List<Event> events = new ArrayList<>();
+        events.add( invalidEvent );
+        events.add( validEvent );
+
+        Enrollment validEnrollment = enrollment();
+        Enrollment invalidEnrollment = enrollment();
+        List<Enrollment> enrollments = new ArrayList<>();
+        enrollments.add( validEnrollment );
+        enrollments.add( invalidEnrollment );
+
+        TrackerBundle bundle = TrackerBundle.builder()
+            .validationMode( ValidationMode.FULL )
+            .skipRuleEngine( true )
+            .events( events )
+            .enrollments( enrollments )
+            .build();
+
+        ValidationHook removeOnError = ValidationHook.builder()
+            .removeOnError( true )
+            .validateEvent( ( reporter, event ) -> {
+                if ( invalidEvent.equals( event ) )
+                {
+                    reporter.addError(
+                        TrackerErrorReport.builder()
+                            .errorCode( TrackerErrorCode.E1032 )
+                            .trackerType( TrackerType.EVENT )
+                            .uid( event.getUid() ).build( reporter.getValidationContext().getBundle() ) );
+                }
+            } )
+            .build();
+        ValidationHook doNotRemoveOnError = ValidationHook.builder()
+            .removeOnError( false )
+            .validateEnrollment( ( reporter, enrollment ) -> {
+                if ( invalidEnrollment.equals( enrollment ) )
+                {
+                    reporter.addError(
+                        TrackerErrorReport.builder()
+                            .errorCode( TrackerErrorCode.E1069 )
+                            .trackerType( TrackerType.ENROLLMENT )
+                            .uid( enrollment.getUid() )
+                            .build( reporter.getValidationContext().getBundle() ) );
+                }
+            } )
+            .build();
+        TrackerValidationService validationService = new DefaultTrackerValidationService(
+            List.of( removeOnError, doNotRemoveOnError ),
+            Collections.emptyList() );
+
+        TrackerValidationReport report = validationService.validate( bundle );
+
+        assertTrue( report.hasErrors() );
+        assertEquals( 2, report.getErrors().size() );
+        assertTrue( report.getErrors().stream().anyMatch( err -> TrackerErrorCode.E1032 == err.getErrorCode()
+            && TrackerType.EVENT == err.getTrackerType()
+            && invalidEvent.getUid().equals( err.getUid() ) ) );
+        assertTrue( report.getErrors().stream().anyMatch( err -> TrackerErrorCode.E1069 == err.getErrorCode()
+            && TrackerType.ENROLLMENT == err.getTrackerType()
+            && invalidEnrollment.getUid().equals( err.getUid() ) ) );
+
+        assertFalse( bundle.getEvents().contains( invalidEvent ) );
+        assertFalse( bundle.getEnrollments().contains( invalidEnrollment ) );
+        assertTrue( bundle.getEvents().contains( validEvent ) );
+        assertTrue( bundle.getEnrollments().contains( validEnrollment ) );
+    }
+
+    @NotNull
+    private Enrollment enrollment()
+    {
+        Enrollment enrollment = new Enrollment();
+        enrollment.setEnrollment( CodeGenerator.generateUid() );
+        return enrollment;
+    }
+
+    @NotNull
+    private Event event()
+    {
+        Event event = new Event();
+        event.setEvent( CodeGenerator.generateUid() );
+        return event;
+    }
+
+    @Test
+    void failFastDoesNotCallHooksAfterFailure()
+    {
+
+        Event validEvent = event();
+        Event invalidEvent = event();
+        List<Event> events = new ArrayList<>();
+        events.add( invalidEvent );
+        events.add( validEvent );
+
+        TrackerBundle bundle = TrackerBundle.builder()
+            .validationMode( ValidationMode.FAIL_FAST )
+            .skipRuleEngine( true )
+            .events( events )
+            .build();
+
+        ValidationHook hook1 = ValidationHook.builder()
+            .removeOnError( true )
+            .validateEvent( ( reporter, event ) -> {
+                if ( invalidEvent.equals( event ) )
+                {
+                    reporter.addError(
+                        TrackerErrorReport.builder()
+                            .errorCode( TrackerErrorCode.E1032 )
+                            .trackerType( TrackerType.EVENT )
+                            .uid( event.getUid() ).build( reporter.getValidationContext().getBundle() ) );
+                }
+            } ).build();
+        TrackerValidationHook hook2 = mock( TrackerValidationHook.class );
+        TrackerValidationService validationService = new DefaultTrackerValidationService( List.of( hook1, hook2 ),
+            Collections.emptyList() );
+
+        TrackerValidationReport report = validationService.validate( bundle );
+
+        assertTrue( report.hasErrors() );
+        assertTrue( report.getErrors().stream().anyMatch( err -> TrackerErrorCode.E1032 == err.getErrorCode()
+            && TrackerType.EVENT == err.getTrackerType()
+            && invalidEvent.getUid().equals( err.getUid() ) ) );
+
+        assertFalse( bundle.getEvents().contains( invalidEvent ) );
+        assertTrue( bundle.getEvents().contains( validEvent ) );
+
+        verifyNoInteractions( hook2 );
+    }
+
+    @Test
+    void reportWarnings()
+    {
+
+        List<Event> events = new ArrayList<>();
+        Event validEvent = event();
+        events.add( validEvent );
+
+        TrackerBundle bundle = TrackerBundle.builder()
+            .validationMode( ValidationMode.FULL )
+            .skipRuleEngine( true )
+            .events( events )
+            .build();
+
+        ValidationHook hook = ValidationHook.builder()
+            .validateEvent( ( reporter, event ) -> {
+                if ( validEvent.equals( event ) )
+                {
+                    reporter.addWarning(
+                        TrackerWarningReport.builder()
+                            .warningCode( TrackerErrorCode.E1120 )
+                            .trackerType( TrackerType.EVENT )
+                            .uid( event.getUid() )
+                            .build( reporter.getValidationContext().getBundle() ) );
+                }
+            } )
+            .build();
+        TrackerValidationService validationService = new DefaultTrackerValidationService(
+            List.of( hook ),
+            Collections.emptyList() );
+
+        TrackerValidationReport report = validationService.validate( bundle );
+
+        assertFalse( report.hasErrors() );
+        assertNotNull( report.getWarnings() );
+        assertEquals( 1, report.getWarnings().size() );
+        assertTrue( report.getWarnings().stream().anyMatch( err -> TrackerErrorCode.E1120 == err.getWarningCode()
+            && TrackerType.EVENT == err.getTrackerType()
+            && validEvent.getUid().equals( err.getUid() ) ) );
+
+        assertTrue( bundle.getEvents().contains( validEvent ) );
+    }
+
 }
