@@ -27,18 +27,49 @@
  */
 package org.hisp.dhis.dxf2.pdfform;
 
-import org.hisp.dhis.i18n.I18nFormat;
+import java.awt.*;
+import java.io.IOException;
 
-import com.lowagie.text.Document;
-import com.lowagie.text.Rectangle;
+import lombok.Builder;
+
+import com.lowagie.text.DocumentException;
+import com.lowagie.text.Element;
+import com.lowagie.text.Font;
+import com.lowagie.text.pdf.PdfBorderDictionary;
+import com.lowagie.text.pdf.PdfPCell;
 import com.lowagie.text.pdf.PdfWriter;
+import com.lowagie.text.pdf.TextField;
 
 /**
- * @author James Chang
+ * @author viet@dhis2.org
  */
 
-public interface PdfDataEntryFormService
+public class PdfTextInputField extends PdfInputField
 {
-    void generatePDFDataEntryForm( Document document, PdfWriter writer, String inputUid, int typeId,
-        Rectangle pageSize, PdfFormFontSettings pdfFormFontSettings, I18nFormat format );
+    @Builder
+    public PdfTextInputField( String label, String fieldName, PdfCellType cellType, PdfWriter writer, Font font )
+    {
+        super( label, fieldName, cellType, writer, font );
+    }
+
+    public PdfPCell getInputCell()
+        throws IOException,
+        DocumentException
+    {
+        PdfPCell cell = PdfDataEntryFormUtil.getPdfPCell( hasBorder );
+        TextField nameField = new TextField( writer, getTextBoxSize(), fieldName );
+
+        nameField.setBorderWidth( 1 );
+        nameField.setBorderColor( Color.BLACK );
+        nameField.setBorderStyle( PdfBorderDictionary.STYLE_SOLID );
+        nameField.setBackgroundColor( COLOR_BACKGROUDTEXTBOX );
+
+        nameField.setAlignment( Element.ALIGN_RIGHT );
+        nameField.setFont( font.getBaseFont() );
+
+        cell.setCellEvent(
+            new PdfFieldCell( nameField.getTextField(), getTextBoxSize().getWidth(), getTextBoxSize().getHeight(),
+                cellType.getValue(), writer ) );
+        return cell;
+    }
 }

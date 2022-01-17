@@ -30,6 +30,7 @@ package org.hisp.dhis.dxf2.pdfform;
 import java.awt.*;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -78,6 +79,10 @@ public class PdfDataEntryFormUtil
     public static final String LABELCODE_DATAENTRYTEXTFIELD = "TXFDDV_";
 
     public static final String LABELCODE_PROGRAMSTAGEIDTEXTBOX = "TXPSTGID_";
+
+    public static final String LABELCODE_OPTIONID = LABELCODE_TEXTFIELD + "OptionID";
+
+    public static final String LABELCODE_ATTRIBUTE_OPTIONID = "AttributeOptionID";
 
     // Cell Related
 
@@ -208,7 +213,7 @@ public class PdfDataEntryFormUtil
                 // Process OrgUnitUID and PeriodID from the PDF Form
 
                 String orgUnitUid = form.getField( PdfDataEntryFormUtil.LABELCODE_ORGID ).trim();
-                String periodId = form.getField( PdfDataEntryFormUtil.LABELCODE_PERIODID ).trim();
+                String periodId = findSelectedValue( PdfDataEntryFormUtil.LABELCODE_PERIODID, form );
 
                 if ( periodId == null || periodId.isEmpty() )
                 {
@@ -231,9 +236,22 @@ public class PdfDataEntryFormUtil
 
                 @SuppressWarnings( "unchecked" )
                 Set<String> fldNames = form.getFields().keySet();
+                Set<String> attributeOptionIds = new HashSet<>();
+                String categoryComboId = null;
 
                 for ( String fldName : fldNames )
                 {
+                    if ( fldName.startsWith( PdfDataEntryFormUtil.LABELCODE_ATTRIBUTE_OPTIONID ) )
+                    {
+                        String optionId = form.getField( fldName );// findSelectedValue(
+                                                                   // fldName,
+                                                                   // form );
+                        String[] strArrFldName = fldName.split( "_" );
+
+                        categoryComboId = strArrFldName[1];
+                        attributeOptionIds.add( optionId );
+                        continue;
+                    }
 
                     if ( fldName.startsWith( PdfDataEntryFormUtil.LABELCODE_DATAENTRYTEXTFIELD ) )
                     {
@@ -255,6 +273,7 @@ public class PdfDataEntryFormUtil
 
                         dataValueList.add( dataValue );
                     }
+
                 }
 
                 dataValueSet.setDataValues( dataValueList );
@@ -301,6 +320,23 @@ public class PdfDataEntryFormUtil
         }
 
         return fldValue;
+    }
+
+    private static String findSelectedValue( String fieldName, AcroFields form )
+    {
+        String selectedLabel = form.getField( fieldName );
+        String[] optionLabels = form.getListOptionDisplay( fieldName );
+        String[] optionValues = form.getListOptionExport( fieldName );
+
+        for ( int i = 0; i < optionLabels.length; i++ )
+        {
+            if ( selectedLabel.equals( optionLabels[i] ) )
+            {
+                return optionValues[i];
+            }
+        }
+
+        return null;
     }
 
 }

@@ -28,9 +28,9 @@
 package org.hisp.dhis.dxf2.pdfform;
 
 import java.awt.*;
-import java.util.HashMap;
 import java.util.Map;
 
+import com.google.common.collect.ImmutableMap;
 import com.lowagie.text.Font;
 
 /**
@@ -61,28 +61,20 @@ public class PdfFormFontSettings
 
     private static final String FONTFAMILY = "HELVETICA";
 
-    private final Map<Integer, Font> fontTypeMap = new HashMap<>();
+    private static final Map<Integer, Font> FONT_TYPE_MAP = ImmutableMap.<Integer, Font> builder()
+        .put( FONTTYPE_BODY, createFont( FONTTYPE_BODY ) )
+        .put( FONTTYPE_TITLE, createFont( FONTTYPE_TITLE ) )
+        .put( FONTTYPE_DESCRIPTION, createFont( FONTTYPE_DESCRIPTION ) )
+        .put( FONTTYPE_SECTIONHEADER, createFont( FONTTYPE_SECTIONHEADER ) )
+        .put( FONTTYPE_FOOTER, createFont( FONTTYPE_FOOTER ) )
+        .build();
 
-    public PdfFormFontSettings()
+    public static Font getFont( int fontType )
     {
-        fontTypeMap.put( FONTTYPE_BODY, createFont( FONTTYPE_BODY ) );
-        fontTypeMap.put( FONTTYPE_TITLE, createFont( FONTTYPE_TITLE ) );
-        fontTypeMap.put( FONTTYPE_DESCRIPTION, createFont( FONTTYPE_DESCRIPTION ) );
-        fontTypeMap.put( FONTTYPE_SECTIONHEADER, createFont( FONTTYPE_SECTIONHEADER ) );
-        fontTypeMap.put( FONTTYPE_FOOTER, createFont( FONTTYPE_FOOTER ) );
+        return FONT_TYPE_MAP.get( fontType );
     }
 
-    public void setFont( int fontType, Font font )
-    {
-        fontTypeMap.put( fontType, font );
-    }
-
-    public Font getFont( int fontType )
-    {
-        return fontTypeMap.get( fontType );
-    }
-
-    private Font createFont( int fontType )
+    private static Font createFont( int fontType )
     {
         Font font = new Font();
         font.setFamily( FONTFAMILY );
