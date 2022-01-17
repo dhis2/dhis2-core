@@ -102,17 +102,17 @@ public class SmsCommandObjectBundleHook extends AbstractObjectBundleHook<SMSComm
     {
         command.getCodes().stream()
             .filter( SMSCode::hasDataElement )
-            .forEach( c ->  {
+            .forEach( c -> {
                 c.setDataElement( dataElementService.getDataElement( c.getDataElement().getUid() ) );
-                c.setOptionId((int) categoryService.getDefaultCategoryOptionCombo().getId());
+                c.setOptionId( (int) categoryService.getDefaultCategoryOptionCombo().getId() );
             } );
 
         command.getCodes().stream()
             .filter( SMSCode::hasTrackedEntityAttribute )
             .forEach( c -> {
                 c.setTrackedEntityAttribute(
-                        trackedEntityAttributeService.getTrackedEntityAttribute( c.getTrackedEntityAttribute().getUid() ) );
-                c.setOptionId( (int)categoryService.getDefaultCategoryOptionCombo().getId());
+                    trackedEntityAttributeService.getTrackedEntityAttribute( c.getTrackedEntityAttribute().getUid() ) );
+                c.setOptionId( (int) categoryService.getDefaultCategoryOptionCombo().getId() );
             } );
     }
 }
