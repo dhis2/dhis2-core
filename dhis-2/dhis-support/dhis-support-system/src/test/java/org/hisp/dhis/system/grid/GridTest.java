@@ -27,8 +27,13 @@
  */
 package org.hisp.dhis.system.grid;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
+import static org.hisp.dhis.feedback.ErrorCode.E7230;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
@@ -36,12 +41,14 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -731,6 +738,132 @@ class GridTest
         assertEquals( 3, grid.getWidth() );
         assertEquals( "colB1", grid.getRow( 0 ).get( 1 ) );
         assertEquals( "colC2", grid.getRow( 1 ).get( 2 ) );
+    }
+
+    @Test
+    void testKeepOnlyThese()
+    {
+        // Given
+        final GridHeader headerA = new GridHeader( "headerA", "Header A" );
+        final GridHeader headerB = new GridHeader( "headerB", "Header B" );
+        final GridHeader headerC = new GridHeader( "headerC", "Header C" );
+
+        final Grid grid = new ListGrid();
+        grid.addHeader( headerA );
+        grid.addHeader( headerB );
+        grid.addHeader( headerC );
+        grid.addRow().addValue( 1 ).addValue( "a" ).addValue( "a-1" );
+        grid.addRow().addValue( 2 ).addValue( "b" ).addValue( "b-1" );
+        grid.addRow().addValue( 3 ).addValue( "c" ).addValue( "c-1" );
+
+        final Set<String> headers = new LinkedHashSet<>( List.of( "headerA", "headerB" ) );
+
+        // When
+        grid.keepOnlyThese( headers );
+
+        // Then
+        assertThat( grid.getHeaderWidth(), is( equalTo( 2 ) ) );
+        assertThat( grid.getHeaders().get( 0 ).getName(), is( equalTo( "headerA" ) ) );
+        assertThat( grid.getHeaders().get( 1 ).getName(), is( equalTo( "headerB" ) ) );
+    }
+
+    @Test
+    void testRepositionHeaders()
+    {
+        // Given
+        final GridHeader headerA = new GridHeader( "headerA", "Header A" );
+        final GridHeader headerB = new GridHeader( "headerB", "Header B" );
+        final GridHeader headerC = new GridHeader( "headerC", "Header C" );
+
+        final Grid grid = new ListGrid();
+        grid.addHeader( headerA );
+        grid.addHeader( headerB );
+        grid.addHeader( headerC );
+        grid.addRow().addValue( 1 ).addValue( "a" ).addValue( "a-1" );
+        grid.addRow().addValue( 2 ).addValue( "b" ).addValue( "b-1" );
+        grid.addRow().addValue( 3 ).addValue( "c" ).addValue( "c-1" );
+
+        final Set<String> headers = new LinkedHashSet<>( List.of( "headerC", "headerB", "headerA" ) );
+
+        // When
+        grid.repositionHeaders( headers );
+
+        // Then
+        assertThat( grid.getHeaderWidth(), is( equalTo( 3 ) ) );
+        assertThat( grid.getHeaders().get( 0 ).getName(), is( equalTo( "headerC" ) ) );
+        assertThat( grid.getHeaders().get( 1 ).getName(), is( equalTo( "headerB" ) ) );
+        assertThat( grid.getHeaders().get( 2 ).getName(), is( equalTo( "headerA" ) ) );
+    }
+
+    @Test
+    void testRepositionHeadersUsingInvalidHeader()
+    {
+        // Given
+        final GridHeader headerA = new GridHeader( "headerA", "Header A" );
+        final GridHeader headerB = new GridHeader( "headerB", "Header B" );
+        final GridHeader headerC = new GridHeader( "headerC", "Header C" );
+
+        final Grid grid = new ListGrid();
+        grid.addHeader( headerA );
+        grid.addHeader( headerB );
+        grid.addHeader( headerC );
+        grid.addRow().addValue( 1 ).addValue( "a" ).addValue( "a-1" );
+        grid.addRow().addValue( 2 ).addValue( "b" ).addValue( "b-1" );
+        grid.addRow().addValue( 3 ).addValue( "c" ).addValue( "c-1" );
+
+        final Set<String> headers = new LinkedHashSet<>( List.of( "invalidHeader", "headerB", "headerA" ) );
+
+        // When
+        final IllegalQueryException expectedException = assertThrows(
+            IllegalQueryException.class, () -> grid.repositionHeaders( headers ) );
+
+        // Then
+        assertThat( expectedException.getMessage(),
+            is( equalTo( "Header param `invalidHeader` does not exist" ) ) );
+        assertThat( expectedException.getErrorCode(), is( equalTo( E7230 ) ) );
+    }
+
+    @Test
+    void repositionColumns()
+    {
+        // Given
+        final GridHeader headerA = new GridHeader( "headerA", "Header A" );
+        final GridHeader headerB = new GridHeader( "headerB", "Header B" );
+        final GridHeader headerC = new GridHeader( "headerC", "Header C" );
+
+        final Grid grid = new ListGrid();
+        grid.addHeader( headerA );
+        grid.addHeader( headerB );
+        grid.addHeader( headerC );
+        grid.addRow().addValue( 1 ).addValue( "a" ).addValue( "a-1" ); // first
+                                                                       // row +
+                                                                       // columns
+        grid.addRow().addValue( 2 ).addValue( "b" ).addValue( "b-1" );
+        grid.addRow().addValue( 3 ).addValue( "c" ).addValue( "c-1" );
+
+        final Set<String> headers = new LinkedHashSet<>( List.of( "headerC", "headerB", "headerA" ) );
+        final Set<Integer> newColumnIndexes = grid.repositionHeaders( headers );
+
+        // When
+        grid.repositionColumns( newColumnIndexes );
+
+        // Then
+        assertThat( grid.getHeaderWidth(), is( equalTo( 3 ) ) );
+
+        // first row + repositioned columns
+        assertThat( grid.getRow( 0 ).get( 0 ), is( equalTo( "a-1" ) ) );
+        assertThat( grid.getRow( 0 ).get( 1 ), is( equalTo( "a" ) ) );
+        assertThat( grid.getRow( 0 ).get( 2 ), is( equalTo( 1 ) ) );
+
+        // second row + repositioned columns
+        assertThat( grid.getRow( 1 ).get( 0 ), is( equalTo( "b-1" ) ) );
+        assertThat( grid.getRow( 1 ).get( 1 ), is( equalTo( "b" ) ) );
+        assertThat( grid.getRow( 1 ).get( 2 ), is( equalTo( 2 ) ) );
+
+        // third row + repositioned columns
+        assertThat( grid.getRow( 2 ).get( 0 ), is( equalTo( "c-1" ) ) );
+        assertThat( grid.getRow( 2 ).get( 1 ), is( equalTo( "c" ) ) );
+        assertThat( grid.getRow( 2 ).get( 2 ), is( equalTo( 3 ) ) );
     }
 
     // -------------------------------------------------------------------------
