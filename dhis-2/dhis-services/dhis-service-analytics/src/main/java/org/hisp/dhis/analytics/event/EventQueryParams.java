@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.event;
 
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
@@ -181,7 +182,7 @@ public class EventQueryParams
     /**
      * Indicates the event status.
      */
-    private EventStatus eventStatus;
+    private Set<EventStatus> eventStatus;
 
     /**
      * Indicates whether the data dimension items should be collapsed into a
@@ -240,7 +241,7 @@ public class EventQueryParams
     /**
      * Indicates the program status
      */
-    private ProgramStatus programStatus;
+    private Set<ProgramStatus> programStatus;
 
     /**
      * Indicates whether to include metadata details to response
@@ -617,7 +618,7 @@ public class EventQueryParams
     /**
      * Gets program status
      */
-    public ProgramStatus getProgramStatus()
+    public Set<ProgramStatus> getProgramStatus()
     {
         return programStatus;
     }
@@ -836,7 +837,7 @@ public class EventQueryParams
 
     public boolean hasProgramStatus()
     {
-        return programStatus != null;
+        return isNotEmpty( programStatus );
     }
 
     public boolean hasBbox()
@@ -962,7 +963,7 @@ public class EventQueryParams
         return outputIdScheme;
     }
 
-    public EventStatus getEventStatus()
+    public Set<EventStatus> getEventStatus()
     {
         return eventStatus;
     }
@@ -1295,7 +1296,7 @@ public class EventQueryParams
             return this;
         }
 
-        public Builder withEventStatus( EventStatus eventStatus )
+        public Builder withEventStatus( Set<EventStatus> eventStatus )
         {
             this.params.eventStatus = eventStatus;
             return this;
@@ -1355,7 +1356,7 @@ public class EventQueryParams
             return this;
         }
 
-        public Builder withProgramStatus( ProgramStatus programStatus )
+        public Builder withProgramStatus( Set<ProgramStatus> programStatus )
         {
             this.params.programStatus = programStatus;
             return this;

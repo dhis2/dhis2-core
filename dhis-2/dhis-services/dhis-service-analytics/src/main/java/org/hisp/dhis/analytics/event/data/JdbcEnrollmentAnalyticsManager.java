@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
+import static java.util.stream.Collectors.joining;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
@@ -63,6 +64,7 @@ import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicatorService;
+import org.hisp.dhis.program.ProgramStatus;
 import org.locationtech.jts.util.Assert;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.jdbc.BadSqlGrammarException;
@@ -310,7 +312,8 @@ public class JdbcEnrollmentAnalyticsManager
 
         if ( params.hasProgramStatus() )
         {
-            sql += "and enrollmentstatus = '" + params.getProgramStatus().name() + "' ";
+            sql += "and enrollmentstatus in '"
+                + params.getProgramStatus().stream().map( ProgramStatus::name ).collect( joining( "," ) ) + "' ";
         }
 
         if ( params.isCoordinatesOnly() )

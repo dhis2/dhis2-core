@@ -28,6 +28,7 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.apache.commons.lang3.StringUtils.trim;
 import static org.hisp.dhis.analytics.DataQueryParams.NUMERATOR_DENOMINATOR_PROPERTIES_COUNT;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.OU_GEOMETRY_COL_SUFFIX;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.OU_NAME_COL_SUFFIX;
@@ -723,7 +724,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
         }
         else
         {
-            grid.addValue( sqlRowSet.getString( index ) );
+            grid.addValue( trim( sqlRowSet.getString( index ) ) );
         }
     }
 
