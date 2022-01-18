@@ -159,13 +159,6 @@ public class Property implements Ordered, Klass
     private boolean collection;
 
     /**
-     * This property is true if the type of this property is a sub-class of Map.
-     *
-     * @see java.util.Map
-     */
-    private boolean map;
-
-    /**
      * This property is true if collection=true and klass points to a
      * implementation with a stable order (i.e. List).
      */
@@ -550,18 +543,6 @@ public class Property implements Ordered, Klass
     public void setCollection( boolean collection )
     {
         this.collection = collection;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isMap()
-    {
-        return map;
-    }
-
-    public void setMap( boolean map )
-    {
-        this.map = map;
     }
 
     @JsonProperty
@@ -1003,7 +984,7 @@ public class Property implements Ordered, Klass
     {
         return Objects.hash( klass, propertyType, itemKlass, itemPropertyType, getterMethod, setterMethod, name,
             fieldName, persisted, collectionName,
-            collectionWrapping, description, namespace, attribute, simple, collection, map, owner,
+            collectionWrapping, description, namespace, attribute, simple, collection, owner,
             identifiableObject, nameableObject, readable, writable, unique, required, length, max, min, cascade,
             manyToMany, oneToOne, manyToOne, owningRole, inverseRole, constants, defaultValue );
     }
@@ -1039,7 +1020,6 @@ public class Property implements Ordered, Klass
             && Objects.equals( this.attribute, other.attribute )
             && Objects.equals( this.simple, other.simple )
             && Objects.equals( this.collection, other.collection )
-            && Objects.equals( this.map, other.map )
             && Objects.equals( this.owner, other.owner )
             && Objects.equals( this.identifiableObject, other.identifiableObject )
             && Objects.equals( this.nameableObject, other.nameableObject )
@@ -1079,8 +1059,7 @@ public class Property implements Ordered, Klass
             .add( "namespace", namespace )
             .add( "attribute", attribute )
             .add( "simple", simple )
-            .add( "collectionLike", collection )
-            .add( "mapLike", map )
+            .add( "collection", collection )
             .add( "owner", owner )
             .add( "identifiableObject", identifiableObject )
             .add( "nameableObject", nameableObject )
