@@ -223,7 +223,7 @@ class EnrollmentAnalyticsManagerTest extends
     void verifyGetEventsWithProgramStatusParam()
     {
         mockEmptyRowSet();
-        // maikel
+
         EventQueryParams params = createRequestParamsWithStatuses();
 
         subject.getEnrollments( params, new ListGrid(), 10000 );
