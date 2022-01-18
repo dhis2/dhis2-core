@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.common;
 
+import java.util.Set;
+
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -38,5 +40,7 @@ import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteria
 @NoArgsConstructor
 public class DimensionsCriteria extends PagingAndSortingCriteriaAdapter
 {
-    private String filter;
+    private Set<String> filter;
+
+    private boolean paging = true;
 }
