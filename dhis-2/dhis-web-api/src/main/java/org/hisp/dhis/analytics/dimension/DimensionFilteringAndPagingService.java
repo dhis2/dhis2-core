@@ -95,7 +95,7 @@ public class DimensionFilteringAndPagingService
 
         pagingWrapper = pagingWrapper.withInstances( objectNodes );
 
-        if ( dimensionsCriteria.isPagingRequest() )
+        if ( dimensionsCriteria.isPaging() )
         {
             pagingWrapper = pagingWrapper.withPager( PagingWrapper.Pager.builder()
                 .page( Optional.ofNullable( dimensionsCriteria.getPage() ).orElse( 1 ) )
