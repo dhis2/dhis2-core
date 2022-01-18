@@ -33,6 +33,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.analytics.dimension.DimensionFilters.EMPTY_DATA_DIMENSION_FILTER;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -47,12 +48,19 @@ class DimensionFiltersTest
     {
 
         DimensionFilters dimensionFilters = DimensionFilters
-            .of( "unsupportedField:eq:1;name:unsupportedOperator:3;failingToParseFilter;name:eq:test" );
+            .of( List.of(
+                "unsupportedField:eq:1",
+                "name:unsupportedOperator:3",
+                "failingToParseFilter",
+                "name:eq:test" ) );
 
         assertThat( dimensionFilters.getFilters(), hasSize( 1 ) );
 
         DimensionFilters anotherDimensionFilters = DimensionFilters
-            .of( "unsupportedField:eq:1;name:unsupportedOperator:3;failingToParseFilter;" );
+            .of( List.of(
+                "unsupportedField:eq:1",
+                "name:unsupportedOperator:3",
+                "failingToParseFilter;" ) );
 
         assertNull( anotherDimensionFilters.getFilters() );
         assertThat( anotherDimensionFilters, is( EMPTY_DATA_DIMENSION_FILTER ) );
@@ -62,7 +70,11 @@ class DimensionFiltersTest
     void testFields()
     {
         DimensionFilters dimensionFilters = DimensionFilters
-            .of( "name:eq:1;dimensionType:eq:1;displayName:eq:1;displayShortName:eq:1" );
+            .of( List.of(
+                "name:eq:1",
+                "dimensionType:eq:1",
+                "displayName:eq:1",
+                "displayShortName:eq:1" ) );
 
         assertThat( dimensionFilters.getFilters(), hasSize( 4 ) );
     }
@@ -84,27 +96,27 @@ class DimensionFiltersTest
     {
 
         assertFilter(
-            DimensionFilters.of( field + ":eq:TeSt" ),
+            DimensionFilters.of( List.of( field + ":eq:TeSt" ) ),
             dimensionBuilder.apply( DimensionResponse.builder() ).build(),
             Boolean.TRUE );
 
         assertFilter(
-            DimensionFilters.of( field + ":eq:tEsT" ),
+            DimensionFilters.of( List.of( field + ":eq:tEsT" ) ),
             dimensionBuilder.apply( DimensionResponse.builder() ).build(),
             Boolean.TRUE );
 
         assertFilter(
-            DimensionFilters.of( field + ":like:eSt" ),
+            DimensionFilters.of( List.of( field + ":like:eSt" ) ),
             dimensionBuilder.apply( DimensionResponse.builder() ).build(),
             Boolean.TRUE );
 
         assertFilter(
-            DimensionFilters.of( field + ":like:eST" ),
+            DimensionFilters.of( List.of( field + ":like:eST" ) ),
             dimensionBuilder.apply( DimensionResponse.builder() ).build(),
             Boolean.FALSE );
 
         assertFilter(
-            DimensionFilters.of( field + ":ilike:eST" ),
+            DimensionFilters.of( List.of( field + ":ilike:eST" ) ),
             dimensionBuilder.apply( DimensionResponse.builder() ).build(),
             Boolean.TRUE );
     }
