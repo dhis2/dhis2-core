@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.tracker.validation;
 
-import static org.hisp.dhis.tracker.validation.hooks.AssertTrackerValidationReport.hasError;
-import static org.hisp.dhis.tracker.validation.hooks.AssertTrackerValidationReport.hasWarning;
+import static org.hisp.dhis.tracker.validation.hooks.AssertTrackerValidationReport.assertHasError;
+import static org.hisp.dhis.tracker.validation.hooks.AssertTrackerValidationReport.assertHasWarning;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -227,7 +227,7 @@ class DefaultTrackerValidationServiceTest
 
         assertTrue( report.hasErrors() );
         assertEquals( 1, report.getErrors().size(), "only remove on error hook should add 1 error" );
-        hasError( report, TrackerErrorCode.E1032, invalidEvent );
+        assertHasError( report, TrackerErrorCode.E1032, invalidEvent );
 
         assertFalse( bundle.getEvents().contains( invalidEvent ) );
         assertTrue( bundle.getEvents().contains( validEvent ) );
@@ -265,8 +265,8 @@ class DefaultTrackerValidationServiceTest
 
         assertTrue( report.hasErrors() );
         assertEquals( 2, report.getErrors().size(), "both hooks should add 1 error each" );
-        hasError( report, TrackerErrorCode.E1032, invalidEvent );
-        hasError( report, TrackerErrorCode.E9999, invalidEvent );
+        assertHasError( report, TrackerErrorCode.E1032, invalidEvent );
+        assertHasError( report, TrackerErrorCode.E9999, invalidEvent );
 
         assertFalse( bundle.getEvents().contains( invalidEvent ) );
         assertTrue( bundle.getEvents().contains( validEvent ) );
@@ -295,7 +295,7 @@ class DefaultTrackerValidationServiceTest
         TrackerValidationReport report = service.validate( bundle );
 
         assertTrue( report.hasErrors() );
-        hasError( report, TrackerErrorCode.E1032, invalidEvent );
+        assertHasError( report, TrackerErrorCode.E1032, invalidEvent );
 
         assertFalse( bundle.getEvents().contains( invalidEvent ) );
         assertTrue( bundle.getEvents().contains( validEvent ) );
@@ -322,7 +322,7 @@ class DefaultTrackerValidationServiceTest
         TrackerValidationReport report = service.validate( bundle );
 
         assertTrue( report.hasErrors() );
-        hasError( report, TrackerErrorCode.E1032, invalidEvent );
+        assertHasError( report, TrackerErrorCode.E1032, invalidEvent );
     }
 
     @Test
@@ -365,7 +365,7 @@ class DefaultTrackerValidationServiceTest
         TrackerValidationReport report = service.validate( bundle );
 
         assertTrue( report.hasErrors() );
-        hasError( report, TrackerErrorCode.E1032, invalidEvent );
+        assertHasError( report, TrackerErrorCode.E1032, invalidEvent );
     }
 
     @Test
@@ -393,7 +393,7 @@ class DefaultTrackerValidationServiceTest
         assertFalse( report.hasErrors() );
         assertTrue( report.hasWarnings() );
         assertEquals( 1, report.getWarnings().size() );
-        hasWarning( report, TrackerErrorCode.E1120, validEvent );
+        assertHasWarning( report, TrackerErrorCode.E1120, validEvent );
 
         assertTrue( bundle.getEvents().contains( validEvent ) );
     }
@@ -435,9 +435,9 @@ class DefaultTrackerValidationServiceTest
 
         assertTrue( report.hasErrors() );
         assertEquals( 3, report.getErrors().size() );
-        hasError( report, TrackerErrorCode.E1090, invalidTrackedEntity );
-        hasError( report, TrackerErrorCode.E1069, invalidEnrollment );
-        hasError( report, TrackerErrorCode.E1032, invalidEvent );
+        assertHasError( report, TrackerErrorCode.E1090, invalidTrackedEntity );
+        assertHasError( report, TrackerErrorCode.E1069, invalidEnrollment );
+        assertHasError( report, TrackerErrorCode.E1032, invalidEvent );
 
         assertTrue( bundle.getTrackedEntities().isEmpty() );
         assertTrue( bundle.getEnrollments().isEmpty() );

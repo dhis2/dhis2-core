@@ -37,12 +37,12 @@ import org.hisp.dhis.tracker.report.TrackerValidationReport;
 public class AssertTrackerValidationReport
 {
 
-    public static void hasError( TrackerValidationReport report, TrackerErrorCode code, TrackerDto dto )
+    public static void assertHasError( TrackerValidationReport report, TrackerErrorCode code, TrackerDto dto )
     {
-        hasError( report, code, dto.getTrackerType(), dto.getUid() );
+        assertHasError( report, code, dto.getTrackerType(), dto.getUid() );
     }
 
-    public static void hasError( TrackerValidationReport report, TrackerErrorCode code, TrackerType type,
+    public static void assertHasError( TrackerValidationReport report, TrackerErrorCode code, TrackerType type,
         String uid )
     {
         assertTrue( report.hasErrors(), "error not found since report has no errors" );
@@ -54,12 +54,12 @@ public class AssertTrackerValidationReport
                 uid, report.size() ) );
     }
 
-    public static void hasWarning( TrackerValidationReport report, TrackerErrorCode code, TrackerDto dto )
+    public static void assertHasWarning( TrackerValidationReport report, TrackerErrorCode code, TrackerDto dto )
     {
-        hasWarning( report, code, dto.getTrackerType(), dto.getUid() );
+        assertHasWarning( report, code, dto.getTrackerType(), dto.getUid() );
     }
 
-    public static void hasWarning( TrackerValidationReport report, TrackerErrorCode code, TrackerType type,
+    public static void assertHasWarning( TrackerValidationReport report, TrackerErrorCode code, TrackerType type,
         String uid )
     {
         assertTrue( report.hasWarnings(), "warning not found since report has no warnings" );
