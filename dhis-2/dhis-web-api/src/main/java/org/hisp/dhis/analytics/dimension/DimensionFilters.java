@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.dimension;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -61,13 +60,13 @@ public class DimensionFilters implements Predicate<DimensionResponse>
 
     private Collection<SingleFilter> filters;
 
-    public static DimensionFilters of( String filterString )
+    public static DimensionFilters of( Collection<String> filterStrings )
     {
-        if ( Objects.isNull( filterString ) || filterString.trim().equals( "" ) )
+        if ( Objects.isNull( filterStrings ) || filterStrings.isEmpty() )
         {
             return EMPTY_DATA_DIMENSION_FILTER;
         }
-        List<SingleFilter> filters = Arrays.stream( filterString.split( ";" ) )
+        List<SingleFilter> filters = filterStrings.stream()
             .map( String::trim )
             .map( SingleFilter::of )
             .filter( Objects::nonNull )

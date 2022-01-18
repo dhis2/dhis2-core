@@ -61,10 +61,6 @@ public class TrackerTrigramIndexJobParameters
 
     private boolean skipIndexDeletion = false;
 
-    private boolean runVacuum = false;
-
-    private boolean runAnalyze = false;
-
     @JsonProperty
     @JacksonXmlElementWrapper( localName = "attributes", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "attributes", namespace = DxfNamespaces.DXF_2_0 )
@@ -89,30 +85,6 @@ public class TrackerTrigramIndexJobParameters
     public void setSkipIndexDeletion( boolean skipIndexDeletion )
     {
         this.skipIndexDeletion = skipIndexDeletion;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isRunVacuum()
-    {
-        return runVacuum;
-    }
-
-    public void setRunVacuum( boolean runVacuum )
-    {
-        this.runVacuum = runVacuum;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isRunAnalyze()
-    {
-        return runAnalyze;
-    }
-
-    public void setRunAnalyze( boolean runAnalyze )
-    {
-        this.runAnalyze = runAnalyze;
     }
 
     @Override

@@ -64,8 +64,8 @@ public class DimensionFilteringAndPagingService
 
     private final DimensionMapperService dimensionMapperService;
 
-    private static final Comparator<DimensionResponse> DEFAULT_COMPARATOR = nullsFirst(
-        comparing( DimensionResponse::getCreated ) );
+    private static final Comparator<DimensionResponse> DEFAULT_COMPARATOR = comparing( DimensionResponse::getCreated,
+        nullsFirst( naturalOrder() ) );
 
     private static final Map<String, Comparator<DimensionResponse>> ORDERING_MAP = Map.of(
         "lastUpdated", comparing( DimensionResponse::getLastUpdated, nullsFirst( naturalOrder() ) ),
@@ -95,7 +95,7 @@ public class DimensionFilteringAndPagingService
 
         pagingWrapper = pagingWrapper.withInstances( objectNodes );
 
-        if ( dimensionsCriteria.isPagingRequest() )
+        if ( dimensionsCriteria.isPaging() )
         {
             pagingWrapper = pagingWrapper.withPager( PagingWrapper.Pager.builder()
                 .page( Optional.ofNullable( dimensionsCriteria.getPage() ).orElse( 1 ) )

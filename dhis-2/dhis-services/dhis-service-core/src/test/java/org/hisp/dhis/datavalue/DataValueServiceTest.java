@@ -310,6 +310,12 @@ class DataValueServiceTest extends DhisSpringTest
                 .getDataValues( new DataExportParams().setDataElements( Sets.newHashSet( dataElementA ) )
                     .setPeriods( Sets.newHashSet( periodA ) ).setOrganisationUnits( Sets.newHashSet( sourceB ) ) )
                 .size() );
+        assertEquals( 1,
+            dataValueService
+                .getDataValues( new DataExportParams().setDataElements( Sets.newHashSet( dataElementA ) )
+                    .setStartDate( periodA.getStartDate() ).setEndDate( periodA.getEndDate() )
+                    .setOrganisationUnits( Sets.newHashSet( sourceB ) ) )
+                .size() );
     }
 
     @Test

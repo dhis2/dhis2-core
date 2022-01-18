@@ -34,6 +34,7 @@ import static org.mockito.Mockito.*;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -90,7 +91,7 @@ public class DimensionFilteringAndPagingServiceTest
     public void testFiltering()
     {
         DimensionsCriteria criteria = new DimensionsCriteria();
-        criteria.setFilter( "name:eq:test" );
+        criteria.setFilter( Set.of( "name:eq:test" ) );
 
         PagingWrapper<ObjectNode> pagingWrapper = service.pageAndFilter(
             Collections.emptyList(),

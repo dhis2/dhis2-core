@@ -25,76 +25,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
 
-import java.util.Date;
-import java.util.Set;
+package org.hisp.dhis.dto;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-import org.hisp.dhis.analytics.SortOrder;
-import org.hisp.dhis.program.ProgramStatus;
+import java.util.List;
 
 /**
- * @author Jan Bernitt
+ * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-@Data
-@NoArgsConstructor
-public class EnrollmentAnalyticsQueryCriteria
+public class Program
 {
-    private Date startDate;
+    private String uid;
+    private List<String> programStages;
 
-    private Date endDate;
 
-    private String timeField;
+    public String getUid()
+    {
+        return uid;
+    }
 
-    private Set<String> dimension;
+    public Program setUid( String uid )
+    {
+        this.uid = uid;
 
-    private Set<String> filter;
+        return this;
+    }
 
-    /**
-     * This parameter selects the headers to be returned as part of the
-     * response. The implementation for this Set will be LinkedHashSet as the
-     * ordering is important.
-     */
-    private Set<String> headers;
+    public List<String> getProgramStages()
+    {
+        return programStages;
+    }
 
-    private OrganisationUnitSelectionMode ouMode;
+    public Program setProgramStages( List<String> programStages )
+    {
+        this.programStages = programStages;
 
-    private Set<String> asc;
-
-    private Set<String> desc;
-
-    private boolean skipMeta;
-
-    private boolean skipData;
-
-    private boolean completedOnly;
-
-    private boolean hierarchyMeta;
-
-    private boolean coordinatesOnly;
-
-    private boolean includeMetadataDetails;
-
-    private IdScheme dataIdScheme;
-
-    private ProgramStatus programStatus;
-
-    private Integer page;
-
-    private Integer pageSize;
-
-    private boolean paging;
-
-    private DisplayProperty displayProperty;
-
-    private Date relativePeriodDate;
-
-    private String userOrgUnit;
-
-    private String coordinateField;
-
-    private SortOrder sortOrder;
+        return this;
+    }
 }
