@@ -255,18 +255,18 @@ class EventDataValuesValidationHookTest
         mandatoryStageDataElement.setCompulsory( true );
 
         DataValue notPresentDataValue = getDataValue();
-        notPresentDataValue.setDataElement( "de_not_present_in_progam_stage" );
+        notPresentDataValue.setDataElement( "de_not_present_in_program_stage" );
 
         DataElement notPresentDataElement = new DataElement();
         notPresentDataElement.setValueType( ValueType.TEXT );
-        notPresentDataElement.setUid( "de_not_present_in_progam_stage" );
+        notPresentDataElement.setUid( "de_not_present_in_program_stage" );
 
         programStage.setProgramStageDataElements( Sets.newHashSet( mandatoryStageDataElement ) );
         when( event.getDataValues() ).thenReturn( Sets.newHashSet( getDataValue(), notPresentDataValue ) );
         when( event.getProgramStage() ).thenReturn( "PROGRAM_STAGE" );
         when( event.getStatus() ).thenReturn( EventStatus.ACTIVE );
         when( validationContext.getProgramStage( "PROGRAM_STAGE" ) ).thenReturn( programStage );
-        when( validationContext.getDataElement( "de_not_present_in_progam_stage" ) )
+        when( validationContext.getDataElement( "de_not_present_in_program_stage" ) )
             .thenReturn( notPresentDataElement );
 
         // When
@@ -691,7 +691,7 @@ class EventDataValuesValidationHookTest
     private HashSet<ProgramStageDataElement> getProgramStageDataElements( DataElement validDataElement,
         ProgramStage programStage, boolean compulsory )
     {
-        return new HashSet<ProgramStageDataElement>()
+        return new HashSet<>()
         {
             {
 
