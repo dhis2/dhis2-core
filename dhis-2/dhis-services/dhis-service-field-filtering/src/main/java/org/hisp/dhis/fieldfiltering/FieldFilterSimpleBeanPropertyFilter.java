@@ -73,7 +73,7 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
             return false;
         }
 
-        if ( Map.class.isAssignableFrom( pathValue.getValue().getClass() ) )
+        if ( pathValue.isInsideMap() || Map.class.isAssignableFrom( pathValue.getValue().getClass() ) )
         {
             return true;
         }
@@ -96,6 +96,7 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
         StringBuilder nestedPath = new StringBuilder();
         JsonStreamContext sc = jgen.getOutputContext();
         Object value = null;
+        boolean isInsideMap = false;
 
         if ( sc != null )
         {
@@ -109,6 +110,7 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
             if ( sc.getCurrentValue() != null && Map.class.isAssignableFrom( sc.getCurrentValue().getClass() ) )
             {
                 sc = sc.getParent();
+                isInsideMap = true;
                 continue;
             }
 
@@ -121,7 +123,7 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
             sc = sc.getParent();
         }
 
-        return new PathValue( nestedPath.toString(), value );
+        return new PathValue( nestedPath.toString(), value, isInsideMap );
     }
 
     @Override
@@ -146,4 +148,6 @@ class PathValue
     private final String path;
 
     private final Object value;
+
+    private final boolean insideMap;
 }
