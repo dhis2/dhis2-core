@@ -59,7 +59,7 @@ public interface EnrollmentAnalyticsService
 
     String ITEM_ORG_UNIT_CODE = "oucode";
 
-    String ITEM_ORG_UNIT_ID = "ou";
+    String ITEM_PROGRAM_STATUS = "programstatus";
 
     /**
      * Returns a list of enrollments matching the given query.
