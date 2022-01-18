@@ -39,4 +39,6 @@ import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteria
 public class DimensionsCriteria extends PagingAndSortingCriteriaAdapter
 {
     private String filter;
+
+    private boolean paging = true;
 }
