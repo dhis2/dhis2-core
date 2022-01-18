@@ -321,7 +321,8 @@ public enum ErrorCode
     E7226( "Dimension is not a valid query item: `{0}`" ),
     E7227( "Relationship entity type not supported: `{0}`" ),
     E7228( "Fallback coordinate field is invalid: `{0}` " ),
-    E7229( "Operator '{0}' does not allow missing value" ),
+    E7229( "Operator `{0}` does not allow missing value" ),
+    E7230( "Header param `{0}` does not exist" ),
 
     /* Org unit analytics */
     E7300( "At least one organisation unit must be specified" ),
