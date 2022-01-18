@@ -304,7 +304,7 @@ class DefaultTrackerValidationServiceTest
     }
 
     @Test
-    void needsToRunDoesNotPreventHookExecutionOnImportStrategyDeleteByDefault()
+    void needsToRunPreventsHookExecutionOnImportStrategyDeleteByDefault()
     {
         Event invalidEvent = event();
 
@@ -312,6 +312,9 @@ class DefaultTrackerValidationServiceTest
             .importStrategy( TrackerImportStrategy.DELETE )
             .events( events( invalidEvent ) )
             .build();
+        // StrategyPreProcessor sets the ImportStrategy in the bundle for every
+        // dto
+        bundle.setStrategy( invalidEvent, TrackerImportStrategy.DELETE );
 
         ValidationHook hook1 = ValidationHook.builder()
             .validateEvent( ( reporter, event ) -> reporter.addErrorIf( () -> invalidEvent.equals( event ), event,
@@ -321,8 +324,7 @@ class DefaultTrackerValidationServiceTest
 
         TrackerValidationReport report = service.validate( bundle );
 
-        assertTrue( report.hasErrors() );
-        assertHasError( report, TrackerErrorCode.E1032, invalidEvent );
+        assertFalse( report.hasErrors() );
     }
 
     @Test
