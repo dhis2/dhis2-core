@@ -2,12 +2,13 @@ package org.hisp.dhis.actions.metadata;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import org.apache.commons.lang3.StringUtils;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.utils.DataGenerator;
-import org.hisp.dhis.utils.JsonObjectBuilder;
 
 import java.util.Optional;
 
@@ -40,20 +41,12 @@ public class ProgramActions
 
     public ApiResponse createEventProgram( String... orgUnitsIds )
     {
-        String programStageId = createProgramStage( "DEFAULT STAGE" );
+        JsonObject body = new JsonObjectBuilder( buildProgram( "WITHOUT_REGISTRATION", null, orgUnitsIds ) ).build();
+        ApiResponse response = post( body );
 
-        JsonObject body = getDummy( "WITHOUT_REGISTRATION", orgUnitsIds );
+        createProgramStage( response.extractUid(), "DEFAULT STAGE" );
 
-        JsonArray programStages = new JsonArray();
-
-        JsonObject programStage = new JsonObject();
-        programStage.addProperty( "id", programStageId );
-
-        programStages.add( programStage );
-
-        body.add( "programStages", programStages );
-
-        return post( body );
+        return response;
     }
 
     public ApiResponse createProgram( String programType, String... orgUnitIds )
@@ -78,14 +71,21 @@ public class ProgramActions
         return update( programId, body );
     }
 
-    public String createProgramStage( String name )
+    /**
+     * Creates a program stage and links it to the program.
+     *
+     * @param programId
+     * @param programStageName
+     * @return program stage id
+     */
+    public String createProgramStage( String programId, String programStageName )
     {
-        JsonObject body = new JsonObject();
-
-        body.addProperty( "name", name );
-
-        ApiResponse response = programStageActions.post( body );
-        response.validate().statusCode( Matchers.isOneOf( 201, 200 ) );
+        JsonObjectBuilder builder = new JsonObjectBuilder();
+        ApiResponse response = programStageActions
+            .post( new JsonObjectBuilder().addProperty( "name", programStageName ).
+                addObject( "program" , new JsonObjectBuilder().addProperty( "id", programId ))
+                .addProperty( "publicAccess", "rwrw----" ).build() );
+        response.validate().statusCode( Matchers.is( Matchers.oneOf( 201, 200 ) ) );
 
         return response.extractUid();
     }
@@ -167,6 +167,39 @@ public class ProgramActions
         object.add( "organisationUnits", orgUnits );
 
         return object;
+    }
+
+    public JsonObject buildProgram()
+    {
+        String random = DataGenerator.randomString();
+        JsonObject object = JsonObjectBuilder.jsonObject()
+            .addProperty( "name", "AutoTest program " + random )
+            .addProperty( "shortName", "AutoTest program " + random )
+            .addUserGroupAccess()
+            .addProperty( "publicAccess", "rwrw----" )
+            .build();
+        return object;
+    }
+    public JsonObject buildProgram( String programType )
+    {
+        return new JsonObjectBuilder( buildProgram() )
+            .addProperty( "programType", programType )
+            .addProperty( "publicAccess", "rwrw----" )
+            .build();
+    }
+    public JsonObject buildProgram( String programType, String trackedEntityTypeId, String... orgUnitIds )
+    {
+        JsonObjectBuilder builder = new JsonObjectBuilder( buildProgram( programType ) );
+        for ( String ouid : orgUnitIds )
+        {
+            builder.addOrAppendToArray( "organisationUnits", new JsonObjectBuilder()
+                .addProperty( "id", ouid ).build() );
+        }
+        if ( !StringUtils.isEmpty( trackedEntityTypeId ) )
+        {
+            builder.addObject( "trackedEntityType", new JsonObjectBuilder().addProperty( "id", trackedEntityTypeId ) ).build();
+        }
+        return builder.build();
     }
 
 }
