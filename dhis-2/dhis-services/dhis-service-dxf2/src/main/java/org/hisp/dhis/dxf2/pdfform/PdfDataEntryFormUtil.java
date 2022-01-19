@@ -79,6 +79,8 @@ public class PdfDataEntryFormUtil
 
     public static final String LABELCODE_PROGRAMSTAGEIDTEXTBOX = "TXPSTGID_";
 
+    public static final String LABELCODE_OPTIONID = LABELCODE_TEXTFIELD + "OptionID";
+
     // Cell Related
 
     private static final Color COLOR_CELLBORDER = Color.getHSBColor( 0.0f, 0.0f, 0.863f );

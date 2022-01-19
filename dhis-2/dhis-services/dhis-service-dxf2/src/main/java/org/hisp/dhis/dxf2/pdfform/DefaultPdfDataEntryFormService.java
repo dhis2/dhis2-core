@@ -30,15 +30,14 @@ package org.hisp.dhis.dxf2.pdfform;
 import java.awt.*;
 import java.io.IOException;
 import java.text.ParseException;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
+import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.ValueType;
@@ -528,20 +527,61 @@ public class DefaultPdfDataEntryFormService
     }
 
     private void insertAttributeOptionCombos( PdfPTable mainTable, PdfWriter writer, DataSet dataset, User currentUser )
+        throws IOException,
+        DocumentException
     {
+        boolean hasBorder = false;
+        float width = 220.0f;
+
+        // Input TextBox size
+        Rectangle rectangle = new Rectangle( width, PdfDataEntryFormUtil.CONTENT_HEIGHT_DEFAULT );
+
+        // Add Organization ID/Period textfield
+        // Create A table to add for each group AT HERE
+        PdfPTable table = new PdfPTable( 2 ); // Code 1
+        table.setWidths( new int[] { 1, 3 } );
+        table.setHorizontalAlignment( Element.ALIGN_LEFT );
+
         CategoryCombo catCombo = dataset.getCategoryCombo();
-
-        catCombo.getCategories().forEach( cat -> {
-            List<CategoryOption> categoryOptions = new ArrayList<>(
-                categoryService.getDataWriteCategoryOptions( cat, currentUser ) );
-            Collections.sort( categoryOptions );
-
-        } );
-
         Set<CategoryOptionCombo> optionCombos = catCombo.getOptionCombos();
 
-        optionCombos.forEach( categoryOptionCombo -> {
+        for ( Category category : catCombo.getCategories() )
+        {
+            if ( category.isDefault() )
+                continue;
 
+            addCell_Text( table, PdfDataEntryFormUtil.getPdfPCell( hasBorder ), category.getDisplayName(),
+                Element.ALIGN_RIGHT );
+
+            List<String> optionLabels = category.getCategoryOptions().stream().map( option -> option.getDisplayName() )
+                .collect(
+                    Collectors.toList() );
+            List<String> optionValues = category.getCategoryOptions().stream().map( option -> option.getUid() ).collect(
+                Collectors.toList() );
+
+            addCell_WithDropDownListField( table, rectangle, writer, PdfDataEntryFormUtil.getPdfPCell( hasBorder ),
+                category.getUid() + "-optionID", optionLabels.toArray( new String[optionLabels.size()] ),
+                optionValues.toArray( new String[optionValues.size()] ) );
+        }
+
+        // Add to the main table
+        PdfPCell cell_withInnerTable = new PdfPCell( table );
+        // cell_withInnerTable.setPadding(0);
+        cell_withInnerTable.setBorder( Rectangle.NO_BORDER );
+
+        cell_withInnerTable.setHorizontalAlignment( Element.ALIGN_LEFT );
+
+        mainTable.addCell( cell_withInnerTable );
+
+        // catCombo.getCategories().forEach( cat -> {
+        //
+        //// List<CategoryOption> categoryOptions = new ArrayList<>(
+        //// categoryService.getDataWriteCategoryOptions( cat, currentUser ) );
+        //// Collections.sort( categoryOptions );
+        // } );
+
+        optionCombos.forEach( categoryOptionCombo -> {
+            // categoryOptionCombo.getCategoryOptions().
         } );
 
     }
