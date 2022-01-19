@@ -101,7 +101,8 @@ public class EventDataValuesValidationHook
             final List<String> mandatoryDataElements = programStage.getProgramStageDataElements()
                 .stream()
                 .filter( ProgramStageDataElement::isCompulsory )
-                .map( de -> de.getDataElement().getUid() )
+                .map( de -> context.getIdentifiers().getDataElementIdScheme()
+                    .getIdentifier( de.getDataElement() ) )
                 .collect( Collectors.toList() );
             List<String> missingDataValue = validateMandatoryDataValue( programStage, event,
                 mandatoryDataElements );

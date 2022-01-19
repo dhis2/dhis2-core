@@ -89,6 +89,8 @@ class EventDataValuesValidationHookTest
     @Test
     void successValidationWhenDataElementIsValid()
     {
+        setUpIdentifiers();
+
         DataElement dataElement = dataElement();
         when( context.getDataElement( dataElementUid ) ).thenReturn( dataElement );
 
@@ -110,6 +112,8 @@ class EventDataValuesValidationHookTest
     @Test
     void successValidationWhenCreatedAtIsNull()
     {
+        setUpIdentifiers();
+
         DataElement dataElement = dataElement();
         when( context.getDataElement( dataElementUid ) ).thenReturn( dataElement );
 
@@ -133,6 +137,8 @@ class EventDataValuesValidationHookTest
     @Test
     void failValidationWhenUpdatedAtIsNull()
     {
+        setUpIdentifiers();
+
         DataElement dataElement = dataElement();
         when( context.getDataElement( dataElementUid ) ).thenReturn( dataElement );
 
@@ -156,6 +162,8 @@ class EventDataValuesValidationHookTest
     @Test
     void failValidationWhenDataElementIsInvalid()
     {
+        setUpIdentifiers();
+
         DataElement dataElement = dataElement();
         when( context.getDataElement( dataElementUid ) ).thenReturn( null );
 
@@ -178,6 +186,8 @@ class EventDataValuesValidationHookTest
     @Test
     void failValidationWhenAMandatoryDataElementIsMissing()
     {
+        setUpIdentifiers();
+
         DataElement dataElement = dataElement();
         when( context.getDataElement( dataElementUid ) ).thenReturn( dataElement );
 
@@ -209,8 +219,10 @@ class EventDataValuesValidationHookTest
     }
 
     @Test
-    void failSuccessWhenMandatoryDataElementIsNotPresentButMandatoryValidationIsNotNeeded()
+    void succeedsWhenMandatoryDataElementIsNotPresentButMandatoryValidationIsNotNeeded()
     {
+        setUpIdentifiers();
+
         DataElement dataElement = dataElement();
         when( context.getDataElement( dataElementUid ) ).thenReturn( dataElement );
 
@@ -241,8 +253,42 @@ class EventDataValuesValidationHookTest
     }
 
     @Test
+    void succeedsWhenMandatoryDataElementIsPartOfProgramStageAndIdSchemeIsSetToCode()
+    {
+        TrackerIdentifierParams params = TrackerIdentifierParams.builder()
+            .idScheme( TrackerIdentifier.CODE )
+            .programIdScheme( TrackerIdentifier.UID )
+            .programStageIdScheme( TrackerIdentifier.UID )
+            .dataElementIdScheme( TrackerIdentifier.CODE )
+            .build();
+        when( context.getIdentifiers() ).thenReturn( params );
+
+        DataElement dataElement = dataElement();
+        dataElement.setCode( "DE_424050" );
+        when( context.getDataElement( dataElement.getCode() ) ).thenReturn( dataElement );
+
+        ProgramStage programStage = programStage( dataElement, true );
+        when( context.getProgramStage( programStageUid ) ).thenReturn( programStage );
+
+        ValidationErrorReporter reporter = new ValidationErrorReporter( context );
+
+        DataValue dataValue = dataValue();
+        dataValue.setDataElement( "DE_424050" );
+        Event event = Event.builder()
+            .programStage( programStage.getUid() )
+            .status( EventStatus.COMPLETED )
+            .dataValues( Set.of( dataValue ) ).build();
+
+        hook.validateEvent( reporter, event );
+
+        assertFalse( reporter.hasErrors() );
+    }
+
+    @Test
     void failValidationWhenDataElementIsNotPresentInProgramStage()
     {
+        setUpIdentifiers();
+
         DataElement dataElement = dataElement();
         when( context.getDataElement( dataElementUid ) ).thenReturn( dataElement );
 
@@ -310,6 +356,8 @@ class EventDataValuesValidationHookTest
     @Test
     void failValidationWhenDataElementValueTypeIsNull()
     {
+        setUpIdentifiers();
+
         DataElement dataElement = dataElement();
         DataElement invalidDataElement = dataElement( null );
         when( context.getDataElement( dataElementUid ) ).thenReturn( invalidDataElement );
@@ -334,6 +382,8 @@ class EventDataValuesValidationHookTest
     @Test
     void failValidationWhenFileResourceIsNull()
     {
+        setUpIdentifiers();
+
         DataElement validDataElement = dataElement( ValueType.FILE_RESOURCE );
         when( context.getDataElement( dataElementUid ) ).thenReturn( validDataElement );
 
@@ -360,6 +410,8 @@ class EventDataValuesValidationHookTest
     @Test
     void successValidationWhenFileResourceValueIsNullAndDataElementIsNotCompulsory()
     {
+        setUpIdentifiers();
+
         DataElement validDataElement = dataElement( ValueType.FILE_RESOURCE );
         when( context.getDataElement( dataElementUid ) ).thenReturn( validDataElement );
 
@@ -384,6 +436,7 @@ class EventDataValuesValidationHookTest
     @Test
     void failValidationWhenFileResourceValueIsNullAndDataElementIsCompulsory()
     {
+        setUpIdentifiers();
 
         DataElement validDataElement = dataElement( ValueType.FILE_RESOURCE );
         when( context.getDataElement( dataElementUid ) ).thenReturn( validDataElement );
@@ -410,6 +463,8 @@ class EventDataValuesValidationHookTest
     @Test
     void failsOnActiveEventWithDataElementValueNullAndValidationStrategyOnUpdate()
     {
+        setUpIdentifiers();
+
         DataElement validDataElement = dataElement();
         when( context.getDataElement( dataElementUid ) ).thenReturn( validDataElement );
 
@@ -436,6 +491,8 @@ class EventDataValuesValidationHookTest
     @Test
     void failsOnCompletedEventWithDataElementValueNullAndValidationStrategyOnUpdate()
     {
+        setUpIdentifiers();
+
         DataElement validDataElement = dataElement();
         when( context.getDataElement( dataElementUid ) ).thenReturn( validDataElement );
 
@@ -462,6 +519,8 @@ class EventDataValuesValidationHookTest
     @Test
     void succeedsOnActiveEventWithDataElementValueIsNullAndValidationStrategyOnComplete()
     {
+        setUpIdentifiers();
+
         DataElement validDataElement = dataElement();
         when( context.getDataElement( dataElementUid ) ).thenReturn( validDataElement );
 
@@ -487,6 +546,8 @@ class EventDataValuesValidationHookTest
     @Test
     void failsOnCompletedEventWithDataElementValueIsNullAndValidationStrategyOnComplete()
     {
+        setUpIdentifiers();
+
         DataElement validDataElement = dataElement();
         when( context.getDataElement( dataElementUid ) ).thenReturn( validDataElement );
 
@@ -513,6 +574,8 @@ class EventDataValuesValidationHookTest
     @Test
     void succeedsOnScheduledEventWithDataElementValueIsNullAndEventStatusSkippedOrScheduled()
     {
+        setUpIdentifiers();
+
         DataElement validDataElement = dataElement();
         when( context.getDataElement( dataElementUid ) ).thenReturn( validDataElement );
 
@@ -537,6 +600,8 @@ class EventDataValuesValidationHookTest
     @Test
     void succeedsOnSkippedEventWithDataElementValueIsNullAndEventStatusSkippedOrScheduled()
     {
+        setUpIdentifiers();
+
         DataElement validDataElement = dataElement();
         when( context.getDataElement( dataElementUid ) ).thenReturn( validDataElement );
 
@@ -561,6 +626,8 @@ class EventDataValuesValidationHookTest
     @Test
     void successValidationWhenDataElementIsNullAndDataElementIsNotCompulsory()
     {
+        setUpIdentifiers();
+
         DataElement validDataElement = dataElement();
         when( context.getDataElement( dataElementUid ) ).thenReturn( validDataElement );
 
@@ -585,6 +652,8 @@ class EventDataValuesValidationHookTest
     @Test
     void failValidationWhenFileResourceIsAlreadyAssigned()
     {
+        setUpIdentifiers();
+
         DataElement validDataElement = dataElement( ValueType.FILE_RESOURCE );
         when( context.getDataElement( dataElementUid ) ).thenReturn( validDataElement );
 
@@ -631,10 +700,10 @@ class EventDataValuesValidationHookTest
     @Test
     void successValidationDataElementOptionValueIsValid()
     {
-        DataValue validDataValue = dataValue();
-        validDataValue.setValue( "code" );
-        DataValue nullDataValue = dataValue();
-        nullDataValue.setValue( null );
+        setUpIdentifiers();
+
+        DataValue validDataValue = dataValue( "code" );
+        DataValue nullDataValue = dataValue( null );
 
         OptionSet optionSet = new OptionSet();
         Option option = new Option();
@@ -666,6 +735,8 @@ class EventDataValuesValidationHookTest
     @Test
     void failValidationDataElementOptionValueIsInValid()
     {
+        setUpIdentifiers();
+
         DataValue validDataValue = dataValue( "value" );
         validDataValue.setDataElement( dataElementUid );
 
@@ -701,6 +772,8 @@ class EventDataValuesValidationHookTest
 
     private void runAndAssertValidationForDataValue( ValueType valueType, String value )
     {
+        setUpIdentifiers();
+
         DataElement invalidDataElement = dataElement( valueType );
         when( context.getDataElement( dataElementUid ) ).thenReturn( invalidDataElement );
 
@@ -722,6 +795,17 @@ class EventDataValuesValidationHookTest
 
         assertThat( reporter.getReportList(), hasSize( 1 ) );
         assertEquals( TrackerErrorCode.E1302, reporter.getReportList().get( 0 ).getErrorCode() );
+    }
+
+    private void setUpIdentifiers()
+    {
+        TrackerIdentifierParams params = TrackerIdentifierParams.builder()
+            .idScheme( TrackerIdentifier.UID )
+            .programIdScheme( TrackerIdentifier.UID )
+            .programStageIdScheme( TrackerIdentifier.UID )
+            .dataElementIdScheme( TrackerIdentifier.UID )
+            .build();
+        when( context.getIdentifiers() ).thenReturn( params );
     }
 
     @NotNull
