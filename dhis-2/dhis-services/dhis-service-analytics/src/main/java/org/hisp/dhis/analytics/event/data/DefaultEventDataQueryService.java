@@ -201,7 +201,7 @@ public class DefaultEventDataQueryService
             .withIncludeMetadataDetails( request.isIncludeMetadataDetails() )
             .withDataIdScheme( request.getDataIdScheme() )
             .withOutputIdScheme( request.getOutputIdScheme() )
-            .withEventStatus( request.getEventStatus() )
+            .withEventStatuses( request.getEventStatus() )
             .withDisplayProperty( request.getDisplayProperty() )
             .withTimeField( request.getTimeField() )
             .withOrgUnitField( request.getOrgUnitField() )
@@ -211,7 +211,7 @@ public class DefaultEventDataQueryService
             .withPage( request.getPage() )
             .withPageSize( request.getPageSize() )
             .withPaging( request.isPaging() )
-            .withProgramStatus( request.getProgramStatus() )
+            .withProgramStatuses( request.getProgramStatus() )
             .withApiVersion( request.getApiVersion() );
 
         if ( analyzeOnly )

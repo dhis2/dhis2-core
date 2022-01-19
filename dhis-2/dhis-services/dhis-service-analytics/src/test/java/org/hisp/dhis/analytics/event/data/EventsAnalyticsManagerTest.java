@@ -115,7 +115,9 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
 
     private final static String TABLE_NAME = "analytics_event";
 
-    private final static String DEFAULT_COLUMNS_WITH_REGISTRATION = "psi,ps,executiondate,storedby,lastupdated,enrollmentdate,incidentdate,tei,pi,ST_AsGeoJSON(psigeometry, 6) as geometry,longitude,latitude,ouname,oucode";
+    private final static String DEFAULT_COLUMNS_WITH_REGISTRATION = "psi,ps,executiondate,storedby,lastupdated,"
+        + "enrollmentdate,incidentdate,tei,pi,ST_AsGeoJSON(psigeometry, 6) as geometry,longitude,latitude,ouname,"
+        + "oucode,pistatus,psistatus";
 
     @BeforeEach
     public void setUp()
@@ -143,7 +145,8 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
 
         verify( jdbcTemplate ).queryForRowSet( sql.capture() );
 
-        String expected = "select psi,ps,executiondate,storedby,lastupdated,ST_AsGeoJSON(psigeometry, 6) as geometry,longitude,latitude,ouname,oucode,ax.\"monthly\",ax.\"ou\"  from "
+        String expected = "select psi,ps,executiondate,storedby,lastupdated,ST_AsGeoJSON(psigeometry, 6) as geometry,"
+            + "longitude,latitude,ouname,oucode,pistatus,psistatus,ax.\"monthly\",ax.\"ou\"  from "
             + getTable( programA.getUid() )
             + " as ax where ax.\"monthly\" in ('2000Q1') and ax.\"uidlevel1\" in ('ouabcdefghA') limit 101";
 
@@ -164,10 +167,9 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
         verify( jdbcTemplate ).queryForRowSet( sql.capture() );
 
         String expected = "select psi,ps,executiondate,storedby,lastupdated,enrollmentdate,incidentdate,tei,pi,ST_AsGeoJSON(psigeometry, 6) "
-            +
-            "as geometry,longitude,latitude,ouname,oucode,ax.\"monthly\",ax.\"ou\",\"" + dataElement.getUid() + "_name"
-            + "\"  " +
-            "from " + getTable( programA.getUid() )
+            + "as geometry,longitude,latitude,ouname,oucode,pistatus,psistatus,ax.\"monthly\",ax.\"ou\",\""
+            + dataElement.getUid() + "_name"
+            + "\"  " + "from " + getTable( programA.getUid() )
             + " as ax where ax.\"monthly\" in ('2000Q1') and ax.\"uidlevel1\" in ('ouabcdefghA') limit 101";
 
         assertThat( sql.getValue(), is( expected ) );
@@ -240,6 +242,22 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
     }
 
     @Test
+    void verifyGetEventsWithProgramStatusAndEventStatusParams()
+    {
+        mockEmptyRowSet();
+
+        subject.getEvents( createRequestParamsWithStatuses(), createGrid(), 100 );
+
+        verify( jdbcTemplate ).queryForRowSet( sql.capture() );
+
+        String expected = "ax.\"monthly\",ax.\"ou\"  from " + getTable( programA.getUid() )
+            + " as ax where ax.\"monthly\" in ('2000Q1') and ax.\"uidlevel1\" in ('ouabcdefghA')" +
+            " and pistatus in ('ACTIVE','COMPLETED') and psistatus in ('SCHEDULE') limit 101";
+
+        assertSql( expected, sql.getValue() );
+    }
+
+    @Test
     void verifyGetEventsWithMissingValueEqFilter()
     {
         String expected = "ax.\"fWIAEtYVEGk\" is null";
@@ -271,8 +289,7 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
     {
         String numericValues = String.join( OPTION_SEP, "10", "11", "12" );
         String expected = "ax.\"fWIAEtYVEGk\" in (" + String.join( ",", numericValues.split( OPTION_SEP ) ) + ")";
-        testIt( IN,
-            numericValues,
+        testIt( IN, numericValues,
             Collections.singleton( ( capturedSql ) -> assertThat( capturedSql, containsString( expected ) ) ) );
     }
 

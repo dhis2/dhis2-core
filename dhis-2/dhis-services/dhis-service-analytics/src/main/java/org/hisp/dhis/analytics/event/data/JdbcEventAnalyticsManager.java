@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
+import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.time.DateUtils.addYears;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LATITUDE;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LONGITUDE;
@@ -337,7 +338,8 @@ public class JdbcEventAnalyticsManager
             cols.add( "enrollmentdate", "incidentdate", "tei", "pi" );
         }
 
-        cols.add( "ST_AsGeoJSON(psigeometry, 6) as geometry", "longitude", "latitude", "ouname", "oucode" );
+        cols.add( "ST_AsGeoJSON(psigeometry, 6) as geometry", "longitude", "latitude", "ouname", "oucode", "pistatus",
+            "psistatus" );
 
         List<String> selectCols = ListUtils.distinctUnion( cols.build(), getSelectColumns( params ) );
 
@@ -539,12 +541,14 @@ public class JdbcEventAnalyticsManager
 
         if ( params.hasProgramStatus() )
         {
-            sql += hlp.whereAnd() + " pistatus = '" + params.getProgramStatus().name() + "' ";
+            sql += hlp.whereAnd() + " pistatus in ("
+                + params.getProgramStatus().stream().map( p -> "'" + p.name() + "'" ).collect( joining( "," ) ) + ") ";
         }
 
         if ( params.hasEventStatus() )
         {
-            sql += hlp.whereAnd() + " psistatus = '" + params.getEventStatus().name() + "' ";
+            sql += hlp.whereAnd() + " psistatus in ("
+                + params.getEventStatus().stream().map( e -> "'" + e.name() + "'" ).collect( joining( "," ) ) + ") ";
         }
 
         if ( params.isCoordinatesOnly() || params.isGeometryOnly() )
@@ -614,7 +618,7 @@ public class JdbcEventAnalyticsManager
         return collect.keySet()
             .stream()
             .map( org -> toInCondition( org, collect.get( org ) ) )
-            .collect( Collectors.joining( " and " ) );
+            .collect( joining( " and " ) );
     }
 
     private String toInCondition( String org, List<OrganisationUnit> organisationUnits )
@@ -622,7 +626,7 @@ public class JdbcEventAnalyticsManager
         return organisationUnits.stream()
             .filter( unit -> unit.getUid() != null && !unit.getUid().trim().isEmpty() )
             .map( unit -> "'" + unit.getUid() + "'" )
-            .collect( Collectors.joining( ",", org + OPEN_IN, ") " ) );
+            .collect( joining( ",", org + OPEN_IN, ") " ) );
     }
 
     /**

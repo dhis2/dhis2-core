@@ -83,9 +83,9 @@ public class EventDataQueryRequest
 
     private EventOutputType outputType;
 
-    private EventStatus eventStatus;
+    private Set<EventStatus> eventStatus;
 
-    private ProgramStatus programStatus;
+    private Set<ProgramStatus> programStatus;
 
     private boolean collapseDataDimensions;
 
@@ -262,5 +262,4 @@ public class EventDataQueryRequest
                 .sortOrder( criteria.getSortOrder() );
         }
     }
-
 }
