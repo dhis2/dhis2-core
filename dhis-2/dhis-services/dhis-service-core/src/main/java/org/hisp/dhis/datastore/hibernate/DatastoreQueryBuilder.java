@@ -102,7 +102,7 @@ public class DatastoreQueryBuilder
     private String createOrderHQL()
     {
         Order order = query.getOrder();
-        String dir = order.getDirection().name().toLowerCase();
+        String dir = order.getDirection().toString().replace( "n", "" );
         if ( order.isKeyPath() )
         {
             return "key " + dir;
@@ -111,7 +111,10 @@ public class DatastoreQueryBuilder
         {
             return "cast(jbPlainValue as text) " + dir;
         }
-        return toValueAtPathHQL( order.getPath() ) + " " + dir;
+        String path = toValueAtPathHQL( order.getPath() );
+        return order.getDirection().isNumeric()
+            ? "cast(" + path + " as double) " + dir
+            : path + " " + dir;
     }
 
     private String createHasNonNullFieldsFilters()

@@ -110,12 +110,19 @@ public final class DatastoreQuery
     public enum Direction
     {
         ASC,
-        DESC;
+        DESC,
+        NASC,
+        NDESC;
 
         @Override
         public String toString()
         {
             return name().toLowerCase();
+        }
+
+        public boolean isNumeric()
+        {
+            return this == NASC || this == NDESC;
         }
     }
 
