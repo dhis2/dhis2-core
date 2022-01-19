@@ -251,7 +251,7 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
             + " as ax where ax.\"monthly\" in ('2000Q1') and ax.\"uidlevel1\" in ('ouabcdefghA')" +
             " and pistatus in ('ACTIVE','COMPLETED') and psistatus in ('SCHEDULE') limit 101";
 
-        assertSql( sql.getValue(), expected );
+        assertSql( expected, sql.getValue() );
     }
 
     @Test
