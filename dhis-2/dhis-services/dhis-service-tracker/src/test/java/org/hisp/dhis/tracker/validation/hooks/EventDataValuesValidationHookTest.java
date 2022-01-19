@@ -54,6 +54,7 @@ import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.util.DateUtils;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -80,16 +81,14 @@ class EventDataValuesValidationHookTest
     public void setUp()
     {
         hook = new EventDataValuesValidationHook();
+
+        when( context.getBundle() ).thenReturn( TrackerBundle.builder().build() );
     }
 
     @Test
     void successValidationWhenDataElementIsValid()
     {
-        when( context.getBundle() ).thenReturn( TrackerBundle.builder().build() );
-
-        DataElement dataElement = new DataElement();
-        dataElement.setValueType( ValueType.TEXT );
-        dataElement.setUid( dataElementUid );
+        DataElement dataElement = dataElement();
         when( context.getDataElement( dataElementUid ) ).thenReturn( dataElement );
 
         ProgramStage programStage = new ProgramStage();
@@ -101,7 +100,7 @@ class EventDataValuesValidationHookTest
         Event event = Event.builder()
             .programStage( programStage.getUid() )
             .status( EventStatus.SKIPPED )
-            .dataValues( Set.of( getDataValue() ) ).build();
+            .dataValues( Set.of( dataValue() ) ).build();
 
         hook.validateEvent( reporter, event );
 
@@ -111,12 +110,7 @@ class EventDataValuesValidationHookTest
     @Test
     void successValidationWhenCreatedAtIsNull()
     {
-
-        when( context.getBundle() ).thenReturn( TrackerBundle.builder().build() );
-
-        DataElement dataElement = new DataElement();
-        dataElement.setValueType( ValueType.TEXT );
-        dataElement.setUid( dataElementUid );
+        DataElement dataElement = dataElement();
         when( context.getDataElement( dataElementUid ) ).thenReturn( dataElement );
 
         ProgramStage programStage = new ProgramStage();
@@ -126,7 +120,7 @@ class EventDataValuesValidationHookTest
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( context );
 
-        DataValue validDataValue = getDataValue();
+        DataValue validDataValue = dataValue();
         validDataValue.setCreatedAt( null );
         Event event = Event.builder()
             .programStage( programStage.getUid() )
@@ -141,11 +135,7 @@ class EventDataValuesValidationHookTest
     @Test
     void failValidationWhenUpdatedAtIsNull()
     {
-        when( context.getBundle() ).thenReturn( TrackerBundle.builder().build() );
-
-        DataElement dataElement = new DataElement();
-        dataElement.setValueType( ValueType.TEXT );
-        dataElement.setUid( dataElementUid );
+        DataElement dataElement = dataElement();
         when( context.getDataElement( dataElementUid ) ).thenReturn( dataElement );
 
         ProgramStage programStage = new ProgramStage();
@@ -153,7 +143,7 @@ class EventDataValuesValidationHookTest
         programStage.setProgramStageDataElements( Set.of( new ProgramStageDataElement( programStage, dataElement ) ) );
         when( context.getProgramStage( programStageUid ) ).thenReturn( programStage );
 
-        DataValue validDataValue = getDataValue();
+        DataValue validDataValue = dataValue();
         validDataValue.setUpdatedAt( null );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( context );
@@ -170,11 +160,7 @@ class EventDataValuesValidationHookTest
     @Test
     void failValidationWhenDataElementIsInvalid()
     {
-        when( context.getBundle() ).thenReturn( TrackerBundle.builder().build() );
-
-        DataElement dataElement = new DataElement();
-        dataElement.setValueType( ValueType.TEXT );
-        dataElement.setUid( dataElementUid );
+        DataElement dataElement = dataElement();
         when( context.getDataElement( dataElementUid ) ).thenReturn( null );
 
         ProgramStage programStage = new ProgramStage();
@@ -182,7 +168,7 @@ class EventDataValuesValidationHookTest
         programStage.setProgramStageDataElements( Set.of( new ProgramStageDataElement( programStage, dataElement ) ) );
         when( context.getProgramStage( programStageUid ) ).thenReturn( programStage );
 
-        DataValue validDataValue = getDataValue();
+        DataValue validDataValue = dataValue();
 
         Event event = Event.builder()
             .programStage( programStage.getUid() )
@@ -199,11 +185,7 @@ class EventDataValuesValidationHookTest
     @Test
     void failValidationWhenAMandatoryDataElementIsMissing()
     {
-        when( context.getBundle() ).thenReturn( TrackerBundle.builder().build() );
-
-        DataElement dataElement = new DataElement();
-        dataElement.setValueType( ValueType.TEXT );
-        dataElement.setUid( dataElementUid );
+        DataElement dataElement = dataElement();
         when( context.getDataElement( dataElementUid ) ).thenReturn( dataElement );
 
         ProgramStage programStage = new ProgramStage();
@@ -214,7 +196,7 @@ class EventDataValuesValidationHookTest
         mandatoryStageElement1.setCompulsory( true );
         ProgramStageDataElement mandatoryStageElement2 = new ProgramStageDataElement();
         DataElement mandatoryElement2 = new DataElement();
-        mandatoryElement2.setUid( getDataValue().getDataElement() );
+        mandatoryElement2.setUid( dataValue().getDataElement() );
         mandatoryStageElement2.setDataElement( mandatoryElement2 );
         mandatoryStageElement2.setCompulsory( true );
         programStage.setProgramStageDataElements( Set.of( mandatoryStageElement1, mandatoryStageElement2 ) );
@@ -224,7 +206,7 @@ class EventDataValuesValidationHookTest
         Event event = Event.builder()
             .programStage( "PROGRAM_STAGE" )
             .status( EventStatus.COMPLETED )
-            .dataValues( Set.of( getDataValue() ) ).build();
+            .dataValues( Set.of( dataValue() ) ).build();
 
         hook.validateEvent( reporter, event );
 
@@ -235,12 +217,7 @@ class EventDataValuesValidationHookTest
     @Test
     void failSuccessWhenMandatoryDataElementIsNotPresentButMandatoryValidationIsNotNeeded()
     {
-
-        when( context.getBundle() ).thenReturn( TrackerBundle.builder().build() );
-
-        DataElement dataElement = new DataElement();
-        dataElement.setValueType( ValueType.TEXT );
-        dataElement.setUid( dataElementUid );
+        DataElement dataElement = dataElement();
         when( context.getDataElement( dataElementUid ) ).thenReturn( dataElement );
 
         ProgramStage programStage = new ProgramStage();
@@ -251,7 +228,7 @@ class EventDataValuesValidationHookTest
         mandatoryStageElement1.setCompulsory( true );
         ProgramStageDataElement mandatoryStageElement2 = new ProgramStageDataElement();
         DataElement mandatoryElement2 = new DataElement();
-        mandatoryElement2.setUid( getDataValue().getDataElement() );
+        mandatoryElement2.setUid( dataValue().getDataElement() );
         mandatoryStageElement2.setDataElement( mandatoryElement2 );
         mandatoryStageElement2.setCompulsory( true );
         programStage.setProgramStageDataElements( Set.of( mandatoryStageElement1, mandatoryStageElement2 ) );
@@ -262,7 +239,7 @@ class EventDataValuesValidationHookTest
         Event event = Event.builder()
             .programStage( "PROGRAM_STAGE" )
             .status( EventStatus.ACTIVE )
-            .dataValues( Set.of( getDataValue() ) ).build();
+            .dataValues( Set.of( dataValue() ) ).build();
 
         hook.validateEvent( reporter, event );
 
@@ -272,11 +249,7 @@ class EventDataValuesValidationHookTest
     @Test
     void failValidationWhenDataElementIsNotPresentInProgramStage()
     {
-        when( context.getBundle() ).thenReturn( TrackerBundle.builder().build() );
-
-        DataElement dataElement = new DataElement();
-        dataElement.setValueType( ValueType.TEXT );
-        dataElement.setUid( dataElementUid );
+        DataElement dataElement = dataElement();
         when( context.getDataElement( dataElementUid ) ).thenReturn( dataElement );
 
         DataElement notPresentDataElement = new DataElement();
@@ -288,20 +261,20 @@ class EventDataValuesValidationHookTest
         ProgramStage programStage = new ProgramStage();
         ProgramStageDataElement mandatoryStageElement1 = new ProgramStageDataElement();
         DataElement mandatoryElement1 = new DataElement();
-        mandatoryElement1.setUid( getDataValue().getDataElement() );
+        mandatoryElement1.setUid( dataValue().getDataElement() );
         mandatoryStageElement1.setDataElement( mandatoryElement1 );
         mandatoryStageElement1.setCompulsory( true );
         programStage.setProgramStageDataElements( Set.of( mandatoryStageElement1 ) );
         when( context.getProgramStage( "PROGRAM_STAGE" ) ).thenReturn( programStage );
 
-        DataValue notPresentDataValue = getDataValue();
+        DataValue notPresentDataValue = dataValue();
         notPresentDataValue.setDataElement( "de_not_present_in_program_stage" );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( context );
         Event event = Event.builder()
             .programStage( "PROGRAM_STAGE" )
             .status( EventStatus.ACTIVE )
-            .dataValues( Set.of( getDataValue(), notPresentDataValue ) ).build();
+            .dataValues( Set.of( dataValue(), notPresentDataValue ) ).build();
 
         hook.validateEvent( reporter, event );
 
@@ -312,16 +285,8 @@ class EventDataValuesValidationHookTest
     @Test
     void failValidationWhenDataElementValueTypeIsNull()
     {
-        when( context.getBundle() ).thenReturn( TrackerBundle.builder().build() );
-
-        DataElement dataElement = new DataElement();
-        dataElement.setValueType( ValueType.TEXT );
-        dataElement.setUid( dataElementUid );
-        when( context.getDataElement( dataElementUid ) ).thenReturn( dataElement );
-
-        DataElement invalidDataElement = new DataElement();
-        invalidDataElement.setUid( dataElementUid );
-        invalidDataElement.setValueType( null );
+        DataElement dataElement = dataElement();
+        DataElement invalidDataElement = dataElement( null );
         when( context.getDataElement( dataElementUid ) ).thenReturn( invalidDataElement );
 
         ProgramStage programStage = new ProgramStage();
@@ -333,7 +298,7 @@ class EventDataValuesValidationHookTest
         Event event = Event.builder()
             .programStage( programStage.getUid() )
             .status( EventStatus.SKIPPED )
-            .dataValues( Set.of( getDataValue() ) )
+            .dataValues( Set.of( dataValue() ) )
             .build();
 
         hook.validateEvent( reporter, event );
@@ -345,15 +310,11 @@ class EventDataValuesValidationHookTest
     @Test
     void failValidationWhenFileResourceIsNull()
     {
-        when( context.getBundle() ).thenReturn( TrackerBundle.builder().build() );
-
-        DataValue validDataValue = getDataValue();
-        validDataValue.setValue( "QX4LpiTZmUH" );
-        DataElement validDataElement = new DataElement();
-        validDataElement.setUid( dataElementUid );
-        validDataElement.setValueType( ValueType.FILE_RESOURCE );
+        DataElement validDataElement = dataElement( ValueType.FILE_RESOURCE );
         when( context.getDataElement( dataElementUid ) ).thenReturn( validDataElement );
 
+        DataValue validDataValue = dataValue();
+        validDataValue.setValue( "QX4LpiTZmUH" );
         when( context.getFileResource( validDataValue.getValue() ) ).thenReturn( null );
 
         ProgramStage programStage = new ProgramStage();
@@ -378,19 +339,15 @@ class EventDataValuesValidationHookTest
     @Test
     void successValidationWhenFileResourceValueIsNullAndDataElementIsNotCompulsory()
     {
-        when( context.getBundle() ).thenReturn( TrackerBundle.builder().build() );
-
-        DataValue validDataValue = getDataValue();
-        validDataValue.setValue( null );
-        DataElement validDataElement = new DataElement();
-        validDataElement.setUid( dataElementUid );
-        validDataElement.setValueType( ValueType.FILE_RESOURCE );
+        DataElement validDataElement = dataElement( ValueType.FILE_RESOURCE );
         when( context.getDataElement( dataElementUid ) ).thenReturn( validDataElement );
 
         ProgramStage programStage = getProgramStage( validDataElement, programStageUid, false );
         when( context.getProgramStage( programStageUid ) ).thenReturn( programStage );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( context );
+        DataValue validDataValue = dataValue();
+        validDataValue.setValue( null );
         Event event = Event.builder()
             .programStage( programStage.getUid() )
             .status( EventStatus.COMPLETED )
@@ -405,20 +362,16 @@ class EventDataValuesValidationHookTest
     @Test
     void failValidationWhenFileResourceValueIsNullAndDataElementIsCompulsory()
     {
-        when( context.getBundle() ).thenReturn( TrackerBundle.builder().build() );
 
-        DataValue validDataValue = getDataValue();
-        validDataValue.setValue( null );
-
-        DataElement validDataElement = new DataElement();
-        validDataElement.setUid( dataElementUid );
-        validDataElement.setValueType( ValueType.FILE_RESOURCE );
+        DataElement validDataElement = dataElement( ValueType.FILE_RESOURCE );
         when( context.getDataElement( dataElementUid ) ).thenReturn( validDataElement );
 
         ProgramStage programStage = getProgramStage( validDataElement, programStageUid, true );
         when( context.getProgramStage( programStageUid ) ).thenReturn( programStage );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( context );
+        DataValue validDataValue = dataValue();
+        validDataValue.setValue( null );
         Event event = Event.builder()
             .programStage( programStage.getUid() )
             .status( EventStatus.COMPLETED )
@@ -434,13 +387,7 @@ class EventDataValuesValidationHookTest
     @Test
     void failsOnActiveEventWithDataElementValueNullAndValidationStrategyOnUpdate()
     {
-        when( context.getBundle() ).thenReturn( TrackerBundle.builder().build() );
-
-        DataValue validDataValue = getDataValue();
-        validDataValue.setValue( null );
-        DataElement validDataElement = new DataElement();
-        validDataElement.setUid( dataElementUid );
-        validDataElement.setValueType( ValueType.TEXT );
+        DataElement validDataElement = dataElement();
         when( context.getDataElement( dataElementUid ) ).thenReturn( validDataElement );
 
         ProgramStage programStage = getProgramStage( validDataElement, programStageUid, true );
@@ -448,6 +395,8 @@ class EventDataValuesValidationHookTest
         when( context.getProgramStage( programStageUid ) ).thenReturn( programStage );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( context );
+        DataValue validDataValue = dataValue();
+        validDataValue.setValue( null );
         Event event = Event.builder()
             .programStage( programStage.getUid() )
             .status( EventStatus.ACTIVE )
@@ -463,13 +412,7 @@ class EventDataValuesValidationHookTest
     @Test
     void failsOnCompletedEventWithDataElementValueNullAndValidationStrategyOnUpdate()
     {
-        when( context.getBundle() ).thenReturn( TrackerBundle.builder().build() );
-
-        DataValue validDataValue = getDataValue();
-        validDataValue.setValue( null );
-        DataElement validDataElement = new DataElement();
-        validDataElement.setUid( dataElementUid );
-        validDataElement.setValueType( ValueType.TEXT );
+        DataElement validDataElement = dataElement();
         when( context.getDataElement( dataElementUid ) ).thenReturn( validDataElement );
 
         ProgramStage programStage = getProgramStage( validDataElement, programStageUid, true );
@@ -477,6 +420,8 @@ class EventDataValuesValidationHookTest
         when( context.getProgramStage( programStageUid ) ).thenReturn( programStage );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( context );
+        DataValue validDataValue = dataValue();
+        validDataValue.setValue( null );
         Event event = Event.builder()
             .programStage( programStage.getUid() )
             .status( EventStatus.COMPLETED )
@@ -492,13 +437,7 @@ class EventDataValuesValidationHookTest
     @Test
     void succeedsOnActiveEventWithDataElementValueIsNullAndValidationStrategyOnComplete()
     {
-        when( context.getBundle() ).thenReturn( TrackerBundle.builder().build() );
-
-        DataValue validDataValue = getDataValue();
-        validDataValue.setValue( null );
-        DataElement validDataElement = new DataElement();
-        validDataElement.setUid( dataElementUid );
-        validDataElement.setValueType( ValueType.TEXT );
+        DataElement validDataElement = dataElement();
         when( context.getDataElement( dataElementUid ) ).thenReturn( validDataElement );
 
         ProgramStage programStage = getProgramStage( validDataElement, programStageUid, true );
@@ -506,6 +445,8 @@ class EventDataValuesValidationHookTest
         when( context.getProgramStage( programStageUid ) ).thenReturn( programStage );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( context );
+        DataValue validDataValue = dataValue();
+        validDataValue.setValue( null );
         Event event = Event.builder()
             .programStage( programStage.getUid() )
             .status( EventStatus.ACTIVE )
@@ -520,13 +461,7 @@ class EventDataValuesValidationHookTest
     @Test
     void failsOnCompletedEventWithDataElementValueIsNullAndValidationStrategyOnComplete()
     {
-        when( context.getBundle() ).thenReturn( TrackerBundle.builder().build() );
-
-        DataValue validDataValue = getDataValue();
-        validDataValue.setValue( null );
-        DataElement validDataElement = new DataElement();
-        validDataElement.setUid( dataElementUid );
-        validDataElement.setValueType( ValueType.TEXT );
+        DataElement validDataElement = dataElement();
         when( context.getDataElement( dataElementUid ) ).thenReturn( validDataElement );
 
         ProgramStage programStage = getProgramStage( validDataElement, programStageUid, true );
@@ -534,6 +469,8 @@ class EventDataValuesValidationHookTest
         when( context.getProgramStage( programStageUid ) ).thenReturn( programStage );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( context );
+        DataValue validDataValue = dataValue();
+        validDataValue.setValue( null );
         Event event = Event.builder()
             .programStage( programStage.getUid() )
             .status( EventStatus.COMPLETED )
@@ -549,19 +486,15 @@ class EventDataValuesValidationHookTest
     @Test
     void succeedsOnScheduledEventWithDataElementValueIsNullAndEventStatusSkippedOrScheduled()
     {
-        when( context.getBundle() ).thenReturn( TrackerBundle.builder().build() );
-
-        DataValue validDataValue = getDataValue();
-        validDataValue.setValue( null );
-        DataElement validDataElement = new DataElement();
-        validDataElement.setUid( dataElementUid );
-        validDataElement.setValueType( ValueType.TEXT );
+        DataElement validDataElement = dataElement();
         when( context.getDataElement( dataElementUid ) ).thenReturn( validDataElement );
 
         ProgramStage programStage = getProgramStage( validDataElement, programStageUid, true );
         when( context.getProgramStage( programStageUid ) ).thenReturn( programStage );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( context );
+        DataValue validDataValue = dataValue();
+        validDataValue.setValue( null );
         Event event = Event.builder()
             .programStage( programStage.getUid() )
             .status( EventStatus.SCHEDULE )
@@ -576,19 +509,15 @@ class EventDataValuesValidationHookTest
     @Test
     void succeedsOnSkippedEventWithDataElementValueIsNullAndEventStatusSkippedOrScheduled()
     {
-        when( context.getBundle() ).thenReturn( TrackerBundle.builder().build() );
-
-        DataValue validDataValue = getDataValue();
-        validDataValue.setValue( null );
-        DataElement validDataElement = new DataElement();
-        validDataElement.setUid( dataElementUid );
-        validDataElement.setValueType( ValueType.TEXT );
+        DataElement validDataElement = dataElement();
         when( context.getDataElement( dataElementUid ) ).thenReturn( validDataElement );
 
         ProgramStage programStage = getProgramStage( validDataElement, programStageUid, true );
         when( context.getProgramStage( programStageUid ) ).thenReturn( programStage );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( context );
+        DataValue validDataValue = dataValue();
+        validDataValue.setValue( null );
         Event event = Event.builder()
             .programStage( programStage.getUid() )
             .status( EventStatus.SKIPPED )
@@ -603,19 +532,15 @@ class EventDataValuesValidationHookTest
     @Test
     void successValidationWhenDataElementIsNullAndDataElementIsNotCompulsory()
     {
-        when( context.getBundle() ).thenReturn( TrackerBundle.builder().build() );
-
-        DataValue validDataValue = getDataValue();
-        validDataValue.setValue( null );
-        DataElement validDataElement = new DataElement();
-        validDataElement.setUid( dataElementUid );
-        validDataElement.setValueType( ValueType.TEXT );
+        DataElement validDataElement = dataElement();
         when( context.getDataElement( dataElementUid ) ).thenReturn( validDataElement );
 
         ProgramStage programStage = getProgramStage( validDataElement, programStageUid, false );
         when( context.getProgramStage( programStageUid ) ).thenReturn( programStage );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( context );
+        DataValue validDataValue = dataValue();
+        validDataValue.setValue( null );
         Event event = Event.builder()
             .programStage( programStage.getUid() )
             .status( EventStatus.COMPLETED )
@@ -630,17 +555,13 @@ class EventDataValuesValidationHookTest
     @Test
     void failValidationWhenFileResourceIsAlreadyAssigned()
     {
-        when( context.getBundle() ).thenReturn( TrackerBundle.builder().build() );
-
-        DataValue validDataValue = getDataValue();
-        validDataValue.setValue( "QX4LpiTZmUH" );
-        DataElement validDataElement = new DataElement();
-        validDataElement.setUid( dataElementUid );
-        validDataElement.setValueType( ValueType.FILE_RESOURCE );
+        DataElement validDataElement = dataElement( ValueType.FILE_RESOURCE );
         when( context.getDataElement( dataElementUid ) ).thenReturn( validDataElement );
 
         FileResource fileResource = new FileResource();
         fileResource.setAssigned( true );
+        DataValue validDataValue = dataValue();
+        validDataValue.setValue( "QX4LpiTZmUH" );
         when( context.getFileResource( validDataValue.getValue() ) ).thenReturn( fileResource );
 
         ProgramStage programStage = new ProgramStage();
@@ -684,11 +605,9 @@ class EventDataValuesValidationHookTest
     @Test
     void successValidationDataElementOptionValueIsValid()
     {
-        when( context.getBundle() ).thenReturn( TrackerBundle.builder().build() );
-
-        DataValue validDataValue = getDataValue();
+        DataValue validDataValue = dataValue();
         validDataValue.setValue( "code" );
-        DataValue nullDataValue = getDataValue();
+        DataValue nullDataValue = dataValue();
         nullDataValue.setValue( null );
 
         OptionSet optionSet = new OptionSet();
@@ -698,9 +617,7 @@ class EventDataValuesValidationHookTest
         option1.setCode( "CODE1" );
         optionSet.setOptions( Arrays.asList( option, option1 ) );
 
-        DataElement dataElement = new DataElement();
-        dataElement.setUid( dataElementUid );
-        dataElement.setValueType( ValueType.TEXT );
+        DataElement dataElement = dataElement();
         dataElement.setOptionSet( optionSet );
         when( context.getDataElement( dataElementUid ) ).thenReturn( dataElement );
 
@@ -724,9 +641,7 @@ class EventDataValuesValidationHookTest
     @Test
     void failValidationDataElementOptionValueIsInValid()
     {
-        when( context.getBundle() ).thenReturn( TrackerBundle.builder().build() );
-
-        DataValue validDataValue = getDataValue();
+        DataValue validDataValue = dataValue();
         validDataValue.setDataElement( dataElementUid );
         validDataValue.setValue( "value" );
 
@@ -737,9 +652,7 @@ class EventDataValuesValidationHookTest
         option1.setCode( "CODE1" );
         optionSet.setOptions( Arrays.asList( option, option1 ) );
 
-        DataElement dataElement = new DataElement();
-        dataElement.setUid( dataElementUid );
-        dataElement.setValueType( ValueType.TEXT );
+        DataElement dataElement = dataElement();
         dataElement.setOptionSet( optionSet );
         when( context.getDataElement( dataElementUid ) ).thenReturn( dataElement );
 
@@ -765,23 +678,16 @@ class EventDataValuesValidationHookTest
 
     private void runAndAssertValidationForDataValue( ValueType valueType, String value )
     {
-        when( context.getBundle() ).thenReturn( TrackerBundle.builder().build() );
-
-        DataElement dataElement = new DataElement();
-        dataElement.setValueType( ValueType.TEXT );
-        dataElement.setUid( dataElementUid );
-
-        DataElement invalidDataElement = new DataElement();
-        invalidDataElement.setUid( dataElementUid );
-        invalidDataElement.setValueType( valueType );
+        DataElement invalidDataElement = dataElement( valueType );
         when( context.getDataElement( dataElementUid ) ).thenReturn( invalidDataElement );
 
         ProgramStage programStage = new ProgramStage();
         programStage.setUid( programStageUid );
-        programStage.setProgramStageDataElements( Set.of( new ProgramStageDataElement( programStage, dataElement ) ) );
+        programStage
+            .setProgramStageDataElements( Set.of( new ProgramStageDataElement( programStage, dataElement() ) ) );
         when( context.getProgramStage( programStageUid ) ).thenReturn( programStage );
 
-        DataValue validDataValue = getDataValue();
+        DataValue validDataValue = dataValue();
         validDataValue.setDataElement( dataElementUid );
         validDataValue.setValue( value );
 
@@ -798,7 +704,24 @@ class EventDataValuesValidationHookTest
         assertEquals( TrackerErrorCode.E1302, reporter.getReportList().get( 0 ).getErrorCode() );
     }
 
-    private DataValue getDataValue()
+    @NotNull
+    private DataElement dataElement( ValueType type )
+    {
+        DataElement dataElement = dataElement();
+        dataElement.setValueType( type );
+        return dataElement;
+    }
+
+    @NotNull
+    private DataElement dataElement()
+    {
+        DataElement dataElement = new DataElement();
+        dataElement.setValueType( ValueType.TEXT );
+        dataElement.setUid( dataElementUid );
+        return dataElement;
+    }
+
+    private DataValue dataValue()
     {
         DataValue dataValue = new DataValue();
         dataValue.setCreatedAt( DateUtils.instantFromDateAsString( "2020-10-10" ) );
