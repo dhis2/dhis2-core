@@ -65,11 +65,6 @@ public class FieldFilterService
     @Qualifier( "jsonMapper" )
     private final ObjectMapper jsonMapper;
 
-    public ObjectNode createObjectNode()
-    {
-        return jsonMapper.createObjectNode();
-    }
-
     private static class IgnoreJsonSerializerRefinementAnnotationInspector extends JacksonAnnotationIntrospector
     {
         /**
@@ -92,19 +87,6 @@ public class FieldFilterService
     {
         this.fieldPathHelper = fieldPathHelper;
         this.jsonMapper = configureFieldFilterObjectMapper( jsonMapper );
-    }
-
-    private ObjectMapper configureFieldFilterObjectMapper( ObjectMapper objectMapper )
-    {
-        objectMapper = objectMapper.copy();
-
-        SimpleModule module = new SimpleModule();
-        module.setMixInAnnotation( Object.class, FieldFilterMixin.class );
-
-        objectMapper.registerModule( module );
-        objectMapper.setAnnotationIntrospector( new IgnoreJsonSerializerRefinementAnnotationInspector() );
-
-        return objectMapper;
     }
 
     public List<ObjectNode> toObjectNodes( FieldFilterParams<?> params )
@@ -137,6 +119,29 @@ public class FieldFilterService
         }
 
         return objectNodes;
+    }
+
+    public ObjectNode createObjectNode()
+    {
+        return jsonMapper.createObjectNode();
+    }
+
+    public ArrayNode createArrayNode()
+    {
+        return jsonMapper.createArrayNode();
+    }
+
+    private ObjectMapper configureFieldFilterObjectMapper( ObjectMapper objectMapper )
+    {
+        objectMapper = objectMapper.copy();
+
+        SimpleModule module = new SimpleModule();
+        module.setMixInAnnotation( Object.class, FieldFilterMixin.class );
+
+        objectMapper.registerModule( module );
+        objectMapper.setAnnotationIntrospector( new IgnoreJsonSerializerRefinementAnnotationInspector() );
+
+        return objectMapper;
     }
 
     private void applyTransformers( JsonNode node, JsonNode parent, String path,

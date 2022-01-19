@@ -70,16 +70,6 @@ public class Property implements Ordered, Klass
     private Class<?> itemKlass;
 
     /**
-     * If this property is a map, this is the type of the key.
-     */
-    private Class<?> keyType;
-
-    /**
-     * If this property is a map, this is the type of the value.
-     */
-    private Class<?> valueType;
-
-    /**
      * If this property is a collection, this is the normalized type of the
      * items inside the collection.
      */
@@ -367,30 +357,6 @@ public class Property implements Ordered, Klass
     public void setItemKlass( Class<?> itemKlass )
     {
         this.itemKlass = itemKlass;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Class<?> getKeyType()
-    {
-        return keyType;
-    }
-
-    public void setKeyType( Class<?> keyType )
-    {
-        this.keyType = keyType;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Class<?> getValueType()
-    {
-        return valueType;
-    }
-
-    public void setValueType( Class<?> valueType )
-    {
-        this.valueType = valueType;
     }
 
     @JsonProperty
