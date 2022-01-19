@@ -46,6 +46,8 @@ import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ValidationStrategy;
+import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.TrackerIdentifierParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Event;
@@ -271,6 +273,38 @@ class EventDataValuesValidationHookTest
 
         assertThat( reporter.getReportList(), hasSize( 1 ) );
         assertEquals( TrackerErrorCode.E1305, reporter.getReportList().get( 0 ).getErrorCode() );
+    }
+
+    @Test
+    void succeedsWhenDataElementIsPartOfProgramStageAndIdSchemeIsSetToCode()
+    {
+        TrackerIdentifierParams params = TrackerIdentifierParams.builder()
+            .idScheme( TrackerIdentifier.CODE )
+            .programIdScheme( TrackerIdentifier.UID )
+            .programStageIdScheme( TrackerIdentifier.UID )
+            .dataElementIdScheme( TrackerIdentifier.CODE )
+            .build();
+        when( context.getIdentifiers() ).thenReturn( params );
+
+        DataElement dataElement = dataElement();
+        dataElement.setCode( "DE_424050" );
+        when( context.getDataElement( dataElement.getCode() ) ).thenReturn( dataElement );
+
+        ProgramStage programStage = programStage( dataElement );
+        when( context.getProgramStage( programStageUid ) ).thenReturn( programStage );
+
+        ValidationErrorReporter reporter = new ValidationErrorReporter( context );
+
+        DataValue dataValue = dataValue();
+        dataValue.setDataElement( "DE_424050" );
+        Event event = Event.builder()
+            .programStage( programStage.getUid() )
+            .status( EventStatus.ACTIVE )
+            .dataValues( Set.of( dataValue ) ).build();
+
+        hook.validateEvent( reporter, event );
+
+        assertFalse( reporter.hasErrors() );
     }
 
     @Test

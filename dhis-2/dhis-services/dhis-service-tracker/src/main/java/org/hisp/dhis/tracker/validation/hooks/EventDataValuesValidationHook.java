@@ -153,7 +153,8 @@ public class EventDataValuesValidationHook
     {
         final Set<String> dataElements = programStage.getProgramStageDataElements()
             .stream()
-            .map( de -> de.getDataElement().getUid() )
+            .map( de -> reporter.getValidationContext().getIdentifiers().getDataElementIdScheme()
+                .getIdentifier( de.getDataElement() ) )
             .collect( Collectors.toSet() );
 
         Set<String> payloadDataElements = event.getDataValues().stream()
