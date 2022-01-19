@@ -103,9 +103,9 @@ public class EventDataValuesValidationHook
                 .filter( ProgramStageDataElement::isCompulsory )
                 .map( de -> de.getDataElement().getUid() )
                 .collect( Collectors.toList() );
-            List<String> wrongMandatoryDataValue = validateMandatoryDataValue( programStage, event,
+            List<String> missingDataValue = validateMandatoryDataValue( programStage, event,
                 mandatoryDataElements );
-            wrongMandatoryDataValue
+            missingDataValue
                 .forEach( de -> reporter.addError( event, E1303, de ) );
         }
     }
