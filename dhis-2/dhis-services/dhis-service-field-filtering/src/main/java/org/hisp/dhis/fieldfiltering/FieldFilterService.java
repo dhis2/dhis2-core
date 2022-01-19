@@ -123,7 +123,7 @@ public class FieldFilterService
         Object firstObject = params.getObjects().iterator().next();
         fieldPathHelper.apply( fieldPaths, HibernateProxyUtils.getRealClass( firstObject ) );
 
-        SimpleFilterProvider filterProvider = getSimpleFilterProvider( fieldPaths );
+        SimpleFilterProvider filterProvider = getSimpleFilterProvider( fieldPaths, params.isSkipSharing() );
         ObjectMapper objectMapper = jsonMapper.setFilterProvider( filterProvider );
 
         Map<String, List<FieldTransformer>> fieldTransformers = getTransformers( fieldPaths );
@@ -175,10 +175,10 @@ public class FieldFilterService
         }
     }
 
-    private SimpleFilterProvider getSimpleFilterProvider( List<FieldPath> fieldPaths )
+    private SimpleFilterProvider getSimpleFilterProvider( List<FieldPath> fieldPaths, boolean skipSharing )
     {
         SimpleFilterProvider filterProvider = new SimpleFilterProvider();
-        filterProvider.addFilter( "field-filter", new FieldFilterSimpleBeanPropertyFilter( fieldPaths ) );
+        filterProvider.addFilter( "field-filter", new FieldFilterSimpleBeanPropertyFilter( fieldPaths, skipSharing ) );
 
         return filterProvider;
     }

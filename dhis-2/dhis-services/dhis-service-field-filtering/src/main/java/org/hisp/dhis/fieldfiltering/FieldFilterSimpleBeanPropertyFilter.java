@@ -34,6 +34,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonStreamContext;
 import com.fasterxml.jackson.databind.SerializerProvider;
@@ -48,6 +50,8 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilter
 {
     private final List<FieldPath> fieldPaths;
+
+    private final boolean skipSharing;
 
     private static final Map<FieldPath, String> FULL_PATH_CACHE = new ConcurrentHashMap<>();
 
@@ -69,6 +73,13 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
         String path = pathValue.getPath();
 
         if ( pathValue.getValue() == null )
+        {
+            return false;
+        }
+
+        if ( skipSharing &&
+            StringUtils.containsAny( path, "user", "publicAccess", "externalAccess", "userGroupAccesses",
+                "userAccesses", "sharing" ) )
         {
             return false;
         }
