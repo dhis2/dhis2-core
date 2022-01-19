@@ -1324,7 +1324,7 @@ public class EventQueryParams
             return this;
         }
 
-        public Builder withEventStatus( Set<EventStatus> eventStatus )
+        public Builder withEventStatuses( Set<EventStatus> eventStatus )
         {
             this.params.eventStatus = eventStatus;
             return this;
@@ -1384,7 +1384,7 @@ public class EventQueryParams
             return this;
         }
 
-        public Builder withProgramStatus( Set<ProgramStatus> programStatus )
+        public Builder withProgramStatuses( Set<ProgramStatus> programStatus )
         {
             this.params.programStatus = programStatus;
             return this;

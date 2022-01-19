@@ -151,8 +151,8 @@ abstract class EventAnalyticsTest
         params.withOrganisationUnits( getList( ouA ) );
         params.withTableName( getTableName() + "_" + programA.getUid() );
         params.withProgram( programA );
-        params.withProgramStatus( new LinkedHashSet<>( List.of( ACTIVE, COMPLETED ) ) );
-        params.withEventStatus( new LinkedHashSet<>( List.of( SCHEDULE ) ) );
+        params.withProgramStatuses( new LinkedHashSet<>( List.of( ACTIVE, COMPLETED ) ) );
+        params.withEventStatuses( new LinkedHashSet<>( List.of( SCHEDULE ) ) );
         return params.build();
     }
 
