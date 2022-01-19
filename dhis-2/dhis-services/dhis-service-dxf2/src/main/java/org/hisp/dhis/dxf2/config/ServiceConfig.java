@@ -113,6 +113,7 @@ import org.hisp.dhis.external.conf.ConfigurationPropertyFactoryBean;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.programrule.action.validation.AlwaysValidProgramRuleActionValidator;
+import org.hisp.dhis.programrule.action.validation.AssignProgramRuleActionValidator;
 import org.hisp.dhis.programrule.action.validation.BaseProgramRuleActionValidator;
 import org.hisp.dhis.programrule.action.validation.HideOptionProgramRuleActionValidator;
 import org.hisp.dhis.programrule.action.validation.HideProgramStageProgramRuleActionValidator;
@@ -405,7 +406,7 @@ public class ServiceConfig
             .put( ProgramRuleActionType.DISPLAYKEYVALUEPAIR,
                 getProgramRuleActionValidatorByClass( AlwaysValidProgramRuleActionValidator.class ) )
             .put( ProgramRuleActionType.ASSIGN,
-                getProgramRuleActionValidatorByClass( BaseProgramRuleActionValidator.class ) )
+                getProgramRuleActionValidatorByClass( AssignProgramRuleActionValidator.class ) )
             .put( ProgramRuleActionType.HIDEFIELD,
                 getProgramRuleActionValidatorByClass( BaseProgramRuleActionValidator.class ) )
             .put( ProgramRuleActionType.CREATEEVENT,
