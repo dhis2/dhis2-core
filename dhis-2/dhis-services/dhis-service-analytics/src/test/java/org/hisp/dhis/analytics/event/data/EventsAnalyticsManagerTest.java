@@ -242,8 +242,7 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
     {
         mockEmptyRowSet();
 
-        subject.getEvents( createRequestParamsWithStatuses(), createGrid(),
-            100 );
+        subject.getEvents( createRequestParamsWithStatuses(), createGrid(), 100 );
 
         verify( jdbcTemplate ).queryForRowSet( sql.capture() );
 
