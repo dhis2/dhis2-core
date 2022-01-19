@@ -785,7 +785,7 @@ public class EventQueryParams
 
     public boolean hasEventStatus()
     {
-        return eventStatus != null;
+        return isNotEmpty( eventStatus );
     }
 
     public boolean hasValueDimension()
@@ -1326,9 +1326,9 @@ public class EventQueryParams
             return this;
         }
 
-        public Builder withEventStatuses( Set<EventStatus> eventStatus )
+        public Builder withEventStatuses( Set<EventStatus> eventStatuses )
         {
-            this.params.eventStatus = eventStatus;
+            this.params.eventStatus = eventStatuses;
             return this;
         }
 
@@ -1386,9 +1386,9 @@ public class EventQueryParams
             return this;
         }
 
-        public Builder withProgramStatuses( Set<ProgramStatus> programStatus )
+        public Builder withProgramStatuses( Set<ProgramStatus> programStatuses )
         {
-            this.params.programStatus = programStatus;
+            this.params.programStatus = programStatuses;
             return this;
         }
 
