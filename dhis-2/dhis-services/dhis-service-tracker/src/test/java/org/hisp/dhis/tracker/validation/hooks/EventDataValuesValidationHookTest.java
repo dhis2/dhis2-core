@@ -35,7 +35,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Set;
 
 import org.hisp.dhis.common.ValueType;
@@ -91,12 +90,11 @@ class EventDataValuesValidationHookTest
         DataElement dataElement = dataElement();
         when( context.getDataElement( dataElementUid ) ).thenReturn( dataElement );
 
-        ProgramStage programStage = new ProgramStage();
-        programStage.setUid( programStageUid );
-        programStage.setProgramStageDataElements( Set.of( new ProgramStageDataElement( programStage, dataElement ) ) );
+        ProgramStage programStage = programStage( dataElement );
         when( context.getProgramStage( programStageUid ) ).thenReturn( programStage );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( context );
+
         Event event = Event.builder()
             .programStage( programStage.getUid() )
             .status( EventStatus.SKIPPED )
@@ -113,9 +111,7 @@ class EventDataValuesValidationHookTest
         DataElement dataElement = dataElement();
         when( context.getDataElement( dataElementUid ) ).thenReturn( dataElement );
 
-        ProgramStage programStage = new ProgramStage();
-        programStage.setUid( programStageUid );
-        programStage.setProgramStageDataElements( Set.of( new ProgramStageDataElement( programStage, dataElement ) ) );
+        ProgramStage programStage = programStage( dataElement );
         when( context.getProgramStage( programStageUid ) ).thenReturn( programStage );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( context );
@@ -138,15 +134,13 @@ class EventDataValuesValidationHookTest
         DataElement dataElement = dataElement();
         when( context.getDataElement( dataElementUid ) ).thenReturn( dataElement );
 
-        ProgramStage programStage = new ProgramStage();
-        programStage.setUid( programStageUid );
-        programStage.setProgramStageDataElements( Set.of( new ProgramStageDataElement( programStage, dataElement ) ) );
+        ProgramStage programStage = programStage( dataElement );
         when( context.getProgramStage( programStageUid ) ).thenReturn( programStage );
+
+        ValidationErrorReporter reporter = new ValidationErrorReporter( context );
 
         DataValue validDataValue = dataValue();
         validDataValue.setUpdatedAt( null );
-
-        ValidationErrorReporter reporter = new ValidationErrorReporter( context );
         Event event = Event.builder()
             .programStage( programStage.getUid() )
             .status( EventStatus.SKIPPED )
@@ -163,18 +157,15 @@ class EventDataValuesValidationHookTest
         DataElement dataElement = dataElement();
         when( context.getDataElement( dataElementUid ) ).thenReturn( null );
 
-        ProgramStage programStage = new ProgramStage();
-        programStage.setUid( programStageUid );
-        programStage.setProgramStageDataElements( Set.of( new ProgramStageDataElement( programStage, dataElement ) ) );
+        ProgramStage programStage = programStage( dataElement );
         when( context.getProgramStage( programStageUid ) ).thenReturn( programStage );
 
-        DataValue validDataValue = dataValue();
+        ValidationErrorReporter reporter = new ValidationErrorReporter( context );
 
         Event event = Event.builder()
             .programStage( programStage.getUid() )
             .status( EventStatus.SKIPPED )
-            .dataValues( Set.of( validDataValue ) ).build();
-        ValidationErrorReporter reporter = new ValidationErrorReporter( context );
+            .dataValues( Set.of( dataValue() ) ).build();
 
         hook.validateEvent( reporter, event );
 
@@ -203,6 +194,7 @@ class EventDataValuesValidationHookTest
         when( context.getProgramStage( "PROGRAM_STAGE" ) ).thenReturn( programStage );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( context );
+
         Event event = Event.builder()
             .programStage( "PROGRAM_STAGE" )
             .status( EventStatus.COMPLETED )
@@ -234,8 +226,8 @@ class EventDataValuesValidationHookTest
         programStage.setProgramStageDataElements( Set.of( mandatoryStageElement1, mandatoryStageElement2 ) );
         when( context.getProgramStage( "PROGRAM_STAGE" ) ).thenReturn( programStage );
 
-        // TODO difference between this test and above is status == ACTIVE
         ValidationErrorReporter reporter = new ValidationErrorReporter( context );
+
         Event event = Event.builder()
             .programStage( "PROGRAM_STAGE" )
             .status( EventStatus.ACTIVE )
@@ -252,8 +244,7 @@ class EventDataValuesValidationHookTest
         DataElement dataElement = dataElement();
         when( context.getDataElement( dataElementUid ) ).thenReturn( dataElement );
 
-        DataElement notPresentDataElement = new DataElement();
-        notPresentDataElement.setValueType( ValueType.TEXT );
+        DataElement notPresentDataElement = dataElement();
         notPresentDataElement.setUid( "de_not_present_in_program_stage" );
         when( context.getDataElement( "de_not_present_in_program_stage" ) )
             .thenReturn( notPresentDataElement );
@@ -267,10 +258,10 @@ class EventDataValuesValidationHookTest
         programStage.setProgramStageDataElements( Set.of( mandatoryStageElement1 ) );
         when( context.getProgramStage( "PROGRAM_STAGE" ) ).thenReturn( programStage );
 
+        ValidationErrorReporter reporter = new ValidationErrorReporter( context );
+
         DataValue notPresentDataValue = dataValue();
         notPresentDataValue.setDataElement( "de_not_present_in_program_stage" );
-
-        ValidationErrorReporter reporter = new ValidationErrorReporter( context );
         Event event = Event.builder()
             .programStage( "PROGRAM_STAGE" )
             .status( EventStatus.ACTIVE )
@@ -289,12 +280,11 @@ class EventDataValuesValidationHookTest
         DataElement invalidDataElement = dataElement( null );
         when( context.getDataElement( dataElementUid ) ).thenReturn( invalidDataElement );
 
-        ProgramStage programStage = new ProgramStage();
-        programStage.setUid( programStageUid );
-        programStage.setProgramStageDataElements( Set.of( new ProgramStageDataElement( programStage, dataElement ) ) );
+        ProgramStage programStage = programStage( dataElement );
         when( context.getProgramStage( programStageUid ) ).thenReturn( programStage );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( context );
+
         Event event = Event.builder()
             .programStage( programStage.getUid() )
             .status( EventStatus.SKIPPED )
@@ -313,17 +303,14 @@ class EventDataValuesValidationHookTest
         DataElement validDataElement = dataElement( ValueType.FILE_RESOURCE );
         when( context.getDataElement( dataElementUid ) ).thenReturn( validDataElement );
 
-        DataValue validDataValue = dataValue();
-        validDataValue.setValue( "QX4LpiTZmUH" );
+        DataValue validDataValue = dataValue( "QX4LpiTZmUH" );
         when( context.getFileResource( validDataValue.getValue() ) ).thenReturn( null );
 
-        ProgramStage programStage = new ProgramStage();
-        programStage.setUid( programStageUid );
-        programStage
-            .setProgramStageDataElements( Set.of( new ProgramStageDataElement( programStage, validDataElement ) ) );
+        ProgramStage programStage = programStage( validDataElement );
         when( context.getProgramStage( programStageUid ) ).thenReturn( programStage );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( context );
+
         Event event = Event.builder()
             .programStage( programStage.getUid() )
             .status( EventStatus.SKIPPED )
@@ -342,10 +329,11 @@ class EventDataValuesValidationHookTest
         DataElement validDataElement = dataElement( ValueType.FILE_RESOURCE );
         when( context.getDataElement( dataElementUid ) ).thenReturn( validDataElement );
 
-        ProgramStage programStage = getProgramStage( validDataElement, programStageUid, false );
+        ProgramStage programStage = programStage( validDataElement, false );
         when( context.getProgramStage( programStageUid ) ).thenReturn( programStage );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( context );
+
         DataValue validDataValue = dataValue();
         validDataValue.setValue( null );
         Event event = Event.builder()
@@ -366,10 +354,11 @@ class EventDataValuesValidationHookTest
         DataElement validDataElement = dataElement( ValueType.FILE_RESOURCE );
         when( context.getDataElement( dataElementUid ) ).thenReturn( validDataElement );
 
-        ProgramStage programStage = getProgramStage( validDataElement, programStageUid, true );
+        ProgramStage programStage = programStage( validDataElement, true );
         when( context.getProgramStage( programStageUid ) ).thenReturn( programStage );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( context );
+
         DataValue validDataValue = dataValue();
         validDataValue.setValue( null );
         Event event = Event.builder()
@@ -390,11 +379,12 @@ class EventDataValuesValidationHookTest
         DataElement validDataElement = dataElement();
         when( context.getDataElement( dataElementUid ) ).thenReturn( validDataElement );
 
-        ProgramStage programStage = getProgramStage( validDataElement, programStageUid, true );
+        ProgramStage programStage = programStage( validDataElement, true );
         programStage.setValidationStrategy( ValidationStrategy.ON_UPDATE_AND_INSERT );
         when( context.getProgramStage( programStageUid ) ).thenReturn( programStage );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( context );
+
         DataValue validDataValue = dataValue();
         validDataValue.setValue( null );
         Event event = Event.builder()
@@ -415,11 +405,12 @@ class EventDataValuesValidationHookTest
         DataElement validDataElement = dataElement();
         when( context.getDataElement( dataElementUid ) ).thenReturn( validDataElement );
 
-        ProgramStage programStage = getProgramStage( validDataElement, programStageUid, true );
+        ProgramStage programStage = programStage( validDataElement, true );
         programStage.setValidationStrategy( ValidationStrategy.ON_UPDATE_AND_INSERT );
         when( context.getProgramStage( programStageUid ) ).thenReturn( programStage );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( context );
+
         DataValue validDataValue = dataValue();
         validDataValue.setValue( null );
         Event event = Event.builder()
@@ -440,11 +431,12 @@ class EventDataValuesValidationHookTest
         DataElement validDataElement = dataElement();
         when( context.getDataElement( dataElementUid ) ).thenReturn( validDataElement );
 
-        ProgramStage programStage = getProgramStage( validDataElement, programStageUid, true );
+        ProgramStage programStage = programStage( validDataElement, true );
         programStage.setValidationStrategy( ValidationStrategy.ON_COMPLETE );
         when( context.getProgramStage( programStageUid ) ).thenReturn( programStage );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( context );
+
         DataValue validDataValue = dataValue();
         validDataValue.setValue( null );
         Event event = Event.builder()
@@ -464,11 +456,12 @@ class EventDataValuesValidationHookTest
         DataElement validDataElement = dataElement();
         when( context.getDataElement( dataElementUid ) ).thenReturn( validDataElement );
 
-        ProgramStage programStage = getProgramStage( validDataElement, programStageUid, true );
+        ProgramStage programStage = programStage( validDataElement, true );
         programStage.setValidationStrategy( ValidationStrategy.ON_COMPLETE );
         when( context.getProgramStage( programStageUid ) ).thenReturn( programStage );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( context );
+
         DataValue validDataValue = dataValue();
         validDataValue.setValue( null );
         Event event = Event.builder()
@@ -489,10 +482,11 @@ class EventDataValuesValidationHookTest
         DataElement validDataElement = dataElement();
         when( context.getDataElement( dataElementUid ) ).thenReturn( validDataElement );
 
-        ProgramStage programStage = getProgramStage( validDataElement, programStageUid, true );
+        ProgramStage programStage = programStage( validDataElement, true );
         when( context.getProgramStage( programStageUid ) ).thenReturn( programStage );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( context );
+
         DataValue validDataValue = dataValue();
         validDataValue.setValue( null );
         Event event = Event.builder()
@@ -512,10 +506,11 @@ class EventDataValuesValidationHookTest
         DataElement validDataElement = dataElement();
         when( context.getDataElement( dataElementUid ) ).thenReturn( validDataElement );
 
-        ProgramStage programStage = getProgramStage( validDataElement, programStageUid, true );
+        ProgramStage programStage = programStage( validDataElement, true );
         when( context.getProgramStage( programStageUid ) ).thenReturn( programStage );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( context );
+
         DataValue validDataValue = dataValue();
         validDataValue.setValue( null );
         Event event = Event.builder()
@@ -535,10 +530,11 @@ class EventDataValuesValidationHookTest
         DataElement validDataElement = dataElement();
         when( context.getDataElement( dataElementUid ) ).thenReturn( validDataElement );
 
-        ProgramStage programStage = getProgramStage( validDataElement, programStageUid, false );
+        ProgramStage programStage = programStage( validDataElement, false );
         when( context.getProgramStage( programStageUid ) ).thenReturn( programStage );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( context );
+
         DataValue validDataValue = dataValue();
         validDataValue.setValue( null );
         Event event = Event.builder()
@@ -558,19 +554,15 @@ class EventDataValuesValidationHookTest
         DataElement validDataElement = dataElement( ValueType.FILE_RESOURCE );
         when( context.getDataElement( dataElementUid ) ).thenReturn( validDataElement );
 
-        FileResource fileResource = new FileResource();
-        fileResource.setAssigned( true );
-        DataValue validDataValue = dataValue();
-        validDataValue.setValue( "QX4LpiTZmUH" );
-        when( context.getFileResource( validDataValue.getValue() ) ).thenReturn( fileResource );
-
-        ProgramStage programStage = new ProgramStage();
-        programStage.setUid( programStageUid );
-        programStage
-            .setProgramStageDataElements( Set.of( new ProgramStageDataElement( programStage, validDataElement ) ) );
+        ProgramStage programStage = programStage( validDataElement );
         when( context.getProgramStage( programStageUid ) ).thenReturn( programStage );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( context );
+
+        FileResource fileResource = new FileResource();
+        fileResource.setAssigned( true );
+        DataValue validDataValue = dataValue( "QX4LpiTZmUH" );
+        when( context.getFileResource( validDataValue.getValue() ) ).thenReturn( fileResource );
         Event event = Event.builder()
             .programStage( programStage.getUid() )
             .status( EventStatus.SKIPPED )
@@ -621,12 +613,11 @@ class EventDataValuesValidationHookTest
         dataElement.setOptionSet( optionSet );
         when( context.getDataElement( dataElementUid ) ).thenReturn( dataElement );
 
-        ProgramStage programStage = new ProgramStage();
-        programStage.setUid( programStageUid );
-        programStage.setProgramStageDataElements( Set.of( new ProgramStageDataElement( programStage, dataElement ) ) );
+        ProgramStage programStage = programStage( dataElement );
         when( context.getProgramStage( programStageUid ) ).thenReturn( programStage );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( context );
+
         Event event = Event.builder()
             .programStage( programStage.getUid() )
             .status( EventStatus.SKIPPED )
@@ -641,9 +632,8 @@ class EventDataValuesValidationHookTest
     @Test
     void failValidationDataElementOptionValueIsInValid()
     {
-        DataValue validDataValue = dataValue();
+        DataValue validDataValue = dataValue( "value" );
         validDataValue.setDataElement( dataElementUid );
-        validDataValue.setValue( "value" );
 
         OptionSet optionSet = new OptionSet();
         Option option = new Option();
@@ -656,12 +646,11 @@ class EventDataValuesValidationHookTest
         dataElement.setOptionSet( optionSet );
         when( context.getDataElement( dataElementUid ) ).thenReturn( dataElement );
 
-        ProgramStage programStage = new ProgramStage();
-        programStage.setUid( programStageUid );
-        programStage.setProgramStageDataElements( Set.of( new ProgramStageDataElement( programStage, dataElement ) ) );
+        ProgramStage programStage = programStage( dataElement );
         when( context.getProgramStage( programStageUid ) ).thenReturn( programStage );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( context );
+
         Event event = Event.builder()
             .programStage( programStage.getUid() )
             .status( EventStatus.SKIPPED )
@@ -681,17 +670,14 @@ class EventDataValuesValidationHookTest
         DataElement invalidDataElement = dataElement( valueType );
         when( context.getDataElement( dataElementUid ) ).thenReturn( invalidDataElement );
 
-        ProgramStage programStage = new ProgramStage();
-        programStage.setUid( programStageUid );
-        programStage
-            .setProgramStageDataElements( Set.of( new ProgramStageDataElement( programStage, dataElement() ) ) );
+        ProgramStage programStage = programStage( dataElement() );
         when( context.getProgramStage( programStageUid ) ).thenReturn( programStage );
+
+        ValidationErrorReporter reporter = new ValidationErrorReporter( context );
 
         DataValue validDataValue = dataValue();
         validDataValue.setDataElement( dataElementUid );
         validDataValue.setValue( value );
-
-        ValidationErrorReporter reporter = new ValidationErrorReporter( context );
         Event event = Event.builder()
             .programStage( programStage.getUid() )
             .status( EventStatus.SKIPPED )
@@ -721,6 +707,14 @@ class EventDataValuesValidationHookTest
         return dataElement;
     }
 
+    @NotNull
+    private DataValue dataValue( String value )
+    {
+        DataValue dataValue = dataValue();
+        dataValue.setValue( value );
+        return dataValue;
+    }
+
     private DataValue dataValue()
     {
         DataValue dataValue = new DataValue();
@@ -731,32 +725,28 @@ class EventDataValuesValidationHookTest
         return dataValue;
     }
 
-    private ProgramStage getProgramStage( DataElement validDataElement, String programStageUid, boolean compulsory )
+    @NotNull
+    private ProgramStage programStage( DataElement dataElement )
+    {
+        return programStage( dataElement, false );
+    }
+
+    private ProgramStage programStage( DataElement dataElement, boolean compulsory )
     {
         ProgramStage programStage = new ProgramStage();
         programStage.setUid( programStageUid );
         programStage
-            .setProgramStageDataElements( getProgramStageDataElements( validDataElement, programStage, compulsory ) );
+            .setProgramStageDataElements( getProgramStageDataElements( dataElement, programStage, compulsory ) );
 
         return programStage;
     }
 
-    private HashSet<ProgramStageDataElement> getProgramStageDataElements( DataElement validDataElement,
+    private Set<ProgramStageDataElement> getProgramStageDataElements( DataElement dataElement,
         ProgramStage programStage, boolean compulsory )
     {
-        return new HashSet<>()
-        {
-            {
-
-                ProgramStageDataElement programStageDataElement = new ProgramStageDataElement();
-                programStageDataElement.setCompulsory( compulsory );
-                programStageDataElement.setDataElement( validDataElement );
-                programStageDataElement.setProgramStage( programStage );
-
-                add( programStageDataElement );
-
-            }
-        };
+        ProgramStageDataElement programStageDataElement = new ProgramStageDataElement( programStage, dataElement );
+        programStageDataElement.setCompulsory( compulsory );
+        return Set.of( programStageDataElement );
     }
 
 }
