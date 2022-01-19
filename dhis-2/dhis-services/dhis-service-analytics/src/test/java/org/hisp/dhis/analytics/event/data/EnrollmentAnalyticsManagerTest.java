@@ -52,6 +52,7 @@ import java.util.Date;
 import java.util.function.Consumer;
 
 import org.hisp.dhis.analytics.TimeField;
+import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.data.programindicator.DefaultProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
@@ -98,6 +99,9 @@ class EnrollmentAnalyticsManagerTest extends
     private JdbcTemplate jdbcTemplate;
 
     @Mock
+    private ExecutionPlanStore executionPlanStore;
+
+    @Mock
     private SqlRowSet rowSet;
 
     @Mock
@@ -122,7 +126,8 @@ class EnrollmentAnalyticsManagerTest extends
             programIndicatorService );
 
         subject = new JdbcEnrollmentAnalyticsManager( jdbcTemplate, statementBuilder, programIndicatorService,
-            programIndicatorSubqueryBuilder, new EnrollmentTimeFieldSqlRenderer( statementBuilder ) );
+            programIndicatorSubqueryBuilder, new EnrollmentTimeFieldSqlRenderer( statementBuilder ),
+            executionPlanStore );
     }
 
     @Test

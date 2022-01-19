@@ -46,6 +46,15 @@ public interface EventDataQueryService
     EventQueryParams getFromRequest( EventDataQueryRequest request );
 
     /**
+     * Creates an {@link EventQueryParams} based on the given request.
+     *
+     * @param request the {@link EventDataQueryRequest} containing the URL
+     *        parameters.
+     * @return an {@link EventQueryParams}.
+     */
+    EventQueryParams getFromRequest( EventDataQueryRequest request, boolean analyzeOnly );
+
+    /**
      * Creates an {@link EventQueryParams} based on the given event analytical
      * object.
      *

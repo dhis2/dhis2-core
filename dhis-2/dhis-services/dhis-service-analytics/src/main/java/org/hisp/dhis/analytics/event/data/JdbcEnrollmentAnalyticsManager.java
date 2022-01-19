@@ -42,6 +42,7 @@ import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.ProgramIndicatorSubqueryBuilder;
@@ -99,16 +100,27 @@ public class JdbcEnrollmentAnalyticsManager
     public JdbcEnrollmentAnalyticsManager( JdbcTemplate jdbcTemplate, StatementBuilder statementBuilder,
         ProgramIndicatorService programIndicatorService,
         ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder,
-        EnrollmentTimeFieldSqlRenderer timeFieldSqlRenderer )
+        EnrollmentTimeFieldSqlRenderer timeFieldSqlRenderer, ExecutionPlanStore executionPlanStore )
     {
-        super( jdbcTemplate, statementBuilder, programIndicatorService, programIndicatorSubqueryBuilder );
+        super( jdbcTemplate, statementBuilder, programIndicatorService, programIndicatorSubqueryBuilder,
+            executionPlanStore );
         this.timeFieldSqlRenderer = timeFieldSqlRenderer;
     }
 
     @Override
     public void getEnrollments( EventQueryParams params, Grid grid, int maxLimit )
     {
-        withExceptionHandling( () -> getEnrollments( params, grid, getEventsOrEnrollmentsSql( params, maxLimit ) ) );
+        String sql = getEventsOrEnrollmentsSql( params, maxLimit );
+
+        if ( params.analyzeOnly() )
+        {
+            executionPlanStore.addExecutionPlan( params.getAnalyzeOrderId(), sql );
+        }
+        else
+        {
+            withExceptionHandling( () -> getEnrollments( params, grid, sql ) );
+        }
+
     }
 
     /**
@@ -151,7 +163,14 @@ public class JdbcEnrollmentAnalyticsManager
         {
             log.debug( "Analytics enrollment count SQL: " + sql );
 
-            count = jdbcTemplate.queryForObject( sql, Long.class );
+            if ( params.analyzeOnly() )
+            {
+                executionPlanStore.addExecutionPlan( params.getAnalyzeOrderId(), sql );
+            }
+            else
+            {
+                count = jdbcTemplate.queryForObject( sql, Long.class );
+            }
         }
         catch ( BadSqlGrammarException ex )
         {

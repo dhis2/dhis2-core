@@ -101,6 +101,10 @@ public interface Grid
      */
     Map<String, Object> getInternalMetaData();
 
+    PerformanceMetrics getPerformanceMetrics();
+
+    // Grid setPerformanceMetrics( PerformanceMetrics performanceMetrics );
+
     /**
      * Sets a map of internal meta-data.
      */
@@ -501,6 +505,8 @@ public interface Grid
      *        no limit.
      */
     Grid addRows( SqlRowSet rs, int maxLimit );
+
+    Grid maybeAddPerformanceMetrics( List<ExecutionPlan> plans );
 
     /**
      * This method will keep, in the Grid, only the given list of headers. All

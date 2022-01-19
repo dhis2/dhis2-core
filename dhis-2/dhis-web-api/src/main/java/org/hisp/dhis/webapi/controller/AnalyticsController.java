@@ -51,6 +51,7 @@ import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -64,6 +65,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 public class AnalyticsController
 {
     private static final String RESOURCE_PATH = "/analytics";
+
+    private static final String ANALYZE_PATH = "/analyze";
 
     private static final String DATA_VALUE_SET_PATH = "/dataValueSet";
 
@@ -81,6 +84,16 @@ public class AnalyticsController
     // -------------------------------------------------------------------------
     // Resources
     // -------------------------------------------------------------------------
+
+    @PreAuthorize( "hasRole('F_PERFORM_MAINTENANCE')" )
+    @GetMapping( value = RESOURCE_PATH + ANALYZE_PATH, produces = { APPLICATION_JSON_VALUE, "application/javascript" } )
+    public @ResponseBody Grid getAnalyzeJson( // JSON
+        AggregateAnalyticsQueryCriteria criteria,
+        DhisApiVersion apiVersion,
+        HttpServletResponse response )
+    {
+        return getGrid( criteria, apiVersion, ContextUtils.CONTENT_TYPE_JSON, response, true );
+    }
 
     @GetMapping( value = RESOURCE_PATH, produces = { APPLICATION_JSON_VALUE, "application/javascript" } )
     public @ResponseBody Grid getJson( // JSON, JSONP
@@ -268,7 +281,18 @@ public class AnalyticsController
     private Grid getGrid( AggregateAnalyticsQueryCriteria criteria, DhisApiVersion apiVersion, String contentType,
         HttpServletResponse response )
     {
+        return getGrid( criteria, apiVersion, contentType, response, false );
+    }
+
+    private Grid getGrid( AggregateAnalyticsQueryCriteria criteria, DhisApiVersion apiVersion, String contentType,
+        HttpServletResponse response, boolean analyzeOnly )
+    {
         DataQueryParams params = dataQueryService.getFromRequest( mapFromCriteria( criteria, apiVersion ) );
+
+        if ( analyzeOnly )
+        {
+            params = DataQueryParams.newBuilder( params ).withSkipData( false ).withAnalyzeOrderId().build();
+        }
 
         contextUtils.configureAnalyticsResponse( response, contentType, CacheStrategy.RESPECT_SYSTEM_SETTING, null,
             false, params.getLatestEndDate() );

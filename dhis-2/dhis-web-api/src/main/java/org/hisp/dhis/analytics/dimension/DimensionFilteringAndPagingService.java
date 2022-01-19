@@ -48,7 +48,6 @@ import org.hisp.dhis.common.DimensionsCriteria;
 import org.hisp.dhis.fieldfiltering.FieldFilterParams;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
-import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
 import org.springframework.stereotype.Service;
 
@@ -121,7 +120,7 @@ public class DimensionFilteringAndPagingService
 
     private Stream<DimensionResponse> sortedAndPagedStream(
         Stream<DimensionResponse> dimensions,
-        PagingAndSortingCriteriaAdapter pagingAndSortingCriteria )
+        DimensionsCriteria pagingAndSortingCriteria )
     {
         if ( Objects.nonNull( pagingAndSortingCriteria.getOrder() ) && !pagingAndSortingCriteria.getOrder().isEmpty() )
         {
@@ -148,7 +147,7 @@ public class DimensionFilteringAndPagingService
             dimensions = dimensions.sorted( DEFAULT_COMPARATOR );
         }
 
-        if ( pagingAndSortingCriteria.isPagingRequest() )
+        if ( pagingAndSortingCriteria.isPaging() )
         {
             dimensions = dimensions
                 .skip( pagingAndSortingCriteria.getFirstResult() )

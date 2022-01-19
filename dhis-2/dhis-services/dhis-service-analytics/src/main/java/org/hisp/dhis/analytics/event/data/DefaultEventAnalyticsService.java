@@ -245,7 +245,7 @@ public class DefaultEventAnalyticsService
 
         queryValidator.validate( params );
 
-        if ( analyticsCache.isEnabled() )
+        if ( analyticsCache.isEnabled() && !params.analyzeOnly() )
         {
             final EventQueryParams immutableParams = new EventQueryParams.Builder( params ).build();
             return analyticsCache.getOrFetch( params, p -> getAggregatedEventDataGrid( immutableParams ) );
@@ -507,7 +507,7 @@ public class DefaultEventAnalyticsService
         // Headers and data
         // ---------------------------------------------------------------------
 
-        if ( !params.isSkipData() )
+        if ( !params.isSkipData() || params.analyzeOnly() )
         {
             // -----------------------------------------------------------------
             // Headers
