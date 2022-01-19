@@ -58,6 +58,7 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataType;
+import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.data.programindicator.DefaultProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.common.BaseDimensionalObject;
@@ -104,6 +105,9 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
     @Mock
     private JdbcTemplate jdbcTemplate;
 
+    @Mock
+    ExecutionPlanStore executionPlanStore;
+
     private JdbcEventAnalyticsManager subject;
 
     @Captor
@@ -123,7 +127,7 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
             programIndicatorService );
 
         subject = new JdbcEventAnalyticsManager( jdbcTemplate, statementBuilder, programIndicatorService,
-            programIndicatorSubqueryBuilder, timeCoordinateSelector );
+            programIndicatorSubqueryBuilder, timeCoordinateSelector, executionPlanStore );
 
         when( jdbcTemplate.queryForRowSet( anyString() ) ).thenReturn( this.rowSet );
     }

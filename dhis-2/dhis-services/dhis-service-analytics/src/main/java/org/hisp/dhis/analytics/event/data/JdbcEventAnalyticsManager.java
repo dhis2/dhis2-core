@@ -57,6 +57,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.util.Precision;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.Rectangle;
+import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.ProgramIndicatorSubqueryBuilder;
@@ -115,16 +116,26 @@ public class JdbcEventAnalyticsManager
     public JdbcEventAnalyticsManager( JdbcTemplate jdbcTemplate, StatementBuilder statementBuilder,
         ProgramIndicatorService programIndicatorService,
         ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder,
-        EventTimeFieldSqlRenderer timeFieldSqlRenderer )
+        EventTimeFieldSqlRenderer timeFieldSqlRenderer, ExecutionPlanStore executionPlanStore )
     {
-        super( jdbcTemplate, statementBuilder, programIndicatorService, programIndicatorSubqueryBuilder );
+        super( jdbcTemplate, statementBuilder, programIndicatorService, programIndicatorSubqueryBuilder,
+            executionPlanStore );
         this.timeFieldSqlRenderer = timeFieldSqlRenderer;
     }
 
     @Override
     public Grid getEvents( EventQueryParams params, Grid grid, int maxLimit )
     {
-        withExceptionHandling( () -> getEvents( params, grid, getEventsOrEnrollmentsSql( params, maxLimit ) ) );
+        String sql = getEventsOrEnrollmentsSql( params, maxLimit );
+
+        if ( params.analyzeOnly() )
+        {
+            executionPlanStore.addExecutionPlan( params.getAnalyzeOrderId(), sql );
+        }
+        else
+        {
+            withExceptionHandling( () -> getEvents( params, grid, sql ) );
+        }
 
         return grid;
     }
@@ -223,7 +234,14 @@ public class JdbcEventAnalyticsManager
         {
             log.debug( "Analytics event count SQL: " + sql );
 
-            count = jdbcTemplate.queryForObject( sql, Long.class );
+            if ( params.analyzeOnly() )
+            {
+                executionPlanStore.addExecutionPlan( params.getAnalyzeOrderId(), sql );
+            }
+            else
+            {
+                count = jdbcTemplate.queryForObject( sql, Long.class );
+            }
         }
         catch ( BadSqlGrammarException ex )
         {
