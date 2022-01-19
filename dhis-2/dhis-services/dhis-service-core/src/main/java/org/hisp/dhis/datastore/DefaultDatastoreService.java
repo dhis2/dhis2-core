@@ -43,6 +43,7 @@ import java.util.stream.Stream;
 
 import lombok.AllArgsConstructor;
 
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionType;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.acl.AclService;
@@ -111,8 +112,17 @@ public class DefaultDatastoreService
     @Transactional( readOnly = true )
     public <T> T getFields( DatastoreQuery query, Function<Stream<DatastoreFields>, T> transform )
     {
+        DatastoreQueryValidator.validate( query );
         return readProtectedIn( query.getNamespace(), null,
             () -> store.getFields( query, transform ) );
+    }
+
+    @Override
+    public DatastoreQuery plan( DatastoreQuery query )
+        throws IllegalQueryException
+    {
+        DatastoreQueryValidator.validate( query );
+        return query;
     }
 
     @Override

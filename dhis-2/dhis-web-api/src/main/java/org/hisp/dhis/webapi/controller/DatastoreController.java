@@ -115,15 +115,14 @@ public class DatastoreController
         HttpServletRequest request, HttpServletResponse response )
         throws Exception
     {
-        response.setContentType( APPLICATION_JSON_VALUE );
-
-        setNoStore( response );
-
-        DatastoreQuery query = DatastoreQuery.builder()
+        DatastoreQuery query = service.plan( DatastoreQuery.builder()
             .namespace( namespace )
             .fields( parseFields( fields ) )
             .includeAll( includeAll )
-            .build().with( new NamedParams( request::getParameter, request::getParameterValues ) );
+            .build().with( new NamedParams( request::getParameter, request::getParameterValues ) ) );
+
+        response.setContentType( APPLICATION_JSON_VALUE );
+        setNoStore( response );
 
         try ( PrintWriter writer = response.getWriter();
             JsonWriter out = new JsonWriter( writer ) )

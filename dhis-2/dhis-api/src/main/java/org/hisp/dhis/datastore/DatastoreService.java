@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionType;
 import org.springframework.security.access.AccessDeniedException;
 
@@ -106,6 +107,16 @@ public interface DatastoreService
      * @return the transformed stream
      */
     <T> T getFields( DatastoreQuery query, Function<Stream<DatastoreFields>, T> transform );
+
+    /**
+     * Validates and plans a {@link DatastoreQuery}. This might correct or
+     * otherwise update the provided query.
+     *
+     * @param query to validate and plan
+     * @throws IllegalQueryException when the query is not valid
+     */
+    DatastoreQuery plan( DatastoreQuery query )
+        throws IllegalQueryException;
 
     /**
      * Retrieves a KeyJsonValue based on a namespace and key.

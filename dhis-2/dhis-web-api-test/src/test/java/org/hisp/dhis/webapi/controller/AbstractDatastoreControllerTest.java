@@ -64,6 +64,7 @@ abstract class AbstractDatastoreControllerTest extends DhisControllerConvenience
             toJson( Map.of(
                 "name", name,
                 "age", age,
-                "eats", eats.stream().map( food -> Map.of( "name", food ) ) ) ) );
+                "cute", true,
+                "eats", eats == null ? List.of() : eats.stream().map( food -> Map.of( "name", food ) ) ) ) );
     }
 }

@@ -25,37 +25,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.datastore;
+package org.hisp.dhis.webapi.controller;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-
-import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.datastore.DatastoreQuery.Filter;
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ErrorMessage;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 /**
- * Contains the {@link DatastoreQuery} semantic validation.
+ * Tests specifically the {@code order} parameter aspect of the
+ * {@link DatastoreController#getEntries(String, String, boolean, HttpServletRequest, HttpServletResponse)}
+ * method using (mocked) REST requests.
+ * <p>
+ * Tests will use {@code fields} parameter as it is a required parameter for the
+ * API.
  *
  * @author Jan Bernitt
  */
-@NoArgsConstructor( access = AccessLevel.PRIVATE )
-class DatastoreQueryValidator
+class DatastoreOrderControllerTest extends AbstractDatastoreControllerTest
 {
-    public static void validate( DatastoreQuery query )
-    {
-        for ( Filter f : query.getFilters() )
-        {
-            if ( f.isKeyPath() && f.getOperator().isUnary() )
-            {
-                throw filterException( f, "key filters cannot be used with unary operators" );
-            }
-        }
-    }
 
-    private static IllegalQueryException filterException( Filter f, String msg )
-    {
-        return new IllegalQueryException( new ErrorMessage( ErrorCode.E7653, f.toString(), msg ) );
-    }
 }

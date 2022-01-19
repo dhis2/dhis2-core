@@ -110,7 +110,13 @@ public final class DatastoreQuery
     public enum Direction
     {
         ASC,
-        DESC
+        DESC;
+
+        @Override
+        public String toString()
+        {
+            return name().toLowerCase();
+        }
     }
 
     public interface HasPath
@@ -128,7 +134,6 @@ public final class DatastoreQuery
         }
     }
 
-    @ToString
     @Getter
     public static final class Order implements HasPath
     {
@@ -155,9 +160,14 @@ public final class DatastoreQuery
             }
             throw new IllegalArgumentException( "Not a valid order expression: " + order );
         }
+
+        @Override
+        public String toString()
+        {
+            return path + ":" + direction;
+        }
     }
 
-    @ToString
     @Getter
     public static final class Field implements HasPath
     {
@@ -175,9 +185,14 @@ public final class DatastoreQuery
             this.path = normalisePath( path );
             this.alias = alias != null ? alias : ".".equals( path ) ? "value" : path;
         }
+
+        @Override
+        public String toString()
+        {
+            return alias == path ? path : path + "(" + alias + ")";
+        }
     }
 
-    @ToString
     @Getter
     public static final class Filter implements HasPath
     {
@@ -192,6 +207,14 @@ public final class DatastoreQuery
             this.path = normalisePath( path );
             this.operator = operator;
             this.value = value;
+        }
+
+        @Override
+        public String toString()
+        {
+            return value.isEmpty()
+                ? path + ":" + operator
+                : path + ":" + operator + ":" + value;
         }
     }
 
@@ -284,6 +307,12 @@ public final class DatastoreQuery
             throw new IllegalQueryException(
                 "Unknown operator: `" + operator + "` Use one of " + stream( values() )
                     .flatMap( e -> e.operators.stream() ).collect( toSet() ) );
+        }
+
+        @Override
+        public String toString()
+        {
+            return operators.iterator().next();
         }
     }
 
