@@ -78,7 +78,7 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
         }
 
         if ( skipSharing &&
-            StringUtils.containsAny( path, "user", "publicAccess", "externalAccess", "userGroupAccesses",
+            StringUtils.equalsAny( path, "user", "publicAccess", "externalAccess", "userGroupAccesses",
                 "userAccesses", "sharing" ) )
         {
             return false;
