@@ -34,6 +34,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import java.io.PrintWriter;
 import java.util.Date;
 import java.util.List;
 
@@ -124,13 +125,25 @@ public class DatastoreController
             .includeAll( includeAll )
             .build().with( new NamedParams( request::getParameter, request::getParameterValues ) );
 
-        try ( JsonWriter out = new JsonWriter( response.getWriter() ) )
+        try ( PrintWriter writer = response.getWriter();
+            JsonWriter out = new JsonWriter( writer ) )
         {
+            if ( !query.isHeadless() )
+            {
+                writer.write( "{\"pager\":{" );
+                writer.write( "\"page\":" + query.getPage() + "," );
+                writer.write( "\"pageSize\":" + query.getPageSize() + "," );
+                writer.write( "},\"entries\":" );
+            }
             List<String> members = query.getFields().stream().map( Field::getAlias ).collect( toList() );
             service.getFields( query, entries -> {
                 out.writeEntries( members, entries );
                 return true;
             } );
+            if ( !query.isHeadless() )
+            {
+                writer.write( "}" );
+            }
         }
     }
 

@@ -39,6 +39,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -62,6 +63,13 @@ import org.hisp.dhis.feedback.ErrorMessage;
 @AllArgsConstructor( access = AccessLevel.PRIVATE )
 public final class DatastoreQuery
 {
+    /**
+     * Filters allow values with {@code [a,b]} syntax where a comma occurs as
+     * part of the value. These commas need to be ignored when splitting
+     * parameter list.
+     */
+    private static final String FILTER_SPLIT = ",(?![^\\[\\]]*\\]|[^\\(\\)]*\\))";
+
     public static final Order KEY_ASC = new Order( "_", Direction.ASC );
 
     private final String namespace;
@@ -242,6 +250,11 @@ public final class DatastoreQuery
             return ordinal() >= IEQ.ordinal();
         }
 
+        public boolean isIn()
+        {
+            return this == IN || this == NOT_IN;
+        }
+
         public boolean isTextBased()
         {
             return ordinal() >= LIKE.ordinal();
@@ -286,7 +299,7 @@ public final class DatastoreQuery
             .paging( isPaging )
             .page( pageNo )
             .pageSize( size )
-            .filters( parseFilters( params.getStrings( "filter" ) ) )
+            .filters( parseFilters( params.getStrings( "filter", FILTER_SPLIT ) ) )
             .build();
     }
 
@@ -362,14 +375,14 @@ public final class DatastoreQuery
     {
         Function<String, Filter> toFilter = expr -> {
             String[] parts = expr.split( "(::|:|~|@)" );
-            if ( parts.length < 2 || parts.length > 3 )
+            if ( parts.length < 2 )
             {
                 throw new IllegalQueryException(
                     new ErrorMessage( ErrorCode.E7652, expr,
                         "expected expression of pattern: <property>:<operator>[:<value>]" ) );
             }
-            return new Filter( parts[0], Comparison.parse( parts[1].toUpperCase() ),
-                parts.length == 2 ? "" : parts[2] );
+            String value = stream( parts ).skip( 2 ).collect( Collectors.joining( ":" ) );
+            return new Filter( parts[0], Comparison.parse( parts[1].toUpperCase() ), value );
         };
         return filterExpressions.stream().map( toFilter ).collect( toList() );
     }

@@ -55,44 +55,44 @@ public class H2SqlFunction
     public static void registerH2Functions( DataSource dataSource )
         throws SQLException
     {
-        try
+        try ( Connection connection = dataSource.getConnection() )
         {
-            try ( Connection connection = dataSource.getConnection() )
-            {
-                try ( Statement statement = connection.createStatement() )
-                {
-                    statement
-                        .execute(
-                            "CREATE ALIAS jsonb_extract_path_text FOR \"org.hisp.dhis.h2.H2SqlFunction.jsonb_extract_path_text\"" );
-                }
-
-                try ( Statement statement = connection.createStatement() )
-                {
-                    statement
-                        .execute(
-                            "CREATE ALIAS jsonb_extract_path FOR \"org.hisp.dhis.h2.H2SqlFunction.jsonb_extract_path\"" );
-                }
-
-                try ( Statement statement = connection.createStatement() )
-                {
-                    statement
-                        .execute(
-                            "CREATE ALIAS jsonb_has_user_id FOR \"org.hisp.dhis.h2.H2SqlFunction.jsonb_has_user_id\"" );
-                }
-
-                try ( Statement statement = connection.createStatement() )
-                {
-                    statement
-                        .execute(
-                            "CREATE ALIAS jsonb_check_user_access FOR \"org.hisp.dhis.h2.H2SqlFunction.jsonb_check_user_access\"" );
-                }
-            }
+            createAliasForFunction( connection, "jsonb_extract_path_text" );
+            createAliasForFunction( connection, "jsonb_extract_path" );
+            createAliasForFunction( connection, "jsonb_typeof" );
+            createAliasForFunction( connection, "jsonb_has_user_id" );
+            createAliasForFunction( connection, "jsonb_check_user_access" );
         }
         catch ( SQLException exception )
         {
             log.info( "Failed to register custom H2Functions, probably already registered, ignoring this.",
                 exception );
         }
+    }
+
+    private static void createAliasForFunction( Connection connection, String name )
+        throws SQLException
+    {
+        try ( Statement statement = connection.createStatement() )
+        {
+            statement.execute( String.format(
+                "CREATE ALIAS %s FOR \"%s.%s\"", name, H2SqlFunction.class.getName(), name ) );
+        }
+    }
+
+    // Postgres inbuilt function
+    public static String jsonb_typeof( PGobject json )
+    {
+        if ( json == null )
+        {
+            return "null";
+        }
+        String content = json.getValue();
+        if ( content == null )
+        {
+            return "null";
+        }
+        return new JsonResponse( content ).get( "$" ).node().getType().name().toLowerCase();
     }
 
     // Postgres inbuilt function
