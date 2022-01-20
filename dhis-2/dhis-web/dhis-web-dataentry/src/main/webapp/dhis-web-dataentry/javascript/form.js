@@ -1277,8 +1277,9 @@ function dataSetSelected()
 
     dhis2.de.currentDataSetId = $( '#selectedDataSetId' ).val();
     
+    var serverTimeDelta = dhis2.de.storageManager.getServerTimeDelta() || 0;
     dhis2.de.blackListedPeriods = dhis2.de.dataSets[dhis2.de.currentDataSetId].dataInputPeriods
-        .filter(function(dip) { return ( dip.openingDate != "" && new Date( dip.openingDate ) > Date.now() ) || ( dip.closingDate != "" && new Date( dip.closingDate ) < Date.now() ); })
+        .filter(function(dip) { return ( dip.openingDate != "" && new Date( dip.openingDate ) > (Date.now() + serverTimeDelta) ) || ( dip.closingDate != "" && new Date( dip.closingDate ) < (Date.now() + serverTimeDelta) ); })
         .map(function(dip) { return dip.period.isoPeriod; });
     
     if ( dhis2.de.currentDataSetId && dhis2.de.currentDataSetId !== -1 )
@@ -1837,8 +1838,9 @@ function insertDataValues( json )
     
     if ( dataSet && dataSet.expiryDays > 0 )
     {
+        var serverTimeDelta = dhis2.de.storageManager.getServerTimeDelta() || 0;
         var maxDate = moment( period.endDate, dhis2.period.format.toUpperCase() ).add( parseInt(dataSet.expiryDays), 'day' );
-        periodLocked = moment().isAfter( maxDate );
+        periodLocked = moment().add( serverTimeDelta, 'ms' ).isAfter( maxDate );
     }
 
     var lockExceptionId = dhis2.de.currentOrganisationUnitId + "-" + dhis2.de.currentDataSetId + "-" + period.iso;
@@ -2659,6 +2661,7 @@ function updateForms()
         .then(getLocalFormsToUpdate)
         .then(downloadForms)
         .then(getUserSetting)
+        .then(getTimeDelta)
         .then(getRemoteFormsToDownload)
         .then(downloadForms)
         .then(dhis2.de.loadOptionSets)
@@ -2828,6 +2831,8 @@ function StorageManager()
     var KEY_DATAVALUES = 'datavalues';
     var KEY_COMPLETEDATASETS = 'completedatasets';
     var KEY_USER_SETTINGS = 'usersettings';
+    var KEY_SERVER_TIME_DELTA = 'servertimedelta';
+    var KEY_SERVER_TIME_RETRIEVED = 'servertimeretrieved';
 
     /**
      * Gets the content of a data entry form.
@@ -3338,6 +3343,49 @@ function StorageManager()
     }
 
     /**
+     * Returns the cached server time delta
+     */
+    this.getServerTimeDelta = function()
+    {
+        // if it has been more than 1 hour since last update, pull server time again
+        var lastRetrieved = this.getServerTimeRetrieved();
+        if (lastRetrieved === null || (new Date() - lastRetrieved > 3600000)) {
+            getTimeDelta();
+        }
+        return localStorage[ KEY_SERVER_TIME_DELTA ]
+            ? JSON.parse(localStorage[ KEY_SERVER_TIME_DELTA ])
+            : null;
+    }
+
+    /**
+     * Caches the time difference between server time and browser time
+     * @param timeDelta The time difference (server - client) in milliseconds (integer)
+     */
+    this.setServerTimeDelta = function(timeDelta)
+    {
+        localStorage[ KEY_SERVER_TIME_DELTA ] = timeDelta;
+    }
+
+    /**
+     * Returns the cached time when server time delta was retrieved
+     */
+    this.getServerTimeRetrieved = function()
+    {
+        return localStorage[ KEY_SERVER_TIME_RETRIEVED ]
+        ? parseInt(localStorage[ KEY_SERVER_TIME_RETRIEVED ])
+        : null;
+    }
+
+    /**
+     * Caches the time that server time delta was last retrieved
+     * @param retrievalTime javascript date
+     */
+    this.setServerTimeRetrieved = function(retrievalTime)
+    {
+        localStorage[ KEY_SERVER_TIME_RETRIEVED ] = retrievalTime.getTime();
+    }
+
+    /**
      * Indicates whether there exists data values or complete data set
      * registrations in the local storage.
      *
@@ -3800,6 +3848,30 @@ function getUserSetting()
     $.getJSON(url, function( data ) {
             console.log("User settings loaded: ", data);
             dhis2.de.storageManager.setUserSettings(data);
+            def.resolve();
+        }
+    );
+
+    return def;
+}
+
+function getTimeDelta()
+{
+    if (dhis2.de.isOffline) {
+        return;
+    }
+
+    var def = $.Deferred();
+
+    var url = '../api/system/info';
+
+    //Gets the server time delta
+    $.getJSON(url, function( data ) {
+            serverTimeDelta = new Date(data.serverDate.substring(0,24)) - new Date();
+            dhis2.de.storageManager.setServerTimeDelta(serverTimeDelta);
+            // if successful, record time of update
+            dhis2.de.storageManager.setServerTimeRetrieved(new Date());
+            console.log("stored server time delta of " + serverTimeDelta + " ms");
             def.resolve();
         }
     );
