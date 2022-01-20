@@ -264,6 +264,17 @@
       "lastUpdated": "2016-03-08T07:27:22.449+0000"
     }
   ],
+  "programs": [
+    {
+      "id": "JEMRBUHgpqA",
+      "name": "test Program",
+      "shortName": "test Program",
+      "programType":"WITH_REGISTRATION",
+      "programStages": [
+        {"id": "NpsdDv6kKSO"}
+      ]
+    }
+  ],
   "programStages": [
     {
       "programStageSections" : [

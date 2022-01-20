@@ -198,7 +198,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
         }
         else if ( params.hasStartEndDate() )
         {
-            hql += "and (pe.startDate >= :startDate and pe.endDate < :endDate) ";
+            hql += "and (pe.startDate >= :startDate and pe.endDate <= :endDate) ";
         }
 
         if ( params.isIncludeChildrenForOrganisationUnits() )
