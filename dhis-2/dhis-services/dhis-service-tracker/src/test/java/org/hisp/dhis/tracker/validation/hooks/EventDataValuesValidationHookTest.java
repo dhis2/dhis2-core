@@ -55,7 +55,6 @@ import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.util.DateUtils;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -808,7 +807,6 @@ class EventDataValuesValidationHookTest
         when( context.getIdentifiers() ).thenReturn( params );
     }
 
-    @NotNull
     private DataElement dataElement( ValueType type )
     {
         DataElement dataElement = dataElement();
@@ -816,7 +814,6 @@ class EventDataValuesValidationHookTest
         return dataElement;
     }
 
-    @NotNull
     private DataElement dataElement()
     {
         DataElement dataElement = new DataElement();
@@ -825,7 +822,6 @@ class EventDataValuesValidationHookTest
         return dataElement;
     }
 
-    @NotNull
     private DataValue dataValue( String value )
     {
         DataValue dataValue = dataValue();
@@ -843,7 +839,6 @@ class EventDataValuesValidationHookTest
         return dataValue;
     }
 
-    @NotNull
     private ProgramStage programStage( DataElement dataElement )
     {
         return programStage( dataElement, false );
