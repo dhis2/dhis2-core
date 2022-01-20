@@ -81,6 +81,8 @@ public class PdfDataEntryFormUtil
 
     public static final String LABELCODE_OPTIONID = LABELCODE_TEXTFIELD + "OptionID";
 
+    public static final String LABELCODE_ATTRIBUTE_OPTIONID = "AttributeOptionID";
+
     // Cell Related
 
     private static final Color COLOR_CELLBORDER = Color.getHSBColor( 0.0f, 0.0f, 0.863f );
@@ -236,16 +238,22 @@ public class PdfDataEntryFormUtil
 
                 for ( String fldName : fldNames )
                 {
-
                     if ( fldName.startsWith( PdfDataEntryFormUtil.LABELCODE_DATAENTRYTEXTFIELD ) )
                     {
                         String[] strArrFldName = fldName.split( "_" );
+                        String categoryOptionCombo = strArrFldName[2];
+
+                        // CategoryOptionCombo attributeOptionCombo =
+                        // dataValueValidation.getAndValidateAttributeOptionCombo(
+                        // categoryOptionCombo, attributeOptionComboIds );
 
                         org.hisp.dhis.dxf2.datavalue.DataValue dataValue = new org.hisp.dhis.dxf2.datavalue.DataValue();
 
                         dataValue.setDataElement( strArrFldName[1] );
                         dataValue.setCategoryOptionCombo( strArrFldName[2] );
                         dataValue.setOrgUnit( orgUnitUid );
+                        // dataValue.setAttributeOptionCombo(
+                        // attributeOptionCombo.getUid() );
                         dataValue.setPeriod( period.getIsoDate() );
 
                         dataValue.setValue( fieldValueFormat( strArrFldName, form.getField( fldName ) ) );
@@ -257,6 +265,7 @@ public class PdfDataEntryFormUtil
 
                         dataValueList.add( dataValue );
                     }
+
                 }
 
                 dataValueSet.setDataValues( dataValueList );

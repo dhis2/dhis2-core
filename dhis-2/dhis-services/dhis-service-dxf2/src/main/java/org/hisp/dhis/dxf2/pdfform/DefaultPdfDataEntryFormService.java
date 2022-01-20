@@ -560,7 +560,8 @@ public class DefaultPdfDataEntryFormService
                 Collectors.toList() );
 
             addCell_WithDropDownListField( table, rectangle, writer, PdfDataEntryFormUtil.getPdfPCell( hasBorder ),
-                category.getUid() + "-optionID", optionLabels.toArray( new String[optionLabels.size()] ),
+                PdfDataEntryFormUtil.LABELCODE_ATTRIBUTE_OPTIONID + "_" + category.getUid(),
+                optionLabels.toArray( new String[optionLabels.size()] ),
                 optionValues.toArray( new String[optionValues.size()] ) );
         }
 
