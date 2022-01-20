@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.programrule.ProgramRule;
@@ -70,6 +71,8 @@ public interface ProgramRuleEntityMapperService
     List<RuleVariable> toMappedProgramRuleVariables( List<ProgramRuleVariable> programRuleVariables );
 
     /**
+     * Maps DHIS2 events to rule events matching data elements using their UID.
+     *
      * @param programStageInstances list of events
      * @param psiToEvaluate event to filter out from the resulting list.
      *
@@ -79,10 +82,37 @@ public interface ProgramRuleEntityMapperService
         ProgramStageInstance psiToEvaluate );
 
     /**
+     * Maps DHIS2 events to rule events matching data elements using the given
+     * idScheme.
+     *
+     * @param programStageInstances list of events
+     * @param psiToEvaluate event to filter out from the resulting list.
+     * @param dataElementIdScheme idScheme used to match data elements
+     *
+     * @return A list of mapped events for the list of DHIS events.
+     */
+    List<RuleEvent> toMappedRuleEvents( Set<ProgramStageInstance> programStageInstances,
+        ProgramStageInstance psiToEvaluate,
+        IdScheme dataElementIdScheme );
+
+    /**
+     * Maps a DHIS2 event to a rule event matching data elements using their
+     * UID.
+     *
      * @param psiToEvaluate event to converted.
      * @return A mapped event for corresponding DHIS event.
      */
     RuleEvent toMappedRuleEvent( ProgramStageInstance psiToEvaluate );
+
+    /**
+     * Maps a DHIS2 event to a rule event matching data elements using the given
+     * idScheme.
+     *
+     * @param psiToEvaluate event to converted.
+     * @param dataElementIdScheme idScheme used to match data elements
+     * @return A mapped event for corresponding DHIS event.
+     */
+    RuleEvent toMappedRuleEvent( ProgramStageInstance psiToEvaluate, IdScheme dataElementIdScheme );
 
     /**
      * @return A mapped RuleEnrollment for DHIS enrollment i.e ProgramInstance.

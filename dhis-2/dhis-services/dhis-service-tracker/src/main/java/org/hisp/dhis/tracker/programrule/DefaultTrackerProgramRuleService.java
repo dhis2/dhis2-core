@@ -38,6 +38,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
@@ -167,8 +168,12 @@ public class DefaultTrackerProgramRuleService
                     .fromForRuleEngine( bundle.getPreheat(), entry.getValue() );
                 if ( enrollment == null )
                 {
+                    TrackerIdScheme trackerIdScheme = bundle.getPreheat().getIdentifiers().getDataElementIdScheme()
+                        .getIdScheme();
+                    IdScheme idScheme = IdScheme.from( trackerIdScheme.toString() );
+
                     return programRuleEngine.evaluateProgramEvents( Sets.newHashSet( programStageInstances ),
-                        getProgramFromEvent( bundle.getPreheat(), entry.getValue().get( 0 ) ) )
+                        getProgramFromEvent( bundle.getPreheat(), entry.getValue().get( 0 ) ), idScheme )
                         .stream();
                 }
                 else

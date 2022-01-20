@@ -41,6 +41,8 @@ import java.util.Map;
 import java.util.Set;
 
 import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.constant.Constant;
@@ -165,13 +167,16 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
     @Mock
     private DataElementService dataElementService;
 
+    @Mock
+    private IdentifiableObjectManager identifiableObjectManager;
+
     private DefaultProgramRuleEntityMapperService subject;
 
     @BeforeEach
     public void initTest()
     {
         subject = new DefaultProgramRuleEntityMapperService( programRuleService, programRuleVariableService,
-            dataElementService, constantService, i18nManager );
+            dataElementService, identifiableObjectManager, constantService, i18nManager );
 
         setUpProgramRules();
     }
@@ -252,7 +257,7 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
     @Test
     void testExceptionIfDataElementIsNull()
     {
-        when( dataElementService.getDataElement( anyString() ) ).thenReturn( null );
+        when( identifiableObjectManager.get( DataElement.class, dataElement.getUid() ) ).thenReturn( null );
 
         assertThrows( RuntimeException.class, () -> subject.toMappedRuleEvent( programStageInstanceA ),
             "Required DataElement(" + dataElement.getUid() + ") was not found." );
@@ -262,7 +267,7 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
     @Test
     void testMappedRuleEvent()
     {
-        when( dataElementService.getDataElement( anyString() ) ).thenReturn( dataElement );
+        when( identifiableObjectManager.get( DataElement.class, dataElement.getUid() ) ).thenReturn( dataElement );
 
         RuleEvent ruleEvent = subject.toMappedRuleEvent( programStageInstanceA );
 
@@ -282,9 +287,66 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
     }
 
     @Test
+    void mappedRuleEventUsesDataElementCodeWhenIdSchemeIsCode()
+    {
+        EventDataValue eventDataValue = new EventDataValue();
+        eventDataValue.setDataElement( dataElement.getCode() );
+        programStageInstanceA.setEventDataValues( Set.of( eventDataValue ) );
+        when( identifiableObjectManager.getByCode( DataElement.class, eventDataValue.getDataElement() ) )
+            .thenReturn( dataElement );
+
+        RuleEvent ruleEvent = subject.toMappedRuleEvent( programStageInstanceA, IdScheme.CODE );
+
+        assertEquals( programStageInstanceA.getUid(), ruleEvent.event() );
+        assertEquals( 1, ruleEvent.dataValues().size() );
+
+        RuleDataValue ruleDataValue = ruleEvent.dataValues().get( 0 );
+
+        assertEquals( dataElement.getCode(), ruleDataValue.dataElement() );
+        assertEquals( programStageInstanceA.getProgramStage().getUid(), ruleDataValue.programStage() );
+    }
+
+    @Test
+    void mappedRuleEventUsesDataElementNameWhenIdSchemeIsName()
+    {
+        EventDataValue eventDataValue = new EventDataValue();
+        eventDataValue.setDataElement( dataElement.getName() );
+        programStageInstanceA.setEventDataValues( Set.of( eventDataValue ) );
+        when( identifiableObjectManager.getByName( DataElement.class, eventDataValue.getDataElement() ) )
+            .thenReturn( dataElement );
+
+        RuleEvent ruleEvent = subject.toMappedRuleEvent( programStageInstanceA, IdScheme.NAME );
+
+        assertEquals( programStageInstanceA.getUid(), ruleEvent.event() );
+        assertEquals( 1, ruleEvent.dataValues().size() );
+
+        RuleDataValue ruleDataValue = ruleEvent.dataValues().get( 0 );
+
+        assertEquals( dataElement.getName(), ruleDataValue.dataElement() );
+        assertEquals( programStageInstanceA.getProgramStage().getUid(), ruleDataValue.programStage() );
+    }
+
+    @Test
+    void mappedRuleEventThrowsOnDataElementIdSchemeNull()
+    {
+
+        assertThrows( RuntimeException.class, () -> subject.toMappedRuleEvent( programStageInstanceA, null ) );
+    }
+
+    @Test
+    void mappedRuleEventThrowsOnUnsupportedDataElementIdScheme()
+    {
+
+        RuntimeException exception = assertThrows( RuntimeException.class,
+            () -> subject.toMappedRuleEvent( programStageInstanceA, IdScheme.NULL ) );
+
+        assertEquals( UnsupportedOperationException.class, exception.getCause().getClass() );
+    }
+
+    @Test
     void testMappedRuleEventsWithFilter()
     {
-        when( dataElementService.getDataElement( anyString() ) ).thenReturn( dataElement );
+        when( identifiableObjectManager.get( DataElement.class, dataElement.getUid() ) ).thenReturn( dataElement );
 
         List<RuleEvent> ruleEvents = subject.toMappedRuleEvents(
             Sets.newHashSet( programStageInstanceA, programStageInstanceB ), programStageInstanceA );
@@ -310,12 +372,27 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
     @Test
     void testMappedRuleEvents()
     {
-        when( dataElementService.getDataElement( anyString() ) ).thenReturn( dataElement );
+        when( identifiableObjectManager.get( DataElement.class, dataElement.getUid() ) ).thenReturn( dataElement );
 
         List<RuleEvent> ruleEvents = subject
             .toMappedRuleEvents( Sets.newHashSet( programStageInstanceA, programStageInstanceB ), null );
 
         assertEquals( ruleEvents.size(), 2 );
+    }
+
+    @Test
+    void testMappedRuleEventsUsingDataElementIdScheme()
+    {
+        EventDataValue eventDataValue = new EventDataValue();
+        eventDataValue.setDataElement( dataElement.getCode() );
+        programStageInstanceA.setEventDataValues( Set.of( eventDataValue ) );
+        when( identifiableObjectManager.getByCode( DataElement.class, dataElement.getCode() ) )
+            .thenReturn( dataElement );
+
+        List<RuleEvent> ruleEvents = subject
+            .toMappedRuleEvents( Set.of( programStageInstanceA ), null, IdScheme.CODE );
+
+        assertEquals( ruleEvents.size(), 1 );
     }
 
     @Test

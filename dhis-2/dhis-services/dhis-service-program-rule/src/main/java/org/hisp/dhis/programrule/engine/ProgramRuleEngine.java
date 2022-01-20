@@ -34,6 +34,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.constant.ConstantService;
@@ -79,20 +80,21 @@ public class ProgramRuleEngine
     public List<RuleEffect> evaluate( ProgramInstance enrollment, Set<ProgramStageInstance> events )
     {
         return evaluateProgramRules( enrollment, null, enrollment.getProgram(), Lists.newArrayList(),
-            getRuleEvents( events, null ) );
+            getRuleEvents( events ) );
     }
 
     public List<RuleEffects> evaluateEnrollmentAndEvents( ProgramInstance enrollment, Set<ProgramStageInstance> events,
         List<TrackedEntityAttributeValue> trackedEntityAttributeValues )
     {
         return evaluateProgramRulesForMultipleTrackerObjects( enrollment, events.stream().findAny().orElse( null ),
-            enrollment.getProgram(), trackedEntityAttributeValues, getRuleEvents( events, null ) );
+            enrollment.getProgram(), trackedEntityAttributeValues, getRuleEvents( events ) );
     }
 
-    public List<RuleEffects> evaluateProgramEvents( Set<ProgramStageInstance> events, Program program )
+    public List<RuleEffects> evaluateProgramEvents( Set<ProgramStageInstance> events, Program program,
+        IdScheme dataElementIdScheme )
     {
         return evaluateProgramRulesForMultipleTrackerObjects( null, null, program, null,
-            getRuleEvents( events, null ) );
+            getRuleEvents( events, dataElementIdScheme ) );
     }
 
     public List<RuleEffect> evaluate( ProgramInstance enrollment, ProgramStageInstance programStageInstance,
@@ -281,6 +283,16 @@ public class ProgramRuleEngine
     private RuleEvent getRuleEvent( ProgramStageInstance programStageInstance )
     {
         return programRuleEntityMapperService.toMappedRuleEvent( programStageInstance );
+    }
+
+    private List<RuleEvent> getRuleEvents( Set<ProgramStageInstance> events, IdScheme dataElementIdScheme )
+    {
+        return programRuleEntityMapperService.toMappedRuleEvents( events, null, dataElementIdScheme );
+    }
+
+    private List<RuleEvent> getRuleEvents( Set<ProgramStageInstance> events )
+    {
+        return programRuleEntityMapperService.toMappedRuleEvents( events, null );
     }
 
     private List<RuleEvent> getRuleEvents( Set<ProgramStageInstance> events,

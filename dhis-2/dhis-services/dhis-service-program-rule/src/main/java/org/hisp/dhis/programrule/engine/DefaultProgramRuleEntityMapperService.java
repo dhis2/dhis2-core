@@ -28,16 +28,24 @@
 package org.hisp.dhis.programrule.engine;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.common.IdScheme.UID;
 import static org.hisp.dhis.rules.models.AttributeType.DATA_ELEMENT;
 import static org.hisp.dhis.rules.models.AttributeType.TRACKED_ENTITY_ATTRIBUTE;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.constant.ConstantService;
@@ -47,10 +55,44 @@ import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.programrule.*;
+import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.programrule.ProgramRuleAction;
+import org.hisp.dhis.programrule.ProgramRuleActionType;
+import org.hisp.dhis.programrule.ProgramRuleService;
+import org.hisp.dhis.programrule.ProgramRuleVariable;
+import org.hisp.dhis.programrule.ProgramRuleVariableService;
+import org.hisp.dhis.programrule.ProgramRuleVariableSourceType;
 import org.hisp.dhis.rules.DataItem;
 import org.hisp.dhis.rules.ItemValueType;
-import org.hisp.dhis.rules.models.*;
+import org.hisp.dhis.rules.models.AttributeType;
+import org.hisp.dhis.rules.models.Rule;
+import org.hisp.dhis.rules.models.RuleAction;
+import org.hisp.dhis.rules.models.RuleActionAssign;
+import org.hisp.dhis.rules.models.RuleActionCreateEvent;
+import org.hisp.dhis.rules.models.RuleActionDisplayKeyValuePair;
+import org.hisp.dhis.rules.models.RuleActionDisplayText;
+import org.hisp.dhis.rules.models.RuleActionErrorOnCompletion;
+import org.hisp.dhis.rules.models.RuleActionHideField;
+import org.hisp.dhis.rules.models.RuleActionHideProgramStage;
+import org.hisp.dhis.rules.models.RuleActionHideSection;
+import org.hisp.dhis.rules.models.RuleActionScheduleMessage;
+import org.hisp.dhis.rules.models.RuleActionSendMessage;
+import org.hisp.dhis.rules.models.RuleActionSetMandatoryField;
+import org.hisp.dhis.rules.models.RuleActionShowError;
+import org.hisp.dhis.rules.models.RuleActionShowWarning;
+import org.hisp.dhis.rules.models.RuleActionWarningOnCompletion;
+import org.hisp.dhis.rules.models.RuleAttributeValue;
+import org.hisp.dhis.rules.models.RuleDataValue;
+import org.hisp.dhis.rules.models.RuleEnrollment;
+import org.hisp.dhis.rules.models.RuleEvent;
+import org.hisp.dhis.rules.models.RuleValueType;
+import org.hisp.dhis.rules.models.RuleVariable;
+import org.hisp.dhis.rules.models.RuleVariableAttribute;
+import org.hisp.dhis.rules.models.RuleVariableCalculatedValue;
+import org.hisp.dhis.rules.models.RuleVariableCurrentEvent;
+import org.hisp.dhis.rules.models.RuleVariableNewestEvent;
+import org.hisp.dhis.rules.models.RuleVariableNewestStageEvent;
+import org.hisp.dhis.rules.models.RuleVariablePreviousEvent;
 import org.hisp.dhis.rules.utils.RuleEngineUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -168,7 +210,11 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
 
     private final ProgramRuleVariableService programRuleVariableService;
 
+    // TODO(DHIS2-12282) either use it or remove it once I know if the
+    // dataElementService is enough for supporting idScheme
     private final DataElementService dataElementService;
+
+    private final IdentifiableObjectManager identifiableObjectManager;
 
     private final ConstantService constantService;
 
@@ -176,17 +222,20 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
 
     public DefaultProgramRuleEntityMapperService( ProgramRuleService programRuleService,
         ProgramRuleVariableService programRuleVariableService, DataElementService dataElementService,
+        IdentifiableObjectManager identifiableObjectManager,
         ConstantService constantService, I18nManager i18nManager )
     {
         checkNotNull( programRuleService );
         checkNotNull( programRuleVariableService );
         checkNotNull( dataElementService );
+        checkNotNull( identifiableObjectManager );
         checkNotNull( constantService );
         checkNotNull( i18nManager );
 
         this.programRuleService = programRuleService;
         this.programRuleVariableService = programRuleVariableService;
         this.dataElementService = dataElementService;
+        this.identifiableObjectManager = identifiableObjectManager;
         this.constantService = constantService;
         this.i18nManager = i18nManager;
     }
@@ -298,36 +347,54 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
     public List<RuleEvent> toMappedRuleEvents( Set<ProgramStageInstance> programStageInstances,
         ProgramStageInstance psiToEvaluate )
     {
+        return toMappedRuleEvents( programStageInstances, psiToEvaluate, UID );
+    }
+
+    @Override
+    public List<RuleEvent> toMappedRuleEvents( Set<ProgramStageInstance> programStageInstances,
+        ProgramStageInstance psiToEvaluate,
+        IdScheme dataElementIdScheme )
+    {
         return programStageInstances
             .stream()
             .filter( Objects::nonNull )
             .filter( psi -> !(psiToEvaluate != null && psi.getUid().equals( psiToEvaluate.getUid() )) )
-            .map( this::toMappedRuleEvent )
+            .map( psi -> toMappedRuleEvent( psi, dataElementIdScheme ) )
             .collect( Collectors.toList() );
     }
 
     @Override
     public RuleEvent toMappedRuleEvent( ProgramStageInstance psi )
     {
-        if ( psi == null )
+        return toMappedRuleEvent( psi, UID );
+    }
+
+    @Override
+    public RuleEvent toMappedRuleEvent( ProgramStageInstance psiToEvaluate, IdScheme dataElementIdScheme )
+    {
+        if ( psiToEvaluate == null )
         {
             return null;
         }
 
-        String orgUnit = getOrgUnit( psi );
-        String orgUnitCode = getOrgUnitCode( psi );
+        String orgUnit = getOrgUnit( psiToEvaluate );
+        String orgUnitCode = getOrgUnitCode( psiToEvaluate );
 
-        return RuleEvent.create( psi.getUid(), psi.getProgramStage().getUid(),
-            RuleEvent.Status.valueOf( psi.getStatus().toString() ),
-            ObjectUtils.defaultIfNull( psi.getExecutionDate(), psi.getDueDate() ), psi.getDueDate(), orgUnit,
+        return RuleEvent.create( psiToEvaluate.getUid(), psiToEvaluate.getProgramStage().getUid(),
+            RuleEvent.Status.valueOf( psiToEvaluate.getStatus().toString() ),
+            ObjectUtils.defaultIfNull( psiToEvaluate.getExecutionDate(), psiToEvaluate.getDueDate() ),
+            psiToEvaluate.getDueDate(), orgUnit,
             orgUnitCode,
-            psi.getEventDataValues()
+            psiToEvaluate.getEventDataValues()
                 .stream()
                 .filter( Objects::nonNull )
-                .map( dv -> RuleDataValue.create( ObjectUtils.defaultIfNull( psi.getExecutionDate(), psi.getDueDate() ),
-                    psi.getProgramStage().getUid(), dv.getDataElement(), getEventDataValue( dv ) ) )
+                .map( dv -> RuleDataValue.create(
+                    ObjectUtils.defaultIfNull( psiToEvaluate.getExecutionDate(), psiToEvaluate.getDueDate() ),
+                    psiToEvaluate.getProgramStage().getUid(), dv.getDataElement(),
+                    getEventDataValue( dv, dataElementIdScheme ) ) )
                 .collect( Collectors.toList() ),
-            psi.getProgramStage().getName(), ObjectUtils.defaultIfNull( psi.getCompletedDate(), null ) );
+            psiToEvaluate.getProgramStage().getName(),
+            ObjectUtils.defaultIfNull( psiToEvaluate.getCompletedDate(), null ) );
     }
 
     // ---------------------------------------------------------------------
@@ -528,9 +595,9 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
         return attributeValue.getValue() != null ? attributeValue.getValue() : "";
     }
 
-    private String getEventDataValue( EventDataValue dataValue )
+    private String getEventDataValue( EventDataValue dataValue, IdScheme idScheme )
     {
-        ValueType valueType = getValueTypeForDataElement( dataValue.getDataElement() );
+        ValueType valueType = getValueTypeForDataElement( dataValue.getDataElement(), idScheme );
 
         if ( valueType.isBoolean() )
         {
@@ -545,15 +612,33 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
         return dataValue.getValue() != null ? dataValue.getValue() : "";
     }
 
-    private ValueType getValueTypeForDataElement( String dataElementUid )
+    private ValueType getValueTypeForDataElement( String identifier, IdScheme idScheme )
     {
-        return dataElementToValueTypeCache.get( dataElementUid, () -> {
-            DataElement dataElement = dataElementService.getDataElement( dataElementUid );
+        return dataElementToValueTypeCache.get( identifier, () -> {
+            // TODO(DHIS2-12282) support idScheme ATTRIBUTE
+            DataElement dataElement = null;
+            if ( idScheme.getIdentifiableProperty() == IdentifiableProperty.UID )
+            {
+                dataElement = identifiableObjectManager.get( DataElement.class, identifier );
+            }
+            else if ( idScheme.getIdentifiableProperty() == IdentifiableProperty.CODE )
+            {
+                dataElement = identifiableObjectManager.getByCode( DataElement.class, identifier );
+            }
+            else if ( idScheme.getIdentifiableProperty() == IdentifiableProperty.NAME )
+            {
+                dataElement = identifiableObjectManager.getByName( DataElement.class, identifier );
+            }
+            else
+            {
+                throw new UnsupportedOperationException(
+                    String.format( "idScheme %s not supported for matching DataElement", idScheme ) );
+            }
 
             if ( dataElement == null )
             {
-                log.error( "DataElement " + dataElementUid + " was not found." );
-                throw new IllegalStateException( "Required DataElement(" + dataElementUid + ") was not found." );
+                log.error( "DataElement " + identifier + " was not found." );
+                throw new IllegalStateException( "Required DataElement(" + identifier + ") was not found." );
             }
 
             return dataElement.getValueType();
