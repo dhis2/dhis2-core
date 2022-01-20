@@ -30,12 +30,17 @@ package org.hisp.dhis.program.dataitem;
 import static org.hisp.dhis.parser.expression.ParserUtils.assumeStageElementSyntax;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
+import org.hisp.dhis.antlr.ParserException;
 import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.program.ProgramExpressionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageService;
+import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
 
 /**
@@ -54,7 +59,9 @@ public class ProgramItemStageElement
         String programStageId = ctx.uid0.getText();
         String dataElementId = ctx.uid1.getText();
 
-        ProgramStage programStage = visitor.getProgramStageService().getProgramStage( programStageId );
+        ProgramStageService stageService = visitor.getProgramStageService();
+
+        ProgramStage programStage = stageService.getProgramStage( programStageId );
         DataElement dataElement = visitor.getDataElementService().getDataElement( dataElementId );
 
         if ( programStage == null )
@@ -65,6 +72,12 @@ public class ProgramItemStageElement
         if ( dataElement == null )
         {
             throw new ParserExceptionWithoutContext( "Data element " + dataElementId + " not found" );
+        }
+
+        if ( isNonDefaultStageOffset( visitor.getStageOffset() )
+            && !isRepeatableStage( stageService, programStageId ) )
+        {
+            throw new ParserException( getErrorMessage( programStageId ) );
         }
 
         String description = programStage.getDisplayName() + ProgramIndicator.SEPARATOR_ID
@@ -81,11 +94,33 @@ public class ProgramItemStageElement
         assumeStageElementSyntax( ctx );
 
         String programStageId = ctx.uid0.getText();
+
         String dataElementId = ctx.uid1.getText();
 
-        String column = visitor.getStatementBuilder().getProgramIndicatorDataValueSelectSql(
-            programStageId, dataElementId, visitor.getReportingStartDate(), visitor.getReportingEndDate(),
-            visitor.getProgramIndicator() );
+        int stageOffset = visitor.getStageOffset();
+
+        String column;
+
+        if ( isNonDefaultStageOffset( stageOffset ) )
+        {
+            if ( isRepeatableStage( visitor.getProgramStageService(), programStageId ) )
+            {
+                column = visitor.getStatementBuilder().getProgramIndicatorEventColumnSql( programStageId,
+                    Integer.valueOf( stageOffset ).toString(),
+                    SqlUtils.quote( dataElementId ),
+                    visitor.getReportingStartDate(), visitor.getReportingEndDate(), visitor.getProgramIndicator() );
+            }
+            else
+            {
+                throw new ParserException( getErrorMessage( programStageId ) );
+            }
+        }
+        else
+        {
+            column = visitor.getStatementBuilder().getProgramIndicatorDataValueSelectSql(
+                programStageId, dataElementId, visitor.getReportingStartDate(), visitor.getReportingEndDate(),
+                visitor.getProgramIndicator() );
+        }
 
         if ( visitor.getReplaceNulls() )
         {
@@ -101,5 +136,24 @@ public class ProgramItemStageElement
         }
 
         return column;
+    }
+
+    private static boolean isNonDefaultStageOffset( int stageOffset )
+    {
+        return stageOffset != Integer.MIN_VALUE;
+    }
+
+    private static boolean isRepeatableStage( ProgramStageService stageService, String programStageId )
+    {
+        ProgramStage programStage = stageService.getProgramStage( programStageId );
+
+        return programStage != null && programStage.getRepeatable();
+    }
+
+    private static String getErrorMessage( String programStageId )
+    {
+        ErrorMessage errorMessage = new ErrorMessage( ErrorCode.E2039, programStageId );
+
+        return errorMessage.getMessage();
     }
 }

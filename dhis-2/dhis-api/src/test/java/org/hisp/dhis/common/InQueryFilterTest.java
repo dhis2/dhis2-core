@@ -37,7 +37,7 @@ class InQueryFilterTest
     @Test
     void verifyInWithTextParameters()
     {
-        executeTest( "aFilter1;aFilter2", true, "aField in ('afilter1','afilter2') " );
+        executeTest( "aFilter1;aFilter2", true, "aField in ('aFilter1','aFilter2') " );
     }
 
     @Test
@@ -49,7 +49,7 @@ class InQueryFilterTest
     @Test
     void verifyInWithNullAndTextParameters()
     {
-        executeTest( "NV;aFilter1", true, "(aField in ('afilter1') or aField is null ) " );
+        executeTest( "NV;aFilter1", true, "(aField in ('aFilter1') or aField is null ) " );
     }
 
     @Test

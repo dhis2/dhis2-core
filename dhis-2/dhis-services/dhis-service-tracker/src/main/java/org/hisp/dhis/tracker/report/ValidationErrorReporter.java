@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BooleanSupplier;
 import java.util.function.Predicate;
 
 import lombok.Data;
@@ -109,6 +110,17 @@ public class ValidationErrorReporter
         return !this.warningsReportList.isEmpty();
     }
 
+    public void addError( TrackerDto dto, TrackerErrorCode code, Object... args )
+    {
+        TrackerErrorReport error = TrackerErrorReport.builder()
+            .uid( dto.getUid() )
+            .trackerType( dto.getTrackerType() )
+            .errorCode( code )
+            .addArgs( args )
+            .build( getValidationContext().getBundle() );
+        addError( error );
+    }
+
     public void addError( TrackerErrorReport error )
     {
         getReportList().add( error );
@@ -137,5 +149,36 @@ public class ValidationErrorReporter
     public boolean isInvalid( TrackerDto dto )
     {
         return this.isInvalid( dto.getTrackerType(), dto.getUid() );
+    }
+
+    public void addWarning( TrackerDto dto, TrackerErrorCode code,
+        Object... args )
+    {
+        TrackerWarningReport warn = TrackerWarningReport.builder()
+            .uid( dto.getUid() )
+            .trackerType( dto.getTrackerType() )
+            .warningCode( code )
+            .addArgs( args )
+            .build( getValidationContext().getBundle() );
+        addWarning( warn );
+    }
+
+    public void addErrorIf( BooleanSupplier expression, TrackerDto dto,
+        TrackerErrorCode code, Object... args )
+    {
+        if ( expression.getAsBoolean() )
+        {
+            addError( dto, code, args );
+        }
+    }
+
+    public void addErrorIfNull( Object object, TrackerDto dto,
+        TrackerErrorCode code,
+        Object... args )
+    {
+        if ( object == null )
+        {
+            addError( dto, code, args );
+        }
     }
 }

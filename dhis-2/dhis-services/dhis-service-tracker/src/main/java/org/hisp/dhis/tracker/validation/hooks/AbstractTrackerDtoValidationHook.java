@@ -35,7 +35,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiConsumer;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
@@ -48,9 +47,6 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.domain.TrackerDto;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
-import org.hisp.dhis.tracker.report.TrackerWarningReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.tracker.validation.TrackerValidationHook;
@@ -127,8 +123,10 @@ public abstract class AbstractTrackerDtoValidationHook
         T optionalObject, String value )
     {
         Optional.ofNullable( optionalObject.getOptionSet() )
-            .ifPresent( optionSet -> addErrorIf( () -> optionSet.getOptions().stream().filter( Objects::nonNull )
-                .noneMatch( o -> o.getCode().equalsIgnoreCase( value ) ), reporter, dto, E1125, value,
+            .ifPresent( optionSet -> reporter.addErrorIf(
+                () -> optionSet.getOptions().stream().filter( Objects::nonNull )
+                    .noneMatch( o -> o.getCode().equalsIgnoreCase( value ) ),
+                dto, E1125, value,
                 optionalObject.getUid(), optionalObject.getClass().getSimpleName(),
                 optionalObject.getOptionSet().getOptions().stream().filter( Objects::nonNull ).map( Option::getCode )
                     .collect( Collectors.joining( "," ) ) ) );
@@ -172,49 +170,6 @@ public abstract class AbstractTrackerDtoValidationHook
                     iter.remove();
                 }
             }
-        }
-    }
-
-    protected void addError( ValidationErrorReporter report, TrackerDto dto, TrackerErrorCode code,
-        Object... args )
-    {
-        TrackerErrorReport error = TrackerErrorReport.builder()
-            .uid( dto.getUid() )
-            .trackerType( dto.getTrackerType() )
-            .errorCode( code )
-            .addArgs( args )
-            .build( report.getValidationContext().getBundle() );
-        report.addError( error );
-    }
-
-    protected void addWarning( ValidationErrorReporter report, TrackerDto dto, TrackerErrorCode code,
-        Object... args )
-    {
-        TrackerWarningReport warn = TrackerWarningReport.builder()
-            .uid( dto.getUid() )
-            .trackerType( dto.getTrackerType() )
-            .warningCode( code )
-            .addArgs( args )
-            .build( report.getValidationContext().getBundle() );
-        report.addWarning( warn );
-    }
-
-    protected void addErrorIf( Supplier<Boolean> expression, ValidationErrorReporter report, TrackerDto dto,
-        TrackerErrorCode code, Object... args )
-    {
-        if ( expression.get() )
-        {
-            addError( report, dto, code, args );
-        }
-    }
-
-    protected void addErrorIfNull( Object object, ValidationErrorReporter report, TrackerDto dto,
-        TrackerErrorCode code,
-        Object... args )
-    {
-        if ( object == null )
-        {
-            addError( report, dto, code, args );
         }
     }
 

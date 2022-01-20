@@ -118,13 +118,13 @@ public class EnrollmentInExistingValidationHook
 
             if ( !activeOnly.isEmpty() )
             {
-                addError( reporter, enrollment, E1015, tei, program );
+                reporter.addError( enrollment, E1015, tei, program );
             }
         }
 
         if ( Boolean.TRUE.equals( program.getOnlyEnrollOnce() ) && !mergedEnrollments.isEmpty() )
         {
-            addError( reporter, enrollment, E1016, tei, program );
+            reporter.addError( enrollment, E1016, tei, program );
         }
     }
 

@@ -154,6 +154,10 @@ public class DefaultEventAnalyticsService
 
     private static final String NAME_POINTS = "Points";
 
+    private static final String NAME_PROGRAM_STATUS = "Program status";
+
+    private static final String NAME_EVENT_STATUS = "Event status";
+
     private static final Option OPT_TRUE = new Option( "Yes", "1" );
 
     private static final Option OPT_FALSE = new Option( "No", "0" );
@@ -241,7 +245,7 @@ public class DefaultEventAnalyticsService
 
         queryValidator.validate( params );
 
-        if ( analyticsCache.isEnabled() )
+        if ( analyticsCache.isEnabled() && !params.analyzeOnly() )
         {
             final EventQueryParams immutableParams = new EventQueryParams.Builder( params ).build();
             return analyticsCache.getOrFetch( params, p -> getAggregatedEventDataGrid( immutableParams ) );
@@ -503,7 +507,7 @@ public class DefaultEventAnalyticsService
         // Headers and data
         // ---------------------------------------------------------------------
 
-        if ( !params.isSkipData() )
+        if ( !params.isSkipData() || params.analyzeOnly() )
         {
             // -----------------------------------------------------------------
             // Headers
@@ -741,7 +745,11 @@ public class DefaultEventAnalyticsService
             .addHeader( new GridHeader(
                 ITEM_ORG_UNIT_NAME, NAME_ORG_UNIT_NAME, TEXT, false, true ) )
             .addHeader( new GridHeader(
-                ITEM_ORG_UNIT_CODE, NAME_ORG_UNIT_CODE, TEXT, false, true ) );
+                ITEM_ORG_UNIT_CODE, NAME_ORG_UNIT_CODE, TEXT, false, true ) )
+            .addHeader( new GridHeader(
+                ITEM_PROGRAM_STATUS, NAME_PROGRAM_STATUS, TEXT, false, true ) )
+            .addHeader( new GridHeader(
+                ITEM_EVENT_STATUS, NAME_EVENT_STATUS, TEXT, false, true ) );
 
         return grid;
     }

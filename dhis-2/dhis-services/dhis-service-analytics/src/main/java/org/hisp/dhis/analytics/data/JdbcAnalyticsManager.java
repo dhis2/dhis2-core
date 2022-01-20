@@ -70,6 +70,7 @@ import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.analytics.MeasureFilter;
 import org.hisp.dhis.analytics.QueryPlanner;
+import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.table.PartitionUtils;
 import org.hisp.dhis.analytics.util.AnalyticsSqlUtils;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
@@ -127,14 +128,18 @@ public class JdbcAnalyticsManager
 
     private final JdbcTemplate jdbcTemplate;
 
+    private final ExecutionPlanStore executionPlanStore;
+
     public JdbcAnalyticsManager( QueryPlanner queryPlanner,
-        @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate )
+        @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate, ExecutionPlanStore executionPlanStore )
     {
         checkNotNull( queryPlanner );
         checkNotNull( jdbcTemplate );
+        checkNotNull( executionPlanStore );
 
         this.queryPlanner = queryPlanner;
         this.jdbcTemplate = jdbcTemplate;
+        this.executionPlanStore = executionPlanStore;
     }
 
     // -------------------------------------------------------------------------
@@ -176,6 +181,12 @@ public class JdbcAnalyticsManager
             }
 
             log.debug( sql );
+
+            if ( params.analyzeOnly() )
+            {
+                executionPlanStore.addExecutionPlan( params.getAnalyzeOrderId(), sql );
+                return new AsyncResult<>( Maps.newHashMap() );
+            }
 
             Map<String, Object> map;
 

@@ -29,6 +29,7 @@ package org.hisp.dhis.common;
 
 import java.io.Serializable;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.option.OptionSet;
 
@@ -66,6 +67,10 @@ public class GridHeader
     private OptionSet optionSet;
 
     private LegendSet legendSet;
+
+    private String programStage;
+
+    private Integer stageOffset;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -143,6 +148,25 @@ public class GridHeader
         this( name, column, valueType, hidden, meta );
         this.optionSet = optionSet;
         this.legendSet = legendSet;
+    }
+
+    /**
+     * @param name formal header name.
+     * @param column readable header title.
+     * @param valueType header value type.
+     * @param hidden indicates whether header is hidden.
+     * @param meta indicates whether header is meta data.
+     * @param optionSet option set.
+     * @param legendSet legend set.
+     * @param programStage program stage.
+     * @param stageOffset offset for repeatable program stage.
+     */
+    public GridHeader( String name, String column, ValueType valueType, boolean hidden, boolean meta,
+        OptionSet optionSet, LegendSet legendSet, String programStage, Integer stageOffset )
+    {
+        this( name, column, valueType, hidden, meta, optionSet, legendSet );
+        this.programStage = programStage;
+        this.stageOffset = stageOffset;
     }
 
     // -------------------------------------------------------------------------
@@ -231,6 +255,18 @@ public class GridHeader
     public LegendSet getLegendSetObject()
     {
         return legendSet;
+    }
+
+    @JsonProperty
+    public String getProgramStage()
+    {
+        return StringUtils.trimToNull( programStage );
+    }
+
+    @JsonProperty
+    public Integer getStageOffset()
+    {
+        return stageOffset;
     }
 
     // -------------------------------------------------------------------------

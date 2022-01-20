@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
+import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.time.DateUtils.addYears;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LATITUDE;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LONGITUDE;
@@ -57,6 +58,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.util.Precision;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.Rectangle;
+import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.ProgramIndicatorSubqueryBuilder;
@@ -81,7 +83,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicatorService;
-import org.hisp.dhis.system.util.MathUtils;
 import org.postgresql.util.PSQLException;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -116,16 +117,26 @@ public class JdbcEventAnalyticsManager
     public JdbcEventAnalyticsManager( JdbcTemplate jdbcTemplate, StatementBuilder statementBuilder,
         ProgramIndicatorService programIndicatorService,
         ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder,
-        EventTimeFieldSqlRenderer timeFieldSqlRenderer )
+        EventTimeFieldSqlRenderer timeFieldSqlRenderer, ExecutionPlanStore executionPlanStore )
     {
-        super( jdbcTemplate, statementBuilder, programIndicatorService, programIndicatorSubqueryBuilder );
+        super( jdbcTemplate, statementBuilder, programIndicatorService, programIndicatorSubqueryBuilder,
+            executionPlanStore );
         this.timeFieldSqlRenderer = timeFieldSqlRenderer;
     }
 
     @Override
     public Grid getEvents( EventQueryParams params, Grid grid, int maxLimit )
     {
-        withExceptionHandling( () -> getEvents( params, grid, getEventsOrEnrollmentsSql( params, maxLimit ) ) );
+        String sql = getEventsOrEnrollmentsSql( params, maxLimit );
+
+        if ( params.analyzeOnly() )
+        {
+            executionPlanStore.addExecutionPlan( params.getAnalyzeOrderId(), sql );
+        }
+        else
+        {
+            withExceptionHandling( () -> getEvents( params, grid, sql ) );
+        }
 
         return grid;
     }
@@ -157,14 +168,9 @@ public class JdbcEventAnalyticsManager
                     double val = rowSet.getDouble( index );
                     grid.addValue( Precision.round( val, COORD_DEC ) );
                 }
-                else if ( Double.class.getName().equals( header.getType() ) && !header.hasLegendSet() )
-                {
-                    double val = rowSet.getDouble( index );
-                    grid.addValue( params.isSkipRounding() ? val : MathUtils.getRounded( val ) );
-                }
                 else
                 {
-                    grid.addValue( rowSet.getString( index ) );
+                    addGridValue( grid, header, index, rowSet, params );
                 }
 
                 index++;
@@ -229,7 +235,14 @@ public class JdbcEventAnalyticsManager
         {
             log.debug( "Analytics event count SQL: " + sql );
 
-            count = jdbcTemplate.queryForObject( sql, Long.class );
+            if ( params.analyzeOnly() )
+            {
+                executionPlanStore.addExecutionPlan( params.getAnalyzeOrderId(), sql );
+            }
+            else
+            {
+                count = jdbcTemplate.queryForObject( sql, Long.class );
+            }
         }
         catch ( BadSqlGrammarException ex )
         {
@@ -325,7 +338,8 @@ public class JdbcEventAnalyticsManager
             cols.add( "enrollmentdate", "incidentdate", "tei", "pi" );
         }
 
-        cols.add( "ST_AsGeoJSON(psigeometry, 6) as geometry", "longitude", "latitude", "ouname", "oucode" );
+        cols.add( "ST_AsGeoJSON(psigeometry, 6) as geometry", "longitude", "latitude", "ouname", "oucode", "pistatus",
+            "psistatus" );
 
         List<String> selectCols = ListUtils.distinctUnion( cols.build(), getSelectColumns( params ) );
 
@@ -527,12 +541,14 @@ public class JdbcEventAnalyticsManager
 
         if ( params.hasProgramStatus() )
         {
-            sql += hlp.whereAnd() + " pistatus = '" + params.getProgramStatus().name() + "' ";
+            sql += hlp.whereAnd() + " pistatus in ("
+                + params.getProgramStatus().stream().map( p -> "'" + p.name() + "'" ).collect( joining( "," ) ) + ") ";
         }
 
         if ( params.hasEventStatus() )
         {
-            sql += hlp.whereAnd() + " psistatus = '" + params.getEventStatus().name() + "' ";
+            sql += hlp.whereAnd() + " psistatus in ("
+                + params.getEventStatus().stream().map( e -> "'" + e.name() + "'" ).collect( joining( "," ) ) + ") ";
         }
 
         if ( params.isCoordinatesOnly() || params.isGeometryOnly() )
@@ -602,7 +618,7 @@ public class JdbcEventAnalyticsManager
         return collect.keySet()
             .stream()
             .map( org -> toInCondition( org, collect.get( org ) ) )
-            .collect( Collectors.joining( " and " ) );
+            .collect( joining( " and " ) );
     }
 
     private String toInCondition( String org, List<OrganisationUnit> organisationUnits )
@@ -610,7 +626,7 @@ public class JdbcEventAnalyticsManager
         return organisationUnits.stream()
             .filter( unit -> unit.getUid() != null && !unit.getUid().trim().isEmpty() )
             .map( unit -> "'" + unit.getUid() + "'" )
-            .collect( Collectors.joining( ",", org + OPEN_IN, ") " ) );
+            .collect( joining( ",", org + OPEN_IN, ") " ) );
     }
 
     /**

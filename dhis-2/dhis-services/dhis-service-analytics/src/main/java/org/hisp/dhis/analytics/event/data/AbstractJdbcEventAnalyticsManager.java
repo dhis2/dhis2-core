@@ -48,6 +48,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.SortOrder;
+import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
@@ -56,6 +57,7 @@ import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
@@ -68,6 +70,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
+import org.hisp.dhis.system.util.MathUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.jdbc.BadSqlGrammarException;
@@ -99,19 +102,23 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
     protected final ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder;
 
+    protected final ExecutionPlanStore executionPlanStore;
+
     public AbstractJdbcEventAnalyticsManager( @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate,
         StatementBuilder statementBuilder, ProgramIndicatorService programIndicatorService,
-        ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder )
+        ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder, ExecutionPlanStore executionPlanStore )
     {
         checkNotNull( jdbcTemplate );
         checkNotNull( statementBuilder );
         checkNotNull( programIndicatorService );
         checkNotNull( programIndicatorSubqueryBuilder );
+        checkNotNull( executionPlanStore );
 
         this.jdbcTemplate = jdbcTemplate;
         this.statementBuilder = statementBuilder;
         this.programIndicatorService = programIndicatorService;
         this.programIndicatorSubqueryBuilder = programIndicatorSubqueryBuilder;
+        this.executionPlanStore = executionPlanStore;
     }
 
     /**
@@ -354,7 +361,14 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
         try
         {
-            getAggregatedEventData( grid, params, sql );
+            if ( params.analyzeOnly() )
+            {
+                executionPlanStore.addExecutionPlan( params.getAnalyzeOrderId(), sql );
+            }
+            else
+            {
+                getAggregatedEventData( grid, params, sql );
+            }
         }
         catch ( BadSqlGrammarException ex )
         {
@@ -701,6 +715,27 @@ public abstract class AbstractJdbcEventAnalyticsManager
         {
             log.warn( ErrorCode.E7131.getMessage(), ex );
             throw new QueryRuntimeException( ErrorCode.E7131, ex );
+        }
+    }
+
+    protected void addGridValue( Grid grid, GridHeader header, int index, SqlRowSet sqlRowSet, EventQueryParams params )
+    {
+        if ( Double.class.getName().equals( header.getType() ) && !header.hasLegendSet() )
+        {
+            double val = sqlRowSet.getDouble( index );
+
+            if ( Double.isNaN( val ) )
+            {
+                grid.addValue( "" );
+            }
+            else
+            {
+                grid.addValue( params.isSkipRounding() ? val : MathUtils.getRounded( val ) );
+            }
+        }
+        else
+        {
+            grid.addValue( sqlRowSet.getString( index ) );
         }
     }
 

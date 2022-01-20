@@ -1114,6 +1114,7 @@
     "name": "TAComment",
     "id": "qXpTPGjuzuc",
     "programRuleVariableSourceType": "DATAELEMENT_CURRENT_EVENT",
+    "valueType": "TEXT",
     "useCodeForOptionSet": false,
     "lastUpdatedBy": {
       "code": "admin",
@@ -1134,6 +1135,7 @@
       "name": "TADiabetes",
       "id": "qByqFfYUSlE",
       "programRuleVariableSourceType": "DATAELEMENT_CURRENT_EVENT",
+      "valueType": "TEXT",
       "useCodeForOptionSet": false,
       "lastUpdatedBy": {
         "code": "admin",
@@ -1154,6 +1156,7 @@
       "name": "TaPlaceOfBirth",
       "id": "dC6GyznfY7I",
       "programRuleVariableSourceType": "DATAELEMENT_CURRENT_EVENT",
+      "valueType": "TEXT",
       "useCodeForOptionSet": false,
       "lastUpdatedBy": {
         "code": "admin",

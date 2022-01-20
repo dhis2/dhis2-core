@@ -66,7 +66,7 @@ public class EnrollmentDateValidationHook
         if ( Boolean.TRUE.equals( program.getDisplayIncidentDate() ) &&
             Objects.isNull( enrollment.getOccurredAt() ) )
         {
-            addError( reporter, enrollment, E1023, enrollment.getOccurredAt() );
+            reporter.addError( enrollment, E1023, enrollment.getOccurredAt() );
         }
     }
 
@@ -76,7 +76,7 @@ public class EnrollmentDateValidationHook
 
         if ( Objects.isNull( enrollment.getEnrolledAt() ) )
         {
-            addError( reporter, enrollment, E1025, enrollment.getEnrolledAt() );
+            reporter.addError( enrollment, E1025, enrollment.getEnrolledAt() );
         }
     }
 
@@ -91,14 +91,14 @@ public class EnrollmentDateValidationHook
             && Boolean.FALSE.equals( program.getSelectEnrollmentDatesInFuture() )
             && enrollment.getEnrolledAt().atOffset( ZoneOffset.UTC ).toLocalDate().isAfter( now ) )
         {
-            addError( reporter, enrollment, E1020, enrollment.getEnrolledAt() );
+            reporter.addError( enrollment, E1020, enrollment.getEnrolledAt() );
         }
 
         if ( Objects.nonNull( enrollment.getOccurredAt() )
             && Boolean.FALSE.equals( program.getSelectIncidentDatesInFuture() )
             && enrollment.getOccurredAt().atOffset( ZoneOffset.UTC ).toLocalDate().isAfter( now ) )
         {
-            addError( reporter, enrollment, E1021, enrollment.getOccurredAt() );
+            reporter.addError( enrollment, E1021, enrollment.getOccurredAt() );
         }
     }
 }

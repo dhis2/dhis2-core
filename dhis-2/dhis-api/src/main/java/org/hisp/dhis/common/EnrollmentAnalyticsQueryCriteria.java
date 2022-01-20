@@ -53,6 +53,13 @@ public class EnrollmentAnalyticsQueryCriteria
 
     private Set<String> filter;
 
+    /**
+     * This parameter selects the headers to be returned as part of the
+     * response. The implementation for this Set will be LinkedHashSet as the
+     * ordering is important.
+     */
+    private Set<String> headers;
+
     private OrganisationUnitSelectionMode ouMode;
 
     private Set<String> asc;
@@ -73,7 +80,7 @@ public class EnrollmentAnalyticsQueryCriteria
 
     private IdScheme dataIdScheme;
 
-    private ProgramStatus programStatus;
+    private Set<ProgramStatus> programStatus;
 
     private Integer page;
 
