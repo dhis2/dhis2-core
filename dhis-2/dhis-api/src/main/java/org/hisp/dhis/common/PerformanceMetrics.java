@@ -25,35 +25,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics;
+package org.hisp.dhis.common;
 
-/**
- * @author Lars Helge Overland
- */
-public enum ColumnDataType
+import java.io.Serializable;
+import java.util.List;
+
+import lombok.Getter;
+import lombok.Setter;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+@Getter
+@Setter
+public class PerformanceMetrics implements Serializable
 {
-    CHARACTER_11( "character(11)" ),
-    VARCHAR_50( "varchar(50)" ),
-    VARCHAR_255( "varchar(255)" ),
-    TEXT( "text" ),
-    DATE( "date" ),
-    TIMESTAMP( "timestamp" ),
-    INTEGER( "integer" ),
-    BIGINT( "bigint" ),
-    DOUBLE( "double precision" ),
-    BOOLEAN( "boolean" ),
-    GEOMETRY( "geometry" ),
-    GEOMETRY_POINT( "geometry(Point, 4326)" );
+    @JsonProperty
+    private double totalTimeInMillis;
 
-    String value;
-
-    ColumnDataType( String value )
-    {
-        this.value = value;
-    }
-
-    public String getValue()
-    {
-        return value;
-    }
+    @JsonProperty
+    private List<ExecutionPlan> executionPlans;
 }

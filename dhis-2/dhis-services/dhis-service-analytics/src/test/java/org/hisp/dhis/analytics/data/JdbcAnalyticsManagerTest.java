@@ -43,6 +43,7 @@ import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.analytics.QueryPlanner;
+import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
@@ -89,6 +90,9 @@ class JdbcAnalyticsManagerTest
 
     private JdbcAnalyticsManager subject;
 
+    @Mock
+    private ExecutionPlanStore executionPlanStore;
+
     @BeforeEach
     public void setUp()
     {
@@ -100,7 +104,7 @@ class JdbcAnalyticsManagerTest
 
         when( jdbcTemplate.queryForRowSet( sql.capture() ) ).thenReturn( rowSet );
 
-        subject = new JdbcAnalyticsManager( queryPlanner, jdbcTemplate );
+        subject = new JdbcAnalyticsManager( queryPlanner, jdbcTemplate, executionPlanStore );
     }
 
     @Test

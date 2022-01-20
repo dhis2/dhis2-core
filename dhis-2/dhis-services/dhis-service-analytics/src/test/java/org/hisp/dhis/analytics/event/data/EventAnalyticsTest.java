@@ -33,7 +33,13 @@ import static org.hisp.dhis.DhisConvenienceTest.createPeriod;
 import static org.hisp.dhis.DhisConvenienceTest.createProgram;
 import static org.hisp.dhis.DhisConvenienceTest.createProgramStage;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
+import static org.hisp.dhis.event.EventStatus.SCHEDULE;
+import static org.hisp.dhis.program.ProgramStatus.ACTIVE;
+import static org.hisp.dhis.program.ProgramStatus.COMPLETED;
 import static org.mockito.Mockito.when;
+
+import java.util.LinkedHashSet;
+import java.util.List;
 
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -133,6 +139,20 @@ abstract class EventAnalyticsTest
         params.withOrganisationUnits( getList( ouA ) );
         params.withTableName( getTableName() + "_" + programA.getUid() );
         params.withProgram( programA );
+        return params.build();
+    }
+
+    protected EventQueryParams createRequestParamsWithStatuses()
+    {
+        OrganisationUnit ouA = createOrganisationUnit( 'A' );
+        ouA.setPath( "/" + ouA.getUid() );
+        EventQueryParams.Builder params = new EventQueryParams.Builder();
+        params.withPeriods( getList( createPeriod( "2000Q1" ) ), "monthly" );
+        params.withOrganisationUnits( getList( ouA ) );
+        params.withTableName( getTableName() + "_" + programA.getUid() );
+        params.withProgram( programA );
+        params.withProgramStatuses( new LinkedHashSet<>( List.of( ACTIVE, COMPLETED ) ) );
+        params.withEventStatuses( new LinkedHashSet<>( List.of( SCHEDULE ) ) );
         return params.build();
     }
 

@@ -78,6 +78,10 @@ public interface EventAnalyticsService
 
     String ITEM_POINTS = "points";
 
+    String ITEM_PROGRAM_STATUS = "programstatus";
+
+    String ITEM_EVENT_STATUS = "eventstatus";
+
     /**
      * Generates aggregated event data for the given query.
      *

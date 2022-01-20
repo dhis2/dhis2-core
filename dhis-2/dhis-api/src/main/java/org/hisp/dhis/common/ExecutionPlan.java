@@ -25,35 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics;
+package org.hisp.dhis.common;
+
+import java.io.Serializable;
+
+import lombok.Getter;
+import lombok.Setter;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonNode;
 
 /**
- * @author Lars Helge Overland
+ * @author Dusan Bernat
  */
-public enum ColumnDataType
+@Getter
+@Setter
+public class ExecutionPlan implements Serializable
 {
-    CHARACTER_11( "character(11)" ),
-    VARCHAR_50( "varchar(50)" ),
-    VARCHAR_255( "varchar(255)" ),
-    TEXT( "text" ),
-    DATE( "date" ),
-    TIMESTAMP( "timestamp" ),
-    INTEGER( "integer" ),
-    BIGINT( "bigint" ),
-    DOUBLE( "double precision" ),
-    BOOLEAN( "boolean" ),
-    GEOMETRY( "geometry" ),
-    GEOMETRY_POINT( "geometry(Point, 4326)" );
+    @JsonProperty
+    private Double timeInMillis;
 
-    String value;
+    @JsonProperty
+    private Double planningTime;
 
-    ColumnDataType( String value )
-    {
-        this.value = value;
-    }
+    @JsonProperty
+    private Double executionTime;
 
-    public String getValue()
-    {
-        return value;
-    }
+    @JsonProperty
+    private String query;
+
+    @JsonProperty
+    private transient JsonNode plan;
 }

@@ -80,7 +80,7 @@ public class EnrollmentAnalyticsQueryCriteria
 
     private IdScheme dataIdScheme;
 
-    private ProgramStatus programStatus;
+    private Set<ProgramStatus> programStatus;
 
     private Integer page;
 

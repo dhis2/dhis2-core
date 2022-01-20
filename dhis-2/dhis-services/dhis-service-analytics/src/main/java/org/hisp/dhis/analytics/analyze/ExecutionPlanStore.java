@@ -25,35 +25,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics;
+package org.hisp.dhis.analytics.analyze;
 
-/**
- * @author Lars Helge Overland
- */
-public enum ColumnDataType
+import java.util.List;
+
+import org.hisp.dhis.common.ExecutionPlan;
+
+public interface ExecutionPlanStore
 {
-    CHARACTER_11( "character(11)" ),
-    VARCHAR_50( "varchar(50)" ),
-    VARCHAR_255( "varchar(255)" ),
-    TEXT( "text" ),
-    DATE( "date" ),
-    TIMESTAMP( "timestamp" ),
-    INTEGER( "integer" ),
-    BIGINT( "bigint" ),
-    DOUBLE( "double precision" ),
-    BOOLEAN( "boolean" ),
-    GEOMETRY( "geometry" ),
-    GEOMETRY_POINT( "geometry(Point, 4326)" );
+    void addExecutionPlan( String params, String sql );
 
-    String value;
+    List<ExecutionPlan> getExecutionPlans( String key );
 
-    ColumnDataType( String value )
-    {
-        this.value = value;
-    }
-
-    public String getValue()
-    {
-        return value;
-    }
+    void removeExecutionPlans( String key );
 }

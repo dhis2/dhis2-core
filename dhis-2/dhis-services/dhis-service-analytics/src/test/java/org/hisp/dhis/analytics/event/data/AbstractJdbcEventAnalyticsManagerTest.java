@@ -49,6 +49,7 @@ import java.util.List;
 
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
+import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.data.programindicator.DefaultProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
@@ -89,6 +90,9 @@ class AbstractJdbcEventAnalyticsManagerTest extends
     @Mock
     private ProgramIndicatorService programIndicatorService;
 
+    @Mock
+    private ExecutionPlanStore executionPlanStore;
+
     private JdbcEventAnalyticsManager subject;
 
     private Program programA;
@@ -106,7 +110,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
         DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder = new DefaultProgramIndicatorSubqueryBuilder(
             programIndicatorService );
         subject = new JdbcEventAnalyticsManager( jdbcTemplate, statementBuilder, programIndicatorService,
-            programIndicatorSubqueryBuilder, new EventTimeFieldSqlRenderer( statementBuilder ) );
+            programIndicatorSubqueryBuilder, new EventTimeFieldSqlRenderer( statementBuilder ), executionPlanStore );
 
         // data init
 
