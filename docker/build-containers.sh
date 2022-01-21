@@ -90,7 +90,7 @@ build () {
         --file "${DIR}/tomcat-${TYPE}/Dockerfile" \
         --build-arg TOMCAT_IMAGE="${TOMCAT_IMAGE}:${TC_TAG}" \
         --build-arg IDENTIFIER="${IDENTIFIER}" \
-        --platform linux/amd64,linux/arm64,linux/arm/v7 \
+        --platform linux/amd64,linux/arm64 \
         "$DIR"
 }
 
