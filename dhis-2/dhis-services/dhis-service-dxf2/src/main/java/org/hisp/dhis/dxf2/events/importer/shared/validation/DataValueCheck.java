@@ -241,7 +241,7 @@ public class DataValueCheck implements Checker
         }
 
         return !optionSet.getOptionCodesAsSet().contains( value )
-            ? "Value '" + value + "' is not a valid option of the data element option set."
+            ? "Value '" + value + "' is not a valid option code of option set: " + optionSet.getUid()
             : null;
     }
 
@@ -255,7 +255,7 @@ public class DataValueCheck implements Checker
         }
 
         return ctx.getServiceDelegator().getFileResourceService().getFileResource( value ) == null
-            ? "Value '" + value + "' is not a valid file resource."
+            ? "Value is not a valid file resource: " + value
             : null;
     }
 
@@ -270,13 +270,9 @@ public class DataValueCheck implements Checker
 
         FileResource fileResource = ctx.getServiceDelegator().getFileResourceService().getFileResource( value );
 
-        if ( fileResource == null )
+        if ( fileResource == null || !VALID_IMAGE_FORMATS.contains( fileResource.getFormat() ) )
         {
-            return "Value '" + value + "' is not a valid file resource.";
-        }
-        else if ( !VALID_IMAGE_FORMATS.contains( fileResource.getFormat() ) )
-        {
-            return "File resource with uid '" + value + "' is not a valid image";
+            return "Value is not a valid image file resource: " + value;
         }
 
         return null;
@@ -293,7 +289,7 @@ public class DataValueCheck implements Checker
         }
 
         return ctx.getServiceDelegator().getOrganisationUnitService().getOrganisationUnit( value ) == null
-            ? "Value '" + value + "' is not a valid organisation unit."
+            ? "Value is not a valid organisation unit: " + value
             : null;
     }
 
