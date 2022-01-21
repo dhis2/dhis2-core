@@ -30,8 +30,6 @@ package org.hisp.dhis.cacheinvalidation;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.PersistenceUnit;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.hibernate.event.service.spi.EventListenerRegistry;
 import org.hibernate.event.spi.EventType;
 import org.hibernate.internal.SessionFactoryImpl;
@@ -48,7 +46,6 @@ import org.springframework.context.annotation.Profile;
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Slf4j
 @Profile( { "!test", "!test-h2" } )
 @Conditional( value = DebeziumCacheInvalidationEnabledCondition.class )
 public class DebeziumPreStartupRoutine extends AbstractStartupRoutine
