@@ -25,23 +25,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.json;
+package org.hisp.dhis.analytics.dimensions;
 
-import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
-/**
- * A {@link JsonURL} is a {@link JsonString} with a URL format.
- *
- * The {@link #url()} utility method allows to access the JSON string node as
- * {@link URL}.
- *
- * @author Jan Bernitt
- */
-public interface JsonURL extends JsonString
+import lombok.Data;
+
+import org.hisp.dhis.common.Pager;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+@Data
+public class AnalyticsDimensionsPagingWrapper<T>
 {
+    @JsonProperty
+    private List<T> dimensions = new ArrayList<>();
 
-    default URL url()
-    {
-        return converted( () -> new URL( string() ) );
-    }
+    @JsonProperty
+    private Pager pager;
 }

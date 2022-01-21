@@ -30,8 +30,8 @@ package org.hisp.dhis.webapi.json.domain;
 import java.util.function.Consumer;
 
 import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.webapi.json.JsonList;
-import org.hisp.dhis.webapi.json.JsonObject;
+import org.hisp.dhis.jsontree.JsonList;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.webapi.json.domain.JsonImportSummary.JsonConflict;
 
 /**

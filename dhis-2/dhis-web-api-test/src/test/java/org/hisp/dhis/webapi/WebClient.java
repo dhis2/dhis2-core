@@ -49,7 +49,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import org.apache.commons.lang3.ArrayUtils;
-import org.hisp.dhis.webapi.json.JsonResponse;
+import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.webapi.json.domain.JsonError;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.utils.WebClientUtils;

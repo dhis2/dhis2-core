@@ -41,6 +41,7 @@ import lombok.NonNull;
 import org.hisp.dhis.analytics.Rectangle;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.dimension.DimensionFilteringAndPagingService;
+import org.hisp.dhis.analytics.dimensions.AnalyticsDimensionsPagingWrapper;
 import org.hisp.dhis.analytics.event.EventAnalyticsDimensionsService;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.event.EventDataQueryService;
@@ -52,7 +53,6 @@ import org.hisp.dhis.common.EventsAnalyticsQueryCriteria;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.system.grid.GridUtils;
-import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -201,9 +201,10 @@ public class EventAnalyticsController
             ContextUtils.CONTENT_TYPE_HTML, "events.html", response ), response.getWriter() );
     }
 
+    @ResponseBody
     @GetMapping( value = RESOURCE_PATH + "/aggregate/dimensions", produces = { APPLICATION_JSON_VALUE,
         "application/javascript" } )
-    public @ResponseBody PagingWrapper<ObjectNode> getAggregateDimensions(
+    public AnalyticsDimensionsPagingWrapper<ObjectNode> getAggregateDimensions(
         @RequestParam String programStageId,
         @RequestParam( defaultValue = "*" ) List<String> fields,
         DimensionsCriteria dimensionsCriteria,
@@ -366,9 +367,10 @@ public class EventAnalyticsController
             "events.html", false, response ), response.getWriter() );
     }
 
+    @ResponseBody
     @GetMapping( value = RESOURCE_PATH + "/query/dimensions", produces = { APPLICATION_JSON_VALUE,
         "application/javascript" } )
-    public @ResponseBody PagingWrapper<ObjectNode> getQueryDimensions(
+    public AnalyticsDimensionsPagingWrapper<ObjectNode> getQueryDimensions(
         @RequestParam String programStageId,
         @RequestParam( defaultValue = "*" ) List<String> fields,
         DimensionsCriteria dimensionsCriteria,

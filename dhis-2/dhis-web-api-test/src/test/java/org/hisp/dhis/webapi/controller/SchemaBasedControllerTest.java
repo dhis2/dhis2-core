@@ -41,10 +41,10 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import org.hisp.dhis.attribute.Attribute.ObjectType;
+import org.hisp.dhis.jsontree.JsonArray;
+import org.hisp.dhis.jsontree.JsonList;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.hisp.dhis.webapi.json.JsonArray;
-import org.hisp.dhis.webapi.json.JsonList;
-import org.hisp.dhis.webapi.json.JsonObject;
 import org.hisp.dhis.webapi.json.domain.JsonGenerator;
 import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
 import org.hisp.dhis.webapi.json.domain.JsonSchema;
@@ -56,7 +56,7 @@ import org.springframework.http.MediaType;
  * This tests uses the {@link JsonSchema} information the server provides to
  * create an object for each {@link org.hisp.dhis.schema.Schema} (some won't
  * work) and then delete it again.
- *
+ * <p>
  * When objects depend upon other objects these are created first.
  *
  * @author Jan Bernitt
