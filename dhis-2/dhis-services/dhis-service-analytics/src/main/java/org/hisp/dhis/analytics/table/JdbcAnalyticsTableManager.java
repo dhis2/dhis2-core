@@ -241,7 +241,7 @@ public class JdbcAnalyticsTableManager
 
         final String numericClause = skipDataTypeValidation ? ""
             : ("and dv.value " + statementBuilder.getRegexpMatch() + " '" + MathUtils.NUMERIC_LENIENT_REGEXP + "' ");
-        final String zeroValueClause = "(dv.value != '0' or de.aggregationtype in ('" + AggregationType.AVERAGE + ','
+        final String zeroValueClause = "(dv.value != '0' or de.aggregationtype in ('" + AggregationType.AVERAGE + "','"
             + AggregationType.AVERAGE_SUM_ORG_UNIT + "')) ";
         final String intClause = zeroValueClause + numericClause;
 
