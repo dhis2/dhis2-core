@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.json.domain;
 
-import org.hisp.dhis.webapi.json.JsonObject;
+import org.hisp.dhis.jsontree.JsonObject;
 
 /**
  * Web API equivalent of a {@code WebMessage} or {@code DescriptiveWebMessage}

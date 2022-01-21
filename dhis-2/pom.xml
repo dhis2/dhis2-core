@@ -68,6 +68,7 @@
         <!-- HISP Quick and Staxwax -->
         <dhis-hisp-quick.version>1.4.0</dhis-hisp-quick.version>
         <dhis-hisp-staxwax.version>2.0.0</dhis-hisp-staxwax.version>
+        <dhis-json-tree.version>0.1.0</dhis-json-tree.version>
 
         <!-- Security-->
         <spring-security.version>5.6.0</spring-security.version>
@@ -862,11 +863,6 @@
             </dependency>
             <dependency>
                 <groupId>org.hisp.dhis</groupId>
-                <artifactId>dhis-support-test-json</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.hisp.dhis</groupId>
                 <artifactId>dhis-support-system</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -904,6 +900,12 @@
                 <groupId>org.hisp.dhis</groupId>
                 <artifactId>dhis-web-api</artifactId>
                 <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.hisp.dhis</groupId>
+                <artifactId>json-tree</artifactId>
+                <version>${dhis-json-tree.version}</version>
             </dependency>
 
             <dependency>
@@ -2367,7 +2369,7 @@
             <dependency>
                 <groupId>xerces</groupId>
                 <artifactId>xercesImpl</artifactId>
-                <version>${xercesImpl.version}</version>                
+                <version>${xercesImpl.version}</version>
                 <exclusions>
                     <exclusion>
                         <groupId>xml-apis</groupId>

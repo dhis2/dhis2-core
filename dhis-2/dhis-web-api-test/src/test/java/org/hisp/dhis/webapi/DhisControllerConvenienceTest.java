@@ -30,10 +30,10 @@ package org.hisp.dhis.webapi;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.failOnException;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 
+import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.utils.TestUtils;
-import org.hisp.dhis.webapi.json.JsonResponse;
 import org.hisp.dhis.webapi.utils.DhisMockMvcControllerTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;

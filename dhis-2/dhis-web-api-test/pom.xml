@@ -191,7 +191,7 @@
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-support-test-json</artifactId>
+      <artifactId>json-tree</artifactId>
     </dependency>
     <dependency>
       <groupId>com.jayway.jsonpath</groupId>

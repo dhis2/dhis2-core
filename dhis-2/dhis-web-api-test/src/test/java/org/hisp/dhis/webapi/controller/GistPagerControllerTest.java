@@ -29,8 +29,8 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.hisp.dhis.webapi.json.JsonArray;
-import org.hisp.dhis.webapi.json.JsonObject;
+import org.hisp.dhis.jsontree.JsonArray;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.junit.jupiter.api.Test;
 
 /**

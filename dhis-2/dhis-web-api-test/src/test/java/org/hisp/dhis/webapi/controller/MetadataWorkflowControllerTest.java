@@ -36,6 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.metadata.MetadataProposalStatus;
 import org.hisp.dhis.metadata.MetadataProposalTarget;
 import org.hisp.dhis.metadata.MetadataProposalType;
@@ -43,7 +44,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.controller.json.JsonMetadataProposal;
 import org.hisp.dhis.webapi.controller.metadata.MetadataWorkflowController;
-import org.hisp.dhis.webapi.json.JsonObject;
 import org.hisp.dhis.webapi.json.domain.JsonErrorReport;
 import org.hisp.dhis.webapi.json.domain.JsonOrganisationUnit;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
