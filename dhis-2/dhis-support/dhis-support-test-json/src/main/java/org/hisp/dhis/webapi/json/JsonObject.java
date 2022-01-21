@@ -34,6 +34,8 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
+import java.util.function.Predicate;
 
 /**
  * Represents a JSON object node.
@@ -215,5 +217,35 @@ public interface JsonObject extends JsonCollection
                 }
             } );
         return obj;
+    }
+
+    /**
+     * Finds the first {@link JsonObject} of the given type where the provided
+     * test returns true.
+     *
+     * OBS! When no match is found the resulting {@link JsonValue#exists()} will
+     * return true. Use {@link JsonValue#isUndefined()} instead.
+     *
+     * @param type {@link JsonObject} type to find (must satisfy the
+     *        {@link #asObject(Class)} conditions)
+     * @param test test to perform on all objects that satisfy the type filter
+     * @param <T> type of the object to find
+     * @return the first found match or JSON {@code null} object
+     */
+    default <T extends JsonObject> T find( Class<T> type, Predicate<T> test )
+    {
+        Optional<JsonNode> match = node().find( JsonDocument.JsonNodeType.OBJECT, node -> {
+            try
+            {
+                return test.test( new JsonResponse( node.getDeclaration() ).asObject( type ) );
+            }
+            catch ( RuntimeException ex )
+            {
+                return false;
+            }
+        } );
+        return !match.isPresent()
+            ? JsonResponse.NULL.as( type )
+            : new JsonResponse( match.get().getDeclaration() ).asObject( type );
     }
 }
