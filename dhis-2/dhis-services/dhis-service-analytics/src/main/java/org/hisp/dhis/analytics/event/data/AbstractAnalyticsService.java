@@ -43,16 +43,20 @@ import static org.hisp.dhis.common.ValueType.COORDINATE;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentGraphMap;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentNameGraphMap;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryValidator;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.calendar.Calendar;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
@@ -62,6 +66,7 @@ import org.hisp.dhis.common.MetadataItem;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.User;
@@ -217,8 +222,11 @@ public abstract class AbstractAnalyticsService
         {
             final Map<String, Object> metadata = new HashMap<>();
 
-            metadata.put( ITEMS.getKey(), getMetadataItems( params ) );
-            metadata.put( DIMENSIONS.getKey(), getDimensionItems( params ) );
+            List<Option> options = getItemOptions( grid );
+
+            metadata.put( ITEMS.getKey(), getMetadataItems( params, options ) );
+
+            metadata.put( DIMENSIONS.getKey(), getDimensionItems( params, options ) );
 
             if ( params.isHierarchyMeta() || params.isShowHierarchy() )
             {
@@ -244,12 +252,49 @@ public abstract class AbstractAnalyticsService
     }
 
     /**
+     * Returns a map of metadata item options and {@link Option}.
+     *
+     * @param grid the Grid instance.
+     * @return a list of options.
+     */
+    private List<Option> getItemOptions( Grid grid )
+    {
+        List<Option> options = new ArrayList<>();
+
+        for ( int i = 0; i < grid.getHeaders().size(); ++i )
+        {
+            GridHeader gridHeader = grid.getHeaders().get( i );
+
+            if ( gridHeader.hasOptionSet() )
+            {
+                final int columnIndex = i;
+
+                options.addAll( gridHeader
+                    .getOptionSetObject()
+                    .getOptions()
+                    .stream()
+                    .filter( opt -> grid.getRows().stream().anyMatch( r -> {
+                        Object o = r.get( columnIndex );
+                        if ( o instanceof String )
+                        {
+                            return ((String) o).equalsIgnoreCase( opt.getCode() );
+                        }
+
+                        return false;
+                    } ) ).collect( Collectors.toList() ) );
+            }
+        }
+
+        return options.stream().distinct().collect( Collectors.toList() );
+    }
+
+    /**
      * Returns a map of metadata item identifiers and {@link MetadataItem}.
      *
      * @param params the data query parameters.
      * @return a map.
      */
-    private Map<String, MetadataItem> getMetadataItems( EventQueryParams params )
+    private Map<String, MetadataItem> getMetadataItems( EventQueryParams params, List<Option> itemOptions )
     {
         Map<String, MetadataItem> metadataItemMap = AnalyticsUtils.getDimensionMetadataItemMap( params );
 
@@ -264,19 +309,17 @@ public abstract class AbstractAnalyticsService
         }
 
         params.getItemLegends().stream()
-            .filter( legend -> legend != null )
+            .filter( Objects::nonNull )
             .forEach( legend -> metadataItemMap.put( legend.getUid(),
                 new MetadataItem( legend.getDisplayName(), includeDetails ? legend.getUid() : null,
                     legend.getCode() ) ) );
 
-        params.getItemOptions().stream()
-            .filter( option -> option != null )
-            .forEach( option -> metadataItemMap.put( option.getUid(),
-                new MetadataItem( option.getDisplayName(), includeDetails ? option.getUid() : null,
-                    option.getCode() ) ) );
+        itemOptions.forEach( option -> metadataItemMap.put( option.getUid(),
+            new MetadataItem( option.getDisplayName(), includeDetails ? option.getUid() : null,
+                option.getCode() ) ) );
 
         params.getItemsAndItemFilters().stream()
-            .filter( item -> item != null )
+            .filter( Objects::nonNull )
             .forEach( item -> metadataItemMap.put( item.getItemId(),
                 new MetadataItem( item.getItem().getDisplayName(), includeDetails ? item.getItem() : null ) ) );
 
@@ -290,7 +333,7 @@ public abstract class AbstractAnalyticsService
      * @param params the data query parameters.
      * @return a map.
      */
-    private Map<String, List<String>> getDimensionItems( EventQueryParams params )
+    private Map<String, List<String>> getDimensionItems( EventQueryParams params, List<Option> itemOptions )
     {
         Calendar calendar = PeriodType.getCalendar();
 
@@ -310,7 +353,9 @@ public abstract class AbstractAnalyticsService
         {
             if ( item.hasOptionSet() )
             {
-                dimensionItems.put( item.getItemId(), item.getOptionSetFilterItemsOrAll() );
+                dimensionItems.put( item.getItemId(), itemOptions.stream()
+                    .map( BaseIdentifiableObject::getUid )
+                    .collect( Collectors.toList() ) );
             }
             else if ( item.hasLegendSet() )
             {
