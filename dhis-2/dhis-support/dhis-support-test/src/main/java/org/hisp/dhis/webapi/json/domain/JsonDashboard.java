@@ -29,7 +29,7 @@ package org.hisp.dhis.webapi.json.domain;
 
 import java.util.List;
 
-import org.hisp.dhis.webapi.json.JsonList;
+import org.hisp.dhis.jsontree.JsonList;
 
 /**
  * Web API equivalent of a {@link org.hisp.dhis.dashboard.Dashboard}.

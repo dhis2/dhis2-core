@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.json.domain;
 
-import org.hisp.dhis.webapi.json.JsonList;
+import org.hisp.dhis.jsontree.JsonList;
 
 /**
  * Web API equivalent of a {@link org.hisp.dhis.user.User}.

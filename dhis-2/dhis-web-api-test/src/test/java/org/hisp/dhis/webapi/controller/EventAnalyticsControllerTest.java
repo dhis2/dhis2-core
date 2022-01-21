@@ -30,8 +30,8 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.hisp.dhis.webapi.json.JsonString;
 import org.hisp.dhis.webapi.json.domain.JsonGrid;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -39,7 +39,7 @@ import org.springframework.http.HttpStatus;
 
 /**
  * Tests the {@link EventAnalyticsController}.
- *
+ * <p>
  * The main purpose of this test is not to test the correct business logic but
  * to make sure the controller parameters are recognised correctly.
  *
