@@ -28,7 +28,6 @@
 package org.hisp.dhis.analytics.util;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
@@ -178,7 +177,6 @@ class PeriodOffsetUtilsTest
         grid.addHeader( new GridHeader( DimensionalObject.DATA_X_DIM_ID ) );
         grid.addHeader( new GridHeader( DimensionalObject.ORGUNIT_DIM_ID ) );
         grid.addHeader( new GridHeader( DimensionalObject.PERIOD_DIM_ID ) );
-        int dataIndex = 0;
         int periodIndex = 2;
         grid.addRow();
         grid.addValue( "de1" );
@@ -192,42 +190,20 @@ class PeriodOffsetUtilsTest
         grid.addValue( 5 );
         DataElement dataElement = createDataElement( 0 );
         dataElement.setUid( "de1" );
-        // When
-        final List<Object> row = PeriodOffsetUtils.getPeriodOffsetRow( grid, dataIndex, periodIndex, dataElement,
-            "202001", 1 );
-        // Then
-        assertThat( row, is( notNullValue() ) );
-        assertThat( row, hasSize( 4 ) );
-        assertThat( row.get( 0 ), is( "de1" ) );
-    }
 
-    @Test
-    void verifyGetPeriodOffsetRowNoMatch()
-    {
-        // Given
-        Grid grid = new ListGrid();
-        grid.addHeader( new GridHeader( DimensionalObject.DATA_X_DIM_ID ) );
-        grid.addHeader( new GridHeader( DimensionalObject.ORGUNIT_DIM_ID ) );
-        grid.addHeader( new GridHeader( DimensionalObject.PERIOD_DIM_ID ) );
-        int dataIndex = 0;
-        int periodIndex = 2;
-        grid.addRow();
-        grid.addValue( "de1" );
-        grid.addValue( "ou2" );
-        grid.addValue( "202001" );
-        grid.addValue( 3 );
-        grid.addRow();
-        grid.addValue( "de1" );
-        grid.addValue( "ou3" );
-        grid.addValue( "202002" );
-        grid.addValue( 5 );
-        DataElement dataElement = createDataElement( 0 );
-        dataElement.setUid( "de1" );
         // When
-        final List<Object> row = PeriodOffsetUtils.getPeriodOffsetRow( grid, dataIndex, periodIndex, dataElement,
-            "202003", 1 );
+        final List<Object> row1 = PeriodOffsetUtils.getPeriodOffsetRow( grid.getRow( 0 ), periodIndex, 1 );
         // Then
-        assertThat( row, is( nullValue() ) );
+        assertThat( row1, is( notNullValue() ) );
+        assertThat( row1, hasSize( 4 ) );
+        assertThat( row1.get( periodIndex ), is( "201912" ) );
+
+        // When
+        final List<Object> row2 = PeriodOffsetUtils.getPeriodOffsetRow( grid.getRow( 1 ), periodIndex, -1 );
+        // Then
+        assertThat( row2, is( notNullValue() ) );
+        assertThat( row2, hasSize( 4 ) );
+        assertThat( row2.get( periodIndex ), is( "202003" ) );
     }
 
     private void assertIsoPeriods( List<DimensionalItemObject> periods, String... isoPeriod )

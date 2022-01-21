@@ -31,6 +31,7 @@ import static java.lang.Math.abs;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -172,41 +173,23 @@ public class PeriodOffsetUtils
     }
 
     /**
-     * Given a Analytics {@link Grid}, this methods tries to extract the row
-     * from the Grid that matches the given {@link DimensionalItemObject} and
-     * offset period. If there is no match, null is returned.
+     * Given an Analytics {@link Grid} row, adjust the date in the row according
+     * to the period offset.
      *
-     * @param grid a {@link Grid} object
-     * @param dataIndex the current grid row data index.
+     * @param row the current grid row
      * @param periodIndex the current grid row period index.
-     * @param dimItem a DimensionalItemObject object
-     * @param isoPeriod a Period, in ISO format (e.g. 202001 - for January 2020)
      * @param offset an offset value
-     * @return a row from the Grid (as List of Object) or null
+     * @return a new row with adjusted date
      */
-    public static List<Object> getPeriodOffsetRow( Grid grid, int dataIndex, int periodIndex,
-        DimensionalItemObject dimItem, String isoPeriod, int offset )
+    public static List<Object> getPeriodOffsetRow( List<Object> row, int periodIndex, int offset )
     {
-        if ( grid == null || dimItem == null )
-        {
-            return null;
-        }
+        String isoPeriod = (String) row.get( periodIndex );
+        Period shifted = shiftPeriod( PeriodType.getPeriodFromIsoString( isoPeriod ), -offset );
 
-        Period shifted = offset != 0 ? shiftPeriod( PeriodType.getPeriodFromIsoString( isoPeriod ), offset )
-            : PeriodType.getPeriodFromIsoString( isoPeriod );
+        List<Object> adjustedRow = new ArrayList<>( row );
+        adjustedRow.set( periodIndex, shifted.getIsoDate() );
 
-        for ( List<Object> row : grid.getRows() )
-        {
-            final String rowUid = (String) row.get( dataIndex );
-            final String rowPeriod = (String) row.get( periodIndex );
-
-            if ( rowUid.equals( dimItem.getUid() ) && rowPeriod.equals( shifted.getIsoDate() ) )
-            {
-                return row;
-            }
-        }
-
-        return null;
+        return adjustedRow;
     }
 
     /**
