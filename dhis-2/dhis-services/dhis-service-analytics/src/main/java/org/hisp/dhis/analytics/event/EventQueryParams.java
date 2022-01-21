@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.event;
 
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
@@ -38,8 +39,10 @@ import static org.hisp.dhis.common.FallbackCoordinateFieldType.PSI_GEOMETRY;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.analytics.AggregationType;
@@ -118,6 +121,11 @@ public class EventQueryParams
     private List<QueryItem> itemFilters = new ArrayList<>();
 
     /**
+     * The headers.
+     */
+    protected Set<String> headers = new LinkedHashSet<>();
+
+    /**
      * The dimensional object for which to produce aggregated data.
      */
     private DimensionalItemObject value;
@@ -181,7 +189,7 @@ public class EventQueryParams
     /**
      * Indicates the event status.
      */
-    private EventStatus eventStatus;
+    private Set<EventStatus> eventStatus;
 
     /**
      * Indicates whether the data dimension items should be collapsed into a
@@ -240,7 +248,7 @@ public class EventQueryParams
     /**
      * Indicates the program status
      */
-    private ProgramStatus programStatus;
+    private Set<ProgramStatus> programStatus;
 
     /**
      * Indicates whether to include metadata details to response
@@ -269,6 +277,7 @@ public class EventQueryParams
 
         params.dimensions = new ArrayList<>( this.dimensions );
         params.filters = new ArrayList<>( this.filters );
+        params.headers = new LinkedHashSet<>( this.headers );
         params.includeNumDen = this.includeNumDen;
         params.displayProperty = this.displayProperty;
         params.aggregationType = this.aggregationType;
@@ -279,7 +288,8 @@ public class EventQueryParams
         params.timeField = this.timeField;
         params.orgUnitField = this.orgUnitField;
         params.apiVersion = this.apiVersion;
-
+        params.skipData = this.skipData;
+        params.skipMeta = this.skipMeta;
         params.partitions = new Partitions( this.partitions );
         params.tableName = this.tableName;
         params.periodType = this.periodType;
@@ -316,8 +326,8 @@ public class EventQueryParams
         params.programStatus = this.programStatus;
         params.includeMetadataDetails = this.includeMetadataDetails;
         params.dataIdScheme = this.dataIdScheme;
-
         params.periodType = this.periodType;
+        params.analyzeOrderId = this.analyzeOrderId;
 
         return params;
     }
@@ -396,6 +406,7 @@ public class EventQueryParams
 
         items.forEach( e -> key.add( "item", "[" + e.getKey() + "]" ) );
         itemFilters.forEach( e -> key.add( "itemFilter", "[" + e.getKey() + "]" ) );
+        headers.forEach( header -> key.add( "headers", "[" + header + "]" ) );
         itemProgramIndicators.forEach( e -> key.add( "itemProgramIndicator", e.getUid() ) );
         asc.forEach( e -> e.getUid() );
         desc.forEach( e -> e.getUid() );
@@ -617,7 +628,7 @@ public class EventQueryParams
     /**
      * Gets program status
      */
-    public ProgramStatus getProgramStatus()
+    public Set<ProgramStatus> getProgramStatus()
     {
         return programStatus;
     }
@@ -774,7 +785,7 @@ public class EventQueryParams
 
     public boolean hasEventStatus()
     {
-        return eventStatus != null;
+        return isNotEmpty( eventStatus );
     }
 
     public boolean hasValueDimension()
@@ -820,6 +831,11 @@ public class EventQueryParams
         return getFilterPeriods().size() > 0;
     }
 
+    public boolean hasHeaders()
+    {
+        return isNotEmpty( getHeaders() );
+    }
+
     /**
      * Indicates whether the program of this query requires registration of
      * tracked entity instances.
@@ -836,7 +852,7 @@ public class EventQueryParams
 
     public boolean hasProgramStatus()
     {
-        return programStatus != null;
+        return isNotEmpty( programStatus );
     }
 
     public boolean hasBbox()
@@ -889,6 +905,11 @@ public class EventQueryParams
     public List<QueryItem> getItemFilters()
     {
         return itemFilters;
+    }
+
+    public Set<String> getHeaders()
+    {
+        return headers;
     }
 
     public DimensionalItemObject getValue()
@@ -962,7 +983,7 @@ public class EventQueryParams
         return outputIdScheme;
     }
 
-    public EventStatus getEventStatus()
+    public Set<EventStatus> getEventStatus()
     {
         return eventStatus;
     }
@@ -1118,6 +1139,16 @@ public class EventQueryParams
         public Builder addFilter( DimensionalObject filter )
         {
             this.params.addFilter( filter );
+            return this;
+        }
+
+        public Builder withHeaders( Set<String> headers )
+        {
+            if ( isNotEmpty( headers ) )
+            {
+                this.params.headers.addAll( headers );
+            }
+
             return this;
         }
 
@@ -1295,9 +1326,9 @@ public class EventQueryParams
             return this;
         }
 
-        public Builder withEventStatus( EventStatus eventStatus )
+        public Builder withEventStatuses( Set<EventStatus> eventStatuses )
         {
-            this.params.eventStatus = eventStatus;
+            this.params.eventStatus = eventStatuses;
             return this;
         }
 
@@ -1355,9 +1386,9 @@ public class EventQueryParams
             return this;
         }
 
-        public Builder withProgramStatus( ProgramStatus programStatus )
+        public Builder withProgramStatuses( Set<ProgramStatus> programStatuses )
         {
-            this.params.programStatus = programStatus;
+            this.params.programStatus = programStatuses;
             return this;
         }
 
@@ -1388,6 +1419,12 @@ public class EventQueryParams
         public Builder withOutputIdScheme( IdScheme outputIdScheme )
         {
             this.params.outputIdScheme = outputIdScheme;
+            return this;
+        }
+
+        public Builder withAnalyzeOrderId()
+        {
+            this.params.analyzeOrderId = UUID.randomUUID().toString();
             return this;
         }
 

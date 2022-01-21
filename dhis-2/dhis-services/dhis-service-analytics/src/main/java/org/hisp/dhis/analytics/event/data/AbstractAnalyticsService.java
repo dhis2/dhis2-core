@@ -28,7 +28,11 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.*;
+import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.DIMENSIONS;
+import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ITEMS;
+import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_HIERARCHY;
+import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_NAME_HIERARCHY;
+import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.PAGER;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
@@ -49,7 +53,15 @@ import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryValidator;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.calendar.Calendar;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.MetadataItem;
+import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.User;
@@ -141,7 +153,12 @@ public abstract class AbstractAnalyticsService
         // Data
         // ---------------------------------------------------------------------
 
-        long count = addEventData( grid, params );
+        long count = 0;
+
+        if ( !params.isSkipData() || params.analyzeOnly() )
+        {
+            count = addEventData( grid, params );
+        }
 
         // ---------------------------------------------------------------------
         // Meta-data
@@ -169,12 +186,23 @@ public abstract class AbstractAnalyticsService
             grid.getMetaData().put( PAGER.getKey(), pager );
         }
 
+        maybeApplyHeaders( params, grid );
+
         return grid;
     }
 
     protected abstract Grid createGridWithHeaders( EventQueryParams params );
 
     protected abstract long addEventData( Grid grid, EventQueryParams params );
+
+    private void maybeApplyHeaders( final EventQueryParams params, final Grid grid )
+    {
+        if ( params.hasHeaders() )
+        {
+            grid.keepOnlyThese( params.getHeaders() );
+            grid.repositionColumns( grid.repositionHeaders( params.getHeaders() ) );
+        }
+    }
 
     /**
      * Adds meta data values to the given grid based on the given data query

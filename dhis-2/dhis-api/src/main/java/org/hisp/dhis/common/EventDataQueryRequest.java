@@ -29,6 +29,7 @@ package org.hisp.dhis.common;
 
 import java.util.Date;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import lombok.AllArgsConstructor;
@@ -58,6 +59,8 @@ public class EventDataQueryRequest
 
     private Set<String> filter;
 
+    private Set<String> headers;
+
     private String value;
 
     private AggregationType aggregationType;
@@ -80,9 +83,9 @@ public class EventDataQueryRequest
 
     private EventOutputType outputType;
 
-    private EventStatus eventStatus;
+    private Set<EventStatus> eventStatus;
 
-    private ProgramStatus programStatus;
+    private Set<ProgramStatus> programStatus;
 
     private boolean collapseDataDimensions;
 
@@ -141,6 +144,7 @@ public class EventDataQueryRequest
         queryRequest.endDate = this.endDate;
         queryRequest.dimension = new HashSet<>( this.dimension );
         queryRequest.filter = new HashSet<>( this.filter );
+        queryRequest.headers = new LinkedHashSet<>( this.headers );
         queryRequest.value = this.value;
         queryRequest.aggregationType = this.aggregationType;
         queryRequest.skipMeta = this.skipMeta;
@@ -201,6 +205,7 @@ public class EventDataQueryRequest
                 .endDate( criteria.getEndDate() )
                 .eventStatus( criteria.getEventStatus() )
                 .filter( criteria.getFilter() )
+                .headers( criteria.getHeaders() )
                 .hierarchyMeta( criteria.isHierarchyMeta() )
                 .includeMetadataDetails( criteria.isIncludeMetadataDetails() )
                 .limit( criteria.getLimit() )
@@ -233,9 +238,9 @@ public class EventDataQueryRequest
             return startDate( criteria.getStartDate() )
                 .timeField( criteria.getTimeField() )
                 .endDate( criteria.getEndDate() )
-                .dimension(
-                    criteria.getDimension() )
+                .dimension( criteria.getDimension() )
                 .filter( criteria.getFilter() )
+                .headers( criteria.getHeaders() )
                 .ouMode( criteria.getOuMode() )
                 .asc( criteria.getAsc() )
                 .desc( criteria.getDesc() )
@@ -257,5 +262,4 @@ public class EventDataQueryRequest
                 .sortOrder( criteria.getSortOrder() );
         }
     }
-
 }
