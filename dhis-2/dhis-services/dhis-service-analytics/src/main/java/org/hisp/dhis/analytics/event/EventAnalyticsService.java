@@ -33,7 +33,6 @@ import org.hisp.dhis.analytics.AnalyticsMetaDataKey;
 import org.hisp.dhis.analytics.Rectangle;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.option.Option;
 
 /**
  * This interface is responsible for retrieving aggregated event data. Data will
@@ -141,5 +140,4 @@ public interface EventAnalyticsService
      */
     Rectangle getRectangle( EventQueryParams params );
 
-    List<Option> getItemOptions( Grid grid );
 }
