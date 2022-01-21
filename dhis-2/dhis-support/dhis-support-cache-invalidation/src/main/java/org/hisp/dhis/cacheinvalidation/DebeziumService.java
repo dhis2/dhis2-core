@@ -167,6 +167,7 @@ public class DebeziumService
         props.setProperty( "slot.drop.on.stop", "true" );
         props.setProperty( "table.exclude.list",
             "public.spatial_ref_sys,"
+                + "postgis.spatial_ref_sys,"
                 + "public.audit,"
                 + "public.userroleauthorities,"
                 + "public.oauth_access_token,"
