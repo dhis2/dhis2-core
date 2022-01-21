@@ -257,7 +257,7 @@ public abstract class AbstractAnalyticsService
      * @param grid the Grid instance.
      * @return a list of options.
      */
-    private List<Option> getItemOptions( Grid grid )
+    protected List<Option> getItemOptions( Grid grid )
     {
         List<Option> options = new ArrayList<>();
 
