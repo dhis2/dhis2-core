@@ -69,7 +69,9 @@ public class SimpleDimension implements Serializable
         SCHEDULE_DATE( "scheduledDate", PERIOD ),
         LAST_UPDATE_DATE( "lastUpdatedDate", PERIOD ),
         EVENT_STATUS( "eventStatus", DATA_X ),
-        PROGRAM_STATUS( "programStatus", DATA_X );
+        PROGRAM_STATUS( "programStatus", DATA_X ),
+        CREATED_BY( "createdBy", DATA_X ),
+        LAST_UPDATED_BY( "lastUpdatedBy", DATA_X );
 
         private final String dimension;
 
