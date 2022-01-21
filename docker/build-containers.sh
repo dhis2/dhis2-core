@@ -84,6 +84,7 @@ build () {
     local TC_TAG=$2
     local TYPE=$3
 
+    docker buildx create --use
     docker buildx build \
         --tag "${TAG}" \
         --file "${DIR}/tomcat-${TYPE}/Dockerfile" \
