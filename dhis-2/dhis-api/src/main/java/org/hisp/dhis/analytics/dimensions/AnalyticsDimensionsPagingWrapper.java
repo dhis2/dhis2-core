@@ -30,10 +30,11 @@ package org.hisp.dhis.analytics.dimensions;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 import org.hisp.dhis.common.Pager;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Data
 public class AnalyticsDimensionsPagingWrapper<T>
