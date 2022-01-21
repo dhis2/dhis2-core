@@ -44,12 +44,6 @@ jobs:
         run: |
           bash ./dhis-2/build-dev.sh
 
-      - name: Publish docker image
-        if: "contains(github.event.pull_request.labels.*.name, 'publish-docker-image')"
-        run: |
-          docker tag $CORE_IMAGE_NAME $DOCKER_CHANNEL:$PR_NUMBER
-          docker push $DOCKER_CHANNEL:$PR_NUMBER
-
       - name: Build test image
         uses: docker/build-push-action@v2
         with:
