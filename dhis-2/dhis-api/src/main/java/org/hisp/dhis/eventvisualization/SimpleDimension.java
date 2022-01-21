@@ -28,6 +28,7 @@
 package org.hisp.dhis.eventvisualization;
 
 import static java.util.Arrays.stream;
+import static org.hisp.dhis.common.DimensionType.DATA_X;
 import static org.hisp.dhis.common.DimensionType.PERIOD;
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 
@@ -66,7 +67,9 @@ public class SimpleDimension implements Serializable
         ENROLLMENT_DATE( "enrollmentDate", PERIOD ),
         INCIDENT_DATE( "incidentDate", PERIOD ),
         SCHEDULE_DATE( "scheduledDate", PERIOD ),
-        LAST_UPDATE_DATE( "lastUpdatedDate", PERIOD );
+        LAST_UPDATE_DATE( "lastUpdatedDate", PERIOD ),
+        EVENT_STATUS( "eventStatus", DATA_X ),
+        PROGRAM_STATUS( "programStatus", DATA_X );
 
         private final String dimension;
 

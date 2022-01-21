@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.system.grid;
 
+import static java.util.stream.Collectors.toList;
+import static org.hisp.dhis.feedback.ErrorCode.E7230;
+
 import java.io.Serializable;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -36,6 +39,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -48,9 +52,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.math3.stat.regression.SimpleRegression;
 import org.apache.commons.math3.util.Precision;
+import org.hisp.dhis.common.ExecutionPlan;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.PerformanceMetrics;
 import org.hisp.dhis.common.adapter.JacksonRowDataSerializer;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.system.util.MathUtils;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.jdbc.support.rowset.SqlRowSetMetaData;
@@ -94,6 +102,11 @@ public class ListGrid
      * A Map which can hold arbitrary meta-data.
      */
     private Map<String, Object> metaData;
+
+    /**
+     * An Object which can hold execution plans and related data.
+     */
+    private PerformanceMetrics performanceMetrics;
 
     /**
      * A Map which can hold internal arbitrary meta data. Will not be
@@ -347,6 +360,13 @@ public class ListGrid
     {
         this.internalMetaData = internalMetaData;
         return this;
+    }
+
+    @Override
+    @JsonProperty
+    public PerformanceMetrics getPerformanceMetrics()
+    {
+        return performanceMetrics;
     }
 
     @Override
@@ -1083,6 +1103,25 @@ public class ListGrid
     }
 
     @Override
+    public Grid maybeAddPerformanceMetrics( List<ExecutionPlan> plans )
+    {
+        if ( plans.isEmpty() )
+        {
+            return this;
+        }
+
+        performanceMetrics = new PerformanceMetrics();
+
+        double total = plans.stream().map( ExecutionPlan::getTimeInMillis ).reduce( 0.0, Double::sum );
+
+        performanceMetrics.setTotalTimeInMillis( Precision.round( total, 3 ) );
+
+        performanceMetrics.setExecutionPlans( plans );
+
+        return this;
+    }
+
+    @Override
     public Grid addRows( SqlRowSet rs )
     {
         return addRows( rs, -1 );
@@ -1091,6 +1130,95 @@ public class ListGrid
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
+
+    /**
+     * This method will take a Grid and keep only the given list of headers. All
+     * other GridHeaders and respective columns will be removed from the Grid.
+     *
+     * @param headers
+     */
+    @Override
+    public void keepOnlyThese( final Set<String> headers )
+    {
+        final List<String> exclusions = getHeaders().stream().map( GridHeader::getName ).collect( toList() );
+        exclusions.removeAll( headers );
+
+        for ( final String headerToExclude : exclusions )
+        {
+            final int headerIndex = getIndexOfHeader( headerToExclude );
+            final boolean hasHeader = headerIndex != -1;
+
+            if ( hasHeader )
+            {
+                removeColumn( getHeaders().get( headerIndex ) );
+            }
+        }
+    }
+
+    /**
+     * Re-order the GridHeaders of the given Grid based on the List headers. The
+     * final Grid will have the all its headers defined in the same order as the
+     * given List of headers.
+     *
+     * @param headers
+     * @return a Set of indexes that holds the holds the new order
+     */
+    @Override
+    public Set<Integer> repositionHeaders( final Set<String> headers )
+    {
+        verifyGridState();
+
+        final List<String> gridHeaders = getHeaders().stream().map( GridHeader::getName ).collect( toList() );
+        final List<GridHeader> orderedHeaders = new ArrayList<>();
+        final Set<Integer> newColumnIndexes = new LinkedHashSet<>();
+
+        for ( final String header : headers )
+        {
+            if ( gridHeaders.contains( header ) )
+            {
+                final int gridHeaderIndex = getIndexOfHeader( header );
+                orderedHeaders.add( getHeaders().get( gridHeaderIndex ) );
+
+                newColumnIndexes.add( gridHeaderIndex );
+            }
+            else
+            {
+                throw new IllegalQueryException( new ErrorMessage( E7230, header ) );
+            }
+        }
+
+        replaceHeaders( orderedHeaders );
+
+        return newColumnIndexes;
+    }
+
+    /**
+     * Based on the given column indexes, this method will order the current
+     * columns in the Grid. The new positions of the columns will respect the
+     * new indexes.
+     *
+     * @param newColumnsIndexes
+     */
+    @Override
+    public void repositionColumns( final Set<Integer> newColumnsIndexes )
+    {
+        verifyGridState();
+
+        final List<List<Object>> allRows = getRows();
+        final List<Integer> newIndexes = new ArrayList<>( newColumnsIndexes );
+
+        for ( final List<Object> columns : allRows )
+        {
+            final List<Object> orderedColumns = new ArrayList<>();
+            for ( int i = 0; i < columns.size(); i++ )
+            {
+                orderedColumns.add( columns.get( newIndexes.get( i ) ) );
+            }
+
+            columns.clear();
+            columns.addAll( orderedColumns );
+        }
+    }
 
     /**
      * Verifies that all grid rows are of the same length.

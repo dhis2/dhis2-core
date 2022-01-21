@@ -14,7 +14,6 @@
   <name>DHIS Node service</name>
 
   <dependencies>
-
     <dependency>
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-service-schema</artifactId>
@@ -22,6 +21,10 @@
     <dependency>
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-service-acl</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.hisp.dhis</groupId>
+      <artifactId>dhis-support-system</artifactId>
     </dependency>
     <dependency>
       <groupId>org.apache.poi</groupId>

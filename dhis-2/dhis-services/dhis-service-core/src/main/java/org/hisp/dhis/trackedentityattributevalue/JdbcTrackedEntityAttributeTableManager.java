@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.trackedentityattributevalue;
 
+import java.util.List;
+
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -44,12 +46,13 @@ import org.springframework.stereotype.Component;
 public class JdbcTrackedEntityAttributeTableManager implements TrackedEntityAttributeTableManager
 {
 
-    private static final String TRIGRAM_INDEX_QUERY = "CREATE INDEX CONCURRENTLY IF NOT EXISTS in_gin_teavalue_%d ON "
+    private static final String TRIGRAM_INDEX_CREATE_QUERY = "CREATE INDEX CONCURRENTLY IF NOT EXISTS in_gin_teavalue_%d ON "
         + "trackedentityattributevalue USING gin (trackedentityinstanceid,lower(value) gin_trgm_ops) where trackedentityattributeid = %d";
 
-    private static final String VACUUM_QUERY = "VACUUM trackedentityattributevalue";
+    private static final String TRIGRAM_INDEX_DROP_QUERY = "DROP INDEX IF EXISTS in_gin_teavalue_%d";
 
-    private static final String ANALYZE_QUERY = "ANALYZE trackedentityattributevalue";
+    private static final String LIST_TRIGRAM_INDEXED_ATTRIBUTE_ID_QUERY = "SELECT cast(substring(indexname from 'in_gin_teavalue_(.*)') as bigint) as teaid FROM  pg_indexes"
+        + " WHERE   indexname like 'in_gin_teavalue_%' and tablename = 'trackedentityattributevalue'";
 
     private final JdbcTemplate jdbcTemplate;
 
@@ -62,20 +65,24 @@ public class JdbcTrackedEntityAttributeTableManager implements TrackedEntityAttr
     // Implementation
     // -------------------------------------------------------------------------
 
+    @Override
     public void createTrigramIndex( TrackedEntityAttribute trackedEntityAttribute )
     {
-        String query = String.format( TRIGRAM_INDEX_QUERY, trackedEntityAttribute.getId(),
+        String query = String.format( TRIGRAM_INDEX_CREATE_QUERY, trackedEntityAttribute.getId(),
             trackedEntityAttribute.getId() );
         jdbcTemplate.execute( query );
     }
 
-    public void runAnalyze()
+    @Override
+    public void dropTrigramIndex( Long teaId )
     {
-        jdbcTemplate.execute( ANALYZE_QUERY );
+        String query = String.format( TRIGRAM_INDEX_DROP_QUERY, teaId );
+        jdbcTemplate.execute( query );
     }
 
-    public void runVacuum()
+    @Override
+    public List<Long> getAttributeIdsWithTrigramIndexCreated()
     {
-        jdbcTemplate.execute( VACUUM_QUERY );
+        return jdbcTemplate.queryForList( LIST_TRIGRAM_INDEXED_ATTRIBUTE_ID_QUERY, Long.class );
     }
 }

@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.trackedentityattributevalue;
 
+import java.util.List;
+
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
 /**
@@ -39,7 +41,7 @@ public interface TrackedEntityAttributeTableManager
 {
     void createTrigramIndex( TrackedEntityAttribute trackedEntityAttribute );
 
-    void runAnalyze();
+    void dropTrigramIndex( Long trackedEntityAttributeId );
 
-    void runVacuum();
+    List<Long> getAttributeIdsWithTrigramIndexCreated();
 }

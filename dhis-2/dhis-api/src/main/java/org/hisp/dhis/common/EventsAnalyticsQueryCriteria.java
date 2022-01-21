@@ -81,6 +81,13 @@ public class EventsAnalyticsQueryCriteria
     private Set<String> filter;
 
     /**
+     * This parameter selects the headers to be returned as part of the
+     * response. The implementation for this Set will be LinkedHashSet as the
+     * ordering is important.
+     */
+    private Set<String> headers;
+
+    /**
      * Whether to include names of organisation unit ancestors and hierarchy
      * paths of organisation units in the metadata.
      */
@@ -89,12 +96,12 @@ public class EventsAnalyticsQueryCriteria
     /**
      * Specify ths status of events to include.
      */
-    private EventStatus eventStatus;
+    private Set<EventStatus> eventStatus;
 
     /**
      * Specify the enrollment status of events to include.
      */
-    private ProgramStatus programStatus;
+    private Set<ProgramStatus> programStatus;
 
     /**
      * Overrides the start date of the relative period.
