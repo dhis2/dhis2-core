@@ -84,11 +84,12 @@ build () {
     local TC_TAG=$2
     local TYPE=$3
 
-    docker build \
+    docker buildx build \
         --tag "${TAG}" \
         --file "${DIR}/tomcat-${TYPE}/Dockerfile" \
         --build-arg TOMCAT_IMAGE="${TOMCAT_IMAGE}:${TC_TAG}" \
         --build-arg IDENTIFIER="${IDENTIFIER}" \
+        --platform linux/amd64,linux/arm64,linux/arm/v7 \
         "$DIR"
 }
 
