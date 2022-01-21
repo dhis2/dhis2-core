@@ -44,6 +44,8 @@ public enum ErrorCode
     E1103( "Category option combo not found or not accessible: `{0}`" ),
     E1104( "Attribute option combo not found or not accessible: `{0}`" ),
     E1105( "Data set not found or not accessible: `{0}`" ),
+    E1106( "There are duplicate translation record for property `{0}` and locale `{1}`" ),
+    E1107( "Object type `{0}` is not translatable." ),
 
     /* Org unit merge */
     E1500( "At least two source orgs unit must be specified" ),
@@ -197,6 +199,7 @@ public enum ErrorCode
     /* ProgramRuleVariable validation */
     E4051( "A program rule variable with name `{0}` and program uid `{1}` already exists" ),
     E4052( "For program rule variable with name `{0}` following keywords are forbidden : and , or , not" ),
+    E4053( "Program stage `{0}` must reference a program." ),
 
     /* SQL views */
     E4300( "SQL query is null" ),
