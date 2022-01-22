@@ -560,7 +560,7 @@ public class DefaultPdfDataEntryFormService
                 Collectors.toList() );
 
             addCell_WithDropDownListField( table, rectangle, writer, PdfDataEntryFormUtil.getPdfPCell( hasBorder ),
-                PdfDataEntryFormUtil.LABELCODE_ATTRIBUTE_OPTIONID + "_" + category.getUid(),
+                PdfDataEntryFormUtil.LABELCODE_ATTRIBUTE_OPTIONID + "_" + catCombo.getUid() + "_" + category.getUid(),
                 optionLabels.toArray( new String[optionLabels.size()] ),
                 optionValues.toArray( new String[optionValues.size()] ) );
         }
@@ -865,8 +865,8 @@ public class DefaultPdfDataEntryFormService
             Period period = periods.get( i );
             periodTitles[i] = format.formatPeriod( period );
 
-            periodTitles[i] += " - " + DateUtils.getMediumDateString( period.getStartDate() )
-                + " - " + DateUtils.getMediumDateString( period.getEndDate() );
+            periodTitles[i] += " ( " + DateUtils.getMediumDateString( period.getStartDate() )
+                + " - " + DateUtils.getMediumDateString( period.getEndDate() ) + " )";
         }
 
         return periodTitles;

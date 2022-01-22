@@ -70,7 +70,7 @@ public interface DataValueSetReader extends AutoCloseable
      * @return the next {@link DataValueEntry} in the set or {@code null} if no
      *         more values are available
      */
-    DataValueEntry readNext();
+    AttributeOptionDataValueEntry readNext();
 
     @Override
     void close();

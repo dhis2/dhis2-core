@@ -27,46 +27,53 @@
  */
 package org.hisp.dhis.dxf2.datavalueset;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UncheckedIOException;
+import java.util.Set;
+import java.util.concurrent.Callable;
 
-import lombok.AllArgsConstructor;
-
-import org.hisp.dhis.dxf2.pdfform.PdfDataEntryFormUtil;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.dxf2.util.InputUtils;
 
 /**
- * Reads {@link DataValueSet} from PDF input.
- *
- * @author Jan Bernitt
+ * @author viet@dhis2.org
  */
-@AllArgsConstructor
-final class PdfDataValueSetReader implements AttributeOptionDataValueSetReader
+public class FindCategoryOptionComboCallable
+    implements Callable
 {
-    private final InputStream in;
+    private final InputUtils inputUtils;
 
-    @Override
-    public DataValueSet readHeader()
+    private IdScheme idScheme = IdScheme.UID;
+
+    private CategoryCombo categoryCombo;
+
+    private Set<String> categoryOptions;
+
+    public FindCategoryOptionComboCallable( InputUtils inputUtils )
     {
-        return PdfDataEntryFormUtil.getDataValueSet( in );
+        this.inputUtils = inputUtils;
     }
 
     @Override
-    public AttributeOptionDataValueEntry readNext()
+    public CategoryOptionCombo call()
     {
-        return null; // header contains the values
+        return inputUtils.getAttributeOptionCombo( categoryCombo, categoryOptions, idScheme );
     }
 
-    @Override
-    public void close()
+    public FindCategoryOptionComboCallable setCategoryCombo( CategoryCombo categoryCombo )
     {
-        try
-        {
-            in.close();
-        }
-        catch ( IOException ex )
-        {
-            throw new UncheckedIOException( ex );
-        }
+        this.categoryCombo = categoryCombo;
+        return this;
+    }
+
+    public FindCategoryOptionComboCallable setCategoryOptions( Set<String> categoryOptions )
+    {
+        this.categoryOptions = categoryOptions;
+        return this;
+    }
+
+    public IdScheme getIdScheme()
+    {
+        return idScheme;
     }
 }

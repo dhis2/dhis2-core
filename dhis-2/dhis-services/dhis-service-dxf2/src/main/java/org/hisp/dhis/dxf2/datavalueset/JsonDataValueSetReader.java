@@ -61,7 +61,7 @@ final class JsonDataValueSetReader implements DataValueSetReader
     }
 
     @Override
-    public DataValueEntry readNext()
+    public AttributeOptionDataValueEntry readNext()
     {
         return null; // header contains the values
     }

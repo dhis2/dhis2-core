@@ -51,8 +51,10 @@ import java.util.function.Function;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.hisp.dhis.calendar.CalendarService;
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.AuditType;
@@ -64,6 +66,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.commons.util.DebugUtils;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
@@ -708,16 +711,17 @@ public class DefaultDataValueSetService
         clock.logTime( "Validated outer meta-data" );
         notifier.notify( id, notificationLevel, "Importing data values" );
 
-        List<? extends DataValueEntry> values = dataValueSet.getDataValues();
+        List<? extends AttributeOptionDataValueEntry> values = dataValueSet.getDataValues();
         int index = 0;
         if ( values != null && !values.isEmpty() )
         {
-            for ( DataValueEntry dataValue : values )
+            for ( AttributeOptionDataValueEntry dataValue : values )
             {
                 importDataValue( context, dataSetContext, importCount, now, index++, dataValue );
             }
         }
-        DataValueEntry dataValue = reader.readNext();
+
+        AttributeOptionDataValueEntry dataValue = reader.readNext();
         while ( dataValue != null )
         {
             importDataValue( context, dataSetContext, importCount, now, index++, dataValue );
@@ -747,7 +751,7 @@ public class DefaultDataValueSetService
     }
 
     private void importDataValue( ImportContext context, DataSetContext dataSetContext, ImportCount importCount,
-        Date now, int index, DataValueEntry dataValue )
+        Date now, int index, AttributeOptionDataValueEntry dataValue )
     {
         ImportContext.DataValueContext valueContext = createDataValueContext( index, dataValue, context,
             dataSetContext );
@@ -1079,6 +1083,9 @@ public class DefaultDataValueSetService
                 categoryService, categoryOptComboIdScheme, null ) )
             .periodCallable( new PeriodCallable( periodService, null,
                 trimToNull( data.getPeriod() ) ) )
+            .categoryComboCallable(
+                new IdentifiableObjectCallable<>( identifiableObjectManager, CategoryCombo.class, null ) )
+            .findAttributeOptionComboCallable( new FindCategoryOptionComboCallable( inputUtils ) )
 
             // data processing
             .dataValueBatchHandler( batchHandlerFactory
@@ -1139,7 +1146,7 @@ public class DefaultDataValueSetService
     }
 
     private ImportContext.DataValueContext createDataValueContext( int index,
-        DataValueEntry dataValue, ImportContext context, DataSetContext dataSetContext )
+        AttributeOptionDataValueEntry dataValue, ImportContext context, DataSetContext dataSetContext )
     {
         return ImportContext.DataValueContext.builder()
             .index( index )
@@ -1155,11 +1162,45 @@ public class DefaultDataValueSetService
                 trimToNull( dataValue.getCategoryOptionCombo() ),
                 context.getCategoryOptionComboCallable().setId( trimToNull( dataValue.getCategoryOptionCombo() ) ) ) )
             .attrOptionCombo(
-                dataSetContext.getOuterAttrOptionCombo() != null ? dataSetContext.getOuterAttrOptionCombo()
-                    : context.getOptionComboMap().get( trimToNull( dataValue.getAttributeOptionCombo() ),
-                        context.getAttributeOptionComboCallable()
-                            .setId( trimToNull( dataValue.getAttributeOptionCombo() ) ) ) )
+                findAttributeOptionCombo( dataSetContext, dataValue, context ) )
             .build();
+    }
+
+    private CategoryOptionCombo findAttributeOptionCombo( DataSetContext dataSetContext,
+        AttributeOptionDataValueEntry dataValue, ImportContext context )
+    {
+        CategoryOptionCombo attributeOptionCombo = dataSetContext.getOuterAttrOptionCombo() != null
+            ? dataSetContext.getOuterAttrOptionCombo()
+            : context.getOptionComboMap().get( trimToNull( dataValue.getAttributeOptionCombo() ),
+                context.getAttributeOptionComboCallable()
+                    .setId( trimToNull( dataValue.getAttributeOptionCombo() ) ) );
+
+        if ( attributeOptionCombo != null )
+        {
+            return attributeOptionCombo;
+        }
+
+        if ( attributeOptionCombo == null && dataValue.getCategoryCombo() != null
+            && !CollectionUtils.isEmpty( dataValue.getAttributeCategoryOptions() ) )
+        {
+            CategoryCombo categoryCombo = context.getCategoryComboMap()
+                .get( trimToNull( dataValue.getCategoryCombo() ),
+                    context.getCategoryComboCallable().setId( trimToNull( dataValue.getCategoryCombo() ) ) );
+
+            if ( categoryCombo == null )
+            {
+                return null;
+            }
+
+            String cacheKey = TextUtils.joinHyphen( categoryCombo.getUid(), dataValue.getAttributeCategoryOptions(),
+                String.valueOf( dataSetContext.getFallbackCategoryOptionCombo() ) );
+            return context.getAttributeOptionComboMap()
+                .get( cacheKey, context.getFindAttributeOptionComboCallable()
+                    .setCategoryCombo( categoryCombo )
+                    .setCategoryOptions( dataValue.getAttributeCategoryOptions() ) );
+        }
+
+        return dataSetContext.getFallbackCategoryOptionCombo();
     }
 
     private DataValue createDataValue( DataValueEntry dataValue, ImportContext context,

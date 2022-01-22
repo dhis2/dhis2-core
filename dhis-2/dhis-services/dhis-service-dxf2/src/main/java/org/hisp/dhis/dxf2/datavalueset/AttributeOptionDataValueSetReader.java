@@ -27,46 +27,43 @@
  */
 package org.hisp.dhis.dxf2.datavalueset;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UncheckedIOException;
-
-import lombok.AllArgsConstructor;
-
-import org.hisp.dhis.dxf2.pdfform.PdfDataEntryFormUtil;
-
 /**
- * Reads {@link DataValueSet} from PDF input.
+ * Adopter interface to read {@link DataValueSet}s from different input formats
+ * like XML, JSON and CSV.
+ *
+ * To avoid materialising a potentially very large set of
+ * {@link org.hisp.dhis.dxf2.datavalue.DataValue}s with the {@link DataValueSet}
+ * the values are not included in the {@link #readHeader()} value. Instead, the
+ * values are iterated/streamed using the {@link #readNext()} method.
+ *
+ * To read an input the call sequence should be the following:
+ * <ol>
+ * <li>call {@link #readHeader()} once (must be called)</li>
+ * <li>call {@link #readNext()} until it returns {@code null}</li>
+ * <li>call {@link #close()} once</li>
+ * </ol>
+ *
+ * All methods might throw an {@link java.io.UncheckedIOException}.
+ *
+ * A reader that does not support actual streaming using {@link #readNext()} can
+ * include the values in the {@link DataValueSet} returned by the
+ * {@link #readHeader()} and immediately return {@code null} when
+ * {@link #readNext()} is called.
  *
  * @author Jan Bernitt
+ *
+ * @see XmlDataValueSetReader
+ * @see CsvDataValueSetReader
+ * @see PdfDataValueSetReader
+ * @see JsonDataValueSetReader
  */
-@AllArgsConstructor
-final class PdfDataValueSetReader implements AttributeOptionDataValueSetReader
+public interface AttributeOptionDataValueSetReader
+    extends DataValueSetReader
 {
-    private final InputStream in;
-
+    /**
+     * @return the next {@link DataValueEntry} in the set or {@code null} if no
+     *         more values are available
+     */
     @Override
-    public DataValueSet readHeader()
-    {
-        return PdfDataEntryFormUtil.getDataValueSet( in );
-    }
-
-    @Override
-    public AttributeOptionDataValueEntry readNext()
-    {
-        return null; // header contains the values
-    }
-
-    @Override
-    public void close()
-    {
-        try
-        {
-            in.close();
-        }
-        catch ( IOException ex )
-        {
-            throw new UncheckedIOException( ex );
-        }
-    }
+    AttributeOptionDataValueEntry readNext();
 }

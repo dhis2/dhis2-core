@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.datavalueset;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.util.Set;
 
 import lombok.AllArgsConstructor;
 
@@ -42,7 +43,7 @@ import com.csvreader.CsvReader;
  * @author Jan Bernitt
  */
 @AllArgsConstructor
-final class CsvDataValueSetReader implements DataValueSetReader, DataValueEntry
+final class CsvDataValueSetReader implements DataValueSetReader, AttributeOptionDataValueEntry
 {
     private final CsvReader reader;
 
@@ -59,7 +60,7 @@ final class CsvDataValueSetReader implements DataValueSetReader, DataValueEntry
     }
 
     @Override
-    public DataValueEntry readNext()
+    public AttributeOptionDataValueEntry readNext()
     {
         try
         {
@@ -163,5 +164,17 @@ final class CsvDataValueSetReader implements DataValueSetReader, DataValueEntry
         {
             throw new UncheckedIOException( ex );
         }
+    }
+
+    @Override
+    public String getCategoryCombo()
+    {
+        return null;
+    }
+
+    @Override
+    public Set<String> getAttributeCategoryOptions()
+    {
+        return null;
     }
 }

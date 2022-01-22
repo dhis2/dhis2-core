@@ -30,6 +30,7 @@ package org.hisp.dhis.dxf2.pdfform;
 import java.awt.*;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -212,7 +213,7 @@ public class PdfDataEntryFormUtil
                 // Process OrgUnitUID and PeriodID from the PDF Form
 
                 String orgUnitUid = form.getField( PdfDataEntryFormUtil.LABELCODE_ORGID ).trim();
-                String periodId = form.getField( PdfDataEntryFormUtil.LABELCODE_PERIODID ).trim();
+                String periodId = findSelectedValue( PdfDataEntryFormUtil.LABELCODE_PERIODID, form );
 
                 if ( periodId == null || periodId.isEmpty() )
                 {
@@ -235,26 +236,33 @@ public class PdfDataEntryFormUtil
 
                 @SuppressWarnings( "unchecked" )
                 Set<String> fldNames = form.getFields().keySet();
+                Set<String> attributeOptionIds = new HashSet<>();
+                String categoryComboId = null;
 
                 for ( String fldName : fldNames )
                 {
+                    if ( fldName.startsWith( PdfDataEntryFormUtil.LABELCODE_ATTRIBUTE_OPTIONID ) )
+                    {
+                        String optionId = findSelectedValue( fldName, form );
+                        String[] strArrFldName = fldName.split( "_" );
+
+                        categoryComboId = strArrFldName[1];
+                        attributeOptionIds.add( optionId );
+                        continue;
+                    }
+
                     if ( fldName.startsWith( PdfDataEntryFormUtil.LABELCODE_DATAENTRYTEXTFIELD ) )
                     {
                         String[] strArrFldName = fldName.split( "_" );
-                        String categoryOptionCombo = strArrFldName[2];
-
-                        // CategoryOptionCombo attributeOptionCombo =
-                        // dataValueValidation.getAndValidateAttributeOptionCombo(
-                        // categoryOptionCombo, attributeOptionComboIds );
 
                         org.hisp.dhis.dxf2.datavalue.DataValue dataValue = new org.hisp.dhis.dxf2.datavalue.DataValue();
 
                         dataValue.setDataElement( strArrFldName[1] );
                         dataValue.setCategoryOptionCombo( strArrFldName[2] );
                         dataValue.setOrgUnit( orgUnitUid );
-                        // dataValue.setAttributeOptionCombo(
-                        // attributeOptionCombo.getUid() );
                         dataValue.setPeriod( period.getIsoDate() );
+                        dataValue.setCategoryCombo( categoryComboId );
+                        dataValue.setAttributeCategoryOptions( attributeOptionIds );
 
                         dataValue.setValue( fieldValueFormat( strArrFldName, form.getField( fldName ) ) );
 
@@ -312,6 +320,23 @@ public class PdfDataEntryFormUtil
         }
 
         return fldValue;
+    }
+
+    private static String findSelectedValue( String fieldName, AcroFields form )
+    {
+        String selectedLabel = form.getField( fieldName );
+        String[] optionLabels = form.getListOptionDisplay( fieldName );
+        String[] optionValues = form.getListOptionExport( fieldName );
+
+        for ( int i = 0; i < optionLabels.length; i++ )
+        {
+            if ( selectedLabel.equals( optionLabels[i] ) )
+            {
+                return optionValues[i];
+            }
+        }
+
+        return null;
     }
 
 }

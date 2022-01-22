@@ -27,13 +27,15 @@
  */
 package org.hisp.dhis.dxf2.datavalue;
 
+import java.util.Set;
+
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.dxf2.datavalueset.DataValueEntry;
+import org.hisp.dhis.dxf2.datavalueset.AttributeOptionDataValueEntry;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -47,7 +49,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 @ToString
 @NoArgsConstructor
 @JacksonXmlRootElement( localName = "dataValue", namespace = DxfNamespaces.DXF_2_0 )
-public final class DataValue implements DataValueEntry
+public final class DataValue implements AttributeOptionDataValueEntry
 {
     @JsonProperty
     @JacksonXmlProperty( isAttribute = true )
@@ -96,6 +98,14 @@ public final class DataValue implements DataValueEntry
     @JsonProperty
     @JacksonXmlProperty( isAttribute = true )
     private Boolean deleted;
+
+    @JsonProperty
+    @JacksonXmlProperty( isAttribute = true )
+    private String categoryCombo;
+
+    @JsonProperty
+    @JacksonXmlProperty
+    private Set<String> attributeCategoryOptions;
 
     @Override
     public boolean getFollowup()

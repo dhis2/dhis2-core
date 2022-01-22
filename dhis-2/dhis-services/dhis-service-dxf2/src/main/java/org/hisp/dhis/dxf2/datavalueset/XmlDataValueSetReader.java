@@ -27,9 +27,14 @@
  */
 package org.hisp.dhis.dxf2.datavalueset;
 
+import java.util.Set;
+
 import lombok.AllArgsConstructor;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.staxwax.reader.XMLReader;
+
+import com.google.common.collect.Sets;
 
 /**
  * Reads {@link DataValueSet} from XML input.
@@ -37,7 +42,7 @@ import org.hisp.staxwax.reader.XMLReader;
  * @author Jan Bernitt
  */
 @AllArgsConstructor
-public class XmlDataValueSetReader implements DataValueSetReader, DataValueEntry
+public class XmlDataValueSetReader implements DataValueSetReader, AttributeOptionDataValueEntry
 {
     private final XMLReader reader;
 
@@ -62,7 +67,7 @@ public class XmlDataValueSetReader implements DataValueSetReader, DataValueEntry
     }
 
     @Override
-    public DataValueEntry readNext()
+    public AttributeOptionDataValueEntry readNext()
     {
         return reader.moveToStartElement( "dataValue", "dataValueSet" ) ? this : null;
     }
@@ -147,6 +152,19 @@ public class XmlDataValueSetReader implements DataValueSetReader, DataValueEntry
     public Boolean getDeleted()
     {
         return Boolean.valueOf( getString( "deleted" ) );
+    }
+
+    @Override
+    public String getCategoryCombo()
+    {
+        return getString( "categoryCombo" );
+    }
+
+    @Override
+    public Set<String> getAttributeCategoryOptions()
+    {
+        String options = getString( "attributeCategoryOptions" );
+        return !StringUtils.isEmpty( options ) ? Sets.newHashSet( options.split( "," ) ) : null;
     }
 
     private String getString( String name )
