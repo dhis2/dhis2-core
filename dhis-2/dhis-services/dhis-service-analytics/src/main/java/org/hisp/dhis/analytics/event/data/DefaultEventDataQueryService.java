@@ -139,6 +139,12 @@ public class DefaultEventDataQueryService
     @Override
     public EventQueryParams getFromRequest( EventDataQueryRequest request )
     {
+        return getFromRequest( request, false );
+    }
+
+    @Override
+    public EventQueryParams getFromRequest( EventDataQueryRequest request, boolean analyzeOnly )
+    {
         I18nFormat format = i18nManager.getI18nFormat();
 
         EventQueryParams.Builder params = new EventQueryParams.Builder();
@@ -161,68 +167,18 @@ public class DefaultEventDataQueryService
             throwIllegalQueryEx( ErrorCode.E7130, request.getStage() );
         }
 
-        if ( request.getDimension() != null )
-        {
-            for ( String dim : request.getDimension() )
-            {
-                String dimensionId = getDimensionFromParam( dim );
-                List<String> items = getDimensionItemsFromParam( dim );
-                DimensionalObject dimObj = dataQueryService.getDimension( dimensionId,
-                    items, request.getRelativePeriodDate(), userOrgUnits, format, true, false, idScheme );
+        addDimensionsIntoParams( params, request, userOrgUnits, format, pr, idScheme );
 
-                if ( dimObj != null )
-                {
-                    params.addDimension( dimObj );
-                }
-                else
-                {
-                    params.addItem( getQueryItem( dim, pr, request.getOutputType() ) );
-                }
-            }
-        }
+        addFiltersIntoParams( params, request, userOrgUnits, format, pr, idScheme );
 
-        if ( request.getFilter() != null )
-        {
-            for ( String dim : request.getFilter() )
-            {
-                String dimensionId = getDimensionFromParam( dim );
-                List<String> items = getDimensionItemsFromParam( dim );
-                DimensionalObject dimObj = dataQueryService.getDimension( dimensionId,
-                    items, request.getRelativePeriodDate(), userOrgUnits, format, true, false, idScheme );
-
-                if ( dimObj != null )
-                {
-                    params.addFilter( dimObj );
-                }
-                else
-                {
-                    params.addItemFilter( getQueryItem( dim, pr, request.getOutputType() ) );
-                }
-            }
-        }
-
-        if ( request.getAsc() != null )
-        {
-            for ( String sort : request.getAsc() )
-            {
-                params.addAscSortItem( getSortItem( sort, pr, request.getOutputType() ) );
-            }
-        }
-
-        if ( request.getDesc() != null )
-        {
-            for ( String sort : request.getDesc() )
-            {
-                params.addDescSortItem( getSortItem( sort, pr, request.getOutputType() ) );
-            }
-        }
+        addSortIntoParams( params, request, pr );
 
         if ( request.getAggregationType() != null )
         {
             params.withAggregationType( AnalyticsAggregationType.fromAggregationType( request.getAggregationType() ) );
         }
 
-        return params
+        EventQueryParams.Builder builder = params
             .withValue( getValueDimension( request.getValue() ) )
             .withSkipRounding( request.isSkipRounding() )
             .withShowHierarchy( request.isShowHierarchy() )
@@ -245,19 +201,100 @@ public class DefaultEventDataQueryService
             .withIncludeMetadataDetails( request.isIncludeMetadataDetails() )
             .withDataIdScheme( request.getDataIdScheme() )
             .withOutputIdScheme( request.getOutputIdScheme() )
-            .withEventStatus( request.getEventStatus() )
+            .withEventStatuses( request.getEventStatus() )
             .withDisplayProperty( request.getDisplayProperty() )
             .withTimeField( request.getTimeField() )
             .withOrgUnitField( request.getOrgUnitField() )
             .withCoordinateField( getCoordinateField( request.getCoordinateField() ) )
             .withFallbackCoordinateField( getFallbackCoordinateField( request.getFallbackCoordinateField() ) )
+            .withHeaders( request.getHeaders() )
             .withPage( request.getPage() )
             .withPageSize( request.getPageSize() )
             .withPaging( request.isPaging() )
-            .withProgramStatus( request.getProgramStatus() )
-            .withApiVersion( request.getApiVersion() )
-            .build();
+            .withProgramStatuses( request.getProgramStatus() )
+            .withApiVersion( request.getApiVersion() );
 
+        if ( analyzeOnly )
+        {
+            builder = builder
+                .withSkipData( true )
+                .withAnalyzeOrderId();
+        }
+
+        return builder.build();
+    }
+
+    private void addSortIntoParams( EventQueryParams.Builder params, EventDataQueryRequest request, Program pr )
+    {
+        if ( request.getAsc() != null )
+        {
+            for ( String sort : request.getAsc() )
+            {
+                params.addAscSortItem( getSortItem( sort, pr, request.getOutputType() ) );
+            }
+        }
+
+        if ( request.getDesc() != null )
+        {
+            for ( String sort : request.getDesc() )
+            {
+                params.addDescSortItem( getSortItem( sort, pr, request.getOutputType() ) );
+            }
+        }
+    }
+
+    private void addFiltersIntoParams( EventQueryParams.Builder params, EventDataQueryRequest request,
+        List<OrganisationUnit> userOrgUnits,
+        I18nFormat format, Program pr, IdScheme idScheme )
+    {
+        if ( request.getFilter() != null )
+        {
+            for ( String dim : request.getFilter() )
+            {
+                String dimensionId = getDimensionFromParam( dim );
+
+                List<String> items = getDimensionItemsFromParam( dim );
+
+                DimensionalObject dimObj = dataQueryService.getDimension( dimensionId,
+                    items, request.getRelativePeriodDate(), userOrgUnits, format, true, false, idScheme );
+
+                if ( dimObj != null )
+                {
+                    params.addFilter( dimObj );
+                }
+                else
+                {
+                    params.addItemFilter( getQueryItem( dim, pr, request.getOutputType() ) );
+                }
+            }
+        }
+    }
+
+    private void addDimensionsIntoParams( EventQueryParams.Builder params, EventDataQueryRequest request,
+        List<OrganisationUnit> userOrgUnits,
+        I18nFormat format, Program pr, IdScheme idScheme )
+    {
+        if ( request.getDimension() != null )
+        {
+            for ( String dim : request.getDimension() )
+            {
+                String dimensionId = getDimensionFromParam( dim );
+
+                List<String> items = getDimensionItemsFromParam( dim );
+
+                DimensionalObject dimObj = dataQueryService.getDimension( dimensionId,
+                    items, request.getRelativePeriodDate(), userOrgUnits, format, true, false, idScheme );
+
+                if ( dimObj != null )
+                {
+                    params.addDimension( dimObj );
+                }
+                else
+                {
+                    params.addItem( getQueryItem( dim, pr, request.getOutputType() ) );
+                }
+            }
+        }
     }
 
     @Override

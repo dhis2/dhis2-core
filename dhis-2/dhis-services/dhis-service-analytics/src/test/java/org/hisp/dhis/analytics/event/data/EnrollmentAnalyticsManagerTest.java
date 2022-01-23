@@ -52,6 +52,7 @@ import java.util.Date;
 import java.util.function.Consumer;
 
 import org.hisp.dhis.analytics.TimeField;
+import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.data.programindicator.DefaultProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
@@ -98,6 +99,9 @@ class EnrollmentAnalyticsManagerTest extends
     private JdbcTemplate jdbcTemplate;
 
     @Mock
+    private ExecutionPlanStore executionPlanStore;
+
+    @Mock
     private SqlRowSet rowSet;
 
     @Mock
@@ -106,7 +110,7 @@ class EnrollmentAnalyticsManagerTest extends
     @Captor
     private ArgumentCaptor<String> sql;
 
-    private String DEFAULT_COLUMNS = "pi,tei,enrollmentdate,incidentdate,storedby,lastupdated,ST_AsGeoJSON(pigeometry),longitude,latitude,ouname,oucode";
+    private String DEFAULT_COLUMNS = "pi,tei,enrollmentdate,incidentdate,storedby,lastupdated,ST_AsGeoJSON(pigeometry),longitude,latitude,ouname,oucode,enrollmentstatus";
 
     private final String TABLE_NAME = "analytics_enrollment";
 
@@ -122,7 +126,8 @@ class EnrollmentAnalyticsManagerTest extends
             programIndicatorService );
 
         subject = new JdbcEnrollmentAnalyticsManager( jdbcTemplate, statementBuilder, programIndicatorService,
-            programIndicatorSubqueryBuilder, new EnrollmentTimeFieldSqlRenderer( statementBuilder ) );
+            programIndicatorSubqueryBuilder, new EnrollmentTimeFieldSqlRenderer( statementBuilder ),
+            executionPlanStore );
     }
 
     @Test
@@ -215,6 +220,24 @@ class EnrollmentAnalyticsManagerTest extends
         String expected = "ax.\"monthly\",ax.\"ou\"," + subSelect + "  from " + getTable( programA.getUid() )
             + " as ax where ax.\"monthly\" in ('2000Q1') and (uidlevel1 = 'ouabcdefghA' ) "
             + "and ps = '" + programStage.getUid() + "' and " + subSelect + " > '10' limit 10001";
+
+        assertSql( sql.getValue(), expected );
+    }
+
+    @Test
+    void verifyGetEventsWithProgramStatusParam()
+    {
+        mockEmptyRowSet();
+
+        EventQueryParams params = createRequestParamsWithStatuses();
+
+        subject.getEnrollments( params, new ListGrid(), 10000 );
+
+        verify( jdbcTemplate ).queryForRowSet( sql.capture() );
+
+        String expected = "ax.\"monthly\",ax.\"ou\"  from " + getTable( programA.getUid() )
+            + " as ax where ax.\"monthly\" in ('2000Q1') and (uidlevel1 = 'ouabcdefghA' )" +
+            " and enrollmentstatus in ('ACTIVE','COMPLETED') limit 10001";
 
         assertSql( sql.getValue(), expected );
     }

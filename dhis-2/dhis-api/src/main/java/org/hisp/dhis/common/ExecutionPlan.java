@@ -25,23 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.json;
+package org.hisp.dhis.common;
 
-import java.net.URL;
+import java.io.Serializable;
+
+import lombok.Getter;
+import lombok.Setter;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonNode;
 
 /**
- * A {@link JsonURL} is a {@link JsonString} with a URL format.
- *
- * The {@link #url()} utility method allows to access the JSON string node as
- * {@link URL}.
- *
- * @author Jan Bernitt
+ * @author Dusan Bernat
  */
-public interface JsonURL extends JsonString
+@Getter
+@Setter
+public class ExecutionPlan implements Serializable
 {
+    @JsonProperty
+    private Double timeInMillis;
 
-    default URL url()
-    {
-        return converted( () -> new URL( string() ) );
-    }
+    @JsonProperty
+    private Double planningTime;
+
+    @JsonProperty
+    private Double executionTime;
+
+    @JsonProperty
+    private String query;
+
+    @JsonProperty
+    private transient JsonNode plan;
 }

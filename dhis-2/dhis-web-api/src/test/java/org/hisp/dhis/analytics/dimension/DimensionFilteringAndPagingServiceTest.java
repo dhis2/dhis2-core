@@ -34,13 +34,14 @@ import static org.mockito.Mockito.*;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import org.hisp.dhis.analytics.dimensions.AnalyticsDimensionsPagingWrapper;
 import org.hisp.dhis.common.DimensionsCriteria;
 import org.hisp.dhis.fieldfiltering.FieldFilterParams;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
-import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -78,26 +79,26 @@ public class DimensionFilteringAndPagingServiceTest
         DimensionsCriteria criteria = new DimensionsCriteria();
         criteria.setPageSize( 5 );
 
-        PagingWrapper<ObjectNode> pagingWrapper = service.pageAndFilter(
+        AnalyticsDimensionsPagingWrapper<ObjectNode> pagingWrapper = service.pageAndFilter(
             Collections.emptyList(),
             criteria,
             Collections.singletonList( "*" ) );
 
-        assertThat( pagingWrapper.getElements().get( "dimensions" ).size(), is( 5 ) );
+        assertThat( pagingWrapper.getDimensions().size(), is( 5 ) );
     }
 
     @Test
     public void testFiltering()
     {
         DimensionsCriteria criteria = new DimensionsCriteria();
-        criteria.setFilter( "name:eq:test" );
+        criteria.setFilter( Set.of( "name:eq:test" ) );
 
-        PagingWrapper<ObjectNode> pagingWrapper = service.pageAndFilter(
+        AnalyticsDimensionsPagingWrapper<ObjectNode> pagingWrapper = service.pageAndFilter(
             Collections.emptyList(),
             criteria,
             Collections.singletonList( "*" ) );
 
-        assertThat( pagingWrapper.getElements().get( "dimensions" ).size(), is( 5 ) );
+        assertThat( pagingWrapper.getDimensions().size(), is( 5 ) );
     }
 
     private DimensionResponse buildDimensionResponse( int operand )

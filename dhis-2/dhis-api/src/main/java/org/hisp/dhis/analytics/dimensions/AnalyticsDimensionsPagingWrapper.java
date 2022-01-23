@@ -25,23 +25,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.json;
+package org.hisp.dhis.analytics.dimensions;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 
-/**
- * A {@link JsonDate} is a {@link JsonString} with a special format.
- *
- * The {@link #date()} utility allows to access the date as
- * {@link LocalDateTime} instead of {@link String}.
- *
- * @author Jan Bernitt
- */
-public interface JsonDate extends JsonString
+import lombok.Data;
+
+import org.hisp.dhis.common.Pager;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+@Data
+public class AnalyticsDimensionsPagingWrapper<T>
 {
-    default LocalDateTime date()
-    {
-        return parsed( str -> LocalDateTime.parse( str, DateTimeFormatter.ISO_LOCAL_DATE_TIME ) );
-    }
+    @JsonProperty
+    private List<T> dimensions = new ArrayList<>();
+
+    @JsonProperty
+    private Pager pager;
 }

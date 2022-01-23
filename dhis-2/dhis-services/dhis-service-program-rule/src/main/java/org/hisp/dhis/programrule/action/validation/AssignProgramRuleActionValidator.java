@@ -25,28 +25,45 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.json;
+package org.hisp.dhis.programrule.action.validation;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import lombok.extern.slf4j.Slf4j;
+
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.programrule.ProgramRuleAction;
+import org.hisp.dhis.programrule.ProgramRuleActionValidationResult;
+import org.springframework.stereotype.Component;
 
 /**
- * Used to mark members in {@link JsonObject} that are expected to exist.
- *
- * This can only be applied to methods without parameters.
- *
- * @author Jan Bernitt
+ * @author Zubair Asghar
  */
-@Target( ElementType.METHOD )
-@Retention( RetentionPolicy.RUNTIME )
-public @interface Expected
+
+@Slf4j
+@Component
+public class AssignProgramRuleActionValidator implements ProgramRuleActionValidator
 {
-    /**
-     * @return Can be set to {@code true} to allow {@link JsonValue}s either
-     *         being set or being a JSON {@code null} value. Default value is
-     *         {@code false}.
-     */
-    boolean nullable() default false;
+    @Override
+    public ProgramRuleActionValidationResult validate( ProgramRuleAction programRuleAction,
+        ProgramRuleActionValidationContext validationContext )
+    {
+        ProgramRule rule = validationContext.getProgramRule();
+
+        if ( !programRuleAction.hasDataElement() && !programRuleAction.hasTrackedEntityAttribute()
+            && !programRuleAction.hasContent() )
+        {
+            log.debug( String.format(
+                "DataElement or TrackedEntityAttribute or ProgramRuleVariable cannot be null for program rule: %s ",
+                rule.getName() ) );
+
+            return ProgramRuleActionValidationResult.builder()
+                .valid( false )
+                .errorReport( new ErrorReport( ProgramRuleAction.class, ErrorCode.E4050,
+                    rule.getName() ) )
+                .build();
+        }
+
+        return ProgramRuleActionValidationResult.builder().valid( true ).build();
+    }
 }

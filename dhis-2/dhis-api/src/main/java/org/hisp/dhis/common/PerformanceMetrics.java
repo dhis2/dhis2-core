@@ -25,37 +25,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.json;
+package org.hisp.dhis.common;
 
-/**
- * Represents a boolean JSON node.
- *
- * @author Jan Bernitt
- */
-public interface JsonBoolean extends JsonPrimitive
+import java.io.Serializable;
+import java.util.List;
+
+import lombok.Getter;
+import lombok.Setter;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+@Getter
+@Setter
+public class PerformanceMetrics implements Serializable
 {
-    /**
-     * @return boolean value of the property or {@code null} when this property
-     *         is undefined or defined as JSON {@code null}.
-     */
-    Boolean bool();
+    @JsonProperty
+    private double totalTimeInMillis;
 
-    default boolean booleanValue( boolean orDefault )
-    {
-        return exists() ? booleanValue() : orDefault;
-    }
-
-    /**
-     * Same as {@link #bool()} except that this throws an
-     * {@link java.util.NoSuchElementException} in case the value is not
-     * defined.
-     *
-     * @return true of false, nothing else
-     * @throws java.util.NoSuchElementException when this value is not defined
-     *         in the JSON content or defined JSON {@code null}.
-     */
-    default boolean booleanValue()
-    {
-        return mapNonNull( bool(), Boolean::booleanValue );
-    }
+    @JsonProperty
+    private List<ExecutionPlan> executionPlans;
 }

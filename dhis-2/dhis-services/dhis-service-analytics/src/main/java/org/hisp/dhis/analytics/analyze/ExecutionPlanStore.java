@@ -25,49 +25,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.json;
+package org.hisp.dhis.analytics.analyze;
 
-/**
- * Represents a numeric JSON node.
- *
- * @author Jan Bernitt
- */
-public interface JsonNumber extends JsonPrimitive
+import java.util.List;
+
+import org.hisp.dhis.common.ExecutionPlan;
+
+public interface ExecutionPlanStore
 {
+    void addExecutionPlan( String params, String sql );
 
-    /**
-     * @return numeric value of the property or {@code null} when this property
-     *         is undefined or defined as JSON {@code null}.
-     */
-    Number number();
+    List<ExecutionPlan> getExecutionPlans( String key );
 
-    default <T extends Number> T number( T orDefault )
-    {
-        return exists() ? (T) number() : orDefault;
-    }
-
-    default int intValue()
-    {
-        return mapNonNull( number(), Number::intValue );
-    }
-
-    default int intValue( int orDefault )
-    {
-        return exists() ? intValue() : orDefault;
-    }
-
-    default long longValue()
-    {
-        return mapNonNull( number(), Number::longValue );
-    }
-
-    default float floatValue()
-    {
-        return mapNonNull( number(), Number::floatValue );
-    }
-
-    default double doubleValue()
-    {
-        return mapNonNull( number(), Number::doubleValue );
-    }
+    void removeExecutionPlans( String key );
 }

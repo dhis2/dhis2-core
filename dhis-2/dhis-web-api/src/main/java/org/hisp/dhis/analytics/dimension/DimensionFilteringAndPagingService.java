@@ -43,13 +43,13 @@ import java.util.stream.Stream;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
+import org.hisp.dhis.analytics.dimensions.AnalyticsDimensionsPagingWrapper;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionsCriteria;
+import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.fieldfiltering.FieldFilterParams;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
-import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
-import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -64,8 +64,8 @@ public class DimensionFilteringAndPagingService
 
     private final DimensionMapperService dimensionMapperService;
 
-    private static final Comparator<DimensionResponse> DEFAULT_COMPARATOR = nullsFirst(
-        comparing( DimensionResponse::getCreated ) );
+    private static final Comparator<DimensionResponse> DEFAULT_COMPARATOR = comparing( DimensionResponse::getCreated,
+        nullsFirst( naturalOrder() ) );
 
     private static final Map<String, Comparator<DimensionResponse>> ORDERING_MAP = Map.of(
         "lastUpdated", comparing( DimensionResponse::getLastUpdated, nullsFirst( naturalOrder() ) ),
@@ -74,14 +74,14 @@ public class DimensionFilteringAndPagingService
         "id", comparing( DimensionResponse::getId, nullsFirst( naturalOrder() ) ),
         "name", comparing( DimensionResponse::getName, nullsFirst( naturalOrder() ) ) );
 
-    public PagingWrapper<ObjectNode> pageAndFilter(
+    public AnalyticsDimensionsPagingWrapper<ObjectNode> pageAndFilter(
         Collection<BaseIdentifiableObject> dimensions,
         DimensionsCriteria dimensionsCriteria,
         List<String> fields )
     {
         Collection<DimensionResponse> dimensionResponses = dimensionMapperService.toDimensionResponse( dimensions );
 
-        PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>( "dimensions" );
+        AnalyticsDimensionsPagingWrapper<ObjectNode> pagingWrapper = new AnalyticsDimensionsPagingWrapper<>();
 
         List<DimensionResponse> filteredDimensions = filterStream( dimensionResponses.stream(),
             dimensionsCriteria )
@@ -93,15 +93,15 @@ public class DimensionFilteringAndPagingService
 
         List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes( filterParams );
 
-        pagingWrapper = pagingWrapper.withInstances( objectNodes );
+        pagingWrapper.setDimensions( objectNodes );
 
-        if ( dimensionsCriteria.isPagingRequest() )
+        if ( dimensionsCriteria.isPaging() )
         {
-            pagingWrapper = pagingWrapper.withPager( PagingWrapper.Pager.builder()
-                .page( Optional.ofNullable( dimensionsCriteria.getPage() ).orElse( 1 ) )
-                .pageSize( dimensionsCriteria.getPageSize() )
-                .total( (long) filteredDimensions.size() )
-                .build() );
+            pagingWrapper.setPager(
+                new Pager(
+                    Optional.ofNullable( dimensionsCriteria.getPage() ).orElse( 1 ),
+                    filteredDimensions.size(),
+                    dimensionsCriteria.getPageSize() ) );
         }
 
         return pagingWrapper;
@@ -121,7 +121,7 @@ public class DimensionFilteringAndPagingService
 
     private Stream<DimensionResponse> sortedAndPagedStream(
         Stream<DimensionResponse> dimensions,
-        PagingAndSortingCriteriaAdapter pagingAndSortingCriteria )
+        DimensionsCriteria pagingAndSortingCriteria )
     {
         if ( Objects.nonNull( pagingAndSortingCriteria.getOrder() ) && !pagingAndSortingCriteria.getOrder().isEmpty() )
         {
@@ -148,7 +148,7 @@ public class DimensionFilteringAndPagingService
             dimensions = dimensions.sorted( DEFAULT_COMPARATOR );
         }
 
-        if ( pagingAndSortingCriteria.isPagingRequest() )
+        if ( pagingAndSortingCriteria.isPaging() )
         {
             dimensions = dimensions
                 .skip( pagingAndSortingCriteria.getFirstResult() )

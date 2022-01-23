@@ -127,6 +127,7 @@ import org.hisp.dhis.analytics.QueryPlanner;
 import org.hisp.dhis.analytics.QueryPlannerParams;
 import org.hisp.dhis.analytics.QueryValidator;
 import org.hisp.dhis.analytics.RawAnalyticsManager;
+import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.resolver.ExpressionResolver;
@@ -136,6 +137,7 @@ import org.hisp.dhis.common.DimensionItemObjectValue;
 import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.ExecutionPlan;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.ReportingRateMetric;
 import org.hisp.dhis.constant.Constant;
@@ -189,10 +191,13 @@ public class DataHandler
 
     private DataAggregator dataAggregator;
 
+    private final ExecutionPlanStore executionPlanStore;
+
     public DataHandler( EventAnalyticsService eventAnalyticsService, RawAnalyticsManager rawAnalyticsManager,
         ConstantService constantService, ExpressionResolvers resolvers, ExpressionService expressionService,
         QueryPlanner queryPlanner, QueryValidator queryValidator, SystemSettingManager systemSettingManager,
-        AnalyticsManager analyticsManager, OrganisationUnitService organisationUnitService )
+        AnalyticsManager analyticsManager, OrganisationUnitService organisationUnitService,
+        ExecutionPlanStore executionPlanStore )
     {
         checkNotNull( eventAnalyticsService );
         checkNotNull( rawAnalyticsManager );
@@ -204,6 +209,7 @@ public class DataHandler
         checkNotNull( systemSettingManager );
         checkNotNull( analyticsManager );
         checkNotNull( organisationUnitService );
+        checkNotNull( executionPlanStore );
 
         this.eventAnalyticsService = eventAnalyticsService;
         this.rawAnalyticsManager = rawAnalyticsManager;
@@ -215,6 +221,21 @@ public class DataHandler
         this.systemSettingManager = systemSettingManager;
         this.analyticsManager = analyticsManager;
         this.organisationUnitService = organisationUnitService;
+        this.executionPlanStore = executionPlanStore;
+    }
+
+    void addPerformanceMetrics( DataQueryParams params, Grid grid )
+    {
+        if ( params.analyzeOnly() )
+        {
+            String key = params.getAnalyzeOrderId();
+
+            List<ExecutionPlan> plans = executionPlanStore.getExecutionPlans( key );
+
+            grid.maybeAddPerformanceMetrics( plans );
+
+            executionPlanStore.removeExecutionPlans( key );
+        }
     }
 
     /**
@@ -328,7 +349,7 @@ public class DataHandler
      */
     void addDataElementValues( DataQueryParams params, Grid grid )
     {
-        if ( !params.getAllDataElements().isEmpty() && !params.isSkipData() )
+        if ( !params.getAllDataElements().isEmpty() && (!params.isSkipData() || params.analyzeOnly()) )
         {
             DataQueryParams dataSourceParams = newBuilder( params )
                 .retainDataDimension( DATA_ELEMENT )
@@ -1176,4 +1197,5 @@ public class DataHandler
     {
         this.dataAggregator = dataAggregator;
     }
+
 }
