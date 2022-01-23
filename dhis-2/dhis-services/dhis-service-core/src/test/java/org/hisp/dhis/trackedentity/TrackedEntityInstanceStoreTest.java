@@ -223,19 +223,63 @@ class TrackedEntityInstanceStoreTest extends DhisSpringTest
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
         List<TrackedEntityInstance> teis = teiStore.getTrackedEntityInstances( params );
         assertEquals( 6, teis.size() );
-        // Filter by attribute
+        // Filter by attribute with EQ
         params = new TrackedEntityInstanceQueryParams()
             .addFilter( new QueryItem( atA, QueryOperator.EQ, "Male", ValueType.TEXT, AggregationType.NONE, null ) );
         teis = teiStore.getTrackedEntityInstances( params );
         assertEquals( 2, teis.size() );
         assertTrue( teis.contains( teiD ) );
         assertTrue( teis.contains( teiE ) );
-        // Filter by attribute
+        // Filter by attribute with EQ
         params = new TrackedEntityInstanceQueryParams()
             .addFilter( new QueryItem( atA, QueryOperator.EQ, "Female", ValueType.TEXT, AggregationType.NONE, null ) );
         teis = teiStore.getTrackedEntityInstances( params );
         assertEquals( 1, teis.size() );
         assertTrue( teis.contains( teiF ) );
+
+        // Filter by attribute with STARTS
+        params = new TrackedEntityInstanceQueryParams()
+            .addFilter( new QueryItem( atA, QueryOperator.STARTS, "ma", ValueType.TEXT, AggregationType.NONE, null ) );
+        teis = teiStore.getTrackedEntityInstances( params );
+        assertEquals( 2, teis.size() );
+        assertTrue( teis.contains( teiD ) );
+        assertTrue( teis.contains( teiE ) );
+
+        params = new TrackedEntityInstanceQueryParams()
+            .addFilter( new QueryItem( atA, QueryOperator.STARTS, "al", ValueType.TEXT, AggregationType.NONE, null ) );
+        teis = teiStore.getTrackedEntityInstances( params );
+        assertEquals( 0, teis.size() );
+
+        params = new TrackedEntityInstanceQueryParams()
+            .addFilter( new QueryItem( atA, QueryOperator.STARTS, "ale", ValueType.TEXT, AggregationType.NONE, null ) );
+        teis = teiStore.getTrackedEntityInstances( params );
+        assertEquals( 0, teis.size() );
+
+        // Filter by attribute with ENDS
+        params = new TrackedEntityInstanceQueryParams()
+            .addFilter( new QueryItem( atA, QueryOperator.ENDS, "emale", ValueType.TEXT, AggregationType.NONE, null ) );
+        teis = teiStore.getTrackedEntityInstances( params );
+        assertEquals( 1, teis.size() );
+        assertTrue( teis.contains( teiF ) );
+
+        params = new TrackedEntityInstanceQueryParams()
+            .addFilter( new QueryItem( atA, QueryOperator.ENDS, "male", ValueType.TEXT, AggregationType.NONE, null ) );
+        teis = teiStore.getTrackedEntityInstances( params );
+        assertEquals( 3, teis.size() );
+        assertTrue( teis.contains( teiD ) );
+        assertTrue( teis.contains( teiE ) );
+        assertTrue( teis.contains( teiF ) );
+
+        params = new TrackedEntityInstanceQueryParams()
+            .addFilter( new QueryItem( atA, QueryOperator.ENDS, "fem", ValueType.TEXT, AggregationType.NONE, null ) );
+        teis = teiStore.getTrackedEntityInstances( params );
+        assertEquals( 0, teis.size() );
+
+        params = new TrackedEntityInstanceQueryParams()
+            .addFilter( new QueryItem( atA, QueryOperator.ENDS, "em", ValueType.TEXT, AggregationType.NONE, null ) );
+        teis = teiStore.getTrackedEntityInstances( params );
+        assertEquals( 0, teis.size() );
+
         // Filter by selected org units
         params = new TrackedEntityInstanceQueryParams().addOrganisationUnit( ouB )
             .setOrganisationUnitMode( OrganisationUnitSelectionMode.SELECTED );

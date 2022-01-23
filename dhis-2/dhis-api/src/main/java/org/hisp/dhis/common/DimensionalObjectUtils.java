@@ -52,6 +52,7 @@ import org.hisp.dhis.common.comparator.ObjectStringValueComparator;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
@@ -78,6 +79,13 @@ public class DimensionalObjectUtils
      */
     private static final Pattern COMPOSITE_DIM_OBJECT_PATTERN = Pattern
         .compile( "(?<id1>\\w+)\\.(?<id2>\\w+|\\*)(\\.(?<id3>\\w+|\\*))?" );
+
+    private static final ImmutableSet<QueryOperator> IGNORE_OPERATOR_SET = ImmutableSet.<QueryOperator> builder()
+        .add( QueryOperator.LIKE )
+        .add( QueryOperator.IN )
+        .add( QueryOperator.STARTS )
+        .add( QueryOperator.ENDS )
+        .build();
 
     public static List<DimensionalObject> getCopies( List<DimensionalObject> dimensions )
     {
@@ -332,7 +340,7 @@ public class DimensionalObjectUtils
 
             if ( operator != null )
             {
-                boolean ignoreOperator = (QueryOperator.LIKE.equals( operator ) || QueryOperator.IN.equals( operator ));
+                boolean ignoreOperator = IGNORE_OPERATOR_SET.contains( operator );
 
                 value = value.replaceAll( QueryFilter.OPTION_SEP, TITLE_ITEM_SEP );
 

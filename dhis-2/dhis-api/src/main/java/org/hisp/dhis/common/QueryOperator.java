@@ -47,6 +47,9 @@ public enum QueryOperator
     LE( "<=" ),
     LIKE( "like" ),
     IN( "in", true ),
+    // Tracker new operators
+    STARTS( "starts" ),
+    ENDS( "ends" ),
     // Analytics specifics
     IEQ( "==", true ),
     NE( "!=", true ),
