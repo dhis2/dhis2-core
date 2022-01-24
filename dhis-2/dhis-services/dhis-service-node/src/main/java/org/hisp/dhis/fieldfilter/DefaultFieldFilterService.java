@@ -405,7 +405,7 @@ public class DefaultFieldFilterService implements FieldFilterService
         if ( fieldMap.containsKey( "attribute" ) && AttributeValue.class.isAssignableFrom( object.getClass() ) )
         {
             AttributeValue attributeValue = (AttributeValue) object;
-            attributeValue.setAttribute( attributeService.getAttribute( attributeValue.getAttribute().getId() ) );
+            attributeValue.setAttribute( attributeService.getAttribute( attributeValue.getAttribute().getUid() ) );
         }
 
         for ( String fieldKey : fieldMap.keySet() )
