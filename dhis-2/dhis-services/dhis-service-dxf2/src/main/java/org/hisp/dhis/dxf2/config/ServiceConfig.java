@@ -96,6 +96,7 @@ import org.hisp.dhis.external.conf.ConfigurationPropertyFactoryBean;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.programrule.action.validation.AlwaysValidProgramRuleActionValidator;
+import org.hisp.dhis.programrule.action.validation.AssignProgramRuleActionValidator;
 import org.hisp.dhis.programrule.action.validation.BaseProgramRuleActionValidator;
 import org.hisp.dhis.programrule.action.validation.HideOptionProgramRuleActionValidator;
 import org.hisp.dhis.programrule.action.validation.HideProgramStageProgramRuleActionValidator;
@@ -342,7 +343,7 @@ public class ServiceConfig
             .put( ProgramRuleActionType.HIDEOPTIONGROUP, ShowHideOptionGroupProgramRuleActionValidator.class )
             .put( ProgramRuleActionType.DISPLAYTEXT, AlwaysValidProgramRuleActionValidator.class )
             .put( ProgramRuleActionType.DISPLAYKEYVALUEPAIR, AlwaysValidProgramRuleActionValidator.class )
-            .put( ProgramRuleActionType.ASSIGN, BaseProgramRuleActionValidator.class )
+            .put( ProgramRuleActionType.ASSIGN, AssignProgramRuleActionValidator.class )
             .put( ProgramRuleActionType.HIDEFIELD, BaseProgramRuleActionValidator.class )
             .put( ProgramRuleActionType.CREATEEVENT, BaseProgramRuleActionValidator.class )
             .put( ProgramRuleActionType.WARNINGONCOMPLETE, BaseProgramRuleActionValidator.class )
@@ -353,7 +354,6 @@ public class ServiceConfig
             .put( ProgramRuleActionType.HIDEOPTION, HideOptionProgramRuleActionValidator.class )
             .put( ProgramRuleActionType.HIDESECTION, HideSectionProgramRuleActionValidator.class )
             .put( ProgramRuleActionType.HIDEPROGRAMSTAGE, HideProgramStageProgramRuleActionValidator.class )
-
             .build();
     }
 }
