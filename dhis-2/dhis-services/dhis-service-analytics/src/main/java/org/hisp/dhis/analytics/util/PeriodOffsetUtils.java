@@ -29,90 +29,78 @@ package org.hisp.dhis.analytics.util;
 
 import static java.lang.Math.abs;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.hisp.dhis.analytics.DataQueryParams;
-import org.hisp.dhis.analytics.table.PartitionUtils;
-import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 
 /**
  * @author Luciano Fiandesio
+ * @author Jim Grace
  */
 public class PeriodOffsetUtils
 {
     /**
-     * Creates an associative Map between Period Types (e.g. Month, Quarter) and
-     * Periods extracted from a {@link DataQueryParams} object.
+     * If the query parameters contain any dimensional item objects with a
+     * periodOffset, return query parameters with the extra periods added.
      * <p>
-     * Each map value may also contain periods that are derived from Period
-     * offsets applied to elements from the "data" dimension of the
-     * {@link DataQueryParams} The periods add because of the "periodOffset"
-     * directive, will have the "shifted" property set to "true".
+     * Any added periods are added to the end of the list of query periods, for
+     * the convenience of debugging, SQL query log reading, etc.
      *
-     * @param params a DataQueryParams object.
+     * @param params data query parameters
+     * @return params with extra shifted periods added, if any
      */
-    public static ListMap<String, DimensionalItemObject> getPeriodTypePeriodMap( DataQueryParams params )
+    public static DataQueryParams addShiftedPeriods( DataQueryParams params )
     {
-        if ( params == null || params.getPeriods().isEmpty() )
-        {
-            return new ListMap<>();
-        }
-
-        ListMap<String, DimensionalItemObject> periodTypePeriodMap = PartitionUtils
-            .getPeriodTypePeriodMap( params.getPeriods() );
-
         DimensionalObject dimension = params.getDimension( DATA_X_DIM_ID );
 
         if ( dimension == null )
         {
-            return periodTypePeriodMap;
+            return params;
         }
 
-        List<DimensionalItemObject> items = dimension.getItems();
-        ListMap<String, DimensionalItemObject> shiftedMap = new ListMap<>();
+        List<DimensionalItemObject> periods = new ArrayList<>( params.getPeriods() );
 
-        for ( DimensionalItemObject item : items )
+        for ( DimensionalItemObject item : dimension.getItems() )
         {
             if ( item.getPeriodOffset() != 0 )
             {
-                shiftedMap.putAll( addPeriodOffset( periodTypePeriodMap, item.getPeriodOffset() ) );
+                for ( DimensionalItemObject period : params.getPeriods() )
+                {
+                    Period shiftedPeriod = shiftPeriod( (Period) period, item.getPeriodOffset() );
+
+                    if ( !periods.contains( shiftedPeriod ) )
+                    {
+                        periods.add( shiftedPeriod );
+                    }
+                }
             }
         }
 
-        Set<DimensionalItemObject> dimensionalItemObjects = shiftedMap.uniqueValues();
-
-        for ( DimensionalItemObject dimensionalItemObject : dimensionalItemObjects )
+        if ( periods.equals( params.getPeriods() ) )
         {
-            Period period = (Period) dimensionalItemObject;
-
-            if ( !periodTypePeriodMap.containsValue( period.getPeriodType().getName(), dimensionalItemObject ) )
-            {
-                periodTypePeriodMap.putValue( period.getPeriodType().getName(), dimensionalItemObject );
-            }
+            return params;
         }
 
-        return periodTypePeriodMap;
+        return DataQueryParams.newBuilder( params )
+            .withPeriods( periods )
+            .build();
     }
 
     /**
      * Shifts the given Period in the past or future based on the offset value.
      * <p>
-     * Example:
+     * Examples:
      * <p>
-     * Period: 202001 , Offset: 1 -> Period: 202002 Period: 2020 , Offset: -1 ->
-     * Period: 2019
+     * Period: 202001, Offset: 1 -> Period: 202002
+     * <p>
+     * Period: 2020, Offset: -1 -> Period: 2019
      *
      * @param period a Period.
      * @param periodOffset a positive or negative integer.
@@ -137,39 +125,7 @@ public class PeriodOffsetUtils
             p = periodType.getPreviousPeriod( period, abs( periodOffset ) );
         }
 
-        p.setShifted( true );
         return p;
-    }
-
-    /**
-     * Remove Periods from a {@link DataQueryParams} object if these periods
-     * have been added because of an "periodOffset" directive and the
-     * DataElement have no offset specified. This can happen in case of an
-     * Indicator, where a numerator formula is using an offset, and the
-     * denominator formula is not.
-     *
-     * @param params a {@link DataQueryParams} object
-     * @return a {@link DataQueryParams} object
-     */
-    public static DataQueryParams removeOffsetPeriodsIfNotNeeded( DataQueryParams params )
-    {
-        final List<DimensionalItemObject> dimensionalItemObjects = params.getDataElements();
-
-        final boolean hasOffset = dimensionalItemObjects.stream().filter( dio -> dio.getDimensionItemType() != null )
-            .filter( dio -> dio.getDimensionItemType().equals( DimensionItemType.DATA_ELEMENT ) )
-            .anyMatch( dio -> dio.getPeriodOffset() != 0 );
-
-        if ( !hasOffset )
-        {
-            final List<DimensionalItemObject> nonShiftedPeriods = params.getPeriods().stream()
-                .filter( dio -> (!((Period) dio).isShifted()) )
-                .collect( Collectors.toList() );
-
-            return DataQueryParams.newBuilder( params )
-                .withPeriods( params.getDimension( PERIOD_DIM_ID ).getDimensionName(), nonShiftedPeriods )
-                .build();
-        }
-        return params;
     }
 
     /**
@@ -190,32 +146,5 @@ public class PeriodOffsetUtils
         adjustedRow.set( periodIndex, shifted.getIsoDate() );
 
         return adjustedRow;
-    }
-
-    /**
-     * Adds the given period offset to the given periods.
-     *
-     * @param map a mapping between period type and periods.
-     * @param periodOffset the period offset.
-     * @return a mapping of period type name and shifted periods.
-     */
-    private static ListMap<String, DimensionalItemObject> addPeriodOffset( ListMap<String, DimensionalItemObject> map,
-        int periodOffset )
-    {
-        ListMap<String, DimensionalItemObject> periodTypeOffsetMap = new ListMap<>();
-        Collection<DimensionalItemObject> dimensionalItemObjects = map.allValues();
-
-        for ( DimensionalItemObject dimensionalItemObject : dimensionalItemObjects )
-        {
-            Period currentPeriod = (Period) dimensionalItemObject;
-            Period shifted = shiftPeriod( currentPeriod, periodOffset );
-
-            if ( !map.containsValue( currentPeriod.getPeriodType().getName(), shifted ) )
-            {
-                periodTypeOffsetMap.putValue( currentPeriod.getPeriodType().getName(), shifted );
-            }
-        }
-
-        return periodTypeOffsetMap;
     }
 }
