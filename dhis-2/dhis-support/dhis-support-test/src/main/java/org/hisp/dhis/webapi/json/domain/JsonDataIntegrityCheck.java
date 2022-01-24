@@ -28,8 +28,8 @@
 package org.hisp.dhis.webapi.json.domain;
 
 import org.hisp.dhis.dataintegrity.DataIntegritySeverity;
-import org.hisp.dhis.webapi.json.Expected;
-import org.hisp.dhis.webapi.json.JsonObject;
+import org.hisp.dhis.jsontree.Expected;
+import org.hisp.dhis.jsontree.JsonObject;
 
 /**
  * JSON API equivalent of the
