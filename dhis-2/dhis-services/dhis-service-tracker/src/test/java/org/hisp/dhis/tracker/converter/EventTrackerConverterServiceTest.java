@@ -57,15 +57,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 
 import com.google.common.collect.Sets;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
 class EventTrackerConverterServiceTest extends DhisConvenienceTest
 {
@@ -84,12 +81,16 @@ class EventTrackerConverterServiceTest extends DhisConvenienceTest
 
     private NotesConverterService notesConverterService = new NotesConverterService();
 
-    private TrackerConverterService<Event, ProgramStageInstance> trackerConverterService;
+    private RuleEngineConverterService<Event, ProgramStageInstance> converter;
 
     @Mock
     public TrackerPreheat preheat;
 
     private Program program = createProgram( 'A' );
+
+    private ProgramStage programStage;
+
+    private OrganisationUnit organisationUnit;
 
     private ProgramInstance programInstance;
 
@@ -104,16 +105,16 @@ class EventTrackerConverterServiceTest extends DhisConvenienceTest
     @BeforeEach
     void setUpTest()
     {
-        trackerConverterService = new EventTrackerConverterService( notesConverterService );
+        converter = new EventTrackerConverterService( notesConverterService );
         dataElement = createDataElement( 'D' );
         user = createUser( 'U' );
-        ProgramStage programStage = createProgramStage( 'A', 1 );
+        programStage = createProgramStage( 'A', 1 );
         programStage.setUid( PROGRAM_STAGE_UID );
-        OrganisationUnit organisationUnit = createOrganisationUnit( 'A' );
+        programStage.setProgram( program );
+        organisationUnit = createOrganisationUnit( 'A' );
         organisationUnit.setUid( ORGANISATION_UNIT_UID );
         program.setUid( PROGRAM_UID );
         program.setProgramType( ProgramType.WITHOUT_REGISTRATION );
-        programStage.setProgram( program );
         tei = createTrackedEntityInstance( organisationUnit );
         programInstance = createProgramInstance( program, tei, organisationUnit );
         programInstance.setUid( PROGRAM_INSTANCE_UID );
@@ -131,16 +132,17 @@ class EventTrackerConverterServiceTest extends DhisConvenienceTest
         psi.setStoredBy( user.getUsername() );
         psi.setLastUpdatedByUserInfo( UserInfoSnapshot.from( user ) );
         psi.setCreatedByUserInfo( UserInfoSnapshot.from( user ) );
-        when( preheat.getUsers() ).thenReturn( Collections.singletonMap( USERNAME, user ) );
-        when( preheat.get( ProgramStage.class, programStage.getUid() ) ).thenReturn( programStage );
-        when( preheat.get( Program.class, program.getUid() ) ).thenReturn( program );
-        when( preheat.get( OrganisationUnit.class, organisationUnit.getUid() ) ).thenReturn( organisationUnit );
-        when( preheat.getUser() ).thenReturn( user );
     }
 
     @Test
     void testToProgramStageInstance()
     {
+        when( preheat.getUsers() ).thenReturn( Collections.singletonMap( USERNAME, user ) );
+        when( preheat.get( ProgramStage.class, programStage.getUid() ) ).thenReturn( programStage );
+        when( preheat.get( Program.class, program.getUid() ) ).thenReturn( program );
+        when( preheat.get( OrganisationUnit.class, organisationUnit.getUid() ) ).thenReturn( organisationUnit );
+        when( preheat.getUser() ).thenReturn( user );
+
         Event event = new Event();
         event.setProgramStage( PROGRAM_STAGE_UID );
         event.setProgram( PROGRAM_UID );
@@ -154,7 +156,9 @@ class EventTrackerConverterServiceTest extends DhisConvenienceTest
         dataValue.setUpdatedAt( Instant.now() );
         dataValue.setDataElement( dataElement.getUid() );
         event.setDataValues( Sets.newHashSet( dataValue ) );
-        ProgramStageInstance programStageInstance = trackerConverterService.from( preheat, event );
+
+        ProgramStageInstance programStageInstance = converter.from( preheat, event );
+
         assertNotNull( programStageInstance );
         assertNotNull( programStageInstance.getProgramStage() );
         assertNotNull( programStageInstance.getProgramStage().getProgram() );
@@ -182,7 +186,7 @@ class EventTrackerConverterServiceTest extends DhisConvenienceTest
         eventDataValue.setCreatedByUserInfo( UserInfoSnapshot.from( user ) );
         eventDataValue.setLastUpdatedByUserInfo( UserInfoSnapshot.from( user ) );
         psi.getEventDataValues().add( eventDataValue );
-        Event event = trackerConverterService.to( psi );
+        Event event = converter.to( psi );
         assertEquals( event.getEnrollment(), PROGRAM_INSTANCE_UID );
         assertEquals( event.getStoredBy(), user.getUsername() );
         event.getDataValues().forEach( e -> {
