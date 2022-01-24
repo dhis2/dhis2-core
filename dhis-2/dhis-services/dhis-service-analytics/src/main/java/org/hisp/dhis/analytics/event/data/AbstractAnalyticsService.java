@@ -314,9 +314,38 @@ public abstract class AbstractAnalyticsService
                 new MetadataItem( legend.getDisplayName(), includeDetails ? legend.getUid() : null,
                     legend.getCode() ) ) );
 
-        itemOptions.forEach( option -> metadataItemMap.put( option.getUid(),
-            new MetadataItem( option.getDisplayName(), includeDetails ? option.getUid() : null,
-                option.getCode() ) ) );
+        if ( !params.isSkipData() )
+        {
+            params.getItemOptions().stream()
+                .filter( option -> {
+                    if ( option != null )
+                    {
+                        return (params.getItems().stream().noneMatch( QueryItem::hasFilter ) &&
+                            itemOptions.stream().anyMatch( dvo -> dvo.getCode().equalsIgnoreCase( option.getCode() ) )
+                            ||
+                            params.getItems().stream().filter( QueryItem::hasFilter )
+                                .anyMatch( qi -> qi.getFilters().stream()
+                                    .anyMatch( f -> f.getFilter().equalsIgnoreCase( option.getCode() ) ) ));
+                    }
+
+                    return false;
+                } )
+                .forEach( option -> metadataItemMap.put( option.getUid(),
+                    new MetadataItem( option.getDisplayName(), includeDetails ? option.getUid() : null,
+                        option.getCode() ) ) );
+        }
+        else
+        {
+            params.getItemOptions().stream()
+                .filter( option -> option != null &&
+                    (params.getItems().stream().noneMatch( QueryItem::hasFilter ) ||
+                        params.getItems().stream().filter( QueryItem::hasFilter )
+                            .anyMatch( qi -> qi.getFilters().stream()
+                                .anyMatch( f -> f.getFilter().equalsIgnoreCase( option.getCode() ) ) )) )
+                .forEach( option -> metadataItemMap.put( option.getUid(),
+                    new MetadataItem( option.getDisplayName(), includeDetails ? option.getUid() : null,
+                        option.getCode() ) ) );
+        }
 
         params.getItemsAndItemFilters().stream()
             .filter( Objects::nonNull )
