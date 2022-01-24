@@ -42,10 +42,16 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.*;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Event;
@@ -270,7 +276,10 @@ public class EventTrackerConverterService
             eventDataValue.setCreated( DateUtils.fromInstant( dataValue.getCreatedAt() ) );
             eventDataValue.setLastUpdated( new Date() );
             eventDataValue.setProvidedElsewhere( dataValue.isProvidedElsewhere() );
-            eventDataValue.setDataElement( dataValue.getDataElement() );
+            // ensure dataElement is referred to by UID as multiple
+            // dataElementIdSchemes are supported
+            DataElement dataElement = preheat.get( DataElement.class, dataValue.getDataElement() );
+            eventDataValue.setDataElement( dataElement.getUid() );
             eventDataValue.setLastUpdatedByUserInfo( UserInfoSnapshot.from( preheat.getUser() ) );
 
             User createdBy = preheat.getUsers().get( dataValue.getCreatedBy() );
