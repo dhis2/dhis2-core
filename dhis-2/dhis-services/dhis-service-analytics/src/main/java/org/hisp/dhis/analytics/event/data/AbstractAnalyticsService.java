@@ -315,6 +315,28 @@ public abstract class AbstractAnalyticsService
                 new MetadataItem( legend.getDisplayName(), includeDetails ? legend.getUid() : null,
                     legend.getCode() ) ) );
 
+        addMetadataItems( metadataItemMap, params, itemOptions );
+
+        params.getItemsAndItemFilters().stream()
+            .filter( Objects::nonNull )
+            .forEach( item -> metadataItemMap.put( item.getItemId(),
+                new MetadataItem( item.getItem().getDisplayName(), includeDetails ? item.getItem() : null ) ) );
+
+        return metadataItemMap;
+    }
+
+    /**
+     * Add into the MetadataItemMap itemOptions
+     *
+     * @param metadataItemMap MetadataItemMap.
+     * @param params EventQueryParams.
+     * @param itemOptions itemOtion list.
+     */
+    private void addMetadataItems( final Map<String, MetadataItem> metadataItemMap, final EventQueryParams params,
+        final List<Option> itemOptions )
+    {
+        boolean includeDetails = params.isIncludeMetadataDetails();
+
         if ( !params.isSkipData() )
         {
             itemOptions.forEach( option -> metadataItemMap.put( option.getUid(),
@@ -334,13 +356,6 @@ public abstract class AbstractAnalyticsService
                     new MetadataItem( option.getDisplayName(), includeDetails ? option.getUid() : null,
                         option.getCode() ) ) );
         }
-
-        params.getItemsAndItemFilters().stream()
-            .filter( Objects::nonNull )
-            .forEach( item -> metadataItemMap.put( item.getItemId(),
-                new MetadataItem( item.getItem().getDisplayName(), includeDetails ? item.getItem() : null ) ) );
-
-        return metadataItemMap;
     }
 
     /**
@@ -370,16 +385,7 @@ public abstract class AbstractAnalyticsService
         {
             if ( item.hasOptionSet() )
             {
-                if ( params.isSkipData() )
-                {
-                    dimensionItems.put( item.getItemId(), item.getOptionSetFilterItemsOrAll() );
-                }
-                else
-                {
-                    dimensionItems.put( item.getItemId(), itemOptions.stream()
-                        .map( BaseIdentifiableObject::getUid )
-                        .collect( Collectors.toList() ) );
-                }
+                dimensionItems.put( item.getItemId(), getDimensionItemUidList( params, item, itemOptions ) );
             }
             else if ( item.hasLegendSet() )
             {
@@ -408,6 +414,28 @@ public abstract class AbstractAnalyticsService
         }
 
         return dimensionItems;
+    }
+
+    /**
+     * Return list of dimension item uids
+     *
+     * @param params EventQueryParams.
+     * @param item QueryItem
+     * @param itemOptions itemOtion list.
+     * @return a list of uids.
+     */
+    private List<String> getDimensionItemUidList( EventQueryParams params, QueryItem item, List<Option> itemOptions )
+    {
+        if ( params.isSkipData() )
+        {
+            return item.getOptionSetFilterItemsOrAll();
+        }
+        else
+        {
+            return itemOptions.stream()
+                .map( BaseIdentifiableObject::getUid )
+                .collect( Collectors.toList() );
+        }
     }
 
     /**
