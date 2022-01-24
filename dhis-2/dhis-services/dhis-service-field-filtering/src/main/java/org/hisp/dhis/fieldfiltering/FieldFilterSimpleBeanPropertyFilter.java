@@ -81,7 +81,7 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
             return false;
         }
 
-        if ( pathValue.isInsideMap() || Map.class.isAssignableFrom( pathValue.getValue().getClass() ) )
+        if ( pathValue.isInsideMap() )
         {
             return true;
         }
@@ -127,6 +127,11 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
             }
 
             sc = sc.getParent();
+        }
+
+        if ( value != null && Map.class.isAssignableFrom( value.getClass() ) )
+        {
+            isInsideMap = true;
         }
 
         return new PathValue( nestedPath.toString(), value, isInsideMap );
