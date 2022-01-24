@@ -44,6 +44,7 @@ import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentGraphMap;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentNameGraphMap;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -316,23 +317,9 @@ public abstract class AbstractAnalyticsService
 
         if ( !params.isSkipData() )
         {
-            params.getItemOptions().stream()
-                .filter( option -> {
-                    if ( option != null )
-                    {
-                        return (params.getItems().stream().noneMatch( QueryItem::hasFilter ) &&
-                            itemOptions.stream().anyMatch( dvo -> dvo.getCode().equalsIgnoreCase( option.getCode() ) )
-                            ||
-                            params.getItems().stream().filter( QueryItem::hasFilter )
-                                .anyMatch( qi -> qi.getFilters().stream()
-                                    .anyMatch( f -> f.getFilter().equalsIgnoreCase( option.getCode() ) ) ));
-                    }
-
-                    return false;
-                } )
-                .forEach( option -> metadataItemMap.put( option.getUid(),
-                    new MetadataItem( option.getDisplayName(), includeDetails ? option.getUid() : null,
-                        option.getCode() ) ) );
+            itemOptions.forEach( option -> metadataItemMap.put( option.getUid(),
+                new MetadataItem( option.getDisplayName(), includeDetails ? option.getUid() : null,
+                    option.getCode() ) ) );
         }
         else
         {
@@ -341,7 +328,8 @@ public abstract class AbstractAnalyticsService
                     (params.getItems().stream().noneMatch( QueryItem::hasFilter ) ||
                         params.getItems().stream().filter( QueryItem::hasFilter )
                             .anyMatch( qi -> qi.getFilters().stream()
-                                .anyMatch( f -> f.getFilter().equalsIgnoreCase( option.getCode() ) ) )) )
+                                .anyMatch( f -> Arrays.stream( f.getFilter().split( ";" ) )
+                                    .anyMatch( ft -> ft.equalsIgnoreCase( option.getCode() ) ) ) )) )
                 .forEach( option -> metadataItemMap.put( option.getUid(),
                     new MetadataItem( option.getDisplayName(), includeDetails ? option.getUid() : null,
                         option.getCode() ) ) );
@@ -382,9 +370,16 @@ public abstract class AbstractAnalyticsService
         {
             if ( item.hasOptionSet() )
             {
-                dimensionItems.put( item.getItemId(), itemOptions.stream()
-                    .map( BaseIdentifiableObject::getUid )
-                    .collect( Collectors.toList() ) );
+                if ( params.isSkipData() )
+                {
+                    dimensionItems.put( item.getItemId(), item.getOptionSetFilterItemsOrAll() );
+                }
+                else
+                {
+                    dimensionItems.put( item.getItemId(), itemOptions.stream()
+                        .map( BaseIdentifiableObject::getUid )
+                        .collect( Collectors.toList() ) );
+                }
             }
             else if ( item.hasLegendSet() )
             {
