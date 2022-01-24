@@ -30,9 +30,9 @@ package org.hisp.dhis.fieldfiltering;
 import java.util.ArrayList;
 import java.util.List;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 
 import org.apache.commons.lang3.StringUtils;
@@ -42,7 +42,7 @@ import org.hisp.dhis.schema.Property;
  * @author Morten Olav Hansen
  */
 @Data
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class FieldPath
 {
     public static final String FIELD_PATH_SEPARATOR = ".";
@@ -84,6 +84,11 @@ public class FieldPath
     @EqualsAndHashCode.Exclude
     private Property property;
 
+    /**
+     * Fully calculated dot separated path for FieldPath.
+     */
+    private String fullPath;
+
     public FieldPath( String name, List<String> path )
     {
         this.name = name;
@@ -98,7 +103,12 @@ public class FieldPath
      */
     public String toFullPath()
     {
-        return path.isEmpty() ? name : toPath() + FIELD_PATH_SEPARATOR + name;
+        if ( fullPath == null )
+        {
+            fullPath = path.isEmpty() ? name : toPath() + FIELD_PATH_SEPARATOR + name;
+        }
+
+        return fullPath;
     }
 
     public String toPath()
