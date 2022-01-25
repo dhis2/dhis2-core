@@ -950,10 +950,9 @@ public class Property implements Ordered, Klass
     {
         return Objects.hash( klass, propertyType, itemKlass, itemPropertyType, getterMethod, setterMethod, name,
             fieldName, persisted, collectionName,
-            collectionWrapping, description, namespace, attribute, simple, collection, owner, identifiableObject,
-            nameableObject, readable, writable,
-            unique, required, length, max, min, cascade, manyToMany, oneToOne, manyToOne, owningRole, inverseRole,
-            constants, defaultValue );
+            collectionWrapping, description, namespace, attribute, simple, collection, owner,
+            identifiableObject, nameableObject, readable, writable, unique, required, length, max, min, cascade,
+            manyToMany, oneToOne, manyToOne, owningRole, inverseRole, constants, defaultValue );
     }
 
     @Override

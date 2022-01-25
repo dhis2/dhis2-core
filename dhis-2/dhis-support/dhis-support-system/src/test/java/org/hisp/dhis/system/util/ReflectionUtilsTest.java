@@ -27,8 +27,16 @@
  */
 package org.hisp.dhis.system.util;
 
-import static org.hisp.dhis.system.util.ReflectionUtils.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.hisp.dhis.system.util.ReflectionUtils.getClassName;
+import static org.hisp.dhis.system.util.ReflectionUtils.getId;
+import static org.hisp.dhis.system.util.ReflectionUtils.getProperty;
+import static org.hisp.dhis.system.util.ReflectionUtils.isCollection;
+import static org.hisp.dhis.system.util.ReflectionUtils.setProperty;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -45,7 +53,6 @@ import org.junit.jupiter.api.Test;
  */
 class ReflectionUtilsTest
 {
-
     private DataElement dataElementA;
 
     @BeforeEach

@@ -33,17 +33,13 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import javax.xml.xpath.XPathExpressionException;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -64,20 +60,12 @@ import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.mapping.MapView;
 import org.hisp.dhis.mapping.ThematicMapType;
-import org.hisp.dhis.node.NodeService;
-import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.ProgramStageService;
-import org.hisp.dhis.query.Query;
-import org.hisp.dhis.render.DeviceRenderTypeMap;
-import org.hisp.dhis.render.RenderDevice;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.render.type.SectionRenderingObject;
-import org.hisp.dhis.render.type.SectionRenderingType;
-import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
@@ -99,12 +87,8 @@ import com.google.common.collect.Sets;
 @Slf4j
 class MetadataImportServiceTest extends TransactionalIntegrationTest
 {
-
     @Autowired
     private MetadataImportService importService;
-
-    @Autowired
-    private MetadataExportService exportService;
 
     @Autowired
     private RenderService _renderService;
@@ -116,16 +100,10 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest
     private IdentifiableObjectManager manager;
 
     @Autowired
-    private SchemaService schemaService;
-
-    @Autowired
     private DataSetService dataSetService;
 
     @Autowired
     private ProgramStageService programStageService;
-
-    @Autowired
-    private NodeService nodeService;
 
     @Autowired
     private AclService aclService;
@@ -752,38 +730,6 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest
         userGroup = manager.get( UserGroup.class, "OPVIvvXzNTw" );
         assertEquals( "TA user group updated", userGroup.getName() );
         assertEquals( userA.getUid(), userGroup.getSharing().getOwner() );
-    }
-
-    @Test
-    void testSerializeDeviceRenderTypeMap()
-        throws IOException,
-        XPathExpressionException
-    {
-        Metadata metadata = renderService.fromXml(
-            new ClassPathResource( "dxf2/programstagesection_with_deps.xml" ).getInputStream(), Metadata.class );
-        MetadataImportParams params = new MetadataImportParams();
-        params.setImportMode( ObjectBundleMode.COMMIT );
-        params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
-        params.addMetadata( schemaService.getMetadataSchemas(), metadata );
-        ImportReport report = importService.importMetadata( params );
-        assertEquals( Status.OK, report.getStatus() );
-        manager.flush();
-        ProgramStageSection programStageSection = manager.get( ProgramStageSection.class, "e99B1JXVMMQ" );
-        assertNotNull( programStageSection );
-        assertEquals( 2, programStageSection.getRenderType().size() );
-        DeviceRenderTypeMap<SectionRenderingObject> renderingType = programStageSection.getRenderType();
-        SectionRenderingObject renderDevice1 = renderingType.get( RenderDevice.MOBILE );
-        SectionRenderingObject renderDevice2 = renderingType.get( RenderDevice.DESKTOP );
-        assertEquals( SectionRenderingType.SEQUENTIAL, renderDevice1.getType() );
-        assertEquals( SectionRenderingType.LISTING, renderDevice2.getType() );
-        MetadataExportParams exportParams = new MetadataExportParams();
-        exportParams.addQuery( Query.from( schemaService.getSchema( ProgramStageSection.class ) ) );
-        RootNode rootNode = exportService.getMetadataAsNode( exportParams );
-        OutputStream outputStream = new ByteArrayOutputStream();
-        nodeService.serialize( rootNode, "application/xml", outputStream );
-        assertEquals( "1", xpathTest( "count(//d:programStageSection)", outputStream.toString() ) );
-        assertEquals( "SEQUENTIAL", xpathTest( "//d:MOBILE/@type", outputStream.toString() ) );
-        assertEquals( "LISTING", xpathTest( "//d:DESKTOP/@type", outputStream.toString() ) );
     }
 
     @Test
