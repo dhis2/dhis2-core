@@ -33,9 +33,9 @@ import java.util.Map;
 
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;
-import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -47,6 +47,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.net.HttpHeaders;
 
 /**
@@ -92,7 +94,7 @@ class CategoryComboControllerTest
     {
         final Map<String, List<String>> parameterValuesMap = new HashMap<>();
         final MetadataExportParams exportParams = new MetadataExportParams();
-        final RootNode rootNode = new RootNode( "test" );
+        final ObjectNode rootNode = JacksonObjectMapperConfig.jsonMapper.createObjectNode();
 
         Mockito.when( service.getCategoryCombo( Mockito.eq( "88dshgdga" ) ) ).thenReturn( categoryCombo );
         Mockito.when( contextService.getParameterValuesMap() ).thenReturn( parameterValuesMap );
@@ -102,9 +104,10 @@ class CategoryComboControllerTest
                 Mockito.same( exportParams ) ) )
             .thenReturn( rootNode );
 
-        final ResponseEntity<RootNode> responseEntity = controller.getDataSetWithDependencies( "88dshgdga", download );
+        final ResponseEntity<JsonNode> responseEntity = controller.getDataSetWithDependencies( "88dshgdga", download );
         Assertions.assertEquals( HttpStatus.OK, responseEntity.getStatusCode() );
         Assertions.assertSame( rootNode, responseEntity.getBody() );
+
         if ( download )
         {
             Assertions.assertEquals( "attachment; filename=metadata",

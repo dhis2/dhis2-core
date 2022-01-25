@@ -39,11 +39,11 @@ import java.util.Map;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.jsontree.JsonNode;
+import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.hisp.dhis.webapi.json.JsonNode;
-import org.hisp.dhis.webapi.json.JsonResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
