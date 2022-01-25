@@ -35,8 +35,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.webapi.WebClient;
-import org.hisp.dhis.webapi.json.JsonResponse;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;

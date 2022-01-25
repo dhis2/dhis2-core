@@ -39,9 +39,9 @@ import java.util.Arrays;
 
 import org.hisp.dhis.dataanalysis.FollowupAnalysisRequest;
 import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.webapi.json.JsonList;
-import org.hisp.dhis.webapi.json.JsonObject;
-import org.hisp.dhis.webapi.json.JsonResponse;
+import org.hisp.dhis.jsontree.JsonList;
+import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.webapi.json.domain.JsonError;
 import org.hisp.dhis.webapi.json.domain.JsonFollowupValue;
 import org.junit.jupiter.api.Test;

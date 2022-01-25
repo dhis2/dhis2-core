@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.json.domain;
 
-import org.hisp.dhis.webapi.json.JsonValue;
+import org.hisp.dhis.jsontree.JsonValue;
 
 /**
  * Web API equivalent of a {@link org.hisp.dhis.keyjsonvalue.KeyJsonValue}.

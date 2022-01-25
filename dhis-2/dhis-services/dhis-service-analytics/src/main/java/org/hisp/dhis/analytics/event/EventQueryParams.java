@@ -189,7 +189,7 @@ public class EventQueryParams
     /**
      * Indicates the event status.
      */
-    private EventStatus eventStatus;
+    private Set<EventStatus> eventStatus;
 
     /**
      * Indicates whether the data dimension items should be collapsed into a
@@ -248,7 +248,7 @@ public class EventQueryParams
     /**
      * Indicates the program status
      */
-    private ProgramStatus programStatus;
+    private Set<ProgramStatus> programStatus;
 
     /**
      * Indicates whether to include metadata details to response
@@ -628,7 +628,7 @@ public class EventQueryParams
     /**
      * Gets program status
      */
-    public ProgramStatus getProgramStatus()
+    public Set<ProgramStatus> getProgramStatus()
     {
         return programStatus;
     }
@@ -785,7 +785,7 @@ public class EventQueryParams
 
     public boolean hasEventStatus()
     {
-        return eventStatus != null;
+        return isNotEmpty( eventStatus );
     }
 
     public boolean hasValueDimension()
@@ -852,7 +852,7 @@ public class EventQueryParams
 
     public boolean hasProgramStatus()
     {
-        return programStatus != null;
+        return isNotEmpty( programStatus );
     }
 
     public boolean hasBbox()
@@ -983,7 +983,7 @@ public class EventQueryParams
         return outputIdScheme;
     }
 
-    public EventStatus getEventStatus()
+    public Set<EventStatus> getEventStatus()
     {
         return eventStatus;
     }
@@ -1326,9 +1326,9 @@ public class EventQueryParams
             return this;
         }
 
-        public Builder withEventStatus( EventStatus eventStatus )
+        public Builder withEventStatuses( Set<EventStatus> eventStatuses )
         {
-            this.params.eventStatus = eventStatus;
+            this.params.eventStatus = eventStatuses;
             return this;
         }
 
@@ -1386,9 +1386,9 @@ public class EventQueryParams
             return this;
         }
 
-        public Builder withProgramStatus( ProgramStatus programStatus )
+        public Builder withProgramStatuses( Set<ProgramStatus> programStatuses )
         {
-            this.params.programStatus = programStatus;
+            this.params.programStatus = programStatuses;
             return this;
         }
 

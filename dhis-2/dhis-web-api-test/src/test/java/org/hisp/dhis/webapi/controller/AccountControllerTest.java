@@ -30,9 +30,9 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.hisp.dhis.webapi.json.JsonResponse;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 

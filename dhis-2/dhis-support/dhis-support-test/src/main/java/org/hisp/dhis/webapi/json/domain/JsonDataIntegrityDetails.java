@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.webapi.json.domain;
 
-import org.hisp.dhis.webapi.json.Expected;
-import org.hisp.dhis.webapi.json.JsonList;
-import org.hisp.dhis.webapi.json.JsonObject;
-import org.hisp.dhis.webapi.json.JsonString;
+import org.hisp.dhis.jsontree.Expected;
+import org.hisp.dhis.jsontree.JsonList;
+import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.jsontree.JsonString;
 
 /**
  * JSON API equivalent of the
