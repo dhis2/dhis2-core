@@ -25,38 +25,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.category;
+package org.hisp.dhis.predictor;
 
 import java.util.List;
-import java.util.Set;
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.dataelement.DataElement;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 
-/**
- * @author Lars Helge Overland
- */
-public interface CategoryOptionComboStore
-    extends IdentifiableObjectStore<CategoryOptionCombo>
+import org.hisp.dhis.common.FoundDimensionItemValue;
+import org.hisp.dhis.datavalue.DataValue;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+
+@Getter
+@ToString
+@EqualsAndHashCode
+@AllArgsConstructor
+public class PredictionData
 {
-    CategoryOptionCombo getCategoryOptionCombo( CategoryCombo categoryCombo, Set<CategoryOption> categoryOptions );
+    private final OrganisationUnit orgUnit;
 
-    void updateNames();
+    private final List<FoundDimensionItemValue> values;
 
-    void deleteNoRollBack( CategoryOptionCombo categoryOptionCombo );
-
-    /**
-     * Fetch all {@link CategoryOptionCombo} from a given
-     * {@link CategoryOptionGroup} uid, that are also contained in the
-     * {@link CategoryCombo} of the {@link DataElement}.
-     *
-     * A {@link CategoryOptionGroup} is a collection of {@link CategoryOption}.
-     * Therefore, this method finds all {@link CategoryOptionCombo} for all the
-     * members of the given {@link CategoryOptionGroup}
-     *
-     * @param groupId a {@link CategoryOptionGroup} uid
-     * @param dataElementId a {@link DataElement} uid
-     * @return a List of {@link CategoryOptionCombo} or empty List
-     */
-    List<CategoryOptionCombo> getCategoryOptionCombosByGroupUid( String groupId, String dataElementId );
+    private final List<DataValue> oldPredictions;
 }

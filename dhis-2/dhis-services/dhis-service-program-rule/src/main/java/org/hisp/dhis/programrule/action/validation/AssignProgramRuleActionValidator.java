@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,38 +25,45 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.category;
+package org.hisp.dhis.programrule.action.validation;
 
-import java.util.List;
-import java.util.Set;
+import lombok.extern.slf4j.Slf4j;
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.programrule.ProgramRuleAction;
+import org.hisp.dhis.programrule.ProgramRuleActionValidationResult;
+import org.springframework.stereotype.Component;
 
 /**
- * @author Lars Helge Overland
+ * @author Zubair Asghar
  */
-public interface CategoryOptionComboStore
-    extends IdentifiableObjectStore<CategoryOptionCombo>
+
+@Slf4j
+@Component
+public class AssignProgramRuleActionValidator implements ProgramRuleActionValidator
 {
-    CategoryOptionCombo getCategoryOptionCombo( CategoryCombo categoryCombo, Set<CategoryOption> categoryOptions );
+    @Override
+    public ProgramRuleActionValidationResult validate( ProgramRuleAction programRuleAction,
+        ProgramRuleActionValidationContext validationContext )
+    {
+        ProgramRule rule = validationContext.getProgramRule();
 
-    void updateNames();
+        if ( !programRuleAction.hasDataElement() && !programRuleAction.hasTrackedEntityAttribute()
+            && !programRuleAction.hasContent() )
+        {
+            log.debug( String.format(
+                "DataElement or TrackedEntityAttribute or ProgramRuleVariable cannot be null for program rule: %s ",
+                rule.getName() ) );
 
-    void deleteNoRollBack( CategoryOptionCombo categoryOptionCombo );
+            return ProgramRuleActionValidationResult.builder()
+                .valid( false )
+                .errorReport( new ErrorReport( ProgramRuleAction.class, ErrorCode.E4050,
+                    rule.getName() ) )
+                .build();
+        }
 
-    /**
-     * Fetch all {@link CategoryOptionCombo} from a given
-     * {@link CategoryOptionGroup} uid, that are also contained in the
-     * {@link CategoryCombo} of the {@link DataElement}.
-     *
-     * A {@link CategoryOptionGroup} is a collection of {@link CategoryOption}.
-     * Therefore, this method finds all {@link CategoryOptionCombo} for all the
-     * members of the given {@link CategoryOptionGroup}
-     *
-     * @param groupId a {@link CategoryOptionGroup} uid
-     * @param dataElementId a {@link DataElement} uid
-     * @return a List of {@link CategoryOptionCombo} or empty List
-     */
-    List<CategoryOptionCombo> getCategoryOptionCombosByGroupUid( String groupId, String dataElementId );
+        return ProgramRuleActionValidationResult.builder().valid( true ).build();
+    }
 }

@@ -25,38 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.category;
+package org.hisp.dhis.common;
 
-import java.util.List;
-import java.util.Set;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.Period;
 
 /**
- * @author Lars Helge Overland
+ * DimensionItemObject data as found with organisation unit, period, attribute
+ * option combination, and a value.
+ *
+ * @author Jim Grace
  */
-public interface CategoryOptionComboStore
-    extends IdentifiableObjectStore<CategoryOptionCombo>
+@Getter
+@ToString
+@EqualsAndHashCode
+@AllArgsConstructor
+public class FoundDimensionItemValue
 {
-    CategoryOptionCombo getCategoryOptionCombo( CategoryCombo categoryCombo, Set<CategoryOption> categoryOptions );
+    private final OrganisationUnit organisationUnit;
 
-    void updateNames();
+    private final Period period;
 
-    void deleteNoRollBack( CategoryOptionCombo categoryOptionCombo );
+    private final CategoryOptionCombo attributeOptionCombo;
 
-    /**
-     * Fetch all {@link CategoryOptionCombo} from a given
-     * {@link CategoryOptionGroup} uid, that are also contained in the
-     * {@link CategoryCombo} of the {@link DataElement}.
-     *
-     * A {@link CategoryOptionGroup} is a collection of {@link CategoryOption}.
-     * Therefore, this method finds all {@link CategoryOptionCombo} for all the
-     * members of the given {@link CategoryOptionGroup}
-     *
-     * @param groupId a {@link CategoryOptionGroup} uid
-     * @param dataElementId a {@link DataElement} uid
-     * @return a List of {@link CategoryOptionCombo} or empty List
-     */
-    List<CategoryOptionCombo> getCategoryOptionCombosByGroupUid( String groupId, String dataElementId );
+    private final DimensionalItemObject dimensionalItemObject;
+
+    private final Object value;
 }

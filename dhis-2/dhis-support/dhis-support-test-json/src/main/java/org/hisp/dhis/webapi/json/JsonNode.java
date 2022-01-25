@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.json;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -136,6 +137,16 @@ public interface JsonNode extends Serializable
      *        this node) that are of the provided type in root first order.
      */
     void visit( JsonNodeType type, Consumer<JsonNode> visitor );
+
+    /**
+     * Searches for a node in this subtree that matches type and returns true
+     * from the provided test.
+     *
+     * @param type node type tested
+     * @param test test performed, returns true when node is found
+     * @return the first found node or empty
+     */
+    Optional<JsonNode> find( JsonNodeType type, Predicate<JsonNode> test );
 
     /**
      * Count matching nodes in a the subtree of this node including this node.

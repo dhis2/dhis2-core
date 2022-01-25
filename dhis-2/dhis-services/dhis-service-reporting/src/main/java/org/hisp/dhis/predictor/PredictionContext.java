@@ -25,38 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.category;
+package org.hisp.dhis.predictor;
 
-import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.dataelement.DataElement;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.MapMap;
+import org.hisp.dhis.period.Period;
 
 /**
- * @author Lars Helge Overland
+ * Context (including data) for computing a single prediction.
+ *
+ * @author Jim Grace
  */
-public interface CategoryOptionComboStore
-    extends IdentifiableObjectStore<CategoryOptionCombo>
+@Data
+@AllArgsConstructor
+public class PredictionContext
 {
-    CategoryOptionCombo getCategoryOptionCombo( CategoryCombo categoryCombo, Set<CategoryOption> categoryOptions );
+    private CategoryOptionCombo attributeOptionCombo;
 
-    void updateNames();
+    private Period outputPeriod;
 
-    void deleteNoRollBack( CategoryOptionCombo categoryOptionCombo );
+    private MapMap<Period, DimensionalItemObject, Object> periodValueMap;
 
-    /**
-     * Fetch all {@link CategoryOptionCombo} from a given
-     * {@link CategoryOptionGroup} uid, that are also contained in the
-     * {@link CategoryCombo} of the {@link DataElement}.
-     *
-     * A {@link CategoryOptionGroup} is a collection of {@link CategoryOption}.
-     * Therefore, this method finds all {@link CategoryOptionCombo} for all the
-     * members of the given {@link CategoryOptionGroup}
-     *
-     * @param groupId a {@link CategoryOptionGroup} uid
-     * @param dataElementId a {@link DataElement} uid
-     * @return a List of {@link CategoryOptionCombo} or empty List
-     */
-    List<CategoryOptionCombo> getCategoryOptionCombosByGroupUid( String groupId, String dataElementId );
+    private Map<DimensionalItemObject, Object> valueMap;
 }

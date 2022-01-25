@@ -587,6 +587,8 @@ public class DefaultEventAnalyticsService
             }
         }
 
+        maybeApplyIdScheme( params, grid );
+
         // ---------------------------------------------------------------------
         // Meta-data
         // ---------------------------------------------------------------------
@@ -601,10 +603,10 @@ public class DefaultEventAnalyticsService
      * data property indicated in the query. This happens only when a custom ID
      * Schema is set.
      *
-     * @param params the {@link DataQueryParams}.
+     * @param params the {@link EventQueryParams}.
      * @param grid the grid.
      */
-    private void maybeApplyIdScheme( DataQueryParams params, Grid grid )
+    private void maybeApplyIdScheme( EventQueryParams params, Grid grid )
     {
         if ( !params.isSkipMeta() )
         {

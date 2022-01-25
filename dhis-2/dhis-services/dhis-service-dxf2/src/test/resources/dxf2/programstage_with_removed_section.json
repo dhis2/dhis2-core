@@ -1,4 +1,15 @@
 {
+  "programs": [
+    {
+      "id": "JEMRBUHgpqA",
+      "name": "test Program",
+      "shortName": "test Program",
+      "programType":"WITH_REGISTRATION",
+      "programStages": [
+        {"id": "NpsdDv6kKSO"}
+      ]
+    }
+  ],
   "dataElements": [
     {
       "valueType": "NUMBER",

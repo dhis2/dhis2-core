@@ -105,7 +105,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.EventSyncService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStageDataElement;
@@ -310,18 +309,7 @@ public abstract class AbstractEventService implements EventService
 
         List<Event> eventList = eventStore.getEvents( params, organisationUnits, Collections.emptyMap() );
 
-        for ( Event event : eventList )
-        {
-            boolean canSkipCheck = event.getTrackedEntityInstance() == null ||
-                trackerOwnershipAccessManager.canSkipOwnershipCheck( user, event.getProgramType() );
-
-            if ( canSkipCheck || trackerOwnershipAccessManager.hasAccess( user,
-                entityInstanceService.getTrackedEntityInstance( event.getTrackedEntityInstance() ),
-                programService.getProgram( event.getProgram() ) ) )
-            {
-                events.getEvents().add( event );
-            }
-        }
+        events.setEvents( eventList );
 
         return events;
     }
@@ -403,23 +391,6 @@ public abstract class AbstractEventService implements EventService
         for ( Map<String, String> event : events )
         {
             grid.addRow();
-
-            Program program = params.getProgramStage().getProgram();
-
-            if ( !trackerOwnershipAccessManager.canSkipOwnershipCheck( user, program ) )
-            {
-                ProgramInstance enrollment = programInstanceService
-                    .getProgramInstance( event.get( EVENT_ENROLLMENT_ID ) );
-
-                if ( enrollment != null && enrollment.getEntityInstance() != null )
-                {
-                    if ( !trackerOwnershipAccessManager.hasAccess( user,
-                        enrollment.getEntityInstance(), program ) )
-                    {
-                        continue;
-                    }
-                }
-            }
 
             for ( String col : STATIC_EVENT_COLUMNS )
             {
@@ -841,7 +812,7 @@ public abstract class AbstractEventService implements EventService
         {
             if ( params.getOrgUnit() != null )
             {
-                return Arrays.asList( params.getOrgUnit() );
+                return Collections.emptyList();
             }
 
             return getAccessibleOrgUnits( params, user );
@@ -878,7 +849,7 @@ public abstract class AbstractEventService implements EventService
     {
         if ( params.getOrgUnit() != null )
         {
-            return Arrays.asList( params.getOrgUnit() );
+            return Collections.emptyList();
         }
 
         if ( !userCanSearchOuModeALL( user ) )
@@ -886,9 +857,7 @@ public abstract class AbstractEventService implements EventService
             throw new IllegalQueryException( "User is not authorized to use ALL organisation units. " );
         }
 
-        return organisationUnitService
-            .getOrganisationUnitsWithChildren( organisationUnitService.getRootOrganisationUnits().stream()
-                .map( BaseIdentifiableObject::getUid ).collect( Collectors.toList() ) );
+        return Collections.emptyList();
     }
 
     private List<OrganisationUnit> getChildrenOrgUnits( EventSearchParams params )
@@ -909,7 +878,7 @@ public abstract class AbstractEventService implements EventService
             throw new IllegalQueryException( "Organisation unit is required to use SELECTED scope. " );
         }
 
-        return Collections.singletonList( params.getOrgUnit() );
+        return Collections.emptyList();
     }
 
     private List<OrganisationUnit> getDescendantOrgUnits( EventSearchParams params )
@@ -919,14 +888,14 @@ public abstract class AbstractEventService implements EventService
             throw new IllegalQueryException( "Organisation unit is required to use DESCENDANTS scope. " );
         }
 
-        return organisationUnitService.getOrganisationUnitWithChildren( params.getOrgUnit().getUid() );
+        return Arrays.asList( params.getOrgUnit() );
     }
 
     private List<OrganisationUnit> getCaptureOrgUnits( EventSearchParams params, User user )
     {
         if ( params.getOrgUnit() != null )
         {
-            return Arrays.asList( params.getOrgUnit() );
+            return Collections.emptyList();
         }
 
         if ( user == null )
@@ -934,15 +903,14 @@ public abstract class AbstractEventService implements EventService
             throw new IllegalQueryException( "User is required to use CAPTURE scope." );
         }
 
-        return organisationUnitService.getOrganisationUnitsWithChildren( user.getOrganisationUnits().stream()
-            .map( BaseIdentifiableObject::getUid ).collect( Collectors.toList() ) );
+        return user.getOrganisationUnits().stream().collect( Collectors.toList() );
     }
 
     private List<OrganisationUnit> getAccessibleOrgUnits( EventSearchParams params, User user )
     {
         if ( params.getOrgUnit() != null )
         {
-            return Arrays.asList( params.getOrgUnit() );
+            return Collections.emptyList();
         }
 
         if ( user == null )
@@ -950,20 +918,14 @@ public abstract class AbstractEventService implements EventService
             throw new IllegalQueryException( "User is required to use ACCESSIBLE scope." );
         }
 
-        Set<OrganisationUnit> orgUnits = user.getOrganisationUnits();
-
-        if ( params.getProgram() != null )
+        if ( params.getProgram() == null || params.getProgram().isClosed() || params.getProgram().isProtected() )
         {
-            orgUnits = user.getTeiSearchOrganisationUnitsWithFallback();
-
-            if ( params.getProgram().isClosed() )
-            {
-                orgUnits = user.getOrganisationUnits();
-            }
+            return user.getOrganisationUnits().stream().collect( Collectors.toList() );
         }
 
-        return organisationUnitService.getOrganisationUnitsWithChildren( orgUnits.stream()
-            .map( BaseIdentifiableObject::getUid ).collect( Collectors.toList() ) );
+        params.setOrgUnitSelectionMode( OrganisationUnitSelectionMode.ACCESSIBLE );
+
+        return user.getTeiSearchOrganisationUnitsWithFallback().stream().collect( Collectors.toList() );
     }
 
     private void saveTrackedEntityComment( ProgramStageInstance programStageInstance, Event event, User user,
