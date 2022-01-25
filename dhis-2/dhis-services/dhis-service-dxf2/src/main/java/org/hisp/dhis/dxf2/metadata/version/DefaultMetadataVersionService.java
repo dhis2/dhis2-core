@@ -37,6 +37,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
@@ -52,13 +53,12 @@ import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.metadata.version.MetadataVersionService;
 import org.hisp.dhis.metadata.version.MetadataVersionStore;
 import org.hisp.dhis.metadata.version.VersionType;
-import org.hisp.dhis.node.NodeService;
-import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
 
 /**
@@ -67,13 +67,10 @@ import com.google.common.collect.Lists;
  * @author aamerm
  */
 @Slf4j
-@Service( "org.hisp.dhis.metadata.version.MetadataVersionService" )
-public class DefaultMetadataVersionService
-    implements MetadataVersionService
+@Service
+@AllArgsConstructor
+public class DefaultMetadataVersionService implements MetadataVersionService
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
 
     private final MetadataVersionStore versionStore;
 
@@ -81,24 +78,9 @@ public class DefaultMetadataVersionService
 
     private final MetadataDatastoreService metaDataDatastoreService;
 
-    private final NodeService nodeService;
-
     private final MetadataSystemSettingService metadataSystemSettingService;
 
     private final RenderService renderService;
-
-    public DefaultMetadataVersionService( MetadataVersionStore metadataVersionStore,
-        MetadataExportService metadataExportService, MetadataDatastoreService metaDataDatastoreService,
-        NodeService nodeService, MetadataSystemSettingService metadataSystemSettingService,
-        RenderService renderService )
-    {
-        this.versionStore = metadataVersionStore;
-        this.metadataExportService = metadataExportService;
-        this.metaDataDatastoreService = metaDataDatastoreService;
-        this.nodeService = nodeService;
-        this.metadataSystemSettingService = metadataSystemSettingService;
-        this.renderService = renderService;
-    }
 
     // -------------------------------------------------------------------------
     // MetadataVersionService implementation
@@ -389,8 +371,8 @@ public class DefaultMetadataVersionService
             }
 
             os = new ByteArrayOutputStream( 1024 );
-            RootNode metadata = metadataExportService.getMetadataAsNode( exportParams );
-            nodeService.serialize( metadata, "application/json", os );
+            ObjectNode metadata = metadataExportService.getMetadataAsNode( exportParams );
+            renderService.toJson( os, metadata );
         }
         catch ( Exception ex ) // We have to catch the "Exception" object as no
                                // specific exception on the contract.

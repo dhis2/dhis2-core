@@ -206,9 +206,7 @@ public class FieldFilterParser
 
         if ( !StringUtils.isEmpty( name ) )
         {
-            FieldPath fieldPath = new FieldPath( name, new ArrayList<>( path ), isExclude, isPreset, transformers,
-                null );
-
+            FieldPath fieldPath = new FieldPath( name, new ArrayList<>( path ), isExclude, isPreset, transformers );
             fieldPaths.add( fieldPath );
         }
     }
