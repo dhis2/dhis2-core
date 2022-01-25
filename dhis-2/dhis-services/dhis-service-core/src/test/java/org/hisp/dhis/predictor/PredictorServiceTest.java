@@ -425,7 +425,7 @@ public class PredictorServiceTest
     }
 
     @Test
-    void testCannotDeleteCategoryOptionComboUsedByPredictor()
+    public void testCannotDeleteCategoryOptionComboUsedByPredictor()
     {
         setUpPredictorGroups();
         DeleteNotAllowedException ex = assertThrows( DeleteNotAllowedException.class,
