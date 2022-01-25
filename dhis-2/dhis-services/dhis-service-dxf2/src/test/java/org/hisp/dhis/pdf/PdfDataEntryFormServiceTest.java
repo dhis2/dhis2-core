@@ -25,21 +25,14 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.pdfform;
+package org.hisp.dhis.pdf;
 
-import org.hisp.dhis.i18n.I18nFormat;
-
-import com.lowagie.text.Document;
-import com.lowagie.text.Rectangle;
-import com.lowagie.text.pdf.PdfWriter;
+import org.hisp.dhis.DhisSpringTest;
 
 /**
- * @author James Chang
+ * @author viet@dhis2.org
  */
-
-public interface PdfDataEntryFormService
+public class PdfDataEntryFormServiceTest extends DhisSpringTest
 {
-    void generatePDFDataEntryForm( Document document, PdfWriter writer, String inputUid, int typeId,
-        Rectangle pageSize, PdfFormFontSettings pdfFormFontSettings, I18nFormat format );
 
 }

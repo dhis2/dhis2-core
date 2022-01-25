@@ -27,19 +27,45 @@
  */
 package org.hisp.dhis.dxf2.pdfform;
 
-import org.hisp.dhis.i18n.I18nFormat;
+import java.awt.*;
+import java.io.IOException;
 
-import com.lowagie.text.Document;
+import com.lowagie.text.DocumentException;
+import com.lowagie.text.Element;
+import com.lowagie.text.Font;
 import com.lowagie.text.Rectangle;
+import com.lowagie.text.pdf.PdfPCell;
 import com.lowagie.text.pdf.PdfWriter;
 
 /**
- * @author James Chang
+ * @author viet@dhis2.org
  */
-
-public interface PdfDataEntryFormService
+public abstract class PdfInputField
 {
-    void generatePDFDataEntryForm( Document document, PdfWriter writer, String inputUid, int typeId,
-        Rectangle pageSize, PdfFormFontSettings pdfFormFontSettings, I18nFormat format );
+    protected Rectangle textBoxSize = new Rectangle( 220.0f, PdfDataEntryFormUtil.CONTENT_HEIGHT_DEFAULT );
 
+    protected static final Color COLOR_BACKGROUDTEXTBOX = Color.getHSBColor( 0.0f, 0.0f, 0.961f );
+
+    protected int horizontalAlignment = Element.ALIGN_RIGHT;
+
+    protected Font font;
+
+    protected boolean hasBorder = false;
+
+    protected PdfWriter writer;
+
+    protected PdfCellType cellType;
+
+    public PdfInputField( PdfWriter writer, PdfCellType cellType, Font font )
+    {
+        this.writer = writer;
+        this.cellType = cellType;
+        this.font = font;
+    }
+
+    public abstract PdfPCell getLabelCell();
+
+    public abstract PdfPCell getInputCell()
+        throws IOException,
+        DocumentException;
 }

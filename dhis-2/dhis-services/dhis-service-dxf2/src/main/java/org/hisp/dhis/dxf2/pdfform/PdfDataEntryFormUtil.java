@@ -243,7 +243,9 @@ public class PdfDataEntryFormUtil
                 {
                     if ( fldName.startsWith( PdfDataEntryFormUtil.LABELCODE_ATTRIBUTE_OPTIONID ) )
                     {
-                        String optionId = findSelectedValue( fldName, form );
+                        String optionId = form.getField( fldName );// findSelectedValue(
+                                                                   // fldName,
+                                                                   // form );
                         String[] strArrFldName = fldName.split( "_" );
 
                         categoryComboId = strArrFldName[1];

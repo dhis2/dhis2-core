@@ -39,14 +39,16 @@ import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.commons.util.StreamUtils;
+import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.dxf2.pdfform.PdfDataEntryFormGenerator;
 import org.hisp.dhis.dxf2.pdfform.PdfDataEntryFormService;
-import org.hisp.dhis.dxf2.pdfform.PdfDataEntryFormUtil;
-import org.hisp.dhis.dxf2.pdfform.PdfFormFontSettings;
+import org.hisp.dhis.dxf2.pdfform.PdfDataEntrySettings;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
@@ -63,9 +65,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
-
-import com.lowagie.text.Document;
-import com.lowagie.text.pdf.PdfWriter;
 
 /**
  * @author James Chang <jamesbchang@gmail.com>
@@ -98,7 +97,13 @@ public class PdfFormController
     private PdfDataEntryFormService pdfDataEntryFormService;
 
     @Autowired
+    private PdfDataEntryFormGenerator pdfGenerator;
+
+    @Autowired
     private ContextUtils contextUtils;
+
+    @Autowired
+    private I18nFormat i18nFormat;
 
     // --------------------------------------------------------------------------
     // DataSet
@@ -107,31 +112,27 @@ public class PdfFormController
     @GetMapping( "/dataSet/{dataSetUid}" )
     public void getFormPdfDataSet( @PathVariable String dataSetUid, HttpServletRequest request,
         HttpServletResponse response, OutputStream out )
-        throws Exception
     {
-        Document document = new Document();
+        DataSet dataSet = dataSetService.getDataSet( dataSetUid );
 
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        PdfWriter writer = PdfWriter.getInstance( document, baos );
+        if ( dataSet == null )
+        {
+            throw new IllegalArgumentException( "Can't find DataSet with uid: " + dataSetUid );
+        }
 
-        PdfFormFontSettings pdfFormFontSettings = new PdfFormFontSettings();
+        PdfDataEntrySettings settings = new PdfDataEntrySettings();
+        settings.setI18nFormat( i18nFormat );
 
-        PdfDataEntryFormUtil.setDefaultFooterOnDocument( document, request.getServerName(),
-            pdfFormFontSettings.getFont( PdfFormFontSettings.FONTTYPE_FOOTER ) );
+        settings.setServerName( request.getServerName() );
 
-        pdfDataEntryFormService.generatePDFDataEntryForm( document, writer, dataSetUid,
-            PdfDataEntryFormUtil.DATATYPE_DATASET,
-            PdfDataEntryFormUtil.getDefaultPageSize( PdfDataEntryFormUtil.DATATYPE_DATASET ),
-            pdfFormFontSettings, i18nManager.getI18nFormat() );
+        ByteArrayOutputStream baos = pdfGenerator.generateDataEntry( dataSet, settings );
 
-        String fileName = dataSetService.getDataSet( dataSetUid ).getName() + " " +
-            DateUtils.getMediumDateString() + ".pdf";
+        String fileName = dataSet.getName() + "_" + DateUtils.getMediumDateString() + ".pdf";
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_PDF, CacheStrategy.NO_CACHE, fileName,
             true );
-        response.setContentLength( baos.size() );
 
-        baos.writeTo( out );
+        response.setContentLength( baos.size() );
     }
 
     @PostMapping( "/dataSet" )

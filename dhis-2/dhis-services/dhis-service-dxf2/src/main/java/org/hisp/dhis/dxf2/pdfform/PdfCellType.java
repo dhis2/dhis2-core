@@ -27,19 +27,28 @@
  */
 package org.hisp.dhis.dxf2.pdfform;
 
-import org.hisp.dhis.i18n.I18nFormat;
-
-import com.lowagie.text.Document;
-import com.lowagie.text.Rectangle;
-import com.lowagie.text.pdf.PdfWriter;
-
 /**
- * @author James Chang
+ * @author viet@dhis2.org
  */
-
-public interface PdfDataEntryFormService
+public enum PdfCellType
 {
-    void generatePDFDataEntryForm( Document document, PdfWriter writer, String inputUid, int typeId,
-        Rectangle pageSize, PdfFormFontSettings pdfFormFontSettings, I18nFormat format );
+    DEFAULT( 0 ),
+    BUTTON( 1 ),
+    ORGANISATION_UNIT( 2 ),
+    NUMBER( 3 ),
+    CHECKBOX( 4 ),
+    RADIO_BUTTON( 5 ),
+    LABEL( 6 );
 
+    private final int value;
+
+    PdfCellType( final int newValue )
+    {
+        value = newValue;
+    }
+
+    public int getValue()
+    {
+        return value;
+    }
 }

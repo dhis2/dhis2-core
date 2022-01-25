@@ -27,19 +27,69 @@
  */
 package org.hisp.dhis.dxf2.pdfform;
 
-import org.hisp.dhis.i18n.I18nFormat;
+import java.io.IOException;
+import java.util.Objects;
+
+import org.hisp.dhis.common.IdentifiableObject;
 
 import com.lowagie.text.Document;
+import com.lowagie.text.DocumentException;
+import com.lowagie.text.Element;
+import com.lowagie.text.HeaderFooter;
+import com.lowagie.text.Phrase;
 import com.lowagie.text.Rectangle;
 import com.lowagie.text.pdf.PdfWriter;
 
 /**
- * @author James Chang
+ * @author viet@dhis2.org
  */
-
-public interface PdfDataEntryFormService
+public abstract class PdfDocument<T extends IdentifiableObject>
 {
-    void generatePDFDataEntryForm( Document document, PdfWriter writer, String inputUid, int typeId,
-        Rectangle pageSize, PdfFormFontSettings pdfFormFontSettings, I18nFormat format );
+    protected PdfDataEntrySettings settings;
 
+    protected Document document;
+
+    protected PdfTable mainTable;
+
+    public PdfDocument( Document document, PdfDataEntrySettings settings )
+    {
+        Objects.requireNonNull( settings );
+        Objects.requireNonNull( document );
+        this.settings = settings;
+        this.document = document;
+
+        init();
+    }
+
+    protected void init()
+    {
+        setFooterOnDocument();
+        document.setPageSize( settings.getDefaultPageSize() );
+        mainTable = createMainTable();
+    }
+
+    abstract protected void write( PdfWriter writer, T object )
+        throws DocumentException,
+        IOException;
+
+    abstract protected void setTitle( T object )
+        throws DocumentException;
+
+    // --------------------------------------------------------------------
+    // Helpers
+    // --------------------------------------------------------------------
+
+    protected PdfTable createMainTable()
+    {
+        return new PdfTable( 1, Element.ALIGN_LEFT );
+    }
+
+    private void setFooterOnDocument()
+    {
+        HeaderFooter footer = new HeaderFooter( new Phrase( settings.getFooter(),
+            settings.getFont( PdfFormFontSettings.FONTTYPE_FOOTER ) ), true );
+        footer.setBorder( Rectangle.NO_BORDER );
+        footer.setAlignment( Element.ALIGN_RIGHT );
+        document.setFooter( footer );
+    }
 }

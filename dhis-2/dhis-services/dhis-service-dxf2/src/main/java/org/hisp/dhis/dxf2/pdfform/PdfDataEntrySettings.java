@@ -29,17 +29,63 @@ package org.hisp.dhis.dxf2.pdfform;
 
 import org.hisp.dhis.i18n.I18nFormat;
 
-import com.lowagie.text.Document;
+import com.lowagie.text.Font;
+import com.lowagie.text.PageSize;
 import com.lowagie.text.Rectangle;
-import com.lowagie.text.pdf.PdfWriter;
 
 /**
- * @author James Chang
+ * @author viet@dhis2.org
  */
-
-public interface PdfDataEntryFormService
+public class PdfDataEntrySettings
 {
-    void generatePDFDataEntryForm( Document document, PdfWriter writer, String inputUid, int typeId,
-        Rectangle pageSize, PdfFormFontSettings pdfFormFontSettings, I18nFormat format );
+    public String FOOTERTEXT_DEFAULT = "PDF Template [v 1.00] generated from DHIS %s on %s";
 
+    public static final int PERIODRANGE_PREVYEARS = 1;
+
+    public static final int PERIODRANGE_FUTUREYEARS = 2;
+
+    public static final int PERIODRANGE_PREVYEARS_YEARLY = 5;
+
+    public static final int PERIODRANGE_FUTUREYEARS_YEARLY = 6;
+
+    private String serverName;
+
+    private I18nFormat format;
+
+    private PdfFormFontSettings fontSettings = new PdfFormFontSettings();
+
+    // ----------------------------------------------------------------------------------------
+    // Getters & Setters
+    // ----------------------------------------------------------------------------------------
+
+    public Font getFont( int fontType )
+    {
+        return fontSettings.getFont( fontType );
+    }
+
+    public String getFooter()
+    {
+        return String.format( FOOTERTEXT_DEFAULT, serverName,
+            fontSettings.getFont( PdfFormFontSettings.FONTTYPE_FOOTER ) );
+    }
+
+    public void setServerName( String serverName )
+    {
+        this.serverName = serverName;
+    }
+
+    public Rectangle getDefaultPageSize()
+    {
+        return PageSize.A4;
+    }
+
+    public void setI18nFormat( I18nFormat format )
+    {
+        this.format = format;
+    }
+
+    public I18nFormat getFormat()
+    {
+        return this.format;
+    }
 }

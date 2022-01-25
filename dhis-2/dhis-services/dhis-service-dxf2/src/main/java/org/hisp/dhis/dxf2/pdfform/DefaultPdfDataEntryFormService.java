@@ -29,8 +29,6 @@ package org.hisp.dhis.dxf2.pdfform;
 
 import java.awt.*;
 import java.io.IOException;
-import java.text.ParseException;
-import java.util.Calendar;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -49,17 +47,7 @@ import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.option.OptionSet;
-import org.hisp.dhis.period.CalendarPeriodType;
-import org.hisp.dhis.period.FinancialAprilPeriodType;
-import org.hisp.dhis.period.FinancialJulyPeriodType;
-import org.hisp.dhis.period.FinancialOctoberPeriodType;
-import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.period.QuarterlyPeriodType;
-import org.hisp.dhis.period.SixMonthlyAprilPeriodType;
-import org.hisp.dhis.period.SixMonthlyPeriodType;
-import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.ProgramStageService;
@@ -104,14 +92,6 @@ public class DefaultPdfDataEntryFormService
     private static final int TEXTBOXWIDTH_NUMBERTYPE = 35;
 
     private static final int TEXTBOXWIDTH = 160;
-
-    private static final int PERIODRANGE_PREVYEARS = 1;
-
-    private static final int PERIODRANGE_FUTUREYEARS = 2;
-
-    private static final int PERIODRANGE_PREVYEARS_YEARLY = 5;
-
-    private static final int PERIODRANGE_FUTUREYEARS_YEARLY = 6;
 
     private static final Integer MAX_OPTIONS_DISPLAYED = 30;
 
@@ -163,7 +143,8 @@ public class DefaultPdfDataEntryFormService
             }
             else if ( typeId == PdfDataEntryFormUtil.DATATYPE_PROGRAMSTAGE )
             {
-                setProgramStage_DocumentContent( document, writer, dataSetUid );
+                // setProgramStage_DocumentContent( document, writer, dataSetUid
+                // );
             }
         }
         catch ( Exception ex )
@@ -190,12 +171,12 @@ public class DefaultPdfDataEntryFormService
 
         document.add( Chunk.NEWLINE );
 
-        List<Period> periods = getPeriods_DataSet( dataSet.getPeriodType() );
+        // List<Period> periods = getPeriods_DataSet( dataSet.getPeriodType() );
 
         PdfPTable mainTable = new PdfPTable( 1 ); // Table with 1 cell.
         setMainTable( mainTable );
 
-        insertTable_OrgAndPeriod( mainTable, writer, periods );
+        // insertTable_OrgAndPeriod( mainTable, writer, periods );
 
         insertAttributeOptionCombos( mainTable, writer, dataSet, currentUserService.getCurrentUser() );
 
@@ -219,14 +200,6 @@ public class DefaultPdfDataEntryFormService
 
         document.add( new Paragraph( dataSet.getDisplayDescription(), pdfFormFontSettings
             .getFont( PdfFormFontSettings.FONTTYPE_DESCRIPTION ) ) );
-    }
-
-    private List<Period> getPeriods_DataSet( PeriodType periodType )
-        throws ParseException
-    {
-        Period period = setPeriodDateRange( periodType );
-
-        return ((CalendarPeriodType) periodType).generatePeriods( period.getStartDate(), period.getEndDate() );
     }
 
     private void setMainTable( PdfPTable mainTable )
@@ -339,42 +312,47 @@ public class DefaultPdfDataEntryFormService
         mainTable.addCell( cell_withInnerTable );
     }
 
-    private void setProgramStage_DocumentContent( Document document, PdfWriter writer, String programStageUid )
-        throws Exception
-    {
-        ProgramStage programStage = programStageService.getProgramStage( programStageUid );
-
-        if ( programStage == null )
-        {
-            throw new RuntimeException( "Error - ProgramStage not found for UID " + programStageUid );
-        }
-        else
-        {
-            // Get Rectangle with TextBox Width to be used
-            Rectangle rectangle = new Rectangle( 0, 0, TEXTBOXWIDTH, PdfDataEntryFormUtil.CONTENT_HEIGHT_DEFAULT );
-
-            // Create Main Layout table and set the properties
-            PdfPTable mainTable = getProgramStageMainTable();
-
-            // Generate Period List for ProgramStage
-            List<Period> periods = getProgramStagePeriodList();
-
-            // Add Org Unit, Period, Hidden ProgramStageID Field
-            insertTable_OrgAndPeriod( mainTable, writer, periods );
-
-            insertTable_TextRow( writer, mainTable, TEXT_BLANK );
-
-            // Add ProgramStage Field - programStage.getId();
-            insertTable_HiddenValue( mainTable, rectangle, writer,
-                PdfDataEntryFormUtil.LABELCODE_PROGRAMSTAGEIDTEXTBOX, String.valueOf( programStage.getId() ) );
-
-            // Add ProgramStage Content to PDF - [The Main Section]
-            insertTable_ProgramStage( mainTable, writer, programStage );
-
-            // Add the mainTable to document
-            document.add( mainTable );
-        }
-    }
+    // private void setProgramStage_DocumentContent( Document document,
+    // PdfWriter writer, String programStageUid )
+    // throws Exception
+    // {
+    // ProgramStage programStage = programStageService.getProgramStage(
+    // programStageUid );
+    //
+    // if ( programStage == null )
+    // {
+    // throw new RuntimeException( "Error - ProgramStage not found for UID " +
+    // programStageUid );
+    // }
+    // else
+    // {
+    // // Get Rectangle with TextBox Width to be used
+    // Rectangle rectangle = new Rectangle( 0, 0, TEXTBOXWIDTH,
+    // PdfDataEntryFormUtil.CONTENT_HEIGHT_DEFAULT );
+    //
+    // // Create Main Layout table and set the properties
+    // PdfPTable mainTable = getProgramStageMainTable();
+    //
+    // // Generate Period List for ProgramStage
+    // List<Period> periods = getProgramStagePeriodList();
+    //
+    // // Add Org Unit, Period, Hidden ProgramStageID Field
+    // insertTable_OrgAndPeriod( mainTable, writer, periods );
+    //
+    // insertTable_TextRow( writer, mainTable, TEXT_BLANK );
+    //
+    // // Add ProgramStage Field - programStage.getId();
+    // insertTable_HiddenValue( mainTable, rectangle, writer,
+    // PdfDataEntryFormUtil.LABELCODE_PROGRAMSTAGEIDTEXTBOX, String.valueOf(
+    // programStage.getId() ) );
+    //
+    // // Add ProgramStage Content to PDF - [The Main Section]
+    // insertTable_ProgramStage( mainTable, writer, programStage );
+    //
+    // // Add the mainTable to document
+    // document.add( mainTable );
+    // }
+    // }
 
     private void insertTable_ProgramStage( PdfPTable mainTable, PdfWriter writer, ProgramStage programStage )
         throws IOException,
@@ -505,15 +483,17 @@ public class DefaultPdfDataEntryFormService
 
     }
 
-    private List<Period> getProgramStagePeriodList()
-        throws ParseException
-    {
-        PeriodType periodType = PeriodType.getPeriodTypeByName( MonthlyPeriodType.NAME );
-
-        Period period = setPeriodDateRange( periodType );
-
-        return ((CalendarPeriodType) periodType).generatePeriods( period.getStartDate(), period.getEndDate() );
-    }
+    // private List<Period> getProgramStagePeriodList()
+    // throws ParseException
+    // {
+    // PeriodType periodType = PeriodType.getPeriodTypeByName(
+    // MonthlyPeriodType.NAME );
+    //
+    // Period period = setPeriodDateRange( periodType );
+    //
+    // return ((CalendarPeriodType) periodType).generatePeriods(
+    // period.getStartDate(), period.getEndDate() );
+    // }
 
     private PdfPTable getProgramStageMainTable()
     {
@@ -872,34 +852,36 @@ public class DefaultPdfDataEntryFormService
         return periodTitles;
     }
 
-    private Period setPeriodDateRange( PeriodType periodType )
-        throws ParseException
-    {
-        Period period = new Period();
-
-        Calendar currentDate = Calendar.getInstance();
-
-        int currYear = currentDate.get( Calendar.YEAR );
-        int startYear = currYear - PERIODRANGE_PREVYEARS;
-        int endYear = currYear + PERIODRANGE_FUTUREYEARS;
-
-        if ( periodType.getName().equals( QuarterlyPeriodType.NAME )
-            || periodType.getName().equals( SixMonthlyPeriodType.NAME )
-            || periodType.getName().equals( SixMonthlyAprilPeriodType.NAME )
-            || periodType.getName().equals( YearlyPeriodType.NAME )
-            || periodType.getName().equals( FinancialAprilPeriodType.NAME )
-            || periodType.getName().equals( FinancialJulyPeriodType.NAME )
-            || periodType.getName().equals( FinancialOctoberPeriodType.NAME ) )
-        {
-            startYear = currYear - PERIODRANGE_PREVYEARS_YEARLY;
-            endYear = currYear + PERIODRANGE_FUTUREYEARS_YEARLY;
-        }
-
-        period.setStartDate( DateUtils.getMediumDate( String.valueOf( startYear ) + "-01-01" ) );
-        period.setEndDate( DateUtils.getMediumDate( String.valueOf( endYear ) + "-01-01" ) );
-
-        return period;
-    }
+    // private Period setPeriodDateRange( PeriodType periodType )
+    // throws ParseException
+    // {
+    // Period period = new Period();
+    //
+    // Calendar currentDate = Calendar.getInstance();
+    //
+    // int currYear = currentDate.get( Calendar.YEAR );
+    // int startYear = currYear - PERIODRANGE_PREVYEARS;
+    // int endYear = currYear + PERIODRANGE_FUTUREYEARS;
+    //
+    // if ( periodType.getName().equals( QuarterlyPeriodType.NAME )
+    // || periodType.getName().equals( SixMonthlyPeriodType.NAME )
+    // || periodType.getName().equals( SixMonthlyAprilPeriodType.NAME )
+    // || periodType.getName().equals( YearlyPeriodType.NAME )
+    // || periodType.getName().equals( FinancialAprilPeriodType.NAME )
+    // || periodType.getName().equals( FinancialJulyPeriodType.NAME )
+    // || periodType.getName().equals( FinancialOctoberPeriodType.NAME ) )
+    // {
+    // startYear = currYear - PERIODRANGE_PREVYEARS_YEARLY;
+    // endYear = currYear + PERIODRANGE_FUTUREYEARS_YEARLY;
+    // }
+    //
+    // period.setStartDate( DateUtils.getMediumDate( String.valueOf( startYear )
+    // + "-01-01" ) );
+    // period.setEndDate( DateUtils.getMediumDate( String.valueOf( endYear ) +
+    // "-01-01" ) );
+    //
+    // return period;
+    // }
 
     private void setCheckboxAppearance( PdfFormField checkboxfield, PdfContentByte canvas, float width )
     {

@@ -27,21 +27,52 @@
  */
 package org.hisp.dhis.dxf2.pdfform;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.ByteArrayOutputStream;
 
-import lombok.Builder;
-import lombok.Getter;
+import lombok.AllArgsConstructor;
+
+import org.hisp.dhis.dataset.DataSet;
+import org.springframework.stereotype.Service;
+
+import com.lowagie.text.Document;
+import com.lowagie.text.pdf.PdfWriter;
 
 /**
  * @author viet@dhis2.org
  */
-@Builder
-@Getter
-public class PdfSelect
+@Service
+@AllArgsConstructor
+public class PdfDataEntryFormGenerator
 {
-    private String label;
+    /**
+     * Generate data entry form for given DataSet.
+     *
+     * @param object DataSet or ProgramStage to be used for generating PDF data
+     *        entry form.
+     * @param settings {@link PdfDataEntrySettings}
+     * @return
+     */
+    public ByteArrayOutputStream generateDataEntry( DataSet object, PdfDataEntrySettings settings )
+    {
+        Document document = new Document();
 
-    private List<String> options = new ArrayList<>();
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
+        try
+        {
+            document.open();
+            PdfDocument pdfDocument = new DataSetPdfDocument( document, settings );
+            pdfDocument.write( PdfWriter.getInstance( document, baos ), object );
+        }
+        catch ( Exception ex )
+        {
+            throw new RuntimeException( ex );
+        }
+        finally
+        {
+            document.close();
+        }
+
+        return baos;
+    }
 }
