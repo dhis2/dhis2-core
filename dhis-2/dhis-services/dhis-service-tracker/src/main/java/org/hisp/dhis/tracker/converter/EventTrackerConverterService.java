@@ -60,7 +60,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 
-import com.google.api.client.util.Lists;
 import com.google.api.client.util.Objects;
 
 /**
@@ -182,20 +181,22 @@ public class EventTrackerConverterService
 
     private List<EventDataValue> getProgramStageInstanceDataValues( TrackerPreheat preheat, Event event )
     {
-        List<EventDataValue> eventDataValues = Lists.newArrayList();
+        List<EventDataValue> eventDataValues = new ArrayList<>();
         ProgramStageInstance programStageInstance = preheat.getEvent( TrackerIdScheme.UID, event.getEvent() );
-        if ( programStageInstance != null )
+        if ( programStageInstance == null )
         {
-            Set<String> dataElements = event.getDataValues()
-                .stream()
-                .map( DataValue::getDataElement )
-                .collect( Collectors.toSet() );
-            for ( EventDataValue eventDataValue : programStageInstance.getEventDataValues() )
+            return eventDataValues;
+        }
+
+        Set<String> dataElements = event.getDataValues()
+            .stream()
+            .map( DataValue::getDataElement )
+            .collect( Collectors.toSet() );
+        for ( EventDataValue eventDataValue : programStageInstance.getEventDataValues() )
+        {
+            if ( !dataElements.contains( eventDataValue.getDataElement() ) )
             {
-                if ( !dataElements.contains( eventDataValue.getDataElement() ) )
-                {
-                    eventDataValues.add( eventDataValue );
-                }
+                eventDataValues.add( eventDataValue );
             }
         }
         return eventDataValues;
