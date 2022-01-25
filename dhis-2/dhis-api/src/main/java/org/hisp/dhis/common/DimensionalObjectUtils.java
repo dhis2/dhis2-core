@@ -83,8 +83,8 @@ public class DimensionalObjectUtils
     private static final ImmutableSet<QueryOperator> IGNORE_OPERATOR_SET = ImmutableSet.<QueryOperator> builder()
         .add( QueryOperator.LIKE )
         .add( QueryOperator.IN )
-        .add( QueryOperator.STARTS )
-        .add( QueryOperator.ENDS )
+        .add( QueryOperator.SW )
+        .add( QueryOperator.EW )
         .build();
 
     public static List<DimensionalObject> getCopies( List<DimensionalObject> dimensions )
