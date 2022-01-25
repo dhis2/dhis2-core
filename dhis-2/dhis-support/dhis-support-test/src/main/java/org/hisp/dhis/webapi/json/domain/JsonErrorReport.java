@@ -30,7 +30,7 @@ package org.hisp.dhis.webapi.json.domain;
 import java.util.List;
 
 import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.webapi.json.JsonObject;
+import org.hisp.dhis.jsontree.JsonObject;
 
 /**
  * Web API equivalent of a {@link org.hisp.dhis.feedback.ErrorReport}.

@@ -30,25 +30,13 @@ package org.hisp.dhis.dxf2.metadata;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-import org.hisp.dhis.attribute.Attribute;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.SetMap;
-import org.hisp.dhis.fieldfilter.FieldFilterParams;
-import org.hisp.dhis.fieldfilter.FieldFilterService;
-import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.option.Option;
-import org.hisp.dhis.programrule.ProgramRuleService;
-import org.hisp.dhis.programrule.ProgramRuleVariableService;
-import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.system.SystemService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -56,7 +44,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.stubbing.Answer;
 
 /**
  * Unit tests for {@link DefaultMetadataExportService}.
@@ -69,75 +56,8 @@ class DefaultMetadataExportServiceTest
     @Mock
     private SchemaService schemaService;
 
-    @Mock
-    private QueryService queryService;
-
-    @Mock
-    private FieldFilterService fieldFilterService;
-
-    @Mock
-    private CurrentUserService currentUserService;
-
-    @Mock
-    private ProgramRuleService programRuleService;
-
-    @Mock
-    private ProgramRuleVariableService programRuleVariableService;
-
-    @Mock
-    private SystemService systemService;
-
     @InjectMocks
     private DefaultMetadataExportService service;
-
-    @Test
-    void getMetadataWithDependenciesAsNodeSharing()
-    {
-        Attribute attribute = new Attribute();
-        SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata = new SetMap<>();
-        metadata.put( Attribute.class, new HashSet<>() );
-
-        service = Mockito.spy( service );
-        Mockito.when( service.getMetadataWithDependencies( Mockito.eq( attribute ) ) ).thenReturn( metadata );
-
-        Mockito.when( fieldFilterService.toCollectionNode( Mockito.eq( Attribute.class ), Mockito.any() ) )
-            .then( (Answer<CollectionNode>) invocation -> {
-                FieldFilterParams fieldFilterParams = invocation.getArgument( 1 );
-                Assertions.assertFalse( fieldFilterParams.getSkipSharing() );
-                return new CollectionNode( "test" );
-            } );
-
-        MetadataExportParams params = new MetadataExportParams();
-        service.getMetadataWithDependenciesAsNode( attribute, params );
-
-        Mockito.verify( fieldFilterService, Mockito.only() ).toCollectionNode( Mockito.eq( Attribute.class ),
-            Mockito.any() );
-    }
-
-    @Test
-    void getMetadataWithDependenciesAsNodeSkipSharing()
-    {
-        Attribute attribute = new Attribute();
-        SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata = new SetMap<>();
-        metadata.put( Attribute.class, new HashSet<>() );
-
-        service = Mockito.spy( service );
-        Mockito.when( service.getMetadataWithDependencies( Mockito.eq( attribute ) ) ).thenReturn( metadata );
-
-        Mockito.when( fieldFilterService.toCollectionNode( Mockito.eq( Attribute.class ), Mockito.any() ) )
-            .then( (Answer<CollectionNode>) invocation -> {
-                FieldFilterParams fieldFilterParams = invocation.getArgument( 1 );
-                Assertions.assertTrue( fieldFilterParams.getSkipSharing() );
-                return new CollectionNode( "test" );
-            } );
-
-        MetadataExportParams params = new MetadataExportParams();
-        params.setSkipSharing( true );
-        service.getMetadataWithDependenciesAsNode( attribute, params );
-
-        Mockito.verify( fieldFilterService, Mockito.only() ).toCollectionNode( Mockito.eq( Attribute.class ),
-            Mockito.any() );
-    }
 
     @Test
     void getParamsFromMapIncludedSecondary()

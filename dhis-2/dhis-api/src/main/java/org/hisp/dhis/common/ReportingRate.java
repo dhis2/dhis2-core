@@ -127,7 +127,7 @@ public class ReportingRate
     @JsonProperty
     @JsonSerialize( as = BaseNameableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Property( value = PropertyType.REFERENCE, required = Property.Value.TRUE )
+    @Property( value = PropertyType.REFERENCE, required = Property.Value.TRUE, owner = Property.Value.TRUE )
     public DataSet getDataSet()
     {
         return dataSet;
@@ -140,7 +140,7 @@ public class ReportingRate
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Property( value = PropertyType.CONSTANT, required = Property.Value.TRUE )
+    @Property( value = PropertyType.CONSTANT, required = Property.Value.TRUE, owner = Property.Value.TRUE )
     public ReportingRateMetric getMetric()
     {
         return metric;

@@ -29,9 +29,9 @@ package org.hisp.dhis.webapi.json.domain;
 
 import java.util.List;
 
+import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.jsontree.JsonURL;
 import org.hisp.dhis.schema.PropertyType;
-import org.hisp.dhis.webapi.json.JsonObject;
-import org.hisp.dhis.webapi.json.JsonURL;
 
 /**
  * Web API equivalent of a {@link org.hisp.dhis.schema.Property}.

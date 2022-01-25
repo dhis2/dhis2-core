@@ -29,7 +29,7 @@ package org.hisp.dhis.webapi.json.domain;
 
 import java.time.LocalDateTime;
 
-import org.hisp.dhis.webapi.json.JsonDate;
+import org.hisp.dhis.jsontree.JsonDate;
 
 /**
  * Web API equivalent of a {@link org.hisp.dhis.user.UserCredentials}.
