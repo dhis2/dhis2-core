@@ -223,6 +223,11 @@ public final class DatastoreQuery
                 ? path + ":" + operator
                 : path + ":" + operator + ":" + value;
         }
+
+        public boolean isNullValue()
+        {
+            return "null".equals( value );
+        }
     }
 
     public enum Comparison

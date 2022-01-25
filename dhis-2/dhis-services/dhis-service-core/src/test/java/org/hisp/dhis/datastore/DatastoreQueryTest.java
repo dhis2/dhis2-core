@@ -43,7 +43,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class KeyJsonValueQueryTest
+class DatastoreQueryTest
 {
 
     @Test

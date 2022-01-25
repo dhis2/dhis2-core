@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.webapi.utils.JavaToJson.toJson;
+import static org.hisp.dhis.utils.JavaToJson.toJson;
 
 import java.util.List;
 

@@ -48,7 +48,7 @@ class DatastoreEntryStoreTest extends DhisSpringTest
     @Test
     void testAddKeyJsonValue()
     {
-        DatastoreEntry entry = addKeyJsonValue( "A", "1" );
+        DatastoreEntry entry = addEntry( "A", "1" );
         assertNotNull( entry );
         assertEquals( entry, store.get( entry.getId() ) );
     }
@@ -56,34 +56,34 @@ class DatastoreEntryStoreTest extends DhisSpringTest
     @Test
     void testAddKeyJsonValuesAndGetNamespaces()
     {
-        addKeyJsonValue( "A", "1" );
-        addKeyJsonValue( "B", "1" );
+        addEntry( "A", "1" );
+        addEntry( "B", "1" );
         assertContainsOnly( store.getNamespaces(), "A", "B" );
     }
 
     @Test
     void testAddKeyJsonValuesAndGetKeysFromNamespace()
     {
-        addKeyJsonValue( "A", "1" );
-        addKeyJsonValue( "A", "2" );
-        addKeyJsonValue( "B", "1" );
+        addEntry( "A", "1" );
+        addEntry( "A", "2" );
+        addEntry( "B", "1" );
         assertContainsOnly( store.getKeysInNamespace( "A" ), "1", "2" );
     }
 
     @Test
     void testAddKeyJsonValueAndGetKeyJsonValue()
     {
-        DatastoreEntry entryA = addKeyJsonValue( "A", "1" );
+        DatastoreEntry entryA = addEntry( "A", "1" );
         assertEquals( store.getEntry( "A", "1" ), entryA );
     }
 
     @Test
     void testGetKeyJsonValuesByNamespace()
     {
-        DatastoreEntry entryA1 = addKeyJsonValue( "A", "1" );
-        DatastoreEntry entryA2 = addKeyJsonValue( "A", "2" );
-        DatastoreEntry entryA3 = addKeyJsonValue( "A", "3" );
-        DatastoreEntry entryB1 = addKeyJsonValue( "B", "1" );
+        DatastoreEntry entryA1 = addEntry( "A", "1" );
+        DatastoreEntry entryA2 = addEntry( "A", "2" );
+        DatastoreEntry entryA3 = addEntry( "A", "3" );
+        DatastoreEntry entryB1 = addEntry( "B", "1" );
         assertContainsOnly( store.getEntryByNamespace( "A" ), entryA1, entryA2, entryA3 );
         assertFalse( store.getEntryByNamespace( "A" ).contains( entryB1 ) );
     }
@@ -91,10 +91,10 @@ class DatastoreEntryStoreTest extends DhisSpringTest
     @Test
     void testCountKeysInNamespace()
     {
-        addKeyJsonValue( "A", "1" );
-        addKeyJsonValue( "A", "2" );
-        addKeyJsonValue( "A", "3" );
-        addKeyJsonValue( "B", "1" );
+        addEntry( "A", "1" );
+        addEntry( "A", "2" );
+        addEntry( "A", "3" );
+        addEntry( "B", "1" );
         assertEquals( 3, store.countKeysInNamespace( "A" ) );
         assertEquals( 1, store.countKeysInNamespace( "B" ) );
         assertEquals( 0, store.countKeysInNamespace( "C" ) );
@@ -103,23 +103,19 @@ class DatastoreEntryStoreTest extends DhisSpringTest
     @Test
     void deleteNamespace()
     {
-        addKeyJsonValue( "A", "1" );
-        addKeyJsonValue( "A", "3" );
-        addKeyJsonValue( "B", "1" );
-        addKeyJsonValue( "C", "1" );
+        addEntry( "A", "1" );
+        addEntry( "A", "3" );
+        addEntry( "B", "1" );
+        addEntry( "C", "1" );
         store.deleteNamespace( "A" );
         assertContainsOnly( store.getNamespaces(), "B", "C" );
     }
 
-    private DatastoreEntry addKeyJsonValue( String ns, String key )
+    private DatastoreEntry addEntry( String ns, String key )
     {
-        DatastoreEntry entry = createKeyJsonValue( ns, key );
+        DatastoreEntry entry = new DatastoreEntry( ns, key );
         store.save( entry );
         return entry;
     }
 
-    private static DatastoreEntry createKeyJsonValue( String ns, String key )
-    {
-        return new DatastoreEntry( ns, key );
-    }
 }

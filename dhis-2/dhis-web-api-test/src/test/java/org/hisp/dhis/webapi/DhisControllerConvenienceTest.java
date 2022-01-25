@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi;
 
-import static org.hisp.dhis.webapi.utils.JavaToJson.singleToDoubleQuotes;
+import static org.hisp.dhis.utils.JavaToJson.singleToDoubleQuotes;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.failOnException;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;

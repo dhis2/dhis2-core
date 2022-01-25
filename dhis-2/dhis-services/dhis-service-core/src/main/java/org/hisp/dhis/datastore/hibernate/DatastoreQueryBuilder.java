@@ -77,7 +77,7 @@ public class DatastoreQueryBuilder
         int i = 0;
         for ( Filter f : query.getFilters() )
         {
-            if ( !f.getOperator().isUnary() )
+            if ( !f.getOperator().isUnary() && !f.isNullValue() )
             {
                 setParameter.accept( "f_" + i, toTypedFilterArgument( f ) );
             }
@@ -153,7 +153,9 @@ public class DatastoreQueryBuilder
         case NOT_IN:
             return createInFilterHQL( filter, id );
         default:
-            return createBinaryFilterHQL( filter, id );
+            return filter.isNullValue()
+                ? createNullnessFilterHQL( filter )
+                : createBinaryFilterHQL( filter, id );
         }
     }
 
@@ -206,7 +208,7 @@ public class DatastoreQueryBuilder
     private static String createEmptinessFilterHQL( Filter filter )
     {
         String prop = toValueAtPathHQL( filter.getPath() );
-        return format( "(jsonb_typeof(%1$s) = 'string' and %3$s %2$s '\"\"')"
+        return format( "(jsonb_typeof(%1$s) = 'string' and %3$s %2$s '')"
             + " or (jsonb_typeof(%1$s) = 'array' and jsonb_array_length(%1$s) %2$s 0)"
             + " or (jsonb_typeof(%1$s) = 'object' and %1$s %2$s jsonb_object('{}'))",
             prop, filter.getOperator() == Comparison.EMPTY ? "=" : "!=", toValueAtPathAsTextHQL( prop ) );
@@ -316,6 +318,11 @@ public class DatastoreQueryBuilder
         return cmp.isTextBased() && cmp != Comparison.IEQ ? str.replace( '*', '%' ) : str;
     }
 
+    /**
+     * @param path path to extract
+     * @return the expression to use to get the JSONB or key value at the
+     *         provided path
+     */
     private static String toValueAtPathHQL( String path )
     {
         if ( ".".equals( path ) )
@@ -329,13 +336,26 @@ public class DatastoreQueryBuilder
         return "jsonb_extract_path(jbPlainValue, " + toPathSegments( path ) + " )";
     }
 
+    /**
+     * @param prop the path property as returned by
+     *        {@link #toValueAtPathHQL(String)}
+     * @return the expression to use to get the text value of the JSONB node or
+     *         key value at the provided path.
+     */
     private static String toValueAtPathAsTextHQL( String prop )
     {
         return "jbPlainValue".equals( prop )
-            ? "cast(jbPlainValue as text)"
+            // a string node as " quotes in text form which we have to strip
+            ? "trim(both '\"' from cast(jbPlainValue as text))"
             : prop.replace( "jsonb_extract_path(", "jsonb_extract_path_text(" );
     }
 
+    /**
+     * <pre>
+     *     a => 'a'
+     * a.b.c => 'a','b','c'
+     * </pre>
+     */
     private static String toPathSegments( String path )
     {
         return Arrays.stream( path.split( "\\." ) )

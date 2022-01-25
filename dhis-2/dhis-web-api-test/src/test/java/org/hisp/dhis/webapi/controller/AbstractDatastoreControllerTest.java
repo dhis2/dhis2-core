@@ -27,12 +27,13 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.webapi.utils.JavaToJson.toJson;
+import static org.hisp.dhis.utils.JavaToJson.toJson;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
 
 import java.util.List;
 import java.util.Map;
 
+import org.hisp.dhis.utils.JavaToJson;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.springframework.http.HttpStatus;
 
@@ -51,7 +52,7 @@ abstract class AbstractDatastoreControllerTest extends DhisControllerConvenience
      * @param ns namespace
      * @param key key of the entry
      * @param value value of the entry, valid JSON - consider using
-     *        {@link org.hisp.dhis.webapi.utils.JavaToJson#toJson(Object)}
+     *        {@link JavaToJson#toJson(Object)}
      */
     final void postEntry( String ns, String key, String value )
     {
