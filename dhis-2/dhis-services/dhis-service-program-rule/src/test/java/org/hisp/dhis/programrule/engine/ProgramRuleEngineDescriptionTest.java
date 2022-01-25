@@ -80,8 +80,6 @@ class ProgramRuleEngineDescriptionTest extends DhisSpringTest
 
     private String conditionWithD2DaysBetween = "d2:daysBetween(V{completed_date},V{current_date}) > 0";
 
-    private String conditionWithCalculatedValueRuleVariables = "#{prv1}+#{prv2}>0";
-
     private DataElement textDataElement;
 
     private DataElement numericDataElement;
@@ -211,7 +209,8 @@ class ProgramRuleEngineDescriptionTest extends DhisSpringTest
     @Test
     void testProgramRuleWithCalculatedValueRuleVariable()
     {
-        RuleValidationResult result = validateRuleCondition( conditionWithCalculatedValueRuleVariables, program );
+        RuleValidationResult result = validateRuleCondition( "#{prv1}+#{prv2}>0", program );
+
         assertNotNull( result );
         assertEquals( "prv1+prv2>0", result.getDescription() );
         assertTrue( result.isValid() );
