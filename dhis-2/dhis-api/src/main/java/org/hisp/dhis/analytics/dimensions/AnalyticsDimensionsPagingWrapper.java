@@ -25,30 +25,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.json.domain;
+package org.hisp.dhis.analytics.dimensions;
 
-import org.hisp.dhis.datastore.DatastoreEntry;
-import org.hisp.dhis.webapi.json.JsonValue;
+import java.util.ArrayList;
+import java.util.List;
 
-/**
- * Web API equivalent of a {@link DatastoreEntry}.
- *
- * @author Jan Bernitt
- */
-public interface JsonKeyJsonValue extends JsonIdentifiableObject
+import lombok.Data;
+
+import org.hisp.dhis.common.Pager;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+@Data
+public class AnalyticsDimensionsPagingWrapper<T>
 {
-    default String getNamespace()
-    {
-        return getString( "namespace" ).string();
-    }
+    @JsonProperty
+    private List<T> dimensions = new ArrayList<>();
 
-    default String getKey()
-    {
-        return getString( "key" ).string();
-    }
-
-    default JsonValue getValue()
-    {
-        return get( "value" );
-    }
+    @JsonProperty
+    private Pager pager;
 }

@@ -30,9 +30,9 @@ package org.hisp.dhis.webapi.json.domain;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import org.hisp.dhis.webapi.json.JsonDate;
-import org.hisp.dhis.webapi.json.JsonList;
-import org.hisp.dhis.webapi.json.JsonObject;
+import org.hisp.dhis.jsontree.JsonDate;
+import org.hisp.dhis.jsontree.JsonList;
+import org.hisp.dhis.jsontree.JsonObject;
 
 /**
  * Web API equivalent of a {@link org.hisp.dhis.common.BaseIdentifiableObject}.

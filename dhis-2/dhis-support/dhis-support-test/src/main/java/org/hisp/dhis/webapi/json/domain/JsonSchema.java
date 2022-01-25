@@ -29,10 +29,10 @@ package org.hisp.dhis.webapi.json.domain;
 
 import java.util.List;
 
+import org.hisp.dhis.jsontree.JsonList;
+import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.jsontree.JsonURL;
 import org.hisp.dhis.security.AuthorityType;
-import org.hisp.dhis.webapi.json.JsonList;
-import org.hisp.dhis.webapi.json.JsonObject;
-import org.hisp.dhis.webapi.json.JsonURL;
 
 /**
  * Web API equivalent of a {@code Schema} as returned by the {@code /schemas}

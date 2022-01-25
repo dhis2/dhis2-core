@@ -25,23 +25,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.json;
+package org.hisp.dhis.webapi.json.domain;
 
-import java.net.URL;
+import org.hisp.dhis.datastore.DatastoreEntry;
+import org.hisp.dhis.jsontree.JsonValue;
 
 /**
- * A {@link JsonURL} is a {@link JsonString} with a URL format.
- *
- * The {@link #url()} utility method allows to access the JSON string node as
- * {@link URL}.
+ * Web API equivalent of a {@link DatastoreEntry}.
  *
  * @author Jan Bernitt
  */
-public interface JsonURL extends JsonString
+public interface JsonDatastoreValue extends JsonIdentifiableObject
 {
-
-    default URL url()
+    default String getNamespace()
     {
-        return converted( () -> new URL( string() ) );
+        return getString( "namespace" ).string();
+    }
+
+    default String getKey()
+    {
+        return getString( "key" ).string();
+    }
+
+    default JsonValue getValue()
+    {
+        return get( "value" );
     }
 }

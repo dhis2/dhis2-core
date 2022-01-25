@@ -27,6 +27,17 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import org.hisp.dhis.datastore.DatastoreEntry;
+import org.hisp.dhis.datastore.DatastoreNamespaceProtection;
+import org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionType;
+import org.hisp.dhis.datastore.DatastoreService;
+import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.json.domain.JsonDatastoreValue;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatus.Series;
+
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
@@ -38,17 +49,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import org.hisp.dhis.datastore.DatastoreEntry;
-import org.hisp.dhis.datastore.DatastoreNamespaceProtection;
-import org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionType;
-import org.hisp.dhis.datastore.DatastoreService;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.hisp.dhis.webapi.json.domain.JsonKeyJsonValue;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatus.Series;
 
 /**
  * Tests the {@link DatastoreController} using (mocked) REST requests.
@@ -187,7 +187,7 @@ class DatastoreControllerTest extends DhisControllerConvenienceTest
     {
         setUpNamespaceProtectionWithSharing( "pets", ProtectionType.RESTRICTED, "pets-admin" );
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/pets/cat", "{}" ) );
-        String uid = GET( "/dataStore/pets/cat/metaData" ).content().as( JsonKeyJsonValue.class ).getId();
+        String uid = GET( "/dataStore/pets/cat/metaData" ).content().as( JsonDatastoreValue.class ).getId();
         assertStatus( HttpStatus.OK,
             POST( "/sharing?type=dataStore&id=" + uid, "{'object':{'publicAccess':'--------'}}" ) );
         switchToNewUser( "someone", "pets-admin" );
@@ -244,7 +244,7 @@ class DatastoreControllerTest extends DhisControllerConvenienceTest
     {
         setUpNamespaceProtectionWithSharing( "pets", ProtectionType.RESTRICTED, "pets-admin" );
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/pets/cat", "{}" ) );
-        String uid = GET( "/dataStore/pets/cat/metaData" ).content().as( JsonKeyJsonValue.class ).getId();
+        String uid = GET( "/dataStore/pets/cat/metaData" ).content().as( JsonDatastoreValue.class ).getId();
         assertStatus( HttpStatus.OK,
             POST( "/sharing?type=dataStore&id=" + uid, "{'object':{'publicAccess':'--------'}}" ) );
         switchToNewUser( "someone", "pets-admin" );
@@ -258,7 +258,7 @@ class DatastoreControllerTest extends DhisControllerConvenienceTest
     void testGetKeyJsonValueMetaData()
     {
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/pets/cat", "{}" ) );
-        JsonKeyJsonValue metaData = GET( "/dataStore/pets/cat/metaData" ).content().as( JsonKeyJsonValue.class );
+        JsonDatastoreValue metaData = GET( "/dataStore/pets/cat/metaData" ).content().as( JsonDatastoreValue.class );
         assertEquals( "pets", metaData.getNamespace() );
         assertEquals( "cat", metaData.getKey() );
         assertTrue( metaData.getValue().isUndefined(), "metadata should not contain the value" );
@@ -297,7 +297,7 @@ class DatastoreControllerTest extends DhisControllerConvenienceTest
     {
         setUpNamespaceProtectionWithSharing( "pets", ProtectionType.HIDDEN, "pets-admin" );
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/pets/cat", "{}" ) );
-        String uid = GET( "/dataStore/pets/cat/metaData" ).content().as( JsonKeyJsonValue.class ).getId();
+        String uid = GET( "/dataStore/pets/cat/metaData" ).content().as( JsonDatastoreValue.class ).getId();
         assertStatus( HttpStatus.OK,
             POST( "/sharing?type=dataStore&id=" + uid, "{'object':{'publicAccess':'--------'}}" ) );
         switchToNewUser( "someone", "pets-admin" );
@@ -410,7 +410,7 @@ class DatastoreControllerTest extends DhisControllerConvenienceTest
     {
         setUpNamespaceProtectionWithSharing( "pets", ProtectionType.HIDDEN, "pets-admin" );
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/pets/cat", "{}" ) );
-        String uid = GET( "/dataStore/pets/cat/metaData" ).content().as( JsonKeyJsonValue.class ).getId();
+        String uid = GET( "/dataStore/pets/cat/metaData" ).content().as( JsonDatastoreValue.class ).getId();
         assertStatus( HttpStatus.OK,
             POST( "/sharing?type=dataStore&id=" + uid, "{'object':{'publicAccess':'r-------'}}" ) );
         switchToNewUser( "someone", "pets-admin" );
@@ -463,7 +463,7 @@ class DatastoreControllerTest extends DhisControllerConvenienceTest
     {
         setUpNamespaceProtectionWithSharing( "pets", ProtectionType.HIDDEN, "pets-admin" );
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/pets/cat", "{}" ) );
-        String uid = GET( "/dataStore/pets/cat/metaData" ).content().as( JsonKeyJsonValue.class ).getId();
+        String uid = GET( "/dataStore/pets/cat/metaData" ).content().as( JsonDatastoreValue.class ).getId();
         assertStatus( HttpStatus.OK,
             POST( "/sharing?type=dataStore&id=" + uid, "{'object':{'publicAccess':'r-------'}}" ) );
         // a user with required authority cannot delete (ACL fails)

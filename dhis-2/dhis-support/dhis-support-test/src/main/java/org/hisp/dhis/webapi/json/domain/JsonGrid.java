@@ -28,10 +28,10 @@
 package org.hisp.dhis.webapi.json.domain;
 
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.webapi.json.JsonArray;
-import org.hisp.dhis.webapi.json.JsonList;
-import org.hisp.dhis.webapi.json.JsonMap;
-import org.hisp.dhis.webapi.json.JsonObject;
+import org.hisp.dhis.jsontree.JsonArray;
+import org.hisp.dhis.jsontree.JsonList;
+import org.hisp.dhis.jsontree.JsonMap;
+import org.hisp.dhis.jsontree.JsonObject;
 
 /**
  * Web API equivalent of a {@link org.hisp.dhis.common.Grid}.

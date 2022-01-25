@@ -38,10 +38,10 @@ import java.util.concurrent.Callable;
 import java.util.regex.Pattern;
 
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.jsontree.JsonList;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.webapi.WebClient.HttpResponse;
 import org.hisp.dhis.webapi.WebClient.RequestComponent;
-import org.hisp.dhis.webapi.json.JsonList;
-import org.hisp.dhis.webapi.json.JsonObject;
 import org.hisp.dhis.webapi.json.domain.JsonError;
 import org.hisp.dhis.webapi.json.domain.JsonErrorReport;
 import org.hisp.dhis.webapi.json.domain.JsonObjectReport;
