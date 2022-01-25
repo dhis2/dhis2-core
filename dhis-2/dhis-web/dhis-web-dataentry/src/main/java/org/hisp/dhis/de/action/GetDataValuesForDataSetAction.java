@@ -40,6 +40,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.dataapproval.DataApprovalService;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
@@ -126,6 +127,9 @@ public class GetDataValuesForDataSetAction
     @Autowired
     private InputUtils inputUtils;
 
+    @Autowired
+    private DataApprovalService dataApprovalService;
+
     // -------------------------------------------------------------------------
     // Input
     // -------------------------------------------------------------------------
@@ -200,6 +204,13 @@ public class GetDataValuesForDataSetAction
     public boolean isLocked()
     {
         return locked;
+    }
+
+    private boolean approved = false;
+
+    public boolean isApproved()
+    {
+        return approved;
     }
 
     private boolean complete = false;
@@ -335,8 +346,10 @@ public class GetDataValuesForDataSetAction
                 lastUpdatedBy = registration.getLastUpdatedBy();
             }
 
-            locked = dataSetService.isLocked( currentUser, dataSet, period, organisationUnit, attributeOptionCombo,
-                null );
+            locked = dataSetService.isLocked( currentUser, dataSet, period, organisationUnit, null );
+            approved = dataApprovalService.isApproved( dataSet.getWorkflow(), period, organisationUnit,
+                attributeOptionCombo );
+
         }
         else
         {
@@ -346,12 +359,21 @@ public class GetDataValuesForDataSetAction
 
             for ( OrganisationUnit ou : children )
             {
+
                 if ( ou.getDataSets().contains( dataSet ) )
                 {
-                    locked = dataSetService.isLocked( currentUser, dataSet, period, organisationUnit,
-                        attributeOptionCombo, null );
+                    if ( !locked )
+                    {
+                        locked = dataSetService.isLocked( currentUser, dataSet, period, ou, null );
+                    }
 
-                    if ( locked )
+                    if ( !approved )
+                    {
+                        approved = dataApprovalService.isApproved( dataSet.getWorkflow(), period, ou,
+                            attributeOptionCombo );
+                    }
+
+                    if ( locked && approved )
                     {
                         break;
                     }
