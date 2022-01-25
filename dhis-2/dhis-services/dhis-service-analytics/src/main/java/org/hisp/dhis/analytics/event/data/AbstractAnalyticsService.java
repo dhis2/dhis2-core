@@ -339,12 +339,20 @@ public abstract class AbstractAnalyticsService
 
         if ( !params.isSkipData() )
         {
+            // filtering if the rows in grid are there (skipData = false)
             itemOptions.forEach( option -> metadataItemMap.put( option.getUid(),
                 new MetadataItem( option.getDisplayName(), includeDetails ? option.getUid() : null,
                     option.getCode() ) ) );
         }
         else
         {
+            // filtering if the rows in grid are not there (skipData = true
+            // only)
+            // dimension=Zj7UnCAulEk.K6uUAvq500H:IN:A00;A60;A01 -> IN indicates
+            // there is a filter
+            // the stream contains all options if no filter or only options fit
+            // to the filter
+            // options can be divided by separator <<;>>
             params.getItemOptions().stream()
                 .filter( option -> option != null &&
                     (params.getItems().stream().noneMatch( QueryItem::hasFilter ) ||
