@@ -30,6 +30,7 @@ package org.hisp.dhis.predictor;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collection;
@@ -44,6 +45,7 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -351,5 +353,15 @@ class PredictorServiceTest extends DhisSpringTest
         assertEquals( 2, groups.size() );
         assertTrue( groups.contains( predictorGroupA ) );
         assertTrue( groups.contains( predictorGroupB ) );
+    }
+
+    @Test
+    void testCannotDeleteCategoryOptionComboUsedByPredictor()
+    {
+        setUpPredictorGroups();
+        DeleteNotAllowedException ex = assertThrows( DeleteNotAllowedException.class,
+            () -> categoryService.deleteCategoryOptionCombo( altCombo ) );
+        assertEquals( "Object could not be deleted because it is associated with another object: Predictor",
+            ex.getMessage() );
     }
 }
