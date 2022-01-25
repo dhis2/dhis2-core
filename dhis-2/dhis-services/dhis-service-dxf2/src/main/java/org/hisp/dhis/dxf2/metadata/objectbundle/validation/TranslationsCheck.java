@@ -27,9 +27,8 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
 
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -93,12 +92,13 @@ public class TranslationsCheck implements ObjectValidationCheck
             return;
         }
 
-        Map<String, String> mapPropertyLocale = new HashMap<>();
+        Set<String> setPropertyLocales = new HashSet<>();
 
         for ( Translation translation : translations )
         {
-            if ( mapPropertyLocale.containsKey( translation.getProperty() )
-                && mapPropertyLocale.get( translation.getProperty() ).equals( translation.getLocale() ) )
+            String key = String.join( "_", translation.getProperty(), translation.getLocale() );
+
+            if ( setPropertyLocales.contains( key ) )
             {
                 objectReport.addErrorReport(
                     new ErrorReport( Translation.class, ErrorCode.E1106, translation.getProperty(),
@@ -107,7 +107,7 @@ public class TranslationsCheck implements ObjectValidationCheck
             }
             else
             {
-                mapPropertyLocale.put( translation.getProperty(), translation.getLocale() );
+                setPropertyLocales.add( key );
             }
 
             if ( translation.getLocale() == null )
@@ -128,10 +128,11 @@ public class TranslationsCheck implements ObjectValidationCheck
                     new ErrorReport( Translation.class, ErrorCode.E4000, "value" ).setErrorKlass( klass ) );
             }
 
-            if ( objectReport.hasErrorReports() )
-            {
-                addReports.accept( objectReport );
-            }
+        }
+
+        if ( objectReport.hasErrorReports() )
+        {
+            addReports.accept( objectReport );
         }
     }
 }
