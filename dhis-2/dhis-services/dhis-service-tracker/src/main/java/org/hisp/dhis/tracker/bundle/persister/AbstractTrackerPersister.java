@@ -459,10 +459,10 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
         }
 
         logTrackedEntityAttributeValueHistory(
-                preheat.getUsername(),
-                trackedEntityAttributeValue,
-                trackedEntityInstance,
-                auditType );
+            preheat.getUsername(),
+            trackedEntityAttributeValue,
+            trackedEntityInstance,
+            auditType );
     }
 
     private static TrackedEntityAttribute getTrackedEntityAttributeFromPreheat( TrackerPreheat preheat,
