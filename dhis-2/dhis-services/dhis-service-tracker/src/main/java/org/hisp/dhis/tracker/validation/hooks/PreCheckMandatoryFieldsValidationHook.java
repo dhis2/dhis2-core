@@ -35,6 +35,7 @@ import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1124;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
@@ -109,6 +110,12 @@ public class PreCheckMandatoryFieldsValidationHook
 
     @Override
     public boolean removeOnError()
+    {
+        return true;
+    }
+
+    @Override
+    public boolean needsToRun( TrackerImportStrategy strategy )
     {
         return true;
     }

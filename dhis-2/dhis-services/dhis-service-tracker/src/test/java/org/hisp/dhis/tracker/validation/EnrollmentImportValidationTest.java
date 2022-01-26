@@ -92,6 +92,25 @@ class EnrollmentImportValidationTest extends AbstractImportValidationTest
     }
 
     @Test
+    void testEnrollmentValidationFailMissingOrgUnitDeleteStrategy()
+        throws IOException
+    {
+
+        TrackerImportParams params = createBundleFromJson( "tracker/validations/enrollments_te_enrollments-data.json" );
+        params.setImportStrategy( TrackerImportStrategy.CREATE );
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
+        assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
+        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
+
+        params = createBundleFromJson( "tracker/validations/enrollments_te_missing_ou.json" );
+        params.setImportStrategy( TrackerImportStrategy.DELETE );
+        trackerImportReport = trackerImportService.importTracker( params );
+        assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
+        assertThat( trackerImportReport.getValidationReport().getErrors(),
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1122 ) ) ) );
+    }
+
+    @Test
     void testPreheatOwnershipForSubsequentEnrollment()
         throws IOException
     {
