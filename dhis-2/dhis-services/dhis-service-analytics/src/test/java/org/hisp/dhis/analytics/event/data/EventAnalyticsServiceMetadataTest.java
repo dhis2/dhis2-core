@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.event.data;
 
 import static org.hisp.dhis.common.QueryFilter.OPTION_SEP;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -175,6 +176,7 @@ class EventAnalyticsServiceMetadataTest extends DhisSpringTest
             .addDimension( orgUnits ).addItem( itemLegendSet ).addItem( itemLegendSetFilter ).addItem( item )
             .addItem( itemFilter ).addItem( itemOptionSet ).addItem( itemOptionSetFilter ).withSkipData( true )
             .withSkipMeta( false ).withDisplayProperty( DisplayProperty.NAME ).build();
+
         Grid grid = eventAnalyticsService.getAggregatedEventData( params );
         Map<String, Object> metadata = grid.getMetaData();
         assertNotNull( metadata );
@@ -200,7 +202,7 @@ class EventAnalyticsServiceMetadataTest extends DhisSpringTest
             itemsLegendSetFilter.containsAll( IdentifiableObjectUtils.getUids( Sets.newHashSet( leA, leB, leC ) ) ) );
         assertTrue( items.isEmpty() );
         assertTrue( itemsFilter.isEmpty() );
-        assertTrue( !itemsOptionSet.isEmpty() );
+        assertFalse( itemsOptionSet.isEmpty() );
         assertEquals( 2, itemsOptionSetFilter.size() );
         assertTrue(
             itemsOptionSetFilter.containsAll( IdentifiableObjectUtils.getUids( Sets.newHashSet( opA, opB ) ) ) );
