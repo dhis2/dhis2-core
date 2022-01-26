@@ -102,6 +102,8 @@ public class DefaultQueryPlanner
     {
         queryValidator.validate( params );
 
+        params = PeriodOffsetUtils.addShiftedPeriods( params );
+
         // ---------------------------------------------------------------------
         // Group queries which can be executed together
         // ---------------------------------------------------------------------
@@ -264,8 +266,8 @@ public class DefaultQueryPlanner
         }
         else if ( !params.getPeriods().isEmpty() )
         {
-            ListMap<String, DimensionalItemObject> periodTypePeriodMap = PeriodOffsetUtils
-                .getPeriodTypePeriodMap( params );
+            ListMap<String, DimensionalItemObject> periodTypePeriodMap = PartitionUtils
+                .getPeriodTypePeriodMap( params.getPeriods() );
 
             for ( String periodType : periodTypePeriodMap.keySet() )
             {
@@ -274,7 +276,7 @@ public class DefaultQueryPlanner
                         periodTypePeriodMap.get( periodType ) )
                     .withPeriodType( periodType ).build();
 
-                queries.add( PeriodOffsetUtils.removeOffsetPeriodsIfNotNeeded( query ) );
+                queries.add( query );
             }
         }
         else if ( !params.getFilterPeriods().isEmpty() )
