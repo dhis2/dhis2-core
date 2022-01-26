@@ -223,7 +223,7 @@ public class DataValueSMSListener
             storedBy = "[unknown] from [" + sender + "]";
         }
 
-        CategoryOptionCombo optionCombo = dataElementCategoryService.getCategoryOptionCombo( code.getOptionId() );
+        CategoryOptionCombo optionCombo = dataElementCategoryService.getCategoryOptionCombo( code.getOptionId().getId() );
 
         Period period = getPeriod( command, date );
 
@@ -375,7 +375,7 @@ public class DataValueSMSListener
         for ( SMSCode code : command.getCodes() )
         {
 
-            CategoryOptionCombo optionCombo = dataElementCategoryService.getCategoryOptionCombo( code.getOptionId() );
+            CategoryOptionCombo optionCombo = dataElementCategoryService.getCategoryOptionCombo( code.getOptionId().getId() );
 
             period = getPeriod( command, date );
 
@@ -437,7 +437,7 @@ public class DataValueSMSListener
         for ( SMSCode code : command.getCodes() )
         {
 
-            CategoryOptionCombo optionCombo = dataElementCategoryService.getCategoryOptionCombo( code.getOptionId() );
+            CategoryOptionCombo optionCombo = dataElementCategoryService.getCategoryOptionCombo( code.getOptionId().getId() );
 
             period = getPeriod( command, date );
 
