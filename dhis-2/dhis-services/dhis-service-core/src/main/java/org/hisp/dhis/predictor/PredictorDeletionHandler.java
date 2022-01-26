@@ -128,6 +128,6 @@ public class PredictorDeletionHandler
     private boolean exists( String sql )
     {
         Integer count = jdbcTemplate.queryForObject( sql, Integer.class );
-        return count == null || count == 0;
+        return count != null && count > 0;
     }
 }
