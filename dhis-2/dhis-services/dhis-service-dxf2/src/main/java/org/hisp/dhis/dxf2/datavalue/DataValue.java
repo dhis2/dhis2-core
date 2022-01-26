@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.dxf2.datavalue;
 
+import java.util.Set;
+
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -96,6 +98,14 @@ public final class DataValue implements DataValueEntry
     @JsonProperty
     @JacksonXmlProperty( isAttribute = true )
     private Boolean deleted;
+
+    @JsonProperty
+    @JacksonXmlProperty( isAttribute = true )
+    private String categoryCombo;
+
+    @JsonProperty
+    @JacksonXmlProperty
+    private Set<String> attributeCategoryOptions;
 
     @Override
     public boolean getFollowup()

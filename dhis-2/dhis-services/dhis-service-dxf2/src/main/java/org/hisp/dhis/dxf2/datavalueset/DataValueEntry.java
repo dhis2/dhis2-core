@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.dxf2.datavalueset;
 
+import java.util.Set;
+
 /**
  * An entry in an {@link DataValueSet} while processing it in context of a
  * {@link DataValueSetReader} or {@link DataValueSetWriter}.
@@ -58,6 +60,10 @@ public interface DataValueEntry
     boolean getFollowup();
 
     Boolean getDeleted();
+
+    String getCategoryCombo();
+
+    Set<String> getAttributeCategoryOptions();
 
     default boolean hasLastUpdated()
     {
