@@ -25,57 +25,54 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.event.data;
+package org.hisp.dhis.analytics;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
-import org.hisp.dhis.analytics.TimeField;
-import org.hisp.dhis.analytics.event.EventQueryParams;
+import lombok.Getter;
 
-public abstract class TimeFieldSqlRenderer
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Sets;
+
+public enum TimeField
 {
+    EVENT_DATE( "executiondate" ),
+    ENROLLMENT_DATE( "enrollmentdate" ),
+    INCIDENT_DATE( "incidentdate" ),
+    DUE_DATE( "duedate" ),
+    COMPLETED_DATE( "completeddate" ),
+    CREATED( "created" ),
+    LAST_UPDATED( "lastupdated" ),
+    SCHEDULED_DATE( "scheduleddate" );
 
-    public String renderTimeFieldSql( EventQueryParams params )
+    @Getter
+    private String field;
+
+    public static final Collection<String> DEFAULT_TIME_FIELDS = ImmutableList.of( EVENT_DATE.name(),
+        LAST_UPDATED.name(), ENROLLMENT_DATE.name() );
+
+    private static final Set<String> FIELD_NAMES = Sets.newHashSet( TimeField.values() )
+        .stream().map( TimeField::name )
+        .collect( Collectors.toSet() );
+
+    TimeField( String field )
     {
-        {
-            StringBuilder sql = new StringBuilder();
-
-            if ( params.hasNonDefaultBoundaries() )
-            {
-                sql.append( getSqlConditionForNonDefaultBoundaries( params ) );
-            }
-            else if ( params.hasStartEndDate() || !params.getDateRangeByDateFilter().isEmpty() )
-            {
-                sql.append( getSqlConditionHasStartEndDate( params ) );
-            }
-            else // Periods -- should never go here when linelist, only Pivot
-                 // table
-            {
-                sql.append( getSqlConditionForPeriods( params ) );
-            }
-
-            return sql.toString();
-        }
+        this.field = field;
     }
 
-    protected Optional<TimeField> getTimeField( EventQueryParams params )
+    public static Optional<TimeField> of( String timeField )
     {
-        return TimeField.of( params.getTimeField() )
-            .filter( this::isAllowed );
+        return Arrays.stream( values() )
+            .filter( tf -> tf.name().equals( timeField ) )
+            .findFirst();
     }
 
-    private boolean isAllowed( TimeField timeField )
+    public static boolean fieldIsValid( String field )
     {
-        return getAllowedTimeFields().contains( timeField );
+        return field != null && FIELD_NAMES.contains( field );
     }
-
-    protected abstract String getSqlConditionForPeriods( EventQueryParams params );
-
-    protected abstract String getSqlConditionHasStartEndDate( EventQueryParams params );
-
-    protected abstract String getSqlConditionForNonDefaultBoundaries( EventQueryParams params );
-
-    protected abstract Collection<TimeField> getAllowedTimeFields();
-
 }

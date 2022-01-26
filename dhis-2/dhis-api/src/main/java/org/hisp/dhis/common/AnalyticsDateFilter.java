@@ -25,57 +25,50 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.event.data;
+package org.hisp.dhis.common;
 
-import java.util.Collection;
+import java.util.Arrays;
 import java.util.Optional;
+import java.util.function.Function;
+
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.TimeField;
-import org.hisp.dhis.analytics.event.EventQueryParams;
 
-public abstract class TimeFieldSqlRenderer
+@Getter
+@RequiredArgsConstructor
+public enum AnalyticsDateFilter
 {
+    EVENT_DATE( TimeField.EVENT_DATE, EventsAnalyticsQueryCriteria::getEventDate, null ),
+    ENROLLMENT_DATE( TimeField.ENROLLMENT_DATE, EventsAnalyticsQueryCriteria::getEnrollmentDate,
+        EnrollmentAnalyticsQueryCriteria::getEnrollmentDate ),
+    SCHEDULED_DATE( TimeField.SCHEDULED_DATE, EventsAnalyticsQueryCriteria::getScheduledDate, null ),
+    INCIDENT_DATE( TimeField.INCIDENT_DATE, EventsAnalyticsQueryCriteria::getIncidentDate,
+        EnrollmentAnalyticsQueryCriteria::getIncidentDate ),
+    LAST_UPDATED( TimeField.LAST_UPDATED, EventsAnalyticsQueryCriteria::getLastUpdated,
+        EnrollmentAnalyticsQueryCriteria::getLastUpdated );
 
-    public String renderTimeFieldSql( EventQueryParams params )
+    private final TimeField timeField;
+
+    private final Function<EventsAnalyticsQueryCriteria, String> eventExtractor;
+
+    private final Function<EnrollmentAnalyticsQueryCriteria, String> enrollmentExtractor;
+
+    public static Optional<AnalyticsDateFilter> of( String dateField )
     {
-        {
-            StringBuilder sql = new StringBuilder();
-
-            if ( params.hasNonDefaultBoundaries() )
-            {
-                sql.append( getSqlConditionForNonDefaultBoundaries( params ) );
-            }
-            else if ( params.hasStartEndDate() || !params.getDateRangeByDateFilter().isEmpty() )
-            {
-                sql.append( getSqlConditionHasStartEndDate( params ) );
-            }
-            else // Periods -- should never go here when linelist, only Pivot
-                 // table
-            {
-                sql.append( getSqlConditionForPeriods( params ) );
-            }
-
-            return sql.toString();
-        }
+        return Arrays.stream( values() )
+            .filter( analyticsDateFilter -> analyticsDateFilter.name().equalsIgnoreCase( dateField ) )
+            .findFirst();
     }
 
-    protected Optional<TimeField> getTimeField( EventQueryParams params )
+    public boolean appliesToEnrollments()
     {
-        return TimeField.of( params.getTimeField() )
-            .filter( this::isAllowed );
+        return enrollmentExtractor != null;
     }
 
-    private boolean isAllowed( TimeField timeField )
+    public boolean appliesToEvents()
     {
-        return getAllowedTimeFields().contains( timeField );
+        return eventExtractor != null;
     }
-
-    protected abstract String getSqlConditionForPeriods( EventQueryParams params );
-
-    protected abstract String getSqlConditionHasStartEndDate( EventQueryParams params );
-
-    protected abstract String getSqlConditionForNonDefaultBoundaries( EventQueryParams params );
-
-    protected abstract Collection<TimeField> getAllowedTimeFields();
-
 }

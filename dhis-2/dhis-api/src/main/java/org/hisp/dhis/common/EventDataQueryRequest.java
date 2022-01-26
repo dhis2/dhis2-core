@@ -27,10 +27,17 @@
  */
 package org.hisp.dhis.common;
 
+import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
+import static org.hisp.dhis.common.DimensionalObject.OPTION_SEP;
+import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
+
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -192,7 +199,7 @@ public class EventDataQueryRequest
     {
         public EventDataQueryRequestBuilder fromCriteria( EventsAnalyticsQueryCriteria criteria )
         {
-            return aggregationType( criteria.getAggregationType() )
+            EventDataQueryRequestBuilder builder = aggregationType( criteria.getAggregationType() )
                 .aggregateData( criteria.isAggregateData() )
                 .asc( criteria.getAsc() )
                 .collapseDataDimensions( criteria.isCollapseDataDimensions() )
@@ -200,7 +207,6 @@ public class EventDataQueryRequest
                 .coordinateField( criteria.getCoordinateField() )
                 .fallbackCoordinateField( criteria.getFallbackCoordinateField() )
                 .desc( criteria.getDesc() )
-                .dimension( criteria.getDimension() )
                 .displayProperty( criteria.getDisplayProperty() )
                 .endDate( criteria.getEndDate() )
                 .eventStatus( criteria.getEventStatus() )
@@ -231,11 +237,24 @@ public class EventDataQueryRequest
                 .orgUnitField( criteria.getOrgUnitField() )
                 .coordinatesOnly( criteria.isCoordinatesOnly() )
                 .coordinateOuFallback( criteria.isCoordinateOuFallback() );
+
+            String customDateFilters = Arrays.stream( AnalyticsDateFilter.values() )
+                .filter( AnalyticsDateFilter::appliesToEvents )
+                .filter( analyticsDateFilter -> analyticsDateFilter.getEventExtractor().apply( criteria ) != null )
+                .map( analyticsDateFilter -> String.join( DIMENSION_NAME_SEP,
+                    analyticsDateFilter.getEventExtractor().apply( criteria ),
+                    analyticsDateFilter.getTimeField().name() ) )
+                .collect( Collectors.joining( OPTION_SEP ) );
+
+            return builder.dimension(
+                getEventRefactoredDimensions(
+                    criteria.getDimension(),
+                    customDateFilters ) );
         }
 
         public EventDataQueryRequestBuilder fromCriteria( EnrollmentAnalyticsQueryCriteria criteria )
         {
-            return startDate( criteria.getStartDate() )
+            EventDataQueryRequestBuilder builder = startDate( criteria.getStartDate() )
                 .timeField( criteria.getTimeField() )
                 .endDate( criteria.getEndDate() )
                 .dimension( criteria.getDimension() )
@@ -260,6 +279,67 @@ public class EventDataQueryRequest
                 .userOrgUnit( criteria.getUserOrgUnit() )
                 .coordinateField( criteria.getCoordinateField() )
                 .sortOrder( criteria.getSortOrder() );
+
+            String customDateFilters = Arrays.stream( AnalyticsDateFilter.values() )
+                .filter( AnalyticsDateFilter::appliesToEnrollments )
+                .filter( analyticsDateFilter -> analyticsDateFilter.getEnrollmentExtractor().apply( criteria ) != null )
+                .map( analyticsDateFilter -> String.join( DIMENSION_NAME_SEP,
+                    analyticsDateFilter.getEnrollmentExtractor().apply( criteria ),
+                    analyticsDateFilter.getTimeField().name() ) )
+                .collect( Collectors.joining( OPTION_SEP ) );
+
+            return builder.dimension(
+                getEventRefactoredDimensions(
+                    criteria.getDimension(),
+                    customDateFilters ) );
         }
+
+        private Set<String> getEventRefactoredDimensions( Set<String> dimensions, String customDateFilters )
+        {
+            if ( customDateFilters.isEmpty() )
+            {
+                return dimensions;
+            }
+
+            return dimensions.stream()
+                .filter( ExtendedEventDataQueryRequestBuilder::isPeDimension )
+                .findFirst()
+                .map( peDimension -> dimensionsWithRefactoredPe( dimensions, customDateFilters, peDimension ) )
+                .orElseGet( () -> dimensionsWithNewPe( dimensions,
+                    String.join( DIMENSION_NAME_SEP, PERIOD_DIM_ID, customDateFilters ) ) );
+
+        }
+
+        private Set<String> dimensionsWithNewPe( Set<String> dimension, String peDimension )
+        {
+            dimension.add( peDimension );
+            return dimension;
+        }
+
+        private Set<String> dimensionsWithRefactoredPe( Set<String> dimension, String customDateFilters,
+            String peDimension )
+        {
+            return Stream.concat(
+                dimension.stream().filter( d -> !isPeDimension( d ) ),
+                Stream.of( String.join( OPTION_SEP, withoutTimeField( peDimension ), customDateFilters ) ) )
+                .collect( Collectors.toSet() );
+        }
+
+        private String withoutTimeField( String dimension )
+        {
+            String[] splitDimension = dimension.split( DIMENSION_NAME_SEP );
+            if ( splitDimension[0].equals( PERIOD_DIM_ID ) && splitDimension.length > 2 )
+            {
+                return String.join( DIMENSION_NAME_SEP, splitDimension[0], splitDimension[1] );
+            }
+            else
+                return dimension;
+        }
+
+        private static boolean isPeDimension( String dimension )
+        {
+            return dimension.startsWith( PERIOD_DIM_ID + DIMENSION_NAME_SEP );
+        }
+
     }
 }

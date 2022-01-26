@@ -38,12 +38,18 @@ import static org.hisp.dhis.common.FallbackCoordinateFieldType.PSI_GEOMETRY;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+import lombok.Getter;
 
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
@@ -54,7 +60,9 @@ import org.hisp.dhis.analytics.QueryKey;
 import org.hisp.dhis.analytics.QueryParamsBuilder;
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.analytics.TimeField;
+import org.hisp.dhis.common.AnalyticsDateFilter;
 import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.DateRange;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -262,6 +270,12 @@ public class EventQueryParams
      */
     protected IdScheme dataIdScheme;
 
+    /**
+     * a map holding for each time field a range of dates
+     */
+    @Getter
+    protected Map<AnalyticsDateFilter, DateRange> dateRangeByDateFilter = new HashMap<>();
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -328,7 +342,8 @@ public class EventQueryParams
         params.dataIdScheme = this.dataIdScheme;
         params.periodType = this.periodType;
         params.analyzeOrderId = this.analyzeOrderId;
-
+        params.dateRangeByDateFilter = this.dateRangeByDateFilter;
+        params.setSkipPartitioning( this.isSkipPartitioning() );
         return params;
     }
 
@@ -454,21 +469,65 @@ public class EventQueryParams
 
         for ( Period period : periods )
         {
-            Date start = period.getStartDate();
-            Date end = period.getEndDate();
-
-            if ( startDate == null || (start != null && start.before( startDate )) )
+            if ( Objects.isNull( period.getDateField() ) )
             {
-                startDate = start;
+                Date start = period.getStartDate();
+                Date end = period.getEndDate();
+
+                if ( startDate == null || (start != null && start.before( startDate )) )
+                {
+                    startDate = start;
+                }
+
+                if ( endDate == null || (end != null && end.after( endDate )) )
+                {
+                    endDate = end;
+                }
             }
-
-            if ( endDate == null || (end != null && end.after( endDate )) )
+            else
             {
-                endDate = end;
+                Optional<AnalyticsDateFilter> dateFilter = AnalyticsDateFilter.of( period.getDateField() );
+                if ( dateFilter.isPresent() )
+                {
+                    updateStartForDateFilterIfNecessary( dateFilter.get(), period.getStartDate() );
+                    updateEndForDateFilterIfNecessary( dateFilter.get(), period.getEndDate() );
+                }
             }
         }
 
         removeDimensionOrFilter( PERIOD_DIM_ID );
+    }
+
+    private void updateStartForDateFilterIfNecessary( AnalyticsDateFilter dateFilter, Date start )
+    {
+        if ( dateRangeByDateFilter.get( dateFilter ) != null )
+        {
+            Date startDateInMap = dateRangeByDateFilter.get( dateFilter ).getStartDate();
+            if ( startDateInMap == null || (start != null && start.before( startDateInMap )) )
+            {
+                dateRangeByDateFilter.get( dateFilter ).setStartDate( start );
+            }
+        }
+        else
+        {
+            dateRangeByDateFilter.put( dateFilter, new DateRange( start, null ) );
+        }
+    }
+
+    private void updateEndForDateFilterIfNecessary( AnalyticsDateFilter dateFilter, Date end )
+    {
+        if ( dateRangeByDateFilter.get( dateFilter ) != null )
+        {
+            Date endDateInMap = dateRangeByDateFilter.get( dateFilter ).getEndDate();
+            if ( endDateInMap == null || (end != null && end.after( endDateInMap )) )
+            {
+                dateRangeByDateFilter.get( dateFilter ).setEndDate( end );
+            }
+        }
+        else
+        {
+            dateRangeByDateFilter.put( dateFilter, new DateRange( null, end ) );
+        }
     }
 
     /**

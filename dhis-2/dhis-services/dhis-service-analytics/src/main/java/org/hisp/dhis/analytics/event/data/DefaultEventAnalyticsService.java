@@ -773,7 +773,7 @@ public class DefaultEventAnalyticsService
 
         long count = 0;
 
-        if ( params.getPartitions().hasAny() )
+        if ( params.getPartitions().hasAny() || params.isSkipPartitioning() )
         {
             if ( params.isPaging() )
             {

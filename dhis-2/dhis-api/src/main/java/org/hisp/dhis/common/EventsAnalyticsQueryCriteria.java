@@ -67,6 +67,31 @@ public class EventsAnalyticsQueryCriteria
     private Date endDate;
 
     /**
+     * Time interval for event date;
+     */
+    private String eventDate;
+
+    /**
+     * Time interval for enrollment date;
+     */
+    private String enrollmentDate;
+
+    /**
+     * Time interval for scheduled date;
+     */
+    private String scheduledDate;
+
+    /**
+     * Time interval for incident date;
+     */
+    private String incidentDate;
+
+    /**
+     * Time interval for last updated date;
+     */
+    private String lastUpdated;
+
+    /**
      * Dimension identifier including data elements, attributes, program
      * indicators, periods, organisation units and organisation unit group sets.
      * Parameter can be repeated any number of times.
