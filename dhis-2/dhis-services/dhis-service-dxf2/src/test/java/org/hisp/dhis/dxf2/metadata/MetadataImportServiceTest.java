@@ -456,6 +456,28 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
         assertEquals( 2, dataSet.getTranslations().size() );
     }
 
+    @Test
+    public void testImportNewObjectWithDuplicateTranslations()
+        throws IOException
+    {
+        User user = createUser( "A", "ALL" );
+        manager.save( user );
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/dataelement_duplicate_translations.json" ).getInputStream(),
+            RenderFormat.JSON );
+
+        MetadataImportParams params = createParams( ImportStrategy.CREATE, metadata );
+        params.setSkipTranslation( false );
+        params.setUser( user );
+
+        ImportReport report = importService.importMetadata( params );
+        assertEquals( Status.ERROR, report.getStatus() );
+
+        assertTrue( report.getErrorReports().stream()
+            .filter( errorReport -> errorReport.getErrorCode() == ErrorCode.E1106 ).findFirst().isPresent() );
+
+    }
+
     /**
      * 1. Create object with 2 translations 2. Update object with empty
      * translations and skipTranslation = false Expected: updated object has
