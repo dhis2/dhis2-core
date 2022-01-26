@@ -32,7 +32,7 @@ import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramSection;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 
