@@ -269,7 +269,9 @@ public class DefaultAnalyticsTableService
     private void createIndexes( List<AnalyticsIndex> indexes, JobProgress progress )
     {
         AnalyticsTableType type = getAnalyticsTableType();
-        log.info( "No of analytics table indexes: " + indexes.size() );
+
+        log.debug( "No of analytics table indexes: " + indexes.size() );
+
         progress.runStageInParallel( getProcessNo(), indexes,
             index -> getIndexName( index, type ).replace( "\"", "" ),
             tableManager::createIndex );
