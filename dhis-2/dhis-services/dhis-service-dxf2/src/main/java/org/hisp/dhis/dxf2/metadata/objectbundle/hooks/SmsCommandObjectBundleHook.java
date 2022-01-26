@@ -101,15 +101,14 @@ public class SmsCommandObjectBundleHook extends AbstractObjectBundleHook<SMSComm
 
     private void getReferences( SMSCommand command )
     {
-        CategoryOptionCombo defaultCoC = categoryService.getDefaultCategoryOptionCombo();
+        CategoryOptionCombo defaultCoc = categoryService.getDefaultCategoryOptionCombo();
 
         command.getCodes().stream()
             .filter( SMSCode::hasDataElement )
             .forEach( c -> {
-                CategoryOptionCombo coc = categoryService.getCategoryOptionCombo( c.getOptionId().getUid() );
+                c.setOptionId( c.getOptionId() == null ? defaultCoc
+                    : categoryService.getCategoryOptionCombo( c.getOptionId().getUid() ) );
                 c.setDataElement( dataElementService.getDataElement( c.getDataElement().getUid() ) );
-                c.setOptionId( coc == null ? defaultCoC : coc );
-
             } );
 
         command.getCodes().stream()
