@@ -105,11 +105,10 @@ public class SmsCommandObjectBundleHook extends AbstractObjectBundleHook<SMSComm
 
         command.getCodes().stream()
             .filter( SMSCode::hasDataElement )
-            .forEach( c ->
-            {
+            .forEach( c -> {
                 CategoryOptionCombo coc = categoryService.getCategoryOptionCombo( c.getOptionId().getUid() );
                 c.setDataElement( dataElementService.getDataElement( c.getDataElement().getUid() ) );
-                c.setOptionId(  coc == null ? defaultCoC : coc );
+                c.setOptionId( coc == null ? defaultCoC : coc );
 
             } );
 
