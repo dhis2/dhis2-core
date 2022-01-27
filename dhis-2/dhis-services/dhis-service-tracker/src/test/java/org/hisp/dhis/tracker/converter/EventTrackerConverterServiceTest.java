@@ -30,8 +30,8 @@ package org.hisp.dhis.tracker.converter;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
-import static org.wildfly.common.Assert.assertTrue;
 
 import java.time.Instant;
 import java.util.Collections;
