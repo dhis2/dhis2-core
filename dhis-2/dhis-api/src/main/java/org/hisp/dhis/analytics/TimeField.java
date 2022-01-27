@@ -43,11 +43,10 @@ public enum TimeField
     EVENT_DATE( "executiondate" ),
     ENROLLMENT_DATE( "enrollmentdate" ),
     INCIDENT_DATE( "incidentdate" ),
-    DUE_DATE( "duedate" ),
+    SCHEDULED_DATE( "duedate" ),
     COMPLETED_DATE( "completeddate" ),
     CREATED( "created" ),
-    LAST_UPDATED( "lastupdated" ),
-    SCHEDULED_DATE( "scheduleddate" );
+    LAST_UPDATED( "lastupdated" );
 
     @Getter
     private String field;
