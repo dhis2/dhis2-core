@@ -113,7 +113,11 @@ public class SmsCommandObjectBundleHook extends AbstractObjectBundleHook<SMSComm
 
         command.getCodes().stream()
             .filter( SMSCode::hasTrackedEntityAttribute )
-            .forEach( c -> c.setTrackedEntityAttribute(
-                trackedEntityAttributeService.getTrackedEntityAttribute( c.getTrackedEntityAttribute().getUid() ) ) );
+            .forEach( c -> {
+                c.setOptionId( c.getOptionId() == null ? defaultCoc
+                    : categoryService.getCategoryOptionCombo( c.getOptionId().getUid() ) );
+                c.setTrackedEntityAttribute(
+                    trackedEntityAttributeService.getTrackedEntityAttribute( c.getTrackedEntityAttribute().getUid() ) );
+            } );
     }
 }
