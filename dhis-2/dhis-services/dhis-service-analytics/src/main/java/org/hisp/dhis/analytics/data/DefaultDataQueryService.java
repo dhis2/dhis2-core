@@ -60,7 +60,9 @@ import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_USER_ORGUNIT;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_USER_ORGUNIT_CHILDREN;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_USER_ORGUNIT_GRANDCHILDREN;
 
-import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -126,8 +128,6 @@ import org.springframework.util.Assert;
 public class DefaultDataQueryService
     implements DataQueryService
 {
-    public static final SimpleDateFormat SIMPLE_DATE_FORMAT = new SimpleDateFormat( DailyPeriodType.ISO_FORMAT );
-
     private IdentifiableObjectManager idObjectManager;
 
     private OrganisationUnitService organisationUnitService;
@@ -659,7 +659,8 @@ public class DefaultDataQueryService
     {
         try
         {
-            return Optional.of( SIMPLE_DATE_FORMAT.parse( date ) );
+            LocalDateTime parsed = LocalDateTime.parse( date, DateTimeFormatter.BASIC_ISO_DATE );
+            return Optional.of( Date.from( parsed.atZone( ZoneId.systemDefault() ).toInstant() ) );
         }
         catch ( Exception e )
         {
