@@ -48,6 +48,8 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.datavalue.DataExportParams;
+import org.hisp.dhis.dxf2.datavalue.DataValueAttribute;
+import org.hisp.dhis.dxf2.datavalue.DataValueCategory;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.query.JpaQueryUtils;
@@ -441,6 +443,20 @@ public class SpringDataValueSetStore
         {
             boolean deleted = getBoolean( "deleted" );
             return deleted ? true : null;
+        }
+
+        @Override
+        public DataValueAttribute getAttribute()
+        {
+            // Not support
+            return null;
+        }
+
+        @Override
+        public DataValueCategory getCategory()
+        {
+            // Not support
+            return null;
         }
 
         private String getString( String column )

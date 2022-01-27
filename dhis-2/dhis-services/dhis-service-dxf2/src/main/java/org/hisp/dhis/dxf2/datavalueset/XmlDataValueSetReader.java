@@ -29,6 +29,8 @@ package org.hisp.dhis.dxf2.datavalueset;
 
 import lombok.AllArgsConstructor;
 
+import org.hisp.dhis.dxf2.datavalue.DataValueAttribute;
+import org.hisp.dhis.dxf2.datavalue.DataValueCategory;
 import org.hisp.staxwax.reader.XMLReader;
 
 /**
@@ -135,6 +137,20 @@ public class XmlDataValueSetReader implements DataValueSetReader, DataValueEntry
     public String getComment()
     {
         return getString( "comment" );
+    }
+
+    @Override
+    public DataValueAttribute getAttribute()
+    {
+        // TODO should we support this ?
+        return null;
+    }
+
+    @Override
+    public DataValueCategory getCategory()
+    {
+        // TODO should we support this ?
+        return null;
     }
 
     @Override

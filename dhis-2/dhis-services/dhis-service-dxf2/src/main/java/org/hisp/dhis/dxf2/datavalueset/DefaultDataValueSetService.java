@@ -51,8 +51,11 @@ import java.util.function.Function;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.calendar.CalendarService;
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.AuditType;
@@ -1077,9 +1080,13 @@ public class DefaultDataValueSetService
                 categoryService, categoryOptComboIdScheme, null ) )
             .attributeOptionComboCallable( new CategoryOptionComboAclCallable(
                 categoryService, categoryOptComboIdScheme, null ) )
+            .categoryComboCallable(
+                new IdentifiableObjectCallable<>( identifiableObjectManager, CategoryCombo.class, null ) )
             .periodCallable( new PeriodCallable( periodService, null,
                 trimToNull( data.getPeriod() ) ) )
-
+            .categoryComboCallable(
+                new IdentifiableObjectCallable<>( identifiableObjectManager, CategoryCombo.class, null ) )
+            .findAttributeOptionComboCallable( new FindCategoryOptionComboCallable( inputUtils ) )
             // data processing
             .dataValueBatchHandler( batchHandlerFactory
                 .createBatchHandler( DataValueBatchHandler.class ).init() )
@@ -1154,12 +1161,45 @@ public class DefaultDataValueSetService
             .categoryOptionCombo( context.getOptionComboMap().get(
                 trimToNull( dataValue.getCategoryOptionCombo() ),
                 context.getCategoryOptionComboCallable().setId( trimToNull( dataValue.getCategoryOptionCombo() ) ) ) )
-            .attrOptionCombo(
-                dataSetContext.getOuterAttrOptionCombo() != null ? dataSetContext.getOuterAttrOptionCombo()
-                    : context.getOptionComboMap().get( trimToNull( dataValue.getAttributeOptionCombo() ),
-                        context.getAttributeOptionComboCallable()
-                            .setId( trimToNull( dataValue.getAttributeOptionCombo() ) ) ) )
+            .attrOptionCombo( findAttributeOptionCombo( dataSetContext, dataValue, context ) )
             .build();
+    }
+
+    private CategoryOptionCombo findAttributeOptionCombo( DataSetContext dataSetContext, DataValueEntry dataValue,
+        ImportContext context )
+    {
+        CategoryOptionCombo attributeOptionCombo = dataSetContext.getOuterAttrOptionCombo() != null
+            ? dataSetContext.getOuterAttrOptionCombo()
+            : context.getOptionComboMap().get( trimToNull( dataValue.getAttributeOptionCombo() ),
+                context.getAttributeOptionComboCallable()
+                    .setId( trimToNull( dataValue.getAttributeOptionCombo() ) ) );
+
+        if ( attributeOptionCombo != null )
+        {
+            return attributeOptionCombo;
+        }
+
+        if ( dataValue.getAttribute() == null || StringUtils.isBlank( dataValue.getAttribute().getCombo() )
+            || CollectionUtils.isEmpty( dataValue.getAttribute().getOptions() ) )
+        {
+            return null;
+        }
+
+        CategoryCombo categoryCombo = context.getCategoryComboMap()
+            .get( trimToNull( dataValue.getAttribute().getCombo() ),
+                context.getCategoryComboCallable().setId( trimToNull( dataValue.getAttribute().getCombo() ) ) );
+
+        if ( categoryCombo == null )
+        {
+            return null;
+        }
+
+        attributeOptionCombo = context.getFindAttributeOptionComboCallable()
+            .setCategoryCombo( categoryCombo )
+            .setCategoryOptions( dataValue.getAttribute().getOptions() )
+            .call();
+
+        return attributeOptionCombo != null ? attributeOptionCombo : dataSetContext.getFallbackCategoryOptionCombo();
     }
 
     private DataValue createDataValue( DataValueEntry dataValue, ImportContext context,

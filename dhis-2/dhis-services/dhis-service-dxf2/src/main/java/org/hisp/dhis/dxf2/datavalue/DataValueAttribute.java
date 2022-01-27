@@ -25,73 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.datavalueset;
+package org.hisp.dhis.dxf2.datavalue;
 
-import org.hisp.dhis.dxf2.datavalue.DataValueAttribute;
-import org.hisp.dhis.dxf2.datavalue.DataValueCategory;
+import java.util.Set;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * An entry in an {@link DataValueSet} while processing it in context of a
- * {@link DataValueSetReader} or {@link DataValueSetWriter}.
- *
- * @author Jan Bernitt
+ * @author viet@dhis2.org
  */
-public interface DataValueEntry
+@Getter
+@AllArgsConstructor
+public class DataValueAttribute
 {
-    String getDataElement();
+    @JsonProperty
+    private String combo;
 
-    String getPeriod();
-
-    String getOrgUnit();
-
-    String getCategoryOptionCombo();
-
-    String getAttributeOptionCombo();
-
-    String getValue();
-
-    String getStoredBy();
-
-    String getCreated();
-
-    String getLastUpdated();
-
-    String getComment();
-
-    boolean getFollowup();
-
-    Boolean getDeleted();
-
-    DataValueAttribute getAttribute();
-
-    DataValueCategory getCategory();
-
-    default boolean hasLastUpdated()
-    {
-        String updated = getLastUpdated();
-        return updated != null && !updated.isEmpty();
-    }
-
-    default boolean hasCreated()
-    {
-        String created = getCreated();
-        return created != null && !created.isEmpty();
-    }
-
-    default String getPrimaryKey()
-    {
-        return getDataElement() + getPeriod() + getOrgUnit() + getCategoryOptionCombo() + getAttributeOptionCombo();
-    }
-
-    default boolean isNullValue()
-    {
-        return getValue() == null && getComment() == null;
-    }
-
-    default boolean isDeletedValue()
-    {
-        Boolean deleted = getDeleted();
-        return deleted != null && deleted;
-    }
-
+    @JsonProperty
+    private Set<String> options;
 }

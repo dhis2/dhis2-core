@@ -29,15 +29,14 @@ package org.hisp.dhis.dxf2.datavalueset;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.util.Set;
 
 import lombok.AllArgsConstructor;
 
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.datavalue.DataValueAttribute;
+import org.hisp.dhis.dxf2.datavalue.DataValueCategory;
 
 import com.csvreader.CsvReader;
-import com.google.common.collect.Sets;
 
 /**
  * Reads {@link DataValueSet} from CSV input.
@@ -157,23 +156,17 @@ final class CsvDataValueSetReader implements DataValueSetReader, DataValueEntry
     }
 
     @Override
-    public String getCategoryCombo()
+    public DataValueAttribute getAttribute()
     {
-        return getString( 11 );
+        // Not support
+        return null;
     }
 
-    /**
-     * AttributeOptions UID separate by ';' character
-     * <p>
-     * Example: 3d39dsj3
-     *
-     * @return
-     */
     @Override
-    public Set<String> getAttributeCategoryOptions()
+    public DataValueCategory getCategory()
     {
-        String options = getString( 12 );
-        return StringUtils.isBlank( options ) ? null : Sets.newHashSet( options.split( ";" ) );
+        // Not support
+        return null;
     }
 
     private String getString( int index )

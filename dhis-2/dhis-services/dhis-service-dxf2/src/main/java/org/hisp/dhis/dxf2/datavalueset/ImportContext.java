@@ -40,6 +40,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DateRange;
 import org.hisp.dhis.common.IdScheme;
@@ -140,6 +141,8 @@ public final class ImportContext
 
     private final CachingMap<String, CategoryOptionCombo> optionComboMap = new CachingMap<>();
 
+    private final CachingMap<String, CategoryCombo> categoryComboMap = new CachingMap<>();
+
     private final CachingMap<String, DataSet> dataElementDataSetMap = new CachingMap<>();
 
     private final CachingMap<String, Period> periodMap = new CachingMap<>();
@@ -181,6 +184,10 @@ public final class ImportContext
     private final IdentifiableObjectCallable<CategoryOptionCombo> categoryOptionComboCallable;
 
     private final IdentifiableObjectCallable<CategoryOptionCombo> attributeOptionComboCallable;
+
+    private final IdentifiableObjectCallable<CategoryCombo> categoryComboCallable;
+
+    private final FindCategoryOptionComboCallable findAttributeOptionComboCallable;
 
     private final IdentifiableObjectCallable<Period> periodCallable;
 

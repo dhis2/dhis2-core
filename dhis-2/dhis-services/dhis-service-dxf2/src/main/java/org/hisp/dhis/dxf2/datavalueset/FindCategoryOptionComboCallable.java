@@ -27,71 +27,53 @@
  */
 package org.hisp.dhis.dxf2.datavalueset;
 
-import org.hisp.dhis.dxf2.datavalue.DataValueAttribute;
-import org.hisp.dhis.dxf2.datavalue.DataValueCategory;
+import java.util.Set;
+import java.util.concurrent.Callable;
+
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.dxf2.util.InputUtils;
 
 /**
- * An entry in an {@link DataValueSet} while processing it in context of a
- * {@link DataValueSetReader} or {@link DataValueSetWriter}.
- *
- * @author Jan Bernitt
+ * @author viet@dhis2.org
  */
-public interface DataValueEntry
+public class FindCategoryOptionComboCallable
+    implements Callable
 {
-    String getDataElement();
+    private final InputUtils inputUtils;
 
-    String getPeriod();
+    private IdScheme idScheme = IdScheme.UID;
 
-    String getOrgUnit();
+    private CategoryCombo categoryCombo;
 
-    String getCategoryOptionCombo();
+    private Set<String> categoryOptions;
 
-    String getAttributeOptionCombo();
-
-    String getValue();
-
-    String getStoredBy();
-
-    String getCreated();
-
-    String getLastUpdated();
-
-    String getComment();
-
-    boolean getFollowup();
-
-    Boolean getDeleted();
-
-    DataValueAttribute getAttribute();
-
-    DataValueCategory getCategory();
-
-    default boolean hasLastUpdated()
+    public FindCategoryOptionComboCallable( InputUtils inputUtils )
     {
-        String updated = getLastUpdated();
-        return updated != null && !updated.isEmpty();
+        this.inputUtils = inputUtils;
     }
 
-    default boolean hasCreated()
+    @Override
+    public CategoryOptionCombo call()
     {
-        String created = getCreated();
-        return created != null && !created.isEmpty();
+        return inputUtils.getAttributeOptionCombo( categoryCombo, categoryOptions, idScheme );
     }
 
-    default String getPrimaryKey()
+    public FindCategoryOptionComboCallable setCategoryCombo( CategoryCombo categoryCombo )
     {
-        return getDataElement() + getPeriod() + getOrgUnit() + getCategoryOptionCombo() + getAttributeOptionCombo();
+        this.categoryCombo = categoryCombo;
+        return this;
     }
 
-    default boolean isNullValue()
+    public FindCategoryOptionComboCallable setCategoryOptions( Set<String> categoryOptions )
     {
-        return getValue() == null && getComment() == null;
+        this.categoryOptions = categoryOptions;
+        return this;
     }
 
-    default boolean isDeletedValue()
+    public IdScheme getIdScheme()
     {
-        Boolean deleted = getDeleted();
-        return deleted != null && deleted;
+        return idScheme;
     }
-
 }
