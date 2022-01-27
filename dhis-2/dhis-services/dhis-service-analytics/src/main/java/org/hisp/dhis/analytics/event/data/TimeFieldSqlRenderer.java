@@ -27,11 +27,23 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
+import static org.hisp.dhis.util.DateUtils.getMediumDateString;
+
 import java.util.Collection;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import lombok.Builder;
+import lombok.Data;
 
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.common.AnalyticsDateFilter;
+import org.hisp.dhis.common.DateRange;
 
 public abstract class TimeFieldSqlRenderer
 {
@@ -59,6 +71,23 @@ public abstract class TimeFieldSqlRenderer
         }
     }
 
+    @Data
+    @Builder
+    private static class ColumnWithDateRange
+    {
+        private final String column;
+
+        private final DateRange dateRange;
+
+        static ColumnWithDateRange of( Map.Entry<AnalyticsDateFilter, DateRange> entry )
+        {
+            return ColumnWithDateRange.builder()
+                .column( quoteAlias( entry.getKey().getTimeField().getField() ) )
+                .dateRange( entry.getValue() )
+                .build();
+        }
+    }
+
     protected Optional<TimeField> getTimeField( EventQueryParams params )
     {
         return TimeField.of( params.getTimeField() )
@@ -72,7 +101,32 @@ public abstract class TimeFieldSqlRenderer
 
     protected abstract String getSqlConditionForPeriods( EventQueryParams params );
 
-    protected abstract String getSqlConditionHasStartEndDate( EventQueryParams params );
+    protected String getSqlConditionHasStartEndDate( EventQueryParams params )
+    {
+
+        ColumnWithDateRange defaultColumn = params.hasStartEndDate() ? ColumnWithDateRange.builder()
+            .column( getColumnName( params ) )
+            .dateRange( new DateRange( params.getStartDate(), params.getEndDate() ) )
+            .build() : null;
+
+        return Stream.concat(
+            Stream.of( defaultColumn ),
+            params.getDateRangeByDateFilter().entrySet().stream().map( ColumnWithDateRange::of ) )
+            .filter( Objects::nonNull )
+            .map( columnWithDateRange -> new StringBuilder()
+                .append( columnWithDateRange.getColumn() )
+                .append( " >= '" )
+                .append( getMediumDateString( columnWithDateRange.getDateRange().getStartDate() ) )
+                .append( "' and " )
+                .append( columnWithDateRange.getColumn() )
+                .append( " <= '" )
+                .append( getMediumDateString( columnWithDateRange.getDateRange().getEndDate() ) )
+                .append( "' " )
+                .toString() )
+            .collect( Collectors.joining( " and " ) );
+    }
+
+    protected abstract String getColumnName( EventQueryParams params );
 
     protected abstract String getSqlConditionForNonDefaultBoundaries( EventQueryParams params );
 

@@ -89,21 +89,19 @@ class EnrollmentTimeFieldSqlRenderer extends TimeFieldSqlRenderer
         }
         else
         {
-            sql.append( quote( ANALYTICS_TBL_ALIAS, params.getPeriodType().toLowerCase() )
-                + " in ("
-                + getQuotedCommaDelimitedString( getUids( params.getDimensionOrFilterItems( PERIOD_DIM_ID ) ) )
-                + ") " );
+            sql
+                .append( quote( ANALYTICS_TBL_ALIAS, params.getPeriodType().toLowerCase() ) )
+                .append( " in (" )
+                .append( getQuotedCommaDelimitedString( getUids( params.getDimensionOrFilterItems( PERIOD_DIM_ID ) ) ) )
+                .append( ") " );
         }
         return sql.toString();
     }
 
     @Override
-    protected String getSqlConditionHasStartEndDate( EventQueryParams params )
+    protected String getColumnName( EventQueryParams params )
     {
-        TimeField timeField = getTimeField( params ).orElse( TimeField.ENROLLMENT_DATE );
-        return timeField.getField() + " >= '" + getMediumDateString( params.getStartDate() ) + "' and "
-            + timeField.getField() + " <= '"
-            + getMediumDateString( params.getEndDate() ) + "' ";
+        return getTimeField( params ).orElse( TimeField.ENROLLMENT_DATE ).getField();
     }
 
     @Override

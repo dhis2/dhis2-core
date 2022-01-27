@@ -42,22 +42,15 @@ import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import lombok.Builder;
-import lombok.Data;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.event.EventQueryParams;
-import org.hisp.dhis.common.AnalyticsDateFilter;
-import org.hisp.dhis.common.DateRange;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.period.Period;
@@ -102,47 +95,9 @@ class EventTimeFieldSqlRenderer extends TimeFieldSqlRenderer
     }
 
     @Override
-    protected String getSqlConditionHasStartEndDate( EventQueryParams params )
+    protected String getColumnName( EventQueryParams params )
     {
-
-        ColumnWithDateRange defaultColumn = params.hasStartEndDate() ? ColumnWithDateRange.builder()
-            .column( getTimeCol( params.getOutputType(), getTimeField( params ) ) )
-            .dateRange( new DateRange( params.getStartDate(), params.getEndDate() ) )
-            .build() : null;
-
-        return Stream.concat(
-            Stream.of( defaultColumn ),
-            params.getDateRangeByDateFilter().entrySet().stream().map( this::toColumnWithDateRange ) )
-            .filter( Objects::nonNull )
-            .map( columnWithDateRange -> new StringBuilder()
-                .append( columnWithDateRange.getColumn() )
-                .append( " >= '" )
-                .append( getMediumDateString( columnWithDateRange.getDateRange().getStartDate() ) )
-                .append( "' and " )
-                .append( columnWithDateRange.getColumn() )
-                .append( " <= '" )
-                .append( getMediumDateString( columnWithDateRange.getDateRange().getEndDate() ) )
-                .append( "' " )
-                .toString() )
-            .collect( Collectors.joining( " and " ) );
-
-    }
-
-    private ColumnWithDateRange toColumnWithDateRange( Map.Entry<AnalyticsDateFilter, DateRange> entry )
-    {
-        return ColumnWithDateRange.builder()
-            .column( quoteAlias( entry.getKey().getTimeField().getField() ) )
-            .dateRange( entry.getValue() )
-            .build();
-    }
-
-    @Data
-    @Builder
-    private static class ColumnWithDateRange
-    {
-        private final String column;
-
-        private final DateRange dateRange;
+        return getTimeCol( params.getOutputType(), getTimeField( params ) );
     }
 
     @Override
