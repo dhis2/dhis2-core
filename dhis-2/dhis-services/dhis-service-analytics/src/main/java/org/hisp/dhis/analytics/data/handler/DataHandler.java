@@ -1028,7 +1028,7 @@ public class DataHandler
                     addItemBasedOnPeriodOffset( result, dataIndex, periodIndex, valueIndex, row,
                         dimensionalItem, basePeriods );
                 }
-                else if ( !isPeriodInPeriods( (String) row.get( periodIndex ), basePeriods ) )
+                else
                 {
                     result.put( join( remove( row.toArray( new Object[0] ), valueIndex ), DIMENSION_SEP ),
                         new DimensionItemObjectValue(
