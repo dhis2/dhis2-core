@@ -296,7 +296,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
             }
             else if ( queryItem.getValueType() == ValueType.NUMBER && !isGroupByClause )
             {
-                columns.add( "coalesce(" + getColumn( queryItem ) + ", 'NaN') as " + queryItem.getItemName() );
+                columns.add( "coalesce(" + getColumn( queryItem ) + ", null) as " + queryItem.getItemName() );
             }
             else
             {
