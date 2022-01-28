@@ -192,7 +192,14 @@ public class DimensionalObjectUtils
 
         if ( param.split( DIMENSION_NAME_SEP ).length > 1 )
         {
-            return Arrays.asList( param.substring( param.indexOf( DIMENSION_NAME_SEP ) + 1 ).split( OPTION_SEP ) );
+            // extracts dimensionItems by removing the dimension name and the
+            // separator
+            // example: pe:TODAY;YESTERDAY:INCIDENT_DATE ->
+            // TODAY;YESTERDAY:INCIDENT_DATE
+            String dimensionItems = param.substring( param.indexOf( DIMENSION_NAME_SEP ) + 1 );
+
+            // returns them as List<String>
+            return Arrays.asList( dimensionItems.split( OPTION_SEP ) );
         }
 
         return new ArrayList<>();

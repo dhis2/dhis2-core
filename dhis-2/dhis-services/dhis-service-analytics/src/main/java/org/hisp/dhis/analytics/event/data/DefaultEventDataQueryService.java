@@ -227,6 +227,7 @@ public class DefaultEventDataQueryService
 
         EventQueryParams eventQueryParams = builder.build();
 
+        // partitioning can be used only when default period is specified
         if ( hasNotDefaultPeriod( eventQueryParams ) )
         {
             builder.withSkipPartitioning( true );

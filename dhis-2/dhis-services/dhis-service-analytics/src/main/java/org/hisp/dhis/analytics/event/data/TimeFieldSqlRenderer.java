@@ -57,6 +57,7 @@ public abstract class TimeFieldSqlRenderer
             {
                 sql.append( getSqlConditionForNonDefaultBoundaries( params ) );
             }
+            // when multiple periods are set
             else if ( params.hasStartEndDate() || !params.getDateRangeByDateFilter().isEmpty() )
             {
                 sql.append( getSqlConditionHasStartEndDate( params ) );
@@ -101,6 +102,9 @@ public abstract class TimeFieldSqlRenderer
 
     protected abstract String getSqlConditionForPeriods( EventQueryParams params );
 
+    /**
+     * renders all periods, which are now organized by dateFilter, into SQL
+     */
     protected String getSqlConditionHasStartEndDate( EventQueryParams params )
     {
 

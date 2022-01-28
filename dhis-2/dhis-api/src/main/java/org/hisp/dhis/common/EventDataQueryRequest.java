@@ -238,6 +238,15 @@ public class EventDataQueryRequest
                 .coordinatesOnly( criteria.isCoordinatesOnly() )
                 .coordinateOuFallback( criteria.isCoordinateOuFallback() );
 
+            /*
+             * for each AnalyticsDateFilter whose event extractor is set,
+             * concatenates the timeField with the extracted value:
+             *
+             * example: eventCriteria.lastUpdated=TODAY
+             * eventCriteria.incidentDate=LAST_WEEK
+             *
+             * returns: TODAY:LAST_UPDATED;LAST_WEEK:INCIDENT_DATE
+             */
             String customDateFilters = Arrays.stream( AnalyticsDateFilter.values() )
                 .filter( AnalyticsDateFilter::appliesToEvents )
                 .filter( analyticsDateFilter -> analyticsDateFilter.getEventExtractor().apply( criteria ) != null )
@@ -246,6 +255,9 @@ public class EventDataQueryRequest
                     analyticsDateFilter.getTimeField().name() ) )
                 .collect( Collectors.joining( OPTION_SEP ) );
 
+            /*
+             * sets the new time dimensions into the requestBuilder
+             */
             return builder.dimension(
                 getDimensionsWithRefactoredPeDimension(
                     criteria.getDimension(),
@@ -279,6 +291,15 @@ public class EventDataQueryRequest
                 .coordinateField( criteria.getCoordinateField() )
                 .sortOrder( criteria.getSortOrder() );
 
+            /*
+             * for each AnalyticsDateFilter whose enrollment extractor is set,
+             * concatenates the timeField with the extracted value:
+             *
+             * example: enrollmentCriteria.lastUpdated=TODAY
+             * enrollmentCriteria.incidentDate=LAST_WEEK
+             *
+             * returns: TODAY:LAST_UPDATED;LAST_WEEK:INCIDENT_DATE
+             */
             String customDateFilters = Arrays.stream( AnalyticsDateFilter.values() )
                 .filter( AnalyticsDateFilter::appliesToEnrollments )
                 .filter( analyticsDateFilter -> analyticsDateFilter.getEnrollmentExtractor().apply( criteria ) != null )
@@ -293,6 +314,11 @@ public class EventDataQueryRequest
                     customDateFilters ) );
         }
 
+        /**
+         * Given existing dimensions from controller and the time filters
+         * passed, returns a new collection of dimensions with proper period
+         * dimension set
+         */
         private Set<String> getDimensionsWithRefactoredPeDimension( Set<String> dimensions, String customDateFilters )
         {
             if ( customDateFilters.isEmpty() )
@@ -303,7 +329,12 @@ public class EventDataQueryRequest
             return dimensions.stream()
                 .filter( ExtendedEventDataQueryRequestBuilder::isPeDimension )
                 .findFirst()
+                // if PE dimensions already exists, return dimensions, with
+                // existing PE+customDateFilters
                 .map( peDimension -> dimensionsWithRefactoredPe( dimensions, customDateFilters, peDimension ) )
+                // if PE dimensions didn't exist, returns dimensions with a new
+                // PE dimension,
+                // represented by customDateFilters
                 .orElseGet( () -> dimensionsWithNewPe( dimensions,
                     String.join( DIMENSION_NAME_SEP, PERIOD_DIM_ID, customDateFilters ) ) );
 
@@ -315,6 +346,10 @@ public class EventDataQueryRequest
             return dimension;
         }
 
+        /**
+         * concatenate existing dimensions (but PE one) with a new pe dimension,
+         * represented by existing PE+customDateFilters
+         */
         private Set<String> dimensionsWithRefactoredPe( Set<String> dimension, String customDateFilters,
             String peDimension )
         {

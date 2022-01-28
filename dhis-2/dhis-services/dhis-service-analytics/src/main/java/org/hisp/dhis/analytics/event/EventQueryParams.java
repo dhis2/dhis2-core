@@ -462,6 +462,9 @@ public class EventQueryParams
      * Replaces periods with start and end dates, using the earliest start date
      * from the periods as start date and the latest end date from the periods
      * as end date. Remove the period dimension or filter.
+     *
+     * When heterogeneous date fields are specified, set a specific start/date
+     * pair for each of them
      */
     private void replacePeriodsWithStartEndDates()
     {

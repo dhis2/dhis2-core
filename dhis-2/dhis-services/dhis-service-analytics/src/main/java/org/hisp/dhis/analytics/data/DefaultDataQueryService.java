@@ -406,6 +406,7 @@ public class DefaultDataQueryService
 
             for ( String isoPeriod : items )
             {
+                // contains isoPeriod and timeField
                 IsoPeriodHolder isoPeriodHolder = IsoPeriodHolder.of( isoPeriod );
                 if ( RelativePeriodEnum.contains( isoPeriodHolder.getIsoPeriod() ) )
                 {
@@ -418,6 +419,8 @@ public class DefaultDataQueryService
                     List<Period> relativePeriods = RelativePeriods.getRelativePeriodsFromEnum( relativePeriod,
                         relativePeriodDate, format, true, financialYearStart );
 
+                    // if a custom time filter is specified, sets it in the
+                    // periods
                     if ( isoPeriodHolder.hasDateField() )
                     {
                         relativePeriods.forEach( period -> period.setDateField( isoPeriodHolder.getDateField() ) );
@@ -435,6 +438,7 @@ public class DefaultDataQueryService
                     }
                     else
                     {
+                        // parse the YYYYMMDD_YYYYMMDD period format
                         tryParsingFreeDateRange( isoPeriodHolder )
                             .ifPresent( periods::add );
                     }
@@ -638,6 +642,9 @@ public class DefaultDataQueryService
         throw new IllegalQueryException( new ErrorMessage( ErrorCode.E7125, dimension ) );
     }
 
+    /**
+     * parses periods in YYYYMMDD_YYYYMMDD format
+     */
     private Optional<Period> tryParsingFreeDateRange( IsoPeriodHolder isoPeriodHolder )
     {
         String[] dates = isoPeriodHolder.getIsoPeriod().split( PERIOD_FREE_RANGE_SEPARATOR );

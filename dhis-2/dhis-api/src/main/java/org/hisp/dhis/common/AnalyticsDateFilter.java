@@ -36,6 +36,10 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.TimeField;
 
+/**
+ * Enum to map time fields into functions that can extract respective date from
+ * controller parameters
+ */
 @Getter
 @RequiredArgsConstructor
 public enum AnalyticsDateFilter

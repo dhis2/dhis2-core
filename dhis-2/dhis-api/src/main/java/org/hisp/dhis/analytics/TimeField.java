@@ -38,6 +38,9 @@ import lombok.Getter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 
+/**
+ * enum to map database column names to "business" names
+ */
 public enum TimeField
 {
     EVENT_DATE( "executiondate" ),
