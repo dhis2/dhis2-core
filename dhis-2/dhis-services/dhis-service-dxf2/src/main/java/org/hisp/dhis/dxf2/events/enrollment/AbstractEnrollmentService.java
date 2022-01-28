@@ -53,6 +53,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.commons.collection.CollectionUtils;
@@ -202,14 +203,17 @@ public abstract class AbstractEnrollmentService
 
         if ( params.isPaging() )
         {
-            int count = 0;
+            final Pager pager;
 
             if ( params.isTotalPages() )
             {
-                count = programInstanceService.countProgramInstances( params );
+                int count = programInstanceService.countProgramInstances( params );
+                pager = new Pager( params.getPageWithDefault(), count, params.getPageSizeWithDefault() );
             }
-
-            Pager pager = new Pager( params.getPageWithDefault(), count, params.getPageSizeWithDefault() );
+            else
+            {
+                pager = new SlimPager( params.getPage(), params.getPageSize() );
+            }
 
             enrollments.setPager( pager );
         }

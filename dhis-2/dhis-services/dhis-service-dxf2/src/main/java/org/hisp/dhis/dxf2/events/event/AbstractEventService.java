@@ -78,6 +78,7 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.dataelement.DataElement;
@@ -406,14 +407,18 @@ public abstract class AbstractEventService implements EventService
 
         if ( params.isPaging() )
         {
-            int count = 0;
+            final Pager pager;
 
             if ( params.isTotalPages() )
             {
-                count = eventStore.getEventCount( params, organisationUnits );
+                int count = eventStore.getEventCount( params, organisationUnits );
+                pager = new Pager( params.getPageWithDefault(), count, params.getPageSizeWithDefault() );
+            }
+            else
+            {
+                pager = new SlimPager( params.getPage(), params.getPageSize() );
             }
 
-            Pager pager = new Pager( params.getPageWithDefault(), count, params.getPageSizeWithDefault() );
             metaData.put( PAGER_META_KEY, pager );
         }
 
