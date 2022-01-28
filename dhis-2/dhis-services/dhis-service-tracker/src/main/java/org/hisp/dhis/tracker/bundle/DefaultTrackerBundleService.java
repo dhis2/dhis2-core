@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.bundle;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import lombok.RequiredArgsConstructor;
@@ -48,6 +49,7 @@ import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatService;
 import org.hisp.dhis.tracker.report.TrackerBundleReport;
+import org.hisp.dhis.tracker.report.TrackerTypeReport;
 import org.hisp.dhis.tracker.sideeffect.SideEffectHandlerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -113,13 +115,14 @@ public class DefaultTrackerBundleService
         }
 
         Session session = sessionFactory.getCurrentSession();
-        bundleReport.getTypeReportMap().put( TrackerType.TRACKED_ENTITY,
+        Map<TrackerType, TrackerTypeReport> report = bundleReport.getTypeReportMap();
+        report.put( TrackerType.TRACKED_ENTITY,
             commitService.getTrackerPersister().persist( session, bundle ) );
-        bundleReport.getTypeReportMap().put( TrackerType.ENROLLMENT,
+        report.put( TrackerType.ENROLLMENT,
             commitService.getEnrollmentPersister().persist( session, bundle ) );
-        bundleReport.getTypeReportMap().put( TrackerType.EVENT,
+        report.put( TrackerType.EVENT,
             commitService.getEventPersister().persist( session, bundle ) );
-        bundleReport.getTypeReportMap().put( TrackerType.RELATIONSHIP,
+        report.put( TrackerType.RELATIONSHIP,
             commitService.getRelationshipPersister().persist( session, bundle ) );
 
         return bundleReport;
@@ -154,10 +157,11 @@ public class DefaultTrackerBundleService
             return bundleReport;
         }
 
-        bundleReport.getTypeReportMap().put( TrackerType.RELATIONSHIP, deletionService.deleteRelationShips( bundle ) );
-        bundleReport.getTypeReportMap().put( TrackerType.EVENT, deletionService.deleteEvents( bundle ) );
-        bundleReport.getTypeReportMap().put( TrackerType.ENROLLMENT, deletionService.deleteEnrollments( bundle ) );
-        bundleReport.getTypeReportMap().put( TrackerType.TRACKED_ENTITY,
+        Map<TrackerType, TrackerTypeReport> report = bundleReport.getTypeReportMap();
+        report.put( TrackerType.RELATIONSHIP, deletionService.deleteRelationShips( bundle ) );
+        report.put( TrackerType.EVENT, deletionService.deleteEvents( bundle ) );
+        report.put( TrackerType.ENROLLMENT, deletionService.deleteEnrollments( bundle ) );
+        report.put( TrackerType.TRACKED_ENTITY,
             deletionService.deleteTrackedEntityInstances( bundle ) );
 
         return bundleReport;
