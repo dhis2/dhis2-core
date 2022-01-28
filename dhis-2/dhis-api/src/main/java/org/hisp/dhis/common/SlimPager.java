@@ -53,6 +53,12 @@ public class SlimPager extends Pager
         this.pageSize = pageSize;
     }
 
+    /**
+     * The current page.
+     *
+     * @return the current page.
+     */
+    @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
     public int getPage()
@@ -63,8 +69,9 @@ public class SlimPager extends Pager
     /**
      * How many items per page.
      *
-     * @return Number of items per page.
+     * @return number of items per page.
      */
+    @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
     public int getPageSize()
