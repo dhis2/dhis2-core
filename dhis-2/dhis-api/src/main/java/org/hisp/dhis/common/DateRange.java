@@ -30,14 +30,16 @@ package org.hisp.dhis.common;
 import java.util.Date;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Simple class to store start and end dates.
  *
  * @author Jim Grace
  */
-@Data
+@Setter
+@Getter
 @AllArgsConstructor
 public class DateRange
 {

@@ -257,7 +257,6 @@ public class EventDataQueryRequest
             EventDataQueryRequestBuilder builder = startDate( criteria.getStartDate() )
                 .timeField( criteria.getTimeField() )
                 .endDate( criteria.getEndDate() )
-                .dimension( criteria.getDimension() )
                 .filter( criteria.getFilter() )
                 .headers( criteria.getHeaders() )
                 .ouMode( criteria.getOuMode() )
@@ -325,15 +324,29 @@ public class EventDataQueryRequest
                 .collect( Collectors.toSet() );
         }
 
+        /**
+         * "sanitize" legacy pe dimension, in case it is passed along with time
+         * field specification. Example
+         * pe:TODAY:LAST_UPDATED;LAST_WEEK:INCIDENT_DATE -> pe:TODAY;LAST_WEEK
+         */
         private String withoutTimeField( String dimension )
         {
-            String[] splitDimension = dimension.split( DIMENSION_NAME_SEP );
-            if ( splitDimension[0].equals( PERIOD_DIM_ID ) && splitDimension.length > 2 )
+            dimension = dimension.replaceFirst( PERIOD_DIM_ID + DIMENSION_NAME_SEP, "" );
+            return String.join( DIMENSION_NAME_SEP, PERIOD_DIM_ID,
+                Arrays.stream( dimension.split( OPTION_SEP ) )
+                    .map( this::removeTimeField )
+                    .collect( Collectors.joining( OPTION_SEP ) ) );
+        }
+
+        private String removeTimeField( String dimensionItem )
+        {
+            String[] splitDimension = dimensionItem.split( DIMENSION_NAME_SEP );
+            if ( splitDimension.length > 1 )
             {
-                return String.join( DIMENSION_NAME_SEP, splitDimension[0], splitDimension[1] );
+                return splitDimension[0];
             }
             else
-                return dimension;
+                return dimensionItem;
         }
 
         private static boolean isPeDimension( String dimension )

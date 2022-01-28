@@ -343,7 +343,7 @@ public class EventQueryParams
         params.periodType = this.periodType;
         params.analyzeOrderId = this.analyzeOrderId;
         params.dateRangeByDateFilter = this.dateRangeByDateFilter;
-        params.setSkipPartitioning( this.isSkipPartitioning() );
+        params.skipPartitioning = this.skipPartitioning;
         return params;
     }
 
@@ -1485,6 +1485,11 @@ public class EventQueryParams
         {
             this.params.analyzeOrderId = UUID.randomUUID().toString();
             return this;
+        }
+
+        public void withSkipPartitioning( boolean skipPartitioning )
+        {
+            this.params.skipPartitioning = skipPartitioning;
         }
 
         public EventQueryParams build()

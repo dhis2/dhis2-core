@@ -192,15 +192,10 @@ public class DimensionalObjectUtils
 
         if ( param.split( DIMENSION_NAME_SEP ).length > 1 )
         {
-            return parseDimensions( param );
+            return Arrays.asList( param.substring( param.indexOf( DIMENSION_NAME_SEP ) + 1 ).split( OPTION_SEP ) );
         }
 
         return new ArrayList<>();
-    }
-
-    private static List<String> parseDimensions( String param )
-    {
-        return Arrays.asList( param.substring( param.indexOf( DIMENSION_NAME_SEP ) + 1 ).split( OPTION_SEP ) );
     }
 
     /**
