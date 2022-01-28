@@ -277,7 +277,6 @@ public abstract class AbstractJdbcEventAnalyticsManager
                     columns.add( programIndicatorSubqueryBuilder.getAggregateClauseForProgramIndicator( in,
                         getAnalyticsType(), params.getEarliestStartDate(), params.getLatestEndDate() ) + asClause );
                 }
-
             }
             else if ( ValueType.COORDINATE == queryItem.getValueType() )
             {

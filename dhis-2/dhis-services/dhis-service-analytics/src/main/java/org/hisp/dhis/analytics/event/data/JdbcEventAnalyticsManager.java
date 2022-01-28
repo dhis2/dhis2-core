@@ -112,6 +112,8 @@ public class JdbcEventAnalyticsManager
 
     private static final String ORG_UNIT_UID_LEVEL_COLUMN_PREFIX = "uidlevel";
 
+    public static final String PSISTATUS_IN_DEFAULT_STATUSES = " psistatus in ('ACTIVE', 'COMPLETED')";
+
     private final EventTimeFieldSqlRenderer timeFieldSqlRenderer;
 
     public JdbcEventAnalyticsManager( JdbcTemplate jdbcTemplate, StatementBuilder statementBuilder,
@@ -549,6 +551,11 @@ public class JdbcEventAnalyticsManager
         {
             sql += hlp.whereAnd() + " psistatus in ("
                 + params.getEventStatus().stream().map( e -> "'" + e.name() + "'" ).collect( joining( "," ) ) + ") ";
+        }
+        else
+        {
+            // Default status
+            sql += hlp.whereAnd() + PSISTATUS_IN_DEFAULT_STATUSES;
         }
 
         if ( params.isCoordinatesOnly() || params.isGeometryOnly() )
