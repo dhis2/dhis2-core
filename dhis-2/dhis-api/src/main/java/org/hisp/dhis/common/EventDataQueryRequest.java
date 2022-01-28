@@ -247,7 +247,7 @@ public class EventDataQueryRequest
                 .collect( Collectors.joining( OPTION_SEP ) );
 
             return builder.dimension(
-                getDimensionsWithReworkedPeDimension(
+                getDimensionsWithRefactoredPeDimension(
                     criteria.getDimension(),
                     customDateFilters ) );
         }
@@ -288,12 +288,12 @@ public class EventDataQueryRequest
                 .collect( Collectors.joining( OPTION_SEP ) );
 
             return builder.dimension(
-                getDimensionsWithReworkedPeDimension(
+                getDimensionsWithRefactoredPeDimension(
                     criteria.getDimension(),
                     customDateFilters ) );
         }
 
-        private Set<String> getDimensionsWithReworkedPeDimension( Set<String> dimensions, String customDateFilters )
+        private Set<String> getDimensionsWithRefactoredPeDimension( Set<String> dimensions, String customDateFilters )
         {
             if ( customDateFilters.isEmpty() )
             {
