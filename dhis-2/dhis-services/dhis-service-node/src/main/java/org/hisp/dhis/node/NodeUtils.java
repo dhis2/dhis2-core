@@ -101,6 +101,17 @@ public final class NodeUtils
         return pagerNode;
     }
 
+    public static Node createSlimPager( Pager pager )
+    {
+        ComplexNode pagerNode = new ComplexNode( "pager" );
+        pagerNode.setMetadata( true );
+
+        pagerNode.addChild( new SimpleNode( "page", pager.getPage() ) );
+        pagerNode.addChild( new SimpleNode( "pageSize", pager.getPageSize() ) );
+
+        return pagerNode;
+    }
+
     public static Iterable<? extends Node> createSimples( Collection<?> collection )
     {
         return collection.stream().map( o -> new SimpleNode( "", o ) ).collect( Collectors.toList() );
