@@ -70,6 +70,9 @@ import com.google.common.collect.ImmutableSet;
  * of all identifiers will then be used to "preheat/cache" all the objects
  * needed into memory to speed up the validation process.
  *
+ * The metadata identifiers can be of different idSchemes as specified by the
+ * user on import.
+ *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  * @see org.hisp.dhis.tracker.preheat.DefaultTrackerPreheatService
  */
