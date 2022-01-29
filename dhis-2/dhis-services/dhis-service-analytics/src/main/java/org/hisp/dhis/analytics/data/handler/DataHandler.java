@@ -1064,7 +1064,7 @@ public class DataHandler
         int dataIndex, int periodIndex, int valueIndex, List<Object> row, DimensionalItemObject dimensionalItemObject,
         List<DimensionalItemObject> basePeriods )
     {
-        if ( row.get( valueIndex ) == null || !dimensionalItemObject.getUid().equals( row.get( dataIndex ) ) )
+        if ( row.get( valueIndex ) == null )
         {
             return;
         }
