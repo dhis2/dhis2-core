@@ -25,30 +25,62 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.appmanager;
+package org.hisp.dhis.datastore;
 
-import org.hisp.dhis.datastore.DatastoreNamespaceProtection;
-import org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionType;
-import org.hisp.dhis.datastore.DatastoreService;
-import org.springframework.stereotype.Component;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * The main purpose (so far) of the {@link AndroidSettingApp} component is to
- * establish the protected {@link #NAMESPACE} in the {@link DatastoreService} so
- * that only the app can write to it using a role having the {@link #AUTHORITY}.
- *
- * @author Jan Bernitt
+ * @author Lars Helge Overland
  */
-@Component
-public class AndroidSettingApp
+public class Dog
 {
-    public static final String NAMESPACE = "ANDROID_SETTING_APP";
+    private String id;
 
-    public static final String AUTHORITY = "M_Android_Setting";
+    private String name;
 
-    public AndroidSettingApp( DatastoreService service )
+    private String color;
+
+    public Dog()
     {
-        service.addProtection( new DatastoreNamespaceProtection( NAMESPACE, ProtectionType.NONE,
-            ProtectionType.RESTRICTED, false, AUTHORITY ) );
+    }
+
+    public Dog( String id, String name, String color )
+    {
+        this.id = id;
+        this.name = name;
+        this.color = color;
+    }
+
+    @JsonProperty
+    public String getId()
+    {
+        return id;
+    }
+
+    public void setId( String id )
+    {
+        this.id = id;
+    }
+
+    @JsonProperty
+    public String getName()
+    {
+        return name;
+    }
+
+    public void setName( String name )
+    {
+        this.name = name;
+    }
+
+    @JsonProperty
+    public String getColor()
+    {
+        return color;
+    }
+
+    public void setColor( String color )
+    {
+        this.color = color;
     }
 }

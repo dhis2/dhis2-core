@@ -25,30 +25,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.appmanager;
+package org.hisp.dhis.webapi.json.domain;
 
-import org.hisp.dhis.datastore.DatastoreNamespaceProtection;
-import org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionType;
-import org.hisp.dhis.datastore.DatastoreService;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.datastore.DatastoreEntry;
+import org.hisp.dhis.jsontree.JsonValue;
 
 /**
- * The main purpose (so far) of the {@link AndroidSettingApp} component is to
- * establish the protected {@link #NAMESPACE} in the {@link DatastoreService} so
- * that only the app can write to it using a role having the {@link #AUTHORITY}.
+ * Web API equivalent of a {@link DatastoreEntry}.
  *
  * @author Jan Bernitt
  */
-@Component
-public class AndroidSettingApp
+public interface JsonDatastoreValue extends JsonIdentifiableObject
 {
-    public static final String NAMESPACE = "ANDROID_SETTING_APP";
-
-    public static final String AUTHORITY = "M_Android_Setting";
-
-    public AndroidSettingApp( DatastoreService service )
+    default String getNamespace()
     {
-        service.addProtection( new DatastoreNamespaceProtection( NAMESPACE, ProtectionType.NONE,
-            ProtectionType.RESTRICTED, false, AUTHORITY ) );
+        return getString( "namespace" ).string();
+    }
+
+    default String getKey()
+    {
+        return getString( "key" ).string();
+    }
+
+    default JsonValue getValue()
+    {
+        return get( "value" );
     }
 }

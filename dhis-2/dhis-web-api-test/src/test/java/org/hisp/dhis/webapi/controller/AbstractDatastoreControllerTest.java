@@ -25,30 +25,47 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.appmanager;
+package org.hisp.dhis.webapi.controller;
 
-import org.hisp.dhis.datastore.DatastoreNamespaceProtection;
-import org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionType;
-import org.hisp.dhis.datastore.DatastoreService;
-import org.springframework.stereotype.Component;
+import static org.hisp.dhis.utils.JavaToJson.toJson;
+import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
+
+import java.util.List;
+import java.util.Map;
+
+import org.hisp.dhis.utils.JavaToJson;
+import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.springframework.http.HttpStatus;
 
 /**
- * The main purpose (so far) of the {@link AndroidSettingApp} component is to
- * establish the protected {@link #NAMESPACE} in the {@link DatastoreService} so
- * that only the app can write to it using a role having the {@link #AUTHORITY}.
+ * Base class for testing the {@link DatastoreController} providing helpers to
+ * set up entries in the store.
  *
  * @author Jan Bernitt
  */
-@Component
-public class AndroidSettingApp
+abstract class AbstractDatastoreControllerTest extends DhisControllerConvenienceTest
 {
-    public static final String NAMESPACE = "ANDROID_SETTING_APP";
 
-    public static final String AUTHORITY = "M_Android_Setting";
-
-    public AndroidSettingApp( DatastoreService service )
+    /**
+     * Creates a new entry with the given key and value in the given namespace.
+     *
+     * @param ns namespace
+     * @param key key of the entry
+     * @param value value of the entry, valid JSON - consider using
+     *        {@link JavaToJson#toJson(Object)}
+     */
+    final void postEntry( String ns, String key, String value )
     {
-        service.addProtection( new DatastoreNamespaceProtection( NAMESPACE, ProtectionType.NONE,
-            ProtectionType.RESTRICTED, false, AUTHORITY ) );
+        assertStatus( HttpStatus.CREATED, POST( "/dataStore/" + ns + "/" + key, value ) );
+    }
+
+    final void postPet( String key, String name, int age, List<String> eats )
+    {
+        postEntry( "pets", key,
+            toJson( Map.of(
+                "name", name,
+                "age", age,
+                "cute", true,
+                "eats", eats == null ? List.of() : eats.stream().map( food -> Map.of( "name", food ) ) ) ) );
     }
 }
