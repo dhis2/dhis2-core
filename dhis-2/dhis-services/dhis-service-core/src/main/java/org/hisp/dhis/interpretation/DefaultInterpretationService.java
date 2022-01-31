@@ -368,8 +368,11 @@ public class DefaultInterpretationService
                 + interpretation.getUid();
             break;
         case EVENT_REPORT:
-        case EVENT_VISUALIZATION:
             path = "/dhis-web-event-reports/index.html?id=" + interpretation.getEventReport().getUid()
+                + "&interpretationid=" + interpretation.getUid();
+            break;
+        case EVENT_VISUALIZATION:
+            path = "/dhis-web-event-visualizer/index.html?id=" + interpretation.getEventVisualization().getUid()
                 + "&interpretationid=" + interpretation.getUid();
             break;
         case EVENT_CHART:
