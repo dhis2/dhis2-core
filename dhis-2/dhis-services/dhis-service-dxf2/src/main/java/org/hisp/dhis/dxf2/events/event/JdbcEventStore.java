@@ -1926,7 +1926,6 @@ public class JdbcEventStore implements EventStore
         {
             orgUnitSql.append( " ou.organisationunitid = " + params.getOrgUnit().getId() + " " );
         }
-
         else
         {
             SqlHelper orHlp = new SqlHelper( true );
@@ -1956,6 +1955,13 @@ public class JdbcEventStore implements EventStore
             {
                 orgUnitSql.insert( 0, " (" );
                 orgUnitSql.append( ") " );
+
+                if ( params.isPathOrganisationUnitMode() )
+                {
+                    orgUnitSql.insert( 0, " (" );
+                    orgUnitSql.append( orHlp.or() )
+                        .append( " (ou.organisationunitid = " + params.getOrgUnit().getId() + ")) " );
+                }
             }
         }
 
