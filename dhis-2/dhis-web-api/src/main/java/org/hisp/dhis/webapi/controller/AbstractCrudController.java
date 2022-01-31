@@ -727,73 +727,76 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     // --------------------------------------------------------------------------
 
     @PostMapping( value = "/{uid}/{property}", consumes = APPLICATION_JSON_VALUE )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void addCollectionItemsJson(
+    @ResponseStatus( HttpStatus.OK )
+    public WebMessage addCollectionItemsJson(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
         HttpServletRequest request )
         throws Exception
     {
-        addCollectionItems( pvProperty, getEntity( pvUid ).get( 0 ),
+        return addCollectionItems( pvProperty, getEntity( pvUid ).get( 0 ),
             renderService.fromJson( request.getInputStream(), IdentifiableObjects.class ) );
     }
 
     @PostMapping( value = "/{uid}/{property}", consumes = APPLICATION_XML_VALUE )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void addCollectionItemsXml(
+    @ResponseStatus( HttpStatus.OK )
+    public WebMessage addCollectionItemsXml(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
         HttpServletRequest request )
         throws Exception
     {
-        addCollectionItems( pvProperty, getEntity( pvUid ).get( 0 ),
+        return addCollectionItems( pvProperty, getEntity( pvUid ).get( 0 ),
             renderService.fromXml( request.getInputStream(), IdentifiableObjects.class ) );
     }
 
-    private void addCollectionItems( String pvProperty, T object, IdentifiableObjects items )
+    private WebMessage addCollectionItems( String pvProperty, T object, IdentifiableObjects items )
         throws Exception
     {
         preUpdateItems( object, items );
-        collectionService.delCollectionItems( object, pvProperty, items.getDeletions() );
-        collectionService.addCollectionItems( object, pvProperty, items.getAdditions() );
+        TypeReport deletions = collectionService.delCollectionItems( object, pvProperty, items.getDeletions() );
+        TypeReport additions = collectionService.addCollectionItems( object, pvProperty, items.getAdditions() );
         postUpdateItems( object, items );
+        return typeReport( deletions.mergeAllowEmpty( additions ) );
     }
 
     @PutMapping( value = "/{uid}/{property}", consumes = APPLICATION_JSON_VALUE )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void replaceCollectionItemsJson(
+    @ResponseStatus( HttpStatus.OK )
+    public WebMessage replaceCollectionItemsJson(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
         HttpServletRequest request )
         throws Exception
     {
-        replaceCollectionItems( pvProperty, getEntity( pvUid ).get( 0 ),
+        return replaceCollectionItems( pvProperty, getEntity( pvUid ).get( 0 ),
             renderService.fromJson( request.getInputStream(), IdentifiableObjects.class ) );
     }
 
     @PutMapping( value = "/{uid}/{property}", consumes = APPLICATION_XML_VALUE )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void replaceCollectionItemsXml(
+    @ResponseStatus( HttpStatus.OK )
+    public WebMessage replaceCollectionItemsXml(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
         HttpServletRequest request )
         throws Exception
     {
-        replaceCollectionItems( pvProperty, getEntity( pvUid ).get( 0 ),
+        return replaceCollectionItems( pvProperty, getEntity( pvUid ).get( 0 ),
             renderService.fromXml( request.getInputStream(), IdentifiableObjects.class ) );
     }
 
-    private void replaceCollectionItems( String pvProperty, T object, IdentifiableObjects items )
+    private WebMessage replaceCollectionItems( String pvProperty, T object, IdentifiableObjects items )
         throws Exception
     {
         preUpdateItems( object, items );
-        collectionService.replaceCollectionItems( object, pvProperty, items.getIdentifiableObjects() );
+        TypeReport report = collectionService.replaceCollectionItems( object, pvProperty,
+            items.getIdentifiableObjects() );
         postUpdateItems( object, items );
+        return typeReport( report );
     }
 
     @PostMapping( value = "/{uid}/{property}/{itemId}" )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void addCollectionItem(
+    @ResponseStatus( HttpStatus.OK )
+    public WebMessage addCollectionItem(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
         @PathVariable( "itemId" ) String pvItemId,
@@ -811,40 +814,42 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         items.setAdditions( singletonList( new BaseIdentifiableObject( pvItemId, "", "" ) ) );
 
         preUpdateItems( object, items );
-        collectionService.addCollectionItems( object, pvProperty, items.getIdentifiableObjects() );
+        TypeReport report = collectionService.addCollectionItems( object, pvProperty, items.getIdentifiableObjects() );
         postUpdateItems( object, items );
+        return typeReport( report );
     }
 
     @DeleteMapping( value = "/{uid}/{property}", consumes = APPLICATION_JSON_VALUE )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void deleteCollectionItemsJson(
+    @ResponseStatus( HttpStatus.OK )
+    public WebMessage deleteCollectionItemsJson(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
         HttpServletRequest request )
         throws Exception
     {
-        deleteCollectionItems( pvProperty, getEntity( pvUid ).get( 0 ),
+        return deleteCollectionItems( pvProperty, getEntity( pvUid ).get( 0 ),
             renderService.fromJson( request.getInputStream(), IdentifiableObjects.class ) );
     }
 
     @DeleteMapping( value = "/{uid}/{property}", consumes = APPLICATION_XML_VALUE )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void deleteCollectionItemsXml(
+    @ResponseStatus( HttpStatus.OK )
+    public WebMessage deleteCollectionItemsXml(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
         HttpServletRequest request )
         throws Exception
     {
-        deleteCollectionItems( pvProperty, getEntity( pvUid ).get( 0 ),
+        return deleteCollectionItems( pvProperty, getEntity( pvUid ).get( 0 ),
             renderService.fromXml( request.getInputStream(), IdentifiableObjects.class ) );
     }
 
-    private void deleteCollectionItems( String pvProperty, T object, IdentifiableObjects items )
+    private WebMessage deleteCollectionItems( String pvProperty, T object, IdentifiableObjects items )
         throws Exception
     {
         preUpdateItems( object, items );
-        collectionService.delCollectionItems( object, pvProperty, items.getIdentifiableObjects() );
+        TypeReport report = collectionService.delCollectionItems( object, pvProperty, items.getIdentifiableObjects() );
         postUpdateItems( object, items );
+        return typeReport( report );
     }
 
     @DeleteMapping( value = "/{uid}/{property}/{itemId}" )
