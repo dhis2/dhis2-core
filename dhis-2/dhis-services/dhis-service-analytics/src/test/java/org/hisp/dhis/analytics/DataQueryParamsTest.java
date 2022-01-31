@@ -247,7 +247,15 @@ class DataQueryParamsTest extends DhisConvenienceTest
     {
         List<String> expected = new ArrayList<>( Lists.newArrayList( "D348asd782j", "kj78HnH6hgT", "9ds9dS98s2" ) );
         assertEquals( expected,
-            DimensionalObjectUtils.getDimensionItemsFromParam( "de:D348asd782j;kj78HnH6hgT;9ds9dS98s2" ) );
+                DimensionalObjectUtils.getDimensionItemsFromParam( "de:D348asd782j;kj78HnH6hgT;9ds9dS98s2" ) );
+    }
+
+    @Test
+    void testGetDimensionItemsFromParamForPeriods()
+    {
+        List<String> expected = new ArrayList<>( Lists.newArrayList( "TODAY:LAST_UPDATED", "LAST_WEEK:INCIDENT_DATE", "YESTERDAY" ) );
+        assertEquals( expected,
+                DimensionalObjectUtils.getDimensionItemsFromParam( "pe:TODAY:LAST_UPDATED;LAST_WEEK:INCIDENT_DATE;YESTERDAY" ) );
     }
 
     @Test

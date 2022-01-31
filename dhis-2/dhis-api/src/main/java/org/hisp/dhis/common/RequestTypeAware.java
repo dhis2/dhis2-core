@@ -31,7 +31,7 @@ import static org.hisp.dhis.common.RequestTypeAware.RequestType.QUERY;
 
 public class RequestTypeAware
 {
-    private RequestType requestType;
+    private RequestType requestType = RequestType.OTHER;
 
     public RequestTypeAware withQueryRequestType()
     {
