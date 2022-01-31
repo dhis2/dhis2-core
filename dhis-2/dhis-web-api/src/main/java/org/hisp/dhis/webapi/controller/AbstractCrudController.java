@@ -853,8 +853,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     }
 
     @DeleteMapping( value = "/{uid}/{property}/{itemId}" )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void deleteCollectionItem(
+    @ResponseStatus( HttpStatus.OK )
+    public WebMessage deleteCollectionItem(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
         @PathVariable( "itemId" ) String pvItemId,
@@ -869,7 +869,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
         IdentifiableObjects items = new IdentifiableObjects();
         items.setIdentifiableObjects( singletonList( new BaseIdentifiableObject( pvItemId, "", "" ) ) );
-        deleteCollectionItems( pvProperty, objects.get( 0 ), items );
+        return deleteCollectionItems( pvProperty, objects.get( 0 ), items );
     }
 
     @PutMapping( value = "/{uid}/sharing", consumes = APPLICATION_JSON_VALUE )

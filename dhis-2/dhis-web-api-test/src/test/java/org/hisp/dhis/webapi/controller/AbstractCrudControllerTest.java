@@ -538,13 +538,49 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    void testAddCollectionItem()
+    void testAddCollectionItem_Owned()
     {
         String userId = getCurrentUser().getUid();
         // first create an object which has a collection
         String groupId = assertStatus( HttpStatus.CREATED, POST( "/userGroups/", "{'name':'testers'}" ) );
         assertStatus( HttpStatus.OK, POST( "/userGroups/{uid}/users/{itemId}", groupId, userId ) );
         assertUserGroupHasOnlyUser( groupId, userId );
+    }
+
+    @Test
+    void testAddCollectionItem_NonOwned()
+    {
+        String userId = getCurrentUser().getUid();
+        // first create an object which has a collection
+        String groupId = assertStatus( HttpStatus.CREATED, POST( "/userGroups/", "{'name':'testers'}" ) );
+        assertStatus( HttpStatus.OK, POST( "/users/{uid}/userGroups/{itemId}", userId, groupId ) );
+        assertUserGroupHasOnlyUser( groupId, userId );
+    }
+
+    @Test
+    void testDeleteCollectionItem_Owned()
+    {
+        String userId = getCurrentUser().getUid();
+        // first create an object which has a collection
+        String groupId = assertStatus( HttpStatus.CREATED, POST( "/userGroups/", "{'name':'testers'}" ) );
+        assertStatus( HttpStatus.OK, POST( "/userGroups/{uid}/users/{itemId}", groupId, userId ) );
+        assertUserGroupHasOnlyUser( groupId, userId );
+
+        assertStatus( HttpStatus.OK, DELETE( "/userGroups/{uid}/users/{itemId}", groupId, userId ) );
+        assertUserGroupHasNoUser( groupId );
+    }
+
+    @Test
+    void testDeleteCollectionItem_NonOwned()
+    {
+        String userId = getCurrentUser().getUid();
+        // first create an object which has a collection
+        String groupId = assertStatus( HttpStatus.CREATED, POST( "/userGroups/", "{'name':'testers'}" ) );
+        assertStatus( HttpStatus.OK, POST( "/users/{uid}/userGroups/{itemId}", userId, groupId ) );
+        assertUserGroupHasOnlyUser( groupId, userId );
+
+        assertStatus( HttpStatus.OK, DELETE( "/users/{uid}/userGroups/{itemId}", userId, groupId ) );
+        assertUserGroupHasNoUser( groupId );
     }
 
     @Test
@@ -601,9 +637,16 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
 
     private void assertUserGroupHasOnlyUser( String groupId, String userId )
     {
-        JsonList<JsonUser> usersInGroup = GET( "/userGroups/{uid}/users/{itemId}", groupId, userId ).content()
+        JsonList<JsonUser> usersInGroup = GET( "/userGroups/{uid}/users/", groupId, userId ).content()
             .getList( "users", JsonUser.class );
         assertEquals( 1, usersInGroup.size() );
         assertEquals( userId, usersInGroup.get( 0 ).getId() );
+    }
+
+    private void assertUserGroupHasNoUser( String groupId )
+    {
+        JsonList<JsonUser> usersInGroup = GET( "/userGroups/{uid}/users/", groupId ).content()
+            .getList( "users", JsonUser.class );
+        assertEquals( 0, usersInGroup.size() );
     }
 }

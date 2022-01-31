@@ -142,8 +142,8 @@ public class DefaultCollectionService implements CollectionService
 
                 if ( !collection.contains( object ) )
                 {
-                    collection.add( object );
                     validateAndThrowErrors( () -> schemaValidator.validateProperty( property, object ) );
+                    collection.add( object );
                     manager.update( item );
                 }
             } );
@@ -208,8 +208,8 @@ public class DefaultCollectionService implements CollectionService
 
                 if ( collection.contains( object ) )
                 {
+                    validateAndThrowErrors( () -> schemaValidator.validateProperty( owningProperty, item ) );
                     collection.remove( object );
-                    validateAndThrowErrors( () -> schemaValidator.validateProperty( property, item ) );
                     manager.update( item );
                 }
             } );
