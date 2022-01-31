@@ -518,7 +518,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
         String userId = getCurrentUser().getUid();
         // first create an object which has a collection
         String groupId = assertStatus( HttpStatus.CREATED, POST( "/userGroups/", "{'name':'testers'}" ) );
-        assertStatus( HttpStatus.NO_CONTENT,
+        assertStatus( HttpStatus.OK,
             POST( "/userGroups/" + groupId + "/users", "{'additions': [{'id':'" + userId + "'}]}" ) );
         assertUserGroupHasOnlyUser( groupId, userId );
     }
@@ -532,7 +532,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
             POST( "/userGroups/", "{'name':'testers', 'users':[{'id':'" + userId + "'}]}" ) );
         String peter = "{'name': 'Peter', 'firstName':'Peter', 'surname':'Pan', 'userCredentials':{'username':'peter47'}}";
         String peterUserId = assertStatus( HttpStatus.CREATED, POST( "/users", peter ) );
-        assertStatus( HttpStatus.NO_CONTENT,
+        assertStatus( HttpStatus.OK,
             PUT( "/userGroups/" + groupId + "/users", "{'identifiableObjects':[{'id':'" + peterUserId + "'}]}" ) );
         assertUserGroupHasOnlyUser( groupId, peterUserId );
     }
@@ -543,7 +543,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
         String userId = getCurrentUser().getUid();
         // first create an object which has a collection
         String groupId = assertStatus( HttpStatus.CREATED, POST( "/userGroups/", "{'name':'testers'}" ) );
-        assertStatus( HttpStatus.NO_CONTENT, POST( "/userGroups/{uid}/users/{itemId}", groupId, userId ) );
+        assertStatus( HttpStatus.OK, POST( "/userGroups/{uid}/users/{itemId}", groupId, userId ) );
         assertUserGroupHasOnlyUser( groupId, userId );
     }
 
@@ -554,7 +554,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
         // first create an object which has a collection
         String groupId = assertStatus( HttpStatus.CREATED,
             POST( "/userGroups/", "{'name':'testers', 'users':[{'id':'" + userId + "'}]}" ) );
-        assertStatus( HttpStatus.NO_CONTENT,
+        assertStatus( HttpStatus.OK,
             DELETE( "/userGroups/" + groupId + "/users", "{'identifiableObjects':[{'id':'" + userId + "'}]}" ) );
         assertEquals( 0, GET( "/userGroups/{uid}/users/", groupId ).content().getArray( "users" ).size() );
     }
