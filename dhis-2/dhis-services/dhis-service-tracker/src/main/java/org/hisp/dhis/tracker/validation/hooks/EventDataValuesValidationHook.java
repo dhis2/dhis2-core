@@ -28,7 +28,10 @@
 package org.hisp.dhis.tracker.validation.hooks;
 
 import static com.google.api.client.util.Preconditions.checkNotNull;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.*;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1009;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1076;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1084;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1303;
 import static org.hisp.dhis.tracker.validation.hooks.ValidationUtils.needsToValidateDataValues;
 import static org.hisp.dhis.tracker.validation.hooks.ValidationUtils.validateMandatoryDataValue;
 
@@ -98,11 +101,13 @@ public class EventDataValuesValidationHook
             final List<String> mandatoryDataElements = programStage.getProgramStageDataElements()
                 .stream()
                 .filter( ProgramStageDataElement::isCompulsory )
-                .map( de -> de.getDataElement().getUid() )
+                .map( de -> context.getIdentifiers().getDataElementIdScheme()
+                    .getIdentifier( de.getDataElement() ) )
                 .collect( Collectors.toList() );
-            List<String> wrongMandatoryDataValue = validateMandatoryDataValue( programStage, event,
+            List<String> missingDataValue = validateMandatoryDataValue( programStage, event,
                 mandatoryDataElements );
-            wrongMandatoryDataValue.forEach( de -> addError( reporter, E1303, de ) );
+            missingDataValue
+                .forEach( de -> addError( reporter, E1303, de ) );
         }
     }
 
@@ -148,7 +153,8 @@ public class EventDataValuesValidationHook
     {
         final Set<String> dataElements = programStage.getProgramStageDataElements()
             .stream()
-            .map( de -> de.getDataElement().getUid() )
+            .map( de -> reporter.getValidationContext().getIdentifiers().getDataElementIdScheme()
+                .getIdentifier( de.getDataElement() ) )
             .collect( Collectors.toSet() );
 
         Set<String> payloadDataElements = event.getDataValues().stream()
