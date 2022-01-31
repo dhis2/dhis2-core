@@ -45,7 +45,7 @@ import org.hisp.dhis.program.ProgramStatus;
  */
 @Data
 @NoArgsConstructor
-public class EventsAnalyticsQueryCriteria
+public class EventsAnalyticsQueryCriteria extends RequestTypeAware
 {
     // -------------------------------------------------------------------------
     // Event and aggregate analytics

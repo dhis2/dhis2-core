@@ -41,7 +41,7 @@ import org.hisp.dhis.program.ProgramStatus;
  */
 @Data
 @NoArgsConstructor
-public class EnrollmentAnalyticsQueryCriteria
+public class EnrollmentAnalyticsQueryCriteria extends RequestTypeAware
 {
     private Date startDate;
 

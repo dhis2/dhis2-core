@@ -238,30 +238,37 @@ public class EventDataQueryRequest
                 .coordinatesOnly( criteria.isCoordinatesOnly() )
                 .coordinateOuFallback( criteria.isCoordinateOuFallback() );
 
-            /*
-             * for each AnalyticsDateFilter whose event extractor is set,
-             * concatenates the timeField with the extracted value:
-             *
-             * example: eventCriteria.lastUpdated=TODAY
-             * eventCriteria.incidentDate=LAST_WEEK
-             *
-             * returns: TODAY:LAST_UPDATED;LAST_WEEK:INCIDENT_DATE
-             */
-            String customDateFilters = Arrays.stream( AnalyticsDateFilter.values() )
-                .filter( AnalyticsDateFilter::appliesToEvents )
-                .filter( analyticsDateFilter -> analyticsDateFilter.getEventExtractor().apply( criteria ) != null )
-                .map( analyticsDateFilter -> String.join( DIMENSION_NAME_SEP,
-                    analyticsDateFilter.getEventExtractor().apply( criteria ),
-                    analyticsDateFilter.getTimeField().name() ) )
-                .collect( Collectors.joining( OPTION_SEP ) );
+            if ( criteria.isRequestTypeQuery() )
+            {
+                /*
+                 * for each AnalyticsDateFilter whose event extractor is set,
+                 * concatenates the timeField with the extracted value:
+                 *
+                 * example: eventCriteria.lastUpdated=TODAY
+                 * eventCriteria.incidentDate=LAST_WEEK
+                 *
+                 * returns: TODAY:LAST_UPDATED;LAST_WEEK:INCIDENT_DATE
+                 */
+                String customDateFilters = Arrays.stream( AnalyticsDateFilter.values() )
+                    .filter( AnalyticsDateFilter::appliesToEvents )
+                    .filter( analyticsDateFilter -> analyticsDateFilter.getEventExtractor().apply( criteria ) != null )
+                    .map( analyticsDateFilter -> String.join( DIMENSION_NAME_SEP,
+                        analyticsDateFilter.getEventExtractor().apply( criteria ),
+                        analyticsDateFilter.getTimeField().name() ) )
+                    .collect( Collectors.joining( OPTION_SEP ) );
 
-            /*
-             * sets the new time dimensions into the requestBuilder
-             */
-            return builder.dimension(
-                getDimensionsWithRefactoredPeDimension(
-                    criteria.getDimension(),
-                    customDateFilters ) );
+                /*
+                 * sets the new time dimensions into the requestBuilder
+                 */
+                return builder.dimension(
+                    getDimensionsWithRefactoredPeDimension(
+                        criteria.getDimension(),
+                        customDateFilters ) );
+            }
+            else
+            {
+                return builder.dimension( criteria.getDimension() );
+            }
         }
 
         public EventDataQueryRequestBuilder fromCriteria( EnrollmentAnalyticsQueryCriteria criteria )
@@ -291,27 +298,33 @@ public class EventDataQueryRequest
                 .coordinateField( criteria.getCoordinateField() )
                 .sortOrder( criteria.getSortOrder() );
 
-            /*
-             * for each AnalyticsDateFilter whose enrollment extractor is set,
-             * concatenates the timeField with the extracted value:
-             *
-             * example: enrollmentCriteria.lastUpdated=TODAY
-             * enrollmentCriteria.incidentDate=LAST_WEEK
-             *
-             * returns: TODAY:LAST_UPDATED;LAST_WEEK:INCIDENT_DATE
-             */
-            String customDateFilters = Arrays.stream( AnalyticsDateFilter.values() )
-                .filter( AnalyticsDateFilter::appliesToEnrollments )
-                .filter( analyticsDateFilter -> analyticsDateFilter.getEnrollmentExtractor().apply( criteria ) != null )
-                .map( analyticsDateFilter -> String.join( DIMENSION_NAME_SEP,
-                    analyticsDateFilter.getEnrollmentExtractor().apply( criteria ),
-                    analyticsDateFilter.getTimeField().name() ) )
-                .collect( Collectors.joining( OPTION_SEP ) );
+            if ( criteria.isRequestTypeQuery() )
+            {
+                /*
+                 * for each AnalyticsDateFilter whose enrollment extractor is
+                 * set, concatenates the timeField with the extracted value:
+                 *
+                 * example: enrollmentCriteria.lastUpdated=TODAY
+                 * enrollmentCriteria.incidentDate=LAST_WEEK
+                 *
+                 * returns: TODAY:LAST_UPDATED;LAST_WEEK:INCIDENT_DATE
+                 */
+                String customDateFilters = Arrays.stream( AnalyticsDateFilter.values() )
+                    .filter( AnalyticsDateFilter::appliesToEnrollments )
+                    .filter(
+                        analyticsDateFilter -> analyticsDateFilter.getEnrollmentExtractor().apply( criteria ) != null )
+                    .map( analyticsDateFilter -> String.join( DIMENSION_NAME_SEP,
+                        analyticsDateFilter.getEnrollmentExtractor().apply( criteria ),
+                        analyticsDateFilter.getTimeField().name() ) )
+                    .collect( Collectors.joining( OPTION_SEP ) );
 
-            return builder.dimension(
-                getDimensionsWithRefactoredPeDimension(
-                    criteria.getDimension(),
-                    customDateFilters ) );
+                return builder.dimension(
+                    getDimensionsWithRefactoredPeDimension(
+                        criteria.getDimension(),
+                        customDateFilters ) );
+            }
+            else
+                return builder.dimension( criteria.getDimension() );
         }
 
         /**
