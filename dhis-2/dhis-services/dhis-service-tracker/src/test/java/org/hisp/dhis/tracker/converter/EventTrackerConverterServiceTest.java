@@ -27,8 +27,10 @@
  */
 package org.hisp.dhis.tracker.converter;
 
-import static junit.framework.TestCase.assertNotNull;
-import static org.junit.Assert.assertEquals;
+import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.time.Instant;
@@ -37,6 +39,7 @@ import java.util.Date;
 import java.util.Set;
 
 import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -47,6 +50,7 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
@@ -64,8 +68,7 @@ import com.google.common.collect.Sets;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @RunWith( MockitoJUnitRunner.class )
-public class EventTrackerConverterServiceTest
-    extends DhisConvenienceTest
+public class EventTrackerConverterServiceTest extends DhisConvenienceTest
 {
     private final static String PROGRAM_INSTANCE_UID = "programInstanceUid";
 
@@ -79,20 +82,20 @@ public class EventTrackerConverterServiceTest
 
     private final static Date today = new Date();
 
-    private NotesConverterService notesConverterService = new NotesConverterService();
+    private final NotesConverterService notesConverterService = new NotesConverterService();
 
-    private TrackerConverterService<Event, ProgramStageInstance> trackerConverterService;
+    private RuleEngineConverterService<Event, ProgramStageInstance> converter;
 
     @Mock
     public TrackerPreheat preheat;
 
-    private Program program = createProgram( 'A' );
+    private final Program program = createProgram( 'A' );
 
-    private ProgramInstance programInstance;
+    private ProgramStage programStage;
+
+    private OrganisationUnit organisationUnit;
 
     private ProgramStageInstance psi;
-
-    private TrackedEntityInstance tei;
 
     private DataElement dataElement;
 
@@ -101,25 +104,20 @@ public class EventTrackerConverterServiceTest
     @Before
     public void setUpTest()
     {
-        trackerConverterService = new EventTrackerConverterService( notesConverterService );
-
+        converter = new EventTrackerConverterService( notesConverterService );
         dataElement = createDataElement( 'D' );
 
         user = createUser( 'U' );
-
-        ProgramStage programStage = createProgramStage( 'A', 1 );
+        programStage = createProgramStage( 'A', 1 );
         programStage.setUid( PROGRAM_STAGE_UID );
-
-        OrganisationUnit organisationUnit = createOrganisationUnit( 'A' );
+        programStage.setProgram( program );
+        organisationUnit = createOrganisationUnit( 'A' );
         organisationUnit.setUid( ORGANISATION_UNIT_UID );
 
         program.setUid( PROGRAM_UID );
         program.setProgramType( ProgramType.WITHOUT_REGISTRATION );
-
-        programStage.setProgram( program );
-
-        tei = createTrackedEntityInstance( organisationUnit );
-        programInstance = createProgramInstance( program, tei, organisationUnit );
+        TrackedEntityInstance tei = createTrackedEntityInstance( organisationUnit );
+        ProgramInstance programInstance = createProgramInstance( program, tei, organisationUnit );
         programInstance.setUid( PROGRAM_INSTANCE_UID );
 
         psi = new ProgramStageInstance();
@@ -136,21 +134,16 @@ public class EventTrackerConverterServiceTest
         psi.setStoredBy( user.getUsername() );
         psi.setLastUpdatedByUserInfo( UserInfoSnapshot.from( user ) );
         psi.setCreatedByUserInfo( UserInfoSnapshot.from( user ) );
-
-        when( preheat.getUsers() ).thenReturn( Collections.singletonMap( USERNAME, user ) );
-        when( preheat.get( ProgramStage.class, programStage.getUid() ) ).thenReturn( programStage );
-        when( preheat.get( Program.class, program.getUid() ) ).thenReturn( program );
-        when( preheat.get( OrganisationUnit.class, organisationUnit.getUid() ) ).thenReturn( organisationUnit );
-        when( preheat.getUser() ).thenReturn( user );
     }
 
     @Test
     public void testToProgramStageInstance()
     {
-        Event event = new Event();
-        event.setProgramStage( PROGRAM_STAGE_UID );
-        event.setProgram( PROGRAM_UID );
-        event.setOrgUnit( ORGANISATION_UNIT_UID );
+        setUpMocks();
+
+        DataElement dataElement = new DataElement();
+        dataElement.setUid( CodeGenerator.generateUid() );
+        when( preheat.get( DataElement.class, dataElement.getUid() ) ).thenReturn( dataElement );
 
         DataValue dataValue = new DataValue();
         dataValue.setValue( "value" );
@@ -160,10 +153,9 @@ public class EventTrackerConverterServiceTest
         dataValue.setStoredBy( USERNAME );
         dataValue.setUpdatedAt( Instant.now() );
         dataValue.setDataElement( dataElement.getUid() );
+        Event event = event( dataValue );
 
-        event.setDataValues( Sets.newHashSet( dataValue ) );
-
-        ProgramStageInstance programStageInstance = trackerConverterService.from( preheat, event );
+        ProgramStageInstance programStageInstance = converter.from( preheat, event );
 
         assertNotNull( programStageInstance );
         assertNotNull( programStageInstance.getProgramStage() );
@@ -184,6 +176,129 @@ public class EventTrackerConverterServiceTest
     }
 
     @Test
+    public void fromForRuleEngineGivenNewEvent()
+    {
+        setUpMocks();
+
+        DataElement dataElement = new DataElement();
+        dataElement.setUid( CodeGenerator.generateUid() );
+        when( preheat.get( DataElement.class, dataElement.getUid() ) ).thenReturn( dataElement );
+
+        DataValue dataValue = dataValue( dataElement.getUid(), "900" );
+        Event event = event( dataValue );
+
+        ProgramStageInstance programStageInstance = converter.fromForRuleEngine( preheat, event );
+
+        assertNotNull( programStageInstance );
+        assertNotNull( programStageInstance.getProgramStage() );
+        assertNotNull( programStageInstance.getProgramStage().getProgram() );
+        assertNotNull( programStageInstance.getOrganisationUnit() );
+        assertEquals( PROGRAM_UID, programStageInstance.getProgramStage().getProgram().getUid() );
+        assertEquals( PROGRAM_STAGE_UID, programStageInstance.getProgramStage().getUid() );
+        assertEquals( ORGANISATION_UNIT_UID, programStageInstance.getOrganisationUnit().getUid() );
+        assertEquals( ORGANISATION_UNIT_UID, programStageInstance.getOrganisationUnit().getUid() );
+        assertEquals( 1, programStageInstance.getEventDataValues().size() );
+        EventDataValue actual = programStageInstance.getEventDataValues().stream().findFirst().get();
+        assertEquals( dataValue.getDataElement(), actual.getDataElement() );
+        assertEquals( dataValue.getValue(), actual.getValue() );
+        assertTrue( actual.getProvidedElsewhere() );
+        assertEquals( USERNAME, actual.getCreatedByUserInfo().getUsername() );
+        assertEquals( USERNAME, actual.getLastUpdatedByUserInfo().getUsername() );
+    }
+
+    @Test
+    public void fromForRuleEngineGivenExistingEventMergesNewDataValuesWithDBOnes()
+    {
+        setUpMocks();
+
+        ProgramStageInstance existingPsi = programStageInstance();
+        EventDataValue existingDataValue = eventDataValue( CodeGenerator.generateUid(), "658" );
+        existingPsi.setEventDataValues( Sets.newHashSet( existingDataValue ) );
+
+        DataElement dataElement = new DataElement();
+        dataElement.setUid( CodeGenerator.generateUid() );
+        when( preheat.get( DataElement.class, dataElement.getUid() ) ).thenReturn( dataElement );
+
+        // event refers to a different dataElement then currently associated
+        // with the event in the DB; thus both
+        // dataValues will be merged
+        DataValue newDataValue = dataValue( dataElement.getUid(), "900" );
+        Event event = event( existingPsi.getUid(), newDataValue );
+        when( preheat.getEvent( TrackerIdScheme.UID, existingPsi.getUid() ) ).thenReturn( existingPsi );
+
+        ProgramStageInstance programStageInstance = converter.fromForRuleEngine( preheat, event );
+
+        assertEquals( 2, programStageInstance.getEventDataValues().size() );
+        EventDataValue expect1 = new EventDataValue();
+        expect1.setDataElement( existingDataValue.getDataElement() );
+        expect1.setValue( existingDataValue.getValue() );
+        EventDataValue expect2 = new EventDataValue();
+        expect2.setDataElement( newDataValue.getDataElement() );
+        expect2.setValue( newDataValue.getValue() );
+        assertContainsOnly( programStageInstance.getEventDataValues(), expect1, expect2 );
+    }
+
+    @Test
+    public void fromForRuleEngineGivenExistingEventUpdatesValueOfExistingDataValueOnIdSchemeUID()
+    {
+        setUpMocks();
+
+        DataElement dataElement = new DataElement();
+        dataElement.setUid( CodeGenerator.generateUid() );
+        when( preheat.get( DataElement.class, dataElement.getUid() ) ).thenReturn( dataElement );
+
+        ProgramStageInstance existingPsi = programStageInstance();
+        existingPsi.setEventDataValues( Sets.newHashSet( eventDataValue( dataElement.getUid(), "658" ) ) );
+
+        // dataElement is of idScheme UID if the NTI dataElementIdScheme is set
+        // to UID
+        DataValue updatedValue = dataValue( dataElement.getUid(), "900" );
+        Event event = event( existingPsi.getUid(), updatedValue );
+        when( preheat.getEvent( TrackerIdScheme.UID, event.getEvent() ) ).thenReturn( existingPsi );
+
+        ProgramStageInstance programStageInstance = converter.fromForRuleEngine( preheat, event );
+
+        assertEquals( 1, programStageInstance.getEventDataValues().size() );
+        EventDataValue expect1 = new EventDataValue();
+        expect1.setDataElement( updatedValue.getDataElement() );
+        expect1.setValue( updatedValue.getValue() );
+        assertContainsOnly( programStageInstance.getEventDataValues(), expect1 );
+    }
+
+    @Test
+    public void fromForRuleEngineGivenExistingEventUpdatesValueOfExistingDataValueOnIdSchemeCode()
+    {
+        // NTI supports multiple idSchemes. Event.dataElement can thus be any of
+        // the supported ones
+        // UID, CODE, ATTRIBUTE, NAME
+        // merging existing & new data values on events needs to respect the
+        // user configured idScheme
+        setUpMocks();
+
+        DataElement dataElement = new DataElement();
+        dataElement.setUid( CodeGenerator.generateUid() );
+        dataElement.setCode( "DE_424050" );
+        when( preheat.get( DataElement.class, dataElement.getCode() ) ).thenReturn( dataElement );
+
+        ProgramStageInstance existingPsi = programStageInstance();
+        existingPsi.setEventDataValues( Sets.newHashSet( eventDataValue( dataElement.getUid(), "658" ) ) );
+
+        // dataElement is of idScheme CODE if the NTI dataElementIdScheme is set
+        // to CODE
+        DataValue updatedValue = dataValue( dataElement.getCode(), "900" );
+        Event event = event( existingPsi.getUid(), updatedValue );
+        when( preheat.getEvent( TrackerIdScheme.UID, event.getEvent() ) ).thenReturn( existingPsi );
+
+        ProgramStageInstance programStageInstance = converter.fromForRuleEngine( preheat, event );
+
+        assertEquals( 1, programStageInstance.getEventDataValues().size() );
+        EventDataValue expect1 = new EventDataValue();
+        expect1.setDataElement( dataElement.getUid() );
+        expect1.setValue( updatedValue.getValue() );
+        assertContainsOnly( programStageInstance.getEventDataValues(), expect1 );
+    }
+
+    @Test
     public void testToEvent()
     {
         EventDataValue eventDataValue = new EventDataValue();
@@ -196,9 +311,9 @@ public class EventTrackerConverterServiceTest
         eventDataValue.setLastUpdatedByUserInfo( UserInfoSnapshot.from( user ) );
         psi.getEventDataValues().add( eventDataValue );
 
-        Event event = trackerConverterService.to( psi );
+        Event event = converter.to( psi );
 
-        assertEquals( event.getEnrollment(), PROGRAM_INSTANCE_UID );
+        assertEquals( PROGRAM_INSTANCE_UID, event.getEnrollment() );
         assertEquals( event.getStoredBy(), user.getUsername() );
 
         event.getDataValues().forEach( e -> {
@@ -208,4 +323,59 @@ public class EventTrackerConverterServiceTest
             assertEquals( e.getLastUpdatedBy(), psi.getCreatedByUserInfo().getUsername() );
         } );
     }
+
+    private void setUpMocks()
+    {
+        when( preheat.getUser() ).thenReturn( user );
+        when( preheat.getUsers() ).thenReturn( Collections.singletonMap( USERNAME, user ) );
+        when( preheat.get( ProgramStage.class, programStage.getUid() ) ).thenReturn( programStage );
+        when( preheat.get( Program.class, program.getUid() ) ).thenReturn( program );
+        when( preheat.get( OrganisationUnit.class, organisationUnit.getUid() ) ).thenReturn( organisationUnit );
+    }
+
+    private Event event( DataValue dataValue )
+    {
+        return event( null, dataValue );
+    }
+
+    private Event event( String uid, DataValue dataValue )
+    {
+        Event event = new Event();
+        event.setEvent( uid );
+        event.setProgramStage( PROGRAM_STAGE_UID );
+        event.setProgram( PROGRAM_UID );
+        event.setOrgUnit( ORGANISATION_UNIT_UID );
+        event.setDataValues( Sets.newHashSet( dataValue ) );
+        return event;
+    }
+
+    private ProgramStageInstance programStageInstance()
+    {
+        ProgramStageInstance existingPsi = new ProgramStageInstance();
+        existingPsi.setUid( CodeGenerator.generateUid() );
+        return existingPsi;
+    }
+
+    private EventDataValue eventDataValue( String dataElement, String value )
+    {
+        EventDataValue eventDataValue = new EventDataValue();
+        eventDataValue.setDataElement( dataElement );
+        eventDataValue.setValue( value );
+        return eventDataValue;
+    }
+
+    private DataValue dataValue( String dataElement, String value )
+    {
+        DataValue dataValue = new DataValue();
+        dataValue.setDataElement( dataElement );
+        dataValue.setValue( value );
+        dataValue.setProvidedElsewhere( true );
+        dataValue.setCreatedBy( USERNAME );
+        dataValue.setLastUpdatedBy( USERNAME );
+        dataValue.setCreatedAt( Instant.now() );
+        dataValue.setStoredBy( USERNAME );
+        dataValue.setUpdatedAt( Instant.now() );
+        return dataValue;
+    }
+
 }
