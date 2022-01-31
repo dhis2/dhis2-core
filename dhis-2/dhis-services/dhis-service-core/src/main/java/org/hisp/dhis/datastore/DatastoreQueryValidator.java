@@ -25,30 +25,37 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.appmanager;
+package org.hisp.dhis.datastore;
 
-import org.hisp.dhis.datastore.DatastoreNamespaceProtection;
-import org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionType;
-import org.hisp.dhis.datastore.DatastoreService;
-import org.springframework.stereotype.Component;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.datastore.DatastoreQuery.Filter;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
 
 /**
- * The main purpose (so far) of the {@link AndroidSettingApp} component is to
- * establish the protected {@link #NAMESPACE} in the {@link DatastoreService} so
- * that only the app can write to it using a role having the {@link #AUTHORITY}.
+ * Contains the {@link DatastoreQuery} semantic validation.
  *
  * @author Jan Bernitt
  */
-@Component
-public class AndroidSettingApp
+@NoArgsConstructor( access = AccessLevel.PRIVATE )
+class DatastoreQueryValidator
 {
-    public static final String NAMESPACE = "ANDROID_SETTING_APP";
-
-    public static final String AUTHORITY = "M_Android_Setting";
-
-    public AndroidSettingApp( DatastoreService service )
+    public static void validate( DatastoreQuery query )
     {
-        service.addProtection( new DatastoreNamespaceProtection( NAMESPACE, ProtectionType.NONE,
-            ProtectionType.RESTRICTED, false, AUTHORITY ) );
+        for ( Filter f : query.getFilters() )
+        {
+            if ( f.isKeyPath() && f.getOperator().isUnary() )
+            {
+                throw filterException( f, "key filters cannot be used with unary operators" );
+            }
+        }
+    }
+
+    private static IllegalQueryException filterException( Filter f, String msg )
+    {
+        return new IllegalQueryException( new ErrorMessage( ErrorCode.E7653, f.toString(), msg ) );
     }
 }

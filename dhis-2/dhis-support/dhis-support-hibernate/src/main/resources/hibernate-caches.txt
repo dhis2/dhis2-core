@@ -25,7 +25,7 @@ org.hisp.dhis.category.CategoryOptionGroupSet
 org.hisp.dhis.dataset.DataSet
 org.hisp.dhis.eventreport.EventReport
 org.hisp.dhis.attribute.Attribute
-org.hisp.dhis.userkeyjsonvalue.UserKeyJsonValue
+org.hisp.dhis.userkeyjsonvalue.UserDatastoreEntry
 org.hisp.dhis.mapping.Map
 org.hisp.dhis.mapping.MapView
 org.hisp.dhis.legend.LegendSet
@@ -37,7 +37,7 @@ org.hisp.dhis.color.Color
 org.hisp.dhis.organisationunit.OrganisationUnitGroupSet
 org.hisp.dhis.user.sharing.UserGroupAccess
 org.hisp.dhis.option.OptionSet
-org.hisp.dhis.keyjsonvalue.KeyJsonValue
+org.hisp.dhis.keyjsonvalue.DatastoreValue
 org.hisp.dhis.expression.Expression
 org.hisp.dhis.dataelement.DataElementGroup
 org.hisp.dhis.organisationunit.OrganisationUnitLevel

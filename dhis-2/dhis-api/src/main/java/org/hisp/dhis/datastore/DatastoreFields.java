@@ -25,30 +25,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.appmanager;
+package org.hisp.dhis.datastore;
 
-import org.hisp.dhis.datastore.DatastoreNamespaceProtection;
-import org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionType;
-import org.hisp.dhis.datastore.DatastoreService;
-import org.springframework.stereotype.Component;
+import java.util.List;
+import java.util.Map.Entry;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 /**
- * The main purpose (so far) of the {@link AndroidSettingApp} component is to
- * establish the protected {@link #NAMESPACE} in the {@link DatastoreService} so
- * that only the app can write to it using a role having the {@link #AUTHORITY}.
+ * Represents an entry in the datatore in the form that it is extracted with
+ * field filtering. The {@link #key} is the key of the datastore entry, the
+ * {@link #values} are the values for the extracted fields in the order of the
+ * fields.
+ * <p>
+ * It is also made an {@link Entry} to allow usage in pipeline not specifically
+ * linked to this class.
  *
  * @author Jan Bernitt
  */
-@Component
-public class AndroidSettingApp
+@Getter
+@AllArgsConstructor
+public final class DatastoreFields implements Entry<String, List<String>>
 {
-    public static final String NAMESPACE = "ANDROID_SETTING_APP";
+    private final String key;
 
-    public static final String AUTHORITY = "M_Android_Setting";
+    private final List<String> values;
 
-    public AndroidSettingApp( DatastoreService service )
+    @Override
+    public List<String> getValue()
     {
-        service.addProtection( new DatastoreNamespaceProtection( NAMESPACE, ProtectionType.NONE,
-            ProtectionType.RESTRICTED, false, AUTHORITY ) );
+        return getValues();
+    }
+
+    @Override
+    public List<String> setValue( List<String> strings )
+    {
+        throw new UnsupportedOperationException();
     }
 }
