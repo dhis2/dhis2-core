@@ -533,6 +533,11 @@ public class EventQueryParams
         }
     }
 
+    public boolean containsScheduledDatePeriod()
+    {
+        return dateRangeByDateFilter != null && dateRangeByDateFilter.containsKey( AnalyticsDateFilter.SCHEDULED_DATE );
+    }
+
     /**
      * Returns a list of query items which occur more than once, not including
      * the first duplicate.

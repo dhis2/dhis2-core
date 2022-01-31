@@ -132,6 +132,8 @@ public class DefaultEventAnalyticsService
 
     private static final String NAME_LAST_UPDATED = "Last Updated";
 
+    private static final String NAME_SCHEDULED_DATE = "Scheduled date";
+
     private static final String NAME_ENROLLMENT_DATE = "Enrollment date";
 
     private static final String NAME_INCIDENT_DATE = "Incident date";
@@ -717,6 +719,12 @@ public class DefaultEventAnalyticsService
                 LabelMapper.getEventDateLabel( params.getProgramStage(), NAME_EVENT_DATE ), DATE, false, true ) )
             .addHeader( new GridHeader( ITEM_STORED_BY, NAME_STORED_BY, TEXT, false, true ) )
             .addHeader( new GridHeader( ITEM_LAST_UPDATED, NAME_LAST_UPDATED, DATE, false, true ) );
+
+        if ( params.containsScheduledDatePeriod() )
+        {
+            grid.addHeader( new GridHeader(
+                ITEM_SCHEDULED_DATE, NAME_SCHEDULED_DATE, DATE, false, true ) );
+        }
 
         if ( params.getProgram().isRegistration() )
         {
