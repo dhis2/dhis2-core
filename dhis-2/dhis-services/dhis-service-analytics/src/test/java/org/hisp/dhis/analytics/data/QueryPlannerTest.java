@@ -820,11 +820,14 @@ class QueryPlannerTest extends DhisSpringTest
             .maxDate( parseDate( "2022-12-31" ) ).build();
         deC.setQueryMods( modsA );
         deD.setQueryMods( modsB );
-        deE.setQueryMods( modsC );
-        deF.setQueryMods( modsD );
-        deG.setQueryMods( modsD );
+        deG.setQueryMods( modsC );
+        deH.setQueryMods( modsD );
+        deI.setQueryMods( modsD );
+        deC.setAggregationType( AggregationType.SUM );
+        deD.setAggregationType( AggregationType.SUM );
+        deI.setAggregationType( AggregationType.SUM );
         DataQueryParams params = DataQueryParams.newBuilder()
-            .withDataElements( getList( deA, deB, deC, deD, deE, deF, deG ) )
+            .withDataElements( getList( deA, deB, deC, deD, deG, deH, deI ) )
             .withPeriods( getList( createPeriod( "2022" ) ) )
             .build();
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().withOptimalQueries( 4 )
@@ -833,12 +836,12 @@ class QueryPlannerTest extends DhisSpringTest
         assertEquals( 5, queryGroups.getAllQueries().size() );
         assertEquals( 1, queryGroups.getSequentialQueries().size() );
         assertEquals( 5, queryGroups.getLargestGroupSize() );
-        List<DataQueryParams> group = queryGroups.getSequentialQueries().get( 0 );
+        List<DataQueryParams> group = queryGroups.getAllQueries();
         assertQueryMods( group, null, deA, deB );
         assertQueryMods( group, modsA, deC );
         assertQueryMods( group, modsB, deD );
-        assertQueryMods( group, modsC, deE );
-        assertQueryMods( group, modsD, deF, deG );
+        assertQueryMods( group, modsC, deG );
+        assertQueryMods( group, modsD, deH, deI );
     }
 
     /**
