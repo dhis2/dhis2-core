@@ -299,8 +299,7 @@ public class EventAnalyticsController
         String contentType, String file, boolean withAttachment,
         HttpServletResponse response )
     {
-        EventQueryParams params = eventDataService
-            .getFromRequest( mapFromCriteria( criteria, program, apiVersion ) );
+        EventQueryParams params = eventDataService.getFromRequest( mapFromCriteria( criteria, program, apiVersion ) );
 
         contextUtils.configureResponse( response, contentType, CacheStrategy.RESPECT_SYSTEM_SETTING, file, withAttachment );
         return analyticsService.getEvents( params );
