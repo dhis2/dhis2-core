@@ -347,7 +347,6 @@ public class JdbcEventAnalyticsTableManager
             partitionClause +
             "and pr.programid=" + program.getId() + " " +
             "and psi.organisationunitid is not null " +
-            // "and psi.executiondate is not null " +
             "and psi.status in ('COMPLETED', 'ACTIVE', 'SCHEDULE')" +
             "and psi.deleted is false ";
 

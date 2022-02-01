@@ -31,7 +31,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import static org.hisp.dhis.analytics.event.data.JdbcEventAnalyticsManager.PSISTATUS_IN_DEFAULT_STATUSES;
 
 import java.util.Date;
@@ -190,21 +189,10 @@ public class DefaultProgramIndicatorSubqueryBuilder
                 return " psistatus in ('SCHEDULE') ";
             }
 
-            if ( hasCustomStatus( expressionFilter ) )
-            {
-                // TODO: MAIKEL: Get value from expression
-                return " psistatus in ('SCHEDULE') ";
-            }
-
             return PSISTATUS_IN_DEFAULT_STATUSES;
         }
 
         return EMPTY;
-    }
-
-    private boolean hasCustomStatus( final String expressionFilter )
-    {
-        return containsIgnoreCase( trimToEmpty( expressionFilter ), "V{event_status}" );
     }
 
     private boolean isEnrollment( AnalyticsType outerSqlEntity )
