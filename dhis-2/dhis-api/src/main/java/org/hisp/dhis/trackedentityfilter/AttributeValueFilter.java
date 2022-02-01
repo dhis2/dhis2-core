@@ -28,9 +28,12 @@
 package org.hisp.dhis.trackedentityfilter;
 
 import java.io.Serializable;
+import java.util.Set;
+
+import lombok.NoArgsConstructor;
 
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.QueryOperator;
+import org.hisp.dhis.programstagefilter.DateFilterPeriod;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -39,6 +42,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
  * @author Ameen Mohamed
  *
  */
+@NoArgsConstructor
 public class AttributeValueFilter implements Serializable
 {
     /**
@@ -46,20 +50,61 @@ public class AttributeValueFilter implements Serializable
      */
     private static final long serialVersionUID = 1L;
 
+    /**
+     * The data element id or data item
+     */
     private String attribute;
 
-    private QueryOperator operator;
+    /**
+     * Less than or equal to
+     */
+    private String le;
 
-    private String value;
+    /**
+     * Greater than or equal to
+     */
+    private String ge;
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
+    /**
+     * Greater than
+     */
+    private String gt;
 
-    public AttributeValueFilter()
-    {
+    /**
+     * Lesser than
+     */
+    private String lt;
 
-    }
+    /**
+     * Equal to
+     */
+    private String eq;
+
+    /**
+     * In a list
+     */
+    private Set<String> in;
+
+    /**
+     * Like
+     */
+    private String like;
+
+    /**
+     * Starts with
+     */
+    private String sw;
+
+    /**
+     * Ends with
+     */
+    private String ew;
+
+    /**
+     * If the attribute is of type date, then date filtering parameters are
+     * specified using this.
+     */
+    private DateFilterPeriod dateFilter;
 
     // -------------------------------------------------------------------------
     // Getters and setters
@@ -79,26 +124,122 @@ public class AttributeValueFilter implements Serializable
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public QueryOperator getOperator()
+    public String getLe()
     {
-        return operator;
+        return le;
     }
 
-    public void setOperator( QueryOperator operator )
+    public void setLe( String le )
     {
-        this.operator = operator;
+        this.le = le;
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getValue()
+    public String getGe()
     {
-        return value;
+        return ge;
     }
 
-    public void setEventCreatedPeriod( String value )
+    public void setGe( String ge )
     {
-        this.value = value;
+        this.ge = ge;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getGt()
+    {
+        return gt;
+    }
+
+    public void setGt( String gt )
+    {
+        this.gt = gt;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getLt()
+    {
+        return lt;
+    }
+
+    public void setLt( String lt )
+    {
+        this.lt = lt;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getEq()
+    {
+        return eq;
+    }
+
+    public void setEq( String eq )
+    {
+        this.eq = eq;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Set<String> getIn()
+    {
+        return in;
+    }
+
+    public void setIn( Set<String> in )
+    {
+        this.in = in;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getLike()
+    {
+        return like;
+    }
+
+    public void setLike( String like )
+    {
+        this.like = like;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getSw()
+    {
+        return sw;
+    }
+
+    public void setSw( String sw )
+    {
+        this.sw = sw;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getEw()
+    {
+        return ew;
+    }
+
+    public void setEw( String ew )
+    {
+        this.ew = ew;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public DateFilterPeriod getDateFilter()
+    {
+        return dateFilter;
+    }
+
+    public void setDateFilter( DateFilterPeriod dateFilter )
+    {
+        this.dateFilter = dateFilter;
     }
 
 }

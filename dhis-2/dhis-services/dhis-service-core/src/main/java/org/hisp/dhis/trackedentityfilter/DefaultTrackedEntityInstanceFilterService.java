@@ -29,11 +29,17 @@ package org.hisp.dhis.trackedentityfilter;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
@@ -46,12 +52,20 @@ public class DefaultTrackedEntityInstanceFilterService
 
     private final TrackedEntityInstanceFilterStore trackedEntityInstanceFilterStore;
 
+    private final ProgramService programService;
+
+    private final TrackedEntityAttributeService teaService;
+
     public DefaultTrackedEntityInstanceFilterService(
-        TrackedEntityInstanceFilterStore trackedEntityInstanceFilterStore )
+        TrackedEntityInstanceFilterStore trackedEntityInstanceFilterStore, ProgramService programService,
+        TrackedEntityAttributeService teaService )
     {
         checkNotNull( trackedEntityInstanceFilterStore );
+        checkNotNull( programService );
 
         this.trackedEntityInstanceFilterStore = trackedEntityInstanceFilterStore;
+        this.programService = programService;
+        this.teaService = teaService;
     }
 
     // -------------------------------------------------------------------------
@@ -92,6 +106,42 @@ public class DefaultTrackedEntityInstanceFilterService
     public List<TrackedEntityInstanceFilter> getAll()
     {
         return trackedEntityInstanceFilterStore.getAll();
+    }
+
+    @Override
+    public List<String> validate( TrackedEntityInstanceFilter teiFilter )
+    {
+        List<String> errors = new ArrayList<>();
+
+        if ( teiFilter.getProgram() != null && !StringUtils.isEmpty( teiFilter.getProgram().getUid() ) )
+        {
+            Program pr = programService.getProgram( teiFilter.getProgram().getUid() );
+
+            if ( pr == null )
+            {
+                errors.add( "Program is specified but does not exist: " + teiFilter.getProgram().getUid() );
+            }
+        }
+
+        List<AttributeValueFilter> attributeValueFilters = teiFilter.getAttributeValueFilters();
+        if ( !CollectionUtils.isEmpty( attributeValueFilters ) )
+        {
+            attributeValueFilters.forEach( avf -> {
+                if ( StringUtils.isEmpty( avf.getAttribute() ) )
+                {
+                    errors.add( "Attribute Uid is missing in filter" );
+                }
+                else
+                {
+                    TrackedEntityAttribute tea = teaService.getTrackedEntityAttribute( avf.getAttribute() );
+                    if ( tea == null )
+                    {
+                        errors.add( "No tracked entity attribute found for attribute:" + avf.getAttribute() );
+                    }
+                }
+            } );
+        }
+        return errors;
     }
 
     @Override
