@@ -31,11 +31,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.DashboardService;
 import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;
-import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.sharing.CascadeSharingService;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.junit.jupiter.api.Assertions;
@@ -48,6 +48,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.net.HttpHeaders;
 
 /**
@@ -96,7 +98,7 @@ class DashboardControllerTest
     {
         final Map<String, List<String>> parameterValuesMap = new HashMap<>();
         final MetadataExportParams exportParams = new MetadataExportParams();
-        final RootNode rootNode = new RootNode( "test" );
+        final ObjectNode rootNode = JacksonObjectMapperConfig.jsonMapper.createObjectNode();
 
         Mockito.when( service.getDashboard( Mockito.eq( "88dshgdga" ) ) ).thenReturn( dashboard );
         Mockito.when( contextService.getParameterValuesMap() ).thenReturn( parameterValuesMap );
@@ -106,9 +108,10 @@ class DashboardControllerTest
                 Mockito.same( exportParams ) ) )
             .thenReturn( rootNode );
 
-        final ResponseEntity<RootNode> responseEntity = controller.getDataSetWithDependencies( "88dshgdga", download );
+        final ResponseEntity<JsonNode> responseEntity = controller.getDataSetWithDependencies( "88dshgdga", download );
         Assertions.assertEquals( HttpStatus.OK, responseEntity.getStatusCode() );
         Assertions.assertSame( rootNode, responseEntity.getBody() );
+
         if ( download )
         {
             Assertions.assertEquals( "attachment; filename=metadata",

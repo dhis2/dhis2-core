@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.schema.descriptors;
 
-import org.hisp.dhis.keyjsonvalue.KeyJsonValue;
+import org.hisp.dhis.datastore.DatastoreEntry;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaDescriptor;
 
@@ -45,7 +45,7 @@ public class KeyJsonValueSchemaDescriptor implements SchemaDescriptor
     @Override
     public Schema getSchema()
     {
-        Schema schema = new Schema( KeyJsonValue.class, SINGULAR, PLURAL );
+        Schema schema = new Schema( DatastoreEntry.class, SINGULAR, PLURAL );
         schema.setRelativeApiEndpoint( API_ENDPOINT );
         schema.setOrder( 9060 );
 

@@ -139,4 +139,5 @@ public interface EventAnalyticsService
      * @return event clusters as a Grid object.
      */
     Rectangle getRectangle( EventQueryParams params );
+
 }

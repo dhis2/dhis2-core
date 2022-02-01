@@ -123,7 +123,13 @@ public class ObjectReport implements ErrorReportContainer
 
     public ObjectReport merge( ObjectReport objectReport )
     {
+        if ( objectReport == this )
+        {
+            return this;
+        }
+
         objectReport.forEachErrorReport( this::addErrorReport );
+
         return this;
     }
 
@@ -226,8 +232,7 @@ public class ObjectReport implements ErrorReportContainer
     @Override
     public void forEachErrorReport( Consumer<ErrorReport> reportConsumer )
     {
-        errorReportsByCode.values().stream().flatMap( errors -> errors.stream() )
-            .forEach( errorReport -> reportConsumer.accept( errorReport ) );
+        errorReportsByCode.values().forEach( reports -> reports.forEach( reportConsumer ) );
     }
 
     public boolean isEmpty()
