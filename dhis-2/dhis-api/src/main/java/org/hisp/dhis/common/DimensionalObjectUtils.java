@@ -27,20 +27,10 @@
  */
 package org.hisp.dhis.common;
 
-import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
-import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
-import static org.hisp.dhis.common.DimensionalObject.ITEM_SEP;
-import static org.hisp.dhis.common.DimensionalObject.OPTION_SEP;
+import static org.hisp.dhis.common.DimensionalObject.*;
 import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -52,7 +42,6 @@ import org.hisp.dhis.common.comparator.ObjectStringValueComparator;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
@@ -80,12 +69,8 @@ public class DimensionalObjectUtils
     private static final Pattern COMPOSITE_DIM_OBJECT_PATTERN = Pattern
         .compile( "(?<id1>\\w+)\\.(?<id2>\\w+|\\*)(\\.(?<id3>\\w+|\\*))?" );
 
-    private static final ImmutableSet<QueryOperator> IGNORE_OPERATOR_SET = ImmutableSet.<QueryOperator> builder()
-        .add( QueryOperator.LIKE )
-        .add( QueryOperator.IN )
-        .add( QueryOperator.SW )
-        .add( QueryOperator.EW )
-        .build();
+    private static final Set<QueryOperator> IGNORED_OPERATORS = Set.of( QueryOperator.LIKE, QueryOperator.IN,
+        QueryOperator.SW, QueryOperator.EW );
 
     public static List<DimensionalObject> getCopies( List<DimensionalObject> dimensions )
     {
@@ -340,7 +325,7 @@ public class DimensionalObjectUtils
 
             if ( operator != null )
             {
-                boolean ignoreOperator = IGNORE_OPERATOR_SET.contains( operator );
+                boolean ignoreOperator = IGNORED_OPERATORS.contains( operator );
 
                 value = value.replaceAll( QueryFilter.OPTION_SEP, TITLE_ITEM_SEP );
 

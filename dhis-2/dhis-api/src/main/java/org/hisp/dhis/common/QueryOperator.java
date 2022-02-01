@@ -47,7 +47,6 @@ public enum QueryOperator
     LE( "<=" ),
     LIKE( "like" ),
     IN( "in", true ),
-    // Tracker new operators
     SW( "sw" ),
     EW( "ew" ),
     // Analytics specifics
