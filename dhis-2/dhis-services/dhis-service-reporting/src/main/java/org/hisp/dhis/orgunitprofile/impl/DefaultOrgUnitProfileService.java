@@ -51,13 +51,13 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.datastore.DatastoreEntry;
+import org.hisp.dhis.datastore.DatastoreNamespaceProtection;
+import org.hisp.dhis.datastore.DatastoreService;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.indicator.Indicator;
-import org.hisp.dhis.keyjsonvalue.KeyJsonNamespaceProtection;
-import org.hisp.dhis.keyjsonvalue.KeyJsonValue;
-import org.hisp.dhis.keyjsonvalue.KeyJsonValueService;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
@@ -101,7 +101,7 @@ public class DefaultOrgUnitProfileService
         .add( ProgramIndicator.class )
         .build();
 
-    private KeyJsonValueService dataStore;
+    private DatastoreService dataStore;
 
     private IdentifiableObjectManager idObjectManager;
 
@@ -114,7 +114,7 @@ public class DefaultOrgUnitProfileService
     private ObjectMapper jsonMapper;
 
     public DefaultOrgUnitProfileService(
-        KeyJsonValueService dataStore,
+        DatastoreService dataStore,
         IdentifiableObjectManager idObjectManager,
         AnalyticsService analyticsService,
         OrganisationUnitGroupService groupService,
@@ -129,20 +129,21 @@ public class DefaultOrgUnitProfileService
         this.jsonMapper = jsonMapper;
 
         this.dataStore.addProtection(
-            new KeyJsonNamespaceProtection( ORG_UNIT_PROFILE_NAMESPACE, KeyJsonNamespaceProtection.ProtectionType.NONE,
-                KeyJsonNamespaceProtection.ProtectionType.RESTRICTED, false, "ALL", ORG_UNIT_PROFILE_AUTHORITY ) );
+            new DatastoreNamespaceProtection( ORG_UNIT_PROFILE_NAMESPACE,
+                DatastoreNamespaceProtection.ProtectionType.NONE,
+                DatastoreNamespaceProtection.ProtectionType.RESTRICTED, false, "ALL", ORG_UNIT_PROFILE_AUTHORITY ) );
     }
 
     @Override
     @Transactional
     public void saveOrgUnitProfile( OrgUnitProfile profile )
     {
-        KeyJsonValue keyJsonValue = new KeyJsonValue( ORG_UNIT_PROFILE_KEY, ORG_UNIT_PROFILE_NAMESPACE );
+        DatastoreEntry entry = new DatastoreEntry( ORG_UNIT_PROFILE_KEY, ORG_UNIT_PROFILE_NAMESPACE );
 
         try
         {
-            keyJsonValue.setValue( jsonMapper.writeValueAsString( profile ) );
-            dataStore.saveOrUpdateKeyJsonValue( keyJsonValue );
+            entry.setValue( jsonMapper.writeValueAsString( profile ) );
+            dataStore.saveOrUpdateEntry( entry );
         }
         catch ( JsonProcessingException e )
         {
@@ -167,7 +168,7 @@ public class DefaultOrgUnitProfileService
     @Transactional( readOnly = true )
     public OrgUnitProfile getOrgUnitProfile()
     {
-        KeyJsonValue value = dataStore.getKeyJsonValue( ORG_UNIT_PROFILE_NAMESPACE, ORG_UNIT_PROFILE_KEY );
+        DatastoreEntry value = dataStore.getEntry( ORG_UNIT_PROFILE_NAMESPACE, ORG_UNIT_PROFILE_KEY );
 
         if ( value == null )
         {
