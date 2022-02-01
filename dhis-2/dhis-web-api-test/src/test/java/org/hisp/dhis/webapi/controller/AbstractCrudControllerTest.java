@@ -49,6 +49,7 @@ import org.hisp.dhis.webapi.json.domain.JsonError;
 import org.hisp.dhis.webapi.json.domain.JsonErrorReport;
 import org.hisp.dhis.webapi.json.domain.JsonGeoMap;
 import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
+import org.hisp.dhis.webapi.json.domain.JsonStats;
 import org.hisp.dhis.webapi.json.domain.JsonTranslation;
 import org.hisp.dhis.webapi.json.domain.JsonTypeReport;
 import org.hisp.dhis.webapi.json.domain.JsonUser;
@@ -532,8 +533,13 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
             POST( "/userGroups/", "{'name':'testers', 'users':[{'id':'" + userId + "'}]}" ) );
         String peter = "{'name': 'Peter', 'firstName':'Peter', 'surname':'Pan', 'userCredentials':{'username':'peter47'}}";
         String peterUserId = assertStatus( HttpStatus.CREATED, POST( "/users", peter ) );
-        assertStatus( HttpStatus.OK,
-            PUT( "/userGroups/" + groupId + "/users", "{'identifiableObjects':[{'id':'" + peterUserId + "'}]}" ) );
+
+        JsonWebMessage message = PUT( "/userGroups/" + groupId + "/users",
+            "{'identifiableObjects':[{'id':'" + peterUserId + "'}]}" )
+                .content( HttpStatus.OK ).as( JsonWebMessage.class );
+        JsonStats stats = message.getResponse().as( JsonTypeReport.class ).getStats();
+        assertEquals( 1, stats.getUpdated() );
+        assertEquals( 1, stats.getDeleted() );
         assertUserGroupHasOnlyUser( groupId, peterUserId );
     }
 

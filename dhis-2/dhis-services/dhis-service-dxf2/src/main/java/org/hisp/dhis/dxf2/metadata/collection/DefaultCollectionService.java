@@ -124,6 +124,11 @@ public class DefaultCollectionService implements CollectionService
                 if ( !collection.contains( item ) )
                 {
                     collection.add( item );
+                    report.getStats().incUpdated();
+                }
+                else
+                {
+                    report.getStats().incIgnored();
                 }
             } );
         validateAndThrowErrors( () -> schemaValidator.validateProperty( property, object ) );
@@ -145,6 +150,11 @@ public class DefaultCollectionService implements CollectionService
                     validateAndThrowErrors( () -> schemaValidator.validateProperty( property, object ) );
                     collection.add( object );
                     manager.update( item );
+                    report.getStats().incUpdated();
+                }
+                else
+                {
+                    report.getStats().incIgnored();
                 }
             } );
     }
@@ -193,7 +203,17 @@ public class DefaultCollectionService implements CollectionService
     {
         Collection<IdentifiableObject> collection = getCollection( object, property );
 
-        updateCollectionItems( property, itemCodes, report, ErrorCode.E1109, collection::remove );
+        updateCollectionItems( property, itemCodes, report, ErrorCode.E1109, item -> {
+            if ( collection.contains( item ) )
+            {
+                collection.remove( item );
+                report.getStats().incDeleted();
+            }
+            else
+            {
+                report.getStats().incIgnored();
+            }
+        } );
     }
 
     private void delNonOwnedCollectionItems( IdentifiableObject object, Property property,
@@ -211,6 +231,11 @@ public class DefaultCollectionService implements CollectionService
                     validateAndThrowErrors( () -> schemaValidator.validateProperty( owningProperty, item ) );
                     collection.remove( object );
                     manager.update( item );
+                    report.getStats().incDeleted();
+                }
+                else
+                {
+                    report.getStats().incIgnored();
                 }
             } );
     }
@@ -298,6 +323,7 @@ public class DefaultCollectionService implements CollectionService
                 ObjectReport objectReport = new ObjectReport( itemType, index, item.getUid() );
                 objectReport.addErrorReport( new ErrorReport( itemType, errorCode, ex.getMessage() ) );
                 report.addObjectReport( objectReport );
+                report.getStats().incIgnored();
             }
             index++;
         }
