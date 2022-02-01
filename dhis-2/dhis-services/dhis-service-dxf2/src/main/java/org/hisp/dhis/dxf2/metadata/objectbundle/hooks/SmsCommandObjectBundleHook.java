@@ -29,13 +29,14 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import java.util.function.Consumer;
 
+import lombok.AllArgsConstructor;
+
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.code.SMSCode;
 import org.hisp.dhis.sms.parse.ParserType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.ImmutableMap;
@@ -43,6 +44,7 @@ import com.google.common.collect.ImmutableMap;
 /**
  * Created by zubair@dhis2.org on 18.08.17.
  */
+@AllArgsConstructor
 @Component
 public class SmsCommandObjectBundleHook extends AbstractObjectBundleHook<SMSCommand>
 {
@@ -66,11 +68,9 @@ public class SmsCommandObjectBundleHook extends AbstractObjectBundleHook<SMSComm
         } )
         .build();
 
-    @Autowired
-    private DataElementService dataElementService;
+    private final DataElementService dataElementService;
 
-    @Autowired
-    private TrackedEntityAttributeService trackedEntityAttributeService;
+    private final TrackedEntityAttributeService trackedEntityAttributeService;
 
     @Override
     public void preCreate( SMSCommand command, ObjectBundle bundle )
