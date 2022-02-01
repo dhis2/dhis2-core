@@ -57,7 +57,7 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 @AllArgsConstructor
-@Service( "org.hisp.dhis.dxf2.metadata.MetadataExportService" )
+@Service( "org.hisp.dhis.dxf2.metadata.DataSetMetadataExportService" )
 public class DefaultDataSetMetadataExportService
 {
     private final FieldFilterService fieldFilterService;
