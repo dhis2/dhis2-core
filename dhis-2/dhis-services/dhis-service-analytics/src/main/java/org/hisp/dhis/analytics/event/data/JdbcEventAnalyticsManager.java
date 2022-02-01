@@ -331,7 +331,7 @@ public class JdbcEventAnalyticsManager
     protected String getSelectClause( EventQueryParams params )
     {
         ImmutableList.Builder<String> cols = new ImmutableList.Builder<String>()
-            .add( "psi", "ps", "executiondate", "storedby", "lastupdated" );
+            .add( "psi", "ps", "executiondate", "storedby", "createdby", "lastupdatedby", "lastupdated" );
 
         if ( params.getProgram().isRegistration() )
         {
@@ -549,6 +549,20 @@ public class JdbcEventAnalyticsManager
         {
             sql += hlp.whereAnd() + " psistatus in ("
                 + params.getEventStatus().stream().map( e -> "'" + e.name() + "'" ).collect( joining( "," ) ) + ") ";
+        }
+
+        if ( params.hasCreatedBy() )
+        {
+            sql += hlp.whereAnd() + " createdby in ("
+                + params.getCreatedBy().stream().map( username -> "'" + username + "'" ).collect( joining( "," ) )
+                + ") ";
+        }
+
+        if ( params.hasLastUpdatedBy() )
+        {
+            sql += hlp.whereAnd() + " lastupdatedby in ("
+                + params.getLastUpdatedBy().stream().map( username -> "'" + username + "'" ).collect( joining( "," ) )
+                + ") ";
         }
 
         if ( params.isCoordinatesOnly() || params.isGeometryOnly() )

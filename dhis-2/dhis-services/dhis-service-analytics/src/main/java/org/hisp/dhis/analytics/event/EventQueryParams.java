@@ -192,6 +192,16 @@ public class EventQueryParams
     private Set<EventStatus> eventStatus;
 
     /**
+     * Created by 'username's.
+     */
+    private Set<String> createdBy;
+
+    /**
+     * Last updated by 'username's.
+     */
+    private Set<String> lastUpdatedBy;
+
+    /**
      * Indicates whether the data dimension items should be collapsed into a
      * single dimension.
      */
@@ -313,6 +323,8 @@ public class EventQueryParams
         params.outputType = this.outputType;
         params.outputIdScheme = this.outputIdScheme;
         params.eventStatus = this.eventStatus;
+        params.createdBy = this.createdBy;
+        params.lastUpdatedBy = this.lastUpdatedBy;
         params.collapseDataDimensions = this.collapseDataDimensions;
         params.coordinatesOnly = this.coordinatesOnly;
         params.coordinateOuFallback = this.coordinateOuFallback;
@@ -408,6 +420,9 @@ public class EventQueryParams
         itemFilters.forEach( e -> key.add( "itemFilter", "[" + e.getKey() + "]" ) );
         headers.forEach( header -> key.add( "headers", "[" + header + "]" ) );
         itemProgramIndicators.forEach( e -> key.add( "itemProgramIndicator", e.getUid() ) );
+        eventStatus.forEach( status -> key.add( "eventStatus", "[" + status + "]" ) );
+        createdBy.forEach( username -> key.add( "createdBy", "[" + username + "]" ) );
+        lastUpdatedBy.forEach( username -> key.add( "lastUpdatedBy", "[" + username + "]" ) );
         asc.forEach( e -> e.getUid() );
         desc.forEach( e -> e.getUid() );
 
@@ -422,7 +437,6 @@ public class EventQueryParams
             .addIgnoreNull( "limit", limit )
             .addIgnoreNull( "outputType", outputType )
             .addIgnoreNull( "outputIdScheme", outputIdScheme )
-            .addIgnoreNull( "eventStatus", eventStatus )
             .addIgnoreNull( "collapseDataDimensions", collapseDataDimensions )
             .addIgnoreNull( "coordinatesOnly", coordinatesOnly )
             .addIgnoreNull( "coordinateOuFallback", coordinateOuFallback )
@@ -788,6 +802,16 @@ public class EventQueryParams
         return isNotEmpty( eventStatus );
     }
 
+    public boolean hasCreatedBy()
+    {
+        return isNotEmpty( createdBy );
+    }
+
+    public boolean hasLastUpdatedBy()
+    {
+        return isNotEmpty( lastUpdatedBy );
+    }
+
     public boolean hasValueDimension()
     {
         return value != null;
@@ -986,6 +1010,16 @@ public class EventQueryParams
     public Set<EventStatus> getEventStatus()
     {
         return eventStatus;
+    }
+
+    public Set<String> getCreatedBy()
+    {
+        return createdBy;
+    }
+
+    public Set<String> getLastUpdatedBy()
+    {
+        return lastUpdatedBy;
     }
 
     public boolean isCollapseDataDimensions()
@@ -1329,6 +1363,18 @@ public class EventQueryParams
         public Builder withEventStatuses( Set<EventStatus> eventStatuses )
         {
             this.params.eventStatus = eventStatuses;
+            return this;
+        }
+
+        public Builder withCreatedByUsernames( Set<String> usernames )
+        {
+            this.params.createdBy = usernames;
+            return this;
+        }
+
+        public Builder withLastUpdatedByUsernames( Set<String> usernames )
+        {
+            this.params.lastUpdatedBy = usernames;
             return this;
         }
 

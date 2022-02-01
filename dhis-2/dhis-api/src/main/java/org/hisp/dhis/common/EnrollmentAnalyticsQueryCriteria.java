@@ -82,6 +82,16 @@ public class EnrollmentAnalyticsQueryCriteria
 
     private Set<ProgramStatus> programStatus;
 
+    /**
+     * Created by 'username's.
+     */
+    private Set<String> createdBy;
+
+    /**
+     * Last updated by 'username's.
+     */
+    private Set<String> lastUpdatedBy;
+
     private Integer page;
 
     private Integer pageSize;

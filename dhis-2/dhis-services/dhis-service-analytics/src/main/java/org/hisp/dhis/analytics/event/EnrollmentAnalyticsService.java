@@ -47,6 +47,10 @@ public interface EnrollmentAnalyticsService
 
     String ITEM_STORED_BY = "storedby";
 
+    String ITEM_CREATED_BY = "createdby";
+
+    String ITEM_LAST_UPDATED_BY = "lastupdatedby";
+
     String ITEM_LAST_UPDATED = "lastupdated";
 
     String ITEM_GEOMETRY = "geometry";

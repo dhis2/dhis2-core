@@ -94,8 +94,8 @@ public class JdbcEnrollmentAnalyticsManager
     private static final String LIMIT_1 = "limit 1";
 
     private List<String> COLUMNS = Lists.newArrayList( "pi", "tei", "enrollmentdate", "incidentdate",
-        "storedby", "lastupdated", "ST_AsGeoJSON(pigeometry)", "longitude", "latitude", "ouname", "oucode",
-        "enrollmentstatus" );
+        "storedby", "createdby", "lastupdatedby", "lastupdated", "ST_AsGeoJSON(pigeometry)", "longitude", "latitude",
+        "ouname", "oucode", "enrollmentstatus" );
 
     public JdbcEnrollmentAnalyticsManager( JdbcTemplate jdbcTemplate, StatementBuilder statementBuilder,
         ProgramIndicatorService programIndicatorService,
@@ -333,6 +333,20 @@ public class JdbcEnrollmentAnalyticsManager
         {
             sql += "and enrollmentstatus in ("
                 + params.getProgramStatus().stream().map( p -> "'" + p.name() + "'" ).collect( joining( "," ) ) + ") ";
+        }
+
+        if ( params.hasCreatedBy() )
+        {
+            sql += hlp.whereAnd() + " createdby in ("
+                + params.getCreatedBy().stream().map( username -> "'" + username + "'" ).collect( joining( "," ) )
+                + ") ";
+        }
+
+        if ( params.hasLastUpdatedBy() )
+        {
+            sql += hlp.whereAnd() + " lastupdatedby in ("
+                + params.getLastUpdatedBy().stream().map( username -> "'" + username + "'" ).collect( joining( "," ) )
+                + ") ";
         }
 
         if ( params.isCoordinatesOnly() )

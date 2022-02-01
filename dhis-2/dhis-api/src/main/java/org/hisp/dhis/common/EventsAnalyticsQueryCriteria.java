@@ -99,6 +99,16 @@ public class EventsAnalyticsQueryCriteria
     private Set<EventStatus> eventStatus;
 
     /**
+     * Created by 'username's.
+     */
+    private Set<String> createdBy;
+
+    /**
+     * Last updated by 'username's.
+     */
+    private Set<String> lastUpdatedBy;
+
+    /**
      * Specify the enrollment status of events to include.
      */
     private Set<ProgramStatus> programStatus;

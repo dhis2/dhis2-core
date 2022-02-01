@@ -85,6 +85,10 @@ public class EventDataQueryRequest
 
     private Set<EventStatus> eventStatus;
 
+    private Set<String> createdBy;
+
+    private Set<String> lastUpdatedBy;
+
     private Set<ProgramStatus> programStatus;
 
     private boolean collapseDataDimensions;
@@ -157,6 +161,8 @@ public class EventDataQueryRequest
         queryRequest.limit = this.limit;
         queryRequest.outputType = this.outputType;
         queryRequest.eventStatus = this.eventStatus;
+        queryRequest.createdBy = this.createdBy;
+        queryRequest.lastUpdatedBy = this.lastUpdatedBy;
         queryRequest.programStatus = this.programStatus;
         queryRequest.collapseDataDimensions = this.collapseDataDimensions;
         queryRequest.aggregateData = this.aggregateData;
@@ -204,6 +210,8 @@ public class EventDataQueryRequest
                 .displayProperty( criteria.getDisplayProperty() )
                 .endDate( criteria.getEndDate() )
                 .eventStatus( criteria.getEventStatus() )
+                .createdBy( criteria.getCreatedBy() )
+                .lastUpdatedBy( criteria.getLastUpdatedBy() )
                 .filter( criteria.getFilter() )
                 .headers( criteria.getHeaders() )
                 .hierarchyMeta( criteria.isHierarchyMeta() )
@@ -252,6 +260,8 @@ public class EventDataQueryRequest
                 .includeMetadataDetails( criteria.isIncludeMetadataDetails() )
                 .dataIdScheme( criteria.getDataIdScheme() )
                 .programStatus( criteria.getProgramStatus() )
+                .createdBy( criteria.getCreatedBy() )
+                .lastUpdatedBy( criteria.getLastUpdatedBy() )
                 .page( criteria.getPage() )
                 .pageSize( criteria.getPageSize() )
                 .paging( criteria.isPaging() )
