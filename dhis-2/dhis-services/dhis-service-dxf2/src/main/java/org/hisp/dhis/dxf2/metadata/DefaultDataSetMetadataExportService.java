@@ -30,15 +30,14 @@ package org.hisp.dhis.dxf2.metadata;
 import static org.hisp.dhis.commons.collection.CollectionUtils.flatMapToSet;
 import static org.hisp.dhis.commons.collection.CollectionUtils.mapToSet;
 
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
-import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -46,59 +45,66 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.fieldfiltering.FieldFilterParams;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
-import org.hisp.dhis.programrule.ProgramRuleService;
-import org.hisp.dhis.programrule.ProgramRuleVariableService;
-import org.hisp.dhis.query.QueryService;
-import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.system.SystemService;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.schema.descriptors.CategoryComboSchemaDescriptor;
+import org.hisp.dhis.schema.descriptors.CategoryOptionSchemaDescriptor;
+import org.hisp.dhis.schema.descriptors.CategorySchemaDescriptor;
+import org.hisp.dhis.schema.descriptors.DataElementSchemaDescriptor;
+import org.hisp.dhis.schema.descriptors.DataSetSchemaDescriptor;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-@Slf4j
 @AllArgsConstructor
 @Service( "org.hisp.dhis.dxf2.metadata.MetadataExportService" )
 public class DefaultDataSetMetadataExportService
 {
-    private final SchemaService schemaService;
-
-    private final QueryService queryService;
-
     private final FieldFilterService fieldFilterService;
-
-    private final CurrentUserService currentUserService;
-
-    private final ProgramRuleService programRuleService;
-
-    private final ProgramRuleVariableService programRuleVariableService;
-
-    private final SystemService systemService;
-
-    private final AttributeService attributeService;
 
     private final IdentifiableObjectManager idObjectManager;
 
-    /**
-     * Retrieves metadata for data sets for which the current has data write
-     * access, and other relevant entities such as data elements, category
-     * combinations, categories and category options.
-     *
-     * @return
-     */
-    public ObjectNode getDataSetMetadata()
+    public ObjectNode getDataSetMetadata( MetadataExportParams params )
     {
-        Map<Class<? extends IdentifiableObject>, List<? extends IdentifiableObject>> metadata = new HashMap<>();
-
         List<DataSet> dataSets = idObjectManager.getDataWriteAll( DataSet.class );
-
         Set<DataElement> dataElements = flatMapToSet( dataSets, DataSet::getDataElements );
         Set<CategoryCombo> categoryCombos = flatMapToSet( dataElements, DataElement::getCategoryCombos );
         categoryCombos.addAll( mapToSet( dataSets, DataSet::getCategoryCombo ) );
         Set<Category> categories = flatMapToSet( categoryCombos, CategoryCombo::getCategories );
         Set<CategoryOption> categoryOptions = flatMapToSet( categories, Category::getCategoryOptions );
 
-        return null;
+        ObjectNode rootNode = fieldFilterService.createObjectNode();
+
+        rootNode.putArray( DataSetSchemaDescriptor.PLURAL )
+            .addAll( asObjectNodes( dataSets, params, DataSet.class ) );
+        rootNode.putArray( DataElementSchemaDescriptor.PLURAL )
+            .addAll( asObjectNodes( dataElements, params, DataElement.class ) );
+        rootNode.putArray( CategoryComboSchemaDescriptor.PLURAL )
+            .addAll( asObjectNodes( categoryCombos, params, CategoryCombo.class ) );
+        rootNode.putArray( CategorySchemaDescriptor.PLURAL )
+            .addAll( asObjectNodes( categories, params, Category.class ) );
+        rootNode.putArray( CategoryOptionSchemaDescriptor.PLURAL )
+            .addAll( asObjectNodes( categoryOptions, params, CategoryOption.class ) );
+
+        return rootNode;
+    }
+
+    /**
+     * Returns the given collection of objects as an {@link ObjectNode}.
+     *
+     * @param <T>
+     * @param objects the collection of objects.
+     * @return an {@link ObjectNode}.
+     */
+    private <T extends IdentifiableObject> List<ObjectNode> asObjectNodes(
+        Collection<T> objects, MetadataExportParams params, Class<T> type )
+    {
+        FieldFilterParams<T> fieldFilterParams = FieldFilterParams.<T> builder()
+            .objects( new ArrayList<>( objects ) )
+            .filters( new HashSet<>( params.getFields( type ) ) )
+            .skipSharing( true )
+            .build();
+
+        return fieldFilterService.toObjectNodes( fieldFilterParams );
     }
 }
