@@ -43,6 +43,9 @@
     <property name="attributeValueFilters" type="jlbAttributeValueFilter" />
 
     <property name="translations" type="jblTranslations"/>
+
+    <!-- Sharing -->
+    <property name="sharing" type="jsbObjectSharing"/>
     
   </class>
 
