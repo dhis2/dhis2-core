@@ -2287,11 +2287,6 @@ public class DataQueryParams
         return skipPartitioning;
     }
 
-    public void setSkipPartitioning( boolean skipPartitioning )
-    {
-        this.skipPartitioning = skipPartitioning;
-    }
-
     public boolean isTimely()
     {
         return timely;
