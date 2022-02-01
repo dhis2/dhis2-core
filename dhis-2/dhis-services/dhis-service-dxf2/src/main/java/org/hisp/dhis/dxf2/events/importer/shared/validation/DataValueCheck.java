@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dxf2.events.importer.shared.validation;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifierBasedOnIdScheme;
 import static org.hisp.dhis.dxf2.events.event.EventUtils.eventDataValuesToJson;
 
@@ -37,8 +38,11 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import javax.imageio.ImageIO;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.events.importer.Checker;
@@ -49,6 +53,8 @@ import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageInstance;
@@ -59,6 +65,7 @@ import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Luciano Fiandesio
@@ -66,6 +73,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 @Component
 public class DataValueCheck implements Checker
 {
+    private static final Set<String> VALID_IMAGE_FORMATS = ImmutableSet.<String> builder().add(
+        ImageIO.getReaderFormatNames() ).build();
+
     @Override
     public ImportSummary check( ImmutableEvent event, WorkContext ctx )
     {
@@ -187,7 +197,28 @@ public class DataValueCheck implements Checker
         }
         else
         {
-            final String status = ValidationUtils.dataValueIsValid( dataValue.getValue(), dataElement );
+            String status = null;
+
+            if ( dataElement.hasOptionSet() )
+            {
+                status = validateOptionDataValue( dataElement, dataValue );
+            }
+            else if ( ValueType.FILE_RESOURCE == dataElement.getValueType() )
+            {
+                status = validateFileResourceDataValue( dataValue, ctx );
+            }
+            else if ( ValueType.IMAGE == dataElement.getValueType() )
+            {
+                status = validateImageDataValue( dataValue, ctx );
+            }
+            else if ( ValueType.ORGANISATION_UNIT == dataElement.getValueType() )
+            {
+                status = validateOrgUnitDataValue( dataValue, ctx );
+            }
+            else
+            {
+                status = ValidationUtils.dataValueIsValid( dataValue.getValue(), dataElement );
+            }
 
             if ( status != null )
             {
@@ -196,6 +227,70 @@ public class DataValueCheck implements Checker
         }
 
         return !importConflicts.hasConflicts();
+    }
+
+    private String validateOptionDataValue( DataElement dataElement, DataValue dataValue )
+    {
+        String value = dataValue.getValue();
+
+        OptionSet optionSet = dataElement.getOptionSet();
+
+        if ( isNullOrEmpty( value ) || optionSet == null )
+        {
+            return null;
+        }
+
+        return !optionSet.getOptionCodesAsSet().contains( value )
+            ? "Value '" + value + "' is not a valid option code of option set: " + optionSet.getUid()
+            : null;
+    }
+
+    private String validateFileResourceDataValue( DataValue dataValue, WorkContext ctx )
+    {
+        String value = dataValue.getValue();
+
+        if ( isNullOrEmpty( value ) )
+        {
+            return null;
+        }
+
+        return ctx.getServiceDelegator().getFileResourceService().getFileResource( value ) == null
+            ? "Value is not a valid file resource: " + value
+            : null;
+    }
+
+    private String validateImageDataValue( DataValue dataValue, WorkContext ctx )
+    {
+        String value = dataValue.getValue();
+
+        if ( isNullOrEmpty( value ) )
+        {
+            return null;
+        }
+
+        FileResource fileResource = ctx.getServiceDelegator().getFileResourceService().getFileResource( value );
+
+        if ( fileResource == null || !VALID_IMAGE_FORMATS.contains( fileResource.getFormat() ) )
+        {
+            return "Value is not a valid image file resource: " + value;
+        }
+
+        return null;
+
+    }
+
+    private String validateOrgUnitDataValue( DataValue dataValue, WorkContext ctx )
+    {
+        String value = dataValue.getValue();
+
+        if ( isNullOrEmpty( value ) )
+        {
+            return null;
+        }
+
+        return ctx.getServiceDelegator().getOrganisationUnitService().getOrganisationUnit( value ) == null
+            ? "Value is not a valid organisation unit: " + value
+            : null;
     }
 
     private boolean isValidationRequired( ImmutableEvent event, WorkContext ctx )
