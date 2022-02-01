@@ -181,8 +181,8 @@ class EventDataQueryServiceTest extends DhisSpringTest
         Set<String> filterParams = new HashSet<>();
         filterParams.add( "pe:201401;201402" );
         EventDataQueryRequest request = EventDataQueryRequest.builder().program( prA.getUid() )
-                .dimension( dimensionParams ).filter( filterParams ).coordinateField( coordinateField )
-                .fallbackCoordinateField( fallbackCoordinateField ).coordinateOuFallback( true ).build();
+            .dimension( dimensionParams ).filter( filterParams ).coordinateField( coordinateField )
+            .fallbackCoordinateField( fallbackCoordinateField ).coordinateOuFallback( true ).build();
         EventQueryParams params = dataQueryService.getFromRequest( request );
         assertEquals( prA, params.getProgram() );
         assertEquals( 1, params.getOrganisationUnits().size() );
@@ -198,32 +198,32 @@ class EventDataQueryServiceTest extends DhisSpringTest
     {
         Set<String> dimensionParams = new HashSet<>();
         dimensionParams.add( "ou:" + ouA.getUid() + ";" );
-        dimensionParams.add( "pe:LAST_WEEK;TODAY:LAST_UPDATED;20220101_20220201:INCIDENT_DATE");
+        dimensionParams.add( "pe:LAST_WEEK;TODAY:LAST_UPDATED;20220101_20220201:INCIDENT_DATE" );
         EventDataQueryRequest request = EventDataQueryRequest.builder()
-                .program( prA.getUid() )
-                .dimension( dimensionParams )
-                .build();
+            .program( prA.getUid() )
+            .dimension( dimensionParams )
+            .build();
         EventQueryParams params = dataQueryService.getFromRequest( request );
-        DimensionalObject pe = params.getDimension("pe");
-        assertEquals(3, pe.getItems().size());
-        assertTrue(streamOfPeriods(pe).anyMatch(Period::isDefault));
-        assertTrue(streamOfPeriods(pe).map(Period::getDateField).anyMatch(s -> s.equals("LAST_UPDATED")));
-        assertTrue(streamOfPeriods(pe).map(Period::getDateField).anyMatch(s -> s.equals("INCIDENT_DATE")));
-        assertTrue(streamOfPeriods(pe)
-                .filter(period -> "INCIDENT_DATE".equals(period.getDateField()))
-                .anyMatch(period ->
-                        period.getStartDate().equals(of(2022,1,1)) &&
-                        period.getEndDate().equals(of(2022,2,1))));
+        DimensionalObject pe = params.getDimension( "pe" );
+        assertEquals( 3, pe.getItems().size() );
+        assertTrue( streamOfPeriods( pe ).anyMatch( Period::isDefault ) );
+        assertTrue( streamOfPeriods( pe ).map( Period::getDateField ).anyMatch( s -> s.equals( "LAST_UPDATED" ) ) );
+        assertTrue( streamOfPeriods( pe ).map( Period::getDateField ).anyMatch( s -> s.equals( "INCIDENT_DATE" ) ) );
+        assertTrue( streamOfPeriods( pe )
+            .filter( period -> "INCIDENT_DATE".equals( period.getDateField() ) )
+            .anyMatch( period -> period.getStartDate().equals( of( 2022, 1, 1 ) ) &&
+                period.getEndDate().equals( of( 2022, 2, 1 ) ) ) );
     }
 
-    private Date of(int year, int month, int dayOfMonth) {
-        return Date.from(LocalDate.of(year, month, dayOfMonth).atStartOfDay(ZoneId.systemDefault()).toInstant());
+    private Date of( int year, int month, int dayOfMonth )
+    {
+        return Date.from( LocalDate.of( year, month, dayOfMonth ).atStartOfDay( ZoneId.systemDefault() ).toInstant() );
     }
 
-    private Stream<Period> streamOfPeriods(DimensionalObject pe) {
-        return pe.getItems().stream().map(dimensionalItemObject -> (Period) dimensionalItemObject);
+    private Stream<Period> streamOfPeriods( DimensionalObject pe )
+    {
+        return pe.getItems().stream().map( dimensionalItemObject -> (Period) dimensionalItemObject );
     }
-
 
     @Test
     void testGetFromUrlB()
