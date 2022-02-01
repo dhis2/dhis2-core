@@ -1807,6 +1807,7 @@ function getOfflineDataValueJson( params )
 	var json = {};
 	json.dataValues = new Array();
 	json.locked = false;
+	json.approved = false;
 	json.complete = complete;
 	json.date = "";
 	json.storedBy = "";
@@ -1847,10 +1848,20 @@ function insertDataValues( json )
 
     periodLocked = periodLocked && dhis2.de.lockExceptions.indexOf( lockExceptionId ) == -1;
 
-    if ( json.locked || dhis2.de.blackListedPeriods.indexOf( period.iso ) > -1 || periodLocked )
+    if ( json.locked || json.approved || dhis2.de.blackListedPeriods.indexOf( period.iso ) > -1 || periodLocked )
 	{
 		dhis2.de.lockForm();
-		setHeaderDelayMessage( i18n_dataset_is_locked );
+
+		if ( periodLocked ) {
+			setHeaderDelayMessage( i18n_dataset_is_concluded );
+		} else if ( dhis2.de.blackListedPeriods.indexOf( period.iso ) > -1 ) {
+			setHeaderDelayMessage( i18n_dataset_is_closed );
+		} else if ( json.approved ) {
+			setHeaderDelayMessage( i18n_dataset_is_approved );
+		} else {
+			setHeaderDelayMessage( i18n_dataset_is_locked );
+		}
+
 	}
 	else
 	{
@@ -2012,7 +2023,7 @@ function insertDataValues( json )
 
     // Set min-max values and colorize violation fields
 
-    if ( !json.locked ) 
+    if ( !( json.locked || json.approved ) )
     {
         $.safeEach( json.minMaxDataElements, function( i, value )
         {
@@ -2041,7 +2052,7 @@ function insertDataValues( json )
 
     // Set completeness button
 
-    if ( json.complete && !json.locked)
+    if ( json.complete && !( json.locked || json.approved ) )
     {
         $( '#completeButton' ).attr( 'disabled', 'disabled' );
         $( '#undoButton' ).removeAttr( 'disabled' );

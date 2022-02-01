@@ -32,6 +32,7 @@
   }#if( $velocityCount < $size2 ),#end
   #end ],
   "locked":${locked},
+  "approved":${approved},
   "complete":${complete},
   "date":"$!format.formatDate( $date )",
   "storedBy":"$!encoder.jsonEncode( ${storedBy} )",
