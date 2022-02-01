@@ -51,9 +51,9 @@ public class CollectionUtils
      *
      * @param <T>
      * @param <U>
-     * @param collection
-     * @param mapper
-     * @return
+     * @param collection the collection of objects to map.
+     * @param mapper the mapping function.
+     * @return a set of mapped objects.
      */
     public static <T, U> Set<U> flatMapToSet( Collection<T> collection,
         Function<? super T, ? extends Collection<U>> mapper )
@@ -70,9 +70,9 @@ public class CollectionUtils
      *
      * @param <T>
      * @param <U>
-     * @param collection
-     * @param mapper
-     * @return
+     * @param collection collection the collection of objects to map.
+     * @param mapper the mapping function.
+     * @return a set of mapped objects.
      */
     public static <T, U> Set<U> mapToSet( Collection<T> collection, Function<? super T, ? extends U> mapper )
     {
