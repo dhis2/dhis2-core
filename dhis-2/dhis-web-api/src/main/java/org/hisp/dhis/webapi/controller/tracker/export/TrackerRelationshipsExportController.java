@@ -96,7 +96,7 @@ public class TrackerRelationshipsExportController
         objectRetrievers = ImmutableMap.<Class<?>, Function<String, ?>> builder()
             .put( TrackedEntityInstance.class, trackedEntityInstanceService::getTrackedEntityInstance )
             .put( ProgramInstance.class, programInstanceService::getProgramInstance )
-            .put( ProgramStageInstanceService.class, programStageInstanceService::getProgramStageInstance )
+            .put( ProgramStageInstance.class, programStageInstanceService::getProgramStageInstance )
             .build();
 
         relationshipRetrievers = ImmutableMap
