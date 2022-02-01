@@ -728,6 +728,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
     @PostMapping( value = "/{uid}/{property}", consumes = APPLICATION_JSON_VALUE )
     @ResponseStatus( HttpStatus.OK )
+    @ResponseBody
     public WebMessage addCollectionItemsJson(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
@@ -740,6 +741,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
     @PostMapping( value = "/{uid}/{property}", consumes = APPLICATION_XML_VALUE )
     @ResponseStatus( HttpStatus.OK )
+    @ResponseBody
     public WebMessage addCollectionItemsXml(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
@@ -762,6 +764,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
     @PutMapping( value = "/{uid}/{property}", consumes = APPLICATION_JSON_VALUE )
     @ResponseStatus( HttpStatus.OK )
+    @ResponseBody
     public WebMessage replaceCollectionItemsJson(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
@@ -774,6 +777,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
     @PutMapping( value = "/{uid}/{property}", consumes = APPLICATION_XML_VALUE )
     @ResponseStatus( HttpStatus.OK )
+    @ResponseBody
     public WebMessage replaceCollectionItemsXml(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
@@ -796,6 +800,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
     @PostMapping( value = "/{uid}/{property}/{itemId}" )
     @ResponseStatus( HttpStatus.OK )
+    @ResponseBody
     public WebMessage addCollectionItem(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
@@ -821,6 +826,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
     @DeleteMapping( value = "/{uid}/{property}", consumes = APPLICATION_JSON_VALUE )
     @ResponseStatus( HttpStatus.OK )
+    @ResponseBody
     public WebMessage deleteCollectionItemsJson(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
@@ -833,6 +839,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
     @DeleteMapping( value = "/{uid}/{property}", consumes = APPLICATION_XML_VALUE )
     @ResponseStatus( HttpStatus.OK )
+    @ResponseBody
     public WebMessage deleteCollectionItemsXml(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
@@ -854,6 +861,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
     @DeleteMapping( value = "/{uid}/{property}/{itemId}" )
     @ResponseStatus( HttpStatus.OK )
+    @ResponseBody
     public WebMessage deleteCollectionItem(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
