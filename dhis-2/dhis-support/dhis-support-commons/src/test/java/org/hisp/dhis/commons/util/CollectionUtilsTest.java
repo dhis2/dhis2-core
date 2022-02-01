@@ -27,11 +27,19 @@
  */
 package org.hisp.dhis.commons.util;
 
+import static org.hisp.dhis.commons.collection.CollectionUtils.flatMapToSet;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import java.util.List;
+import java.util.Set;
+
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
+import org.junit.jupiter.api.Test;
 
 public class CollectionUtilsTest
 {
+    @Test
     public void testFlatMapToSet()
     {
         DataElement deA = new DataElement();
@@ -46,10 +54,15 @@ public class CollectionUtilsTest
         dsA.setAutoFields();
         dsB.setAutoFields();
 
-        dsA.getDataElements().add( deA );
-        dsA.getDataElements().add( deB );
-        dsB.getDataElements().add( deB );
-        dsB.getDataElements().add( deC );
+        dsA.addDataSetElement( deA );
+        dsA.addDataSetElement( deB );
+        dsB.addDataSetElement( deB );
+        dsB.addDataSetElement( deC );
 
+        List<DataSet> dataSets = List.of( dsA, dsB );
+
+        Set<DataElement> dataElements = flatMapToSet( dataSets, DataSet::getDataElements );
+
+        assertEquals( 3, dataElements.size() );
     }
 }
