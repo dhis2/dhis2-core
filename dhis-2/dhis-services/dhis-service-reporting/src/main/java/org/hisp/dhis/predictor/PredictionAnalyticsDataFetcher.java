@@ -27,129 +27,99 @@
  */
 package org.hisp.dhis.predictor;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.util.ObjectUtils.firstNonNull;
-
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.FoundDimensionItemValue;
 import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.Map4;
-import org.hisp.dhis.common.MapMap;
-import org.hisp.dhis.common.MapMapMap;
+import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.program.AnalyticsType;
+import org.hisp.dhis.program.ProgramIndicator;
 
 import com.google.common.collect.Lists;
 
 /**
- * Fetches analytics data for a prediction.
+ * Fetches analytics data for predictions.
  * <p>
- * This class can fetch values from analytics and return them for each
- * organisation unit. It assumes that they will be requested in ascending order
- * of organisation unit path.
- * <p>
- * It improves performance without using too much memory by fetching data from
- * analytics for multiple organisation units at a time (but not all organisation
- * units at once). It then returns data for the organisation unit requested.
+ * This class can fetch values from analytics and return them for a list of
+ * organisation units.
  *
  * @author Jim Grace
  */
+@RequiredArgsConstructor
 public class PredictionAnalyticsDataFetcher
 {
     private final AnalyticsService analyticsService;
 
-    public static final int PARTITION_SIZE = 500;
-
-    private List<List<OrganisationUnit>> partitions;
-
-    private List<OrganisationUnit> partition;
-
-    private int partitionIndex;
+    private final CategoryService categoryService;
 
     private Set<Period> periods;
+
+    private Map<String, Period> periodLookup;
 
     private Set<DimensionalItemObject> attributeOptionItems;
 
     private Set<DimensionalItemObject> nonAttributeOptionItems;
 
-    private Map4<String, String, Period, DimensionalItemObject, Object> aocData;
+    private Map<String, DimensionalItemObject> analyticsItemsLookup;
 
-    private MapMapMap<String, Period, DimensionalItemObject, Object> nonAocData;
+    private CachingMap<String, CategoryOptionCombo> cocLookup;
 
-    public PredictionAnalyticsDataFetcher( AnalyticsService analyticsService )
-    {
-        checkNotNull( analyticsService );
-
-        this.analyticsService = analyticsService;
-    }
+    private Map<String, OrganisationUnit> orgUnitLookup;
 
     /**
      * Initializes for fetching analytics data.
      *
-     * @param orgUnits organisation units to fetch.
-     * @param periods periods to fetch.
-     * @param attributeOptionItems items stored by AOC to fetch.
-     * @param nonAttributeOptionItems items not stored by AOC to fetch.
+     * @param periods periods to fetch
+     * @param analyticsItems analytics items to fetch
      */
-    public void init( List<OrganisationUnit> orgUnits, Set<Period> periods,
-        Set<DimensionalItemObject> attributeOptionItems,
-        Set<DimensionalItemObject> nonAttributeOptionItems )
+    public void init( Set<Period> periods, Set<DimensionalItemObject> analyticsItems )
     {
         this.periods = periods;
-        this.attributeOptionItems = attributeOptionItems;
-        this.nonAttributeOptionItems = nonAttributeOptionItems;
 
-        partitions = Lists.partition( orgUnits, PARTITION_SIZE );
+        categorizeAnalyticsItems( analyticsItems );
 
-        partitionIndex = -1;
+        periodLookup = periods.stream()
+            .collect( Collectors.toMap( Period::getIsoDate, p -> p ) );
 
-        getNextChunk(); // Get the first chunk of data
+        analyticsItemsLookup = analyticsItems.stream()
+            .collect( Collectors.toMap( DimensionalItemObject::getDimensionItem, d -> d ) );
+
+        cocLookup = new CachingMap<>();
     }
 
     /**
-     * Gets the analytics data for an organisation unit that is stored by
-     * attribute option combination.
+     * Gets analytics values.
      *
-     * @param orgUnit organisation unit to get data for.
-     * @return value map by attribute option combo and period.
+     * @param orgUnits organisation units to get data for
+     * @return values as fetched from analytics
      */
-    public MapMapMap<String, Period, DimensionalItemObject, Object> getAocData( OrganisationUnit orgUnit )
+    public List<FoundDimensionItemValue> getValues( List<OrganisationUnit> orgUnits )
     {
-        if ( attributeOptionItems.isEmpty() )
-        {
-            return new MapMapMap<>();
-        }
+        orgUnitLookup = orgUnits.stream()
+            .collect( Collectors.toMap( OrganisationUnit::getUid, o -> o ) );
 
-        getNextChunkIfNeeded( orgUnit );
+        List<FoundDimensionItemValue> values = getValuesInternal( orgUnits, attributeOptionItems, true );
 
-        return firstNonNull( aocData.get( orgUnit.getUid() ), new MapMapMap<>() );
-    }
+        values.addAll( getValuesInternal( orgUnits, nonAttributeOptionItems, false ) );
 
-    /**
-     * Gets the analytics data for an organisation unit that is not stored by
-     * attribute option combination.
-     *
-     * @param orgUnit organisation unit to get data for.
-     * @return value map by period.
-     */
-    public MapMap<Period, DimensionalItemObject, Object> getNonAocData( OrganisationUnit orgUnit )
-    {
-        if ( nonAttributeOptionItems.isEmpty() )
-        {
-            return new MapMap<>();
-        }
-
-        getNextChunkIfNeeded( orgUnit );
-
-        return firstNonNull( nonAocData.get( orgUnit.getUid() ), new MapMap<>() );
+        return values;
     }
 
     // -------------------------------------------------------------------------
@@ -157,61 +127,58 @@ public class PredictionAnalyticsDataFetcher
     // -------------------------------------------------------------------------
 
     /**
-     * Gets the next chunk if the org unit path isn't in this chunk.
+     * Categorizes analytics items according to whether or not they are stored
+     * with an attribute option combo.
      */
-    private void getNextChunkIfNeeded( OrganisationUnit orgUnit )
+    private void categorizeAnalyticsItems( Set<DimensionalItemObject> analyticsItems )
     {
-        if ( orgUnit.getPath().compareTo( partition.get( partition.size() - 1 ).getPath() ) > 0 )
+        attributeOptionItems = new HashSet<>();
+        nonAttributeOptionItems = new HashSet<>();
+
+        for ( DimensionalItemObject o : analyticsItems )
         {
-            getNextChunk();
+            if ( hasAttributeOptions( o ) )
+            {
+                attributeOptionItems.add( o );
+            }
+            else
+            {
+                nonAttributeOptionItems.add( o );
+            }
         }
     }
 
     /**
-     * Gets a chunk of analytics data for a partition of organisation units.
+     * Checks to see if a dimensional item object has values stored in the
+     * database by attribute option combo
      */
-    private void getNextChunk()
+    private boolean hasAttributeOptions( DimensionalItemObject o )
     {
-        partitionIndex++;
-
-        if ( partitionIndex >= partitions.size() )
-        {
-            throw new IllegalArgumentException(
-                "Unexpected partitionIndex " + partitionIndex + " >= " + partitions.size() );
-        }
-
-        partition = partitions.get( partitionIndex );
-
-        aocData = new Map4<>();
-        nonAocData = new MapMapMap<>();
-
-        if ( !attributeOptionItems.isEmpty() )
-        {
-            getDataValues( attributeOptionItems, true );
-        }
-
-        if ( !nonAttributeOptionItems.isEmpty() )
-        {
-            getDataValues( nonAttributeOptionItems, false );
-        }
+        return o.getDimensionItemType() != DimensionItemType.PROGRAM_INDICATOR
+            || ((ProgramIndicator) o).getAnalyticsType() != AnalyticsType.ENROLLMENT;
     }
 
     /**
      * Queries analytics for data.
-     *
-     * @param dimensionItems the dimensional item objects to fetch.
-     * @param hasAttributeOptions whether these objects are stored with AOCs.
      */
-    private void getDataValues( Set<DimensionalItemObject> dimensionItems, boolean hasAttributeOptions )
+    private List<FoundDimensionItemValue> getValuesInternal( List<OrganisationUnit> orgUnits,
+        Set<DimensionalItemObject> dimensionItems, boolean hasAttributeOptions )
     {
+        List<FoundDimensionItemValue> values = new ArrayList<>();
+
+        if ( dimensionItems.isEmpty() )
+        {
+            return values;
+        }
+
         DataQueryParams.Builder paramsBuilder = DataQueryParams.newBuilder()
-            .withPeriods( new ArrayList<>( periods ) )
+            .withPeriods( Lists.newArrayList( periods ) )
             .withDataDimensionItems( Lists.newArrayList( dimensionItems ) )
-            .withOrganisationUnits( partition );
+            .withOrganisationUnits( orgUnits );
 
         if ( hasAttributeOptions )
         {
-            paramsBuilder.withAttributeOptionCombos( Lists.newArrayList() );
+            paramsBuilder.withAttributeOptionCombos( Collections.emptyList() );
         }
 
         Grid grid = analyticsService.getAggregatedDataValues( paramsBuilder.build() );
@@ -222,11 +189,6 @@ public class PredictionAnalyticsDataFetcher
         int aoInx = hasAttributeOptions ? grid.getIndexOfHeader( DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID ) : 0;
         int vlInx = grid.getWidth() - 1;
 
-        Map<String, Period> periodLookup = periods.stream()
-            .collect( Collectors.toMap( Period::getIsoDate, p -> p ) );
-        Map<String, DimensionalItemObject> dimensionItemLookup = dimensionItems.stream()
-            .collect( Collectors.toMap( DimensionalItemObject::getDimensionItem, d -> d ) );
-
         for ( List<Object> row : grid.getRows() )
         {
             String pe = (String) row.get( peInx );
@@ -236,16 +198,15 @@ public class PredictionAnalyticsDataFetcher
             Object vl = row.get( vlInx );
 
             Period period = periodLookup.get( pe );
-            DimensionalItemObject dimensionItem = dimensionItemLookup.get( dx );
+            DimensionalItemObject item = analyticsItemsLookup.get( dx );
+            OrganisationUnit orgUnit = orgUnitLookup.get( ou );
+            CategoryOptionCombo attributeOptionCombo = hasAttributeOptions
+                ? cocLookup.get( ao, () -> categoryService.getCategoryOptionCombo( ao ) )
+                : null;
 
-            if ( hasAttributeOptions )
-            {
-                aocData.putEntry( ou, ao, period, dimensionItem, vl );
-            }
-            else
-            {
-                nonAocData.putEntry( ou, period, dimensionItem, vl );
-            }
+            values.add( new FoundDimensionItemValue( orgUnit, period, attributeOptionCombo, item, vl ) );
         }
+
+        return values;
     }
 }

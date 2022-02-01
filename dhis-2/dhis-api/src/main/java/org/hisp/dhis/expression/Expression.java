@@ -31,6 +31,8 @@ import java.io.Serializable;
 
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
+import org.hisp.dhis.common.TranslatableObject;
+import org.hisp.dhis.translation.Translatable;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -56,6 +58,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  */
 @JacksonXmlRootElement( localName = "expression", namespace = DxfNamespaces.DXF_2_0 )
 public class Expression
+    extends TranslatableObject
     implements Serializable, EmbeddedObject
 {
     /**
@@ -240,6 +243,14 @@ public class Expression
     public void setDescription( String description )
     {
         this.description = description;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Translatable( propertyName = "description", key = "DESCRIPTION" )
+    public String getDisplayDescription()
+    {
+        return getTranslation( "DESCRIPTION", getDescription() );
     }
 
     @JsonProperty

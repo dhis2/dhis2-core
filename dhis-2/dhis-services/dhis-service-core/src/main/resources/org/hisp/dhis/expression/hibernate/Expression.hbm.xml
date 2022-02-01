@@ -26,5 +26,7 @@
             </type>
         </property>
 
+        <property name="translations" type="jblTranslations"/>
+
     </class>
 </hibernate-mapping>

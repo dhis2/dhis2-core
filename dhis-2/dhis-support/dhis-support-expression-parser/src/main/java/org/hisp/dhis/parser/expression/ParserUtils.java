@@ -50,6 +50,11 @@ public class ParserUtils
 {
     public final static double DOUBLE_VALUE_IF_NULL = 0.0;
 
+    /**
+     * These are common expression items that are used in ALL types of DHIS2
+     * expressions. Items that are only used in some types of expressions are
+     * defined elsewhere.
+     */
     public final static ImmutableMap<Integer, ExpressionItem> COMMON_EXPRESSION_ITEMS = ImmutableMap
         .<Integer, ExpressionItem> builder()
 
@@ -88,7 +93,6 @@ public class ParserUtils
         .put( LEAST, new FunctionLeast() )
         .put( LOG, new FunctionLog() )
         .put( LOG10, new FunctionLog10() )
-        .put( PERIOD_OFFSET, new PeriodOffset() )
 
         // Data items
 

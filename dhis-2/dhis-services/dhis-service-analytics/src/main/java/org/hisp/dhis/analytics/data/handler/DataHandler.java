@@ -1023,11 +1023,9 @@ public class DataHandler
                 // periods from the original Analytics request. The row may
                 // not have a Period if Period is used as filter.
 
-                if ( hasPeriod( row, periodIndex )
-                    && isPeriodInPeriods( (String) row.get( periodIndex ), basePeriods ) )
+                if ( hasPeriod( row, periodIndex ) )
                 {
-                    addItemBasedOnPeriodOffset( grid, result, dataIndex, periodIndex, valueIndex, row,
-                        dimensionalItem );
+                    addItemBasedOnPeriodOffset( result, periodIndex, valueIndex, row, dimensionalItem, basePeriods );
                 }
                 else
                 {
@@ -1084,33 +1082,37 @@ public class DataHandler
     /**
      * Calculate the dimensional item offset and adds to the give result map.
      *
-     * @param grid the current Grid.
      * @param result the map where the values will be added to.
-     * @param dataIndex the current grid row data index.
      * @param periodIndex the current grid row period index.
      * @param valueIndex the current grid row value index.
      * @param row the current grid row.
      * @param dimensionalItemObject a dimensional item for the current grid row,
      *        see
      *        {@link org.hisp.dhis.analytics.util.AnalyticsUtils#findDimensionalItems(String, List)}
+     * @param basePeriods the periods from the parameters.
      *
      * @return the DimensionalItemObject
      */
-    private void addItemBasedOnPeriodOffset( Grid grid, MultiValuedMap<String, DimensionItemObjectValue> result,
-        int dataIndex, int periodIndex, int valueIndex, List<Object> row, DimensionalItemObject dimensionalItemObject )
+    private void addItemBasedOnPeriodOffset( MultiValuedMap<String, DimensionItemObjectValue> result,
+        int periodIndex, int valueIndex, List<Object> row, DimensionalItemObject dimensionalItemObject,
+        List<DimensionalItemObject> basePeriods )
     {
+        if ( row.get( valueIndex ) == null )
+        {
+            return;
+        }
+
         final List<Object> adjustedRow = (dimensionalItemObject.getPeriodOffset() != 0)
-            ? getPeriodOffsetRow( grid, dataIndex, periodIndex, dimensionalItemObject, (String) row.get( periodIndex ),
-                dimensionalItemObject.getPeriodOffset() )
+            ? getPeriodOffsetRow( row, periodIndex, dimensionalItemObject.getPeriodOffset() )
             : row;
 
-        if ( adjustedRow == null || adjustedRow.get( valueIndex ) == null )
+        if ( !isPeriodInPeriods( (String) adjustedRow.get( periodIndex ), basePeriods ) )
         {
             return;
         }
 
         // Key is composed of [uid-period]
-        final String key = join( remove( row.toArray( new Object[0] ), valueIndex ), DIMENSION_SEP );
+        final String key = join( remove( adjustedRow.toArray( new Object[0] ), valueIndex ), DIMENSION_SEP );
 
         final Double value = ((Number) adjustedRow.get( valueIndex )).doubleValue();
 
