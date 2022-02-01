@@ -45,9 +45,9 @@ import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.datastore.DatastoreService;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.keyjsonvalue.KeyJsonValueService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
@@ -89,7 +89,7 @@ class OrgUnitProfileServiceTest extends DhisSpringTest
     private OrganisationUnitService organisationUnitService;
 
     @Autowired
-    private KeyJsonValueService dataStore;
+    private DatastoreService dataStore;
 
     @Mock
     private AnalyticsService mockAnalyticsService;

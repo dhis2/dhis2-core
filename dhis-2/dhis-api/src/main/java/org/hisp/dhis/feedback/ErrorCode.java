@@ -382,7 +382,9 @@ public enum ErrorCode
 
     // datastore query validation
     E7650( "Not a valid path: `{0}`" ),
-    E7651( "Illegal fields expression. Expected `,`, `[` or `]` at position {0} but found `{1}`" );
+    E7651( "Illegal fields expression. Expected `,`, `[` or `]` at position {0} but found `{1}`" ),
+    E7652( "Illegal filter expression `{0}`: {1}" ),
+    E7653( "Illegal filter `{0}`: {1}" );
 
     private String message;
 

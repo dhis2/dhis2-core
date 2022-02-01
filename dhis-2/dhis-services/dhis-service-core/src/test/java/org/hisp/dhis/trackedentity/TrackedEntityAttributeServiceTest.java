@@ -41,6 +41,7 @@ import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeStore;
 import org.hisp.dhis.security.acl.AclService;
@@ -91,6 +92,9 @@ class TrackedEntityAttributeServiceTest
 
     private TrackedEntityAttributeService trackedEntityAttributeService;
 
+    @Mock
+    private OrganisationUnitService organisationUnitService;
+
     private TrackedEntityInstance teiPassedInPayload;
 
     private final String identicalTeiUid = "TeiUid12345";
@@ -106,7 +110,7 @@ class TrackedEntityAttributeServiceTest
     {
         trackedEntityAttributeService = new DefaultTrackedEntityAttributeService( attributeStore, programService,
             trackedEntityTypeService, fileResourceService, userService, currentUserService, aclService,
-            trackedEntityAttributeStore, entityTypeAttributeStore, programAttributeStore );
+            trackedEntityAttributeStore, entityTypeAttributeStore, programAttributeStore, organisationUnitService );
 
         orgUnit = new OrganisationUnit( "orgUnitA" );
 
