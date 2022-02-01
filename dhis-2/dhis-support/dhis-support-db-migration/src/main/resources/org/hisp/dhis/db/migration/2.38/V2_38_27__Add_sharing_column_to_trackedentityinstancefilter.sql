@@ -1,0 +1,1 @@
+alter table trackedentityinstancefilter add column if not exists sharing jsonb default '{}'::jsonb;
