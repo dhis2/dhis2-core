@@ -207,7 +207,7 @@ public class DataDimensionExtractor
 
                 if ( dimensionalItemObject != null )
                 {
-                    dimensionalItemObject.setPeriodOffset( id.getPeriodOffset() );
+                    dimensionalItemObject.setQueryMods( id.getQueryMods() );
                     itemObjectMap.put( id, dimensionalItemObject );
                 }
             }
@@ -363,16 +363,16 @@ public class DataDimensionExtractor
     }
 
     /**
-     * Clones a BaseDimensionalItemObject if the periodOffset is not zero, so
-     * there can be a BaseDimensionalItemObject for each different periodOffset.
+     * Clones a BaseDimensionalItemObject if there are non-default query mods,
+     * so the BaseDimensionalItemObject can reflect the query mods.
      *
      * @param item the item to clone if needed.
-     * @param id the item id with the periodOffset.
+     * @param id the item id that may have non-default query modifiers.
      * @return the item or its clone.
      */
     private BaseDimensionalItemObject cloneIfNeeded( final BaseDimensionalItemObject item, final DimensionalItemId id )
     {
-        if ( id.getPeriodOffset() != 0 )
+        if ( id.getQueryMods() != null )
         {
             try
             {

@@ -510,7 +510,7 @@ public class DimensionalObjectUtils
         return operands.stream().map( o -> {
 
             DataElement dataElement = o.getDataElement();
-            dataElement.setPeriodOffset( o.getPeriodOffset() );
+            dataElement.setQueryMods( o.getQueryMods() );
             return dataElement;
 
         } ).collect( Collectors.toSet() );
@@ -530,7 +530,7 @@ public class DimensionalObjectUtils
             .map( o -> {
 
                 CategoryOptionCombo coc = o.getCategoryOptionCombo();
-                coc.setPeriodOffset( o.getPeriodOffset() );
+                coc.setQueryMods( o.getQueryMods() );
                 return coc;
 
             } )
@@ -551,7 +551,7 @@ public class DimensionalObjectUtils
             .map( o -> {
 
                 CategoryOptionCombo aoc = o.getAttributeOptionCombo();
-                aoc.setPeriodOffset( o.getPeriodOffset() );
+                aoc.setQueryMods( o.getQueryMods() );
                 return aoc;
 
             } )

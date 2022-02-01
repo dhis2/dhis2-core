@@ -55,8 +55,10 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.D_BRACE;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.HASH_BRACE;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.I_BRACE;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.MAX;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.MAX_DATE;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.MEDIAN;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.MIN;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.MIN_DATE;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.N_BRACE;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ORGUNIT_ANCESTOR;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ORGUNIT_GROUP;
@@ -120,6 +122,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ExpressionItem;
 import org.hisp.dhis.parser.expression.ExpressionItemMethod;
+import org.hisp.dhis.parser.expression.function.FunctionMaxDate;
+import org.hisp.dhis.parser.expression.function.FunctionMinDate;
 import org.hisp.dhis.parser.expression.function.PeriodOffset;
 import org.hisp.dhis.parser.expression.function.VectorAvg;
 import org.hisp.dhis.parser.expression.function.VectorCount;
@@ -212,6 +216,8 @@ public class DefaultExpressionService
         .<Integer, ExpressionItem> builder()
         .putAll( BASE_EXPRESSION_ITEMS )
         .put( N_BRACE, new DimItemIndicator() )
+        .put( MAX_DATE, new FunctionMaxDate() )
+        .put( MIN_DATE, new FunctionMinDate() )
         .put( PERIOD_OFFSET, new PeriodOffset() )
         .build();
 

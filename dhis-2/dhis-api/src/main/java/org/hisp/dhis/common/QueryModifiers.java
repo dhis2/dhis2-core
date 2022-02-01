@@ -25,33 +25,55 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.parser.expression.function;
+package org.hisp.dhis.common;
 
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
+import java.util.Date;
 
-import org.hisp.dhis.common.QueryModifiers;
-import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.parser.expression.ExpressionItem;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Function periodOffset
+ * {@see DimensionalItemObject} modifiers for an analytics query, resulting from
+ * a parsed indicator expression data item.
  *
- * @author Enrico Colasante
+ * @author Jim Grace
  */
-public class PeriodOffset
-    implements ExpressionItem
+@Getter
+@EqualsAndHashCode
+@Builder
+public class QueryModifiers
 {
-    @Override
-    public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
+    /**
+     * Period offset: the offset can be applied within an indicator formula in
+     * order to "shift" the query period by the offset value (e.g. Feb 2022 with
+     * offset -1 becomes Jan 2022). An offset with value 0 means no offset.
+     */
+    @JsonProperty
+    private final int periodOffset;
+
+    /**
+     * The minimum date (start of any period) for querying this object.
+     */
+    @JsonProperty
+    private final Date minDate;
+
+    /**
+     * The maximum date (end of any period) for querying this object.
+     */
+    @JsonProperty
+    private final Date maxDate;
+
+    /**
+     * Create a builder starting with values from this object.
+     */
+    public QueryModifiersBuilder cloneBuilder()
     {
-        int existingPeriodOffset = (visitor.getQueryMods() == null) ? 0 : visitor.getQueryMods().getPeriodOffset();
-
-        int parsedPeriodOffset = (ctx.period == null) ? 0 : Integer.valueOf( ctx.period.getText() );
-
-        int periodOffset = existingPeriodOffset + parsedPeriodOffset;
-
-        QueryModifiers queryMods = visitor.getQueryModsBuilder().periodOffset( periodOffset ).build();
-
-        return visitor.visitWithQueryMods( ctx.expr( 0 ), queryMods );
+        return builder()
+            .periodOffset( this.periodOffset )
+            .minDate( this.minDate )
+            .maxDate( this.maxDate );
     }
 }

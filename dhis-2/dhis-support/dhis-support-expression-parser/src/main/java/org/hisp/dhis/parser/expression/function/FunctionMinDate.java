@@ -27,30 +27,29 @@
  */
 package org.hisp.dhis.parser.expression.function;
 
+import static org.hisp.dhis.parser.expression.ParserUtils.parseExpressionDate;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
+
+import java.util.Date;
 
 import org.hisp.dhis.common.QueryModifiers;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ExpressionItem;
 
 /**
- * Function periodOffset
+ * Function minDate
  *
- * @author Enrico Colasante
+ * @author Jim Grace
  */
-public class PeriodOffset
+public class FunctionMinDate
     implements ExpressionItem
 {
     @Override
     public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        int existingPeriodOffset = (visitor.getQueryMods() == null) ? 0 : visitor.getQueryMods().getPeriodOffset();
+        Date minDate = parseExpressionDate( ctx.minDate.getText() );
 
-        int parsedPeriodOffset = (ctx.period == null) ? 0 : Integer.valueOf( ctx.period.getText() );
-
-        int periodOffset = existingPeriodOffset + parsedPeriodOffset;
-
-        QueryModifiers queryMods = visitor.getQueryModsBuilder().periodOffset( periodOffset ).build();
+        QueryModifiers queryMods = visitor.getQueryModsBuilder().minDate( minDate ).build();
 
         return visitor.visitWithQueryMods( ctx.expr( 0 ), queryMods );
     }
