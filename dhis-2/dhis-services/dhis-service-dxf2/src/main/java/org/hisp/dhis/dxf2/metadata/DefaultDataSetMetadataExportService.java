@@ -59,11 +59,13 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 @AllArgsConstructor
 @Service( "org.hisp.dhis.dxf2.metadata.DataSetMetadataExportService" )
 public class DefaultDataSetMetadataExportService
+    implements DataSetMetadataExportService
 {
     private final FieldFilterService fieldFilterService;
 
     private final IdentifiableObjectManager idObjectManager;
 
+    @Override
     public ObjectNode getDataSetMetadata( MetadataExportParams params )
     {
         List<DataSet> dataSets = idObjectManager.getDataWriteAll( DataSet.class );
