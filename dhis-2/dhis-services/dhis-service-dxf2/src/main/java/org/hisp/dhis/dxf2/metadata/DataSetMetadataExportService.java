@@ -29,6 +29,9 @@ package org.hisp.dhis.dxf2.metadata;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+/**
+ * @author Lars Helge Overland
+ */
 public interface DataSetMetadataExportService
 {
     /**

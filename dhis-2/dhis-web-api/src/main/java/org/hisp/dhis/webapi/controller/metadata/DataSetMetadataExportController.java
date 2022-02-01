@@ -44,6 +44,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+/**
+ * @author Lars Helge Overland
+ */
 @Controller
 @AllArgsConstructor
 @RequestMapping( "/dataSetMetadata" )

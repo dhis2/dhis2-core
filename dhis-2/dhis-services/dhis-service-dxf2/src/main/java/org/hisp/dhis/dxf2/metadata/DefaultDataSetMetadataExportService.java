@@ -56,6 +56,9 @@ import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+/**
+ * @author Lars Helge Overland
+ */
 @AllArgsConstructor
 @Service( "org.hisp.dhis.dxf2.metadata.DataSetMetadataExportService" )
 public class DefaultDataSetMetadataExportService
