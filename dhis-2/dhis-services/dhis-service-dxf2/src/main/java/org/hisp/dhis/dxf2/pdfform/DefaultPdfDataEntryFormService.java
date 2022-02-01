@@ -34,6 +34,8 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.List;
 
+import lombok.AllArgsConstructor;
+
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -59,7 +61,6 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.util.DateUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
@@ -85,6 +86,7 @@ import com.lowagie.text.pdf.TextField;
 /**
  * @author James Chang
  */
+@AllArgsConstructor
 @Service( "pdfDataEntryFormService" )
 @Scope( "prototype" )
 public class DefaultPdfDataEntryFormService
@@ -118,14 +120,11 @@ public class DefaultPdfDataEntryFormService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    @Autowired
-    private DataSetService dataSetService;
+    private final DataSetService dataSetService;
 
-    @Autowired
-    private ProgramStageService programStageService;
+    private final ProgramStageService programStageService;
 
-    @Autowired
-    private OptionService optionService;
+    private final OptionService optionService;
 
     // -------------------------------------------------------------------------
     // PdfDataEntryFormService implementation
