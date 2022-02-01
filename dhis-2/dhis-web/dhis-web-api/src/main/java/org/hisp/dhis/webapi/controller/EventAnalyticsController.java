@@ -301,7 +301,8 @@ public class EventAnalyticsController
     {
         EventQueryParams params = eventDataService.getFromRequest( mapFromCriteria( criteria, program, apiVersion ) );
 
-        contextUtils.configureResponse( response, contentType, CacheStrategy.RESPECT_SYSTEM_SETTING, file, withAttachment );
+        contextUtils.configureResponse( response, contentType, CacheStrategy.RESPECT_SYSTEM_SETTING, file,
+            withAttachment );
         return analyticsService.getEvents( params );
     }
 
