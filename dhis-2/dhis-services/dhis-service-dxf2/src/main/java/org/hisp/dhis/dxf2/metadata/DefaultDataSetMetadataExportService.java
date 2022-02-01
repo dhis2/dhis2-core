@@ -27,11 +27,13 @@
  */
 package org.hisp.dhis.dxf2.metadata;
 
+import static org.hisp.dhis.commons.collection.CollectionUtils.flatMapToSet;
+import static org.hisp.dhis.commons.collection.CollectionUtils.mapToSet;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -39,6 +41,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
@@ -90,21 +93,11 @@ public class DefaultDataSetMetadataExportService
 
         List<DataSet> dataSets = idObjectManager.getDataWriteAll( DataSet.class );
 
-        Set<DataElement> dataElements = dataSets.stream()
-            .flatMap( ds -> ds.getDataElements().stream() )
-            .collect( Collectors.toSet() );
-
-        Set<CategoryCombo> categoryCombos = dataElements.stream()
-            .flatMap( de -> de.getCategoryCombos().stream() )
-            .collect( Collectors.toSet() );
-
-        categoryCombos.addAll( dataSets.stream()
-            .map( DataSet::getCategoryCombo )
-            .collect( Collectors.toSet() ) );
-
-        Set<Category> categories =
-
-            metadata.put( DataSet.class, dataSets );
+        Set<DataElement> dataElements = flatMapToSet( dataSets, DataSet::getDataElements );
+        Set<CategoryCombo> categoryCombos = flatMapToSet( dataElements, DataElement::getCategoryCombos );
+        categoryCombos.addAll( mapToSet( dataSets, DataSet::getCategoryCombo ) );
+        Set<Category> categories = flatMapToSet( categoryCombos, CategoryCombo::getCategories );
+        Set<CategoryOption> categoryOptions = flatMapToSet( categories, Category::getCategoryOptions );
 
         return null;
     }

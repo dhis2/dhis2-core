@@ -33,6 +33,8 @@ import java.util.Iterator;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Utility methods for operations on various collections.
@@ -42,6 +44,42 @@ import java.util.function.Consumer;
 public class CollectionUtils
 {
     public static final String[] STRING_ARR = new String[0];
+
+    /**
+     * Performs a flat mapping of the given collection using the given mapping
+     * function.
+     *
+     * @param <T>
+     * @param <U>
+     * @param collection
+     * @param mapper
+     * @return
+     */
+    public static <T, U> Set<U> flatMapToSet( Collection<T> collection,
+        Function<? super T, ? extends Collection<U>> mapper )
+    {
+        return collection.stream()
+            .map( mapper )
+            .flatMap( Collection::stream )
+            .collect( Collectors.toSet() );
+    }
+
+    /**
+     * Performs a mapping of the given collection using the given mapping
+     * function.
+     *
+     * @param <T>
+     * @param <U>
+     * @param collection
+     * @param mapper
+     * @return
+     */
+    public static <T, U> Set<U> mapToSet( Collection<T> collection, Function<? super T, ? extends U> mapper )
+    {
+        return collection.stream()
+            .map( mapper )
+            .collect( Collectors.toSet() );
+    }
 
     /**
      * Returns the intersection of the given Collections.
@@ -122,7 +160,13 @@ public class CollectionUtils
             .forEach( item -> collection.add( item ) );
     }
 
-    public static boolean isEmpty( Collection collection )
+    /**
+     * Indicates whether the given collection is null or empty.
+     *
+     * @param collection the collection.
+     * @return true if the given collection is null or empty, false otherwise.
+     */
+    public static boolean isEmpty( Collection<?> collection )
     {
         return collection == null || collection.isEmpty();
     }
