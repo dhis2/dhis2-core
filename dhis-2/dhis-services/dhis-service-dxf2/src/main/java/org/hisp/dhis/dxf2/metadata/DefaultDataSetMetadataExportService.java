@@ -47,11 +47,13 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.fieldfiltering.FieldFilterParams;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
+import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.schema.descriptors.CategoryComboSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.CategoryOptionSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.CategorySchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.DataElementSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.DataSetSchemaDescriptor;
+import org.hisp.dhis.schema.descriptors.IndicatorSchemaDescriptor;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -73,6 +75,7 @@ public class DefaultDataSetMetadataExportService
     {
         List<DataSet> dataSets = idObjectManager.getDataWriteAll( DataSet.class );
         Set<DataElement> dataElements = flatMapToSet( dataSets, DataSet::getDataElements );
+        Set<Indicator> indicators = flatMapToSet( dataSets, DataSet::getIndicators );
         Set<CategoryCombo> categoryCombos = flatMapToSet( dataElements, DataElement::getCategoryCombos );
         categoryCombos.addAll( mapToSet( dataSets, DataSet::getCategoryCombo ) );
         Set<Category> categories = flatMapToSet( categoryCombos, CategoryCombo::getCategories );
@@ -84,6 +87,8 @@ public class DefaultDataSetMetadataExportService
             .addAll( asObjectNodes( dataSets, params, DataSet.class ) );
         rootNode.putArray( DataElementSchemaDescriptor.PLURAL )
             .addAll( asObjectNodes( dataElements, params, DataElement.class ) );
+        rootNode.putArray( IndicatorSchemaDescriptor.PLURAL )
+            .addAll( asObjectNodes( indicators, params, Indicator.class ) );
         rootNode.putArray( CategoryComboSchemaDescriptor.PLURAL )
             .addAll( asObjectNodes( categoryCombos, params, CategoryCombo.class ) );
         rootNode.putArray( CategorySchemaDescriptor.PLURAL )
