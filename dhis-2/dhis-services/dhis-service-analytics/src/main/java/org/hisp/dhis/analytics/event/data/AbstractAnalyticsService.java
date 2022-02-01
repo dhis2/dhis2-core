@@ -142,7 +142,7 @@ public abstract class AbstractAnalyticsService
 
                 String column = item.getItem().getDisplayProperty( params.getDisplayProperty() );
 
-                grid.addHeader( new GridHeader( name, column, item.getValueType(),
+                grid.addHeader( new GridHeader( name, column, ValueType.REFERENCE,
                     false, true, item.getOptionSet(), item.getLegendSet(),
                     item.getProgramStage().getUid(), item.getProgramStageOffset() ) );
             }
