@@ -58,6 +58,7 @@ class FieldPathHelperTest
 
         helper.applyPresets( List.of( owner ), fieldMapPath, DataElement.class );
 
+        assertPropertyExists( "id", fieldMapPath );
         assertPropertyExists( "name", fieldMapPath );
         assertPropertyExists( "shortName", fieldMapPath );
         assertPropertyExists( "description", fieldMapPath );
@@ -65,7 +66,6 @@ class FieldPathHelperTest
         assertPropertyExists( "aggregationType", fieldMapPath );
         assertPropertyExists( "domainType", fieldMapPath );
 
-        assertNull( fieldMapPath.get( "uid" ) );
         assertNull( fieldMapPath.get( "access" ) );
         assertNull( fieldMapPath.get( "dataSetElements" ) );
         assertNull( fieldMapPath.get( "optionSet" ) );
