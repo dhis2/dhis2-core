@@ -25,25 +25,57 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.analytics;
 
-import java.util.Date;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.Setter;
+
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Sets;
 
 /**
- * Simple class to store start and end dates.
- *
- * @author Jim Grace
+ * enum to map database column names to "business" names
  */
-@Setter
-@Getter
-@AllArgsConstructor
-public class DateRange
+public enum TimeField
 {
-    private Date startDate;
+    EVENT_DATE( "executiondate" ),
+    ENROLLMENT_DATE( "enrollmentdate" ),
+    INCIDENT_DATE( "incidentdate" ),
+    // Not a typo, different naming convention between FE and database
+    SCHEDULED_DATE( "duedate" ),
+    COMPLETED_DATE( "completeddate" ),
+    CREATED( "created" ),
+    LAST_UPDATED( "lastupdated" );
 
-    private Date endDate;
+    @Getter
+    private String field;
+
+    public static final Collection<String> DEFAULT_TIME_FIELDS = ImmutableList.of( EVENT_DATE.name(),
+        LAST_UPDATED.name(), ENROLLMENT_DATE.name() );
+
+    private static final Set<String> FIELD_NAMES = Sets.newHashSet( TimeField.values() )
+        .stream().map( TimeField::name )
+        .collect( Collectors.toSet() );
+
+    TimeField( String field )
+    {
+        this.field = field;
+    }
+
+    public static Optional<TimeField> of( String timeField )
+    {
+        return Arrays.stream( values() )
+            .filter( tf -> tf.name().equals( timeField ) )
+            .findFirst();
+    }
+
+    public static boolean fieldIsValid( String field )
+    {
+        return field != null && FIELD_NAMES.contains( field );
+    }
 }

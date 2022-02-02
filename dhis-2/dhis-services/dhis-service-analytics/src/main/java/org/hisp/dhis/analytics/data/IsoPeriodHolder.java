@@ -25,53 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics;
+package org.hisp.dhis.analytics.data;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
+import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
 
+import java.util.Objects;
+
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Sets;
-
-public enum TimeField
+@Getter
+@RequiredArgsConstructor( access = AccessLevel.PRIVATE )
+public class IsoPeriodHolder
 {
-    EVENT_DATE( "executiondate" ),
-    ENROLLMENT_DATE( "enrollmentdate" ),
-    INCIDENT_DATE( "incidentdate" ),
-    DUE_DATE( "duedate" ),
-    COMPLETED_DATE( "completeddate" ),
-    CREATED( "created" ),
-    LAST_UPDATED( "lastupdated" );
+    private final String isoPeriod;
 
-    @Getter
-    private String field;
+    private final String dateField;
 
-    public static final Collection<String> DEFAULT_TIME_FIELDS = ImmutableList.of( EVENT_DATE.name(),
-        LAST_UPDATED.name(), ENROLLMENT_DATE.name() );
-
-    private static final Set<String> FIELD_NAMES = Sets.newHashSet( TimeField.values() )
-        .stream().map( TimeField::name )
-        .collect( Collectors.toSet() );
-
-    TimeField( String field )
+    static IsoPeriodHolder of( String isoPeriodWithDateField )
     {
-        this.field = field;
+        if ( isoPeriodWithDateField.contains( DIMENSION_NAME_SEP ) )
+        {
+            String[] splitted = isoPeriodWithDateField.split( DIMENSION_NAME_SEP );
+            return new IsoPeriodHolder( splitted[0], splitted[1] );
+        }
+        return new IsoPeriodHolder( isoPeriodWithDateField, null );
     }
 
-    public static Optional<TimeField> of( String timeField )
+    public boolean hasDateField()
     {
-        return Arrays.stream( values() )
-            .filter( tf -> tf.name().equals( timeField ) )
-            .findFirst();
-    }
-
-    public static boolean fieldIsValid( String field )
-    {
-        return field != null && FIELD_NAMES.contains( field );
+        return Objects.nonNull( dateField );
     }
 }
