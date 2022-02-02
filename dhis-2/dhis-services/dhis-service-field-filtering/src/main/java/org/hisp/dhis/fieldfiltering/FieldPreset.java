@@ -27,39 +27,17 @@
  */
 package org.hisp.dhis.fieldfiltering;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import org.junit.jupiter.api.Test;
-
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-
 /**
- * @author Morten Olav Hansen
+ * Constants for available field presets. A preset represents a short-hand
+ * notation for a specific category of fields.
+ *
+ * @author Lars Helge Overland
  */
-class FieldFilterParamsTest
+public interface FieldPreset
 {
-    @Test
-    void testBuilderWithObjectAndFilters()
-    {
-        FieldFilterParams<String> params = FieldFilterParams.<String> builder()
-            .objects( Lists.newArrayList( "A", "B", "C" ) ).filters( Sets.newHashSet( "id", "name" ) ).build();
-        assertTrue( params.getObjects().contains( "A" ) );
-        assertTrue( params.getObjects().contains( "B" ) );
-        assertTrue( params.getObjects().contains( "C" ) );
-        assertTrue( params.getFilters().contains( "id" ) );
-        assertTrue( params.getFilters().contains( "name" ) );
-    }
+    String ALL = "all";
 
-    @Test
-    void testBuilderWithDefault()
-    {
-        FieldFilterParams<String> params = FieldFilterParams.<String> builder()
-            .objects( Lists.newArrayList( "A", "B", "C" ) ).build();
-        assertTrue( params.getObjects().contains( "A" ) );
-        assertTrue( params.getObjects().contains( "B" ) );
-        assertTrue( params.getObjects().contains( "C" ) );
-        assertEquals( "*", params.getFilters().iterator().next() );
-    }
+    String OWNER = "owner";
+
+    String SIMPLE = "simple";
 }

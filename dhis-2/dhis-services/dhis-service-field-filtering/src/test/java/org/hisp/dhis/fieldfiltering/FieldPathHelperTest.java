@@ -27,39 +27,55 @@
  */
 package org.hisp.dhis.fieldfiltering;
 
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.dataelement.DataElement;
 import org.junit.jupiter.api.Test;
-
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * @author Morten Olav Hansen
+ * @author Lars Helge Overland
  */
-class FieldFilterParamsTest
+class FieldPathHelperTest
+    extends DhisSpringTest
 {
-    @Test
-    void testBuilderWithObjectAndFilters()
-    {
-        FieldFilterParams<String> params = FieldFilterParams.<String> builder()
-            .objects( Lists.newArrayList( "A", "B", "C" ) ).filters( Sets.newHashSet( "id", "name" ) ).build();
-        assertTrue( params.getObjects().contains( "A" ) );
-        assertTrue( params.getObjects().contains( "B" ) );
-        assertTrue( params.getObjects().contains( "C" ) );
-        assertTrue( params.getFilters().contains( "id" ) );
-        assertTrue( params.getFilters().contains( "name" ) );
-    }
+    @Autowired
+    private FieldPathHelper helper;
 
     @Test
-    void testBuilderWithDefault()
+    public void testApplyPresets()
     {
-        FieldFilterParams<String> params = FieldFilterParams.<String> builder()
-            .objects( Lists.newArrayList( "A", "B", "C" ) ).build();
-        assertTrue( params.getObjects().contains( "A" ) );
-        assertTrue( params.getObjects().contains( "B" ) );
-        assertTrue( params.getObjects().contains( "C" ) );
-        assertEquals( "*", params.getFilters().iterator().next() );
+        Map<String, FieldPath> fieldMapPath = new HashMap<>();
+
+        FieldPath owner = new FieldPath( FieldPreset.SIMPLE, List.of(), false, true );
+
+        helper.applyPresets( List.of( owner ), fieldMapPath, DataElement.class );
+
+        assertPropertyExists( "name", fieldMapPath );
+        assertPropertyExists( "shortName", fieldMapPath );
+        assertPropertyExists( "description", fieldMapPath );
+        assertPropertyExists( "valueType", fieldMapPath );
+        assertPropertyExists( "aggregationType", fieldMapPath );
+        assertPropertyExists( "domainType", fieldMapPath );
+
+        assertNull( fieldMapPath.get( "uid" ) );
+        assertNull( fieldMapPath.get( "access" ) );
+        assertNull( fieldMapPath.get( "dataSetElements" ) );
+        assertNull( fieldMapPath.get( "optionSet" ) );
+        assertNull( fieldMapPath.get( "categoryCombo" ) );
+        assertNull( fieldMapPath.get( "translations" ) );
+    }
+
+    private void assertPropertyExists( String propertyName, Map<String, FieldPath> fieldMapPath )
+    {
+        assertNotNull( fieldMapPath.get( propertyName ) );
+        assertEquals( propertyName, fieldMapPath.get( propertyName ).getName() );
     }
 }
