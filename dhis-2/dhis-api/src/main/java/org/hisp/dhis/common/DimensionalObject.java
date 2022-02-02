@@ -79,6 +79,8 @@ public interface DimensionalObject
 
     String DIMENSION_NAME_SEP = ":";
 
+    String PERIOD_FREE_RANGE_SEPARATOR = "_";
+
     String OPTION_SEP = ";";
 
     String ITEM_SEP = "-";

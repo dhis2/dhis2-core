@@ -27,23 +27,26 @@
  */
 package org.hisp.dhis.common;
 
-import java.util.Date;
+import static org.hisp.dhis.common.RequestTypeAware.RequestType.QUERY;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
-
-/**
- * Simple class to store start and end dates.
- *
- * @author Jim Grace
- */
-@Setter
-@Getter
-@AllArgsConstructor
-public class DateRange
+public class RequestTypeAware
 {
-    private Date startDate;
+    private RequestType requestType = RequestType.OTHER;
 
-    private Date endDate;
+    public RequestTypeAware withQueryRequestType()
+    {
+        requestType = QUERY;
+        return this;
+    }
+
+    public boolean isRequestTypeQuery()
+    {
+        return QUERY == requestType;
+    }
+
+    enum RequestType
+    {
+        QUERY,
+        OTHER;
+    }
 }

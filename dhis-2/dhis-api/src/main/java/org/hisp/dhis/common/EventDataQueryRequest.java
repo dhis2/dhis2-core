@@ -27,10 +27,17 @@
  */
 package org.hisp.dhis.common;
 
+import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
+import static org.hisp.dhis.common.DimensionalObject.OPTION_SEP;
+import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
+
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -192,7 +199,7 @@ public class EventDataQueryRequest
     {
         public EventDataQueryRequestBuilder fromCriteria( EventsAnalyticsQueryCriteria criteria )
         {
-            return aggregationType( criteria.getAggregationType() )
+            EventDataQueryRequestBuilder builder = aggregationType( criteria.getAggregationType() )
                 .aggregateData( criteria.isAggregateData() )
                 .asc( criteria.getAsc() )
                 .collapseDataDimensions( criteria.isCollapseDataDimensions() )
@@ -200,7 +207,6 @@ public class EventDataQueryRequest
                 .coordinateField( criteria.getCoordinateField() )
                 .fallbackCoordinateField( criteria.getFallbackCoordinateField() )
                 .desc( criteria.getDesc() )
-                .dimension( criteria.getDimension() )
                 .displayProperty( criteria.getDisplayProperty() )
                 .endDate( criteria.getEndDate() )
                 .eventStatus( criteria.getEventStatus() )
@@ -231,14 +237,45 @@ public class EventDataQueryRequest
                 .orgUnitField( criteria.getOrgUnitField() )
                 .coordinatesOnly( criteria.isCoordinatesOnly() )
                 .coordinateOuFallback( criteria.isCoordinateOuFallback() );
+
+            if ( criteria.isRequestTypeQuery() )
+            {
+                /*
+                 * for each AnalyticsDateFilter whose event extractor is set,
+                 * concatenates the timeField with the extracted value:
+                 *
+                 * example: eventCriteria.lastUpdated=TODAY
+                 * eventCriteria.incidentDate=LAST_WEEK
+                 *
+                 * returns: TODAY:LAST_UPDATED;LAST_WEEK:INCIDENT_DATE
+                 */
+                String customDateFilters = Arrays.stream( AnalyticsDateFilter.values() )
+                    .filter( AnalyticsDateFilter::appliesToEvents )
+                    .filter( analyticsDateFilter -> analyticsDateFilter.getEventExtractor().apply( criteria ) != null )
+                    .map( analyticsDateFilter -> String.join( DIMENSION_NAME_SEP,
+                        analyticsDateFilter.getEventExtractor().apply( criteria ),
+                        analyticsDateFilter.getTimeField().name() ) )
+                    .collect( Collectors.joining( OPTION_SEP ) );
+
+                /*
+                 * sets the new time dimensions into the requestBuilder
+                 */
+                return builder.dimension(
+                    getDimensionsWithRefactoredPeDimension(
+                        criteria.getDimension(),
+                        customDateFilters ) );
+            }
+            else
+            {
+                return builder.dimension( criteria.getDimension() );
+            }
         }
 
         public EventDataQueryRequestBuilder fromCriteria( EnrollmentAnalyticsQueryCriteria criteria )
         {
-            return startDate( criteria.getStartDate() )
+            EventDataQueryRequestBuilder builder = startDate( criteria.getStartDate() )
                 .timeField( criteria.getTimeField() )
                 .endDate( criteria.getEndDate() )
-                .dimension( criteria.getDimension() )
                 .filter( criteria.getFilter() )
                 .headers( criteria.getHeaders() )
                 .ouMode( criteria.getOuMode() )
@@ -260,6 +297,110 @@ public class EventDataQueryRequest
                 .userOrgUnit( criteria.getUserOrgUnit() )
                 .coordinateField( criteria.getCoordinateField() )
                 .sortOrder( criteria.getSortOrder() );
+
+            if ( criteria.isRequestTypeQuery() )
+            {
+                /*
+                 * for each AnalyticsDateFilter whose enrollment extractor is
+                 * set, concatenates the timeField with the extracted value:
+                 *
+                 * example: enrollmentCriteria.lastUpdated=TODAY
+                 * enrollmentCriteria.incidentDate=LAST_WEEK
+                 *
+                 * returns: TODAY:LAST_UPDATED;LAST_WEEK:INCIDENT_DATE
+                 */
+                String customDateFilters = Arrays.stream( AnalyticsDateFilter.values() )
+                    .filter( AnalyticsDateFilter::appliesToEnrollments )
+                    .filter(
+                        analyticsDateFilter -> analyticsDateFilter.getEnrollmentExtractor().apply( criteria ) != null )
+                    .map( analyticsDateFilter -> String.join( DIMENSION_NAME_SEP,
+                        analyticsDateFilter.getEnrollmentExtractor().apply( criteria ),
+                        analyticsDateFilter.getTimeField().name() ) )
+                    .collect( Collectors.joining( OPTION_SEP ) );
+
+                return builder.dimension(
+                    getDimensionsWithRefactoredPeDimension(
+                        criteria.getDimension(),
+                        customDateFilters ) );
+            }
+            else
+                return builder.dimension( criteria.getDimension() );
         }
+
+        /**
+         * Given existing dimensions from controller and the time filters
+         * passed, returns a new collection of dimensions with proper period
+         * dimension set
+         */
+        private Set<String> getDimensionsWithRefactoredPeDimension( Set<String> dimensions, String customDateFilters )
+        {
+            if ( customDateFilters.isEmpty() )
+            {
+                return dimensions;
+            }
+
+            return dimensions.stream()
+                .filter( ExtendedEventDataQueryRequestBuilder::isPeDimension )
+                .findFirst()
+                // if PE dimensions already exists, return dimensions, with
+                // existing PE+customDateFilters
+                .map( peDimension -> dimensionsWithRefactoredPe( dimensions, customDateFilters, peDimension ) )
+                // if PE dimensions didn't exist, returns dimensions with a new
+                // PE dimension,
+                // represented by customDateFilters
+                .orElseGet( () -> dimensionsWithNewPe( dimensions,
+                    String.join( DIMENSION_NAME_SEP, PERIOD_DIM_ID, customDateFilters ) ) );
+
+        }
+
+        private Set<String> dimensionsWithNewPe( Set<String> dimension, String peDimension )
+        {
+            dimension.add( peDimension );
+            return dimension;
+        }
+
+        /**
+         * concatenate existing dimensions (but PE one) with a new pe dimension,
+         * represented by existing PE+customDateFilters
+         */
+        private Set<String> dimensionsWithRefactoredPe( Set<String> dimension, String customDateFilters,
+            String peDimension )
+        {
+            return Stream.concat(
+                dimension.stream().filter( d -> !isPeDimension( d ) ),
+                Stream.of( String.join( OPTION_SEP, withoutTimeField( peDimension ), customDateFilters ) ) )
+                .collect( Collectors.toSet() );
+        }
+
+        /**
+         * "sanitize" legacy pe dimension, in case it is passed along with time
+         * field specification. Example
+         * pe:TODAY:LAST_UPDATED;LAST_WEEK:INCIDENT_DATE -> pe:TODAY;LAST_WEEK
+         */
+        private String withoutTimeField( String dimension )
+        {
+            dimension = dimension.replaceFirst( PERIOD_DIM_ID + DIMENSION_NAME_SEP, "" );
+            return String.join( DIMENSION_NAME_SEP, PERIOD_DIM_ID,
+                Arrays.stream( dimension.split( OPTION_SEP ) )
+                    .map( this::removeTimeField )
+                    .collect( Collectors.joining( OPTION_SEP ) ) );
+        }
+
+        private String removeTimeField( String dimensionItem )
+        {
+            String[] splitDimension = dimensionItem.split( DIMENSION_NAME_SEP );
+            if ( splitDimension.length > 1 )
+            {
+                return splitDimension[0];
+            }
+            else
+                return dimensionItem;
+        }
+
+        private static boolean isPeDimension( String dimension )
+        {
+            return dimension.startsWith( PERIOD_DIM_ID + DIMENSION_NAME_SEP );
+        }
+
     }
 }
