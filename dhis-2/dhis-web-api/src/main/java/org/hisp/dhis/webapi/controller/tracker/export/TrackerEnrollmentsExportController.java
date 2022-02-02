@@ -106,7 +106,7 @@ public class TrackerEnrollmentsExportController
     }
 
     @GetMapping( value = "{id}" )
-    public Enrollment getTrackedEntityInstanceById( @PathVariable String id )
+    public Enrollment getEnrollmentById( @PathVariable String id )
         throws NotFoundException
     {
 
