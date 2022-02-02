@@ -34,7 +34,7 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.List;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.ValueType;
@@ -86,7 +86,7 @@ import com.lowagie.text.pdf.TextField;
 /**
  * @author James Chang
  */
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Service( "pdfDataEntryFormService" )
 @Scope( "prototype" )
 public class DefaultPdfDataEntryFormService
