@@ -41,5 +41,5 @@ public interface DataSetMetadataExportService
      *
      * @return an {@link ObjectNode}.
      */
-    ObjectNode getDataSetMetadata( MetadataExportParams params );
+    ObjectNode getDataSetMetadata();
 }

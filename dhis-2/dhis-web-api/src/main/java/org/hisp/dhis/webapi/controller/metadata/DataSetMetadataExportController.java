@@ -31,10 +31,7 @@ import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.metadata.DataSetMetadataExportService;
-import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
-import org.hisp.dhis.dxf2.metadata.MetadataExportService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.service.ContextService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -53,19 +50,12 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class DataSetMetadataExportController
 {
-    private final MetadataExportService metadataExportService;
-
     private final DataSetMetadataExportService exportService;
-
-    private final ContextService contextService;
 
     @GetMapping
     public ResponseEntity<JsonNode> getMetadata()
     {
-        MetadataExportParams params = metadataExportService
-            .getParamsFromMap( contextService.getParameterValuesMap() );
-
-        ObjectNode jsonNode = exportService.getDataSetMetadata( params );
+        ObjectNode jsonNode = exportService.getDataSetMetadata();
 
         return new ResponseEntity<>( jsonNode, HttpStatus.OK );
     }

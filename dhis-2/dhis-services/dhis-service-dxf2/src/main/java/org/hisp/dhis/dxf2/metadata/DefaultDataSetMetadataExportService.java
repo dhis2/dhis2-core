@@ -32,7 +32,6 @@ import static org.hisp.dhis.commons.collection.CollectionUtils.mapToSet;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -71,7 +70,7 @@ public class DefaultDataSetMetadataExportService
     private final IdentifiableObjectManager idObjectManager;
 
     @Override
-    public ObjectNode getDataSetMetadata( MetadataExportParams params )
+    public ObjectNode getDataSetMetadata()
     {
         List<DataSet> dataSets = idObjectManager.getDataWriteAll( DataSet.class );
         Set<DataElement> dataElements = flatMapToSet( dataSets, DataSet::getDataElements );
@@ -84,17 +83,17 @@ public class DefaultDataSetMetadataExportService
         ObjectNode rootNode = fieldFilterService.createObjectNode();
 
         rootNode.putArray( DataSetSchemaDescriptor.PLURAL )
-            .addAll( asObjectNodes( dataSets, params, DataSet.class ) );
+            .addAll( asObjectNodes( dataSets, DataSet.class ) );
         rootNode.putArray( DataElementSchemaDescriptor.PLURAL )
-            .addAll( asObjectNodes( dataElements, params, DataElement.class ) );
+            .addAll( asObjectNodes( dataElements, DataElement.class ) );
         rootNode.putArray( IndicatorSchemaDescriptor.PLURAL )
-            .addAll( asObjectNodes( indicators, params, Indicator.class ) );
+            .addAll( asObjectNodes( indicators, Indicator.class ) );
         rootNode.putArray( CategoryComboSchemaDescriptor.PLURAL )
-            .addAll( asObjectNodes( categoryCombos, params, CategoryCombo.class ) );
+            .addAll( asObjectNodes( categoryCombos, CategoryCombo.class ) );
         rootNode.putArray( CategorySchemaDescriptor.PLURAL )
-            .addAll( asObjectNodes( categories, params, Category.class ) );
+            .addAll( asObjectNodes( categories, Category.class ) );
         rootNode.putArray( CategoryOptionSchemaDescriptor.PLURAL )
-            .addAll( asObjectNodes( categoryOptions, params, CategoryOption.class ) );
+            .addAll( asObjectNodes( categoryOptions, CategoryOption.class ) );
 
         return rootNode;
     }
@@ -107,11 +106,11 @@ public class DefaultDataSetMetadataExportService
      * @return an {@link ObjectNode}.
      */
     private <T extends IdentifiableObject> List<ObjectNode> asObjectNodes(
-        Collection<T> objects, MetadataExportParams params, Class<T> type )
+        Collection<T> objects, Class<T> type )
     {
         FieldFilterParams<T> fieldFilterParams = FieldFilterParams.<T> builder()
             .objects( new ArrayList<>( objects ) )
-            .filters( new HashSet<>( params.getFields( type ) ) )
+            .filters( Set.of( ":owner" ) )
             .skipSharing( true )
             .build();
 
