@@ -46,6 +46,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.fieldfiltering.FieldFilterParams;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
+import org.hisp.dhis.fieldfiltering.FieldPreset;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.schema.descriptors.CategoryComboSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.CategoryOptionSchemaDescriptor;
@@ -110,7 +111,7 @@ public class DefaultDataSetMetadataExportService
     {
         FieldFilterParams<T> fieldFilterParams = FieldFilterParams.<T> builder()
             .objects( new ArrayList<>( objects ) )
-            .filters( Set.of( ":owner" ) )
+            .filters( Set.of( ":" + FieldPreset.SIMPLE ) )
             .skipSharing( true )
             .build();
 
