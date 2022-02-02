@@ -31,6 +31,8 @@ import lombok.Builder;
 import lombok.Getter;
 
 import org.hisp.dhis.artemis.audit.AuditManager;
+import org.hisp.dhis.fileresource.FileResourceService;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.ProgramInstanceStore;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
@@ -64,4 +66,8 @@ public class ServiceDelegator
     private final JdbcTemplate jdbcTemplate;
 
     private final AuditManager auditManager;
+
+    private final FileResourceService fileResourceService;
+
+    private final OrganisationUnitService organisationUnitService;
 }
