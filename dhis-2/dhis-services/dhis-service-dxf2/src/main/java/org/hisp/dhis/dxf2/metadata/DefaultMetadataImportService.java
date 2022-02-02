@@ -33,6 +33,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
@@ -62,7 +63,6 @@ import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -72,26 +72,21 @@ import com.google.common.base.Enums;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Slf4j
+@AllArgsConstructor
 @Service( "org.hisp.dhis.dxf2.metadata.MetadataImportService" )
 public class DefaultMetadataImportService implements MetadataImportService
 {
-    @Autowired
-    private CurrentUserService currentUserService;
+    private final CurrentUserService currentUserService;
 
-    @Autowired
-    private ObjectBundleService objectBundleService;
+    private final ObjectBundleService objectBundleService;
 
-    @Autowired
-    private ObjectBundleValidationService objectBundleValidationService;
+    private final ObjectBundleValidationService objectBundleValidationService;
 
-    @Autowired
-    private IdentifiableObjectManager manager;
+    private final IdentifiableObjectManager manager;
 
-    @Autowired
-    private AclService aclService;
+    private final AclService aclService;
 
-    @Autowired
-    private Notifier notifier;
+    private final Notifier notifier;
 
     @Override
     @Transactional

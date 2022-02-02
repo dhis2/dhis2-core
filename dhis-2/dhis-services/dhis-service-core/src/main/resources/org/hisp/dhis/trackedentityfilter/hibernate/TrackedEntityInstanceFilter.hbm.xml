@@ -41,6 +41,9 @@
     <property name="eventFilters" type="jlbEventFilter" />
 
     <property name="translations" type="jblTranslations"/>
+
+    <!-- Sharing -->
+    <property name="sharing" type="jsbObjectSharing"/>
     
   </class>
 
