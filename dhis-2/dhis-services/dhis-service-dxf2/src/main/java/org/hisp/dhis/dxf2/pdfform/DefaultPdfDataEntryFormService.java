@@ -34,8 +34,6 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.List;
 
-import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -64,6 +62,7 @@ import org.hisp.dhis.util.DateUtils;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
+import com.google.common.base.Preconditions;
 import com.lowagie.text.Chunk;
 import com.lowagie.text.Document;
 import com.lowagie.text.DocumentException;
@@ -86,7 +85,6 @@ import com.lowagie.text.pdf.TextField;
 /**
  * @author James Chang
  */
-@RequiredArgsConstructor
 @Service( "pdfDataEntryFormService" )
 @Scope( "prototype" )
 public class DefaultPdfDataEntryFormService
@@ -112,19 +110,28 @@ public class DefaultPdfDataEntryFormService
 
     private static final Integer PROGRAM_FORM_ROW_NUMBER = 10;
 
+    // TODO this variable should not have class scope
     private PdfFormFontSettings pdfFormFontSettings;
 
+    // TODO this variable should not have class scope
     private I18nFormat format;
 
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+    private DataSetService dataSetService;
 
-    private final DataSetService dataSetService;
+    private ProgramStageService programStageService;
 
-    private final ProgramStageService programStageService;
+    private OptionService optionService;
 
-    private final OptionService optionService;
+    public DefaultPdfDataEntryFormService( DataSetService dataSetService, ProgramStageService programStageService,
+        OptionService optionService )
+    {
+        this.dataSetService = dataSetService;
+        this.programStageService = programStageService;
+        this.optionService = optionService;
+        Preconditions.checkNotNull( dataSetService );
+        Preconditions.checkNotNull( programStageService );
+        Preconditions.checkNotNull( optionService );
+    }
 
     // -------------------------------------------------------------------------
     // PdfDataEntryFormService implementation
