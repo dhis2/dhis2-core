@@ -29,6 +29,10 @@ package org.hisp.dhis.period;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Objects;
+
+import lombok.Getter;
+import lombok.Setter;
 
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DimensionItemType;
@@ -75,6 +79,13 @@ public class Period
      */
     private transient String isoPeriod;
 
+    /**
+     * date field this period refers to
+     */
+    @Getter
+    @Setter
+    private String dateField;
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -91,6 +102,7 @@ public class Period
         this.endDate = period.getEndDate();
         this.name = period.getName();
         this.isoPeriod = period.getIsoDate();
+        this.dateField = period.getDateField();
     }
 
     protected Period( PeriodType periodType, Date startDate, Date endDate )
@@ -353,13 +365,15 @@ public class Period
 
         return startDate.equals( other.getStartDate() ) &&
             endDate.equals( other.getEndDate() ) &&
-            periodType.equals( other.getPeriodType() );
+            periodType.equals( other.getPeriodType() ) &&
+            Objects.equals( dateField, other.getDateField() );
     }
 
     @Override
     public String toString()
     {
-        return "[" + (periodType == null ? "" : periodType.getName() + ": ") + startDate + " - " + endDate + "]";
+        return "[" + (dateField == null ? "DEFAULT" : dateField) + " | "
+            + (periodType == null ? "" : periodType.getName() + ": ") + startDate + " - " + endDate + "]";
     }
 
     // -------------------------------------------------------------------------
@@ -403,5 +417,10 @@ public class Period
     public void setPeriodType( PeriodType periodType )
     {
         this.periodType = periodType;
+    }
+
+    public boolean isDefault()
+    {
+        return Objects.isNull( dateField );
     }
 }

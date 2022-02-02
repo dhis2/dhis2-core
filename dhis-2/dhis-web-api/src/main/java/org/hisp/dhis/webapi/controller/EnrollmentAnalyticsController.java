@@ -245,7 +245,7 @@ public class EnrollmentAnalyticsController
         EnrollmentAnalyticsQueryCriteria criteria, DhisApiVersion apiVersion, boolean analyzeOnly )
     {
         EventDataQueryRequest request = EventDataQueryRequest.builder()
-            .fromCriteria( criteria )
+            .fromCriteria( (EnrollmentAnalyticsQueryCriteria) criteria.withQueryRequestType() )
             .program( program )
             .apiVersion( apiVersion )
             .build();

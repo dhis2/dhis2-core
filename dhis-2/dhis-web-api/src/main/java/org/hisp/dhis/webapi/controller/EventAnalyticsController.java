@@ -413,7 +413,7 @@ public class EventAnalyticsController
         DhisApiVersion apiVersion, boolean analyzeOnly )
     {
         EventDataQueryRequest request = EventDataQueryRequest.builder()
-            .fromCriteria( criteria )
+            .fromCriteria( (EventsAnalyticsQueryCriteria) criteria.withQueryRequestType() )
             .program( program )
             .apiVersion( apiVersion ).build();
 
