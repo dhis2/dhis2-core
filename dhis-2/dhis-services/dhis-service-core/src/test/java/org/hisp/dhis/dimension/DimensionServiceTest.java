@@ -661,7 +661,6 @@ class DimensionServiceTest extends DhisSpringTest
     {
         Map<DimensionalItemId, DimensionalItemObject> result;
         // Given
-        int offset = 1;
         Set<DimensionalItemId> dimensionalItemIds = new HashSet<>();
         deA.setQueryMods( queryModsA );
         deB.setQueryMods( queryModsB );

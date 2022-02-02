@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.parser.expression.function;
 
+import static com.google.common.base.MoreObjects.firstNonNull;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
+import static org.hisp.dhis.system.util.MathUtils.parseInt;
 
 import org.hisp.dhis.common.QueryModifiers;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
@@ -46,7 +48,7 @@ public class PeriodOffset
     {
         int existingPeriodOffset = (visitor.getQueryMods() == null) ? 0 : visitor.getQueryMods().getPeriodOffset();
 
-        int parsedPeriodOffset = (ctx.period == null) ? 0 : Integer.valueOf( ctx.period.getText() );
+        int parsedPeriodOffset = (ctx.period == null) ? 0 : firstNonNull( parseInt( ctx.period.getText() ), 0 );
 
         int periodOffset = existingPeriodOffset + parsedPeriodOffset;
 
