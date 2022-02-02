@@ -189,17 +189,17 @@ public class EventQueryParams
     /**
      * Indicates the event status.
      */
-    private Set<EventStatus> eventStatus;
+    private Set<EventStatus> eventStatus = new HashSet<>();
 
     /**
      * Created by 'username's.
      */
-    private Set<String> createdBy;
+    private Set<String> createdBy = new HashSet<>();
 
     /**
      * Last updated by 'username's.
      */
-    private Set<String> lastUpdatedBy;
+    private Set<String> lastUpdatedBy = new HashSet<>();
 
     /**
      * Indicates whether the data dimension items should be collapsed into a
