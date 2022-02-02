@@ -27,12 +27,12 @@
  */
 package org.hisp.dhis.common;
 
-import org.junit.jupiter.api.Test;
+import static org.hisp.dhis.common.QueryModifiers.builder;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Date;
 
-import static org.hisp.dhis.common.QueryModifiers.builder;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Jim Grace
