@@ -45,7 +45,7 @@ import org.hisp.dhis.program.ProgramStatus;
  */
 @Data
 @NoArgsConstructor
-public class EventsAnalyticsQueryCriteria
+public class EventsAnalyticsQueryCriteria extends RequestTypeAware
 {
     // -------------------------------------------------------------------------
     // Event and aggregate analytics
@@ -65,6 +65,31 @@ public class EventsAnalyticsQueryCriteria
      * End date for events. This is a mandatory field.
      */
     private Date endDate;
+
+    /**
+     * Time interval for event date;
+     */
+    private String eventDate;
+
+    /**
+     * Time interval for enrollment date;
+     */
+    private String enrollmentDate;
+
+    /**
+     * Time interval for scheduled date;
+     */
+    private String scheduledDate;
+
+    /**
+     * Time interval for incident date;
+     */
+    private String incidentDate;
+
+    /**
+     * Time interval for last updated date;
+     */
+    private String lastUpdated;
 
     /**
      * Dimension identifier including data elements, attributes, program
