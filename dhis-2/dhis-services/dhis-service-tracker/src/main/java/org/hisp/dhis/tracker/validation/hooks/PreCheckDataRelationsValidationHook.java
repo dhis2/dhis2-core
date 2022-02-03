@@ -222,12 +222,11 @@ public class PreCheckDataRelationsValidationHook
         if ( categoryOptionCombo == null )
         {
             reporter.addError( event, E1115, event.getAttributeOptionCombo() );
+            return;
         }
-        else
-        {
-            reporter.getValidationContext()
-                .cacheEventCategoryOptionCombo( event.getUid(), categoryOptionCombo );
-        }
+
+        reporter.getValidationContext()
+            .cacheEventCategoryOptionCombo( event.getUid(), categoryOptionCombo );
     }
 
     private CategoryOptionCombo resolveCategoryOptions( ValidationErrorReporter reporter, Event event, Program program,
