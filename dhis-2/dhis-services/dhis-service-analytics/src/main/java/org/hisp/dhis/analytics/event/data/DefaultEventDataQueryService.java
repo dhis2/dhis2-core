@@ -35,12 +35,15 @@ import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_ORG_UNIT_
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_ORG_UNIT_NAME;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
+import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionFromParam;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionItemsFromParam;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionalItemIds;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
@@ -69,6 +72,7 @@ import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.legend.LegendSetService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.program.ProgramService;
@@ -221,7 +225,30 @@ public class DefaultEventDataQueryService
                 .withAnalyzeOrderId();
         }
 
-        return builder.build();
+        EventQueryParams eventQueryParams = builder.build();
+
+        // partitioning can be used only when default period is specified
+        if ( hasNotDefaultPeriod( eventQueryParams ) )
+        {
+            builder.withSkipPartitioning( true );
+            eventQueryParams = builder.build();
+        }
+
+        return eventQueryParams;
+    }
+
+    private boolean hasNotDefaultPeriod( EventQueryParams eventQueryParams )
+    {
+        return Optional.ofNullable( eventQueryParams.getDimension( PERIOD_DIM_ID ) )
+            .map( DimensionalObject::getItems )
+            .orElse( Collections.emptyList() )
+            .stream()
+            .noneMatch( this::isDefaultPeriod );
+    }
+
+    private boolean isDefaultPeriod( DimensionalItemObject dimensionalItemObject )
+    {
+        return ((Period) dimensionalItemObject).isDefault();
     }
 
     private void addSortIntoParams( EventQueryParams.Builder params, EventDataQueryRequest request, Program pr )
