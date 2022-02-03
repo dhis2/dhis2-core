@@ -217,7 +217,10 @@ public class PreCheckDataRelationsValidationHook
             categoryOptionCombo = resolveCategoryOptions( reporter, event, program, context );
         }
 
-        categoryOptionCombo = getDefault( event, preheat, optionComboIsEmpty, categoryOptionCombo );
+        if ( categoryOptionCombo == null )
+        {
+            categoryOptionCombo = getDefault( event, preheat, optionComboIsEmpty );
+        }
 
         if ( categoryOptionCombo == null )
         {
@@ -259,26 +262,22 @@ public class PreCheckDataRelationsValidationHook
         return categoryOptionCombo;
     }
 
-    private CategoryOptionCombo getDefault( Event event, TrackerPreheat preheat, boolean aocIsEmpty,
-        CategoryOptionCombo categoryOptionCombo )
+    private CategoryOptionCombo getDefault( Event event, TrackerPreheat preheat, boolean aocIsEmpty )
     {
-        if ( categoryOptionCombo == null )
-        {
-            CategoryOptionCombo defaultCategoryCombo = preheat
-                .getDefault( CategoryOptionCombo.class );
+        CategoryOptionCombo categoryOptionCombo = null;
+        CategoryOptionCombo defaultCategoryCombo = preheat.getDefault( CategoryOptionCombo.class );
 
-            if ( defaultCategoryCombo != null && !aocIsEmpty )
-            {
-                String uid = defaultCategoryCombo.getUid();
-                if ( uid.equals( event.getAttributeOptionCombo() ) )
-                {
-                    categoryOptionCombo = defaultCategoryCombo;
-                }
-            }
-            else if ( defaultCategoryCombo != null )
+        if ( defaultCategoryCombo != null && !aocIsEmpty )
+        {
+            String uid = defaultCategoryCombo.getUid();
+            if ( uid.equals( event.getAttributeOptionCombo() ) )
             {
                 categoryOptionCombo = defaultCategoryCombo;
             }
+        }
+        else if ( defaultCategoryCombo != null )
+        {
+            categoryOptionCombo = defaultCategoryCombo;
         }
 
         return categoryOptionCombo;
