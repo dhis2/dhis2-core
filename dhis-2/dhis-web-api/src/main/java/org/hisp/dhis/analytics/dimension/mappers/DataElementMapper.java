@@ -45,13 +45,13 @@ public class DataElementMapper extends BaseDimensionalItemObjectMapper
         DataElement.class );
 
     @Override
-    public DimensionResponse map( BaseIdentifiableObject dimension )
+    public DimensionResponse map( BaseIdentifiableObject dimension, String requestParam )
     {
         DataElement dataElement = (DataElement) dimension;
 
         final DimensionResponse mapped = super.map( dataElement )
             .withValueType( dataElement.getValueType().name() )
-            .withId( dataElement.getUid() );
+            .withId( String.join( ".", requestParam, dataElement.getUid() ) );
 
         return Optional.of( dataElement )
             .map( DataElement::getOptionSet )

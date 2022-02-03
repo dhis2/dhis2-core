@@ -36,6 +36,11 @@ public interface DimensionMapper
 {
     DimensionResponse map( BaseIdentifiableObject dimension );
 
+    default DimensionResponse map( BaseIdentifiableObject dimension, String requestParam )
+    {
+        return map( dimension );
+    }
+
     Set<Class<? extends BaseIdentifiableObject>> getSupportedClasses();
 
     default boolean supports( BaseIdentifiableObject dimension )
