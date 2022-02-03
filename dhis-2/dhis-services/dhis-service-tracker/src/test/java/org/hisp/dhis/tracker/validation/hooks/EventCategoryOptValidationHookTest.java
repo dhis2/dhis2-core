@@ -30,7 +30,6 @@ package org.hisp.dhis.tracker.validation.hooks;
 import static org.hisp.dhis.category.CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
 import static org.hisp.dhis.category.CategoryOption.DEFAULT_NAME;
 import static org.hisp.dhis.tracker.TrackerType.EVENT;
-import static org.hisp.dhis.tracker.ValidationMode.FULL;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1055;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1056;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1057;
@@ -62,13 +61,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 
 /**
  * @author Jim Grace
  */
-@MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
 class EventCategoryOptValidationHookTest extends DhisConvenienceTest
 {
@@ -109,8 +105,6 @@ class EventCategoryOptValidationHookTest extends DhisConvenienceTest
 
     private final Date ONE_YEAR_AFTER_EVENT = getDate( 2022, 1, 1 );
 
-    private final int OPEN_DAYS_AFTER_CO_END_DATE = 400;
-
     @BeforeEach
     public void setUp()
     {
@@ -146,7 +140,6 @@ class EventCategoryOptValidationHookTest extends DhisConvenienceTest
 
         TrackerBundle bundle = TrackerBundle.builder()
             .user( user )
-            .validationMode( FULL )
             .build();
 
         when( validationContext.getBundle() ).thenReturn( bundle );
@@ -154,120 +147,104 @@ class EventCategoryOptValidationHookTest extends DhisConvenienceTest
         when( validationContext.getProgram( program.getUid() ) )
             .thenReturn( program );
 
-        when( i18nManager.getI18nFormat() )
-            .thenReturn( I18N_FORMAT );
-
         reporter = new ValidationErrorReporter( validationContext );
     }
 
     @Test
     void testDefaultCoc()
     {
-        // given
+        when( i18nManager.getI18nFormat() )
+            .thenReturn( I18N_FORMAT );
         program.setCategoryCombo( defaultCatCombo );
-
-        // when
         when( validationContext.getCachedEventCategoryOptionCombo( any() ) )
             .thenReturn( defaultCatOptionCombo );
 
         hook.validateEvent( reporter, event );
 
-        // then
         assertFalse( reporter.hasErrors() );
     }
 
     @Test
     void testDefaultCocWithNonDefaultCatCombo()
     {
-        // given
-        program.setCategoryCombo( catCombo );
 
-        // when
+        program.setCategoryCombo( catCombo );
         when( validationContext.getCachedEventCategoryOptionCombo( any() ) )
             .thenReturn( defaultCatOptionCombo );
 
         hook.validateEvent( reporter, event );
 
-        // then
         hasTrackerError( reporter, E1055, EVENT, event.getUid() );
     }
 
     @Test
     void testNoCategoryOptionDates()
     {
-        // when
+        when( i18nManager.getI18nFormat() )
+            .thenReturn( I18N_FORMAT );
         when( validationContext.getCachedEventCategoryOptionCombo( any() ) )
             .thenReturn( attOptionCombo );
 
         hook.validateEvent( reporter, event );
 
-        // then
         assertFalse( reporter.hasErrors() );
     }
 
     @Test
     void testBetweenCategoryOptionDates()
     {
-        // given
+        when( i18nManager.getI18nFormat() )
+            .thenReturn( I18N_FORMAT );
         catOption.setStartDate( ONE_YEAR_BEFORE_EVENT );
         catOption.setEndDate( ONE_YEAR_AFTER_EVENT );
-
-        // when
         when( validationContext.getCachedEventCategoryOptionCombo( any() ) )
             .thenReturn( attOptionCombo );
 
         hook.validateEvent( reporter, event );
 
-        // then
         assertFalse( reporter.hasErrors() );
     }
 
     @Test
     void testBeforeCategoryOptionStart()
     {
-        // given
+        when( i18nManager.getI18nFormat() )
+            .thenReturn( I18N_FORMAT );
         catOption.setStartDate( ONE_YEAR_AFTER_EVENT );
-
-        // when
         when( validationContext.getCachedEventCategoryOptionCombo( any() ) )
             .thenReturn( attOptionCombo );
 
         hook.validateEvent( reporter, event );
 
-        // then
         hasTrackerError( reporter, E1056, EVENT, event.getUid() );
     }
 
     @Test
     void testAfterCategoryOptionEnd()
     {
-        // given
+        when( i18nManager.getI18nFormat() )
+            .thenReturn( I18N_FORMAT );
         catOption.setEndDate( ONE_YEAR_BEFORE_EVENT );
-
-        // when
         when( validationContext.getCachedEventCategoryOptionCombo( any() ) )
             .thenReturn( attOptionCombo );
 
         hook.validateEvent( reporter, event );
 
-        // then
         hasTrackerError( reporter, E1057, EVENT, event.getUid() );
     }
 
     @Test
     void testBeforeOpenDaysAfterCoEndDate()
     {
-        // given
+        when( i18nManager.getI18nFormat() )
+            .thenReturn( I18N_FORMAT );
         catOption.setEndDate( ONE_YEAR_BEFORE_EVENT );
-        program.setOpenDaysAfterCoEndDate( OPEN_DAYS_AFTER_CO_END_DATE );
-
-        // when
+        program.setOpenDaysAfterCoEndDate( 400 );
         when( validationContext.getCachedEventCategoryOptionCombo( any() ) )
             .thenReturn( attOptionCombo );
 
         hook.validateEvent( reporter, event );
 
-        // then
         assertFalse( reporter.hasErrors() );
     }
 }
