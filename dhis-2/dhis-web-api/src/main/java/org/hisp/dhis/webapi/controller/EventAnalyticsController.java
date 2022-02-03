@@ -74,7 +74,7 @@ public class EventAnalyticsController
 {
     private static final String RESOURCE_PATH = "/analytics/events";
 
-    private static final String ANALYZE_PATH = "/analyze";
+    private static final String EXPLAIN_PATH = "/explain";
 
     @NonNull
     private final EventDataQueryService eventDataService;
@@ -99,9 +99,9 @@ public class EventAnalyticsController
     // -------------------------------------------------------------------------
 
     @PreAuthorize( "hasRole('F_PERFORM_MAINTENANCE')" )
-    @GetMapping( value = RESOURCE_PATH + "/aggregate/{program}" + ANALYZE_PATH, produces = { APPLICATION_JSON_VALUE,
+    @GetMapping( value = RESOURCE_PATH + "/aggregate/{program}" + EXPLAIN_PATH, produces = { APPLICATION_JSON_VALUE,
         "application/javascript" } )
-    public @ResponseBody Grid getAnalyzeAggregateJson( // JSON, JSONP
+    public @ResponseBody Grid getExplainAggregateJson( // JSON, JSONP
         @PathVariable String program,
         EventsAnalyticsQueryCriteria criteria,
         DhisApiVersion apiVersion,
@@ -270,9 +270,9 @@ public class EventAnalyticsController
     // -------------------------------------------------------------------------
 
     @PreAuthorize( "hasRole('F_PERFORM_MAINTENANCE')" )
-    @GetMapping( value = RESOURCE_PATH + "/query/{program}" + ANALYZE_PATH, produces = { APPLICATION_JSON_VALUE,
+    @GetMapping( value = RESOURCE_PATH + "/query/{program}" + EXPLAIN_PATH, produces = { APPLICATION_JSON_VALUE,
         "application/javascript" } )
-    public @ResponseBody Grid getAnalyzeQueryJson( // JSON, JSONP
+    public @ResponseBody Grid getExplainQueryJson( // JSON, JSONP
         @PathVariable String program,
         EventsAnalyticsQueryCriteria criteria,
         DhisApiVersion apiVersion,

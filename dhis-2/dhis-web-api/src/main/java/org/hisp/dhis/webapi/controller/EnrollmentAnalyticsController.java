@@ -90,8 +90,8 @@ public class EnrollmentAnalyticsController
     private EnrollmentAnalyticsDimensionsService enrollmentAnalyticsDimensionsService;
 
     @PreAuthorize( "hasRole('F_PERFORM_MAINTENANCE')" )
-    @GetMapping( value = "/query/{program}/analyze", produces = { APPLICATION_JSON_VALUE, "application/javascript" } )
-    public @ResponseBody Grid getAnalyzeQueryJson( // JSON, JSONP
+    @GetMapping( value = "/query/{program}/explain", produces = { APPLICATION_JSON_VALUE, "application/javascript" } )
+    public @ResponseBody Grid getExplainQueryJson( // JSON, JSONP
         @PathVariable String program,
         EnrollmentAnalyticsQueryCriteria criteria,
         DhisApiVersion apiVersion,
