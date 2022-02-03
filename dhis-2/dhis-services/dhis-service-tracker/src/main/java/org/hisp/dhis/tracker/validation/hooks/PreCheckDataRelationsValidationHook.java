@@ -210,7 +210,7 @@ public class PreCheckDataRelationsValidationHook
 
         if ( !optionComboIsEmpty && categoryOptionsIsEmpty )
         {
-            categoryOptionCombo = context.getCategoryOptionCombo( event.getAttributeOptionCombo() );
+            categoryOptionCombo = preheat.getCategoryOptionCombo( event.getAttributeOptionCombo() );
         }
         else if ( !optionComboIsEmpty && program.getCategoryCombo() != null )
         {
@@ -243,7 +243,8 @@ public class PreCheckDataRelationsValidationHook
 
         if ( cachedEventAOCProgramCC.isPresent() )
         {
-            categoryOptionCombo = context.getCategoryOptionCombo( cachedEventAOCProgramCC.get() );
+            categoryOptionCombo = context.getBundle().getPreheat()
+                .getCategoryOptionCombo( cachedEventAOCProgramCC.get() );
         }
         else
         {
@@ -289,9 +290,10 @@ public class PreCheckDataRelationsValidationHook
     {
         Set<CategoryOption> categoryOptions = new HashSet<>();
 
+        TrackerPreheat preheat = reporter.getValidationContext().getBundle().getPreheat();
         for ( String uid : attributeCategoryOptions )
         {
-            CategoryOption categoryOption = reporter.getValidationContext().getCategoryOption( uid );
+            CategoryOption categoryOption = preheat.getCategoryOption( uid );
             if ( categoryOption == null )
             {
                 reporter.addError( event, E1116, uid );
@@ -311,7 +313,6 @@ public class PreCheckDataRelationsValidationHook
         }
         else
         {
-            TrackerPreheat preheat = reporter.getValidationContext().getBundle().getPreheat();
             TrackerIdentifier identifier = preheat.getIdentifiers().getCategoryOptionComboIdScheme();
             preheat.put( identifier, attrOptCombo );
         }

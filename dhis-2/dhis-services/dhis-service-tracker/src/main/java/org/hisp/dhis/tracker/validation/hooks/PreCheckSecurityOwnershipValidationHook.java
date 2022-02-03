@@ -233,7 +233,8 @@ public class PreCheckSecurityOwnershipValidationHook
 
         String teiUid = getTeiUidFromEvent( context, event, program );
 
-        CategoryOptionCombo categoryOptionCombo = context.getCategoryOptionCombo( event.getAttributeOptionCombo() );
+        CategoryOptionCombo categoryOptionCombo = bundle.getPreheat()
+            .getCategoryOptionCombo( event.getAttributeOptionCombo() );
         OrganisationUnit ownerOrgUnit = context.getOwnerOrganisationUnit( teiUid, program.getUid() );
         // Check acting user is allowed to change existing/write event
         if ( strategy.isUpdateOrDelete() )

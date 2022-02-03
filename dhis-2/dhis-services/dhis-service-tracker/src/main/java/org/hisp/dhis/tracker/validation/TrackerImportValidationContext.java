@@ -36,7 +36,6 @@ import lombok.Data;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.fileresource.FileResource;
@@ -199,16 +198,6 @@ public class TrackerImportValidationContext
     public org.hisp.dhis.relationship.Relationship getRelationship( Relationship relationship )
     {
         return bundle.getPreheat().getRelationship( bundle.getIdentifier(), relationship );
-    }
-
-    public CategoryOptionCombo getCategoryOptionCombo( String id )
-    {
-        return bundle.getPreheat().get( CategoryOptionCombo.class, id );
-    }
-
-    public CategoryOption getCategoryOption( String id )
-    {
-        return bundle.getPreheat().get( CategoryOption.class, id );
     }
 
     public boolean usernameExists( String username )
