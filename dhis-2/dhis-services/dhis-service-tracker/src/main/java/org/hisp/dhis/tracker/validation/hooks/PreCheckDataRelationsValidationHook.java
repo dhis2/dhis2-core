@@ -203,23 +203,23 @@ public class PreCheckDataRelationsValidationHook
 
         // if event has "attribute option combo" set only, fetch the aoc
         // directly
-        boolean optionComboIsEmpty = StringUtils.isEmpty( event.getAttributeOptionCombo() );
+        boolean isAocSet = !StringUtils.isEmpty( event.getAttributeOptionCombo() );
         boolean categoryOptionsIsEmpty = StringUtils.isEmpty( event.getAttributeCategoryOptions() );
 
         CategoryOptionCombo categoryOptionCombo = null;
 
-        if ( !optionComboIsEmpty && categoryOptionsIsEmpty )
+        if ( isAocSet && categoryOptionsIsEmpty )
         {
             categoryOptionCombo = preheat.getCategoryOptionCombo( event.getAttributeOptionCombo() );
         }
-        else if ( !optionComboIsEmpty && program.getCategoryCombo() != null )
+        else if ( isAocSet && program.getCategoryCombo() != null )
         {
             categoryOptionCombo = resolveCategoryOptions( reporter, event, program, context );
         }
 
         if ( categoryOptionCombo == null )
         {
-            categoryOptionCombo = getDefault( event, preheat, optionComboIsEmpty );
+            categoryOptionCombo = getDefault( event, preheat, isAocSet );
         }
 
         if ( categoryOptionCombo == null )
@@ -262,12 +262,12 @@ public class PreCheckDataRelationsValidationHook
         return categoryOptionCombo;
     }
 
-    private CategoryOptionCombo getDefault( Event event, TrackerPreheat preheat, boolean aocIsEmpty )
+    private CategoryOptionCombo getDefault( Event event, TrackerPreheat preheat, boolean isAocSet )
     {
         CategoryOptionCombo categoryOptionCombo = null;
         CategoryOptionCombo defaultCategoryCombo = preheat.getDefault( CategoryOptionCombo.class );
 
-        if ( defaultCategoryCombo != null && !aocIsEmpty )
+        if ( defaultCategoryCombo != null && isAocSet )
         {
             String uid = defaultCategoryCombo.getUid();
             if ( uid.equals( event.getAttributeOptionCombo() ) )
