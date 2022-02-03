@@ -91,7 +91,7 @@ public class EnrollmentAnalyticsController
 
     @PreAuthorize( "hasRole('F_PERFORM_MAINTENANCE')" )
     @GetMapping( value = "/query/{program}/explain", produces = { APPLICATION_JSON_VALUE, "application/javascript" } )
-    public @ResponseBody Grid getAnalyzeQueryJson( // JSON, JSONP
+    public @ResponseBody Grid getExplainQueryJson( // JSON, JSONP
         @PathVariable String program,
         EnrollmentAnalyticsQueryCriteria criteria,
         DhisApiVersion apiVersion,
