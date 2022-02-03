@@ -50,7 +50,7 @@ class FieldPathHelperTest
     private FieldPathHelper helper;
 
     @Test
-    public void testApplyPresets()
+    public void testApplySimplePreset()
     {
         Map<String, FieldPath> fieldMapPath = new HashMap<>();
 
@@ -71,6 +71,26 @@ class FieldPathHelperTest
         assertNull( fieldMapPath.get( "optionSet" ) );
         assertNull( fieldMapPath.get( "categoryCombo" ) );
         assertNull( fieldMapPath.get( "translations" ) );
+    }
+
+    @Test
+    public void testApplyIdentifiablePreset()
+    {
+        Map<String, FieldPath> fieldMapPath = new HashMap<>();
+
+        FieldPath owner = new FieldPath( FieldPreset.IDENTIFIABLE, List.of(), false, true );
+
+        helper.applyPresets( List.of( owner ), fieldMapPath, DataElement.class );
+
+        assertPropertyExists( "id", fieldMapPath );
+        assertPropertyExists( "name", fieldMapPath );
+        assertPropertyExists( "code", fieldMapPath );
+        assertPropertyExists( "created", fieldMapPath );
+        assertPropertyExists( "lastUpdated", fieldMapPath );
+        assertPropertyExists( "lastUpdatedBy", fieldMapPath );
+
+        assertNull( fieldMapPath.get( "shortName" ) );
+        assertNull( fieldMapPath.get( "description" ) );
     }
 
     private void assertPropertyExists( String propertyName, Map<String, FieldPath> fieldMapPath )

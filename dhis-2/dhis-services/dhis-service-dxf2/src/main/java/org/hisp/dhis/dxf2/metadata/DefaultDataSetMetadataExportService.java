@@ -81,6 +81,9 @@ public class DefaultDataSetMetadataExportService
         Set<Category> categories = flatMapToSet( categoryCombos, CategoryCombo::getCategories );
         Set<CategoryOption> categoryOptions = flatMapToSet( categories, Category::getCategoryOptions );
 
+        // TODO string array references between entities
+        // TODO only include attribute category options with data write access
+
         ObjectNode rootNode = fieldFilterService.createObjectNode();
 
         rootNode.putArray( DataSetSchemaDescriptor.PLURAL )

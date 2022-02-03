@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.fieldfiltering;
 
+import java.util.List;
+
 /**
  * Constants for available field presets. A preset represents a short-hand
  * notation for a specific category of fields.
@@ -35,9 +37,14 @@ package org.hisp.dhis.fieldfiltering;
  */
 public interface FieldPreset
 {
+    List<String> IDENTIFIABLE_FIELDS = List.of(
+        "id", "code", "name", "created", "lastUpdated", "lastUpdatedBy" );
+
     String ALL = "all";
 
     String OWNER = "owner";
+
+    String IDENTIFIABLE = "identifiable";
 
     String SIMPLE = "simple";
 }
