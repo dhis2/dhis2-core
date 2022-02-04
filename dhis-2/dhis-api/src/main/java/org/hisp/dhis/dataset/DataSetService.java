@@ -216,6 +216,20 @@ public interface DataSetService extends DataSetDataIntegrityProvider
     List<LockException> getLockExceptionCombinations();
 
     /**
+     * Checks whether the system is locked for data entry for the given input,
+     * checking expiryDays, lockExceptions and approvals.
+     *
+     * @param dataSet the data set
+     * @param period the period.
+     * @param organisationUnit the organisation unit.
+     * @param attributeOptionCombo the attribute option combo.
+     * @param now the base date for deciding locked date, current date if null.
+     * @return LockStatus enum (LOCKED, APPROVED, OPEN)
+     */
+    LockStatus getLockStatus( User user, DataSet dataSet, Period period, OrganisationUnit organisationUnit,
+        CategoryOptionCombo attributeOptionCombo, Date now );
+
+    /**
      * Delete a dataSet + period combination, used for batch removal, e.g. when
      * you have a lock exception set on 100 OUs with the same dataSet + period
      * combination.

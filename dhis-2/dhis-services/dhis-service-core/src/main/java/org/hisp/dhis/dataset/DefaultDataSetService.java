@@ -42,6 +42,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataapproval.DataApprovalService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataentryform.DataEntryForm;
+import org.hisp.dhis.dataset.LockStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
@@ -265,6 +266,23 @@ public class DefaultDataSetService
     {
         return lockExceptionStore.getCombinations();
     }
+
+    @Override
+    @Transactional( readOnly = true )
+    public LockStatus getLockStatus( User user, DataSet dataSet, Period period, OrganisationUnit organisationUnit,
+        CategoryOptionCombo attributeOptionCombo, Date now )
+    {
+        if ( dataApprovalService.isApproved( dataSet.getWorkflow(), period, organisationUnit, attributeOptionCombo ) )
+        {
+            return LockStatus.APPROVED;
+        }
+        if ( isLocked( user, dataSet, period, organisationUnit, now ) )
+        {
+            return LockStatus.LOCKED;
+        }
+        return LockStatus.OPEN;
+    }
+
 
     @Override
     @Transactional
