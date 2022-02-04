@@ -44,7 +44,6 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.dimensions.AnalyticsDimensionsPagingWrapper;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionsCriteria;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.fieldfiltering.FieldFilterParams;
@@ -62,8 +61,6 @@ public class DimensionFilteringAndPagingService
     @NonNull
     private final FieldFilterService fieldFilterService;
 
-    private final DimensionMapperService dimensionMapperService;
-
     private static final Comparator<DimensionResponse> DEFAULT_COMPARATOR = comparing( DimensionResponse::getCreated,
         nullsFirst( naturalOrder() ) );
 
@@ -75,12 +72,10 @@ public class DimensionFilteringAndPagingService
         "name", comparing( DimensionResponse::getName, nullsFirst( naturalOrder() ) ) );
 
     public AnalyticsDimensionsPagingWrapper<ObjectNode> pageAndFilter(
-        Collection<BaseIdentifiableObject> dimensions,
+        Collection<DimensionResponse> dimensionResponses,
         DimensionsCriteria dimensionsCriteria,
         List<String> fields )
     {
-        Collection<DimensionResponse> dimensionResponses = dimensionMapperService.toDimensionResponse( dimensions );
-
         AnalyticsDimensionsPagingWrapper<ObjectNode> pagingWrapper = new AnalyticsDimensionsPagingWrapper<>();
 
         List<DimensionResponse> filteredDimensions = filterStream( dimensionResponses.stream(),
