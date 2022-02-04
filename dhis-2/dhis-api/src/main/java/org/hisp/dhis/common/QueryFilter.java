@@ -29,6 +29,7 @@ package org.hisp.dhis.common;
 
 import static org.hisp.dhis.analytics.QueryKey.NV;
 import static org.hisp.dhis.common.QueryOperator.EQ;
+import static org.hisp.dhis.common.QueryOperator.EW;
 import static org.hisp.dhis.common.QueryOperator.GE;
 import static org.hisp.dhis.common.QueryOperator.GT;
 import static org.hisp.dhis.common.QueryOperator.IEQ;
@@ -41,6 +42,7 @@ import static org.hisp.dhis.common.QueryOperator.NE;
 import static org.hisp.dhis.common.QueryOperator.NIEQ;
 import static org.hisp.dhis.common.QueryOperator.NILIKE;
 import static org.hisp.dhis.common.QueryOperator.NLIKE;
+import static org.hisp.dhis.common.QueryOperator.SW;
 
 import java.util.List;
 import java.util.function.Function;
@@ -71,6 +73,8 @@ public class QueryFilter
         .put( ILIKE, unused -> "ilike" )
         .put( NILIKE, unused -> "not ilike" )
         .put( LIKE, unused -> "like" )
+        .put( SW, unused -> "like" )
+        .put( EW, unused -> "like" )
         .put( NLIKE, unused -> "not like" )
         .put( IN, unused -> "in" ).build();
 
@@ -160,6 +164,14 @@ public class QueryFilter
             return getFilterItems( encodedFilter ).stream()
                 .map( this::quote )
                 .collect( Collectors.joining( ",", "(", ")" ) );
+        }
+        else if ( SW == operator )
+        {
+            return "'" + encodedFilter + "%'";
+        }
+        else if ( EW == operator )
+        {
+            return "'%" + encodedFilter + "'";
         }
 
         return "'" + encodedFilter + "'";

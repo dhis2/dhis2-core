@@ -34,6 +34,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.stream.Collectors;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
@@ -48,7 +49,6 @@ import org.hisp.dhis.dxf2.dataset.streaming.StreamingXmlCompleteDataSetRegistrat
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.staxwax.factory.XMLFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.stereotype.Repository;
@@ -59,6 +59,7 @@ import com.google.common.collect.ImmutableMap;
  * @author Halvdan Hoem Grelland
  */
 @Slf4j
+@AllArgsConstructor
 @Repository( "org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistrationExchangeStore" )
 public class JdbcCompleteDataSetRegistrationExchangeStore
     implements CompleteDataSetRegistrationExchangeStore
@@ -97,8 +98,7 @@ public class JdbcCompleteDataSetRegistrationExchangeStore
     // Dependencies
     // --------------------------------------------------------------------------
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
 
     // --------------------------------------------------------------------------
     // CompleteDataSetRegistrationStore implementation

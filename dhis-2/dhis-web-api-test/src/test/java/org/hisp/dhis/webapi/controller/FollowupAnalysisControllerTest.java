@@ -34,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.util.Arrays;
 
@@ -201,7 +202,8 @@ class FollowupAnalysisControllerTest extends AbstractDataValueControllerTest
         JsonError error = GET( "/dataAnalysis/followup?ou={ou}&de={de}&pe=2021&maxResults=11111", orgUnitId,
             dataElementId ).error( HttpStatus.CONFLICT );
         assertEquals( ErrorCode.E2206, error.getErrorCode() );
-        assertEquals( "Max results exceeds the allowed max limit: `10,000`", error.getMessage() );
+        assertEquals( "Max results exceeds the allowed max limit: `" + NumberFormat.getInstance().format( 10000 ) + "`",
+            error.getMessage() );
     }
 
     private void assertFollowupValues( String orgUnitId, String dataElementId, String period,

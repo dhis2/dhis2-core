@@ -16,7 +16,7 @@ jobs:
         uses: actions/setup-java@v2
         with:
           java-version: 11
-          distribution: zulu
+          distribution: temurin
           cache: maven
 
       - name: Test core
@@ -33,7 +33,7 @@ jobs:
         uses: actions/setup-java@v2
         with:
           java-version: 11
-          distribution: zulu
+          distribution: temurin
           cache: maven
 
       - name: Run integration tests
@@ -54,7 +54,7 @@ jobs:
         uses: actions/setup-java@v2
         with:
           java-version: 11
-          distribution: zulu
+          distribution: temurin
           cache: maven
 
       - name: Build analytics with dependencies
