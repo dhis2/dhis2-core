@@ -45,6 +45,7 @@ import org.hisp.dhis.analytics.event.QueryItemLocator;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.RepeatableStageParams;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -82,7 +83,7 @@ public class DefaultQueryItemLocator
 
     private final RelationshipTypeService relationshipTypeService;
 
-    private final static String INDEX_REGEX = "\\[-?\\d+\\]";
+    private final static String INDEX_REGEX = "\\[\\*\\]|\\[-?\\d+,?\\d*\\]";
 
     public DefaultQueryItemLocator( ProgramStageService programStageService, DataElementService dataElementService,
         TrackedEntityAttributeService attributeService, ProgramIndicatorService programIndicatorService,
@@ -159,7 +160,8 @@ public class DefaultQueryItemLocator
             if ( programStage != null )
             {
                 qi.setProgramStage( programStage );
-                qi.setProgramStageOffset( getProgramStageOffset( dimension ) );
+                qi.setRepeatableStageParams( getRepeatableStageParams( dimension ) );
+
             }
             else if ( type != null && type.equals( EventOutputType.ENROLLMENT ) )
             {
@@ -240,7 +242,7 @@ public class DefaultQueryItemLocator
         return dimension;
     }
 
-    private static int getProgramStageOffset( String dimension )
+    private static RepeatableStageParams getRepeatableStageParams( String dimension )
     {
         final Pattern pattern = Pattern.compile( INDEX_REGEX );
 
@@ -248,12 +250,32 @@ public class DefaultQueryItemLocator
 
         if ( matcher.find() )
         {
-            return Integer.parseInt( matcher.group( 0 )
+            String params = matcher.group( 0 )
                 .replace( "[", "" )
-                .replace( "]", "" ) );
+                .replace( "]", "" );
+
+            RepeatableStageParams repeatableStageParams = new RepeatableStageParams();
+
+            if ( "*".equals( params ) )
+            {
+                repeatableStageParams.setStartIndex( 0 );
+                repeatableStageParams.setCount( Integer.MAX_VALUE );
+            }
+            else
+            {
+                String[] values = params.split( "," );
+
+                if ( values.length > 1 )
+                {
+                    repeatableStageParams.setCount( Integer.parseInt( values[1] ) );
+                }
+                repeatableStageParams.setStartIndex( Integer.parseInt( values[0] ) );
+            }
+
+            return repeatableStageParams;
         }
 
-        return 0;
+        return null;
     }
 
     private RelationshipType getRelationshipTypeOrFail( String dimension )

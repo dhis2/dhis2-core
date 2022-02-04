@@ -456,6 +456,16 @@ public class JdbcEnrollmentAnalyticsManager
 
             final String eventTableName = ANALYTICS_EVENT + item.getProgram().getUid();
 
+            if ( item.getRepeatableStageParams().isNumberValueType() )
+            {
+                return "(select " + colName
+                    + " from " + eventTableName
+                    + " where " + eventTableName + ".pi = " + ANALYTICS_TBL_ALIAS + ".pi " +
+                    "and " + colName + " is not null " + "and ps = '" + item.getProgramStage().getUid() + "' " +
+                    ORDER_BY_EXECUTION_DATE + createOrderTypeAndOffset( item.getProgramStageOffset() )
+                    + " " + LIMIT_1 + " )";
+            }
+
             return "(select json_agg(t1) from (select " + colName + "trim(psistatus) as psitatus"
                 + " from " + eventTableName
                 + " where " + eventTableName + ".pi = " + ANALYTICS_TBL_ALIAS + ".pi " +
@@ -487,29 +497,39 @@ public class JdbcEnrollmentAnalyticsManager
             assertProgram( item );
 
             String eventTableName = ANALYTICS_EVENT + item.getProgram().getUid();
-            if ( item.getProgramStageOffset() == 0 )
+
+            if ( item.hasRepeatableStageParams() && !item.getRepeatableStageParams().isNumberValueType() )
             {
-                return "(select " + colName
+                return "(select json_agg(t1) from (select " + colName + ", incidentdate, duedate, executiondate "
                     + " from " + eventTableName
-                    + " where " + eventTableName + ".pi = " + ANALYTICS_TBL_ALIAS +
-                    ".pi " +
-                    "and " + colName + " is not null " + "and ps = '" +
-                    item.getProgramStage().getUid() + "' " +
-                    ORDER_BY_EXECUTION_DATE + createOrderTypeAndOffset(
-                        item.getProgramStageOffset() )
-                    + " " + LIMIT_1 + " )";
+                    + " where " + eventTableName + ".pi = " + ANALYTICS_TBL_ALIAS + ".pi "
+                    + "and " + colName + " is not null " + "and ps = '" + item.getProgramStage().getUid() + "' "
+                    + ORDER_BY_EXECUTION_DATE + createOrderTypeAndOffset( item.getProgramStageOffset() )
+                    + getLimit( item.getRepeatableStageParams().getCount() ) + " ) as t1)";
+
             }
 
-            return "(select json_agg(t1) from (select " + colName + ", incidentdate, duedate, executiondate "
+            return "(select " + colName
                 + " from " + eventTableName
                 + " where " + eventTableName + ".pi = " + ANALYTICS_TBL_ALIAS + ".pi " +
                 "and " + colName + " is not null " + "and ps = '" + item.getProgramStage().getUid() + "' " +
-                ORDER_BY_EXECUTION_DATE + createOrderTypeAndOffset( item.getProgramStageOffset() ) + " ) as t1)";
+                ORDER_BY_EXECUTION_DATE + createOrderTypeAndOffset( item.getProgramStageOffset() )
+                + " " + LIMIT_1 + " )";
         }
         else
         {
             return quoteAlias( colName );
         }
+    }
+
+    private static String getLimit( int count )
+    {
+        if ( count == Integer.MAX_VALUE )
+        {
+            return "";
+        }
+
+        return " LIMIT " + count;
     }
 
     private void assertProgram( final QueryItem item )

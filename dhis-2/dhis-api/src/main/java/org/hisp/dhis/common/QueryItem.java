@@ -68,7 +68,7 @@ public class QueryItem
 
     private ProgramStage programStage;
 
-    private int programStageOffset;
+    private RepeatableStageParams repeatableStageParams;
 
     private Boolean unique = false;
 
@@ -349,7 +349,7 @@ public class QueryItem
     @Override
     public int hashCode()
     {
-        return Objects.hash( item, program, programStage, programStageOffset );
+        return Objects.hash( item, program, programStage, repeatableStageParams );
     }
 
     @Override
@@ -375,7 +375,7 @@ public class QueryItem
         return Objects.equals( item, other.getItem() ) &&
             Objects.equals( program, other.getProgram() ) &&
             Objects.equals( programStage, other.getProgramStage() ) &&
-            programStageOffset == other.getProgramStageOffset();
+            Objects.equals( repeatableStageParams, other.getRepeatableStageParams() );
     }
 
     @Override
@@ -384,7 +384,7 @@ public class QueryItem
         return "[Item: " + item + ", legend set: " + legendSet + ", filters: " + filters +
             ", value type: " + valueType + ", optionSet: " + optionSet +
             ", program: " + program + ", program stage: " + programStage +
-            "program stage offset: " + programStageOffset + "]";
+            "repeatable program stage params: " + repeatableStageParams.toString() + "]";
     }
 
     // -------------------------------------------------------------------------
@@ -468,7 +468,17 @@ public class QueryItem
 
     public int getProgramStageOffset()
     {
-        return programStageOffset;
+        return hasRepeatableStageParams() ? repeatableStageParams.getStartIndex() : 0;
+    }
+
+    public RepeatableStageParams getRepeatableStageParams()
+    {
+        return repeatableStageParams;
+    }
+
+    public boolean hasRepeatableStageParams()
+    {
+        return repeatableStageParams != null;
     }
 
     public void setProgramStage( ProgramStage programStage )
@@ -476,9 +486,9 @@ public class QueryItem
         this.programStage = programStage;
     }
 
-    public void setProgramStageOffset( int programStageOffset )
+    public void setRepeatableStageParams( RepeatableStageParams repeatableStageParams )
     {
-        this.programStageOffset = programStageOffset;
+        this.repeatableStageParams = repeatableStageParams;
     }
 
     public Boolean isUnique()
