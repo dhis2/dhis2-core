@@ -136,6 +136,8 @@ public class DefaultEventAnalyticsService
 
     private static final String NAME_LAST_UPDATED = "Last Updated";
 
+    private static final String NAME_SCHEDULED_DATE = "Scheduled date";
+
     private static final String NAME_ENROLLMENT_DATE = "Enrollment date";
 
     private static final String NAME_INCIDENT_DATE = "Incident date";
@@ -726,6 +728,12 @@ public class DefaultEventAnalyticsService
                 ITEM_LAST_UPDATED_BY, NAME_LAST_UPDATED_BY, TEXT, false, true ) )
             .addHeader( new GridHeader( ITEM_LAST_UPDATED, NAME_LAST_UPDATED, DATE, false, true ) );
 
+        if ( params.containsScheduledDatePeriod() )
+        {
+            grid.addHeader( new GridHeader(
+                ITEM_SCHEDULED_DATE, NAME_SCHEDULED_DATE, DATE, false, true ) );
+        }
+
         if ( params.getProgram().isRegistration() )
         {
             grid
@@ -781,7 +789,7 @@ public class DefaultEventAnalyticsService
 
         long count = 0;
 
-        if ( params.getPartitions().hasAny() )
+        if ( params.getPartitions().hasAny() || params.isSkipPartitioning() )
         {
             if ( params.isPaging() )
             {

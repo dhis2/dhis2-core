@@ -66,7 +66,7 @@ public class AnalyticsController
 {
     private static final String RESOURCE_PATH = "/analytics";
 
-    private static final String ANALYZE_PATH = "/analyze";
+    private static final String EXPLAIN_PATH = "/explain";
 
     private static final String DATA_VALUE_SET_PATH = "/dataValueSet";
 
@@ -86,8 +86,8 @@ public class AnalyticsController
     // -------------------------------------------------------------------------
 
     @PreAuthorize( "hasRole('F_PERFORM_MAINTENANCE')" )
-    @GetMapping( value = RESOURCE_PATH + ANALYZE_PATH, produces = { APPLICATION_JSON_VALUE, "application/javascript" } )
-    public @ResponseBody Grid getAnalyzeJson( // JSON
+    @GetMapping( value = RESOURCE_PATH + EXPLAIN_PATH, produces = { APPLICATION_JSON_VALUE, "application/javascript" } )
+    public @ResponseBody Grid getExplainJson( // JSON
         AggregateAnalyticsQueryCriteria criteria,
         DhisApiVersion apiVersion,
         HttpServletResponse response )

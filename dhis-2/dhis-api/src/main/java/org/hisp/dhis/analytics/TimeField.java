@@ -25,44 +25,57 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.config;
+package org.hisp.dhis.analytics;
 
-import java.util.List;
-import java.util.Map;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.hisp.dhis.tracker.preheat.supplier.*;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import lombok.Getter;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Sets;
 
-@Configuration( "trackerPreheatConfig" )
-public class TrackerPreheatConfig
+/**
+ * enum to map database column names to "business" names
+ */
+public enum TimeField
 {
-    private final List<Class<? extends PreheatSupplier>> preheatOrder = ImmutableList.of(
-        ClassBasedSupplier.class,
-        TrackedEntityProgramInstanceSupplier.class,
-        ProgramInstanceSupplier.class,
-        ProgramInstancesWithAtLeastOneEventSupplier.class,
-        ProgramStageInstanceProgramStageMapSupplier.class,
-        ProgramOrgUnitsSupplier.class,
-        ProgramOwnerSupplier.class,
-        PeriodTypeSupplier.class,
-        UniqueAttributesSupplier.class,
-        UserSupplier.class,
-        FileResourceSupplier.class );
+    EVENT_DATE( "executiondate" ),
+    ENROLLMENT_DATE( "enrollmentdate" ),
+    INCIDENT_DATE( "incidentdate" ),
+    // Not a typo, different naming convention between FE and database
+    SCHEDULED_DATE( "duedate" ),
+    COMPLETED_DATE( "completeddate" ),
+    CREATED( "created" ),
+    LAST_UPDATED( "lastupdated" );
 
-    @Bean( "preheatOrder" )
-    public List<String> getPreheatOrder()
+    @Getter
+    private String field;
+
+    public static final Collection<String> DEFAULT_TIME_FIELDS = ImmutableList.of( EVENT_DATE.name(),
+        LAST_UPDATED.name(), ENROLLMENT_DATE.name() );
+
+    private static final Set<String> FIELD_NAMES = Sets.newHashSet( TimeField.values() )
+        .stream().map( TimeField::name )
+        .collect( Collectors.toSet() );
+
+    TimeField( String field )
     {
-        return preheatOrder.stream().map( Class::getSimpleName )
-            .collect( Collectors.toList() );
+        this.field = field;
     }
 
-    @Bean( "preheatStrategies" )
-    public Map<String, String> getPreheatStrategies()
+    public static Optional<TimeField> of( String timeField )
     {
-        return new PreheatStrategyScanner().scanSupplierStrategies();
+        return Arrays.stream( values() )
+            .filter( tf -> tf.name().equals( timeField ) )
+            .findFirst();
+    }
+
+    public static boolean fieldIsValid( String field )
+    {
+        return field != null && FIELD_NAMES.contains( field );
     }
 }

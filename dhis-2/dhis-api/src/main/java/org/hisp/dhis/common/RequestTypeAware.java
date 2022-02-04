@@ -25,44 +25,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.config;
+package org.hisp.dhis.common;
 
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import static org.hisp.dhis.common.RequestTypeAware.RequestType.QUERY;
 
-import org.hisp.dhis.tracker.preheat.supplier.*;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-
-import com.google.common.collect.ImmutableList;
-
-@Configuration( "trackerPreheatConfig" )
-public class TrackerPreheatConfig
+public class RequestTypeAware
 {
-    private final List<Class<? extends PreheatSupplier>> preheatOrder = ImmutableList.of(
-        ClassBasedSupplier.class,
-        TrackedEntityProgramInstanceSupplier.class,
-        ProgramInstanceSupplier.class,
-        ProgramInstancesWithAtLeastOneEventSupplier.class,
-        ProgramStageInstanceProgramStageMapSupplier.class,
-        ProgramOrgUnitsSupplier.class,
-        ProgramOwnerSupplier.class,
-        PeriodTypeSupplier.class,
-        UniqueAttributesSupplier.class,
-        UserSupplier.class,
-        FileResourceSupplier.class );
+    private RequestType requestType = RequestType.OTHER;
 
-    @Bean( "preheatOrder" )
-    public List<String> getPreheatOrder()
+    public RequestTypeAware withQueryRequestType()
     {
-        return preheatOrder.stream().map( Class::getSimpleName )
-            .collect( Collectors.toList() );
+        requestType = QUERY;
+        return this;
     }
 
-    @Bean( "preheatStrategies" )
-    public Map<String, String> getPreheatStrategies()
+    public boolean isRequestTypeQuery()
     {
-        return new PreheatStrategyScanner().scanSupplierStrategies();
+        return QUERY == requestType;
+    }
+
+    enum RequestType
+    {
+        QUERY,
+        OTHER;
     }
 }
