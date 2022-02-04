@@ -49,19 +49,19 @@ public class DimensionMapperService
     }
 
     public Collection<DimensionResponse> toDimensionResponse( Collection<BaseIdentifiableObject> dimensions,
-        String requestParam )
+        String prefix )
     {
         return dimensions.stream()
-            .map( bio -> toDimensionResponse( bio, requestParam ) )
+            .map( bio -> toDimensionResponse( bio, prefix ) )
             .collect( Collectors.toList() );
     }
 
-    private DimensionResponse toDimensionResponse( BaseIdentifiableObject dimension, String requestParam )
+    private DimensionResponse toDimensionResponse( BaseIdentifiableObject dimension, String prefix )
     {
         return mappers.stream()
             .filter( dimensionMapper -> dimensionMapper.supports( dimension ) )
             .findFirst()
-            .map( dimensionMapper -> dimensionMapper.map( dimension, requestParam ) )
+            .map( dimensionMapper -> dimensionMapper.map( dimension, prefix ) )
             .orElseThrow( () -> new IllegalArgumentException(
                 "Unsupported dimension type: " + getRealClass( dimension ) ) );
     }

@@ -34,12 +34,7 @@ import org.hisp.dhis.hibernate.HibernateProxyUtils;
 
 public interface DimensionMapper
 {
-    DimensionResponse map( BaseIdentifiableObject dimension );
-
-    default DimensionResponse map( BaseIdentifiableObject dimension, String requestParam )
-    {
-        return map( dimension );
-    }
+    DimensionResponse map( BaseIdentifiableObject dimension, String prefix );
 
     Set<Class<? extends BaseIdentifiableObject>> getSupportedClasses();
 

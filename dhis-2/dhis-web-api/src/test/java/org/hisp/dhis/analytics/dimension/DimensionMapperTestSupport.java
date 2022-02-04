@@ -48,12 +48,22 @@ public class DimensionMapperTestSupport
         List<Consumer<T>> instanceSetters,
         List<Pair<Function<DimensionResponse, Object>, Object>> assertingPairs )
     {
+        asserter( dimensionMapper, instanceSupplier, instanceSetters, assertingPairs, null );
+    }
+
+    public static <T extends BaseIdentifiableObject> void asserter(
+        DimensionMapper dimensionMapper,
+        Supplier<T> instanceSupplier,
+        List<Consumer<T>> instanceSetters,
+        List<Pair<Function<DimensionResponse, Object>, Object>> assertingPairs,
+        String prefix )
+    {
 
         T item = getBaseIdentifiableObject( instanceSupplier, instanceSetters );
 
         assertAll( assertingPairs.stream()
             .map( functionObjectPair -> Pair.<Supplier<?>, Object> of(
-                () -> functionObjectPair.getKey().apply( dimensionMapper.map( item ) ),
+                () -> functionObjectPair.getKey().apply( dimensionMapper.map( item, prefix ) ),
                 functionObjectPair.getRight() ) )
             .collect( Collectors.toList() ) );
     }

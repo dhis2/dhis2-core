@@ -61,8 +61,6 @@ public class DimensionFilteringAndPagingService
     @NonNull
     private final FieldFilterService fieldFilterService;
 
-    private final DimensionMapperService dimensionMapperService;
-
     private static final Comparator<DimensionResponse> DEFAULT_COMPARATOR = comparing( DimensionResponse::getCreated,
         nullsFirst( naturalOrder() ) );
 
