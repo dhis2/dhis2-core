@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -61,20 +61,18 @@ import org.hisp.dhis.tracker.preheat.cache.PreheatCacheService;
 import org.hisp.dhis.tracker.preheat.mappers.CopyMapper;
 import org.hisp.dhis.tracker.preheat.mappers.ProgramMapper;
 import org.hisp.dhis.tracker.preheat.mappers.RelationshipTypeMapper;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author Luciano Fiandesio
  */
-public class AbstractSchemaStrategyCachingTest
+@ExtendWith( MockitoExtension.class )
+class AbstractSchemaStrategyCachingTest
 {
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Mock
     private PreheatCacheService cache;
@@ -92,14 +90,14 @@ public class AbstractSchemaStrategyCachingTest
 
     private final BeanRandomizer rnd = BeanRandomizer.create();
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         preheat = new TrackerPreheat();
     }
 
     @Test
-    public void verifyFetchWildcardObjectsFromDbAndPutInCache()
+    void verifyFetchWildcardObjectsFromDbAndPutInCache()
     {
         // Given
         final Schema schema = new RelationshipTypeSchemaDescriptor().getSchema();
@@ -124,7 +122,7 @@ public class AbstractSchemaStrategyCachingTest
     }
 
     @Test
-    public void verifyObjectInCacheIsReturned()
+    void verifyObjectInCacheIsReturned()
     {
         // Given
         final Schema schema = new ProgramSchemaDescriptor().getSchema();
@@ -146,7 +144,7 @@ public class AbstractSchemaStrategyCachingTest
     }
 
     @Test
-    public void verifyObjectNotInCacheIsFetchedFromDbAndPutInCache()
+    void verifyObjectNotInCacheIsFetchedFromDbAndPutInCache()
     {
         // Given
         final Schema schema = new ProgramSchemaDescriptor().getSchema();

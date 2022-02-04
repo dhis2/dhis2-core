@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,7 +39,7 @@ import static org.hisp.dhis.dataitem.query.shared.QueryParam.NAME;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.ROOT_JUNCTION;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.VALUE_TYPES;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
 /**
@@ -47,229 +47,194 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
  *
  * @author maikel arabori
  */
-public class FilteringStatementTest
+class FilteringStatementTest
 {
+
     @Test
-    public void testNameFilteringUsingOneColumnAndIlikeFilterIsSet()
+    void testNameFilteringUsingOneColumnAndIlikeFilterIsSet()
     {
         // Given
         final String aColumn = "anyColumn";
-        final MapSqlParameterSource theParameterSource = new MapSqlParameterSource()
-            .addValue( NAME, "abc" );
+        final MapSqlParameterSource theParameterSource = new MapSqlParameterSource().addValue( NAME, "abc" );
         final String expectedStatement = " ( anyColumn ilike :name ) ";
-
         // When
         final String resultStatement = nameFiltering( aColumn, theParameterSource );
-
         // Then
         assertThat( resultStatement, is( expectedStatement ) );
     }
 
     @Test
-    public void testNameFilteringUsingOneColumnAndIlikeFilterIsNotSet()
+    void testNameFilteringUsingOneColumnAndIlikeFilterIsNotSet()
     {
         // Given
         final String aColumn = "anyColumn";
         final MapSqlParameterSource noFiltersParameterSource = new MapSqlParameterSource();
-
         // When
         final String resultStatement = nameFiltering( aColumn, noFiltersParameterSource );
-
         // Then
         assertThat( resultStatement, is( EMPTY ) );
     }
 
     @Test
-    public void testValueTypeFilteringUsingOneColumnAndIlikeFilterIsNull()
+    void testValueTypeFilteringUsingOneColumnAndIlikeFilterIsNull()
     {
         // Given
         final String aColumn = "anyColumn";
-        final MapSqlParameterSource filtersParameterSource = new MapSqlParameterSource()
-            .addValue( NAME, null );
-
+        final MapSqlParameterSource filtersParameterSource = new MapSqlParameterSource().addValue( NAME, null );
         // When
         final String actualResult = valueTypeFiltering( aColumn, filtersParameterSource );
-
         // Then
         assertThat( actualResult, is( EMPTY ) );
     }
 
     @Test
-    public void testValueTypeFilteringUsingOneColumnAndIlikeFilterIsEmpty()
+    void testValueTypeFilteringUsingOneColumnAndIlikeFilterIsEmpty()
     {
         // Given
         final String aColumn = "anyColumn";
-        final MapSqlParameterSource filtersParameterSource = new MapSqlParameterSource()
-            .addValue( NAME, EMPTY );
-
+        final MapSqlParameterSource filtersParameterSource = new MapSqlParameterSource().addValue( NAME, EMPTY );
         // When
         final String actualResult = valueTypeFiltering( aColumn, filtersParameterSource );
-
         // Then
         assertThat( actualResult, is( EMPTY ) );
     }
 
     @Test
-    public void testNameFilteringUsingTwoColumnAndIlikeFilterIsSet()
+    void testNameFilteringUsingTwoColumnAndIlikeFilterIsSet()
     {
         // Given
         final String column1 = "anyColumn";
         final String column2 = "otherColumn";
-        final MapSqlParameterSource filtersParameterSource = new MapSqlParameterSource()
-            .addValue( NAME, "abc" );
+        final MapSqlParameterSource filtersParameterSource = new MapSqlParameterSource().addValue( NAME, "abc" );
         final String expectedStatement = " ( anyColumn ilike :name or otherColumn ilike :name ) ";
-
         // When
         final String resultStatement = nameFiltering( column1, column2, filtersParameterSource );
-
         // Then
         assertThat( resultStatement, is( expectedStatement ) );
     }
 
     @Test
-    public void testNameFilteringUsingTwoColumnAndIlikeFilterIsNotSet()
+    void testNameFilteringUsingTwoColumnAndIlikeFilterIsNotSet()
     {
         // Given
         final String column1 = "anyColumn";
         final String column2 = "otherColumn";
         final MapSqlParameterSource noFiltersParameterSource = new MapSqlParameterSource();
         final String expectedStatement = EMPTY;
-
         // When
-        final String resultStatement = nameFiltering( column1, column2,
-            noFiltersParameterSource );
-
+        final String resultStatement = nameFiltering( column1, column2, noFiltersParameterSource );
         // Then
         assertThat( resultStatement, is( expectedStatement ) );
     }
 
     @Test
-    public void testValueTypeFilteringUsingOneColumnWhenFilterIsSet()
+    void testValueTypeFilteringUsingOneColumnWhenFilterIsSet()
     {
         // Given
         final String aColumn = "anyColumn";
-        final MapSqlParameterSource theParameterSource = new MapSqlParameterSource()
-            .addValue( VALUE_TYPES, unmodifiableSet( "NUMBER", "INTEGER" ) );
+        final MapSqlParameterSource theParameterSource = new MapSqlParameterSource().addValue( VALUE_TYPES,
+            unmodifiableSet( "NUMBER", "INTEGER" ) );
         final String expectedStatement = " ( anyColumn in (:valueTypes) ) ";
-
         // When
         final String resultStatement = valueTypeFiltering( aColumn, theParameterSource );
-
         // Then
         assertThat( resultStatement, is( expectedStatement ) );
     }
 
     @Test
-    public void testValueTypeFilteringUsingOneColumnWhenFilterIsNotSet()
+    void testValueTypeFilteringUsingOneColumnWhenFilterIsNotSet()
     {
         // Given
         final String aColumn = "anyColumn";
         final MapSqlParameterSource noFiltersParameterSource = new MapSqlParameterSource();
         final String expectedStatement = EMPTY;
-
         // When
         final String resultStatement = valueTypeFiltering( aColumn, noFiltersParameterSource );
-
         // Then
         assertThat( resultStatement, is( expectedStatement ) );
     }
 
     @Test
-    public void testValueTypeFilteringUsingOneColumnWhenFilterHasEmptySet()
+    void testValueTypeFilteringUsingOneColumnWhenFilterHasEmptySet()
     {
         // Given
         final String aColumn = "anyColumn";
-        final MapSqlParameterSource filtersParameterSource = new MapSqlParameterSource()
-            .addValue( VALUE_TYPES, emptySet() );
-
+        final MapSqlParameterSource filtersParameterSource = new MapSqlParameterSource().addValue( VALUE_TYPES,
+            emptySet() );
         // When
         final String actualResult = valueTypeFiltering( aColumn, filtersParameterSource );
-
         // Then
         assertThat( actualResult, is( EMPTY ) );
     }
 
     @Test
-    public void testValueTypeFilteringUsingOneColumnWhenFilterIsSetToNull()
+    void testValueTypeFilteringUsingOneColumnWhenFilterIsSetToNull()
     {
         // Given
         final String aColumn = "anyColumn";
-        final MapSqlParameterSource filtersParameterSource = new MapSqlParameterSource()
-            .addValue( VALUE_TYPES, null );
-
+        final MapSqlParameterSource filtersParameterSource = new MapSqlParameterSource().addValue( VALUE_TYPES, null );
         // When
         final String actualResult = valueTypeFiltering( aColumn, filtersParameterSource );
-
         // Then
         assertThat( actualResult, is( EMPTY ) );
     }
 
     @Test
-    public void testValueTypeFilteringUsingOneColumnWhenFilterIsNotSetInstance()
+    void testValueTypeFilteringUsingOneColumnWhenFilterIsNotSetInstance()
     {
         // Given
         final String aColumn = "anyColumn";
-        final MapSqlParameterSource filtersParameterSource = new MapSqlParameterSource()
-            .addValue( VALUE_TYPES, "String" );
-
+        final MapSqlParameterSource filtersParameterSource = new MapSqlParameterSource().addValue( VALUE_TYPES,
+            "String" );
         // When
         final String actualResult = valueTypeFiltering( aColumn, filtersParameterSource );
-
         // Then
         assertThat( actualResult, is( EMPTY ) );
     }
 
     @Test
-    public void testRootJunctionFilteringWhenRootJunctionSetIsOR()
+    void testRootJunctionFilteringWhenRootJunctionSetIsOR()
     {
         // Given
-        final MapSqlParameterSource filtersParameterSource = new MapSqlParameterSource()
-            .addValue( ROOT_JUNCTION, "or" );
-
+        final MapSqlParameterSource filtersParameterSource = new MapSqlParameterSource().addValue( ROOT_JUNCTION,
+            "or" );
         // When
         final String actualResult = rootJunction( filtersParameterSource );
-
         // Then
         assertThat( actualResult, is( "or" ) );
     }
 
     @Test
-    public void testRootJunctionFilteringWhenRootJunctionSetIsAND()
+    void testRootJunctionFilteringWhenRootJunctionSetIsAND()
     {
         // Given
-        final MapSqlParameterSource filtersParameterSource = new MapSqlParameterSource()
-            .addValue( ROOT_JUNCTION, "and" );
-
+        final MapSqlParameterSource filtersParameterSource = new MapSqlParameterSource().addValue( ROOT_JUNCTION,
+            "and" );
         // When
         final String actualResult = rootJunction( filtersParameterSource );
-
         // Then
         assertThat( actualResult, is( "and" ) );
     }
 
     @Test
-    public void testRootJunctionFilteringWhenRootJunctionSetIsNotSet()
+    void testRootJunctionFilteringWhenRootJunctionSetIsNotSet()
     {
         // Given
         final MapSqlParameterSource filtersParameterSource = new MapSqlParameterSource();
-
         // When
         final String actualResult = rootJunction( filtersParameterSource );
-
         // Then
         assertThat( actualResult, is( "and" ) );
     }
 
     @Test
-    public void testRootJunctionFilteringWhenRootJunctionSetIsNull()
+    void testRootJunctionFilteringWhenRootJunctionSetIsNull()
     {
         // Given
-        final MapSqlParameterSource filtersParameterSource = new MapSqlParameterSource()
-            .addValue( ROOT_JUNCTION, null );
-
+        final MapSqlParameterSource filtersParameterSource = new MapSqlParameterSource().addValue( ROOT_JUNCTION,
+            null );
         // When
         final String actualResult = rootJunction( filtersParameterSource );
-
         // Then
         assertThat( actualResult, is( "and" ) );
     }

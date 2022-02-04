@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,13 +27,13 @@
  */
 package org.hisp.dhis.schema;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import lombok.Data;
 
 import org.hisp.dhis.DhisSpringTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -42,49 +42,44 @@ import com.fasterxml.jackson.annotation.JsonRootName;
 /**
  * @author Morten Olav Hansen
  */
-public class SchemaFieldIntrospectorTest extends DhisSpringTest
+class SchemaFieldIntrospectorTest extends DhisSpringTest
 {
+
     @Autowired
     private SchemaService schemaService;
 
     @Test
-    public void testMethodScan()
+    void testMethodScan()
     {
         Schema schema = schemaService.getDynamicSchema( SimpleWithMethods.class );
-
         assertNotNull( schema.getProperty( "x" ) );
         assertNotNull( schema.getProperty( "y" ) );
     }
 
     @Test
-    public void testFieldScan()
+    void testFieldScan()
     {
         Schema schema = schemaService.getDynamicSchema( SimpleWithFields.class );
-
         assertNotNull( schema.getProperty( "x" ) );
         assertNotNull( schema.getProperty( "y" ) );
     }
 
     @Test
-    public void testFieldMethodScan()
+    void testFieldMethodScan()
     {
         Schema schema = schemaService.getDynamicSchema( SimpleWithFieldAndMethod.class );
-
         assertNotNull( schema.getProperty( "x" ) );
         assertNotNull( schema.getProperty( "y" ) );
     }
 
     @Test
-    public void testNamespaces()
+    void testNamespaces()
     {
         Schema schema = schemaService.getDynamicSchema( SimpleWithFieldAndMethodWithNamespace.class );
-
         assertEquals( "simple", schema.getName() );
         assertEquals( "https://simple.com", schema.getNamespace() );
-
         assertNotNull( schema.getProperty( "x" ) );
         assertNotNull( schema.getProperty( "y" ) );
-
         assertEquals( "https://x.simple.com", schema.getProperty( "x" ).getNamespace() );
         assertEquals( "https://y.simple.com", schema.getProperty( "y" ).getNamespace() );
     }
@@ -93,6 +88,7 @@ public class SchemaFieldIntrospectorTest extends DhisSpringTest
 @Data
 class SimpleWithMethods
 {
+
     private String x;
 
     private String y;
@@ -113,6 +109,7 @@ class SimpleWithMethods
 @Data
 class SimpleWithFields
 {
+
     @JsonProperty
     private String x;
 
@@ -123,6 +120,7 @@ class SimpleWithFields
 @Data
 class SimpleWithFieldAndMethod
 {
+
     @JsonProperty
     private String x;
 
@@ -139,6 +137,7 @@ class SimpleWithFieldAndMethod
 @JsonRootName( value = "simple", namespace = "https://simple.com" )
 class SimpleWithFieldAndMethodWithNamespace
 {
+
     @JsonProperty( namespace = "https://x.simple.com" )
     private String x;
 

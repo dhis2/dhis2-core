@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -83,7 +83,7 @@ public class EventExportTests
 
     private final String withRegistrationProgramStage = "nlXNK4b7LVr";
 
-    private final String userName = "TA_EVENTS_ACL_USER" + DataGenerator.randomString();
+    private final String userName = ("TA_EVENTS_ACL_USER" + DataGenerator.randomString()).toLowerCase();
 
     private final String password = Constants.USER_PASSWORD;
 
@@ -125,7 +125,8 @@ public class EventExportTests
 
         setupUser();
         closedProgramId = programActions.createProgramWithAccessLevel( "CLOSED", rootOu, captureOu, searchOu, dataReadOu );
-        closedProgramProgramStageId = programActions.createProgramStage( closedProgramId, "Event export tests" + DataGenerator.randomString()  );
+        closedProgramProgramStageId = programActions
+            .createProgramStage( closedProgramId, "Event export tests" + DataGenerator.randomString() );
         setupTrackerEvents();
         setupEvents();
 
@@ -178,6 +179,32 @@ public class EventExportTests
         response.validateStatus( 409 );
     }
 
+    Stream<Arguments> shouldUseCorrectScopeWhenNoOu()
+    {
+        return Stream.of(
+            Arguments.of( "should use capture scope when no ou, no program", null, Arrays.asList( captureOu ) ),
+            Arguments.of( "should use capture scope when no ou, closed program", closedProgramId, Arrays.asList( captureOu ) ),
+            Arguments.of( "should use search scope when no ou, open program", withRegistrationProgram, Arrays.asList( captureOu, searchOu, dataReadOu ) )
+        );
+    }
+
+    @ParameterizedTest( name = "{0}" )
+    @MethodSource
+    public void shouldUseCorrectScopeWhenNoOu( String description, String program, List<String> expectedOrgUnits )
+    {
+        loginActions.loginAsUser( userName, password );
+
+        QueryParamsBuilder builder = new QueryParamsBuilder();
+        if ( program != null )
+        {
+            builder.add( "program", program );
+        }
+
+        eventActions.get( builder.build() )
+            .validate().statusCode( 200 )
+            .body( "events.orgUnit", everyItem( in( expectedOrgUnits ) ) );
+    }
+
     private Stream<Arguments> shouldReturnSpecificEvents()
     {
         List<String> allEvents = new ArrayList<>();
@@ -212,7 +239,8 @@ public class EventExportTests
                 Arrays.asList( searchOu, dataReadOu, captureOu ) ),
             Arguments.of( "PROGRAM: none, OU_MODE: ACCESSIBLE, EXPECTED: search scope", "ACCESSIBLE", null,
                 Arrays.asList( dataReadOu, captureOu, searchOu ) ),
-            Arguments.of( "PROGRAM: closed tracker, OU_MODE: ACCESSIBLE, EXPECTED: capture scope", "ACCESSIBLE", closedProgramId , Arrays.asList( captureOu )),
+            Arguments.of( "PROGRAM: closed tracker, OU_MODE: ACCESSIBLE, EXPECTED: capture scope", "ACCESSIBLE", closedProgramId,
+                Arrays.asList( captureOu ) ),
             Arguments.of( "PROGRAM: none, OU_MODE: CAPTURE", "CAPTURE", null, Arrays.asList( captureOu ) )
         } );
     }
@@ -242,8 +270,11 @@ public class EventExportTests
             Arguments.of( "PROGRAM2: tracker, OU: search, shouldReturn: true", trackerEvents.get( searchOu ), true ),
             Arguments.of( "PROGRAM3: event, OU: dataRead, shouldReturn: true", events.get( dataReadOu ), true ),
             Arguments.of( "PROGRAM4: event, OU: root, shouldReturn: false", events.get( rootOu ), false ),
-            Arguments.of( "PROGRAM5: tracker, OU: dataRead, shouldReturn: true ", trackerEvents.get( dataReadOu ),
+            Arguments.of( "PROGRAM5: tracker, OU: root, shouldReturn: false", trackerEvents.get( rootOu ), false ),
+            Arguments.of( "PROGRAM: tracker, OU: dataRead, shouldReturn: true ", trackerEvents.get( dataReadOu ),
                 true ),
+            Arguments.of( "PROGRAM: closed tracker, OU: search, shouldReturn: false",
+                closedProgramEvents.get( searchOu ), false ),
             Arguments.of( "PROGRAM6: closed tracker, OU: dataRead, shouldReturn: false",
                 closedProgramEvents.get( dataReadOu ), false ),
             Arguments.of( "PROGRAM7: closed tracker, OU: capture, shouldReturn: true",
@@ -372,7 +403,8 @@ public class EventExportTests
             object = new TeiDataBuilder()
                 .buildWithEnrollmentAndEvent( Constants.TRACKED_ENTITY_TYPE, ou, closedProgramId,
                     closedProgramProgramStageId );
-            eventId = new TrackerActions().postAndGetJobReport( object, new QueryParamsBuilder().add( "async", "false" ) ).validateSuccessfulImport().extractImportedEvents()
+            eventId = new TrackerActions().postAndGetJobReport( object, new QueryParamsBuilder().add( "async", "false" ) )
+                .validateSuccessfulImport().extractImportedEvents()
                 .get( 0 );
 
             closedProgramEvents.put( ou, eventId );

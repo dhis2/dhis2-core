@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,8 +38,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 public enum AnalyticsFavoriteType
 {
     VISUALIZATION,
-    REPORT_TABLE,
-    CHART,
+    EVENT_VISUALIZATION,
     MAP,
     EVENT_REPORT,
     EVENT_CHART,

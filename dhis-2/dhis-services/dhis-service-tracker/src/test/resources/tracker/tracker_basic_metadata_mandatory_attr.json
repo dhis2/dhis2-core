@@ -803,7 +803,7 @@
         "externalAccess": false,
         "externalAuth": false,
         "twoFA": false,
-        "username": "---USER5---",
+        "username": "testusername5",
         "userGroupAccesses": [],
         "access": {
           "externalize": true,
@@ -818,8 +818,8 @@
         "lastLogin": "2019-03-29T12:42:06.495",
         "translations": [],
         "passwordLastUpdated": "2019-03-29T08:57:41.766",
-      "firstName": "---USER5---",
-      "surname": "---USER5---",
+      "firstName": "testusername5",
+      "surname": "testusername5",
       "id": "oajYcE7VMBs",
       "attributeValues": []
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -59,7 +59,7 @@ public interface EnrollmentAnalyticsService
 
     String ITEM_ORG_UNIT_CODE = "oucode";
 
-    String ITEM_ORG_UNIT_ID = "ou";
+    String ITEM_PROGRAM_STATUS = "programstatus";
 
     /**
      * Returns a list of enrollments matching the given query.

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,6 @@ package org.hisp.dhis.tracker.validation.hooks;
 import static com.google.api.client.util.Preconditions.checkNotNull;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1056;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1057;
-import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 
 import java.time.Instant;
 import java.util.Date;
@@ -86,7 +85,7 @@ public class EventCategoryOptValidationHook
             && program.getCategoryCombo() != null
             && !program.getCategoryCombo().isDefault() )
         {
-            reporter.addError( newReport( TrackerErrorCode.E1055 ) );
+            reporter.addError( event, TrackerErrorCode.E1055 );
             return;
         }
 
@@ -108,13 +107,13 @@ public class EventCategoryOptValidationHook
         {
             if ( option.getStartDate() != null && eventDate.compareTo( option.getStartDate() ) < 0 )
             {
-                addError( reporter, E1056, i18nFormat.formatDate( eventDate ),
+                reporter.addError( event, E1056, i18nFormat.formatDate( eventDate ),
                     i18nFormat.formatDate( option.getStartDate() ), option.getName() );
             }
 
             if ( option.getEndDate() != null && eventDate.compareTo( option.getAdjustedEndDate( program ) ) > 0 )
             {
-                addError( reporter, E1057, i18nFormat.formatDate( eventDate ),
+                reporter.addError( event, E1057, i18nFormat.formatDate( eventDate ),
                     i18nFormat.formatDate( option.getAdjustedEndDate( program ) ), option.getName(),
                     program.getName() );
             }

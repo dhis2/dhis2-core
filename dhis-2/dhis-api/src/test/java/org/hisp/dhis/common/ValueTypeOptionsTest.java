@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,25 +27,25 @@
  */
 package org.hisp.dhis.common;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class ValueTypeOptionsTest
+class ValueTypeOptionsTest
 {
+
     @Test
-    public void testFileValueTypeOptions()
+    void testFileValueTypeOptions()
     {
         FileTypeValueOptions ftvo = new FileTypeValueOptions();
         ftvo.setMaxFileSize( 100L );
         ftvo.setAllowedContentTypes( ImmutableSet.of( "jpg" ) );
-
         assertEquals( 100L, ftvo.getMaxFileSize() );
         assertTrue( ftvo.getAllowedContentTypes().contains( "jpg" ) );
     }

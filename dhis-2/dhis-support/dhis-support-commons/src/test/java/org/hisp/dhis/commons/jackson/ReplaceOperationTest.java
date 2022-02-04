@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,14 +27,14 @@
  */
 package org.hisp.dhis.commons.jackson;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -45,52 +45,41 @@ import com.fasterxml.jackson.databind.node.TextNode;
 /**
  * @author Morten Olav Hansen
  */
-public class ReplaceOperationTest
+class ReplaceOperationTest
 {
+
     private final ObjectMapper jsonMapper = JacksonObjectMapperConfig.staticJsonMapper();
 
     @Test
-    public void testBasicPropertyReplacement()
+    void testBasicPropertyReplacement()
         throws JsonProcessingException,
         JsonPatchException
     {
-        JsonPatch patch = jsonMapper.readValue( "[" +
-            "{\"op\": \"add\", \"path\": \"/aaa\", \"value\": \"bbb\"}" +
-            "]", JsonPatch.class );
-
+        JsonPatch patch = jsonMapper.readValue( "[" + "{\"op\": \"add\", \"path\": \"/aaa\", \"value\": \"bbb\"}" + "]",
+            JsonPatch.class );
         assertNotNull( patch );
-
         ObjectNode root = jsonMapper.createObjectNode();
         root.set( "aaa", TextNode.valueOf( "aaa" ) );
-
         assertTrue( root.has( "aaa" ) );
         assertEquals( "aaa", root.get( "aaa" ).asText() );
-
         root = (ObjectNode) patch.apply( root );
-
         assertTrue( root.has( "aaa" ) );
         assertEquals( "bbb", root.get( "aaa" ).asText() );
     }
 
     @Test
-    public void testBasicTextToArray()
+    void testBasicTextToArray()
         throws JsonProcessingException,
         JsonPatchException
     {
-        JsonPatch patch = jsonMapper.readValue( "[" +
-            "{\"op\": \"add\", \"path\": \"/aaa\", \"value\": [1, 2, 3, 4, 5]}" +
-            "]", JsonPatch.class );
-
+        JsonPatch patch = jsonMapper.readValue(
+            "[" + "{\"op\": \"add\", \"path\": \"/aaa\", \"value\": [1, 2, 3, 4, 5]}" + "]", JsonPatch.class );
         assertNotNull( patch );
-
         ObjectNode root = jsonMapper.createObjectNode();
         root.set( "aaa", TextNode.valueOf( "aaa" ) );
-
         assertTrue( root.has( "aaa" ) );
         assertEquals( "aaa", root.get( "aaa" ).asText() );
-
         root = (ObjectNode) patch.apply( root );
-
         assertTrue( root.has( "aaa" ) );
         JsonNode testNode = root.get( "aaa" );
         assertTrue( testNode.isArray() );
@@ -98,24 +87,18 @@ public class ReplaceOperationTest
     }
 
     @Test
-    public void testBasicTextToObject()
+    void testBasicTextToObject()
         throws JsonProcessingException,
         JsonPatchException
     {
-        JsonPatch patch = jsonMapper.readValue( "[" +
-            "{\"op\": \"add\", \"path\": \"/aaa\", \"value\": {\"a\": 123}}" +
-            "]", JsonPatch.class );
-
+        JsonPatch patch = jsonMapper
+            .readValue( "[" + "{\"op\": \"add\", \"path\": \"/aaa\", \"value\": {\"a\": 123}}" + "]", JsonPatch.class );
         assertNotNull( patch );
-
         ObjectNode root = jsonMapper.createObjectNode();
         root.set( "aaa", TextNode.valueOf( "aaa" ) );
-
         assertTrue( root.has( "aaa" ) );
         assertEquals( "aaa", root.get( "aaa" ).asText() );
-
         root = (ObjectNode) patch.apply( root );
-
         assertTrue( root.has( "aaa" ) );
         JsonNode testNode = root.get( "aaa" );
         assertTrue( testNode.isObject() );

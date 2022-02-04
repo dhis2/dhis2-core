@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,10 @@ package org.hisp.dhis.period;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Objects;
+
+import lombok.Getter;
+import lombok.Setter;
 
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DimensionItemType;
@@ -76,11 +80,11 @@ public class Period
     private transient String isoPeriod;
 
     /**
-     * Transient boolean. If true, this Period has been created as a consequence
-     * of a Dimensional Item Object having an Offset Period value higher/lower
-     * than 0
+     * date field this period refers to
      */
-    private transient boolean shifted = false;
+    @Getter
+    @Setter
+    private String dateField;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -98,6 +102,7 @@ public class Period
         this.endDate = period.getEndDate();
         this.name = period.getName();
         this.isoPeriod = period.getIsoDate();
+        this.dateField = period.getDateField();
     }
 
     protected Period( PeriodType periodType, Date startDate, Date endDate )
@@ -360,13 +365,15 @@ public class Period
 
         return startDate.equals( other.getStartDate() ) &&
             endDate.equals( other.getEndDate() ) &&
-            periodType.equals( other.getPeriodType() );
+            periodType.equals( other.getPeriodType() ) &&
+            Objects.equals( dateField, other.getDateField() );
     }
 
     @Override
     public String toString()
     {
-        return "[" + (periodType == null ? "" : periodType.getName() + ": ") + startDate + " - " + endDate + "]";
+        return "[" + (dateField == null ? "DEFAULT" : dateField) + " | "
+            + (periodType == null ? "" : periodType.getName() + ": ") + startDate + " - " + endDate + "]";
     }
 
     // -------------------------------------------------------------------------
@@ -412,13 +419,8 @@ public class Period
         this.periodType = periodType;
     }
 
-    public boolean isShifted()
+    public boolean isDefault()
     {
-        return shifted;
-    }
-
-    public void setShifted( boolean shifted )
-    {
-        this.shifted = shifted;
+        return Objects.isNull( dateField );
     }
 }

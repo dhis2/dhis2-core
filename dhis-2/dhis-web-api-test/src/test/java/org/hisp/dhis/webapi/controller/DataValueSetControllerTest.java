@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,14 +33,14 @@ import static org.hisp.dhis.webapi.WebClient.ContentType;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML_ADX;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.MediaType.APPLICATION_XML;
-import static org.wildfly.common.Assert.assertTrue;
 
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonImportSummary;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
 /**
@@ -48,24 +48,25 @@ import org.springframework.http.HttpStatus;
  *
  * @author Jan Bernitt
  */
-public class DataValueSetControllerTest extends DhisControllerConvenienceTest
+class DataValueSetControllerTest extends DhisControllerConvenienceTest
 {
+
     @Test
-    public void testPostJsonDataValueSet()
+    void testPostJsonDataValueSet()
     {
         assertWebMessage( "OK", 200, "OK", "Import was successful.",
             POST( "/38/dataValueSets/", "{}" ).content( HttpStatus.OK ) );
     }
 
     @Test
-    public void testPostJsonDataValueSet_Async()
+    void testPostJsonDataValueSet_Async()
     {
         assertWebMessage( "OK", 200, "OK", "Initiated dataValueImport",
             POST( "/dataValueSets?async=true", "{}" ).content( HttpStatus.OK ) );
     }
 
     @Test
-    public void testPostJsonDataValueSet_Pre38()
+    void testPostJsonDataValueSet_Pre38()
     {
         JsonImportSummary summary = POST( "/37/dataValueSets/", "{}" ).content( HttpStatus.OK )
             .as( JsonImportSummary.class );
@@ -74,26 +75,24 @@ public class DataValueSetControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void testPostAdxDataValueSet()
+    void testPostAdxDataValueSet()
     {
-        String content = POST( "/38/dataValueSets/",
-            Body( "<adx xmlns=\"urn:ihe:qrph:adx:2015\"></adx>" ),
+        String content = POST( "/38/dataValueSets/", Body( "<adx xmlns=\"urn:ihe:qrph:adx:2015\"></adx>" ),
             ContentType( CONTENT_TYPE_XML_ADX ), Accept( CONTENT_TYPE_XML ) ).content( APPLICATION_XML );
         assertTrue( content.contains( "httpStatusCode=\"200\"" ) );
     }
 
     @Test
-    public void testPostAdxDataValueSet_Async()
+    void testPostAdxDataValueSet_Async()
     {
-        String content = POST( "/dataValueSets?async=true",
-            Body( "<adx xmlns=\"urn:ihe:qrph:adx:2015\"></adx>" ),
+        String content = POST( "/dataValueSets?async=true", Body( "<adx xmlns=\"urn:ihe:qrph:adx:2015\"></adx>" ),
             ContentType( CONTENT_TYPE_XML_ADX ), Accept( CONTENT_TYPE_XML ) ).content( APPLICATION_XML );
         assertTrue( content.contains( "httpStatusCode=\"200\"" ) );
         assertTrue( content.contains( "Initiated dataValueImport" ) );
     }
 
     @Test
-    public void testPostAdxDataValueSet_Pre38()
+    void testPostAdxDataValueSet_Pre38()
     {
         HttpResponse response = POST( "/37/dataValueSets/", Body( "<adx xmlns=\"urn:ihe:qrph:adx:2015\"></adx>" ),
             ContentType( CONTENT_TYPE_XML_ADX ), Accept( CONTENT_TYPE_XML ) );
@@ -102,7 +101,7 @@ public class DataValueSetControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void testPostDxf2DataValueSet()
+    void testPostDxf2DataValueSet()
     {
         String content = POST( "/38/dataValueSets/",
             Body( "<dataValueSet xmlns=\"http://dhis2.org/schema/dxf/2.0\"></dataValueSet>" ),
@@ -111,7 +110,7 @@ public class DataValueSetControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void testPostDxf2DataValueSet_Async()
+    void testPostDxf2DataValueSet_Async()
     {
         String content = POST( "/dataValueSets?async=true",
             Body( "<dataValueSet xmlns=\"http://dhis2.org/schema/dxf/2.0\"></dataValueSet>" ),
@@ -121,7 +120,7 @@ public class DataValueSetControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void testPostDxf2DataValueSet_Pre38()
+    void testPostDxf2DataValueSet_Pre38()
     {
         HttpResponse response = POST( "/37/dataValueSets/",
             Body( "<dataValueSet xmlns=\"http://dhis2.org/schema/dxf/2.0\"></dataValueSet>" ),
@@ -131,15 +130,14 @@ public class DataValueSetControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void testPostCsvDataValueSet()
+    void testPostCsvDataValueSet()
     {
         assertWebMessage( "OK", 200, "OK", "Import was successful.",
-            POST( "/38/dataValueSets/", Body( "abc" ), ContentType( "application/csv" ) )
-                .content( HttpStatus.OK ) );
+            POST( "/38/dataValueSets/", Body( "abc" ), ContentType( "application/csv" ) ).content( HttpStatus.OK ) );
     }
 
     @Test
-    public void testPostCsvDataValueSet_Async()
+    void testPostCsvDataValueSet_Async()
     {
         assertWebMessage( "OK", 200, "OK", "Initiated dataValueImport",
             POST( "/dataValueSets?async=true", Body( "abc" ), ContentType( "application/csv" ) )
@@ -147,7 +145,7 @@ public class DataValueSetControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void testPostCsvDataValueSet_Pre38()
+    void testPostCsvDataValueSet_Pre38()
     {
         JsonImportSummary summary = POST( "/37/dataValueSets/", Body( "abc" ), ContentType( "application/csv" ) )
             .content( HttpStatus.OK ).as( JsonImportSummary.class );
@@ -156,12 +154,10 @@ public class DataValueSetControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void testGetDataValueSetJson()
+    void testGetDataValueSetJson()
     {
-        String ouId = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits/",
-                "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01', 'code':'OU1'}" ) );
-
+        String ouId = assertStatus( HttpStatus.CREATED, POST( "/organisationUnits/",
+            "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01', 'code':'OU1'}" ) );
         JsonWebMessage response = GET( "/dataValueSets/?inputOrgUnitIdScheme=code&idScheme=name&orgUnit={ou}", "OU1" )
             .content( HttpStatus.CONFLICT ).as( JsonWebMessage.class );
         assertEquals( String.format( "User is not allowed to view org unit: `%s`", ouId ), response.getMessage() );

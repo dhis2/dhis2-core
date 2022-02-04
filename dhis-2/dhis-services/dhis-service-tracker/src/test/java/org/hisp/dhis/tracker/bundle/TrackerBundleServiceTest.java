@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.tracker.bundle;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.IOException;
 import java.util.List;
@@ -40,15 +40,15 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class TrackerBundleServiceTest
-    extends TrackerTest
+class TrackerBundleServiceTest extends TrackerTest
 {
+
     @Autowired
     private TrackerBundleService trackerBundleService;
 
@@ -63,28 +63,23 @@ public class TrackerBundleServiceTest
     }
 
     @Test
-    public void testVerifyMetadata()
+    void testVerifyMetadata()
     {
         Program program = manager.get( Program.class, "E8o1E9tAppy" );
         OrganisationUnit organisationUnit = manager.get( OrganisationUnit.class, "QfUVllTs6cS" );
-
         assertNotNull( program );
         assertNotNull( organisationUnit );
         assertFalse( program.getProgramStages().isEmpty() );
     }
 
     @Test
-    public void testTrackedEntityInstanceImport()
+    void testTrackedEntityInstanceImport()
         throws IOException
     {
         TrackerImportParams trackerImportParams = fromJson( "tracker/trackedentity_basic_data.json" );
-
         assertEquals( 13, trackerImportParams.getTrackedEntities().size() );
-
         TrackerBundle trackerBundle = trackerBundleService.create( trackerImportParams );
-
         trackerBundleService.commit( trackerBundle );
-
         List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
         assertEquals( 13, trackedEntityInstances.size() );
     }

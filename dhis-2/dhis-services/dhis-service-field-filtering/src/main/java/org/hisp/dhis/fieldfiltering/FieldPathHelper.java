@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,6 +44,10 @@ import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.user.sharing.Sharing;
+import org.hisp.dhis.user.sharing.UserAccess;
+import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.springframework.stereotype.Component;
 
 /**
@@ -112,11 +116,11 @@ public class FieldPathHelper
 
         Property property = fieldPath.getProperty();
 
-        if ( property.is( PropertyType.COMPLEX ) || property.itemIs( PropertyType.COMPLEX ) )
+        if ( isComplex( property ) )
         {
             expandComplex( fieldPathMap, paths, schema );
         }
-        else if ( property.is( PropertyType.REFERENCE ) || property.itemIs( PropertyType.REFERENCE ) )
+        else if ( isReference( property ) )
         {
             expandReference( fieldPathMap, paths, schema );
         }
@@ -143,11 +147,11 @@ public class FieldPathHelper
             return;
         }
 
-        if ( property.is( PropertyType.COMPLEX ) || property.itemIs( PropertyType.COMPLEX ) )
+        if ( isComplex( property ) )
         {
             expandComplex( fieldPathMap, paths, schema );
         }
-        else if ( property.is( PropertyType.REFERENCE ) || property.itemIs( PropertyType.REFERENCE ) )
+        else if ( isReference( property ) )
         {
             expandReference( fieldPathMap, paths, schema );
         }
@@ -229,6 +233,20 @@ public class FieldPathHelper
     // Helpers
     // ----------------------------------------------------------------------------------------------------------------
 
+    private boolean isReference( Property property )
+    {
+        return property.is( PropertyType.REFERENCE ) || property.itemIs( PropertyType.REFERENCE );
+    }
+
+    private boolean isComplex( Property property )
+    {
+        return property.is( PropertyType.COMPLEX ) || property.itemIs( PropertyType.COMPLEX )
+            || property.isEmbeddedObject() || UserCredentials.class.isAssignableFrom( property.getKlass() )
+            || Sharing.class.isAssignableFrom( property.getKlass() )
+            || UserAccess.class.isAssignableFrom( property.getKlass() )
+            || UserGroupAccess.class.isAssignableFrom( property.getKlass() );
+    }
+
     /**
      * Calculates a weighted map of paths to find candidates for default
      * expansion.
@@ -255,8 +273,7 @@ public class FieldPathHelper
                     ( key, count ) -> count == null ? 1L : count + 1L );
             }
 
-            if ( property.is( PropertyType.COMPLEX, PropertyType.REFERENCE )
-                || property.itemIs( PropertyType.COMPLEX, PropertyType.REFERENCE ) )
+            if ( isReference( property ) || isComplex( property ) )
             {
                 pathCount.compute( fieldPath.toFullPath(),
                     ( key, count ) -> count == null ? 1L : count + 1L );

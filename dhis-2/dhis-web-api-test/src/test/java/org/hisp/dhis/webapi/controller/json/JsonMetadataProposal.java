@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,12 +29,12 @@ package org.hisp.dhis.webapi.controller.json;
 
 import java.time.LocalDateTime;
 
+import org.hisp.dhis.jsontree.Expected;
+import org.hisp.dhis.jsontree.JsonDate;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.metadata.MetadataProposalStatus;
 import org.hisp.dhis.metadata.MetadataProposalTarget;
 import org.hisp.dhis.metadata.MetadataProposalType;
-import org.hisp.dhis.webapi.json.Expected;
-import org.hisp.dhis.webapi.json.JsonDate;
-import org.hisp.dhis.webapi.json.JsonObject;
 
 /**
  * JSON representation of a {@link org.hisp.dhis.metadata.MetadataProposal} as

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,31 +46,29 @@ import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.user.User;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author Luciano Fiandesio
  */
-public class UserSupplierTest
+@ExtendWith( MockitoExtension.class )
+class UserSupplierTest
 {
+
     @InjectMocks
     private UserSupplier supplier;
 
     @Mock
     private IdentifiableObjectManager manager;
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
     private final BeanRandomizer rnd = BeanRandomizer.create( Event.class, "assignedUser" );
 
     @Test
-    public void verifySupplier()
+    void verifySupplier()
     {
         final List<Event> events = rnd.objects( Event.class, 5 ).collect( Collectors.toList() );
         events.forEach( e -> e.setAssignedUser( CodeGenerator.generateUid() ) );

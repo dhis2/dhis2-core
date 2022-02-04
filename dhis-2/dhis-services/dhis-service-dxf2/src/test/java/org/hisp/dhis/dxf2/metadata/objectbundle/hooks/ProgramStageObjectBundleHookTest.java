@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,15 +44,15 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageSectionService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-public class ProgramStageObjectBundleHookTest
+@ExtendWith( MockitoExtension.class )
+class ProgramStageObjectBundleHookTest
 {
     private ProgramStageObjectBundleHook subject;
 
@@ -72,10 +72,7 @@ public class ProgramStageObjectBundleHookTest
 
     private Preheat preheat = new Preheat();
 
-    @Rule
-    public MockitoRule rule = MockitoJUnit.rule();
-
-    @Before
+    @BeforeEach
     public void init()
     {
         this.subject = new ProgramStageObjectBundleHook( aclService, programStageSectionService );
@@ -98,7 +95,7 @@ public class ProgramStageObjectBundleHookTest
     }
 
     @Test
-    public void testValidateDataElementAcl()
+    void testValidateDataElementAcl()
     {
         ObjectBundleParams objectBundleParams = new ObjectBundleParams();
         objectBundleParams.setPreheatIdentifier( PreheatIdentifier.UID );
@@ -107,7 +104,7 @@ public class ProgramStageObjectBundleHookTest
             .singletonMap( OptionSet.class, Collections.singletonList( programStage ) ) );
 
         List<ErrorReport> errors = subject.validate( programStage, bundle );
-        Assert.assertEquals( 1, errors.size() );
-        Assert.assertEquals( ErrorCode.E3012, errors.get( 0 ).getErrorCode() );
+        Assertions.assertEquals( 1, errors.size() );
+        Assertions.assertEquals( ErrorCode.E3012, errors.get( 0 ).getErrorCode() );
     }
 }

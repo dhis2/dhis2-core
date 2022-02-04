@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,34 +27,32 @@
  */
 package org.hisp.dhis.dataset;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import com.google.common.collect.Sets;
 
 /**
  * @author Lars Helge Overland
  */
-public class DataSetTest
+class DataSetTest
 {
+
     @Test
-    public void testAddDataSetElement()
+    void testAddDataSetElement()
     {
         DataSet dsA = new DataSet( "DataSetA" );
         DataSet dsB = new DataSet( "DataSetB" );
-
         DataElement deA = new DataElement( "DataElementA" );
         DataElement deB = new DataElement( "DataElementB" );
-
         dsA.addDataSetElement( deA );
         dsA.addDataSetElement( deB );
         dsB.addDataSetElement( deA );
-
         assertEquals( 2, dsA.getDataSetElements().size() );
         assertEquals( 1, dsB.getDataSetElements().size() );
         assertEquals( 2, deA.getDataSetElements().size() );
@@ -62,27 +60,22 @@ public class DataSetTest
     }
 
     @Test
-    public void testUpdateOrganisationUnits()
+    void testUpdateOrganisationUnits()
     {
         DataSet dsA = new DataSet( "dsA" );
-
         OrganisationUnit ouA = new OrganisationUnit( "ouA" );
         OrganisationUnit ouB = new OrganisationUnit( "ouB" );
         OrganisationUnit ouC = new OrganisationUnit( "ouC" );
         OrganisationUnit ouD = new OrganisationUnit( "ouD" );
-
         dsA.addOrganisationUnit( ouA );
         dsA.addOrganisationUnit( ouB );
-
         assertEquals( 2, dsA.getSources().size() );
         assertTrue( dsA.getSources().containsAll( Sets.newHashSet( ouA, ouB ) ) );
         assertTrue( ouA.getDataSets().contains( dsA ) );
         assertTrue( ouB.getDataSets().contains( dsA ) );
         assertTrue( ouC.getDataSets().isEmpty() );
         assertTrue( ouD.getDataSets().isEmpty() );
-
         dsA.updateOrganisationUnits( Sets.newHashSet( ouB, ouC ) );
-
         assertEquals( 2, dsA.getSources().size() );
         assertTrue( dsA.getSources().containsAll( Sets.newHashSet( ouB, ouC ) ) );
         assertTrue( ouA.getDataSets().isEmpty() );
@@ -92,29 +85,22 @@ public class DataSetTest
     }
 
     @Test
-    public void testAddIndicator()
+    void testAddIndicator()
     {
         DataSet dsA = new DataSet( "DataSetA" );
-
         Indicator indicatorA = new Indicator();
         Indicator indicatorB = new Indicator();
         indicatorA.setName( "Indicator A" );
         indicatorB.setName( "Indicator B" );
-
         dsA.addIndicator( indicatorA );
-
         assertEquals( 1, dsA.getIndicators().size() );
         assertTrue( dsA.getIndicators().contains( indicatorA ) );
-
         assertEquals( 1, indicatorA.getDataSets().size() );
         assertTrue( indicatorA.getDataSets().contains( dsA ) );
-
         dsA.addIndicator( indicatorB );
-
         assertEquals( 2, dsA.getIndicators().size() );
         assertTrue( dsA.getIndicators().contains( indicatorA ) );
         assertTrue( dsA.getIndicators().contains( indicatorB ) );
-
         assertEquals( 1, indicatorA.getDataSets().size() );
         assertEquals( 1, indicatorB.getDataSets().size() );
         assertTrue( indicatorA.getDataSets().contains( dsA ) );

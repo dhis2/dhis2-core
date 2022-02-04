@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +27,11 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.hisp.dhis.webapi.json.JsonArray;
-import org.hisp.dhis.webapi.json.JsonObject;
-import org.junit.Test;
+import org.hisp.dhis.jsontree.JsonArray;
+import org.hisp.dhis.jsontree.JsonObject;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests the {@link org.hisp.dhis.gist.GistPager} related features of the Gist
@@ -39,37 +39,33 @@ import org.junit.Test;
  *
  * @author Jan Bernitt
  */
-public class GistPagerControllerTest extends AbstractGistControllerTest
+class GistPagerControllerTest extends AbstractGistControllerTest
 {
 
     @Test
-    public void testPager_Total_ResultBased()
+    void testPager_Total_ResultBased()
     {
-        JsonObject gist = GET( "/users/{uid}/userGroups/gist?fields=name,users&total=true",
-            getSuperuserUid() ).content();
-
+        JsonObject gist = GET( "/users/{uid}/userGroups/gist?fields=name,users&total=true", getSuperuserUid() )
+            .content();
         assertHasPager( gist, 1, 50, 1 );
     }
 
     @Test
-    public void testPager_Total_CountQueryNonExistingPage()
+    void testPager_Total_CountQueryNonExistingPage()
     {
-        JsonObject gist = GET( "/users/{uid}/userGroups/gist?fields=name,users&total=true&page=6",
-            getSuperuserUid() ).content();
-
+        JsonObject gist = GET( "/users/{uid}/userGroups/gist?fields=name,users&total=true&page=6", getSuperuserUid() )
+            .content();
         assertHasPager( gist, 6, 50, 1 );
     }
 
     @Test
-    public void testPager_Total_CountQuery()
+    void testPager_Total_CountQuery()
     {
         // create some members we can count a total for
         createDataSetsForOrganisationUnit( 10, orgUnitId, "extra" );
-
         String url = "/organisationUnits/{id}/dataSets/gist?total=true&pageSize=3&order=name&filter=name:startsWith:extra";
         JsonObject gist = GET( url, orgUnitId ).content();
         assertHasPager( gist, 1, 3, 10 );
-
         // now page 2
         gist = GET( url + "&page=2", orgUnitId ).content();
         assertHasPager( gist, 2, 3, 10 );

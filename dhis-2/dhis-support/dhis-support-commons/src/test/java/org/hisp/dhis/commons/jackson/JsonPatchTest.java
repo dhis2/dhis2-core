@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,13 +27,13 @@
  */
 package org.hisp.dhis.commons.jackson;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -41,12 +41,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * @author Morten Olav Hansen
  */
-public class JsonPatchTest
+class JsonPatchTest
 {
+
     private final ObjectMapper jsonMapper = JacksonObjectMapperConfig.staticJsonMapper();
 
     @Test
-    public void testJsonPatchDeserializeEmpty()
+    void testJsonPatchDeserializeEmpty()
         throws JsonProcessingException
     {
         JsonPatch patch = jsonMapper.readValue( "[]", JsonPatch.class );
@@ -55,15 +56,12 @@ public class JsonPatchTest
     }
 
     @Test
-    public void testJsonPatchDeserializeWithOps()
+    void testJsonPatchDeserializeWithOps()
         throws JsonProcessingException
     {
-        JsonPatch patch = jsonMapper.readValue( "[" +
-            "{\"op\": \"add\", \"path\": \"/aaa\", \"value\": \"bbb\"}," +
-            "{\"op\": \"replace\", \"path\": \"/aaa\", \"value\": \"bbb\"}," +
-            "{\"op\": \"remove\", \"path\": \"/aaa\"}" +
-            "]", JsonPatch.class );
-
+        JsonPatch patch = jsonMapper.readValue( "[" + "{\"op\": \"add\", \"path\": \"/aaa\", \"value\": \"bbb\"},"
+            + "{\"op\": \"replace\", \"path\": \"/aaa\", \"value\": \"bbb\"},"
+            + "{\"op\": \"remove\", \"path\": \"/aaa\"}" + "]", JsonPatch.class );
         assertNotNull( patch );
         assertEquals( 3, patch.getOperations().size() );
     }

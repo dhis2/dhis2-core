@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,15 +28,15 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import org.hisp.dhis.jsontree.JsonArray;
+import org.hisp.dhis.jsontree.JsonBoolean;
+import org.hisp.dhis.jsontree.JsonDocument.JsonNodeType;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.hisp.dhis.webapi.json.JsonArray;
-import org.hisp.dhis.webapi.json.JsonBoolean;
-import org.hisp.dhis.webapi.json.JsonDocument.JsonNodeType;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
 /**
@@ -46,10 +46,11 @@ import org.springframework.http.HttpStatus;
  *
  * @author Jan Bernitt
  */
-public class OrganisationUnitLocationControllerTest extends DhisControllerConvenienceTest
+class OrganisationUnitLocationControllerTest extends DhisControllerConvenienceTest
 {
+
     @Test
-    public void testGetParentByLocation()
+    void testGetParentByLocation()
     {
         JsonArray parents = GET( "/organisationUnitLocations/orgUnitByLocation?longitude=23.1&latitude=56.2" )
             .content( HttpStatus.OK );
@@ -58,11 +59,10 @@ public class OrganisationUnitLocationControllerTest extends DhisControllerConven
     }
 
     @Test
-    public void testCheckLocationWithinOrgUnit()
+    void testCheckLocationWithinOrgUnit()
     {
         String ouId = assertStatus( HttpStatus.CREATED,
             POST( "/organisationUnits/", "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}" ) );
-
         JsonBoolean isWithin = GET(
             "/organisationUnitLocations/locationWithinOrgUnitBoundary?longitude=23.1&latitude=56.2&orgUnitUid={ou}",
             ouId ).content( HttpStatus.OK );

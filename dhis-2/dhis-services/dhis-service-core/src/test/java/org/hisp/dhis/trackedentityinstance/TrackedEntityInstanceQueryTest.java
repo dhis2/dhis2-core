@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.trackedentityinstance;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.analytics.AggregationType;
@@ -42,20 +42,20 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Lars Helge Overland
  */
-public class TrackedEntityInstanceQueryTest
-    extends DhisSpringTest
+class TrackedEntityInstanceQueryTest extends DhisSpringTest
 {
+
     @Autowired
     private TrackedEntityInstanceService instanceService;
 
     @Test
-    public void testValidateNoOrgUnitsModeAll()
+    void testValidateNoOrgUnitsModeAll()
     {
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
         TrackedEntityType trackedEntityTypeA = createTrackedEntityType( 'A' );
@@ -65,7 +65,7 @@ public class TrackedEntityInstanceQueryTest
     }
 
     @Test
-    public void testTeiQueryParamsWithoutEitherProgramOrTrackedEntityType()
+    void testTeiQueryParamsWithoutEitherProgramOrTrackedEntityType()
     {
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
         params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
@@ -75,7 +75,7 @@ public class TrackedEntityInstanceQueryTest
     }
 
     @Test
-    public void testIfUniqueFiltersArePresentInAttributesOrFilters()
+    void testIfUniqueFiltersArePresentInAttributesOrFilters()
     {
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
         QueryItem nonUniq1 = new QueryItem( new TrackedEntityAttribute(), null, ValueType.TEXT, AggregationType.NONE,
@@ -84,27 +84,20 @@ public class TrackedEntityInstanceQueryTest
             null, false );
         QueryItem uniq1 = new QueryItem( new TrackedEntityAttribute(), null, ValueType.TEXT, AggregationType.NONE, null,
             true );
-
         QueryFilter qf = new QueryFilter( QueryOperator.EQ, "test" );
         nonUniq1.getFilters().add( qf );
         nonUniq2.getFilters().add( qf );
         params.addAttribute( nonUniq1 );
         params.addAttribute( nonUniq2 );
         params.addAttribute( uniq1 );
-
         assertEquals( params.hasUniqueFilter(), false );
-
         uniq1.getFilters().add( qf );
         assertEquals( params.hasUniqueFilter(), true );
-
         params.getAttributes().clear();
-
         params.addFilter( nonUniq1 );
         params.addFilter( nonUniq2 );
-
         assertEquals( params.hasUniqueFilter(), false );
         params.addFilter( uniq1 );
         assertEquals( params.hasUniqueFilter(), true );
-
     }
 }

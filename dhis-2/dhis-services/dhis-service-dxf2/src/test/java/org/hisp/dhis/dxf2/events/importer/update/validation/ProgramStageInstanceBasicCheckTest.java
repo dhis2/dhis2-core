@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,60 +38,56 @@ import org.hisp.dhis.dxf2.events.importer.validation.BaseValidationTest;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.program.ProgramStageInstance;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
-public class ProgramStageInstanceBasicCheckTest extends BaseValidationTest
+@MockitoSettings( strictness = Strictness.LENIENT )
+class ProgramStageInstanceBasicCheckTest extends BaseValidationTest
 {
+
     private ProgramStageInstanceBasicCheck rule;
 
-    @Before
-    public void setUp()
+    @BeforeEach
+    void setUp()
     {
         rule = new ProgramStageInstanceBasicCheck();
     }
 
     @Test
-    public void failOnMissingProgramStageInstance()
+    void failOnMissingProgramStageInstance()
     {
         when( workContext.getProgramStageInstanceMap() ).thenReturn( new HashMap<>() );
-
         ImportSummary summary = rule.check( new ImmutableEvent( event ), workContext );
-        assertHasError( summary, event,
-            "Event ID " + event.getEvent() + " doesn't point to valid event" );
+        assertHasError( summary, event, "Event ID " + event.getEvent() + " doesn't point to valid event" );
     }
 
     @Test
-    public void failOnDeletedProgramStageInstance()
+    void failOnDeletedProgramStageInstance()
     {
         Map<String, ProgramStageInstance> programStageInstanceMap = new HashMap<>();
         ProgramStageInstance psi = new ProgramStageInstance();
         psi.setDeleted( true );
         programStageInstanceMap.put( event.getEvent(), psi );
-
         when( workContext.getProgramStageInstanceMap() ).thenReturn( programStageInstanceMap );
-
         ImportSummary summary = rule.check( new ImmutableEvent( event ), workContext );
         assertHasError( summary, event,
             "Event ID " + event.getEvent() + " was already used and/or deleted. This event can not be modified." );
     }
 
     @Test
-    public void failOnProgramStageInstanceAndInvalidImportOption()
+    void failOnProgramStageInstanceAndInvalidImportOption()
     {
         Map<String, ProgramStageInstance> programStageInstanceMap = new HashMap<>();
         ProgramStageInstance psi = new ProgramStageInstance();
         programStageInstanceMap.put( event.getEvent(), psi );
-
         ImportOptions importOptions = ImportOptions.getDefaultImportOptions();
         importOptions.setImportStrategy( ImportStrategy.CREATE );
-
         when( workContext.getImportOptions() ).thenReturn( importOptions );
         when( workContext.getProgramStageInstanceMap() ).thenReturn( programStageInstanceMap );
-
         ImportSummary summary = rule.check( new ImmutableEvent( event ), workContext );
         assertHasError( summary, event,
             "Event ID " + event.getEvent() + " was already used and/or deleted. This event can not be modified." );
     }
-
 }

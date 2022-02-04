@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,16 +27,16 @@
  */
 package org.hisp.dhis.sqlview;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -45,33 +45,31 @@ import com.google.common.collect.Sets;
 /**
  * @author Lars Helge Overland
  */
-public class SqlViewTest
+class SqlViewTest
 {
+
     @Test
-    public void testIsValidQueryValue()
+    void testIsValidQueryValue()
     {
         assertTrue( SqlView.isValidQueryValue( "east" ) );
         assertTrue( SqlView.isValidQueryValue( "NUMBER" ) );
         assertTrue( SqlView.isValidQueryValue( "2015-03-01" ) );
         assertTrue( SqlView.isValidQueryValue( "John Doe" ) );
         assertTrue( SqlView.isValidQueryValue( "anc_1" ) );
-
         assertFalse( SqlView.isValidQueryValue( "../var/dir" ) );
         assertFalse( SqlView.isValidQueryValue( "delete from table;" ) );
     }
 
     @Test
-    public void testGetCriteria()
+    void testGetCriteria()
     {
         Set<String> params = Sets.newHashSet( "type:NUMBER", "aggregationType:AVERAGE" );
-
         Map<String, String> expected = ImmutableMap.of( "type", "NUMBER", "aggregationType", "AVERAGE" );
-
         assertEquals( expected, SqlView.getCriteria( params ) );
     }
 
     @Test
-    public void testCompareTo()
+    void testCompareTo()
     {
         SqlView svA = new SqlView( "SqlViewA", "", SqlViewType.QUERY );
         SqlView svB = new SqlView( "SqlViewB", "", SqlViewType.QUERY );
@@ -79,18 +77,14 @@ public class SqlViewTest
         SqlView svD = new SqlView( "SqlViewD", "", SqlViewType.QUERY );
         SqlView svE = new SqlView( "SqlViewE", "", SqlViewType.QUERY );
         SqlView svF = new SqlView( null, null, SqlViewType.QUERY );
-
         svA.setUid( "UidA" );
         svB.setUid( "UidB" );
         svC.setUid( "UidC" );
         svD.setUid( "UidD" );
         svE.setUid( "UidE" );
         svF.setUid( "UidF" );
-
         List<SqlView> list = Lists.newArrayList( svB, svE, svF, svC, svA, svD );
-
         Collections.sort( list );
-
         assertEquals( svA, list.get( 0 ) );
         assertEquals( svB, list.get( 1 ) );
         assertEquals( svC, list.get( 2 ) );

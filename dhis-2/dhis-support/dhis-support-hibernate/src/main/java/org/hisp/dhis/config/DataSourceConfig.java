@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -85,6 +85,16 @@ public class DataSourceConfig
     {
         JdbcTemplate jdbcTemplate = new JdbcTemplate( dataSource );
         jdbcTemplate.setFetchSize( 1000 );
+        return jdbcTemplate;
+    }
+
+    @Bean( "executionPlanJdbcTemplate" )
+    @DependsOn( "dataSource" )
+    public JdbcTemplate executionPlanJdbcTemplate( @Qualifier( "dataSource" ) DataSource dataSource )
+    {
+        JdbcTemplate jdbcTemplate = new JdbcTemplate( dataSource );
+        jdbcTemplate.setFetchSize( 1000 );
+        jdbcTemplate.setQueryTimeout( 10 );
         return jdbcTemplate;
     }
 

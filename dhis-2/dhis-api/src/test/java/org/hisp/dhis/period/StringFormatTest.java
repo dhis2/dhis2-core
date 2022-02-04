@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,34 +27,32 @@
  */
 package org.hisp.dhis.period;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Calendar;
 import java.util.Date;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author bobj
  */
-public class StringFormatTest
+class StringFormatTest
 {
+
     private static Date getDate( int year, int month, int day )
     {
         final Calendar calendar = Calendar.getInstance();
-
         // override locale settings for weeks
         calendar.setFirstDayOfWeek( Calendar.MONDAY );
         calendar.setMinimalDaysInFirstWeek( 4 );
-
         calendar.clear();
         calendar.set( year, month - 1, day );
-
         return calendar.getTime();
     }
 
     @Test
-    public void testStringFormat()
+    void testStringFormat()
     {
         Period day1 = new Period( new DailyPeriodType(), getDate( 2010, 1, 1 ), getDate( 2010, 1, 1 ) );
         Period month1 = new Period( new MonthlyPeriodType(), getDate( 2010, 1, 1 ), getDate( 2010, 1, 31 ) );
@@ -70,18 +68,16 @@ public class StringFormatTest
             getDate( 2011, 6, 30 ) );
         Period financialOct = new Period( new FinancialOctoberPeriodType(), getDate( 2010, 10, 1 ),
             getDate( 2011, 9, 30 ) );
-
-        assertEquals( "Day format", "20100101", day1.getIsoDate() );
-        assertEquals( "Month format", "201001", month1.getIsoDate() );
-        assertEquals( "Year format", "2010", year1.getIsoDate() );
-        assertEquals( "Quarter format", "2010Q1", quarter1.getIsoDate() );
-        assertEquals( "Semester format", "2010S1", semester1.getIsoDate() );
-        assertEquals( "SemesterApril format", "2010AprilS1", semesterApril1.getIsoDate() );
-        assertEquals( "Bimonth format", "201002B", biMonth1.getIsoDate() );
-        assertEquals( "Financial April", "2010April", financialApril.getIsoDate() );
-        assertEquals( "Financial July", "2010July", financialJuly.getIsoDate() );
-        assertEquals( "Financial Oct", "2010Oct", financialOct.getIsoDate() );
-
+        assertEquals( "20100101", day1.getIsoDate(), "Day format" );
+        assertEquals( "201001", month1.getIsoDate(), "Month format" );
+        assertEquals( "2010", year1.getIsoDate(), "Year format" );
+        assertEquals( "2010Q1", quarter1.getIsoDate(), "Quarter format" );
+        assertEquals( "2010S1", semester1.getIsoDate(), "Semester format" );
+        assertEquals( "2010AprilS1", semesterApril1.getIsoDate(), "SemesterApril format" );
+        assertEquals( "201002B", biMonth1.getIsoDate(), "Bimonth format" );
+        assertEquals( "2010April", financialApril.getIsoDate(), "Financial April" );
+        assertEquals( "2010July", financialJuly.getIsoDate(), "Financial July" );
+        assertEquals( "2010Oct", financialOct.getIsoDate(), "Financial Oct" );
         assertEquals( day1, PeriodType.getPeriodFromIsoString( "20100101" ) );
         assertEquals( month1, PeriodType.getPeriodFromIsoString( "201001" ) );
         assertEquals( year1, PeriodType.getPeriodFromIsoString( "2010" ) );

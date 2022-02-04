@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,6 @@ import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
-import org.hisp.dhis.dataintegrity.DataIntegrityCheckType;
 import org.hisp.dhis.dataintegrity.DataIntegrityService;
 import org.hisp.dhis.dataintegrity.FlattenedDataIntegrityReport;
 import org.hisp.dhis.scheduling.Job;
@@ -66,8 +65,8 @@ public class DataIntegrityJob implements Job
     public void execute( JobConfiguration config, JobProgress progress )
     {
         DataIntegrityJobParameters parameters = (DataIntegrityJobParameters) config.getJobParameters();
-        Set<DataIntegrityCheckType> checks = parameters == null
-            ? DataIntegrityCheckType.all()
+        Set<String> checks = parameters == null
+            ? Set.of()
             : parameters.getChecks();
         Timer timer = new SystemTimer().start();
 
@@ -75,7 +74,7 @@ public class DataIntegrityJob implements Job
             config, NotificationLevel.INFO,
             "Starting data integrity job", false );
 
-        FlattenedDataIntegrityReport report = dataIntegrityService.getFlattenedDataIntegrityReport( checks, progress );
+        FlattenedDataIntegrityReport report = dataIntegrityService.getReport( checks, progress );
 
         timer.stop();
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,9 +29,10 @@ package org.hisp.dhis.tracker.validation.hooks;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.hisp.dhis.tracker.TrackerType.ENROLLMENT;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1119;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -47,31 +48,31 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Note;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Enrico Colasante
  */
-public class EnrollmentNoteValidationHookTest
+@MockitoSettings( strictness = Strictness.LENIENT )
+@ExtendWith( MockitoExtension.class )
+class EnrollmentNoteValidationHookTest
 {
+
     // Class under test
     private EnrollmentNoteValidationHook hook;
-
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     private Enrollment enrollment;
 
     private final BeanRandomizer rnd = BeanRandomizer.create();
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         this.hook = new EnrollmentNoteValidationHook();
@@ -79,7 +80,7 @@ public class EnrollmentNoteValidationHookTest
     }
 
     @Test
-    public void testNoteWithExistingUidWarnings()
+    void testNoteWithExistingUidWarnings()
     {
         // Given
         final Note note = rnd.nextObject( Note.class );
@@ -91,7 +92,7 @@ public class EnrollmentNoteValidationHookTest
         when( trackerBundle.getValidationMode() ).thenReturn( ValidationMode.FULL );
         when( trackerBundle.getPreheat() ).thenReturn( preheat );
         when( ctx.getNote( note.getNote() ) ).thenReturn( Optional.of( new TrackedEntityComment() ) );
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, enrollment );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx );
 
         enrollment.setNotes( Collections.singletonList( note ) );
 
@@ -100,12 +101,14 @@ public class EnrollmentNoteValidationHookTest
 
         // Then
         assertTrue( reporter.hasWarnings() );
-        assertThat( reporter.getWarningsReportList().get( 0 ).getWarningCode(), is( TrackerErrorCode.E1119 ) );
+        assertTrue( reporter.hasWarningReport( warn -> E1119.equals( warn.getWarningCode() ) &&
+            ENROLLMENT.equals( warn.getTrackerType() ) &&
+            enrollment.getUid().equals( warn.getUid() ) ) );
         assertThat( enrollment.getNotes(), hasSize( 0 ) );
     }
 
     @Test
-    public void testNoteWithExistingUidAndNoTextIsIgnored()
+    void testNoteWithExistingUidAndNoTextIsIgnored()
     {
         // Given
         final Note note = rnd.nextObject( Note.class );
@@ -116,7 +119,7 @@ public class EnrollmentNoteValidationHookTest
         when( ctx.getBundle() ).thenReturn( trackerBundle );
         when( trackerBundle.getValidationMode() ).thenReturn( ValidationMode.FULL );
         when( ctx.getNote( note.getNote() ) ).thenReturn( Optional.of( new TrackedEntityComment() ) );
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, enrollment );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx );
 
         enrollment.setNotes( Collections.singletonList( note ) );
 
@@ -129,7 +132,7 @@ public class EnrollmentNoteValidationHookTest
     }
 
     @Test
-    public void testNotesAreValidWhenUidDoesNotExist()
+    void testNotesAreValidWhenUidDoesNotExist()
     {
         // Given
         final List<Note> notes = rnd.objects( Note.class, 5 ).collect( Collectors.toList() );
@@ -138,7 +141,7 @@ public class EnrollmentNoteValidationHookTest
 
         when( ctx.getBundle() ).thenReturn( trackerBundle );
         when( trackerBundle.getValidationMode() ).thenReturn( ValidationMode.FULL );
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, enrollment );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx );
 
         enrollment.setNotes( notes );
 

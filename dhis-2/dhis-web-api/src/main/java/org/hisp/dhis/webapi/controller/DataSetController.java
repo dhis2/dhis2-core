@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -106,6 +106,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -456,7 +457,7 @@ public class DataSetController
     }
 
     @GetMapping( "/{uid}/metadata" )
-    public ResponseEntity<RootNode> getDataSetWithDependencies( @PathVariable( "uid" ) String pvUid,
+    public ResponseEntity<JsonNode> getDataSetWithDependencies( @PathVariable( "uid" ) String pvUid,
         @RequestParam( required = false, defaultValue = "false" ) boolean download )
         throws WebMessageException
     {

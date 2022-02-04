@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -93,15 +93,12 @@ public class ProgramActions
 
     public ApiResponse createEventProgram( String... orgUnitsIds )
     {
-        String programStageId = createProgramStage( "DEFAULT STAGE" );
+        JsonObject body = new JsonObjectBuilder( buildProgram( "WITHOUT_REGISTRATION", null, orgUnitsIds ) ).build();
+        ApiResponse response = post( body );
 
-        JsonObject body = new JsonObjectBuilder( buildProgram( "WITHOUT_REGISTRATION", null, orgUnitsIds ) )
-            .addArray( "programStages", new JsonObjectBuilder()
-                .addProperty( "id", programStageId )
-                .build() )
-            .build();
+        createProgramStage( response.extractUid(), "DEFAULT STAGE" );
 
-        return post( body );
+        return response;
     }
 
     public ApiResponse createProgram( String programType, String trackedEntityTypeId, String... orgUnitIds )
@@ -131,17 +128,10 @@ public class ProgramActions
      */
     public String createProgramStage( String programId, String programStageName )
     {
-        String programStageId = createProgramStage( programStageName );
-
-        addProgramStage( programId, programStageId ).validateStatus( 200 ).extractUid();
-
-        return programStageId;
-    }
-
-    public String createProgramStage( String name )
-    {
         ApiResponse response = programStageActions
-            .post( new JsonObjectBuilder().addProperty( "name", name ).addProperty( "publicAccess", "rwrw----" ).build() );
+            .post( new JsonObjectBuilder().addProperty( "name", programStageName ).
+                addObject( "program" , new JsonObjectBuilder().addProperty( "id", programId ))
+                .addProperty( "publicAccess", "rwrw----" ).build() );
         response.validate().statusCode( Matchers.is( Matchers.oneOf( 201, 200 ) ) );
 
         return response.extractUid();

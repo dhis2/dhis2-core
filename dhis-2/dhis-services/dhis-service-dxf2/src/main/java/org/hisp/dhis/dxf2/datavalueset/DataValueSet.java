@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,8 +30,10 @@ package org.hisp.dhis.dxf2.datavalueset;
 import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
+
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdScheme;
@@ -45,80 +47,46 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 /**
  * @author Lars Helge Overland
  */
+@Setter
+@NoArgsConstructor
 @JacksonXmlRootElement( localName = "dataValueSet", namespace = DxfNamespaces.DXF_2_0 )
-public class DataValueSet
+public final class DataValueSet
 {
-    protected static final String FIELD_IDSCHEME = "idScheme";
-
-    protected static final String FIELD_DATAELEMENTIDSCHEME = "dataElementIdScheme";
-
-    protected static final String FIELD_ORGUNITIDSCHEME = "orgUnitIdScheme";
-
-    protected static final String FIELD_CATEGORYOPTCOMBOIDSCHEME = "categoryOptionComboIdScheme";
-
-    protected static final String FIELD_DATASETIDSCHEME = "dataSetIdScheme";
-
-    protected static final String FIELD_DRYRUN = "dryRun";
-
-    protected static final String FIELD_IMPORTSTRATEGY = "importStrategy";
-
-    protected static final String FIELD_DATAVALUESET = "dataValueSet";
-
-    protected static final String FIELD_DATAVALUE = "dataValue";
-
-    protected static final String FIELD_DATASET = "dataSet";
-
-    protected static final String FIELD_COMPLETEDATE = "completeDate";
-
-    protected static final String FIELD_PERIOD = "period";
-
-    protected static final String FIELD_ORGUNIT = "orgUnit";
-
-    protected static final String FIELD_ATTRIBUTE_OPTION_COMBO = "attributeOptionCombo";
-
     // --------------------------------------------------------------------------
     // Options
     // --------------------------------------------------------------------------
 
-    protected String idScheme;
+    private String idScheme;
 
-    protected String dataElementIdScheme;
+    private String dataElementIdScheme;
 
-    protected String orgUnitIdScheme;
+    private String orgUnitIdScheme;
 
-    protected String categoryOptionComboIdScheme;
+    private String categoryOptionComboIdScheme;
 
-    protected String dataSetIdScheme;
+    private String dataSetIdScheme;
 
-    protected Boolean dryRun;
+    private Boolean dryRun;
 
-    protected String strategy;
+    private String strategy;
 
     // --------------------------------------------------------------------------
     // Properties
     // --------------------------------------------------------------------------
 
-    protected String dataSet;
+    private String dataSet;
 
-    protected String completeDate;
+    private String completeDate;
 
-    protected String period;
+    private String period;
 
-    protected String orgUnit;
+    private String orgUnit;
 
-    protected String attributeOptionCombo;
+    private String attributeOptionCombo;
 
-    protected List<DataValue> dataValues = new ArrayList<>();
+    private List<DataValue> dataValues = new ArrayList<>();
 
-    protected List<String> attributeCategoryOptions;
-
-    // --------------------------------------------------------------------------
-    // Constructors
-    // --------------------------------------------------------------------------
-
-    public DataValueSet()
-    {
-    }
+    private List<String> attributeCategoryOptions;
 
     // --------------------------------------------------------------------------
     // Getters and setters
@@ -131,21 +99,11 @@ public class DataValueSet
         return idScheme;
     }
 
-    public void setIdScheme( String idScheme )
-    {
-        this.idScheme = idScheme;
-    }
-
     @JsonProperty
     @JacksonXmlProperty( isAttribute = true )
     public String getDataElementIdScheme()
     {
         return dataElementIdScheme;
-    }
-
-    public void setDataElementIdScheme( String dataElementIdScheme )
-    {
-        this.dataElementIdScheme = dataElementIdScheme;
     }
 
     @JsonProperty
@@ -155,21 +113,11 @@ public class DataValueSet
         return orgUnitIdScheme;
     }
 
-    public void setOrgUnitIdScheme( String orgUnitIdScheme )
-    {
-        this.orgUnitIdScheme = orgUnitIdScheme;
-    }
-
     @JsonProperty
     @JacksonXmlProperty( isAttribute = true )
     public String getCategoryOptionComboIdScheme()
     {
         return categoryOptionComboIdScheme;
-    }
-
-    public void setCategoryOptionComboIdScheme( String categoryOptionComboIdScheme )
-    {
-        this.categoryOptionComboIdScheme = categoryOptionComboIdScheme;
     }
 
     @JsonProperty
@@ -179,21 +127,11 @@ public class DataValueSet
         return dataSetIdScheme;
     }
 
-    public void setDataSetIdScheme( String dataSetIdScheme )
-    {
-        this.dataSetIdScheme = dataSetIdScheme;
-    }
-
     @JsonProperty
     @JacksonXmlProperty( isAttribute = true )
     public Boolean getDryRun()
     {
         return dryRun;
-    }
-
-    public void setDryRun( Boolean dryRun )
-    {
-        this.dryRun = dryRun;
     }
 
     @JsonProperty
@@ -203,21 +141,11 @@ public class DataValueSet
         return strategy;
     }
 
-    public void setStrategy( String strategy )
-    {
-        this.strategy = strategy;
-    }
-
     @JsonProperty
     @JacksonXmlProperty( isAttribute = true )
     public String getDataSet()
     {
         return dataSet;
-    }
-
-    public void setDataSet( String dataSet )
-    {
-        this.dataSet = dataSet;
     }
 
     @JsonProperty
@@ -227,21 +155,11 @@ public class DataValueSet
         return completeDate;
     }
 
-    public void setCompleteDate( String completeDate )
-    {
-        this.completeDate = completeDate;
-    }
-
     @JsonProperty
     @JacksonXmlProperty( isAttribute = true )
     public String getPeriod()
     {
         return period;
-    }
-
-    public void setPeriod( String period )
-    {
-        this.period = period;
     }
 
     @JsonProperty
@@ -251,21 +169,11 @@ public class DataValueSet
         return orgUnit;
     }
 
-    public void setOrgUnit( String orgUnit )
-    {
-        this.orgUnit = orgUnit;
-    }
-
     @JsonProperty
     @JacksonXmlProperty( isAttribute = true )
     public String getAttributeOptionCombo()
     {
         return attributeOptionCombo;
-    }
-
-    public void setAttributeOptionCombo( String attributeOptionCombo )
-    {
-        this.attributeOptionCombo = attributeOptionCombo;
     }
 
     @JsonProperty( value = "dataValues" )
@@ -276,62 +184,11 @@ public class DataValueSet
         return dataValues;
     }
 
-    public void setDataValues( List<DataValue> dataValues )
-    {
-        this.dataValues = dataValues;
-    }
-
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public List<String> getAttributeCategoryOptions()
     {
         return attributeCategoryOptions;
-    }
-
-    public void setAttributeCategoryOptions( List<String> attributeCategoryOptions )
-    {
-        this.attributeCategoryOptions = attributeCategoryOptions;
-    }
-
-    // --------------------------------------------------------------------------
-    // Logic
-    // --------------------------------------------------------------------------
-
-    private Iterator<DataValue> dataValueIterator;
-
-    public void refreshDataValueIterator()
-    {
-        dataValueIterator = dataValues.iterator();
-    }
-
-    public boolean hasNextDataValue()
-    {
-        if ( dataValueIterator == null )
-        {
-            refreshDataValueIterator();
-        }
-
-        return dataValueIterator.hasNext();
-    }
-
-    public DataValue getNextDataValue()
-    {
-        if ( dataValueIterator == null )
-        {
-            refreshDataValueIterator();
-        }
-
-        return dataValueIterator.next();
-    }
-
-    public DataValue getDataValueInstance()
-    {
-        return new DataValue();
-    }
-
-    public void close()
-    {
-        // potentially overridden by subclasses
     }
 
     /**

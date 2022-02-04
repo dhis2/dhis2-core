@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,10 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static org.hisp.dhis.common.QueryFilter.OPTION_SEP;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Map;
@@ -38,7 +41,18 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsMetaDataKey;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.DimensionType;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.DisplayProperty;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.IdentifiableObjectUtils;
+import org.hisp.dhis.common.MetadataItem;
+import org.hisp.dhis.common.QueryFilter;
+import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.QueryOperator;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.legend.LegendSet;
@@ -50,7 +64,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.user.UserService;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Lists;
@@ -59,9 +73,9 @@ import com.google.common.collect.Sets;
 /**
  * @author Lars Helge Overland
  */
-public class EventAnalyticsServiceMetadataTest
-    extends DhisSpringTest
+class EventAnalyticsServiceMetadataTest extends DhisSpringTest
 {
+
     private LegendSet lsA;
 
     private Legend leA;
@@ -107,119 +121,80 @@ public class EventAnalyticsServiceMetadataTest
     public void setUpTest()
     {
         userService = (UserService) getBean( UserService.ID );
-
         leA = createLegend( 'A', 0d, 10d );
         leB = createLegend( 'B', 11d, 20d );
         leC = createLegend( 'C', 21d, 30d );
         leD = createLegend( 'D', 31d, 40d );
-
         lsA = createLegendSet( 'A' );
         lsA.setLegends( Sets.newHashSet( leA, leB, leC, leD ) );
-
         opA = createOption( 'A' );
         opB = createOption( 'B' );
         opC = createOption( 'C' );
-
         osA = createOptionSet( 'A' );
         osA.setOptions( Lists.newArrayList( opA, opB, opC ) );
-
         deA = createDataElement( 'A', ValueType.INTEGER, AggregationType.SUM );
         deA.setLegendSets( Lists.newArrayList( lsA ) );
-
         deB = createDataElement( 'B', ValueType.INTEGER, AggregationType.SUM );
         deB.setLegendSets( Lists.newArrayList( lsA ) );
-
         deC = createDataElement( 'C', ValueType.INTEGER, AggregationType.SUM );
-
         deD = createDataElement( 'D', ValueType.INTEGER, AggregationType.SUM );
-
         deE = createDataElement( 'E', ValueType.TEXT, AggregationType.NONE );
         deE.setOptionSet( osA );
-
         deF = createDataElement( 'F', ValueType.TEXT, AggregationType.NONE );
         deF.setOptionSet( osA );
-
         peA = MonthlyPeriodType.getPeriodFromIsoString( "201701" );
-
         ouA = createOrganisationUnit( 'A' );
-
         prA = createProgram( 'A' );
         psA = createProgramStage( 'A', prA );
         prA.getProgramStages().add( psA );
-
         createAndInjectAdminUser( "ALL" );
     }
 
     // -------------------------------------------------------------------------
     // Tests
     // -------------------------------------------------------------------------
-
     @Test
     @SuppressWarnings( "unchecked" )
-    public void testGetQueryItemDimensionMetadata()
+    void testGetQueryItemDimensionMetadata()
     {
         DimensionalObject periods = new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD,
             Lists.newArrayList( peA ) );
         DimensionalObject orgUnits = new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID,
             DimensionType.ORGANISATION_UNIT, Lists.newArrayList( ouA ) );
-
         QueryItem itemLegendSet = new QueryItem( deA, lsA, deA.getValueType(), deA.getAggregationType(), null );
-
         QueryItem itemLegendSetFilter = new QueryItem( deB, lsA, deB.getValueType(), deB.getAggregationType(), null );
         itemLegendSetFilter.addFilter(
             new QueryFilter( QueryOperator.IN, leA.getUid() + OPTION_SEP + leB.getUid() + OPTION_SEP + leC.getUid() ) );
-
         QueryItem item = new QueryItem( deC, null, deC.getValueType(), deC.getAggregationType(), null );
-
         QueryItem itemFilter = new QueryItem( deD, null, deD.getValueType(), deD.getAggregationType(), null );
         itemFilter.addFilter( new QueryFilter( QueryOperator.GT, "10" ) );
-
         QueryItem itemOptionSet = new QueryItem( deE, null, deE.getValueType(), deE.getAggregationType(), osA );
-
         QueryItem itemOptionSetFilter = new QueryItem( deF, null, deE.getValueType(), deE.getAggregationType(), osA );
         itemOptionSetFilter
             .addFilter( new QueryFilter( QueryOperator.IN, opA.getCode() + OPTION_SEP + opB.getCode() ) );
-
-        EventQueryParams params = new EventQueryParams.Builder()
-            .withProgram( prA )
-            .addDimension( periods )
-            .addDimension( orgUnits )
-            .addItem( itemLegendSet )
-            .addItem( itemLegendSetFilter )
-            .addItem( item )
-            .addItem( itemFilter )
-            .addItem( itemOptionSet )
-            .addItem( itemOptionSetFilter )
-            .withSkipData( true )
-            .withSkipMeta( false )
-            .withDisplayProperty( DisplayProperty.NAME )
-            .build();
+        EventQueryParams params = new EventQueryParams.Builder().withProgram( prA ).addDimension( periods )
+            .addDimension( orgUnits ).addItem( itemLegendSet ).addItem( itemLegendSetFilter ).addItem( item )
+            .addItem( itemFilter ).addItem( itemOptionSet ).addItem( itemOptionSetFilter ).withSkipData( true )
+            .withSkipMeta( false ).withDisplayProperty( DisplayProperty.NAME ).build();
 
         Grid grid = eventAnalyticsService.getAggregatedEventData( params );
-
         Map<String, Object> metadata = grid.getMetaData();
-
         assertNotNull( metadata );
-
         Map<String, Object> dimensionItems = (Map<String, Object>) metadata
             .get( AnalyticsMetaDataKey.DIMENSIONS.getKey() );
-
         assertNotNull( dimensionItems );
-
         List<String> itemsLegendSet = (List<String>) dimensionItems.get( itemLegendSet.getItemId() );
         List<String> itemsLegendSetFilter = (List<String>) dimensionItems.get( itemLegendSetFilter.getItemId() );
         List<String> items = (List<String>) dimensionItems.get( item.getItemId() );
         List<String> itemsFilter = (List<String>) dimensionItems.get( itemFilter.getItemId() );
         List<String> itemsOptionSet = (List<String>) dimensionItems.get( itemOptionSet.getItemId() );
         List<String> itemsOptionSetFilter = (List<String>) dimensionItems.get( itemOptionSetFilter.getItemId() );
-
         assertNotNull( itemsLegendSet );
         assertNotNull( itemsLegendSetFilter );
         assertNotNull( items );
         assertNotNull( itemsFilter );
         assertNotNull( itemsOptionSet );
         assertNotNull( itemsOptionSetFilter );
-
         assertEquals( 4, itemsLegendSet.size() );
         assertEquals( itemsLegendSet, Lists.newArrayList( leA.getUid(), leB.getUid(), leC.getUid(), leD.getUid() ) );
         assertEquals( 3, itemsLegendSetFilter.size() );
@@ -227,7 +202,7 @@ public class EventAnalyticsServiceMetadataTest
             itemsLegendSetFilter.containsAll( IdentifiableObjectUtils.getUids( Sets.newHashSet( leA, leB, leC ) ) ) );
         assertTrue( items.isEmpty() );
         assertTrue( itemsFilter.isEmpty() );
-        assertTrue( !itemsOptionSet.isEmpty() );
+        assertFalse( itemsOptionSet.isEmpty() );
         assertEquals( 2, itemsOptionSetFilter.size() );
         assertTrue(
             itemsOptionSetFilter.containsAll( IdentifiableObjectUtils.getUids( Sets.newHashSet( opA, opB ) ) ) );
@@ -235,56 +210,39 @@ public class EventAnalyticsServiceMetadataTest
 
     @Test
     @SuppressWarnings( "unchecked" )
-    public void testGetQueryItemMetadata()
+    void testGetQueryItemMetadata()
     {
         DimensionalObject periods = new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD,
             Lists.newArrayList( peA ) );
         DimensionalObject orgUnits = new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID,
             DimensionType.ORGANISATION_UNIT, Lists.newArrayList( ouA ) );
-
         QueryItem qiA = new QueryItem( deA, deA.getLegendSet(), deA.getValueType(), deA.getAggregationType(), null );
         QueryItem qiB = new QueryItem( deE, null, deE.getValueType(), deE.getAggregationType(), deE.getOptionSet() );
-
-        EventQueryParams params = new EventQueryParams.Builder()
-            .withProgram( prA )
-            .addDimension( periods )
-            .addDimension( orgUnits )
-            .addItem( qiA )
-            .addItemFilter( qiB )
-            .withSkipData( true )
-            .withSkipMeta( false )
-            .withApiVersion( DhisApiVersion.V29 )
-            .build();
-
+        EventQueryParams params = new EventQueryParams.Builder().withProgram( prA ).addDimension( periods )
+            .addDimension( orgUnits ).addItem( qiA ).addItemFilter( qiB ).withSkipData( true ).withSkipMeta( false )
+            .withApiVersion( DhisApiVersion.V29 ).build();
         Grid grid = eventAnalyticsService.getAggregatedEventData( params );
-
         Map<String, Object> metadata = grid.getMetaData();
-
         Map<String, MetadataItem> itemMap = (Map<String, MetadataItem>) metadata
             .get( AnalyticsMetaDataKey.ITEMS.getKey() );
-
         assertNotNull( itemMap.get( DimensionalObject.PERIOD_DIM_ID ) );
         assertNotNull( itemMap.get( DimensionalObject.ORGUNIT_DIM_ID ) );
-
         for ( Legend legend : deA.getLegendSet().getLegends() )
         {
             assertNotNull( itemMap.get( legend.getUid() ) );
         }
-
         for ( Option option : deE.getOptionSet().getOptions() )
         {
             assertNotNull( itemMap.get( option.getUid() ) );
         }
-
         assertNotNull( itemMap.get( deA.getUid() ) );
         assertNotNull( itemMap.get( deE.getUid() ) );
     }
 
     @Test
-    public void testLegendSetSortedLegends()
+    void testLegendSetSortedLegends()
     {
         List<Legend> legends = Lists.newArrayList( leA, leB, leC, leD );
-
         assertEquals( legends, lsA.getSortedLegends() );
     }
 }

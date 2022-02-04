@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,9 +29,9 @@ package org.hisp.dhis.query;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -44,51 +44,45 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.user.User;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class QueryUtilsTest
+class QueryUtilsTest
 {
+
     private Schema schema;
 
-    @Before
-    public void setUp()
+    @BeforeEach
+    void setUp()
     {
         schema = new Schema( Attribute.class, "attribute", "attributes" );
-
         Property property = new Property( String.class );
         property.setName( "value1" );
         property.setSimple( true );
         schema.addProperty( property );
-
         property = new Property( String.class );
         property.setName( "value2" );
         property.setSimple( false );
         schema.addProperty( property );
-
         property = new Property( String.class );
         property.setName( "value3" );
         property.setSimple( true );
         schema.addProperty( property );
-
         property = new Property( Integer.class );
         property.setName( "value4" );
         property.setSimple( true );
         schema.addProperty( property );
-
         property = new Property( String.class );
         property.setName( "value5" );
         property.setSimple( true );
         schema.addProperty( property );
-
         property = new Property( String.class );
         property.setName( "value6" );
         property.setSimple( true );
         schema.addProperty( property );
-
         property = new Property( String.class );
         property.setName( "value7" );
         property.setSimple( true );
@@ -96,74 +90,71 @@ public class QueryUtilsTest
     }
 
     @Test
-    public void testParseValidEnum()
+    void testParseValidEnum()
     {
         assertNotNull( QueryUtils.parseValue( ValueType.class, "INTEGER" ) );
         assertNotNull( QueryUtils.parseValue( ValueType.class, "TEXT" ) );
     }
 
     @Test
-    public void testParseValidInteger()
+    void testParseValidInteger()
     {
         Integer value1 = QueryUtils.parseValue( Integer.class, "10" );
         Integer value2 = QueryUtils.parseValue( Integer.class, "100" );
-
         assertNotNull( value1 );
         assertNotNull( value2 );
-
-        org.junit.Assert.assertSame( 10, value1 );
-        org.junit.Assert.assertSame( 100, value2 );
-    }
-
-    @Test( expected = QueryParserException.class )
-    public void testParseInvalidEnum()
-    {
-        QueryUtils.parseValue( ValueType.class, "INTEGER" );
-        QueryUtils.parseValue( ValueType.class, "ABC" );
-    }
-
-    @Test( expected = QueryParserException.class )
-    public void testInvalidInteger()
-    {
-        QueryUtils.parseValue( Integer.class, "1" );
-        QueryUtils.parseValue( Integer.class, "ABC" );
-    }
-
-    @Test( expected = QueryParserException.class )
-    public void testInvalidFloat()
-    {
-        QueryUtils.parseValue( Float.class, "1.2" );
-        QueryUtils.parseValue( Float.class, "ABC" );
-    }
-
-    @Test( expected = QueryParserException.class )
-    public void testInvalidDouble()
-    {
-        QueryUtils.parseValue( Double.class, "1.2" );
-        QueryUtils.parseValue( Double.class, "ABC" );
-    }
-
-    @Test( expected = QueryParserException.class )
-    public void testInvalidDate()
-    {
-        QueryUtils.parseValue( Date.class, "2014" );
-        QueryUtils.parseValue( Date.class, "ABC" );
+        org.junit.jupiter.api.Assertions.assertSame( 10, value1 );
+        org.junit.jupiter.api.Assertions.assertSame( 100, value2 );
     }
 
     @Test
-    public void testParseValue()
+    void testParseInvalidEnum()
+    {
+        QueryUtils.parseValue( ValueType.class, "INTEGER" );
+        assertThrows( QueryParserException.class, () -> QueryUtils.parseValue( ValueType.class, "ABC" ) );
+    }
+
+    @Test
+    void testInvalidInteger()
+    {
+        QueryUtils.parseValue( Integer.class, "1" );
+        assertThrows( QueryParserException.class, () -> QueryUtils.parseValue( Integer.class, "ABC" ) );
+    }
+
+    @Test
+    void testInvalidFloat()
+    {
+        QueryUtils.parseValue( Float.class, "1.2" );
+        assertThrows( QueryParserException.class, () -> QueryUtils.parseValue( Float.class, "ABC" ) );
+    }
+
+    @Test
+    void testInvalidDouble()
+    {
+        QueryUtils.parseValue( Double.class, "1.2" );
+        assertThrows( QueryParserException.class, () -> QueryUtils.parseValue( Double.class, "ABC" ) );
+    }
+
+    @Test
+    void testInvalidDate()
+    {
+        QueryUtils.parseValue( Date.class, "2014" );
+        assertThrows( QueryParserException.class, () -> QueryUtils.parseValue( Date.class, "ABC" ) );
+    }
+
+    @Test
+    void testParseValue()
     {
         assertEquals( "'abc'", QueryUtils.parseValue( "abc" ) );
         assertEquals( "123", QueryUtils.parseValue( "123" ) );
     }
 
     @Test
-    public void testParserNotFound()
+    void testParserNotFound()
     {
         // Given
         final Class<User> nonSupportedClass = User.class;
         final String anyValue = "wewee-4343";
-
         // When
         final QueryParserException e = assertThrows( QueryParserException.class,
             () -> QueryUtils.parseValue( nonSupportedClass, anyValue ) );
@@ -172,55 +163,47 @@ public class QueryUtilsTest
     }
 
     @Test
-    public void testParseSelectFields()
+    void testParseSelectFields()
     {
         List<String> fields = new ArrayList<>();
         fields.add( "ABC" );
         fields.add( "DEF" );
-
         assertEquals( "ABC,DEF", QueryUtils.parseSelectFields( fields ) );
     }
 
     @Test
-    public void testParseSelectFieldsNull()
+    void testParseSelectFieldsNull()
     {
         assertEquals( " * ", QueryUtils.parseSelectFields( null ) );
     }
 
     @Test
-    public void testTransformCollectionValue()
+    void testTransformCollectionValue()
     {
         assertEquals( "('x','y')", QueryUtils.convertCollectionValue( "[x,y]" ) );
-
         assertEquals( "(1,2)", QueryUtils.convertCollectionValue( "[1,2]" ) );
     }
 
     @Test
-    public void testParseFilterOperator()
+    void testParseFilterOperator()
     {
         assertEquals( "= 5", QueryUtils.parseFilterOperator( "eq", "5" ) );
-
         assertEquals( "= 'ABC'", QueryUtils.parseFilterOperator( "eq", "ABC" ) );
-
         assertEquals( "like '%abc%'", QueryUtils.parseFilterOperator( "like", "abc" ) );
-
         assertEquals( " like '%abc'", QueryUtils.parseFilterOperator( "$like", "abc" ) );
-
         assertEquals( "in ('a','b','c')", QueryUtils.parseFilterOperator( "in", "[a,b,c]" ) );
-
         assertEquals( "in (1,2,3)", QueryUtils.parseFilterOperator( "in", "[1,2,3]" ) );
-
         assertEquals( "is not null", QueryUtils.parseFilterOperator( "!null", null ) );
     }
 
     @Test
-    public void testConvertOrderStringsNull()
+    void testConvertOrderStringsNull()
     {
         assertEquals( Collections.emptyList(), QueryUtils.convertOrderStrings( null, schema ) );
     }
 
     @Test
-    public void testConvertOrderStrings()
+    void testConvertOrderStrings()
     {
         List<Order> orders = QueryUtils.convertOrderStrings( Arrays.asList( "value1:asc", "value2:asc", "value3:iasc",
             "value4:desc", "value5:idesc", "value6:xdesc", "value7" ), schema );

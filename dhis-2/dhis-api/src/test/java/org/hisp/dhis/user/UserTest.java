@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,42 +28,41 @@
 package org.hisp.dhis.user;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
 import org.hamcrest.Matchers;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for {@link User}.
  *
  * @author volsch
  */
-public class UserTest
+class UserTest
 {
+
     private UserAuthorityGroup userAuthorityGroup1;
 
     private UserAuthorityGroup userAuthorityGroup2;
 
     private UserAuthorityGroup userAuthorityGroup1Super;
 
-    @Before
-    public void setUp()
+    @BeforeEach
+    void setUp()
     {
         userAuthorityGroup1 = new UserAuthorityGroup();
         userAuthorityGroup1.setUid( "uid1" );
         userAuthorityGroup1.setAuthorities( new HashSet<>( Arrays.asList( "x1", "x2" ) ) );
-
         userAuthorityGroup2 = new UserAuthorityGroup();
         userAuthorityGroup2.setUid( "uid2" );
         userAuthorityGroup2.setAuthorities( new HashSet<>( Arrays.asList( "y1", "y2" ) ) );
-
         userAuthorityGroup1Super = new UserAuthorityGroup();
         userAuthorityGroup1Super.setUid( "uid4" );
         userAuthorityGroup1Super
@@ -71,50 +70,44 @@ public class UserTest
     }
 
     @Test
-    public void isSuper()
+    void isSuper()
     {
         final User user = new User();
         user.setUserAuthorityGroups(
             new HashSet<>( Arrays.asList( userAuthorityGroup1, userAuthorityGroup1Super, userAuthorityGroup2 ) ) );
-
         assertTrue( user.isSuper() );
         assertTrue( user.isSuper() );
     }
 
     @Test
-    public void isNotSuper()
+    void isNotSuper()
     {
         final User user = new User();
         user
             .setUserAuthorityGroups( new HashSet<>( Arrays.asList( userAuthorityGroup1, userAuthorityGroup2 ) ) );
-
         assertFalse( user.isSuper() );
         assertFalse( user.isSuper() );
     }
 
     @Test
-    public void isSuperChanged()
+    void isSuperChanged()
     {
         final User user = new User();
         user.setUserAuthorityGroups(
             new HashSet<>( Arrays.asList( userAuthorityGroup1, userAuthorityGroup1Super, userAuthorityGroup2 ) ) );
-
         assertTrue( user.isSuper() );
-
         user
             .setUserAuthorityGroups( new HashSet<>( Arrays.asList( userAuthorityGroup1, userAuthorityGroup2 ) ) );
         assertFalse( user.isSuper() );
     }
 
     @Test
-    public void getAllAuthorities()
+    void getAllAuthorities()
     {
         final User user = new User();
         user.setUserAuthorityGroups( new HashSet<>( Arrays.asList( userAuthorityGroup1, userAuthorityGroup1Super ) ) );
-
         Set<String> authorities1 = user.getAllAuthorities();
         assertThat( authorities1, Matchers.containsInAnyOrder( "x1", "x2", "z1", UserAuthorityGroup.AUTHORITY_ALL ) );
-
         Set<String> authorities2 = user.getAllAuthorities();
         assertEquals( authorities1, authorities2 );
 
@@ -124,15 +117,13 @@ public class UserTest
     }
 
     @Test
-    public void getAllAuthoritiesChanged()
+    void getAllAuthoritiesChanged()
     {
         final User user = new User();
         user
             .setUserAuthorityGroups( new HashSet<>( Arrays.asList( userAuthorityGroup1, userAuthorityGroup1Super ) ) );
-
         Set<String> authorities1 = user.getAllAuthorities();
         assertThat( authorities1, Matchers.containsInAnyOrder( "x1", "x2", "z1", UserAuthorityGroup.AUTHORITY_ALL ) );
-
         user
             .setUserAuthorityGroups( new HashSet<>( Arrays.asList( userAuthorityGroup1, userAuthorityGroup2 ) ) );
         Set<String> authorities2 = user.getAllAuthorities();

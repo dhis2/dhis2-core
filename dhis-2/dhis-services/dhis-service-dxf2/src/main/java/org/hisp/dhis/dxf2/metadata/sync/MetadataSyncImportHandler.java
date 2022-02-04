@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,6 +33,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.common.IdentifiableObject;
@@ -49,7 +50,6 @@ import org.hisp.dhis.metadata.version.VersionType;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -59,18 +59,16 @@ import org.springframework.stereotype.Component;
  * @author anilkumk
  */
 @Slf4j
+@AllArgsConstructor
 @Component( "org.hisp.dhis.dxf2.metadata.sync.MetadataImportHandler" )
 @Scope( "prototype" )
 public class MetadataSyncImportHandler
 {
-    @Autowired
-    private MetadataVersionDelegate metadataVersionDelegate;
+    private final MetadataVersionDelegate metadataVersionDelegate;
 
-    @Autowired
-    private RenderService renderService;
+    private final RenderService renderService;
 
-    @Autowired
-    private MetadataImportService metadataImportService;
+    private final MetadataImportService metadataImportService;
 
     public MetadataSyncSummary importMetadata( MetadataSyncParams syncParams, String versionSnapShot )
     {

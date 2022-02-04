@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -109,7 +109,7 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
 
     private final ImmutableMap<ProgramRuleVariableSourceType, Function<ProgramRuleVariable, RuleVariable>> VARIABLE_MAPPER = new ImmutableMap.Builder<ProgramRuleVariableSourceType, Function<ProgramRuleVariable, RuleVariable>>()
         .put( ProgramRuleVariableSourceType.CALCULATED_VALUE,
-            prv -> RuleVariableCalculatedValue.create( prv.getName(), "", RuleValueType.TEXT ) )
+            prv -> RuleVariableCalculatedValue.create( prv.getName(), prv.getUid(), toMappedValueType( prv ) ) )
         .put( ProgramRuleVariableSourceType.TEI_ATTRIBUTE,
             prv -> RuleVariableAttribute.create( prv.getName(), prv.getAttribute().getUid(),
                 toMappedValueType( prv ) ) )
@@ -128,6 +128,7 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
         .build();
 
     private final ImmutableMap<ProgramRuleVariableSourceType, Function<ProgramRuleVariable, ValueType>> VALUE_TYPE_MAPPER = new ImmutableMap.Builder<ProgramRuleVariableSourceType, Function<ProgramRuleVariable, ValueType>>()
+        .put( ProgramRuleVariableSourceType.CALCULATED_VALUE, ProgramRuleVariable::getValueType )
         .put( ProgramRuleVariableSourceType.TEI_ATTRIBUTE, prv -> prv.getAttribute().getValueType() )
         .put( ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT, prv -> prv.getDataElement().getValueType() )
         .put( ProgramRuleVariableSourceType.DATAELEMENT_PREVIOUS_EVENT, prv -> prv.getDataElement().getValueType() )
@@ -149,7 +150,7 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
         } )
         .put( ProgramRuleVariableSourceType.CALCULATED_VALUE, prv -> DataItem.builder()
             .value( ObjectUtils.firstNonNull( prv.getDisplayName(), prv.getName() ) )
-            .valueType( ItemValueType.TEXT )
+            .valueType( getItemValueType( prv.getValueType() ) )
             .build() )
         .put( ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT, this::getDisplayName )
         .put( ProgramRuleVariableSourceType.DATAELEMENT_PREVIOUS_EVENT, this::getDisplayName )
@@ -421,14 +422,14 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
             return RuleValueType.BOOLEAN;
         }
 
-        if ( valueType.isText() )
-        {
-            return RuleValueType.TEXT;
-        }
-
         if ( valueType.isNumeric() )
         {
             return RuleValueType.NUMERIC;
+        }
+
+        if ( valueType.isDate() )
+        {
+            return RuleValueType.DATE;
         }
 
         return RuleValueType.TEXT;
@@ -569,11 +570,6 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
         if ( valueType.isNumeric() )
         {
             return ItemValueType.NUMBER;
-        }
-
-        if ( valueType.isText() )
-        {
-            return ItemValueType.TEXT;
         }
 
         if ( valueType.isBoolean() )

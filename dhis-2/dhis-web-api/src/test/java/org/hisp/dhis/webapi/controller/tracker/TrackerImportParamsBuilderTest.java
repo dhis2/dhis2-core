@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,24 +50,25 @@ import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundleMode;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Luciano Fiandesio
  */
-public class TrackerImportParamsBuilderTest
+class TrackerImportParamsBuilderTest
 {
+
     private Map<String, List<String>> paramMap = new HashMap<>();
 
     @Test
-    public void testDefaultParams()
+    void testDefaultParams()
     {
         final TrackerImportParams params = TrackerImportParamsBuilder.build( null );
         assertDefaultParams( params );
     }
 
     @Test
-    public void testValidationMode()
+    void testValidationMode()
     {
         Arrays.stream( ValidationMode.values() ).forEach( e -> {
             paramMap.put( VALIDATION_MODE_KEY.getKey(), Collections.singletonList( e.name() ) );
@@ -77,7 +78,7 @@ public class TrackerImportParamsBuilderTest
     }
 
     @Test
-    public void testImportMode()
+    void testImportMode()
     {
         Arrays.stream( TrackerBundleMode.values() ).forEach( e -> {
             paramMap.put( IMPORT_MODE_KEY.getKey(), Collections.singletonList( e.name() ) );
@@ -87,7 +88,7 @@ public class TrackerImportParamsBuilderTest
     }
 
     @Test
-    public void testAtomicMode()
+    void testAtomicMode()
     {
         Arrays.stream( AtomicMode.values() ).forEach( e -> {
             paramMap.put( ATOMIC_MODE_KEY.getKey(), Collections.singletonList( e.name() ) );
@@ -97,7 +98,7 @@ public class TrackerImportParamsBuilderTest
     }
 
     @Test
-    public void testFlushMode()
+    void testFlushMode()
     {
         Arrays.stream( FlushMode.values() ).forEach( e -> {
             paramMap.put( FLUSH_MODE_KEY.getKey(), Collections.singletonList( e.name() ) );
@@ -107,7 +108,7 @@ public class TrackerImportParamsBuilderTest
     }
 
     @Test
-    public void testImportStrategy()
+    void testImportStrategy()
     {
         Arrays.stream( TrackerImportStrategy.values() ).forEach( e -> {
             paramMap.put( IMPORT_STRATEGY_KEY.getKey(), Collections.singletonList( e.name() ) );
@@ -117,7 +118,7 @@ public class TrackerImportParamsBuilderTest
     }
 
     @Test
-    public void testOrgUnitIdentifier()
+    void testOrgUnitIdentifier()
     {
         Arrays.stream( TrackerIdScheme.values() ).forEach( e -> {
             paramMap.put( "orgUnitIdScheme", Collections.singletonList( e.name() ) );
@@ -127,7 +128,7 @@ public class TrackerImportParamsBuilderTest
     }
 
     @Test
-    public void testProgramIdentifier()
+    void testProgramIdentifier()
     {
         Arrays.stream( TrackerIdScheme.values() ).forEach( e -> {
             paramMap.put( "programIdScheme", Collections.singletonList( e.name() ) );
@@ -137,7 +138,7 @@ public class TrackerImportParamsBuilderTest
     }
 
     @Test
-    public void testProgramStageIdentifier()
+    void testProgramStageIdentifier()
     {
         Arrays.stream( TrackerIdScheme.values() ).forEach( e -> {
             paramMap.put( "programStageIdScheme", Collections.singletonList( e.name() ) );
@@ -147,7 +148,7 @@ public class TrackerImportParamsBuilderTest
     }
 
     @Test
-    public void testDataElementIdentifier()
+    void testDataElementIdentifier()
     {
         Arrays.stream( TrackerIdScheme.values() ).forEach( e -> {
             paramMap.put( "dataElementIdScheme", Collections.singletonList( e.name() ) );
@@ -163,7 +164,6 @@ public class TrackerImportParamsBuilderTest
         assertThat( params.getImportStrategy(), is( TrackerImportStrategy.CREATE_AND_UPDATE ) );
         assertThat( params.getAtomicMode(), is( AtomicMode.ALL ) );
         assertThat( params.getFlushMode(), is( FlushMode.AUTO ) );
-
         TrackerIdentifierParams identifiers = params.getIdentifiers();
         assertThat( identifiers.getOrgUnitIdScheme(), is( TrackerIdentifier.UID ) );
         assertThat( identifiers.getProgramIdScheme(), is( TrackerIdentifier.UID ) );
@@ -173,5 +173,4 @@ public class TrackerImportParamsBuilderTest
         assertThat( identifiers.getProgramStageIdScheme(), is( TrackerIdentifier.UID ) );
         assertThat( identifiers.getIdScheme(), is( TrackerIdentifier.UID ) );
     }
-
 }

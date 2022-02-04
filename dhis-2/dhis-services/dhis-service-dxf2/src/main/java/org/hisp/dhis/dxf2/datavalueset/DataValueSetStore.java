@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,11 +39,11 @@ import org.hisp.dhis.datavalue.DataExportParams;
  */
 public interface DataValueSetStore
 {
-    void writeDataValueSetXml( DataExportParams params, Date completeDate, OutputStream out );
+    void exportDataValueSetXml( DataExportParams params, Date completeDate, OutputStream out );
 
-    void writeDataValueSetJson( DataExportParams params, Date completeDate, OutputStream out );
+    void exportDataValueSetJson( DataExportParams params, Date completeDate, OutputStream out );
 
-    void writeDataValueSetCsv( DataExportParams params, Date completeDate, Writer writer );
+    void exportDataValueSetCsv( DataExportParams params, Date completeDate, Writer writer );
 
     /**
      * Query for {@link DataValueSet DataValueSets} and write result as JSON.
@@ -53,7 +53,7 @@ public interface DataValueSetStore
      * @param outputStream the stream to write to
      * @param idSchemes idSchemes
      */
-    void writeDataValueSetJson( Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes );
+    void exportDataValueSetJson( Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes );
 
     /**
      * Query for {@link DataValueSet DataValueSets} and write result as JSON.
@@ -65,6 +65,6 @@ public interface DataValueSetStore
      * @param pageSize pageSize
      * @param page page
      */
-    void writeDataValueSetJson( Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes, int pageSize,
+    void exportDataValueSetJson( Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes, int pageSize,
         int page );
 }

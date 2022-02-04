@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,22 +27,24 @@
  */
 package org.hisp.dhis.program;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.HashSet;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Chau Thu Tran
  */
-public class ProgramStageServiceTest
-    extends DhisSpringTest
+class ProgramStageServiceTest extends DhisSpringTest
 {
+
     @Autowired
     private ProgramStageService programStageService;
 
@@ -63,76 +65,62 @@ public class ProgramStageServiceTest
     {
         OrganisationUnit organisationUnit = createOrganisationUnit( 'A' );
         organisationUnitService.addOrganisationUnit( organisationUnit );
-
         program = createProgram( 'A', new HashSet<>(), organisationUnit );
         programService.addProgram( program );
-
         stageA = new ProgramStage( "A", program );
         stageA.setUid( "UID-A" );
-
         stageB = new ProgramStage( "B", program );
         stageB.setUid( "UID-B" );
     }
 
     @Test
-    public void testSaveProgramStage()
+    void testSaveProgramStage()
     {
         long idA = programStageService.saveProgramStage( stageA );
         long idB = programStageService.saveProgramStage( stageB );
-
         assertNotNull( programStageService.getProgramStage( idA ) );
         assertNotNull( programStageService.getProgramStage( idB ) );
     }
 
     @Test
-    public void testDeleteProgramStage()
+    void testDeleteProgramStage()
     {
         long idA = programStageService.saveProgramStage( stageA );
         long idB = programStageService.saveProgramStage( stageB );
-
         assertNotNull( programStageService.getProgramStage( idA ) );
         assertNotNull( programStageService.getProgramStage( idB ) );
-
         programStageService.deleteProgramStage( stageA );
-
         assertNull( programStageService.getProgramStage( idA ) );
         assertNotNull( programStageService.getProgramStage( idB ) );
-
         programStageService.deleteProgramStage( stageB );
-
         assertNull( programStageService.getProgramStage( idA ) );
         assertNull( programStageService.getProgramStage( idB ) );
     }
 
     @Test
-    public void testUpdateProgramStage()
+    void testUpdateProgramStage()
     {
         long idA = programStageService.saveProgramStage( stageA );
-
         assertNotNull( programStageService.getProgramStage( idA ) );
-
         stageA.setName( "B" );
         programStageService.updateProgramStage( stageA );
-
         assertEquals( "B", programStageService.getProgramStage( idA ).getName() );
     }
 
     @Test
-    public void testGetProgramStageById()
+    void testGetProgramStageById()
     {
         long idA = programStageService.saveProgramStage( stageA );
         long idB = programStageService.saveProgramStage( stageB );
-
         assertEquals( stageA, programStageService.getProgramStage( idA ) );
         assertEquals( stageB, programStageService.getProgramStage( idB ) );
     }
 
     @Test
-    public void testGetProgramStageByUid()
+    void testGetProgramStageByUid()
     {
         programStageService.saveProgramStage( stageA );
         programStageService.saveProgramStage( stageB );
-
         assertEquals( stageA, programStageService.getProgramStage( "UID-A" ) );
         assertEquals( stageB, programStageService.getProgramStage( "UID-B" ) );
     }

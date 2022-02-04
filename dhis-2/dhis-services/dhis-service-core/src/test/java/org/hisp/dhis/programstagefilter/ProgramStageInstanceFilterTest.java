@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.programstagefilter;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collections;
 import java.util.List;
@@ -38,10 +38,10 @@ import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class ProgramStageInstanceFilterTest extends DhisSpringTest
+class ProgramStageInstanceFilterTest extends DhisSpringTest
 {
 
     @Autowired
@@ -59,25 +59,22 @@ public class ProgramStageInstanceFilterTest extends DhisSpringTest
     {
         programA = createProgram( 'A' );
         programB = createProgram( 'B' );
-
         programService.addProgram( programA );
         programService.addProgram( programB );
-
     }
 
     @Test
-    public void testValidatenvalidEventFilterWithMissingProgram()
+    void testValidatenvalidEventFilterWithMissingProgram()
     {
         ProgramStageInstanceFilter psiFilter = createProgramStageInstanceFilter( '1', null, null );
         List<String> errors = psiFilterService.validate( psiFilter );
-
         assertNotNull( errors );
         assertEquals( 1, errors.size() );
         assertTrue( errors.get( 0 ).contains( "Program should be specified for event filters" ) );
     }
 
     @Test
-    public void testValidateInvalidEventFilterWithInvalidProgram()
+    void testValidateInvalidEventFilterWithInvalidProgram()
     {
         ProgramStageInstanceFilter psiFilter = createProgramStageInstanceFilter( '1', "ABCDEF12345", null );
         List<String> errors = psiFilterService.validate( psiFilter );
@@ -87,7 +84,7 @@ public class ProgramStageInstanceFilterTest extends DhisSpringTest
     }
 
     @Test
-    public void testValidateInvalidEventFilterWithInvalidProgramStage()
+    void testValidateInvalidEventFilterWithInvalidProgramStage()
     {
         ProgramStageInstanceFilter psiFilter = createProgramStageInstanceFilter( '1', programA.getUid(),
             "ABCDEF12345" );
@@ -98,7 +95,7 @@ public class ProgramStageInstanceFilterTest extends DhisSpringTest
     }
 
     @Test
-    public void testValidateInvalidEventFilterWithInvalidOrganisationUnit()
+    void testValidateInvalidEventFilterWithInvalidOrganisationUnit()
     {
         ProgramStageInstanceFilter psiFilter = createProgramStageInstanceFilter( '1', programA.getUid(), null );
         EventQueryCriteria eqc = new EventQueryCriteria();
@@ -111,7 +108,7 @@ public class ProgramStageInstanceFilterTest extends DhisSpringTest
     }
 
     @Test
-    public void testValidateInvalidEventFilterWithDataFilterAndEventUids()
+    void testValidateInvalidEventFilterWithDataFilterAndEventUids()
     {
         ProgramStageInstanceFilter psiFilter = createProgramStageInstanceFilter( '1', programA.getUid(), null );
         EventQueryCriteria eqc = new EventQueryCriteria();
@@ -125,7 +122,7 @@ public class ProgramStageInstanceFilterTest extends DhisSpringTest
     }
 
     @Test
-    public void testValidateInvalidEventFilterWithIncorrectAssignedUserMode()
+    void testValidateInvalidEventFilterWithIncorrectAssignedUserMode()
     {
         ProgramStageInstanceFilter psiFilter = createProgramStageInstanceFilter( '1', programA.getUid(), null );
         EventQueryCriteria eqc = new EventQueryCriteria();
@@ -140,7 +137,7 @@ public class ProgramStageInstanceFilterTest extends DhisSpringTest
     }
 
     @Test
-    public void testValidateEventFilterSuccessfully()
+    void testValidateEventFilterSuccessfully()
     {
         ProgramStageInstanceFilter psiFilter = createProgramStageInstanceFilter( '1', programA.getUid(), null );
         EventQueryCriteria eqc = new EventQueryCriteria();
@@ -156,21 +153,17 @@ public class ProgramStageInstanceFilterTest extends DhisSpringTest
     {
         ProgramStageInstanceFilter psiFilter = new ProgramStageInstanceFilter();
         psiFilter.setAutoFields();
-
         psiFilter.setName( "eventFilterName" + uniqueCharacter );
         psiFilter.setCode( "eventFilterCode" + uniqueCharacter );
         psiFilter.setDescription( "eventFilterDescription" + uniqueCharacter );
-
         if ( program != null )
         {
             psiFilter.setProgram( program );
         }
-
         if ( programStage != null )
         {
             psiFilter.setProgramStage( programStage );
         }
         return psiFilter;
     }
-
 }

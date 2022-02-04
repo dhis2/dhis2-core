@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,7 +39,7 @@ import java.math.BigDecimal;
  *
  * @author maikel arabori
  */
-class OutputFormatter
+public class OutputFormatter
 {
     private static final int TEN_MILLION = 10000000;
 
@@ -59,7 +59,7 @@ class OutputFormatter
      *         type is not supported or is null it will return the given
      *         parameter object itself
      */
-    static Object maybeFormat( final Object object )
+    public static Object maybeFormat( final Object object )
     {
         if ( object instanceof Double )
         {

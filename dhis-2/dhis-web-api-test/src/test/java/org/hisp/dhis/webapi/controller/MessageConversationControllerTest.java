@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,7 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
 
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
 /**
@@ -38,10 +38,11 @@ import org.springframework.http.HttpStatus;
  *
  * @author Jan Bernitt
  */
-public class MessageConversationControllerTest extends DhisControllerConvenienceTest
+class MessageConversationControllerTest extends DhisControllerConvenienceTest
 {
+
     @Test
-    public void testPostJsonObject()
+    void testPostJsonObject()
     {
         assertWebMessage( "Created", 201, "OK", "Message conversation created",
             POST( "/messageConversations/",
@@ -50,53 +51,48 @@ public class MessageConversationControllerTest extends DhisControllerConvenience
     }
 
     @Test
-    public void testPostJsonObject_MissingProperty()
+    void testPostJsonObject_MissingProperty()
     {
         assertWebMessage( "Conflict", 409, "ERROR", "No recipients selected.",
-            POST( "/messageConversations/",
-                "{'subject':'Subject','text':'Text','users':[]}" )
-                    .content( HttpStatus.CONFLICT ) );
+            POST( "/messageConversations/", "{'subject':'Subject','text':'Text','users':[]}" )
+                .content( HttpStatus.CONFLICT ) );
     }
 
     @Test
-    public void testDeleteObject()
+    void testDeleteObject()
     {
         String uid = assertStatus( HttpStatus.CREATED, POST( "/messageConversations/",
             "{'subject':'Subject','text':'Text','users':[{'id':'" + getSuperuserUid() + "'}]}" ) );
-
-        assertWebMessage( "OK", 200, "OK", null,
-            DELETE( "/messageConversations/" + uid ).content( HttpStatus.OK ) );
+        assertWebMessage( "OK", 200, "OK", null, DELETE( "/messageConversations/" + uid ).content( HttpStatus.OK ) );
     }
 
     @Test
-    public void testPostMessageConversationReply()
+    void testPostMessageConversationReply()
     {
         String uid = assertStatus( HttpStatus.CREATED, POST( "/messageConversations/",
             "{'subject':'Subject','text':'Text','users':[{'id':'" + getSuperuserUid() + "'}]}" ) );
-
         assertWebMessage( "Created", 201, "OK", "Message conversation created",
             POST( "/messageConversations/" + uid, "The message" ).content( HttpStatus.CREATED ) );
     }
 
     @Test
-    public void testPostMessageConversationReply_NoSuchObject()
+    void testPostMessageConversationReply_NoSuchObject()
     {
         assertWebMessage( "Not Found", 404, "ERROR", "Message conversation does not exist: xyz",
             POST( "/messageConversations/xyz", "The message" ).content( HttpStatus.NOT_FOUND ) );
     }
 
     @Test
-    public void testPostMessageConversationReply_NoSuchAttachment()
+    void testPostMessageConversationReply_NoSuchAttachment()
     {
         String uid = assertStatus( HttpStatus.CREATED, POST( "/messageConversations/",
             "{'subject':'Subject','text':'Text','users':[{'id':'" + getSuperuserUid() + "'}]}" ) );
-
         assertWebMessage( "Conflict", 409, "ERROR", "Attachment 'xyz' not found.",
             POST( "/messageConversations/" + uid + "?attachments=xyz", "The message" ).content( HttpStatus.CONFLICT ) );
     }
 
     @Test
-    public void testPostMessageConversationFeedback()
+    void testPostMessageConversationFeedback()
     {
         assertWebMessage( "Created", 201, "OK", "Feedback created",
             POST( "/messageConversations/feedback?subject=test", "The message" ).content( HttpStatus.CREATED ) );

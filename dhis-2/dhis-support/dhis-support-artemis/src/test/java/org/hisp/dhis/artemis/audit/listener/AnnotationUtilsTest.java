@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,35 +27,34 @@
  */
 package org.hisp.dhis.artemis.audit.listener;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.audit.Auditable;
 import org.hisp.dhis.system.util.AnnotationUtils;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Luciano Fiandesio
  */
-public class AnnotationUtilsTest
+class AnnotationUtilsTest
 {
+
     @Test
-    public void testIsAnnotationPresent()
+    void testIsAnnotationPresent()
     {
         TestImplementation testImplementation = new TestImplementation();
         NestedTestImplementation nestedTestImplementation = new NestedTestImplementation();
-
         assertTrue( AnnotationUtils.isAnnotationPresent( testImplementation.getClass(), Auditable.class ) );
         assertTrue( AnnotationUtils.isAnnotationPresent( nestedTestImplementation.getClass(), Auditable.class ) );
     }
 
     @Test
-    public void testGetAnnotatedFields()
+    void testGetAnnotatedFields()
     {
         NestedTestImplementation testImplementation = new NestedTestImplementation();
         assertEquals( 3,
             AnnotationUtils.getAnnotatedFields( testImplementation.getClass(), AuditAttribute.class ).size() );
     }
-
 }

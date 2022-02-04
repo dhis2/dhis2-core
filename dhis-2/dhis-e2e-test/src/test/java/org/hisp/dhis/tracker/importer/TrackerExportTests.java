@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,23 +27,24 @@
  */
 package org.hisp.dhis.tracker.importer;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.dto.TrackerApiResponse;
+import org.hisp.dhis.helpers.QueryParamsBuilder;
+import org.hisp.dhis.tracker.TrackerNtiApiTest;
+import org.json.JSONException;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.skyscreamer.jsonassert.JSONAssert;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 
-import org.hisp.dhis.dto.ApiResponse;
-import org.hisp.dhis.dto.TrackerApiResponse;
-import org.hisp.dhis.helpers.QueryParamsBuilder;
-import org.hisp.dhis.tracker.TrackerNtiApiTest;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
+import static org.hamcrest.Matchers.*;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -110,6 +111,7 @@ public class TrackerExportTests
 
     @Test
     public void singleTeiAndCollectionTeiShouldReturnSameResult()
+        throws JSONException
     {
 
         TrackerApiResponse trackedEntity = trackerActions.getTrackedEntity( "Kj6vYde4LHh",
@@ -123,7 +125,9 @@ public class TrackerExportTests
             .add( "trackedEntity", "Kj6vYde4LHh" )
             .add( "orgUnit", "O6uvpzGd5pu" ) );
 
-        assertEquals( trackedEntities.extractJsonObject( "instances[0]" ), trackedEntity.getBody() );
+        JSONAssert.assertEquals( trackedEntity.getBody().toString(), trackedEntities.extractJsonObject( "instances[0]" ).toString(),
+            false );
+
     }
 
     private List<String> splitFields( String fields )
@@ -158,21 +162,21 @@ public class TrackerExportTests
     public void shouldReturnSingleTeiGivenFilter()
     {
 
-        trackerActions.get("trackedEntities?orgUnit=O6uvpzGd5pu&program=f1AyMswryyQ&filter=kZeSYCgaHTk:in:Bravo")
-                .validate()
-                .statusCode(200)
-                .body("instances.findAll { it.trackedEntity == 'Kj6vYde4LHh' }.size()", is(1))
-                .body("instances.attributes.flatten().findAll { it.attribute == 'kZeSYCgaHTk' }.value", everyItem(is("Bravo")));
+        trackerActions.get( "trackedEntities?orgUnit=O6uvpzGd5pu&program=f1AyMswryyQ&filter=kZeSYCgaHTk:in:Bravo" )
+            .validate()
+            .statusCode( 200 )
+            .body( "instances.findAll { it.trackedEntity == 'Kj6vYde4LHh' }.size()", is( 1 ) )
+            .body( "instances.attributes.flatten().findAll { it.attribute == 'kZeSYCgaHTk' }.value", everyItem( is( "Bravo" ) ) );
     }
 
     @Test
     public void shouldReturnSingleTeiGivenFilterWhileSkippingPaging()
     {
 
-        trackerActions.get("trackedEntities?skipPaging=true&orgUnit=O6uvpzGd5pu&program=f1AyMswryyQ&filter=kZeSYCgaHTk:in:Bravo")
-                .validate()
-                .statusCode(200)
-                .body("instances.findAll { it.trackedEntity == 'Kj6vYde4LHh' }.size()", is(1))
-                .body("instances.attributes.flatten().findAll { it.attribute == 'kZeSYCgaHTk' }.value", everyItem(is("Bravo")));
+        trackerActions.get( "trackedEntities?skipPaging=true&orgUnit=O6uvpzGd5pu&program=f1AyMswryyQ&filter=kZeSYCgaHTk:in:Bravo" )
+            .validate()
+            .statusCode( 200 )
+            .body( "instances.findAll { it.trackedEntity == 'Kj6vYde4LHh' }.size()", is( 1 ) )
+            .body( "instances.attributes.flatten().findAll { it.attribute == 'kZeSYCgaHTk' }.value", everyItem( is( "Bravo" ) ) );
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -73,6 +73,7 @@ import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.OrganisationUnitDescendants;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.cache.CacheStrategy;
@@ -88,6 +89,8 @@ import org.hisp.dhis.dataset.notifications.DataSetNotificationRecipient;
 import org.hisp.dhis.dataset.notifications.DataSetNotificationTemplate;
 import org.hisp.dhis.dataset.notifications.DataSetNotificationTrigger;
 import org.hisp.dhis.datavalue.DataValue;
+import org.hisp.dhis.eventvisualization.EventVisualization;
+import org.hisp.dhis.eventvisualization.EventVisualizationType;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.Operator;
 import org.hisp.dhis.external.location.DefaultLocationManager;
@@ -124,6 +127,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramSection;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageInstance;
@@ -221,11 +225,15 @@ public abstract class DhisConvenienceTest
 
     protected static final String BASE_TEI_UID = "teibcdefgh";
 
+    protected static final String BASE_PREDICTOR_GROUP_UID = "predictorg";
+
     private static final String EXT_TEST_DIR = System.getProperty( "user.home" ) + File.separator + "dhis2_test_dir";
 
     public static final String DEFAULT_ADMIN_PASSWORD = "district";
 
     public static final String DEFAULT_USERNAME = "admin";
+
+    private static final String PROGRAM_RULE_VARIABLE = "ProgramRuleVariable";
 
     private static Date date;
 
@@ -244,7 +252,7 @@ public abstract class DhisConvenienceTest
 
     protected static CategoryService categoryService;
 
-    private char nextUserName = 'a';
+    private char nextUserName = 'k';
 
     @PostConstruct
     protected void initServices()
@@ -1248,6 +1256,7 @@ public abstract class DhisConvenienceTest
         predictor.setSampleSkipTest( skipTest );
         predictor.setPeriodType( periodType );
         predictor.setOrganisationUnitLevels( organisationUnitLevels );
+        predictor.setOrganisationUnitDescendants( OrganisationUnitDescendants.DESCENDANTS );
         predictor.setSequentialSampleCount( sequentialSampleCount );
         predictor.setAnnualSampleCount( annualSampleCount );
         predictor.setSequentialSkipCount( sequentialSkipCount );
@@ -1259,15 +1268,22 @@ public abstract class DhisConvenienceTest
      * Creates a Predictor Group
      *
      * @param uniqueCharacter A unique character to identify the object.
+     * @param predictors Predictors to add to the group.
      * @return PredictorGroup
      */
-    public static PredictorGroup createPredictorGroup( char uniqueCharacter )
+    public static PredictorGroup createPredictorGroup( char uniqueCharacter, Predictor... predictors )
     {
         PredictorGroup group = new PredictorGroup();
         group.setAutoFields();
 
         group.setName( "PredictorGroup" + uniqueCharacter );
         group.setDescription( "Description" + uniqueCharacter );
+        group.setUid( BASE_PREDICTOR_GROUP_UID + uniqueCharacter );
+
+        for ( Predictor p : predictors )
+        {
+            group.addPredictor( p );
+        }
 
         return group;
     }
@@ -1318,6 +1334,17 @@ public abstract class DhisConvenienceTest
         return visualization;
     }
 
+    public static EventVisualization createEventVisualization( char uniqueCharacter, Program program )
+    {
+        EventVisualization eventVisualization = new EventVisualization( "name-" + uniqueCharacter );
+        eventVisualization.setAutoFields();
+        eventVisualization.setProgram( program );
+        eventVisualization.setName( "EventVisualization" + uniqueCharacter );
+        eventVisualization.setType( EventVisualizationType.COLUMN );
+
+        return eventVisualization;
+    }
+
     public static User createUser( char uniqueCharacter )
     {
         return createUser( uniqueCharacter, Lists.newArrayList() );
@@ -1330,7 +1357,7 @@ public abstract class DhisConvenienceTest
 
         user.setCreatedBy( user );
 
-        user.setUsername( "username" + uniqueCharacter );
+        user.setUsername( ("username" + uniqueCharacter).toLowerCase() );
         user.setPassword( "password" + uniqueCharacter );
 
         if ( auths != null && !auths.isEmpty() )
@@ -1343,7 +1370,7 @@ public abstract class DhisConvenienceTest
 
         user.setFirstName( "FirstName" + uniqueCharacter );
         user.setSurname( "Surname" + uniqueCharacter );
-        user.setEmail( "Email" + uniqueCharacter );
+        user.setEmail( ("Email" + uniqueCharacter).toLowerCase() );
         user.setPhoneNumber( "PhoneNumber" + uniqueCharacter );
         user.setCode( "UserCode" + uniqueCharacter );
         user.setAutoFields();
@@ -1549,9 +1576,55 @@ public abstract class DhisConvenienceTest
         ProgramRuleVariable programRuleVariable = new ProgramRuleVariable();
         programRuleVariable.setAutoFields();
 
-        programRuleVariable.setName( "ProgramRuleVariable" + uniqueCharacter );
+        programRuleVariable.setName( PROGRAM_RULE_VARIABLE + uniqueCharacter );
         programRuleVariable.setProgram( parentProgram );
         programRuleVariable.setSourceType( ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT );
+        programRuleVariable.setValueType( ValueType.TEXT );
+
+        return programRuleVariable;
+    }
+
+    public static ProgramRuleVariable createProgramRuleVariableWithSourceType( char uniqueCharacter,
+        Program parentProgram,
+        ProgramRuleVariableSourceType sourceType, ValueType valueType )
+    {
+        ProgramRuleVariable programRuleVariable = new ProgramRuleVariable();
+        programRuleVariable.setAutoFields();
+
+        programRuleVariable.setName( PROGRAM_RULE_VARIABLE + uniqueCharacter );
+        programRuleVariable.setProgram( parentProgram );
+        programRuleVariable.setSourceType( sourceType );
+        programRuleVariable.setValueType( valueType );
+
+        return programRuleVariable;
+    }
+
+    public static ProgramRuleVariable createProgramRuleVariableWithDataElement( char uniqueCharacter,
+        Program parentProgram, DataElement dataElement )
+    {
+        ProgramRuleVariable programRuleVariable = new ProgramRuleVariable();
+        programRuleVariable.setAutoFields();
+
+        programRuleVariable.setName( PROGRAM_RULE_VARIABLE + uniqueCharacter );
+        programRuleVariable.setProgram( parentProgram );
+        programRuleVariable.setDataElement( dataElement );
+        programRuleVariable.setSourceType( ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT );
+        programRuleVariable.setValueType( dataElement.getValueType() );
+
+        return programRuleVariable;
+    }
+
+    public static ProgramRuleVariable createProgramRuleVariableWithTEA( char uniqueCharacter, Program parentProgram,
+        TrackedEntityAttribute attribute )
+    {
+        ProgramRuleVariable programRuleVariable = new ProgramRuleVariable();
+        programRuleVariable.setAutoFields();
+
+        programRuleVariable.setName( PROGRAM_RULE_VARIABLE + uniqueCharacter );
+        programRuleVariable.setProgram( parentProgram );
+        programRuleVariable.setAttribute( attribute );
+        programRuleVariable.setSourceType( ProgramRuleVariableSourceType.TEI_ATTRIBUTE );
+        programRuleVariable.setValueType( attribute.getValueType() );
 
         return programRuleVariable;
     }
@@ -2553,6 +2626,16 @@ public abstract class DhisConvenienceTest
         }
         userService.addUser( user );
         return user;
+    }
+
+    protected final ProgramSection createProgramSection( char uniqueCharacter, Program program )
+    {
+        ProgramSection programSection = new ProgramSection();
+        programSection.setProgram( program );
+        programSection.setSortOrder( 0 );
+        programSection.setName( "ProgramSection" + uniqueCharacter );
+        programSection.setAutoFields();
+        return programSection;
     }
 
 }

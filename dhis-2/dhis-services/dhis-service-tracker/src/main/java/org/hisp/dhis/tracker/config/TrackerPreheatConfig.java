@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,7 +37,7 @@ import org.springframework.context.annotation.Configuration;
 
 import com.google.common.collect.ImmutableList;
 
-@Configuration
+@Configuration( "trackerPreheatConfig" )
 public class TrackerPreheatConfig
 {
     private final List<Class<? extends PreheatSupplier>> preheatOrder = ImmutableList.of(

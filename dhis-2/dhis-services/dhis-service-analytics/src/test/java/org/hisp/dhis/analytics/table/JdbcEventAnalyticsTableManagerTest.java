@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,7 +49,7 @@ import static org.hisp.dhis.analytics.ColumnDataType.GEOMETRY_POINT;
 import static org.hisp.dhis.analytics.ColumnDataType.INTEGER;
 import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
 import static org.hisp.dhis.analytics.ColumnDataType.TIMESTAMP;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -99,14 +99,13 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.joda.time.DateTime;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import com.google.common.collect.ImmutableMap;
@@ -116,8 +115,10 @@ import com.google.common.collect.Sets;
 /**
  * @author Luciano Fiandesio
  */
-public class JdbcEventAnalyticsTableManagerTest
+@ExtendWith( MockitoExtension.class )
+class JdbcEventAnalyticsTableManagerTest
 {
+
     @Mock
     private IdentifiableObjectManager idObjectManager;
 
@@ -138,9 +139,6 @@ public class JdbcEventAnalyticsTableManagerTest
     @Mock
     private JdbcTemplate jdbcTemplate;
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
     private JdbcEventAnalyticsTableManager subject;
 
     private Date today;
@@ -158,7 +156,7 @@ public class JdbcEventAnalyticsTableManagerTest
 
     private final BeanRandomizer rnd = BeanRandomizer.create();
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         statementBuilder = new PostgreSQLStatementBuilder();
@@ -172,13 +170,13 @@ public class JdbcEventAnalyticsTableManagerTest
     }
 
     @Test
-    public void verifyTableType()
+    void verifyTableType()
     {
         assertThat( subject.getAnalyticsTableType(), is( AnalyticsTableType.EVENT ) );
     }
 
     @Test
-    public void verifyGetLatestAnalyticsTables()
+    void verifyGetLatestAnalyticsTables()
     {
         Program prA = createProgram( 'A' );
         Program prB = createProgram( 'B' );
@@ -231,7 +229,7 @@ public class JdbcEventAnalyticsTableManagerTest
     }
 
     @Test
-    public void verifyGetTableWithCategoryCombo()
+    void verifyGetTableWithCategoryCombo()
     {
         Program program = createProgram( 'A' );
 
@@ -267,7 +265,7 @@ public class JdbcEventAnalyticsTableManagerTest
     }
 
     @Test
-    public void verifyGetTableWithDataElements()
+    void verifyGetTableWithDataElements()
     {
         when( databaseInfo.isSpatialSupport() ).thenReturn( true );
         Program program = createProgram( 'A' );
@@ -294,7 +292,7 @@ public class JdbcEventAnalyticsTableManagerTest
             + FROM_CLAUSE + " ) as \"%s\"";
         String aliasD4 = "(select cast(eventdatavalues #>> '{%s, value}' as timestamp) " + FROM_CLAUSE
             + "  and eventdatavalues #>> '{%s,value}' " + statementBuilder.getRegexpMatch()
-            + " '^\\d{4}-\\d{2}-\\d{2}(\\s|T)?((\\d{2}:)(\\d{2}:)?(\\d{2}))?$') as \"%s\"";
+            + " '^\\d{4}-\\d{2}-\\d{2}(\\s|T)?((\\d{2}:)(\\d{2}:)?(\\d{2}))?(|.(\\d{3})|.(\\d{3})Z)?$') as \"%s\"";
         String aliasD5 = "(select ou.uid from organisationunit ou where ou.uid = " + "(select eventdatavalues #>> '{"
             + d5.getUid() + ", value}' " + FROM_CLAUSE + " )) as \"" + d5.getUid() + "\"";
         String aliasD6 = "(select cast(eventdatavalues #>> '{%s, value}' as bigint) " + FROM_CLAUSE
@@ -337,7 +335,7 @@ public class JdbcEventAnalyticsTableManagerTest
     }
 
     @Test
-    public void verifyGetTableWithTrackedEntityAttribute()
+    void verifyGetTableWithTrackedEntityAttribute()
     {
         when( databaseInfo.isSpatialSupport() ).thenReturn( true );
         Program program = createProgram( 'A' );
@@ -388,7 +386,7 @@ public class JdbcEventAnalyticsTableManagerTest
     }
 
     @Test
-    public void verifyDataElementTypeOrgUnitFetchesOuNameWhenPopulatingEventAnalyticsTable()
+    void verifyDataElementTypeOrgUnitFetchesOuNameWhenPopulatingEventAnalyticsTable()
     {
         ArgumentCaptor<String> sql = ArgumentCaptor.forClass( String.class );
         when( databaseInfo.isSpatialSupport() ).thenReturn( true );
@@ -423,7 +421,7 @@ public class JdbcEventAnalyticsTableManagerTest
     }
 
     @Test
-    public void verifyTeiTypeOrgUnitFetchesOuNameWhenPopulatingEventAnalyticsTable()
+    void verifyTeiTypeOrgUnitFetchesOuNameWhenPopulatingEventAnalyticsTable()
     {
         ArgumentCaptor<String> sql = ArgumentCaptor.forClass( String.class );
         when( databaseInfo.isSpatialSupport() ).thenReturn( true );
@@ -460,7 +458,7 @@ public class JdbcEventAnalyticsTableManagerTest
     }
 
     @Test
-    public void verifyGetAnalyticsTableWithOuLevels()
+    void verifyGetAnalyticsTableWithOuLevels()
     {
         List<OrganisationUnitLevel> ouLevels = rnd.objects( OrganisationUnitLevel.class, 2 )
             .collect( Collectors.toList() );
@@ -490,7 +488,7 @@ public class JdbcEventAnalyticsTableManagerTest
     }
 
     @Test
-    public void verifyGetAnalyticsTableWithOuGroupSet()
+    void verifyGetAnalyticsTableWithOuGroupSet()
     {
         List<OrganisationUnitGroupSet> ouGroupSet = rnd.objects( OrganisationUnitGroupSet.class, 2 )
             .collect( Collectors.toList() );
@@ -519,7 +517,7 @@ public class JdbcEventAnalyticsTableManagerTest
     }
 
     @Test
-    public void verifyGetAnalyticsTableWithOptionGroupSets()
+    void verifyGetAnalyticsTableWithOptionGroupSets()
     {
         List<CategoryOptionGroupSet> cogs = rnd.objects( CategoryOptionGroupSet.class, 2 )
             .collect( Collectors.toList() );
@@ -585,7 +583,7 @@ public class JdbcEventAnalyticsTableManagerTest
     }
 
     @Test
-    public void verifyTeaTypeOrgUnitFetchesOuNameWhenPopulatingEventAnalyticsTable()
+    void verifyTeaTypeOrgUnitFetchesOuNameWhenPopulatingEventAnalyticsTable()
     {
         ArgumentCaptor<String> sql = ArgumentCaptor.forClass( String.class );
         when( databaseInfo.isSpatialSupport() ).thenReturn( true );

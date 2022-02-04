@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,21 +34,20 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.analytics.UserOrgUnitType;
 import org.joda.time.LocalDateTime;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import com.google.common.collect.Sets;
 
 /**
  * @author Luciano Fiandesio
  */
-public class DataQueryRequestTest
+class DataQueryRequestTest
 {
 
     @Test
-    public void t1()
+    void t1()
     {
         AggregateAnalyticsQueryCriteria criteria = new AggregateAnalyticsQueryCriteria();
-
         criteria.setDimension( Sets.newHashSet( "dx:abcde;bcdef", "pe:123435" ) );
         criteria.setFilter( Sets.newHashSet( "ou:abcdef" ) );
         criteria.setAggregationType( AggregationType.AVERAGE_SUM_ORG_UNIT );
@@ -78,9 +77,7 @@ public class DataQueryRequestTest
         criteria.setUserOrgUnit( "ou1ou2ou3" );
         criteria.setColumns( "cols" );
         criteria.setRows( "rows" );
-
         final DataQueryRequest build = DataQueryRequest.newBuilder().fromCriteria( criteria ).build();
-
         assertThat( build.getDimension(), is( criteria.getDimension() ) );
         assertThat( build.getFilter(), is( criteria.getFilter() ) );
         assertThat( build.getAggregationType(), is( criteria.getAggregationType() ) );
@@ -110,5 +107,4 @@ public class DataQueryRequestTest
         assertThat( build.getRelativePeriodDate(), is( criteria.getRelativePeriodDate() ) );
         assertThat( build.getUserOrgUnit(), is( criteria.getUserOrgUnit() ) );
     }
-
 }

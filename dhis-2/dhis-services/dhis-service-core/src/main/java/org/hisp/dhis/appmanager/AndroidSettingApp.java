@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,16 +27,15 @@
  */
 package org.hisp.dhis.appmanager;
 
-import org.hisp.dhis.keyjsonvalue.KeyJsonNamespaceProtection;
-import org.hisp.dhis.keyjsonvalue.KeyJsonNamespaceProtection.ProtectionType;
-import org.hisp.dhis.keyjsonvalue.KeyJsonValueService;
+import org.hisp.dhis.datastore.DatastoreNamespaceProtection;
+import org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionType;
+import org.hisp.dhis.datastore.DatastoreService;
 import org.springframework.stereotype.Component;
 
 /**
  * The main purpose (so far) of the {@link AndroidSettingApp} component is to
- * establish the protected {@link #NAMESPACE} in the {@link KeyJsonValueService}
- * so that only the app can write to it using a role having the
- * {@link #AUTHORITY}.
+ * establish the protected {@link #NAMESPACE} in the {@link DatastoreService} so
+ * that only the app can write to it using a role having the {@link #AUTHORITY}.
  *
  * @author Jan Bernitt
  */
@@ -47,9 +46,9 @@ public class AndroidSettingApp
 
     public static final String AUTHORITY = "M_Android_Setting";
 
-    public AndroidSettingApp( KeyJsonValueService service )
+    public AndroidSettingApp( DatastoreService service )
     {
-        service.addProtection( new KeyJsonNamespaceProtection( NAMESPACE, ProtectionType.NONE,
+        service.addProtection( new DatastoreNamespaceProtection( NAMESPACE, ProtectionType.NONE,
             ProtectionType.RESTRICTED, false, AUTHORITY ) );
     }
 }

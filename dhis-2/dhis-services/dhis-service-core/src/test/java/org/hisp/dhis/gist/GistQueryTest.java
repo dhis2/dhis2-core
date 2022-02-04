@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,12 +27,12 @@
  */
 package org.hisp.dhis.gist;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.gist.GistQuery.Comparison;
 import org.hisp.dhis.gist.GistQuery.Filter;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests the {@link GistQuery} API methods to compose a {@link GistQuery}
@@ -40,11 +40,11 @@ import org.junit.Test;
  *
  * @author Jan Bernitt
  */
-public class GistQueryTest
+class GistQueryTest
 {
 
     @Test
-    public void testFilterParse()
+    void testFilterParse()
     {
         assertFilterEquals( Filter.parse( "name:eq:2" ), 0, "name", Comparison.EQ, "2" );
         assertFilterEquals( Filter.parse( "1:name:eq:2" ), 1, "name", Comparison.EQ, "2" );

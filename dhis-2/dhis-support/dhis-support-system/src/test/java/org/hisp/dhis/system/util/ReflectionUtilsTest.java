@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +27,16 @@
  */
 package org.hisp.dhis.system.util;
 
-import static org.hisp.dhis.system.util.ReflectionUtils.*;
-import static org.junit.Assert.*;
+import static org.hisp.dhis.system.util.ReflectionUtils.getClassName;
+import static org.hisp.dhis.system.util.ReflectionUtils.getId;
+import static org.hisp.dhis.system.util.ReflectionUtils.getProperty;
+import static org.hisp.dhis.system.util.ReflectionUtils.isCollection;
+import static org.hisp.dhis.system.util.ReflectionUtils.setProperty;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -37,18 +45,18 @@ import java.util.List;
 
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.dataelement.DataElement;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Lars Helge Overland
  */
-public class ReflectionUtilsTest
+class ReflectionUtilsTest
 {
     private DataElement dataElementA;
 
-    @Before
-    public void before()
+    @BeforeEach
+    void before()
     {
         dataElementA = new DataElement();
         dataElementA.setId( 8 );
@@ -57,45 +65,43 @@ public class ReflectionUtilsTest
     }
 
     @Test
-    public void testGetId()
+    void testGetId()
     {
         assertEquals( 8, getId( dataElementA ) );
     }
 
     @Test
-    public void testGetProperty()
+    void testGetProperty()
     {
         assertEquals( "NameA", getProperty( dataElementA, "name" ) );
         assertNull( getProperty( dataElementA, "color" ) );
     }
 
     @Test
-    public void testSetProperty()
+    void testSetProperty()
     {
         setProperty( dataElementA, "shortName", "ShortNameA" );
-
         assertEquals( "ShortNameA", dataElementA.getShortName() );
     }
 
-    @Test( expected = UnsupportedOperationException.class )
-    public void testSetPropertyException()
+    @Test
+    void testSetPropertyException()
     {
-        setProperty( dataElementA, "color", "Blue" );
+        assertThrows( UnsupportedOperationException.class, () -> setProperty( dataElementA, "color", "Blue" ) );
     }
 
     @Test
-    public void testGetClassName()
+    void testGetClassName()
     {
         assertEquals( "DataElement", getClassName( dataElementA ) );
     }
 
     @Test
-    public void testIsCollection()
+    void testIsCollection()
     {
         List<Object> colA = new ArrayList<>();
         Collection<DataElement> colB = new HashSet<>();
         Collection<DataElement> colC = new ArrayList<>();
-
         assertTrue( isCollection( colA ) );
         assertTrue( isCollection( colB ) );
         assertTrue( isCollection( colC ) );

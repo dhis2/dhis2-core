@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -90,6 +90,7 @@ public class DateUtils
     };
 
     private static final DateTimeParser[] SUPPORTED_DATE_TIME_FORMAT_PARSERS = {
+        DateTimeFormat.forPattern( "yyyy-MM-dd'T'HH:mm:ss.SSSSSSSSSZ" ).getParser(),
         DateTimeFormat.forPattern( "yyyy-MM-dd'T'HH:mm:ss.SSSSSSZ" ).getParser(),
         DateTimeFormat.forPattern( "yyyy-MM-dd'T'HH:mm:ss.SSSSSS" ).getParser(),
         DateTimeFormat.forPattern( "yyyy-MM-dd'T'HH:mm:ss.SSSSZ" ).getParser(),

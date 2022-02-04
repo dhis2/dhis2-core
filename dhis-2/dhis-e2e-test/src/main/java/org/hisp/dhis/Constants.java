@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +27,10 @@
  */
 package org.hisp.dhis;
 
+import org.hisp.dhis.dto.Program;
+
+import java.util.Arrays;
+
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
@@ -50,7 +54,11 @@ public class Constants
 
     public static String EVENT_PROGRAM_STAGE_ID = "jKLB23QZS4I";
 
-    public static String TRACKER_PROGRAM_ID = "f1AyMswryyQ";
+    public static Program TRACKER_PROGRAM = new Program()
+        .setUid( "f1AyMswryyQ" )
+        .setProgramStages( Arrays.asList( "PaOOjwLVW23", "nlXNK4b7LVr" ) );
+
+    public static String TRACKER_PROGRAM_ID = "f1AyMswryyQ"; // todo: remove and use TRACKER_PROGRAM with associated program stages to avoid GET /programs/id/programStages calls
 
     public static String ANOTHER_TRACKER_PROGRAM_ID = "f1AyMswryyX";
 

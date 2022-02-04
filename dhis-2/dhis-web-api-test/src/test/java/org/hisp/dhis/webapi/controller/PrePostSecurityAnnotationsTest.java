@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,40 +27,37 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.List;
 
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.DhisWebSpringTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpSession;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class PrePostSecurityAnnotationsTest extends DhisWebSpringTest
+class PrePostSecurityAnnotationsTest extends DhisWebSpringTest
 {
+
     @Test
-    public void authorityAllCanAccessApps()
+    void authorityAllCanAccessApps()
         throws Exception
     {
         MockHttpSession session = getSession( "ALL" );
-
-        mvc.perform( put( "/apps" ).session( session ) )
-            .andExpect( status().isNoContent() );
+        mvc.perform( put( "/apps" ).session( session ) ).andExpect( status().isNoContent() );
     }
 
     @Test
-    public void authorityNoAuthorityCantAccessApps()
+    void authorityNoAuthorityCantAccessApps()
         throws Exception
     {
         clearSecurityContext();
         List<User> allUsers = userService.getAllUsers();
         MockHttpSession session = getSession( "NO_AUTHORITY" );
-
-        mvc.perform( put( "/apps" ).session( session ) )
-            .andExpect( status().isForbidden() );
+        mvc.perform( put( "/apps" ).session( session ) ).andExpect( status().isForbidden() );
     }
 }

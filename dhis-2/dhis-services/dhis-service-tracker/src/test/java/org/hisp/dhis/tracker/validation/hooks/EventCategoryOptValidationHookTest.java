@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,13 +27,15 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.category.CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
 import static org.hisp.dhis.category.CategoryOption.DEFAULT_NAME;
+import static org.hisp.dhis.tracker.TrackerType.EVENT;
 import static org.hisp.dhis.tracker.ValidationMode.FULL;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1055;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1056;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1057;
+import static org.hisp.dhis.tracker.validation.hooks.AssertValidationErrorReporter.hasTrackerError;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -45,37 +47,37 @@ import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.mock.MockI18nFormat;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.user.User;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Jim Grace
  */
-public class EventCategoryOptValidationHookTest
-    extends DhisConvenienceTest
+@MockitoSettings( strictness = Strictness.LENIENT )
+@ExtendWith( MockitoExtension.class )
+class EventCategoryOptValidationHookTest extends DhisConvenienceTest
 {
+
     @Mock
     private I18nManager i18nManager;
 
     @Mock
     private TrackerImportValidationContext validationContext;
-
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     private static final I18nFormat I18N_FORMAT = new MockI18nFormat();
 
@@ -109,7 +111,7 @@ public class EventCategoryOptValidationHookTest
 
     private final int OPEN_DAYS_AFTER_CO_END_DATE = 400;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         initServices();
@@ -136,6 +138,7 @@ public class EventCategoryOptValidationHookTest
         program.setCategoryCombo( catCombo );
 
         event = new Event();
+        event.setEvent( CodeGenerator.generateUid() );
         event.setProgram( program.getUid() );
         event.setOccurredAt( EVENT_INSTANT );
 
@@ -154,11 +157,11 @@ public class EventCategoryOptValidationHookTest
         when( i18nManager.getI18nFormat() )
             .thenReturn( I18N_FORMAT );
 
-        reporter = new ValidationErrorReporter( validationContext, event );
+        reporter = new ValidationErrorReporter( validationContext );
     }
 
     @Test
-    public void testDefaultCoc()
+    void testDefaultCoc()
     {
         // given
         program.setCategoryCombo( defaultCatCombo );
@@ -174,7 +177,7 @@ public class EventCategoryOptValidationHookTest
     }
 
     @Test
-    public void testDefaultCocWithNonDefaultCatCombo()
+    void testDefaultCocWithNonDefaultCatCombo()
     {
         // given
         program.setCategoryCombo( catCombo );
@@ -186,12 +189,11 @@ public class EventCategoryOptValidationHookTest
         hook.validateEvent( reporter, event );
 
         // then
-        assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E1055 ) );
+        hasTrackerError( reporter, E1055, EVENT, event.getUid() );
     }
 
     @Test
-    public void testNoCategoryOptionDates()
+    void testNoCategoryOptionDates()
     {
         // when
         when( validationContext.getCachedEventCategoryOptionCombo( any() ) )
@@ -204,7 +206,7 @@ public class EventCategoryOptValidationHookTest
     }
 
     @Test
-    public void testBetweenCategoryOptionDates()
+    void testBetweenCategoryOptionDates()
     {
         // given
         catOption.setStartDate( ONE_YEAR_BEFORE_EVENT );
@@ -221,7 +223,7 @@ public class EventCategoryOptValidationHookTest
     }
 
     @Test
-    public void testBeforeCategoryOptionStart()
+    void testBeforeCategoryOptionStart()
     {
         // given
         catOption.setStartDate( ONE_YEAR_AFTER_EVENT );
@@ -233,12 +235,11 @@ public class EventCategoryOptValidationHookTest
         hook.validateEvent( reporter, event );
 
         // then
-        assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E1056 ) );
+        hasTrackerError( reporter, E1056, EVENT, event.getUid() );
     }
 
     @Test
-    public void testAfterCategoryOptionEnd()
+    void testAfterCategoryOptionEnd()
     {
         // given
         catOption.setEndDate( ONE_YEAR_BEFORE_EVENT );
@@ -250,12 +251,11 @@ public class EventCategoryOptValidationHookTest
         hook.validateEvent( reporter, event );
 
         // then
-        assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E1057 ) );
+        hasTrackerError( reporter, E1057, EVENT, event.getUid() );
     }
 
     @Test
-    public void testBeforeOpenDaysAfterCoEndDate()
+    void testBeforeOpenDaysAfterCoEndDate()
     {
         // given
         catOption.setEndDate( ONE_YEAR_BEFORE_EVENT );

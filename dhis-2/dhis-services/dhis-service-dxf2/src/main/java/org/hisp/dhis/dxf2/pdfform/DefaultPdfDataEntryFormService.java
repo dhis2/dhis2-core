@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -59,10 +59,10 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.util.DateUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
+import com.google.common.base.Preconditions;
 import com.lowagie.text.Chunk;
 import com.lowagie.text.Document;
 import com.lowagie.text.DocumentException;
@@ -110,22 +110,28 @@ public class DefaultPdfDataEntryFormService
 
     private static final Integer PROGRAM_FORM_ROW_NUMBER = 10;
 
+    // TODO this variable should not have class scope
     private PdfFormFontSettings pdfFormFontSettings;
 
+    // TODO this variable should not have class scope
     private I18nFormat format;
 
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
-    @Autowired
     private DataSetService dataSetService;
 
-    @Autowired
     private ProgramStageService programStageService;
 
-    @Autowired
     private OptionService optionService;
+
+    public DefaultPdfDataEntryFormService( DataSetService dataSetService, ProgramStageService programStageService,
+        OptionService optionService )
+    {
+        this.dataSetService = dataSetService;
+        this.programStageService = programStageService;
+        this.optionService = optionService;
+        Preconditions.checkNotNull( dataSetService );
+        Preconditions.checkNotNull( programStageService );
+        Preconditions.checkNotNull( optionService );
+    }
 
     // -------------------------------------------------------------------------
     // PdfDataEntryFormService implementation

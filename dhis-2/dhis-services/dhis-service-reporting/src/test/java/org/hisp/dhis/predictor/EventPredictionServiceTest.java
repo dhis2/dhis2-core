@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,7 +29,7 @@ package org.hisp.dhis.predictor;
 
 import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
 import static org.hisp.dhis.expression.Expression.SEPARATOR;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -82,7 +82,7 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.CurrentUserServiceTarget;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Sets;
@@ -92,9 +92,9 @@ import com.google.common.collect.Sets;
  *
  * @author Jim Grace
  */
-public class EventPredictionServiceTest
-    extends IntegrationTestBase
+class EventPredictionServiceTest extends IntegrationTestBase
 {
+
     @Autowired
     private PredictorService predictorService;
 
@@ -190,57 +190,54 @@ public class EventPredictionServiceTest
         final String PROGRAM_TRACKED_ENTITY_ATTRIBUTE_DIMENSION_ITEM = PROGRAM_UID + SEPARATOR
             + TRACKED_ENTITY_ATTRIBUTE_UID;
         final String PROGRAM_DATA_ELEMENT_DIMENSION_ITEM = PROGRAM_UID + SEPARATOR + DATA_ELEMENT_X_UID;
-
-        final String EXPRESSION_A = "sum( A{" + PROGRAM_TRACKED_ENTITY_ATTRIBUTE_DIMENSION_ITEM + "} )"; // A
-                                                                                                         // -
-                                                                                                         // ProgramTrackedEntityAttribute
-        final String EXPRESSION_D = "sum( D{" + PROGRAM_DATA_ELEMENT_DIMENSION_ITEM + "} )"; // D
-                                                                                             // -
-                                                                                             // ProgramDataElement
-        final String EXPRESSION_I = "sum( I{" + PROGRAM_INDICATOR_A_UID + "} + I{" + PROGRAM_INDICATOR_B_UID + "} )"; // I
-                                                                                                                      // -
-                                                                                                                      // ProgramIndicators
-        final String EXPRESSION_E = "sum( #{" + DATA_ELEMENT_E_UID + "} )"; // E
-                                                                            // -
-                                                                            // Data
-                                                                            // element
-        final String EXPRESSION_T = EXPRESSION_A + " + " + EXPRESSION_E; // T -
-                                                                         // Two
-                                                                         // things,
-                                                                         // event
-                                                                         // and
-                                                                         // data
-                                                                         // elemeent
-
-        final String EX_INDICATOR_A = "#{" + PROGRAM_DATA_ELEMENT_DIMENSION_ITEM + "} + 4"; // Program
-                                                                                            // Indicator
-                                                                                            // A
-                                                                                            // expression
-        final String EX_INDICATOR_B = "V{enrollment_count}"; // Program
-                                                             // Indicator B
-                                                             // expression
-
+        // A
+        final String EXPRESSION_A = "sum( A{" + PROGRAM_TRACKED_ENTITY_ATTRIBUTE_DIMENSION_ITEM + "} )";
+        // -
+        // ProgramTrackedEntityAttribute
+        // D
+        final String EXPRESSION_D = "sum( D{" + PROGRAM_DATA_ELEMENT_DIMENSION_ITEM + "} )";
+        // -
+        // ProgramDataElement
+        // I
+        final String EXPRESSION_I = "sum( I{" + PROGRAM_INDICATOR_A_UID + "} + I{" + PROGRAM_INDICATOR_B_UID + "} )";
+        // -
+        // ProgramIndicators
+        // E
+        final String EXPRESSION_E = "sum( #{" + DATA_ELEMENT_E_UID + "} )";
+        // -
+        // Data
+        // element
+        // T -
+        final String EXPRESSION_T = EXPRESSION_A + " + " + EXPRESSION_E;
+        // Two
+        // things,
+        // event
+        // and
+        // data
+        // elemeent
+        // Program
+        final String EX_INDICATOR_A = "#{" + PROGRAM_DATA_ELEMENT_DIMENSION_ITEM + "} + 4";
+        // Indicator
+        // A
+        // expression
+        // Program
+        final String EX_INDICATOR_B = "V{enrollment_count}";
+        // Indicator B
+        // expression
         defaultCombo = categoryService.getDefaultCategoryOptionCombo();
-
         orgUnitA = createOrganisationUnit( 'A' );
         organisationUnitService.addOrganisationUnit( orgUnitA );
         Set<OrganisationUnit> orgUnitASet = Sets.newHashSet( orgUnitA );
-
         PeriodType periodTypeMonthly = new MonthlyPeriodType();
-
         testYear = Calendar.getInstance().get( Calendar.YEAR ) - 1;
-
         periodMar = createPeriod( periodTypeMonthly, getDate( testYear, 3, 1 ), getDate( testYear, 3, 31 ) );
         periodApr = createPeriod( periodTypeMonthly, getDate( testYear, 4, 1 ), getDate( testYear, 4, 30 ) );
         periodMay = createPeriod( periodTypeMonthly, getDate( testYear, 5, 1 ), getDate( testYear, 5, 31 ) );
-
         periodService.addPeriod( periodMar );
         periodService.addPeriod( periodApr );
         periodService.addPeriod( periodMay );
-
         Date dateMar20 = getDate( testYear, 3, 20 );
         Date dateApr10 = getDate( testYear, 4, 10 );
-
         predictorOutputA = createDataElement( 'A' );
         predictorOutputD = createDataElement( 'D' );
         predictorOutputI = createDataElement( 'I' );
@@ -248,107 +245,81 @@ public class EventPredictionServiceTest
         DataElement dataElementE = createDataElement( 'E' );
         DataElement dataElementX = createDataElement( 'P', ValueType.INTEGER, AggregationType.SUM,
             DataElementDomain.TRACKER );
-
         predictorOutputA.setUid( DATA_ELEMENT_A_UID );
         predictorOutputD.setUid( DATA_ELEMENT_D_UID );
         predictorOutputI.setUid( DATA_ELEMENT_I_UID );
         predictorOutputT.setUid( DATA_ELEMENT_T_UID );
         dataElementE.setUid( DATA_ELEMENT_E_UID );
         dataElementX.setUid( DATA_ELEMENT_X_UID );
-
         dataElementService.addDataElement( predictorOutputA );
         dataElementService.addDataElement( predictorOutputD );
         dataElementService.addDataElement( predictorOutputI );
         dataElementService.addDataElement( predictorOutputT );
         dataElementService.addDataElement( dataElementE );
         dataElementService.addDataElement( dataElementX );
-
         TrackedEntityAttribute entityAttribute = createTrackedEntityAttribute( 'A' );
         entityAttribute.setAggregationType( AggregationType.COUNT );
         entityAttribute.setUid( TRACKED_ENTITY_ATTRIBUTE_UID );
         entityAttributeService.addTrackedEntityAttribute( entityAttribute );
-
         TrackedEntityInstance entityInstance = createTrackedEntityInstance( 'A', orgUnitA, entityAttribute );
         entityInstanceService.addTrackedEntityInstance( entityInstance );
-
         TrackedEntityAttributeValue trackedEntityAttributeValue = new TrackedEntityAttributeValue( entityAttribute,
             entityInstance );
         trackedEntityAttributeValue.setValue( "123" );
         entityAttributeValueService.addTrackedEntityAttributeValue( trackedEntityAttributeValue );
-
         entityInstance.setTrackedEntityAttributeValues( Sets.newHashSet( trackedEntityAttributeValue ) );
         entityInstanceService.updateTrackedEntityInstance( entityInstance );
-
-        Program program = createProgram( 'A', null,
-            Sets.newHashSet( entityAttribute ), orgUnitASet, null );
+        Program program = createProgram( 'A', null, Sets.newHashSet( entityAttribute ), orgUnitASet, null );
         program.setUid( PROGRAM_UID );
         programService.addProgram( program );
-
         ProgramStage stageA = createProgramStage( 'A', 0 );
         stageA.setProgram( program );
         stageA.addDataElement( dataElementX, 1 );
         programStageService.saveProgramStage( stageA );
-
         ProgramIndicator programIndicatorA = createProgramIndicator( 'A', program, EX_INDICATOR_A, null );
         programIndicatorA.setAggregationType( AggregationType.SUM );
         programIndicatorA.setUid( PROGRAM_INDICATOR_A_UID );
         programIndicatorService.addProgramIndicator( programIndicatorA );
-
         ProgramIndicator programIndicatorB = createProgramIndicator( 'B', program, EX_INDICATOR_B, null );
         programIndicatorB.setAnalyticsType( AnalyticsType.ENROLLMENT );
         programIndicatorB.setAggregationType( AggregationType.COUNT );
         programIndicatorB.setUid( PROGRAM_INDICATOR_B_UID );
         programIndicatorService.addProgramIndicator( programIndicatorB );
-
         program.setProgramStages( Sets.newHashSet( stageA ) );
         program.getProgramIndicators().add( programIndicatorA );
         program.getProgramIndicators().add( programIndicatorB );
         programService.updateProgram( program );
-
         ProgramInstance programInstance = programInstanceService.enrollTrackedEntityInstance( entityInstance, program,
             dateMar20, dateMar20, orgUnitA );
         programInstanceService.addProgramInstance( programInstance );
-
         ProgramStageInstance stageInstanceA = programStageInstanceService.createProgramStageInstance( programInstance,
             stageA, dateMar20, dateMar20, orgUnitA );
         ProgramStageInstance stageInstanceB = programStageInstanceService.createProgramStageInstance( programInstance,
             stageA, dateApr10, dateApr10, orgUnitA );
-
         stageInstanceA.setExecutionDate( dateMar20 );
         stageInstanceB.setExecutionDate( dateApr10 );
-
         stageInstanceA.setAttributeOptionCombo( defaultCombo );
         stageInstanceB.setAttributeOptionCombo( defaultCombo );
-
         programStageInstanceService.addProgramStageInstance( stageInstanceA );
         programStageInstanceService.addProgramStageInstance( stageInstanceB );
-
         categoryManager.addAndPruneAllOptionCombos();
-
         Expression expressionA = new Expression( EXPRESSION_A, "ProgramTrackedEntityAttribute" );
         Expression expressionD = new Expression( EXPRESSION_D, "ProgramDataElement" );
         Expression expressionI = new Expression( EXPRESSION_I, "ProgramIndicators" );
         Expression expressionT = new Expression( EXPRESSION_T, "Two things" );
-
         OrganisationUnitLevel orgUnitLevel1 = new OrganisationUnitLevel( 1, "Level1" );
         organisationUnitService.addOrganisationUnitLevel( orgUnitLevel1 );
-
-        predictorA = createPredictor( predictorOutputA, defaultCombo, "A", expressionA, null,
-            periodTypeMonthly, orgUnitLevel1, 2, 0, 0 );
-
-        predictorD = createPredictor( predictorOutputD, defaultCombo, "D", expressionD, null,
-            periodTypeMonthly, orgUnitLevel1, 2, 0, 0 );
-
-        predictorI = createPredictor( predictorOutputI, defaultCombo, "I", expressionI, null,
-            periodTypeMonthly, orgUnitLevel1, 2, 0, 0 );
-
-        predictorT = createPredictor( predictorOutputT, defaultCombo, "T", expressionT, null,
-            periodTypeMonthly, orgUnitLevel1, 2, 0, 0 );
-
+        predictorA = createPredictor( predictorOutputA, defaultCombo, "A", expressionA, null, periodTypeMonthly,
+            orgUnitLevel1, 2, 0, 0 );
+        predictorD = createPredictor( predictorOutputD, defaultCombo, "D", expressionD, null, periodTypeMonthly,
+            orgUnitLevel1, 2, 0, 0 );
+        predictorI = createPredictor( predictorOutputI, defaultCombo, "I", expressionI, null, periodTypeMonthly,
+            orgUnitLevel1, 2, 0, 0 );
+        predictorT = createPredictor( predictorOutputT, defaultCombo, "T", expressionT, null, periodTypeMonthly,
+            orgUnitLevel1, 2, 0, 0 );
         predictorService.addPredictor( predictorA );
         predictorService.addPredictor( predictorD );
         predictorService.addPredictor( predictorI );
-
         Map<String, Grid> itemGridMap = new HashMap<>();
         itemGridMap.put( PROGRAM_TRACKED_ENTITY_ATTRIBUTE_DIMENSION_ITEM,
             newGrid( PROGRAM_TRACKED_ENTITY_ATTRIBUTE_DIMENSION_ITEM, 1.0, 1.0 ) );
@@ -356,17 +327,13 @@ public class EventPredictionServiceTest
             newGrid( PROGRAM_DATA_ELEMENT_DIMENSION_ITEM, 4.0, 5.0 ) );
         itemGridMap.put( PROGRAM_INDICATOR_A_UID, newGrid( PROGRAM_INDICATOR_A_UID, 8.0, 9.0 ) );
         itemGridMap.put( PROGRAM_INDICATOR_B_UID, newGrid( PROGRAM_INDICATOR_B_UID, 10.0, 11.0 ) );
-
         MockAnalyticsService mockAnalyticsSerivce = new MockAnalyticsService();
         mockAnalyticsSerivce.setItemGridMap( itemGridMap );
-
         setDependency( AnalyticsServiceTarget.class, AnalyticsServiceTarget::setAnalyticsService, mockAnalyticsSerivce,
             predictionService );
-
         CurrentUserService mockCurrentUserService = new MockCurrentUserService( true, orgUnitASet, orgUnitASet );
         setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
             mockCurrentUserService, predictionService );
-
         dataValueService
             .addDataValue( createDataValue( dataElementE, periodMar, orgUnitA, defaultCombo, defaultCombo, "100" ) );
         dataValueService
@@ -387,7 +354,6 @@ public class EventPredictionServiceTest
     // -------------------------------------------------------------------------
     // Local convenience methods
     // -------------------------------------------------------------------------
-
     /**
      * Make a data grid for MockAnalyticsService to return.
      *
@@ -403,9 +369,7 @@ public class EventPredictionServiceTest
         grid.addHeader( new GridHeader( DimensionalObject.ORGUNIT_DIM_ID ) );
         grid.addHeader( new GridHeader( DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID ) );
         grid.addHeader( new GridHeader( VALUE_ID ) );
-
         int month = Integer.valueOf( testYear + "03" );
-
         for ( double value : values )
         {
             grid.addRow();
@@ -415,7 +379,6 @@ public class EventPredictionServiceTest
             grid.addValue( "HllvX50cXC0" );
             grid.addValue( new Double( value ) );
         }
-
         return grid;
     }
 
@@ -429,12 +392,10 @@ public class EventPredictionServiceTest
     private String getDataValue( DataElement dataElement, Period period )
     {
         DataValue dv = dataValueService.getDataValue( dataElement, period, orgUnitA, defaultCombo, defaultCombo );
-
         if ( dv != null )
         {
             return dv.getValue();
         }
-
         return null;
     }
 
@@ -443,27 +404,19 @@ public class EventPredictionServiceTest
      * the setup time for a test is so long.
      */
     @Test
-    public void testPredictEvents()
+    void testPredictEvents()
     {
         PredictionSummary summary = new PredictionSummary();
-
         predictionService.predict( predictorA, getDate( testYear, 4, 1 ), getDate( testYear, 5, 31 ), summary );
-
         assertEquals( "1", getDataValue( predictorOutputA, periodApr ) );
         assertEquals( "2", getDataValue( predictorOutputA, periodMay ) );
-
         predictionService.predict( predictorD, getDate( testYear, 4, 1 ), getDate( testYear, 5, 31 ), summary );
-
         assertEquals( "4", getDataValue( predictorOutputD, periodApr ) );
         assertEquals( "9", getDataValue( predictorOutputD, periodMay ) );
-
         predictionService.predict( predictorI, getDate( testYear, 4, 1 ), getDate( testYear, 5, 31 ), summary );
-
         assertEquals( "18", getDataValue( predictorOutputI, periodApr ) );
         assertEquals( "38", getDataValue( predictorOutputI, periodMay ) );
-
         predictionService.predict( predictorT, getDate( testYear, 4, 1 ), getDate( testYear, 5, 31 ), summary );
-
         assertEquals( "101", getDataValue( predictorOutputT, periodApr ) );
         assertEquals( "302", getDataValue( predictorOutputT, periodMay ) );
     }

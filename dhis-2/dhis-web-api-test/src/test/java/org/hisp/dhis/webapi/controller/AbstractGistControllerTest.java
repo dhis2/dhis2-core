@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,13 +29,13 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.webapi.WebClient.Body;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.hisp.dhis.webapi.json.JsonObject;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 
@@ -46,6 +46,7 @@ import org.springframework.http.HttpStatus;
  */
 abstract class AbstractGistControllerTest extends DhisControllerConvenienceTest
 {
+
     @Autowired
     protected OrganisationUnitService organisationUnitService;
 
@@ -55,19 +56,15 @@ abstract class AbstractGistControllerTest extends DhisControllerConvenienceTest
 
     protected String dataSetId;
 
-    @Before
-    public void setUp()
+    @BeforeEach
+    void setUp()
     {
         userGroupId = assertStatus( HttpStatus.CREATED,
             POST( "/userGroups/", "{'name':'groupX', 'users':[{'id':'" + getSuperuserUid() + "'}]}" ) );
-
-        assertStatus( HttpStatus.OK,
-            PATCH( "/users/{id}?importReportMode=ERRORS", getSuperuserUid(),
-                Body( "[{'op': 'add', 'path': '/birthday', 'value': '1980-12-12'}]" ) ) );
-
+        assertStatus( HttpStatus.OK, PATCH( "/users/{id}?importReportMode=ERRORS", getSuperuserUid(),
+            Body( "[{'op': 'add', 'path': '/birthday', 'value': '1980-12-12'}]" ) ) );
         orgUnitId = assertStatus( HttpStatus.CREATED,
             POST( "/organisationUnits/", "{'name':'unitA', 'shortName':'unitA', 'openingDate':'2021-01-01'}" ) );
-
         dataSetId = assertStatus( HttpStatus.CREATED, POST( "/dataSets/",
             "{'name':'set1', 'organisationUnits': [{'id':'" + orgUnitId + "'}], 'periodType':'Daily'}" ) );
     }
@@ -98,7 +95,7 @@ abstract class AbstractGistControllerTest extends DhisControllerConvenienceTest
     static void assertHasPager( JsonObject response, int page, int pageSize, Integer total )
     {
         JsonObject pager = response.getObject( "pager" );
-        assertTrue( "Pager is missing", pager.exists() );
+        assertTrue( pager.exists(), "Pager is missing" );
         assertEquals( page, pager.getNumber( "page" ).intValue() );
         assertEquals( pageSize, pager.getNumber( "pageSize" ).intValue() );
         if ( total != null )

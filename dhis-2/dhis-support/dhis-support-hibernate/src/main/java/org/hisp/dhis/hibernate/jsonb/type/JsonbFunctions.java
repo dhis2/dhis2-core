@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -78,6 +78,11 @@ public class JsonbFunctions
      * Built-in function of PostgresQL
      */
     public static final String EXTRACT_PATH_TEXT = "jsonb_extract_path_text";
+
+    /**
+     * Built-in function of PostgresQL
+     */
+    public static final String JSONB_TYPEOF = "jsonb_typeof";
 
     /**
      * Use the regex operator '~*' to match a given string with a given regular

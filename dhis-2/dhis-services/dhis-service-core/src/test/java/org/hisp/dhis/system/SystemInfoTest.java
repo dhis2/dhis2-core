@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,35 +28,35 @@
 package org.hisp.dhis.system;
 
 import org.hisp.dhis.system.database.DatabaseInfo;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for {@link SystemInfo}.
  *
  * @author Volker Schmidt
  */
-public class SystemInfoTest
+class SystemInfoTest
 {
+
     private DatabaseInfo databaseInfo;
 
     private SystemInfo systemInfo;
 
-    @Before
-    public void setUp()
+    @BeforeEach
+    void setUp()
     {
         databaseInfo = new DatabaseInfo();
         systemInfo = new SystemInfo();
-
         systemInfo.setDatabaseInfo( databaseInfo );
     }
 
     @Test
-    public void instance()
+    void instance()
     {
         final SystemInfo si = systemInfo.instance();
-        Assert.assertNotSame( systemInfo, si );
-        Assert.assertNotSame( systemInfo.getDatabaseInfo(), si.getDatabaseInfo() );
+        Assertions.assertNotSame( systemInfo, si );
+        Assertions.assertNotSame( systemInfo.getDatabaseInfo(), si.getDatabaseInfo() );
     }
 }

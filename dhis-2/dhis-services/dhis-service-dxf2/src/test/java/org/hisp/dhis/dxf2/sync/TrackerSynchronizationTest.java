@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.dxf2.sync;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
 
@@ -67,8 +67,8 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueServ
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
@@ -77,8 +77,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * @author David Katuscak (katuscak.d@gmail.com)
  */
-public class TrackerSynchronizationTest extends DhisSpringTest
+class TrackerSynchronizationTest extends DhisSpringTest
 {
+
     @Autowired
     private UserService _userService;
 
@@ -168,29 +169,21 @@ public class TrackerSynchronizationTest extends DhisSpringTest
         TrackedEntityAttribute teaA = createTrackedEntityAttribute( 'a' );
         TrackedEntityAttribute teaB = createTrackedEntityAttribute( 'b' );
         teaB.setSkipSynchronization( true );
-
         currentSession.save( teaA );
         currentSession.save( teaB );
-
         TrackedEntityType tet = createTrackedEntityType( 'a' );
-
         TrackedEntityTypeAttribute tetaA = new TrackedEntityTypeAttribute( tet, teaA, true, false );
         TrackedEntityTypeAttribute tetaB = new TrackedEntityTypeAttribute( tet, teaB, true, false );
-
         tet.getTrackedEntityTypeAttributes().add( tetaA );
         tet.getTrackedEntityTypeAttributes().add( tetaB );
         currentSession.save( tet );
-
         OrganisationUnit ou = createOrganisationUnit( 'a' );
         TrackedEntityInstance tei = createTrackedEntityInstance( 'a', ou, teaA );
         tei.setTrackedEntityType( tet );
-
         TrackedEntityAttributeValue teavB = createTrackedEntityAttributeValue( 'b', tei, teaB );
         tei.getTrackedEntityAttributeValues().add( teavB );
-
         TrackedEntityAttributeValue teavA = createTrackedEntityAttributeValue( 'a', tei, teaA );
         tei.getTrackedEntityAttributeValues().add( teavA );
-
         currentSession.save( ou );
         currentSession.save( tei );
         currentSession.save( teavA );
@@ -202,22 +195,15 @@ public class TrackerSynchronizationTest extends DhisSpringTest
     {
         userService = _userService;
         currentSession = sessionFactory.getCurrentSession();
-
         User user = createUser( "userUID0001" );
         currentSession.save( user );
-
         CurrentUserService currentUserService = new MockCurrentUserService( user );
-
         subject = new JacksonTrackedEntityInstanceService( teiService, trackedEntityAttributeService,
-            _relationshipService, relationshipService, relationshipTypeService,
-            trackedEntityAttributeValueService, manager, _userService, dbmsManager, enrollmentService,
-            programInstanceService, currentUserService,
+            _relationshipService, relationshipService, relationshipTypeService, trackedEntityAttributeValueService,
+            manager, _userService, dbmsManager, enrollmentService, programInstanceService, currentUserService,
             schemaService, queryService, reservedValueService, trackerAccessManager, fileResourceService,
-            trackerOwnershipAccessManager,
-            trackedEntityInstanceAggregate, trackedEntityAttributeStore, trackedEntityInstanceAuditService,
-            trackedEntityTypeService, notifier, jsonMapper,
-            xmlMapper );
-
+            trackerOwnershipAccessManager, trackedEntityInstanceAggregate, trackedEntityAttributeStore,
+            trackedEntityInstanceAuditService, trackedEntityTypeService, notifier, jsonMapper, xmlMapper );
         prepareSyncParams();
         prepareDataForTest();
     }
@@ -227,25 +213,23 @@ public class TrackerSynchronizationTest extends DhisSpringTest
         queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setIncludeDeleted( true );
         queryParams.setSynchronizationQuery( true );
-
         params = new TrackedEntityInstanceParams();
         params.setDataSynchronizationQuery( true );
         params.setIncludeDeleted( true );
     }
 
     @Test
-    @Ignore
+    @Disabled
     /*
      * TODO: fails in H2 with newer
      * AbstractTrackedEntityInstanceService::getTrackedEntityInstances because
      * of some custom postgresql syntax/function. We should find a way to test
      * this in a different way
      */
-    public void testSkipSyncFunctionality()
+    void testSkipSyncFunctionality()
     {
         List<org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance> fetchedTeis = subject
             .getTrackedEntityInstances( queryParams, params, true, true );
-
         assertEquals( 1, fetchedTeis.get( 0 ).getAttributes().size() );
     }
 }

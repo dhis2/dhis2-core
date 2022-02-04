@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -58,7 +58,7 @@ public class TranslatablePropertyIntrospector implements PropertyIntrospector
 
         for ( Property property : properties.values() )
         {
-            if ( translatableFields.containsKey( property.getFieldName() ) )
+            if ( property.isPersisted() && translatableFields.containsKey( property.getFieldName() ) )
             {
                 property.setTranslatable( true );
                 property.setTranslationKey( translatableFields.get( property.getFieldName() ) );

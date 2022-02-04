@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,13 +31,13 @@ import static org.hisp.dhis.webapi.WebClient.Accept;
 import static org.hisp.dhis.webapi.WebClient.Body;
 import static org.hisp.dhis.webapi.WebClient.ContentType;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.hisp.dhis.webapi.json.JsonObject;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 
@@ -48,24 +48,23 @@ import org.springframework.http.MediaType;
  *
  * @author Jan Bernitt
  */
-public class TrackedEntityInstanceControllerTest extends DhisControllerConvenienceTest
+class TrackedEntityInstanceControllerTest extends DhisControllerConvenienceTest
 {
+
     private String ouId;
 
     private String tetId;
 
-    @Before
-    public void setUp()
+    @BeforeEach
+    void setUp()
     {
         ouId = assertStatus( HttpStatus.CREATED,
             POST( "/organisationUnits/", "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}" ) );
-
-        tetId = assertStatus( HttpStatus.CREATED,
-            POST( "/trackedEntityTypes/", "{'name': 'A'}" ) );
+        tetId = assertStatus( HttpStatus.CREATED, POST( "/trackedEntityTypes/", "{'name': 'A'}" ) );
     }
 
     @Test
-    public void testPostTrackedEntityInstanceJson()
+    void testPostTrackedEntityInstanceJson()
     {
         assertWebMessage( "OK", 200, "OK", "Import was successful.",
             POST( "/trackedEntityInstances",
@@ -74,7 +73,7 @@ public class TrackedEntityInstanceControllerTest extends DhisControllerConvenien
     }
 
     @Test
-    public void testPostTrackedEntityInstanceJson_Async()
+    void testPostTrackedEntityInstanceJson_Async()
     {
         assertWebMessage( "OK", 200, "OK", "Initiated inMemoryEventImport",
             POST( "/trackedEntityInstances?async=true",
@@ -83,7 +82,7 @@ public class TrackedEntityInstanceControllerTest extends DhisControllerConvenien
     }
 
     @Test
-    public void testPostTrackedEntityInstanceXml()
+    void testPostTrackedEntityInstanceXml()
     {
         HttpResponse response = POST( "/trackedEntityInstances",
             Body( "<trackedEntityInstance><name>A</name><trackedEntityType>" + tetId + "</trackedEntityType><orgUnit>"
@@ -94,7 +93,7 @@ public class TrackedEntityInstanceControllerTest extends DhisControllerConvenien
     }
 
     @Test
-    public void testPostTrackedEntityInstanceXml_Async()
+    void testPostTrackedEntityInstanceXml_Async()
     {
         HttpResponse response = POST( "/trackedEntityInstances?async=true",
             Body( "<trackedEntityInstance><name>A</name><trackedEntityType>" + tetId + "</trackedEntityType><orgUnit>"
@@ -105,11 +104,10 @@ public class TrackedEntityInstanceControllerTest extends DhisControllerConvenien
     }
 
     @Test
-    public void testUpdateTrackedEntityInstanceXml()
+    void testUpdateTrackedEntityInstanceXml()
     {
         String uid = assertStatus( HttpStatus.OK, POST( "/trackedEntityInstances",
             "{'name':'A', 'trackedEntityType':'" + tetId + "', 'orgUnit':'" + ouId + "'}" ) );
-
         HttpResponse response = PUT( "/trackedEntityInstances/" + uid,
             Body( "<trackedEntityInstance><name>A</name><trackedEntityType>" + tetId + "</trackedEntityType><orgUnit>"
                 + ouId + "</orgUnit></trackedEntityInstance>" ),
@@ -119,29 +117,26 @@ public class TrackedEntityInstanceControllerTest extends DhisControllerConvenien
     }
 
     @Test
-    public void testUpdateTrackedEntityInstanceJson()
+    void testUpdateTrackedEntityInstanceJson()
     {
         String uid = assertStatus( HttpStatus.OK, POST( "/trackedEntityInstances",
             "{'name':'A', 'trackedEntityType':'" + tetId + "', 'orgUnit':'" + ouId + "'}" ) );
-
         JsonObject tei = GET( "/trackedEntityInstances/" + uid ).content();
-
         assertWebMessage( "OK", 200, "OK", "Import was successful.",
             PUT( "/trackedEntityInstances/" + uid, tei.toString() ).content( HttpStatus.OK ) );
     }
 
     @Test
-    public void testDeleteTrackedEntityInstance()
+    void testDeleteTrackedEntityInstance()
     {
         String uid = assertStatus( HttpStatus.OK, POST( "/trackedEntityInstances",
             "{'name':'A', 'trackedEntityType':'" + tetId + "', 'orgUnit':'" + ouId + "'}" ) );
-
         assertWebMessage( "OK", 200, "OK", "Import was successful.",
             DELETE( "/trackedEntityInstances/" + uid ).content( HttpStatus.OK ) );
     }
 
     @Test
-    public void testDeleteTrackedEntityInstance_NoSuchObject()
+    void testDeleteTrackedEntityInstance_NoSuchObject()
     {
         assertWebMessage( "OK", 200, "OK", "Import was successful.",
             DELETE( "/trackedEntityInstances/xyz" ).content( HttpStatus.OK ) );

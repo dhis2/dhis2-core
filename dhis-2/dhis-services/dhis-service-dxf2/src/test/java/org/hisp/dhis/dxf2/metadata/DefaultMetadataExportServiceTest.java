@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,120 +30,37 @@ package org.hisp.dhis.dxf2.metadata;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-import org.hisp.dhis.attribute.Attribute;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.SetMap;
-import org.hisp.dhis.fieldfilter.FieldFilterParams;
-import org.hisp.dhis.fieldfilter.FieldFilterService;
-import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.option.Option;
-import org.hisp.dhis.programrule.ProgramRuleService;
-import org.hisp.dhis.programrule.ProgramRuleVariableService;
-import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.system.SystemService;
-import org.hisp.dhis.user.CurrentUserService;
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
-import org.mockito.stubbing.Answer;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * Unit tests for {@link DefaultMetadataExportService}.
  *
  * @author Volker Schmidt
  */
-public class DefaultMetadataExportServiceTest
+@ExtendWith( MockitoExtension.class )
+class DefaultMetadataExportServiceTest
 {
     @Mock
     private SchemaService schemaService;
 
-    @Mock
-    private QueryService queryService;
-
-    @Mock
-    private FieldFilterService fieldFilterService;
-
-    @Mock
-    private CurrentUserService currentUserService;
-
-    @Mock
-    private ProgramRuleService programRuleService;
-
-    @Mock
-    private ProgramRuleVariableService programRuleVariableService;
-
-    @Mock
-    private SystemService systemService;
-
     @InjectMocks
     private DefaultMetadataExportService service;
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
     @Test
-    public void getMetadataWithDependenciesAsNodeSharing()
-    {
-        Attribute attribute = new Attribute();
-        SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata = new SetMap<>();
-        metadata.put( Attribute.class, new HashSet<>() );
-
-        service = Mockito.spy( service );
-        Mockito.when( service.getMetadataWithDependencies( Mockito.eq( attribute ) ) ).thenReturn( metadata );
-
-        Mockito.when( fieldFilterService.toCollectionNode( Mockito.eq( Attribute.class ), Mockito.any() ) )
-            .then( (Answer<CollectionNode>) invocation -> {
-                FieldFilterParams fieldFilterParams = invocation.getArgument( 1 );
-                Assert.assertFalse( fieldFilterParams.getSkipSharing() );
-                return new CollectionNode( "test" );
-            } );
-
-        MetadataExportParams params = new MetadataExportParams();
-        service.getMetadataWithDependenciesAsNode( attribute, params );
-
-        Mockito.verify( fieldFilterService, Mockito.only() ).toCollectionNode( Mockito.eq( Attribute.class ),
-            Mockito.any() );
-    }
-
-    @Test
-    public void getMetadataWithDependenciesAsNodeSkipSharing()
-    {
-        Attribute attribute = new Attribute();
-        SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata = new SetMap<>();
-        metadata.put( Attribute.class, new HashSet<>() );
-
-        service = Mockito.spy( service );
-        Mockito.when( service.getMetadataWithDependencies( Mockito.eq( attribute ) ) ).thenReturn( metadata );
-
-        Mockito.when( fieldFilterService.toCollectionNode( Mockito.eq( Attribute.class ), Mockito.any() ) )
-            .then( (Answer<CollectionNode>) invocation -> {
-                FieldFilterParams fieldFilterParams = invocation.getArgument( 1 );
-                Assert.assertTrue( fieldFilterParams.getSkipSharing() );
-                return new CollectionNode( "test" );
-            } );
-
-        MetadataExportParams params = new MetadataExportParams();
-        params.setSkipSharing( true );
-        service.getMetadataWithDependenciesAsNode( attribute, params );
-
-        Mockito.verify( fieldFilterService, Mockito.only() ).toCollectionNode( Mockito.eq( Attribute.class ),
-            Mockito.any() );
-    }
-
-    @Test
-    public void getParamsFromMapIncludedSecondary()
+    void getParamsFromMapIncludedSecondary()
     {
         Mockito.when( schemaService.getSchemaByPluralName( Mockito.eq( "jobConfigurations" ) ) )
             .thenReturn( new Schema( JobConfiguration.class, "jobConfiguration", "jobConfigurations" ) );
@@ -155,12 +72,12 @@ public class DefaultMetadataExportServiceTest
         params.put( "options", Collections.singletonList( "true" ) );
 
         MetadataExportParams exportParams = service.getParamsFromMap( params );
-        Assert.assertTrue( exportParams.getClasses().contains( JobConfiguration.class ) );
-        Assert.assertTrue( exportParams.getClasses().contains( Option.class ) );
+        Assertions.assertTrue( exportParams.getClasses().contains( JobConfiguration.class ) );
+        Assertions.assertTrue( exportParams.getClasses().contains( Option.class ) );
     }
 
     @Test
-    public void getParamsFromMapNotIncludedSecondary()
+    void getParamsFromMapNotIncludedSecondary()
     {
         Mockito.when( schemaService.getSchemaByPluralName( Mockito.eq( "jobConfigurations" ) ) )
             .thenReturn( new Schema( JobConfiguration.class, "jobConfiguration", "jobConfigurations" ) );
@@ -172,12 +89,12 @@ public class DefaultMetadataExportServiceTest
         params.put( "options", Collections.singletonList( "true" ) );
 
         MetadataExportParams exportParams = service.getParamsFromMap( params );
-        Assert.assertFalse( exportParams.getClasses().contains( JobConfiguration.class ) );
-        Assert.assertTrue( exportParams.getClasses().contains( Option.class ) );
+        Assertions.assertFalse( exportParams.getClasses().contains( JobConfiguration.class ) );
+        Assertions.assertTrue( exportParams.getClasses().contains( Option.class ) );
     }
 
     @Test
-    public void getParamsFromMapNoSecondary()
+    void getParamsFromMapNoSecondary()
     {
         Mockito.when( schemaService.getSchemaByPluralName( Mockito.eq( "options" ) ) )
             .thenReturn( new Schema( Option.class, "option", "options" ) );
@@ -186,7 +103,7 @@ public class DefaultMetadataExportServiceTest
         params.put( "options", Collections.singletonList( "true" ) );
 
         MetadataExportParams exportParams = service.getParamsFromMap( params );
-        Assert.assertFalse( exportParams.getClasses().contains( JobConfiguration.class ) );
-        Assert.assertTrue( exportParams.getClasses().contains( Option.class ) );
+        Assertions.assertFalse( exportParams.getClasses().contains( JobConfiguration.class ) );
+        Assertions.assertTrue( exportParams.getClasses().contains( Option.class ) );
     }
 }

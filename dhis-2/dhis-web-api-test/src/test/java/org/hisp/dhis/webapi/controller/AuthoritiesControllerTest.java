@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,13 +27,13 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import org.hisp.dhis.jsontree.JsonArray;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.hisp.dhis.webapi.json.JsonArray;
-import org.hisp.dhis.webapi.json.JsonObject;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests the
@@ -41,14 +41,16 @@ import org.junit.Test;
  *
  * @author Jan Bernitt
  */
-public class AuthoritiesControllerTest extends DhisControllerConvenienceTest
+class AuthoritiesControllerTest extends DhisControllerConvenienceTest
 {
+
     @Test
-    public void testGetAuthorities()
+    void testGetAuthorities()
     {
         JsonArray systemAuthorities = GET( "/authorities" ).content().getArray( "systemAuthorities" );
         assertTrue( systemAuthorities.size() > 10 );
-        JsonObject all = systemAuthorities.getObject( 0 ); // its sorted
+        // its sorted
+        JsonObject all = systemAuthorities.getObject( 0 );
         assertEquals( "ALL", all.getString( "id" ).string() );
         assertEquals( "ALL", all.getString( "name" ).string() );
     }

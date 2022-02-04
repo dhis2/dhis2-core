@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,12 +54,11 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.google.common.collect.Sets;
 
@@ -68,8 +67,10 @@ import com.google.common.collect.Sets;
  *
  * @author maikel arabori
  */
-public class DefaultEventAnalyticsServiceTest
+@ExtendWith( MockitoExtension.class )
+class DefaultEventAnalyticsServiceTest
 {
+
     private DefaultEventAnalyticsService defaultEventAnalyticsService;
 
     @Mock
@@ -105,10 +106,7 @@ public class DefaultEventAnalyticsServiceTest
     @Mock
     private SchemaIdResponseMapper schemaIdResponseMapper;
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
-    @Before
+    @BeforeEach
     public void setUp()
     {
         defaultEventAnalyticsService = new DefaultEventAnalyticsService( dataElementService,
@@ -117,7 +115,7 @@ public class DefaultEventAnalyticsServiceTest
     }
 
     @Test
-    public void testOutputSchemeWhenSchemeIsSet()
+    void testOutputSchemeWhenSchemeIsSet()
     {
         // Given mock variables
         final IdScheme codeScheme = IdScheme.CODE;
@@ -139,7 +137,7 @@ public class DefaultEventAnalyticsServiceTest
     }
 
     @Test
-    public void testOutputSchemeWhenNoSchemeIsSet()
+    void testOutputSchemeWhenNoSchemeIsSet()
     {
         // Given mock variables
         final IdScheme noScheme = null;

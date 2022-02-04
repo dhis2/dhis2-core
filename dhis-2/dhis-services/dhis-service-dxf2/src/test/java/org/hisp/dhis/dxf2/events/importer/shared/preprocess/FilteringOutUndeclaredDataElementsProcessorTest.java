@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,7 +31,7 @@ import static org.hisp.dhis.dxf2.events.importer.shared.DataValueFilteringTestSu
 import static org.hisp.dhis.dxf2.events.importer.shared.DataValueFilteringTestSupport.DATA_ELEMENT_2;
 import static org.hisp.dhis.dxf2.events.importer.shared.DataValueFilteringTestSupport.PROGRAMSTAGE;
 import static org.hisp.dhis.dxf2.events.importer.shared.DataValueFilteringTestSupport.getProgramMap;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -46,8 +46,8 @@ import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.importer.context.EventDataValueAggregator;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
@@ -55,49 +55,36 @@ import com.google.common.collect.Sets;
 /**
  * @author Giuseppe Nespolino <g.nespolino@gmail.com>
  */
-public class FilteringOutUndeclaredDataElementsProcessorTest
+class FilteringOutUndeclaredDataElementsProcessorTest
 {
+
     private FilteringOutUndeclaredDataElementsProcessor preProcessor;
 
-    @Before
-    public void setUp()
+    @BeforeEach
+    void setUp()
     {
         preProcessor = new FilteringOutUndeclaredDataElementsProcessor();
     }
 
     @Test
-    public void testNotLinkedDataElementsAreRemovedFromEvent()
+    void testNotLinkedDataElementsAreRemovedFromEvent()
     {
         Event event = new Event();
         event.setProgramStage( PROGRAMSTAGE );
-
-        HashSet<DataValue> dataValues = Sets.newHashSet(
-            new DataValue( DATA_ELEMENT_1, "whatever" ),
+        HashSet<DataValue> dataValues = Sets.newHashSet( new DataValue( DATA_ELEMENT_1, "whatever" ),
             new DataValue( DATA_ELEMENT_2, "another value" ) );
-
         event.setDataValues( dataValues );
-
-        WorkContext ctx = WorkContext.builder()
-            .importOptions( ImportOptions.getDefaultImportOptions() )
+        WorkContext ctx = WorkContext.builder().importOptions( ImportOptions.getDefaultImportOptions() )
             .programsMap( getProgramMap() )
             .eventDataValueMap( new EventDataValueAggregator().aggregateDataValues( ImmutableList.of( event ),
                 Collections.emptyMap(), ImportOptions.getDefaultImportOptions() ) )
             .build();
-
         preProcessor.process( event, ctx );
-
         Set<String> allowedDataValues = ctx
             .getProgramStage( ctx.getImportOptions().getIdSchemes().getProgramStageIdScheme(), PROGRAMSTAGE )
-            .getDataElements().stream()
-            .map( BaseIdentifiableObject::getUid )
-            .collect( Collectors.toSet() );
-
-        Set<String> filteredEventDataValues = ctx.getEventDataValueMap().values().stream()
-            .flatMap( Collection::stream )
-            .map( EventDataValue::getDataElement )
-            .collect( Collectors.toSet() );
-
+            .getDataElements().stream().map( BaseIdentifiableObject::getUid ).collect( Collectors.toSet() );
+        Set<String> filteredEventDataValues = ctx.getEventDataValueMap().values().stream().flatMap( Collection::stream )
+            .map( EventDataValue::getDataElement ).collect( Collectors.toSet() );
         assertTrue( allowedDataValues.containsAll( filteredEventDataValues ) );
-
     }
 }

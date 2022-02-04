@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -95,20 +95,9 @@ class EventTimeFieldSqlRenderer extends TimeFieldSqlRenderer
     }
 
     @Override
-    protected String getSqlConditionHasStartEndDate( EventQueryParams params )
+    protected String getColumnName( EventQueryParams params )
     {
-        String timeCol = getTimeCol( params.getOutputType(), getTimeField( params ) );
-
-        return new StringBuilder()
-            .append( timeCol )
-            .append( " >= '" )
-            .append( getMediumDateString( params.getStartDate() ) )
-            .append( "' and " )
-            .append( timeCol )
-            .append( " <= '" )
-            .append( getMediumDateString( params.getEndDate() ) )
-            .append( "' " )
-            .toString();
+        return getTimeCol( params.getOutputType(), getTimeField( params ) );
     }
 
     @Override

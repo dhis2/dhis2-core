@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,13 +27,13 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import org.hisp.dhis.jsontree.JsonArray;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.hisp.dhis.webapi.json.JsonArray;
-import org.hisp.dhis.webapi.json.JsonObject;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
 /**
@@ -41,21 +41,22 @@ import org.springframework.http.HttpStatus;
  *
  * @author Jan Bernitt
  */
-public class SystemControllerTest extends DhisControllerConvenienceTest
+class SystemControllerTest extends DhisControllerConvenienceTest
 {
+
     @Test
-    public void testGetTasksJson()
+    void testGetTasksJson()
     {
         JsonObject tasks = GET( "/system/tasks" ).content( HttpStatus.OK );
-        assertObjectMembers( tasks,
-            "CONTINUOUS_ANALYTICS_TABLE", "DATA_SYNC", "TRACKER_PROGRAMS_DATA_SYNC", "EVENT_PROGRAMS_DATA_SYNC",
-            "FILE_RESOURCE_CLEANUP", "IMAGE_PROCESSING", "META_DATA_SYNC", "SMS_SEND", "SEND_SCHEDULED_MESSAGE",
-            "PROGRAM_NOTIFICATIONS", "VALIDATION_RESULTS_NOTIFICATION", "CREDENTIALS_EXPIRY_ALERT", "MONITORING",
-            "PUSH_ANALYSIS", "PREDICTOR", "DATA_STATISTICS", "DATA_INTEGRITY", "RESOURCE_TABLE", "ANALYTICS_TABLE" );
+        assertObjectMembers( tasks, "CONTINUOUS_ANALYTICS_TABLE", "DATA_SYNC", "TRACKER_PROGRAMS_DATA_SYNC",
+            "EVENT_PROGRAMS_DATA_SYNC", "FILE_RESOURCE_CLEANUP", "IMAGE_PROCESSING", "META_DATA_SYNC", "SMS_SEND",
+            "SEND_SCHEDULED_MESSAGE", "PROGRAM_NOTIFICATIONS", "VALIDATION_RESULTS_NOTIFICATION",
+            "CREDENTIALS_EXPIRY_ALERT", "MONITORING", "PUSH_ANALYSIS", "PREDICTOR", "DATA_STATISTICS", "DATA_INTEGRITY",
+            "RESOURCE_TABLE", "ANALYTICS_TABLE" );
     }
 
     @Test
-    public void testGetTasksExtendedJson()
+    void testGetTasksExtendedJson()
     {
         JsonObject tasks = GET( "/system/tasks/{jobType}", "META_DATA_SYNC" ).content( HttpStatus.OK );
         assertTrue( tasks.isObject() );
@@ -63,7 +64,7 @@ public class SystemControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void testGetTaskJsonByUid()
+    void testGetTaskJsonByUid()
     {
         JsonArray task = GET( "/system/tasks/{jobType}/{jobId}", "META_DATA_SYNC", "xyz" ).content( HttpStatus.OK );
         assertTrue( task.isArray() );
@@ -71,7 +72,7 @@ public class SystemControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void testGetTaskSummaryExtendedJson()
+    void testGetTaskSummaryExtendedJson()
     {
         JsonObject summary = GET( "/system/taskSummaries/META_DATA_SYNC" ).content( HttpStatus.OK );
         assertTrue( summary.isObject() );
@@ -79,7 +80,7 @@ public class SystemControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void testGetTaskSummaryJson()
+    void testGetTaskSummaryJson()
     {
         JsonObject summary = GET( "/system/taskSummaries/META_DATA_SYNC/xyz" ).content( HttpStatus.OK );
         assertTrue( summary.isObject() );
@@ -91,7 +92,7 @@ public class SystemControllerTest extends DhisControllerConvenienceTest
         for ( String member : members )
         {
             JsonObject memberObj = root.getObject( member );
-            assertTrue( member + " is not an object", memberObj.isObject() );
+            assertTrue( memberObj.isObject(), member + " is not an object" );
         }
     }
 }

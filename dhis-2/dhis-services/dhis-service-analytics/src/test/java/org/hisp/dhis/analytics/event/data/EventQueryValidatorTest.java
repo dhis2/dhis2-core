@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.DhisSpringTest;
@@ -55,12 +55,10 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.joda.time.DateTime;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.function.ThrowingRunnable;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Lists;
@@ -68,9 +66,10 @@ import com.google.common.collect.Lists;
 /**
  * @author Lars Helge Overland
  */
-public class EventQueryValidatorTest
-    extends DhisSpringTest
+@ExtendWith( MockitoExtension.class )
+class EventQueryValidatorTest extends DhisSpringTest
 {
+
     private Program prA;
 
     private Program prB;
@@ -110,9 +109,6 @@ public class EventQueryValidatorTest
 
     @Mock
     private QueryValidator aggregateQueryValidator;
-
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     private EventQueryValidator queryValidator;
 
@@ -165,7 +161,7 @@ public class EventQueryValidatorTest
     }
 
     @Test
-    public void validateSuccesA()
+    void validateSuccesA()
     {
         EventQueryParams params = new EventQueryParams.Builder()
             .withProgram( prA )
@@ -177,7 +173,7 @@ public class EventQueryValidatorTest
     }
 
     @Test
-    public void validateValidTimeField()
+    void validateValidTimeField()
     {
         EventQueryParams params = new EventQueryParams.Builder()
             .withProgram( prA )
@@ -190,7 +186,7 @@ public class EventQueryValidatorTest
     }
 
     @Test
-    public void validateSingleDataElementMultipleProgramsQueryItemSuccess()
+    void validateSingleDataElementMultipleProgramsQueryItemSuccess()
     {
         EventQueryParams params = new EventQueryParams.Builder()
             .withProgram( prA )
@@ -205,7 +201,7 @@ public class EventQueryValidatorTest
     }
 
     @Test
-    public void validateDuplicateQueryItems()
+    void validateDuplicateQueryItems()
     {
         EventQueryParams params = new EventQueryParams.Builder()
             .withProgram( prA )
@@ -222,7 +218,7 @@ public class EventQueryValidatorTest
     }
 
     @Test
-    public void validateFailureNoStartEndDatePeriods()
+    void validateFailureNoStartEndDatePeriods()
     {
         EventQueryParams params = new EventQueryParams.Builder()
             .withProgram( prA )
@@ -232,7 +228,7 @@ public class EventQueryValidatorTest
     }
 
     @Test
-    public void validateErrorNoStartEndDatePeriods()
+    void validateErrorNoStartEndDatePeriods()
     {
         EventQueryParams params = new EventQueryParams.Builder()
             .withProgram( prA )
@@ -244,7 +240,7 @@ public class EventQueryValidatorTest
     }
 
     @Test
-    public void validateInvalidQueryItemBothLegendSetAndOptionSet()
+    void validateInvalidQueryItemBothLegendSetAndOptionSet()
     {
         EventQueryParams params = new EventQueryParams.Builder()
             .withProgram( prA )
@@ -257,7 +253,7 @@ public class EventQueryValidatorTest
     }
 
     @Test
-    public void validateInvalidTimeField()
+    void validateInvalidTimeField()
     {
         EventQueryParams params = new EventQueryParams.Builder()
             .withProgram( prA )
@@ -270,7 +266,7 @@ public class EventQueryValidatorTest
     }
 
     @Test
-    public void validateInvalidOrgUnitField()
+    void validateInvalidOrgUnitField()
     {
         EventQueryParams params = new EventQueryParams.Builder()
             .withProgram( prA )
@@ -283,7 +279,7 @@ public class EventQueryValidatorTest
     }
 
     @Test
-    public void validateErrorPage()
+    void validateErrorPage()
     {
         EventQueryParams params = new EventQueryParams.Builder()
             .withProgram( prA )
@@ -298,7 +294,7 @@ public class EventQueryValidatorTest
     }
 
     @Test
-    public void validateErrorPageSize()
+    void validateErrorPageSize()
     {
         EventQueryParams params = new EventQueryParams.Builder()
             .withProgram( prA )
@@ -313,7 +309,7 @@ public class EventQueryValidatorTest
     }
 
     @Test
-    public void validateErrorMaxLimit()
+    void validateErrorMaxLimit()
     {
         when( systemSettingManager.getIntSetting( SettingKey.ANALYTICS_MAX_LIMIT ) )
             .thenReturn( 100 );
@@ -331,7 +327,7 @@ public class EventQueryValidatorTest
     }
 
     @Test
-    public void validateErrorFallbackCoordinateField()
+    void validateErrorFallbackCoordinateField()
     {
         EventQueryParams params = new EventQueryParams.Builder()
             .withProgram( prA )
@@ -348,7 +344,7 @@ public class EventQueryValidatorTest
     }
 
     @Test
-    public void validateErrorClusterSize()
+    void validateErrorClusterSize()
     {
         EventQueryParams params = new EventQueryParams.Builder()
             .withProgram( prA )
@@ -372,8 +368,7 @@ public class EventQueryValidatorTest
      */
     private void assertValidatonError( final ErrorCode errorCode, final EventQueryParams params )
     {
-        ThrowingRunnable runnable = () -> queryValidator.validate( params );
-        IllegalQueryException ex = assertThrows( "Error code mismatch", IllegalQueryException.class, runnable );
+        IllegalQueryException ex = assertThrows( IllegalQueryException.class, () -> queryValidator.validate( params ) );
         assertEquals( errorCode, ex.getErrorCode() );
     }
 }

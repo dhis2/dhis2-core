@@ -14,7 +14,6 @@
   <name>DHIS Node service</name>
 
   <dependencies>
-
     <dependency>
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-service-schema</artifactId>
@@ -22,6 +21,10 @@
     <dependency>
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-service-acl</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.hisp.dhis</groupId>
+      <artifactId>dhis-support-system</artifactId>
     </dependency>
     <dependency>
       <groupId>org.apache.poi</groupId>
@@ -38,21 +41,14 @@
     </dependency>
 
     <!-- Test -->
-    <!-- hamcrest, hamcrest-library and junit order matters. Can be removed once we are on Junit 5 as it does not depend
-    on hamcrest anymore See http://hamcrest.org/JavaHamcrest/distributables Maven Upgrade Example -->
     <dependency>
       <groupId>org.hamcrest</groupId>
       <artifactId>hamcrest</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.hamcrest</groupId>
-      <artifactId>hamcrest-library</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -63,6 +59,12 @@
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-junit-jupiter</artifactId>
+      <scope>test</scope>
     </dependency>
 
   </dependencies>

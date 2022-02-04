@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,8 +29,8 @@ package org.hisp.dhis.dxf2.gml;
 
 import static org.hisp.dhis.common.coordinate.CoordinateUtils.getCoordinatesAsList;
 import static org.hisp.dhis.system.util.GeoUtils.getCoordinatesFromGeometry;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -48,15 +48,16 @@ import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
 /**
  * @author Halvdan Hoem Grelland
  */
-public class GmlImportServiceTest extends TransactionalIntegrationTest
+class GmlImportServiceTest extends TransactionalIntegrationTest
 {
+
     private InputStream inputStream;
 
     private User user;
@@ -70,7 +71,6 @@ public class GmlImportServiceTest extends TransactionalIntegrationTest
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
-
     @Autowired
     private GmlImportService gmlImportService;
 
@@ -85,7 +85,6 @@ public class GmlImportServiceTest extends TransactionalIntegrationTest
         throws IOException
     {
         inputStream = new ClassPathResource( "gml/testGmlPayload.gml" ).getInputStream();
-
         /*
          * Create orgunits present in testGmlPayload.gml and set ID properties.
          * Name - FeatureType - ID property Bo - Poly - Name Bonthe - Multi -
@@ -95,37 +94,30 @@ public class GmlImportServiceTest extends TransactionalIntegrationTest
          * Note: some of these are included to cover different coordinate
          * element schemes such as <posList>, <coordinates> and <pos>.
          */
-
         userService = _userService;
-
         boOrgUnit = createOrganisationUnit( 'A' );
         boOrgUnit.setName( "Bo" );
         organisationUnitService.addOrganisationUnit( boOrgUnit );
-
         bontheOrgUnit = createOrganisationUnit( 'B' );
-        bontheOrgUnit.setName( "AA Bonthe" ); // Match on Code, therefore wrong
-                                              // name
+        // Match on Code, therefore wrong
+        bontheOrgUnit.setName( "AA Bonthe" );
+        // name
         bontheOrgUnit.setCode( "CODE_BONTHE" );
         organisationUnitService.addOrganisationUnit( bontheOrgUnit );
-
         ojdOrgUnit = createOrganisationUnit( 'C' );
         ojdOrgUnit.setUid( "ImspTQPwCqd" );
-        ojdOrgUnit.setName( "AA Ole Johan Dahls Hus" ); // Match on UID,
-                                                        // therefore wrong name
+        // Match on UID,
+        ojdOrgUnit.setName( "AA Ole Johan Dahls Hus" );
+        // therefore wrong name
         organisationUnitService.addOrganisationUnit( ojdOrgUnit );
-
         bliOrgUnit = createOrganisationUnit( 'D' );
         bliOrgUnit.setName( "Blindern" );
         organisationUnitService.addOrganisationUnit( bliOrgUnit );
-
         forskOrgUnit = createOrganisationUnit( 'E' );
         forskOrgUnit.setName( "Forskningsparken" );
         organisationUnitService.addOrganisationUnit( forskOrgUnit );
-
         user = createAndInjectAdminUser();
-
         id = new JobConfiguration( "gmlImportTest", JobType.METADATA_IMPORT, user.getUid(), true );
-
         importOptions = new ImportOptions().setImportStrategy( ImportStrategy.UPDATE );
         importOptions.setDryRun( false );
         importOptions.setPreheatCache( true );
@@ -134,39 +126,29 @@ public class GmlImportServiceTest extends TransactionalIntegrationTest
     // -------------------------------------------------------------------------
     // Tests
     // -------------------------------------------------------------------------
-
     @Test
-    public void testImportGml()
+    void testImportGml()
     {
         MetadataImportParams importParams = new MetadataImportParams();
         importParams.setId( id );
         importParams.setUser( user );
-
         gmlImportService.importGml( inputStream, importParams );
-
         assertNotNull( boOrgUnit.getGeometry() );
-
         assertNotNull( bontheOrgUnit.getGeometry() );
-
         assertNotNull( ojdOrgUnit.getGeometry() );
-
         assertNotNull( bliOrgUnit.getGeometry() );
-
         assertNotNull( forskOrgUnit.getGeometry() );
-
         // Check if data is correct
         assertEquals( 1, getCoordinates( boOrgUnit ).size() );
         assertEquals( 18, getCoordinates( bontheOrgUnit ).size() );
         assertEquals( 1, getCoordinates( ojdOrgUnit ).size() );
         assertEquals( 1, getCoordinates( bliOrgUnit ).size() );
         assertEquals( 1, getCoordinates( forskOrgUnit ).size() );
-
         assertEquals( 76, getCoordinates( boOrgUnit ).get( 0 ).getNumberOfCoordinates() );
         assertEquals( 189, getCoordinates( bontheOrgUnit ).get( 1 ).getNumberOfCoordinates() );
         assertEquals( 1, getCoordinates( ojdOrgUnit ).get( 0 ).getNumberOfCoordinates() );
         assertEquals( 1, getCoordinates( bliOrgUnit ).get( 0 ).getNumberOfCoordinates() );
         assertEquals( 76, getCoordinates( forskOrgUnit ).get( 0 ).getNumberOfCoordinates() );
-
     }
 
     private List<CoordinatesTuple> getCoordinates( OrganisationUnit orgUnit )

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,7 @@ import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
 import static org.springframework.http.MediaType.APPLICATION_XML;
 
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
 /**
@@ -41,33 +41,31 @@ import org.springframework.http.HttpStatus;
  *
  * @author Jan Bernitt
  */
-public class IdentifiableObjectControllerTest extends DhisControllerConvenienceTest
+class IdentifiableObjectControllerTest extends DhisControllerConvenienceTest
 {
+
     @Test
-    public void testPostJsonObject()
+    void testPostJsonObject()
     {
-        assertStatus( HttpStatus.METHOD_NOT_ALLOWED,
-            POST( "/identifiableObjects/", "{}" ) );
+        assertStatus( HttpStatus.METHOD_NOT_ALLOWED, POST( "/identifiableObjects/", "{}" ) );
     }
 
     @Test
-    public void testPostJsonObject_Xml()
+    void testPostJsonObject_Xml()
     {
         assertStatus( HttpStatus.METHOD_NOT_ALLOWED,
             POST( "/identifiableObjects/", Body( "{}" ), ContentType( APPLICATION_XML ) ) );
     }
 
     @Test
-    public void testPutJsonObject()
+    void testPutJsonObject()
     {
-        assertStatus( HttpStatus.METHOD_NOT_ALLOWED,
-            PUT( "/identifiableObjects/someId", "{}" ) );
+        assertStatus( HttpStatus.METHOD_NOT_ALLOWED, PUT( "/identifiableObjects/someId", "{}" ) );
     }
 
     @Test
-    public void testDeleteObject()
+    void testDeleteObject()
     {
-        assertStatus( HttpStatus.METHOD_NOT_ALLOWED,
-            DELETE( "/identifiableObjects/someId" ) );
+        assertStatus( HttpStatus.METHOD_NOT_ALLOWED, DELETE( "/identifiableObjects/someId" ) );
     }
 }

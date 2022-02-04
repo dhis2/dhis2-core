@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,7 +47,7 @@ import org.junit.jupiter.api.Test;
 public class MetadataExportTests
     extends ApiTest
 {
-    private String userWithoutAccessUsername = "MetadataExportTestsUser" + DataGenerator.randomString();
+    private String userWithoutAccessUsername = ("MetadataExportTestsUser" + DataGenerator.randomString()).toLowerCase();
 
     private String userWithoutAccessPassword = Constants.USER_PASSWORD;
 

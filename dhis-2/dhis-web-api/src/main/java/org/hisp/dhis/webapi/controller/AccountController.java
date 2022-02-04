@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -543,14 +543,32 @@ public class AccountController
 
     private Map<String, String> validateUserName( String username )
     {
-        boolean valid = username != null && userService.getUserByUsername( username ) == null;
+        boolean isNull = username == null;
+        boolean usernameNotTaken = userService.getUserByUsername( username ) == null;
+        boolean isValidSyntax = ValidationUtils.usernameIsValid( username );
+        boolean isValid = !isNull && usernameNotTaken && isValidSyntax;
 
         // Custom code required because of our hacked jQuery validation
-
         Map<String, String> result = new HashMap<>();
 
-        result.put( "response", valid ? "success" : "error" );
-        result.put( "message", valid ? "" : "Username is already taken" );
+        result.put( "response", isValid ? "success" : "error" );
+
+        if ( isNull )
+        {
+            result.put( "message", "Username is null" );
+        }
+        else if ( !isValidSyntax )
+        {
+            result.put( "message", "Username is not valid" );
+        }
+        else if ( !usernameNotTaken )
+        {
+            result.put( "message", "Username is already taken" );
+        }
+        else
+        {
+            result.put( "message", "" );
+        }
 
         return result;
     }

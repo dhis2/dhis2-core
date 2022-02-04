@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,6 @@ import lombok.Getter;
 import lombok.Setter;
 
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.dataintegrity.DataIntegrityCheckType;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.scheduling.parameters.jackson.DataIntegrityJobParametersDeserializer;
@@ -55,9 +54,9 @@ public class DataIntegrityJobParameters implements JobParameters
 {
     private static final long serialVersionUID = 1073997854310838296L;
 
-    @JsonProperty( required = true )
+    @JsonProperty( required = false )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    private Set<DataIntegrityCheckType> checks;
+    private Set<String> checks;
 
     @Override
     public Optional<ErrorReport> validate()

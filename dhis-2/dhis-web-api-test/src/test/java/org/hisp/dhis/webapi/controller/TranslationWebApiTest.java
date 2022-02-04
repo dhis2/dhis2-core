@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -44,8 +44,8 @@ import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.webapi.DhisWebSpringTest;
 import org.hisp.dhis.webapi.utils.TestUtils;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MvcResult;
@@ -58,8 +58,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * @author Viet Nguyen <viet@dhis2.org>
  */
 @Slf4j
-public class TranslationWebApiTest extends DhisWebSpringTest
+class TranslationWebApiTest extends DhisWebSpringTest
 {
+
     @Autowired
     protected DbmsManager dbmsManager;
 
@@ -70,8 +71,8 @@ public class TranslationWebApiTest extends DhisWebSpringTest
     private IdentifiableObjectManager identifiableObjectManager;
 
     @Test
-    @Ignore
-    public void testOK()
+    @Disabled
+    void testOK()
         throws Exception
     {
         final Locale locale = Locale.FRENCH;
@@ -79,19 +80,13 @@ public class TranslationWebApiTest extends DhisWebSpringTest
         final DataElement dataElementA = createDataElement( 'A', categoryCombo );
         final String valueToCheck = "frenchTranslated";
         final MockHttpSession session = getSession( "ALL" );
-
         transactionTemplate.execute( status -> {
-
             identifiableObjectManager.save( categoryCombo );
             identifiableObjectManager.save( dataElementA );
-
-            dataElementA.getTranslations()
-                .add( new Translation( locale.getLanguage(), "NAME", valueToCheck ) );
-
+            dataElementA.getTranslations().add( new Translation( locale.getLanguage(), "NAME", valueToCheck ) );
             try
             {
-                mvc.perform( put( "/dataElements/" + dataElementA.getUid() + "/translations" )
-                    .session( session )
+                mvc.perform( put( "/dataElements/" + dataElementA.getUid() + "/translations" ).session( session )
                     .contentType( TestUtils.APPLICATION_JSON_UTF8 )
                     .content( TestUtils.convertObjectToJsonBytes( dataElementA ) ) )
                     .andExpect( status().is( HttpStatus.SC_NO_CONTENT ) );
@@ -100,19 +95,15 @@ public class TranslationWebApiTest extends DhisWebSpringTest
             {
                 log.error( "Failed:" + e.getMessage(), e );
             }
-
             dbmsManager.clearSession();
             return null;
         } );
-
-        MvcResult result = mvc.perform(
-            get( "/dataElements/" + dataElementA.getUid() + "?locale=" + locale.getLanguage() ).session( session )
-                .contentType( TestUtils.APPLICATION_JSON_UTF8 ) )
+        MvcResult result = mvc
+            .perform( get( "/dataElements/" + dataElementA.getUid() + "?locale=" + locale.getLanguage() )
+                .session( session ).contentType( TestUtils.APPLICATION_JSON_UTF8 ) )
             .andReturn();
-
         ObjectMapper mapper = new ObjectMapper();
         JsonNode node = mapper.readTree( result.getResponse().getContentAsString() );
-
         assertEquals( valueToCheck, node.get( "displayName" ).asText() );
     }
 }

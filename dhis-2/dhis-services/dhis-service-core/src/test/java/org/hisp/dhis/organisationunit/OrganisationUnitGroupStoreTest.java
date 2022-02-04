@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,43 +28,42 @@
 package org.hisp.dhis.organisationunit;
 
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Set;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import com.google.common.collect.Sets;
 
 /**
  * @author Jan Bernitt
  */
-public class OrganisationUnitGroupStoreTest extends OrganisationUnitBaseSpringTest
+class OrganisationUnitGroupStoreTest extends OrganisationUnitBaseSpringTest
 {
+
     @Test
-    public void testGetOrganisationUnitGroupsWithoutGroupSets()
+    void testGetOrganisationUnitGroupsWithoutGroupSets()
     {
         OrganisationUnit someUnit = addOrganisationUnit( 'A' );
         OrganisationUnitGroup noSet = addOrganisationUnitGroup( 'X', someUnit );
         OrganisationUnitGroup withSet = addOrganisationUnitGroup( 'W', someUnit );
         addOrganisationUnitGroupSet( 'S', withSet );
-
         assertContainsOnly( groupStore.getOrganisationUnitGroupsWithoutGroupSets(), noSet );
     }
 
     @Test
-    public void testGetOrganisationUnitGroupsWithGroupSets()
+    void testGetOrganisationUnitGroupsWithGroupSets()
     {
         OrganisationUnit someUnit = addOrganisationUnit( 'A' );
         addOrganisationUnitGroup( 'X', someUnit );
         OrganisationUnitGroup withSet = addOrganisationUnitGroup( 'W', someUnit );
         addOrganisationUnitGroupSet( 'S', withSet );
-
         assertContainsOnly( groupStore.getOrganisationUnitGroupsWithGroupSets(), withSet );
     }
 
     @Test
-    public void testGetOrgUnitGroupInGroupSet()
+    void testGetOrgUnitGroupInGroupSet()
     {
         OrganisationUnit organisationUnitA = addOrganisationUnit( 'A' );
         OrganisationUnit organisationUnitB = addOrganisationUnit( 'B' );
@@ -73,9 +72,7 @@ public class OrganisationUnitGroupStoreTest extends OrganisationUnitBaseSpringTe
         OrganisationUnitGroup groupB = addOrganisationUnitGroup( 'B', organisationUnitB );
         OrganisationUnitGroup groupC = addOrganisationUnitGroup( 'C', organisationUnitC );
         Set<OrganisationUnitGroup> groups = Sets.newHashSet( groupA, groupB );
-
         OrganisationUnitGroupSet groupSet = addOrganisationUnitGroupSet( 'A', groupA, groupC );
-
         assertEquals( groupA, groupStore.getOrgUnitGroupInGroupSet( groups, groupSet ) );
     }
 }

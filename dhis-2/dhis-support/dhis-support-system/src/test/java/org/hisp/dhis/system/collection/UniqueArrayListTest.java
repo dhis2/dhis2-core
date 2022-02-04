@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.system.collection;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,27 +38,26 @@ import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.joda.time.DateTime;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Lars Helge Overland
  */
-public class UniqueArrayListTest
+class UniqueArrayListTest
 {
+
     @Test
-    public void testAdd()
+    void testAdd()
     {
         List<Period> list = new UniqueArrayList<>();
-
         PeriodType periodType = new MonthlyPeriodType();
         Period peA = periodType.createPeriod( new DateTime( 2000, 1, 1, 0, 0 ).toDate() );
-        Period peB = periodType.createPeriod( new DateTime( 2000, 1, 1, 0, 0 ).toDate() ); // Duplicate
+        // Duplicate
+        Period peB = periodType.createPeriod( new DateTime( 2000, 1, 1, 0, 0 ).toDate() );
         Period peC = periodType.createPeriod( new DateTime( 2000, 2, 1, 0, 0 ).toDate() );
-
         list.add( peA );
         list.add( peB );
         list.add( peC );
-
         assertEquals( 2, list.size() );
         assertTrue( list.contains( peA ) );
         assertTrue( list.contains( peB ) );
@@ -66,24 +65,20 @@ public class UniqueArrayListTest
     }
 
     @Test
-    public void testAddAll()
+    void testAddAll()
     {
         List<Period> list = new ArrayList<>();
-
         PeriodType periodType = new MonthlyPeriodType();
         Period peA = periodType.createPeriod( new DateTime( 2000, 1, 1, 0, 0 ).toDate() );
-        Period peB = periodType.createPeriod( new DateTime( 2000, 1, 1, 0, 0 ).toDate() ); // Duplicate
+        // Duplicate
+        Period peB = periodType.createPeriod( new DateTime( 2000, 1, 1, 0, 0 ).toDate() );
         Period peC = periodType.createPeriod( new DateTime( 2000, 2, 1, 0, 0 ).toDate() );
-
         list.add( peA );
         list.add( peB );
         list.add( peC );
-
         assertEquals( 3, list.size() );
-
         List<Period> uniqueList = new UniqueArrayList<>();
         uniqueList.addAll( list );
-
         assertEquals( 2, uniqueList.size() );
         assertTrue( uniqueList.contains( peA ) );
         assertTrue( uniqueList.contains( peB ) );
@@ -91,23 +86,19 @@ public class UniqueArrayListTest
     }
 
     @Test
-    public void testCollectionConstructor()
+    void testCollectionConstructor()
     {
         List<Period> list = new ArrayList<>();
-
         PeriodType periodType = new MonthlyPeriodType();
         Period peA = periodType.createPeriod( new DateTime( 2000, 1, 1, 0, 0 ).toDate() );
-        Period peB = periodType.createPeriod( new DateTime( 2000, 1, 1, 0, 0 ).toDate() ); // Duplicate
+        // Duplicate
+        Period peB = periodType.createPeriod( new DateTime( 2000, 1, 1, 0, 0 ).toDate() );
         Period peC = periodType.createPeriod( new DateTime( 2000, 2, 1, 0, 0 ).toDate() );
-
         list.add( peA );
         list.add( peB );
         list.add( peC );
-
         assertEquals( 3, list.size() );
-
         List<Period> uniqueList = new UniqueArrayList<>( list );
-
         assertEquals( 2, uniqueList.size() );
         assertTrue( uniqueList.contains( peA ) );
         assertTrue( uniqueList.contains( peB ) );

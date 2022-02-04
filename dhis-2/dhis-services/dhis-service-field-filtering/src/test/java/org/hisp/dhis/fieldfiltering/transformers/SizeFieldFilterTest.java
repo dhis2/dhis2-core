@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +27,11 @@
  */
 package org.hisp.dhis.fieldfiltering.transformers;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -39,25 +39,23 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 /**
  * @author Morten Olav Hansen
  */
-public class SizeFieldFilterTest
+class SizeFieldFilterTest
 {
+
     private final ObjectMapper jsonMapper = JacksonObjectMapperConfig.staticJsonMapper();
 
     @Test
-    public void sizeFieldNameTest()
+    void sizeFieldNameTest()
     {
         ObjectNode objectNode = jsonMapper.createObjectNode();
         objectNode.set( "a", jsonMapper.createArrayNode() );
         objectNode.put( "b", "hello" );
-
         SizeFieldTransformer transformer = new SizeFieldTransformer();
         transformer.apply( "a", objectNode.get( "a" ), objectNode );
         transformer.apply( "b", objectNode.get( "b" ), objectNode );
-
         assertTrue( objectNode.has( "a" ) );
         assertTrue( objectNode.get( "a" ).isInt() );
         assertEquals( 0, objectNode.get( "a" ).asInt() );
-
         assertTrue( objectNode.has( "b" ) );
         assertTrue( objectNode.get( "b" ).isInt() );
         assertEquals( 5, objectNode.get( "b" ).asInt() );

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,24 +31,25 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.DashboardService;
 import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;
-import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.sharing.CascadeSharingService;
 import org.hisp.dhis.webapi.service.ContextService;
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.net.HttpHeaders;
 
 /**
@@ -56,8 +57,10 @@ import com.google.common.net.HttpHeaders;
  *
  * @author Volker Schmidt
  */
-public class DashboardControllerTest
+@ExtendWith( MockitoExtension.class )
+class DashboardControllerTest
 {
+
     @Mock
     private ContextService contextService;
 
@@ -76,18 +79,15 @@ public class DashboardControllerTest
     @InjectMocks
     private DashboardController controller;
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
     @Test
-    public void getWithDependencies()
+    void getWithDependencies()
         throws Exception
     {
         getWithDependencies( false );
     }
 
     @Test
-    public void getWithDependenciesAsDownload()
+    void getWithDependenciesAsDownload()
         throws Exception
     {
         getWithDependencies( true );
@@ -98,7 +98,7 @@ public class DashboardControllerTest
     {
         final Map<String, List<String>> parameterValuesMap = new HashMap<>();
         final MetadataExportParams exportParams = new MetadataExportParams();
-        final RootNode rootNode = new RootNode( "test" );
+        final ObjectNode rootNode = JacksonObjectMapperConfig.jsonMapper.createObjectNode();
 
         Mockito.when( service.getDashboard( Mockito.eq( "88dshgdga" ) ) ).thenReturn( dashboard );
         Mockito.when( contextService.getParameterValuesMap() ).thenReturn( parameterValuesMap );
@@ -108,17 +108,18 @@ public class DashboardControllerTest
                 Mockito.same( exportParams ) ) )
             .thenReturn( rootNode );
 
-        final ResponseEntity<RootNode> responseEntity = controller.getDataSetWithDependencies( "88dshgdga", download );
-        Assert.assertEquals( HttpStatus.OK, responseEntity.getStatusCode() );
-        Assert.assertSame( rootNode, responseEntity.getBody() );
+        final ResponseEntity<JsonNode> responseEntity = controller.getDataSetWithDependencies( "88dshgdga", download );
+        Assertions.assertEquals( HttpStatus.OK, responseEntity.getStatusCode() );
+        Assertions.assertSame( rootNode, responseEntity.getBody() );
+
         if ( download )
         {
-            Assert.assertEquals( "attachment; filename=metadata",
+            Assertions.assertEquals( "attachment; filename=metadata",
                 responseEntity.getHeaders().getFirst( HttpHeaders.CONTENT_DISPOSITION ) );
         }
         else
         {
-            Assert.assertFalse( responseEntity.getHeaders().containsKey( HttpHeaders.CONTENT_DISPOSITION ) );
+            Assertions.assertFalse( responseEntity.getHeaders().containsKey( HttpHeaders.CONTENT_DISPOSITION ) );
         }
     }
 }

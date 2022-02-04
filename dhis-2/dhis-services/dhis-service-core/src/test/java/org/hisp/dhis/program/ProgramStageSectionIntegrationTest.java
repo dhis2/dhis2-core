@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.program;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashSet;
 
@@ -40,7 +40,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Sets;
@@ -48,9 +48,9 @@ import com.google.common.collect.Sets;
 /**
  * @author Chau Thu Tran
  */
-public class ProgramStageSectionIntegrationTest
-    extends TransactionalIntegrationTest
+class ProgramStageSectionIntegrationTest extends TransactionalIntegrationTest
 {
+
     @Autowired
     private ProgramStageService programStageService;
 
@@ -79,20 +79,15 @@ public class ProgramStageSectionIntegrationTest
     {
         OrganisationUnit organisationUnit = createOrganisationUnit( 'A' );
         organisationUnitService.addOrganisationUnit( organisationUnit );
-
         sectionA = createProgramStageSection( 'A', 1 );
         programStageSectionService.saveProgramStageSection( sectionA );
-
         CategoryCombo categoryCombo = createCategoryCombo( 'A' );
         categoryService.addCategoryCombo( categoryCombo );
-
         DataElement dataElementA = createDataElement( 'A', categoryCombo );
         dataElementService.addDataElement( dataElementA );
         programStageDataElementA = createProgramStageDataElement( stageA, dataElementA, 1 );
-
         program = createProgram( 'A', new HashSet<>(), organisationUnit );
         programService.addProgram( program );
-
         stageA = new ProgramStage( "A", program );
         stageA.setUid( "UID-A" );
         stageA.setProgramStageSections( Sets.newHashSet( sectionA ) );
@@ -100,24 +95,18 @@ public class ProgramStageSectionIntegrationTest
     }
 
     @Test
-    public void testRemoveProgramStageSectionWillDeleteOrphans()
+    void testRemoveProgramStageSectionWillDeleteOrphans()
     {
-
         Pair<Long, Long> idPair = transactionTemplate.execute( status -> {
             long idA = programStageService.saveProgramStage( stageA );
             assertNotNull( programStageService.getProgramStage( idA ) );
-
             long sectionId = stageA.getProgramStageSections().stream().findFirst().get().getId();
             assertNotNull( programStageSectionService.getProgramStageSection( sectionId ) );
-
             stageA.getProgramStageSections().clear();
-
             programStageService.saveProgramStage( stageA );
-
             dbmsManager.clearSession();
             return Pair.of( idA, sectionId );
         } );
-
         assertTrue( programStageService.getProgramStage( idPair.getLeft() ).getProgramStageSections().isEmpty() );
         assertNull( programStageSectionService.getProgramStageSection( idPair.getRight() ) );
     }

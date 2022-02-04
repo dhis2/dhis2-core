@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,6 +54,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
@@ -488,6 +489,8 @@ public class DataQueryParams
      */
     protected transient boolean skipDataDimensionValidation = false;
 
+    protected String analyzeOrderId;
+
     // Constructors
     // -------------------------------------------------------------------------
 
@@ -586,7 +589,19 @@ public class DataQueryParams
         params.dataApprovalLevels = new HashMap<>( this.dataApprovalLevels );
         params.skipDataDimensionValidation = this.skipDataDimensionValidation;
         params.userOrgUnitType = this.userOrgUnitType;
+        params.analyzeOrderId = this.analyzeOrderId;
+
         return params;
+    }
+
+    public String getAnalyzeOrderId()
+    {
+        return analyzeOrderId;
+    }
+
+    public boolean analyzeOnly()
+    {
+        return analyzeOrderId != null;
     }
 
     /**
@@ -3245,6 +3260,12 @@ public class DataQueryParams
         public Builder withUserOrgUnitType( UserOrgUnitType userOrgUnitType )
         {
             this.params.userOrgUnitType = userOrgUnitType;
+            return this;
+        }
+
+        public Builder withAnalyzeOrderId()
+        {
+            this.params.analyzeOrderId = UUID.randomUUID().toString();
             return this;
         }
 

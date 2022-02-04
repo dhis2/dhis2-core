@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,7 @@ import static org.hisp.dhis.parser.expression.ParserUtils.DEFAULT_SAMPLE_PERIODS
 import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_GET_DESCRIPTIONS;
 import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_GET_SQL;
 import static org.hisp.dhis.program.DefaultProgramIndicatorService.PROGRAM_INDICATOR_ITEMS;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 import java.util.Date;
@@ -63,20 +63,24 @@ import org.hisp.dhis.parser.expression.literal.SqlLiteral;
 import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import com.google.common.collect.ImmutableMap;
 
 /**
  * @author Jim Grace
  */
-public class ProgramSqlGeneratorItemsTest
-    extends DhisConvenienceTest
+@MockitoSettings( strictness = Strictness.LENIENT )
+@ExtendWith( MockitoExtension.class )
+class ProgramSqlGeneratorItemsTest extends DhisConvenienceTest
 {
+
     private ProgramIndicator programIndicator;
 
     private ProgramStage programStageA;
@@ -94,9 +98,6 @@ public class ProgramSqlGeneratorItemsTest
     private Date startDate = getDate( 2020, 1, 1 );
 
     private Date endDate = getDate( 2020, 12, 31 );
-
-    @org.junit.Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Mock
     private ProgramIndicatorService programIndicatorService;
@@ -118,7 +119,7 @@ public class ProgramSqlGeneratorItemsTest
 
     private StatementBuilder statementBuilder;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         dataElementA = createDataElement( 'A' );
@@ -152,7 +153,7 @@ public class ProgramSqlGeneratorItemsTest
     }
 
     @Test
-    public void testDataElement()
+    void testDataElement()
     {
         when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
         when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
@@ -162,7 +163,7 @@ public class ProgramSqlGeneratorItemsTest
     }
 
     @Test
-    public void testDataElementAllowingNulls()
+    void testDataElementAllowingNulls()
     {
         when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
         when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
@@ -172,7 +173,7 @@ public class ProgramSqlGeneratorItemsTest
     }
 
     @Test
-    public void testDataElementNotFound()
+    void testDataElementNotFound()
     {
         when( attributeService.getTrackedEntityAttribute( attributeA.getUid() ) ).thenReturn( attributeA );
         when( constantService.getConstant( constantA.getUid() ) ).thenReturn( constantA );
@@ -182,7 +183,7 @@ public class ProgramSqlGeneratorItemsTest
     }
 
     @Test
-    public void testAttribute()
+    void testAttribute()
     {
         when( attributeService.getTrackedEntityAttribute( attributeA.getUid() ) ).thenReturn( attributeA );
 
@@ -191,7 +192,7 @@ public class ProgramSqlGeneratorItemsTest
     }
 
     @Test
-    public void testAttributeAllowingNulls()
+    void testAttributeAllowingNulls()
     {
         when( attributeService.getTrackedEntityAttribute( attributeA.getUid() ) ).thenReturn( attributeA );
 
@@ -200,26 +201,26 @@ public class ProgramSqlGeneratorItemsTest
     }
 
     @Test
-    public void testAttributeNotFound()
+    void testAttributeNotFound()
     {
         assertThrows( org.hisp.dhis.antlr.ParserException.class, () -> test( "A{NoAttribute}" ) );
     }
 
     @Test
-    public void testConstant()
+    void testConstant()
     {
         String sql = test( "C{constant00A}" );
         assertThat( sql, is( "123.456" ) );
     }
 
     @Test
-    public void testConstantNotFound()
+    void testConstantNotFound()
     {
         assertThrows( org.hisp.dhis.antlr.ParserException.class, () -> test( "C{notConstant}" ) );
     }
 
     @Test
-    public void testInvalidItemType()
+    void testInvalidItemType()
     {
         assertThrows( org.hisp.dhis.antlr.ParserException.class, () -> test( "I{notValidItm}" ) );
     }

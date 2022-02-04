@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,17 +27,17 @@
  */
 package org.hisp.dhis.trackedentity;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.DhisSpringTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Lists;
 
-public class TrackedEntityTypeAttributeStoreTest
-    extends DhisSpringTest
+class TrackedEntityTypeAttributeStoreTest extends DhisSpringTest
 {
+
     @Autowired
     private TrackedEntityTypeStore entityTypeStore;
 
@@ -48,7 +48,7 @@ public class TrackedEntityTypeAttributeStoreTest
     private TrackedEntityTypeAttributeStore entityTypeAttributeStore;
 
     @Test
-    public void testGetAttributesByTrackedEntityTypes()
+    void testGetAttributesByTrackedEntityTypes()
     {
         TrackedEntityType entityTypeA = createTrackedEntityType( 'A' );
         TrackedEntityType entityTypeB = createTrackedEntityType( 'B' );
@@ -56,29 +56,22 @@ public class TrackedEntityTypeAttributeStoreTest
         entityTypeStore.save( entityTypeA );
         entityTypeStore.save( entityTypeB );
         entityTypeStore.save( entityTypeC );
-
         TrackedEntityAttribute attributeA = createTrackedEntityAttribute( 'A' );
         attributeStore.save( attributeA );
-
         TrackedEntityTypeAttribute typeAttributeA = new TrackedEntityTypeAttribute();
         typeAttributeA.setTrackedEntityType( entityTypeA );
         typeAttributeA.setTrackedEntityAttribute( attributeA );
-
         TrackedEntityTypeAttribute typeAttributeB = new TrackedEntityTypeAttribute();
         typeAttributeB.setTrackedEntityType( entityTypeB );
         typeAttributeB.setTrackedEntityAttribute( attributeA );
-
         TrackedEntityTypeAttribute typeAttributeC = new TrackedEntityTypeAttribute();
         typeAttributeC.setTrackedEntityType( entityTypeA );
         typeAttributeC.setTrackedEntityAttribute( attributeA );
-
         entityTypeAttributeStore.save( typeAttributeA );
         entityTypeAttributeStore.save( typeAttributeB );
         entityTypeAttributeStore.save( typeAttributeC );
-
         assertEquals( 1, entityTypeAttributeStore.getAttributes( Lists.newArrayList( entityTypeA ) ).size() );
         assertEquals( 1, entityTypeAttributeStore.getAttributes( Lists.newArrayList( entityTypeB ) ).size() );
         assertEquals( 0, entityTypeAttributeStore.getAttributes( Lists.newArrayList( entityTypeC ) ).size() );
-
     }
 }

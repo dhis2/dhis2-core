@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,9 +28,9 @@
 package org.hisp.dhis.security.oidc.provider;
 
 import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.EXTRA_REQUEST_PARAMETERS;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashMap;
 import java.util.List;
@@ -39,15 +39,17 @@ import java.util.Properties;
 
 import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
 import org.hisp.dhis.security.oidc.GenericOidcProviderConfigParser;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class GenericOidcProviderBuilderTest
+class GenericOidcProviderBuilderTest
 {
+
     @Test
-    public void testBuildSuccessfully()
+    @SuppressWarnings( "unchecked" )
+    void testBuildSuccessfully()
     {
         Properties p = new Properties();
         p.put( "oidc.provider.idporten.client_id", "testClientId" );
@@ -67,16 +69,12 @@ public class GenericOidcProviderBuilderTest
         p.put( "oidc.provider.idporten.login_image_padding", "0px 0px" );
         p.put( "oidc.provider.idporten.extra_request_parameters", "acr_value 4 , test_param five" );
         p.put( "oidc.provider.idporten.enable_pkce", "true" );
-
         List<DhisOidcClientRegistration> providerConfigList = GenericOidcProviderConfigParser.parse( p );
         assertEquals( providerConfigList.size(), 1 );
-
         DhisOidcClientRegistration r = providerConfigList.get( 0 );
         assertNotNull( r );
-
         final String registrationId = r.getClientRegistration().getRegistrationId();
         assertEquals( registrationId, "idporten" );
-
         assertEquals( "helseid://claims/identity/pid", r.getMappingClaimKey() );
         assertEquals( "../oidc/idporten-logo.svg", r.getLoginIcon() );
         assertEquals( "0px 0px", r.getLoginIconPadding() );
@@ -84,47 +82,32 @@ public class GenericOidcProviderBuilderTest
         assertEquals( "testClientId", r.getClientRegistration().getClientId() );
         assertEquals( "testClientSecret!#!?", r.getClientRegistration().getClientSecret() );
         assertTrue( r.getClientRegistration().getScopes().contains( "pid" ) );
-
-        assertEquals( "https://oidc-ver2.difi.no/token",
-            r.getClientRegistration().getProviderDetails().getTokenUri() );
-
+        assertEquals( "https://oidc-ver2.difi.no/token", r.getClientRegistration().getProviderDetails().getTokenUri() );
         assertEquals( "https://oidc-ver2.difi.no/authorize",
             r.getClientRegistration().getProviderDetails().getAuthorizationUri() );
-
-        assertEquals( "https://oidc-ver2.difi.no/jwk",
-            r.getClientRegistration().getProviderDetails().getJwkSetUri() );
-
+        assertEquals( "https://oidc-ver2.difi.no/jwk", r.getClientRegistration().getProviderDetails().getJwkSetUri() );
         assertEquals( "https://oidc-ver2.difi.no/userinfo",
             r.getClientRegistration().getProviderDetails().getUserInfoEndpoint().getUri() );
-
-        assertEquals( "https://oidc-ver2.difi.no",
-            r.getClientRegistration().getProviderDetails().getIssuerUri() );
-
+        assertEquals( "https://oidc-ver2.difi.no", r.getClientRegistration().getProviderDetails().getIssuerUri() );
         assertEquals( "true",
             r.getClientRegistration().getProviderDetails().getConfigurationMetadata().get( "enable_pkce" ) );
-
         Object parameters = r.getClientRegistration().getProviderDetails().getConfigurationMetadata()
             .get( "extra_request_parameters" );
-
         Map<String, String> extraRequestParams = (Map<String, String>) parameters;
         assertEquals( "4", extraRequestParams.get( "acr_value" ) );
-
         Map<String, Map<String, String>> externalClients = r.getExternalClients();
         assertNotNull( externalClients );
-
         Map<String, String> android = externalClients.get( "android" );
         assertNotNull( externalClients );
-
         String client_id = android.get( "client_id" );
         assertEquals( "externalClientId", client_id );
     }
 
     @Test
-    public void testParseExtraRequestParameters()
+    void testParseExtraRequestParameters()
     {
         HashMap<String, String> hashMap = new HashMap<>();
         hashMap.put( EXTRA_REQUEST_PARAMETERS, "   acr_value    4    ,    test_param five,    test_param2  six " );
-
         Map<String, String> params = GenericOidcProviderBuilder.getExtraRequestParameters( hashMap );
         assertEquals( "4", params.get( "acr_value" ) );
         assertEquals( "five", params.get( "test_param" ) );

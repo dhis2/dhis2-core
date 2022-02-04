@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.program;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -41,15 +41,15 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Chau Thu Tran
  */
-public class ProgramExpressionServiceTest
-    extends DhisSpringTest
+class ProgramExpressionServiceTest extends DhisSpringTest
 {
+
     @Autowired
     private ProgramExpressionService programExpressionService;
 
@@ -85,33 +85,25 @@ public class ProgramExpressionServiceTest
     {
         OrganisationUnit organisationUnit = createOrganisationUnit( 'A' );
         organisationUnitService.addOrganisationUnit( organisationUnit );
-
         Program program = createProgram( 'A', new HashSet<>(), organisationUnit );
         programService.addProgram( program );
-
         stageA = new ProgramStage( "StageA", program );
         stageA.setSortOrder( 1 );
         programStageService.saveProgramStage( stageA );
-
         stageB = new ProgramStage( "StageB", program );
         stageB.setSortOrder( 2 );
         programStageService.saveProgramStage( stageB );
-
         Set<ProgramStage> programStages = new HashSet<>();
         programStages.add( stageA );
         programStages.add( stageB );
         program.setProgramStages( programStages );
         programService.updateProgram( program );
-
         dataElementA = createDataElement( 'A' );
         dataElementB = createDataElement( 'B' );
-
         dataElementService.addDataElement( dataElementA );
         dataElementService.addDataElement( dataElementB );
-
         TrackedEntityInstance entityInstance = createTrackedEntityInstance( organisationUnit );
         entityInstanceService.addTrackedEntityInstance( entityInstance );
-
         programExpressionA = new ProgramExpression( "[" + ProgramExpression.OBJECT_PROGRAM_STAGE_DATAELEMENT
             + ProgramExpression.SEPARATOR_OBJECT + stageA.getUid() + "." + dataElementA.getUid() + "]", "A" );
         programExpressionB = new ProgramExpression( "[" + ProgramExpression.OBJECT_PROGRAM_STAGE_DATAELEMENT
@@ -119,63 +111,52 @@ public class ProgramExpressionServiceTest
     }
 
     @Test
-    public void testAddProgramExpression()
+    void testAddProgramExpression()
     {
         long idA = programExpressionService.addProgramExpression( programExpressionA );
         long idB = programExpressionService.addProgramExpression( programExpressionB );
-
         assertNotNull( programExpressionService.getProgramExpression( idA ) );
         assertNotNull( programExpressionService.getProgramExpression( idB ) );
     }
 
     @Test
-    public void testUpdateProgramExpression()
+    void testUpdateProgramExpression()
     {
         long idA = programExpressionService.addProgramExpression( programExpressionA );
-
         assertNotNull( programExpressionService.getProgramExpression( idA ) );
-
         programExpressionA.setDescription( "B" );
         programExpressionService.updateProgramExpression( programExpressionA );
-
         assertEquals( "B", programExpressionService.getProgramExpression( idA ).getDescription() );
     }
 
     @Test
-    public void testDeleteProgramExpression()
+    void testDeleteProgramExpression()
     {
         long idA = programExpressionService.addProgramExpression( programExpressionA );
         long idB = programExpressionService.addProgramExpression( programExpressionB );
-
         assertNotNull( programExpressionService.getProgramExpression( idA ) );
         assertNotNull( programExpressionService.getProgramExpression( idB ) );
-
         programExpressionService.deleteProgramExpression( programExpressionA );
-
         assertNull( programExpressionService.getProgramExpression( idA ) );
         assertNotNull( programExpressionService.getProgramExpression( idB ) );
-
         programExpressionService.deleteProgramExpression( programExpressionB );
-
         assertNull( programExpressionService.getProgramExpression( idA ) );
         assertNull( programExpressionService.getProgramExpression( idB ) );
     }
 
     @Test
-    public void testGetProgramExpression()
+    void testGetProgramExpression()
     {
         long idA = programExpressionService.addProgramExpression( programExpressionA );
         long idB = programExpressionService.addProgramExpression( programExpressionB );
-
         assertEquals( programExpressionA, programExpressionService.getProgramExpression( idA ) );
         assertEquals( programExpressionB, programExpressionService.getProgramExpression( idB ) );
     }
 
     @Test
-    public void testGetExpressionDescription()
+    void testGetExpressionDescription()
     {
         programExpressionService.addProgramExpression( programExpressionA );
-
         String actual = programExpressionService.getExpressionDescription( programExpressionA.getExpression() );
         String expected = "[" + ProgramExpression.OBJECT_PROGRAM_STAGE_DATAELEMENT + ProgramExpression.SEPARATOR_OBJECT
             + "StageA.DataElementA]";

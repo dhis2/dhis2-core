@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.programrule.engine;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -82,7 +82,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.joda.time.DateTime;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
@@ -92,8 +92,9 @@ import com.google.common.collect.Sets;
 /**
  * Created by zubair@dhis2.org on 11.10.17.
  */
-public class ProgramRuleEngineTest extends DhisSpringTest
+class ProgramRuleEngineTest extends DhisSpringTest
 {
+
     private static final SimpleDateFormat simpleDateFormat = new SimpleDateFormat( "yyyy-MM-dd" );
 
     private Program programA;
@@ -226,106 +227,72 @@ public class ProgramRuleEngineTest extends DhisSpringTest
         dataElementB = createDataElement( 'B', ValueType.TEXT, AggregationType.NONE, DataElementDomain.TRACKER );
         dataElementC = createDataElement( 'C', ValueType.INTEGER, AggregationType.NONE, DataElementDomain.TRACKER );
         dataElementD = createDataElement( 'D', ValueType.INTEGER, AggregationType.NONE, DataElementDomain.TRACKER );
-
         dataElementDate = createDataElement( 'T', ValueType.DATE, AggregationType.NONE, DataElementDomain.TRACKER );
         dataElementAge = createDataElement( 'G', ValueType.AGE, AggregationType.NONE, DataElementDomain.TRACKER );
         assignedDataElement = createDataElement( 'K', ValueType.TEXT, AggregationType.NONE, DataElementDomain.TRACKER );
-
         attributeA = createTrackedEntityAttribute( 'A' );
         attributeB = createTrackedEntityAttribute( 'B' );
         attributeEmail = createTrackedEntityAttribute( 'E' );
-
         dataElementService.addDataElement( dataElementA );
         dataElementService.addDataElement( dataElementB );
         dataElementService.addDataElement( dataElementC );
         dataElementService.addDataElement( dataElementD );
-
         dataElementService.addDataElement( dataElementDate );
         dataElementService.addDataElement( dataElementAge );
         dataElementService.addDataElement( assignedDataElement );
-
         attributeService.addTrackedEntityAttribute( attributeA );
         attributeService.addTrackedEntityAttribute( attributeB );
         attributeService.addTrackedEntityAttribute( attributeEmail );
-
         Calendar cal = Calendar.getInstance();
         cal.setTime( simpleDateFormat.parse( dob ) );
         cal.add( Calendar.YEAR, 10 );
-
         psEventDate = cal.getTime();
-
         setupEvents();
         setupProgramRuleEngine();
     }
 
     @Test
-    public void testSendMessageForEnrollment()
+    void testSendMessageForEnrollment()
     {
         setUpSendMessageForEnrollment();
-
         ProgramInstance programInstance = programInstanceService.getProgramInstance( "UID-P1" );
-
         List<RuleEffect> ruleEffects = programRuleEngine.evaluate( programInstance, Sets.newHashSet() );
-
         assertEquals( 1, ruleEffects.size() );
-
         RuleAction ruleAction = ruleEffects.get( 0 ).ruleAction();
-
         assertTrue( ruleAction instanceof RuleActionSendMessage );
-
         RuleActionSendMessage ruleActionSendMessage = (RuleActionSendMessage) ruleAction;
-
         assertEquals( "PNT-1", ruleActionSendMessage.notification() );
     }
 
     @Test
-    public void testSendMessageForEnrollmentAndEvents()
+    void testSendMessageForEnrollmentAndEvents()
     {
         setUpSendMessageForEnrollment();
-
         ProgramInstance programInstance = programInstanceService.getProgramInstance( "UID-P1" );
-
-        List<RuleEffects> ruleEffects = programRuleEngine
-            .evaluateEnrollmentAndEvents( programInstance, Sets.newHashSet(),
-                Lists.newArrayList() );
-
+        List<RuleEffects> ruleEffects = programRuleEngine.evaluateEnrollmentAndEvents( programInstance,
+            Sets.newHashSet(), Lists.newArrayList() );
         assertEquals( 1, ruleEffects.size() );
-
         RuleEffects enrollmentRuleEffects = ruleEffects.get( 0 );
-
         assertTrue( enrollmentRuleEffects.isEnrollment() );
         assertEquals( "UID-P1", enrollmentRuleEffects.getTrackerObjectUid() );
-
         RuleAction ruleAction = enrollmentRuleEffects.getRuleEffects().get( 0 ).ruleAction();
-
         assertTrue( ruleAction instanceof RuleActionSendMessage );
-
         RuleActionSendMessage ruleActionSendMessage = (RuleActionSendMessage) ruleAction;
-
         assertEquals( "PNT-1", ruleActionSendMessage.notification() );
     }
 
     @Test
-    public void testNotificationWhenUsingD2HasValueWithTEA()
+    void testNotificationWhenUsingD2HasValueWithTEA()
     {
         setUpNotificationForD2HasValue();
-
         ProgramInstance programInstance = programInstanceService.getProgramInstance( "UID-P2" );
-
         List<RuleEffect> ruleEffects = programRuleEngine.evaluate( programInstance, Sets.newHashSet() );
-
         assertEquals( 1, ruleEffects.size() );
-
         RuleAction ruleAction = ruleEffects.get( 0 ).ruleAction();
-
         assertTrue( ruleAction instanceof RuleActionSendMessage );
-
         RuleActionSendMessage ruleActionSendMessage = (RuleActionSendMessage) ruleAction;
-
         assertEquals( "PNT-2", ruleActionSendMessage.notification() );
-
         ProgramNotificationTemplate template = programNotificationTemplateStore.getByUid( "PNT-2" );
-
         assertNotNull( template );
         assertEquals( NotificationTrigger.PROGRAM_RULE, template.getNotificationTrigger() );
         assertEquals( ProgramNotificationRecipient.PROGRAM_ATTRIBUTE, template.getNotificationRecipient() );
@@ -333,32 +300,21 @@ public class ProgramRuleEngineTest extends DhisSpringTest
     }
 
     @Test
-    public void testNotificationWhenUsingD2HasValueWithTEAForEnrollmentAndEvents()
+    void testNotificationWhenUsingD2HasValueWithTEAForEnrollmentAndEvents()
     {
         setUpNotificationForD2HasValue();
-
         ProgramInstance programInstance = programInstanceService.getProgramInstance( "UID-P2" );
-
-        List<RuleEffects> ruleEffects = programRuleEngine
-            .evaluateEnrollmentAndEvents( programInstance, Sets.newHashSet(), Lists.newArrayList() );
-
+        List<RuleEffects> ruleEffects = programRuleEngine.evaluateEnrollmentAndEvents( programInstance,
+            Sets.newHashSet(), Lists.newArrayList() );
         assertEquals( 1, ruleEffects.size() );
-
         RuleEffects enrollmentRuleEffects = ruleEffects.get( 0 );
-
         assertTrue( enrollmentRuleEffects.isEnrollment() );
         assertEquals( "UID-P2", enrollmentRuleEffects.getTrackerObjectUid() );
-
         RuleAction ruleAction = enrollmentRuleEffects.getRuleEffects().get( 0 ).ruleAction();
-
         assertTrue( ruleAction instanceof RuleActionSendMessage );
-
         RuleActionSendMessage ruleActionSendMessage = (RuleActionSendMessage) ruleAction;
-
         assertEquals( "PNT-2", ruleActionSendMessage.notification() );
-
         ProgramNotificationTemplate template = programNotificationTemplateStore.getByUid( "PNT-2" );
-
         assertNotNull( template );
         assertEquals( NotificationTrigger.PROGRAM_RULE, template.getNotificationTrigger() );
         assertEquals( ProgramNotificationRecipient.PROGRAM_ATTRIBUTE, template.getNotificationRecipient() );
@@ -366,27 +322,18 @@ public class ProgramRuleEngineTest extends DhisSpringTest
     }
 
     @Test
-    public void testSendMessageForEvent()
+    void testSendMessageForEvent()
     {
         setUpSendMessageForEnrollment();
-
         ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( "UID-PS1" );
-
         List<RuleEffect> ruleEffects = programRuleEngine.evaluate( programStageInstance.getProgramInstance(),
             programStageInstance, Sets.newHashSet() );
-
         assertEquals( 1, ruleEffects.size() );
-
         RuleAction ruleAction = ruleEffects.get( 0 ).ruleAction();
-
         assertTrue( ruleAction instanceof RuleActionSendMessage );
-
         RuleActionSendMessage ruleActionSendMessage = (RuleActionSendMessage) ruleAction;
-
         assertEquals( "PNT-1", ruleActionSendMessage.notification() );
-
         ProgramNotificationTemplate template = programNotificationTemplateStore.getByUid( "PNT-1" );
-
         assertNotNull( template );
         assertEquals( NotificationTrigger.PROGRAM_RULE, template.getNotificationTrigger() );
         assertEquals( ProgramNotificationRecipient.USER_GROUP, template.getNotificationRecipient() );
@@ -394,35 +341,23 @@ public class ProgramRuleEngineTest extends DhisSpringTest
     }
 
     @Test
-    public void testSendMessageForEnrollmentAndEvent()
+    void testSendMessageForEnrollmentAndEvent()
     {
         setUpSendMessageForEnrollment();
-
         ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( "UID-PS1" );
-
-        List<RuleEffects> ruleEffects = programRuleEngine
-            .evaluateEnrollmentAndEvents( programStageInstance.getProgramInstance(),
-                Sets.newHashSet( programStageInstance ), Lists.newArrayList() );
-
+        List<RuleEffects> ruleEffects = programRuleEngine.evaluateEnrollmentAndEvents(
+            programStageInstance.getProgramInstance(), Sets.newHashSet( programStageInstance ), Lists.newArrayList() );
         assertEquals( 2, ruleEffects.size() );
-
         RuleEffects enrollmentRuleEffects = ruleEffects.stream().filter( RuleEffects::isEnrollment ).findFirst().get();
         RuleEffects eventRuleEffects = ruleEffects.stream().filter( RuleEffects::isEvent ).findFirst().get();
-
         assertEquals( "UID-PS1", eventRuleEffects.getTrackerObjectUid() );
-
         RuleAction eventRuleAction = eventRuleEffects.getRuleEffects().get( 0 ).ruleAction();
         RuleAction enrollmentRuleAction = enrollmentRuleEffects.getRuleEffects().get( 0 ).ruleAction();
-
         assertTrue( eventRuleAction instanceof RuleActionSendMessage );
         assertTrue( enrollmentRuleAction instanceof RuleActionSendMessage );
-
         RuleActionSendMessage ruleActionSendMessage = (RuleActionSendMessage) eventRuleAction;
-
         assertEquals( "PNT-1", ruleActionSendMessage.notification() );
-
         ProgramNotificationTemplate template = programNotificationTemplateStore.getByUid( "PNT-1" );
-
         assertNotNull( template );
         assertEquals( NotificationTrigger.PROGRAM_RULE, template.getNotificationTrigger() );
         assertEquals( ProgramNotificationRecipient.USER_GROUP, template.getNotificationRecipient() );
@@ -430,84 +365,54 @@ public class ProgramRuleEngineTest extends DhisSpringTest
     }
 
     @Test
-    public void testSchedulingByProgramRule()
+    void testSchedulingByProgramRule()
     {
         setUpScheduleMessage();
-
         ProgramInstance programInstance = programInstanceService.getProgramInstance( "UID-PS" );
-
         List<RuleEffect> ruleEffects = programRuleEngineService
             .evaluateEnrollmentAndRunEffects( programInstance.getId() );
-
         assertEquals( 1, ruleEffects.size() );
-
         RuleAction ruleAction = ruleEffects.get( 0 ).ruleAction();
-
         assertTrue( ruleAction instanceof RuleActionScheduleMessage );
-
         RuleActionScheduleMessage ruleActionScheduleMessage = (RuleActionScheduleMessage) ruleAction;
-
         assertEquals( "PNT-1-SCH", ruleActionScheduleMessage.notification() );
         assertEquals( scheduledDate, ruleEffects.get( 0 ).data() );
-
         // For duplication detection
-
         List<RuleEffect> ruleEffects2 = programRuleEngineService
             .evaluateEnrollmentAndRunEffects( programInstance.getId() );
-
         assertNotNull( ruleEffects2.get( 0 ) );
-
         assertTrue( ruleEffects2.get( 0 ).ruleAction() instanceof RuleActionScheduleMessage );
-
         RuleActionScheduleMessage ruleActionScheduleMessage2 = (RuleActionScheduleMessage) ruleEffects2.get( 0 )
             .ruleAction();
-
         assertNotNull( programNotificationTemplateStore.getByUid( ruleActionScheduleMessage2.notification() ) );
-        assertEquals( 1,
-            programNotificationInstanceService
-                .getProgramNotificationInstances( ProgramNotificationInstanceParam.builder()
-                    .programInstance( programInstance ).build() )
-                .size() );
+        assertEquals( 1, programNotificationInstanceService.getProgramNotificationInstances(
+            ProgramNotificationInstanceParam.builder().programInstance( programInstance ).build() ).size() );
     }
 
     @Test
-    public void testSendRepeatableTemplates()
+    void testSendRepeatableTemplates()
     {
         setUpScheduleMessage();
         pnt.setSendRepeatable( true );
-
         ProgramInstance programInstance = programInstanceService.getProgramInstance( "UID-PS" );
-
         List<RuleEffect> ruleEffects = programRuleEngineService
             .evaluateEnrollmentAndRunEffects( programInstance.getId() );
-
         assertEquals( 1, ruleEffects.size() );
-
         RuleAction ruleAction = ruleEffects.get( 0 ).ruleAction();
-
         assertTrue( ruleAction instanceof RuleActionScheduleMessage );
-
         RuleActionScheduleMessage ruleActionScheduleMessage = (RuleActionScheduleMessage) ruleAction;
-
         assertEquals( "PNT-1-SCH", ruleActionScheduleMessage.notification() );
         assertEquals( scheduledDate, ruleEffects.get( 0 ).data() );
-
         List<RuleEffect> ruleEffects2 = programRuleEngineService
             .evaluateEnrollmentAndRunEffects( programInstance.getId() );
-
         assertNotNull( ruleEffects2.get( 0 ) );
-
         assertTrue( ruleEffects2.get( 0 ).ruleAction() instanceof RuleActionScheduleMessage );
-
         RuleActionScheduleMessage ruleActionScheduleMessage2 = (RuleActionScheduleMessage) ruleEffects2.get( 0 )
             .ruleAction();
-
         assertNotNull( programNotificationTemplateStore.getByUid( ruleActionScheduleMessage2.notification() ) );
-
         List<ProgramNotificationInstance> instances = programNotificationInstanceService
-            .getProgramNotificationInstances( ProgramNotificationInstanceParam.builder()
-                .programInstance( programInstance ).build() );
-
+            .getProgramNotificationInstances(
+                ProgramNotificationInstanceParam.builder().programInstance( programInstance ).build() );
         assertEquals( 2, instances.size() );
         assertEquals( instances.get( 0 ).getProgramNotificationTemplateId(),
             instances.get( 1 ).getProgramNotificationTemplateId() );
@@ -516,48 +421,37 @@ public class ProgramRuleEngineTest extends DhisSpringTest
     }
 
     @Test
-    public void testAssignValueTypeDate()
+    void testAssignValueTypeDate()
     {
         setUpAssignValueDate();
-
         ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( "UID-PS12" );
-
         List<RuleEffect> ruleEffects = programRuleEngine.evaluate( programStageInstance.getProgramInstance(),
             programStageInstance, Sets.newHashSet() );
-
         assertNotNull( ruleEffects );
         assertEquals( ruleEffects.get( 0 ).data(), "10" );
     }
 
     @Test
-    public void testAssignValueTypeDateEnrollmentAndEvent()
+    void testAssignValueTypeDateEnrollmentAndEvent()
     {
         setUpAssignValueDate();
-
         ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( "UID-PS12" );
-
-        List<RuleEffects> ruleEffects = programRuleEngine
-            .evaluateEnrollmentAndEvents( programStageInstance.getProgramInstance(),
-                Sets.newHashSet( programStageInstance ), Lists.newArrayList() );
-
+        List<RuleEffects> ruleEffects = programRuleEngine.evaluateEnrollmentAndEvents(
+            programStageInstance.getProgramInstance(), Sets.newHashSet( programStageInstance ), Lists.newArrayList() );
         assertNotNull( ruleEffects );
         assertEquals( 2, ruleEffects.size() );
-
         assertTrue( ruleEffects.stream().filter( e -> e.isEnrollment() ).findFirst().get().getRuleEffects().isEmpty() );
         assertEquals(
             ruleEffects.stream().filter( e -> e.isEvent() ).findFirst().get().getRuleEffects().get( 0 ).data(), "10" );
     }
 
     @Test
-    public void testAssignValueTypeAge()
+    void testAssignValueTypeAge()
     {
         setUpAssignValueAge();
-
         ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( "UID-PS13" );
-
         List<RuleEffect> ruleEffects = programRuleEngine.evaluate( programStageInstance.getProgramInstance(),
             programStageInstance, Sets.newHashSet() );
-
         assertNotNull( ruleEffects );
         assertEquals( ruleEffects.get( 0 ).data(), "10" );
     }
@@ -566,46 +460,35 @@ public class ProgramRuleEngineTest extends DhisSpringTest
     {
         organisationUnitA = createOrganisationUnit( 'A' );
         organisationUnitService.addOrganisationUnit( organisationUnitA );
-
         organisationUnitB = createOrganisationUnit( 'B' );
         organisationUnitService.addOrganisationUnit( organisationUnitB );
-
         programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
         programS = createProgram( 'S', new HashSet<>(), organisationUnitB );
         programB = createProgram( 'E', new HashSet<>(), organisationUnitA );
-
         programService.addProgram( programA );
         programService.addProgram( programS );
         programService.addProgram( programB );
-
         ProgramTrackedEntityAttribute attribute = createProgramTrackedEntityAttribute( programS, attributeB );
         attribute.setUid( "ATTR-UID" );
-
         ProgramTrackedEntityAttribute programAttributeEmail = createProgramTrackedEntityAttribute( programB,
             attributeEmail );
         attribute.setUid( "ATTR-UID2" );
-
         programTrackedEntityAttributeStore.save( attribute );
         programTrackedEntityAttributeStore.save( attribute );
-
         programA.setProgramAttributes( Arrays.asList( attribute ) );
         programS.setProgramAttributes( Arrays.asList( attribute ) );
         programB.setProgramAttributes( Arrays.asList( programAttributeEmail ) );
-
         programService.updateProgram( programA );
         programService.updateProgram( programS );
         programService.updateProgram( programB );
-
         ProgramStage programStageA = createProgramStage( 'A', programA );
         ProgramStage programStageAge = createProgramStage( 'S', programA );
         ProgramStage programStageB = createProgramStage( 'B', programA );
         ProgramStage programStageC = createProgramStage( 'C', programA );
-
         programStageService.saveProgramStage( programStageA );
         programStageService.saveProgramStage( programStageAge );
         programStageService.saveProgramStage( programStageB );
         programStageService.saveProgramStage( programStageC );
-
         ProgramStageDataElement programStageDataElementA = createProgramStageDataElement( programStageA, dataElementA,
             1 );
         ProgramStageDataElement programStageDataElementB = createProgramStageDataElement( programStageB, dataElementB,
@@ -614,24 +497,19 @@ public class ProgramRuleEngineTest extends DhisSpringTest
             3 );
         ProgramStageDataElement programStageDataElementD = createProgramStageDataElement( programStageC, dataElementD,
             4 );
-
         ProgramStageDataElement programStageDataElementDate = createProgramStageDataElement( programStageAge,
             dataElementDate, 5 );
         ProgramStageDataElement programStageDataElementAge = createProgramStageDataElement( programStageAge,
             dataElementAge, 6 );
-
         programStageDataElementService.addProgramStageDataElement( programStageDataElementA );
         programStageDataElementService.addProgramStageDataElement( programStageDataElementB );
         programStageDataElementService.addProgramStageDataElement( programStageDataElementC );
         programStageDataElementService.addProgramStageDataElement( programStageDataElementD );
-
         programStageDataElementService.addProgramStageDataElement( programStageDataElementDate );
         programStageDataElementService.addProgramStageDataElement( programStageDataElementAge );
-
         programStageA.setSortOrder( 1 );
         programStageB.setSortOrder( 2 );
         programStageC.setSortOrder( 3 );
-
         programStageA.setProgramStageDataElements(
             Sets.newHashSet( programStageDataElementA, programStageDataElementB, programStageDataElementDate ) );
         programStageAge.setProgramStageDataElements( Sets.newHashSet( programStageDataElementDate ) );
@@ -639,123 +517,93 @@ public class ProgramRuleEngineTest extends DhisSpringTest
             .setProgramStageDataElements( Sets.newHashSet( programStageDataElementA, programStageDataElementB ) );
         programStageC
             .setProgramStageDataElements( Sets.newHashSet( programStageDataElementC, programStageDataElementD ) );
-
         programStageService.updateProgramStage( programStageA );
         programStageService.updateProgramStage( programStageB );
         programStageService.updateProgramStage( programStageC );
         programStageService.updateProgramStage( programStageAge );
-
         programA.setProgramStages( Sets.newHashSet( programStageA, programStageB, programStageC, programStageAge ) );
-
         programService.updateProgram( programA );
-
         TrackedEntityInstance entityInstanceA = createTrackedEntityInstance( organisationUnitA );
         entityInstanceService.addTrackedEntityInstance( entityInstanceA );
-
         TrackedEntityInstance entityInstanceB = createTrackedEntityInstance( organisationUnitB );
         entityInstanceService.addTrackedEntityInstance( entityInstanceB );
-
         TrackedEntityInstance entityInstanceS = createTrackedEntityInstance( organisationUnitB );
         entityInstanceService.addTrackedEntityInstance( entityInstanceS );
-
         TrackedEntityInstance entityInstanceE = createTrackedEntityInstance( organisationUnitA );
         entityInstanceService.addTrackedEntityInstance( entityInstanceE );
-
         TrackedEntityAttributeValue attributeValue = new TrackedEntityAttributeValue( attributeA, entityInstanceA,
             "test" );
         trackedEntityAttributeValueService.addTrackedEntityAttributeValue( attributeValue );
-
         TrackedEntityAttributeValue attributeValueB = new TrackedEntityAttributeValue( attributeB, entityInstanceB,
             "xmen" );
         trackedEntityAttributeValueService.addTrackedEntityAttributeValue( attributeValueB );
-
         TrackedEntityAttributeValue attributeValueS = new TrackedEntityAttributeValue( attributeB, entityInstanceS,
             "xmen" );
-
         TrackedEntityAttributeValue attributeValueEmail = new TrackedEntityAttributeValue( attributeEmail,
-            entityInstanceE,
-            "zubair@dhis2.org" );
-
+            entityInstanceE, "zubair@dhis2.org" );
         trackedEntityAttributeValueService.addTrackedEntityAttributeValue( attributeValueS );
-
         entityInstanceA.setTrackedEntityAttributeValues( Sets.newHashSet( attributeValue ) );
         entityInstanceService.updateTrackedEntityInstance( entityInstanceA );
-
         entityInstanceB.setTrackedEntityAttributeValues( Sets.newHashSet( attributeValueB ) );
         entityInstanceService.updateTrackedEntityInstance( entityInstanceB );
-
         entityInstanceS.setTrackedEntityAttributeValues( Sets.newHashSet( attributeValueS ) );
         entityInstanceService.updateTrackedEntityInstance( entityInstanceS );
-
         entityInstanceE.setTrackedEntityAttributeValues( Sets.newHashSet( attributeValueEmail ) );
         entityInstanceService.updateTrackedEntityInstance( entityInstanceE );
-
         DateTime testDate1 = DateTime.now();
         testDate1.withTimeAtStartOfDay();
         testDate1 = testDate1.minusDays( 70 );
         Date incidentDate = testDate1.toDate();
-
         DateTime testDate2 = DateTime.now();
         testDate2.withTimeAtStartOfDay();
         Date enrollmentDate = testDate2.toDate();
-
         ProgramInstance programInstanceA = programInstanceService.enrollTrackedEntityInstance( entityInstanceA,
             programA, enrollmentDate, incidentDate, organisationUnitA );
         programInstanceA.setUid( "UID-P1" );
         programInstanceService.updateProgramInstance( programInstanceA );
-
         ProgramInstance programInstanceE = programInstanceService.enrollTrackedEntityInstance( entityInstanceE,
             programB, enrollmentDate, incidentDate, organisationUnitA );
         programInstanceE.setUid( "UID-P2" );
         programInstanceService.updateProgramInstance( programInstanceE );
-
         ProgramInstance programInstanceS = programInstanceService.enrollTrackedEntityInstance( entityInstanceS,
             programS, enrollmentDate, incidentDate, organisationUnitB );
         programInstanceS.setUid( "UID-PS" );
         programInstanceService.updateProgramInstance( programInstanceS );
-
         ProgramStageInstance programStageInstanceA = new ProgramStageInstance( programInstanceA, programStageA );
         programStageInstanceA.setDueDate( enrollmentDate );
         programStageInstanceA.setExecutionDate( new Date() );
         programStageInstanceA.setUid( "UID-PS1" );
         programStageInstanceService.addProgramStageInstance( programStageInstanceA );
-
         eventDataValueDate = new EventDataValue();
         eventDataValueDate.setDataElement( dataElementDate.getUid() );
         eventDataValueDate.setAutoFields();
         eventDataValueDate.setValue( dob );
-
         eventDataValueAge = new EventDataValue();
         eventDataValueAge.setDataElement( dataElementAge.getUid() );
         eventDataValueAge.setAutoFields();
         eventDataValueAge.setValue( dob );
-
         ProgramStageInstance programStageInstanceDate = new ProgramStageInstance( programInstanceA, programStageAge );
         programStageInstanceDate.setDueDate( enrollmentDate );
         programStageInstanceDate.setExecutionDate( psEventDate );
         programStageInstanceDate.setUid( "UID-PS12" );
         programStageInstanceDate.setEventDataValues( Sets.newHashSet( eventDataValueDate ) );
         programStageInstanceService.addProgramStageInstance( programStageInstanceDate );
-
         ProgramStageInstance programStageInstanceAge = new ProgramStageInstance( programInstanceA, programStageAge );
         programStageInstanceAge.setDueDate( enrollmentDate );
         programStageInstanceAge.setExecutionDate( psEventDate );
         programStageInstanceAge.setUid( "UID-PS13" );
         programStageInstanceAge.setEventDataValues( Sets.newHashSet( eventDataValueAge ) );
         programStageInstanceService.addProgramStageInstance( programStageInstanceAge );
-
         ProgramStageInstance programStageInstanceB = new ProgramStageInstance( programInstanceA, programStageB );
         programStageInstanceB.setDueDate( enrollmentDate );
         programStageInstanceB.setExecutionDate( new Date() );
         programStageInstanceB.setUid( "UID-PS2" );
         programStageInstanceService.addProgramStageInstance( programStageInstanceB );
-
         ProgramStageInstance programStageInstanceC = new ProgramStageInstance( programInstanceA, programStageC );
         programStageInstanceC.setDueDate( enrollmentDate );
         programStageInstanceC.setExecutionDate( new Date() );
         programStageInstanceC.setUid( "UID-PS3" );
         programStageInstanceService.addProgramStageInstance( programStageInstanceC );
-
         programInstanceA.getProgramStageInstances().addAll( Sets.newHashSet( programStageInstanceA,
             programStageInstanceB, programStageInstanceC, programStageInstanceAge ) );
         programInstanceService.updateProgramInstance( programInstanceA );
@@ -766,65 +614,50 @@ public class ProgramRuleEngineTest extends DhisSpringTest
         programRuleA = createProgramRule( 'C', programA );
         programRuleA.setCondition( expressionA );
         programRuleService.addProgramRule( programRuleA );
-
         programRuleA2 = createProgramRule( 'Z', programA );
         programRuleA2.setCondition( calculatedDateExpression );
         programRuleService.addProgramRule( programRuleA2 );
-
         programRuleC = createProgramRule( 'X', programA );
         programRuleC.setCondition( expressionC );
         programRuleService.addProgramRule( programRuleC );
-
         programRuleE = createProgramRule( 'E', programB );
         programRuleE.setCondition( expressionE );
         programRuleService.addProgramRule( programRuleE );
-
         programRuleS = createProgramRule( 'S', programS );
         programRuleS.setCondition( expressionS );
         programRuleService.addProgramRule( programRuleS );
-
-        ProgramRuleVariable programRuleVariableEmail = createProgramRuleVariable( 'E', programB );
-        programRuleVariableEmail.setSourceType( ProgramRuleVariableSourceType.TEI_ATTRIBUTE );
-        programRuleVariableEmail.setAttribute( attributeEmail );
+        ProgramRuleVariable programRuleVariableEmail = createProgramRuleVariableWithTEA( 'E', programB,
+            attributeEmail );
         programRuleVariableEmail.setName( "attribute_email" );
         programRuleVariableService.addProgramRuleVariable( programRuleVariableEmail );
-
-        ProgramRuleVariable programRuleVariableA = createProgramRuleVariable( 'A', programA );
-        programRuleVariableA.setSourceType( ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT );
-        programRuleVariableA.setDataElement( dataElementA );
+        ProgramRuleVariable programRuleVariableA = createProgramRuleVariableWithDataElement( 'A', programA,
+            dataElementA );
         programRuleVariableService.addProgramRuleVariable( programRuleVariableA );
-
-        ProgramRuleVariable programRuleVariableB = createProgramRuleVariable( 'B', programA );
-        programRuleVariableB.setSourceType( ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT );
-        programRuleVariableB.setDataElement( dataElementB );
+        ProgramRuleVariable programRuleVariableB = createProgramRuleVariableWithDataElement( 'B', programA,
+            dataElementB );
         programRuleVariableService.addProgramRuleVariable( programRuleVariableB );
-
-        ProgramRuleVariable programRuleVariableDate = createProgramRuleVariable( 'X', programA );
+        ProgramRuleVariable programRuleVariableDate = createProgramRuleVariableWithDataElement( 'X', programA,
+            dataElementDate );
         programRuleVariableDate.setName( "DOB" );
-        programRuleVariableDate.setSourceType( ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT );
-        programRuleVariableDate.setDataElement( dataElementDate );
         programRuleVariableService.addProgramRuleVariable( programRuleVariableDate );
-
-        ProgramRuleVariable programRuleVariableAge = createProgramRuleVariable( 'K', programA );
-        programRuleVariableAge.setSourceType( ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT );
+        ProgramRuleVariable programRuleVariableAge = createProgramRuleVariableWithDataElement( 'K', programA,
+            dataElementAge );
         programRuleVariableAge.setName( "AGE" );
-        programRuleVariableAge.setDataElement( dataElementAge );
         programRuleVariableService.addProgramRuleVariable( programRuleVariableAge );
-
-        ProgramRuleVariable programRuleVariableC = createConstantProgramRuleVariable( 'C', programA );
-        programRuleVariableC.setSourceType( ProgramRuleVariableSourceType.TEI_ATTRIBUTE );
-        programRuleVariableC.setAttribute( attributeA );
-        programRuleVariableService.addProgramRuleVariable( programRuleVariableC );
-
-        ProgramRuleVariable programRuleVariableD = createProgramRuleVariable( 'D', programA );
-        programRuleVariableD.setSourceType( ProgramRuleVariableSourceType.TEI_ATTRIBUTE );
-        programRuleVariableD.setAttribute( attributeB );
+        ProgramRuleVariable programRuleVariableD = createProgramRuleVariableWithTEA( 'D', programA, attributeB );
         programRuleVariableService.addProgramRuleVariable( programRuleVariableD );
 
         ProgramRuleVariable programRuleVariableS = createConstantProgramRuleVariable( 'S', programS );
         programRuleVariableS.setSourceType( ProgramRuleVariableSourceType.TEI_ATTRIBUTE );
         programRuleVariableS.setAttribute( attributeB );
+        programRuleVariableS.setValueType( attributeB.getValueType() );
         programRuleVariableService.addProgramRuleVariable( programRuleVariableS );
+        ProgramRuleVariable programRuleVariableC = createConstantProgramRuleVariable( 'C', programA );
+        programRuleVariableC.setSourceType( ProgramRuleVariableSourceType.TEI_ATTRIBUTE );
+        programRuleVariableC.setAttribute( attributeA );
+        programRuleVariableC.setValueType( attributeA.getValueType() );
+        programRuleVariableService.addProgramRuleVariable( programRuleVariableC );
+
     }
 
     private void setUpSendMessageForEnrollment()
@@ -837,15 +670,12 @@ public class ProgramRuleEngineTest extends DhisSpringTest
         pnt.setNotificationTrigger( NotificationTrigger.PROGRAM_RULE );
         pnt.setAutoFields();
         pnt.setUid( "PNT-1" );
-
         programNotificationTemplateStore.save( pnt );
-
         ProgramRuleAction programRuleActionForSendMessage = createProgramRuleAction( 'C', programRuleC );
         programRuleActionForSendMessage.setProgramRuleActionType( ProgramRuleActionType.SENDMESSAGE );
         programRuleActionForSendMessage.setTemplateUid( pnt.getUid() );
         programRuleActionForSendMessage.setContent( "STATIC-TEXT" );
         programRuleActionService.addProgramRuleAction( programRuleActionForSendMessage );
-
         programRuleC.setProgramRuleActions( Sets.newHashSet( programRuleActionForSendMessage ) );
         programRuleService.updateProgramRule( programRuleC );
     }
@@ -861,15 +691,12 @@ public class ProgramRuleEngineTest extends DhisSpringTest
         pnt.setNotificationRecipient( ProgramNotificationRecipient.PROGRAM_ATTRIBUTE );
         pnt.setAutoFields();
         pnt.setUid( "PNT-2" );
-
         programNotificationTemplateStore.save( pnt );
-
         ProgramRuleAction programRuleActionForSendMessage = createProgramRuleAction( 'C', programRuleE );
         programRuleActionForSendMessage.setProgramRuleActionType( ProgramRuleActionType.SENDMESSAGE );
         programRuleActionForSendMessage.setTemplateUid( pnt.getUid() );
         programRuleActionForSendMessage.setContent( "STATIC-TEXT" );
         programRuleActionService.addProgramRuleAction( programRuleActionForSendMessage );
-
         programRuleE.setProgramRuleActions( Sets.newHashSet( programRuleActionForSendMessage ) );
         programRuleService.updateProgramRule( programRuleE );
     }
@@ -877,17 +704,14 @@ public class ProgramRuleEngineTest extends DhisSpringTest
     private void setUpScheduleMessage()
     {
         scheduledDate = "2018-04-17";
-
         pnt = createNotification();
         programNotificationTemplateStore.save( pnt );
-
         ProgramRuleAction programRuleActionForScheduleMessage = createProgramRuleAction( 'S', programRuleS );
         programRuleActionForScheduleMessage.setProgramRuleActionType( ProgramRuleActionType.SCHEDULEMESSAGE );
         programRuleActionForScheduleMessage.setTemplateUid( pnt.getUid() );
         programRuleActionForScheduleMessage.setContent( "STATIC-TEXT-SCHEDULE" );
         programRuleActionForScheduleMessage.setData( dataExpression );
         programRuleActionService.addProgramRuleAction( programRuleActionForScheduleMessage );
-
         programRuleS.setProgramRuleActions( Sets.newHashSet( programRuleActionForScheduleMessage ) );
         programRuleService.updateProgramRule( programRuleS );
     }
@@ -896,13 +720,10 @@ public class ProgramRuleEngineTest extends DhisSpringTest
     {
         ProgramNotificationTemplate pnt = createNotification();
         programNotificationTemplateStore.save( pnt );
-
         ProgramRuleAction programRuleActionAssignValueDate = createProgramRuleAction( 'P', programRuleA2 );
         programRuleActionAssignValueDate.setProgramRuleActionType( ProgramRuleActionType.SENDMESSAGE );
         programRuleActionAssignValueDate.setData( " d2:yearsBetween(#{DOB}, V{event_date})" );
-
         programRuleActionService.addProgramRuleAction( programRuleActionAssignValueDate );
-
         programRuleA2.setProgramRuleActions( Sets.newHashSet( programRuleActionAssignValueDate ) );
         programRuleA2.setCondition( " d2:hasValue(#{DOB})" );
         programRuleService.updateProgramRule( programRuleA2 );
@@ -912,13 +733,10 @@ public class ProgramRuleEngineTest extends DhisSpringTest
     {
         ProgramNotificationTemplate pnt = createNotification();
         programNotificationTemplateStore.save( pnt );
-
         ProgramRuleAction programRuleActionAssignValueAge = createProgramRuleAction( 'P', programRuleA2 );
         programRuleActionAssignValueAge.setProgramRuleActionType( ProgramRuleActionType.SENDMESSAGE );
         programRuleActionAssignValueAge.setData( " d2:yearsBetween(#{AGE}, V{event_date})" );
-
         programRuleActionService.addProgramRuleAction( programRuleActionAssignValueAge );
-
         programRuleA2.setProgramRuleActions( Sets.newHashSet( programRuleActionAssignValueAge ) );
         programRuleService.updateProgramRule( programRuleA2 );
     }
@@ -933,7 +751,6 @@ public class ProgramRuleEngineTest extends DhisSpringTest
         pnt.setNotificationTrigger( NotificationTrigger.PROGRAM_RULE );
         pnt.setAutoFields();
         pnt.setUid( "PNT-1-SCH" );
-
         return pnt;
     }
 }

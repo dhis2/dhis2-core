@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,15 +37,15 @@ import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.PeriodType;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Lars Helge Overland
  */
-public class ResourceTableServiceTest
-    extends DhisTest
+class ResourceTableServiceTest extends DhisTest
 {
+
     @Autowired
     private IdentifiableObjectManager idObjectManager;
 
@@ -59,65 +59,51 @@ public class ResourceTableServiceTest
     public void setUpTest()
     {
         PeriodType pt = new MonthlyPeriodType();
-
         DataElement deA = createDataElement( 'A' );
         DataElement deB = createDataElement( 'B' );
-
         idObjectManager.save( deA );
         idObjectManager.save( deB );
-
         DataElementGroup degA = createDataElementGroup( 'A' );
         DataElementGroup degB = createDataElementGroup( 'B' );
         DataElementGroup degC = createDataElementGroup( 'C' );
         DataElementGroup degD = createDataElementGroup( 'D' );
-
         degA.addDataElement( deA );
         degB.addDataElement( deB );
-
         idObjectManager.save( degA );
         idObjectManager.save( degB );
         idObjectManager.save( degC );
         idObjectManager.save( degD );
-
         DataElementGroupSet degsA = createDataElementGroupSet( 'A' );
         DataElementGroupSet degsB = createDataElementGroupSet( 'B' );
         degsB.setName( "Data \"Element\" Group Set \"B\"" );
-
         degsA.addDataElementGroup( degA );
         degsA.addDataElementGroup( degB );
         degsB.addDataElementGroup( degC );
         degsB.addDataElementGroup( degD );
-
         idObjectManager.save( degsA );
         idObjectManager.save( degsB );
-
         OrganisationUnit ouA = createOrganisationUnit( 'A' );
         OrganisationUnit ouB = createOrganisationUnit( 'B' );
         OrganisationUnit ouC = createOrganisationUnit( 'C' );
-
         ouB.setParent( ouA );
         ouC.setParent( ouA );
         ouA.getChildren().add( ouB );
         ouA.getChildren().add( ouC );
-
         idObjectManager.save( ouA );
         idObjectManager.save( ouB );
         idObjectManager.save( ouC );
-
         DataSet dsA = createDataSet( 'A', pt );
         DataSet dsB = createDataSet( 'B', pt );
-
         dsA.addDataSetElement( deA );
         dsB.addDataSetElement( deA );
         dsA.addOrganisationUnit( ouA );
         dsB.addOrganisationUnit( ouA );
-
         dataSetService.addDataSet( dsA );
         dataSetService.addDataSet( dsB );
     }
 
     @Test
-    public void testGenerateAllResourceTables()
+    void testGenerateAllResourceTables()
     {
         resourceTableService.generateOrganisationUnitStructures();
         resourceTableService.generateDataSetOrganisationUnitCategoryTable();

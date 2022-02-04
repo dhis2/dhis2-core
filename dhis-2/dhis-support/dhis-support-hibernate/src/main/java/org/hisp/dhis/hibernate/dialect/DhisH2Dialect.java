@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,6 +53,8 @@ public class DhisH2Dialect extends H2Dialect
             new StandardSQLFunction( JsonbFunctions.EXTRACT_PATH, StandardBasicTypes.STRING ) );
         registerFunction( JsonbFunctions.EXTRACT_PATH_TEXT,
             new StandardSQLFunction( JsonbFunctions.EXTRACT_PATH_TEXT, StandardBasicTypes.STRING ) );
+        registerFunction( JsonbFunctions.JSONB_TYPEOF,
+            new StandardSQLFunction( JsonbFunctions.JSONB_TYPEOF, StandardBasicTypes.STRING ) );
         registerFunction( JsonbFunctions.HAS_USER_GROUP_IDS,
             new StandardSQLFunction( JsonbFunctions.HAS_USER_GROUP_IDS, StandardBasicTypes.BOOLEAN ) );
         registerFunction( JsonbFunctions.CHECK_USER_GROUPS_ACCESS,

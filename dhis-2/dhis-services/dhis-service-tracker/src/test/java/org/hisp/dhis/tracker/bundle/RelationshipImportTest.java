@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,15 +39,15 @@ import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.hisp.dhis.user.User;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class RelationshipImportTest
-    extends TrackerTest
+class RelationshipImportTest extends TrackerTest
 {
+
     @Autowired
     private TrackerImportService trackerImportService;
 
@@ -67,45 +67,34 @@ public class RelationshipImportTest
         throws IOException
     {
         setUpMetadata( "tracker/simple_metadata.json" );
-
         userA = userService.getUser( "M5zQapPyTZI" );
-
         TrackerImportParams teiParams = fromJson( "tracker/single_tei.json", userA.getUid() );
         assertNoImportErrors( trackerImportService.importTracker( teiParams ) );
-
         TrackerImportParams enrollmentParams = fromJson( "tracker/single_enrollment.json", userA.getUid() );
         assertNoImportErrors( trackerImportService.importTracker( enrollmentParams ) );
-
         TrackerImportParams eventParams = fromJson( "tracker/single_event.json", userA.getUid() );
         assertNoImportErrors( trackerImportService.importTracker( eventParams ) );
-
         manager.flush();
     }
 
     @Test
-    public void successImportingRelationships()
+    void successImportingRelationships()
         throws IOException
     {
         TrackerImportParams trackerImportParams = fromJson( "tracker/relationships.json" );
-
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-
         assertThat( trackerImportReport.getStatus(), is( TrackerStatus.OK ) );
         assertThat( trackerImportReport.getStats().getCreated(), is( 2 ) );
     }
 
     @Test
-    public void successUpdateRelationships()
+    void successUpdateRelationships()
         throws IOException
     {
         TrackerImportParams trackerImportParams = fromJson( "tracker/relationships.json" );
-
         trackerImportService.importTracker( trackerImportParams );
-
         trackerImportParams = fromJson( "tracker/relationshipToUpdate.json" );
-
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-
         assertThat( trackerImportReport.getStatus(), is( TrackerStatus.OK ) );
         assertThat( trackerImportReport.getStats().getCreated(), is( 0 ) );
         assertThat( trackerImportReport.getStats().getIgnored(), is( 1 ) );

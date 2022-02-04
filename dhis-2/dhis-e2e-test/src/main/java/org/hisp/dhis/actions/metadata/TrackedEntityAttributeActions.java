@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,7 +43,8 @@ public class TrackedEntityAttributeActions
         super( "/trackedEntityAttributes" );
     }
 
-    public String create( String valueType ) {
+    public String create( String valueType )
+    {
         JsonObject ob = build( valueType );
 
         return this.post( ob ).validateStatus( 201 ).extractUid();
@@ -58,11 +59,22 @@ public class TrackedEntityAttributeActions
         return this.post( ob ).validateStatus( 201 ).extractUid();
     }
 
-    public String createOptionSetAttribute( String optionSet ) {
-        JsonObject ob = new JsonObjectBuilder( build( "TEXT" ))
+    public String create( String valueType, Boolean unique, Boolean confidential )
+    {
+        JsonObject ob = new JsonObjectBuilder( build( valueType ) )
+            .addProperty( "confidential", String.valueOf( confidential ) )
+            .addProperty( "unique", String.valueOf( unique ) )
+            .build();
+
+        return this.post( ob ).validateStatus( 201 ).extractUid();
+    }
+
+    public String createOptionSetAttribute( String optionSet )
+    {
+        JsonObject ob = new JsonObjectBuilder( build( "TEXT" ) )
             .addObject( "optionSet", new JsonObjectBuilder()
                 .addProperty( "id", optionSet )
-                .build())
+                .build() )
             .build();
 
         return this.post( ob ).validateStatus( 201 ).extractUid();

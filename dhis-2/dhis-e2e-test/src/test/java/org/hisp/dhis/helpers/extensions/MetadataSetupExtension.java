@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -80,6 +80,7 @@ public class MetadataSetupExtension
                 "src/test/resources/setup/metadata.json",
                 // importing for the second time to make sure all sharing is set up correctly - there are bugs in metadata importer
                 "src/test/resources/setup/metadata.json",
+                "src/test/resources/setup/tracker_metadata.json",
                 "src/test/resources/setup/userRoles.json",
                 "src/test/resources/setup/users.json"
             };

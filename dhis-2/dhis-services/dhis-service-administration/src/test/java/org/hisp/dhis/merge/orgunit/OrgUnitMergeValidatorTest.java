@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,99 +28,75 @@
 package org.hisp.dhis.merge.orgunit;
 
 import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Lars Helge Overland
  */
-public class OrgUnitMergeValidatorTest
+class OrgUnitMergeValidatorTest
 {
+
     private OrgUnitMergeValidator validator;
 
-    @Before
-    public void before()
+    @BeforeEach
+    void before()
     {
         validator = new OrgUnitMergeValidator();
     }
 
     @Test
-    public void testValidateMissingSources()
+    void testValidateMissingSources()
     {
         OrganisationUnit ouA = createOrganisationUnit( 'A' );
         OrganisationUnit ouB = createOrganisationUnit( 'B' );
-
-        OrgUnitMergeRequest request = new OrgUnitMergeRequest.Builder()
-            .addSource( ouA )
-            .withTarget( ouB )
-            .build();
-
+        OrgUnitMergeRequest request = new OrgUnitMergeRequest.Builder().addSource( ouA ).withTarget( ouB ).build();
         assertEquals( ErrorCode.E1500, validator.validateForErrorMessage( request ).getErrorCode() );
     }
 
     @Test
-    public void testValidateMissingTarget()
+    void testValidateMissingTarget()
     {
         OrganisationUnit ouA = createOrganisationUnit( 'A' );
         OrganisationUnit ouB = createOrganisationUnit( 'B' );
-
-        OrgUnitMergeRequest request = new OrgUnitMergeRequest.Builder()
-            .addSource( ouA )
-            .addSource( ouB )
-            .build();
-
+        OrgUnitMergeRequest request = new OrgUnitMergeRequest.Builder().addSource( ouA ).addSource( ouB ).build();
         assertEquals( ErrorCode.E1501, validator.validateForErrorMessage( request ).getErrorCode() );
     }
 
     @Test
-    public void testValidateTargetIsSource()
+    void testValidateTargetIsSource()
     {
         OrganisationUnit ouA = createOrganisationUnit( 'A' );
         OrganisationUnit ouB = createOrganisationUnit( 'B' );
-
-        OrgUnitMergeRequest request = new OrgUnitMergeRequest.Builder()
-            .addSource( ouA )
-            .addSource( ouB )
-            .withTarget( ouA )
-            .build();
-
+        OrgUnitMergeRequest request = new OrgUnitMergeRequest.Builder().addSource( ouA ).addSource( ouB )
+            .withTarget( ouA ).build();
         assertEquals( ErrorCode.E1502, validator.validateForErrorMessage( request ).getErrorCode() );
     }
 
     @Test
-    public void testValidateTargetIsDescendantOfSource()
+    void testValidateTargetIsDescendantOfSource()
     {
         OrganisationUnit ouA = createOrganisationUnit( 'A' );
         OrganisationUnit ouB = createOrganisationUnit( 'B' );
         OrganisationUnit ouC = createOrganisationUnit( 'C', ouA );
-
-        OrgUnitMergeRequest request = new OrgUnitMergeRequest.Builder()
-            .addSource( ouA )
-            .addSource( ouB )
-            .withTarget( ouC )
-            .build();
-
+        OrgUnitMergeRequest request = new OrgUnitMergeRequest.Builder().addSource( ouA ).addSource( ouB )
+            .withTarget( ouC ).build();
         assertEquals( ErrorCode.E1504, validator.validateForErrorMessage( request ).getErrorCode() );
     }
 
     @Test
-    public void testValidateSuccess()
+    void testValidateSuccess()
     {
         OrganisationUnit ouA = createOrganisationUnit( 'A' );
         OrganisationUnit ouB = createOrganisationUnit( 'B' );
         OrganisationUnit ouC = createOrganisationUnit( 'C' );
-
-        OrgUnitMergeRequest request = new OrgUnitMergeRequest.Builder()
-            .addSource( ouA )
-            .addSource( ouB )
-            .withTarget( ouC )
-            .build();
-
+        OrgUnitMergeRequest request = new OrgUnitMergeRequest.Builder().addSource( ouA ).addSource( ouB )
+            .withTarget( ouC ).build();
         assertNull( validator.validateForErrorMessage( request ) );
     }
 }

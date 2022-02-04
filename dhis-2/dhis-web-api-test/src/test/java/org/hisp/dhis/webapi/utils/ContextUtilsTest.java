@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,9 +53,9 @@ import static org.hisp.dhis.setting.SettingKey.CACHE_STRATEGY;
 import static org.hisp.dhis.setting.SettingKey.getAsRealClass;
 import static org.hisp.dhis.webapi.utils.ContextUtils.getAttachmentFileName;
 import static org.hisp.dhis.webapi.utils.ContextUtils.stripFormatCompressionExtension;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.Calendar;
 
@@ -65,18 +65,18 @@ import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.webapi.DhisWebSpringTest;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockHttpServletResponse;
 
 /**
  * @author Stian Sandvold
  */
-public class ContextUtilsTest
-    extends DhisWebSpringTest
+class ContextUtilsTest extends DhisWebSpringTest
 {
+
     @Autowired
     private ContextUtils contextUtils;
 
@@ -85,62 +85,52 @@ public class ContextUtilsTest
 
     private HttpServletResponse response;
 
-    @Before
-    public void init()
+    @BeforeEach
+    void init()
     {
         response = new MockHttpServletResponse();
     }
 
     @Test
-    public void testConfigureResponseReturnsCorrectTypeAndNumberOfHeaders()
+    void testConfigureResponseReturnsCorrectTypeAndNumberOfHeaders()
     {
         contextUtils.configureResponse( response, null, NO_CACHE, null, false );
         String cacheControl = response.getHeader( "Cache-Control" );
-
         // Make sure we just have 1 header: Cache-Control
         assertEquals( 1, response.getHeaderNames().size() );
         assertNotNull( cacheControl );
     }
 
     @Test
-    @Ignore
-    public void testConfigureResponseReturnsCorrectHeaderValueForAllCacheStrategies()
+    @Disabled
+    void testConfigureResponseReturnsCorrectHeaderValueForAllCacheStrategies()
     {
         contextUtils.configureResponse( response, null, NO_CACHE, null, false );
         assertEquals( "no-cache", response.getHeader( "Cache-Control" ) );
-
         response.reset();
         contextUtils.configureResponse( response, null, CACHE_1_MINUTE, null, false );
         assertEquals( "max-age=60, public", response.getHeader( "Cache-Control" ) );
-
         response.reset();
         contextUtils.configureResponse( response, null, CACHE_5_MINUTES, null, false );
         assertEquals( "max-age=300, public", response.getHeader( "Cache-Control" ) );
-
         response.reset();
         contextUtils.configureResponse( response, null, CACHE_10_MINUTES, null, false );
         assertEquals( "max-age=600, public", response.getHeader( "Cache-Control" ) );
-
         response.reset();
         contextUtils.configureResponse( response, null, CACHE_15_MINUTES, null, false );
         assertEquals( "max-age=900, public", response.getHeader( "Cache-Control" ) );
-
         response.reset();
         contextUtils.configureResponse( response, null, CACHE_30_MINUTES, null, false );
         assertEquals( "max-age=1800, public", response.getHeader( "Cache-Control" ) );
-
         response.reset();
         contextUtils.configureResponse( response, null, CACHE_1_HOUR, null, false );
         assertEquals( "max-age=3600, public", response.getHeader( "Cache-Control" ) );
-
         response.reset();
         contextUtils.configureResponse( response, null, CACHE_TWO_WEEKS, null, false );
         assertEquals( "max-age=1209600, public", response.getHeader( "Cache-Control" ) );
-
         response.reset();
         contextUtils.configureResponse( response, null, CACHE_6AM_TOMORROW, null, false );
         assertEquals( "max-age=" + CACHE_6AM_TOMORROW.toSeconds() + ", public", response.getHeader( "Cache-Control" ) );
-
         response.reset();
         systemSettingManager.saveSystemSetting( CACHE_STRATEGY,
             getAsRealClass( CACHE_STRATEGY.getName(), CACHE_1_HOUR.toString() ) );
@@ -149,53 +139,43 @@ public class ContextUtilsTest
     }
 
     @Test
-    public void testConfigureResponseReturnsCorrectCacheabilityInHeader()
+    void testConfigureResponseReturnsCorrectCacheabilityInHeader()
     {
         // Set to public; is default
         systemSettingManager.saveSystemSetting( CACHEABILITY, PUBLIC );
-
         contextUtils.configureResponse( response, null, CACHE_1_HOUR, null, false );
         assertEquals( "max-age=3600, public", response.getHeader( "Cache-Control" ) );
-
         // Set to private
         systemSettingManager.saveSystemSetting( CACHEABILITY, PRIVATE );
-
         response.reset();
         contextUtils.configureResponse( response, null, CACHE_1_HOUR, null, false );
         assertEquals( "max-age=3600, private", response.getHeader( "Cache-Control" ) );
     }
 
     @Test
-    public void testConfigureAnalyticsResponseWhenProgressiveIsDisabled()
+    void testConfigureAnalyticsResponseWhenProgressiveIsDisabled()
     {
         Calendar dateBeforeToday = getInstance();
         dateBeforeToday.add( YEAR, -5 );
-
         DataQueryParams params = newBuilder().withEndDate( dateBeforeToday.getTime() ).build();
-
         // Progressive caching is not enabled
         systemSettingManager.saveSystemSetting( ANALYTICS_CACHE_TTL_MODE, FIXED );
-
         response.reset();
         contextUtils.configureAnalyticsResponse( response, null, CACHE_1_HOUR, null, false, params.getLatestEndDate() );
         assertEquals( "max-age=3600, public", response.getHeader( "Cache-Control" ) );
     }
 
     @Test
-    public void testConfigureAnalyticsResponseWhenProgressiveIsEnabledAndCacheStrategyIsOverridden()
+    void testConfigureAnalyticsResponseWhenProgressiveIsEnabledAndCacheStrategyIsOverridden()
     {
         // Cache strategy overridden
         CacheStrategy overriddenCacheStrategy = CACHE_1_HOUR;
-
         Calendar dateBeforeToday = getInstance();
         dateBeforeToday.add( YEAR, -5 );
-
         DataQueryParams params = newBuilder().withEndDate( dateBeforeToday.getTime() ).build();
-
         // Progressive caching is not enabled
         systemSettingManager.saveSystemSetting( ANALYTICS_CACHE_TTL_MODE, PROGRESSIVE );
         systemSettingManager.saveSystemSetting( ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR, 10 );
-
         response.reset();
         contextUtils.configureAnalyticsResponse( response, null, overriddenCacheStrategy, null, false,
             params.getLatestEndDate() );
@@ -203,26 +183,20 @@ public class ContextUtilsTest
     }
 
     @Test
-    public void testConfigureAnalyticsResponseWhenProgressiveIsEnabledAndCacheStrategyIsRespectSystemSetting()
+    void testConfigureAnalyticsResponseWhenProgressiveIsEnabledAndCacheStrategyIsRespectSystemSetting()
     {
         Calendar dateBeforeToday = getInstance();
         dateBeforeToday.add( YEAR, -5 );
-
         // Cache strategy set to respect system settings
         CacheStrategy respectSystemSetting = RESPECT_SYSTEM_SETTING;
-
         // Defined TTL Factor
         int ttlFactor = 10;
-
         // Expected timeToLive. See {@link TimeToLive.compute()}
         long timeToLive = DAYS.between( dateBeforeToday.toInstant(), now() ) * ttlFactor;
-
         DataQueryParams params = newBuilder().withEndDate( dateBeforeToday.getTime() ).build();
-
         // Progressive caching is not enabled
         systemSettingManager.saveSystemSetting( ANALYTICS_CACHE_TTL_MODE, PROGRESSIVE );
         systemSettingManager.saveSystemSetting( ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR, ttlFactor );
-
         response.reset();
         contextUtils.configureAnalyticsResponse( response, null, respectSystemSetting, null, false,
             params.getLatestEndDate() );
@@ -230,25 +204,25 @@ public class ContextUtilsTest
     }
 
     @Test
-    public void testGetAttachmentFileNameNull()
+    void testGetAttachmentFileNameNull()
     {
         assertNull( getAttachmentFileName( null ) );
     }
 
     @Test
-    public void testGetAttachmentFileNameInline()
+    void testGetAttachmentFileNameInline()
     {
         assertNull( getAttachmentFileName( "inline; filename=test.txt" ) );
     }
 
     @Test
-    public void testGetAttachmentFileName()
+    void testGetAttachmentFileName()
     {
         assertEquals( "test.txt", getAttachmentFileName( "attachment; filename=test.txt" ) );
     }
 
     @Test
-    public void testStripFormatCompressionExtension()
+    void testStripFormatCompressionExtension()
     {
         assertEquals( "data", stripFormatCompressionExtension( "data.xml.zip", "xml", "zip" ) );
         assertEquals( "data", stripFormatCompressionExtension( "data.json.zip", "json", "zip" ) );

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,17 +27,17 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.webapi.WebClient.Accept;
 import static org.hisp.dhis.webapi.WebClient.Body;
-import static org.hisp.dhis.webapi.WebClient.ContentType;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.message.FakeMessageSender;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessage;
@@ -45,21 +45,22 @@ import org.hisp.dhis.security.RestoreType;
 import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.hisp.dhis.webapi.json.JsonObject;
+import org.hisp.dhis.webapi.json.domain.JsonErrorReport;
 import org.hisp.dhis.webapi.json.domain.JsonImportSummary;
-import org.junit.Before;
-import org.junit.Test;
+import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 
 /**
  * Tests the {@link org.hisp.dhis.webapi.controller.user.UserController}.
  *
  * @author Jan Bernitt
  */
-public class UserControllerTest extends DhisControllerConvenienceTest
+class UserControllerTest extends DhisControllerConvenienceTest
 {
+
     @Autowired
     private MessageSender messageSender;
 
@@ -68,58 +69,52 @@ public class UserControllerTest extends DhisControllerConvenienceTest
 
     private User peter;
 
-    @Before
-    public void setUp()
+    @BeforeEach
+    void setUp()
     {
         peter = createUser( "peter");
 
         this.peter = switchToNewUser( "Peter" );
         switchToSuperuser();
 //        switchContextToUser( this.peter );
-        assertStatus( HttpStatus.OK,
-            PATCH( "/users/{id}?importReportMode=ERRORS", peter.getUid(),
-                Body( "[{'op': 'replace', 'path': '/email', 'value': 'peter@pan.net'}]" ) ) );
+        assertStatus( HttpStatus.OK, PATCH( "/users/{id}?importReportMode=ERRORS", peter.getUid(),
+            Body( "[{'op': 'replace', 'path': '/email', 'value': 'peter@pan.net'}]" ) ) );
     }
 
     @Test
-    public void testResetToInvite()
+    void testResetToInvite()
     {
-        assertStatus( HttpStatus.NO_CONTENT,
-            POST( "/users/" + peter.getUid() + "/reset" ) );
-
+        assertStatus( HttpStatus.NO_CONTENT, POST( "/users/" + peter.getUid() + "/reset" ) );
         OutboundMessage email = assertMessageSendTo( "peter@pan.net" );
         assertValidToken( extractTokenFromEmailText( email.getText() ) );
     }
 
     @Test
-    public void testResetToInvite_NoEmail()
+    void testResetToInvite_NoEmail()
     {
-        assertStatus( HttpStatus.OK,
-            PATCH( "/users/{id}", peter.getUid() + "?importReportMode=ERRORS",
-                Body( "[{'op': 'replace', 'path': '/email', 'value': null}]" ) ) );
-
+        assertStatus( HttpStatus.OK, PATCH( "/users/{id}", peter.getUid() + "?importReportMode=ERRORS",
+            Body( "[{'op': 'replace', 'path': '/email', 'value': null}]" ) ) );
         assertEquals( "user_does_not_have_valid_email",
             POST( "/users/" + peter.getUid() + "/reset" ).error( HttpStatus.CONFLICT ).getMessage() );
     }
 
     @Test
-    public void testResetToInvite_NoAuthority()
+    void testResetToInvite_NoAuthority()
     {
         switchToNewUser( "someone" );
-
         assertEquals( "You don't have the proper permissions to update this user.",
             POST( "/users/" + peter.getUid() + "/reset" ).error( HttpStatus.FORBIDDEN ).getMessage() );
     }
 
     @Test
-    public void testResetToInvite_NoSuchUser()
+    void testResetToInvite_NoSuchUser()
     {
         assertEquals( "Object not found for uid: does-not-exist",
             POST( "/users/does-not-exist/reset" ).error( HttpStatus.NOT_FOUND ).getMessage() );
     }
 
     @Test
-    public void testReplicateUser()
+    void testReplicateUser()
     {
         assertWebMessage( "Created", 201, "OK", "User replica created",
             POST( "/users/" + peter.getUid() + "/replica", "{'username':'peter2','password':'Saf€sEcre1'}" )
@@ -127,7 +122,7 @@ public class UserControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void testReplicateUser_UserNameAlreadyTaken()
+    void testReplicateUser_UserNameAlreadyTaken()
     {
         assertWebMessage( "Conflict", 409, "ERROR", "Username already taken: peter",
             POST( "/users/" + peter.getUid() + "/replica", "{'username':'peter','password':'Saf€sEcre1'}" )
@@ -135,7 +130,7 @@ public class UserControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void testReplicateUser_UserNotFound()
+    void testReplicateUser_UserNotFound()
     {
         assertWebMessage( "Conflict", 409, "ERROR", "User not found: notfoundid",
             POST( "/users/notfoundid/replica", "{'username':'peter2','password':'Saf€sEcre1'}" )
@@ -143,7 +138,7 @@ public class UserControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void testReplicateUser_UserNameNotSpecified()
+    void testReplicateUser_UserNameNotSpecified()
     {
         assertWebMessage( "Conflict", 409, "ERROR", "Username must be specified",
             POST( "/users/" + peter.getUid() + "/replica", "{'password':'Saf€sEcre1'}" )
@@ -151,14 +146,14 @@ public class UserControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void testReplicateUser_PasswordNotSpecified()
+    void testReplicateUser_PasswordNotSpecified()
     {
         assertWebMessage( "Conflict", 409, "ERROR", "Password must be specified",
             POST( "/users/" + peter.getUid() + "/replica", "{'username':'peter2'}" ).content( HttpStatus.CONFLICT ) );
     }
 
     @Test
-    public void testReplicateUser_PasswordNotValid()
+    void testReplicateUser_PasswordNotValid()
     {
         assertWebMessage( "Conflict", 409, "ERROR",
             "Password must have at least 8 characters, one digit, one uppercase",
@@ -167,21 +162,19 @@ public class UserControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void testPutJsonObject()
+    void testPutJsonObject()
     {
         JsonObject user = GET( "/users/{id}", peter.getUid() ).content();
-
         assertWebMessage( "OK", 200, "OK", null,
             PUT( "/38/users/" + peter.getUid(), user.toString() ).content( HttpStatus.OK ) );
     }
 
     @Test
-    public void testPutJsonObject_Pre38()
+    void testPutJsonObject_Pre38()
     {
         JsonObject user = GET( "/users/{uid}", peter.getUid() ).content();
-
-        JsonImportSummary summary = PUT( "/37/users/" + peter.getUid(), user.toString() )
-            .content( HttpStatus.OK ).as( JsonImportSummary.class );
+        JsonImportSummary summary = PUT( "/37/users/" + peter.getUid(), user.toString() ).content( HttpStatus.OK )
+            .as( JsonImportSummary.class );
         assertEquals( "ImportReport", summary.getResponseType() );
         assertEquals( "OK", summary.getStatus() );
         assertEquals( 1, summary.getStats().getUpdated() );
@@ -189,41 +182,43 @@ public class UserControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void testPutXmlObject()
+    void testPutProperty_InvalidWhatsapp()
     {
-        HttpResponse response = PUT( "/38/users/" + peter.getUid(), Body( "<user></user>" ),
-            ContentType( MediaType.APPLICATION_XML ), Accept( MediaType.APPLICATION_XML ) );
-        assertEquals( HttpStatus.CONFLICT, response.status() );
-        String content = response.content( MediaType.APPLICATION_XML );
-        assertTrue( content.contains(
-            "<message>One more more errors occurred, please see full details in import report.</message>" ) );
+        JsonWebMessage msg = assertWebMessage( "Conflict", 409, "ERROR",
+            "One more more errors occurred, please see full details in import report.",
+            PATCH( "/users/" + peter.getUid() + "?importReportMode=ERRORS",
+                "[{'op': 'add', 'path': '/whatsApp', 'value': 'not-a-phone-no'}]" ).content( HttpStatus.CONFLICT ) );
+        JsonErrorReport report = msg.getResponse()
+            .find( JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E4027 );
+        assertEquals( "whatsApp", report.getErrorProperty() );
     }
 
     @Test
-    public void testPutXmlObject_Pre38()
-    {
-        HttpResponse response = PUT( "/37/users/" + peter.getUid(), Body( "<user></user>" ),
-            ContentType( MediaType.APPLICATION_XML ), Accept( MediaType.APPLICATION_XML ) );
-        assertEquals( HttpStatus.OK, response.status() );
-        String content = response.content( MediaType.APPLICATION_XML );
-        assertTrue( content.startsWith( "<importReport " ) );
-    }
-
-    @Test
-    public void testPostJsonObject()
+    void testPostJsonObject()
     {
         assertWebMessage( "Created", 201, "OK", null,
-            POST( "/users/", "{'surname':'S.','firstName':'Harry', 'username':'HarryS'}" )
+            POST( "/users/", "{'surname':'S.','firstName':'Harry', 'username':'harrys'}" )
                 .content( HttpStatus.CREATED ) );
     }
 
     @Test
-    public void testPostJsonInvite()
+    void testPostJsonObjectInvalidUsername()
     {
-        assertWebMessage( "Created", 201, "OK", null,
-            POST( "/users/invite",
-                "{'surname':'S.','firstName':'Harry', 'email':'test@example.com', 'username':'HarryS'}" )
-                    .content( HttpStatus.CREATED ) );
+        JsonWebMessage msg = assertWebMessage( "Conflict", 409, "ERROR",
+            "One more more errors occurred, please see full details in import report.",
+            POST( "/users/", "{'surname':'S.','firstName':'Harry','userCredentials':{'username':'Harrys'}}" )
+                .content( HttpStatus.CONFLICT ) );
+        JsonErrorReport report = msg.getResponse()
+            .find( JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E4049 );
+        assertEquals( "username", report.getErrorProperty() );
+    }
+
+    @Test
+    void testPostJsonInvite()
+    {
+        assertWebMessage( "Created", 201, "OK", null, POST( "/users/invite",
+            "{'surname':'S.','firstName':'Harry', 'email':'test@example.com', 'username':'harrys'}" )
+                .content( HttpStatus.CREATED ) );
     }
 
     private String extractTokenFromEmailText( String message )
@@ -241,10 +236,8 @@ public class UserControllerTest extends DhisControllerConvenienceTest
         String[] idAndRestoreToken = securityService.decodeEncodedTokens( token );
         String idToken = idAndRestoreToken[0];
         String restoreToken = idAndRestoreToken[1];
-
         User user = userService.getUserByIdToken( idToken );
         assertNotNull( user );
-
         String errorMessage = securityService.verifyRestoreToken( user, restoreToken,
             RestoreType.RECOVER_PASSWORD );
         assertNull( errorMessage );

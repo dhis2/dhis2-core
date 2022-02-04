@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,21 +30,18 @@ package org.hisp.dhis.system.notification;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.Logger;
 
 /**
  * @author Luca Cambi <luca@dhis2.org>
  */
-public class NotificationLoggerUtilTest
+@ExtendWith( MockitoExtension.class )
+class NotificationLoggerUtilTest
 {
-
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Mock
     Logger logger;
@@ -52,7 +49,7 @@ public class NotificationLoggerUtilTest
     private static String logMessage = "logMessage";
 
     @Test
-    public void shouldLogDebugLevel()
+    void shouldLogDebugLevel()
     {
 
         NotificationLoggerUtil.log( logger, NotificationLevel.DEBUG, logMessage );
@@ -64,7 +61,7 @@ public class NotificationLoggerUtilTest
     }
 
     @Test
-    public void shouldLogInfoLevel()
+    void shouldLogInfoLevel()
     {
 
         NotificationLoggerUtil.log( logger, NotificationLevel.INFO, logMessage );
@@ -76,7 +73,7 @@ public class NotificationLoggerUtilTest
     }
 
     @Test
-    public void shouldLogWarnLevel()
+    void shouldLogWarnLevel()
     {
 
         NotificationLoggerUtil.log( logger, NotificationLevel.WARN, logMessage );
@@ -88,7 +85,7 @@ public class NotificationLoggerUtilTest
     }
 
     @Test
-    public void shouldLogErrorLevel()
+    void shouldLogErrorLevel()
     {
 
         NotificationLoggerUtil.log( logger, NotificationLevel.ERROR, logMessage );

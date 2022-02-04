@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,28 +27,29 @@
  */
 package org.hisp.dhis.analytics;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.List;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.resourcetable.ResourceTableType;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Lars Helge Overland
  */
-public class AnalyticsTableHookStoreTest
-    extends DhisSpringTest
+class AnalyticsTableHookStoreTest extends DhisSpringTest
 {
+
     @Autowired
     private AnalyticsTableHookStore sqlHookStore;
 
     private final String sql = "update _orgunitstructure set organisationunitid=1";
 
     @Test
-    public void testGetByType()
+    void testGetByType()
     {
         AnalyticsTableHook hookA = new AnalyticsTableHook( "NameA", AnalyticsTablePhase.RESOURCE_TABLE_POPULATED,
             ResourceTableType.ORG_UNIT_STRUCTURE, sql );
@@ -58,17 +59,13 @@ public class AnalyticsTableHookStoreTest
             AnalyticsTableType.DATA_VALUE, sql );
         AnalyticsTableHook hookD = new AnalyticsTableHook( "NameD", AnalyticsTablePhase.ANALYTICS_TABLE_POPULATED,
             AnalyticsTableType.EVENT, sql );
-
         sqlHookStore.save( hookA );
         sqlHookStore.save( hookB );
         sqlHookStore.save( hookC );
         sqlHookStore.save( hookD );
-
         List<AnalyticsTableHook> hooks = sqlHookStore.getByPhaseAndAnalyticsTableType(
             AnalyticsTablePhase.ANALYTICS_TABLE_POPULATED, AnalyticsTableType.DATA_VALUE );
-
         assertEquals( 2, hooks.size() );
-
         hooks.forEach( hook -> {
             assertNotNull( hook.getName() );
             assertNotNull( hook.getPhase() );

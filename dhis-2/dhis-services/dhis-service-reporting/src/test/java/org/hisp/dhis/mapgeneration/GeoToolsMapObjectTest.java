@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,29 +27,30 @@
  */
 package org.hisp.dhis.mapgeneration;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.awt.Color;
 
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Kenneth Solbø Andersen <kennetsa@ifi.uio.no>
  */
-public class GeoToolsMapObjectTest
+class GeoToolsMapObjectTest
 {
+
     private InternalMapObject geoToolsMapObject;
 
-    @Before
-    public void before()
+    @BeforeEach
+    void before()
     {
         geoToolsMapObject = new InternalMapObject();
     }
 
     @Test
-    public void testSetGetName()
+    void testSetGetName()
     {
         geoToolsMapObject.setName( "Name1" );
         assertEquals( "Name1", geoToolsMapObject.getName() );
@@ -58,26 +59,26 @@ public class GeoToolsMapObjectTest
     }
 
     @Test
-    public void testSetGetValue()
+    void testSetGetValue()
     {
         geoToolsMapObject.setValue( 489.3 );
-        assertEquals( 489.3, geoToolsMapObject.getValue(), 0.00001 );
+        assertEquals( geoToolsMapObject.getValue(), 0.00001, 489.3 );
         geoToolsMapObject.setValue( 41.423 );
-        assertEquals( 41.423, geoToolsMapObject.getValue(), 0.00001 );
+        assertEquals( geoToolsMapObject.getValue(), 0.00001, 41.423 );
     }
 
     @Test
-    @Ignore
-    public void testSetGetRadius()
+    @Disabled
+    void testSetGetRadius()
     {
         geoToolsMapObject.setRadius( 32 );
-        assertEquals( 32.5264F, geoToolsMapObject.getRadius(), 0.00001 );
+        assertEquals( geoToolsMapObject.getRadius(), 0.00001, 32.5264F );
         geoToolsMapObject.setRadius( 61 );
-        assertEquals( 61441.5F, geoToolsMapObject.getRadius(), 0.00001 );
+        assertEquals( geoToolsMapObject.getRadius(), 0.00001, 61441.5F );
     }
 
     @Test
-    public void testSetGetFillColor()
+    void testSetGetFillColor()
     {
         geoToolsMapObject.setFillColor( Color.BLUE );
         assertEquals( Color.BLUE, geoToolsMapObject.getFillColor() );
@@ -86,16 +87,16 @@ public class GeoToolsMapObjectTest
     }
 
     @Test
-    public void testSetGetFillOpacity()
+    void testSetGetFillOpacity()
     {
         geoToolsMapObject.setFillOpacity( 5.23F );
-        assertEquals( 5.23F, geoToolsMapObject.getFillOpacity(), 0.00001 );
+        assertEquals( geoToolsMapObject.getFillOpacity(), 0.00001, 5.23F );
         geoToolsMapObject.setFillOpacity( 594208420.134F );
-        assertEquals( 594208420.134F, geoToolsMapObject.getFillOpacity(), 0.00001 );
+        assertEquals( geoToolsMapObject.getFillOpacity(), 0.00001, 594208420.134F );
     }
 
     @Test
-    public void testSetGetStrokeColor()
+    void testSetGetStrokeColor()
     {
         geoToolsMapObject.setStrokeColor( Color.GREEN );
         assertEquals( Color.GREEN, geoToolsMapObject.getStrokeColor() );

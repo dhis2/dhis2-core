@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.utils;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collection;
 import java.util.Map;
@@ -38,6 +38,7 @@ import java.util.Map;
  */
 public final class Assertions
 {
+
     private Assertions()
     {
         throw new UnsupportedOperationException( "util" );
@@ -47,10 +48,9 @@ public final class Assertions
     public static <E> void assertContainsOnly( Collection<E> actual, E... expected )
     {
         assertEquals( expected.length, actual.size() );
-
         for ( E e : expected )
         {
-            assertTrue( "Expected " + e.toString() + " in " + actual.toString(), actual.contains( e ) );
+            assertTrue( actual.contains( e ), "Expected " + e.toString() + " in " + actual.toString() );
         }
     }
 
@@ -58,14 +58,11 @@ public final class Assertions
     {
         for ( Map.Entry<K, V> e : expected.entrySet() )
         {
-            assertEquals( "Expected value not in " + actual.toString(),
-                e.getValue(), actual.get( e.getKey() ) );
+            assertEquals( e.getValue(), actual.get( e.getKey() ), "Expected value not in " + actual.toString() );
         }
-
         for ( Map.Entry<K, V> e : actual.entrySet() )
         {
-            assertEquals( "Did not expect value in " + actual.toString(),
-                e.getValue(), expected.get( e.getKey() ) );
+            assertEquals( e.getValue(), expected.get( e.getKey() ), "Did not expect value in " + actual.toString() );
         }
     }
 }

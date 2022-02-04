@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,11 +28,13 @@
 package org.hisp.dhis.trackedentity;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,16 +49,15 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.security.acl.AccessStringHelper;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Chau Thu Tran
  */
-public class TrackedEntityAttributeStoreTest
-    extends
-    DhisSpringTest
+class TrackedEntityAttributeStoreTest extends DhisSpringTest
 {
+
     @Autowired
     private TrackedEntityAttributeService attributeService;
 
@@ -81,30 +82,23 @@ public class TrackedEntityAttributeStoreTest
     @Override
     public void setUpTest()
     {
-
         attributeW = createTrackedEntityAttribute( 'W' );
         attributeY = createTrackedEntityAttribute( 'Y' );
         attributeZ = createTrackedEntityAttribute( 'Z', ValueType.NUMBER );
-
         List<TrackedEntityAttribute> attributesA = new ArrayList<>();
         attributesA.add( attributeW );
         attributesA.add( attributeY );
-
         Program program = createProgram( 'A' );
         programService.addProgram( program );
-
         TrackedEntityType trackedEntityTypeA = createTrackedEntityType( 'A' );
         trackedEntityTypeA.setPublicAccess( AccessStringHelper.FULL );
         trackedEntityTypeService.addTrackedEntityType( trackedEntityTypeA );
-
         TrackedEntityType trackedEntityTypeB = createTrackedEntityType( 'B' );
         trackedEntityTypeB.setPublicAccess( AccessStringHelper.FULL );
         trackedEntityTypeService.addTrackedEntityType( trackedEntityTypeB );
-
         // Create 20 Tracked Entity Attributes (named A .. O)
         IntStream.range( A, T ).mapToObj( i -> Character.toString( (char) i ) ).forEach( c -> attributeService
             .addTrackedEntityAttribute( createTrackedEntityAttribute( c.charAt( 0 ), ValueType.TEXT ) ) );
-
         // Transform the Tracked Entity Attributes into a List of
         // TrackedEntityTypeAttribute
         List<TrackedEntityTypeAttribute> teatList = IntStream.range( A, T )
@@ -112,153 +106,125 @@ public class TrackedEntityAttributeStoreTest
             .map( s -> new TrackedEntityTypeAttribute( trackedEntityTypeA,
                 attributeService.getTrackedEntityAttributeByName( "Attribute" + s ) ) )
             .collect( Collectors.toList() );
-
         // Assign 10 TrackedEntityTypeAttribute to Tracked Entity Type A
         trackedEntityTypeA.setTrackedEntityTypeAttributes( teatList.subList( 0, 10 ) );
         trackedEntityTypeService.updateTrackedEntityType( trackedEntityTypeA );
-
         // Assign 10 TrackedEntityTypeAttribute to Tracked Entity Type B
         trackedEntityTypeB.setTrackedEntityTypeAttributes( teatList.subList( 10, 20 ) );
         trackedEntityTypeService.updateTrackedEntityType( trackedEntityTypeB );
-
         programB = createProgram( 'B' );
         programService.addProgram( programB );
-
         List<ProgramTrackedEntityAttribute> pteaList = IntStream.range( A, T )
             .mapToObj( i -> Character.toString( (char) i ) ).map( s -> new ProgramTrackedEntityAttribute( programB,
                 attributeService.getTrackedEntityAttributeByName( "Attribute" + s ) ) )
             .collect( Collectors.toList() );
-
         programB.setProgramAttributes( pteaList );
         programService.updateProgram( programB );
-
     }
 
     @Test
-    public void testSaveTrackedEntityAttribute()
+    void testSaveTrackedEntityAttribute()
     {
         long idA = attributeService.addTrackedEntityAttribute( attributeW );
         long idB = attributeService.addTrackedEntityAttribute( attributeY );
-
         assertNotNull( attributeService.getTrackedEntityAttribute( idA ) );
         assertNotNull( attributeService.getTrackedEntityAttribute( idB ) );
     }
 
     @Test
-    public void testDeleteTrackedEntityAttribute()
+    void testDeleteTrackedEntityAttribute()
     {
         long idA = attributeService.addTrackedEntityAttribute( attributeW );
         long idB = attributeService.addTrackedEntityAttribute( attributeY );
-
         assertNotNull( attributeService.getTrackedEntityAttribute( idA ) );
         assertNotNull( attributeService.getTrackedEntityAttribute( idB ) );
-
         attributeService.deleteTrackedEntityAttribute( attributeW );
-
         assertNull( attributeService.getTrackedEntityAttribute( idA ) );
         assertNotNull( attributeService.getTrackedEntityAttribute( idB ) );
-
         attributeService.deleteTrackedEntityAttribute( attributeY );
-
         assertNull( attributeService.getTrackedEntityAttribute( idA ) );
         assertNull( attributeService.getTrackedEntityAttribute( idB ) );
     }
 
     @Test
-    public void testUpdateTrackedEntityAttribute()
+    void testUpdateTrackedEntityAttribute()
     {
         long idA = attributeService.addTrackedEntityAttribute( attributeW );
-
         assertNotNull( attributeService.getTrackedEntityAttribute( idA ) );
-
         attributeW.setName( "B" );
         attributeService.updateTrackedEntityAttribute( attributeW );
-
         assertEquals( "B", attributeService.getTrackedEntityAttribute( idA ).getName() );
     }
 
     @Test
-    public void testGetTrackedEntityAttributeById()
+    void testGetTrackedEntityAttributeById()
     {
         long idA = attributeService.addTrackedEntityAttribute( attributeW );
         long idB = attributeService.addTrackedEntityAttribute( attributeY );
-
         assertEquals( attributeW, attributeService.getTrackedEntityAttribute( idA ) );
         assertEquals( attributeY, attributeService.getTrackedEntityAttribute( idB ) );
     }
 
     @Test
-    public void testGetTrackedEntityAttributeByUid()
+    void testGetTrackedEntityAttributeByUid()
     {
         attributeW.setUid( "uid" );
         attributeService.addTrackedEntityAttribute( attributeW );
-
         assertEquals( attributeW, attributeService.getTrackedEntityAttribute( "uid" ) );
     }
 
     @Test
-    public void testGetTrackedEntityAttributeByName()
+    void testGetTrackedEntityAttributeByName()
     {
         long idA = attributeService.addTrackedEntityAttribute( attributeW );
-
         assertNotNull( attributeService.getTrackedEntityAttribute( idA ) );
         assertEquals( attributeW.getName(),
             attributeService.getTrackedEntityAttributeByName( "AttributeW" ).getName() );
     }
 
     @Test
-    public void testGetAllTrackedEntityAttributes()
+    void testGetAllTrackedEntityAttributes()
     {
         attributeService.addTrackedEntityAttribute( attributeW );
         attributeService.addTrackedEntityAttribute( attributeY );
-
         List<TrackedEntityAttribute> teas = attributeService.getAllTrackedEntityAttributes();
-
         assertThat( teas, hasItem( attributeW ) );
         assertThat( teas, hasItem( attributeY ) );
     }
 
     @Test
-    public void testGetTrackedEntityAttributesByDisplayOnVisitSchedule()
+    void testGetTrackedEntityAttributesByDisplayOnVisitSchedule()
     {
         attributeW.setDisplayOnVisitSchedule( true );
         attributeY.setDisplayOnVisitSchedule( true );
         attributeZ.setDisplayOnVisitSchedule( false );
-
         attributeService.addTrackedEntityAttribute( attributeW );
         attributeService.addTrackedEntityAttribute( attributeY );
         attributeService.addTrackedEntityAttribute( attributeZ );
-
         List<TrackedEntityAttribute> attributes = attributeService
             .getTrackedEntityAttributesByDisplayOnVisitSchedule( true );
         assertEquals( 2, attributes.size() );
         assertTrue( attributes.contains( attributeW ) );
         assertTrue( attributes.contains( attributeY ) );
-
         attributes = attributeService.getTrackedEntityAttributesByDisplayOnVisitSchedule( false );
         assertEquals( 21, attributes.size() );
         assertTrue( attributes.contains( attributeZ ) );
     }
 
     @Test
-    public void verifyGetTrackedEntityAttributesByTrackedEntityTypes()
+    void verifyGetTrackedEntityAttributesByTrackedEntityTypes()
     {
-
         Set<TrackedEntityAttribute> trackedEntityAttributes = attributeService
             .getTrackedEntityAttributesByTrackedEntityTypes();
-
         assertThat( trackedEntityAttributes, hasSize( 20 ) );
     }
 
     @Test
-    public void verifyGetTrackedEntityAttributesByProgram()
+    void verifyGetTrackedEntityAttributesByProgram()
     {
-
         Map<Program, Set<TrackedEntityAttribute>> trackedEntityAttributes = attributeService
             .getTrackedEntityAttributesByProgram();
-
         assertThat( trackedEntityAttributes.size(), is( 1 ) );
         assertThat( trackedEntityAttributes.get( programB ), hasSize( 20 ) );
     }
-
 }

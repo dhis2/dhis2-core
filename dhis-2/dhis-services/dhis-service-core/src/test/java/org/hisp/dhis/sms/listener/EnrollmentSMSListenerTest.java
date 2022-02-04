@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.sms.listener;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
@@ -80,23 +80,18 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.google.common.collect.Sets;
 
-public class EnrollmentSMSListenerTest
-    extends
+@ExtendWith( MockitoExtension.class )
+class EnrollmentSMSListenerTest extends
     CompressionSMSListenerTest
 {
-    @Rule
-    public MockitoRule rule = MockitoJUnit.rule();
-
-    // Needed for parent
 
     @Mock
     private UserService userService;
@@ -193,7 +188,7 @@ public class EnrollmentSMSListenerTest
 
     private DataElement dataElement;
 
-    @Before
+    @BeforeEach
     public void initTest()
         throws SmsCompressionException
     {
@@ -225,7 +220,7 @@ public class EnrollmentSMSListenerTest
     }
 
     @Test
-    public void testEnrollmentNoEvents()
+    void testEnrollmentNoEvents()
     {
         when( trackedEntityAttributeService.getTrackedEntityAttribute( anyString() ) )
             .thenReturn( trackedEntityAttribute );
@@ -240,7 +235,7 @@ public class EnrollmentSMSListenerTest
     }
 
     @Test
-    public void testEnrollmentWithEvents()
+    void testEnrollmentWithEvents()
     {
         when( dataElementService.getDataElement( anyString() ) ).thenReturn( dataElement );
         when( categoryService.getCategoryOptionCombo( anyString() ) ).thenReturn( categoryOptionCombo );
@@ -258,7 +253,7 @@ public class EnrollmentSMSListenerTest
     }
 
     @Test
-    public void testEnrollmentWithEventsRepeat()
+    void testEnrollmentWithEventsRepeat()
     {
         when( categoryService.getCategoryOptionCombo( anyString() ) ).thenReturn( categoryOptionCombo );
         when( dataElementService.getDataElement( anyString() ) ).thenReturn( dataElement );
@@ -277,7 +272,7 @@ public class EnrollmentSMSListenerTest
     }
 
     @Test
-    public void testEnrollmentWithNulls()
+    void testEnrollmentWithNulls()
     {
         when( trackedEntityAttributeService.getTrackedEntityAttribute( anyString() ) )
             .thenReturn( trackedEntityAttribute );
@@ -292,7 +287,7 @@ public class EnrollmentSMSListenerTest
     }
 
     @Test
-    public void testEnrollmentNoAttribs()
+    void testEnrollmentNoAttribs()
     {
         subject.receive( incomingSmsEnrollmentNoAttribs );
 
@@ -304,7 +299,7 @@ public class EnrollmentSMSListenerTest
     }
 
     @Test
-    public void testEnrollmentEventWithNulls()
+    void testEnrollmentEventWithNulls()
     {
         when( categoryService.getCategoryOptionCombo( anyString() ) ).thenReturn( categoryOptionCombo );
         when( dataElementService.getDataElement( anyString() ) ).thenReturn( dataElement );
@@ -324,7 +319,7 @@ public class EnrollmentSMSListenerTest
     // For now there's no warning if an event within the event
     // list has no values. This might be changed in the future.
     @Test
-    public void testEnrollmentEventNoValues()
+    void testEnrollmentEventNoValues()
     {
         when( categoryService.getCategoryOptionCombo( anyString() ) ).thenReturn( categoryOptionCombo );
         when( programStageService.getProgramStage( anyString() ) ).thenReturn( programStage );

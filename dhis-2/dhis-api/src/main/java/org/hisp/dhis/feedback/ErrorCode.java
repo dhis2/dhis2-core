@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,6 +44,8 @@ public enum ErrorCode
     E1103( "Category option combo not found or not accessible: `{0}`" ),
     E1104( "Attribute option combo not found or not accessible: `{0}`" ),
     E1105( "Data set not found or not accessible: `{0}`" ),
+    E1106( "There are duplicate translation record for property `{0}` and locale `{1}`" ),
+    E1107( "Object type `{0}` is not translatable." ),
 
     /* Org unit merge */
     E1500( "At least two source orgs unit must be specified" ),
@@ -107,6 +109,7 @@ public enum ErrorCode
     E2036( "Combination not supported: `{0}`" ),
     E2037( "Order not supported: `{0}`" ),
     E2038( "Field not supported: `{0}`" ),
+    E2039( "StageOffset is allowed only for repeatable stages (`{0}` is not repeatable)" ),
 
     /* Outlier detection */
     E2200( "At least one data element must be specified" ),
@@ -196,10 +199,14 @@ public enum ErrorCode
     E4046( "TrackedEntityAttribute `{0}` associated with program rule `{1}` does not exist" ),
     E4047( "DataElement `{0}` is not linked to any ProgramStageDataElement for program rule `{1}`" ),
     E4048( "TrackedEntityAttribute `{0}` is not linked to ProgramTrackedEntityAttribute for program rule `{1}`" ),
+    E4049( "Property `{0}` requires a valid username, was given `{1}`." ),
+    E4050(
+        "One of the parameters DataElement, TrackedEntityAttribute or ProgramRuleVariable is required for program rule `{0}`" ),
 
     /* ProgramRuleVariable validation */
     E4051( "A program rule variable with name `{0}` and program uid `{1}` already exists" ),
     E4052( "For program rule variable with name `{0}` following keywords are forbidden : and , or , not" ),
+    E4053( "Program stage `{0}` must reference a program." ),
 
     /* SQL views */
     E4300( "SQL query is null" ),
@@ -316,7 +323,8 @@ public enum ErrorCode
     E7226( "Dimension is not a valid query item: `{0}`" ),
     E7227( "Relationship entity type not supported: `{0}`" ),
     E7228( "Fallback coordinate field is invalid: `{0}` " ),
-    E7229( "Operator '{0}' does not allow missing value" ),
+    E7229( "Operator `{0}` does not allow missing value" ),
+    E7230( "Header param `{0}` does not exist" ),
 
     /* Org unit analytics */
     E7300( "At least one organisation unit must be specified" ),
@@ -368,7 +376,13 @@ public enum ErrorCode
         "Data is already approved for data set: `{3}` period: `{1}` organisation unit: `{0}` attribute option combo: `{2}`" ),
     E7643( "Period: `{0}` is not open for this data set at this time: `{1}`" ),
     E7644( "Period: `{0}` does not conform to the open periods of associated data sets" ),
-    E7645( "No data value for file resource exist for the given combination for data element: `{0}`" );
+    E7645( "No data value for file resource exist for the given combination for data element: `{0}`" ),
+
+    // datastore query validation
+    E7650( "Not a valid path: `{0}`" ),
+    E7651( "Illegal fields expression. Expected `,`, `[` or `]` at position {0} but found `{1}`" ),
+    E7652( "Illegal filter expression `{0}`: {1}" ),
+    E7653( "Illegal filter `{0}`: {1}" );
 
     private String message;
 

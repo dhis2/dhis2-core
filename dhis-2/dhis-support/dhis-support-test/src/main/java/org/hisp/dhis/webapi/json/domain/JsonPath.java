@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,8 +30,8 @@ package org.hisp.dhis.webapi.json.domain;
 import java.util.Arrays;
 import java.util.List;
 
+import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.webapi.json.JsonString;
 
 /**
  * A utility for an {@link OrganisationUnit#getPath()} value.

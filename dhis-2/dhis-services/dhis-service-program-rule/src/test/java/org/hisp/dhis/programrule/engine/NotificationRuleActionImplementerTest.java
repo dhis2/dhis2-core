@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.programrule.engine;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.doAnswer;
@@ -61,28 +61,26 @@ import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleActionSendMessage;
 import org.hisp.dhis.rules.models.RuleActionSetMandatoryField;
 import org.hisp.dhis.rules.models.RuleEffect;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 
 /**
  * Created by zubair@dhis2.org on 05.02.18.
  */
-public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
+@ExtendWith( MockitoExtension.class )
+class NotificationRuleActionImplementerTest extends DhisConvenienceTest
 {
+
     private static final String NOTIFICATION_UID = "123abc";
 
     private static final String MANDATORY_FIELD = "fname";
-
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     // -------------------------------------------------------------------------
     // Mocking Dependencies
@@ -118,26 +116,26 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
 
     private ProgramRule programRuleA;
 
-    @Before
+    @BeforeEach
     public void initTest()
     {
         setUpInstances();
     }
 
     @Test
-    public void test_acceptBehaviorForActionAssign()
+    void test_acceptBehaviorForActionAssign()
     {
         assertFalse( implementer.accept( setMandatoryFieldFalse ) );
     }
 
     @Test
-    public void test_acceptBehaviorForActionSendMessage()
+    void test_acceptBehaviorForActionSendMessage()
     {
         assertTrue( implementer.accept( ruleActionSendMessage ) );
     }
 
     @Test
-    public void test_implementWithProgramInstanceWithTemplate()
+    void test_implementWithProgramInstanceWithTemplate()
     {
 
         when( templateStore.getByUid( anyString() ) ).thenReturn( template );
@@ -167,7 +165,7 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
     }
 
     @Test
-    public void test_implementWithProgramStageInstanceWithTemplate()
+    void test_implementWithProgramStageInstanceWithTemplate()
     {
         when( templateStore.getByUid( anyString() ) ).thenReturn( template );
 
@@ -197,7 +195,7 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
     }
 
     @Test
-    public void test_loggingServiceKey()
+    void test_loggingServiceKey()
     {
         when( templateStore.getByUid( anyString() ) ).thenReturn( template );
 
@@ -223,7 +221,7 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testSendRepeatableFlag()
+    void testSendRepeatableFlag()
     {
         when( templateStore.getByUid( anyString() ) ).thenReturn( template );
 
@@ -251,7 +249,7 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
     }
 
     @Test
-    public void test_NothingHappensIfTemplateDoesNotExist()
+    void test_NothingHappensIfTemplateDoesNotExist()
     {
         // overriding stub to check null templates
         when( templateStore.getByUid( anyString() ) ).thenReturn( null );
@@ -263,7 +261,7 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
     }
 
     @Test
-    public void test_NothingHappensIfTemplateDoesNotExistForPSI()
+    void test_NothingHappensIfTemplateDoesNotExistForPSI()
     {
         when( templateStore.getByUid( anyString() ) ).thenReturn( null );
 
@@ -273,10 +271,10 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
     }
 
     @Test
-    public void test_NothingHappensIfActionIsNull()
+    void test_NothingHappensIfActionIsNull()
     {
-        assertThrows( "Rule Effect cannot be null", NullPointerException.class,
-            () -> implementer.implement( null, programInstance ) );
+        assertThrows( NullPointerException.class,
+            () -> implementer.implement( null, programInstance ), "Rule Effect cannot be null" );
     }
 
     // -------------------------------------------------------------------------

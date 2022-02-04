@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.StringContains.containsString;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.when;
@@ -39,12 +40,11 @@ import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.access.AccessDeniedException;
 
@@ -53,8 +53,10 @@ import org.springframework.security.access.AccessDeniedException;
  *
  * @author Volker Schmidt
  */
-public class SharingControllerTest
+@ExtendWith( MockitoExtension.class )
+class SharingControllerTest
 {
+
     @Mock
     private CurrentUserService currentUserService;
 
@@ -69,25 +71,20 @@ public class SharingControllerTest
     @InjectMocks
     private SharingController sharingController;
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
-    @Test( expected = AccessDeniedException.class )
-    public void notSystemDefaultMetadataNoAccess()
-        throws Exception
+    @Test
+    void notSystemDefaultMetadataNoAccess()
     {
         final OrganisationUnit organisationUnit = new OrganisationUnit();
 
         doReturn( OrganisationUnit.class ).when( aclService ).classForType( eq( "organisationUnit" ) );
         when( aclService.isClassShareable( eq( OrganisationUnit.class ) ) ).thenReturn( true );
         doReturn( organisationUnit ).when( manager ).getNoAcl( eq( OrganisationUnit.class ), eq( "kkSjhdhks" ) );
-
-        sharingController.postSharing( "organisationUnit", "kkSjhdhks", request );
+        assertThrows( AccessDeniedException.class,
+            () -> sharingController.postSharing( "organisationUnit", "kkSjhdhks", request ) );
     }
 
-    @Test( expected = AccessDeniedException.class )
-    public void systemDefaultMetadataNoAccess()
-        throws Exception
+    @Test
+    void systemDefaultMetadataNoAccess()
     {
         final Category category = new Category();
         category.setName( Category.DEFAULT_NAME + "x" );
@@ -95,12 +92,12 @@ public class SharingControllerTest
         doReturn( Category.class ).when( aclService ).classForType( eq( "category" ) );
         when( aclService.isClassShareable( eq( Category.class ) ) ).thenReturn( true );
         when( manager.getNoAcl( eq( Category.class ), eq( "kkSjhdhks" ) ) ).thenReturn( category );
-
-        sharingController.postSharing( "category", "kkSjhdhks", request );
+        assertThrows( AccessDeniedException.class,
+            () -> sharingController.postSharing( "category", "kkSjhdhks", request ) );
     }
 
     @Test
-    public void systemDefaultMetadata()
+    void systemDefaultMetadata()
         throws Exception
     {
         final Category category = new Category();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -105,6 +105,7 @@ public enum SettingKey
     CAN_GRANT_OWN_USER_AUTHORITY_GROUPS( "keyCanGrantOwnUserAuthorityGroups", Boolean.FALSE, Boolean.class ),
     IGNORE_ANALYTICS_APPROVAL_YEAR_THRESHOLD( "keyIgnoreAnalyticsApprovalYearThreshold", -1, Integer.class ),
     ANALYTICS_MAX_LIMIT( "keyAnalyticsMaxLimit", 100000, Integer.class ),
+    INCLUDE_ZERO_VALUES_IN_ANALYTICS( "keyIncludeZeroValuesInAnalytics", Boolean.FALSE, Boolean.class ),
     SQL_VIEW_MAX_LIMIT( "keySqlViewMaxLimit", -1, Integer.class ),
     RESPECT_META_DATA_START_END_DATES_IN_ANALYTICS_TABLE_EXPORT(
         "keyRespectMetaDataStartEndDatesInAnalyticsTableExport", Boolean.FALSE, Boolean.class ),
@@ -195,6 +196,7 @@ public enum SettingKey
         "keyDashboardContextMenuItemShowInterpretationsAndDetails", Boolean.TRUE, Boolean.class ),
     DASHBOARD_CONTEXT_MENU_ITEM_VIEW_FULLSCREEN( "keyDashboardContextMenuItemViewFullscreen", Boolean.TRUE,
         Boolean.class ),
+    DEFAULT_BASE_MAP( "keyDefaultBaseMap" ),
     RULE_ENGINE_ASSIGN_OVERWRITE( "ruleEngineAssignOverwrite", Boolean.FALSE, Boolean.class ),
 
     /**

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.cache;
 
+import static java.util.Collections.emptySet;
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static java.util.stream.Collectors.toSet;
 import static org.springframework.util.Assert.hasText;
 
 import java.util.List;
@@ -46,6 +48,8 @@ import org.springframework.data.redis.core.RedisTemplate;
  */
 public class RedisCache<V> implements Cache<V>
 {
+    private static final String VALUE_CANNOT_BE_NULL = "Value cannot be null";
+
     private RedisTemplate<String, V> redisTemplate;
 
     private boolean refreshExpriryOnAccess;
@@ -137,9 +141,22 @@ public class RedisCache<V> implements Cache<V>
     @Override
     public Stream<V> getAll()
     {
-        Set<String> keySet = redisTemplate.keys( cacheRegion + "*" );
+        Set<String> keySet = redisTemplate.keys( getAllKeysInRegionPattern() );
+        if ( keySet == null )
+        {
+            return Stream.empty();
+        }
         List<V> values = redisTemplate.opsForValue().multiGet( keySet );
         return values == null ? Stream.empty() : values.stream();
+    }
+
+    @Override
+    public Set<String> keys()
+    {
+        var keys = redisTemplate.keys( getAllKeysInRegionPattern() );
+        return keys == null
+            ? emptySet()
+            : keys.stream().map( key -> key.substring( key.indexOf( ':' ) + 1 ) ).collect( toSet() );
     }
 
     @Override
@@ -147,11 +164,10 @@ public class RedisCache<V> implements Cache<V>
     {
         if ( null == value )
         {
-            throw new IllegalArgumentException( "Value cannot be null" );
+            throw new IllegalArgumentException( VALUE_CANNOT_BE_NULL );
         }
 
         String redisKey = generateKey( key );
-
         if ( expiryEnabled )
         {
             redisTemplate.boundValueOps( redisKey ).set( value, expiryInSeconds, SECONDS );
@@ -165,11 +181,31 @@ public class RedisCache<V> implements Cache<V>
     @Override
     public void put( String key, V value, long ttlInSeconds )
     {
-        hasText( key, "Value cannot be null" );
+        hasText( key, VALUE_CANNOT_BE_NULL );
 
-        final String redisKey = generateKey( key );
+        String redisKey = generateKey( key );
 
         redisTemplate.boundValueOps( redisKey ).set( value, ttlInSeconds, SECONDS );
+    }
+
+    @Override
+    public boolean putIfAbsent( String key, V value )
+    {
+        if ( null == value )
+        {
+            throw new IllegalArgumentException( VALUE_CANNOT_BE_NULL );
+        }
+        String redisKey = generateKey( key );
+
+        var ops = redisTemplate.boundValueOps( redisKey );
+        if ( expiryEnabled )
+        {
+            return ops.setIfAbsent( value, expiryInSeconds, SECONDS ) == Boolean.TRUE;
+        }
+        else
+        {
+            return ops.setIfAbsent( value ) == Boolean.TRUE;
+        }
     }
 
     @Override
@@ -183,10 +219,15 @@ public class RedisCache<V> implements Cache<V>
         return cacheRegion.concat( ":" ).concat( key );
     }
 
+    private String getAllKeysInRegionPattern()
+    {
+        return generateKey( "*" );
+    }
+
     @Override
     public void invalidateAll()
     {
-        Set<String> keysToDelete = redisTemplate.keys( cacheRegion.concat( ":*" ) );
+        Set<String> keysToDelete = redisTemplate.keys( getAllKeysInRegionPattern() );
         redisTemplate.delete( keysToDelete );
     }
 
@@ -195,4 +236,5 @@ public class RedisCache<V> implements Cache<V>
     {
         return CacheType.REDIS;
     }
+
 }

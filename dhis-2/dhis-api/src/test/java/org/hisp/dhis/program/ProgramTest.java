@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,19 +27,20 @@
  */
 package org.hisp.dhis.program;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.dataelement.DataElement;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Lars Helge Overland
  */
-public class ProgramTest
+class ProgramTest
 {
+
     @Test
-    public void testGetAnalyticsDataElements()
+    void testGetAnalyticsDataElements()
     {
         DataElement deA = new DataElement( "DataElementA" );
         deA.setAutoFields();
@@ -47,7 +48,6 @@ public class ProgramTest
         deB.setAutoFields();
         Program prA = new Program( "ProgramA" );
         prA.setAutoFields();
-
         ProgramStage psA = new ProgramStage( "ProgramStageA", prA );
         psA.setAutoFields();
         prA.getProgramStages().add( psA );
@@ -57,7 +57,6 @@ public class ProgramTest
         psdeB.setSkipAnalytics( true );
         psA.getProgramStageDataElements().add( psdeA );
         psA.getProgramStageDataElements().add( psdeB );
-
         assertEquals( 2, prA.getDataElements().size() );
         assertTrue( prA.getDataElements().contains( deA ) );
         assertTrue( prA.getDataElements().contains( deB ) );

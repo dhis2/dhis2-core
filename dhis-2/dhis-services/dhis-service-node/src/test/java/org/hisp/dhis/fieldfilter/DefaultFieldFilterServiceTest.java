@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -63,20 +63,20 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserService;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * Unit tests for {@link DefaultFieldFilterService}.
  *
  * @author Volker Schmidt
  */
-public class DefaultFieldFilterServiceTest
+@ExtendWith( MockitoExtension.class )
+class DefaultFieldFilterServiceTest
 {
     @Mock
     private SessionFactory sessionFactory;
@@ -98,10 +98,7 @@ public class DefaultFieldFilterServiceTest
 
     private DefaultFieldFilterService service;
 
-    @Rule
-    public MockitoRule rule = MockitoJUnit.rule();
-
-    @Before
+    @BeforeEach
     public void setUp()
     {
         final Set<NodeTransformer> nodeTransformers = new HashSet<>();
@@ -118,7 +115,7 @@ public class DefaultFieldFilterServiceTest
     }
 
     @Test
-    public void baseIdentifiableIdOnly()
+    void baseIdentifiableIdOnly()
     {
         final OrganisationUnit ou1 = new OrganisationUnit();
         ou1.setUid( "abc1" );
@@ -135,39 +132,40 @@ public class DefaultFieldFilterServiceTest
             Arrays.asList( "id", "organisationUnits" ) );
         final ComplexNode node = service.toComplexNode( params );
 
-        Assert.assertEquals( "categoryOption", node.getName() );
-        Assert.assertTrue( getNamedNode( node.getUnorderedChildren(), "id" ) instanceof SimpleNode );
-        Assert.assertEquals( "def1", ((SimpleNode) getNamedNode( node.getUnorderedChildren(), "id" )).getValue() );
-        Assert.assertTrue( getNamedNode( node.getUnorderedChildren(), "organisationUnits" ) instanceof CollectionNode );
+        Assertions.assertEquals( "categoryOption", node.getName() );
+        Assertions.assertTrue( getNamedNode( node.getUnorderedChildren(), "id" ) instanceof SimpleNode );
+        Assertions.assertEquals( "def1", ((SimpleNode) getNamedNode( node.getUnorderedChildren(), "id" )).getValue() );
+        Assertions
+            .assertTrue( getNamedNode( node.getUnorderedChildren(), "organisationUnits" ) instanceof CollectionNode );
 
         final CollectionNode collectionNode = (CollectionNode) getNamedNode( node.getUnorderedChildren(),
             "organisationUnits" );
-        Assert.assertEquals( 2, collectionNode.getUnorderedChildren().size() );
+        Assertions.assertEquals( 2, collectionNode.getUnorderedChildren().size() );
         final List<String> ouIds = new ArrayList<>();
 
-        Assert.assertTrue( collectionNode.getUnorderedChildren().get( 0 ) instanceof ComplexNode );
+        Assertions.assertTrue( collectionNode.getUnorderedChildren().get( 0 ) instanceof ComplexNode );
         ComplexNode complexNode = (ComplexNode) collectionNode.getUnorderedChildren().get( 0 );
-        Assert.assertEquals( "organisationUnit", complexNode.getName() );
-        Assert.assertEquals( 1, complexNode.getUnorderedChildren().size() );
-        Assert.assertTrue( complexNode.getUnorderedChildren().get( 0 ) instanceof SimpleNode );
+        Assertions.assertEquals( "organisationUnit", complexNode.getName() );
+        Assertions.assertEquals( 1, complexNode.getUnorderedChildren().size() );
+        Assertions.assertTrue( complexNode.getUnorderedChildren().get( 0 ) instanceof SimpleNode );
         SimpleNode simpleNode = (SimpleNode) complexNode.getUnorderedChildren().get( 0 );
-        Assert.assertEquals( "id", simpleNode.getName() );
+        Assertions.assertEquals( "id", simpleNode.getName() );
         ouIds.add( String.valueOf( simpleNode.getValue() ) );
 
-        Assert.assertTrue( collectionNode.getUnorderedChildren().get( 1 ) instanceof ComplexNode );
+        Assertions.assertTrue( collectionNode.getUnorderedChildren().get( 1 ) instanceof ComplexNode );
         complexNode = (ComplexNode) collectionNode.getUnorderedChildren().get( 1 );
-        Assert.assertEquals( "organisationUnit", complexNode.getName() );
-        Assert.assertEquals( 1, complexNode.getUnorderedChildren().size() );
-        Assert.assertTrue( complexNode.getUnorderedChildren().get( 0 ) instanceof SimpleNode );
+        Assertions.assertEquals( "organisationUnit", complexNode.getName() );
+        Assertions.assertEquals( 1, complexNode.getUnorderedChildren().size() );
+        Assertions.assertTrue( complexNode.getUnorderedChildren().get( 0 ) instanceof SimpleNode );
         simpleNode = (SimpleNode) complexNode.getUnorderedChildren().get( 0 );
-        Assert.assertEquals( "id", simpleNode.getName() );
+        Assertions.assertEquals( "id", simpleNode.getName() );
         ouIds.add( String.valueOf( simpleNode.getValue() ) );
 
         assertThat( ouIds, Matchers.containsInAnyOrder( "abc1", "abc2" ) );
     }
 
     @Test
-    public void baseIdentifiableName()
+    void baseIdentifiableName()
     {
         final OrganisationUnit ou1 = new OrganisationUnit();
         ou1.setUid( "abc1" );
@@ -186,31 +184,32 @@ public class DefaultFieldFilterServiceTest
             Arrays.asList( "id", "organisationUnits~pluck(name)[id,name]" ) );
         final ComplexNode node = service.toComplexNode( params );
 
-        Assert.assertEquals( "categoryOption", node.getName() );
-        Assert.assertTrue( getNamedNode( node.getUnorderedChildren(), "id" ) instanceof SimpleNode );
-        Assert.assertEquals( "def1", ((SimpleNode) getNamedNode( node.getUnorderedChildren(), "id" )).getValue() );
-        Assert.assertTrue( getNamedNode( node.getUnorderedChildren(), "organisationUnits" ) instanceof CollectionNode );
+        Assertions.assertEquals( "categoryOption", node.getName() );
+        Assertions.assertTrue( getNamedNode( node.getUnorderedChildren(), "id" ) instanceof SimpleNode );
+        Assertions.assertEquals( "def1", ((SimpleNode) getNamedNode( node.getUnorderedChildren(), "id" )).getValue() );
+        Assertions
+            .assertTrue( getNamedNode( node.getUnorderedChildren(), "organisationUnits" ) instanceof CollectionNode );
 
         final CollectionNode collectionNode = (CollectionNode) getNamedNode( node.getUnorderedChildren(),
             "organisationUnits" );
-        Assert.assertEquals( 2, collectionNode.getUnorderedChildren().size() );
+        Assertions.assertEquals( 2, collectionNode.getUnorderedChildren().size() );
         final List<String> ouIds = new ArrayList<>();
 
-        Assert.assertTrue( collectionNode.getUnorderedChildren().get( 0 ) instanceof SimpleNode );
+        Assertions.assertTrue( collectionNode.getUnorderedChildren().get( 0 ) instanceof SimpleNode );
         SimpleNode simpleNode = (SimpleNode) collectionNode.getUnorderedChildren().get( 0 );
-        Assert.assertEquals( "name", simpleNode.getName() );
+        Assertions.assertEquals( "name", simpleNode.getName() );
         ouIds.add( String.valueOf( simpleNode.getValue() ) );
 
-        Assert.assertTrue( collectionNode.getUnorderedChildren().get( 1 ) instanceof SimpleNode );
+        Assertions.assertTrue( collectionNode.getUnorderedChildren().get( 1 ) instanceof SimpleNode );
         simpleNode = (SimpleNode) collectionNode.getUnorderedChildren().get( 1 );
-        Assert.assertEquals( "name", simpleNode.getName() );
+        Assertions.assertEquals( "name", simpleNode.getName() );
         ouIds.add( String.valueOf( simpleNode.getValue() ) );
 
         assertThat( ouIds, Matchers.containsInAnyOrder( "OU 1", "OU 2" ) );
     }
 
     @Test
-    public void defaultClass()
+    void defaultClass()
     {
         final CategoryOption co1 = new CategoryOption();
         co1.setUid( "abc1" );
@@ -234,39 +233,40 @@ public class DefaultFieldFilterServiceTest
 
         final ComplexNode node = service.toComplexNode( params );
 
-        Assert.assertEquals( "category", node.getName() );
-        Assert.assertTrue( getNamedNode( node.getUnorderedChildren(), "id" ) instanceof SimpleNode );
-        Assert.assertEquals( "def1", ((SimpleNode) getNamedNode( node.getUnorderedChildren(), "id" )).getValue() );
-        Assert.assertTrue( getNamedNode( node.getUnorderedChildren(), "categoryOptions" ) instanceof CollectionNode );
+        Assertions.assertEquals( "category", node.getName() );
+        Assertions.assertTrue( getNamedNode( node.getUnorderedChildren(), "id" ) instanceof SimpleNode );
+        Assertions.assertEquals( "def1", ((SimpleNode) getNamedNode( node.getUnorderedChildren(), "id" )).getValue() );
+        Assertions
+            .assertTrue( getNamedNode( node.getUnorderedChildren(), "categoryOptions" ) instanceof CollectionNode );
 
         final CollectionNode collectionNode = (CollectionNode) getNamedNode( node.getUnorderedChildren(),
             "categoryOptions" );
-        Assert.assertEquals( 2, collectionNode.getUnorderedChildren().size() );
+        Assertions.assertEquals( 2, collectionNode.getUnorderedChildren().size() );
         final List<String> coIds = new ArrayList<>();
 
-        Assert.assertTrue( collectionNode.getUnorderedChildren().get( 0 ) instanceof ComplexNode );
+        Assertions.assertTrue( collectionNode.getUnorderedChildren().get( 0 ) instanceof ComplexNode );
         ComplexNode complexNode = (ComplexNode) collectionNode.getUnorderedChildren().get( 0 );
-        Assert.assertEquals( "categoryOption", complexNode.getName() );
-        Assert.assertEquals( 1, complexNode.getUnorderedChildren().size() );
-        Assert.assertTrue( complexNode.getUnorderedChildren().get( 0 ) instanceof SimpleNode );
+        Assertions.assertEquals( "categoryOption", complexNode.getName() );
+        Assertions.assertEquals( 1, complexNode.getUnorderedChildren().size() );
+        Assertions.assertTrue( complexNode.getUnorderedChildren().get( 0 ) instanceof SimpleNode );
         SimpleNode simpleNode = (SimpleNode) complexNode.getUnorderedChildren().get( 0 );
-        Assert.assertEquals( "id", simpleNode.getName() );
+        Assertions.assertEquals( "id", simpleNode.getName() );
         coIds.add( String.valueOf( simpleNode.getValue() ) );
 
-        Assert.assertTrue( collectionNode.getUnorderedChildren().get( 1 ) instanceof ComplexNode );
+        Assertions.assertTrue( collectionNode.getUnorderedChildren().get( 1 ) instanceof ComplexNode );
         complexNode = (ComplexNode) collectionNode.getUnorderedChildren().get( 1 );
-        Assert.assertEquals( "categoryOption", complexNode.getName() );
-        Assert.assertEquals( 1, complexNode.getUnorderedChildren().size() );
-        Assert.assertTrue( complexNode.getUnorderedChildren().get( 0 ) instanceof SimpleNode );
+        Assertions.assertEquals( "categoryOption", complexNode.getName() );
+        Assertions.assertEquals( 1, complexNode.getUnorderedChildren().size() );
+        Assertions.assertTrue( complexNode.getUnorderedChildren().get( 0 ) instanceof SimpleNode );
         simpleNode = (SimpleNode) complexNode.getUnorderedChildren().get( 0 );
-        Assert.assertEquals( "id", simpleNode.getName() );
+        Assertions.assertEquals( "id", simpleNode.getName() );
         coIds.add( String.valueOf( simpleNode.getValue() ) );
 
         assertThat( coIds, Matchers.containsInAnyOrder( "abc1", "abc3" ) );
     }
 
     @Test
-    public void baseIdentifiable()
+    void baseIdentifiable()
     {
         final OrganisationUnit ou1 = new OrganisationUnit();
         ou1.setUid( "abc1" );
@@ -285,41 +285,42 @@ public class DefaultFieldFilterServiceTest
             Arrays.asList( "id", "organisationUnits[id,name]" ) );
         final ComplexNode node = service.toComplexNode( params );
 
-        Assert.assertEquals( "categoryOption", node.getName() );
-        Assert.assertTrue( getNamedNode( node.getUnorderedChildren(), "id" ) instanceof SimpleNode );
-        Assert.assertEquals( "def1", ((SimpleNode) getNamedNode( node.getUnorderedChildren(), "id" )).getValue() );
-        Assert.assertTrue( getNamedNode( node.getUnorderedChildren(), "organisationUnits" ) instanceof CollectionNode );
+        Assertions.assertEquals( "categoryOption", node.getName() );
+        Assertions.assertTrue( getNamedNode( node.getUnorderedChildren(), "id" ) instanceof SimpleNode );
+        Assertions.assertEquals( "def1", ((SimpleNode) getNamedNode( node.getUnorderedChildren(), "id" )).getValue() );
+        Assertions
+            .assertTrue( getNamedNode( node.getUnorderedChildren(), "organisationUnits" ) instanceof CollectionNode );
 
         final CollectionNode collectionNode = (CollectionNode) getNamedNode( node.getUnorderedChildren(),
             "organisationUnits" );
-        Assert.assertEquals( 2, collectionNode.getUnorderedChildren().size() );
+        Assertions.assertEquals( 2, collectionNode.getUnorderedChildren().size() );
         final List<String> ouIds = new ArrayList<>();
         final List<String> ouNames = new ArrayList<>();
 
-        Assert.assertTrue( collectionNode.getUnorderedChildren().get( 0 ) instanceof ComplexNode );
+        Assertions.assertTrue( collectionNode.getUnorderedChildren().get( 0 ) instanceof ComplexNode );
         ComplexNode complexNode = (ComplexNode) collectionNode.getUnorderedChildren().get( 0 );
-        Assert.assertEquals( "organisationUnit", complexNode.getName() );
-        Assert.assertEquals( 2, complexNode.getUnorderedChildren().size() );
-        Assert.assertTrue( getNamedNode( complexNode.getUnorderedChildren(), "id" ) instanceof SimpleNode );
+        Assertions.assertEquals( "organisationUnit", complexNode.getName() );
+        Assertions.assertEquals( 2, complexNode.getUnorderedChildren().size() );
+        Assertions.assertTrue( getNamedNode( complexNode.getUnorderedChildren(), "id" ) instanceof SimpleNode );
         SimpleNode simpleNode = (SimpleNode) getNamedNode( complexNode.getUnorderedChildren(), "id" );
-        Assert.assertEquals( "id", simpleNode.getName() );
+        Assertions.assertEquals( "id", simpleNode.getName() );
         ouIds.add( String.valueOf( simpleNode.getValue() ) );
-        Assert.assertTrue( getNamedNode( complexNode.getUnorderedChildren(), "name" ) instanceof SimpleNode );
+        Assertions.assertTrue( getNamedNode( complexNode.getUnorderedChildren(), "name" ) instanceof SimpleNode );
         simpleNode = (SimpleNode) getNamedNode( complexNode.getUnorderedChildren(), "name" );
-        Assert.assertEquals( "name", simpleNode.getName() );
+        Assertions.assertEquals( "name", simpleNode.getName() );
         ouNames.add( String.valueOf( simpleNode.getValue() ) );
 
-        Assert.assertTrue( collectionNode.getUnorderedChildren().get( 1 ) instanceof ComplexNode );
+        Assertions.assertTrue( collectionNode.getUnorderedChildren().get( 1 ) instanceof ComplexNode );
         complexNode = (ComplexNode) collectionNode.getUnorderedChildren().get( 1 );
-        Assert.assertEquals( "organisationUnit", complexNode.getName() );
-        Assert.assertEquals( 2, complexNode.getUnorderedChildren().size() );
-        Assert.assertTrue( getNamedNode( complexNode.getUnorderedChildren(), "id" ) instanceof SimpleNode );
+        Assertions.assertEquals( "organisationUnit", complexNode.getName() );
+        Assertions.assertEquals( 2, complexNode.getUnorderedChildren().size() );
+        Assertions.assertTrue( getNamedNode( complexNode.getUnorderedChildren(), "id" ) instanceof SimpleNode );
         simpleNode = (SimpleNode) getNamedNode( complexNode.getUnorderedChildren(), "id" );
-        Assert.assertEquals( "id", simpleNode.getName() );
+        Assertions.assertEquals( "id", simpleNode.getName() );
         ouIds.add( String.valueOf( simpleNode.getValue() ) );
-        Assert.assertTrue( getNamedNode( complexNode.getUnorderedChildren(), "name" ) instanceof SimpleNode );
+        Assertions.assertTrue( getNamedNode( complexNode.getUnorderedChildren(), "name" ) instanceof SimpleNode );
         simpleNode = (SimpleNode) getNamedNode( complexNode.getUnorderedChildren(), "name" );
-        Assert.assertEquals( "name", simpleNode.getName() );
+        Assertions.assertEquals( "name", simpleNode.getName() );
         ouNames.add( String.valueOf( simpleNode.getValue() ) );
 
         assertThat( ouIds, Matchers.containsInAnyOrder( "abc1", "abc2" ) );

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,12 +31,12 @@ import static org.hisp.dhis.common.DataDimensionType.DISAGGREGATION;
 import static org.hisp.dhis.common.IdScheme.CODE;
 import static org.hisp.dhis.common.IdScheme.NAME;
 import static org.hisp.dhis.common.IdScheme.UID;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import org.hisp.dhis.category.CategoryComboMap.CategoryComboMapException;
 import org.hisp.dhis.common.IdScheme;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -46,8 +46,9 @@ import com.google.common.collect.Sets;
  *
  * @author Jim Grace
  */
-public class CategoryComboMapTest
+class CategoryComboMapTest
 {
+
     private CategoryOption coA;
 
     private CategoryOption coB;
@@ -83,78 +84,60 @@ public class CategoryComboMapTest
         coB = new CategoryOption( "CategoryOption B" );
         coC = new CategoryOption( "CategoryOption C" );
         coD = new CategoryOption( dName );
-
         coA.setCode( "coA" );
         coB.setCode( "coB" );
         coC.setCode( "coC" );
         coD.setCode( dCode );
-
         coA.setUid( "coAAAAAAAAA" );
         coB.setUid( "coBBBBBBBBB" );
         coC.setUid( "coCCCCCCCCC" );
         coD.setUid( dUid );
-
         cA = new Category( "Category A", DISAGGREGATION, Lists.newArrayList( coA, coB ) );
         cB = new Category( "Category B", DISAGGREGATION, Lists.newArrayList( coC, coD ) );
-
         cA.setCode( "cA" );
         cB.setCode( "cB" );
-
         cA.setUid( "cAAAAAAAAAA" );
         cB.setUid( "cBBBBBBBBBB" );
-
         ccA = new CategoryCombo( "CategoryCombo A", DISAGGREGATION, Lists.newArrayList( cA, cB ) );
-
         ccA.setCode( "ccA" );
-
         ccA.setUid( "ccAAAAAAAAA" );
-
         cocAC = new CategoryOptionCombo();
         cocAD = new CategoryOptionCombo();
         cocBC = new CategoryOptionCombo();
         cocBD = new CategoryOptionCombo();
-
         cocAC.setName( "CategoryOptionCombo AC" );
         cocAD.setName( "CategoryOptionCombo AD" );
         cocBC.setName( "CategoryOptionCombo BC" );
         cocBD.setName( "CategoryOptionCombo BD" );
-
         cocAC.setCode( "cocAC" );
         cocAD.setCode( "cocAD" );
         cocBC.setCode( "cocBC" );
         cocBD.setCode( "cocBD" );
-
         cocAC.setUid( "cocACAAAAAA" );
         cocAD.setUid( "cocADDDDDDD" );
         cocBC.setUid( "cocBCCCCCCC" );
         cocBD.setUid( "cocBDDDDDDD" );
-
         cocAC.setCategoryCombo( ccA );
         cocAD.setCategoryCombo( ccA );
         cocBC.setCategoryCombo( ccA );
         cocBD.setCategoryCombo( ccA );
-
         cocAC.setCategoryOptions( Sets.newHashSet( coA, coC ) );
         cocAD.setCategoryOptions( Sets.newHashSet( coA, coD ) );
         cocBC.setCategoryOptions( Sets.newHashSet( coB, coC ) );
         cocBD.setCategoryOptions( Sets.newHashSet( coB, coD ) );
-
         coA.setCategoryOptionCombos( Sets.newHashSet( cocAC, cocAD ) );
         coB.setCategoryOptionCombos( Sets.newHashSet( cocBC, cocBD ) );
         coC.setCategoryOptionCombos( Sets.newHashSet( cocAC, cocBC ) );
         coD.setCategoryOptionCombos( Sets.newHashSet( cocAD, cocBD ) );
-
         ccA.setOptionCombos( Sets.newHashSet( cocAC, cocAD, cocBC, cocBD ) );
     }
 
     @Test
-    public void testGetCategoryOptionComboUid()
+    void testGetCategoryOptionComboUid()
         throws CategoryComboMapException
     {
         setUp();
-
         ccm = new CategoryComboMap( ccA, IdScheme.UID );
-
         assertEquals( cocAC, ccm.getCategoryOptionCombo( "\"coAAAAAAAAA\"\"coCCCCCCCCC\"" ) );
         assertEquals( cocAD, ccm.getCategoryOptionCombo( "\"coAAAAAAAAA\"\"coDDDDDDDDD\"" ) );
         assertEquals( cocBC, ccm.getCategoryOptionCombo( "\"coBBBBBBBBB\"\"coCCCCCCCCC\"" ) );
@@ -162,13 +145,11 @@ public class CategoryComboMapTest
     }
 
     @Test
-    public void testGetCategoryOptionComboCode()
+    void testGetCategoryOptionComboCode()
         throws CategoryComboMapException
     {
         setUp();
-
         ccm = new CategoryComboMap( ccA, CODE );
-
         assertEquals( cocAC, ccm.getCategoryOptionCombo( "\"coA\"\"coC\"" ) );
         assertEquals( cocAD, ccm.getCategoryOptionCombo( "\"coA\"\"coD\"" ) );
         assertEquals( cocBC, ccm.getCategoryOptionCombo( "\"coB\"\"coC\"" ) );
@@ -176,13 +157,11 @@ public class CategoryComboMapTest
     }
 
     @Test
-    public void testGetCategoryOptionComboName()
+    void testGetCategoryOptionComboName()
         throws CategoryComboMapException
     {
         setUp();
-
         ccm = new CategoryComboMap( ccA, NAME );
-
         assertEquals( cocAC, ccm.getCategoryOptionCombo( "\"CategoryOption A\"\"CategoryOption C\"" ) );
         assertEquals( cocAD, ccm.getCategoryOptionCombo( "\"CategoryOption A\"\"CategoryOption D\"" ) );
         assertEquals( cocBC, ccm.getCategoryOptionCombo( "\"CategoryOption B\"\"CategoryOption C\"" ) );
@@ -190,49 +169,42 @@ public class CategoryComboMapTest
     }
 
     @Test
-    public void testGetCategoryOptionComboNoCategoryOption()
+    void testGetCategoryOptionComboNoCategoryOption()
     {
         setUp();
-
         cB.getCategoryOptions().clear();
-
         expectException( UID, "No categoryOption in Category B matching CategoryOptionCombo AD" );
     }
 
     @Test
-    public void testGetCategoryOptionComboNoUid()
+    void testGetCategoryOptionComboNoUid()
     {
         setUp( "CategoryOption D", "coD", null );
-
         expectException( UID, "No UID identifier for CategoryOption: CategoryOption D" );
     }
 
     @Test
-    public void testGetCategoryOptionComboNoCode()
+    void testGetCategoryOptionComboNoCode()
     {
         setUp( "CategoryOption D", null, "coDDDDDDDDD" );
-
         expectException( CODE, "No CODE identifier for CategoryOption: CategoryOption D" );
     }
 
     @Test
-    public void testGetCategoryOptionComboNoName()
+    void testGetCategoryOptionComboNoName()
     {
         setUp( null, "coD", "coDDDDDDDDD" );
-
         expectException( NAME, "No NAME identifier for CategoryOption: null" );
     }
 
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
-
     private void expectException( IdScheme idScheme, String message )
     {
         try
         {
             new CategoryComboMap( ccA, idScheme );
-
             fail( "Expected CategoryComboMapException." );
         }
         catch ( CategoryComboMapException e )

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,54 +27,51 @@
  */
 package org.hisp.dhis.common;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashSet;
 import java.util.Set;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author bobj
  */
-public class CodeGeneratorTest
+class CodeGeneratorTest
 {
+
     @Test
-    public void testGetUid()
+    void testGetUid()
     {
         int numberOfCodes = 500;
-
         Set<String> codes = new HashSet<>();
         for ( int n = 0; n < numberOfCodes; ++n )
         {
             String code = CodeGenerator.generateUid();
-
             // Test syntax
             assertTrue( code.substring( 0, 1 ).matches( "[a-zA-Z]" ) );
             assertTrue( code.matches( "[0-9a-zA-Z]{11}" ) );
-
             // Test uniqueness
             assertTrue( codes.add( code ) );
         }
     }
 
     @Test
-    public void testUidIsValid()
+    void testUidIsValid()
     {
         assertTrue( CodeGenerator.isValidUid( "mq4jAnN6fg3" ) );
         assertTrue( CodeGenerator.isValidUid( "QX4LpiTZmUH" ) );
         assertTrue( CodeGenerator.isValidUid( "rT1hdSWjfDC" ) );
-
         assertFalse( CodeGenerator.isValidUid( "1T1hdSWjfDC" ) );
         assertFalse( CodeGenerator.isValidUid( "QX4LpiTZmUHg" ) );
         assertFalse( CodeGenerator.isValidUid( "1T1hdS_WjfD" ) );
     }
 
     @Test
-    public void testGetRandomUrlToken()
+    void testGetRandomUrlToken()
     {
         assertNotNull( CodeGenerator.getRandomUrlToken() );
         assertNotNull( CodeGenerator.getRandomUrlToken() );

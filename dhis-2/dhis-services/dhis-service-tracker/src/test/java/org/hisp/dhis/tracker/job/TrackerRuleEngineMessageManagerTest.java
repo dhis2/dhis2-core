@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.tracker.job;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -48,24 +48,22 @@ import org.hisp.dhis.artemis.MessageManager;
 import org.hisp.dhis.artemis.Topics;
 import org.hisp.dhis.common.AsyncTaskExecutor;
 import org.hisp.dhis.render.RenderService;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.ObjectFactory;
 
 /**
  * @author Zubair Asghar
  */
-public class TrackerRuleEngineMessageManagerTest
+@ExtendWith( MockitoExtension.class )
+class TrackerRuleEngineMessageManagerTest
 {
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Mock
     private ObjectFactory<TrackerRuleEngineThread> objectFactory;
@@ -98,7 +96,7 @@ public class TrackerRuleEngineMessageManagerTest
     private ArgumentCaptor<Runnable> runnableArgumentCaptor;
 
     @Test
-    public void test_add_job()
+    void test_add_job()
     {
         doNothing().when( messageManager ).sendQueue( anyString(), any( TrackerSideEffectDataBundle.class ) );
 
@@ -114,7 +112,7 @@ public class TrackerRuleEngineMessageManagerTest
     }
 
     @Test
-    public void test_message_consumer()
+    void test_message_consumer()
         throws JMSException,
         IOException
     {

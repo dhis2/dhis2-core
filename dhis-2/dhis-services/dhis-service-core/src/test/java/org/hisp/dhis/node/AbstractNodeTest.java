@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.node;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,12 +36,12 @@ import java.util.List;
 import org.hisp.dhis.node.types.ComplexNode;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.node.types.SimpleNode;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Paulo Martins <martins.tuga@gmail.com>
  */
-public class AbstractNodeTest
+class AbstractNodeTest
 {
 
     private static final String NODE_1 = "node1";
@@ -49,20 +49,18 @@ public class AbstractNodeTest
     private static final String NODE_2 = "node2";
 
     @Test
-    public void testRootNodeEquals()
+    void testRootNodeEquals()
     {
         final RootNode rootNode1 = createRootNode( NODE_1, "propName1", "propValue1" );
         final RootNode rootNode2 = createRootNode( NODE_1, "propName1", "propValue1" );
-
         assertEquals( rootNode1, rootNode2 );
     }
 
     @Test
-    public void testRootNodeNotEquals()
+    void testRootNodeNotEquals()
     {
         final RootNode rootNode1 = createRootNode( NODE_1, "propName1", "propValue1" );
         final RootNode rootNode2 = createRootNode( NODE_1, "propName2", "propValue2" );
-
         assertNotEquals( rootNode1, rootNode2 );
     }
 
@@ -71,31 +69,26 @@ public class AbstractNodeTest
         RootNode rootNode = new RootNode( createComplexNode( nodeName ) );
         rootNode.setDefaultNamespace( "testNamespace" );
         rootNode.getConfig().getProperties().put( propertyName, propertyValue );
-
         return rootNode;
     }
 
     @Test
-    public void testComplexNodeEquals()
+    void testComplexNodeEquals()
     {
         // Instantiating object 1
         ComplexNode complexNode1 = createComplexNode( NODE_1 );
-
         // Instantiating object 2
         ComplexNode complexNode2 = createComplexNode( NODE_1 );
-
         assertEquals( complexNode1, complexNode2 );
     }
 
     @Test
-    public void testComplexNodeNotEquals()
+    void testComplexNodeNotEquals()
     {
         // Instantiating object 1
         ComplexNode complexNode1 = createComplexNode( NODE_1 );
-
         // Instantiating object 2
         ComplexNode complexNode2 = createComplexNode( NODE_2 );
-
         assertNotEquals( complexNode1, complexNode2 );
     }
 
@@ -107,8 +100,6 @@ public class AbstractNodeTest
         complexNode1 = new ComplexNode( "dataElement" );
         complexNode1.setMetadata( false );
         complexNode1.setChildren( children1 );
-
         return complexNode1;
     }
-
 }

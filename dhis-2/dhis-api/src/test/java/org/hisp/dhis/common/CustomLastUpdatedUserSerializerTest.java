@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.common;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.StringWriter;
 import java.io.Writer;
@@ -35,8 +35,8 @@ import java.io.Writer;
 import javax.xml.namespace.QName;
 
 import org.hisp.dhis.user.User;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -50,12 +50,13 @@ import com.fasterxml.jackson.dataformat.xml.ser.ToXmlGenerator;
  *
  * @author Volker Schmidt
  */
-public class CustomLastUpdatedUserSerializerTest
+class CustomLastUpdatedUserSerializerTest
 {
+
     private User user;
 
-    @Before
-    public void setUp()
+    @BeforeEach
+    void setUp()
     {
         user = new User();
         user.setUid( "jshfdkd323" );
@@ -64,7 +65,7 @@ public class CustomLastUpdatedUserSerializerTest
     }
 
     @Test
-    public void serializeXml()
+    void serializeXml()
         throws Exception
     {
         Writer jsonWriter = new StringWriter();
@@ -78,7 +79,7 @@ public class CustomLastUpdatedUserSerializerTest
     }
 
     @Test
-    public void serializeJson()
+    void serializeJson()
         throws Exception
     {
         Writer jsonWriter = new StringWriter();

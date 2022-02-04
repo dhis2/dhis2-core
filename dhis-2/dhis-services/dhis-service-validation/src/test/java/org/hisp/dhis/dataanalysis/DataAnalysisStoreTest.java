@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.dataanalysis;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -44,7 +44,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Lists;
@@ -52,9 +52,9 @@ import com.google.common.collect.Lists;
 /**
  * @author Lars Helge Overland
  */
-public class DataAnalysisStoreTest
-    extends DhisSpringTest
+class DataAnalysisStoreTest extends DhisSpringTest
 {
+
     @Autowired
     private DataAnalysisStore dataAnalysisStore;
 
@@ -109,20 +109,15 @@ public class DataAnalysisStoreTest
     // ----------------------------------------------------------------------
     // Fixture
     // ----------------------------------------------------------------------
-
     @Override
     public void setUpTest()
     {
         categoryCombo = categoryService.getDefaultCategoryCombo();
-
         categoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();
-
         dataElementA = createDataElement( 'A', categoryCombo );
         dataElementB = createDataElement( 'B', categoryCombo );
-
         dataElementService.addDataElement( dataElementA );
         dataElementService.addDataElement( dataElementB );
-
         periodA = createPeriod( new MonthlyPeriodType(), getDate( 2000, 3, 1 ), getDate( 2000, 3, 31 ) );
         periodB = createPeriod( new MonthlyPeriodType(), getDate( 2000, 4, 1 ), getDate( 2000, 4, 30 ) );
         periodC = createPeriod( new MonthlyPeriodType(), getDate( 2000, 5, 1 ), getDate( 2000, 5, 30 ) );
@@ -133,13 +128,10 @@ public class DataAnalysisStoreTest
         periodH = createPeriod( new MonthlyPeriodType(), getDate( 2000, 10, 1 ), getDate( 2000, 10, 30 ) );
         periodI = createPeriod( new MonthlyPeriodType(), getDate( 2000, 11, 1 ), getDate( 2000, 11, 30 ) );
         periodJ = createPeriod( new MonthlyPeriodType(), getDate( 2000, 12, 1 ), getDate( 2000, 12, 30 ) );
-
         organisationUnitA = createOrganisationUnit( 'A' );
         organisationUnitB = createOrganisationUnit( 'B' );
-
         organisationUnitService.addOrganisationUnit( organisationUnitA );
         organisationUnitService.addOrganisationUnit( organisationUnitB );
-
         organisationUnits = new HashSet<>();
         organisationUnits.add( organisationUnitA );
         organisationUnits.add( organisationUnitB );
@@ -148,9 +140,8 @@ public class DataAnalysisStoreTest
     // ----------------------------------------------------------------------
     // Business logic tests
     // ----------------------------------------------------------------------
-
     @Test
-    public void testGetDataAnalysisMeasures()
+    void testGetDataAnalysisMeasures()
     {
         dataValueService
             .addDataValue( createDataValue( dataElementA, periodA, organisationUnitA, "5", categoryOptionCombo ) );
@@ -172,13 +163,10 @@ public class DataAnalysisStoreTest
             .addDataValue( createDataValue( dataElementA, periodI, organisationUnitA, "3", categoryOptionCombo ) );
         dataValueService
             .addDataValue( createDataValue( dataElementA, periodJ, organisationUnitA, "15", categoryOptionCombo ) );
-
         List<DataAnalysisMeasures> measures = dataAnalysisStore.getDataAnalysisMeasures( dataElementA,
             Lists.newArrayList( categoryOptionCombo ), Lists.newArrayList( organisationUnitA.getPath() ), from );
-
         assertEquals( 1, measures.size() );
-
-        assertEquals( 12.78, measures.get( 0 ).getAverage(), DELTA );
-        assertEquals( 15.26, measures.get( 0 ).getStandardDeviation(), DELTA );
+        assertEquals( measures.get( 0 ).getAverage(), DELTA, 12.78 );
+        assertEquals( measures.get( 0 ).getStandardDeviation(), DELTA, 15.26 );
     }
 }

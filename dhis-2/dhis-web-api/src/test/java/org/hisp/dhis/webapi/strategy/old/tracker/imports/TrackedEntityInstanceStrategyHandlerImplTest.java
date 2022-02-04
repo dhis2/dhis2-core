@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.strategy.old.tracker.imports;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -47,25 +48,25 @@ import org.hisp.dhis.webapi.controller.exception.BadRequestException;
 import org.hisp.dhis.webapi.strategy.old.tracker.imports.impl.TrackedEntityInstanceAsyncStrategyImpl;
 import org.hisp.dhis.webapi.strategy.old.tracker.imports.impl.TrackedEntityInstanceSyncStrategyImpl;
 import org.hisp.dhis.webapi.strategy.old.tracker.imports.request.TrackerEntityInstanceRequest;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.http.MediaType;
 
 /**
  * @author Luca Cambi <luca@dhis2.org>
  */
-public class TrackedEntityInstanceStrategyHandlerImplTest
+@MockitoSettings( strictness = Strictness.LENIENT )
+@ExtendWith( MockitoExtension.class )
+class TrackedEntityInstanceStrategyHandlerImplTest
 {
-    @Rule
-    public MockitoRule rule = MockitoJUnit.rule();
-
     @InjectMocks
     private TrackedEntityInstanceAsyncStrategyImpl trackedEntityInstanceAsyncStrategy;
 
@@ -95,14 +96,14 @@ public class TrackedEntityInstanceStrategyHandlerImplTest
 
     private static List<TrackedEntityInstance> trackedEntityInstanceList;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         trackedEntityInstanceList = Collections.singletonList( trackedEntityInstance );
     }
 
     @Test
-    public void shouldCallSyncTrackedEntityJsonSyncStrategy()
+    void shouldCallSyncTrackedEntityJsonSyncStrategy()
         throws IOException,
         BadRequestException
     {
@@ -122,9 +123,9 @@ public class TrackedEntityInstanceStrategyHandlerImplTest
     }
 
     @Test
-    public void shouldCallSyncTrackedEntityXmlSyncStrategy()
-        throws IOException,
-        BadRequestException
+    void shouldCallSyncTrackedEntityXmlSyncStrategy()
+        throws BadRequestException,
+        IOException
     {
         when( trackedEntityInstanceService.getTrackedEntityInstancesXml( any() ) )
             .thenReturn( trackedEntityInstanceList );
@@ -142,9 +143,9 @@ public class TrackedEntityInstanceStrategyHandlerImplTest
     }
 
     @Test
-    public void shouldCallAsyncTrackedEntityJsonAsyncStrategy()
-        throws IOException,
-        BadRequestException
+    void shouldCallAsyncTrackedEntityJsonAsyncStrategy()
+        throws BadRequestException,
+        IOException
     {
         when( trackedEntityInstanceService.getTrackedEntityInstancesJson( any() ) )
             .thenReturn( trackedEntityInstanceList );
@@ -161,7 +162,7 @@ public class TrackedEntityInstanceStrategyHandlerImplTest
     }
 
     @Test
-    public void shouldCallAsyncTrackedEntityXmlAsyncStrategy()
+    void shouldCallAsyncTrackedEntityXmlAsyncStrategy()
         throws IOException,
         BadRequestException
     {
@@ -179,10 +180,9 @@ public class TrackedEntityInstanceStrategyHandlerImplTest
         verify( taskExecutor, times( 1 ) ).executeTask( trackedEntitiesTaskArgumentCaptor.capture() );
     }
 
-    @Test( expected = BadRequestException.class )
-    public void shouldThrowMediaTypeNotAllowed()
-        throws IOException,
-        BadRequestException
+    @Test
+    void shouldThrowMediaTypeNotAllowed()
+        throws IOException
     {
         when( trackedEntityInstanceService.getTrackedEntityInstancesJson( any() ) )
             .thenReturn( trackedEntityInstanceList );
@@ -192,6 +192,7 @@ public class TrackedEntityInstanceStrategyHandlerImplTest
             .jobConfiguration( jobConfiguration ).inputStream( inputStream )
             .build();
 
-        trackedEntityInstanceAsyncStrategy.mergeOrDeleteTrackedEntityInstances( trackerEntityInstanceRequest );
+        assertThrows( BadRequestException.class, () -> trackedEntityInstanceAsyncStrategy
+            .mergeOrDeleteTrackedEntityInstances( trackerEntityInstanceRequest ) );
     }
 }

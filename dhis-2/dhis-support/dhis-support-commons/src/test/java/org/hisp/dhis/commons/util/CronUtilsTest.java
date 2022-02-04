@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,29 +27,30 @@
  */
 package org.hisp.dhis.commons.util;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Stian Sandvold
  */
-public class CronUtilsTest
+class CronUtilsTest
 {
+
     @Test
-    public void getCronExpresion()
+    void getCronExpresion()
     {
         assertEquals( "1 2 3 4 5 6", CronUtils.getCronExpression( "1", "2", "3", "4", "5", "6" ) );
     }
 
     @Test
-    public void getDailyCronExpression()
+    void getDailyCronExpression()
     {
         assertEquals( "0 0 0 */1 * *", CronUtils.getDailyCronExpression( 0, 0 ) );
     }
 
     @Test
-    public void getWeeklyCronExpressionForAllWeekdays()
+    void getWeeklyCronExpressionForAllWeekdays()
     {
         assertEquals( "0 0 0 * * SUN", CronUtils.getWeeklyCronExpression( 0, 0, 0 ) );
         assertEquals( "0 0 0 * * MON", CronUtils.getWeeklyCronExpression( 0, 0, 1 ) );
@@ -62,7 +63,7 @@ public class CronUtilsTest
     }
 
     @Test
-    public void getMonthlyCronExpression()
+    void getMonthlyCronExpression()
     {
         assertEquals( "0 0 0 15 */1 *", CronUtils.getMonthlyCronExpression( 0, 0, 15 ) );
     }

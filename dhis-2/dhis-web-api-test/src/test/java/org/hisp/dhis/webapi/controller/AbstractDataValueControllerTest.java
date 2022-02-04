@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,13 +30,14 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.webapi.WebClient.Body;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
 
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.hisp.dhis.webapi.json.JsonObject;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.springframework.http.HttpStatus;
 
-public abstract class AbstractDataValueControllerTest extends DhisControllerConvenienceTest
+abstract class AbstractDataValueControllerTest extends DhisControllerConvenienceTest
 {
+
     protected String dataElementId;
 
     protected String orgUnitId;
@@ -45,29 +46,24 @@ public abstract class AbstractDataValueControllerTest extends DhisControllerConv
 
     protected String categoryOptionId;
 
-    @Before
-    public void setUp()
+    @BeforeEach
+    void setUp()
     {
         orgUnitId = assertStatus( HttpStatus.CREATED,
             POST( "/organisationUnits/", "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}" ) );
-
         // add OU to users hierarchy
-        assertStatus( HttpStatus.NO_CONTENT,
-            POST( "/users/{id}/organisationUnits", getCurrentUser().getUid(),
-                Body( "{'additions':[{'id':'" + orgUnitId + "'}]}" ) ) );
-
+        assertStatus( HttpStatus.NO_CONTENT, POST( "/users/{id}/organisationUnits", getCurrentUser().getUid(),
+            Body( "{'additions':[{'id':'" + orgUnitId + "'}]}" ) ) );
         JsonObject ccDefault = GET(
             "/categoryCombos/gist?fields=id,categoryOptionCombos::ids&pageSize=1&headless=true&filter=name:eq:default" )
                 .content().getObject( 0 );
         categoryComboId = ccDefault.getString( "id" ).string();
         categoryOptionId = ccDefault.getArray( "categoryOptionCombos" ).getString( 0 ).string();
-
         dataElementId = assertStatus( HttpStatus.CREATED,
             POST( "/dataElements/",
-                "{'name':'My data element', 'shortName':'DE1', 'code':'DE1', 'valueType':'INTEGER', " +
-                    "'aggregationType':'SUM', 'zeroIsSignificant':false, 'domainType':'AGGREGATE', " +
-                    "'categoryCombo': {'id': '" + categoryComboId + "'}}" ) );
-
+                "{'name':'My data element', 'shortName':'DE1', 'code':'DE1', 'valueType':'INTEGER', "
+                    + "'aggregationType':'SUM', 'zeroIsSignificant':false, 'domainType':'AGGREGATE', "
+                    + "'categoryCombo': {'id': '" + categoryComboId + "'}}" ) );
     }
 
     /**
@@ -82,12 +78,10 @@ public abstract class AbstractDataValueControllerTest extends DhisControllerConv
      * @return UID of the created {@link org.hisp.dhis.datavalue.DataValue}
      */
     protected final void addDataValue( String period, String value, String comment, boolean followup,
-        String dataElementId,
-        String orgUnitId )
+        String dataElementId, String orgUnitId )
     {
         assertStatus( HttpStatus.CREATED,
             POST( "/dataValues?de={de}&pe={pe}&ou={ou}&co={coc}&value={val}&comment={comment}&followUp={followup}",
                 dataElementId, period, orgUnitId, categoryOptionId, value, comment, followup ) );
     }
-
 }

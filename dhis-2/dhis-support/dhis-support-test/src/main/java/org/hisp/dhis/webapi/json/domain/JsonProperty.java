@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,9 +29,9 @@ package org.hisp.dhis.webapi.json.domain;
 
 import java.util.List;
 
+import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.jsontree.JsonURL;
 import org.hisp.dhis.schema.PropertyType;
-import org.hisp.dhis.webapi.json.JsonObject;
-import org.hisp.dhis.webapi.json.JsonURL;
 
 /**
  * Web API equivalent of a {@link org.hisp.dhis.schema.Property}.

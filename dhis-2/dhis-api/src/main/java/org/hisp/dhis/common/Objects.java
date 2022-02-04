@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,7 @@ import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DataValue;
+import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.indicator.IndicatorGroupSet;
@@ -81,6 +82,7 @@ public enum Objects
     USER( "user", User.class ),
     USERGROUP( "userGroup", UserGroup.class ),
     VISUALIZATION( "visualization", Visualization.class ),
+    EVENTVISUALIZATION( "eventVisualization", EventVisualization.class ),
     REPORT( "report", Report.class ),
     MAP( "map", Map.class ),
     DASHBOARD( "dashboard", Dashboard.class ),

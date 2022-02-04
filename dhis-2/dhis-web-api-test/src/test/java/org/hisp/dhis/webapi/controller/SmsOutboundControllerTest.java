@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,7 @@ package org.hisp.dhis.webapi.controller;
 import org.hisp.dhis.sms.outbound.OutboundSms;
 import org.hisp.dhis.sms.outbound.OutboundSmsService;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 
@@ -40,13 +40,14 @@ import org.springframework.http.HttpStatus;
  *
  * @author Jan Bernitt
  */
-public class SmsOutboundControllerTest extends DhisControllerConvenienceTest
+class SmsOutboundControllerTest extends DhisControllerConvenienceTest
 {
+
     @Autowired
     private OutboundSmsService outboundSmsService;
 
     @Test
-    public void testSendSMSMessage()
+    void testSendSMSMessage()
     {
         assertWebMessage( "Internal Server Error", 500, "ERROR", "No default gateway configured",
             POST( "/sms/outbound?recipient=" + getSuperuserUid() + "&message=text" )
@@ -54,52 +55,49 @@ public class SmsOutboundControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void testSendSMSMessage_NoRecipient()
+    void testSendSMSMessage_NoRecipient()
     {
         assertWebMessage( "Conflict", 409, "ERROR", "Recipient must be specified",
             POST( "/sms/outbound?recipient=&message=text" ).content( HttpStatus.CONFLICT ) );
     }
 
     @Test
-    public void testSendSMSMessage_NoMessage()
+    void testSendSMSMessage_NoMessage()
     {
         assertWebMessage( "Conflict", 409, "ERROR", "Message must be specified",
             POST( "/sms/outbound?recipient=xyz&message=" ).content( HttpStatus.CONFLICT ) );
     }
 
     @Test
-    public void testSendSMSMessageWithBody()
+    void testSendSMSMessageWithBody()
     {
         assertWebMessage( "Internal Server Error", 500, "ERROR", "No default gateway configured",
-            POST( "/sms/outbound", "{" +
-                "'recipients':[{'id':'" + getSuperuserUid() + "'}]," +
-                "'message':'text'" +
-                "}" ).content( HttpStatus.INTERNAL_SERVER_ERROR ) );
+            POST( "/sms/outbound",
+                "{" + "'recipients':[{'id':'" + getSuperuserUid() + "'}]," + "'message':'text'" + "}" )
+                    .content( HttpStatus.INTERNAL_SERVER_ERROR ) );
     }
 
     @Test
-    public void testDeleteOutboundMessage()
+    void testDeleteOutboundMessage()
     {
         OutboundSms sms = new OutboundSms();
         outboundSmsService.save( sms );
-
         assertWebMessage( "OK", 200, "OK", "OutboundSms with " + sms.getUid() + " deleted",
             DELETE( "/sms/outbound/" + sms.getUid() ).content( HttpStatus.OK ) );
     }
 
     @Test
-    public void testDeleteOutboundMessage_NoSuchObject()
+    void testDeleteOutboundMessage_NoSuchObject()
     {
         assertWebMessage( "Not Found", 404, "ERROR", "No OutboundSms with id 'xyz' was found.",
             DELETE( "/sms/outbound/xyz" ).content( HttpStatus.NOT_FOUND ) );
     }
 
     @Test
-    public void testDeleteOutboundMessages()
+    void testDeleteOutboundMessages()
     {
         OutboundSms sms = new OutboundSms();
         outboundSmsService.save( sms );
-
         assertWebMessage( "OK", 200, "OK", "Objects deleted",
             DELETE( "/sms/outbound/?ids=" + sms.getUid() ).content( HttpStatus.OK ) );
     }

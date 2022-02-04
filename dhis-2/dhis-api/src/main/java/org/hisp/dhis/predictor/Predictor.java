@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,6 +35,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseNameableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.OrganisationUnitDescendants;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeDeserializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
 import org.hisp.dhis.dataelement.DataElement;
@@ -89,6 +90,11 @@ public class Predictor
      * The org unit level for which this predictor is defined, if any
      */
     private Set<OrganisationUnitLevel> organisationUnitLevels;
+
+    /**
+     * Mode for including organisation unit descendants
+     */
+    private OrganisationUnitDescendants organisationUnitDescendants;
 
     /**
      * The number of sequential periods from which to collect samples to average
@@ -215,6 +221,18 @@ public class Predictor
     public void setOrganisationUnitLevels( Set<OrganisationUnitLevel> organisationUnitLevels )
     {
         this.organisationUnitLevels = organisationUnitLevels;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public OrganisationUnitDescendants getOrganisationUnitDescendants()
+    {
+        return organisationUnitDescendants;
+    }
+
+    public void setOrganisationUnitDescendants( OrganisationUnitDescendants organisationUnitDescendants )
+    {
+        this.organisationUnitDescendants = organisationUnitDescendants;
     }
 
     @JsonProperty

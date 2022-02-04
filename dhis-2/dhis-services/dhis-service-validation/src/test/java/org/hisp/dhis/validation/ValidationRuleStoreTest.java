@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,9 +31,9 @@ import static java.util.Arrays.asList;
 import static org.hisp.dhis.expression.Operator.equal_to;
 import static org.hisp.dhis.expression.Operator.greater_than;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -41,14 +41,13 @@ import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.Operator;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.validation.notification.ValidationNotificationTemplate;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Lars Helge Overland
  */
-public class ValidationRuleStoreTest
-    extends DhisSpringTest
+class ValidationRuleStoreTest extends DhisSpringTest
 {
 
     @Autowired
@@ -79,96 +78,78 @@ public class ValidationRuleStoreTest
     // -------------------------------------------------------------------------
     // ValidationRule
     // -------------------------------------------------------------------------
-
     @Test
-    public void testSaveValidationRule()
+    void testSaveValidationRule()
     {
         ValidationRule ruleA = addValidationRule( 'A', equal_to, expressionA, expressionB, periodType );
-
         ruleA = validationRuleStore.get( ruleA.getId() );
-
         assertValidationRule( 'A', ruleA );
         assertEquals( equal_to, ruleA.getOperator() );
     }
 
     @Test
-    public void testUpdateValidationRule()
+    void testUpdateValidationRule()
     {
         ValidationRule ruleA = addValidationRule( 'A', equal_to, expressionA, expressionB, periodType );
-
         ruleA = validationRuleStore.get( ruleA.getId() );
-
         assertValidationRule( 'A', ruleA );
         assertEquals( equal_to, ruleA.getOperator() );
-
         ruleA.setName( "ValidationRuleB" );
         ruleA.setDescription( "DescriptionB" );
         ruleA.setOperator( greater_than );
-
         validationRuleStore.update( ruleA );
-
         ruleA = validationRuleStore.get( ruleA.getId() );
-
         assertValidationRule( 'B', ruleA );
         assertEquals( greater_than, ruleA.getOperator() );
     }
 
     @Test
-    public void testDeleteValidationRule()
+    void testDeleteValidationRule()
     {
         ValidationRule ruleA = addValidationRule( 'A', equal_to, expressionA, expressionB, periodType );
         ValidationRule ruleB = addValidationRule( 'B', equal_to, expressionC, expressionD, periodType );
-
         assertNotNull( validationRuleStore.get( ruleA.getId() ) );
         assertNotNull( validationRuleStore.get( ruleB.getId() ) );
-
         ruleA.clearExpressions();
         validationRuleStore.delete( ruleA );
-
         assertNull( validationRuleStore.get( ruleA.getId() ) );
         assertNotNull( validationRuleStore.get( ruleB.getId() ) );
-
         ruleB.clearExpressions();
         validationRuleStore.delete( ruleB );
-
         assertNull( validationRuleStore.get( ruleA.getId() ) );
         assertNull( validationRuleStore.get( ruleB.getId() ) );
     }
 
     @Test
-    public void testGetAllValidationRules()
+    void testGetAllValidationRules()
     {
         ValidationRule ruleA = addValidationRule( 'A', equal_to, expressionA, expressionB, periodType );
         ValidationRule ruleB = addValidationRule( 'B', equal_to, expressionC, expressionD, periodType );
-
         assertContainsOnly( validationRuleStore.getAll(), ruleA, ruleB );
     }
 
     @Test
-    public void testGetAllFormValidationRules()
+    void testGetAllFormValidationRules()
     {
         addValidationRule( 'A', equal_to, expressionA, expressionB, periodType, true );
         ValidationRule ruleB = addValidationRule( 'B', equal_to, expressionC, expressionD, periodType );
-
         assertContainsOnly( validationRuleStore.getAllFormValidationRules(), ruleB );
     }
 
     @Test
-    public void testGetValidationRuleByName()
+    void testGetValidationRuleByName()
     {
         ValidationRule ruleA = addValidationRule( 'A', equal_to, expressionA, expressionB, periodType );
         ValidationRule ruleB = addValidationRule( 'B', equal_to, expressionC, expressionD, periodType );
-
         assertEquals( ruleA, validationRuleStore.getByName( "ValidationRuleA" ) );
         assertEquals( ruleB, validationRuleStore.getByName( "ValidationRuleB" ) );
     }
 
     @Test
-    public void testGetValidationRuleCount()
+    void testGetValidationRuleCount()
     {
         addValidationRule( 'A', equal_to, expressionA, expressionB, periodType );
         addValidationRule( 'B', equal_to, expressionC, expressionD, periodType );
-
         assertEquals( 2, validationRuleStore.getCount() );
     }
 
@@ -179,31 +160,26 @@ public class ValidationRuleStoreTest
     }
 
     @Test
-    public void testGetValidationRulesWithNotificationTemplates()
+    void testGetValidationRulesWithNotificationTemplates()
     {
         ValidationRule ruleA = addValidationRule( 'A', equal_to, expressionA, expressionB, periodType );
         ValidationRule ruleB = addValidationRule( 'B', equal_to, expressionC, expressionD, periodType );
-
         // Test empty
         assertContainsOnly( validationRuleStore.getValidationRulesWithNotificationTemplates() );
-
         // Add template
         addValidationNotificationTemplate( 'A', ruleA );
         assertContainsOnly( validationRuleStore.getValidationRulesWithNotificationTemplates(), ruleA );
-
         // Add one more
         addValidationNotificationTemplate( 'B', ruleB );
         assertContainsOnly( validationRuleStore.getValidationRulesWithNotificationTemplates(), ruleA, ruleB );
     }
 
     @Test
-    public void testGetValidationRulesWithoutGroups()
+    void testGetValidationRulesWithoutGroups()
     {
         ValidationRule ruleA = addValidationRule( 'A', equal_to, expressionA, expressionB, periodType );
         ValidationRule ruleB = addValidationRule( 'B', equal_to, expressionC, expressionD, periodType );
-
         addValidationRuleGroup( 'A', ruleA );
-
         assertContainsOnly( validationRuleStore.getValidationRulesWithoutGroups(), ruleB );
     }
 

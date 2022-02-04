@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.fileresource;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,17 +38,17 @@ import java.util.Map;
 
 import javax.imageio.ImageIO;
 
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.io.ClassPathResource;
 
 /**
  * @Author Zubair Asghar.
  */
-public class ImageProcessingServiceTest
+@ExtendWith( MockitoExtension.class )
+class ImageProcessingServiceTest
 {
     private static final int SMALL_IMAGE_WIDTH = 256;
 
@@ -54,19 +56,16 @@ public class ImageProcessingServiceTest
 
     private static final int LARGE_IMAGE_WIDTH = 1024;
 
-    @Rule
-    public MockitoRule rule = MockitoJUnit.rule();
-
     private ImageProcessingService subject;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         subject = new DefaultImageProcessingService();
     }
 
     @Test
-    public void test_create_images_with_null_values()
+    void test_create_images_with_null_values()
     {
         Map<ImageFileDimension, File> images = subject.createImages( new FileResource(), null );
 
@@ -74,7 +73,7 @@ public class ImageProcessingServiceTest
     }
 
     @Test
-    public void test_create_images_with_wrong_file_content_type()
+    void test_create_images_with_wrong_file_content_type()
         throws IOException
     {
         FileResource fileResource = new FileResource();
@@ -91,7 +90,7 @@ public class ImageProcessingServiceTest
     }
 
     @Test
-    public void test_create_image()
+    void test_create_image()
         throws IOException
     {
         FileResource fileResource = new FileResource();

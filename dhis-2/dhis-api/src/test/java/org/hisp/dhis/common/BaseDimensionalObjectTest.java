@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,10 @@
 package org.hisp.dhis.common;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.hasProperty;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
 
 import java.util.stream.Collectors;
 
@@ -37,7 +40,7 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.legend.LegendSet;
 import org.jeasy.random.EasyRandom;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -45,13 +48,14 @@ import com.google.common.collect.Sets;
 /**
  * @author Luciano Fiandesio
  */
-public class BaseDimensionalObjectTest
+class BaseDimensionalObjectTest
 {
+
     private static final EasyRandom rnd = new EasyRandom();
 
     @Test
     @SuppressWarnings( "unchecked" )
-    public void verifyInstanceCloneObject()
+    void verifyInstanceCloneObject()
     {
         BaseDimensionalObject target = new BaseDimensionalObject( "test-dimension" );
         target.setUid( "uid-999999" );
@@ -64,11 +68,9 @@ public class BaseDimensionalObjectTest
         target.setAggregationType( AggregationType.AVERAGE );
         target.setDataDimension( true );
         target.setFixed( true );
-        target.setDimensionalKeywords( new DimensionItemKeywords( rnd
-            .objects( BaseIdentifiableObject.class, 5 ).collect( Collectors.toList() ) ) );
-
+        target.setDimensionalKeywords( new DimensionItemKeywords(
+            rnd.objects( BaseIdentifiableObject.class, 5 ).collect( Collectors.toList() ) ) );
         BaseDimensionalObject cloned = (BaseDimensionalObject) target.instance();
-
         assertThat( cloned.getName(), is( target.getName() ) );
         assertThat( cloned.getUid(), is( target.getUid() ) );
         assertThat( cloned.getDimensionType(), is( target.getDimensionType() ) );

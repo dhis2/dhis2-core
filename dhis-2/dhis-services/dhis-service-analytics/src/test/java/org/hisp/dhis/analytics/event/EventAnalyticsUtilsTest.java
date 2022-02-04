@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,7 @@
 package org.hisp.dhis.analytics.event;
 
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -44,77 +44,61 @@ import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Henning Håkonsen
  */
-public class EventAnalyticsUtilsTest
-    extends DhisConvenienceTest
+class EventAnalyticsUtilsTest extends DhisConvenienceTest
 {
+
     @Test
-    public void testGetAggregatedDataValueMapping()
+    void testGetAggregatedDataValueMapping()
     {
         Grid grid = new ListGrid();
-
         grid.addRow();
         grid.addValue( "de1" );
         grid.addValue( "ou2" );
         grid.addValue( "pe1" );
         grid.addValue( 3 );
-
         grid.addRow();
         grid.addValue( "de2" );
         grid.addValue( "ou3" );
         grid.addValue( "pe2" );
         grid.addValue( 5 );
-
         Map<String, Object> map = EventAnalyticsUtils.getAggregatedEventDataMapping( grid );
-
         assertEquals( 3, map.get( "de1" + DIMENSION_SEP + "ou2" + DIMENSION_SEP + "pe1" ) );
         assertEquals( 5, map.get( "de2" + DIMENSION_SEP + "ou3" + DIMENSION_SEP + "pe2" ) );
     }
 
     @Test
-    public void testGenerateEventDataPermutations()
+    void testGenerateEventDataPermutations()
     {
         Map<String, List<EventAnalyticsDimensionalItem>> tableRows = new LinkedHashMap<>();
-
         Grid grid = new ListGrid();
-
         DataElement deA = createDataElement( 'A' );
         deA.setValueType( ValueType.BOOLEAN );
-
         grid.addMetaData( deA.getUid(), deA );
-
         TrackedEntityAttribute trackedEntityAttribute = createTrackedEntityAttribute( 'B' );
         OptionSet optionSet = new OptionSet();
         optionSet.addOption( new Option( "name", "code" ) );
         trackedEntityAttribute.setOptionSet( optionSet );
-
         grid.addMetaData( trackedEntityAttribute.getUid(), trackedEntityAttribute );
-
         List<EventAnalyticsDimensionalItem> objects = new ArrayList<>();
         Option t = new Option();
         t.setCode( "1" );
         t.setName( "Yes" );
-
         Option f = new Option();
         f.setCode( "0" );
         f.setName( "No" );
-
         objects.add( new EventAnalyticsDimensionalItem( t, deA.getUid() ) );
         objects.add( new EventAnalyticsDimensionalItem( f, deA.getUid() ) );
-
         objects
             .add( new EventAnalyticsDimensionalItem( new Option( "name", "code" ), trackedEntityAttribute.getUid() ) );
-
         tableRows.put( deA.getUid(), objects );
         tableRows.put( trackedEntityAttribute.getDimensionItem(), objects );
-
         List<Map<String, EventAnalyticsDimensionalItem>> rowPermutations = EventAnalyticsUtils
             .generateEventDataPermutations( tableRows );
-
         assertEquals( 9, rowPermutations.size() );
     }
 }

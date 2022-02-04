@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,42 +39,42 @@ import static org.hisp.dhis.setting.SettingKey.ANALYTICS_CACHE_PROGRESSIVE_TTL_F
 import static org.hisp.dhis.setting.SettingKey.ANALYTICS_CACHE_TTL_MODE;
 import static org.hisp.dhis.setting.SettingKey.CACHE_STRATEGY;
 import static org.hisp.dhis.util.DateUtils.calculateDateFrom;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
-import static org.mockito.junit.MockitoJUnit.rule;
 
 import java.util.Date;
 
 import org.hisp.dhis.analytics.AnalyticsCacheTtlMode;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
-public class AnalyticsCacheSettingsTest
+@MockitoSettings( strictness = Strictness.LENIENT )
+@ExtendWith( MockitoExtension.class )
+class AnalyticsCacheSettingsTest
 {
 
     @Mock
     private SystemSettingManager systemSettingManager;
 
-    @Rule
-    public MockitoRule mockitoRule = rule();
-
     private AnalyticsCacheSettings analyticsCacheSettings;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         analyticsCacheSettings = new AnalyticsCacheSettings( systemSettingManager );
     }
 
     @Test
-    public void testWhenProgressiveCachingIsEnabled()
+    void testWhenProgressiveCachingIsEnabled()
     {
         given( PROGRESSIVE, CACHE_1_MINUTE );
 
@@ -82,7 +82,7 @@ public class AnalyticsCacheSettingsTest
     }
 
     @Test
-    public void testWhenFixedCachingIsEnabled()
+    void testWhenFixedCachingIsEnabled()
     {
         given( FIXED, CACHE_1_MINUTE );
 
@@ -90,7 +90,7 @@ public class AnalyticsCacheSettingsTest
     }
 
     @Test
-    public void testWhenProgressiveCachingIsEnabledButStrategyIsNoCache()
+    void testWhenProgressiveCachingIsEnabledButStrategyIsNoCache()
     {
         given( PROGRESSIVE, NO_CACHE );
 
@@ -98,7 +98,7 @@ public class AnalyticsCacheSettingsTest
     }
 
     @Test
-    public void testWhenFixedCachingIsEnabledButStrategyIsNoCache()
+    void testWhenFixedCachingIsEnabledButStrategyIsNoCache()
     {
         given( FIXED, NO_CACHE );
 
@@ -106,7 +106,7 @@ public class AnalyticsCacheSettingsTest
     }
 
     @Test
-    public void testProgressiveExpirationTimeOrDefaultWhenTheTtlFactorIsSet()
+    void testProgressiveExpirationTimeOrDefaultWhenTheTtlFactorIsSet()
     {
         // Given
         final int aTtlFactor = 20;
@@ -125,7 +125,7 @@ public class AnalyticsCacheSettingsTest
     }
 
     @Test
-    public void testProgressiveExpirationTimeOrDefaultWhenTheTtlFactorIsNotSet()
+    void testProgressiveExpirationTimeOrDefaultWhenTheTtlFactorIsNotSet()
     {
         // Given
         final int theDefaultTtlFactor = (Integer) ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR.getDefaultValue();
@@ -144,7 +144,7 @@ public class AnalyticsCacheSettingsTest
     }
 
     @Test
-    public void testProgressiveExpirationTimeOrDefaultWhenTheTtlFactorIsSetWithNegativeNumber()
+    void testProgressiveExpirationTimeOrDefaultWhenTheTtlFactorIsSetWithNegativeNumber()
     {
         // Given
         final int aTtlFactor = -20;
@@ -160,7 +160,7 @@ public class AnalyticsCacheSettingsTest
     }
 
     @Test
-    public void testWhenFixedExpirationTimeOrDefaultIsSet()
+    void testWhenFixedExpirationTimeOrDefaultIsSet()
     {
         given( CACHE_10_MINUTES );
 
@@ -168,7 +168,7 @@ public class AnalyticsCacheSettingsTest
     }
 
     @Test
-    public void testWhenFixedExpirationTimeOrDefaultIsNotCache()
+    void testWhenFixedExpirationTimeOrDefaultIsNotCache()
     {
         given( NO_CACHE );
 
@@ -177,7 +177,7 @@ public class AnalyticsCacheSettingsTest
     }
 
     @Test
-    public void testIsCachingEnabledWhenFixedExpirationTimeIsSet()
+    void testIsCachingEnabledWhenFixedExpirationTimeIsSet()
     {
         given( FIXED, CACHE_10_MINUTES );
 
@@ -185,7 +185,7 @@ public class AnalyticsCacheSettingsTest
     }
 
     @Test
-    public void testIsCachingEnabledWhenProgressiveExpirationTimeIsSet()
+    void testIsCachingEnabledWhenProgressiveExpirationTimeIsSet()
     {
         given( PROGRESSIVE, CACHE_10_MINUTES );
 
@@ -193,7 +193,7 @@ public class AnalyticsCacheSettingsTest
     }
 
     @Test
-    public void testIsCachingEnabledWhenFixedExpirationTimeIsSetAndStrategyIsNoCache()
+    void testIsCachingEnabledWhenFixedExpirationTimeIsSetAndStrategyIsNoCache()
     {
         given( FIXED, NO_CACHE );
 

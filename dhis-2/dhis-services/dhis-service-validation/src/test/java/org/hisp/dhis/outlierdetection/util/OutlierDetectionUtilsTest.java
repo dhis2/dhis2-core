@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,30 +28,29 @@
 package org.hisp.dhis.outlierdetection.util;
 
 import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
  */
-public class OutlierDetectionUtilsTest
+class OutlierDetectionUtilsTest
 {
+
     @Test
-    public void testGetOrgUnitPathClause()
+    void testGetOrgUnitPathClause()
     {
         OrganisationUnit ouA = createOrganisationUnit( 'A' );
         OrganisationUnit ouB = createOrganisationUnit( 'B' );
         OrganisationUnit ouC = createOrganisationUnit( 'C' );
         List<OrganisationUnit> orgUnits = Lists.newArrayList( ouA, ouB, ouC );
-
         String expected = "(ou.\"path\" like '/ouabcdefghA%' or ou.\"path\" like '/ouabcdefghB%' or ou.\"path\" like '/ouabcdefghC%')";
-
         assertEquals( expected, OutlierDetectionUtils.getOrgUnitPathClause( orgUnits ) );
     }
 }

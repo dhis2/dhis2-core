@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,32 +35,31 @@ import java.io.IOException;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.system.util.GeoUtils;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Luciano Fiandesio
  */
-public class EventGeometryPreProcessorTest
+class EventGeometryPreProcessorTest
 {
+
     private EventGeometryPreProcessor subject;
 
-    @Before
-    public void setUp()
+    @BeforeEach
+    void setUp()
     {
         this.subject = new EventGeometryPreProcessor();
     }
 
     @Test
-    public void verifyEventGeometryGetCorrectSRID()
+    void verifyEventGeometryGetCorrectSRID()
         throws IOException
     {
         Event event = new Event();
         event.setGeometry( GeoUtils.getGeoJsonPoint( 20.0, 30.0 ) );
         event.getGeometry().setSRID( 0 );
         subject.process( event, WorkContext.builder().build() );
-
         assertThat( event.getGeometry().getSRID(), is( GeoUtils.SRID ) );
     }
-
 }

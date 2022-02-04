@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,15 +27,15 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.hisp.dhis.webapi.json.JsonObject;
 import org.hisp.dhis.webapi.json.domain.JsonSchema;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
 /**
@@ -43,10 +43,11 @@ import org.springframework.http.HttpStatus;
  *
  * @author Jan Bernitt
  */
-public class SchemaControllerTest extends DhisControllerConvenienceTest
+class SchemaControllerTest extends DhisControllerConvenienceTest
 {
+
     @Test
-    public void testValidateSchema()
+    void testValidateSchema()
     {
         assertWebMessage( "OK", 200, "OK", null,
             POST( "/schemas/organisationUnit", "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}" )
@@ -54,19 +55,17 @@ public class SchemaControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void testValidateSchema_NoSuchType()
+    void testValidateSchema_NoSuchType()
     {
         assertWebMessage( "Not Found", 404, "ERROR", "404 Type xyz does not exist.",
-            POST( "/schemas/xyz", "{}" )
-                .content( HttpStatus.NOT_FOUND ) );
+            POST( "/schemas/xyz", "{}" ).content( HttpStatus.NOT_FOUND ) );
     }
 
     @Test
-    public void testFieldFilteringNameKlass()
+    void testFieldFilteringNameKlass()
     {
         var schema = GET( "/schemas/organisationUnit?fields=name,klass" ).content( HttpStatus.OK )
             .as( JsonSchema.class );
-
         assertNotNull( schema.getKlass() );
         assertNotNull( schema.getName() );
         assertNull( schema.getSingular() );
@@ -75,30 +74,26 @@ public class SchemaControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void testFieldFilteringDefaultPropertiesExpansion()
+    void testFieldFilteringDefaultPropertiesExpansion()
     {
         var schema = GET( "/schemas/organisationUnit?fields=name,klass,properties" ).content( HttpStatus.OK )
             .as( JsonSchema.class );
-
         assertNotNull( schema.getKlass() );
         assertNotNull( schema.getName() );
         assertNull( schema.getSingular() );
         assertNull( schema.getPlural() );
-
         assertTrue( schema.get( "properties" ).exists() );
         assertFalse( schema.getProperties().isEmpty() );
-
         assertNotNull( schema.getProperties().get( 0 ).getName() );
         assertNotNull( schema.getProperties().get( 0 ).getKlass() );
         assertNotNull( schema.getProperties().get( 0 ).getFieldName() );
     }
 
     @Test
-    public void testFieldFilteringAllSchemas()
+    void testFieldFilteringAllSchemas()
     {
-        var schemas = GET( "/schemas?fields=name,klass" ).content( HttpStatus.OK )
-            .as( JsonObject.class ).getList( "schemas", JsonSchema.class );
-
+        var schemas = GET( "/schemas?fields=name,klass" ).content( HttpStatus.OK ).as( JsonObject.class )
+            .getList( "schemas", JsonSchema.class );
         for ( JsonSchema schema : schemas )
         {
             assertNotNull( schema.getKlass() );

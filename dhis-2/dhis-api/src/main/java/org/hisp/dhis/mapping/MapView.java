@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,8 +30,10 @@ package org.hisp.dhis.mapping;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.common.BaseAnalyticalObject;
@@ -44,6 +46,8 @@ import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.EventAnalyticalObject;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.eventvisualization.EventRepetition;
+import org.hisp.dhis.eventvisualization.SimpleDimension;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -249,16 +253,28 @@ public class MapView
     @Override
     public void populateAnalyticalProperties()
     {
-        for ( String column : columnDimensions )
+        for ( final String column : columnDimensions )
         {
-            columns.add( getDimensionalObject( column ) );
+            final Optional<DimensionalObject> dimensionalObject = getDimensionalObject( column );
+            if ( dimensionalObject.isPresent() )
+            {
+                columns.add( dimensionalObject.get() );
+            }
         }
 
-        rows.add( getDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID ) );
-
-        for ( String filter : filterDimensions )
+        final Optional<DimensionalObject> orgUnitDimension = getDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID );
+        if ( orgUnitDimension.isPresent() )
         {
-            filters.add( getDimensionalObject( filter ) );
+            rows.add( orgUnitDimension.get() );
+        }
+
+        for ( final String filter : filterDimensions )
+        {
+            final Optional<DimensionalObject> dimensionalObject = getDimensionalObject( filter );
+            if ( dimensionalObject.isPresent() )
+            {
+                filters.add( dimensionalObject.get() );
+            }
         }
     }
 
@@ -461,6 +477,24 @@ public class MapView
     public void setFilterDimensions( List<String> filterDimensions )
     {
         this.filterDimensions = filterDimensions;
+    }
+
+    /**
+     * This method is not used/implemented in MapView.
+     */
+    @Override
+    public List<SimpleDimension> getSimpleDimensions()
+    {
+        return Collections.emptyList();
+    }
+
+    /**
+     * This method is not used/implemented in MapView.
+     */
+    @Override
+    public List<EventRepetition> getEventRepetitions()
+    {
+        return Collections.emptyList();
     }
 
     @JsonProperty

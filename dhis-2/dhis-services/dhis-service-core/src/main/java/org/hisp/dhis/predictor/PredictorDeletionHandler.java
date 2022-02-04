@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,33 +27,31 @@
  */
 package org.hisp.dhis.predictor;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
 import java.util.Iterator;
 import java.util.List;
 
+import lombok.AllArgsConstructor;
+
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.system.deletion.DeletionVeto;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Ken Haase
  */
-@Component( "org.hisp.dhis.predictor.PredictorDeletionHandler" )
-public class PredictorDeletionHandler
-    extends DeletionHandler
+@Component
+@AllArgsConstructor
+public class PredictorDeletionHandler extends DeletionHandler
 {
     private final PredictorService predictorService;
 
-    public PredictorDeletionHandler( PredictorService predictorService )
-    {
-        checkNotNull( predictorService );
-
-        this.predictorService = predictorService;
-    }
+    private final JdbcTemplate jdbcTemplate;
 
     @Override
     protected void register()
@@ -61,6 +59,7 @@ public class PredictorDeletionHandler
         whenDeletingEmbedded( Expression.class, this::deleteExpression );
         whenDeleting( PredictorGroup.class, this::deletePredictorGroup );
         whenVetoing( DataElement.class, this::allowDeleteDataElement );
+        whenVetoing( CategoryOptionCombo.class, this::allowDeleteCategoryOptionCombo );
     }
 
     private void deleteExpression( Expression expression )
@@ -105,5 +104,16 @@ public class PredictorDeletionHandler
         }
 
         return ACCEPT;
+    }
+
+    private DeletionVeto allowDeleteCategoryOptionCombo( CategoryOptionCombo optionCombo )
+    {
+        return vetoIfExists( "SELECT COUNT(*) FROM predictor where generatoroutputcombo=" + optionCombo.getId() );
+    }
+
+    private DeletionVeto vetoIfExists( String sql )
+    {
+        Integer count = jdbcTemplate.queryForObject( sql, Integer.class );
+        return count == null || count == 0 ? ACCEPT : new DeletionVeto( Predictor.class );
     }
 }

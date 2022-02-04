@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -239,11 +239,14 @@ public class JdbcAnalyticsTableManager
         final String dbl = statementBuilder.getDoubleColumnType();
         final boolean skipDataTypeValidation = systemSettingManager
             .getBoolSetting( SettingKey.SKIP_DATA_TYPE_VALIDATION_IN_ANALYTICS_TABLE_EXPORT );
+        final boolean includeZeroValues = systemSettingManager
+            .getBoolSetting( SettingKey.INCLUDE_ZERO_VALUES_IN_ANALYTICS );
 
         final String numericClause = skipDataTypeValidation ? ""
             : ("and dv.value " + statementBuilder.getRegexpMatch() + " '" + MathUtils.NUMERIC_LENIENT_REGEXP + "' ");
-        final String zeroValueClause = "(dv.value != '0' or de.aggregationtype in ('" + AggregationType.AVERAGE + ','
-            + AggregationType.AVERAGE_SUM_ORG_UNIT + "')) ";
+        final String zeroValueCondition = includeZeroValues ? " or de.zeroissignificant = true" : "";
+        final String zeroValueClause = "(dv.value != '0' or de.aggregationtype in ('" + AggregationType.AVERAGE + "','"
+            + AggregationType.AVERAGE_SUM_ORG_UNIT + "')" + zeroValueCondition + ") ";
         final String intClause = zeroValueClause + numericClause;
 
         populateTable( params, partition, "cast(dv.value as " + dbl + ")", "null", ValueType.NUMERIC_TYPES, intClause );
@@ -507,7 +510,7 @@ public class JdbcAnalyticsTableManager
 
         sql.deleteCharAt( sql.length() - ",".length() );
 
-        sql.append( " where level > " + aggregationLevel );
+        sql.append( " where oulevel > " + aggregationLevel );
         sql.append( " and dx in (" + getQuotedCommaDelimitedString( dataElements ) + ")" );
 
         log.debug( "Aggregation level SQL: " + sql );

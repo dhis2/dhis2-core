@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,13 +37,12 @@ import org.hisp.dhis.dashboard.DashboardService;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;
 import org.hisp.dhis.sharing.CascadeSharingService;
 import org.hisp.dhis.webapi.service.ContextService;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -52,8 +51,10 @@ import com.google.common.collect.Sets;
 /**
  * @author Luciano Fiandesio
  */
-public class DashboardControllerTest
+@ExtendWith( MockitoExtension.class )
+class DashboardControllerTest
 {
+
     private MockMvc mockMvc;
 
     @Mock
@@ -74,19 +75,16 @@ public class DashboardControllerTest
     @InjectMocks
     private DashboardController dashboardController;
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
     private final static String ENDPOINT = "/dashboards/q";
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         mockMvc = MockMvcBuilders.standaloneSetup( dashboardController ).build();
     }
 
     @Test
-    public void verifyEndpointWithNoArgs()
+    void verifyEndpointWithNoArgs()
         throws Exception
     {
         mockMvc.perform( get( ENDPOINT ) ).andExpect( status().isOk() );
@@ -95,7 +93,7 @@ public class DashboardControllerTest
     }
 
     @Test
-    public void verifyEndpointWithMaxArg()
+    void verifyEndpointWithMaxArg()
         throws Exception
     {
         mockMvc.perform( get( ENDPOINT ).param( "max", "VISUALIZATION" ) ).andExpect( status().isOk() );
@@ -104,7 +102,7 @@ public class DashboardControllerTest
     }
 
     @Test
-    public void verifyEndpointWithAllArg()
+    void verifyEndpointWithAllArg()
         throws Exception
     {
         mockMvc.perform(
@@ -118,7 +116,7 @@ public class DashboardControllerTest
     }
 
     @Test
-    public void verifyEndpointWithSearchQueryWithNoArgs()
+    void verifyEndpointWithSearchQueryWithNoArgs()
         throws Exception
     {
         mockMvc.perform( get( ENDPOINT + "/alfa" ) ).andExpect( status().isOk() );
@@ -127,7 +125,7 @@ public class DashboardControllerTest
     }
 
     @Test
-    public void verifyEndpointWithSearchQueryWithMaxArg()
+    void verifyEndpointWithSearchQueryWithMaxArg()
         throws Exception
     {
         mockMvc.perform(
@@ -139,7 +137,7 @@ public class DashboardControllerTest
     }
 
     @Test
-    public void verifyEndpointWithSearchQueryWithAllArg()
+    void verifyEndpointWithSearchQueryWithAllArg()
         throws Exception
     {
         mockMvc.perform(

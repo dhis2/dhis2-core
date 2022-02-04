@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,9 +31,13 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.fail;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -49,8 +53,8 @@ import org.hisp.dhis.analytics.IndexType;
  */
 public class AnalyticsTableAsserter
 {
-    // the table to check //
 
+    // the table to check //
     private AnalyticsTable table;
 
     private int columnsSize;
@@ -75,13 +79,10 @@ public class AnalyticsTableAsserter
         assertThat( table.getDimensionColumns(), hasSize( columnsSize ) );
         assertThat( table.getTableType(), is( tableType ) );
         assertThat( table.getTableName(), is( name ) );
-
         // verify default columns
-
         Map<String, AnalyticsTableColumn> tableColumnMap = Stream
             .concat( table.getDimensionColumns().stream(), table.getValueColumns().stream() )
             .collect( Collectors.toMap( AnalyticsTableColumn::getName, c -> c ) );
-
         for ( AnalyticsTableColumn col : defaultColumns )
         {
             if ( !tableColumnMap.containsKey( col.getName() ) )
@@ -93,7 +94,6 @@ public class AnalyticsTableAsserter
                 new AnalyticsColumnAsserter.Builder( col ).build().verify( tableColumnMap.get( col.getName() ) );
             }
         }
-
         // verify additional columns
         for ( AnalyticsTableColumn col : columns )
         {
@@ -106,7 +106,6 @@ public class AnalyticsTableAsserter
                 new AnalyticsColumnAsserter.Builder( col ).build().verify( tableColumnMap.get( col.getName() ) );
             }
         }
-
         for ( String name : matchers.keySet() )
         {
             if ( !tableColumnMap.containsKey( name ) )
@@ -122,6 +121,7 @@ public class AnalyticsTableAsserter
 
     public static class Builder
     {
+
         private AnalyticsTable _table;
 
         private int _columnSize;
@@ -149,7 +149,6 @@ public class AnalyticsTableAsserter
 
         public Builder withDefaultColumns( List<AnalyticsTableColumn> defaultColumns )
         {
-
             _defaultColumns = defaultColumns;
             return this;
         }
@@ -171,7 +170,6 @@ public class AnalyticsTableAsserter
             AnalyticsTableColumn col = new AnalyticsTableColumn( quote( name ), dataType, alias + quote( name ) );
             col.withCreated( created );
             this._columns.add( col );
-
             return this;
         }
 
@@ -188,40 +186,33 @@ public class AnalyticsTableAsserter
         public Builder addColumnUnquoted( String name, ColumnDataType dataType, String alias, IndexType indexType )
         {
             AnalyticsTableColumn col = new AnalyticsTableColumn( name, dataType, alias );
-
             if ( indexType != null )
             {
                 col.withIndexType( indexType );
             }
-
             this._columns.add( col );
-
             return this;
         }
 
         public Builder addColumns( List<AnalyticsTableColumn> columns )
         {
             this._columns.addAll( columns );
-
             return this;
         }
 
         public Builder addColumn( String name, Consumer<AnalyticsTableColumn> consumer )
         {
             this._matchers.put( name, consumer );
-
             return this;
         }
 
         public AnalyticsTableAsserter build()
         {
             // verify
-
             if ( _tableType == null )
             {
                 fail( "Missing table type" );
             }
-
             AnalyticsTableAsserter asserter = new AnalyticsTableAsserter();
             asserter.table = _table;
             asserter.columnsSize = _columnSize;

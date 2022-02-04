@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,21 +27,24 @@
  */
 package org.hisp.dhis.trackedentity;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
  */
-public class TrackedEntityProgramOwnerServiceTest extends DhisSpringTest
+class TrackedEntityProgramOwnerServiceTest extends DhisSpringTest
 {
+
     private static final String PA = "PA";
 
     private static final String TEIB1 = "TEI-B1";
@@ -69,44 +72,37 @@ public class TrackedEntityProgramOwnerServiceTest extends DhisSpringTest
     {
         organisationUnitA = createOrganisationUnit( 'A' );
         organisationUnitService.addOrganisationUnit( organisationUnitA );
-
         organisationUnitB = createOrganisationUnit( 'B' );
         organisationUnitService.addOrganisationUnit( organisationUnitB );
-
         TrackedEntityInstance entityInstanceA1 = createTrackedEntityInstance( organisationUnitA );
         entityInstanceA1.setUid( TEIA1 );
         TrackedEntityInstance entityInstanceB1 = createTrackedEntityInstance( organisationUnitA );
         entityInstanceB1.setUid( TEIB1 );
         entityInstanceService.addTrackedEntityInstance( entityInstanceA1 );
         entityInstanceService.addTrackedEntityInstance( entityInstanceB1 );
-
         Program programA = createProgram( 'A' );
         programA.setUid( PA );
         programService.addProgram( programA );
     }
 
     @Test
-    public void testCreateTrackedEntityProgramOwner()
+    void testCreateTrackedEntityProgramOwner()
     {
         programOwnerService.createTrackedEntityProgramOwner( TEIA1, PA, organisationUnitA.getUid() );
-
         assertNotNull( programOwnerService.getTrackedEntityProgramOwner( TEIA1, PA ) );
         assertNull( programOwnerService.getTrackedEntityProgramOwner( TEIB1, PA ) );
     }
 
     @Test
-    public void testCreateOrUpdateTrackedEntityProgramOwner()
+    void testCreateOrUpdateTrackedEntityProgramOwner()
     {
         programOwnerService.createOrUpdateTrackedEntityProgramOwner( TEIA1, PA, organisationUnitA.getUid() );
         TrackedEntityProgramOwner programOwner = programOwnerService.getTrackedEntityProgramOwner( TEIA1, PA );
-
         assertNotNull( programOwner );
         assertEquals( organisationUnitA.getUid(), programOwner.getOrganisationUnit().getUid() );
-
         programOwnerService.createOrUpdateTrackedEntityProgramOwner( TEIA1, PA, organisationUnitB.getUid() );
         programOwner = programOwnerService.getTrackedEntityProgramOwner( TEIA1, PA );
         assertNotNull( programOwner );
         assertEquals( organisationUnitB.getUid(), programOwner.getOrganisationUnit().getUid() );
     }
-
 }

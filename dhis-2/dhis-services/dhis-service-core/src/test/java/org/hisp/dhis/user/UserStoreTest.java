@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.user;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -37,7 +37,7 @@ import java.util.Set;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Sets;
@@ -45,9 +45,9 @@ import com.google.common.collect.Sets;
 /**
  * @author Nguyen Hong Duc
  */
-public class UserStoreTest
-    extends DhisSpringTest
+class UserStoreTest extends DhisSpringTest
 {
+
     @Autowired
     private UserStore userStore;
 
@@ -67,80 +67,64 @@ public class UserStoreTest
     {
         unit1 = createOrganisationUnit( 'A' );
         unit2 = createOrganisationUnit( 'B' );
-
         organisationUnitService.addOrganisationUnit( unit1 );
         organisationUnitService.addOrganisationUnit( unit2 );
     }
 
     @Test
-    public void testAddGetUser()
+    void testAddGetUser()
     {
         Set<OrganisationUnit> units = new HashSet<>();
-
         units.add( unit1 );
         units.add( unit2 );
-
         User userA = createUser( 'A' );
         User userB = createUser( 'B' );
-
         userA.setOrganisationUnits( units );
         userB.setOrganisationUnits( units );
-
         userStore.save( userA );
         long idA = userA.getId();
         userStore.save( userB );
         long idB = userB.getId();
-
         assertEquals( userA, userStore.get( idA ) );
         assertEquals( userB, userStore.get( idB ) );
-
         assertEquals( units, userStore.get( idA ).getOrganisationUnits() );
         assertEquals( units, userStore.get( idB ).getOrganisationUnits() );
     }
 
     @Test
-    public void testUpdateUser()
+    void testUpdateUser()
     {
         User userA = createUser( 'A' );
         User userB = createUser( 'B' );
-
         userStore.save( userA );
         long idA = userA.getId();
         userStore.save( userB );
         long idB = userB.getId();
-
         assertEquals( userA, userStore.get( idA ) );
         assertEquals( userB, userStore.get( idB ) );
-
         userA.setSurname( "UpdatedSurnameA" );
-
         userStore.update( userA );
-
         assertEquals( userStore.get( idA ).getSurname(), "UpdatedSurnameA" );
     }
 
     @Test
-    public void testDeleteUser()
+    void testDeleteUser()
     {
         User userA = createUser( 'A' );
         User userB = createUser( 'B' );
-
         userStore.save( userA );
         long idA = userA.getId();
         userStore.save( userB );
         long idB = userB.getId();
-
         assertEquals( userA, userStore.get( idA ) );
         assertEquals( userB, userStore.get( idB ) );
-
         userStore.delete( userA );
-
         assertNull( userStore.get( idA ) );
         assertNotNull( userStore.get( idB ) );
     }
 
     @Test
-    public void testGetCurrentUserGroupInfo()
+    void testGetCurrentUserGroupInfo()
     {
         User userA = createUser( 'A' );
         userStore.save( userA );
@@ -150,32 +134,28 @@ public class UserStoreTest
         userGroupService.addUserGroup( userGroupB );
         userA.getGroups().add( userGroupA );
         userA.getGroups().add( userGroupB );
-
         CurrentUserGroupInfo currentUserGroupInfo = userStore.getCurrentUserGroupInfo( userA.getId() );
-
         assertNotNull( currentUserGroupInfo );
         assertEquals( 2, currentUserGroupInfo.getUserGroupUIDs().size() );
         assertEquals( userA.getUid(), currentUserGroupInfo.getUserUID() );
     }
 
     @Test
-    public void testGetCurrentUserGroupInfoWithoutGroup()
+    void testGetCurrentUserGroupInfoWithoutGroup()
     {
         User userA = createUser( 'A' );
         userStore.save( userA );
         CurrentUserGroupInfo currentUserGroupInfo = userStore.getCurrentUserGroupInfo( userA.getId() );
-
         assertNotNull( currentUserGroupInfo );
         assertEquals( 0, currentUserGroupInfo.getUserGroupUIDs().size() );
         assertEquals( userA.getUid(), currentUserGroupInfo.getUserUID() );
     }
 
     @Test
-    public void testGetDisplayName()
+    void testGetDisplayName()
     {
         User userA = createUser( 'A' );
         userStore.save( userA );
-
         assertEquals( "FirstNameA SurnameA", userStore.getDisplayName( userA.getUid() ) );
     }
 }

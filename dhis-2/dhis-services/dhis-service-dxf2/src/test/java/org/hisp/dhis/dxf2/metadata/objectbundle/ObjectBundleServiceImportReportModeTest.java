@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.util.List;
@@ -45,15 +45,16 @@ import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.user.UserService;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
 /**
  * @author Morten Olav Hansen
  */
-public class ObjectBundleServiceImportReportModeTest extends TransactionalIntegrationTest
+class ObjectBundleServiceImportReportModeTest extends TransactionalIntegrationTest
 {
+
     @Autowired
     private ObjectBundleService objectBundleService;
 
@@ -78,37 +79,30 @@ public class ObjectBundleServiceImportReportModeTest extends TransactionalIntegr
     }
 
     @Test
-    public void testImportReportModeErrorNotOwner()
+    void testImportReportModeErrorNotOwner()
         throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/metadata_no_defaults.json" ).getInputStream(), RenderFormat.JSON );
-
         ObjectBundleParams params = new ObjectBundleParams();
         params.setObjectBundleMode( ObjectBundleMode.COMMIT );
         params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
         params.setObjects( metadata );
-
         ObjectBundle bundle = objectBundleService.create( params );
         assertFalse( objectBundleValidationService.validate( bundle ).hasErrorReports() );
         objectBundleService.commit( bundle );
-
         metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/metadata_update_not_owner.json" ).getInputStream(), RenderFormat.JSON );
-
         params = new ObjectBundleParams();
         params.setObjectBundleMode( ObjectBundleMode.COMMIT );
         params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
         params.setImportReportMode( ImportReportMode.ERRORS_NOT_OWNER );
         params.setObjects( metadata );
-
         bundle = objectBundleService.create( params );
-
         ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
         assertTrue( validate.hasErrorReports() );
         assertEquals( 4, validate.getErrorReportsCount() );
-
-        validate.forEachErrorReport( errorReport -> assertEquals( "Invalid error code, expected E5006", ErrorCode.E5006,
-            errorReport.getErrorCode() ) );
+        validate.forEachErrorReport( errorReport -> assertEquals( ErrorCode.E5006, errorReport.getErrorCode(),
+            "Invalid error code, expected E5006" ) );
     }
 }

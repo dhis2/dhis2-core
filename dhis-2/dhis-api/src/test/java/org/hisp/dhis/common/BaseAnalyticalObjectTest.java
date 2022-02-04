@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,27 +27,33 @@
  */
 package org.hisp.dhis.common;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.mapping.MapView;
+import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeDimension;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Lars Helge Overland
  */
-public class BaseAnalyticalObjectTest
+class BaseAnalyticalObjectTest
 {
 
     @Test
-    public void testPopulateAnalyticalProperties()
+    void testPopulateAnalyticalProperties()
     {
         TrackedEntityAttribute tea = new TrackedEntityAttribute();
         tea.setAutoFields();
+        tea.setValueType( ValueType.TEXT );
+        tea.setOptionSet( new OptionSet( "name", ValueType.BOOLEAN ) );
 
         TrackedEntityAttributeDimension tead = new TrackedEntityAttributeDimension( tea, null, "EQ:10" );
 
@@ -55,7 +61,6 @@ public class BaseAnalyticalObjectTest
         eventChart.setAutoFields();
         eventChart.getColumnDimensions().add( tea.getUid() );
         eventChart.getAttributeDimensions().add( tead );
-
         eventChart.populateAnalyticalProperties();
 
         assertEquals( 1, eventChart.getColumns().size() );
@@ -66,10 +71,12 @@ public class BaseAnalyticalObjectTest
         assertEquals( DimensionType.PROGRAM_ATTRIBUTE, dim.getDimensionType() );
         assertEquals( AnalyticsType.EVENT, dim.getAnalyticsType() );
         assertEquals( tead.getFilter(), dim.getFilter() );
+        assertEquals( tead.getAttribute().getValueType(), dim.getValueType() );
+        assertEquals( tead.getAttribute().getOptionSet(), dim.getOptionSet() );
     }
 
     @Test
-    public void testEquals()
+    void testEquals()
     {
         DataElement deA = new DataElement();
         deA.setUid( "A" );
@@ -97,26 +104,24 @@ public class BaseAnalyticalObjectTest
         dsD.setName( "D" );
 
         assertTrue( deA.equals( deC ) );
-
         assertFalse( deA.equals( deB ) );
         assertFalse( dsA.equals( dsD ) );
     }
 
     @Test
-    public void testAddDataDimensionItem()
+    void testAddDataDimensionItem()
     {
         DataElement deA = new DataElement();
         deA.setAutoFields();
 
         MapView mv = new MapView( MapView.LAYER_THEMATIC1 );
-
         mv.addDataDimensionItem( deA );
 
         assertEquals( 1, mv.getDataDimensionItems().size() );
     }
 
     @Test
-    public void testRemoveDataDimensionItem()
+    void testRemoveDataDimensionItem()
     {
         DataElement deA = new DataElement();
         DataElement deB = new DataElement();
@@ -124,7 +129,6 @@ public class BaseAnalyticalObjectTest
         deB.setAutoFields();
 
         MapView mv = new MapView( MapView.LAYER_THEMATIC1 );
-
         mv.addDataDimensionItem( deA );
         mv.addDataDimensionItem( deB );
 

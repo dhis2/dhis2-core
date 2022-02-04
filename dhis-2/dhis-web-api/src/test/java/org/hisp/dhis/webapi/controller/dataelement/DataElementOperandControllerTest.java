@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -77,13 +77,14 @@ import org.hisp.dhis.webapi.mvc.messageconverter.JsonMessageConverter;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.DefaultContextService;
 import org.hisp.dhis.webapi.service.LinkService;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -95,8 +96,11 @@ import com.jayway.jsonpath.JsonPath;
 /**
  * @author Luciano Fiandesio
  */
-public class DataElementOperandControllerTest
+@MockitoSettings( strictness = Strictness.LENIENT )
+@ExtendWith( MockitoExtension.class )
+class DataElementOperandControllerTest
 {
+
     private MockMvc mockMvc;
 
     @Mock
@@ -119,14 +123,11 @@ public class DataElementOperandControllerTest
     @Mock
     private CurrentUserService currentUserService;
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
     private final static String ENDPOINT = "/dataElementOperands";
 
     private final BeanRandomizer rnd = BeanRandomizer.create();
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         ContextService contextService = new DefaultContextService();
@@ -164,7 +165,7 @@ public class DataElementOperandControllerTest
     }
 
     @Test
-    public void verifyPaginationGetFirstPage()
+    void verifyPaginationGetFirstPage()
         throws Exception
     {
         int pageSize = 15;
@@ -218,7 +219,7 @@ public class DataElementOperandControllerTest
     }
 
     @Test
-    public void verifyPaginationGetThirdPage()
+    void verifyPaginationGetThirdPage()
         throws Exception
     {
         int pageSize = 25;

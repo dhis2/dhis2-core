@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -65,7 +65,7 @@ public class ProgramStagesTest
 
         loginActions.loginAsSuperUser();
         programId = programActions.createTrackerProgram( null ).extractUid();
-        programStageId = programActions.createProgramStage( "Tracker program stage 1" );
+        programStageId = programActions.createProgramStage( programId, "Tracker program stage 1" );
     }
 
     @Test

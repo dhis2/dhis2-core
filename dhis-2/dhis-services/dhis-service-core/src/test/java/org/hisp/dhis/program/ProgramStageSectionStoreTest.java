@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.program;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -39,15 +39,15 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Chau Thu Tran
  */
-public class ProgramStageSectionStoreTest
-    extends DhisSpringTest
+class ProgramStageSectionStoreTest extends DhisSpringTest
 {
+
     @Autowired
     private ProgramStageSectionStore programStageSectionStore;
 
@@ -83,43 +83,31 @@ public class ProgramStageSectionStoreTest
     {
         organisationUnit = createOrganisationUnit( 'A' );
         organisationUnitService.addOrganisationUnit( organisationUnit );
-
         Program program = createProgram( 'A', new HashSet<>(), organisationUnit );
         programService.addProgram( program );
-
         stageA = createProgramStage( 'A', program );
         programStageService.saveProgramStage( stageA );
-
         DataElement dataElementA = createDataElement( 'A' );
         DataElement dataElementB = createDataElement( 'B' );
-
         dataElementService.addDataElement( dataElementA );
         dataElementService.addDataElement( dataElementB );
-
         ProgramStageDataElement stageDeA = createProgramStageDataElement( stageA, dataElementA, 1 );
         ProgramStageDataElement stageDeB = createProgramStageDataElement( stageA, dataElementB, 2 );
-
         programStageDataElementService.addProgramStageDataElement( stageDeA );
         programStageDataElementService.addProgramStageDataElement( stageDeB );
-
         dataElements = new ArrayList<>();
         dataElements.add( dataElementA );
         dataElements.add( dataElementB );
-
         stageB = new ProgramStage( "B", program );
         programStageService.saveProgramStage( stageB );
-
         Set<ProgramStage> programStages = new HashSet<>();
         programStages.add( stageA );
         programStages.add( stageB );
         program.setProgramStages( programStages );
         programService.updateProgram( program );
-
         sectionA = createProgramStageSection( 'A', 1 );
         sectionA.setDataElements( dataElements );
-
         sectionB = createProgramStageSection( 'B', 2 );
-
         Set<ProgramStageSection> sections = new HashSet<>();
         sections.add( sectionA );
         sections.add( sectionB );
@@ -127,14 +115,12 @@ public class ProgramStageSectionStoreTest
     }
 
     @Test
-    public void testAddGet()
+    void testAddGet()
     {
         ProgramStageSection sectionA = createProgramStageSection( 'A', 1 );
         sectionA.setDataElements( dataElements );
-
         programStageSectionStore.save( sectionA );
         long idA = sectionA.getId();
-
         assertEquals( sectionA, programStageSectionStore.get( idA ) );
     }
 }

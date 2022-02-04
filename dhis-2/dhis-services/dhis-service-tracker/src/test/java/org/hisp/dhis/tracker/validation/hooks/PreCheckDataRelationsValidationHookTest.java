@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,9 @@ package org.hisp.dhis.tracker.validation.hooks;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hisp.dhis.relationship.RelationshipEntity.TRACKED_ENTITY_INSTANCE;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -43,26 +45,34 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.*;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.relationship.RelationshipConstraint;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.*;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.Relationship;
+import org.hisp.dhis.tracker.domain.RelationshipItem;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.ReferenceTrackerEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import com.google.api.client.util.Maps;
 import com.google.common.collect.Lists;
@@ -71,8 +81,11 @@ import com.google.common.collect.Sets;
 /**
  * @author Enrico Colasante
  */
-public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
+@MockitoSettings( strictness = Strictness.LENIENT )
+@ExtendWith( MockitoExtension.class )
+class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
 {
+
     private static final String PROGRAM_WITHOUT_REGISTRATION_ID = "PROGRAM_WITHOUT_REGISTRATION_ID";
 
     private static final String PROGRAM_WITH_REGISTRATION_ID = "PROGRAM_WITH_REGISTRATION_ID";
@@ -97,9 +110,6 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
 
     private PreCheckDataRelationsValidationHook validatorToTest;
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
     @Mock
     private CategoryService categoryService;
 
@@ -123,7 +133,7 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
 
     private TrackedEntityType trackedEntityType;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         validatorToTest = new PreCheckDataRelationsValidationHook( categoryService );
@@ -207,7 +217,7 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
-    public void verifyValidationSuccessForEnrollment()
+    void verifyValidationSuccessForEnrollment()
     {
         setupEnrollments();
         Enrollment enrollment = Enrollment.builder()
@@ -217,7 +227,7 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .trackedEntity( TEI_ID )
             .build();
 
-        reporter = new ValidationErrorReporter( ctx, enrollment );
+        reporter = new ValidationErrorReporter( ctx );
 
         validatorToTest.validateEnrollment( reporter, enrollment );
 
@@ -225,7 +235,7 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
-    public void verifyValidationFailsWhenEnrollmentIsNotARegistration()
+    void verifyValidationFailsWhenEnrollmentIsNotARegistration()
     {
         setupEnrollments();
         Enrollment enrollment = Enrollment.builder()
@@ -235,7 +245,7 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .orgUnit( ORG_UNIT_ID )
             .build();
 
-        reporter = new ValidationErrorReporter( ctx, enrollment );
+        reporter = new ValidationErrorReporter( ctx );
 
         validatorToTest.validateEnrollment( reporter, enrollment );
 
@@ -244,7 +254,7 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
-    public void verifyValidationFailsWhenEnrollmentAndProgramOrganisationUnitDontMatch()
+    void verifyValidationFailsWhenEnrollmentAndProgramOrganisationUnitDontMatch()
     {
         setupEnrollments();
         Enrollment enrollment = Enrollment.builder()
@@ -254,7 +264,7 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .orgUnit( ANOTHER_ORG_UNIT_ID )
             .build();
 
-        reporter = new ValidationErrorReporter( ctx, enrollment );
+        reporter = new ValidationErrorReporter( ctx );
 
         validatorToTest.validateEnrollment( reporter, enrollment );
 
@@ -263,7 +273,7 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
-    public void verifyValidationFailsWhenEnrollmentAndProgramTeiTypeDontMatch()
+    void verifyValidationFailsWhenEnrollmentAndProgramTeiTypeDontMatch()
     {
         setupEnrollments();
         Enrollment enrollment = Enrollment.builder()
@@ -273,7 +283,7 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .trackedEntity( ANOTHER_TEI_ID )
             .build();
 
-        reporter = new ValidationErrorReporter( ctx, enrollment );
+        reporter = new ValidationErrorReporter( ctx );
 
         validatorToTest.validateEnrollment( reporter, enrollment );
 
@@ -282,7 +292,7 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
-    public void verifyValidationFailsWhenEnrollmentAndProgramTeiTypeDontMatchAndTEIIsInPayload()
+    void verifyValidationFailsWhenEnrollmentAndProgramTeiTypeDontMatchAndTEIIsInPayload()
     {
         setupEnrollments();
         Enrollment enrollment = Enrollment.builder()
@@ -292,7 +302,7 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .trackedEntity( ANOTHER_TEI_ID )
             .build();
 
-        reporter = new ValidationErrorReporter( ctx, enrollment );
+        reporter = new ValidationErrorReporter( ctx );
 
         when( ctx.getTrackedEntityInstance( ANOTHER_TEI_ID ) ).thenReturn( null );
 
@@ -310,7 +320,7 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
-    public void verifyValidationSuccessForEvent()
+    void verifyValidationSuccessForEvent()
     {
         setupForEvents();
         Event event = Event.builder()
@@ -321,7 +331,7 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .enrollment( ENROLLMENT_ID )
             .build();
 
-        reporter = new ValidationErrorReporter( ctx, event );
+        reporter = new ValidationErrorReporter( ctx );
 
         validatorToTest.validateEvent( reporter, event );
 
@@ -329,7 +339,7 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
-    public void verifyValidationFailsWhenEventAndProgramStageProgramDontMatch()
+    void verifyValidationFailsWhenEventAndProgramStageProgramDontMatch()
     {
         setupForEvents();
         Event event = Event.builder()
@@ -339,7 +349,7 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .orgUnit( ANOTHER_ORG_UNIT_ID )
             .build();
 
-        reporter = new ValidationErrorReporter( ctx, event );
+        reporter = new ValidationErrorReporter( ctx );
 
         validatorToTest.validateEvent( reporter, event );
 
@@ -350,7 +360,7 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
-    public void verifyValidationFailsWhenProgramIsRegistrationAndEnrollmentIsMissing()
+    void verifyValidationFailsWhenProgramIsRegistrationAndEnrollmentIsMissing()
     {
         setupForEvents();
         Event event = Event.builder()
@@ -360,7 +370,7 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .orgUnit( ORG_UNIT_ID )
             .build();
 
-        reporter = new ValidationErrorReporter( ctx, event );
+        reporter = new ValidationErrorReporter( ctx );
 
         validatorToTest.validateEvent( reporter, event );
 
@@ -371,7 +381,7 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
-    public void verifyValidationFailsWhenEventAndEnrollmentProgramDontMatch()
+    void verifyValidationFailsWhenEventAndEnrollmentProgramDontMatch()
     {
         setupForEvents();
         Event event = Event.builder()
@@ -382,7 +392,7 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .enrollment( ANOTHER_ENROLLMENT_ID )
             .build();
 
-        reporter = new ValidationErrorReporter( ctx, event );
+        reporter = new ValidationErrorReporter( ctx );
 
         validatorToTest.validateEvent( reporter, event );
 
@@ -393,7 +403,7 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
-    public void verifyValidationFailsWhenEventAndProgramOrganisationUnitDontMatch()
+    void verifyValidationFailsWhenEventAndProgramOrganisationUnitDontMatch()
     {
         setupForEvents();
         Event event = Event.builder()
@@ -404,7 +414,7 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .enrollment( ENROLLMENT_ID )
             .build();
 
-        reporter = new ValidationErrorReporter( ctx, event );
+        reporter = new ValidationErrorReporter( ctx );
 
         validatorToTest.validateEvent( reporter, event );
 
@@ -415,7 +425,7 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
-    public void verifyValidationFailsWhenLinkedTrackedEntityIsNotFound()
+    void verifyValidationFailsWhenLinkedTrackedEntityIsNotFound()
     {
         RelationshipType relType = createRelTypeConstraint( TRACKED_ENTITY_INSTANCE, TRACKED_ENTITY_INSTANCE );
 
@@ -430,7 +440,7 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .relationshipType( relType.getUid() )
             .build();
 
-        reporter = new ValidationErrorReporter( ctx, relationship );
+        reporter = new ValidationErrorReporter( ctx );
 
         validatorToTest.validateRelationship( reporter, relationship );
 
@@ -447,7 +457,7 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
-    public void verifyValidationSuccessWhenLinkedTrackedEntityIsFound()
+    void verifyValidationSuccessWhenLinkedTrackedEntityIsFound()
     {
 
         TrackedEntityInstance validTrackedEntity = new TrackedEntityInstance();
@@ -471,7 +481,7 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .relationshipType( relType.getUid() )
             .build();
 
-        reporter = new ValidationErrorReporter( ctx, relationship );
+        reporter = new ValidationErrorReporter( ctx );
 
         validatorToTest.validateRelationship( reporter, relationship );
 

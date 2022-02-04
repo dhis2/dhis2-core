@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,10 +42,16 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.*;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Event;
@@ -54,7 +60,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 
-import com.google.api.client.util.Lists;
 import com.google.api.client.util.Objects;
 
 /**
@@ -176,20 +181,22 @@ public class EventTrackerConverterService
 
     private List<EventDataValue> getProgramStageInstanceDataValues( TrackerPreheat preheat, Event event )
     {
-        List<EventDataValue> eventDataValues = Lists.newArrayList();
+        List<EventDataValue> eventDataValues = new ArrayList<>();
         ProgramStageInstance programStageInstance = preheat.getEvent( TrackerIdScheme.UID, event.getEvent() );
-        if ( programStageInstance != null )
+        if ( programStageInstance == null )
         {
-            Set<String> dataElements = event.getDataValues()
-                .stream()
-                .map( DataValue::getDataElement )
-                .collect( Collectors.toSet() );
-            for ( EventDataValue eventDataValue : programStageInstance.getEventDataValues() )
+            return eventDataValues;
+        }
+
+        Set<String> dataElements = event.getDataValues()
+            .stream()
+            .map( DataValue::getDataElement )
+            .collect( Collectors.toSet() );
+        for ( EventDataValue eventDataValue : programStageInstance.getEventDataValues() )
+        {
+            if ( !dataElements.contains( eventDataValue.getDataElement() ) )
             {
-                if ( !dataElements.contains( eventDataValue.getDataElement() ) )
-                {
-                    eventDataValues.add( eventDataValue );
-                }
+                eventDataValues.add( eventDataValue );
             }
         }
         return eventDataValues;
@@ -270,7 +277,10 @@ public class EventTrackerConverterService
             eventDataValue.setCreated( DateUtils.fromInstant( dataValue.getCreatedAt() ) );
             eventDataValue.setLastUpdated( new Date() );
             eventDataValue.setProvidedElsewhere( dataValue.isProvidedElsewhere() );
-            eventDataValue.setDataElement( dataValue.getDataElement() );
+            // ensure dataElement is referred to by UID as multiple
+            // dataElementIdSchemes are supported
+            DataElement dataElement = preheat.get( DataElement.class, dataValue.getDataElement() );
+            eventDataValue.setDataElement( dataElement.getUid() );
             eventDataValue.setLastUpdatedByUserInfo( UserInfoSnapshot.from( preheat.getUser() ) );
 
             User createdBy = preheat.getUsers().get( dataValue.getCreatedBy() );

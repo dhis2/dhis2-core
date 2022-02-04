@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -149,7 +149,7 @@ public class PdfFormController
 
         in = StreamUtils.wrapAndCheckCompressionFormat( in );
 
-        ImportSummary summary = dataValueSetService.saveDataValueSetPdf( in, ImportOptions.getDefaultImportOptions(),
+        ImportSummary summary = dataValueSetService.importDataValueSetPdf( in, ImportOptions.getDefaultImportOptions(),
             jobId );
 
         return importSummary( summary );

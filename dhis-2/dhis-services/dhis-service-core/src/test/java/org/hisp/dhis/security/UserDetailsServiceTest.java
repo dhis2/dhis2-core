@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,15 +28,15 @@
 package org.hisp.dhis.security;
 
 import static java.lang.System.currentTimeMillis;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Date;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -48,7 +48,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
  *
  * @author Jan Bernitt
  */
-public class UserDetailsServiceTest extends DhisSpringTest
+class UserDetailsServiceTest extends DhisSpringTest
 {
 
     @Autowired
@@ -69,14 +69,14 @@ public class UserDetailsServiceTest extends DhisSpringTest
     }
 
     @Test
-    public void baseline()
+    void baseline()
     {
         // a vanilla user should be able to log in
         assertCanLogin( getUserDetails() );
     }
 
     @Test
-    public void disabledUserCanNotLogIn()
+    void disabledUserCanNotLogIn()
     {
         user.setDisabled( true );
         userService.updateUser( user );
@@ -84,19 +84,18 @@ public class UserDetailsServiceTest extends DhisSpringTest
     }
 
     @Test
-    public void enabledUserCanLogIn()
+    void enabledUserCanLogIn()
     {
         user.setDisabled( true );
         userService.updateUser( user );
         assertCanNotLogin( getUserDetails() );
-
         user.setDisabled( false );
         userService.updateUser( user );
         assertCanLogin( getUserDetails() );
     }
 
     @Test
-    public void expiredUserAccountCanNotLogIn()
+    void expiredUserAccountCanNotLogIn()
     {
         // expired 1000s in past
         user.setAccountExpiry( new Date( currentTimeMillis() - 1000 ) );
@@ -105,7 +104,7 @@ public class UserDetailsServiceTest extends DhisSpringTest
     }
 
     @Test
-    public void notYetExpiredUserAccountCanStillLogIn()
+    void notYetExpiredUserAccountCanStillLogIn()
     {
         user.setAccountExpiry( new Date( currentTimeMillis() + 10000 ) );
         userService.updateUser( user );
@@ -127,9 +126,7 @@ public class UserDetailsServiceTest extends DhisSpringTest
 
     private static void assertCanNotLogin( UserDetails details )
     {
-        assertFalse( details.isEnabled()
-            && details.isAccountNonExpired()
-            && details.isAccountNonLocked()
+        assertFalse( details.isEnabled() && details.isAccountNonExpired() && details.isAccountNonLocked()
             && details.isCredentialsNonExpired() );
     }
 }

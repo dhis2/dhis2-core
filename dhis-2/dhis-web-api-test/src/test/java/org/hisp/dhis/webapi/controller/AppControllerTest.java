@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,13 +27,13 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.hisp.dhis.webapi.json.JsonArray;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
 /**
@@ -41,10 +41,11 @@ import org.springframework.http.HttpStatus;
  *
  * @author Jan Bernitt
  */
-public class AppControllerTest extends DhisControllerConvenienceTest
+class AppControllerTest extends DhisControllerConvenienceTest
 {
+
     @Test
-    public void testGetApps()
+    void testGetApps()
     {
         HttpResponse response = GET( "/apps" );
         JsonArray apps = response.content( HttpStatus.OK );
@@ -52,7 +53,7 @@ public class AppControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void testGetApps_KeyNotFound()
+    void testGetApps_KeyNotFound()
     {
         HttpResponse response = GET( "/apps?key=xyz" );
         assertEquals( HttpStatus.NOT_FOUND, response.status() );

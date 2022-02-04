@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,9 +30,9 @@ package org.hisp.dhis.analytics.data.handler;
 import static com.google.common.collect.Lists.newArrayList;
 import static java.lang.String.valueOf;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.emptyOrNullString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.hisp.dhis.analytics.DataQueryParams.newBuilder;
 import static org.hisp.dhis.analytics.OutputFormat.DATA_VALUE_SET;
 import static org.hisp.dhis.common.DimensionType.DATA_X;
@@ -47,7 +47,6 @@ import static org.hisp.dhis.common.IdScheme.NAME;
 import static org.hisp.dhis.common.IdScheme.UID;
 import static org.hisp.dhis.common.IdScheme.UUID;
 import static org.hisp.dhis.period.PeriodType.getPeriodFromIsoString;
-import static org.mockito.junit.MockitoJUnit.rule;
 
 import java.util.List;
 import java.util.Map;
@@ -60,29 +59,28 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.mockito.junit.MockitoRule;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author maikel arabori
  */
-public class SchemaIdResponseMapperTest
+@ExtendWith( MockitoExtension.class )
+class SchemaIdResponseMapperTest
 {
-    @Rule
-    public MockitoRule mockitoRule = rule();
 
     private SchemaIdResponseMapper schemaIdResponseMapper;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         schemaIdResponseMapper = new SchemaIdResponseMapper();
     }
 
     @Test
-    public void testGetSchemeIdResponseMapWhenOutputIdSchemeIsSetToName()
+    void testGetSchemeIdResponseMapWhenOutputIdSchemeIsSetToName()
     {
         // Given
         final List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
@@ -110,7 +108,7 @@ public class SchemaIdResponseMapperTest
     }
 
     @Test
-    public void testGetSchemeIdResponseMapWhenOutputIdSchemeIsSetToCode()
+    void testGetSchemeIdResponseMapWhenOutputIdSchemeIsSetToCode()
     {
         // Given
         final List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
@@ -130,7 +128,7 @@ public class SchemaIdResponseMapperTest
         final CategoryOptionCombo categoryOptionComboC = dataElementOperandsStub.get( 0 ).getCategoryOptionCombo();
 
         assertThat( responseMap.get( orgUnitUid ), is( equalTo( orUnitStub.getCode() ) ) );
-        assertThat( responseMap.get( periodIsoDate ), isEmptyOrNullString() );
+        assertThat( responseMap.get( periodIsoDate ), is( emptyOrNullString() ) );
         assertThat( responseMap.get( dataElementA.getUid() ), is( equalTo( dataElementA.getCode() ) ) );
         assertThat( responseMap.get( dataElementB.getUid() ), is( equalTo( dataElementB.getCode() ) ) );
         assertThat( responseMap.get( categoryOptionComboC.getUid() ), is( equalTo( categoryOptionComboC.getCode() ) ) );
@@ -138,7 +136,7 @@ public class SchemaIdResponseMapperTest
     }
 
     @Test
-    public void testGetSchemeIdResponseMapWhenOutputIdSchemeIsSetToUuid()
+    void testGetSchemeIdResponseMapWhenOutputIdSchemeIsSetToUuid()
     {
         // Given
         final List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
@@ -157,16 +155,16 @@ public class SchemaIdResponseMapperTest
         final DataElement dataElementB = dataElementOperandsStub.get( 1 ).getDataElement();
         final CategoryOptionCombo categoryOptionComboC = dataElementOperandsStub.get( 0 ).getCategoryOptionCombo();
 
-        assertThat( responseMap.get( orgUnitUid ), isEmptyOrNullString() );
-        assertThat( responseMap.get( periodIsoDate ), isEmptyOrNullString() );
-        assertThat( responseMap.get( dataElementA.getUid() ), isEmptyOrNullString() );
-        assertThat( responseMap.get( dataElementB.getUid() ), isEmptyOrNullString() );
-        assertThat( responseMap.get( categoryOptionComboC.getUid() ), isEmptyOrNullString() );
-        assertThat( responseMap.get( categoryOptionComboC.getUid() ), isEmptyOrNullString() );
+        assertThat( responseMap.get( orgUnitUid ), is( emptyOrNullString() ) );
+        assertThat( responseMap.get( periodIsoDate ), is( emptyOrNullString() ) );
+        assertThat( responseMap.get( dataElementA.getUid() ), is( emptyOrNullString() ) );
+        assertThat( responseMap.get( dataElementB.getUid() ), is( emptyOrNullString() ) );
+        assertThat( responseMap.get( categoryOptionComboC.getUid() ), is( emptyOrNullString() ) );
+        assertThat( responseMap.get( categoryOptionComboC.getUid() ), is( emptyOrNullString() ) );
     }
 
     @Test
-    public void testGetSchemeIdResponseMapWhenOutputIdSchemeIsSetToUid()
+    void testGetSchemeIdResponseMapWhenOutputIdSchemeIsSetToUid()
     {
         // Given
         final List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
@@ -185,16 +183,16 @@ public class SchemaIdResponseMapperTest
         final DataElement dataElementB = dataElementOperandsStub.get( 1 ).getDataElement();
         final CategoryOptionCombo categoryOptionComboC = dataElementOperandsStub.get( 0 ).getCategoryOptionCombo();
 
-        assertThat( responseMap.get( orgUnitUid ), isEmptyOrNullString() );
-        assertThat( responseMap.get( periodIsoDate ), isEmptyOrNullString() );
-        assertThat( responseMap.get( dataElementA.getUid() ), isEmptyOrNullString() );
-        assertThat( responseMap.get( dataElementB.getUid() ), isEmptyOrNullString() );
-        assertThat( responseMap.get( categoryOptionComboC.getUid() ), isEmptyOrNullString() );
-        assertThat( responseMap.get( categoryOptionComboC.getUid() ), isEmptyOrNullString() );
+        assertThat( responseMap.get( orgUnitUid ), is( emptyOrNullString() ) );
+        assertThat( responseMap.get( periodIsoDate ), is( emptyOrNullString() ) );
+        assertThat( responseMap.get( dataElementA.getUid() ), is( emptyOrNullString() ) );
+        assertThat( responseMap.get( dataElementB.getUid() ), is( emptyOrNullString() ) );
+        assertThat( responseMap.get( categoryOptionComboC.getUid() ), is( emptyOrNullString() ) );
+        assertThat( responseMap.get( categoryOptionComboC.getUid() ), is( emptyOrNullString() ) );
     }
 
     @Test
-    public void testGetSchemeIdResponseMapWhenOutputDataElementIdSchemeIsSetToNameForDataValueSet()
+    void testGetSchemeIdResponseMapWhenOutputDataElementIdSchemeIsSetToNameForDataValueSet()
     {
         // Given
         final List<DataElement> dataElementsStub = stubDataElements();
@@ -220,7 +218,7 @@ public class SchemaIdResponseMapperTest
     }
 
     @Test
-    public void testGetSchemeIdResponseMapWhenOutputDataElementIdSchemeIsSetToCodeForDataValueSet()
+    void testGetSchemeIdResponseMapWhenOutputDataElementIdSchemeIsSetToCodeForDataValueSet()
     {
         // Given
         final List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
@@ -249,7 +247,7 @@ public class SchemaIdResponseMapperTest
     }
 
     @Test
-    public void testGetSchemeIdResponseMapWhenOutputDataElementIdSchemeIsSetToUuidForDataValueSet()
+    void testGetSchemeIdResponseMapWhenOutputDataElementIdSchemeIsSetToUuidForDataValueSet()
     {
         // Given
         final List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
@@ -271,14 +269,14 @@ public class SchemaIdResponseMapperTest
 
         assertThat( responseMap.get( orgUnitUid ), is( equalTo( orUnitStub.getUid() ) ) );
         assertThat( responseMap.get( periodIsoDate ), is( equalTo( periodStub.getUid() ) ) );
-        assertThat( responseMap.get( dataElementA.getUid() ), isEmptyOrNullString() );
-        assertThat( responseMap.get( dataElementB.getUid() ), isEmptyOrNullString() );
-        assertThat( responseMap.get( categoryOptionComboC.getUid() ), isEmptyOrNullString() );
-        assertThat( responseMap.get( categoryOptionComboC.getUid() ), isEmptyOrNullString() );
+        assertThat( responseMap.get( dataElementA.getUid() ), is( emptyOrNullString() ) );
+        assertThat( responseMap.get( dataElementB.getUid() ), is( emptyOrNullString() ) );
+        assertThat( responseMap.get( categoryOptionComboC.getUid() ), is( emptyOrNullString() ) );
+        assertThat( responseMap.get( categoryOptionComboC.getUid() ), is( emptyOrNullString() ) );
     }
 
     @Test
-    public void testGetSchemeIdResponseMapWhenOutputDataElementIdSchemeIsSetToUidForDataValueSet()
+    void testGetSchemeIdResponseMapWhenOutputDataElementIdSchemeIsSetToUidForDataValueSet()
     {
         // Given
         final List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
@@ -300,14 +298,14 @@ public class SchemaIdResponseMapperTest
 
         assertThat( responseMap.get( orgUnitUid ), is( equalTo( orUnitStub.getUid() ) ) );
         assertThat( responseMap.get( periodIsoDate ), is( equalTo( periodStub.getUid() ) ) );
-        assertThat( responseMap.get( dataElementA.getUid() ), isEmptyOrNullString() );
-        assertThat( responseMap.get( dataElementB.getUid() ), isEmptyOrNullString() );
-        assertThat( responseMap.get( categoryOptionComboC.getUid() ), isEmptyOrNullString() );
-        assertThat( responseMap.get( categoryOptionComboC.getUid() ), isEmptyOrNullString() );
+        assertThat( responseMap.get( dataElementA.getUid() ), is( emptyOrNullString() ) );
+        assertThat( responseMap.get( dataElementB.getUid() ), is( emptyOrNullString() ) );
+        assertThat( responseMap.get( categoryOptionComboC.getUid() ), is( emptyOrNullString() ) );
+        assertThat( responseMap.get( categoryOptionComboC.getUid() ), is( emptyOrNullString() ) );
     }
 
     @Test
-    public void testGetSchemeIdResponseMapWhenOutputOrgUnitIdSchemeIsSetToNameForDataValueSet()
+    void testGetSchemeIdResponseMapWhenOutputOrgUnitIdSchemeIsSetToNameForDataValueSet()
     {
         // Given
         final List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
@@ -329,14 +327,14 @@ public class SchemaIdResponseMapperTest
 
         assertThat( responseMap.get( orgUnitUid ), is( equalTo( orUnitStub.getName() ) ) );
         assertThat( responseMap.get( periodIsoDate ), is( equalTo( periodStub.getUid() ) ) );
-        assertThat( responseMap.get( dataElementA.getUid() ), isEmptyOrNullString() );
-        assertThat( responseMap.get( dataElementB.getUid() ), isEmptyOrNullString() );
-        assertThat( responseMap.get( categoryOptionComboC.getUid() ), isEmptyOrNullString() );
-        assertThat( responseMap.get( categoryOptionComboC.getUid() ), isEmptyOrNullString() );
+        assertThat( responseMap.get( dataElementA.getUid() ), is( emptyOrNullString() ) );
+        assertThat( responseMap.get( dataElementB.getUid() ), is( emptyOrNullString() ) );
+        assertThat( responseMap.get( categoryOptionComboC.getUid() ), is( emptyOrNullString() ) );
+        assertThat( responseMap.get( categoryOptionComboC.getUid() ), is( emptyOrNullString() ) );
     }
 
     @Test
-    public void testGetSchemeIdResponseMapWhenOutputOrgUnitIdSchemeIsSetToCodeForDataValueSet()
+    void testGetSchemeIdResponseMapWhenOutputOrgUnitIdSchemeIsSetToCodeForDataValueSet()
     {
         // Given
         final List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
@@ -358,14 +356,14 @@ public class SchemaIdResponseMapperTest
 
         assertThat( responseMap.get( orgUnitUid ), is( equalTo( orUnitStub.getCode() ) ) );
         assertThat( responseMap.get( periodIsoDate ), is( equalTo( periodStub.getUid() ) ) );
-        assertThat( responseMap.get( dataElementA.getUid() ), isEmptyOrNullString() );
-        assertThat( responseMap.get( dataElementB.getUid() ), isEmptyOrNullString() );
-        assertThat( responseMap.get( categoryOptionComboC.getUid() ), isEmptyOrNullString() );
-        assertThat( responseMap.get( categoryOptionComboC.getUid() ), isEmptyOrNullString() );
+        assertThat( responseMap.get( dataElementA.getUid() ), is( emptyOrNullString() ) );
+        assertThat( responseMap.get( dataElementB.getUid() ), is( emptyOrNullString() ) );
+        assertThat( responseMap.get( categoryOptionComboC.getUid() ), is( emptyOrNullString() ) );
+        assertThat( responseMap.get( categoryOptionComboC.getUid() ), is( emptyOrNullString() ) );
     }
 
     @Test
-    public void testGetSchemeIdResponseMapWhenOutputOrgUnitIdSchemeIsSetToUuidForDataValueSet()
+    void testGetSchemeIdResponseMapWhenOutputOrgUnitIdSchemeIsSetToUuidForDataValueSet()
     {
         // Given
         final List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
@@ -385,16 +383,16 @@ public class SchemaIdResponseMapperTest
         final DataElement dataElementB = dataElementOperandsStub.get( 1 ).getDataElement();
         final CategoryOptionCombo categoryOptionComboC = dataElementOperandsStub.get( 0 ).getCategoryOptionCombo();
 
-        assertThat( responseMap.get( orgUnitUid ), isEmptyOrNullString() );
+        assertThat( responseMap.get( orgUnitUid ), is( emptyOrNullString() ) );
         assertThat( responseMap.get( periodIsoDate ), is( periodStub.getUid() ) );
-        assertThat( responseMap.get( dataElementA.getUid() ), isEmptyOrNullString() );
-        assertThat( responseMap.get( dataElementB.getUid() ), isEmptyOrNullString() );
-        assertThat( responseMap.get( categoryOptionComboC.getUid() ), isEmptyOrNullString() );
-        assertThat( responseMap.get( categoryOptionComboC.getUid() ), isEmptyOrNullString() );
+        assertThat( responseMap.get( dataElementA.getUid() ), is( emptyOrNullString() ) );
+        assertThat( responseMap.get( dataElementB.getUid() ), is( emptyOrNullString() ) );
+        assertThat( responseMap.get( categoryOptionComboC.getUid() ), is( emptyOrNullString() ) );
+        assertThat( responseMap.get( categoryOptionComboC.getUid() ), is( emptyOrNullString() ) );
     }
 
     @Test
-    public void testGetSchemeIdResponseMapWhenOutputOrgUnitIdSchemeIsSetToUidForDataValueSet()
+    void testGetSchemeIdResponseMapWhenOutputOrgUnitIdSchemeIsSetToUidForDataValueSet()
     {
         // Given
         final List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
@@ -416,14 +414,14 @@ public class SchemaIdResponseMapperTest
 
         assertThat( responseMap.get( orgUnitUid ), is( equalTo( orUnitStub.getUid() ) ) );
         assertThat( responseMap.get( periodIsoDate ), is( equalTo( periodStub.getUid() ) ) );
-        assertThat( responseMap.get( dataElementA.getUid() ), isEmptyOrNullString() );
-        assertThat( responseMap.get( dataElementB.getUid() ), isEmptyOrNullString() );
-        assertThat( responseMap.get( categoryOptionComboC.getUid() ), isEmptyOrNullString() );
-        assertThat( responseMap.get( categoryOptionComboC.getUid() ), isEmptyOrNullString() );
+        assertThat( responseMap.get( dataElementA.getUid() ), is( emptyOrNullString() ) );
+        assertThat( responseMap.get( dataElementB.getUid() ), is( emptyOrNullString() ) );
+        assertThat( responseMap.get( categoryOptionComboC.getUid() ), is( emptyOrNullString() ) );
+        assertThat( responseMap.get( categoryOptionComboC.getUid() ), is( emptyOrNullString() ) );
     }
 
     @Test
-    public void testGetSchemeIdResponseMapWhenOutputOrgUnitIdSchemeOverridesOutputOrgUnitIdSchemeForDataValueSet()
+    void testGetSchemeIdResponseMapWhenOutputOrgUnitIdSchemeOverridesOutputOrgUnitIdSchemeForDataValueSet()
     {
         // Given
         final List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
@@ -455,7 +453,7 @@ public class SchemaIdResponseMapperTest
     }
 
     @Test
-    public void testGetSchemeIdResponseMapWhenOutputDataElementIdSchemeOverridesOutputOrgUnitIdSchemeForDataValueSet()
+    void testGetSchemeIdResponseMapWhenOutputDataElementIdSchemeOverridesOutputOrgUnitIdSchemeForDataValueSet()
     {
         // Given
         final List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
@@ -488,7 +486,7 @@ public class SchemaIdResponseMapperTest
     }
 
     @Test
-    public void testGetSchemeIdResponseMapWhenOutputDataElementAndOrgUnitIdSchemeOverrideOutputOrgUnitIdSchemeForDataValueSet()
+    void testGetSchemeIdResponseMapWhenOutputDataElementAndOrgUnitIdSchemeOverrideOutputOrgUnitIdSchemeForDataValueSet()
     {
         // Given
         final List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();

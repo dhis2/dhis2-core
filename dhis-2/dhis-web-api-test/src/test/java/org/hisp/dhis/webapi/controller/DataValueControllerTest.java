@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,13 +29,13 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.webapi.WebClient.Body;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
 
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 
@@ -45,14 +45,14 @@ import org.springframework.http.HttpStatus;
  *
  * @author Jan Bernitt
  */
-public class DataValueControllerTest extends AbstractDataValueControllerTest
+class DataValueControllerTest extends AbstractDataValueControllerTest
 {
 
     @Autowired
     private DataValueService dataValueService;
 
     @Test
-    public void testSetDataValuesFollowUp_Empty()
+    void testSetDataValuesFollowUp_Empty()
     {
         assertEquals( "Follow-up must be specified",
             PUT( "/dataValues/followups", Body( "{}" ) ).error( HttpStatus.CONFLICT ).getMessage() );
@@ -63,47 +63,42 @@ public class DataValueControllerTest extends AbstractDataValueControllerTest
     }
 
     @Test
-    public void testSetDataValuesFollowUp_NonExisting()
+    void testSetDataValuesFollowUp_NonExisting()
     {
         addDataValue( "2021-01", "2", null, false );
         assertEquals( "Data value does not exist",
-            PUT( "/dataValues/followups", Body( String.format( "{'values':[%s]}",
-                dataValueKeyJSON( "2021-02", true ) ) ) ).error( HttpStatus.CONFLICT ).getMessage() );
+            PUT( "/dataValues/followups",
+                Body( String.format( "{'values':[%s]}", dataValueKeyJSON( "2021-02", true ) ) ) )
+                    .error( HttpStatus.CONFLICT ).getMessage() );
     }
 
     @Test
-    public void testSetDataValuesFollowUp_Single()
+    void testSetDataValuesFollowUp_Single()
     {
         addDataValue( "2021-01", "2", null, false );
-
-        assertStatus( HttpStatus.OK, PUT( "/dataValues/followups", Body( String.format( "{'values':[%s]}",
-            dataValueKeyJSON( "2021-01", true ) ) ) ) );
+        assertStatus( HttpStatus.OK, PUT( "/dataValues/followups",
+            Body( String.format( "{'values':[%s]}", dataValueKeyJSON( "2021-01", true ) ) ) ) );
         assertFollowups( true );
-
-        assertStatus( HttpStatus.OK, PUT( "/dataValues/followups", Body( String.format( "{'values':[%s]}",
-            dataValueKeyJSON( "2021-01", false ) ) ) ) );
+        assertStatus( HttpStatus.OK, PUT( "/dataValues/followups",
+            Body( String.format( "{'values':[%s]}", dataValueKeyJSON( "2021-01", false ) ) ) ) );
         assertFollowups( false );
     }
 
     @Test
-    public void testSetDataValuesFollowUp_Multi()
+    void testSetDataValuesFollowUp_Multi()
     {
         addDataValue( "2021-01", "2", null, false );
         addDataValue( "2021-02", "3", null, false );
         addDataValue( "2021-03", "4", null, false );
-
-        assertStatus( HttpStatus.OK, PUT( "/dataValues/followups", Body( String.format( "{'values':[%s, %s, %s]}",
-            dataValueKeyJSON( "2021-01", true ),
-            dataValueKeyJSON( "2021-02", true ),
-            dataValueKeyJSON( "2021-03", true ) ) ) ) );
-
+        assertStatus( HttpStatus.OK,
+            PUT( "/dataValues/followups",
+                Body( String.format( "{'values':[%s, %s, %s]}", dataValueKeyJSON( "2021-01", true ),
+                    dataValueKeyJSON( "2021-02", true ), dataValueKeyJSON( "2021-03", true ) ) ) ) );
         assertFollowups( true, true, true );
-
-        assertStatus( HttpStatus.OK, PUT( "/dataValues/followups", Body( String.format( "{'values':[%s, %s, %s]}",
-            dataValueKeyJSON( "2021-01", false ),
-            dataValueKeyJSON( "2021-02", true ),
-            dataValueKeyJSON( "2021-03", false ) ) ) ) );
-
+        assertStatus( HttpStatus.OK,
+            PUT( "/dataValues/followups",
+                Body( String.format( "{'values':[%s, %s, %s]}", dataValueKeyJSON( "2021-01", false ),
+                    dataValueKeyJSON( "2021-02", true ), dataValueKeyJSON( "2021-03", false ) ) ) ) );
         assertFollowups( false, true, false );
     }
 
@@ -118,7 +113,7 @@ public class DataValueControllerTest extends AbstractDataValueControllerTest
             expectedTrue += expected[i] ? 1 : 0;
             actualTrue += values.get( i ).isFollowup() ? 1 : 0;
         }
-        assertEquals( "Number of values marked for followup does not match", expectedTrue, actualTrue );
+        assertEquals( expectedTrue, actualTrue, "Number of values marked for followup does not match" );
     }
 
     private String dataValueKeyJSON( String period, boolean followup )

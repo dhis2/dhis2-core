@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -118,6 +118,7 @@ public class DefaultSchemaService
         register( new DocumentSchemaDescriptor() );
         register( new EventChartSchemaDescriptor() );
         register( new EventReportSchemaDescriptor() );
+        register( new EventVisualizationSchemaDescriptor() );
         register( new ExpressionSchemaDescriptor() );
         register( new FileResourceSchemaDescriptor() );
         register( new IconSchemaDescriptor() );

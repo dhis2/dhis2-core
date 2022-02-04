@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,40 +27,39 @@
  */
 package org.hisp.dhis.system.util;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Arrays;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Lars Helge Overland
  * @version $Id: MathUtil.java 4712 2008-03-12 10:32:45Z larshelg $
  */
-public class MathUtilsTest
+class MathUtilsTest
 {
+
     private static final double DELTA = 0.0001;
 
     @Test
-    public void testGetMin()
+    void testGetMin()
     {
         double[] array = { 5.0, 2.0, 6.0, 12.0 };
-
-        assertEquals( 2.0, MathUtils.getMin( array ), DELTA );
+        assertEquals( MathUtils.getMin( array ), DELTA, 2.0 );
     }
 
     @Test
-    public void testGetMax()
+    void testGetMax()
     {
         double[] array = { 5.0, 2.0, 12.0, 6.0 };
-
-        assertEquals( 12.0, MathUtils.getMax( array ), DELTA );
+        assertEquals( MathUtils.getMax( array ), DELTA, 12.0 );
     }
 
     @Test
-    public void testIsNumeric()
+    void testIsNumeric()
     {
         assertTrue( MathUtils.isNumeric( "123" ) );
         assertTrue( MathUtils.isNumeric( "0" ) );
@@ -74,7 +73,6 @@ public class MathUtilsTest
         assertTrue( MathUtils.isNumeric( "6.34" ) );
         assertTrue( MathUtils.isNumeric( "3.34" ) );
         assertTrue( MathUtils.isNumeric( "2.43" ) );
-
         assertFalse( MathUtils.isNumeric( "Hey" ) );
         assertFalse( MathUtils.isNumeric( "45 Perinatal Condition" ) );
         assertFalse( MathUtils.isNumeric( "Long street 2" ) );
@@ -103,7 +101,7 @@ public class MathUtilsTest
     }
 
     @Test
-    public void testIsNumericLenient()
+    void testIsNumericLenient()
     {
         assertTrue( MathUtils.isNumericLenient( "0123" ) );
         assertTrue( MathUtils.isNumericLenient( "123" ) );
@@ -119,7 +117,6 @@ public class MathUtilsTest
         assertTrue( MathUtils.isNumericLenient( "6.34" ) );
         assertTrue( MathUtils.isNumericLenient( "3.342" ) );
         assertTrue( MathUtils.isNumericLenient( "2.43" ) );
-
         assertFalse( MathUtils.isNumericLenient( "Hey" ) );
         assertFalse( MathUtils.isNumericLenient( "45 Perinatal Condition" ) );
         assertFalse( MathUtils.isNumericLenient( "Long street 2" ) );
@@ -145,13 +142,12 @@ public class MathUtilsTest
     }
 
     @Test
-    public void testIsUnitInterval()
+    void testIsUnitInterval()
     {
         assertTrue( MathUtils.isUnitInterval( "0" ) );
         assertTrue( MathUtils.isUnitInterval( "0.2" ) );
         assertTrue( MathUtils.isUnitInterval( "0.876" ) );
         assertTrue( MathUtils.isUnitInterval( "1" ) );
-
         assertFalse( MathUtils.isUnitInterval( "2" ) );
         assertFalse( MathUtils.isUnitInterval( "-1" ) );
         assertFalse( MathUtils.isUnitInterval( "abc" ) );
@@ -159,12 +155,11 @@ public class MathUtilsTest
     }
 
     @Test
-    public void testIsPercentage()
+    void testIsPercentage()
     {
         assertTrue( MathUtils.isPercentage( "0" ) );
         assertTrue( MathUtils.isPercentage( "15" ) );
         assertTrue( MathUtils.isPercentage( "100" ) );
-
         assertFalse( MathUtils.isPercentage( "abc" ) );
         assertFalse( MathUtils.isPercentage( "-1" ) );
         assertTrue( MathUtils.isPercentage( "12.5" ) );
@@ -173,13 +168,12 @@ public class MathUtilsTest
     }
 
     @Test
-    public void testIsInteger()
+    void testIsInteger()
     {
         assertTrue( MathUtils.isInteger( "1" ) );
         assertTrue( MathUtils.isInteger( "123" ) );
         assertTrue( MathUtils.isInteger( "-2" ) );
         assertTrue( MathUtils.isInteger( "0" ) );
-
         assertFalse( MathUtils.isInteger( "1.1" ) );
         assertFalse( MathUtils.isInteger( "+4" ) );
         assertFalse( MathUtils.isInteger( "-0" ) );
@@ -191,11 +185,10 @@ public class MathUtilsTest
     }
 
     @Test
-    public void testIsPositiveInteger()
+    void testIsPositiveInteger()
     {
         assertTrue( MathUtils.isPositiveInteger( "1" ) );
         assertTrue( MathUtils.isPositiveInteger( "123" ) );
-
         assertFalse( MathUtils.isPositiveInteger( "0" ) );
         assertFalse( MathUtils.isPositiveInteger( "+2" ) );
         assertFalse( MathUtils.isPositiveInteger( "-2" ) );
@@ -209,11 +202,10 @@ public class MathUtilsTest
     }
 
     @Test
-    public void testIsNegativeInteger()
+    void testIsNegativeInteger()
     {
         assertTrue( MathUtils.isNegativeInteger( "-1" ) );
         assertTrue( MathUtils.isNegativeInteger( "-123" ) );
-
         assertFalse( MathUtils.isNegativeInteger( "0" ) );
         assertFalse( MathUtils.isNegativeInteger( "+2" ) );
         assertFalse( MathUtils.isNegativeInteger( "2" ) );
@@ -227,11 +219,10 @@ public class MathUtilsTest
     }
 
     @Test
-    public void testIsZeroOrPositiveInteger()
+    void testIsZeroOrPositiveInteger()
     {
         assertTrue( MathUtils.isZeroOrPositiveInteger( "0" ) );
         assertTrue( MathUtils.isZeroOrPositiveInteger( "123" ) );
-
         assertFalse( MathUtils.isZeroOrPositiveInteger( "012" ) );
         assertFalse( MathUtils.isZeroOrPositiveInteger( "+20" ) );
         assertFalse( MathUtils.isZeroOrPositiveInteger( "-2" ) );
@@ -245,7 +236,7 @@ public class MathUtilsTest
     }
 
     @Test
-    public void testIsCoordinate()
+    void testIsCoordinate()
     {
         assertTrue( MathUtils.isCoordinate( "[0.0,0.0]" ) );
         assertTrue( MathUtils.isCoordinate( "[18, 65]" ) );
@@ -255,7 +246,6 @@ public class MathUtilsTest
         assertTrue( MathUtils.isCoordinate( "   [18.56 ,  65.342   ]    " ) );
         assertTrue( MathUtils.isCoordinate( "   [  -180 ,  -90]    " ) );
         assertTrue( MathUtils.isCoordinate( "   [  12.30 ,  45.67    ]    " ) );
-
         assertFalse( MathUtils.isCoordinate( "" ) );
         assertFalse( MathUtils.isCoordinate( null ) );
         assertFalse( MathUtils.isCoordinate( "18.56a, 65.342b" ) );
@@ -274,10 +264,9 @@ public class MathUtilsTest
     }
 
     @Test
-    public void testIsZero()
+    void testIsZero()
     {
         assertTrue( MathUtils.isZero( "0" ) );
-
         assertFalse( MathUtils.isZero( "+0" ) );
         assertFalse( MathUtils.isZero( "-0" ) );
         assertFalse( MathUtils.isZero( "2232" ) );
@@ -286,13 +275,13 @@ public class MathUtilsTest
     }
 
     @Test
-    public void testGetAverage()
+    void testGetAverage()
     {
-        assertEquals( 7.5, MathUtils.getAverage( Arrays.asList( 5.0, 5.0, 10.0, 10.0 ) ), DELTA );
+        assertEquals( MathUtils.getAverage( Arrays.asList( 5.0, 5.0, 10.0, 10.0 ) ), DELTA, 7.5 );
     }
 
     @Test
-    public void testGetRounded()
+    void testGetRounded()
     {
         assertEquals( 10, MathUtils.getRounded( 10.00 ), DELTA );
         assertEquals( 10, MathUtils.getRounded( 10 ), DELTA );
@@ -304,7 +293,7 @@ public class MathUtilsTest
     }
 
     @Test
-    public void testRoundToSignificantDigits()
+    void testRoundToSignificantDigits()
     {
         assertEquals( 0.1, MathUtils.roundToSignificantDigits( .1357, 1 ), DELTA );
         assertEquals( 0.14, MathUtils.roundToSignificantDigits( .1357, 2 ), DELTA );
@@ -328,7 +317,7 @@ public class MathUtilsTest
     }
 
     @Test
-    public void testRoundFraction()
+    void testRoundFraction()
     {
         assertEquals( 1.0, MathUtils.roundFraction( 1.357, 1 ), DELTA );
         assertEquals( 1.4, MathUtils.roundFraction( 1.357, 2 ), DELTA );

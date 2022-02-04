@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +27,9 @@
  */
 package org.hisp.dhis.dataset;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
+
+import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -40,27 +41,16 @@ import org.springframework.stereotype.Component;
 
 /**
  * @author Lars Helge Overland
- * @version $Id$
  */
-@Component( "org.hisp.dhis.dataset.CompleteDataSetRegistrationDeletionHandler" )
-public class CompleteDataSetRegistrationDeletionHandler
-    extends DeletionHandler
+@Component
+@AllArgsConstructor
+public class CompleteDataSetRegistrationDeletionHandler extends DeletionHandler
 {
     private static final DeletionVeto VETO = new DeletionVeto( CompleteDataSetRegistration.class );
 
     private final CompleteDataSetRegistrationService completeDataSetRegistrationService;
 
     private final JdbcTemplate jdbcTemplate;
-
-    public CompleteDataSetRegistrationDeletionHandler(
-        CompleteDataSetRegistrationService completeDataSetRegistrationService, JdbcTemplate jdbcTemplate )
-    {
-        checkNotNull( completeDataSetRegistrationService );
-        checkNotNull( jdbcTemplate );
-
-        this.completeDataSetRegistrationService = completeDataSetRegistrationService;
-        this.jdbcTemplate = jdbcTemplate;
-    }
 
     @Override
     protected void register()
@@ -78,9 +68,7 @@ public class CompleteDataSetRegistrationDeletionHandler
 
     private DeletionVeto allowDeletePeriod( Period period )
     {
-        String sql = "SELECT COUNT(*) FROM completedatasetregistration where periodid=" + period.getId();
-
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? ACCEPT : VETO;
+        return vetoIfExists( "SELECT COUNT(*) FROM completedatasetregistration where periodid=" + period.getId() );
     }
 
     private void deleteOrganisationUnit( OrganisationUnit unit )
@@ -90,9 +78,14 @@ public class CompleteDataSetRegistrationDeletionHandler
 
     private DeletionVeto allowDeleteCategoryOptionCombo( CategoryOptionCombo optionCombo )
     {
-        String sql = "SELECT COUNT(*) FROM completedatasetregistration where attributeoptioncomboid="
-            + optionCombo.getId();
 
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? ACCEPT : VETO;
+        return vetoIfExists( "SELECT COUNT(*) FROM completedatasetregistration where attributeoptioncomboid="
+            + optionCombo.getId() );
+    }
+
+    private DeletionVeto vetoIfExists( String sql )
+    {
+        Integer count = jdbcTemplate.queryForObject( sql, Integer.class );
+        return count == null || count == 0 ? ACCEPT : VETO;
     }
 }

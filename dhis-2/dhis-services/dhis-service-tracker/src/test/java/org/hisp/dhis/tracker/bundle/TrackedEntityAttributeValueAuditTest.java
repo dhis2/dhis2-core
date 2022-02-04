@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.tracker.bundle;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
 import java.util.List;
@@ -48,14 +48,15 @@ import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.hisp.dhis.user.CurrentUserService;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Zubair Asghar
  */
-public class TrackedEntityAttributeValueAuditTest extends TrackerTest
+class TrackedEntityAttributeValueAuditTest extends TrackerTest
 {
+
     @Autowired
     private TrackerImportService trackerImportService;
 
@@ -79,75 +80,49 @@ public class TrackedEntityAttributeValueAuditTest extends TrackerTest
     }
 
     @Test
-    public void testTrackedEntityAttributeValueAuditCreate()
+    void testTrackedEntityAttributeValueAuditCreate()
         throws IOException
     {
         TrackerImportParams trackerImportParams = fromJson( "tracker/te_program_with_tea_data.json" );
         trackerImportParams.setUser( currentUserService.getCurrentUser() );
-
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-
         assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
-
         List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
         assertEquals( 1, trackedEntityInstances.size() );
-
         TrackedEntityInstance trackedEntityInstance = trackedEntityInstances.get( 0 );
-
         List<TrackedEntityAttributeValue> attributeValues = trackedEntityAttributeValueService
-            .getTrackedEntityAttributeValues(
-                trackedEntityInstance );
-
+            .getTrackedEntityAttributeValues( trackedEntityInstance );
         assertEquals( 4, attributeValues.size() );
-
         List<TrackedEntityAttribute> attributes = attributeValues.stream()
             .map( TrackedEntityAttributeValue::getAttribute ).collect( Collectors.toList() );
-
         List<TrackedEntityAttributeValueAudit> attributeValueAudits = attributeValueAuditService
-            .getTrackedEntityAttributeValueAudits(
-                attributes, trackedEntityInstances, AuditType.CREATE );
-
+            .getTrackedEntityAttributeValueAudits( attributes, trackedEntityInstances, AuditType.CREATE );
         assertEquals( 4, attributeValueAudits.size() );
     }
 
     @Test
-    public void testTrackedEntityAttributeValueAuditDelete()
+    void testTrackedEntityAttributeValueAuditDelete()
         throws IOException
     {
         TrackerImportParams trackerImportParams = fromJson( "tracker/te_program_with_tea_data.json" );
         trackerImportParams.setUser( currentUserService.getCurrentUser() );
-
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-
         assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
-
         List<TrackedEntityAttributeValue> attributeValues1 = trackedEntityAttributeValueService
-            .getTrackedEntityAttributeValues(
-                manager.getAll( TrackedEntityInstance.class ).get( 0 ) );
-
+            .getTrackedEntityAttributeValues( manager.getAll( TrackedEntityInstance.class ).get( 0 ) );
         List<TrackedEntityAttribute> attributes1 = attributeValues1.stream()
             .map( TrackedEntityAttributeValue::getAttribute ).collect( Collectors.toList() );
-
         trackerImportParams = fromJson( "tracker/te_program_with_tea_null_data.json" );
         trackerImportParams.setUser( currentUserService.getCurrentUser() );
-
         trackerImportParams.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
         trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-
         assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
-
         List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
-
         List<TrackedEntityAttributeValueAudit> attributeValueAudits = attributeValueAuditService
-            .getTrackedEntityAttributeValueAudits(
-                attributes1, trackedEntityInstances, AuditType.DELETE );
-
+            .getTrackedEntityAttributeValueAudits( attributes1, trackedEntityInstances, AuditType.DELETE );
         assertEquals( 1, attributeValueAudits.size() );
-
-        attributeValueAudits = attributeValueAuditService
-            .getTrackedEntityAttributeValueAudits(
-                attributes1, trackedEntityInstances, AuditType.UPDATE );
-
+        attributeValueAudits = attributeValueAuditService.getTrackedEntityAttributeValueAudits( attributes1,
+            trackedEntityInstances, AuditType.UPDATE );
         assertEquals( 1, attributeValueAudits.size() );
     }
 }

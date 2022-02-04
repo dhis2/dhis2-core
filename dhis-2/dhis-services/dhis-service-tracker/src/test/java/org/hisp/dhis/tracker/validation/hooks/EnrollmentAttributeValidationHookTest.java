@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,8 +29,7 @@ package org.hisp.dhis.tracker.validation.hooks;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.hisp.dhis.tracker.validation.hooks.AssertValidationErrorReporter.hasTrackerError;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
@@ -38,6 +37,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
@@ -45,6 +45,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.TrackerIdScheme;
+import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.Enrollment;
@@ -52,25 +53,25 @@ import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Luca Cambi <luca@dhis2.org>
  */
-public class EnrollmentAttributeValidationHookTest
+@MockitoSettings( strictness = Strictness.LENIENT )
+@ExtendWith( MockitoExtension.class )
+class EnrollmentAttributeValidationHookTest
 {
 
     @InjectMocks
     private EnrollmentAttributeValidationHook hookToTest;
-
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Mock
     private TrackerImportValidationContext validationContext;
@@ -93,13 +94,11 @@ public class EnrollmentAttributeValidationHookTest
 
     private final static String trackedAttribute1 = "attribute1";
 
-    private final static String invalidTrackedAttribute = "invalidAttribute";
-
     private TrackedEntityAttribute trackedEntityAttribute;
 
     private TrackedEntityAttribute trackedEntityAttribute1;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
 
@@ -116,6 +115,10 @@ public class EnrollmentAttributeValidationHookTest
         when( validationContext.getTrackedEntityAttribute( trackedAttribute ) ).thenReturn( trackedEntityAttribute );
         when( validationContext.getTrackedEntityAttribute( trackedAttribute1 ) ).thenReturn( trackedEntityAttribute1 );
 
+        String uid = CodeGenerator.generateUid();
+        when( enrollment.getUid() ).thenReturn( uid );
+        when( enrollment.getEnrollment() ).thenReturn( uid );
+        when( enrollment.getTrackerType() ).thenCallRealMethod();
         enrollment.setTrackedEntity( trackedEntity );
 
         TrackerBundle bundle = TrackerBundle.builder().build();
@@ -125,7 +128,7 @@ public class EnrollmentAttributeValidationHookTest
     }
 
     @Test
-    public void shouldFailValidationWhenValueIsNullAndAttributeIsMandatory()
+    void shouldFailValidationWhenValueIsNullAndAttributeIsMandatory()
     {
         // given 1 attribute has null value
         Attribute attribute = Attribute.builder().attribute( trackedAttribute ).valueType( ValueType.TEXT )
@@ -145,15 +148,15 @@ public class EnrollmentAttributeValidationHookTest
         when( preheat.getTrackedEntity( TrackerIdScheme.UID, enrollment.getTrackedEntity() ) )
             .thenReturn( trackedEntityInstance );
 
-        ValidationErrorReporter validationErrorReporter = new ValidationErrorReporter( validationContext );
-        hookToTest.validateEnrollment( validationErrorReporter, enrollment );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
+        hookToTest.validateEnrollment( reporter, enrollment );
 
-        assertThat( validationErrorReporter.getReportList(), hasSize( 1 ) );
-        assertEquals( TrackerErrorCode.E1076, validationErrorReporter.getReportList().get( 0 ).getErrorCode() );
+        assertThat( reporter.getReportList(), hasSize( 1 ) );
+        hasTrackerError( reporter, TrackerErrorCode.E1076, TrackerType.ENROLLMENT, enrollment.getUid() );
     }
 
     @Test
-    public void shouldPassValidationWhenValueIsNullAndAttributeIsNotMandatory()
+    void shouldPassValidationWhenValueIsNullAndAttributeIsNotMandatory()
     {
         // given 1 attribute has null value
         Attribute attribute = Attribute.builder().attribute( trackedAttribute ).valueType( ValueType.TEXT )
@@ -173,14 +176,14 @@ public class EnrollmentAttributeValidationHookTest
         when( preheat.getTrackedEntity( TrackerIdScheme.UID, enrollment.getTrackedEntity() ) )
             .thenReturn( trackedEntityInstance );
 
-        ValidationErrorReporter validationErrorReporter = new ValidationErrorReporter( validationContext );
-        hookToTest.validateEnrollment( validationErrorReporter, enrollment );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
+        hookToTest.validateEnrollment( reporter, enrollment );
 
-        assertThat( validationErrorReporter.getReportList(), hasSize( 0 ) );
+        assertThat( reporter.getReportList(), hasSize( 0 ) );
     }
 
     @Test
-    public void shouldFailValidationWhenValueIsNullAndAttributeIsNotMandatoryAndAttributeNotExistsInTei()
+    void shouldFailValidationWhenValueIsNullAndAttributeIsNotMandatoryAndAttributeNotExistsInTei()
     {
         // given 1 attribute has null value and do not exists in Tei
         Attribute attribute = Attribute.builder().attribute( trackedAttribute ).valueType( ValueType.TEXT )
@@ -199,18 +202,16 @@ public class EnrollmentAttributeValidationHookTest
         when( preheat.getTrackedEntity( TrackerIdScheme.UID, enrollment.getTrackedEntity() ) )
             .thenReturn( trackedEntityInstance );
 
-        ValidationErrorReporter validationErrorReporter = new ValidationErrorReporter( validationContext );
-        hookToTest.validateEnrollment( validationErrorReporter, enrollment );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
+        hookToTest.validateEnrollment( reporter, enrollment );
 
-        assertThat( validationErrorReporter.getReportList(), hasSize( 2 ) );
-        assertTrue( validationErrorReporter.getReportList().stream()
-            .anyMatch( rl -> rl.getErrorCode().equals( TrackerErrorCode.E1076 ) ) );
-        assertTrue( validationErrorReporter.getReportList().stream()
-            .anyMatch( rl -> rl.getErrorCode().equals( TrackerErrorCode.E1018 ) ) );
+        assertThat( reporter.getReportList(), hasSize( 2 ) );
+        hasTrackerError( reporter, TrackerErrorCode.E1076, TrackerType.ENROLLMENT, enrollment.getUid() );
+        hasTrackerError( reporter, TrackerErrorCode.E1018, TrackerType.ENROLLMENT, enrollment.getUid() );
     }
 
     @Test
-    public void shouldFailValidationWhenAttributeIsNotPresentInDB()
+    void shouldFailValidationWhenAttributeIsNotPresentInDB()
     {
         Attribute attribute = Attribute.builder()
             .attribute( "invalidAttribute" )
@@ -218,21 +219,22 @@ public class EnrollmentAttributeValidationHookTest
             .value( "value" )
             .build();
 
-        when( program.getProgramAttributes() ).thenReturn( Arrays.asList() );
+        when( program.getProgramAttributes() ).thenReturn( Collections.emptyList() );
 
-        when( enrollment.getAttributes() ).thenReturn( Arrays.asList( attribute ) );
+        when( enrollment.getAttributes() ).thenReturn( Collections.singletonList( attribute ) );
         when( trackedEntityInstance.getTrackedEntityAttributeValues() )
             .thenReturn( new HashSet<>( Collections
                 .singletonList( new TrackedEntityAttributeValue( trackedEntityAttribute, trackedEntityInstance ) ) ) );
         when( preheat.getTrackedEntity( TrackerIdScheme.UID, enrollment.getTrackedEntity() ) )
             .thenReturn( trackedEntityInstance );
 
-        ValidationErrorReporter validationErrorReporter = new ValidationErrorReporter( validationContext );
-        hookToTest.validateEnrollment( validationErrorReporter, enrollment );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
+        hookToTest.validateEnrollment( reporter, enrollment );
 
-        assertThat( validationErrorReporter.getReportList(), hasSize( 1 ) );
-        assertTrue( validationErrorReporter.getReportList().stream()
-            .anyMatch( rl -> rl.getErrorCode().equals( TrackerErrorCode.E1006 ) ) );
+        assertThat( reporter.getReportList(), hasSize( 1 ) );
+        hasTrackerError( reporter,
+            TrackerErrorCode.E1006,
+            TrackerType.ENROLLMENT,
+            enrollment.getUid() );
     }
-
 }

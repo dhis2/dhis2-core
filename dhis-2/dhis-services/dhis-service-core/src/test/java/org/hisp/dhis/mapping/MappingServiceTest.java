@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,8 @@
  */
 package org.hisp.dhis.mapping;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.category.Category;
@@ -41,7 +42,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDimension;
 import org.hisp.dhis.render.RenderService;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Lists;
@@ -49,9 +50,9 @@ import com.google.common.collect.Lists;
 /**
  * @author Lars Helge Overland
  */
-public class MappingServiceTest
-    extends DhisSpringTest
+class MappingServiceTest extends DhisSpringTest
 {
+
     @Autowired
     private IdentifiableObjectManager idObjectManager;
 
@@ -86,42 +87,31 @@ public class MappingServiceTest
     }
 
     @Test
-    public void testAddGet()
+    void testAddGet()
     {
         MapView mvA = new MapView( "thematic" );
-
         CategoryDimension cadA = new CategoryDimension();
         cadA.setDimension( caA );
         cadA.setItems( Lists.newArrayList( coA ) );
-
         OrganisationUnitGroupSetDimension ougsdA = new OrganisationUnitGroupSetDimension();
         ougsdA.setDimension( ougsA );
         ougsdA.setItems( Lists.newArrayList( ougA ) );
-
         mvA.addCategoryDimension( cadA );
         mvA.addDataDimensionItem( deA );
         mvA.getOrganisationUnits().add( ouA );
         mvA.addOrganisationUnitGroupSetDimension( ougsdA );
-
         Map mpA = new Map( "MapA", null, 0d, 0d, 0 );
         mpA.getMapViews().add( mvA );
-
         long id = mappingService.addMap( mpA );
-
         Map map = mappingService.getMap( id );
-
         assertNotNull( map );
         assertEquals( 1, map.getMapViews().size() );
-
         MapView mapView = map.getMapViews().get( 0 );
-
         assertNotNull( mapView );
-
         assertEquals( 1, mapView.getCategoryDimensions().size() );
         assertEquals( 1, mapView.getDataElements().size() );
         assertEquals( 1, mapView.getOrganisationUnits().size() );
         assertEquals( 1, mapView.getOrganisationUnitGroupSetDimensions().size() );
-
         assertEquals( cadA, mapView.getCategoryDimensions().get( 0 ) );
         assertEquals( deA, mapView.getDataElements().get( 0 ) );
         assertEquals( ouA, mapView.getOrganisationUnits().get( 0 ) );

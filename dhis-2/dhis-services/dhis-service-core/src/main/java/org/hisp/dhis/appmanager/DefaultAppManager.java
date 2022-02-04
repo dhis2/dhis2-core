@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,11 +48,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheBuilderProvider;
+import org.hisp.dhis.datastore.DatastoreNamespaceProtection;
+import org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionType;
+import org.hisp.dhis.datastore.DatastoreService;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.keyjsonvalue.KeyJsonNamespaceProtection;
-import org.hisp.dhis.keyjsonvalue.KeyJsonNamespaceProtection.ProtectionType;
-import org.hisp.dhis.keyjsonvalue.KeyJsonValueService;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -78,7 +78,7 @@ public class DefaultAppManager
 
     private final AppStorageService jCloudsAppStorageService;
 
-    private final KeyJsonValueService keyJsonValueService;
+    private final DatastoreService datastoreService;
 
     /**
      * In-memory storage of installed apps. Initially loaded on startup. Should
@@ -90,20 +90,20 @@ public class DefaultAppManager
         CurrentUserService currentUserService,
         @Qualifier( "org.hisp.dhis.appmanager.LocalAppStorageService" ) AppStorageService localAppStorageService,
         @Qualifier( "org.hisp.dhis.appmanager.JCloudsAppStorageService" ) AppStorageService jCloudsAppStorageService,
-        KeyJsonValueService keyJsonValueService, CacheBuilderProvider cacheBuilderProvider )
+        DatastoreService datastoreService, CacheBuilderProvider cacheBuilderProvider )
     {
         checkNotNull( dhisConfigurationProvider );
         checkNotNull( currentUserService );
         checkNotNull( localAppStorageService );
         checkNotNull( jCloudsAppStorageService );
-        checkNotNull( keyJsonValueService );
+        checkNotNull( datastoreService );
         checkNotNull( cacheBuilderProvider );
 
         this.dhisConfigurationProvider = dhisConfigurationProvider;
         this.currentUserService = currentUserService;
         this.localAppStorageService = localAppStorageService;
         this.jCloudsAppStorageService = jCloudsAppStorageService;
-        this.keyJsonValueService = keyJsonValueService;
+        this.datastoreService = datastoreService;
         this.appCache = cacheBuilderProvider.<App> newCacheBuilder()
             .forRegion( "appCache" )
             .build();
@@ -423,7 +423,7 @@ public class DefaultAppManager
         String namespace = app.getActivities().getDhis().getNamespace();
         if ( namespace != null && !namespace.isEmpty() )
         {
-            keyJsonValueService.deleteNamespace( namespace );
+            datastoreService.deleteNamespace( namespace );
             log.info( String.format( "Deleted app namespace '%s'", namespace ) );
         }
     }
@@ -436,8 +436,8 @@ public class DefaultAppManager
             String[] authorities = app.getShortName() == null
                 ? new String[] { WEB_MAINTENANCE_APPMANAGER_AUTHORITY }
                 : new String[] { WEB_MAINTENANCE_APPMANAGER_AUTHORITY, app.getSeeAppAuthority() };
-            keyJsonValueService.addProtection(
-                new KeyJsonNamespaceProtection( namespace, ProtectionType.RESTRICTED, true, authorities ) );
+            datastoreService.addProtection(
+                new DatastoreNamespaceProtection( namespace, ProtectionType.RESTRICTED, true, authorities ) );
         }
     }
 
@@ -446,7 +446,7 @@ public class DefaultAppManager
         String namespace = app.getActivities().getDhis().getNamespace();
         if ( namespace != null && !namespace.isEmpty() )
         {
-            keyJsonValueService.removeProtection( namespace );
+            datastoreService.removeProtection( namespace );
         }
     }
 }

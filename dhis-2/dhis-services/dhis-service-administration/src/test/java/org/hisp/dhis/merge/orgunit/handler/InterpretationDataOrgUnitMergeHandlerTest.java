@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.merge.orgunit.handler;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.DhisSpringTest;
@@ -38,16 +38,16 @@ import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.visualization.Visualization;
 import org.hisp.dhis.visualization.VisualizationService;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Lars Helge Overland
  */
-public class InterpretationDataOrgUnitMergeHandlerTest
-    extends DhisSpringTest
+class InterpretationDataOrgUnitMergeHandlerTest extends DhisSpringTest
 {
+
     @Autowired
     private VisualizationService visualizationService;
 
@@ -77,44 +77,34 @@ public class InterpretationDataOrgUnitMergeHandlerTest
 
     private Interpretation ipC;
 
-    @Before
-    public void beforeTest()
+    @BeforeEach
+    void beforeTest()
     {
         ouA = createOrganisationUnit( 'A' );
         ouB = createOrganisationUnit( 'B' );
         ouC = createOrganisationUnit( 'C' );
-
         manager.save( ouA );
         manager.save( ouB );
         manager.save( ouC );
-
         vzA = createVisualization( 'A' );
         visualizationService.save( vzA );
-
         ipA = new Interpretation( vzA, ouA, "Interpration of visualization A" );
         ipB = new Interpretation( vzA, ouB, "Interpration of visualization B" );
         ipC = new Interpretation( vzA, ouC, "Interpration of visualization C" );
     }
 
     @Test
-    public void testMigrate()
+    void testMigrate()
     {
         interpretationService.saveInterpretation( ipA );
         interpretationService.saveInterpretation( ipB );
         interpretationService.saveInterpretation( ipC );
-
         assertEquals( 1, getInterpretationCount( ouA ) );
         assertEquals( 1, getInterpretationCount( ouB ) );
         assertEquals( 1, getInterpretationCount( ouC ) );
-
-        OrgUnitMergeRequest request = new OrgUnitMergeRequest.Builder()
-            .addSource( ouA )
-            .addSource( ouB )
-            .withTarget( ouC )
-            .build();
-
+        OrgUnitMergeRequest request = new OrgUnitMergeRequest.Builder().addSource( ouA ).addSource( ouB )
+            .withTarget( ouC ).build();
         mergeHandler.mergeInterpretations( request );
-
         assertEquals( 0, getInterpretationCount( ouA ) );
         assertEquals( 0, getInterpretationCount( ouB ) );
         assertEquals( 3, getInterpretationCount( ouC ) );
@@ -131,7 +121,6 @@ public class InterpretationDataOrgUnitMergeHandlerTest
     {
         return (Long) sessionFactory.getCurrentSession()
             .createQuery( "select count(*) from Interpretation i where i.organisationUnit = :target" )
-            .setParameter( "target", target )
-            .uniqueResult();
+            .setParameter( "target", target ).uniqueResult();
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.program;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashSet;
 import java.util.List;
@@ -39,15 +39,15 @@ import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.dataentryform.DataEntryFormService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Chau Thu Tran
  */
-public class ProgramStoreTest
-    extends DhisSpringTest
+class ProgramStoreTest extends DhisSpringTest
 {
+
     @Autowired
     private ProgramStore programStore;
 
@@ -72,58 +72,45 @@ public class ProgramStoreTest
     {
         organisationUnitA = createOrganisationUnit( 'A' );
         organisationUnitService.addOrganisationUnit( organisationUnitA );
-
         organisationUnitB = createOrganisationUnit( 'B' );
         organisationUnitService.addOrganisationUnit( organisationUnitB );
-
         programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
         programA.setUid( "UID-A" );
-
         programB = createProgram( 'B', new HashSet<>(), organisationUnitA );
         programB.setUid( "UID-B" );
-
         programC = createProgram( 'C', new HashSet<>(), organisationUnitB );
         programC.setUid( "UID-C" );
     }
 
     @Test
-    public void testGetProgramsByType()
+    void testGetProgramsByType()
     {
         programStore.save( programA );
         programStore.save( programB );
-
         programC.setProgramType( ProgramType.WITHOUT_REGISTRATION );
         programStore.save( programC );
-
         List<Program> programs = programStore.getByType( ProgramType.WITH_REGISTRATION );
         assertTrue( equals( programs, programA, programB ) );
-
         programs = programStore.getByType( ProgramType.WITHOUT_REGISTRATION );
         assertTrue( equals( programs, programC ) );
     }
 
     @Test
-    public void testGetProgramsByDataEntryForm()
+    void testGetProgramsByDataEntryForm()
     {
         DataEntryForm formX = createDataEntryForm( 'X' );
         DataEntryForm formY = createDataEntryForm( 'Y' );
-
         dataEntryFormService.addDataEntryForm( formX );
         dataEntryFormService.addDataEntryForm( formY );
-
         programA.setDataEntryForm( formX );
         programB.setDataEntryForm( formX );
-
         programStore.save( programA );
         programStore.save( programB );
         programStore.save( programC );
-
         List<Program> withFormX = programStore.getByDataEntryForm( formX );
         assertEquals( 2, withFormX.size() );
         assertFalse( withFormX.contains( programC ) );
-
         programC.setDataEntryForm( formY );
-
         List<Program> withFormY = programStore.getByDataEntryForm( formY );
         assertEquals( 1, withFormY.size() );
         assertEquals( programC, withFormY.get( 0 ) );

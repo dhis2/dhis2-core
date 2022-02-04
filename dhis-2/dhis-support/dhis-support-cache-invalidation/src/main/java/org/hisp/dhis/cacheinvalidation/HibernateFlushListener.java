@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.cacheinvalidation;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.hibernate.HibernateException;
 import org.hibernate.action.spi.BeforeTransactionCompletionProcess;
 import org.hibernate.event.spi.FlushEvent;
@@ -49,7 +47,6 @@ import org.springframework.stereotype.Component;
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Slf4j
 @Profile( { "!test", "!test-h2" } )
 @Conditional( value = DebeziumCacheInvalidationEnabledCondition.class )
 @Component
@@ -58,6 +55,7 @@ public class HibernateFlushListener implements FlushEventListener
     @Autowired
     private transient KnownTransactionsService knownTransactionsService;
 
+    @Override
     public void onFlush( FlushEvent event )
         throws HibernateException
     {

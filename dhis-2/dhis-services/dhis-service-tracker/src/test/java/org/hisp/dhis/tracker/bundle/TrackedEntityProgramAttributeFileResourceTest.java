@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.tracker.bundle;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
@@ -44,15 +44,15 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class TrackedEntityProgramAttributeFileResourceTest
-    extends TrackerTest
+class TrackedEntityProgramAttributeFileResourceTest extends TrackerTest
 {
+
     @Autowired
     private TrackerBundleService trackerBundleService;
 
@@ -73,33 +73,24 @@ public class TrackedEntityProgramAttributeFileResourceTest
     }
 
     @Test
-    public void testTrackedEntityProgramAttributeFileResourceValue()
+    void testTrackedEntityProgramAttributeFileResourceValue()
         throws IOException
     {
-        FileResource fileResource = new FileResource( "test.pdf", "application/pdf",
-            0, "d41d8cd98f00b204e9800998ecf8427e", FileResourceDomain.DOCUMENT );
+        FileResource fileResource = new FileResource( "test.pdf", "application/pdf", 0,
+            "d41d8cd98f00b204e9800998ecf8427e", FileResourceDomain.DOCUMENT );
         fileResource.setUid( "Jzf6hHNP7jx" );
         File file = File.createTempFile( "file-resource", "test" );
-
         fileResourceService.saveFileResource( fileResource, file );
         assertFalse( fileResource.isAssigned() );
-
         TrackerImportParams trackerImportParams = fromJson( "tracker/te_program_with_tea_fileresource_data.json" );
         TrackerBundle trackerBundle = trackerBundleService.create( trackerImportParams );
-
         trackerBundleService.commit( trackerBundle );
-
         List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
         assertEquals( 1, trackedEntityInstances.size() );
-
         TrackedEntityInstance trackedEntityInstance = trackedEntityInstances.get( 0 );
-
         List<TrackedEntityAttributeValue> attributeValues = trackedEntityAttributeValueService
-            .getTrackedEntityAttributeValues(
-                trackedEntityInstance );
-
+            .getTrackedEntityAttributeValues( trackedEntityInstance );
         assertEquals( 5, attributeValues.size() );
-
         fileResource = fileResourceService.getFileResource( fileResource.getUid() );
         assertTrue( fileResource.isAssigned() );
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,8 +30,8 @@ package org.hisp.dhis.dxf2.metadata.objectbundle;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Set;
@@ -46,7 +46,7 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.hooks.VersionedObjectObjectBundl
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.Visualization;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests weather or not the {@link ObjectBundleHooks#getObjectHooks(Object)} and
@@ -55,63 +55,54 @@ import org.junit.Test;
  *
  * @author Jan Bernitt
  */
-public class ObjectBundleHooksTest
+class ObjectBundleHooksTest
 {
 
-    private final ObjectBundleHooks hooks = new ObjectBundleHooks( asList(
-        new OrganisationUnitObjectBundleHook( null, null ),
-        new UserObjectBundleHook( null, null, null, null ),
-        new IdentifiableObjectBundleHook( null ),
-        new VersionedObjectObjectBundleHook(),
-        new AnalyticalObjectObjectBundleHook( null ) ) );
+    private final ObjectBundleHooks hooks = new ObjectBundleHooks(
+        asList( new OrganisationUnitObjectBundleHook( null, null ), new UserObjectBundleHook( null, null, null, null ),
+            new IdentifiableObjectBundleHook( null ), new VersionedObjectObjectBundleHook(),
+            new AnalyticalObjectObjectBundleHook( null ) ) );
 
     @Test
-    public void testMatchingClassBoundIsIncluded()
+    void testMatchingClassBoundIsIncluded()
     {
         assertHasHooksOfType( new OrganisationUnit(), OrganisationUnitObjectBundleHook.class );
         assertHasHooksOfType( new User(), UserObjectBundleHook.class );
     }
 
     @Test
-    public void testNonMatchingClassBoundIsNotIncluded()
+    void testNonMatchingClassBoundIsNotIncluded()
     {
         assertHasNotHooksOfType( new OrganisationUnit(), UserObjectBundleHook.class );
         assertHasNotHooksOfType( new User(), OrganisationUnitObjectBundleHook.class );
     }
 
     @Test
-    public void testMatchingInterfaceBoundIsIncluded()
+    void testMatchingInterfaceBoundIsIncluded()
     {
-        assertHasHooksOfType( new OrganisationUnit(),
-            IdentifiableObjectBundleHook.class, VersionedObjectObjectBundleHook.class );
-        assertHasHooksOfType( new User(),
-            IdentifiableObjectBundleHook.class, VersionedObjectObjectBundleHook.class );
-        assertHasHooksOfType( new Visualization(),
-            IdentifiableObjectBundleHook.class, VersionedObjectObjectBundleHook.class,
-            AnalyticalObjectObjectBundleHook.class );
+        assertHasHooksOfType( new OrganisationUnit(), IdentifiableObjectBundleHook.class,
+            VersionedObjectObjectBundleHook.class );
+        assertHasHooksOfType( new User(), IdentifiableObjectBundleHook.class, VersionedObjectObjectBundleHook.class );
+        assertHasHooksOfType( new Visualization(), IdentifiableObjectBundleHook.class,
+            VersionedObjectObjectBundleHook.class, AnalyticalObjectObjectBundleHook.class );
     }
 
     @Test
-    public void testNonMatchingInterfaceBoundIsNotIncluded()
+    void testNonMatchingInterfaceBoundIsNotIncluded()
     {
         assertHasNotHooksOfType( new OrganisationUnit(), AnalyticalObjectObjectBundleHook.class );
         assertHasNotHooksOfType( new User(), AnalyticalObjectObjectBundleHook.class );
     }
 
     @Test
-    public void testCommitHooksForObjectTypes()
+    void testCommitHooksForObjectTypes()
     {
-        assertEquals(
-            singletonList( OrganisationUnitObjectBundleHook.class ),
+        assertEquals( singletonList( OrganisationUnitObjectBundleHook.class ),
             getCommitHookTypes( OrganisationUnit.class ) );
-        assertEquals(
-            singletonList( UserObjectBundleHook.class ),
-            getCommitHookTypes( User.class ) );
-        assertEquals(
-            asList( OrganisationUnitObjectBundleHook.class, UserObjectBundleHook.class ),
+        assertEquals( singletonList( UserObjectBundleHook.class ), getCommitHookTypes( User.class ) );
+        assertEquals( asList( OrganisationUnitObjectBundleHook.class, UserObjectBundleHook.class ),
             getCommitHookTypes( OrganisationUnit.class, User.class ) );
-        assertEquals(
-            asList( OrganisationUnitObjectBundleHook.class, UserObjectBundleHook.class ),
+        assertEquals( asList( OrganisationUnitObjectBundleHook.class, UserObjectBundleHook.class ),
             getCommitHookTypes( Visualization.class, OrganisationUnit.class, User.class ) );
     }
 
@@ -137,7 +128,7 @@ public class ObjectBundleHooksTest
         Set<Class<?>> actualClasses = actual.stream().map( Object::getClass ).collect( Collectors.toSet() );
         List<Class<? extends ObjectBundleHook<? super T>>> expectedClasses = asList( expected );
         String message = actualClasses + " did not contain all " + expectedClasses;
-        assertTrue( message, actualClasses.containsAll( expectedClasses ) );
+        assertTrue( actualClasses.containsAll( expectedClasses ), message );
     }
 
     private <T> void assertNoMembers( List<ObjectBundleHook<? super T>> actual,
@@ -146,7 +137,7 @@ public class ObjectBundleHooksTest
         Set<Class<?>> actualClasses = actual.stream().map( Object::getClass ).collect( Collectors.toSet() );
         List<Class<? extends ObjectBundleHook<?>>> expectedClasses = asList( expected );
         String message = actualClasses + " did contain at least one of " + expectedClasses;
-        assertTrue( message, actualClasses.stream().noneMatch( expectedClasses::contains ) );
+        assertTrue( actualClasses.stream().noneMatch( expectedClasses::contains ), message );
     }
 
     @SafeVarargs

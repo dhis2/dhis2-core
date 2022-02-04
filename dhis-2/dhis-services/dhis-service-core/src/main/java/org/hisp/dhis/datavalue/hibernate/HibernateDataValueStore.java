@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -198,10 +198,10 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
         }
         else if ( params.hasStartEndDate() )
         {
-            hql += "and (pe.startDate >= :startDate and pe.endDate < :endDate) ";
+            hql += "and (pe.startDate >= :startDate and pe.endDate <= :endDate) ";
         }
 
-        if ( params.isIncludeChildrenForOrganisationUnits() )
+        if ( params.isIncludeDescendantsForOrganisationUnits() )
         {
             hql += "and (";
 
@@ -267,7 +267,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
             query.setParameter( "startDate", params.getStartDate() ).setParameter( "endDate", params.getEndDate() );
         }
 
-        if ( !params.isIncludeChildrenForOrganisationUnits() && !organisationUnits.isEmpty() )
+        if ( !params.isIncludeDescendantsForOrganisationUnits() && !organisationUnits.isEmpty() )
         {
             query.setParameterList( "orgUnits", getIdentifiers( organisationUnits ) );
         }
@@ -313,7 +313,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
         boolean joinOrgUnit = params.isOrderByOrgUnitPath()
             || params.hasOrgUnitLevel()
             || params.getOuMode() == DESCENDANTS
-            || params.isIncludeChildren();
+            || params.isIncludeDescendants();
 
         String sql = "select dv.dataelementid, dv.periodid, dv.sourceid" +
             ", dv.categoryoptioncomboid, dv.attributeoptioncomboid, dv.value" +
@@ -385,7 +385,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
         if ( params.hasOrgUnitLevel() )
         {
             where += sqlHelper.whereAnd() + "ou.hierarchylevel " +
-                (params.isIncludeChildren() ? ">" : "") +
+                (params.isIncludeDescendants() ? ">" : "") +
                 "= " + params.getOrgUnitLevel();
         }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,7 @@ package org.hisp.dhis.dataset;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.PrimaryKeyObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 
@@ -41,7 +42,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @JacksonXmlRootElement( localName = "lockException", namespace = DxfNamespaces.DXF_2_0 )
-public class LockException
+public class LockException implements PrimaryKeyObject
 {
     private long id;
 
@@ -74,6 +75,13 @@ public class LockException
         return dataSet.getName() + " (" + organisationUnit.getName() + ", " + period.getName() + ")";
     }
 
+    @Override
+    public String getUid()
+    {
+        return String.valueOf( id );
+    }
+
+    @Override
     public long getId()
     {
         return id;

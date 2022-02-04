@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,10 @@
  */
 package org.hisp.dhis.dataset.notifications;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -46,15 +49,15 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserService;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Created by zubair@dhis2.org on 28.07.17.
  */
-public class DataSetNotificationTemplateServiceTest
-    extends DhisSpringTest
+class DataSetNotificationTemplateServiceTest extends DhisSpringTest
 {
+
     @Autowired
     private DataSetNotificationTemplateService dsntService;
 
@@ -119,141 +122,110 @@ public class DataSetNotificationTemplateServiceTest
     // -------------------------------------------------------------------------
     // Fixture
     // -------------------------------------------------------------------------
-
     @Override
     protected void setUpTest()
         throws Exception
     {
-
         ouA = createOrganisationUnit( "ouA" );
         ouB = createOrganisationUnit( "ouB" );
         ouC = createOrganisationUnit( "ouC" );
-
         organisationUnitService.addOrganisationUnit( ouA );
         organisationUnitService.addOrganisationUnit( ouB );
         organisationUnitService.addOrganisationUnit( ouC );
-
         dataSetA = createDataSet( 'A', new MonthlyPeriodType() );
         dataSetB = createDataSet( 'B', new MonthlyPeriodType() );
         dataSetC = createDataSet( 'C', new MonthlyPeriodType() );
-
         dataSetA.getSources().add( ouA );
         dataSetA.getSources().add( ouB );
         dataSetB.getSources().add( ouA );
         dataSetB.getSources().add( ouB );
         dataSetC.getSources().add( ouA );
         dataSetC.getSources().add( ouB );
-
         dataSetService.addDataSet( dataSetA );
         dataSetService.addDataSet( dataSetB );
         dataSetService.addDataSet( dataSetC );
-
         userA = createUser( 'A' );
         userB = createUser( 'B' );
-
         userService.addUser( userA );
         userService.addUser( userB );
-
         dataSets.addAll( Arrays.asList( dataSetA, dataSetB, dataSetC ) );
-
         users.addAll( Arrays.asList( userA, userB ) );
-
         channels.addAll( Arrays.asList( smsChannel, emailChannel ) );
-
         userGroupA = createUserGroup( 'A', users );
         userGroupB = createUserGroup( 'B', users );
-
         userGroupService.addUserGroup( userGroupA );
         userGroupService.addUserGroup( userGroupB );
-
         notificationRecipient = DataSetNotificationRecipient.ORGANISATION_UNIT_CONTACT;
     }
 
     @Test
-    public void testSaveGet()
+    void testSaveGet()
     {
         templateA = new DataSetNotificationTemplate( dataSets, channels, message, notificationRecipient, completion,
             subject, userGroupA, 0, SendStrategy.SINGLE_NOTIFICATION );
         templateA.setAutoFields();
         templateA.setName( templateNameA );
-
         dsntService.save( templateA );
-
         DataSetNotificationTemplate fetched = dsntService.get( templateA.getUid() );
-
         assertNotNull( fetched );
         assertEquals( templateA.getUid(), fetched.getUid() );
     }
 
     @Test
-    public void testDelete()
+    void testDelete()
     {
         templateA = new DataSetNotificationTemplate( dataSets, channels, message, notificationRecipient, completion,
             subject, userGroupA, 0, SendStrategy.SINGLE_NOTIFICATION );
         templateA.setAutoFields();
         templateA.setName( templateNameA );
-
         templateB = new DataSetNotificationTemplate( dataSets, channels, message, notificationRecipient, completion,
             subject, userGroupB, 0, SendStrategy.SINGLE_NOTIFICATION );
         templateB.setAutoFields();
         templateB.setName( templateNameB );
-
         dsntService.save( templateA );
         dsntService.save( templateB );
-
         DataSetNotificationTemplate fetchedA = dsntService.get( templateA.getUid() );
         DataSetNotificationTemplate fetchedB = dsntService.get( templateB.getUid() );
-
         assertNotNull( fetchedA );
         assertNotNull( fetchedB );
-
         dsntService.delete( templateA );
-
         DataSetNotificationTemplate deletedA = dsntService.get( templateA.getUid() );
         DataSetNotificationTemplate keptB = dsntService.get( templateB.getUid() );
-
         assertNull( deletedA );
         assertNotNull( keptB );
     }
 
     @Test
-    public void testGetAll()
+    void testGetAll()
     {
         templateA = new DataSetNotificationTemplate( dataSets, channels, message, notificationRecipient, completion,
             subject, userGroupA, 0, SendStrategy.SINGLE_NOTIFICATION );
         templateA.setAutoFields();
         templateA.setName( templateNameA );
-
         templateB = new DataSetNotificationTemplate( dataSets, channels, message, notificationRecipient, completion,
             subject, userGroupB, 0, SendStrategy.SINGLE_NOTIFICATION );
         templateB.setAutoFields();
         templateB.setName( templateNameB );
-
         dsntService.save( templateA );
         dsntService.save( templateB );
-
         List<DataSetNotificationTemplate> templates = dsntService.getAll();
-
         assertEquals( 2, templates.size() );
         assertTrue( templates.contains( templateA ) );
     }
 
     @Test
-    public void testGetNotificationsByTriggerType()
+    void testGetNotificationsByTriggerType()
     {
         templateA = new DataSetNotificationTemplate( dataSets, channels, message, notificationRecipient, completion,
             subject, userGroupA, 0, SendStrategy.SINGLE_NOTIFICATION );
         templateA.setAutoFields();
         templateA.setName( templateNameA );
-
         templateB = new DataSetNotificationTemplate( dataSets, channels, message, notificationRecipient, completion,
             subject, userGroupB, 0, SendStrategy.SINGLE_NOTIFICATION );
         templateB.setAutoFields();
         templateB.setName( templateNameB );
-
         dsntService.save( templateA );
         dsntService.save( templateB );
-
         assertEquals( 2, dsntService.getCompleteNotifications( dataSetA ).size() );
     }
 }

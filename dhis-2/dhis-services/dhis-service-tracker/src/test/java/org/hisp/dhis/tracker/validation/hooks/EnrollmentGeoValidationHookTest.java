@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,43 +27,46 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.hisp.dhis.tracker.TrackerType.ENROLLMENT;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1012;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1074;
+import static org.hisp.dhis.tracker.validation.hooks.AssertValidationErrorReporter.hasTrackerError;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Enrico Colasante
  */
-public class EnrollmentGeoValidationHookTest
+@MockitoSettings( strictness = Strictness.LENIENT )
+@ExtendWith( MockitoExtension.class )
+class EnrollmentGeoValidationHookTest
 {
+
     private static final String PROGRAM = "Program";
 
     private EnrollmentGeoValidationHook hookToTest;
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
     @Mock
     private TrackerImportValidationContext validationContext;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         hookToTest = new EnrollmentGeoValidationHook();
@@ -78,14 +81,14 @@ public class EnrollmentGeoValidationHookTest
     }
 
     @Test
-    public void testGeometryIsValid()
+    void testGeometryIsValid()
     {
         // given
         Enrollment enrollment = new Enrollment();
         enrollment.setProgram( PROGRAM );
         enrollment.setGeometry( new GeometryFactory().createPoint() );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, enrollment );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
 
         // when
         this.hookToTest.validateEnrollment( reporter, enrollment );
@@ -94,31 +97,29 @@ public class EnrollmentGeoValidationHookTest
         assertFalse( reporter.hasErrors() );
     }
 
-    @Test( expected = NullPointerException.class )
-    public void testEnrollmentWithNoProgramThrowsAnError()
+    @Test
+    void testEnrollmentWithNoProgramThrowsAnError()
     {
         // given
         Enrollment enrollment = new Enrollment();
         enrollment.setProgram( null );
         enrollment.setGeometry( new GeometryFactory().createPoint() );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, enrollment );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
 
-        // when
-        this.hookToTest.validateEnrollment( reporter, enrollment );
-
-        // then
+        assertThrows( NullPointerException.class, () -> this.hookToTest.validateEnrollment( reporter, enrollment ) );
     }
 
     @Test
-    public void testProgramWithNullFeatureTypeFailsGeometryValidation()
+    void testProgramWithNullFeatureTypeFailsGeometryValidation()
     {
         // given
         Enrollment enrollment = new Enrollment();
+        enrollment.setEnrollment( CodeGenerator.generateUid() );
         enrollment.setProgram( PROGRAM );
         enrollment.setGeometry( new GeometryFactory().createPoint() );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, enrollment );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
 
         // when
         Program program = new Program();
@@ -127,19 +128,19 @@ public class EnrollmentGeoValidationHookTest
         this.hookToTest.validateEnrollment( reporter, enrollment );
 
         // then
-        assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E1074 ) );
+        hasTrackerError( reporter, E1074, ENROLLMENT, enrollment.getUid() );
     }
 
     @Test
-    public void testProgramWithFeatureTypeNoneFailsGeometryValidation()
+    void testProgramWithFeatureTypeNoneFailsGeometryValidation()
     {
         // given
         Enrollment enrollment = new Enrollment();
+        enrollment.setEnrollment( CodeGenerator.generateUid() );
         enrollment.setProgram( PROGRAM );
         enrollment.setGeometry( new GeometryFactory().createPoint() );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, enrollment );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
 
         // when
         Program program = new Program();
@@ -149,19 +150,19 @@ public class EnrollmentGeoValidationHookTest
         this.hookToTest.validateEnrollment( reporter, enrollment );
 
         // then
-        assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E1012 ) );
+        hasTrackerError( reporter, E1012, ENROLLMENT, enrollment.getUid() );
     }
 
     @Test
-    public void testProgramWithFeatureTypeDifferentFromGeometryFails()
+    void testProgramWithFeatureTypeDifferentFromGeometryFails()
     {
         // given
         Enrollment enrollment = new Enrollment();
+        enrollment.setEnrollment( CodeGenerator.generateUid() );
         enrollment.setProgram( PROGRAM );
         enrollment.setGeometry( new GeometryFactory().createPoint() );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, enrollment );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
 
         // when
         Program program = new Program();
@@ -171,7 +172,6 @@ public class EnrollmentGeoValidationHookTest
         this.hookToTest.validateEnrollment( reporter, enrollment );
 
         // then
-        assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E1012 ) );
+        hasTrackerError( reporter, E1012, ENROLLMENT, enrollment.getUid() );
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -137,8 +137,8 @@ public class AnalyticsUtils
             throw new IllegalQueryException( ErrorCode.E7400 );
         }
 
-        String sql = "select de.name as de_name, de.uid as de_uid, de.dataelementid as de_id, pe.startdate as start_date, pe.enddate as end_date, pt.name as pt_name, "
-            +
+        String sql = "select de.name as de_name, de.uid as de_uid, de.dataelementid as de_id, " +
+            "pe.startdate as start_date, pe.enddate as end_date, pt.name as pt_name, " +
             "ou.name as ou_name, ou.uid as ou_uid, ou.organisationunitid as ou_id, " +
             "coc.name as coc_name, coc.uid as coc_uid, coc.categoryoptioncomboid as coc_id, " +
             "aoc.name as aoc_name, aoc.uid as aoc_uid, aoc.categoryoptioncomboid as aoc_id, dv.value as datavalue " +
@@ -149,8 +149,8 @@ public class AnalyticsUtils
             "inner join organisationunit ou on dv.sourceid = ou.organisationunitid " +
             "inner join categoryoptioncombo coc on dv.categoryoptioncomboid = coc.categoryoptioncomboid " +
             "inner join categoryoptioncombo aoc on dv.attributeoptioncomboid = aoc.categoryoptioncomboid " +
-            "where dv.dataelementid in ("
-            + StringUtils.join( IdentifiableObjectUtils.getIdentifiers( dataElements ), "," ) + ") " +
+            "where dv.dataelementid in (" +
+            StringUtils.join( IdentifiableObjectUtils.getIdentifiers( dataElements ), "," ) + ") " +
             "and (";
 
         for ( DimensionalItemObject period : periods )

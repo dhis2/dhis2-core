@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +27,9 @@
  */
 package org.hisp.dhis.trackedentity;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -40,25 +41,24 @@ import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserService;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author David Katuscak
  */
-public class TrackedEntityAttributeServiceTest
+@ExtendWith( MockitoExtension.class )
+class TrackedEntityAttributeServiceTest
 {
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Mock
     private TrackedEntityAttributeStore trackedEntityAttributeStore;
@@ -92,6 +92,9 @@ public class TrackedEntityAttributeServiceTest
 
     private TrackedEntityAttributeService trackedEntityAttributeService;
 
+    @Mock
+    private OrganisationUnitService organisationUnitService;
+
     private TrackedEntityInstance teiPassedInPayload;
 
     private final String identicalTeiUid = "TeiUid12345";
@@ -102,12 +105,12 @@ public class TrackedEntityAttributeServiceTest
 
     private TrackedEntityAttribute tea;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         trackedEntityAttributeService = new DefaultTrackedEntityAttributeService( attributeStore, programService,
             trackedEntityTypeService, fileResourceService, userService, currentUserService, aclService,
-            trackedEntityAttributeStore, entityTypeAttributeStore, programAttributeStore );
+            trackedEntityAttributeStore, entityTypeAttributeStore, programAttributeStore, organisationUnitService );
 
         orgUnit = new OrganisationUnit( "orgUnitA" );
 
@@ -122,14 +125,15 @@ public class TrackedEntityAttributeServiceTest
         tea.setOrgunitScope( false );
     }
 
-    @Test( expected = IllegalArgumentException.class )
-    public void shouldThrowWhenTeaIsNull()
+    @Test
+    void shouldThrowWhenTeaIsNull()
     {
-        trackedEntityAttributeService.validateValueType( null, "" );
+        assertThrows( IllegalArgumentException.class,
+            () -> trackedEntityAttributeService.validateValueType( null, "" ) );
     }
 
     @Test
-    public void identicalTeiWithTheSameUniqueAttributeExistsInSystem()
+    void identicalTeiWithTheSameUniqueAttributeExistsInSystem()
     {
         when( trackedEntityAttributeStore
             .getTrackedEntityInstanceUidWithUniqueAttributeValue( any( TrackedEntityInstanceQueryParams.class ) ) )
@@ -143,7 +147,7 @@ public class TrackedEntityAttributeServiceTest
     }
 
     @Test
-    public void differentTeiWithTheSameUniqueAttributeExistsInSystem()
+    void differentTeiWithTheSameUniqueAttributeExistsInSystem()
     {
         when( trackedEntityAttributeStore
             .getTrackedEntityInstanceUidWithUniqueAttributeValue( any( TrackedEntityInstanceQueryParams.class ) ) )
@@ -157,7 +161,7 @@ public class TrackedEntityAttributeServiceTest
     }
 
     @Test
-    public void attributeIsUniqueWithinTheSystem()
+    void attributeIsUniqueWithinTheSystem()
     {
         when( trackedEntityAttributeStore
             .getTrackedEntityInstanceUidWithUniqueAttributeValue( any( TrackedEntityInstanceQueryParams.class ) ) )
@@ -171,7 +175,7 @@ public class TrackedEntityAttributeServiceTest
     }
 
     @Test
-    public void wrongValueToValueType()
+    void wrongValueToValueType()
     {
         tea.setValueType( ValueType.NUMBER );
         String teaValue = "Firstname";
@@ -184,16 +188,17 @@ public class TrackedEntityAttributeServiceTest
         assertNotNull( result );
     }
 
-    @Test( expected = IllegalArgumentException.class )
-    public void wrongValueToDateValueType()
+    @Test
+    void wrongValueToDateValueType()
     {
         tea.setValueType( ValueType.DATE );
         String teaValue = "Firstname";
-        trackedEntityAttributeService.validateValueType( tea, teaValue );
+        assertThrows( IllegalArgumentException.class,
+            () -> trackedEntityAttributeService.validateValueType( tea, teaValue ) );
     }
 
     @Test
-    public void correctValueToValueType()
+    void correctValueToValueType()
     {
         String teaValue = "Firstname";
         tea.setValueType( ValueType.TEXT );
@@ -218,7 +223,7 @@ public class TrackedEntityAttributeServiceTest
     }
 
     @Test
-    public void successWhenTeaOptionValueIsValid()
+    void successWhenTeaOptionValueIsValid()
     {
         tea.setUid( "uid" );
 
@@ -236,7 +241,7 @@ public class TrackedEntityAttributeServiceTest
     }
 
     @Test
-    public void failWhenTeaOptionValueIsNotValid()
+    void failWhenTeaOptionValueIsNotValid()
     {
         tea.setUid( "uid" );
 
@@ -254,7 +259,7 @@ public class TrackedEntityAttributeServiceTest
     }
 
     @Test
-    public void doNothingWhenTeaOptionValueIsNull()
+    void doNothingWhenTeaOptionValueIsNull()
     {
         tea.setUid( "uid" );
         assertNull( trackedEntityAttributeService.validateValueType( tea, "COE" ) );

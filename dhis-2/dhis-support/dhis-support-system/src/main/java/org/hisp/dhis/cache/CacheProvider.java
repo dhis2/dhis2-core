@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -123,4 +123,10 @@ public interface CacheProvider
     <V> Cache<V> createUserGroupUIDCache();
 
     <V> Cache<V> createSecurityCache();
+
+    <V> Cache<V> createRunningJobsInfoCache();
+
+    <V> Cache<V> createCompletedJobsInfoCache();
+
+    <V> Cache<V> createJobCancelRequestedCache();
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,14 +28,14 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.hisp.dhis.webapi.json.JsonArray;
 import org.hisp.dhis.webapi.json.domain.JsonUser;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
 /**
@@ -44,18 +44,18 @@ import org.springframework.http.HttpStatus;
  *
  * @author Jan Bernitt
  */
-public class UserLookupControllerTest extends DhisControllerConvenienceTest
+class UserLookupControllerTest extends DhisControllerConvenienceTest
 {
+
     private String roleId;
 
-    @Before
-    public void setUp()
+    @BeforeEach
+    void setUp()
     {
         User john = switchToNewUser( "John" );
         User paul = switchToNewUser( "Paul" );
         User george = switchToNewUser( "George" );
         User ringo = switchToNewUser( "Ringo" );
-
         switchToSuperuser();
         roleId = assertStatus( HttpStatus.CREATED, POST( "/userRoles", "{'name':'common'}" ) );
         assertStatus( HttpStatus.NO_CONTENT, POST( "/userRoles/" + roleId + "/users/" + john.getUid() ) );
@@ -69,13 +69,12 @@ public class UserLookupControllerTest extends DhisControllerConvenienceTest
      * can see those users.
      */
     @Test
-    public void testLookUpUsers()
+    void testLookUpUsers()
     {
         User tester = switchToNewUser( "tester" );
         switchToSuperuser();
         assertStatus( HttpStatus.NO_CONTENT, POST( "/userRoles/" + roleId + "/users/" + tester.getUid() ) );
         switchContextToUser( tester );
-
         JsonArray matches = GET( "/userLookup?query=John" ).content().getArray( "users" );
         assertEquals( 1, matches.size() );
         JsonUser user = matches.get( 0, JsonUser.class );

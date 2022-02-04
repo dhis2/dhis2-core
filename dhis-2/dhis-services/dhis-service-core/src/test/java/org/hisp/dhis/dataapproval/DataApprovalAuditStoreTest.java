@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,7 @@ package org.hisp.dhis.dataapproval;
 import static com.google.common.collect.Sets.newHashSet;
 import static org.hisp.dhis.dataapproval.DataApprovalAction.APPROVE;
 import static org.hisp.dhis.dataapproval.DataApprovalAction.UNAPPROVE;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Date;
 import java.util.List;
@@ -52,7 +52,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Sets;
@@ -60,9 +60,9 @@ import com.google.common.collect.Sets;
 /**
  * @author Jim Grace
  */
-public class DataApprovalAuditStoreTest
-    extends DhisSpringTest
+class DataApprovalAuditStoreTest extends DhisSpringTest
 {
+
     @Autowired
     private DataApprovalAuditStore dataApprovalAuditStore;
 
@@ -90,7 +90,6 @@ public class DataApprovalAuditStoreTest
     // -------------------------------------------------------------------------
     // Supporting data
     // -------------------------------------------------------------------------
-
     private DataApprovalLevel level1;
 
     private DataApprovalLevel level2;
@@ -132,62 +131,48 @@ public class DataApprovalAuditStoreTest
     // -------------------------------------------------------------------------
     // Set up/tear down
     // -------------------------------------------------------------------------
-
     @Override
     public void setUpTest()
         throws Exception
     {
         setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
             currentUserService, dataApprovalAuditStore );
-
         // ---------------------------------------------------------------------
         // Add supporting data
         // ---------------------------------------------------------------------
-
         level1 = new DataApprovalLevel( "01", 1, null );
         level2 = new DataApprovalLevel( "02", 2, null );
         dataApprovalLevelService.addDataApprovalLevel( level1 );
         dataApprovalLevelService.addDataApprovalLevel( level2 );
-
         PeriodType periodType = PeriodType.getPeriodTypeByName( "Monthly" );
-
         workflowA = new DataApprovalWorkflow( "workflowA", periodType, newHashSet( level1 ) );
         workflowB = new DataApprovalWorkflow( "workflowB", periodType, newHashSet( level1, level2 ) );
         dataApprovalService.addWorkflow( workflowA );
         dataApprovalService.addWorkflow( workflowB );
-
         periodA = createPeriod( new MonthlyPeriodType(), getDate( 2017, 1, 1 ), getDate( 2017, 1, 31 ) );
         periodB = createPeriod( new MonthlyPeriodType(), getDate( 2018, 1, 1 ), getDate( 2018, 1, 31 ) );
         periodService.addPeriod( periodA );
         periodService.addPeriod( periodB );
-
         sourceA = createOrganisationUnit( 'A' );
         sourceB = createOrganisationUnit( 'B', sourceA );
         organisationUnitService.addOrganisationUnit( sourceA );
         organisationUnitService.addOrganisationUnit( sourceB );
-
         userA = createUser( 'A' );
         userService.addUser( userA );
-
         optionA = new CategoryOption( "CategoryOptionA" );
         optionB = new CategoryOption( "CategoryOptionB" );
         categoryService.addCategoryOption( optionA );
         categoryService.addCategoryOption( optionB );
-
         categoryA = createCategory( 'A', optionA, optionB );
         categoryService.addCategory( categoryA );
-
         categoryComboA = createCategoryCombo( 'A', categoryA );
         categoryService.addCategoryCombo( categoryComboA );
-
         optionComboA = createCategoryOptionCombo( categoryComboA, optionA );
         optionComboB = createCategoryOptionCombo( categoryComboA, optionA, optionB );
         categoryService.addCategoryOptionCombo( optionComboA );
         categoryService.addCategoryOptionCombo( optionComboB );
-
         dateA = getDate( 2017, 1, 1 );
         dateB = getDate( 2018, 1, 1 );
-
         DataApproval approvalA = new DataApproval( level1, workflowA, periodA, sourceA, optionComboA, false, dateA,
             userA );
         DataApproval approvalB = new DataApproval( level2, workflowB, periodB, sourceB, optionComboB, false, dateB,
@@ -199,104 +184,86 @@ public class DataApprovalAuditStoreTest
     // -------------------------------------------------------------------------
     // DataApprovalAudit
     // -------------------------------------------------------------------------
-
     @Test
-    public void testSave()
+    void testSave()
         throws Exception
     {
         dataApprovalAuditStore.save( auditA );
         dataApprovalAuditStore.save( auditB );
-
         List<DataApprovalAudit> audits = dataApprovalAuditStore
             .getDataApprovalAudits( new DataApprovalAuditQueryParams() );
         assertEquals( 2, audits.size() );
-
         assertEquals( auditA, audits.get( 0 ) );
         assertEquals( auditB, audits.get( 1 ) );
     }
 
     @Test
-    public void testDelete()
+    void testDelete()
         throws Exception
     {
         dataApprovalAuditStore.save( auditA );
         dataApprovalAuditStore.save( auditB );
-
         dataApprovalAuditStore.delete( auditA );
-
         List<DataApprovalAudit> audits = dataApprovalAuditStore
             .getDataApprovalAudits( new DataApprovalAuditQueryParams() );
         assertEquals( 1, audits.size() );
-
         assertEquals( auditB, audits.get( 0 ) );
     }
 
     @Test
-    public void testDeleteDataApprovalAudits()
+    void testDeleteDataApprovalAudits()
         throws Exception
     {
         dataApprovalAuditStore.save( auditA );
         dataApprovalAuditStore.save( auditB );
-
         dataApprovalAuditStore.deleteDataApprovalAudits( sourceB );
-
         List<DataApprovalAudit> audits = dataApprovalAuditStore
             .getDataApprovalAudits( new DataApprovalAuditQueryParams() );
         assertEquals( 1, audits.size() );
-
         assertEquals( auditA, audits.get( 0 ) );
     }
 
     @Test
-    public void TestGetDataApprovalAudits()
+    void TestGetDataApprovalAudits()
         throws Exception
     {
         dataApprovalAuditStore.save( auditA );
         dataApprovalAuditStore.save( auditB );
-
         DataApprovalAuditQueryParams params;
         List<DataApprovalAudit> audits;
-
         params = new DataApprovalAuditQueryParams();
         params.setWorkflows( Sets.newHashSet( workflowA ) );
         audits = dataApprovalAuditStore.getDataApprovalAudits( params );
         assertEquals( 1, audits.size() );
         assertEquals( auditA, audits.get( 0 ) );
-
         params = new DataApprovalAuditQueryParams();
         params.setLevels( Sets.newHashSet( level1 ) );
         audits = dataApprovalAuditStore.getDataApprovalAudits( params );
         assertEquals( 1, audits.size() );
         assertEquals( auditA, audits.get( 0 ) );
-
         params = new DataApprovalAuditQueryParams();
         params.setOrganisationUnits( Sets.newHashSet( sourceA ) );
         audits = dataApprovalAuditStore.getDataApprovalAudits( params );
         assertEquals( 1, audits.size() );
         assertEquals( auditA, audits.get( 0 ) );
-
         params = new DataApprovalAuditQueryParams();
         params.setAttributeOptionCombos( Sets.newHashSet( optionComboA ) );
         audits = dataApprovalAuditStore.getDataApprovalAudits( params );
         assertEquals( 1, audits.size() );
         assertEquals( auditA, audits.get( 0 ) );
-
         params = new DataApprovalAuditQueryParams();
         params.setStartDate( dateB );
         audits = dataApprovalAuditStore.getDataApprovalAudits( params );
         assertEquals( 1, audits.size() );
         assertEquals( auditB, audits.get( 0 ) );
-
         params = new DataApprovalAuditQueryParams();
         params.setEndDate( dateB );
         audits = dataApprovalAuditStore.getDataApprovalAudits( params );
         assertEquals( 1, audits.size() );
         assertEquals( auditA, audits.get( 0 ) );
-
         CurrentUserService mockUserService = new MockCurrentUserService( Sets.newHashSet( sourceB ), null );
         setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService, mockUserService,
             dataApprovalAuditStore );
-
         params = new DataApprovalAuditQueryParams();
         audits = dataApprovalAuditStore.getDataApprovalAudits( params );
         assertEquals( 1, audits.size() );

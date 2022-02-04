@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.program;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -44,8 +44,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.joda.time.DateTime;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Sets;
@@ -53,9 +53,9 @@ import com.google.common.collect.Sets;
 /**
  * @author Chau Thu Tran
  */
-public class ProgramInstanceServiceTest
-    extends DhisSpringTest
+class ProgramInstanceServiceTest extends DhisSpringTest
 {
+
     @Autowired
     private ProgramInstanceService programInstanceService;
 
@@ -105,193 +105,153 @@ public class ProgramInstanceServiceTest
     {
         organisationUnitA = createOrganisationUnit( 'A' );
         organisationUnitService.addOrganisationUnit( organisationUnitA );
-
         organisationUnitB = createOrganisationUnit( 'B' );
         organisationUnitService.addOrganisationUnit( organisationUnitB );
-
         programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
-
         programService.addProgram( programA );
-
         ProgramStage stageA = createProgramStage( 'A', programA );
         stageA.setSortOrder( 1 );
         programStageService.saveProgramStage( stageA );
-
         ProgramStage stageB = createProgramStage( 'B', programA );
         stageB.setSortOrder( 2 );
         programStageService.saveProgramStage( stageB );
-
         Set<ProgramStage> programStages = new HashSet<>();
         programStages.add( stageA );
         programStages.add( stageB );
         programA.setProgramStages( programStages );
         programService.updateProgram( programA );
-
         programB = createProgram( 'B', new HashSet<>(), organisationUnitA );
         programService.addProgram( programB );
-
         programC = createProgram( 'C', new HashSet<>(), organisationUnitA );
         programService.addProgram( programC );
-
         entityInstanceA = createTrackedEntityInstance( organisationUnitA );
         entityInstanceService.addTrackedEntityInstance( entityInstanceA );
-
         TrackedEntityInstance entityInstanceB = createTrackedEntityInstance( organisationUnitB );
         entityInstanceService.addTrackedEntityInstance( entityInstanceB );
-
         DateTime testDate1 = DateTime.now();
         testDate1.withTimeAtStartOfDay();
         testDate1 = testDate1.minusDays( 70 );
         incidentDate = testDate1.toDate();
-
         DateTime testDate2 = DateTime.now();
         testDate2.withTimeAtStartOfDay();
         enrollmentDate = testDate2.toDate();
-
         programInstanceA = new ProgramInstance( enrollmentDate, incidentDate, entityInstanceA, programA );
         programInstanceA.setUid( "UID-A" );
         programInstanceA.setOrganisationUnit( organisationUnitA );
-
         programStageInstanceA = new ProgramStageInstance( programInstanceA, stageA );
         programStageInstanceA.setUid( "UID-PSI-A" );
         programStageInstanceA.setOrganisationUnit( organisationUnitA );
-
         programInstanceB = new ProgramInstance( enrollmentDate, incidentDate, entityInstanceA, programB );
         programInstanceB.setUid( "UID-B" );
         programInstanceB.setStatus( ProgramStatus.CANCELLED );
         programInstanceB.setOrganisationUnit( organisationUnitB );
-
         programInstanceC = new ProgramInstance( enrollmentDate, incidentDate, entityInstanceA, programC );
         programInstanceC.setUid( "UID-C" );
         programInstanceC.setStatus( ProgramStatus.COMPLETED );
         programInstanceC.setOrganisationUnit( organisationUnitA );
-
         programInstanceD = new ProgramInstance( enrollmentDate, incidentDate, entityInstanceB, programA );
         programInstanceD.setUid( "UID-D" );
         programInstanceD.setOrganisationUnit( organisationUnitB );
     }
 
     @Test
-    public void testAddProgramInstance()
+    void testAddProgramInstance()
     {
         long idA = programInstanceService.addProgramInstance( programInstanceA );
         long idB = programInstanceService.addProgramInstance( programInstanceB );
-
         assertNotNull( programInstanceService.getProgramInstance( idA ) );
         assertNotNull( programInstanceService.getProgramInstance( idB ) );
     }
 
     @Test
-    public void testDeleteProgramInstance()
+    void testDeleteProgramInstance()
     {
         long idA = programInstanceService.addProgramInstance( programInstanceA );
         long idB = programInstanceService.addProgramInstance( programInstanceB );
-
         assertNotNull( programInstanceService.getProgramInstance( idA ) );
         assertNotNull( programInstanceService.getProgramInstance( idB ) );
-
         programInstanceService.deleteProgramInstance( programInstanceA );
-
         assertNull( programInstanceService.getProgramInstance( idA ) );
         assertNotNull( programInstanceService.getProgramInstance( idB ) );
-
         programInstanceService.deleteProgramInstance( programInstanceB );
-
         assertNull( programInstanceService.getProgramInstance( idA ) );
         assertNull( programInstanceService.getProgramInstance( idB ) );
     }
 
     @Test
-    public void testSoftDeleteProgramInstanceAndLinkedProgramStageInstance()
+    void testSoftDeleteProgramInstanceAndLinkedProgramStageInstance()
     {
         long idA = programInstanceService.addProgramInstance( programInstanceA );
         long psiIdA = programStageInstanceService.addProgramStageInstance( programStageInstanceA );
-
         programInstanceA.setProgramStageInstances( Sets.newHashSet( programStageInstanceA ) );
         programInstanceService.updateProgramInstance( programInstanceA );
-
         assertNotNull( programInstanceService.getProgramInstance( idA ) );
         assertNotNull( programStageInstanceService.getProgramStageInstance( psiIdA ) );
-
         programInstanceService.deleteProgramInstance( programInstanceA );
-
         assertNull( programInstanceService.getProgramInstance( idA ) );
         assertNull( programStageInstanceService.getProgramStageInstance( psiIdA ) );
     }
 
     @Test
-    public void testUpdateProgramInstance()
+    void testUpdateProgramInstance()
     {
         long idA = programInstanceService.addProgramInstance( programInstanceA );
-
         assertNotNull( programInstanceService.getProgramInstance( idA ) );
-
         programInstanceA.setIncidentDate( enrollmentDate );
         programInstanceService.updateProgramInstance( programInstanceA );
-
         assertEquals( enrollmentDate, programInstanceService.getProgramInstance( idA ).getIncidentDate() );
     }
 
     @Test
-    public void testGetProgramInstanceById()
+    void testGetProgramInstanceById()
     {
         long idA = programInstanceService.addProgramInstance( programInstanceA );
         long idB = programInstanceService.addProgramInstance( programInstanceB );
-
         assertEquals( programInstanceA, programInstanceService.getProgramInstance( idA ) );
         assertEquals( programInstanceB, programInstanceService.getProgramInstance( idB ) );
     }
 
     @Test
-    public void testGetProgramInstanceByUid()
+    void testGetProgramInstanceByUid()
     {
         programInstanceService.addProgramInstance( programInstanceA );
         programInstanceService.addProgramInstance( programInstanceB );
-
         assertEquals( "UID-A", programInstanceService.getProgramInstance( "UID-A" ).getUid() );
         assertEquals( "UID-B", programInstanceService.getProgramInstance( "UID-B" ).getUid() );
     }
 
     @Test
-    public void testGetProgramInstancesByProgram()
+    void testGetProgramInstancesByProgram()
     {
         programInstanceService.addProgramInstance( programInstanceA );
         programInstanceService.addProgramInstance( programInstanceB );
         programInstanceService.addProgramInstance( programInstanceD );
-
         List<ProgramInstance> programInstances = programInstanceService.getProgramInstances( programA );
         assertEquals( 2, programInstances.size() );
         assertTrue( programInstances.contains( programInstanceA ) );
         assertTrue( programInstances.contains( programInstanceD ) );
-
         programInstances = programInstanceService.getProgramInstances( programB );
         assertEquals( 1, programInstances.size() );
         assertTrue( programInstances.contains( programInstanceB ) );
     }
 
     @Test
-    public void testGetProgramInstancesByEntityInstanceProgramStatus()
+    void testGetProgramInstancesByEntityInstanceProgramStatus()
     {
         programInstanceService.addProgramInstance( programInstanceA );
-
         ProgramInstance programInstance1 = programInstanceService.enrollTrackedEntityInstance( entityInstanceA,
-            programA, enrollmentDate,
-            incidentDate, organisationUnitA );
+            programA, enrollmentDate, incidentDate, organisationUnitA );
         programInstance1.setStatus( ProgramStatus.COMPLETED );
         programInstanceService.updateProgramInstance( programInstance1 );
-
         ProgramInstance programInstance2 = programInstanceService.enrollTrackedEntityInstance( entityInstanceA,
-            programA, enrollmentDate,
-            incidentDate, organisationUnitA );
+            programA, enrollmentDate, incidentDate, organisationUnitA );
         programInstance2.setStatus( ProgramStatus.COMPLETED );
         programInstanceService.updateProgramInstance( programInstance2 );
-
         List<ProgramInstance> programInstances = programInstanceService.getProgramInstances( entityInstanceA, programA,
             ProgramStatus.COMPLETED );
         assertEquals( 2, programInstances.size() );
         assertTrue( programInstances.contains( programInstance1 ) );
         assertTrue( programInstances.contains( programInstance2 ) );
-
         programInstances = programInstanceService.getProgramInstances( entityInstanceA, programA,
             ProgramStatus.ACTIVE );
         assertEquals( 1, programInstances.size() );
@@ -299,81 +259,68 @@ public class ProgramInstanceServiceTest
     }
 
     @Test
-    public void testGetProgramInstancesByOuProgram()
+    void testGetProgramInstancesByOuProgram()
     {
         programInstanceService.addProgramInstance( programInstanceA );
         programInstanceService.addProgramInstance( programInstanceC );
         programInstanceService.addProgramInstance( programInstanceD );
-
         List<ProgramInstance> programInstances = programInstanceService
-            .getProgramInstances( new ProgramInstanceQueryParams()
-                .setProgram( programA )
+            .getProgramInstances( new ProgramInstanceQueryParams().setProgram( programA )
                 .setOrganisationUnits( Sets.newHashSet( organisationUnitA ) )
                 .setOrganisationUnitMode( OrganisationUnitSelectionMode.SELECTED ) );
-
         assertEquals( 1, programInstances.size() );
         assertTrue( programInstances.contains( programInstanceA ) );
     }
 
     @Test
-    public void testEnrollTrackedEntityInstance()
+    void testEnrollTrackedEntityInstance()
     {
         ProgramInstance programInstance = programInstanceService.enrollTrackedEntityInstance( entityInstanceA, programB,
-            enrollmentDate,
-            incidentDate, organisationUnitA );
-
+            enrollmentDate, incidentDate, organisationUnitA );
         assertNotNull( programInstanceService.getProgramInstance( programInstance.getId() ) );
     }
 
     @Test
-    @Ignore
-    public void testCanAutoCompleteProgramInstanceStatus()
+    @Disabled
+    void testCanAutoCompleteProgramInstanceStatus()
     {
         programInstanceService.addProgramInstance( programInstanceA );
         programInstanceService.addProgramInstance( programInstanceD );
-
         assertTrue( programInstanceService.canAutoCompleteProgramInstanceStatus( programInstanceA ) );
         assertTrue( programInstanceService.canAutoCompleteProgramInstanceStatus( programInstanceD ) );
     }
 
     @Test
-    public void testCompleteProgramInstanceStatus()
+    void testCompleteProgramInstanceStatus()
     {
         long idA = programInstanceService.addProgramInstance( programInstanceA );
         long idD = programInstanceService.addProgramInstance( programInstanceD );
-
         programInstanceService.completeProgramInstanceStatus( programInstanceA );
         programInstanceService.completeProgramInstanceStatus( programInstanceD );
-
         assertEquals( ProgramStatus.COMPLETED, programInstanceService.getProgramInstance( idA ).getStatus() );
         assertEquals( ProgramStatus.COMPLETED, programInstanceService.getProgramInstance( idD ).getStatus() );
     }
 
     @Test
-    public void testIncompleteProgramInstanceStatus()
+    void testIncompleteProgramInstanceStatus()
     {
         programInstanceA.setStatus( ProgramStatus.COMPLETED );
         programInstanceD.setStatus( ProgramStatus.COMPLETED );
-
         long idA = programInstanceService.addProgramInstance( programInstanceA );
         long idD = programInstanceService.addProgramInstance( programInstanceD );
-
         programInstanceService.incompleteProgramInstanceStatus( programInstanceA );
         programInstanceService.incompleteProgramInstanceStatus( programInstanceD );
-
         assertEquals( ProgramStatus.ACTIVE, programInstanceService.getProgramInstance( idA ).getStatus() );
         assertEquals( ProgramStatus.ACTIVE, programInstanceService.getProgramInstance( idD ).getStatus() );
     }
 
     @Test
-    public void testCancelProgramInstanceStatus()
+    void testCancelProgramInstanceStatus()
     {
         long idA = programInstanceService.addProgramInstance( programInstanceA );
         long idD = programInstanceService.addProgramInstance( programInstanceD );
-
         programInstanceService.cancelProgramInstanceStatus( programInstanceA );
         programInstanceService.cancelProgramInstanceStatus( programInstanceD );
-
         assertEquals( ProgramStatus.CANCELLED, programInstanceService.getProgramInstance( idA ).getStatus() );
         assertEquals( ProgramStatus.CANCELLED, programInstanceService.getProgramInstance( idD ).getStatus() );
     }

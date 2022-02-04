@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
@@ -39,7 +40,6 @@ import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.system.SystemInfo;
 import org.hisp.dhis.system.SystemService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -51,18 +51,16 @@ import com.fasterxml.jackson.databind.JsonNode;
  * @author aamerm
  */
 @Slf4j
+@AllArgsConstructor
 @Component( "org.hisp.dhis.dxf2.metadata.sync.MetadataSyncDelegate" )
 @Scope( "prototype" )
 public class MetadataSyncDelegate
 {
-    @Autowired
-    private DefaultMetadataSystemSettingService metadataSystemSettingService;
+    private final DefaultMetadataSystemSettingService metadataSystemSettingService;
 
-    @Autowired
-    private RenderService renderService;
+    private final RenderService renderService;
 
-    @Autowired
-    private SystemService systemService;
+    private final SystemService systemService;
 
     public boolean shouldStopSync( String metadataVersionSnapshot )
     {

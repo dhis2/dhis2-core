@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +27,12 @@
  */
 package org.hisp.dhis.predictor;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,12 +48,11 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -59,9 +62,10 @@ import com.google.common.collect.Sets;
  *
  * @author Jim Grace
  */
-public class PredictionWriterTest
-    extends DhisConvenienceTest
+@ExtendWith( MockitoExtension.class )
+class PredictionWriterTest extends DhisConvenienceTest
 {
+
     @Mock
     private DataValueService dataValueService;
 
@@ -70,9 +74,6 @@ public class PredictionWriterTest
 
     @Mock
     BatchHandler<DataValue> dataValueBatchHandler;
-
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     private DataElement dataElementA;
 
@@ -112,7 +113,7 @@ public class PredictionWriterTest
     // Fixture
     // -------------------------------------------------------------------------
 
-    @Before
+    @BeforeEach
     public void initTest()
     {
         long id = 0;
@@ -175,8 +176,10 @@ public class PredictionWriterTest
     // Tests
     // -------------------------------------------------------------------------
 
+    // -------------------------------------------------------------------------
+
     @Test
-    public void testWriteIntoExistingPeriod()
+    void testWriteIntoExistingPeriod()
     {
         writer.write( Lists.newArrayList( dataValueA ), NO_OLD_DATA );
 
@@ -186,7 +189,7 @@ public class PredictionWriterTest
     }
 
     @Test
-    public void testWriteIntoNewPeriod()
+    void testWriteIntoNewPeriod()
     {
         writer.write( Lists.newArrayList( dataValueB ), NO_OLD_DATA );
 
@@ -196,7 +199,7 @@ public class PredictionWriterTest
     }
 
     @Test
-    public void testWriteInsignificantZero()
+    void testWriteInsignificantZero()
     {
         writer.write( Lists.newArrayList( dataValueA0 ), NO_OLD_DATA );
 
@@ -207,7 +210,7 @@ public class PredictionWriterTest
     }
 
     @Test
-    public void testWritePredictionUnchanged()
+    void testWritePredictionUnchanged()
     {
         writer.write( Lists.newArrayList( dataValueA ), Lists.newArrayList( dataValueA ) );
 
@@ -218,7 +221,7 @@ public class PredictionWriterTest
     }
 
     @Test
-    public void testWriteInsignificantZeroWithOldPrediction()
+    void testWriteInsignificantZeroWithOldPrediction()
     {
         writer.write( Lists.newArrayList( dataValueA0 ), Lists.newArrayList( dataValueA ) );
 
@@ -228,7 +231,7 @@ public class PredictionWriterTest
     }
 
     @Test
-    public void testWriteInsignificantZeroWithOldDeletedPrediction()
+    void testWriteInsignificantZeroWithOldDeletedPrediction()
     {
         writer.write( Lists.newArrayList( dataValueA0 ), Lists.newArrayList( dataValueADeleted ) );
 
@@ -239,7 +242,7 @@ public class PredictionWriterTest
     }
 
     @Test
-    public void testWriteDeletingOldPrediction()
+    void testWriteDeletingOldPrediction()
     {
         writer.write( NO_PREDICTED_DATA, Lists.newArrayList( dataValueA ) );
 
@@ -249,7 +252,7 @@ public class PredictionWriterTest
     }
 
     @Test
-    public void testWriteNotDeletingOldDeletedPrediction()
+    void testWriteNotDeletingOldDeletedPrediction()
     {
         writer.write( NO_PREDICTED_DATA, Lists.newArrayList( dataValueADeleted ) );
 

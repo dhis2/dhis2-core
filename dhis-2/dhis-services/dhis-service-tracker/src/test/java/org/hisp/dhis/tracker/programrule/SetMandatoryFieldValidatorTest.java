@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,7 +31,9 @@ import static org.hisp.dhis.rules.models.AttributeType.DATA_ELEMENT;
 import static org.hisp.dhis.rules.models.AttributeType.TRACKED_ENTITY_ATTRIBUTE;
 import static org.hisp.dhis.rules.models.TrackerObjectType.ENROLLMENT;
 import static org.hisp.dhis.rules.models.TrackerObjectType.EVENT;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.util.Collection;
@@ -46,24 +48,33 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ValidationStrategy;
-import org.hisp.dhis.rules.models.*;
+import org.hisp.dhis.rules.models.RuleAction;
+import org.hisp.dhis.rules.models.RuleActionSetMandatoryField;
+import org.hisp.dhis.rules.models.RuleEffect;
+import org.hisp.dhis.rules.models.RuleEffects;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.*;
+import org.hisp.dhis.tracker.domain.Attribute;
+import org.hisp.dhis.tracker.domain.DataValue;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.EnrollmentStatus;
+import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.programrule.implementers.SetMandatoryFieldValidator;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
-@RunWith( MockitoJUnitRunner.class )
-public class SetMandatoryFieldValidatorTest
-    extends DhisConvenienceTest
+@MockitoSettings( strictness = Strictness.LENIENT )
+@ExtendWith( MockitoExtension.class )
+class SetMandatoryFieldValidatorTest extends DhisConvenienceTest
 {
 
     private final static String ACTIVE_ENROLLMENT_ID = "ActiveEnrollmentUid";
@@ -99,112 +110,87 @@ public class SetMandatoryFieldValidatorTest
     @Mock
     private TrackerPreheat preheat;
 
-    @Before
-    public void setUpTest()
+    @BeforeEach
+    void setUpTest()
     {
         firstProgramStage = createProgramStage( 'A', 0 );
         firstProgramStage.setValidationStrategy( ValidationStrategy.ON_UPDATE_AND_INSERT );
-
         dataElementA = createDataElement( 'A' );
         dataElementA.setUid( DATA_ELEMENT_ID );
         ProgramStageDataElement programStageDataElementA = createProgramStageDataElement( firstProgramStage,
             dataElementA, 0 );
         firstProgramStage.setProgramStageDataElements( Sets.newHashSet( programStageDataElementA ) );
-
         secondProgramStage = createProgramStage( 'B', 0 );
         secondProgramStage.setValidationStrategy( ValidationStrategy.ON_UPDATE_AND_INSERT );
-
         dataElementB = createDataElement( 'B' );
         ProgramStageDataElement programStageDataElementB = createProgramStageDataElement( secondProgramStage,
             dataElementB, 0 );
         secondProgramStage.setProgramStageDataElements( Sets.newHashSet( programStageDataElementB ) );
-
         when( preheat.get( ProgramStage.class, firstProgramStage.getUid() ) ).thenReturn( firstProgramStage );
         when( preheat.get( ProgramStage.class, secondProgramStage.getUid() ) ).thenReturn( secondProgramStage );
-
         bundle = TrackerBundle.builder().build();
         bundle.setRuleEffects( getRuleEventAndEnrollmentEffects() );
         bundle.setPreheat( preheat );
     }
 
     @Test
-    public void testValidateOkMandatoryFieldsForEvents()
+    void testValidateOkMandatoryFieldsForEvents()
     {
         bundle.setEvents( Lists.newArrayList( getEventWithMandatoryValueSet() ) );
         Map<String, List<ProgramRuleIssue>> errors = implementerToTest.validateEvents( bundle );
-
         assertTrue( errors.isEmpty() );
     }
 
     @Test
-    public void testValidateWithErrorMandatoryFieldsForEvents()
+    void testValidateWithErrorMandatoryFieldsForEvents()
     {
         bundle.setEvents( Lists.newArrayList( getEventWithMandatoryValueSet(), getEventWithMandatoryValueNOTSet() ) );
         Map<String, List<ProgramRuleIssue>> errors = implementerToTest.validateEvents( bundle );
-
         assertFalse( errors.isEmpty() );
-
-        List<ProgramRuleIssue> errorMessages = errors.values()
-            .stream()
-            .flatMap( Collection::stream )
+        List<ProgramRuleIssue> errorMessages = errors.values().stream().flatMap( Collection::stream )
             .collect( Collectors.toList() );
-
         assertFalse( errorMessages.isEmpty() );
-
-        errorMessages
-            .forEach(
-                e -> {
-                    assertEquals( "RULE_DATA_VALUE", e.getRuleUid() );
-                    assertEquals( TrackerErrorCode.E1301, e.getIssueCode() );
-                    assertEquals( IssueType.ERROR, e.getIssueType() );
-                    assertEquals( Lists.newArrayList( dataElementA.getUid() ), e.getArgs() );
-                } );
+        errorMessages.forEach( e -> {
+            assertEquals( "RULE_DATA_VALUE", e.getRuleUid() );
+            assertEquals( TrackerErrorCode.E1301, e.getIssueCode() );
+            assertEquals( IssueType.ERROR, e.getIssueType() );
+            assertEquals( Lists.newArrayList( dataElementA.getUid() ), e.getArgs() );
+        } );
     }
 
     @Test
-    public void testValidateOkMandatoryFieldsForValidEventAndNotValidEventInDifferentProgramStage()
+    void testValidateOkMandatoryFieldsForValidEventAndNotValidEventInDifferentProgramStage()
     {
         bundle.setEvents( Lists.newArrayList( getEventWithMandatoryValueSet(),
             getEventWithMandatoryValueNOTSetInDifferentProgramStage() ) );
         Map<String, List<ProgramRuleIssue>> errors = implementerToTest.validateEvents( bundle );
-
         assertTrue( errors.isEmpty() );
     }
 
     @Test
-    public void testValidateOkMandatoryFieldsForEnrollment()
+    void testValidateOkMandatoryFieldsForEnrollment()
     {
         bundle.setEnrollments( Lists.newArrayList( getEnrollmentWithMandatoryAttributeSet() ) );
         Map<String, List<ProgramRuleIssue>> errors = implementerToTest.validateEvents( bundle );
-
         assertTrue( errors.isEmpty() );
     }
 
     @Test
-    public void testValidateWithErrorMandatoryFieldsForEnrollments()
+    void testValidateWithErrorMandatoryFieldsForEnrollments()
     {
-        bundle.setEnrollments(
-            Lists.newArrayList( getEnrollmentWithMandatoryAttributeSet(),
-                getEnrollmentWithMandatoryAttributeNOTSet() ) );
+        bundle.setEnrollments( Lists.newArrayList( getEnrollmentWithMandatoryAttributeSet(),
+            getEnrollmentWithMandatoryAttributeNOTSet() ) );
         Map<String, List<ProgramRuleIssue>> errors = implementerToTest.validateEnrollments( bundle );
-
         assertFalse( errors.isEmpty() );
-
-        List<ProgramRuleIssue> errorMessages = errors.values()
-            .stream()
-            .flatMap( Collection::stream )
+        List<ProgramRuleIssue> errorMessages = errors.values().stream().flatMap( Collection::stream )
             .collect( Collectors.toList() );
-
         assertFalse( errorMessages.isEmpty() );
-
-        errorMessages
-            .forEach(
-                e -> {
-                    assertEquals( "RULE_ATTRIBUTE", e.getRuleUid() );
-                    assertEquals( TrackerErrorCode.E1306, e.getIssueCode() );
-                    assertEquals( IssueType.ERROR, e.getIssueType() );
-                    assertEquals( Lists.newArrayList( ATTRIBUTE_ID ), e.getArgs() );
-                } );
+        errorMessages.forEach( e -> {
+            assertEquals( "RULE_ATTRIBUTE", e.getRuleUid() );
+            assertEquals( TrackerErrorCode.E1306, e.getIssueCode() );
+            assertEquals( IssueType.ERROR, e.getIssueType() );
+            assertEquals( Lists.newArrayList( ATTRIBUTE_ID ), e.getArgs() );
+        } );
     }
 
     private Event getEventWithMandatoryValueSet()
@@ -214,7 +200,6 @@ public class SetMandatoryFieldValidatorTest
         event.setStatus( EventStatus.ACTIVE );
         event.setProgramStage( firstProgramStage.getUid() );
         event.setDataValues( getActiveEventDataValues() );
-
         return event;
     }
 
@@ -224,7 +209,6 @@ public class SetMandatoryFieldValidatorTest
         event.setEvent( SECOND_EVENT_ID );
         event.setStatus( EventStatus.ACTIVE );
         event.setProgramStage( firstProgramStage.getUid() );
-
         return event;
     }
 
@@ -234,7 +218,6 @@ public class SetMandatoryFieldValidatorTest
         event.setEvent( SECOND_EVENT_ID );
         event.setStatus( EventStatus.ACTIVE );
         event.setProgramStage( secondProgramStage.getUid() );
-
         return event;
     }
 
@@ -253,7 +236,6 @@ public class SetMandatoryFieldValidatorTest
         enrollment.setTrackedEntity( TEI_ID );
         enrollment.setStatus( EnrollmentStatus.ACTIVE );
         enrollment.setAttributes( getAttributes() );
-
         return enrollment;
     }
 
@@ -263,7 +245,6 @@ public class SetMandatoryFieldValidatorTest
         enrollment.setEnrollment( COMPLETED_ENROLLMENT_ID );
         enrollment.setTrackedEntity( TEI_ID );
         enrollment.setStatus( EnrollmentStatus.COMPLETED );
-
         return enrollment;
     }
 
@@ -281,18 +262,16 @@ public class SetMandatoryFieldValidatorTest
         ruleEffectsByEvent.add( new RuleEffects( EVENT, FIRST_EVENT_ID, getRuleEffects() ) );
         ruleEffectsByEvent.add( new RuleEffects( EVENT, SECOND_EVENT_ID, getRuleEffects() ) );
         ruleEffectsByEvent.add( new RuleEffects( ENROLLMENT, ACTIVE_ENROLLMENT_ID, getRuleEffects() ) );
-        ruleEffectsByEvent
-            .add( new RuleEffects( ENROLLMENT, COMPLETED_ENROLLMENT_ID, getRuleEffects() ) );
+        ruleEffectsByEvent.add( new RuleEffects( ENROLLMENT, COMPLETED_ENROLLMENT_ID, getRuleEffects() ) );
         return ruleEffectsByEvent;
     }
 
     private List<RuleEffect> getRuleEffects()
     {
-        RuleAction ruleActionSetMandatoryDataValue = RuleActionSetMandatoryField
-            .create( DATA_ELEMENT_ID, DATA_ELEMENT );
-        RuleAction ruleActionSetMandatoryAttribute = RuleActionSetMandatoryField
-            .create( ATTRIBUTE_ID, TRACKED_ENTITY_ATTRIBUTE );
-
+        RuleAction ruleActionSetMandatoryDataValue = RuleActionSetMandatoryField.create( DATA_ELEMENT_ID,
+            DATA_ELEMENT );
+        RuleAction ruleActionSetMandatoryAttribute = RuleActionSetMandatoryField.create( ATTRIBUTE_ID,
+            TRACKED_ENTITY_ATTRIBUTE );
         return Lists.newArrayList( RuleEffect.create( "RULE_ATTRIBUTE", ruleActionSetMandatoryAttribute ),
             RuleEffect.create( "RULE_DATA_VALUE", ruleActionSetMandatoryDataValue ) );
     }

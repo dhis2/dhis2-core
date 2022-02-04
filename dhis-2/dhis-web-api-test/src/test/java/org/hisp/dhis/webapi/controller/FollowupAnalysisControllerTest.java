@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,21 +30,22 @@ package org.hisp.dhis.webapi.controller;
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toSet;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.util.Arrays;
 
 import org.hisp.dhis.dataanalysis.FollowupAnalysisRequest;
 import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.webapi.json.JsonList;
-import org.hisp.dhis.webapi.json.JsonObject;
-import org.hisp.dhis.webapi.json.JsonResponse;
+import org.hisp.dhis.jsontree.JsonList;
+import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.webapi.json.domain.JsonError;
 import org.hisp.dhis.webapi.json.domain.JsonFollowupValue;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
 /**
@@ -54,22 +55,20 @@ import org.springframework.http.HttpStatus;
  *
  * @author Jan Bernitt
  */
-public class FollowupAnalysisControllerTest extends AbstractDataValueControllerTest
+class FollowupAnalysisControllerTest extends AbstractDataValueControllerTest
 {
+
     /**
      * This test makes sure the fields returned by a
      * {@link org.hisp.dhis.dataanalysis.FollowupValue} are mapped correctly.
      */
     @Test
-    public void testPerformFollowupAnalysis_FieldMapping()
+    void testPerformFollowupAnalysis_FieldMapping()
     {
         addDataValue( "2021-03", "5", "Needs_check", true );
-
-        JsonList<JsonFollowupValue> values = GET( "/dataAnalysis/followup?ou={ou}&de={de}&pe={pe}",
-            orgUnitId, dataElementId, "2021" ).content().getList( "followupValues", JsonFollowupValue.class );
-
+        JsonList<JsonFollowupValue> values = GET( "/dataAnalysis/followup?ou={ou}&de={de}&pe={pe}", orgUnitId,
+            dataElementId, "2021" ).content().getList( "followupValues", JsonFollowupValue.class );
         assertEquals( 1, values.size() );
-
         JsonFollowupValue value = values.get( 0 );
         assertEquals( dataElementId, value.getDe() );
         assertEquals( "My data element", value.getDeName() );
@@ -93,137 +92,125 @@ public class FollowupAnalysisControllerTest extends AbstractDataValueControllerT
     }
 
     @Test
-    public void testPerformFollowupAnalysis_PeriodFiltering()
+    void testPerformFollowupAnalysis_PeriodFiltering()
     {
         addDataValue( "2021-01", "13", "Needs_check 1", true );
         addDataValue( "2021-02", "5", "Needs_check 2", true );
         addDataValue( "2021-04", "11", null, false );
         addDataValue( "2021-05", "11", "Needs_check 3", true );
-
         assertFollowupValues( orgUnitId, dataElementId, "2021", "Needs_check 1", "Needs_check 2", "Needs_check 3" );
         assertFollowupValues( orgUnitId, dataElementId, "2021-01", "Needs_check 1" );
         assertFollowupValues( orgUnitId, dataElementId, "2021Q1", "Needs_check 1", "Needs_check 2" );
     }
 
     @Test
-    public void testPerformFollowupAnalysis_StartEndDateFiltering()
+    void testPerformFollowupAnalysis_StartEndDateFiltering()
     {
         addDataValue( "2021-01", "13", "Needs_check 1", true );
         addDataValue( "2021-02", "5", "Needs_check 2", true );
         addDataValue( "2021-03", "11", null, false );
         addDataValue( "2021-04", "11", "Needs_check 3", true );
-
-        assertFollowupValues(
-            GET( "/dataAnalysis/followup?ou={ou}&de={de}&startDate={start}&endDate={end}",
-                orgUnitId, dataElementId, "2021-02-01", "2021-03-28" ),
-            "Needs_check 2" );
+        assertFollowupValues( GET( "/dataAnalysis/followup?ou={ou}&de={de}&startDate={start}&endDate={end}", orgUnitId,
+            dataElementId, "2021-02-01", "2021-03-28" ), "Needs_check 2" );
     }
 
     @Test
-    public void testPerformFollowupAnalysis_OrgUnitFiltering()
+    void testPerformFollowupAnalysis_OrgUnitFiltering()
     {
-        String ouA = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits/",
-                "{'name':'A', 'shortName':'A', 'openingDate': '2020-01-01', 'parent': { 'id':'" + orgUnitId + "'}}" ) );
-        String ouB = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits/",
-                "{'name':'B', 'shortName':'B', 'openingDate': '2020-01-01', 'parent': {'id':'" + orgUnitId + "'}}" ) );
-
+        String ouA = assertStatus( HttpStatus.CREATED, POST( "/organisationUnits/",
+            "{'name':'A', 'shortName':'A', 'openingDate': '2020-01-01', 'parent': { 'id':'" + orgUnitId + "'}}" ) );
+        String ouB = assertStatus( HttpStatus.CREATED, POST( "/organisationUnits/",
+            "{'name':'B', 'shortName':'B', 'openingDate': '2020-01-01', 'parent': {'id':'" + orgUnitId + "'}}" ) );
         addDataValue( "2021-01", "13", "Needs_check A", true, dataElementId, ouA );
         addDataValue( "2021-01", "14", "Needs_check B", true, dataElementId, ouB );
-
         assertFollowupValues( orgUnitId, dataElementId, "2021-01", "Needs_check A", "Needs_check B" );
         assertFollowupValues( ouA, dataElementId, "2021-01", "Needs_check A" );
         assertFollowupValues( ouB, dataElementId, "2021-01", "Needs_check B" );
     }
 
     @Test
-    public void testPerformFollowupAnalysis_DataElementFiltering()
+    void testPerformFollowupAnalysis_DataElementFiltering()
     {
         String de2 = assertStatus( HttpStatus.CREATED,
             POST( "/dataElements/",
-                "{'name':'Another DE', 'shortName':'DE2', 'code':'DE2', 'valueType':'INTEGER', " +
-                    "'aggregationType':'SUM', 'zeroIsSignificant':false, 'domainType':'AGGREGATE', " +
-                    "'categoryCombo': {'id': '" + categoryComboId + "'}}" ) );
-
+                "{'name':'Another DE', 'shortName':'DE2', 'code':'DE2', 'valueType':'INTEGER', "
+                    + "'aggregationType':'SUM', 'zeroIsSignificant':false, 'domainType':'AGGREGATE', "
+                    + "'categoryCombo': {'id': '" + categoryComboId + "'}}" ) );
         addDataValue( "2021-01", "13", "Needs check DE1", true, dataElementId, orgUnitId );
         addDataValue( "2021-01", "14", "Needs check DE2", true, de2, orgUnitId );
-
         assertFollowupValues( orgUnitId, dataElementId, "2021-01", "Needs check DE1" );
         assertFollowupValues( orgUnitId, de2, "2021-01", "Needs check DE2" );
     }
 
     @Test
-    public void testPerformFollowupAnalysis_ValidationMissingDataElement()
+    void testPerformFollowupAnalysis_ValidationMissingDataElement()
     {
-        JsonError error = GET( "/dataAnalysis/followup?ou={ou}&pe=2021", orgUnitId )
-            .error( HttpStatus.CONFLICT );
+        JsonError error = GET( "/dataAnalysis/followup?ou={ou}&pe=2021", orgUnitId ).error( HttpStatus.CONFLICT );
         assertEquals( ErrorCode.E2300, error.getErrorCode() );
         assertEquals( "At least one data element or data set must be specified", error.getMessage() );
     }
 
     @Test
-    public void testPerformFollowupAnalysis_ValidationMissingOrganisationUnit()
+    void testPerformFollowupAnalysis_ValidationMissingOrganisationUnit()
     {
-        JsonError error = GET( "/dataAnalysis/followup?de={de}&pe=2021", dataElementId )
-            .error( HttpStatus.CONFLICT );
+        JsonError error = GET( "/dataAnalysis/followup?de={de}&pe=2021", dataElementId ).error( HttpStatus.CONFLICT );
         assertEquals( ErrorCode.E2203, error.getErrorCode() );
         assertEquals( "At least one organisation unit must be specified", error.getMessage() );
     }
 
     @Test
-    public void testPerformFollowupAnalysis_ValidationMissingStartDate()
+    void testPerformFollowupAnalysis_ValidationMissingStartDate()
     {
-        JsonError error = GET( "/dataAnalysis/followup?ou={ou}&de={de}&endDate=2020-01-01",
-            orgUnitId, dataElementId ).error( HttpStatus.CONFLICT );
+        JsonError error = GET( "/dataAnalysis/followup?ou={ou}&de={de}&endDate=2020-01-01", orgUnitId, dataElementId )
+            .error( HttpStatus.CONFLICT );
         assertEquals( ErrorCode.E2301, error.getErrorCode() );
         assertEquals( "Start date and end date must be specified directly or indirectly by specifying a period",
             error.getMessage() );
     }
 
     @Test
-    public void testPerformFollowupAnalysis_ValidationMissingEndDate()
+    void testPerformFollowupAnalysis_ValidationMissingEndDate()
     {
-        JsonError error = GET( "/dataAnalysis/followup?ou={ou}&de={de}&startDate=2020-01-01",
-            orgUnitId, dataElementId ).error( HttpStatus.CONFLICT );
+        JsonError error = GET( "/dataAnalysis/followup?ou={ou}&de={de}&startDate=2020-01-01", orgUnitId, dataElementId )
+            .error( HttpStatus.CONFLICT );
         assertEquals( ErrorCode.E2301, error.getErrorCode() );
         assertEquals( "Start date and end date must be specified directly or indirectly by specifying a period",
             error.getMessage() );
     }
 
     @Test
-    public void testPerformFollowupAnalysis_ValidationStartDateNotBeforeEndDate()
+    void testPerformFollowupAnalysis_ValidationStartDateNotBeforeEndDate()
     {
-        JsonError error = GET(
-            "/dataAnalysis/followup?ou={ou}&de={de}&startDate=2020-01-01&endDate=2019-01-01",
+        JsonError error = GET( "/dataAnalysis/followup?ou={ou}&de={de}&startDate=2020-01-01&endDate=2019-01-01",
             orgUnitId, dataElementId ).error( HttpStatus.CONFLICT );
         assertEquals( ErrorCode.E2202, error.getErrorCode() );
         assertEquals( "Start date must be before end date", error.getMessage() );
     }
 
     @Test
-    public void testPerformFollowupAnalysis_ValidationMaxResultsZeroOrNegative()
+    void testPerformFollowupAnalysis_ValidationMaxResultsZeroOrNegative()
     {
-        JsonError error = GET( "/dataAnalysis/followup?ou={ou}&de={de}&pe=2021&maxResults=0",
-            orgUnitId, dataElementId ).error( HttpStatus.CONFLICT );
+        JsonError error = GET( "/dataAnalysis/followup?ou={ou}&de={de}&pe=2021&maxResults=0", orgUnitId, dataElementId )
+            .error( HttpStatus.CONFLICT );
         assertEquals( ErrorCode.E2205, error.getErrorCode() );
         assertEquals( "Max results must be a positive number", error.getMessage() );
     }
 
     @Test
-    public void testPerformFollowupAnalysis_ValidationMaxResultsOverLimit()
+    void testPerformFollowupAnalysis_ValidationMaxResultsOverLimit()
     {
-        JsonError error = GET( "/dataAnalysis/followup?ou={ou}&de={de}&pe=2021&maxResults=11111",
-            orgUnitId, dataElementId ).error( HttpStatus.CONFLICT );
+        JsonError error = GET( "/dataAnalysis/followup?ou={ou}&de={de}&pe=2021&maxResults=11111", orgUnitId,
+            dataElementId ).error( HttpStatus.CONFLICT );
         assertEquals( ErrorCode.E2206, error.getErrorCode() );
-        assertEquals( "Max results exceeds the allowed max limit: `10,000`", error.getMessage() );
+        assertEquals( "Max results exceeds the allowed max limit: `" + NumberFormat.getInstance().format( 10000 ) + "`",
+            error.getMessage() );
     }
 
     private void assertFollowupValues( String orgUnitId, String dataElementId, String period,
         String... expectedComments )
     {
-        HttpResponse response = GET( "/dataAnalysis/followup?ou={ou}&de={de}&pe={pe}",
-            orgUnitId, dataElementId, period );
+        HttpResponse response = GET( "/dataAnalysis/followup?ou={ou}&de={de}&pe={pe}", orgUnitId, dataElementId,
+            period );
         assertFollowupValues( response, expectedComments );
     }
 
@@ -232,8 +219,7 @@ public class FollowupAnalysisControllerTest extends AbstractDataValueControllerT
         JsonResponse body = response.content();
         JsonList<JsonFollowupValue> values = body.getList( "followupValues", JsonFollowupValue.class );
         assertEquals( expectedComments.length, values.size() );
-        assertEquals(
-            Arrays.stream( expectedComments ).collect( toSet() ),
+        assertEquals( Arrays.stream( expectedComments ).collect( toSet() ),
             values.stream().map( JsonFollowupValue::getComment ).collect( toSet() ) );
         JsonObject metadata = body.getObject( "metadata" );
         assertTrue( metadata.exists() );

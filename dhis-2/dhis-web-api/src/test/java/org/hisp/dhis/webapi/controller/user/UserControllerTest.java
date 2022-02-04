@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,9 +30,9 @@ package org.hisp.dhis.webapi.controller.user;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
 import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.same;
@@ -63,22 +63,25 @@ import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserService;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.Ignore;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * Unit tests for {@link UserController}.
  *
  * @author Volker Schmidt
  */
-public class UserControllerTest
+@MockitoSettings( strictness = Strictness.LENIENT )
+@ExtendWith( MockitoExtension.class )
+class UserControllerTest
 {
     @Mock
     private UserService userService;
@@ -105,10 +108,7 @@ public class UserControllerTest
 
     private User parsedUser;
 
-    @Rule
-    public MockitoRule rule = MockitoJUnit.rule();
-
-    @Before
+    @BeforeEach
     public void setUp()
     {
         userGroup1 = new UserGroup();
@@ -149,7 +149,7 @@ public class UserControllerTest
     }
 
     @Test
-    public void updateUserGroupsNotOk()
+    void updateUserGroupsNotOk()
     {
         if ( isInStatusUpdatedOK( createReportWith( Status.ERROR, Stats::incUpdated ) ) )
         {
@@ -162,7 +162,7 @@ public class UserControllerTest
     }
 
     @Test
-    public void updateUserGroupsNotUpdated()
+    void updateUserGroupsNotUpdated()
     {
         if ( isInStatusUpdatedOK( createReportWith( Status.OK, Stats::incCreated ) ) )
         {
@@ -230,7 +230,7 @@ public class UserControllerTest
     }
 
     @Test
-    public void expireUserInTheFutureDoesNotExpireSession()
+    void expireUserInTheFutureDoesNotExpireSession()
         throws Exception
     {
         setUpUserExpireScenarios();
@@ -243,7 +243,7 @@ public class UserControllerTest
     }
 
     @Test
-    public void expireUserNowDoesExpireSession()
+    void expireUserNowDoesExpireSession()
         throws Exception
     {
         setUpUserExpireScenarios();
@@ -257,7 +257,7 @@ public class UserControllerTest
     }
 
     @Test
-    public void unexpireUserDoesUpdateUser()
+    void unexpireUserDoesUpdateUser()
         throws Exception
     {
         setUpUserExpireScenarios();
@@ -268,7 +268,7 @@ public class UserControllerTest
     }
 
     @Test
-    public void updateUserExpireRequiresUserBasedAuthority()
+    void updateUserExpireRequiresUserBasedAuthority()
     {
         setUpUserExpireScenarios();
         // executing user has no authorities
@@ -284,7 +284,7 @@ public class UserControllerTest
     }
 
     @Test
-    public void updateUserExpireRequiresGroupBasedAuthority()
+    void updateUserExpireRequiresGroupBasedAuthority()
     {
         setUpUserExpireScenarios();
         when( userService.canAddOrUpdateUser( any(), any() ) ).thenReturn( false );
@@ -297,7 +297,7 @@ public class UserControllerTest
     }
 
     @Test
-    public void updateUserExpireRequiresShareBasedAuthority()
+    void updateUserExpireRequiresShareBasedAuthority()
     {
         setUpUserExpireScenarios();
         when( aclService.canUpdate( currentUser, user ) ).thenReturn( false );
@@ -319,8 +319,8 @@ public class UserControllerTest
         ArgumentCaptor<User> credentials = ArgumentCaptor.forClass( User.class );
         verify( userService ).updateUser( credentials.capture() );
         User actual = credentials.getValue();
-        assertSame( "no user credentials update occurred", actual, user );
-        assertEquals( "date was not updated", accountExpiry, actual.getAccountExpiry() );
+        assertSame( actual, user, "no user credentials update occurred" );
+        assertEquals( accountExpiry, actual.getAccountExpiry(), "date was not updated" );
         verify( userService ).isAccountExpired( same( actual ) );
     }
 

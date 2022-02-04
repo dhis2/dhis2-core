@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,6 +38,9 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 /**
  * Utilities for metadata export controllers.
  *
@@ -59,15 +62,16 @@ public abstract class MetadataExportControllerUtils
      * @return the response with the metadata.
      */
     @Nonnull
-    public static ResponseEntity<RootNode> getWithDependencies( @Nonnull ContextService contextService,
+    public static ResponseEntity<JsonNode> getWithDependencies( @Nonnull ContextService contextService,
         @Nonnull MetadataExportService exportService, @Nonnull IdentifiableObject identifiableObject, boolean download )
     {
         final MetadataExportParams exportParams = exportService
             .getParamsFromMap( contextService.getParameterValuesMap() );
         exportService.validate( exportParams );
 
-        RootNode rootNode = exportService.getMetadataWithDependenciesAsNode( identifiableObject, exportParams );
-        return createResponseEntity( rootNode, download );
+        ObjectNode rootNode = exportService.getMetadataWithDependenciesAsNode( identifiableObject, exportParams );
+
+        return createJsonNodeResponseEntity( rootNode, download );
     }
 
     /**
@@ -91,6 +95,20 @@ public abstract class MetadataExportControllerUtils
             headers.add( HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=metadata" );
         }
         return new ResponseEntity<>( rootNode, headers, HttpStatus.OK );
+    }
+
+    public static ResponseEntity<JsonNode> createJsonNodeResponseEntity( @Nonnull JsonNode jsonNode, boolean download )
+    {
+        HttpHeaders headers = new HttpHeaders();
+
+        if ( download )
+        {
+            // triggers that corresponding message converter adds also a file
+            // name with a correct extension
+            headers.add( HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=metadata" );
+        }
+
+        return new ResponseEntity<>( jsonNode, headers, HttpStatus.OK );
     }
 
     private MetadataExportControllerUtils()

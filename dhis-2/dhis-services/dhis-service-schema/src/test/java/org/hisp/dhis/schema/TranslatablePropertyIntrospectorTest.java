@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.schema;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -38,40 +38,36 @@ import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.predictor.Predictor;
+import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.schema.introspection.TranslatablePropertyIntrospector;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public class TranslatablePropertyIntrospectorTest extends DhisSpringTest
+class TranslatablePropertyIntrospectorTest extends DhisSpringTest
 {
+
     private final TranslatablePropertyIntrospector introspector = new TranslatablePropertyIntrospector();
 
     @Test
-    public void testGetTranslatableProperties()
+    void testGetTranslatableProperties()
     {
         Property propTranslation = new Property( DataElement.class );
         propTranslation.setName( "translations" );
         propTranslation.setFieldName( "translations" );
         propTranslation.setPersisted( true );
-
         Property propName = new Property( DataElement.class );
         propName.setName( "name" );
         propName.setFieldName( "name" );
         propName.setPersisted( true );
-
         Property propCode = new Property( DataElement.class );
         propCode.setName( "code" );
         propCode.setFieldName( "code" );
         propCode.setPersisted( true );
-
         Map<String, Property> propertyMap = new HashMap<>();
         propertyMap.put( "name", propName );
         propertyMap.put( "code", propCode );
         propertyMap.put( "translations", propTranslation );
-
         assertFalse( propertyMap.get( "name" ).isTranslatable() );
-
         introspector.introspect( DataElement.class, propertyMap );
-
         assertTrue( propertyMap.get( "name" ).isTranslatable() );
         assertFalse( propertyMap.get( "code" ).isTranslatable() );
     }
@@ -82,71 +78,84 @@ public class TranslatablePropertyIntrospectorTest extends DhisSpringTest
      * annotation Translatable
      */
     @Test
-    public void testNonTranslatableObject()
+    void testNonTranslatableObject()
     {
         Property propName = new Property( DataElement.class );
         propName.setName( "name" );
         propName.setPersisted( true );
-
         Property propCode = new Property( DataElement.class );
         propCode.setName( "code" );
         propCode.setPersisted( true );
-
         Map<String, Property> propertyMap = new HashMap<>();
         propertyMap.put( "name", propName );
         propertyMap.put( "code", propCode );
-
         assertFalse( propertyMap.get( "name" ).isTranslatable() );
-
         introspector.introspect( DataElement.class, propertyMap );
-
         assertFalse( propertyMap.get( "name" ).isTranslatable() );
         assertFalse( propertyMap.get( "code" ).isTranslatable() );
     }
 
     @Test
-    public void testI18nTranslationKey()
+    void testI18nTranslationKey()
     {
         Property propTranslation = new Property( DataSet.class );
         propTranslation.setName( "translations" );
         propTranslation.setFieldName( "translations" );
         propTranslation.setPersisted( true );
-
         Property property = new Property( DataSet.class );
         property.setFieldName( "formName" );
         property.setName( "formName" );
         property.setPersisted( true );
-
         Map<String, Property> propertyMap = new HashMap<>();
         propertyMap.put( "formName", property );
         propertyMap.put( "translations", propTranslation );
-
         introspector.introspect( DataSet.class, propertyMap );
         assertEquals( "form_name", propertyMap.get( "formName" ).getI18nTranslationKey() );
     }
 
     @Test
-    public void testTranslatableEmbeddedProperty()
+    void testTranslatableEmbeddedProperty()
     {
         Property propTranslation = new Property( Predictor.class );
         propTranslation.setName( "translations" );
         propTranslation.setFieldName( "translations" );
         propTranslation.setPersisted( true );
-
         Property propGenerator = new Property( Predictor.class );
         propGenerator.setName( "generator" );
         propGenerator.setFieldName( "generator" );
         propGenerator.setEmbeddedObject( true );
         propGenerator.setPersisted( true );
-
         Map<String, Property> propertyMap = new HashMap<>();
         propertyMap.put( "generator", propGenerator );
         propertyMap.put( "translations", propTranslation );
-
         assertFalse( propertyMap.get( "generator" ).isTranslatable() );
-
         introspector.introspect( Predictor.class, propertyMap );
-
         assertTrue( propertyMap.get( "generator" ).isTranslatable() );
+    }
+
+    @Test
+    void testNotPersistedProperty()
+    {
+        Property propTranslation = createProperty( ProgramStageSection.class, "translations" );
+        propTranslation.setPersisted( true );
+
+        Property propShortName = createProperty( ProgramStageSection.class, "shortName" );
+        propShortName.setPersisted( false );
+
+        Map<String, Property> propertyMap = new HashMap<>();
+        propertyMap.put( "shortName", propShortName );
+        propertyMap.put( "translations", propTranslation );
+
+        introspector.introspect( ProgramStageSection.class, propertyMap );
+
+        assertFalse( propertyMap.get( "shortName" ).isTranslatable() );
+    }
+
+    private Property createProperty( Class klass, String name )
+    {
+        Property property = new Property( klass );
+        property.setName( name );
+        property.setFieldName( name );
+        return property;
     }
 }

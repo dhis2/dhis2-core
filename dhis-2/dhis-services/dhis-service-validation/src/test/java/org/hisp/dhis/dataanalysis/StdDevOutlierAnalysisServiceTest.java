@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.dataanalysis;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -50,7 +50,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
@@ -60,8 +60,9 @@ import com.google.common.collect.Lists;
  * @author Lars Helge Overland
  */
 @SuppressWarnings( "unused" )
-public class StdDevOutlierAnalysisServiceTest extends DhisSpringTest
+class StdDevOutlierAnalysisServiceTest extends DhisSpringTest
 {
+
     @Autowired
     @Qualifier( "org.hisp.dhis.dataanalysis.StdDevOutlierAnalysisService" )
     private DataAnalysisService stdDevOutlierAnalysisService;
@@ -129,28 +130,22 @@ public class StdDevOutlierAnalysisServiceTest extends DhisSpringTest
     // ----------------------------------------------------------------------
     // Fixture
     // ----------------------------------------------------------------------
-
     @Override
     public void setUpTest()
     {
         categoryCombo = categoryService.getDefaultCategoryCombo();
-
         dataElementSingleQuoteName = createDataElement( 'A', categoryCombo );
         dataElementSingleQuoteName.setName( "DataElementA'" );
         dataElementB = createDataElement( 'B', categoryCombo );
         dataElementC = createDataElement( 'C', categoryCombo );
         dataElementD = createDataElement( 'D', categoryCombo );
-
         dataElementService.addDataElement( dataElementSingleQuoteName );
         dataElementService.addDataElement( dataElementB );
         dataElementService.addDataElement( dataElementC );
         dataElementService.addDataElement( dataElementD );
-
         dataElementsA.add( dataElementSingleQuoteName );
         dataElementsA.add( dataElementB );
-
         categoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();
-
         periodA = createPeriod( new MonthlyPeriodType(), getDate( 2000, 3, 1 ), getDate( 2000, 3, 31 ) );
         periodB = createPeriod( new MonthlyPeriodType(), getDate( 2000, 4, 1 ), getDate( 2000, 4, 30 ) );
         periodC = createPeriod( new MonthlyPeriodType(), getDate( 2000, 5, 1 ), getDate( 2000, 5, 30 ) );
@@ -161,24 +156,20 @@ public class StdDevOutlierAnalysisServiceTest extends DhisSpringTest
         periodH = createPeriod( new MonthlyPeriodType(), getDate( 2000, 10, 1 ), getDate( 2000, 10, 30 ) );
         periodI = createPeriod( new MonthlyPeriodType(), getDate( 2000, 11, 1 ), getDate( 2000, 11, 30 ) );
         periodJ = createPeriod( new MonthlyPeriodType(), getDate( 2000, 12, 1 ), getDate( 2000, 12, 30 ) );
-
         organisationUnitA = createOrganisationUnit( 'A' );
-
         organisationUnitService.addOrganisationUnit( organisationUnitA );
     }
 
     // ----------------------------------------------------------------------
     // Business logic tests
     // ----------------------------------------------------------------------
-
     @Test
-    public void testGetFindOutliers()
+    void testGetFindOutliers()
     {
         dataValueA = createDataValue( dataElementSingleQuoteName, periodI, organisationUnitA, "71",
             categoryOptionCombo );
         dataValueB = createDataValue( dataElementSingleQuoteName, periodJ, organisationUnitA, "-71",
             categoryOptionCombo );
-
         dataValueService.addDataValue(
             createDataValue( dataElementSingleQuoteName, periodA, organisationUnitA, "5", categoryOptionCombo ) );
         dataValueService.addDataValue(
@@ -197,23 +188,18 @@ public class StdDevOutlierAnalysisServiceTest extends DhisSpringTest
             createDataValue( dataElementSingleQuoteName, periodH, organisationUnitA, "-13", categoryOptionCombo ) );
         dataValueService.addDataValue( dataValueA );
         dataValueService.addDataValue( dataValueB );
-
         double stdDevFactor = 2.0;
         List<Period> periods = new ArrayList<>();
         periods.add( periodI );
         periods.add( periodJ );
         periods.add( periodA );
         periods.add( periodE );
-
         List<DeflatedDataValue> values = stdDevOutlierAnalysisService.analyse( Lists.newArrayList( organisationUnitA ),
             dataElementsA, periods, stdDevFactor, from );
-
         double lowerBound = -34.51 * stdDevFactor;
         double upperBound = 34.51 * stdDevFactor;
-
         DeflatedDataValue valueA = new DeflatedDataValue( dataValueA );
         DeflatedDataValue valueB = new DeflatedDataValue( dataValueB );
-
         assertEquals( 1, values.size() );
         assertTrue( values.contains( valueA ) );
         assertFalse( values.contains( valueB ) );

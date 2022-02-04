@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -70,6 +70,7 @@ import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.analytics.MeasureFilter;
 import org.hisp.dhis.analytics.QueryPlanner;
+import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.table.PartitionUtils;
 import org.hisp.dhis.analytics.util.AnalyticsSqlUtils;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
@@ -127,14 +128,18 @@ public class JdbcAnalyticsManager
 
     private final JdbcTemplate jdbcTemplate;
 
+    private final ExecutionPlanStore executionPlanStore;
+
     public JdbcAnalyticsManager( QueryPlanner queryPlanner,
-        @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate )
+        @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate, ExecutionPlanStore executionPlanStore )
     {
         checkNotNull( queryPlanner );
         checkNotNull( jdbcTemplate );
+        checkNotNull( executionPlanStore );
 
         this.queryPlanner = queryPlanner;
         this.jdbcTemplate = jdbcTemplate;
+        this.executionPlanStore = executionPlanStore;
     }
 
     // -------------------------------------------------------------------------
@@ -176,6 +181,12 @@ public class JdbcAnalyticsManager
             }
 
             log.debug( sql );
+
+            if ( params.analyzeOnly() )
+            {
+                executionPlanStore.addExecutionPlan( params.getAnalyzeOrderId(), sql );
+                return new AsyncResult<>( Maps.newHashMap() );
+            }
 
             Map<String, Object> map;
 
@@ -589,7 +600,7 @@ public class JdbcAnalyticsManager
     {
         Period period = params.getLatestPeriod();
 
-        List<String> cols = Lists.newArrayList( "year", "pestartdate", "peenddate", "level", "daysxvalue", "daysno",
+        List<String> cols = Lists.newArrayList( "year", "pestartdate", "peenddate", "oulevel", "daysxvalue", "daysno",
             "value", "textvalue" );
 
         cols = cols.stream().map( AnalyticsSqlUtils::quote ).collect( Collectors.toList() );

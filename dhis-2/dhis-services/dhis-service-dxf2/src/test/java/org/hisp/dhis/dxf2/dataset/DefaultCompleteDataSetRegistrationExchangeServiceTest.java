@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,12 +36,13 @@ import static org.hisp.dhis.DhisConvenienceTest.createCategoryOptionCombo;
 import static org.hisp.dhis.DhisConvenienceTest.createDataSet;
 import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
 import static org.hisp.dhis.DhisConvenienceTest.createPeriod;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.whenNew;
 
 import java.io.ByteArrayInputStream;
 import java.util.Arrays;
@@ -90,16 +91,12 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.MockedConstruction;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.env.Environment;
 
 import com.google.common.collect.Sets;
@@ -107,11 +104,8 @@ import com.google.common.collect.Sets;
 /**
  * @author Luciano Fiandesio
  */
-@RunWith( PowerMockRunner.class )
-@PrepareForTest( DefaultCompleteDataSetRegistrationExchangeService.class )
-@PowerMockIgnore( { "javax.management.*", "javax.xml.*", "org.apache.logging.*", "org.apache.xerces.*",
-    "org.cache2k.*", "org.slf4j.*" } )
-public class DefaultCompleteDataSetRegistrationExchangeServiceTest
+@ExtendWith( MockitoExtension.class )
+class DefaultCompleteDataSetRegistrationExchangeServiceTest
 {
     @Mock
     private CompleteDataSetRegistrationExchangeStore cdsrStore;
@@ -158,9 +152,6 @@ public class DefaultCompleteDataSetRegistrationExchangeServiceTest
     @Mock
     private BatchHandler<CompleteDataSetRegistration> batchHandler;
 
-    @Mock
-    private MetadataCaches metaDataCaches;
-
     // Cache mocks //
 
     @Mock
@@ -195,12 +186,9 @@ public class DefaultCompleteDataSetRegistrationExchangeServiceTest
 
     private DefaultCompleteDataSetRegistrationExchangeService subject;
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
     private CategoryOptionCombo DEFAULT_COC;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         user = new User();
@@ -226,8 +214,7 @@ public class DefaultCompleteDataSetRegistrationExchangeServiceTest
     }
 
     @Test
-    public void verifyUserHasNoWritePermissionOnCategoryOption()
-        throws Exception
+    void verifyUserHasNoWritePermissionOnCategoryOption()
     {
         OrganisationUnit organisationUnit = createOrganisationUnit( 'A' );
         DataSet dataSetA = createDataSet( 'A', new MonthlyPeriodType() );
@@ -241,75 +228,80 @@ public class DefaultCompleteDataSetRegistrationExchangeServiceTest
         String payload = createPayload( period, organisationUnit, dataSetA, categoryCombo, categoryOptionA,
             categoryOptionB );
 
-        whenNew( MetadataCaches.class ).withNoArguments().thenReturn( metaDataCaches );
-        when( currentUserService.getCurrentUser() ).thenReturn( user );
-        when( batchHandler.init() ).thenReturn( batchHandler );
-        when( idObjManager.get( CategoryCombo.class, categoryCombo.getUid() ) ).thenReturn( categoryCombo );
-        when( idObjManager.getObject( CategoryOption.class, IdScheme.UID, categoryOptionA.getUid() ) )
-            .thenReturn( categoryOptionA );
-        when( idObjManager.getObject( CategoryOption.class, IdScheme.UID, categoryOptionB.getUid() ) )
-            .thenReturn( categoryOptionB );
+        try ( MockedConstruction<MetadataCaches> mocked = mockConstruction( MetadataCaches.class,
+            ( mock, context ) -> {
+                when( mock.getDataSets() ).thenReturn( datasetCache );
+                when( mock.getPeriods() ).thenReturn( periodCache );
+                when( mock.getOrgUnits() ).thenReturn( orgUnitCache );
+                aocCache = new CachingMap<>();
+                when( mock.getAttrOptionCombos() ).thenReturn( aocCache );
+                when( mock.getOrgUnitInHierarchyMap() ).thenReturn( orgUnitInHierarchyCache );
+                when( mock.getAttrOptComboOrgUnitMap() ).thenReturn( attrOptComboOrgUnitCache );
+            } ) )
+        {
+            when( currentUserService.getCurrentUser() ).thenReturn( user );
+            when( batchHandler.init() ).thenReturn( batchHandler );
+            when( idObjManager.get( CategoryCombo.class, categoryCombo.getUid() ) ).thenReturn( categoryCombo );
+            when( idObjManager.getObject( CategoryOption.class, IdScheme.UID, categoryOptionA.getUid() ) )
+                .thenReturn( categoryOptionA );
+            when( idObjManager.getObject( CategoryOption.class, IdScheme.UID, categoryOptionB.getUid() ) )
+                .thenReturn( categoryOptionB );
 
-        when( categoryService.getCategoryOptionCombo( categoryCombo,
-            Sets.newHashSet( categoryOptionA, categoryOptionB ) ) ).thenReturn( categoryOptionCombo );
+            when( categoryService.getCategoryOptionCombo( categoryCombo,
+                Sets.newHashSet( categoryOptionA, categoryOptionB ) ) ).thenReturn( categoryOptionCombo );
 
-        when( datasetCache.get( eq( dataSetA.getUid() ), any() ) ).thenReturn( dataSetA );
-        when( periodCache.get( eq( period.getIsoDate() ), any() ) ).thenReturn( period );
-        when( orgUnitCache.get( eq( organisationUnit.getUid() ), any() ) ).thenReturn( createOrganisationUnit( 'A' ) );
+            when( datasetCache.get( eq( dataSetA.getUid() ), any() ) ).thenReturn( dataSetA );
+            when( periodCache.get( eq( period.getIsoDate() ), any() ) ).thenReturn( period );
+            when( orgUnitCache.get( eq( organisationUnit.getUid() ), any() ) )
+                .thenReturn( createOrganisationUnit( 'A' ) );
 
-        when( orgUnitInHierarchyCache.get( eq( organisationUnit.getUid() ), any() ) ).thenReturn( Boolean.TRUE );
-        when( attrOptComboOrgUnitCache.get( eq( categoryOptionCombo.getUid() + organisationUnit.getUid() ), any() ) )
-            .thenReturn( Boolean.TRUE );
-        when( categoryService.getCategoryOptionCombo( categoryOptionCombo.getUid() ) )
-            .thenReturn( categoryOptionCombo );
+            when( orgUnitInHierarchyCache.get( eq( organisationUnit.getUid() ), any() ) ).thenReturn( Boolean.TRUE );
+            when(
+                attrOptComboOrgUnitCache.get( eq( categoryOptionCombo.getUid() + organisationUnit.getUid() ), any() ) )
+                    .thenReturn( Boolean.TRUE );
+            when( categoryService.getCategoryOptionCombo( categoryOptionCombo.getUid() ) )
+                .thenReturn( categoryOptionCombo );
 
-        // force error on access check for Category Option Combo
-        when( aclService.canDataWrite( user, dataSetA ) ).thenReturn( true );
-        when( aclService.canDataWrite( user, categoryOptionA ) ).thenReturn( false );
-        when( aclService.canDataWrite( user, categoryOptionB ) ).thenReturn( true );
+            // force error on access check for Category Option Combo
+            when( aclService.canDataWrite( user, dataSetA ) ).thenReturn( true );
+            when( aclService.canDataWrite( user, categoryOptionA ) ).thenReturn( false );
+            when( aclService.canDataWrite( user, categoryOptionB ) ).thenReturn( true );
 
-        when( notifier.clear( null ) ).thenReturn( notifier );
-        when( systemSettingManager.getBoolSetting( SettingKey.DATA_IMPORT_STRICT_PERIODS ) )
-            .thenReturn( false );
-        when( systemSettingManager.getBoolSetting( SettingKey.DATA_IMPORT_STRICT_ATTRIBUTE_OPTION_COMBOS ) )
-            .thenReturn( false );
-        when( systemSettingManager.getBoolSetting( SettingKey.DATA_IMPORT_STRICT_ORGANISATION_UNITS ) )
-            .thenReturn( false );
-        when( systemSettingManager.getBoolSetting( SettingKey.DATA_IMPORT_REQUIRE_ATTRIBUTE_OPTION_COMBO ) )
-            .thenReturn( false );
+            when( notifier.clear( null ) ).thenReturn( notifier );
+            when( systemSettingManager.getBoolSetting( SettingKey.DATA_IMPORT_STRICT_PERIODS ) )
+                .thenReturn( false );
+            when( systemSettingManager.getBoolSetting( SettingKey.DATA_IMPORT_STRICT_ATTRIBUTE_OPTION_COMBOS ) )
+                .thenReturn( false );
+            when( systemSettingManager.getBoolSetting( SettingKey.DATA_IMPORT_STRICT_ORGANISATION_UNITS ) )
+                .thenReturn( false );
+            when( systemSettingManager.getBoolSetting( SettingKey.DATA_IMPORT_REQUIRE_ATTRIBUTE_OPTION_COMBO ) )
+                .thenReturn( false );
 
-        when( currentUserService.getCurrentUserOrganisationUnits() )
-            .thenReturn( Collections.singleton( createOrganisationUnit( 'A' ) ) );
-        when( i18nManager.getI18n() ).thenReturn( i18n );
+            when( currentUserService.getCurrentUserOrganisationUnits() )
+                .thenReturn( Collections.singleton( createOrganisationUnit( 'A' ) ) );
+            when( i18nManager.getI18n() ).thenReturn( i18n );
 
-        when( categoryService.getDefaultCategoryOptionCombo() ).thenReturn( DEFAULT_COC );
-        when( batchHandlerFactory.createBatchHandler( CompleteDataSetRegistrationBatchHandler.class ) )
-            .thenReturn( batchHandler );
+            when( categoryService.getDefaultCategoryOptionCombo() ).thenReturn( DEFAULT_COC );
+            when( batchHandlerFactory.createBatchHandler( CompleteDataSetRegistrationBatchHandler.class ) )
+                .thenReturn( batchHandler );
 
-        // caches
-        when( metaDataCaches.getDataSets() ).thenReturn( datasetCache );
-        when( metaDataCaches.getPeriods() ).thenReturn( periodCache );
-        when( metaDataCaches.getOrgUnits() ).thenReturn( orgUnitCache );
-        aocCache = new CachingMap<>();
-        when( metaDataCaches.getAttrOptionCombos() ).thenReturn( aocCache );
-        when( metaDataCaches.getOrgUnitInHierarchyMap() ).thenReturn( orgUnitInHierarchyCache );
-        when( metaDataCaches.getAttrOptComboOrgUnitMap() ).thenReturn( attrOptComboOrgUnitCache );
+            when( notifier.notify( any(), anyString() ) ).thenReturn( notifier );
+            when( notifier.notify( null, NotificationLevel.INFO, "Import done", true ) ).thenReturn( notifier );
 
-        when( notifier.notify( null, NotificationLevel.INFO, "Import done", true ) ).thenReturn( notifier );
+            // call method under test
+            ImportSummary summary = subject.saveCompleteDataSetRegistrationsJson(
+                new ByteArrayInputStream( payload.getBytes() ), new ImportOptions() );
 
-        // call method under test
-        ImportSummary summary = subject.saveCompleteDataSetRegistrationsJson(
-            new ByteArrayInputStream( payload.getBytes() ), new ImportOptions() );
-
-        assertThat( summary.getStatus(), is( ImportStatus.ERROR ) );
-        assertThat( summary.getImportCount().getIgnored(), is( 1 ) );
-        assertEquals( 1, summary.getConflictCount() );
-        assertThat( summary.getConflicts().iterator().next().getValue(),
-            is( "User has no data write access for CategoryOption: " + categoryOptionA.getUid() ) );
+            assertThat( summary.getStatus(), is( ImportStatus.ERROR ) );
+            assertThat( summary.getImportCount().getIgnored(), is( 1 ) );
+            assertEquals( 1, summary.getConflictCount() );
+            assertThat( summary.getConflicts().iterator().next().getValue(),
+                is( "User has no data write access for CategoryOption: " + categoryOptionA.getUid() ) );
+        }
     }
 
     @Test
-    public void testValidateAssertMissingDataSet()
+    void testValidateAssertMissingDataSet()
     {
         ExportParams params = new ExportParams()
             .setOrganisationUnits( Sets.newHashSet( new OrganisationUnit() ) )

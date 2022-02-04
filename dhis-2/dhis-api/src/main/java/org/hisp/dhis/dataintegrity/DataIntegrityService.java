@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,26 +27,37 @@
  */
 package org.hisp.dhis.dataintegrity;
 
+import java.util.Collection;
+import java.util.Map;
 import java.util.Set;
 
 import org.hisp.dhis.scheduling.JobProgress;
 
 /**
- * @author Fredrik Fjeld
+ * @author Fredrik Fjeld (old API)
+ * @author Jan Bernitt (new API)
  */
 public interface DataIntegrityService
 {
-    String ID = DataIntegrityService.class.getName();
+    /*
+     * Old API
+     */
 
     /**
-     * Returns a DataIntegrityReport.
+     * @deprecated Replaced by {@link #getSummaries(Set, JobProgress)} and
+     *             {@link #getDetails(Set, JobProgress)}, kept for backwards
+     *             compatibility until new UI exists
      */
-    DataIntegrityReport getDataIntegrityReport( Set<DataIntegrityCheckType> checks, JobProgress progress );
+    @Deprecated( since = "2.38", forRemoval = true )
+    FlattenedDataIntegrityReport getReport( Set<String> checks, JobProgress progress );
 
-    /**
-     * Returns a FlattenedDataIntegrityReport.
+    /*
+     * New generic API
      */
-    FlattenedDataIntegrityReport getFlattenedDataIntegrityReport( Set<DataIntegrityCheckType> checks,
-        JobProgress progress );
 
+    Collection<DataIntegrityCheck> getDataIntegrityChecks();
+
+    Map<String, DataIntegritySummary> getSummaries( Set<String> checks, JobProgress progress );
+
+    Map<String, DataIntegrityDetails> getDetails( Set<String> checks, JobProgress progress );
 }

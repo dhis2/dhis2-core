@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,24 +28,25 @@
 package org.hisp.dhis.hibernate.jsonb.type;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.HashSet;
 import java.util.Set;
 
 import org.hamcrest.Matchers;
 import org.hisp.dhis.translation.Translation;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for {@link JsonSetBinaryType}.
  *
  * @author Volker Schmidt
  */
-public class JsonSetBinaryTypeTest
+class JsonSetBinaryTypeTest
 {
+
     private JsonSetBinaryType jsonBinaryType;
 
     private Set<Translation> translations;
@@ -54,28 +55,25 @@ public class JsonSetBinaryTypeTest
 
     private Translation translation2;
 
-    @Before
-    public void setUp()
+    @BeforeEach
+    void setUp()
     {
         translation1 = new Translation();
         translation1.setLocale( "en" );
         translation1.setValue( "English Test 1" );
-
         translation2 = new Translation();
         translation2.setLocale( "no" );
         translation2.setValue( "Norwegian Test 1" );
-
         translations = new HashSet<>();
         translations.add( translation1 );
         translations.add( translation2 );
-
         jsonBinaryType = new JsonSetBinaryType();
         jsonBinaryType.init( Translation.class );
     }
 
     @SuppressWarnings( "unchecked" )
     @Test
-    public void deepCopy()
+    void deepCopy()
     {
         final Set<Translation> result = (Set<Translation>) jsonBinaryType.deepCopy( translations );
         assertNotSame( translations, result );
@@ -83,7 +81,7 @@ public class JsonSetBinaryTypeTest
     }
 
     @Test
-    public void deepCopyNull()
+    void deepCopyNull()
     {
         assertNull( jsonBinaryType.deepCopy( null ) );
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -101,6 +101,8 @@ public class DefaultQueryPlanner
     public DataQueryGroups planQuery( DataQueryParams params, QueryPlannerParams plannerParams )
     {
         queryValidator.validate( params );
+
+        params = PeriodOffsetUtils.addShiftedPeriods( params );
 
         // ---------------------------------------------------------------------
         // Group queries which can be executed together
@@ -264,8 +266,8 @@ public class DefaultQueryPlanner
         }
         else if ( !params.getPeriods().isEmpty() )
         {
-            ListMap<String, DimensionalItemObject> periodTypePeriodMap = PeriodOffsetUtils
-                .getPeriodTypePeriodMap( params );
+            ListMap<String, DimensionalItemObject> periodTypePeriodMap = PartitionUtils
+                .getPeriodTypePeriodMap( params.getPeriods() );
 
             for ( String periodType : periodTypePeriodMap.keySet() )
             {
@@ -274,7 +276,7 @@ public class DefaultQueryPlanner
                         periodTypePeriodMap.get( periodType ) )
                     .withPeriodType( periodType ).build();
 
-                queries.add( PeriodOffsetUtils.removeOffsetPeriodsIfNotNeeded( query ) );
+                queries.add( query );
             }
         }
         else if ( !params.getFilterPeriods().isEmpty() )

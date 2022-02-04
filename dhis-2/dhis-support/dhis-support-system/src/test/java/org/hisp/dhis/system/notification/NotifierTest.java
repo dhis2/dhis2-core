@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,8 +30,8 @@ package org.hisp.dhis.system.notification;
 import static org.hisp.dhis.scheduling.JobType.ANALYTICS_TABLE;
 import static org.hisp.dhis.scheduling.JobType.DATAVALUE_IMPORT;
 import static org.hisp.dhis.scheduling.JobType.METADATA_IMPORT;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.Deque;
 import java.util.Map;
@@ -44,14 +44,15 @@ import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.user.User;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Lars Helge Overland
  */
-public class NotifierTest extends DhisSpringTest
+class NotifierTest extends DhisSpringTest
 {
+
     @Autowired
     private Notifier notifier;
 
@@ -89,52 +90,46 @@ public class NotifierTest extends DhisSpringTest
     }
 
     @Test
-    public void testGetNotifications()
+    void testGetNotifications()
     {
         notifier.notify( dataValueImportJobConfig, "Import started" );
         notifier.notify( dataValueImportJobConfig, "Import working" );
         notifier.notify( dataValueImportJobConfig, "Import done" );
         notifier.notify( analyticsTableJobConfig, "Process started" );
         notifier.notify( analyticsTableJobConfig, "Process done" );
-
         Map<JobType, Map<String, Deque<Notification>>> notificationsMap = notifier.getNotifications();
-
         assertNotNull( notificationsMap );
-        assertEquals( 3, notifier.getNotificationsByJobId( dataValueImportJobConfig.getJobType(),
-            dataValueImportJobConfig.getUid() ).size() );
-        assertEquals( 2, notifier.getNotificationsByJobId( analyticsTableJobConfig.getJobType(),
-            analyticsTableJobConfig.getUid() ).size() );
-        assertEquals( 0, notifier.getNotificationsByJobId( metadataImportJobConfig.getJobType(),
-            metadataImportJobConfig.getUid() ).size() );
-
+        assertEquals( 3,
+            notifier.getNotificationsByJobId( dataValueImportJobConfig.getJobType(), dataValueImportJobConfig.getUid() )
+                .size() );
+        assertEquals( 2, notifier
+            .getNotificationsByJobId( analyticsTableJobConfig.getJobType(), analyticsTableJobConfig.getUid() ).size() );
+        assertEquals( 0, notifier
+            .getNotificationsByJobId( metadataImportJobConfig.getJobType(), metadataImportJobConfig.getUid() ).size() );
         notifier.clear( dataValueImportJobConfig );
         notifier.clear( analyticsTableJobConfig );
-
         notifier.notify( dataValueImportJobConfig, "Import started" );
         notifier.notify( dataValueImportJobConfig, "Import working" );
         notifier.notify( dataValueImportJobConfig, "Import done" );
         notifier.notify( analyticsTableJobConfig, "Process started" );
         notifier.notify( analyticsTableJobConfig, "Process done" );
-
-        assertEquals( 3, notifier.getNotificationsByJobId( dataValueImportJobConfig.getJobType(),
-            dataValueImportJobConfig.getUid() ).size() );
-        assertEquals( 2, notifier.getNotificationsByJobId( analyticsTableJobConfig.getJobType(),
-            analyticsTableJobConfig.getUid() ).size() );
-
+        assertEquals( 3,
+            notifier.getNotificationsByJobId( dataValueImportJobConfig.getJobType(), dataValueImportJobConfig.getUid() )
+                .size() );
+        assertEquals( 2, notifier
+            .getNotificationsByJobId( analyticsTableJobConfig.getJobType(), analyticsTableJobConfig.getUid() ).size() );
         notifier.clear( dataValueImportJobConfig );
-
-        assertEquals( 0, notifier.getNotificationsByJobId( dataValueImportJobConfig.getJobType(),
-            dataValueImportJobConfig.getUid() ).size() );
-        assertEquals( 2, notifier.getNotificationsByJobId( analyticsTableJobConfig.getJobType(),
-            analyticsTableJobConfig.getUid() ).size() );
-
+        assertEquals( 0,
+            notifier.getNotificationsByJobId( dataValueImportJobConfig.getJobType(), dataValueImportJobConfig.getUid() )
+                .size() );
+        assertEquals( 2, notifier
+            .getNotificationsByJobId( analyticsTableJobConfig.getJobType(), analyticsTableJobConfig.getUid() ).size() );
         notifier.clear( analyticsTableJobConfig );
-
-        assertEquals( 0, notifier.getNotificationsByJobId( dataValueImportJobConfig.getJobType(),
-            dataValueImportJobConfig.getUid() ).size() );
-        assertEquals( 0, notifier.getNotificationsByJobId( analyticsTableJobConfig.getJobType(),
-            analyticsTableJobConfig.getUid() ).size() );
-
+        assertEquals( 0,
+            notifier.getNotificationsByJobId( dataValueImportJobConfig.getJobType(), dataValueImportJobConfig.getUid() )
+                .size() );
+        assertEquals( 0, notifier
+            .getNotificationsByJobId( analyticsTableJobConfig.getJobType(), analyticsTableJobConfig.getUid() ).size() );
         notifier.notify( dataValueImportSecondJobConfig, "Process done" );
         notifier.notify( dataValueImportJobConfig, "Import started" );
         notifier.notify( dataValueImportJobConfig, "Import working" );
@@ -146,9 +141,7 @@ public class NotifierTest extends DhisSpringTest
             .get( dataValueImportJobConfig.getUid() );
         assertNotNull( notifications );
         assertEquals( 4, notifications.size() );
-
         notifier.notify( dataValueImportThirdJobConfig, "Completed1" );
-
         Map<String, Deque<Notification>> notificationsByJobType = notifier
             .getNotificationsByJobType( DATAVALUE_IMPORT );
         assertNotNull( notificationsByJobType );
@@ -158,9 +151,7 @@ public class NotifierTest extends DhisSpringTest
         assertEquals( 1, notificationsByJobType.get( dataValueImportThirdJobConfig.getUid() ).size() );
         assertEquals( "Completed1",
             notificationsByJobType.get( dataValueImportThirdJobConfig.getUid() ).getFirst().getMessage() );
-
         notifier.notify( dataValueImportFourthConfig, "Completed2" );
-
         notificationsByJobType = notifier.getNotificationsByJobType( DATAVALUE_IMPORT );
         assertNotNull( notificationsByJobType );
         assertEquals( 4, notificationsByJobType.get( dataValueImportJobConfig.getUid() ).size() );
@@ -169,57 +160,44 @@ public class NotifierTest extends DhisSpringTest
         assertEquals( 1, notificationsByJobType.get( dataValueImportFourthConfig.getUid() ).size() );
         assertEquals( "Completed2",
             notificationsByJobType.get( dataValueImportFourthConfig.getUid() ).getFirst().getMessage() );
-
     }
 
     @Test
-    public void testGetSummary()
+    void testGetSummary()
     {
         notifier.addJobSummary( dataValueImportJobConfig, "somethingid1", String.class );
         notifier.addJobSummary( analyticsTableJobConfig, "somethingid2", String.class );
         notifier.addJobSummary( dataValueImportSecondJobConfig, "somethingid4", String.class );
         notifier.addJobSummary( metadataImportJobConfig, "somethingid3", String.class );
-
-        Map<String, Object> jobSummariesForAnalyticsType = notifier
-            .getJobSummariesForJobType( DATAVALUE_IMPORT );
+        Map<String, Object> jobSummariesForAnalyticsType = notifier.getJobSummariesForJobType( DATAVALUE_IMPORT );
         assertNotNull( jobSummariesForAnalyticsType );
         assertEquals( 2, jobSummariesForAnalyticsType.size() );
-
-        Map<String, Object> jobSummariesForMetadataImportType = notifier
-            .getJobSummariesForJobType( METADATA_IMPORT );
+        Map<String, Object> jobSummariesForMetadataImportType = notifier.getJobSummariesForJobType( METADATA_IMPORT );
         assertNotNull( jobSummariesForMetadataImportType );
         assertEquals( 1, jobSummariesForMetadataImportType.size() );
         assertEquals( "somethingid3", jobSummariesForMetadataImportType.get( metadataImportJobConfig.getUid() ) );
-
         Object summary = notifier.getJobSummaryByJobId( dataValueImportJobConfig.getJobType(),
             dataValueImportJobConfig.getUid() );
         assertNotNull( summary );
-        assertEquals( "True", "somethingid1", summary );
-
+        assertEquals( "somethingid1", summary, "True" );
         notifier.addJobSummary( dataValueImportThirdJobConfig, "summarry3", String.class );
-
         jobSummariesForAnalyticsType = notifier.getJobSummariesForJobType( DATAVALUE_IMPORT );
         assertNotNull( jobSummariesForAnalyticsType );
         assertEquals( 3, jobSummariesForAnalyticsType.size() );
-
         notifier.addJobSummary( dataValueImportFourthConfig, "summarry4", String.class );
-
         jobSummariesForAnalyticsType = notifier.getJobSummariesForJobType( DATAVALUE_IMPORT );
         assertNotNull( jobSummariesForAnalyticsType );
         assertEquals( 4, jobSummariesForAnalyticsType.size() );
     }
 
     @Test
-    public void testInsertingNotificationsInSameJobConcurrently()
+    void testInsertingNotificationsInSameJobConcurrently()
         throws InterruptedException
     {
         ExecutorService e = Executors.newFixedThreadPool( 5 );
         JobConfiguration jobConfig = createJobConfig( -1 );
-
         notifier.notify( jobConfig, "somethingid" );
-
-        IntStream.range( 0, 100 ).forEach( i -> e.execute(
-            () -> notifier.notify( jobConfig, "somethingid" + i ) ) );
+        IntStream.range( 0, 100 ).forEach( i -> e.execute( () -> notifier.notify( jobConfig, "somethingid" + i ) ) );
         IntStream.range( 0, 100 ).forEach( i -> {
             for ( Notification notification : notifier.getNotificationsByJobType( METADATA_IMPORT )
                 .get( jobConfig.getUid() ) )
@@ -228,13 +206,12 @@ public class NotifierTest extends DhisSpringTest
                 assertNotNull( notification.getUid() );
             }
         } );
-
         awaitTermination( e );
         assertEquals( 101, notifier.getNotificationsByJobType( METADATA_IMPORT ).get( jobConfig.getUid() ).size() );
     }
 
     @Test
-    public void testInsertingNotificationJobConcurrently()
+    void testInsertingNotificationJobConcurrently()
         throws InterruptedException
     {
         ExecutorService e = Executors.newFixedThreadPool( 5 );

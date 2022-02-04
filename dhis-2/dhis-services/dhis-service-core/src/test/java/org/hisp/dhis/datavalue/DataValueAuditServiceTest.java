@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.datavalue;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,15 +44,15 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Created by Halvdan Hoem Grelland
  */
-public class DataValueAuditServiceTest
-    extends DhisSpringTest
+class DataValueAuditServiceTest extends DhisSpringTest
 {
+
     @Autowired
     private DataValueAuditService dataValueAuditService;
 
@@ -72,7 +74,6 @@ public class DataValueAuditServiceTest
     // -------------------------------------------------------------------------
     // Supporting data
     // -------------------------------------------------------------------------
-
     private DataElement dataElementA;
 
     private DataElement dataElementB;
@@ -110,7 +111,6 @@ public class DataValueAuditServiceTest
     // -------------------------------------------------------------------------
     // Set up/tear down
     // -------------------------------------------------------------------------
-
     @Override
     public void setUpTest()
         throws Exception
@@ -118,45 +118,36 @@ public class DataValueAuditServiceTest
         // ---------------------------------------------------------------------
         // Add supporting data
         // ---------------------------------------------------------------------
-
         dataElementA = createDataElement( 'A' );
         dataElementB = createDataElement( 'B' );
         dataElementC = createDataElement( 'C' );
         dataElementD = createDataElement( 'D' );
-
         dataElementService.addDataElement( dataElementA );
         dataElementService.addDataElement( dataElementB );
         dataElementService.addDataElement( dataElementC );
         dataElementService.addDataElement( dataElementD );
-
         periodA = createPeriod( getDay( 5 ), getDay( 6 ) );
         periodB = createPeriod( getDay( 6 ), getDay( 7 ) );
         periodC = createPeriod( getDay( 7 ), getDay( 8 ) );
         periodD = createPeriod( getDay( 8 ), getDay( 9 ) );
-
         periodService.addPeriod( periodA );
         periodService.addPeriod( periodB );
         periodService.addPeriod( periodC );
         periodService.addPeriod( periodD );
-
         orgUnitA = createOrganisationUnit( 'A' );
         orgUnitB = createOrganisationUnit( 'B' );
         orgUnitC = createOrganisationUnit( 'C' );
         orgUnitD = createOrganisationUnit( 'D' );
-
         organisationUnitService.addOrganisationUnit( orgUnitA );
         organisationUnitService.addOrganisationUnit( orgUnitB );
         organisationUnitService.addOrganisationUnit( orgUnitC );
         organisationUnitService.addOrganisationUnit( orgUnitD );
-
         optionCombo = categoryService.getDefaultCategoryOptionCombo();
         categoryService.addCategoryOptionCombo( optionCombo );
-
         dataValueA = createDataValue( dataElementA, periodA, orgUnitA, "1", optionCombo );
         dataValueB = createDataValue( dataElementB, periodB, orgUnitB, "2", optionCombo );
         dataValueC = createDataValue( dataElementC, periodC, orgUnitC, "3", optionCombo );
         dataValueD = createDataValue( dataElementD, periodD, orgUnitD, "4", optionCombo );
-
         dataValueService.addDataValue( dataValueA );
         dataValueService.addDataValue( dataValueB );
         dataValueService.addDataValue( dataValueC );
@@ -166,80 +157,65 @@ public class DataValueAuditServiceTest
     // -------------------------------------------------------------------------
     // Basic DataValueAudit
     // -------------------------------------------------------------------------
-
     @Test
-    public void testAddDataValueAudit()
+    void testAddDataValueAudit()
     {
         DataValueAudit dataValueAuditA = new DataValueAudit( dataValueA, dataValueA.getValue(),
             dataValueA.getStoredBy(), AuditType.UPDATE );
         DataValueAudit dataValueAuditB = new DataValueAudit( dataValueB, dataValueB.getValue(),
             dataValueB.getStoredBy(), AuditType.UPDATE );
-
         dataValueAuditService.addDataValueAudit( dataValueAuditA );
         dataValueAuditService.addDataValueAudit( dataValueAuditB );
-
         List<DataValueAudit> audits = dataValueAuditService.getDataValueAudits( dataValueA );
         assertNotNull( audits );
         assertTrue( audits.contains( dataValueAuditA ) );
     }
 
     @Test
-    public void testGetDataValueAudit()
+    void testGetDataValueAudit()
     {
         DataValueAudit dataValueAuditA = new DataValueAudit( dataValueA, dataValueA.getValue(),
             dataValueA.getStoredBy(), AuditType.UPDATE );
         DataValueAudit dataValueAuditB = new DataValueAudit( dataValueB, dataValueB.getValue(),
             dataValueB.getStoredBy(), AuditType.UPDATE );
-
         dataValueAuditService.addDataValueAudit( dataValueAuditA );
         dataValueAuditService.addDataValueAudit( dataValueAuditB );
-
         List<DataElement> dataElements = new ArrayList<>();
         dataElements.add( dataValueA.getDataElement() );
-
         List<Period> periods = new ArrayList<>();
         periods.add( dataValueA.getPeriod() );
-
         List<OrganisationUnit> orgs = new ArrayList<>();
         orgs.add( dataValueA.getSource() );
-
-        assertEquals( 1, dataValueAuditService.getDataValueAudits( dataElements, periods, orgs,
-            optionCombo, null, AuditType.UPDATE ).size() );
-
+        assertEquals( 1, dataValueAuditService
+            .getDataValueAudits( dataElements, periods, orgs, optionCombo, null, AuditType.UPDATE ).size() );
         dataElements.add( dataElementB );
         periods.add( periodB );
         orgs.add( orgUnitB );
-        assertEquals( 2, dataValueAuditService.getDataValueAudits( dataElements, periods, orgs,
-            optionCombo, null, AuditType.UPDATE ).size() );
+        assertEquals( 2, dataValueAuditService
+            .getDataValueAudits( dataElements, periods, orgs, optionCombo, null, AuditType.UPDATE ).size() );
     }
 
     @Test
-    public void testGetDataValueAuditNoResult()
+    void testGetDataValueAuditNoResult()
     {
         DataValueAudit dataValueAuditA = new DataValueAudit( dataValueA, dataValueA.getValue(),
             dataValueA.getStoredBy(), AuditType.UPDATE );
         DataValueAudit dataValueAuditB = new DataValueAudit( dataValueB, dataValueB.getValue(),
             dataValueB.getStoredBy(), AuditType.UPDATE );
-
         dataValueAuditService.addDataValueAudit( dataValueAuditA );
         dataValueAuditService.addDataValueAudit( dataValueAuditB );
-
         List<DataElement> dataElements = new ArrayList<>();
         dataElements.add( dataValueA.getDataElement() );
-
         List<OrganisationUnit> orgs = new ArrayList<>();
         orgs.add( dataValueA.getSource() );
-
         List<Period> periods = new ArrayList<>();
         periods.add( periodD );
-        assertEquals( 0, dataValueAuditService.getDataValueAudits( dataElements, periods, orgs,
-            optionCombo, null, AuditType.UPDATE ).size() );
-
+        assertEquals( 0, dataValueAuditService
+            .getDataValueAudits( dataElements, periods, orgs, optionCombo, null, AuditType.UPDATE ).size() );
         Period periodE = createPeriod( getDay( 8 ), getDay( 9 ) );
         periods.clear();
         periods.add( periodE );
-
-        assertEquals( 0, dataValueAuditService.getDataValueAudits( dataElements, periods, orgs,
-            optionCombo, null, AuditType.UPDATE ).size() );
+        assertEquals( 0, dataValueAuditService
+            .getDataValueAudits( dataElements, periods, orgs, optionCombo, null, AuditType.UPDATE ).size() );
     }
 }

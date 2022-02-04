@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.dxf2.events;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
 import java.util.Map;
@@ -50,11 +50,11 @@ import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.user.UserService;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
-public class EventImportWithMetadataTest extends DhisSpringTest
+class EventImportWithMetadataTest extends DhisSpringTest
 {
 
     @Autowired
@@ -82,48 +82,39 @@ public class EventImportWithMetadataTest extends DhisSpringTest
     {
         renderService = _renderService;
         userService = _userService;
-
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/import/create_program_stages.json" ).getInputStream(), RenderFormat.JSON );
-
         MetadataImportParams params = new MetadataImportParams();
         params.setImportMode( ObjectBundleMode.COMMIT );
         params.setImportStrategy( ImportStrategy.CREATE );
         params.setObjects( metadata );
         params.setSkipSharing( true );
-
         ImportReport report = importService.importMetadata( params );
         assertEquals( Status.OK, report.getStatus() );
-
         idSchemes.setDataElementIdScheme( "UID" );
         idSchemes.setOrgUnitIdScheme( "CODE" );
         idSchemes.setProgramStageInstanceIdScheme( "UID" );
-
         events = csvEventService
             .readEvents( new ClassPathResource( "dxf2/import/csv/events_import_code.csv" ).getInputStream(), true );
     }
 
     @Test
-    public void shouldSuccessImportCsvLookUpByCode()
+    void shouldSuccessImportCsvLookUpByCode()
     {
         idSchemes.setIdScheme( "CODE" );
         ImportOptions importOptions = new ImportOptions();
         importOptions.setIdSchemes( idSchemes );
-
         ImportSummaries importSummaries = eventService.addEvents( events, importOptions, null );
-
         assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() );
     }
 
     @Test
-    public void shouldFailImportCsvLookUpByUid()
+    void shouldFailImportCsvLookUpByUid()
     {
         idSchemes.setIdScheme( "UID" );
         ImportOptions importOptions = new ImportOptions();
         importOptions.setIdSchemes( idSchemes );
-
         ImportSummaries importSummaries = eventService.addEvents( events, importOptions, null );
-
         assertEquals( ImportStatus.ERROR, importSummaries.getStatus() );
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +27,19 @@
  */
 package org.hisp.dhis.sms.listener;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyInt;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -64,21 +75,21 @@ import org.hisp.dhis.sms.parse.ParserType;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.google.common.collect.Sets;
 
 /**
  * @author Zubair Asghar.
  */
-public class DataValueListenerTest extends DhisConvenienceTest
+@ExtendWith( MockitoExtension.class )
+class DataValueListenerTest extends DhisConvenienceTest
 {
     private static final String FETCHED_DATA_VALUE = "fetchedDataValue";
 
@@ -103,9 +114,6 @@ public class DataValueListenerTest extends DhisConvenienceTest
     private static final String WRONG_FORMAT = "WRONG_FORMAT";
 
     private static final String MORE_THAN_ONE_OU = "MORE_THAN_ONE_OU";
-
-    @Rule
-    public MockitoRule rule = MockitoJUnit.rule();
 
     @Mock
     private ProgramInstanceService programInstanceService;
@@ -203,7 +211,7 @@ public class DataValueListenerTest extends DhisConvenienceTest
 
     private String message = "";
 
-    @Before
+    @BeforeEach
     public void initTest()
     {
         subject = new DataValueSMSListener( programInstanceService, dataElementCategoryService,
@@ -269,7 +277,7 @@ public class DataValueListenerTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testAccept()
+    void testAccept()
     {
         // Mock for smsCommandService
         when( smsCommandService.getSMSCommand( anyString(), any() ) ).thenReturn( keyValueCommand );
@@ -286,7 +294,7 @@ public class DataValueListenerTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testReceive()
+    void testReceive()
     {
         mockServices();
         incomingSms.setCreatedBy( user );
@@ -298,7 +306,7 @@ public class DataValueListenerTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testIfDataSetIsLocked()
+    void testIfDataSetIsLocked()
     {
         ArgumentCaptor<IncomingSms> incomingSmsCaptor = ArgumentCaptor.forClass( IncomingSms.class );
 
@@ -325,7 +333,7 @@ public class DataValueListenerTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testIfUserHasNoOu()
+    void testIfUserHasNoOu()
     {
         mockSmsSender();
 
@@ -346,7 +354,7 @@ public class DataValueListenerTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testIfUserHasMultipleOUs()
+    void testIfUserHasMultipleOUs()
     {
         mockSmsSender();
 
@@ -377,7 +385,7 @@ public class DataValueListenerTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testIfDiffUsersHasSameOU()
+    void testIfDiffUsersHasSameOU()
     {
         mockSmsSender();
         mockServices();
@@ -400,7 +408,7 @@ public class DataValueListenerTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testIfCommandHasCorrectFormat()
+    void testIfCommandHasCorrectFormat()
     {
         mockSmsSender();
 
@@ -421,7 +429,7 @@ public class DataValueListenerTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testIfMandatoryParameterMissing()
+    void testIfMandatoryParameterMissing()
     {
         mockSmsSender();
         mockServices();
@@ -448,7 +456,7 @@ public class DataValueListenerTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testDefaultSeparator()
+    void testDefaultSeparator()
     {
         mockServices();
         keyValueCommand.setSeparator( null );
@@ -463,7 +471,7 @@ public class DataValueListenerTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testCustomSeparator()
+    void testCustomSeparator()
     {
         mockSmsSender();
         mockServices();

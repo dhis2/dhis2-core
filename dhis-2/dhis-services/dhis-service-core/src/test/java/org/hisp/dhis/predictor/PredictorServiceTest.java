@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,11 @@
  */
 package org.hisp.dhis.predictor;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -41,6 +45,7 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -48,15 +53,15 @@ import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodType;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Lars Helge Overland
  */
-public class PredictorServiceTest
-    extends DhisSpringTest
+class PredictorServiceTest extends DhisSpringTest
 {
+
     @Autowired
     private PredictorService predictorService;
 
@@ -114,57 +119,41 @@ public class PredictorServiceTest
     // -------------------------------------------------------------------------
     // Fixture
     // -------------------------------------------------------------------------
-
     @Override
     public void setUpTest()
         throws Exception
     {
         orgUnitLevel1 = new OrganisationUnitLevel( 1, "Level1" );
-
         organisationUnitService.addOrganisationUnitLevel( orgUnitLevel1 );
-
         dataElementA = createDataElement( 'A' );
         dataElementX = createDataElement( 'X', ValueType.NUMBER, AggregationType.NONE );
-
         DataElement dataElementB = createDataElement( 'B' );
         DataElement dataElementC = createDataElement( 'C' );
         DataElement dataElementD = createDataElement( 'D' );
-
         dataElementService.addDataElement( dataElementA );
         dataElementService.addDataElement( dataElementB );
         dataElementService.addDataElement( dataElementC );
         dataElementService.addDataElement( dataElementD );
         dataElementService.addDataElement( dataElementX );
-
         dataElements = new HashSet<>();
-
         dataElements.add( dataElementA );
         dataElements.add( dataElementB );
         dataElements.add( dataElementC );
         dataElements.add( dataElementD );
-
         periodTypeMonthly = PeriodType.getPeriodTypeByName( "Monthly" );
-
         CategoryOptionCombo categoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();
-
         defaultCombo = categoryService.getDefaultCategoryOptionCombo();
-
         altCategoryOption = new CategoryOption( "AltCategoryOption" );
         categoryService.addCategoryOption( altCategoryOption );
         altCategory = createCategory( 'A', altCategoryOption );
         categoryService.addCategory( altCategory );
-
         altCategoryCombo = createCategoryCombo( 'Y', altCategory );
         categoryService.addCategoryCombo( altCategoryCombo );
-
         altCombo = createCategoryOptionCombo( altCategoryCombo, altCategoryOption );
-
         optionCombos = new HashSet<>();
         optionCombos.add( categoryOptionCombo );
         optionCombos.add( altCombo );
-
         categoryService.addCategoryOptionCombo( altCombo );
-
         expressionA = new Expression(
             "AVG(#{" + dataElementA.getUid() + "})+1.5*STDDEV(#{" + dataElementA.getUid() + "})", "descriptionA" );
         expressionB = new Expression( "AVG(#{" + dataElementB.getUid() + "." + defaultCombo.getUid() + "})",
@@ -175,29 +164,22 @@ public class PredictorServiceTest
 
     private void setUpPredictorGroups()
     {
-        predictorA = createPredictor( dataElementX, defaultCombo, "A", expressionA, expressionB,
-            periodTypeMonthly, orgUnitLevel1, 6, 1, 0 );
-        predictorB = createPredictor( dataElementX, altCombo, "B", expressionB, expressionD,
-            periodTypeMonthly, orgUnitLevel1, 6, 1, 0 );
-
+        predictorA = createPredictor( dataElementX, defaultCombo, "A", expressionA, expressionB, periodTypeMonthly,
+            orgUnitLevel1, 6, 1, 0 );
+        predictorB = createPredictor( dataElementX, altCombo, "B", expressionB, expressionD, periodTypeMonthly,
+            orgUnitLevel1, 6, 1, 0 );
         predictorService.addPredictor( predictorA );
         predictorService.addPredictor( predictorB );
-
         predictorGroupA = createPredictorGroup( 'A' );
         predictorGroupB = createPredictorGroup( 'B' );
-
         predictorGroupIdA = predictorService.addPredictorGroup( predictorGroupA );
         predictorGroupIdB = predictorService.addPredictorGroup( predictorGroupB );
-
         predictorGroupA.addPredictor( predictorA );
         predictorGroupA.addPredictor( predictorB );
-
         predictorGroupB.addPredictor( predictorA );
         predictorGroupB.addPredictor( predictorB );
-
         predictorService.updatePredictorGroup( predictorGroupA );
         predictorService.updatePredictorGroup( predictorGroupB );
-
         predictorService.updatePredictor( predictorA );
         predictorService.updatePredictor( predictorB );
     }
@@ -205,123 +187,98 @@ public class PredictorServiceTest
     // -------------------------------------------------------------------------
     // Predictor CRUD tests
     // -------------------------------------------------------------------------
-
     @Test
-    public void testSaveGetPredictor()
+    void testSaveGetPredictor()
     {
         Predictor predictor = createPredictor( dataElementX, defaultCombo, "A", expressionA, expressionB,
-            periodTypeMonthly, orgUnitLevel1,
-            6, 1, 0 );
-        Set<OrganisationUnitLevel> levels = new HashSet<OrganisationUnitLevel>();
+            periodTypeMonthly, orgUnitLevel1, 6, 1, 0 );
+        Set<OrganisationUnitLevel> levels = new HashSet<>();
         levels.add( orgUnitLevel1 );
-
         long id = predictorService.addPredictor( predictor );
-
         predictor = predictorService.getPredictor( id );
-
         assertEquals( predictor.getName(), "PredictorA" );
         assertEquals( predictor.getDescription(), "DescriptionA" );
         assertEquals( predictor.getGenerator(), expressionA );
         assertEquals( predictor.getSampleSkipTest(), expressionB );
         assertEquals( predictor.getPeriodType(), periodTypeMonthly );
         assertEquals( predictor.getOutput(), dataElementX );
-        assertEquals( predictor.getAnnualSampleCount(), new Integer( 0 ) );
-        assertEquals( predictor.getSequentialSampleCount(), new Integer( 6 ) );
-        assertEquals( predictor.getSequentialSkipCount(), new Integer( 1 ) );
+        assertEquals( predictor.getAnnualSampleCount(), Integer.valueOf( 0 ) );
+        assertEquals( predictor.getSequentialSampleCount(), Integer.valueOf( 6 ) );
+        assertEquals( predictor.getSequentialSkipCount(), Integer.valueOf( 1 ) );
         assertEquals( predictor.getOrganisationUnitLevels(), levels );
     }
 
     @Test
-    public void testSaveGetPredictorAlt()
+    void testSaveGetPredictorAlt()
     {
         Predictor predictor = createPredictor( dataElementA, altCombo, "B", expressionC, null, periodTypeMonthly,
-            orgUnitLevel1,
-            6, 1, 0 );
-        Set<OrganisationUnitLevel> levels = new HashSet<OrganisationUnitLevel>();
+            orgUnitLevel1, 6, 1, 0 );
+        Set<OrganisationUnitLevel> levels = new HashSet<>();
         levels.add( orgUnitLevel1 );
-
         long id = predictorService.addPredictor( predictor );
-
         predictor = predictorService.getPredictor( id );
-
         assertEquals( predictor.getName(), "PredictorB" );
         assertEquals( predictor.getDescription(), "DescriptionB" );
         assertEquals( predictor.getGenerator(), expressionC );
         assertNull( predictor.getSampleSkipTest() );
         assertEquals( predictor.getPeriodType(), periodTypeMonthly );
         assertEquals( predictor.getOutput(), dataElementA );
-        assertEquals( predictor.getAnnualSampleCount(), new Integer( 0 ) );
-        assertEquals( predictor.getSequentialSampleCount(), new Integer( 6 ) );
-        assertEquals( predictor.getSequentialSkipCount(), new Integer( 1 ) );
+        assertEquals( predictor.getAnnualSampleCount(), Integer.valueOf( 0 ) );
+        assertEquals( predictor.getSequentialSampleCount(), Integer.valueOf( 6 ) );
+        assertEquals( predictor.getSequentialSkipCount(), Integer.valueOf( 1 ) );
         assertEquals( predictor.getOrganisationUnitLevels(), levels );
     }
 
     @Test
-    public void testUpdatePredictor()
+    void testUpdatePredictor()
     {
         Predictor predictor = createPredictor( dataElementX, altCombo, "A", expressionA, expressionB, periodTypeMonthly,
             orgUnitLevel1, 6, 1, 0 );
-
         long id = predictorService.addPredictor( predictor );
-
         predictor = predictorService.getPredictor( id );
-
         assertEquals( predictor.getName(), "PredictorA" );
         assertEquals( predictor.getDescription(), "DescriptionA" );
         assertNotNull( predictor.getGenerator().getExpression() );
         assertEquals( predictor.getPeriodType(), periodTypeMonthly );
-
         predictor.setName( "PredictorB" );
         predictor.setDescription( "DescriptionB" );
         predictor.setSequentialSkipCount( 2 );
-
         predictorService.updatePredictor( predictor );
-
         predictor = predictorService.getPredictor( id );
-
         assertEquals( predictor.getName(), "PredictorB" );
         assertEquals( predictor.getDescription(), "DescriptionB" );
-        assertEquals( predictor.getSequentialSkipCount(), new Integer( 2 ) );
+        assertEquals( predictor.getSequentialSkipCount(), Integer.valueOf( 2 ) );
     }
 
     @Test
-    public void testDeletePredictor()
+    void testDeletePredictor()
     {
-        predictorA = createPredictor( dataElementX, defaultCombo, "A", expressionA, expressionB,
-            periodTypeMonthly, orgUnitLevel1, 6, 1, 0 );
-        predictorB = createPredictor( dataElementX, altCombo, "B", expressionC, expressionD,
-            periodTypeMonthly, orgUnitLevel1, 6, 1, 0 );
-
+        predictorA = createPredictor( dataElementX, defaultCombo, "A", expressionA, expressionB, periodTypeMonthly,
+            orgUnitLevel1, 6, 1, 0 );
+        predictorB = createPredictor( dataElementX, altCombo, "B", expressionC, expressionD, periodTypeMonthly,
+            orgUnitLevel1, 6, 1, 0 );
         long idA = predictorService.addPredictor( predictorA );
         long idB = predictorService.addPredictor( predictorB );
-
         assertNotNull( predictorService.getPredictor( idA ) );
         assertNotNull( predictorService.getPredictor( idB ) );
-
         predictorService.deletePredictor( predictorA );
-
         assertNull( predictorService.getPredictor( idA ) );
         assertNotNull( predictorService.getPredictor( idB ) );
-
         predictorService.deletePredictor( predictorB );
-
         assertNull( predictorService.getPredictor( idA ) );
         assertNull( predictorService.getPredictor( idB ) );
     }
 
     @Test
-    public void testGetAllPredictors()
+    void testGetAllPredictors()
     {
-        predictorA = createPredictor( dataElementX, defaultCombo, "A", expressionA, expressionB,
-            periodTypeMonthly, orgUnitLevel1, 6, 1, 0 );
-        predictorB = createPredictor( dataElementX, altCombo, "B", expressionC, expressionD,
-            periodTypeMonthly, orgUnitLevel1, 6, 1, 0 );
-
+        predictorA = createPredictor( dataElementX, defaultCombo, "A", expressionA, expressionB, periodTypeMonthly,
+            orgUnitLevel1, 6, 1, 0 );
+        predictorB = createPredictor( dataElementX, altCombo, "B", expressionC, expressionD, periodTypeMonthly,
+            orgUnitLevel1, 6, 1, 0 );
         predictorService.addPredictor( predictorA );
         predictorService.addPredictor( predictorB );
-
         List<Predictor> predictors = predictorService.getAllPredictors();
-
         assertEquals( 2, predictors.size() );
         assertTrue( predictors.contains( predictorA ) );
         assertTrue( predictors.contains( predictorB ) );
@@ -330,96 +287,81 @@ public class PredictorServiceTest
     // -------------------------------------------------------------------------
     // Predictor Group
     // -------------------------------------------------------------------------
-
     @Test
-    public void testAddPredictorGroup()
+    void testAddPredictorGroup()
     {
         setUpPredictorGroups();
-
         assertEquals( predictorGroupA, predictorService.getPredictorGroup( predictorGroupIdA ) );
         assertEquals( predictorGroupB, predictorService.getPredictorGroup( predictorGroupIdB ) );
-
         Set<Predictor> predictors = predictorGroupA.getMembers();
-
         assertEquals( 2, predictors.size() );
         assertTrue( predictors.contains( predictorA ) );
         assertTrue( predictors.contains( predictorB ) );
     }
 
     @Test
-    public void testUpdatePredictorGroup()
+    void testUpdatePredictorGroup()
     {
         setUpPredictorGroups();
-
         predictorGroupA.setName( "UpdatedPredictorGroupA" );
         predictorGroupB.setName( "UpdatedPredictorGroupB" );
-
         predictorService.updatePredictorGroup( predictorGroupA );
         predictorService.updatePredictorGroup( predictorGroupB );
-
         assertEquals( predictorGroupA, predictorService.getPredictorGroup( predictorGroupIdA ) );
         assertEquals( predictorGroupB, predictorService.getPredictorGroup( predictorGroupIdB ) );
     }
 
     @Test
-    public void testDeletePredictorGroup()
+    void testDeletePredictorGroup()
     {
         setUpPredictorGroups();
-
         assertNotNull( predictorService.getPredictorGroup( predictorGroupIdA ) );
         assertNotNull( predictorService.getPredictorGroup( predictorGroupIdB ) );
-
         assertEquals( 2, predictorA.getGroups().size() );
-
         predictorService.deletePredictorGroup( predictorGroupA );
-
         assertNull( predictorService.getPredictorGroup( predictorGroupIdA ) );
         assertNotNull( predictorService.getPredictorGroup( predictorGroupIdB ) );
-
         assertEquals( 1, predictorA.getGroups().size() );
-
         predictorService.deletePredictorGroup( predictorGroupB );
-
         assertNull( predictorService.getPredictorGroup( predictorGroupIdA ) );
         assertNull( predictorService.getPredictorGroup( predictorGroupIdB ) );
-
         assertEquals( 0, predictorA.getGroups().size() );
     }
 
     @Test
-    public void testDeletePredictorGroupMember()
+    void testDeletePredictorGroupMember()
     {
         setUpPredictorGroups();
-
         Set<Predictor> predictors = predictorGroupA.getMembers();
-
         assertEquals( 2, predictors.size() );
         assertTrue( predictors.contains( predictorA ) );
         assertTrue( predictors.contains( predictorB ) );
-
         predictorService.deletePredictor( predictorA );
-
         predictors = predictorGroupA.getMembers();
-
         assertEquals( 1, predictors.size() );
         assertTrue( predictors.contains( predictorB ) );
-
         predictorService.deletePredictor( predictorB );
-
         predictors = predictorGroupA.getMembers();
-
         assertEquals( 0, predictors.size() );
     }
 
     @Test
-    public void testGetAllPredictorGroup()
+    void testGetAllPredictorGroup()
     {
         setUpPredictorGroups();
-
         Collection<PredictorGroup> groups = predictorService.getAllPredictorGroups();
-
         assertEquals( 2, groups.size() );
         assertTrue( groups.contains( predictorGroupA ) );
         assertTrue( groups.contains( predictorGroupB ) );
+    }
+
+    @Test
+    void testCannotDeleteCategoryOptionComboUsedByPredictor()
+    {
+        setUpPredictorGroups();
+        DeleteNotAllowedException ex = assertThrows( DeleteNotAllowedException.class,
+            () -> categoryService.deleteCategoryOptionCombo( altCombo ) );
+        assertEquals( "Object could not be deleted because it is associated with another object: Predictor",
+            ex.getMessage() );
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,34 +32,33 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.config.Configurator;
 import org.hisp.dhis.config.IntegrationTestConfig;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.experimental.categories.Category;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
 
 /*
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-@RunWith( SpringRunner.class )
+@ExtendWith( SpringExtension.class )
 @ContextConfiguration( classes = { IntegrationTestConfig.class } )
-@Category( IntegrationTest.class )
+@IntegrationTest
 @ActiveProfiles( profiles = { "test-postgres" } )
 @Transactional
 @Slf4j
 public abstract class TransactionalIntegrationTest extends BaseSpringTest
 {
-    @Before
+    @BeforeEach
     public final void before()
         throws Exception
     {
         integrationTestBefore();
     }
 
-    @After
+    @AfterEach
     public final void after()
         throws Exception
     {

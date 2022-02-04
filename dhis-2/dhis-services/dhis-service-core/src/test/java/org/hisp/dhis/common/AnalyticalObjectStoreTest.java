@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.common;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 
@@ -43,16 +43,16 @@ import org.hisp.dhis.mapping.MapViewStore;
 import org.hisp.dhis.mapping.ThematicMapType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramStatus;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
 /**
  * @author Lars Helge Overland
  */
-public class AnalyticalObjectStoreTest
-    extends DhisSpringTest
+class AnalyticalObjectStoreTest extends DhisSpringTest
 {
+
     private IndicatorType itA;
 
     private Indicator inA;
@@ -80,64 +80,51 @@ public class AnalyticalObjectStoreTest
     public void setUpTest()
     {
         itA = createIndicatorType( 'A' );
-
         idObjectManager.save( itA );
-
         inA = createIndicator( 'A', itA );
         inB = createIndicator( 'B', itA );
-
         idObjectManager.save( inA );
         idObjectManager.save( inB );
-
         ouA = createOrganisationUnit( 'A' );
         ouB = createOrganisationUnit( 'B' );
-
         idObjectManager.save( ouA );
         idObjectManager.save( ouB );
-
         mvA = createMapView( MapView.LAYER_THEMATIC1 );
         mvB = createMapView( MapView.LAYER_THEMATIC2 );
         mvC = createMapView( MapView.LAYER_THEMATIC3 );
-
         mvA.addDataDimensionItem( inA );
         mvA.getOrganisationUnits().add( ouA );
         mvB.addDataDimensionItem( inB );
         mvB.getOrganisationUnits().add( ouA );
         mvC.addDataDimensionItem( inA );
         mvC.getOrganisationUnits().add( ouB );
-
         mapViewStore.save( mvA );
         mapViewStore.save( mvB );
         mapViewStore.save( mvC );
     }
 
     @Test
-    public void testGetByIndicator()
+    void testGetByIndicator()
     {
         List<MapView> actual = mapViewStore.getAnalyticalObjects( inA );
-
         assertEquals( 2, actual.size() );
-
         assertTrue( actual.contains( mvA ) );
         assertTrue( actual.contains( mvC ) );
     }
 
     @Test
-    public void testGetByOrgansiationUnit()
+    void testGetByOrgansiationUnit()
     {
         List<MapView> actual = mapViewStore.getAnalyticalObjects( ouA );
-
         assertEquals( 2, actual.size() );
-
         assertTrue( actual.contains( mvA ) );
         assertTrue( actual.contains( mvB ) );
     }
 
     @Test
-    public void testAssertProperties()
+    void testAssertProperties()
     {
         MapView mapView = mapViewStore.getByUid( mvA.getUid() );
-
         assertEquals( AggregationType.SUM, mapView.getAggregationType() );
         assertEquals( ThematicMapType.CHOROPLETH, mapView.getThematicMapType() );
         assertEquals( ProgramStatus.COMPLETED, mapView.getProgramStatus() );

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
+import static java.util.stream.Collectors.joining;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
@@ -41,6 +42,7 @@ import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.ProgramIndicatorSubqueryBuilder;
@@ -49,7 +51,6 @@ import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.InQueryFilter;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
@@ -64,7 +65,6 @@ import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicatorService;
-import org.hisp.dhis.system.util.MathUtils;
 import org.locationtech.jts.util.Assert;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.jdbc.BadSqlGrammarException;
@@ -89,24 +89,38 @@ public class JdbcEnrollmentAnalyticsManager
 
     private static final String ANALYTICS_EVENT = "analytics_event_";
 
-    private static final String ORDER_BY_EXECUTION_DATE_DESC_LIMIT_1 = "order by executiondate desc limit 1";
+    private static final String ORDER_BY_EXECUTION_DATE = "order by executiondate ";
+
+    private static final String LIMIT_1 = "limit 1";
 
     private List<String> COLUMNS = Lists.newArrayList( "pi", "tei", "enrollmentdate", "incidentdate",
-        "storedby", "lastupdated", "ST_AsGeoJSON(pigeometry)", "longitude", "latitude", "ouname", "oucode" );
+        "storedby", "lastupdated", "ST_AsGeoJSON(pigeometry)", "longitude", "latitude", "ouname", "oucode",
+        "enrollmentstatus" );
 
     public JdbcEnrollmentAnalyticsManager( JdbcTemplate jdbcTemplate, StatementBuilder statementBuilder,
         ProgramIndicatorService programIndicatorService,
         ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder,
-        EnrollmentTimeFieldSqlRenderer timeFieldSqlRenderer )
+        EnrollmentTimeFieldSqlRenderer timeFieldSqlRenderer, ExecutionPlanStore executionPlanStore )
     {
-        super( jdbcTemplate, statementBuilder, programIndicatorService, programIndicatorSubqueryBuilder );
+        super( jdbcTemplate, statementBuilder, programIndicatorService, programIndicatorSubqueryBuilder,
+            executionPlanStore );
         this.timeFieldSqlRenderer = timeFieldSqlRenderer;
     }
 
     @Override
     public void getEnrollments( EventQueryParams params, Grid grid, int maxLimit )
     {
-        withExceptionHandling( () -> getEnrollments( params, grid, getEventsOrEnrollmentsSql( params, maxLimit ) ) );
+        String sql = getEventsOrEnrollmentsSql( params, maxLimit );
+
+        if ( params.analyzeOnly() )
+        {
+            executionPlanStore.addExecutionPlan( params.getAnalyzeOrderId(), sql );
+        }
+        else
+        {
+            withExceptionHandling( () -> getEnrollments( params, grid, sql ) );
+        }
+
     }
 
     /**
@@ -127,21 +141,9 @@ public class JdbcEnrollmentAnalyticsManager
         {
             grid.addRow();
 
-            int index = 1;
-
-            for ( GridHeader header : grid.getHeaders() )
+            for ( int i = 0; i < grid.getHeaders().size(); ++i )
             {
-                if ( Double.class.getName().equals( header.getType() ) && !header.hasLegendSet() )
-                {
-                    double val = rowSet.getDouble( index );
-                    grid.addValue( params.isSkipRounding() ? val : MathUtils.getRounded( val ) );
-                }
-                else
-                {
-                    grid.addValue( rowSet.getString( index ) );
-                }
-
-                index++;
+                addGridValue( grid, grid.getHeaders().get( i ), i + 1, rowSet, params );
             }
         }
     }
@@ -161,7 +163,14 @@ public class JdbcEnrollmentAnalyticsManager
         {
             log.debug( "Analytics enrollment count SQL: " + sql );
 
-            count = jdbcTemplate.queryForObject( sql, Long.class );
+            if ( params.analyzeOnly() )
+            {
+                executionPlanStore.addExecutionPlan( params.getAnalyzeOrderId(), sql );
+            }
+            else
+            {
+                count = jdbcTemplate.queryForObject( sql, Long.class );
+            }
         }
         catch ( BadSqlGrammarException ex )
         {
@@ -270,7 +279,8 @@ public class JdbcEnrollmentAnalyticsManager
             {
                 for ( QueryFilter filter : item.getFilters() )
                 {
-                    String field = getSelectSql( item, params.getEarliestStartDate(), params.getLatestEndDate() );
+                    String field = getSelectSql( filter, item, params.getEarliestStartDate(),
+                        params.getLatestEndDate() );
 
                     if ( IN.equals( filter.getOperator() ) )
                     {
@@ -294,7 +304,8 @@ public class JdbcEnrollmentAnalyticsManager
             {
                 for ( QueryFilter filter : item.getFilters() )
                 {
-                    sql += "and " + getSelectSql( item, params.getEarliestStartDate(), params.getLatestEndDate() ) + " "
+                    sql += "and "
+                        + getSelectSql( filter, item, params.getEarliestStartDate(), params.getLatestEndDate() ) + " "
                         + filter.getSqlOperator() + " " + getSqlFilter( filter, item ) + " ";
                 }
             }
@@ -320,7 +331,8 @@ public class JdbcEnrollmentAnalyticsManager
 
         if ( params.hasProgramStatus() )
         {
-            sql += "and enrollmentstatus = '" + params.getProgramStatus().name() + "' ";
+            sql += "and enrollmentstatus in ("
+                + params.getProgramStatus().stream().map( p -> "'" + p.name() + "'" ).collect( joining( "," ) ) + ") ";
         }
 
         if ( params.isCoordinatesOnly() )
@@ -412,7 +424,8 @@ public class JdbcEnrollmentAnalyticsManager
                 + stCentroidFunction + "(" + colName + "))::numeric, 6) || ']' as " + colName
                 + " from " + eventTableName
                 + " where " + eventTableName + ".pi = " + ANALYTICS_TBL_ALIAS + ".pi " +
-                "and " + colName + " is not null " + psCondition + ORDER_BY_EXECUTION_DATE_DESC_LIMIT_1 + " )";
+                "and " + colName + " is not null " + psCondition + ORDER_BY_EXECUTION_DATE +
+                createOrderTypeAndOffset( item.getProgramStageOffset() ) + " " + LIMIT_1 + " )";
         }
 
         return StringUtils.EMPTY;
@@ -447,7 +460,8 @@ public class JdbcEnrollmentAnalyticsManager
                 + " from " + eventTableName
                 + " where " + eventTableName + ".pi = " + ANALYTICS_TBL_ALIAS + ".pi " +
                 "and " + colName + " is not null " + "and ps = '" + item.getProgramStage().getUid() + "' " +
-                ORDER_BY_EXECUTION_DATE_DESC_LIMIT_1 + " )";
+                ORDER_BY_EXECUTION_DATE + createOrderTypeAndOffset( item.getProgramStageOffset() )
+                + " " + LIMIT_1 + " )";
         }
         else
         {
@@ -478,7 +492,8 @@ public class JdbcEnrollmentAnalyticsManager
                 + " from " + eventTableName
                 + " where " + eventTableName + ".pi = " + ANALYTICS_TBL_ALIAS + ".pi " +
                 "and " + colName + " is not null " + "and ps = '" + item.getProgramStage().getUid() + "' " +
-                ORDER_BY_EXECUTION_DATE_DESC_LIMIT_1 + " )";
+                ORDER_BY_EXECUTION_DATE + createOrderTypeAndOffset( item.getProgramStageOffset() )
+                + " " + LIMIT_1 + " )";
         }
         else
         {
@@ -496,5 +511,21 @@ public class JdbcEnrollmentAnalyticsManager
     protected AnalyticsType getAnalyticsType()
     {
         return AnalyticsType.ENROLLMENT;
+    }
+
+    private String createOrderTypeAndOffset( int offset )
+    {
+        if ( offset == 0 )
+        {
+            return "desc";
+        }
+        if ( offset < 0 )
+        {
+            return "desc offset " + (-1 * offset);
+        }
+        else
+        {
+            return "asc offset " + (offset - 1);
+        }
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,48 +27,45 @@
  */
 package org.hisp.dhis.common;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public class InQueryFilterTest
+class InQueryFilterTest
 {
 
     @Test
-    public void verifyInWithTextParameters()
+    void verifyInWithTextParameters()
     {
-        executeTest( "aFilter1;aFilter2", true, "aField in ('afilter1','afilter2') " );
+        executeTest( "aFilter1;aFilter2", true, "aField in ('aFilter1','aFilter2') " );
     }
 
     @Test
-    public void verifyInWithNumberParameters()
+    void verifyInWithNumberParameters()
     {
         executeTest( "1;2;3", false, "aField in (1,2,3) " );
     }
 
     @Test
-    public void verifyInWithNullAndTextParameters()
+    void verifyInWithNullAndTextParameters()
     {
-        executeTest( "NV;aFilter1", true, "(aField in ('afilter1') or aField is null ) " );
+        executeTest( "NV;aFilter1", true, "(aField in ('aFilter1') or aField is null ) " );
     }
 
     @Test
-    public void verifyInWithNullAndNumberParameters()
+    void verifyInWithNullAndNumberParameters()
     {
         executeTest( "NV;1", false, "(aField in (1) or aField is null ) " );
     }
 
     @Test
-    public void verifyInWithNullOnly()
+    void verifyInWithNullOnly()
     {
         executeTest( "NV", true, "aField is null " );
     }
 
     private void executeTest( String filterValue, boolean isText, String expected )
     {
-        assertEquals(
-            new InQueryFilter( "aField", filterValue, isText ).getSqlFilter(),
-            expected );
+        assertEquals( new InQueryFilter( "aField", filterValue, isText ).getSqlFilter(), expected );
     }
-
 }

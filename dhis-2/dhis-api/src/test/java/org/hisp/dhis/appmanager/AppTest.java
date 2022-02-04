@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,8 @@
  */
 package org.hisp.dhis.appmanager;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -35,10 +36,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -47,89 +48,87 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * @author Saptarshi
  * @version $Id$
  */
-public class AppTest
+class AppTest
 {
+
     private App app;
 
-    @Before
-    public void setUp()
+    @BeforeEach
+    void setUp()
         throws IOException
     {
         String appJson = FileUtils.readFileToString(
             new File( this.getClass().getResource( "/manifest.webapp" ).getFile() ), StandardCharsets.UTF_8 );
-
         ObjectMapper mapper = new ObjectMapper();
         mapper.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
         this.app = mapper.readValue( appJson, App.class );
     }
 
-    @After
-    public void tearDown()
+    @AfterEach
+    void tearDown()
     {
     }
 
     // TODO: Verify missing property
     @Test
-    public void testRequiredProperties()
+    void testRequiredProperties()
     {
-        Assert.assertEquals( "0.1", app.getVersion() );
-        Assert.assertEquals( "Test App", app.getName() );
-        Assert.assertEquals( "/index.html", app.getLaunchPath() );
-        Assert.assertEquals( "*", app.getInstallsAllowedFrom()[0] );
-        Assert.assertEquals( "en", app.getDefaultLocale() );
+        Assertions.assertEquals( "0.1", app.getVersion() );
+        Assertions.assertEquals( "Test App", app.getName() );
+        Assertions.assertEquals( "/index.html", app.getLaunchPath() );
+        Assertions.assertEquals( "*", app.getInstallsAllowedFrom()[0] );
+        Assertions.assertEquals( "en", app.getDefaultLocale() );
     }
 
     // TODO: Complete test for skipped optional properties
     @Test
-    public void testOptionalProperties()
+    void testOptionalProperties()
     {
-        Assert.assertEquals( "Test Description", app.getDescription() );
-        Assert.assertEquals( false, app.getSettings().getDashboardWidget().getHideTitle() );
+        Assertions.assertEquals( "Test Description", app.getDescription() );
+        Assertions.assertEquals( false, app.getSettings().getDashboardWidget().getHideTitle() );
     }
 
     @Test
-    public void testIcons()
+    void testIcons()
     {
-        Assert.assertEquals( "/img/icons/mortar-16.png", app.getIcons().getIcon16() );
-        Assert.assertEquals( "/img/icons/mortar-48.png", app.getIcons().getIcon48() );
-        Assert.assertEquals( "/img/icons/mortar-128.png", app.getIcons().getIcon128() );
+        Assertions.assertEquals( "/img/icons/mortar-16.png", app.getIcons().getIcon16() );
+        Assertions.assertEquals( "/img/icons/mortar-48.png", app.getIcons().getIcon48() );
+        Assertions.assertEquals( "/img/icons/mortar-128.png", app.getIcons().getIcon128() );
     }
 
     @Test
-    public void testDeveloper()
+    void testDeveloper()
     {
-        Assert.assertEquals( "Test Developer", app.getDeveloper().getName() );
-        Assert.assertEquals( "http://test", app.getDeveloper().getUrl() );
-        Assert.assertNull( app.getDeveloper().getEmail() );
-        Assert.assertNull( app.getDeveloper().getCompany() );
+        Assertions.assertEquals( "Test Developer", app.getDeveloper().getName() );
+        Assertions.assertEquals( "http://test", app.getDeveloper().getUrl() );
+        Assertions.assertNull( app.getDeveloper().getEmail() );
+        Assertions.assertNull( app.getDeveloper().getCompany() );
     }
 
     @Test
-    public void testActivities()
+    void testActivities()
     {
         AppDhis dhisActivity = app.getActivities().getDhis();
-        Assert.assertEquals( "http://localhost:8080/dhis", dhisActivity.getHref() );
+        Assertions.assertEquals( "http://localhost:8080/dhis", dhisActivity.getHref() );
         dhisActivity.setHref( "ALL TEST" );
-        Assert.assertEquals( "ALL TEST", dhisActivity.getHref() );
+        Assertions.assertEquals( "ALL TEST", dhisActivity.getHref() );
     }
 
     @Test
-    public void testGetAuthorities()
+    void testGetAuthorities()
     {
         Set<String> authorities = app.getAuthorities();
-        Assert.assertNotNull( authorities );
-        Assert.assertEquals( 4, authorities.size() );
+        Assertions.assertNotNull( authorities );
+        Assertions.assertEquals( 4, authorities.size() );
     }
 
     @Test
-    public void testGetUrlFriendlyName()
+    void testGetUrlFriendlyName()
     {
         App appA = new App();
         appA.setName( "Org [Facility] &Registry@" );
-
         App appB = new App();
         appB.setName( null );
-
         assertEquals( "Org-Facility-Registry", appA.getUrlFriendlyName() );
         assertNull( appB.getUrlFriendlyName() );
     }

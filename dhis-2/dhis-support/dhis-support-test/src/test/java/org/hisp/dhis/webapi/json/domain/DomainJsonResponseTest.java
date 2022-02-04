@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,17 +27,17 @@
  */
 package org.hisp.dhis.webapi.json.domain;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.time.LocalDateTime;
 
-import org.hisp.dhis.webapi.json.JsonList;
-import org.hisp.dhis.webapi.json.JsonMap;
-import org.hisp.dhis.webapi.json.JsonObject;
-import org.hisp.dhis.webapi.json.JsonResponse;
-import org.junit.Assert;
-import org.junit.Test;
+import org.hisp.dhis.jsontree.JsonList;
+import org.hisp.dhis.jsontree.JsonMap;
+import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.jsontree.JsonResponse;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests the {@link org.hisp.dhis.webapi.json.JsonResponse} with domain specific
@@ -45,27 +45,26 @@ import org.junit.Test;
  *
  * @author Jan Bernitt
  */
-public class DomainJsonResponseTest
+class DomainJsonResponseTest
 {
+
     @Test
-    public void testCustomObjectType()
+    void testCustomObjectType()
     {
         JsonObject response = createJSON( "{'user': {'id':'foo'}}" );
-
         assertEquals( "foo", response.get( "user", JsonUser.class ).getId() );
     }
 
     @Test
-    public void testCustomObjectTypeList()
+    void testCustomObjectTypeList()
     {
         JsonObject response = createJSON( "{'users': [ {'id':'foo'} ]}" );
-
         JsonList<JsonUser> users = response.getList( "users", JsonUser.class );
         assertEquals( "foo", users.get( 0 ).getId() );
     }
 
     @Test
-    public void testCustomObjectTypeMap()
+    void testCustomObjectTypeMap()
     {
         JsonObject response = createJSON( "{'users': {'foo':{'id':'foo'}, 'bar':{'id':'bar'}}}" );
         JsonMap<JsonUser> usersById = response.getMap( "users", JsonUser.class );
@@ -75,25 +74,23 @@ public class DomainJsonResponseTest
     }
 
     @Test
-    public void testDateType()
+    void testDateType()
     {
         JsonObject response = createJSON( "{'user': {'lastUpdated': '2021-01-21T15:14:54.000'}}" );
-
         JsonUser user = response.get( "user", JsonUser.class );
-        assertEquals( LocalDateTime.of( 2021, 1, 21, 15, 14, 54 ),
-            user.getLastUpdated() );
-        Assert.assertNull( user.getCreated() );
+        assertEquals( LocalDateTime.of( 2021, 1, 21, 15, 14, 54 ), user.getLastUpdated() );
+        Assertions.assertNull( user.getCreated() );
     }
 
     @Test
-    public void testErrorSummary_MessageOnly()
+    void testErrorSummary_MessageOnly()
     {
         JsonObject response = createJSON( "{'message':'my message'}" );
         assertEquals( "my message", response.as( JsonError.class ).summary() );
     }
 
     @Test
-    public void testErrorSummary_MessageAndErrorReports()
+    void testErrorSummary_MessageAndErrorReports()
     {
         JsonObject response = createJSON(
             "{'message':'my message','response':{'errorReports': [{'errorCode':'E4000','message':'m1'}]}}" );
@@ -101,7 +98,7 @@ public class DomainJsonResponseTest
     }
 
     @Test
-    public void testErrorSummary_MessageAndObjectReports()
+    void testErrorSummary_MessageAndObjectReports()
     {
         JsonObject response = createJSON(
             "{'message':'my message','response':{'objectReports':[{'klass':'java.lang.String','errorReports': [{'errorCode':'E4000','message':'m1'}]}]}}" );

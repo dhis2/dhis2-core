@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,11 @@
  */
 package org.hisp.dhis.configuration;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -39,15 +43,15 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserService;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Lars Helge Overland
  */
-public class ConfigurationServiceTest
-    extends DhisSpringTest
+class ConfigurationServiceTest extends DhisSpringTest
 {
+
     @Autowired
     private UserService userService;
 
@@ -61,34 +65,25 @@ public class ConfigurationServiceTest
     private ConfigurationService configurationService;
 
     @Test
-    public void testConfiguration()
+    void testConfiguration()
     {
         User userA = createUser( 'A' );
         User userB = createUser( 'B' );
-
         UserGroup group = new UserGroup( "UserGroupA" );
         group.getMembers().add( userA );
         group.getMembers().add( userB );
-
         userService.addUser( userA );
         userService.addUser( userB );
         userGroupService.addUserGroup( group );
-
         OrganisationUnitGroupSet groupSet = createOrganisationUnitGroupSet( 'A' );
         idObjectManager.save( groupSet );
-
         Configuration config = configurationService.getConfiguration();
-
         assertNull( config.getFeedbackRecipients() );
         assertNull( config.getFacilityOrgUnitGroupSet() );
-
         config.setFeedbackRecipients( group );
         config.setFacilityOrgUnitGroupSet( groupSet );
-
         configurationService.setConfiguration( config );
-
         config = configurationService.getConfiguration();
-
         assertNotNull( config.getFeedbackRecipients() );
         assertNotNull( config.getFacilityOrgUnitGroupSet() );
         assertEquals( group, config.getFeedbackRecipients() );
@@ -96,20 +91,15 @@ public class ConfigurationServiceTest
     }
 
     @Test
-    public void testCorsWhitelist()
+    void testCorsWhitelist()
     {
         Configuration config = configurationService.getConfiguration();
-
         Set<String> cors = new HashSet<>();
-
         cors.add( "http://localhost:3000/" );
         cors.add( "http://*.local.tld:3000/" );
         cors.add( "*.remote.tld/" );
-
         config.setCorsWhitelist( cors );
-
         configurationService.setConfiguration( config );
-
         assertTrue( configurationService.isCorsWhitelisted( "http://localhost:3000/" ) );
         assertTrue( configurationService.isCorsWhitelisted( "http://foobar.local.tld:3000/" ) );
         assertTrue( configurationService.isCorsWhitelisted( "http://magic.remote.tld/" ) );

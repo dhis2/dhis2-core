@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,6 +39,7 @@ public enum DataStatisticsEventType
     MAP_VIEW( "map" ),
     EVENT_REPORT_VIEW( "eventreport" ),
     EVENT_CHART_VIEW( "eventchart" ),
+    EVENT_VISUALIZATION_VIEW( "eventvisualization" ),
     DASHBOARD_VIEW( "dashboard" ),
     PASSIVE_DASHBOARD_VIEW( "dashboard" ),
     DATA_SET_REPORT_VIEW( "dataset" ),

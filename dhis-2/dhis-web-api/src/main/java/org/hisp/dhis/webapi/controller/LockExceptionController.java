@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -90,7 +90,7 @@ import com.google.common.collect.Lists;
 @Controller
 @RequestMapping( LockExceptionController.RESOURCE_PATH )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class LockExceptionController
+public class LockExceptionController extends AbstractGistReadOnlyController<LockException>
 {
     public static final String RESOURCE_PATH = "/lockExceptions";
 
@@ -219,7 +219,6 @@ public class LockExceptionController
 
     @PostMapping
     @ResponseBody
-    @ResponseStatus( HttpStatus.NO_CONTENT )
     public WebMessage addLockException( @RequestParam( "ou" ) String organisationUnitId,
         @RequestParam( "pe" ) String periodId,
         @RequestParam( "ds" ) String dataSetId )
@@ -240,8 +239,6 @@ public class LockExceptionController
             throw new ReadAccessDeniedException( "You don't have the proper permissions to update this object" );
         }
 
-        boolean created = false;
-
         List<String> listOrgUnitIds = new ArrayList<>();
 
         if ( organisationUnitId.startsWith( "[" ) && organisationUnitId.endsWith( "]" ) )
@@ -256,9 +253,10 @@ public class LockExceptionController
 
         if ( listOrgUnitIds.isEmpty() )
         {
-            return conflict( " OrganisationUnit ID is invalid." );
+            return conflict( "OrganisationUnit ID is invalid." );
         }
 
+        boolean added = false;
         for ( String id : listOrgUnitIds )
         {
             OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit( id );
@@ -276,15 +274,16 @@ public class LockExceptionController
                 lockException.setDataSet( dataSet );
                 lockException.setPeriod( period );
                 dataSetService.addLockException( lockException );
-                created = true;
+                added = true;
             }
         }
-
-        if ( created )
+        if ( !added )
         {
-            return created( "LockException created successfully." );
+            return conflict( String.format(
+                "None of the target organisation unit(s) %s is linked to the specified data set: %s",
+                String.join( ",", listOrgUnitIds ), dataSetId ) );
         }
-        return null;
+        return created( "LockException created successfully." );
     }
 
     @DeleteMapping

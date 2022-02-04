@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,25 +27,23 @@
  */
 package org.hisp.dhis.dxf2.metadata.sync;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.dxf2.metadata.systemsettings.DefaultMetadataSystemSettingService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author anilkumk
  */
-
-public class MetadataSystemSettingServiceTest
-    extends DhisSpringTest
+@ExtendWith( MockitoExtension.class )
+class MetadataSystemSettingServiceTest extends DhisSpringTest
 {
     @Autowired
     SystemSettingManager systemSettingManager;
@@ -53,10 +51,7 @@ public class MetadataSystemSettingServiceTest
     @Autowired
     DefaultMetadataSystemSettingService metadataSystemSettingService;
 
-    @Rule
-    public MockitoRule rule = MockitoJUnit.rule();
-
-    @Before
+    @BeforeEach
     public void setup()
     {
         systemSettingManager.saveSystemSetting( SettingKey.REMOTE_INSTANCE_URL, "http://localhost:9080" );
@@ -66,7 +61,7 @@ public class MetadataSystemSettingServiceTest
     }
 
     @Test
-    public void testShouldGetRemoteUserName()
+    void testShouldGetRemoteUserName()
     {
         String remoteInstanceUserName = metadataSystemSettingService.getRemoteInstanceUserName();
 
@@ -74,7 +69,7 @@ public class MetadataSystemSettingServiceTest
     }
 
     @Test
-    public void testShouldGetRemotePassword()
+    void testShouldGetRemotePassword()
     {
         String remoteInstancePassword = metadataSystemSettingService.getRemoteInstancePassword();
 
@@ -82,7 +77,7 @@ public class MetadataSystemSettingServiceTest
     }
 
     @Test
-    public void testShouldDownloadMetadataVersionForGivenVersionName()
+    void testShouldDownloadMetadataVersionForGivenVersionName()
     {
         String downloadVersionUrl = metadataSystemSettingService.getVersionDetailsUrl( "Version_Name" );
 
@@ -90,7 +85,7 @@ public class MetadataSystemSettingServiceTest
     }
 
     @Test
-    public void testShouldDownloadMetadataVersionSnapshotForGivenVersionName()
+    void testShouldDownloadMetadataVersionSnapshotForGivenVersionName()
     {
         String downloadVersionUrl = metadataSystemSettingService.getDownloadVersionSnapshotURL( "Version_Name" );
 
@@ -98,7 +93,7 @@ public class MetadataSystemSettingServiceTest
     }
 
     @Test
-    public void testShouldGetAllVersionsCreatedAfterTheGivenVersionName()
+    void testShouldGetAllVersionsCreatedAfterTheGivenVersionName()
     {
         String metadataDifferenceUrl = metadataSystemSettingService.getMetaDataDifferenceURL( "Version_Name" );
 
@@ -107,7 +102,7 @@ public class MetadataSystemSettingServiceTest
     }
 
     @Test
-    public void testShouldGetEntireVersionHistoryWhenNoVersionNameIsGiven()
+    void testShouldGetEntireVersionHistoryWhenNoVersionNameIsGiven()
     {
         String versionHistoryUrl = metadataSystemSettingService.getEntireVersionHistory();
 
@@ -115,7 +110,7 @@ public class MetadataSystemSettingServiceTest
     }
 
     @Test
-    public void testShouldGetStopMetadataSyncSettingValue()
+    void testShouldGetStopMetadataSyncSettingValue()
     {
         Boolean stopMetadataSync = metadataSystemSettingService.getStopMetadataSyncSetting();
 
@@ -123,7 +118,7 @@ public class MetadataSystemSettingServiceTest
     }
 
     @Test
-    public void testShouldReturnFalseIfStopMetadataSyncSettingValueIsNull()
+    void testShouldReturnFalseIfStopMetadataSyncSettingValueIsNull()
     {
         systemSettingManager.saveSystemSetting( SettingKey.STOP_METADATA_SYNC, null );
         Boolean stopMetadataSync = metadataSystemSettingService.getStopMetadataSyncSetting();

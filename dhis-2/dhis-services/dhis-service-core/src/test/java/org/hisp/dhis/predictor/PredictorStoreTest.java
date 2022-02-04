@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,10 @@
  */
 package org.hisp.dhis.predictor;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashSet;
 import java.util.List;
@@ -42,15 +45,15 @@ import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodType;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Lars Helge Overland
  */
-public class PredictorStoreTest
-    extends DhisSpringTest
+class PredictorStoreTest extends DhisSpringTest
 {
+
     @Autowired
     private PredictorStore predictorStore;
 
@@ -92,223 +95,179 @@ public class PredictorStoreTest
     // -------------------------------------------------------------------------
     // Fixture
     // -------------------------------------------------------------------------
-
     @Override
     public void setUpTest()
         throws Exception
     {
         orgUnitLevel1 = new OrganisationUnitLevel( 1, "Level1" );
-
         organisationUnitService.addOrganisationUnitLevel( orgUnitLevel1 );
-
         dataElementA = createDataElement( 'A' );
         dataElementB = createDataElement( 'B' );
         dataElementC = createDataElement( 'C' );
         dataElementD = createDataElement( 'D' );
         dataElementX = createDataElement( 'X' );
-
         dataElementService.addDataElement( dataElementA );
         dataElementService.addDataElement( dataElementB );
         dataElementService.addDataElement( dataElementC );
         dataElementService.addDataElement( dataElementD );
         dataElementService.addDataElement( dataElementX );
-
         CategoryOptionCombo categoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();
         defaultCombo = categoryOptionCombo;
-
         optionCombos = new HashSet<>();
         optionCombos.add( categoryOptionCombo );
-
         expressionA = new Expression( "expressionA", "descriptionA" );
         expressionB = new Expression( "expressionB", "descriptionB" );
         expressionC = new Expression( "expressionC", "descriptionC" );
         expressionD = new Expression( "expressionD", "descriptionD" );
-
         periodType = PeriodType.getAvailablePeriodTypes().iterator().next();
     }
 
     // -------------------------------------------------------------------------
     // predictor
     // -------------------------------------------------------------------------
-
     @Test
-    public void testSavePredictor()
+    void testSavePredictor()
     {
         Predictor predictorA = createPredictor( dataElementX, defaultCombo, "A", expressionA, expressionB, periodType,
             orgUnitLevel1, 6, 1, 0 );
         Predictor predictorB = createPredictor( dataElementX, defaultCombo, "B", expressionC, expressionD, periodType,
             orgUnitLevel1, 6, 1, 0 );
-
         predictorStore.save( predictorA );
         long idA = predictorA.getId();
         Set<OrganisationUnitLevel> levelsA = predictorA.getOrganisationUnitLevels();
-        Set<OrganisationUnitLevel> expectedLevelsA = new HashSet<OrganisationUnitLevel>();
+        Set<OrganisationUnitLevel> expectedLevelsA = new HashSet<>();
         expectedLevelsA.add( orgUnitLevel1 );
-
         predictorA = predictorStore.get( idA );
-
         levelsA = predictorA.getOrganisationUnitLevels();
-
         assertEquals( predictorA.getName(), "PredictorA" );
         assertEquals( predictorA.getDescription(), "DescriptionA" );
         assertNotNull( predictorA.getGenerator().getExpression() );
         // TODO Need a good skipTest test
         assertEquals( predictorA.getPeriodType(), periodType );
         assertEquals( predictorA.getOutput(), dataElementX );
-        assertEquals( predictorA.getAnnualSampleCount(), new Integer( 0 ) );
-        assertEquals( predictorA.getSequentialSampleCount(), new Integer( 6 ) );
-        assertEquals( predictorA.getSequentialSkipCount(), new Integer( 1 ) );
+        assertEquals( predictorA.getAnnualSampleCount(), Integer.valueOf( 0 ) );
+        assertEquals( predictorA.getSequentialSampleCount(), Integer.valueOf( 6 ) );
+        assertEquals( predictorA.getSequentialSkipCount(), Integer.valueOf( 1 ) );
         assertEquals( levelsA.size(), 1 );
         assertEquals( levelsA, expectedLevelsA );
-
         predictorStore.save( predictorB );
         long idB = predictorB.getId();
         Set<OrganisationUnitLevel> levelsB = predictorB.getOrganisationUnitLevels();
-        Set<OrganisationUnitLevel> expectedLevelsB = new HashSet<OrganisationUnitLevel>();
+        Set<OrganisationUnitLevel> expectedLevelsB = new HashSet<>();
         expectedLevelsB.add( orgUnitLevel1 );
-
         predictorB = predictorStore.get( idB );
-
         levelsB = predictorB.getOrganisationUnitLevels();
-
         assertEquals( predictorA.getName(), "PredictorA" );
         assertEquals( predictorA.getDescription(), "DescriptionA" );
         assertNotNull( predictorA.getGenerator().getExpression() );
         // TODO Need a good skipTest test
         assertEquals( predictorA.getPeriodType(), periodType );
         assertEquals( predictorA.getOutput(), dataElementX );
-        assertEquals( predictorA.getAnnualSampleCount(), new Integer( 0 ) );
-        assertEquals( predictorA.getSequentialSampleCount(), new Integer( 6 ) );
-        assertEquals( predictorA.getSequentialSkipCount(), new Integer( 1 ) );
+        assertEquals( predictorA.getAnnualSampleCount(), Integer.valueOf( 0 ) );
+        assertEquals( predictorA.getSequentialSampleCount(), Integer.valueOf( 6 ) );
+        assertEquals( predictorA.getSequentialSkipCount(), Integer.valueOf( 1 ) );
         assertEquals( levelsB.size(), 1 );
         assertEquals( levelsB, expectedLevelsB );
     }
 
     @Test
-    public void testUpdatePredictor()
+    void testUpdatePredictor()
     {
         Predictor predictor = createPredictor( dataElementX, defaultCombo, "A", expressionA, expressionB, periodType,
-            orgUnitLevel1,
-            6, 1, 0 );
-
+            orgUnitLevel1, 6, 1, 0 );
         predictorStore.save( predictor );
         long id = predictor.getId();
-
         predictor = predictorStore.get( id );
-
         assertEquals( predictor.getName(), "PredictorA" );
         assertEquals( predictor.getDescription(), "DescriptionA" );
         assertNotNull( predictor.getGenerator().getExpression() );
         assertEquals( predictor.getPeriodType(), periodType );
-
         predictor.setName( "PredictorB" );
         predictor.setDescription( "DescriptionB" );
         predictor.setSequentialSkipCount( 2 );
-
         predictorStore.update( predictor );
-
         predictor = predictorStore.get( id );
-
         assertEquals( predictor.getName(), "PredictorB" );
         assertEquals( predictor.getDescription(), "DescriptionB" );
-        assertEquals( predictor.getSequentialSkipCount(), new Integer( 2 ) );
+        assertEquals( predictor.getSequentialSkipCount(), Integer.valueOf( 2 ) );
     }
 
     @Test
-    public void testDeletePredictor()
+    void testDeletePredictor()
     {
         Predictor predictorA = createPredictor( dataElementX, defaultCombo, "A", expressionA, expressionB, periodType,
             orgUnitLevel1, 6, 1, 0 );
         Predictor predictorB = createPredictor( dataElementX, defaultCombo, "B", expressionC, expressionD, periodType,
             orgUnitLevel1, 6, 1, 0 );
-
         predictorStore.save( predictorA );
         long idA = predictorA.getId();
         predictorStore.save( predictorB );
         long idB = predictorB.getId();
-
         assertNotNull( predictorStore.get( idA ) );
         assertNotNull( predictorStore.get( idB ) );
-
         predictorA.clearExpressions();
-
         predictorStore.delete( predictorA );
-
         assertNull( predictorStore.get( idA ) );
         assertNotNull( predictorStore.get( idB ) );
-
         predictorB.clearExpressions();
-
         predictorStore.delete( predictorB );
-
         assertNull( predictorStore.get( idA ) );
         assertNull( predictorStore.get( idB ) );
     }
 
     @Test
-    public void testGetAllPredictors()
+    void testGetAllPredictors()
     {
         Predictor predictorA = createPredictor( dataElementX, defaultCombo, "A", expressionA, expressionB, periodType,
             orgUnitLevel1, 6, 1, 0 );
         Predictor predictorB = createPredictor( dataElementX, defaultCombo, "B", expressionC, expressionD, periodType,
             orgUnitLevel1, 6, 1, 0 );
-
         predictorStore.save( predictorA );
         predictorStore.save( predictorB );
-
         List<Predictor> rules = predictorStore.getAll();
-
         assertTrue( rules.size() == 2 );
         assertTrue( rules.contains( predictorA ) );
         assertTrue( rules.contains( predictorB ) );
     }
 
     @Test
-    public void testGetPredictorByName()
+    void testGetPredictorByName()
     {
         Predictor predictorA = createPredictor( dataElementX, defaultCombo, "A", expressionA, expressionB, periodType,
             orgUnitLevel1, 6, 1, 0 );
         Predictor predictorB = createPredictor( dataElementX, defaultCombo, "B", expressionC, expressionD, periodType,
             orgUnitLevel1, 6, 1, 0 );
-
         predictorStore.save( predictorA );
         long id = predictorA.getId();
         predictorStore.save( predictorB );
-
         Predictor rule = predictorStore.getByName( "PredictorA" );
-
         assertEquals( rule.getId(), id );
         assertEquals( rule.getName(), "PredictorA" );
     }
 
     @Test
-    public void testGetPredictorCount()
+    void testGetPredictorCount()
     {
         Set<DataElement> dataElementsA = new HashSet<>();
         dataElementsA.add( dataElementA );
         dataElementsA.add( dataElementB );
-
         Set<DataElement> dataElementsB = new HashSet<>();
         dataElementsB.add( dataElementC );
         dataElementsB.add( dataElementD );
-
         Set<DataElement> dataElementsD = new HashSet<>();
         dataElementsD.addAll( dataElementsA );
         dataElementsD.addAll( dataElementsB );
-
         Predictor predictorA = createPredictor( dataElementX, defaultCombo, "A", expressionA, expressionB, periodType,
             orgUnitLevel1, 6, 1, 0 );
         Predictor predictorB = createPredictor( dataElementX, defaultCombo, "B", expressionC, expressionD, periodType,
             orgUnitLevel1, 6, 1, 0 );
         Expression generator = new Expression( "expressionE", "expressionE" );
         Expression skipTest = new Expression( "expressionF", "expressionF" );
-        Predictor predictorC = createPredictor( dataElementX, defaultCombo, "C",
-            generator, skipTest, periodType, orgUnitLevel1, 6, 1, 0 );
-
+        Predictor predictorC = createPredictor( dataElementX, defaultCombo, "C", generator, skipTest, periodType,
+            orgUnitLevel1, 6, 1, 0 );
         predictorStore.save( predictorA );
         predictorStore.save( predictorB );
         predictorStore.save( predictorC );
-
         assertNotNull( predictorStore.getCount() );
         assertEquals( 3, predictorStore.getCount() );
     }

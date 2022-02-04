@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.dxf2.metadata.sync;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -40,19 +40,19 @@ import org.hisp.dhis.email.EmailService;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.metadata.version.VersionType;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.retry.RetryContext;
 
 /**
  * @author aamerm
  */
-public class MetadataSyncPostProcessorTest
+@ExtendWith( MockitoExtension.class )
+class MetadataSyncPostProcessorTest
 {
     @Mock
     private EmailService emailService;
@@ -67,10 +67,7 @@ public class MetadataSyncPostProcessorTest
 
     private MetadataSyncSummary metadataSyncSummary;
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
-    @Before
+    @BeforeEach
     public void setUp()
     {
 
@@ -83,7 +80,7 @@ public class MetadataSyncPostProcessorTest
     }
 
     @Test
-    public void testShouldSendSuccessEmailIfSyncSummaryIsOk()
+    void testShouldSendSuccessEmailIfSyncSummaryIsOk()
     {
         metadataSyncSummary.setImportReport( new ImportReport() );
         metadataSyncSummary.getImportReport().setStatus( Status.OK );
@@ -97,7 +94,7 @@ public class MetadataSyncPostProcessorTest
     }
 
     @Test
-    public void testShouldSendSuccessEmailIfSyncSummaryIsWarning()
+    void testShouldSendSuccessEmailIfSyncSummaryIsWarning()
     {
         metadataSyncSummary.setImportReport( new ImportReport() );
         metadataSyncSummary.getImportReport().setStatus( Status.WARNING );
@@ -112,7 +109,7 @@ public class MetadataSyncPostProcessorTest
     }
 
     @Test
-    public void testShouldSendSuccessEmailIfSyncSummaryIsError()
+    void testShouldSendSuccessEmailIfSyncSummaryIsError()
     {
         metadataSyncSummary.setImportReport( new ImportReport() );
         metadataSyncSummary.getImportReport().setStatus( Status.ERROR );
@@ -128,7 +125,7 @@ public class MetadataSyncPostProcessorTest
     }
 
     @Test
-    public void testShouldSendEmailToAdminWithProperSubjectAndBody()
+    void testShouldSendEmailToAdminWithProperSubjectAndBody()
     {
         ImportReport importReport = mock( ImportReport.class );
 

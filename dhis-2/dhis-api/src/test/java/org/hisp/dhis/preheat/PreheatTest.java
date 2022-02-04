@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,24 +30,24 @@ package org.hisp.dhis.preheat;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collection;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.user.User;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class PreheatTest
+class PreheatTest
 {
 
     private final Preheat preheat = new Preheat();
@@ -58,8 +58,8 @@ public class PreheatTest
 
     private final DataElement de3 = new DataElement( "dataElementC" );
 
-    @Before
-    public void setUp()
+    @BeforeEach
+    void setUp()
     {
         de1.setAutoFields();
         de2.setAutoFields();
@@ -70,7 +70,7 @@ public class PreheatTest
     }
 
     @Test
-    public void testIsEmpty_Empty()
+    void testIsEmpty_Empty()
     {
         assertTrue( preheat.isEmpty() );
         assertTrue( preheat.isEmpty( PreheatIdentifier.UID ) );
@@ -80,10 +80,9 @@ public class PreheatTest
     }
 
     @Test
-    public void testIsEmpty_NonEmpty()
+    void testIsEmpty_NonEmpty()
     {
         preheat.put( PreheatIdentifier.UID, asList( de1, de2, de3 ) );
-
         assertFalse( preheat.isEmpty() );
         assertFalse( preheat.isEmpty( PreheatIdentifier.UID ) );
         assertFalse( preheat.isEmpty( PreheatIdentifier.UID, DataElement.class ) );
@@ -93,7 +92,7 @@ public class PreheatTest
     }
 
     @Test
-    public void testGet_Null()
+    void testGet_Null()
     {
         assertNull( preheat.get( PreheatIdentifier.UID, null ) );
         assertNull( preheat.get( PreheatIdentifier.CODE, null ) );
@@ -104,7 +103,7 @@ public class PreheatTest
     }
 
     @Test
-    public void testGet_Empty()
+    void testGet_Empty()
     {
         assertNull( preheat.get( PreheatIdentifier.UID, User.class, "key" ) );
         assertNull( preheat.get( PreheatIdentifier.CODE, User.class, "key" ) );
@@ -113,44 +112,41 @@ public class PreheatTest
     }
 
     @Test
-    public void testGet_NonEmptyUID()
+    void testGet_NonEmptyUID()
     {
         preheat.put( PreheatIdentifier.UID, asList( de1, de2, de3 ) );
-
         assertSame( de1, preheat.get( PreheatIdentifier.UID, de1 ) );
         assertSame( de2, preheat.get( PreheatIdentifier.UID, DataElement.class, de2 ) );
         assertSame( de3, preheat.get( PreheatIdentifier.UID, DataElement.class, de3.getUid() ) );
     }
 
     @Test
-    public void testGet_NonEmptyCode()
+    void testGet_NonEmptyCode()
     {
         preheat.put( PreheatIdentifier.CODE, asList( de1, de2, de3 ) );
-
         assertSame( de1, preheat.get( PreheatIdentifier.CODE, de1 ) );
         assertSame( de2, preheat.get( PreheatIdentifier.CODE, DataElement.class, de2 ) );
         assertSame( de3, preheat.get( PreheatIdentifier.CODE, DataElement.class, de3.getCode() ) );
     }
 
     @Test
-    public void testGetAll_Null()
+    void testGetAll_Null()
     {
         assertEquals( emptyList(), preheat.getAll( PreheatIdentifier.UID, null ) );
         assertEquals( emptyList(), preheat.getAll( PreheatIdentifier.CODE, null ) );
     }
 
     @Test
-    public void testGetAll_Empty()
+    void testGetAll_Empty()
     {
         assertEquals( emptyList(), preheat.getAll( PreheatIdentifier.UID, emptyList() ) );
         assertEquals( emptyList(), preheat.getAll( PreheatIdentifier.UID, singletonList( new User() ) ) );
     }
 
     @Test
-    public void testGetAll_NonEmptyUID()
+    void testGetAll_NonEmptyUID()
     {
         preheat.put( PreheatIdentifier.UID, asList( de1, de2, de3 ) );
-
         assertEquals( emptyList(), preheat.getAll( PreheatIdentifier.UID, emptyList() ) );
         assertEquals( singletonList( de1 ), preheat.getAll( PreheatIdentifier.UID, singletonList( de1 ) ) );
         assertEquals( asList( de1, de3 ), preheat.getAll( PreheatIdentifier.UID, asList( de1, de3 ) ) );
@@ -159,10 +155,9 @@ public class PreheatTest
     }
 
     @Test
-    public void testGetAll_NonEmptyCode()
+    void testGetAll_NonEmptyCode()
     {
         preheat.put( PreheatIdentifier.CODE, asList( de1, de2, de3 ) );
-
         assertEquals( emptyList(), preheat.getAll( PreheatIdentifier.CODE, emptyList() ) );
         assertEquals( singletonList( de1 ), preheat.getAll( PreheatIdentifier.CODE, singletonList( de1 ) ) );
         assertEquals( asList( de1, de3 ), preheat.getAll( PreheatIdentifier.CODE, asList( de1, de3 ) ) );
@@ -172,24 +167,23 @@ public class PreheatTest
     }
 
     @Test
-    public void testContainsKey_Null()
+    void testContainsKey_Null()
     {
         assertFalse( preheat.containsKey( PreheatIdentifier.UID, DataElement.class, null ) );
         assertFalse( preheat.containsKey( PreheatIdentifier.UID, null, "key" ) );
     }
 
     @Test
-    public void testContainsKey_Empty()
+    void testContainsKey_Empty()
     {
         assertFalse( preheat.containsKey( PreheatIdentifier.UID, DataElement.class, "key" ) );
         assertFalse( preheat.containsKey( PreheatIdentifier.CODE, DataElement.class, "key" ) );
     }
 
     @Test
-    public void testContainsKey_NonEmptyUID()
+    void testContainsKey_NonEmptyUID()
     {
         preheat.put( PreheatIdentifier.UID, asList( de1, de2, de3 ) );
-
         assertTrue( preheat.containsKey( PreheatIdentifier.UID, DataElement.class, de1.getUid() ) );
         assertFalse( preheat.containsKey( PreheatIdentifier.CODE, DataElement.class, de1.getUid() ) );
         assertFalse( preheat.containsKey( PreheatIdentifier.CODE, DataElement.class, de1.getCode() ) );
@@ -198,10 +192,9 @@ public class PreheatTest
     }
 
     @Test
-    public void testContainsKey_NonEmptyCode()
+    void testContainsKey_NonEmptyCode()
     {
         preheat.put( PreheatIdentifier.CODE, asList( de1, de2, de3 ) );
-
         assertTrue( preheat.containsKey( PreheatIdentifier.CODE, DataElement.class, de1.getCode() ) );
         assertFalse( preheat.containsKey( PreheatIdentifier.UID, DataElement.class, de1.getCode() ) );
         assertFalse( preheat.containsKey( PreheatIdentifier.UID, DataElement.class, de1.getUid() ) );
@@ -210,7 +203,7 @@ public class PreheatTest
     }
 
     @Test
-    public void testPut_Null()
+    void testPut_Null()
     {
         assertTrue( preheat.put( PreheatIdentifier.UID, (IdentifiableObject) null ).isEmpty() );
         assertTrue( preheat.put( PreheatIdentifier.CODE, (IdentifiableObject) null ).isEmpty() );
@@ -219,12 +212,11 @@ public class PreheatTest
     }
 
     @Test
-    public void testPut_SingleUID()
+    void testPut_SingleUID()
     {
         preheat.put( PreheatIdentifier.UID, de1 );
         preheat.put( PreheatIdentifier.UID, de2 );
         preheat.put( PreheatIdentifier.UID, de3 );
-
         assertEquals( 1, preheat.getKlassKeyCount( PreheatIdentifier.UID ) );
         assertEquals( 3, preheat.getIdentifierKeyCount( PreheatIdentifier.UID, DataElement.class ) );
         assertSame( de1, preheat.get( PreheatIdentifier.UID, DataElement.class, de1.getUid() ) );
@@ -233,12 +225,11 @@ public class PreheatTest
     }
 
     @Test
-    public void testPut_SingleCode()
+    void testPut_SingleCode()
     {
         preheat.put( PreheatIdentifier.CODE, de1 );
         preheat.put( PreheatIdentifier.CODE, de2 );
         preheat.put( PreheatIdentifier.CODE, de3 );
-
         assertEquals( 1, preheat.getKlassKeyCount( PreheatIdentifier.CODE ) );
         assertEquals( 3, preheat.getIdentifierKeyCount( PreheatIdentifier.CODE, DataElement.class ) );
         assertSame( de1, preheat.get( PreheatIdentifier.CODE, DataElement.class, de1.getCode() ) );
@@ -247,7 +238,7 @@ public class PreheatTest
     }
 
     @Test
-    public void testPut_NoReplaceUID()
+    void testPut_NoReplaceUID()
     {
         preheat.put( PreheatIdentifier.UID, de1 );
         // try to override
@@ -259,7 +250,7 @@ public class PreheatTest
     }
 
     @Test
-    public void testPut_NoReplaceCode()
+    void testPut_NoReplaceCode()
     {
         preheat.put( PreheatIdentifier.CODE, de1 );
         // try to override
@@ -271,10 +262,9 @@ public class PreheatTest
     }
 
     @Test
-    public void testPut_ManyUID()
+    void testPut_ManyUID()
     {
         preheat.put( PreheatIdentifier.UID, asList( de1, de2, de3 ) );
-
         assertEquals( 1, preheat.getKlassKeyCount( PreheatIdentifier.UID ) );
         assertEquals( 3, preheat.getIdentifierKeyCount( PreheatIdentifier.UID, DataElement.class ) );
         assertSame( de1, preheat.get( PreheatIdentifier.UID, DataElement.class, de1.getUid() ) );
@@ -283,10 +273,9 @@ public class PreheatTest
     }
 
     @Test
-    public void testPut_ManyCode()
+    void testPut_ManyCode()
     {
         preheat.put( PreheatIdentifier.CODE, asList( de1, de2, de3 ) );
-
         assertEquals( 1, preheat.getKlassKeyCount( PreheatIdentifier.CODE ) );
         assertEquals( 3, preheat.getIdentifierKeyCount( PreheatIdentifier.CODE, DataElement.class ) );
         assertSame( de1, preheat.get( PreheatIdentifier.CODE, DataElement.class, de1.getCode() ) );
@@ -295,7 +284,7 @@ public class PreheatTest
     }
 
     @Test
-    public void testReplace_Null()
+    void testReplace_Null()
     {
         assertTrue( preheat.replace( PreheatIdentifier.UID, null ).isEmpty() );
         assertTrue( preheat.replace( PreheatIdentifier.CODE, null ).isEmpty() );
@@ -309,11 +298,10 @@ public class PreheatTest
     }
 
     @Test
-    public void testReplace_UID()
+    void testReplace_UID()
     {
         preheat.replace( PreheatIdentifier.UID, de1 );
         assertSame( de1, preheat.get( PreheatIdentifier.UID, DataElement.class, de1.getUid() ) );
-
         // try to override
         DataElement de1copy = new DataElement( de1.getName() );
         de1copy.setUid( de1.getUid() );
@@ -323,11 +311,10 @@ public class PreheatTest
     }
 
     @Test
-    public void testReplace_Code()
+    void testReplace_Code()
     {
         preheat.replace( PreheatIdentifier.CODE, de1 );
         assertSame( de1, preheat.get( PreheatIdentifier.CODE, DataElement.class, de1.getCode() ) );
-
         // try to override
         DataElement de1copy = new DataElement( de1.getName() );
         de1copy.setUid( de1.getUid() );
@@ -337,54 +324,46 @@ public class PreheatTest
     }
 
     @Test
-    public void testRemove_Null()
+    void testRemove_Null()
     {
         assertTrue( preheat.remove( PreheatIdentifier.UID, null ).isEmpty() );
     }
 
     @Test
-    public void testRemove_Empty()
+    void testRemove_Empty()
     {
         assertTrue( preheat.remove( PreheatIdentifier.UID, de1 ).isEmpty() );
     }
 
     @Test
-    public void testRemove_NonEmptySingleUID()
+    void testRemove_NonEmptySingleUID()
     {
         preheat.put( PreheatIdentifier.UID, asList( de1, de2, de3 ) );
-
         preheat.remove( PreheatIdentifier.UID, DataElement.class, de2.getUid() );
-
         assertEquals( asList( de1, de3 ), preheat.getAll( PreheatIdentifier.UID, asList( de1, de2, de3 ) ) );
     }
 
     @Test
-    public void testRemove_NonEmptySingleCode()
+    void testRemove_NonEmptySingleCode()
     {
         preheat.put( PreheatIdentifier.CODE, asList( de1, de2, de3 ) );
-
         preheat.remove( PreheatIdentifier.CODE, DataElement.class, de2.getCode() );
-
         assertEquals( asList( de1, de3 ), preheat.getAll( PreheatIdentifier.CODE, asList( de1, de2, de3 ) ) );
     }
 
     @Test
-    public void testRemove_NonEmptyManyUID()
+    void testRemove_NonEmptyManyUID()
     {
         preheat.put( PreheatIdentifier.UID, asList( de1, de2, de3 ) );
-
         preheat.remove( PreheatIdentifier.UID, DataElement.class, asList( de1.getUid(), de3.getUid() ) );
-
         assertEquals( singletonList( de2 ), preheat.getAll( PreheatIdentifier.UID, asList( de1, de2, de3 ) ) );
     }
 
     @Test
-    public void testRemove_NonEmptyManyCode()
+    void testRemove_NonEmptyManyCode()
     {
         preheat.put( PreheatIdentifier.CODE, asList( de1, de2, de3 ) );
-
         preheat.remove( PreheatIdentifier.CODE, DataElement.class, asList( de1.getCode(), de3.getCode() ) );
-
         assertEquals( singletonList( de2 ), preheat.getAll( PreheatIdentifier.CODE, asList( de1, de2, de3 ) ) );
     }
 }

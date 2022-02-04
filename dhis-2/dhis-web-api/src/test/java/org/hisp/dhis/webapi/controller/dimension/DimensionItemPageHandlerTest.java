@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,7 +42,6 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.junit.MockitoJUnit.rule;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -51,34 +50,32 @@ import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.webapi.service.LinkService;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author maikel arabori
  */
-public class DimensionItemPageHandlerTest
+@ExtendWith( MockitoExtension.class )
+class DimensionItemPageHandlerTest
 {
 
     @Mock
     private LinkService linkService;
 
-    @Rule
-    public MockitoRule mockitoRule = rule();
-
     private DimensionItemPageHandler dimensionItemPageHandler;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         dimensionItemPageHandler = new DimensionItemPageHandler( linkService );
     }
 
     @Test
-    public void testAddPaginationToNodeWithSuccess()
+    void testAddPaginationToNodeWithSuccess()
     {
         // Given
         final RootNode anyRootNode = new RootNode( "any" );
@@ -99,7 +96,7 @@ public class DimensionItemPageHandlerTest
     }
 
     @Test
-    public void testAddPaginationToNodeWhenPagingIsFalse()
+    void testAddPaginationToNodeWhenPagingIsFalse()
     {
         // Given
         final RootNode anyRootNode = new RootNode( "any" );
@@ -119,7 +116,7 @@ public class DimensionItemPageHandlerTest
     }
 
     @Test
-    public void testAddPaginationToNodeWhenNoPagingIsSet()
+    void testAddPaginationToNodeWhenNoPagingIsSet()
     {
         // Given
         final RootNode anyRootNode = new RootNode( "any" );

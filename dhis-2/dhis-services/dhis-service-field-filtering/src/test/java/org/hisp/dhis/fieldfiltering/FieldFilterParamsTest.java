@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.fieldfiltering;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -38,35 +38,29 @@ import com.google.common.collect.Sets;
 /**
  * @author Morten Olav Hansen
  */
-public class FieldFilterParamsTest
+class FieldFilterParamsTest
 {
+
     @Test
-    public void testBuilderWithObjectAndFilters()
+    void testBuilderWithObjectAndFilters()
     {
         FieldFilterParams<String> params = FieldFilterParams.<String> builder()
-            .objects( Lists.newArrayList( "A", "B", "C" ) )
-            .filters( Sets.newHashSet( "id", "name" ) )
-            .build();
-
+            .objects( Lists.newArrayList( "A", "B", "C" ) ).filters( Sets.newHashSet( "id", "name" ) ).build();
         assertTrue( params.getObjects().contains( "A" ) );
         assertTrue( params.getObjects().contains( "B" ) );
         assertTrue( params.getObjects().contains( "C" ) );
-
         assertTrue( params.getFilters().contains( "id" ) );
         assertTrue( params.getFilters().contains( "name" ) );
     }
 
     @Test
-    public void testBuilderWithDefault()
+    void testBuilderWithDefault()
     {
         FieldFilterParams<String> params = FieldFilterParams.<String> builder()
-            .objects( Lists.newArrayList( "A", "B", "C" ) )
-            .build();
-
+            .objects( Lists.newArrayList( "A", "B", "C" ) ).build();
         assertTrue( params.getObjects().contains( "A" ) );
         assertTrue( params.getObjects().contains( "B" ) );
         assertTrue( params.getObjects().contains( "C" ) );
-
         assertEquals( "*", params.getFilters().iterator().next() );
     }
 }

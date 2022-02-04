@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,7 @@ package org.hisp.dhis.scheduling;
 import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Deque;
@@ -455,7 +456,7 @@ public interface JobProgress
     }
 
     @Getter
-    abstract class Node
+    abstract class Node implements Serializable
     {
         @JsonProperty
         private String error;
@@ -508,6 +509,11 @@ public interface JobProgress
     @RequiredArgsConstructor
     final class Process extends Node
     {
+        public static Date startedTime( Collection<Process> job, Date defaultValue )
+        {
+            return job.isEmpty() ? defaultValue : job.iterator().next().getStartedTime();
+        }
+
         private final Date startedTime = new Date();
 
         @JsonProperty

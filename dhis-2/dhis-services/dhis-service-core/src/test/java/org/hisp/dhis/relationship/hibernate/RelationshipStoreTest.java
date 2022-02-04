@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.relationship.hibernate;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -55,11 +55,12 @@ import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class RelationshipStoreTest extends TransactionalIntegrationTest
+class RelationshipStoreTest extends TransactionalIntegrationTest
 {
+
     @Autowired
     private RelationshipService relationshipService;
 
@@ -97,47 +98,38 @@ public class RelationshipStoreTest extends TransactionalIntegrationTest
     @Override
     public void setUpTest()
     {
-
         relationshipType = createRelationshipType( 'A' );
         relationshipTypeService.addRelationshipType( relationshipType );
-
         organisationUnit = createOrganisationUnit( "testOU" );
-
         organisationUnitService.addOrganisationUnit( organisationUnit );
-
         trackedEntityInstanceA = createTrackedEntityInstance( organisationUnit );
         trackedEntityInstanceB = createTrackedEntityInstance( organisationUnit );
-
         trackedEntityInstanceService.addTrackedEntityInstance( trackedEntityInstanceA );
         trackedEntityInstanceService.addTrackedEntityInstance( trackedEntityInstanceB );
-
         relationship = new Relationship();
         RelationshipItem relationshipItemFrom = new RelationshipItem();
         RelationshipItem relationshipItemTo = new RelationshipItem();
         relationshipItemFrom.setTrackedEntityInstance( trackedEntityInstanceA );
         relationshipItemTo.setTrackedEntityInstance( trackedEntityInstanceB );
-
         relationship.setRelationshipType( relationshipType );
         relationship.setFrom( relationshipItemFrom );
         relationship.setTo( relationshipItemTo );
         relationship.setKey( RelationshipUtils.generateRelationshipKey( relationship ) );
         relationship.setInvertedKey( RelationshipUtils.generateRelationshipInvertedKey( relationship ) );
-
         relationshipService.addRelationship( relationship );
     }
 
     @Test
-    public void getByTrackedEntityInstance()
+    void getByTrackedEntityInstance()
     {
         List<Relationship> relationshipList = relationshipService
             .getRelationshipsByTrackedEntityInstance( trackedEntityInstanceA, true );
-
         assertEquals( 1, relationshipList.size() );
         assertTrue( relationshipList.contains( relationship ) );
     }
 
     @Test
-    public void getByProgramStageInstance()
+    void getByProgramStageInstance()
     {
         Program programA = createProgram( 'A', new HashSet<>(), organisationUnit );
         programService.addProgram( programA );
@@ -148,58 +140,47 @@ public class RelationshipStoreTest extends TransactionalIntegrationTest
         programInstance.setIncidentDate( new Date() );
         programInstance.setStatus( ProgramStatus.ACTIVE );
         programInstanceService.addProgramInstance( programInstance );
-
         ProgramStage programStageA = createProgramStage( 'S', programA );
         programStageA.setProgram( programA );
         programStageService.saveProgramStage( programStageA );
         programA.getProgramStages().add( programStageA );
-
         ProgramStageInstance programStageInstance = new ProgramStageInstance();
         programStageInstance.setOrganisationUnit( organisationUnit );
         programStageInstance.setProgramStage( programStageA );
         programStageInstance.setProgramInstance( programInstance );
         programStageInstance.setAutoFields();
-
         programStageInstanceService.addProgramStageInstance( programStageInstance );
-
         RelationshipItem relationshipItemFrom = new RelationshipItem();
         relationshipItemFrom.setTrackedEntityInstance( trackedEntityInstanceA );
         RelationshipItem relationshipItemTo = new RelationshipItem();
         relationshipItemTo.setProgramStageInstance( programStageInstance );
-
         Relationship relationshipA = new Relationship();
         relationshipA.setRelationshipType( relationshipType );
         relationshipA.setFrom( relationshipItemFrom );
         relationshipA.setTo( relationshipItemTo );
         relationshipA.setKey( RelationshipUtils.generateRelationshipKey( relationshipA ) );
         relationshipA.setInvertedKey( RelationshipUtils.generateRelationshipInvertedKey( relationshipA ) );
-
         relationshipService.addRelationship( relationshipA );
-
         List<Relationship> relationshipList = relationshipService
             .getRelationshipsByProgramStageInstance( programStageInstance, true );
-
         assertEquals( 1, relationshipList.size() );
         assertTrue( relationshipList.contains( relationshipA ) );
-
         assertTrue( relationshipService.getRelationshipByRelationship( relationshipA ).isPresent() );
     }
 
     @Test
-    public void getByRelationshipType()
+    void getByRelationshipType()
     {
         List<Relationship> relationshipList = relationshipService
             .getRelationshipsByRelationshipType( relationshipType );
-
         assertEquals( 1, relationshipList.size() );
         assertTrue( relationshipList.contains( relationship ) );
     }
 
     @Test
-    public void testGetByRelationship()
+    void testGetByRelationship()
     {
         Optional<Relationship> existing = relationshipService.getRelationshipByRelationship( relationship );
-
         assertTrue( existing.isPresent() );
     }
 }

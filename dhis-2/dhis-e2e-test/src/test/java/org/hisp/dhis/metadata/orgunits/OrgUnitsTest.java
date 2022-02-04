@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -68,7 +68,7 @@ public class OrgUnitsTest
     @Test
     public void shouldNotCreateWithoutPermissions()
     {
-        String userName = DataGenerator.randomString();
+        String userName = (DataGenerator.randomString()).toLowerCase();
         String psw = "!XPTOqwerty1";
 
         userActions.addUser( userName, psw );

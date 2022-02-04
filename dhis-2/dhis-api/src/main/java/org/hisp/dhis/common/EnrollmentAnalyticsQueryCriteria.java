@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,17 +41,39 @@ import org.hisp.dhis.program.ProgramStatus;
  */
 @Data
 @NoArgsConstructor
-public class EnrollmentAnalyticsQueryCriteria
+public class EnrollmentAnalyticsQueryCriteria extends RequestTypeAware
 {
     private Date startDate;
 
     private Date endDate;
+
+    /**
+     * Date interval for enrollment date;
+     */
+    private String enrollmentDate;
+
+    /**
+     * Time interval for incident date;
+     */
+    private String incidentDate;
+
+    /**
+     * Time interval for last updated date;
+     */
+    private String lastUpdated;
 
     private String timeField;
 
     private Set<String> dimension;
 
     private Set<String> filter;
+
+    /**
+     * This parameter selects the headers to be returned as part of the
+     * response. The implementation for this Set will be LinkedHashSet as the
+     * ordering is important.
+     */
+    private Set<String> headers;
 
     private OrganisationUnitSelectionMode ouMode;
 
@@ -73,7 +95,7 @@ public class EnrollmentAnalyticsQueryCriteria
 
     private IdScheme dataIdScheme;
 
-    private ProgramStatus programStatus;
+    private Set<ProgramStatus> programStatus;
 
     private Integer page;
 

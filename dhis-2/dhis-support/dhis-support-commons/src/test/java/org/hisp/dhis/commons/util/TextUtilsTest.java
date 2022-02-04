@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,8 +30,8 @@ package org.hisp.dhis.commons.util;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.commons.util.TextUtils.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.AbstractSequentialList;
 import java.util.ArrayList;
@@ -40,24 +40,38 @@ import java.util.Collections;
 import java.util.List;
 
 import org.hisp.dhis.commons.collection.ListUtils;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Lars Helge Overland
  */
-public class TextUtilsTest
+class TextUtilsTest
 {
+
     private static final String STRING = "abcdefghij";
 
     enum Disease
     {
+
         ANTIBIOTIC_RESISTANT_INFECTION,
         MALARIA,
-        CHRONIC_WASTING_DISEASE;
+        CHRONIC_WASTING_DISEASE
     }
 
     @Test
-    public void testHtmlLinks()
+    public void testRemoveNonEssentialChars()
+    {
+        String same = "abcdefghijkl-";
+        assertEquals( same, removeNonEssentialChars( same ) );
+
+        assertEquals( "abcdefghijkl-", removeNonEssentialChars( "abcdefghijkl-øæå" ) );
+        assertEquals( "abcdefghijkl-", removeNonEssentialChars( "abcdefghijkl-øæå§!" ) );
+        assertEquals( " abcdefghijkl-", removeNonEssentialChars( " abcdefghijkl-øæå§!" ) );
+        assertEquals( " abcde fghijkl-", removeNonEssentialChars( "/(/%å^{} abcde fghijkl-øæå§!&" ) );
+    }
+
+    @Test
+    void testHtmlLinks()
     {
         assertEquals( "<a href=\"http://dhis2.org\">http://dhis2.org</a>", htmlLinks( "http://dhis2.org" ) );
         assertEquals( "<a href=\"https://dhis2.org\">https://dhis2.org</a>", htmlLinks( "https://dhis2.org" ) );
@@ -68,7 +82,7 @@ public class TextUtilsTest
     }
 
     @Test
-    public void testSubString()
+    void testSubString()
     {
         assertEquals( "abcdefghij", subString( STRING, 0, 10 ) );
         assertEquals( "cdef", subString( STRING, 2, 4 ) );
@@ -80,13 +94,13 @@ public class TextUtilsTest
     }
 
     @Test
-    public void testTrim()
+    void testTrim()
     {
         assertEquals( "abcdefgh", trimEnd( "abcdefghijkl", 4 ) );
     }
 
     @Test
-    public void testGetTokens()
+    void testGetTokens()
     {
         assertEquals( new ArrayList<>( Arrays.asList( "John", "Doe", "Main", "Road", "25" ) ),
             TextUtils.getTokens( "John Doe Main Road 25" ) );
@@ -95,7 +109,7 @@ public class TextUtilsTest
     }
 
     @Test
-    public void testRemoveLastOr()
+    void testRemoveLastOr()
     {
         assertEquals( null, TextUtils.removeLastOr( null ) );
         assertEquals( "", TextUtils.removeLastOr( "" ) );
@@ -105,7 +119,7 @@ public class TextUtilsTest
     }
 
     @Test
-    public void testRemoveLastAnd()
+    void testRemoveLastAnd()
     {
         assertEquals( null, TextUtils.removeLastAnd( null ) );
         assertEquals( "", TextUtils.removeLastAnd( "" ) );
@@ -118,7 +132,7 @@ public class TextUtilsTest
     }
 
     @Test
-    public void testRemoveLastComma()
+    void testRemoveLastComma()
     {
         assertEquals( null, TextUtils.removeLastComma( null ) );
         assertEquals( "", TextUtils.removeLastComma( "" ) );
@@ -128,7 +142,7 @@ public class TextUtilsTest
     }
 
     @Test
-    public void testJoinReplaceNull()
+    void testJoinReplaceNull()
     {
         assertEquals( "green-red-blue", TextUtils.join( Arrays.asList( "green", "red", "blue" ), "-", "[n/a]" ) );
         assertEquals( "green-[n/a]-blue", TextUtils.join( Arrays.asList( "green", null, "blue" ), "-", "[n/a]" ) );
@@ -138,14 +152,14 @@ public class TextUtilsTest
     }
 
     @Test
-    public void testGetPrettyClassName()
+    void testGetPrettyClassName()
     {
         assertEquals( "Array List", TextUtils.getPrettyClassName( ArrayList.class ) );
         assertEquals( "Abstract Sequential List", TextUtils.getPrettyClassName( AbstractSequentialList.class ) );
     }
 
     @Test
-    public void testGetPrettyEnumName()
+    void testGetPrettyEnumName()
     {
         assertEquals( "Antibiotic resistant infection",
             TextUtils.getPrettyEnumName( Disease.ANTIBIOTIC_RESISTANT_INFECTION ) );
@@ -154,7 +168,7 @@ public class TextUtilsTest
     }
 
     @Test
-    public void testGetPrettyPropertyName()
+    void testGetPrettyPropertyName()
     {
         assertEquals( "Tracker program page size", TextUtils.getPrettyPropertyName( "trackerProgramPageSize" ) );
         assertEquals( "Data values page size", TextUtils.getPrettyPropertyName( "dataValuesPageSize" ) );
@@ -162,7 +176,7 @@ public class TextUtilsTest
     }
 
     @Test
-    public void testSplitSafe()
+    void testSplitSafe()
     {
         assertEquals( "green", TextUtils.splitSafe( "red-green-blue", "-", 1 ) );
         assertEquals( "green", TextUtils.splitSafe( "red.green.blue", "\\.", 1 ) );
@@ -174,7 +188,7 @@ public class TextUtilsTest
     }
 
     @Test
-    public void testReplaceFirst()
+    void testReplaceFirst()
     {
         assertEquals( "green;red;blue,orange", TextUtils.replaceFirst( "green,red,blue,orange", ",", ";", 2 ) );
         assertEquals( "green.red.blue-orange", TextUtils.replaceFirst( "green-red-blue-orange", "-", ".", 2 ) );
@@ -184,20 +198,17 @@ public class TextUtilsTest
     }
 
     @Test
-    public void testReplace()
+    void testReplace()
     {
         String actual = TextUtils.replace( "select * from {table} where {column} = 'Foo'", "{table}", "dataelement",
             "{column}", "name" );
-
         assertEquals( "select * from dataelement where name = 'Foo'", actual );
-
         actual = TextUtils.replace( "Hi [name] and welcome to [place]", "[name]", "Frank", "[place]", "Oslo" );
-
         assertEquals( "Hi Frank and welcome to Oslo", actual );
     }
 
     @Test
-    public void testGetOptions()
+    void testGetOptions()
     {
         assertEquals( ListUtils.newList( "uidA", "uidB" ), TextUtils.getOptions( "uidA;uidB" ) );
         assertEquals( ListUtils.newList( "uidA" ), TextUtils.getOptions( "uidA" ) );
@@ -205,7 +216,7 @@ public class TextUtilsTest
     }
 
     @Test
-    public void testGetCommaDelimitedString()
+    void testGetCommaDelimitedString()
     {
         assertThat( TextUtils.getCommaDelimitedString( Arrays.asList( 1, 2, 3, 4, 5 ) ), is( "1, 2, 3, 4, 5" ) );
         assertThat( TextUtils.getCommaDelimitedString( Collections.singletonList( 1 ) ), is( "1" ) );
@@ -213,24 +224,20 @@ public class TextUtilsTest
     }
 
     @Test
-    public void testToLinesUnix()
+    void testToLinesUnix()
     {
         String string = "one,two,three\naa,bb,cc";
-
         List<String> lines = TextUtils.toLines( string );
-
         assertEquals( 2, lines.size() );
         assertEquals( "one,two,three", lines.get( 0 ) );
         assertEquals( "aa,bb,cc", lines.get( 1 ) );
     }
 
     @Test
-    public void testToLinesWindows()
+    void testToLinesWindows()
     {
         String string = "one,two,three\r\naa,bb,cc";
-
         List<String> lines = TextUtils.toLines( string );
-
         assertEquals( 2, lines.size() );
         assertEquals( "one,two,three", lines.get( 0 ) );
         assertEquals( "aa,bb,cc", lines.get( 1 ) );

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,11 +28,10 @@
 package org.hisp.dhis.servlet.filter;
 
 import static org.hisp.dhis.external.conf.ConfigurationKey.LOGGING_REQUEST_ID_ENABLED;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.mockito.junit.MockitoJUnit.rule;
 
 import java.io.IOException;
 
@@ -44,34 +43,36 @@ import javax.servlet.http.HttpSession;
 
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.webapi.filter.RequestIdentifierFilter;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.slf4j.MDC;
 
 /**
  * @author Luciano Fiandesio
  */
-public class RequestIdentifierFilterTest
+@MockitoSettings( strictness = Strictness.LENIENT )
+@ExtendWith( MockitoExtension.class )
+class RequestIdentifierFilterTest
 {
+
     @Mock
     private DhisConfigurationProvider dhisConfigurationProvider;
 
     private RequestIdentifierFilter subject;
 
-    @Rule
-    public MockitoRule mockitoRule = rule();
-
-    @Before
+    @BeforeEach
     public void setUp()
     {
         MDC.clear();
     }
 
     @Test
-    public void testIsDisabled()
+    void testIsDisabled()
         throws ServletException,
         IOException
     {
@@ -82,7 +83,7 @@ public class RequestIdentifierFilterTest
     }
 
     @Test
-    public void testIsEnabled()
+    void testIsEnabled()
         throws ServletException,
         IOException
     {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,6 +45,8 @@ import org.cache2k.Cache2kBuilder;
  */
 public class LocalCache<V> implements Cache<V>
 {
+    private static final String VALUE_CANNOT_BE_NULL = "Value cannot be null";
+
     private org.cache2k.Cache<String, V> cache2kInstance;
 
     private V defaultValue;
@@ -129,11 +131,17 @@ public class LocalCache<V> implements Cache<V>
     }
 
     @Override
+    public Iterable<String> keys()
+    {
+        return cache2kInstance.keys();
+    }
+
+    @Override
     public void put( String key, V value )
     {
         if ( null == value )
         {
-            throw new IllegalArgumentException( "Value cannot be null" );
+            throw new IllegalArgumentException( VALUE_CANNOT_BE_NULL );
         }
         cache2kInstance.put( key, value );
     }
@@ -141,9 +149,19 @@ public class LocalCache<V> implements Cache<V>
     @Override
     public void put( String key, V value, long ttlInSeconds )
     {
-        hasText( key, "Value cannot be null" );
+        hasText( key, VALUE_CANNOT_BE_NULL );
         cache2kInstance.invoke( key,
             e -> e.setValue( value ).setExpiryTime( currentTimeMillis() + SECONDS.toMillis( ttlInSeconds ) ) );
+    }
+
+    @Override
+    public boolean putIfAbsent( String key, V value )
+    {
+        if ( null == value )
+        {
+            throw new IllegalArgumentException( VALUE_CANNOT_BE_NULL );
+        }
+        return cache2kInstance.putIfAbsent( key, value );
     }
 
     @Override

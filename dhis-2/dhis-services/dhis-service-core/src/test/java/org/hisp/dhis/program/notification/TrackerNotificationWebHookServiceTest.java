@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +27,14 @@
  */
 package org.hisp.dhis.program.notification;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.net.URI;
 import java.util.Date;
@@ -48,14 +53,13 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -69,8 +73,10 @@ import com.google.common.collect.Sets;
  * @author Zubair Asghar
  */
 
-public class TrackerNotificationWebHookServiceTest extends DhisConvenienceTest
+@ExtendWith( MockitoExtension.class )
+class TrackerNotificationWebHookServiceTest extends DhisConvenienceTest
 {
+
     private static final String URL = "https://www.google.com";
 
     private OrganisationUnit organisationUnitA;
@@ -88,9 +94,6 @@ public class TrackerNotificationWebHookServiceTest extends DhisConvenienceTest
     private ProgramNotificationTemplate programStageNotification;
 
     private ResponseEntity<String> responseEntity;
-
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Mock
     private ProgramInstanceService programInstanceService;
@@ -110,7 +113,7 @@ public class TrackerNotificationWebHookServiceTest extends DhisConvenienceTest
     @InjectMocks
     private DefaultTrackerNotificationWebHookService subject;
 
-    @Before
+    @BeforeEach
     public void initTest()
     {
         organisationUnitA = createOrganisationUnit( 'A' );
@@ -154,7 +157,7 @@ public class TrackerNotificationWebHookServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testTrackerEnrollmentNotificationWebHook()
+    void testTrackerEnrollmentNotificationWebHook()
     {
         when( programInstanceService.getProgramInstance( anyString() ) ).thenReturn( programInstance );
         when( templateService.isProgramLinkedToWebHookNotification( any( Program.class ) ) ).thenReturn( true );
@@ -183,7 +186,7 @@ public class TrackerNotificationWebHookServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testTrackerEventNotificationWebHook()
+    void testTrackerEventNotificationWebHook()
     {
         when( programStageInstanceService.getProgramStageInstance( anyString() ) ).thenReturn( programStageInstance );
         when( templateService.isProgramStageLinkedToWebHookNotification( any( ProgramStage.class ) ) )

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,14 @@
  */
 package org.hisp.dhis.commons.collection;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -167,7 +174,7 @@ public class ListUtils
      * @param list the list.
      * @return a set of duplicates from the given list.
      */
-    public static <T> Set<T> getDuplicates( List<T> list )
+    public static <T> Set<T> getDuplicates( Collection<T> list )
     {
         Set<T> duplicates = new HashSet<>();
         UniqueArrayList<T> uniqueElements = new UniqueArrayList<>();

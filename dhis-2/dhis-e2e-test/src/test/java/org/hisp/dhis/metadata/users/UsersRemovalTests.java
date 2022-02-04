@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -63,7 +63,7 @@ public class UsersRemovalTests
         optionActions = new OptionActions();
         loginActions = new LoginActions();
 
-        userName = DataGenerator.randomString();
+        userName = (DataGenerator.randomString()).toLowerCase();
 
         loginActions.loginAsSuperUser();
 

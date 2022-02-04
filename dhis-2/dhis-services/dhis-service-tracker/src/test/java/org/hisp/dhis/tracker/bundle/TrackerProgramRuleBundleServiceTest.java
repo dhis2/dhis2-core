@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.tracker.bundle;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
 
@@ -41,7 +41,7 @@ import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Sets;
@@ -49,8 +49,9 @@ import com.google.common.collect.Sets;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class TrackerProgramRuleBundleServiceTest extends TrackerTest
+class TrackerProgramRuleBundleServiceTest extends TrackerTest
 {
+
     @Autowired
     private TrackerBundleService trackerBundleService;
 
@@ -65,33 +66,25 @@ public class TrackerProgramRuleBundleServiceTest extends TrackerTest
         throws IOException
     {
         ObjectBundle bundle = setUpMetadata( "tracker/event_metadata.json" );
-
         ProgramRule programRule = createProgramRule( 'A',
             bundle.getPreheat().get( PreheatIdentifier.UID, Program.class, "BFcipDERJwr" ) );
         programRuleService.addProgramRule( programRule );
-
         ProgramRuleAction programRuleAction = createProgramRuleAction( 'A', programRule );
         programRuleAction.setProgramRuleActionType( ProgramRuleActionType.SENDMESSAGE );
         programRuleActionService.addProgramRuleAction( programRuleAction );
-
         programRule.setProgramRuleActions( Sets.newHashSet( programRuleAction ) );
         programRuleService.updateProgramRule( programRule );
-
         manager.flush();
     }
 
     @Test
-    public void testRunRuleEngineForEventOnBundleCreate()
+    void testRunRuleEngineForEventOnBundleCreate()
         throws IOException
     {
         TrackerImportParams trackerImportParams = fromJson( "tracker/event_events_and_enrollment.json" );
-
         assertEquals( 8, trackerImportParams.getEvents().size() );
-
         TrackerBundle trackerBundle = trackerBundleService.create( trackerImportParams );
-
         trackerBundle = trackerBundleService.runRuleEngine( trackerBundle );
-
         assertEquals( trackerBundle.getEvents().size(), trackerBundle.getEventRuleEffects().size() );
     }
 }

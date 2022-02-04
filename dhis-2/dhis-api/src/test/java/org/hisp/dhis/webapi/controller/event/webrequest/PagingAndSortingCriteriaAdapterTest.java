@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,9 +30,9 @@ package org.hisp.dhis.webapi.controller.event.webrequest;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.Collection;
 import java.util.List;
@@ -42,21 +42,22 @@ import java.util.stream.Collectors;
 import lombok.SneakyThrows;
 
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import com.google.common.collect.ImmutableList;
 
-public class PagingAndSortingCriteriaAdapterTest
+class PagingAndSortingCriteriaAdapterTest
 {
 
     /**
      * should not fail when paging=true and pageSize is null
      */
     @Test
-    public void shouldNotThrowExceptionWhenPagingTrueAndPageSizeIsNull()
+    void shouldNotThrowExceptionWhenPagingTrueAndPageSizeIsNull()
     {
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter = new PagingAndSortingCriteriaAdapter()
         {
+
             @Override
             public Integer getPageSize()
             {
@@ -64,7 +65,6 @@ public class PagingAndSortingCriteriaAdapterTest
                 return null;
             }
         };
-
         try
         {
             pagingAndSortingCriteriaAdapter.isPagingRequest();
@@ -73,26 +73,25 @@ public class PagingAndSortingCriteriaAdapterTest
         {
             fail( "Test was not meant to throw exception. Thrown exception is: " + e.getMessage() );
         }
-
     }
 
     @Test
-    public void pagingIsEnabledByDefault()
+    void pagingIsEnabledByDefault()
     {
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter = new PagingAndSortingCriteriaAdapter()
         {
         };
-
         assertFalse( pagingAndSortingCriteriaAdapter.isSkipPaging() );
         assertTrue( pagingAndSortingCriteriaAdapter.isPagingRequest() );
     }
 
     @Test
     @SneakyThrows
-    public void verifyGetOrder()
+    void verifyGetOrder()
     {
         PagingAndSortingCriteriaAdapter tested = new PagingAndSortingCriteriaAdapter()
         {
+
             @Override
             public List<String> getAllowedOrderingFields()
             {
@@ -105,19 +104,12 @@ public class PagingAndSortingCriteriaAdapterTest
                 return Optional.of( dtoFieldName.equals( "field1" ) ? "translatedField1" : dtoFieldName );
             }
         };
-
-        tested.setOrder(
-            ImmutableList.of(
-                OrderCriteria.of( "field1", OrderParam.SortDirection.ASC ),
-                OrderCriteria.of( "field2", OrderParam.SortDirection.ASC ),
-                OrderCriteria.of( "field3", OrderParam.SortDirection.ASC ) ) );
-
-        Collection<String> orderField = tested.getOrder().stream()
-            .map( OrderCriteria::getField )
+        tested.setOrder( ImmutableList.of( OrderCriteria.of( "field1", OrderParam.SortDirection.ASC ),
+            OrderCriteria.of( "field2", OrderParam.SortDirection.ASC ),
+            OrderCriteria.of( "field3", OrderParam.SortDirection.ASC ) ) );
+        Collection<String> orderField = tested.getOrder().stream().map( OrderCriteria::getField )
             .collect( Collectors.toList() );
-
         assertThat( orderField, hasSize( 2 ) );
         assertThat( orderField, containsInAnyOrder( "translatedField1", "field2" ) );
     }
-
 }

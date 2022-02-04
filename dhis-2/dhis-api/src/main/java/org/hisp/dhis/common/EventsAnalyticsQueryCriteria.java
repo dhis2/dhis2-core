@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,7 +45,7 @@ import org.hisp.dhis.program.ProgramStatus;
  */
 @Data
 @NoArgsConstructor
-public class EventsAnalyticsQueryCriteria
+public class EventsAnalyticsQueryCriteria extends RequestTypeAware
 {
     // -------------------------------------------------------------------------
     // Event and aggregate analytics
@@ -67,6 +67,31 @@ public class EventsAnalyticsQueryCriteria
     private Date endDate;
 
     /**
+     * Time interval for event date;
+     */
+    private String eventDate;
+
+    /**
+     * Time interval for enrollment date;
+     */
+    private String enrollmentDate;
+
+    /**
+     * Time interval for scheduled date;
+     */
+    private String scheduledDate;
+
+    /**
+     * Time interval for incident date;
+     */
+    private String incidentDate;
+
+    /**
+     * Time interval for last updated date;
+     */
+    private String lastUpdated;
+
+    /**
      * Dimension identifier including data elements, attributes, program
      * indicators, periods, organisation units and organisation unit group sets.
      * Parameter can be repeated any number of times.
@@ -81,6 +106,13 @@ public class EventsAnalyticsQueryCriteria
     private Set<String> filter;
 
     /**
+     * This parameter selects the headers to be returned as part of the
+     * response. The implementation for this Set will be LinkedHashSet as the
+     * ordering is important.
+     */
+    private Set<String> headers;
+
+    /**
      * Whether to include names of organisation unit ancestors and hierarchy
      * paths of organisation units in the metadata.
      */
@@ -89,12 +121,12 @@ public class EventsAnalyticsQueryCriteria
     /**
      * Specify ths status of events to include.
      */
-    private EventStatus eventStatus;
+    private Set<EventStatus> eventStatus;
 
     /**
      * Specify the enrollment status of events to include.
      */
-    private ProgramStatus programStatus;
+    private Set<ProgramStatus> programStatus;
 
     /**
      * Overrides the start date of the relative period.

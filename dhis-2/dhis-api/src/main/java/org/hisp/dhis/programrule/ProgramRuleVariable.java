@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,7 @@ package org.hisp.dhis.programrule;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -101,6 +102,14 @@ public class ProgramRuleVariable
      */
     private ProgramStage programStage;
 
+    /**
+     * Specify ValueType for CALCULATED_VALUE ProgramRuleVariable. For other
+     * sourceTypes, valuetype will be fetched from attached DataElement or
+     * TrackedEntityAttribute. If non of these parameters are provided then
+     * ValueType.TEXT will be taken as default.
+     */
+    private ValueType valueType = ValueType.TEXT;
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -116,7 +125,7 @@ public class ProgramRuleVariable
         TrackedEntityAttribute attribute,
         DataElement dataElement,
         boolean useCodeForOptionSet,
-        ProgramStage programStage )
+        ProgramStage programStage, ValueType valueType )
     {
         this.name = name;
         this.program = program;
@@ -125,6 +134,7 @@ public class ProgramRuleVariable
         this.dataElement = dataElement;
         this.useCodeForOptionSet = useCodeForOptionSet;
         this.programStage = programStage;
+        this.valueType = valueType;
     }
 
     // -------------------------------------------------------------------------
@@ -205,5 +215,17 @@ public class ProgramRuleVariable
     public void setSourceType( ProgramRuleVariableSourceType sourceType )
     {
         this.sourceType = sourceType;
+    }
+
+    @JsonProperty( "valueType" )
+    @JacksonXmlProperty( localName = "valueType", namespace = DxfNamespaces.DXF_2_0 )
+    public ValueType getValueType()
+    {
+        return valueType;
+    }
+
+    public void setValueType( ValueType valueType )
+    {
+        this.valueType = valueType;
     }
 }

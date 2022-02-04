@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,9 +28,13 @@
 package org.hisp.dhis.tracker.validation;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.core.Every.everyItem;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
@@ -51,15 +55,15 @@ import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class TeTaValidationTest
-    extends AbstractImportValidationTest
+class TeTaValidationTest extends AbstractImportValidationTest
 {
+
     @Autowired
     private DhisConfigurationProvider dhisConfigurationProvider;
 
@@ -76,231 +80,173 @@ public class TeTaValidationTest
     private FileResourceService fileResourceService;
 
     @Test
-    public void testTrackedEntityProgramAttributeFileResourceValue()
+    void testTrackedEntityProgramAttributeFileResourceValue()
         throws IOException
     {
         setUpMetadata( "tracker/validations/te-program_with_tea_fileresource_metadata.json" );
-
-        FileResource fileResource = new FileResource( "test.pdf", "application/pdf",
-            0, "d41d8cd98f00b204e9800998ecf8427e", FileResourceDomain.DOCUMENT );
+        FileResource fileResource = new FileResource( "test.pdf", "application/pdf", 0,
+            "d41d8cd98f00b204e9800998ecf8427e", FileResourceDomain.DOCUMENT );
         fileResource.setUid( "Jzf6hHNP7jx" );
         File file = File.createTempFile( "file-resource", "test" );
-
         fileResourceService.saveFileResource( fileResource, file );
         assertFalse( fileResource.isAssigned() );
-
         TrackerImportParams trackerImportParams = createBundleFromJson(
             "tracker/validations/te-program_with_tea_fileresource_data.json" );
         trackerImportService.importTracker( trackerImportParams );
-
         List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
         assertEquals( 1, trackedEntityInstances.size() );
-
         TrackedEntityInstance trackedEntityInstance = trackedEntityInstances.get( 0 );
-
         List<TrackedEntityAttributeValue> attributeValues = trackedEntityAttributeValueService
-            .getTrackedEntityAttributeValues(
-                trackedEntityInstance );
-
+            .getTrackedEntityAttributeValues( trackedEntityInstance );
         assertEquals( 1, attributeValues.size() );
-
         fileResource = fileResourceService.getFileResource( fileResource.getUid() );
         assertTrue( fileResource.isAssigned() );
     }
 
     @Test
-    public void testFileAlreadyAssign()
+    void testFileAlreadyAssign()
         throws IOException
     {
         setUpMetadata( "tracker/validations/te-program_with_tea_fileresource_metadata.json" );
-
-        FileResource fileResource = new FileResource( "test.pdf", "application/pdf",
-            0, "d41d8cd98f00b204e9800998ecf8427e", FileResourceDomain.DOCUMENT );
+        FileResource fileResource = new FileResource( "test.pdf", "application/pdf", 0,
+            "d41d8cd98f00b204e9800998ecf8427e", FileResourceDomain.DOCUMENT );
         fileResource.setUid( "Jzf6hHNP7jx" );
         File file = File.createTempFile( "file-resource", "test" );
-
         fileResourceService.saveFileResource( fileResource, file );
         assertFalse( fileResource.isAssigned() );
         TrackerImportParams trackerImportParams = createBundleFromJson(
             "tracker/validations/te-program_with_tea_fileresource_data.json" );
         trackerImportService.importTracker( trackerImportParams );
-
         List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
         assertEquals( 1, trackedEntityInstances.size() );
         TrackedEntityInstance trackedEntityInstance = trackedEntityInstances.get( 0 );
-
         List<TrackedEntityAttributeValue> attributeValues = trackedEntityAttributeValueService
-            .getTrackedEntityAttributeValues(
-                trackedEntityInstance );
-
+            .getTrackedEntityAttributeValues( trackedEntityInstance );
         assertEquals( 1, attributeValues.size() );
-
         fileResource = fileResourceService.getFileResource( fileResource.getUid() );
         assertTrue( fileResource.isAssigned() );
-
-        trackerImportParams = createBundleFromJson(
-            "tracker/validations/te-program_with_tea_fileresource_data2.json" );
+        trackerImportParams = createBundleFromJson( "tracker/validations/te-program_with_tea_fileresource_data2.json" );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-
-        assertEquals( 1, trackerImportReport.getValidationReport().getErrorReports().size() );
-
-        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
+        assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
+        assertThat( trackerImportReport.getValidationReport().getErrors(),
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1009 ) ) ) );
     }
 
     @Test
-    public void testNoFileRef()
+    void testNoFileRef()
         throws IOException
     {
         setUpMetadata( "tracker/validations/te-program_with_tea_fileresource_metadata.json" );
-
         TrackerImportParams trackerImportParams = createBundleFromJson(
             "tracker/validations/te-program_with_tea_fileresource_data.json" );
-
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        assertEquals( 1, trackerImportReport.getValidationReport().getErrorReports().size() );
-        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
+        assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
+        assertThat( trackerImportReport.getValidationReport().getErrors(),
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1084 ) ) ) );
-
         List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
         assertEquals( 0, trackedEntityInstances.size() );
     }
 
     @Test
-    public void testTeaMaxTextValueLength()
+    void testTeaMaxTextValueLength()
         throws IOException
     {
         setUpMetadata( "tracker/validations/te-program_with_tea_fileresource_metadata.json" );
         TrackerImportParams trackerImportParams = createBundleFromJson(
             "tracker/validations/te-program_with_tea_too_long_text_value.json" );
-
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-
-        assertEquals( 1, trackerImportReport.getValidationReport().getErrorReports().size() );
-
-        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
+        assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
+        assertThat( trackerImportReport.getValidationReport().getErrors(),
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1077 ) ) ) );
     }
 
     @Test
-    public void testEncryptedAttrFail()
+    void testEncryptedAttrFail()
         throws IOException
     {
         setUpMetadata( "tracker/validations/te-program_with_tea_encryption_metadata.json" );
-
         TrackerImportParams trackerImportParams = createBundleFromJson(
             "tracker/validations/te-program_with_tea_encryption_data.json" );
-
         H2DhisConfigurationProvider dhisConfigurationProvider = (H2DhisConfigurationProvider) this.dhisConfigurationProvider;
         dhisConfigurationProvider.setEncryptionStatus( EncryptionStatus.MISSING_ENCRYPTION_PASSWORD );
-
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-
-        assertEquals( 1, trackerImportReport.getValidationReport().getErrorReports().size() );
-
-        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
+        assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
+        assertThat( trackerImportReport.getValidationReport().getErrors(),
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1112 ) ) ) );
     }
 
     @Test
-    public void testUniqueFailInOrgUnit()
+    void testUniqueFailInOrgUnit()
         throws IOException
     {
         setUpMetadata( "tracker/validations/te-program_with_tea_encryption_metadata.json" );
-
         TrackerImportParams trackerImportParams = createBundleFromJson(
             "tracker/validations/te-program_with_tea_unique_data_in_country.json" );
-
         trackerImportService.importTracker( trackerImportParams );
-
         trackerImportParams = createBundleFromJson(
             "tracker/validations/te-program_with_tea_unique_data_in_country.json" );
         trackerImportParams.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
-
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-
-        assertEquals( 0, trackerImportReport.getValidationReport().getErrorReports().size() );
-
+        assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
         trackerImportParams = createBundleFromJson(
             "tracker/validations/te-program_with_tea_unique_data_in_region.json" );
-
         trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-
-        assertEquals( 0, trackerImportReport.getValidationReport().getErrorReports().size() );
+        assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
     }
 
     @Test
-    public void testUniqueFail()
+    void testUniqueFail()
         throws IOException
     {
         setUpMetadata( "tracker/validations/te-program_with_tea_encryption_metadata.json" );
-
         TrackerImportParams trackerImportParams = createBundleFromJson(
             "tracker/validations/te-program_with_tea_unique_data.json" );
-
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-
         trackerImportParams = createBundleFromJson( "tracker/validations/te-program_with_tea_unique_data2.json" );
-
         trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-
-        assertEquals( 1, trackerImportReport.getValidationReport().getErrorReports().size() );
-
-        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
+        assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
+        assertThat( trackerImportReport.getValidationReport().getErrors(),
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1064 ) ) ) );
     }
 
     @Test
-    public void testTeaInvalidFormat()
+    void testTeaInvalidFormat()
         throws IOException
     {
         setUpMetadata( "tracker/validations/te-program_with_tea_fileresource_metadata.json" );
-
         TrackerImportParams trackerImportParams = createBundleFromJson(
             "tracker/validations/te-program_with_tea_invalid_format_value.json" );
-
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-
-        assertEquals( 1, trackerImportReport.getValidationReport().getErrorReports().size() );
-
-        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
+        assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
+        assertThat( trackerImportReport.getValidationReport().getErrors(),
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1085 ) ) ) );
     }
 
     @Test
-    public void testTeaInvalidImage()
+    void testTeaInvalidImage()
         throws IOException
     {
         setUpMetadata( "tracker/validations/te-program_with_tea_fileresource_metadata.json" );
-
         TrackerImportParams trackerImportParams = createBundleFromJson(
             "tracker/validations/te-program_with_tea_invalid_image_value.json" );
-
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-
-        assertEquals( 2, trackerImportReport.getValidationReport().getErrorReports().size() );
-
-        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
+        assertEquals( 2, trackerImportReport.getValidationReport().getErrors().size() );
+        assertThat( trackerImportReport.getValidationReport().getErrors(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1085 ) ) ) );
-
-        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
+        assertThat( trackerImportReport.getValidationReport().getErrors(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1007 ) ) ) );
     }
 
     @Test
-    public void testTeaIsNull()
+    void testTeaIsNull()
         throws IOException
     {
         setUpMetadata( "tracker/validations/te-program-with-tea-mandatory-image.json" );
-
         TrackerImportParams trackerImportParams = createBundleFromJson(
             "tracker/validations/te-program_with_tea_invalid_value_isnull.json" );
-
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-
-        assertEquals( 1, trackerImportReport.getValidationReport().getErrorReports().size() );
-
-        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
+        assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
+        assertThat( trackerImportReport.getValidationReport().getErrors(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1076 ) ) ) );
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,48 +28,46 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.hisp.dhis.webapi.json.JsonString;
 import org.hisp.dhis.webapi.json.domain.JsonGrid;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
 /**
  * Tests the {@link EventAnalyticsController}.
- *
+ * <p>
  * The main purpose of this test is not to test the correct business logic but
  * to make sure the controller parameters are recognised correctly.
  *
  * @author Jan Bernitt
  */
-public class EventAnalyticsControllerTest extends DhisControllerConvenienceTest
+class EventAnalyticsControllerTest extends DhisControllerConvenienceTest
 {
+
     private String programId;
 
     private String orgUnitId;
 
-    @Before
-    public void setUp()
+    @BeforeEach
+    void setUp()
     {
         orgUnitId = assertStatus( HttpStatus.CREATED,
             POST( "/organisationUnits/", "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}" ) );
-
-        programId = assertStatus( HttpStatus.CREATED,
-            POST( "/programs/",
-                "{'name':'My Program', 'shortName':'MPX1', 'programType': 'WITHOUT_REGISTRATION', 'organisationUnits': [{'id': '"
-                    + orgUnitId + "'}]}" ) );
+        programId = assertStatus( HttpStatus.CREATED, POST( "/programs/",
+            "{'name':'My Program', 'shortName':'MPX1', 'programType': 'WITHOUT_REGISTRATION', 'organisationUnits': [{'id': '"
+                + orgUnitId + "'}]}" ) );
     }
 
     @Test
-    public void testGetQueryJson()
+    void testGetQueryJson()
     {
         JsonGrid grid = GET(
-            "/analytics/events/query/{program}?dimension=ou:{unit}&startDate=2019-01-01&endDate=2021-01-01",
-            programId, orgUnitId ).content().as( JsonGrid.class );
-
+            "/analytics/events/query/{program}?dimension=ou:{unit}&startDate=2019-01-01&endDate=2021-01-01", programId,
+            orgUnitId ).content().as( JsonGrid.class );
         assertEquals( grid.getHeaderWidth(), grid.getHeaders().size() );
         assertEquals( "My Program", grid.getMetaData().getItems().get( programId ).getString( "name" ).string() );
         assertEquals( "My Unit", grid.getMetaData().getItems().get( orgUnitId ).getString( "name" ).string() );

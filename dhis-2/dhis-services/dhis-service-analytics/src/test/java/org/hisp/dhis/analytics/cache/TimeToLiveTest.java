@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,43 +34,39 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.analytics.cache.TimeToLive.DEFAULT_MULTIPLIER;
 import static org.hisp.dhis.setting.SettingKey.ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR;
 import static org.hisp.dhis.util.DateUtils.calculateDateFrom;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 import java.util.Date;
 
 import org.hisp.dhis.setting.DefaultSystemSettingManager;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
-public class TimeToLiveTest
+@MockitoSettings( strictness = Strictness.LENIENT )
+@ExtendWith( MockitoExtension.class )
+class TimeToLiveTest
 {
 
     @Mock
     private DefaultSystemSettingManager systemSettingManager;
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
-    @Test( expected = IllegalArgumentException.class )
-    public void testComputeForCurrentDayWhenCacheFactorIsNegative()
+    @Test
+    void testComputeForCurrentDayWhenCacheFactorIsNegative()
     {
         // Given
         final int aNegativeCachingFactor = -1;
         final Date endingDate = new Date();
 
-        // When
-        new TimeToLive( endingDate, aNegativeCachingFactor ).compute();
-
-        // Fail
-        fail( "IllegalArgumentException was expected." );
+        assertThrows( IllegalArgumentException.class, () -> new TimeToLive( endingDate, aNegativeCachingFactor ) );
     }
 
     @Test
-    public void testComputeForZeroDayDiffWhenCacheFactorIsPositive()
+    void testComputeForZeroDayDiffWhenCacheFactorIsPositive()
     {
         // Given
 
@@ -87,7 +83,7 @@ public class TimeToLiveTest
     }
 
     @Test
-    public void testComputeForOneDayBeforeWhenCacheFactorIsPositive()
+    void testComputeForOneDayBeforeWhenCacheFactorIsPositive()
     {
         // Given
         final int oneDayDiff = 1;
@@ -103,7 +99,7 @@ public class TimeToLiveTest
     }
 
     @Test
-    public void testComputeEndingDateIsAheadOfNowAndCacheFactorIsPositive()
+    void testComputeEndingDateIsAheadOfNowAndCacheFactorIsPositive()
     {
         // Given
         final int tenDaysAhead = 10;
@@ -121,7 +117,7 @@ public class TimeToLiveTest
     }
 
     @Test
-    public void testComputeEndingDateIsTenDaysBeforeNowAndCacheFactorIsPositive()
+    void testComputeEndingDateIsTenDaysBeforeNowAndCacheFactorIsPositive()
     {
         // Given
         final int tenDays = 10;

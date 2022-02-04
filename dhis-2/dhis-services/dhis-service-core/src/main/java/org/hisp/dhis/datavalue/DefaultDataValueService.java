@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -310,12 +310,12 @@ public class DefaultDataValueService
             error = new ErrorMessage( ErrorCode.E2006 );
         }
 
-        if ( params.isIncludeChildren() && params.hasOrganisationUnitGroups() )
+        if ( params.isIncludeDescendants() && params.hasOrganisationUnitGroups() )
         {
             error = new ErrorMessage( ErrorCode.E2007 );
         }
 
-        if ( params.isIncludeChildren() && !params.hasOrganisationUnits() )
+        if ( params.isIncludeDescendants() && !params.hasOrganisationUnits() )
         {
             error = new ErrorMessage( ErrorCode.E2008 );
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -68,7 +68,7 @@ public class UserTest extends ApiTest
         loginActions = new LoginActions();
         meActions = new RestApiActions( "/me" );
 
-        username = "user-tests-" + DataGenerator.randomString();
+        username = ("user_tests_" + DataGenerator.randomString()).toLowerCase();
         loginActions.loginAsSuperUser();
         userActions.addUser( username, password );
         loginActions.loginAsUser( username, password );

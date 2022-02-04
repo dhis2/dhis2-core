@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,7 +31,7 @@ import static org.hisp.dhis.webapi.WebClient.Body;
 import static org.hisp.dhis.webapi.WebClient.ContentType;
 
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
 /**
@@ -39,10 +39,11 @@ import org.springframework.http.HttpStatus;
  *
  * @author Jan Bernitt
  */
-public class FileControllerTest extends DhisControllerConvenienceTest
+class FileControllerTest extends DhisControllerConvenienceTest
 {
+
     @Test
-    public void testPostCustomScript()
+    void testPostCustomScript()
     {
         assertWebMessage( "OK", 200, "OK", "Custom script created",
             POST( "/files/script", Body( "var i = 1;" ), ContentType( "application/javascript" ) )
@@ -50,7 +51,7 @@ public class FileControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void testPostCustomStyle()
+    void testPostCustomStyle()
     {
         assertWebMessage( "OK", 200, "OK", "Custom style created",
             POST( "/files/style", Body( "body { width: 100%; }" ), ContentType( "text/css" ) )

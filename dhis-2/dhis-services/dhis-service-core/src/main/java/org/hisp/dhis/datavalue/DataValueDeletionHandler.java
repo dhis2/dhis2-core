@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +27,9 @@
  */
 package org.hisp.dhis.datavalue;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
+
+import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
@@ -41,23 +42,14 @@ import org.springframework.stereotype.Component;
 
 /**
  * @author Lars Helge Overland
- * @version $Id$
  */
-@Component( "org.hisp.dhis.datavalue.DataValueDeletionHandler" )
-public class DataValueDeletionHandler
-    extends
-    DeletionHandler
+@Component
+@AllArgsConstructor
+public class DataValueDeletionHandler extends DeletionHandler
 {
     private static final DeletionVeto VETO = new DeletionVeto( DataValue.class );
 
     private final JdbcTemplate jdbcTemplate;
-
-    public DataValueDeletionHandler( JdbcTemplate jdbcTemplate )
-    {
-        checkNotNull( jdbcTemplate );
-
-        this.jdbcTemplate = jdbcTemplate;
-    }
 
     @Override
     protected void register()
@@ -70,30 +62,28 @@ public class DataValueDeletionHandler
 
     private DeletionVeto allowDeleteDataElement( DataElement dataElement )
     {
-        String sql = "SELECT COUNT(*) FROM datavalue where dataelementid=" + dataElement.getId();
-
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? ACCEPT : VETO;
+        return vetoIfExists( "SELECT COUNT(*) FROM datavalue where dataelementid=" + dataElement.getId() );
     }
 
     private DeletionVeto allowDeletePeriod( Period period )
     {
-        String sql = "SELECT COUNT(*) FROM datavalue where periodid=" + period.getId();
-
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? ACCEPT : VETO;
+        return vetoIfExists( "SELECT COUNT(*) FROM datavalue where periodid=" + period.getId() );
     }
 
     private DeletionVeto allowDeleteOrganisationUnit( OrganisationUnit unit )
     {
-        String sql = "SELECT COUNT(*) FROM datavalue where sourceid=" + unit.getId();
-
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? ACCEPT : VETO;
+        return vetoIfExists( "SELECT COUNT(*) FROM datavalue where sourceid=" + unit.getId() );
     }
 
     private DeletionVeto allowDeleteCategoryOptionCombo( CategoryOptionCombo optionCombo )
     {
-        String sql = "SELECT COUNT(*) FROM datavalue where categoryoptioncomboid=" + optionCombo.getId()
-            + " or attributeoptioncomboid=" + optionCombo.getId();
+        return vetoIfExists( "SELECT COUNT(*) FROM datavalue where categoryoptioncomboid=" + optionCombo.getId()
+            + " or attributeoptioncomboid=" + optionCombo.getId() );
+    }
 
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? ACCEPT : VETO;
+    private DeletionVeto vetoIfExists( String sql )
+    {
+        Integer count = jdbcTemplate.queryForObject( sql, Integer.class );
+        return count == null || count == 0 ? ACCEPT : VETO;
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +27,9 @@
  */
 package org.hisp.dhis.program;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
+
+import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.system.deletion.DeletionHandler;
@@ -39,24 +40,15 @@ import org.springframework.stereotype.Component;
 /**
  * @author Chau Thu Tran
  */
-@Component( "org.hisp.dhis.program.ProgramStageInstanceDeletionHandler" )
-public class ProgramStageInstanceDeletionHandler
-    extends DeletionHandler
+@Component
+@AllArgsConstructor
+public class ProgramStageInstanceDeletionHandler extends DeletionHandler
 {
     private static final DeletionVeto VETO = new DeletionVeto( ProgramStageInstance.class );
 
     private final JdbcTemplate jdbcTemplate;
 
     private final ProgramStageInstanceService programStageInstanceService;
-
-    public ProgramStageInstanceDeletionHandler( JdbcTemplate jdbcTemplate,
-        ProgramStageInstanceService programStageInstanceService )
-    {
-        checkNotNull( jdbcTemplate );
-        checkNotNull( programStageInstanceService );
-        this.jdbcTemplate = jdbcTemplate;
-        this.programStageInstanceService = programStageInstanceService;
-    }
 
     @Override
     protected void register()
@@ -69,9 +61,8 @@ public class ProgramStageInstanceDeletionHandler
 
     private DeletionVeto allowDeleteProgramStage( ProgramStage programStage )
     {
-        String sql = "SELECT COUNT(*) FROM programstageinstance WHERE programstageid = " + programStage.getId();
-
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? ACCEPT : VETO;
+        return vetoIfExists(
+            "SELECT COUNT(*) FROM programstageinstance WHERE programstageid = " + programStage.getId() );
     }
 
     private void deleteProgramInstance( ProgramInstance programInstance )
@@ -84,16 +75,20 @@ public class ProgramStageInstanceDeletionHandler
 
     private DeletionVeto allowDeleteProgram( Program program )
     {
-        String sql = "SELECT COUNT(*) FROM programstageinstance psi join programinstance pi on pi.programinstanceid=psi.programinstanceid where pi.programid = "
-            + program.getId();
-
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? ACCEPT : VETO;
+        return vetoIfExists(
+            "SELECT COUNT(*) FROM programstageinstance psi join programinstance pi on pi.programinstanceid=psi.programinstanceid where pi.programid = "
+                + program.getId() );
     }
 
     private DeletionVeto allowDeleteDataElement( DataElement dataElement )
     {
-        String sql = "select count(*) from programstageinstance where eventdatavalues ? '" + dataElement.getUid() + "'";
+        return vetoIfExists(
+            "select count(*) from programstageinstance where eventdatavalues ? '" + dataElement.getUid() + "'" );
+    }
 
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? ACCEPT : VETO;
+    private DeletionVeto vetoIfExists( String sql )
+    {
+        Integer count = jdbcTemplate.queryForObject( sql, Integer.class );
+        return count == null || count == 0 ? ACCEPT : VETO;
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,15 +28,15 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import org.hisp.dhis.jsontree.JsonNode;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.hisp.dhis.webapi.json.JsonNode;
-import org.hisp.dhis.webapi.json.JsonObject;
 import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
 /**
@@ -44,65 +44,58 @@ import org.springframework.http.HttpStatus;
  *
  * @author Jan Bernitt
  */
-public class SharingControllerTest extends DhisControllerConvenienceTest
+class SharingControllerTest extends DhisControllerConvenienceTest
 {
+
     @Test
-    public void testPutSharing()
+    void testPutSharing()
     {
         String groupId = assertStatus( HttpStatus.CREATED, POST( "/userGroups", "{'name':'test'}" ) );
-
         JsonIdentifiableObject group = GET( "/userGroups/{id}", groupId ).content().as( JsonIdentifiableObject.class );
-
         assertWebMessage( "OK", 200, "OK", "Access control set",
             PUT( "/sharing?type=userGroup&id=" + groupId, group.getSharing().node().getDeclaration() )
                 .content( HttpStatus.OK ) );
     }
 
     @Test
-    public void testPostSharing()
+    void testPostSharing()
     {
         String groupId = assertStatus( HttpStatus.CREATED, POST( "/userGroups", "{'name':'test'}" ) );
-
         JsonIdentifiableObject group = GET( "/userGroups/{id}", groupId ).content().as( JsonIdentifiableObject.class );
-
         assertWebMessage( "OK", 200, "OK", "Access control set",
             POST( "/sharing?type=userGroup&id=" + groupId, group.getSharing().node().getDeclaration() )
                 .content( HttpStatus.OK ) );
     }
 
     @Test
-    public void testPostSharing_NoSuchType()
+    void testPostSharing_NoSuchType()
     {
         assertWebMessage( "Conflict", 409, "ERROR", "Type xyz is not supported.",
             POST( "/sharing?type=xyz&id=abc", "{}" ).content( HttpStatus.CONFLICT ) );
     }
 
     @Test
-    public void testPostSharing_NoSuchObject()
+    void testPostSharing_NoSuchObject()
     {
         assertWebMessage( "Not Found", 404, "ERROR", "Object of type userGroup with ID xyz was not found.",
             POST( "/sharing?type=userGroup&id=xyz", "{}" ).content( HttpStatus.NOT_FOUND ) );
     }
 
     @Test
-    public void testPostSharing_InvalidPublicSharing()
+    void testPostSharing_InvalidPublicSharing()
     {
         String groupId = assertStatus( HttpStatus.CREATED, POST( "/userGroups", "{'name':'test'}" ) );
-
         JsonIdentifiableObject group = GET( "/userGroups/{id}", groupId ).content().as( JsonIdentifiableObject.class );
-
         JsonNode sharing = group.getSharing().node().extract().addMember( "publicAccess", "\"xyz\"" );
-
         assertWebMessage( "Conflict", 409, "ERROR", "Invalid public access string: xyz",
             POST( "/sharing?type=userGroup&id=" + groupId, "{'object': " + sharing.getDeclaration() + "}" )
                 .content( HttpStatus.CONFLICT ) );
     }
 
     @Test
-    public void testGetSharing()
+    void testGetSharing()
     {
         String groupId = assertStatus( HttpStatus.CREATED, POST( "/userGroups", "{'name':'test'}" ) );
-
         JsonObject sharing = GET( "/sharing?type=userGroup&id=" + groupId ).content( HttpStatus.OK );
         JsonObject meta = sharing.getObject( "meta" );
         assertTrue( meta.getBoolean( "allowPublicAccess" ).booleanValue() );
@@ -119,10 +112,9 @@ public class SharingControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void testSearchUserGroups()
+    void testSearchUserGroups()
     {
         String groupId = assertStatus( HttpStatus.CREATED, POST( "/userGroups", "{'name':'test'}" ) );
-
         JsonObject matches = GET( "/sharing/search?key=" + groupId ).content( HttpStatus.OK );
         assertTrue( matches.has( "userGroups", "users" ) );
         assertEquals( 0, matches.getArray( "userGroups" ).size() );
@@ -130,15 +122,13 @@ public class SharingControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void testSuperUserGetPrivateObject()
+    void testSuperUserGetPrivateObject()
     {
         String dataSetId = assertStatus( HttpStatus.CREATED,
             POST( "/dataSets", "{'name':'test','periodType':'Monthly','sharing':{'public':'--------'}}" ) );
         GET( "/sharing?type=dataSet&id=" + dataSetId ).content( HttpStatus.OK );
-
         switchToNewUser( "A", "test" );
         GET( "/sharing?type=dataSet&id=" + dataSetId ).content( HttpStatus.FORBIDDEN );
-
         switchToSuperuser();
         GET( "/sharing?type=dataSet&id=" + dataSetId ).content( HttpStatus.OK );
     }

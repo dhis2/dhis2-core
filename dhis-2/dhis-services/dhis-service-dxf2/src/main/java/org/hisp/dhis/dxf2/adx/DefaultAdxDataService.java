@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,6 +57,7 @@ import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
@@ -98,7 +99,6 @@ import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.staxwax.factory.XMLFactory;
 import org.hisp.staxwax.reader.XMLReader;
 import org.hisp.staxwax.writer.XMLWriter;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -108,6 +108,7 @@ import com.google.common.collect.Sets;
  * @author bobj
  */
 @Slf4j
+@AllArgsConstructor
 @Service( "org.hisp.dhis.dxf2.AdxDataService" )
 public class DefaultAdxDataService
     implements AdxDataService
@@ -118,23 +119,17 @@ public class DefaultAdxDataService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    @Autowired
-    private DataValueSetService dataValueSetService;
+    private final DataValueSetService dataValueSetService;
 
-    @Autowired
-    private DataValueService dataValueService;
+    private final DataValueService dataValueService;
 
-    @Autowired
-    private PeriodService periodService;
+    private final PeriodService periodService;
 
-    @Autowired
-    private IdentifiableObjectManager identifiableObjectManager;
+    private final IdentifiableObjectManager identifiableObjectManager;
 
-    @Autowired
-    private SessionFactory sessionFactory;
+    private final SessionFactory sessionFactory;
 
-    @Autowired
-    private Notifier notifier;
+    private final Notifier notifier;
 
     // -------------------------------------------------------------------------
     // Public methods
@@ -181,7 +176,7 @@ public class DefaultAdxDataService
                 .addAll( getByUidOrCode( CategoryOptionCombo.class, urlParams.getAttributeOptionCombo() ) );
         }
 
-        params.setIncludeChildren( urlParams.isChildren() );
+        params.setIncludeDescendants( urlParams.isChildren() );
         params.setIncludeDeleted( urlParams.isIncludeDeleted() );
         params.setLastUpdated( urlParams.getLastUpdated() );
         params.setLastUpdatedDuration( urlParams.getLastUpdatedDuration() );
@@ -224,7 +219,7 @@ public class DefaultAdxDataService
                     DataExportParams queryParams = new DataExportParams()
                         .setDataElements( dataSet.getDataElements() )
                         .setOrganisationUnits( Sets.newHashSet( orgUnit ) )
-                        .setIncludeChildren( params.isIncludeChildren() )
+                        .setIncludeDescendants( params.isIncludeDescendants() )
                         .setIncludeDeleted( params.isIncludeDeleted() )
                         .setLastUpdated( params.getLastUpdated() )
                         .setLastUpdatedDuration( params.getLastUpdatedDuration() )

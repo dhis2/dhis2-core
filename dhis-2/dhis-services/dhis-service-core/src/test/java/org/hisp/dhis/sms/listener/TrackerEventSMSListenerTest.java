@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.sms.listener;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
@@ -69,23 +69,21 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import com.google.common.collect.Sets;
 
-public class TrackerEventSMSListenerTest
-    extends
+@MockitoSettings( strictness = Strictness.LENIENT )
+@ExtendWith( MockitoExtension.class )
+class TrackerEventSMSListenerTest extends
     CompressionSMSListenerTest
 {
-    @Rule
-    public MockitoRule rule = MockitoJUnit.rule();
-
-    // Needed for parent
 
     @Mock
     private UserService userService;
@@ -158,7 +156,7 @@ public class TrackerEventSMSListenerTest
 
     private ProgramStageInstance programStageInstance;
 
-    @Before
+    @BeforeEach
     public void initTest()
         throws SmsCompressionException
     {
@@ -188,7 +186,7 @@ public class TrackerEventSMSListenerTest
     }
 
     @Test
-    public void testTrackerEvent()
+    void testTrackerEvent()
     {
         subject.receive( incomingSmsTrackerEvent );
 
@@ -200,7 +198,7 @@ public class TrackerEventSMSListenerTest
     }
 
     @Test
-    public void testTrackerEventRepeat()
+    void testTrackerEventRepeat()
     {
         subject.receive( incomingSmsTrackerEvent );
         subject.receive( incomingSmsTrackerEvent );
@@ -213,7 +211,7 @@ public class TrackerEventSMSListenerTest
     }
 
     @Test
-    public void testTrackerEventWithNulls()
+    void testTrackerEventWithNulls()
     {
         subject.receive( incomingSmsTrackerEventWithNulls );
 
@@ -225,7 +223,7 @@ public class TrackerEventSMSListenerTest
     }
 
     @Test
-    public void testTrackerEventNoValues()
+    void testTrackerEventNoValues()
     {
         subject.receive( incomingSmsTrackerEventNoValues );
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,9 +28,11 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
 /**
@@ -38,39 +40,49 @@ import org.springframework.http.HttpStatus;
  *
  * @author Jan Bernitt
  */
-public class SqlViewControllerTest extends DhisControllerConvenienceTest
+class SqlViewControllerTest extends DhisControllerConvenienceTest
 {
+
     @Test
-    public void testExecuteView_NoSuchView()
+    void testExecuteView_NoSuchView()
     {
         assertWebMessage( "Not Found", 404, "ERROR", "SQL view does not exist: xyz",
             POST( "/sqlViews/xyz/execute" ).content( HttpStatus.NOT_FOUND ) );
     }
 
     @Test
-    public void testExecuteView_ValidationError()
+    void testExecuteView_ValidationError()
     {
         String uid = assertStatus( HttpStatus.CREATED,
             POST( "/sqlViews/", "{'name':'My SQL View','sqlQuery':'select 1 from userinfo'}" ) );
-
         assertWebMessage( "Conflict", 409, "ERROR", "SQL query contains references to protected tables",
             POST( "/sqlViews/" + uid + "/execute" ).content( HttpStatus.CONFLICT ) );
     }
 
     @Test
-    public void testRefreshMaterializedView()
+    void testRefreshMaterializedView()
     {
         String uid = assertStatus( HttpStatus.CREATED,
             POST( "/sqlViews/", "{'name':'My SQL View','sqlQuery':'select 1 from userinfo'}" ) );
-
         assertWebMessage( "Conflict", 409, "ERROR", "View could not be refreshed",
             POST( "/sqlViews/" + uid + "/refresh" ).content( HttpStatus.CONFLICT ) );
     }
 
     @Test
-    public void testRefreshMaterializedView_NoSuchView()
+    void testRefreshMaterializedView_NoSuchView()
     {
         assertWebMessage( "Not Found", 404, "ERROR", "SQL view does not exist: xyz",
             POST( "/sqlViews/xyz/refresh" ).content( HttpStatus.NOT_FOUND ) );
+    }
+
+    @Test
+    public void testCreateWithDefaultValues()
+    {
+        String uid = assertStatus( HttpStatus.CREATED,
+            POST( "/sqlViews/", "{'name':'My SQL View','sqlQuery':'select 1 from userinfo'}" ) );
+
+        JsonResponse sqlView = GET( "/sqlViews/{uid}", uid ).content();
+        assertEquals( "VIEW", sqlView.getString( "type" ).string() );
+        assertEquals( "RESPECT_SYSTEM_SETTING", sqlView.getString( "cacheStrategy" ).string() );
     }
 }

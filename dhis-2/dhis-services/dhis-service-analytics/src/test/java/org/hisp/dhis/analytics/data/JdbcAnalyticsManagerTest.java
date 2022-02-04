@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,12 +29,21 @@ package org.hisp.dhis.analytics.data;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
-import static org.hisp.dhis.DhisConvenienceTest.*;
-import static org.hisp.dhis.common.DimensionalObject.*;
+import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
+import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
+import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
 import static org.mockito.Mockito.when;
 
-import org.hisp.dhis.analytics.*;
+import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.AnalyticsAggregationType;
+import org.hisp.dhis.analytics.AnalyticsTableType;
+import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.analytics.DataType;
+import org.hisp.dhis.analytics.QueryPlanner;
+import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
@@ -44,24 +53,22 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
 /**
  * @author Luciano Fiandesio
  */
-public class JdbcAnalyticsManagerTest
+@ExtendWith( MockitoExtension.class )
+class JdbcAnalyticsManagerTest
 {
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Mock
     private SystemSettingManager systemSettingManager;
@@ -83,7 +90,10 @@ public class JdbcAnalyticsManagerTest
 
     private JdbcAnalyticsManager subject;
 
-    @Before
+    @Mock
+    private ExecutionPlanStore executionPlanStore;
+
+    @BeforeEach
     public void setUp()
     {
         QueryPlanner queryPlanner = new DefaultQueryPlanner(
@@ -94,11 +104,11 @@ public class JdbcAnalyticsManagerTest
 
         when( jdbcTemplate.queryForRowSet( sql.capture() ) ).thenReturn( rowSet );
 
-        subject = new JdbcAnalyticsManager( queryPlanner, jdbcTemplate );
+        subject = new JdbcAnalyticsManager( queryPlanner, jdbcTemplate, executionPlanStore );
     }
 
     @Test
-    public void verifyQueryGeneratedWhenDataElementHasLastAggregationType()
+    void verifyQueryGeneratedWhenDataElementHasLastAggregationType()
     {
         DataQueryParams params = createParams( AggregationType.LAST );
 
@@ -108,7 +118,7 @@ public class JdbcAnalyticsManagerTest
     }
 
     @Test
-    public void verifyQueryGeneratedWhenDataElementHasLastAvgOrgUnitAggregationType()
+    void verifyQueryGeneratedWhenDataElementHasLastAvgOrgUnitAggregationType()
     {
         DataQueryParams params = createParams( AggregationType.LAST_AVERAGE_ORG_UNIT );
 
@@ -118,7 +128,7 @@ public class JdbcAnalyticsManagerTest
     }
 
     @Test
-    public void verifyQueryGeneratedWhenDataElementHasLastInPeriodAggregationType()
+    void verifyQueryGeneratedWhenDataElementHasLastInPeriodAggregationType()
     {
         DataQueryParams params = createParams( AggregationType.LAST_IN_PERIOD );
 
@@ -128,7 +138,7 @@ public class JdbcAnalyticsManagerTest
     }
 
     @Test
-    public void verifyQueryGeneratedWhenDataElementHasLastInPeriodAvgOrgUnitAggregationType()
+    void verifyQueryGeneratedWhenDataElementHasLastInPeriodAvgOrgUnitAggregationType()
     {
         DataQueryParams params = createParams( AggregationType.LAST_IN_PERIOD_AVERAGE_ORG_UNIT );
 
@@ -161,7 +171,7 @@ public class JdbcAnalyticsManagerTest
     private void assertExpectedSql( String sortOrder )
     {
 
-        String lastAggregationTypeSql = "(select \"year\",\"pestartdate\",\"peenddate\",\"level\",\"daysxvalue\","
+        String lastAggregationTypeSql = "(select \"year\",\"pestartdate\",\"peenddate\",\"oulevel\",\"daysxvalue\","
             + "\"daysno\",\"value\",\"textvalue\",\"dx\",cast('201501' as text) as \"pe\",\"ou\","
             + "row_number() over (partition by dx, ou, co, ao order by peenddate " + sortOrder + ", pestartdate "
             + sortOrder + ") as pe_rank "
@@ -174,7 +184,7 @@ public class JdbcAnalyticsManagerTest
     private void assertExpectedLastSql( String sortOrder )
     {
 
-        String lastAggregationTypeSql = "(select \"year\",\"pestartdate\",\"peenddate\",\"level\",\"daysxvalue\","
+        String lastAggregationTypeSql = "(select \"year\",\"pestartdate\",\"peenddate\",\"oulevel\",\"daysxvalue\","
             + "\"daysno\",\"value\",\"textvalue\",\"dx\",cast('201501' as text) as \"pe\",\"ou\","
             + "row_number() over (partition by dx, ou, co, ao order by peenddate " + sortOrder + ", pestartdate "
             + sortOrder + ") as pe_rank "

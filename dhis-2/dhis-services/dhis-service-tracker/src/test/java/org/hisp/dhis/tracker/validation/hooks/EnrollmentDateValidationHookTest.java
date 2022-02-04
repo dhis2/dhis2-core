@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +27,13 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.hisp.dhis.tracker.TrackerType.ENROLLMENT;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1020;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1021;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1023;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1025;
+import static org.hisp.dhis.tracker.validation.hooks.AssertValidationErrorReporter.hasTrackerError;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.Mockito.when;
 
 import java.time.Duration;
@@ -40,30 +43,27 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author Luciano Fiandesio
  */
-public class EnrollmentDateValidationHookTest
+@ExtendWith( MockitoExtension.class )
+class EnrollmentDateValidationHookTest
 {
-    private EnrollmentDateValidationHook hookToTest;
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
+    private EnrollmentDateValidationHook hookToTest;
 
     @Mock
     private TrackerImportValidationContext validationContext;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         hookToTest = new EnrollmentDateValidationHook();
@@ -74,45 +74,45 @@ public class EnrollmentDateValidationHookTest
     }
 
     @Test
-    public void testMandatoryDatesMustBePresent()
+    void testMandatoryDatesMustBePresent()
     {
         Enrollment enrollment = new Enrollment();
+        enrollment.setEnrollment( CodeGenerator.generateUid() );
         enrollment.setProgram( CodeGenerator.generateUid() );
         enrollment.setOccurredAt( Instant.now() );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, enrollment );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
 
         when( validationContext.getProgram( enrollment.getProgram() ) ).thenReturn( new Program() );
 
         this.hookToTest.validateEnrollment( reporter, enrollment );
 
-        assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E1025 ) );
+        hasTrackerError( reporter, E1025, ENROLLMENT, enrollment.getUid() );
     }
 
     @Test
-    public void testDatesMustNotBeInTheFuture()
+    void testDatesMustNotBeInTheFuture()
     {
         Enrollment enrollment = new Enrollment();
+        enrollment.setEnrollment( CodeGenerator.generateUid() );
         enrollment.setProgram( CodeGenerator.generateUid() );
         final Instant dateInTheFuture = Instant.now().plus( Duration.ofDays( 2 ) );
 
         enrollment.setOccurredAt( dateInTheFuture );
         enrollment.setEnrolledAt( dateInTheFuture );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, enrollment );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
 
         when( validationContext.getProgram( enrollment.getProgram() ) ).thenReturn( new Program() );
 
         this.hookToTest.validateEnrollment( reporter, enrollment );
 
-        assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E1020 ) );
-        assertThat( reporter.getReportList().get( 1 ).getErrorCode(), is( TrackerErrorCode.E1021 ) );
+        hasTrackerError( reporter, E1020, ENROLLMENT, enrollment.getUid() );
+        hasTrackerError( reporter, E1021, ENROLLMENT, enrollment.getUid() );
     }
 
     @Test
-    public void testDatesShouldBeAllowedOnSameDayIfFutureDatesAreNotAllowed()
+    void testDatesShouldBeAllowedOnSameDayIfFutureDatesAreNotAllowed()
     {
         Enrollment enrollment = new Enrollment();
         enrollment.setProgram( CodeGenerator.generateUid() );
@@ -121,7 +121,7 @@ public class EnrollmentDateValidationHookTest
         enrollment.setOccurredAt( today );
         enrollment.setEnrolledAt( today );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, enrollment );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
 
         when( validationContext.getProgram( enrollment.getProgram() ) ).thenReturn( new Program() );
 
@@ -131,16 +131,16 @@ public class EnrollmentDateValidationHookTest
     }
 
     @Test
-    public void testDatesCanBeInTheFuture()
+    void testDatesCanBeInTheFuture()
     {
         Enrollment enrollment = new Enrollment();
+        enrollment.setEnrollment( CodeGenerator.generateUid() );
         enrollment.setProgram( CodeGenerator.generateUid() );
         final Instant dateInTheFuture = Instant.now().plus( Duration.ofDays( 2 ) );
-
         enrollment.setOccurredAt( dateInTheFuture );
         enrollment.setEnrolledAt( dateInTheFuture );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, enrollment );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
 
         Program program = new Program();
         program.setSelectEnrollmentDatesInFuture( true );
@@ -153,14 +153,15 @@ public class EnrollmentDateValidationHookTest
     }
 
     @Test
-    public void testFailOnMissingOccurredAtDate()
+    void testFailOnMissingOccurredAtDate()
     {
         Enrollment enrollment = new Enrollment();
+        enrollment.setEnrollment( CodeGenerator.generateUid() );
         enrollment.setProgram( CodeGenerator.generateUid() );
 
         enrollment.setEnrolledAt( Instant.now() );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, enrollment );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
 
         Program program = new Program();
         program.setDisplayIncidentDate( true );
@@ -168,8 +169,7 @@ public class EnrollmentDateValidationHookTest
 
         this.hookToTest.validateEnrollment( reporter, enrollment );
 
-        assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E1023 ) );
+        hasTrackerError( reporter, E1023, ENROLLMENT, enrollment.getUid() );
     }
 
 }

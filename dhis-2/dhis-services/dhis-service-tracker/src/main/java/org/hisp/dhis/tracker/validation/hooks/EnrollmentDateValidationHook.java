@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -66,7 +66,7 @@ public class EnrollmentDateValidationHook
         if ( Boolean.TRUE.equals( program.getDisplayIncidentDate() ) &&
             Objects.isNull( enrollment.getOccurredAt() ) )
         {
-            addError( reporter, E1023, enrollment.getOccurredAt() );
+            reporter.addError( enrollment, E1023, enrollment.getOccurredAt() );
         }
     }
 
@@ -76,7 +76,7 @@ public class EnrollmentDateValidationHook
 
         if ( Objects.isNull( enrollment.getEnrolledAt() ) )
         {
-            addError( reporter, E1025, enrollment.getEnrolledAt() );
+            reporter.addError( enrollment, E1025, enrollment.getEnrolledAt() );
         }
     }
 
@@ -91,14 +91,14 @@ public class EnrollmentDateValidationHook
             && Boolean.FALSE.equals( program.getSelectEnrollmentDatesInFuture() )
             && enrollment.getEnrolledAt().atOffset( ZoneOffset.UTC ).toLocalDate().isAfter( now ) )
         {
-            addError( reporter, E1020, enrollment.getEnrolledAt() );
+            reporter.addError( enrollment, E1020, enrollment.getEnrolledAt() );
         }
 
         if ( Objects.nonNull( enrollment.getOccurredAt() )
             && Boolean.FALSE.equals( program.getSelectIncidentDatesInFuture() )
             && enrollment.getOccurredAt().atOffset( ZoneOffset.UTC ).toLocalDate().isAfter( now ) )
         {
-            addError( reporter, E1021, enrollment.getOccurredAt() );
+            reporter.addError( enrollment, E1021, enrollment.getOccurredAt() );
         }
     }
 }

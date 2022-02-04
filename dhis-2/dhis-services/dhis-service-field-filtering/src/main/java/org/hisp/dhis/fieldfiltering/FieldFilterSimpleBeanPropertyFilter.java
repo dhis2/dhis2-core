@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,9 +29,11 @@ package org.hisp.dhis.fieldfiltering;
 
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
+
+import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonStreamContext;
@@ -48,7 +50,7 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
 {
     private final List<FieldPath> fieldPaths;
 
-    private static final Map<FieldPath, String> FULL_PATH_CACHE = new ConcurrentHashMap<>();
+    private final boolean skipSharing;
 
     @Override
     protected boolean include( final BeanPropertyWriter writer )
@@ -64,13 +66,29 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
 
     protected boolean include( final PropertyWriter writer, final JsonGenerator jgen )
     {
-        String path = getPath( writer, jgen );
+        PathValue pathValue = getPath( writer, jgen );
+        String path = pathValue.getPath();
+
+        if ( pathValue.getValue() == null )
+        {
+            return false;
+        }
+
+        if ( skipSharing &&
+            StringUtils.equalsAny( path, "user", "publicAccess", "externalAccess", "userGroupAccesses",
+                "userAccesses", "sharing" ) )
+        {
+            return false;
+        }
+
+        if ( pathValue.isInsideMap() )
+        {
+            return true;
+        }
 
         for ( FieldPath fieldPath : fieldPaths )
         {
-            String fullPath = FULL_PATH_CACHE.computeIfAbsent( fieldPath, FieldPath::toFullPath );
-
-            if ( fullPath.equals( path ) )
+            if ( fieldPath.toFullPath().equals( path ) )
             {
                 return true;
             }
@@ -79,19 +97,29 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
         return false;
     }
 
-    private String getPath( PropertyWriter writer, JsonGenerator jgen )
+    private PathValue getPath( PropertyWriter writer, JsonGenerator jgen )
     {
         StringBuilder nestedPath = new StringBuilder();
         JsonStreamContext sc = jgen.getOutputContext();
+        Object value = null;
+        boolean isInsideMap = false;
 
         if ( sc != null )
         {
             nestedPath.append( writer.getName() );
+            value = sc.getCurrentValue();
             sc = sc.getParent();
         }
 
         while ( sc != null )
         {
+            if ( sc.getCurrentValue() != null && Map.class.isAssignableFrom( sc.getCurrentValue().getClass() ) )
+            {
+                sc = sc.getParent();
+                isInsideMap = true;
+                continue;
+            }
+
             if ( sc.getCurrentName() != null && sc.getCurrentValue() != null )
             {
                 nestedPath.insert( 0, "." );
@@ -101,7 +129,12 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
             sc = sc.getParent();
         }
 
-        return nestedPath.toString();
+        if ( value != null && Map.class.isAssignableFrom( value.getClass() ) )
+        {
+            isInsideMap = true;
+        }
+
+        return new PathValue( nestedPath.toString(), value, isInsideMap );
     }
 
     @Override
@@ -117,4 +150,15 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
             writer.serializeAsOmittedField( pojo, jgen, provider );
         }
     }
+}
+
+@Data
+@RequiredArgsConstructor
+class PathValue
+{
+    private final String path;
+
+    private final Object value;
+
+    private final boolean insideMap;
 }

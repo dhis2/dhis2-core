@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,6 +32,7 @@ import java.util.Date;
 
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.period.Period;
@@ -185,7 +186,7 @@ public class MetadataItem
 
             if ( indicator.getIndicatorType() != null )
             {
-                this.indicatorType = indicator.getIndicatorType();
+                this.indicatorType = HibernateProxyUtils.unproxy( indicator.getIndicatorType() );
             }
         }
     }
@@ -316,7 +317,7 @@ public class MetadataItem
 
     public void setIndicatorType( IndicatorType indicatorType )
     {
-        this.indicatorType = indicatorType;
+        this.indicatorType = HibernateProxyUtils.unproxy( indicatorType );
     }
 
     @JsonProperty

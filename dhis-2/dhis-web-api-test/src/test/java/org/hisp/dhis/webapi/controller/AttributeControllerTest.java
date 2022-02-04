@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,12 +28,12 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.attribute.Attribute.ObjectType;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.hisp.dhis.webapi.json.JsonObject;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
 /**
@@ -41,30 +41,25 @@ import org.springframework.http.HttpStatus;
  *
  * @author Jan Bernitt
  */
-public class AttributeControllerTest extends DhisControllerConvenienceTest
+class AttributeControllerTest extends DhisControllerConvenienceTest
 {
 
     /**
      * Tests that each type only sets the property the type relates to
      */
     @Test
-    public void testObjectTypes()
+    void testObjectTypes()
     {
         for ( ObjectType testedType : ObjectType.values() )
         {
             String propertyName = testedType.getPropertyName();
-            String uid = assertStatus( HttpStatus.CREATED, POST( "/attributes", "{" +
-                "'name':'" + testedType + "', " +
-                "'valueType':'INTEGER', " +
-                "'" + propertyName + "':true}" ) );
+            String uid = assertStatus( HttpStatus.CREATED, POST( "/attributes",
+                "{" + "'name':'" + testedType + "', " + "'valueType':'INTEGER', " + "'" + propertyName + "':true}" ) );
             JsonObject attr = GET( "/attributes/{uid}", uid ).content();
-
             for ( ObjectType otherType : ObjectType.values() )
             {
-                assertEquals( testedType == otherType,
-                    attr.getBoolean( otherType.getPropertyName() ).booleanValue() );
+                assertEquals( testedType == otherType, attr.getBoolean( otherType.getPropertyName() ).booleanValue() );
             }
         }
     }
-
 }

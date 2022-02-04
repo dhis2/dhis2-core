@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,64 +27,56 @@
  */
 package org.hisp.dhis.user;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
-public class UserAuthorityGroupTest
-    extends DhisSpringTest
+class UserAuthorityGroupTest extends DhisSpringTest
 {
+
     @Autowired
     @Qualifier( "org.hisp.dhis.user.UserAuthorityGroupStore" )
     private IdentifiableObjectStore<UserAuthorityGroup> userAuthorityGroupStore;
 
     @Test
-    public void testAddGetUserAuthorityGroup()
+    void testAddGetUserAuthorityGroup()
     {
         UserAuthorityGroup roleA = createUserAuthorityGroup( 'A' );
         UserAuthorityGroup roleB = createUserAuthorityGroup( 'B' );
         UserAuthorityGroup roleC = createUserAuthorityGroup( 'C' );
-
         userAuthorityGroupStore.save( roleA );
         long idA = roleA.getId();
-
         userAuthorityGroupStore.save( roleB );
         long idB = roleB.getId();
-
         userAuthorityGroupStore.save( roleC );
         long idC = roleC.getId();
-
         assertEquals( roleA, userAuthorityGroupStore.get( idA ) );
         assertEquals( roleB, userAuthorityGroupStore.get( idB ) );
         assertEquals( roleC, userAuthorityGroupStore.get( idC ) );
     }
 
     @Test
-    public void testDeleteUserAuthorityGroup()
+    void testDeleteUserAuthorityGroup()
     {
         UserAuthorityGroup roleA = createUserAuthorityGroup( 'A' );
         UserAuthorityGroup roleB = createUserAuthorityGroup( 'B' );
         UserAuthorityGroup roleC = createUserAuthorityGroup( 'C' );
-
         userAuthorityGroupStore.save( roleA );
         long idA = roleA.getId();
-
         userAuthorityGroupStore.save( roleB );
         long idB = roleB.getId();
-
         userAuthorityGroupStore.save( roleC );
         long idC = roleC.getId();
-
         assertEquals( roleA, userAuthorityGroupStore.get( idA ) );
         assertEquals( roleB, userAuthorityGroupStore.get( idB ) );
         assertEquals( roleC, userAuthorityGroupStore.get( idC ) );
-
         userAuthorityGroupStore.delete( roleB );
-
         assertNotNull( userAuthorityGroupStore.get( idA ) );
         assertNull( userAuthorityGroupStore.get( idB ) );
         assertNotNull( userAuthorityGroupStore.get( idA ) );

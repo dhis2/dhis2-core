@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,13 +27,13 @@
  */
 package org.hisp.dhis.query;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.query.operators.MatchMode;
 import org.hisp.dhis.query.operators.NotTokenOperator;
 import org.hisp.dhis.query.operators.TokenOperator;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests the {@link org.hisp.dhis.query.operators.TokenOperator} and
@@ -41,10 +41,11 @@ import org.junit.Test;
  *
  * @author Jan Bernitt
  */
-public class TokenOperatorTest
+class TokenOperatorTest
 {
+
     @Test
-    public void nullValue()
+    void nullValue()
     {
         for ( MatchMode mode : MatchMode.values() )
         {
@@ -56,28 +57,28 @@ public class TokenOperatorTest
     }
 
     @Test
-    public void exactMatchOneWordOneTerm()
+    void exactMatchOneWordOneTerm()
     {
         assertMatch( MatchMode.EXACT, "Hello!", "Hello" );
         assertMatch( MatchMode.EXACT, "Hello!", "Hello!" );
     }
 
     @Test
-    public void exactMatchOneWordManyTerms()
+    void exactMatchOneWordManyTerms()
     {
         assertMatch( MatchMode.EXACT, "Hello!", "Hello Hello" );
         assertMatch( MatchMode.EXACT, "Hello!", "Hello! Hello!" );
     }
 
     @Test
-    public void exactMatchManyWordsOneTerm()
+    void exactMatchManyWordsOneTerm()
     {
         assertMatch( MatchMode.EXACT, "Hello World!", "Hello" );
         assertMatch( MatchMode.EXACT, "Hello World!", "World" );
     }
 
     @Test
-    public void exactMatchManyWordsManyTerms()
+    void exactMatchManyWordsManyTerms()
     {
         assertMatch( MatchMode.EXACT, "Hello World!", "Hello World" );
         assertMatch( MatchMode.EXACT, "Hello World!", "Hello, World!" );
@@ -85,7 +86,7 @@ public class TokenOperatorTest
     }
 
     @Test
-    public void startsWithMatchOneWordOneTerm()
+    void startsWithMatchOneWordOneTerm()
     {
         assertMatch( MatchMode.START, "Hello!", "Hello" );
         assertMatch( MatchMode.START, "Hello!", "Hello!" );
@@ -93,7 +94,7 @@ public class TokenOperatorTest
     }
 
     @Test
-    public void startsWithMatchOneWordManyTerms()
+    void startsWithMatchOneWordManyTerms()
     {
         assertMatch( MatchMode.START, "Hello!", "Hello Hello" );
         assertMatch( MatchMode.START, "Hello!", "Hello! Hello!" );
@@ -101,7 +102,7 @@ public class TokenOperatorTest
     }
 
     @Test
-    public void startsWithMatchManyWordsOneTerm()
+    void startsWithMatchManyWordsOneTerm()
     {
         assertMatch( MatchMode.START, "Hello World!", "Hello" );
         assertMatch( MatchMode.START, "Hello World!", "World" );
@@ -110,7 +111,7 @@ public class TokenOperatorTest
     }
 
     @Test
-    public void startsWithMatchManyWordsManyTerms()
+    void startsWithMatchManyWordsManyTerms()
     {
         assertMatch( MatchMode.START, "Hello World!", "Hello World" );
         assertMatch( MatchMode.START, "Hello World!", "Hello, World!" );
@@ -119,7 +120,7 @@ public class TokenOperatorTest
     }
 
     @Test
-    public void endsWithMatchOneWordOneTerm()
+    void endsWithMatchOneWordOneTerm()
     {
         assertMatch( MatchMode.END, "Hello!", "Hello" );
         assertMatch( MatchMode.END, "Hello!", "Hello!" );
@@ -127,7 +128,7 @@ public class TokenOperatorTest
     }
 
     @Test
-    public void endsWithMatchOneWordManyTerms()
+    void endsWithMatchOneWordManyTerms()
     {
         assertMatch( MatchMode.END, "Hello!", "Hello Hello" );
         assertMatch( MatchMode.END, "Hello!", "Hello! Hello!" );
@@ -135,7 +136,7 @@ public class TokenOperatorTest
     }
 
     @Test
-    public void endsWithMatchManyWordsOneTerm()
+    void endsWithMatchManyWordsOneTerm()
     {
         assertMatch( MatchMode.END, "Hello World!", "Hello" );
         assertMatch( MatchMode.END, "Hello World!", "World" );
@@ -144,7 +145,7 @@ public class TokenOperatorTest
     }
 
     @Test
-    public void endsWithMatchManyWordsManyTerms()
+    void endsWithMatchManyWordsManyTerms()
     {
         assertMatch( MatchMode.END, "Hello World!", "Hello World" );
         assertMatch( MatchMode.END, "Hello World!", "Hello, World!" );
@@ -153,7 +154,7 @@ public class TokenOperatorTest
     }
 
     @Test
-    public void anywhereMatchOneWordOneTerm()
+    void anywhereMatchOneWordOneTerm()
     {
         assertMatch( MatchMode.ANYWHERE, "Hello!", "Hello" );
         assertMatch( MatchMode.ANYWHERE, "Hello!", "Hello!" );
@@ -161,7 +162,7 @@ public class TokenOperatorTest
     }
 
     @Test
-    public void anywhereMatchOneWordManyTerms()
+    void anywhereMatchOneWordManyTerms()
     {
         assertMatch( MatchMode.ANYWHERE, "Hello!", "Hello Hello" );
         assertMatch( MatchMode.ANYWHERE, "Hello!", "Hello! Hello!" );
@@ -169,7 +170,7 @@ public class TokenOperatorTest
     }
 
     @Test
-    public void anywhereMatchManyWordsOneTerm()
+    void anywhereMatchManyWordsOneTerm()
     {
         assertMatch( MatchMode.ANYWHERE, "Hello World!", "Hello" );
         assertMatch( MatchMode.ANYWHERE, "Hello World!", "World" );
@@ -178,7 +179,7 @@ public class TokenOperatorTest
     }
 
     @Test
-    public void anywhereMatchManyWordsManyTerms()
+    void anywhereMatchManyWordsManyTerms()
     {
         assertMatch( MatchMode.ANYWHERE, "Hello World!", "Hello World" );
         assertMatch( MatchMode.ANYWHERE, "Hello World!", "Hello, World!" );
@@ -190,10 +191,8 @@ public class TokenOperatorTest
     {
         String upperValue = value.toUpperCase();
         String lowerValue = value.toLowerCase();
-
         TokenOperator<String> caseSensitive = new TokenOperator<>( term, true, mode );
         TokenOperator<String> caseInsensitive = new TokenOperator<>( term, false, mode );
-
         assertTrue( caseSensitive.test( value ) );
         assertTrue( caseInsensitive.test( value ) );
         assertTrue( caseInsensitive.test( upperValue ) );
@@ -202,7 +201,6 @@ public class TokenOperatorTest
         {
             assertFalse( caseSensitive.test( upperValue ) && caseSensitive.test( lowerValue ) );
         }
-
         // make it mismatch by searching for something not in value
         String zzzTerm = "zzz" + term + "zzz";
         TokenOperator<String> zzzCaseSensitive = new TokenOperator<>( zzzTerm, true, mode );
@@ -211,7 +209,6 @@ public class TokenOperatorTest
         assertFalse( zzzCaseInsensitive.test( value ) );
         assertFalse( zzzCaseInsensitive.test( upperValue ) );
         assertFalse( zzzCaseInsensitive.test( lowerValue ) );
-
         NotTokenOperator<String> notCaseSensitive = new NotTokenOperator<>( term, true, mode );
         NotTokenOperator<String> notCaseInsensitive = new NotTokenOperator<>( term, false, mode );
         assertFalse( notCaseSensitive.test( value ) );

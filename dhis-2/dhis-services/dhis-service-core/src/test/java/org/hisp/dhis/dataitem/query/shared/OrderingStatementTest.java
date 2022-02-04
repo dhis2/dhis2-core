@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,7 @@ import static org.hisp.dhis.dataitem.query.shared.OrderingStatement.ordering;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.DISPLAY_NAME_ORDER;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.NAME_ORDER;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
 /**
@@ -42,205 +42,178 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
  *
  * @author maikel arabori
  */
-public class OrderingStatementTest
+class OrderingStatementTest
 {
+
     @Test
-    public void testCommonOrderingWhenOrderIsAsc()
+    void testCommonOrderingWhenOrderIsAsc()
     {
         // Given
         final String aGroupOfColumns = "anyColumn, otherColumn";
         final String otherGroupOfColumns = "anyColumn, otherColumn";
         final String yetOtherColumns = "yetAnotherColumn";
-        final MapSqlParameterSource theParameterSource = new MapSqlParameterSource()
-            .addValue( DISPLAY_NAME_ORDER, "asc" );
+        final MapSqlParameterSource theParameterSource = new MapSqlParameterSource().addValue( DISPLAY_NAME_ORDER,
+            "asc" );
         final String expectedStatement = " order by anyColumn asc, otherColumn asc";
-
         // When
         final String actualStatement = ordering( aGroupOfColumns, otherGroupOfColumns, yetOtherColumns, yetOtherColumns,
             theParameterSource );
-
         // Then
         assertThat( actualStatement, is( expectedStatement ) );
     }
 
     @Test
-    public void testCommonOrderingWhenOrderIsDescAndNameOrderIsSet()
+    void testCommonOrderingWhenOrderIsDescAndNameOrderIsSet()
     {
         // Given
         final String displayOrderingColumns = "anyColumn, anyColumn2";
         final String nameOrderingColumns = "otherColumn, otherColumn2";
         final String yetOtherColumns = "yetAnotherColumn, otherColumn2";
-        final MapSqlParameterSource theParameterSource = new MapSqlParameterSource()
-            .addValue( NAME_ORDER, "desc" );
+        final MapSqlParameterSource theParameterSource = new MapSqlParameterSource().addValue( NAME_ORDER, "desc" );
         final String expectedStatement = " order by otherColumn desc, otherColumn2 desc";
-
         // When
         final String actualStatement = ordering( displayOrderingColumns, nameOrderingColumns, yetOtherColumns,
             yetOtherColumns, theParameterSource );
-
         // Then
         assertThat( actualStatement, is( expectedStatement ) );
     }
 
     @Test
-    public void testCommonOrderingWhenOrderIsNotSet()
+    void testCommonOrderingWhenOrderIsNotSet()
     {
         // Given
         final String displayOrderingColumn = "anyColumn";
         final String nameOrderingColumn = "otherColumn";
         final String yetAnotherColumn = "yetAnotherColumn";
         final MapSqlParameterSource noParameterSource = new MapSqlParameterSource();
-
         // When
         final String actualStatement = ordering( displayOrderingColumn, nameOrderingColumn, yetAnotherColumn,
             yetAnotherColumn, noParameterSource );
-
         // Then
         assertThat( actualStatement, is( EMPTY ) );
     }
 
     @Test
-    public void testCommonOrderingWhenParameterSourceIsNull()
+    void testCommonOrderingWhenParameterSourceIsNull()
     {
         // Given
         final String displayOrderingColumn = "anyColumn";
         final String nameOrderingColumn = "otherColumn";
         final String yetAnotherColumn = "yetAnotherColumn";
         final MapSqlParameterSource nullParameterSource = null;
-
         // When
         final String actualStatement = ordering( displayOrderingColumn, nameOrderingColumn, yetAnotherColumn,
             yetAnotherColumn, nullParameterSource );
-
         // Then
         assertThat( actualStatement, is( EMPTY ) );
     }
 
     @Test
-    public void testCommonOrderingWhenOrderFilterIsSetToNullAndNameOrderIsSet()
+    void testCommonOrderingWhenOrderFilterIsSetToNullAndNameOrderIsSet()
     {
         // Given
         final String displayOrderingColumn = "anyColumn";
         final String nameOrderingColumn = "otherColumn";
         final String yetAnotherColumn = "yetAnotherColumn";
-        final MapSqlParameterSource theParameterSource = new MapSqlParameterSource()
-            .addValue( NAME_ORDER, null );
-
+        final MapSqlParameterSource theParameterSource = new MapSqlParameterSource().addValue( NAME_ORDER, null );
         // When
         final String actualStatement = ordering( displayOrderingColumn, nameOrderingColumn, yetAnotherColumn,
             yetAnotherColumn, theParameterSource );
-
         // Then
         assertThat( actualStatement, is( EMPTY ) );
     }
 
     @Test
-    public void testCommonOrderingWhenOrderFilterIsSetToEmptyAndNameOrderIsSet()
+    void testCommonOrderingWhenOrderFilterIsSetToEmptyAndNameOrderIsSet()
     {
         // Given
         final String displayOrderingColumn = "anyColumn";
         final String nameOrderingColumn = "otherColumn";
         final String yetAnotherColumn = "yetAnotherColumn";
-        final MapSqlParameterSource theParameterSource = new MapSqlParameterSource()
-            .addValue( NAME_ORDER, EMPTY );
-
+        final MapSqlParameterSource theParameterSource = new MapSqlParameterSource().addValue( NAME_ORDER, EMPTY );
         // When
         final String actualStatement = ordering( displayOrderingColumn, nameOrderingColumn, yetAnotherColumn,
             yetAnotherColumn, theParameterSource );
-
         // Then
         assertThat( actualStatement, is( EMPTY ) );
     }
 
     @Test
-    public void testCommonOrderingWhenOneColumnIsNullAndNameOrderIsSet()
+    void testCommonOrderingWhenOneColumnIsNullAndNameOrderIsSet()
     {
         // Given
         final String aNullColumn = null;
         final String otherColumn = "otherColumn";
         final String yetAnotherColumn = "yetAnotherColumn";
-        final MapSqlParameterSource theParameterSource = new MapSqlParameterSource()
-            .addValue( NAME_ORDER, "desc" );
+        final MapSqlParameterSource theParameterSource = new MapSqlParameterSource().addValue( NAME_ORDER, "desc" );
         final String expectedStatement = " order by otherColumn desc";
-
         // When
         final String actualStatement = ordering( aNullColumn, otherColumn, yetAnotherColumn, yetAnotherColumn,
             theParameterSource );
-
         // Then
         assertThat( actualStatement, is( expectedStatement ) );
     }
 
     @Test
-    public void testCommonOrderingWhenOneColumnIsEmptyAndNameOrderIsSet()
+    void testCommonOrderingWhenOneColumnIsEmptyAndNameOrderIsSet()
     {
         // Given
         final String anEmptyColumn = EMPTY;
         final String otherColumn = "otherColumn";
         final String yetAnotherColumn = "yetAnotherColumn";
-        final MapSqlParameterSource theParameterSource = new MapSqlParameterSource()
-            .addValue( NAME_ORDER, "desc" );
+        final MapSqlParameterSource theParameterSource = new MapSqlParameterSource().addValue( NAME_ORDER, "desc" );
         final String expectedStatement = " order by otherColumn desc";
-
         // When
         final String actualStatement = ordering( anEmptyColumn, otherColumn, yetAnotherColumn, yetAnotherColumn,
             theParameterSource );
-
         // Then
         assertThat( actualStatement, is( expectedStatement ) );
     }
 
     @Test
-    public void testCommonOrderingWhenOneColumnIsNullAndDisplayNameOrderIsSet()
+    void testCommonOrderingWhenOneColumnIsNullAndDisplayNameOrderIsSet()
     {
         // Given
         final String aNullColumn = null;
         final String otherColumn = "otherColumn";
         final String yetAnotherColumn = "yetAnotherColumn";
-        final MapSqlParameterSource theParameterSource = new MapSqlParameterSource()
-            .addValue( DISPLAY_NAME_ORDER, "asc" );
+        final MapSqlParameterSource theParameterSource = new MapSqlParameterSource().addValue( DISPLAY_NAME_ORDER,
+            "asc" );
         final String expectedStatement = EMPTY;
-
         // When
         final String actualStatement = ordering( aNullColumn, otherColumn, yetAnotherColumn, yetAnotherColumn,
             theParameterSource );
-
         // Then
         assertThat( actualStatement, is( expectedStatement ) );
     }
 
     @Test
-    public void testCommonOrderingWhenOneColumnIsEmptyAndDisplayNameOrderIsSet()
+    void testCommonOrderingWhenOneColumnIsEmptyAndDisplayNameOrderIsSet()
     {
         // Given
         final String anEmptyColumn = EMPTY;
         final String otherColumn = "otherColumn";
         final String yetAnotherColumn = "yetAnotherColumn";
-        final MapSqlParameterSource theParameterSource = new MapSqlParameterSource()
-            .addValue( DISPLAY_NAME_ORDER, "asc" );
+        final MapSqlParameterSource theParameterSource = new MapSqlParameterSource().addValue( DISPLAY_NAME_ORDER,
+            "asc" );
         final String expectedStatement = EMPTY;
-
         // When
         final String actualStatement = ordering( anEmptyColumn, otherColumn, yetAnotherColumn, yetAnotherColumn,
             theParameterSource );
-
         // Then
         assertThat( actualStatement, is( expectedStatement ) );
     }
 
     @Test
-    public void testCommonOrderingWhenBothColumnsAreNullAndNameOrderIsSet()
+    void testCommonOrderingWhenBothColumnsAreNullAndNameOrderIsSet()
     {
         // Given
         final String aNullColumn = null;
-        final MapSqlParameterSource theParameterSource = new MapSqlParameterSource()
-            .addValue( NAME_ORDER, "desc" );
+        final MapSqlParameterSource theParameterSource = new MapSqlParameterSource().addValue( NAME_ORDER, "desc" );
         final String expectedStatement = EMPTY;
-
         // When
         final String actualStatement = ordering( aNullColumn, aNullColumn, aNullColumn, aNullColumn,
             theParameterSource );
-
         // Then
         assertThat( actualStatement, is( expectedStatement ) );
     }

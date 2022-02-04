@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,25 +29,24 @@ package org.hisp.dhis.webapi;
 
 import static org.hisp.dhis.webapi.utils.WebClientUtils.failOnException;
 
-import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.utils.TestUtils;
-import org.hisp.dhis.webapi.json.JsonResponse;
 import org.hisp.dhis.webapi.security.config.WebMvcConfig;
-import org.junit.Before;
-import org.junit.runner.RunWith;
+import org.hisp.dhis.webapi.utils.DhisMockMvcControllerTest;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.web.FilterChainProxy;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
-import org.springframework.web.filter.CharacterEncodingFilter;
 
 /**
  * Base class for convenient testing of the web API on basis of
@@ -58,13 +57,15 @@ import org.springframework.web.filter.CharacterEncodingFilter;
  *
  * @author Morten Svanæs
  */
-@RunWith( SpringRunner.class )
+
+@ExtendWith( SpringExtension.class )
 @WebAppConfiguration
 @ContextConfiguration( classes = { WebMvcConfig.class, WebTestConfigurationWithAuth.class } )
 @ActiveProfiles( "test-h2" )
 @Transactional
-public abstract class DhisControllerWithApiTokenAuthTest extends DhisConvenienceTest implements WebClient
+public abstract class DhisControllerWithApiTokenAuthTest extends DhisMockMvcControllerTest
 {
+
     @Autowired
     private WebApplicationContext webApplicationContext;
 
@@ -76,26 +77,20 @@ public abstract class DhisControllerWithApiTokenAuthTest extends DhisConvenience
 
     protected MockMvc mvc;
 
-    @Before
+    @BeforeEach
     public void setup()
         throws Exception
     {
         userService = _userService;
-
-        CharacterEncodingFilter characterEncodingFilter = new CharacterEncodingFilter();
-        characterEncodingFilter.setEncoding( "UTF-8" );
-        characterEncodingFilter.setForceEncoding( true );
-
-        mvc = MockMvcBuilders.webAppContextSetup( webApplicationContext )
-            .addFilter( springSecurityFilterChain ).build();
-
+        mvc = MockMvcBuilders.webAppContextSetup( webApplicationContext ).addFilter( springSecurityFilterChain )
+            .build();
         TestUtils.executeStartupRoutines( webApplicationContext );
     }
 
     @Override
-    public HttpResponse webRequest( MockHttpServletRequestBuilder request )
+    protected final HttpResponse webRequest( MockHttpServletRequestBuilder request )
     {
         return failOnException(
-            () -> new HttpResponse( mvc.perform( request ).andReturn().getResponse() ) );
+            () -> new HttpResponse( toResponse( mvc.perform( request ).andReturn().getResponse() ) ) );
     }
 }

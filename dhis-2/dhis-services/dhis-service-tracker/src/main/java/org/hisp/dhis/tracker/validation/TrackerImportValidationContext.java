@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,9 +54,9 @@ import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.tracker.TrackerIdentifierParams;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.*;
+import org.hisp.dhis.tracker.domain.Relationship;
+import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.preheat.ReferenceTrackerEntity;
-import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 
 import com.google.common.base.Preconditions;
 
@@ -73,16 +73,10 @@ public class TrackerImportValidationContext
 
     private TrackerBundle bundle;
 
-    /**
-     * Holds the accumulated errors generated during the validation process
-     */
-    private ValidationErrorReporter rootReporter;
-
     public TrackerImportValidationContext( TrackerBundle bundle )
     {
         // Create a copy of the bundle
         this.bundle = bundle;
-        this.rootReporter = ValidationErrorReporter.emptyReporter();
     }
 
     public TrackerImportStrategy getStrategy( TrackerDto dto )

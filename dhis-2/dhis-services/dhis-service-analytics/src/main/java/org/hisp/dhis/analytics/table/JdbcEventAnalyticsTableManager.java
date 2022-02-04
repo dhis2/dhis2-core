@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,13 +28,13 @@
 package org.hisp.dhis.analytics.table;
 
 import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_11;
-import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_50;
 import static org.hisp.dhis.analytics.ColumnDataType.DOUBLE;
 import static org.hisp.dhis.analytics.ColumnDataType.GEOMETRY;
 import static org.hisp.dhis.analytics.ColumnDataType.INTEGER;
 import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
 import static org.hisp.dhis.analytics.ColumnDataType.TIMESTAMP;
 import static org.hisp.dhis.analytics.ColumnDataType.VARCHAR_255;
+import static org.hisp.dhis.analytics.ColumnDataType.VARCHAR_50;
 import static org.hisp.dhis.analytics.ColumnNotNullConstraint.NOT_NULL;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.getClosingParentheses;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
@@ -124,8 +124,8 @@ public class JdbcEventAnalyticsTableManager
         new AnalyticsTableColumn( quote( "created" ), TIMESTAMP, "psi.created" ),
         new AnalyticsTableColumn( quote( "lastupdated" ), TIMESTAMP, "psi.lastupdated" ),
         new AnalyticsTableColumn( quote( STORED_BY_COL_NAME ), VARCHAR_255, "psi.storedby" ),
-        new AnalyticsTableColumn( quote( "pistatus" ), CHARACTER_50, "pi.status" ),
-        new AnalyticsTableColumn( quote( "psistatus" ), CHARACTER_50, "psi.status" ),
+        new AnalyticsTableColumn( quote( "pistatus" ), VARCHAR_50, "pi.status" ),
+        new AnalyticsTableColumn( quote( "psistatus" ), VARCHAR_50, "psi.status" ),
         new AnalyticsTableColumn( quote( "psigeometry" ), GEOMETRY, "psi.geometry" )
             .withIndexType( IndexType.GIST ),
         // TODO latitude and longitude deprecated in 2.30, remove in 2.33

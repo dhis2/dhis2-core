@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,19 +27,20 @@
  */
 package org.hisp.dhis.period;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
 
 import org.joda.time.DateTime;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Lars Helge Overland
  */
-public class FinancialOctoberPeriodTypeTest
+class FinancialOctoberPeriodTypeTest
 {
+
     private DateTime startDate;
 
     private DateTime endDate;
@@ -48,75 +49,58 @@ public class FinancialOctoberPeriodTypeTest
 
     private CalendarPeriodType periodType;
 
-    @Before
-    public void before()
+    @BeforeEach
+    void before()
     {
         periodType = new FinancialOctoberPeriodType();
     }
 
     @Test
-    public void testCreatePeriod()
+    void testCreatePeriod()
     {
         testDate = new DateTime( 2009, 2, 15, 0, 0 );
-
         startDate = new DateTime( 2008, 10, 1, 0, 0 );
         endDate = new DateTime( 2009, 9, 30, 0, 0 );
-
         Period period = periodType.createPeriod( testDate.toDate() );
-
         assertEquals( startDate.toDate(), period.getStartDate() );
         assertEquals( endDate.toDate(), period.getEndDate() );
-
         testDate = new DateTime( 2009, 11, 12, 0, 0 );
-
         period = periodType.createPeriod( testDate.toDate() );
-
         startDate = new DateTime( 2009, 10, 1, 0, 0 );
         endDate = new DateTime( 2010, 9, 30, 0, 0 );
-
         assertEquals( startDate.toDate(), period.getStartDate() );
         assertEquals( endDate.toDate(), period.getEndDate() );
     }
 
     @Test
-    public void testGetNextPeriod()
+    void testGetNextPeriod()
     {
         testDate = new DateTime( 2009, 2, 15, 0, 0 );
-
         Period period = periodType.createPeriod( testDate.toDate() );
-
         period = periodType.getNextPeriod( period );
-
         startDate = new DateTime( 2009, 10, 1, 0, 0 );
         endDate = new DateTime( 2010, 9, 30, 0, 0 );
-
         assertEquals( startDate.toDate(), period.getStartDate() );
         assertEquals( endDate.toDate(), period.getEndDate() );
     }
 
     @Test
-    public void testGetPreviousPeriod()
+    void testGetPreviousPeriod()
     {
         testDate = new DateTime( 2009, 2, 15, 0, 0 );
-
         Period period = periodType.createPeriod( testDate.toDate() );
-
         period = periodType.getPreviousPeriod( period );
-
         startDate = new DateTime( 2007, 10, 1, 0, 0 );
         endDate = new DateTime( 2008, 9, 30, 0, 0 );
-
         assertEquals( startDate.toDate(), period.getStartDate() );
         assertEquals( endDate.toDate(), period.getEndDate() );
     }
 
     @Test
-    public void testGeneratePeriods()
+    void testGeneratePeriods()
     {
         testDate = new DateTime( 2009, 2, 15, 0, 0 );
-
         List<Period> periods = periodType.generatePeriods( testDate.toDate() );
-
         assertEquals( 11, periods.size() );
         assertEquals( periodType.createPeriod( new DateTime( 2003, 10, 1, 0, 0 ).toDate() ), periods.get( 0 ) );
         assertEquals( periodType.createPeriod( new DateTime( 2004, 10, 1, 0, 0 ).toDate() ), periods.get( 1 ) );
@@ -129,21 +113,17 @@ public class FinancialOctoberPeriodTypeTest
         assertEquals( periodType.createPeriod( new DateTime( 2011, 10, 1, 0, 0 ).toDate() ), periods.get( 8 ) );
         assertEquals( periodType.createPeriod( new DateTime( 2012, 10, 1, 0, 0 ).toDate() ), periods.get( 9 ) );
         assertEquals( periodType.createPeriod( new DateTime( 2013, 10, 1, 0, 0 ).toDate() ), periods.get( 10 ) );
-
         testDate = new DateTime( 2009, 11, 12, 0, 0 );
-
         periods = periodType.generatePeriods( testDate.toDate() );
-
         assertEquals( 11, periods.size() );
         assertEquals( periodType.createPeriod( new DateTime( 2004, 10, 1, 0, 0 ).toDate() ), periods.get( 0 ) );
     }
 
     @Test
-    public void testGetRewindedDate()
+    void testGetRewindedDate()
     {
         assertEquals( new DateTime( 2020, 1, 15, 0, 0 ).toDate(),
             periodType.getRewindedDate( new DateTime( 2023, 1, 15, 0, 0 ).toDate(), 3 ) );
-
         assertEquals( new DateTime( 2022, 1, 1, 0, 0 ).toDate(),
             periodType.getRewindedDate( new DateTime( 2020, 1, 1, 0, 0 ).toDate(), -2 ) );
     }

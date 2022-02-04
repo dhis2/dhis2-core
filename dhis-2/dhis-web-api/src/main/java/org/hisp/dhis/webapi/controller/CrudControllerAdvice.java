@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -363,12 +363,10 @@ public class CrudControllerAdvice
      * Catches default exception and send back to user, but re-throws internally
      * so it still ends up in server logs.
      */
-    @ExceptionHandler( Exception.class )
     @ResponseBody
+    @ExceptionHandler( Exception.class )
     public WebMessage defaultExceptionHandler( Exception ex )
     {
-        // We print the stacktrace so it shows up in the logs, so we can more
-        // easily understand 500-issues.
         ex.printStackTrace();
         return error( getExceptionMessage( ex ) );
     }

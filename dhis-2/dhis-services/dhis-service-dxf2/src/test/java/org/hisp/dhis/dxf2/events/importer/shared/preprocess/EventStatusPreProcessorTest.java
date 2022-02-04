@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,35 +35,33 @@ import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.event.EventStatus;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import com.google.common.collect.Sets;
 
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
  */
-public class EventStatusPreProcessorTest
+class EventStatusPreProcessorTest
 {
+
     private SharedEventStatusPreProcessor preProcessor;
 
-    @Before
-    public void setUp()
+    @BeforeEach
+    void setUp()
     {
         preProcessor = new SharedEventStatusPreProcessor();
     }
 
     @Test
-    public void testVisitedStatusIsConvertedToActive()
+    void testVisitedStatusIsConvertedToActive()
     {
-        WorkContext ctx = WorkContext.builder()
-            .importOptions( ImportOptions.getDefaultImportOptions() )
-            .build();
+        WorkContext ctx = WorkContext.builder().importOptions( ImportOptions.getDefaultImportOptions() ).build();
         Event event = new Event();
         event.setStatus( EventStatus.VISITED );
         event.setDataValues( Sets.newHashSet( new DataValue( "aaa", "one" ), new DataValue( "bbb", "two" ) ) );
         preProcessor.process( event, ctx );
-
         assertThat( event.getStatus(), is( EventStatus.ACTIVE ) );
     }
 }

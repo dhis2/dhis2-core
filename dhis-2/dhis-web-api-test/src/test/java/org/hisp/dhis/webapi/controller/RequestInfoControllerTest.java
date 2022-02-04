@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,23 +28,24 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.webapi.WebClient.Header;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.hisp.dhis.webapi.json.JsonObject;
-import org.hisp.dhis.webapi.json.JsonResponse;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests the {@link RequestInfoController}.
  *
  * @author Jan Bernitt
  */
-public class RequestInfoControllerTest extends DhisControllerConvenienceTest
+class RequestInfoControllerTest extends DhisControllerConvenienceTest
 {
+
     @Test
-    public void testGetCurrentInfo_NoHeader()
+    void testGetCurrentInfo_NoHeader()
     {
         JsonObject info = GET( "/request" ).content();
         assertTrue( info.isObject() );
@@ -52,7 +53,7 @@ public class RequestInfoControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void testGetCurrentInfo_XRequestIdHeader()
+    void testGetCurrentInfo_XRequestIdHeader()
     {
         JsonResponse info = GET( "/request", Header( "X-Request-ID", "abc" ) ).content();
         assertTrue( info.isObject() );

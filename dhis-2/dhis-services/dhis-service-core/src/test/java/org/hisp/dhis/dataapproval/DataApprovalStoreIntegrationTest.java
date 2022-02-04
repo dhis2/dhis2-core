@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,7 @@
 package org.hisp.dhis.dataapproval;
 
 import static com.google.common.collect.Sets.newHashSet;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
 
@@ -59,12 +59,11 @@ import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.joda.time.DateTime;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -77,8 +76,10 @@ import com.google.common.collect.Sets;
  *
  * @author Jim Grace
  */
-public class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTest
+@ExtendWith( MockitoExtension.class )
+class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTest
 {
+
     private HibernateDataApprovalStore dataApprovalStore;
 
     @Autowired
@@ -122,9 +123,6 @@ public class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTe
 
     @Mock
     private CurrentUserService currentUserService;
-
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     // -------------------------------------------------------------------------
     // Supporting data
@@ -266,7 +264,7 @@ public class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTe
     }
 
     @Test
-    public void testGetDataApprovalStatusesWithOpenPeriodsAfterCoEndDate()
+    void testGetDataApprovalStatusesWithOpenPeriodsAfterCoEndDate()
     {
         transactionTemplate.execute( status -> {
 
@@ -334,7 +332,7 @@ public class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTe
     }
 
     @Test
-    public void testApprovalStatusWithNoAccess()
+    void testApprovalStatusWithNoAccess()
     {
         transactionTemplate.execute( status -> {
 
@@ -345,7 +343,7 @@ public class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTe
     }
 
     @Test
-    public void testApprovalStatusWithOtherUserAccess()
+    void testApprovalStatusWithOtherUserAccess()
     {
         transactionTemplate.execute( status -> {
 
@@ -365,7 +363,7 @@ public class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTe
     }
 
     @Test
-    public void testApprovalStatusWithPublic()
+    void testApprovalStatusWithPublic()
     {
         transactionTemplate.execute( status -> {
 
@@ -379,7 +377,7 @@ public class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTe
     }
 
     @Test
-    public void testApprovalStatusWithOwner()
+    void testApprovalStatusWithOwner()
     {
         transactionTemplate.execute( status -> {
 
@@ -393,7 +391,7 @@ public class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTe
     }
 
     @Test
-    public void testApprovalStatusWithUserSharing()
+    void testApprovalStatusWithUserSharing()
     {
         transactionTemplate.execute( status -> {
 
@@ -407,7 +405,7 @@ public class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTe
     }
 
     @Test
-    public void testApprovalStatusWithUserGroupSharing()
+    void testApprovalStatusWithUserGroupSharing()
     {
         transactionTemplate.execute( status -> {
 

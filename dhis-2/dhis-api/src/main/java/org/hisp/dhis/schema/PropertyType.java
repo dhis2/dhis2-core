@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,6 +42,7 @@ public enum PropertyType
     NUMBER,
     INTEGER,
     BOOLEAN,
+    USERNAME,
     EMAIL,
     PASSWORD,
     URL,
@@ -58,7 +59,7 @@ public enum PropertyType
     public boolean isSimple()
     {
         return IDENTIFIER == this || TEXT == this || NUMBER == this || INTEGER == this || EMAIL == this
-            || PASSWORD == this || URL == this
-            || DATE == this || PHONENUMBER == this || GEOLOCATION == this || COLOR == this || CONSTANT == this;
+            || USERNAME == this || PASSWORD == this || URL == this || DATE == this || PHONENUMBER == this
+            || GEOLOCATION == this || COLOR == this || CONSTANT == this;
     }
 }

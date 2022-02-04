@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -185,6 +185,10 @@ public class DefaultSchemaValidator implements SchemaValidator
         {
             errorReports.add( createNameReport( ErrorCode.E4003, klass, property, value ) );
         }
+        else if ( isInvalidUsername( property, value ) )
+        {
+            errorReports.add( createNameReport( ErrorCode.E4049, klass, property, value ) );
+        }
         else if ( isInvalidUrl( property, value ) )
         {
             errorReports.add( createNameReport( ErrorCode.E4004, klass, property, value ) );
@@ -219,6 +223,11 @@ public class DefaultSchemaValidator implements SchemaValidator
     {
         return !BCRYPT_PATTERN.matcher( value ).matches() && PropertyType.PASSWORD == property.getPropertyType()
             && !ValidationUtils.passwordIsValid( value );
+    }
+
+    private boolean isInvalidUsername( Property property, String value )
+    {
+        return PropertyType.USERNAME == property.getPropertyType() && !ValidationUtils.usernameIsValid( value );
     }
 
     private boolean isInvalidEmail( Property property, String value )

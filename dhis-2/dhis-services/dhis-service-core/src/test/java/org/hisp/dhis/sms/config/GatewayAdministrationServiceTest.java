@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,12 +27,12 @@
  */
 package org.hisp.dhis.sms.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
@@ -41,19 +41,19 @@ import static org.mockito.Mockito.when;
 import java.util.function.Consumer;
 
 import org.jasypt.encryption.pbe.PBEStringEncryptor;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author Zubair Asghar.
  */
-public class GatewayAdministrationServiceTest
+@ExtendWith( MockitoExtension.class )
+class GatewayAdministrationServiceTest
 {
     private static final String BULKSMS = BulkSmsGatewayConfig.class.getName();
 
@@ -73,9 +73,6 @@ public class GatewayAdministrationServiceTest
     // Mocking Dependencies
     // -------------------------------------------------------------------------
 
-    @Rule
-    public MockitoRule rule = MockitoJUnit.rule();
-
     @Mock
     private SmsConfigurationManager smsConfigurationManager;
 
@@ -84,7 +81,7 @@ public class GatewayAdministrationServiceTest
 
     private DefaultGatewayAdministrationService subject;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
 
@@ -106,7 +103,7 @@ public class GatewayAdministrationServiceTest
     }
 
     @Test
-    public void testGetByUid()
+    void testGetByUid()
     {
         subject.addGateway( bulkConfig );
         String uid = subject.getDefaultGateway().getUid();
@@ -118,14 +115,14 @@ public class GatewayAdministrationServiceTest
     }
 
     @Test
-    public void testShouldReturnNullWhenUidIsNull()
+    void testShouldReturnNullWhenUidIsNull()
     {
         assertNull( subject.getByUid( "" ) );
         assertNull( subject.getByUid( null ) );
     }
 
     @Test
-    public void testSetDefaultGateway()
+    void testSetDefaultGateway()
     {
         subject.addGateway( bulkConfig );
         subject.addGateway( clickatellConfig );
@@ -139,7 +136,7 @@ public class GatewayAdministrationServiceTest
     }
 
     @Test
-    public void testAddGateway()
+    void testAddGateway()
     {
         boolean isAdded = subject.addGateway( bulkConfig );
 
@@ -160,7 +157,7 @@ public class GatewayAdministrationServiceTest
     }
 
     @Test
-    public void testUpdateDefaultGatewaySuccess()
+    void testUpdateDefaultGatewaySuccess()
     {
         assertTrue( subject.addGateway( bulkConfig ) );
         assertEquals( bulkConfig, subject.getDefaultGateway() );
@@ -177,7 +174,7 @@ public class GatewayAdministrationServiceTest
     }
 
     @Test
-    public void testUpdateGatewaySuccess()
+    void testUpdateGatewaySuccess()
     {
         assertTrue( subject.addGateway( bulkConfig ) );
         assertEquals( bulkConfig, subject.getDefaultGateway() );
@@ -200,7 +197,7 @@ public class GatewayAdministrationServiceTest
     }
 
     @Test
-    public void testNothingShouldBeUpdatedIfNullIsPassed()
+    void testNothingShouldBeUpdatedIfNullIsPassed()
     {
         bulkConfig.setName( BULKSMS );
         assertTrue( subject.addGateway( bulkConfig ) );
@@ -210,13 +207,13 @@ public class GatewayAdministrationServiceTest
     }
 
     @Test
-    public void testWhenNoDefaultGateway()
+    void testWhenNoDefaultGateway()
     {
         assertNull( subject.getDefaultGateway() );
     }
 
     @Test
-    public void testSecondGatewayIsSetToFalse()
+    void testSecondGatewayIsSetToFalse()
     {
         when( smsConfigurationManager.getSmsConfiguration() ).thenReturn( spyConfiguration );
 
@@ -234,7 +231,7 @@ public class GatewayAdministrationServiceTest
     }
 
     @Test
-    public void testRemoveDefaultGateway()
+    void testRemoveDefaultGateway()
     {
         subject.addGateway( bulkConfig );
         subject.addGateway( clickatellConfig );
@@ -248,12 +245,12 @@ public class GatewayAdministrationServiceTest
 
         assertTrue( subject.removeGatewayByUid( bulkId ) );
         assertGateways( 1 );
-        assertGateway( BULKSMS, Assert::assertNull );
+        assertGateway( BULKSMS, Assertions::assertNull );
         assertEquals( clickatellConfig, subject.getDefaultGateway() );
     }
 
     @Test
-    public void testRemoveGateway()
+    void testRemoveGateway()
     {
         subject.addGateway( bulkConfig );
         subject.addGateway( clickatellConfig );
@@ -265,12 +262,12 @@ public class GatewayAdministrationServiceTest
 
         assertTrue( subject.removeGatewayByUid( clickatelId ) );
         assertGateways( 1 );
-        assertGateway( CLICKATELL, Assert::assertNull );
+        assertGateway( CLICKATELL, Assertions::assertNull );
         assertEquals( bulkConfig, subject.getDefaultGateway() );
     }
 
     @Test
-    public void testRemoveSingleGateway()
+    void testRemoveSingleGateway()
     {
         subject.addGateway( bulkConfig );
 
@@ -283,13 +280,13 @@ public class GatewayAdministrationServiceTest
     }
 
     @Test
-    public void testReturnFalseIfConfigIsNull()
+    void testReturnFalseIfConfigIsNull()
     {
         assertFalse( subject.addGateway( null ) );
     }
 
     @Test
-    public void testUpdateGateway()
+    void testUpdateGateway()
     {
         assertTrue( subject.addGateway( bulkConfig ) );
         assertEquals( bulkConfig, subject.getDefaultGateway() );

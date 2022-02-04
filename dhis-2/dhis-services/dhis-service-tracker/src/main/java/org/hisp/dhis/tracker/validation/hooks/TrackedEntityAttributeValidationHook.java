@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,7 +40,10 @@ import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1112;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ATTRIBUTE_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.TRACKED_ENTITY_ATTRIBUTE_VALUE_CANT_BE_NULL;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -108,7 +111,7 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
                 .map( BaseIdentifiableObject::getUid )
                 .filter( mandatoryAttributeUid -> !trackedEntityAttributes.contains( mandatoryAttributeUid ) )
                 .forEach(
-                    attribute -> addError( reporter, E1090, attribute, trackedEntityType.getUid(),
+                    attribute -> reporter.addError( trackedEntity, E1090, attribute, trackedEntityType.getUid(),
                         trackedEntity.getTrackedEntity() ) );
         }
     }
@@ -135,7 +138,7 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
 
             if ( tea == null )
             {
-                addError( reporter, E1006, attribute.getAttribute() );
+                reporter.addError( trackedEntity, E1006, attribute.getAttribute() );
                 continue;
             }
 
@@ -149,43 +152,48 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
                         .findFirst() );
 
                 if ( optionalTea.isPresent() )
-                    addError( reporter, E1076, TrackedEntityAttribute.class.getSimpleName(), attribute.getAttribute() );
+                    reporter.addError( trackedEntity, E1076, TrackedEntityAttribute.class.getSimpleName(),
+                        attribute.getAttribute() );
 
                 continue;
             }
 
-            validateAttributeValue( reporter, tea, attribute.getValue() );
-            validateAttrValueType( reporter, attribute, tea );
-            validateOptionSet( reporter, tea, attribute.getValue() );
+            validateAttributeValue( reporter, trackedEntity, tea, attribute.getValue() );
+            validateAttrValueType( reporter, trackedEntity, attribute, tea );
+            validateOptionSet( reporter, trackedEntity, tea,
+                attribute.getValue() );
 
-            validateAttributeUniqueness( reporter, attribute.getValue(), tea, tei, orgUnit );
+            validateAttributeUniqueness( reporter, trackedEntity, attribute.getValue(), tea, tei, orgUnit );
 
-            validateFileNotAlreadyAssigned( reporter, attribute, valueMap );
+            validateFileNotAlreadyAssigned( reporter, trackedEntity, attribute, valueMap );
         }
     }
 
-    public void validateAttributeValue( ValidationErrorReporter reporter, TrackedEntityAttribute tea, String value )
+    public void validateAttributeValue( ValidationErrorReporter reporter, TrackedEntity te, TrackedEntityAttribute tea,
+        String value )
     {
         checkNotNull( tea, TRACKED_ENTITY_ATTRIBUTE_VALUE_CANT_BE_NULL );
         checkNotNull( value, TRACKED_ENTITY_ATTRIBUTE_VALUE_CANT_BE_NULL );
 
         // Validate value (string) don't exceed the max length
-        addErrorIf( () -> value.length() > Constant.MAX_ATTR_VALUE_LENGTH, reporter, E1077, value,
+        reporter.addErrorIf( () -> value.length() > Constant.MAX_ATTR_VALUE_LENGTH, te,
+            E1077, value,
             Constant.MAX_ATTR_VALUE_LENGTH );
 
         // Validate if that encryption is configured properly if someone sets
         // value to (confidential)
         boolean isConfidential = tea.isConfidentialBool();
         boolean encryptionStatusOk = dhisConfigurationProvider.getEncryptionStatus().isOk();
-        addErrorIf( () -> isConfidential && !encryptionStatusOk, reporter, E1112, value );
+        reporter.addErrorIf( () -> isConfidential && !encryptionStatusOk, te, E1112,
+            value );
 
         // Uses ValidationUtils to check that the data value corresponds to the
         // data value type set on the attribute
         final String result = dataValueIsValid( value, tea.getValueType() );
-        addErrorIf( () -> result != null, reporter, E1085, tea, result );
+        reporter.addErrorIf( () -> result != null, te, E1085, tea, result );
     }
 
-    protected void validateFileNotAlreadyAssigned( ValidationErrorReporter reporter,
+    protected void validateFileNotAlreadyAssigned( ValidationErrorReporter reporter, TrackedEntity te,
         Attribute attr, Map<String, TrackedEntityAttributeValue> valueMap )
     {
         checkNotNull( attr, ATTRIBUTE_CANT_BE_NULL );
@@ -207,7 +215,7 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
 
         FileResource fileResource = reporter.getValidationContext().getFileResource( attr.getValue() );
 
-        addErrorIfNull( fileResource, reporter, E1084, attr.getValue() );
-        addErrorIf( () -> fileResource != null && fileResource.isAssigned(), reporter, E1009, attr.getValue() );
+        reporter.addErrorIfNull( fileResource, te, E1084, attr.getValue() );
+        reporter.addErrorIf( () -> fileResource != null && fileResource.isAssigned(), te, E1009, attr.getValue() );
     }
 }

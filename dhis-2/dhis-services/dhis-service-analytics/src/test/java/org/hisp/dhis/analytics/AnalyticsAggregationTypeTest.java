@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,19 +27,28 @@
  */
 package org.hisp.dhis.analytics;
 
-import static org.hisp.dhis.analytics.AggregationType.*;
+import static org.hisp.dhis.analytics.AggregationType.AVERAGE;
+import static org.hisp.dhis.analytics.AggregationType.AVERAGE_SUM_ORG_UNIT;
+import static org.hisp.dhis.analytics.AggregationType.FIRST;
+import static org.hisp.dhis.analytics.AggregationType.FIRST_AVERAGE_ORG_UNIT;
+import static org.hisp.dhis.analytics.AggregationType.LAST;
+import static org.hisp.dhis.analytics.AggregationType.LAST_AVERAGE_ORG_UNIT;
+import static org.hisp.dhis.analytics.AggregationType.LAST_IN_PERIOD;
+import static org.hisp.dhis.analytics.AggregationType.LAST_IN_PERIOD_AVERAGE_ORG_UNIT;
+import static org.hisp.dhis.analytics.AggregationType.SUM;
 import static org.hisp.dhis.analytics.AnalyticsAggregationType.fromAggregationType;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Luciano Fiandesio
  */
-public class AnalyticsAggregationTypeTest
+class AnalyticsAggregationTypeTest
 {
+
     @Test
-    public void verifyFromAggregationType()
+    void verifyFromAggregationType()
     {
         assertAggregationType( fromAggregationType( AVERAGE_SUM_ORG_UNIT ), SUM, AVERAGE );
         assertAggregationType( fromAggregationType( LAST ), SUM, LAST );

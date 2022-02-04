@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,7 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
 
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
 /**
@@ -40,20 +40,20 @@ import org.springframework.http.HttpStatus;
  *
  * @author Jan Bernitt
  */
-public class ProgramRuleActionControllerTest extends DhisControllerConvenienceTest
+class ProgramRuleActionControllerTest extends DhisControllerConvenienceTest
 {
+
     @Test
-    public void testGetDataExpressionDescription()
+    void testGetDataExpressionDescription()
     {
         String pId = assertStatus( HttpStatus.CREATED,
             POST( "/programs/", "{'name':'P1', 'shortName':'P1', 'programType':'WITHOUT_REGISTRATION'}" ) );
-
         assertWebMessage( "OK", 200, "OK", "Valid",
             POST( "/programRuleActions/data/expression/description?programId=" + pId, "70" ).content( HttpStatus.OK ) );
     }
 
     @Test
-    public void testGetDataExpressionDescription_NoSuchProgram()
+    void testGetDataExpressionDescription_NoSuchProgram()
     {
         assertWebMessage( "Conflict", 409, "ERROR", "Expression is not valid",
             POST( "/programRuleActions/data/expression/description?programId=xyz", "70" )
@@ -61,11 +61,10 @@ public class ProgramRuleActionControllerTest extends DhisControllerConvenienceTe
     }
 
     @Test
-    public void testGetDataExpressionDescription_WithInvalidExpression()
+    void testGetDataExpressionDescription_WithInvalidExpression()
     {
         String pId = assertStatus( HttpStatus.CREATED,
             POST( "/programs/", "{'name':'P1', 'shortName':'P1', 'programType':'WITHOUT_REGISTRATION'}" ) );
-
         assertWebMessage( "Conflict", 409, "ERROR", "Expression is not valid",
             POST( "/programRuleActions/data/expression/description?programId=" + pId, "1 + " )
                 .content( HttpStatus.CONFLICT ) );

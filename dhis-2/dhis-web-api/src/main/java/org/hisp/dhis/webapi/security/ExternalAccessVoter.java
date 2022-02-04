@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,6 +39,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventreport.EventReport;
+import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.report.Report;
 import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.visualization.Visualization;
@@ -72,6 +73,7 @@ public class ExternalAccessVoter implements AccessDecisionVoter<FilterInvocation
         externalClasses.put( "sqlViews", SqlView.class );
         externalClasses.put( "eventReports", EventReport.class );
         externalClasses.put( "eventCharts", EventChart.class );
+        externalClasses.put( "eventVisualizations", EventVisualization.class );
     }
 
     // -------------------------------------------------------------------------

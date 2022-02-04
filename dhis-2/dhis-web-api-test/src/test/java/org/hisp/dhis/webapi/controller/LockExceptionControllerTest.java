@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +27,12 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static java.lang.String.format;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
 
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
 /**
@@ -39,52 +40,50 @@ import org.springframework.http.HttpStatus;
  *
  * @author Jan Bernitt
  */
-public class LockExceptionControllerTest extends DhisControllerConvenienceTest
+class LockExceptionControllerTest extends DhisControllerConvenienceTest
 {
 
     private String ouId;
 
     private String dsId;
 
-    @Before
-    public void setUp()
+    @BeforeEach
+    void setUp()
     {
         dsId = assertStatus( HttpStatus.CREATED,
             POST( "/dataSets/", "{'name':'My data set', 'periodType':'Monthly'}" ) );
-
         ouId = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits/",
-                "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}" ) );
-
-        assertStatus( HttpStatus.NO_CONTENT,
-            POST( "/organisationUnits/{ou}/dataSets/{ds}", ouId, dsId ) );
+            POST( "/organisationUnits/", "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}" ) );
+        assertStatus( HttpStatus.NO_CONTENT, POST( "/organisationUnits/{ou}/dataSets/{ds}", ouId, dsId ) );
     }
 
     @Test
-    public void testAddLockException()
+    void testAddLockException()
     {
         assertWebMessage( "Created", 201, "OK", "LockException created successfully.",
             POST( "/lockExceptions/?ou={ou}&pe=2021-01&ds={ds}", ouId, dsId ).content( HttpStatus.CREATED ) );
     }
 
     @Test
-    public void testAddLockException_DataSetNotLinked()
+    void testAddLockException_DataSetNotLinked()
     {
         String dsId2 = assertStatus( HttpStatus.CREATED,
             POST( "/dataSets/", "{'name':'My data set', 'periodType':'Monthly'}" ) );
-
-        assertStatus( HttpStatus.NO_CONTENT, POST( "/lockExceptions/?ou={ou}&pe=2021-01&ds={ds}", ouId, dsId2 ) );
+        assertWebMessage( "Conflict", 409, "ERROR",
+            format( "None of the target organisation unit(s) %s is linked to the specified data set: %s",
+                ouId, dsId2 ),
+            POST( "/lockExceptions/?ou={ou}&pe=2021-01&ds={ds}", ouId, dsId2 ).content( HttpStatus.CONFLICT ) );
     }
 
     @Test
-    public void testAddLockException_NoOrgUnit()
+    void testAddLockException_NoOrgUnit()
     {
-        assertWebMessage( "Conflict", 409, "ERROR", " OrganisationUnit ID is invalid.",
+        assertWebMessage( "Conflict", 409, "ERROR", "OrganisationUnit ID is invalid.",
             POST( "/lockExceptions/?ou=&pe=2021-01&ds=" + dsId ).content( HttpStatus.CONFLICT ) );
     }
 
     @Test
-    public void testAddLockException_IllegalOrgUnit()
+    void testAddLockException_IllegalOrgUnit()
     {
         assertWebMessage( "Conflict", 409, "ERROR", "Can't find OrganisationUnit with id =xyz",
             POST( "/lockExceptions/?ou=xyz&pe=2021-01&ds=" + dsId ).content( HttpStatus.CONFLICT ) );

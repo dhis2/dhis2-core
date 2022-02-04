@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -145,9 +145,8 @@ public class JpaQueryUtils
         case NOT_ANYWHERE:
             return builder.notLike( path, "%" + attrValue + "%" );
         case LIKE:
-            return builder.like( path, (String) attrValue ); // assume user
-                                                             // provide the wild
-                                                             // cards
+            // Assumes user provides wildcards
+            return builder.like( path, (String) attrValue );
         case NOT_LIKE:
             return builder.notLike( path, (String) attrValue );
         default:
@@ -160,18 +159,15 @@ public class JpaQueryUtils
      */
     public enum StringSearchMode
     {
-
         EQUALS( "eq" ), // Match exactly
         NOT_EQUALS( "neq" ),
         ANYWHERE( "any" ), // Like search with '%' prefix and suffix
         NOT_ANYWHERE( "nany" ), // Like search with '%' prefix and suffix
-        STARTING_LIKE( "sl" ), // Like search and add a '%' prefix before
-                               // searching
+        STARTING_LIKE( "sl" ), // Like search and add '%' prefix first
         NOT_STARTING_LIKE( "nsl" ),
         LIKE( "li" ), // User provides the wild card
         NOT_LIKE( "nli" ), // User provides the wild card
-        ENDING_LIKE( "el" ), // LIKE search and add a '%' suffix before
-                             // searching
+        ENDING_LIKE( "el" ), // LIKE search and add a '%' suffix first
         NOT_ENDING_LIKE( "nel" );
 
         private final String code;
@@ -312,7 +308,7 @@ public class JpaQueryUtils
     public static <T> Function<Root<T>, Predicate> checkUserAccess( CriteriaBuilder builder, String userUid,
         String access )
     {
-        return ( Root<T> root ) -> builder.and(
+        return root -> builder.and(
             builder.equal(
                 builder.function(
                     JsonbFunctions.HAS_USER_ID,
@@ -340,7 +336,7 @@ public class JpaQueryUtils
     public static <T> Function<Root<T>, Predicate> checkUserGroupsAccess( CriteriaBuilder builder,
         Set<String> userGroupUids, String access )
     {
-        return ( Root<T> root ) -> {
+        return root -> {
             if ( CollectionUtils.isEmpty( userGroupUids ) )
             {
                 return null;
@@ -405,6 +401,7 @@ public class JpaQueryUtils
         {
             return "1=1";
         }
+
         return "(" + sqlToHql( tableName,
             generateSQlQueryForSharingCheck( tableName + ".sharing", user, access ) ) + ")";
     }

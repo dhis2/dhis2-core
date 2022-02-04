@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,11 +30,11 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.webapi.WebClient.Accept;
 import static org.hisp.dhis.webapi.WebClient.Body;
 import static org.hisp.dhis.webapi.WebClient.ContentType;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 
@@ -45,17 +45,18 @@ import org.springframework.http.MediaType;
  *
  * @author Jan Bernitt
  */
-public class RelationshipControllerTest extends DhisControllerConvenienceTest
+class RelationshipControllerTest extends DhisControllerConvenienceTest
 {
+
     @Test
-    public void testPostRelationshipJson()
+    void testPostRelationshipJson()
     {
         assertWebMessage( "OK", 200, "OK", "Import was successful.",
             POST( "/relationships/", "{'relationships':[]}" ).content( HttpStatus.OK ) );
     }
 
     @Test
-    public void testPostRelationshipXml()
+    void testPostRelationshipXml()
     {
         HttpResponse response = POST( "/relationships/", Body( "<relationships></relationships>" ),
             ContentType( MediaType.APPLICATION_XML ), Accept( MediaType.APPLICATION_XML ) );
@@ -64,14 +65,14 @@ public class RelationshipControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void testUpdateRelationshipJson_NoSuchObject()
+    void testUpdateRelationshipJson_NoSuchObject()
     {
         assertWebMessage( "Not Found", 404, "ERROR", "No relationship with id 'xyz' was found.",
             PUT( "/relationships/xyz", "{}" ).content( HttpStatus.NOT_FOUND ) );
     }
 
     @Test
-    public void testUpdateRelationshipXml_NoSuchObject()
+    void testUpdateRelationshipXml_NoSuchObject()
     {
         HttpResponse response = PUT( "/relationships/xyz", Body( "<relationship></relationship>" ),
             ContentType( MediaType.APPLICATION_XML ), Accept( MediaType.APPLICATION_XML ) );
@@ -79,7 +80,7 @@ public class RelationshipControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void testDeleteRelationship_NoSuchObject()
+    void testDeleteRelationship_NoSuchObject()
     {
         assertWebMessage( "Not Found", 404, "ERROR", "No relationship with id 'xyz' was found.",
             DELETE( "/relationships/xyz" ).content( HttpStatus.NOT_FOUND ) );

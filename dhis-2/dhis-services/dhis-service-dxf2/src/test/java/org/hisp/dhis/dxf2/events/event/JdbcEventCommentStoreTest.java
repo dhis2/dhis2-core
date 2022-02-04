@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,15 +28,25 @@
 package org.hisp.dhis.dxf2.events.event;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.anyInt;
+import static org.mockito.Mockito.anyLong;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 import java.util.List;
 
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import com.google.common.collect.ImmutableList;
@@ -44,12 +54,14 @@ import com.google.common.collect.ImmutableList;
 /**
  * @author Giuseppe Nespolino <g.nespolino@gmail.com>
  */
-public class JdbcEventCommentStoreTest
+@MockitoSettings( strictness = Strictness.LENIENT )
+@ExtendWith( MockitoExtension.class )
+class JdbcEventCommentStoreTest
 {
 
     private JdbcEventCommentStore jdbcEventCommentStore;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         JdbcTemplate jdbcTemplate = mock( JdbcTemplate.class );
@@ -60,7 +72,7 @@ public class JdbcEventCommentStoreTest
     }
 
     @Test
-    public void verifyPSITableIsNotQueriedWhenNoComments()
+    void verifyPSITableIsNotQueriedWhenNoComments()
     {
         List<ProgramStageInstance> programStageInstanceList = getProgramStageList( false );
         jdbcEventCommentStore.saveAllComments( programStageInstanceList );
@@ -68,7 +80,7 @@ public class JdbcEventCommentStoreTest
     }
 
     @Test
-    public void verifyPSITableIsNotQueriedWhenCommentsTextEmpty()
+    void verifyPSITableIsNotQueriedWhenCommentsTextEmpty()
     {
         List<ProgramStageInstance> programStageInstanceList = getProgramStageList( true, true );
         jdbcEventCommentStore.saveAllComments( programStageInstanceList );
@@ -76,7 +88,7 @@ public class JdbcEventCommentStoreTest
     }
 
     @Test
-    public void verifyPSITableIsQueriedWhenComments()
+    void verifyPSITableIsQueriedWhenComments()
     {
         List<ProgramStageInstance> programStageInstanceList = getProgramStageList( true );
         jdbcEventCommentStore.saveAllComments( programStageInstanceList );

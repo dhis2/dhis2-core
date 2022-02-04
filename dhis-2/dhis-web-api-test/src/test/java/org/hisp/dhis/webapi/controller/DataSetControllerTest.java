@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,14 +28,14 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import org.hisp.dhis.jsontree.JsonArray;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.hisp.dhis.webapi.json.JsonArray;
-import org.hisp.dhis.webapi.json.JsonObject;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
 /**
@@ -43,19 +43,20 @@ import org.springframework.http.HttpStatus;
  *
  * @author Jan Bernitt
  */
-public class DataSetControllerTest extends DhisControllerConvenienceTest
+class DataSetControllerTest extends DhisControllerConvenienceTest
 {
+
     private String dsId;
 
-    @Before
-    public void setUp()
+    @BeforeEach
+    void setUp()
     {
         dsId = assertStatus( HttpStatus.CREATED,
             POST( "/dataSets/", "{'name':'My data set', 'periodType':'Monthly'}" ) );
     }
 
     @Test
-    public void testGetVersion()
+    void testGetVersion()
     {
         JsonObject info = GET( "/dataSets/{id}/version", dsId ).content( HttpStatus.OK );
         assertTrue( info.isObject() );
@@ -64,11 +65,10 @@ public class DataSetControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void testGetFormJson()
+    void testGetFormJson()
     {
         String ouId = assertStatus( HttpStatus.CREATED,
             POST( "/organisationUnits/", "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}" ) );
-
         JsonObject info = GET( "/dataSets/{id}/form?ou={ou}", dsId, ouId ).content( HttpStatus.OK );
         assertTrue( info.isObject() );
         assertTrue( info.has( "label", "options", "groups" ) );

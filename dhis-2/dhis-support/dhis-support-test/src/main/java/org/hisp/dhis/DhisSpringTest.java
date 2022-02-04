@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,25 +35,26 @@ import org.hisp.dhis.config.UnitTestConfig;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.h2.H2SqlFunction;
 import org.hisp.dhis.utils.TestUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Trygve Laugstoel
  * @author Lars Helge Overland
  */
-@RunWith( SpringRunner.class )
+@ExtendWith( SpringExtension.class )
 @ContextConfiguration( classes = UnitTestConfig.class )
 @ActiveProfiles( profiles = { "test-h2" } )
 @Transactional
 public abstract class DhisSpringTest extends BaseSpringTest
 {
+
     protected boolean emptyDatabaseAfterTest()
     {
         return false;
@@ -62,31 +63,26 @@ public abstract class DhisSpringTest extends BaseSpringTest
     @Autowired
     private DataSource dataSource;
 
-    @Before
-    public final void before()
+    @BeforeEach
+    final void before()
         throws Exception
     {
         TestUtils.executeStartupRoutines( applicationContext );
-
         boolean enableQueryLogging = dhisConfigurationProvider.isEnabled( ConfigurationKey.ENABLE_QUERY_LOGGING );
-
         if ( enableQueryLogging )
         {
             Configurator.setLevel( "org.hisp.dhis.datasource.query", Level.INFO );
             Configurator.setRootLevel( Level.INFO );
         }
-
         H2SqlFunction.registerH2Functions( dataSource );
-
         setUpTest();
     }
 
-    @After
-    public final void after()
+    @AfterEach
+    final void after()
         throws Exception
     {
         clearSecurityContext();
-
         tearDownTest();
     }
 }

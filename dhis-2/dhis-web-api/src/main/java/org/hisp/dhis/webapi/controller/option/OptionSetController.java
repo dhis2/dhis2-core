@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,6 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.schema.descriptors.OptionSetSchemaDescriptor;
@@ -46,6 +45,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -58,7 +59,7 @@ public class OptionSetController
     private OptionService optionService;
 
     @GetMapping( "/{uid}/metadata" )
-    public ResponseEntity<RootNode> getOptionSetWithDependencies( @PathVariable( "uid" ) String pvUid,
+    public ResponseEntity<JsonNode> getOptionSetWithDependencies( @PathVariable( "uid" ) String pvUid,
         HttpServletResponse response, @RequestParam( required = false, defaultValue = "false" ) boolean download )
         throws WebMessageException
     {

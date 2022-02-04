@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,7 @@
 package org.hisp.dhis.webapi.controller;
 
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests the
@@ -37,10 +37,11 @@ import org.junit.Test;
  *
  * @author Jan Bernitt
  */
-public class ValidationControllerTest extends DhisControllerConvenienceTest
+class ValidationControllerTest extends DhisControllerConvenienceTest
 {
+
     @Test
-    public void testRunValidationNotificationsTask()
+    void testRunValidationNotificationsTask()
     {
         assertWebMessage( "OK", 200, "OK", "Initiated validation result notification",
             POST( "/validation/sendNotifications" ).content() );

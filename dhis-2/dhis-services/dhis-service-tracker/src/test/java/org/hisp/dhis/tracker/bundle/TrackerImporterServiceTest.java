@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,30 +41,28 @@ import java.util.stream.Collectors;
 
 import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.system.notification.Notifier;
+import org.hisp.dhis.tracker.DefaultTrackerImportService;
 import org.hisp.dhis.tracker.ParamsConverter;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerUserService;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preprocess.TrackerPreprocessService;
-import org.hisp.dhis.tracker.report.DefaultTrackerImportService;
 import org.hisp.dhis.tracker.report.TrackerBundleReport;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.validation.TrackerValidationService;
 import org.hisp.dhis.user.User;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author Zubair Asghar
  */
-public class TrackerImporterServiceTest
+@ExtendWith( MockitoExtension.class )
+class TrackerImporterServiceTest
 {
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Mock
     private TrackerBundleService trackerBundleService;
@@ -87,7 +85,7 @@ public class TrackerImporterServiceTest
 
     private final BeanRandomizer rnd = BeanRandomizer.create();
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         subject = new DefaultTrackerImportService( trackerBundleService, trackerValidationService,
@@ -118,7 +116,7 @@ public class TrackerImporterServiceTest
     }
 
     @Test
-    public void testSkipSideEffect()
+    void testSkipSideEffect()
     {
         TrackerImportParams parameters = TrackerImportParams.builder()
             .events( params.getEvents() )
@@ -138,7 +136,7 @@ public class TrackerImporterServiceTest
     }
 
     @Test
-    public void testWithSideEffects()
+    void testWithSideEffects()
     {
         doAnswer( invocationOnMock -> null ).when( trackerBundleService ).handleTrackerSideEffects( anyList() );
         when( trackerBundleService.create( any( TrackerImportParams.class ) ) )

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,7 +41,6 @@ import javax.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.kafka.connect.source.SourceRecord;
-import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -90,9 +89,6 @@ public class DebeziumService
     private static final Executor EXECUTOR_SERVICE = Executors.newSingleThreadExecutor();
 
     private static final CountDownLatch COUNT_DOWN_LATCH = new CountDownLatch( 1 );
-
-    @Autowired
-    private ConfigurationService configurationService;
 
     @Autowired
     private DbChangeEventHandler dbChangeEventHandler;
@@ -171,6 +167,7 @@ public class DebeziumService
         props.setProperty( "slot.drop.on.stop", "true" );
         props.setProperty( "table.exclude.list",
             "public.spatial_ref_sys,"
+                + "postgis.spatial_ref_sys,"
                 + "public.audit,"
                 + "public.userroleauthorities,"
                 + "public.oauth_access_token,"

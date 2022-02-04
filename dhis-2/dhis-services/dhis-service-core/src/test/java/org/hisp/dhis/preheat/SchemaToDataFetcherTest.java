@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,12 +52,13 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.sms.command.SMSCommand;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import com.google.common.collect.Lists;
 
@@ -65,8 +66,11 @@ import com.google.common.collect.Lists;
  * @author Luciano Fiandesio
  */
 @SuppressWarnings( "unchecked" )
-public class SchemaToDataFetcherTest extends DhisConvenienceTest
+@MockitoSettings( strictness = Strictness.LENIENT )
+@ExtendWith( MockitoExtension.class )
+class SchemaToDataFetcherTest extends DhisConvenienceTest
 {
+
     private SchemaToDataFetcher subject;
 
     @Mock
@@ -78,10 +82,7 @@ public class SchemaToDataFetcherTest extends DhisConvenienceTest
     @Mock
     private Query query;
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
-    @Before
+    @BeforeEach
     public void setUp()
     {
         when( sessionFactory.getCurrentSession() ).thenReturn( session );
@@ -89,13 +90,13 @@ public class SchemaToDataFetcherTest extends DhisConvenienceTest
     }
 
     @Test
-    public void verifyInput()
+    void verifyInput()
     {
         assertThat( subject.fetch( null ), hasSize( 0 ) );
     }
 
     @Test
-    public void verifyUniqueFieldsAreMappedToHibernateObject()
+    void verifyUniqueFieldsAreMappedToHibernateObject()
     {
         Schema schema = createSchema( DataElement.class, "dataElement",
             Stream.of(
@@ -133,7 +134,7 @@ public class SchemaToDataFetcherTest extends DhisConvenienceTest
     }
 
     @Test
-    public void verifyUniqueFieldsAreSkippedOnReflectionError()
+    void verifyUniqueFieldsAreSkippedOnReflectionError()
     {
         Schema schema = createSchema( DummyDataElement.class, "dummyDataElement",
             Stream.of(
@@ -142,7 +143,7 @@ public class SchemaToDataFetcherTest extends DhisConvenienceTest
 
         mockSession( "SELECT code,url from " + schema.getKlass().getSimpleName() );
 
-        List<Object[]> l = new ArrayList();
+        List<Object[]> l = new ArrayList<>();
 
         l.add( new Object[] { "abc", "http://ok" } );
         l.add( new Object[] { "bce", "http://-exception" } );
@@ -164,7 +165,7 @@ public class SchemaToDataFetcherTest extends DhisConvenienceTest
     }
 
     @Test
-    public void verifyUniqueFieldsAre()
+    void verifyUniqueFieldsAre()
     {
         Schema schema = createSchema( DummyDataElement.class, "dummyDataElement",
             Stream.of(
@@ -174,7 +175,7 @@ public class SchemaToDataFetcherTest extends DhisConvenienceTest
 
         mockSession( "SELECT url from " + schema.getKlass().getSimpleName() );
 
-        List<Object> l = new ArrayList();
+        List<Object> l = new ArrayList<>();
 
         l.add( "http://ok" );
         l.add( "http://is-ok" );
@@ -197,7 +198,7 @@ public class SchemaToDataFetcherTest extends DhisConvenienceTest
     }
 
     @Test
-    public void verifyNoSqlWhenUniquePropertiesListIsEmpty()
+    void verifyNoSqlWhenUniquePropertiesListIsEmpty()
     {
         Schema schema = createSchema( SMSCommand.class, "smsCommand", Lists.newArrayList() );
 
@@ -207,7 +208,7 @@ public class SchemaToDataFetcherTest extends DhisConvenienceTest
     }
 
     @Test
-    public void verifyNoSqlWhenNoUniquePropertyExist()
+    void verifyNoSqlWhenNoUniquePropertyExist()
     {
         Schema schema = createSchema( SMSCommand.class, "smsCommand",
             Stream.of(

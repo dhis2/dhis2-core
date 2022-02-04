@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,8 +30,8 @@ package org.hisp.dhis.validation;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -48,15 +48,15 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.validation.comparator.ValidationResultQuery;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests the validation of the {@link ValidationResultService}.
  *
  * @author Jan Bernitt
  */
-public class ValidationResultServiceTest
+class ValidationResultServiceTest
 {
 
     private final ValidationResultStore store = mock( ValidationResultStore.class );
@@ -70,12 +70,11 @@ public class ValidationResultServiceTest
     private final ValidationResultService service = new DefaultValidationResultService( store, periodService,
         organisationUnitService, validationRuleService );
 
-    @Before
-    public void setUp()
+    @BeforeEach
+    void setUp()
     {
         when( store.count( any() ) ).thenReturn( 0 );
         when( store.query( any() ) ).thenReturn( emptyList() );
-
         // return an OrganisationUnit for any given valid UID
         when( organisationUnitService.getOrganisationUnitsByUid( any() ) ).then( orgUnitsByUidInvocation -> {
             Collection<String> uids = orgUnitsByUidInvocation.getArgument( 0 );
@@ -91,7 +90,6 @@ public class ValidationResultServiceTest
             }
             return units;
         } );
-
         // return a ValidationRule for any given valid UID
         when( validationRuleService.getValidationRulesByUid( any() ) ).then( validationRuleByUidInvocation -> {
             Collection<String> uids = validationRuleByUidInvocation.getArgument( 0 );
@@ -110,7 +108,7 @@ public class ValidationResultServiceTest
     }
 
     @Test
-    public void validationQueryOrganisationUnitMustExist()
+    void validationQueryOrganisationUnitMustExist()
     {
         BiConsumer<ValidationResultQuery, List<String>> op = ValidationResultQuery::setOu;
         assertIllegalQuery( ErrorCode.E7500, op, "tooShrtUid" );
@@ -124,7 +122,7 @@ public class ValidationResultServiceTest
     }
 
     @Test
-    public void validationQueryValidationRuleMustExist()
+    void validationQueryValidationRuleMustExist()
     {
         BiConsumer<ValidationResultQuery, List<String>> op = ValidationResultQuery::setVr;
         assertIllegalQuery( ErrorCode.E7501, op, "tooShrtUid" );
@@ -138,7 +136,7 @@ public class ValidationResultServiceTest
     }
 
     @Test
-    public void validationQueryPeriodMustBeIsoExpressions()
+    void validationQueryPeriodMustBeIsoExpressions()
     {
         BiConsumer<ValidationResultQuery, List<String>> op = ValidationResultQuery::setPe;
         assertIllegalQuery( ErrorCode.E7502, op, "illegal" );
@@ -150,7 +148,7 @@ public class ValidationResultServiceTest
     }
 
     @Test
-    public void validationDeleteRequestOrganisationUnitMustExist()
+    void validationDeleteRequestOrganisationUnitMustExist()
     {
         BiConsumer<ValidationResultsDeletionRequest, List<String>> op = ValidationResultsDeletionRequest::setOu;
         assertIllegalRequest( ErrorCode.E7500, op, singletonList( "illegalUid" ) );
@@ -160,7 +158,7 @@ public class ValidationResultServiceTest
     }
 
     @Test
-    public void validationDeleteRequestValidationRuleMustExist()
+    void validationDeleteRequestValidationRuleMustExist()
     {
         BiConsumer<ValidationResultsDeletionRequest, List<String>> op = ValidationResultsDeletionRequest::setVr;
         assertIllegalRequest( ErrorCode.E7501, op, singletonList( "illegalUid" ) );
@@ -170,7 +168,7 @@ public class ValidationResultServiceTest
     }
 
     @Test
-    public void validationDeleteRequestPeriodMustBeIsoExpression()
+    void validationDeleteRequestPeriodMustBeIsoExpression()
     {
         BiConsumer<ValidationResultsDeletionRequest, String> op = ValidationResultsDeletionRequest::setPe;
         assertIllegalRequest( ErrorCode.E7502, op, "illegal" );
@@ -178,7 +176,7 @@ public class ValidationResultServiceTest
     }
 
     @Test
-    public void validationDeleteRequestCreatedPeriodMustBeIsoExpression()
+    void validationDeleteRequestCreatedPeriodMustBeIsoExpression()
     {
         BiConsumer<ValidationResultsDeletionRequest, String> op = ValidationResultsDeletionRequest::setCreated;
         assertIllegalRequest( ErrorCode.E7503, op, "illegal" );
@@ -200,8 +198,8 @@ public class ValidationResultServiceTest
         service.deleteValidationResults( request );
     }
 
-    private void assertIllegalQuery( ErrorCode expected,
-        BiConsumer<ValidationResultQuery, List<String>> operation, String... values )
+    private void assertIllegalQuery( ErrorCode expected, BiConsumer<ValidationResultQuery, List<String>> operation,
+        String... values )
     {
         ValidationResultQuery query = new ValidationResultQuery();
         operation.accept( query, asList( values ) );
@@ -209,8 +207,7 @@ public class ValidationResultServiceTest
             () -> service.getValidationResults( query ) );
         String errorValue = values[values.length - 1];
         assertError( ex, expected, errorValue );
-        ex = assertThrows( IllegalQueryException.class,
-            () -> service.countValidationResults( query ) );
+        ex = assertThrows( IllegalQueryException.class, () -> service.countValidationResults( query ) );
         assertError( ex, expected, errorValue );
     }
 
@@ -230,9 +227,7 @@ public class ValidationResultServiceTest
      */
     private <T> String getFaultyValue( T value )
     {
-        return String.valueOf( value instanceof List
-            ? ((List<?>) value).get( ((List<?>) value).size() - 1 )
-            : value );
+        return String.valueOf( value instanceof List ? ((List<?>) value).get( ((List<?>) value).size() - 1 ) : value );
     }
 
     private void assertError( IllegalQueryException ex, ErrorCode expected, String value )

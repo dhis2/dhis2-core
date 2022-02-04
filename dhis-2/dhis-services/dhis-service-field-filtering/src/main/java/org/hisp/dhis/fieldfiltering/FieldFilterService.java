@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,6 +37,7 @@ import org.hisp.dhis.fieldfiltering.transformers.IsNotEmptyFieldTransformer;
 import org.hisp.dhis.fieldfiltering.transformers.PluckFieldTransformer;
 import org.hisp.dhis.fieldfiltering.transformers.RenameFieldTransformer;
 import org.hisp.dhis.fieldfiltering.transformers.SizeFieldTransformer;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.OrderComparator;
 import org.springframework.stereotype.Service;
@@ -88,19 +89,6 @@ public class FieldFilterService
         this.jsonMapper = configureFieldFilterObjectMapper( jsonMapper );
     }
 
-    private ObjectMapper configureFieldFilterObjectMapper( ObjectMapper objectMapper )
-    {
-        objectMapper = objectMapper.copy();
-
-        SimpleModule module = new SimpleModule();
-        module.setMixInAnnotation( Object.class, FieldFilterMixin.class );
-
-        objectMapper.registerModule( module );
-        objectMapper.setAnnotationIntrospector( new IgnoreJsonSerializerRefinementAnnotationInspector() );
-
-        return objectMapper;
-    }
-
     public List<ObjectNode> toObjectNodes( FieldFilterParams<?> params )
     {
         List<ObjectNode> objectNodes = new ArrayList<>();
@@ -111,9 +99,13 @@ public class FieldFilterService
         }
 
         List<FieldPath> fieldPaths = FieldFilterParser.parse( params.getFilters() );
-        fieldPathHelper.apply( fieldPaths, params.getObjects().iterator().next().getClass() );
 
-        SimpleFilterProvider filterProvider = getSimpleFilterProvider( fieldPaths );
+        // In case we get a proxied object in we can't just use o.getClass(), we
+        // need to figure out the real class name by using HibernateProxyUtils.
+        Object firstObject = params.getObjects().iterator().next();
+        fieldPathHelper.apply( fieldPaths, HibernateProxyUtils.getRealClass( firstObject ) );
+
+        SimpleFilterProvider filterProvider = getSimpleFilterProvider( fieldPaths, params.isSkipSharing() );
         ObjectMapper objectMapper = jsonMapper.setFilterProvider( filterProvider );
 
         Map<String, List<FieldTransformer>> fieldTransformers = getTransformers( fieldPaths );
@@ -127,6 +119,29 @@ public class FieldFilterService
         }
 
         return objectNodes;
+    }
+
+    public ObjectNode createObjectNode()
+    {
+        return jsonMapper.createObjectNode();
+    }
+
+    public ArrayNode createArrayNode()
+    {
+        return jsonMapper.createArrayNode();
+    }
+
+    private ObjectMapper configureFieldFilterObjectMapper( ObjectMapper objectMapper )
+    {
+        objectMapper = objectMapper.copy();
+
+        SimpleModule module = new SimpleModule();
+        module.setMixInAnnotation( Object.class, FieldFilterMixin.class );
+
+        objectMapper.registerModule( module );
+        objectMapper.setAnnotationIntrospector( new IgnoreJsonSerializerRefinementAnnotationInspector() );
+
+        return objectMapper;
     }
 
     private void applyTransformers( JsonNode node, JsonNode parent, String path,
@@ -165,10 +180,10 @@ public class FieldFilterService
         }
     }
 
-    private SimpleFilterProvider getSimpleFilterProvider( List<FieldPath> fieldPaths )
+    private SimpleFilterProvider getSimpleFilterProvider( List<FieldPath> fieldPaths, boolean skipSharing )
     {
         SimpleFilterProvider filterProvider = new SimpleFilterProvider();
-        filterProvider.addFilter( "field-filter", new FieldFilterSimpleBeanPropertyFilter( fieldPaths ) );
+        filterProvider.addFilter( "field-filter", new FieldFilterSimpleBeanPropertyFilter( fieldPaths, skipSharing ) );
 
         return filterProvider;
     }

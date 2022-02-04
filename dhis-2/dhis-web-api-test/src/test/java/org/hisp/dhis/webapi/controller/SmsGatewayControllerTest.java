@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,13 +28,13 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
-import static org.wildfly.common.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import org.hisp.dhis.jsontree.JsonArray;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.hisp.dhis.webapi.json.JsonArray;
-import org.hisp.dhis.webapi.json.JsonObject;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
 /**
@@ -43,12 +43,13 @@ import org.springframework.http.HttpStatus;
  *
  * @author Jan Bernitt
  */
-public class SmsGatewayControllerTest extends DhisControllerConvenienceTest
+class SmsGatewayControllerTest extends DhisControllerConvenienceTest
 {
+
     private String uid;
 
-    @After
-    public void tearDown()
+    @AfterEach
+    void tearDown()
     {
         JsonArray gateways = GET( "/gateways" ).content().getArray( "gateways" );
         for ( JsonObject gateway : gateways.asList( JsonObject.class ) )
@@ -59,42 +60,40 @@ public class SmsGatewayControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void testSetDefault()
+    void testSetDefault()
     {
         uid = assertStatus( HttpStatus.OK,
             POST( "/gateways", "{'name':'test', 'username':'user', 'password':'pwd', 'type':'http'}" ) );
-
         assertWebMessage( "OK", 200, "OK", "test is set to default",
             PUT( "/gateways/default/" + uid ).content( HttpStatus.OK ) );
     }
 
     @Test
-    public void testSetDefault_NoSuchObject()
+    void testSetDefault_NoSuchObject()
     {
         assertWebMessage( "Not Found", 404, "ERROR", "No gateway found",
             PUT( "/gateways/default/xyz" ).content( HttpStatus.NOT_FOUND ) );
     }
 
     @Test
-    public void testUpdateGateway()
+    void testUpdateGateway()
     {
         uid = assertStatus( HttpStatus.OK,
             POST( "/gateways", "{'name':'test', 'username':'user', 'password':'pwd', 'type':'http'}" ) );
-
         JsonObject gateway = GET( "/gateways/{uid}", uid ).content();
         assertWebMessage( "OK", 200, "OK", "Gateway with uid: " + uid + " has been updated",
             PUT( "/gateways/" + uid, gateway.toString() ).content( HttpStatus.OK ) );
     }
 
     @Test
-    public void testUpdateGateway_NoSuchObject()
+    void testUpdateGateway_NoSuchObject()
     {
         assertWebMessage( "Not Found", 404, "ERROR", "No gateway found",
             PUT( "/gateways/xyz" ).content( HttpStatus.NOT_FOUND ) );
     }
 
     @Test
-    public void testAddGateway()
+    void testAddGateway()
     {
         assertWebMessage( "OK", 200, "OK", "Gateway configuration added",
             POST( "/gateways", "{'name':'test', 'username':'user', 'password':'pwd', 'type':'http'}" )
@@ -102,17 +101,16 @@ public class SmsGatewayControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void testRemoveGateway()
+    void testRemoveGateway()
     {
         uid = assertStatus( HttpStatus.OK,
             POST( "/gateways", "{'name':'test', 'username':'user', 'password':'pwd', 'type':'http'}" ) );
-
         assertWebMessage( "OK", 200, "OK", "Gateway removed successfully",
             DELETE( "/gateways/" + uid ).content( HttpStatus.OK ) );
     }
 
     @Test
-    public void testRemoveGateway_NoSuchObject()
+    void testRemoveGateway_NoSuchObject()
     {
         assertWebMessage( "Not Found", 404, "ERROR", "No gateway found with id: xyz",
             DELETE( "/gateways/xyz" ).content( HttpStatus.NOT_FOUND ) );

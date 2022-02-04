@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,13 +30,13 @@ package org.hisp.dhis.analytics.data;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.analytics.AggregationType;
@@ -45,145 +45,116 @@ import org.hisp.dhis.analytics.AnalyticsManager;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.analytics.QueryPlanner;
+import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.YearlyPeriodType;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.experimental.runners.Enclosed;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
  * @author Lars Helge Overland
  */
-@RunWith( Enclosed.class )
-public class AnalyticsManagerTest
-    extends DhisConvenienceTest
+@ExtendWith( MockitoExtension.class )
+class AnalyticsManagerTest extends DhisConvenienceTest
 {
-    @RunWith( Parameterized.class )
-    public static class Parametrized
+    @Mock
+    private QueryPlanner queryPlanner;
+
+    @Mock
+    private JdbcTemplate jdbcTemplate;
+
+    @Mock
+    private ExecutionPlanStore executionPlanStore;
+
+    private AnalyticsManager analyticsManager;
+
+    private static Stream<Arguments> data()
     {
-        private AnalyticsManager analyticsManager;
-
-        @Mock
-        private QueryPlanner queryPlanner;
-
-        @Mock
-        private JdbcTemplate jdbcTemplate;
-
-        @Rule
-        public MockitoRule mockitoRule = MockitoJUnit.rule();
-
-        @Parameterized.Parameter
-        public String financialYear;
-
-        @Parameterized.Parameter( 1 )
-        public Double weightedAverage;
-
-        @Parameterized.Parameters
-        public static Collection<Object[]> data()
-        {
-            return Arrays
-                .asList( new Object[][] { { "2017April", 115.75D }, { "2017July", 77.5D }, { "2017Oct", 39.25 },
-                    { "2017Nov", 26.5D } } );
-        }
-
-        @Before
-        public void setUp()
-        {
-            analyticsManager = new JdbcAnalyticsManager( queryPlanner, jdbcTemplate );
-        }
-
-        @Test
-        public void testWeightedAverage()
-        {
-            AnalyticsAggregationType aggregationType = new AnalyticsAggregationType(
-                AggregationType.SUM, AggregationType.AVERAGE, DataType.NUMERIC, true );
-
-            Period y2017 = createPeriod( "2017" );
-            Period y2018 = createPeriod( "2018" );
-            Period finYear2017 = createPeriod( financialYear );
-
-            Map<String, Object> dataValueMap = new HashMap<>();
-            dataValueMap.put( BASE_UID + "-2018", 1.0 );
-            dataValueMap.put( BASE_UID + "-2017", 154.0 );
-
-            ListMap<DimensionalItemObject, DimensionalItemObject> dataPeriodAggregationPeriodMap = new ListMap<>();
-            dataPeriodAggregationPeriodMap.putValue( y2017, finYear2017 );
-            dataPeriodAggregationPeriodMap.putValue( y2018, finYear2017 );
-
-            DataQueryParams params = DataQueryParams.newBuilder()
-                .withDataElements( getList( createDataElement( 'A' ), createDataElement( 'B' ) ) )
-                .withPeriods( getList( y2017, y2018 ) )
-                .withDataPeriodType( new YearlyPeriodType() )
-                .withAggregationType( aggregationType ).build();
-
-            analyticsManager.replaceDataPeriodsWithAggregationPeriods( dataValueMap, params,
-                dataPeriodAggregationPeriodMap );
-
-            assertEquals( 1, dataValueMap.size() );
-
-            assertThat( dataValueMap.get( BASE_UID + "-" + finYear2017.getIsoDate() ), is( weightedAverage ) );
-        }
+        return Stream.of( arguments( "2017April", 115.75D ), arguments( "2017July", 77.5D ),
+            arguments( "2017Oct", 39.25 ),
+            arguments( "2017Nov", 26.5D ) );
     }
 
-    public static class SingleExecution
+    @ParameterizedTest
+    @MethodSource( "data" )
+    public void testWeightedAverage( String financialYear, Double weightedAverage )
     {
-        @Mock
-        private QueryPlanner queryPlanner;
+        analyticsManager = new JdbcAnalyticsManager( queryPlanner, jdbcTemplate, executionPlanStore );
+        AnalyticsAggregationType aggregationType = new AnalyticsAggregationType(
+            AggregationType.SUM, AggregationType.AVERAGE, DataType.NUMERIC, true );
 
-        @Mock
-        private JdbcTemplate jdbcTemplate;
+        Period y2017 = createPeriod( "2017" );
+        Period y2018 = createPeriod( "2018" );
+        Period finYear2017 = createPeriod( financialYear );
 
-        @Rule
-        public MockitoRule mockitoRule = MockitoJUnit.rule();
+        Map<String, Object> dataValueMap = new HashMap<>();
+        dataValueMap.put( BASE_UID + "-2018", 1.0 );
+        dataValueMap.put( BASE_UID + "-2017", 154.0 );
 
-        @Test
-        public void testReplaceDataPeriodsWithAggregationPeriods()
-        {
-            AnalyticsManager analyticsManager = new JdbcAnalyticsManager( queryPlanner, jdbcTemplate );
-            Period y2012 = createPeriod( "2012" );
+        ListMap<DimensionalItemObject, DimensionalItemObject> dataPeriodAggregationPeriodMap = new ListMap<>();
+        dataPeriodAggregationPeriodMap.putValue( y2017, finYear2017 );
+        dataPeriodAggregationPeriodMap.putValue( y2018, finYear2017 );
 
-            AnalyticsAggregationType aggregationType = new AnalyticsAggregationType(
-                AggregationType.SUM, AggregationType.AVERAGE, DataType.NUMERIC, true );
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withDataElements( getList( createDataElement( 'A' ), createDataElement( 'B' ) ) )
+            .withPeriods( getList( y2017, y2018 ) )
+            .withDataPeriodType( new YearlyPeriodType() )
+            .withAggregationType( aggregationType ).build();
 
-            DataQueryParams params = DataQueryParams.newBuilder()
-                .withDataElements( getList( createDataElement( 'A' ), createDataElement( 'B' ) ) )
-                .withPeriods( getList( y2012 ) )
-                .withOrganisationUnits( getList( createOrganisationUnit( 'A' ) ) )
-                .withDataPeriodType( new YearlyPeriodType() )
-                .withAggregationType( aggregationType ).build();
+        analyticsManager.replaceDataPeriodsWithAggregationPeriods( dataValueMap, params,
+            dataPeriodAggregationPeriodMap );
 
-            Map<String, Object> dataValueMap = new HashMap<>();
-            dataValueMap.put( BASE_UID + "A-2012-" + BASE_UID + "A", 1d );
-            dataValueMap.put( BASE_UID + "B-2012-" + BASE_UID + "A", 1d );
+        assertEquals( 1, dataValueMap.size() );
 
-            ListMap<DimensionalItemObject, DimensionalItemObject> dataPeriodAggregationPeriodMap = new ListMap<>();
-            dataPeriodAggregationPeriodMap.putValue( y2012, createPeriod( "2012Q1" ) );
-            dataPeriodAggregationPeriodMap.putValue( y2012, createPeriod( "2012Q2" ) );
-            dataPeriodAggregationPeriodMap.putValue( y2012, createPeriod( "2012Q3" ) );
-            dataPeriodAggregationPeriodMap.putValue( y2012, createPeriod( "2012Q4" ) );
+        assertThat( dataValueMap.get( BASE_UID + "-" + finYear2017.getIsoDate() ), is( weightedAverage ) );
+    }
 
-            analyticsManager.replaceDataPeriodsWithAggregationPeriods( dataValueMap, params,
-                dataPeriodAggregationPeriodMap );
+    @Test
+    void testReplaceDataPeriodsWithAggregationPeriods()
+    {
+        AnalyticsManager analyticsManager = new JdbcAnalyticsManager( queryPlanner, jdbcTemplate, executionPlanStore );
+        Period y2012 = createPeriod( "2012" );
 
-            assertEquals( 8, dataValueMap.size() );
+        AnalyticsAggregationType aggregationType = new AnalyticsAggregationType(
+            AggregationType.SUM, AggregationType.AVERAGE, DataType.NUMERIC, true );
 
-            assertTrue( dataValueMap.keySet().contains( BASE_UID + "A-2012Q1-" + BASE_UID + "A" ) );
-            assertTrue( dataValueMap.keySet().contains( BASE_UID + "A-2012Q2-" + BASE_UID + "A" ) );
-            assertTrue( dataValueMap.keySet().contains( BASE_UID + "A-2012Q3-" + BASE_UID + "A" ) );
-            assertTrue( dataValueMap.keySet().contains( BASE_UID + "A-2012Q4-" + BASE_UID + "A" ) );
-            assertTrue( dataValueMap.keySet().contains( BASE_UID + "B-2012Q1-" + BASE_UID + "A" ) );
-            assertTrue( dataValueMap.keySet().contains( BASE_UID + "B-2012Q2-" + BASE_UID + "A" ) );
-            assertTrue( dataValueMap.keySet().contains( BASE_UID + "B-2012Q3-" + BASE_UID + "A" ) );
-            assertTrue( dataValueMap.keySet().contains( BASE_UID + "B-2012Q4-" + BASE_UID + "A" ) );
-        }
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withDataElements( getList( createDataElement( 'A' ), createDataElement( 'B' ) ) )
+            .withPeriods( getList( y2012 ) )
+            .withOrganisationUnits( getList( createOrganisationUnit( 'A' ) ) )
+            .withDataPeriodType( new YearlyPeriodType() )
+            .withAggregationType( aggregationType ).build();
+
+        Map<String, Object> dataValueMap = new HashMap<>();
+        dataValueMap.put( BASE_UID + "A-2012-" + BASE_UID + "A", 1d );
+        dataValueMap.put( BASE_UID + "B-2012-" + BASE_UID + "A", 1d );
+
+        ListMap<DimensionalItemObject, DimensionalItemObject> dataPeriodAggregationPeriodMap = new ListMap<>();
+        dataPeriodAggregationPeriodMap.putValue( y2012, createPeriod( "2012Q1" ) );
+        dataPeriodAggregationPeriodMap.putValue( y2012, createPeriod( "2012Q2" ) );
+        dataPeriodAggregationPeriodMap.putValue( y2012, createPeriod( "2012Q3" ) );
+        dataPeriodAggregationPeriodMap.putValue( y2012, createPeriod( "2012Q4" ) );
+
+        analyticsManager.replaceDataPeriodsWithAggregationPeriods( dataValueMap, params,
+            dataPeriodAggregationPeriodMap );
+
+        assertEquals( 8, dataValueMap.size() );
+
+        assertTrue( dataValueMap.keySet().contains( BASE_UID + "A-2012Q1-" + BASE_UID + "A" ) );
+        assertTrue( dataValueMap.keySet().contains( BASE_UID + "A-2012Q2-" + BASE_UID + "A" ) );
+        assertTrue( dataValueMap.keySet().contains( BASE_UID + "A-2012Q3-" + BASE_UID + "A" ) );
+        assertTrue( dataValueMap.keySet().contains( BASE_UID + "A-2012Q4-" + BASE_UID + "A" ) );
+        assertTrue( dataValueMap.keySet().contains( BASE_UID + "B-2012Q1-" + BASE_UID + "A" ) );
+        assertTrue( dataValueMap.keySet().contains( BASE_UID + "B-2012Q2-" + BASE_UID + "A" ) );
+        assertTrue( dataValueMap.keySet().contains( BASE_UID + "B-2012Q3-" + BASE_UID + "A" ) );
+        assertTrue( dataValueMap.keySet().contains( BASE_UID + "B-2012Q4-" + BASE_UID + "A" ) );
     }
 }

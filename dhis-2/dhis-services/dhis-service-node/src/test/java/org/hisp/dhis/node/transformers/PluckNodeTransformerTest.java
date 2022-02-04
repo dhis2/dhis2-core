@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,20 +40,20 @@ import org.hisp.dhis.schema.DefaultPropertyIntrospectorService;
 import org.hisp.dhis.schema.DefaultSchemaService;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.schema.introspection.JacksonPropertyIntrospector;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * Unit tests for {@link PluckNodeTransformer}.
  *
  * @author Volker Schmidt
  */
-public class PluckNodeTransformerTest
+@ExtendWith( MockitoExtension.class )
+class PluckNodeTransformerTest
 {
     private final PluckNodeTransformer transformer = new PluckNodeTransformer();
 
@@ -64,10 +64,7 @@ public class PluckNodeTransformerTest
 
     private CollectionNode collectionNode;
 
-    @Rule
-    public MockitoRule rule = MockitoJUnit.rule();
-
-    @Before
+    @BeforeEach
     public void setUp()
     {
         schemaService = new DefaultSchemaService(
@@ -98,48 +95,48 @@ public class PluckNodeTransformerTest
     }
 
     @Test
-    public void name()
+    void name()
     {
-        Assert.assertEquals( "pluck", transformer.name() );
+        Assertions.assertEquals( "pluck", transformer.name() );
     }
 
     @Test
-    public void withoutArg()
+    void withoutArg()
     {
         Node result = transformer.transform( collectionNode, null );
-        Assert.assertTrue( result instanceof CollectionNode );
+        Assertions.assertTrue( result instanceof CollectionNode );
 
         CollectionNode collection = (CollectionNode) result;
-        Assert.assertEquals( "organisationUnits", collection.getName() );
-        Assert.assertEquals( "testUrn", collection.getNamespace() );
-        Assert.assertEquals( 2, collection.getUnorderedChildren().size() );
+        Assertions.assertEquals( "organisationUnits", collection.getName() );
+        Assertions.assertEquals( "testUrn", collection.getNamespace() );
+        Assertions.assertEquals( 2, collection.getUnorderedChildren().size() );
 
-        Assert.assertEquals( "id", collection.getUnorderedChildren().get( 0 ).getName() );
-        Assert.assertTrue( collection.getUnorderedChildren().get( 0 ) instanceof SimpleNode );
-        Assert.assertEquals( "abc1", ((SimpleNode) collection.getUnorderedChildren().get( 0 )).getValue() );
+        Assertions.assertEquals( "id", collection.getUnorderedChildren().get( 0 ).getName() );
+        Assertions.assertTrue( collection.getUnorderedChildren().get( 0 ) instanceof SimpleNode );
+        Assertions.assertEquals( "abc1", ((SimpleNode) collection.getUnorderedChildren().get( 0 )).getValue() );
 
-        Assert.assertEquals( "id", collection.getUnorderedChildren().get( 1 ).getName() );
-        Assert.assertTrue( collection.getUnorderedChildren().get( 1 ) instanceof SimpleNode );
-        Assert.assertEquals( "abc2", ((SimpleNode) collection.getUnorderedChildren().get( 1 )).getValue() );
+        Assertions.assertEquals( "id", collection.getUnorderedChildren().get( 1 ).getName() );
+        Assertions.assertTrue( collection.getUnorderedChildren().get( 1 ) instanceof SimpleNode );
+        Assertions.assertEquals( "abc2", ((SimpleNode) collection.getUnorderedChildren().get( 1 )).getValue() );
     }
 
     @Test
-    public void withArg()
+    void withArg()
     {
         Node result = transformer.transform( collectionNode, Collections.singletonList( "name" ) );
-        Assert.assertTrue( result instanceof CollectionNode );
+        Assertions.assertTrue( result instanceof CollectionNode );
 
         CollectionNode collection = (CollectionNode) result;
-        Assert.assertEquals( "organisationUnits", collection.getName() );
-        Assert.assertEquals( "testUrn", collection.getNamespace() );
-        Assert.assertEquals( 2, collection.getUnorderedChildren().size() );
+        Assertions.assertEquals( "organisationUnits", collection.getName() );
+        Assertions.assertEquals( "testUrn", collection.getNamespace() );
+        Assertions.assertEquals( 2, collection.getUnorderedChildren().size() );
 
-        Assert.assertEquals( "name", collection.getUnorderedChildren().get( 0 ).getName() );
-        Assert.assertTrue( collection.getUnorderedChildren().get( 0 ) instanceof SimpleNode );
-        Assert.assertEquals( "OU 1", ((SimpleNode) collection.getUnorderedChildren().get( 0 )).getValue() );
+        Assertions.assertEquals( "name", collection.getUnorderedChildren().get( 0 ).getName() );
+        Assertions.assertTrue( collection.getUnorderedChildren().get( 0 ) instanceof SimpleNode );
+        Assertions.assertEquals( "OU 1", ((SimpleNode) collection.getUnorderedChildren().get( 0 )).getValue() );
 
-        Assert.assertEquals( "name", collection.getUnorderedChildren().get( 1 ).getName() );
-        Assert.assertTrue( collection.getUnorderedChildren().get( 1 ) instanceof SimpleNode );
-        Assert.assertEquals( "OU 2", ((SimpleNode) collection.getUnorderedChildren().get( 1 )).getValue() );
+        Assertions.assertEquals( "name", collection.getUnorderedChildren().get( 1 ).getName() );
+        Assertions.assertTrue( collection.getUnorderedChildren().get( 1 ) instanceof SimpleNode );
+        Assertions.assertEquals( "OU 2", ((SimpleNode) collection.getUnorderedChildren().get( 1 )).getValue() );
     }
 }

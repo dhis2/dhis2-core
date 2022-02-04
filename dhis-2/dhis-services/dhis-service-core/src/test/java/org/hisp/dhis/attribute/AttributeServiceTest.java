@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,84 +27,74 @@
  */
 package org.hisp.dhis.attribute;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.ValueType;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class AttributeServiceTest
-    extends DhisSpringTest
+class AttributeServiceTest extends DhisSpringTest
 {
+
     @Autowired
     private AttributeService attributeService;
 
     @Test
-    public void testAddAttribute()
+    void testAddAttribute()
     {
         Attribute attribute = new Attribute();
         attribute.setValueType( ValueType.TEXT );
         attribute.setName( "attribute1" );
-
         attributeService.addAttribute( attribute );
         attribute = attributeService.getAttribute( attribute.getId() );
-
         assertNotNull( attribute );
         assertEquals( ValueType.TEXT, attribute.getValueType() );
         assertEquals( "attribute1", attribute.getName() );
     }
 
     @Test
-    public void testDeleteAttribute()
+    void testDeleteAttribute()
     {
         Attribute attribute = new Attribute();
         attribute.setValueType( ValueType.TEXT );
         attribute.setName( "attribute1" );
-
         attributeService.addAttribute( attribute );
         attribute = attributeService.getAttribute( attribute.getId() );
-
         assertNotNull( attribute );
-
         long attributeId = attribute.getId();
-
         attributeService.deleteAttribute( attribute );
         attribute = attributeService.getAttribute( attributeId );
-
         assertNull( attribute );
     }
 
     @Test
-    public void testGetAttribute()
+    void testGetAttribute()
     {
         Attribute attribute = new Attribute();
         attribute.setValueType( ValueType.TEXT );
         attribute.setName( "attribute1" );
-
         attributeService.addAttribute( attribute );
         attribute = attributeService.getAttribute( attribute.getId() );
-
         assertNotNull( attribute );
     }
 
     @Test
-    public void testGetAllAttributes()
+    void testGetAllAttributes()
     {
         Attribute attribute1 = new Attribute();
         attribute1.setValueType( ValueType.TEXT );
         attribute1.setName( "attribute1" );
-
         Attribute attribute2 = new Attribute();
         attribute2.setValueType( ValueType.TEXT );
         attribute2.setName( "attribute2" );
-
         attributeService.addAttribute( attribute1 );
         attributeService.addAttribute( attribute2 );
-
         assertEquals( 2, attributeService.getAllAttributes().size() );
     }
 }

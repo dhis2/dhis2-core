@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,47 +41,48 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.user.User;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Luciano Fiandesio
  */
-public class EventBaseCheckTest extends BaseValidationTest
+@MockitoSettings( strictness = Strictness.LENIENT )
+class EventBaseCheckTest extends BaseValidationTest
 {
+
     private EventBaseCheck rule;
 
-    @Before
-    public void setUp()
+    @BeforeEach
+    void setUp()
     {
-
         rule = new EventBaseCheck();
     }
 
     @Test
-    public void verifyErrorOnInvalidDueDate()
+    void verifyErrorOnInvalidDueDate()
     {
         event.setEvent( event.getUid() );
         event.setDueDate( "111-12-122" );
         ImportSummary importSummary = rule.check( new ImmutableEvent( event ), workContext );
         assertHasError( importSummary, event, null );
         assertHasConflict( importSummary, event, "Invalid event due date: " + event.getDueDate() );
-
     }
 
     @Test
-    public void verifyErrorOnInvalidEventDate()
+    void verifyErrorOnInvalidEventDate()
     {
         event.setEvent( event.getUid() );
         event.setEventDate( "111-12-122" );
         ImportSummary importSummary = rule.check( new ImmutableEvent( event ), workContext );
         assertHasError( importSummary, event, null );
         assertHasConflict( importSummary, event, "Invalid event date: " + event.getEventDate() );
-
     }
 
     @Test
-    public void verifyErrorOnInvalidCreatedAtClientDate()
+    void verifyErrorOnInvalidCreatedAtClientDate()
     {
         event.setEvent( event.getUid() );
         event.setCreatedAtClient( "111-12-122" );
@@ -89,11 +90,10 @@ public class EventBaseCheckTest extends BaseValidationTest
         assertHasError( importSummary, event, null );
         assertHasConflict( importSummary, event,
             "Invalid event created at client date: " + event.getCreatedAtClient() );
-
     }
 
     @Test
-    public void verifyErrorOnInvalidLastUpdatedAtClientDate()
+    void verifyErrorOnInvalidLastUpdatedAtClientDate()
     {
         event.setEvent( event.getUid() );
         event.setLastUpdatedAtClient( "111-12-122" );
@@ -104,7 +104,7 @@ public class EventBaseCheckTest extends BaseValidationTest
     }
 
     @Test
-    public void verifyErrorOnMissingProgramInstance()
+    void verifyErrorOnMissingProgramInstance()
     {
         event.setEvent( event.getUid() );
         ImportSummary importSummary = rule.check( new ImmutableEvent( event ), workContext );
@@ -113,41 +113,34 @@ public class EventBaseCheckTest extends BaseValidationTest
     }
 
     @Test
-    public void verifyNoErrorOnNonCompletedProgramInstance()
+    void verifyNoErrorOnNonCompletedProgramInstance()
     {
         event.setEvent( event.getUid() );
-
         Map<String, ProgramInstance> programInstanceMap = new HashMap<>();
         ProgramInstance programInstance = new ProgramInstance();
         programInstanceMap.put( event.getUid(), programInstance );
         when( workContext.getProgramInstanceMap() ).thenReturn( programInstanceMap );
-
         ImportSummary importSummary = rule.check( new ImmutableEvent( event ), workContext );
-
         assertNoError( importSummary );
     }
 
     @Test
-    public void verifyErrorOnEventWithDateNewerThanCompletedProgramInstance()
+    void verifyErrorOnEventWithDateNewerThanCompletedProgramInstance()
     {
         // Given
         ImportOptions importOptions = ImportOptions.getDefaultImportOptions();
         importOptions.setUser( new User() );
         event.setEvent( event.getUid() );
-
         Map<String, ProgramInstance> programInstanceMap = new HashMap<>();
         ProgramInstance programInstance = new ProgramInstance();
         programInstance.setStatus( ProgramStatus.COMPLETED );
         // Set program instance end date to NOW - one month
         programInstance.setEndDate( Date.from( ZonedDateTime.now().minusMonths( 1 ).toInstant() ) );
         programInstanceMap.put( event.getUid(), programInstance );
-
         when( workContext.getProgramInstanceMap() ).thenReturn( programInstanceMap );
         when( workContext.getImportOptions() ).thenReturn( importOptions );
-
         // When
         ImportSummary importSummary = rule.check( new ImmutableEvent( event ), workContext );
-
         // Then
         assertHasError( importSummary, event, null );
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,9 +28,9 @@
 package org.hisp.dhis.commons.jackson.serialization;
 
 import static java.util.Collections.singletonMap;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Iterator;
 
@@ -38,7 +38,7 @@ import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.feedback.ErrorCode;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -47,20 +47,18 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * @author Jan Bernitt
  */
-public class ImportSummaryJacksonTest
+class ImportSummaryJacksonTest
 {
 
     private final ObjectMapper jsonMapper = JacksonObjectMapperConfig.staticJsonMapper();
 
     @Test
-    public void testIterableSerialisedAsJsonArray()
+    void testIterableSerialisedAsJsonArray()
     {
         ImportSummary summary = new ImportSummary();
         summary.addConflict( "foo", "bar" );
         summary.addConflict( "x", "y" );
-
         JsonNode summaryNode = jsonMapper.valueToTree( summary );
-
         assertTrue( summaryNode.has( "conflicts" ) );
         JsonNode conflicts = summaryNode.get( "conflicts" );
         assertTrue( conflicts.isArray() );
@@ -70,24 +68,21 @@ public class ImportSummaryJacksonTest
     }
 
     @Test
-    public void testObjectsSerialisedAsIndividualProperties()
+    void testObjectsSerialisedAsIndividualProperties()
     {
         ImportConflict conflict = createImportConflictForIndex( 0 );
-
         JsonNode conflictNode = jsonMapper.valueToTree( conflict );
         assertTrue( conflictNode.isObject() );
         assertEquals( "value", conflictNode.get( "objects" ).get( "key" ).asText() );
     }
 
     @Test
-    public void testIndicesSerialiseAsArray()
+    void testIndicesSerialiseAsArray()
     {
         ImportConflict conflict1 = createImportConflictForIndex( 5 );
         ImportConflict conflict2 = createImportConflictForIndex( 7 );
         conflict1.mergeWith( conflict2 );
-
         JsonNode conflictNode = jsonMapper.valueToTree( conflict1 );
-
         assertTrue( conflictNode.isObject() );
         JsonNode indexesArray = conflictNode.get( "indexes" );
         assertTrue( indexesArray.isArray() );
@@ -101,18 +96,15 @@ public class ImportSummaryJacksonTest
      * and deserialised again.
      */
     @Test
-    public void testSummaryCanBeDeserialised()
+    void testSummaryCanBeDeserialised()
         throws JsonProcessingException
     {
         ImportSummary summary = new ImportSummary();
         summary.addConflict( createImportConflictForIndex( 2 ) );
         summary.addConflict( createImportConflictForIndex( 4 ) );
         summary.addConflict( "old", "school" );
-
         JsonNode summaryNode = jsonMapper.valueToTree( summary );
-
         assertTrue( summaryNode.isObject() );
-
         ImportSummary deserialised = jsonMapper.treeToValue( summaryNode, ImportSummary.class );
         assertNotNull( deserialised );
         assertEquals( 2, deserialised.getConflictCount() );

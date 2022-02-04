@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,71 +41,66 @@ import org.hisp.dhis.dxf2.events.importer.validation.BaseValidationTest;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.util.DateUtils;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Luciano Fiandesio
  */
-public class AttributeOptionComboDateCheckTest extends BaseValidationTest
+@MockitoSettings( strictness = Strictness.LENIENT )
+class AttributeOptionComboDateCheckTest extends BaseValidationTest
 {
+
     private AttributeOptionComboDateCheck rule;
 
     private Program program;
 
     private final String PROGRAM_UID = "ProgramUidA";
 
-    @Before
-    public void setUp()
+    @BeforeEach
+    void setUp()
     {
         rule = new AttributeOptionComboDateCheck();
-
         program = new Program();
         program.setUid( PROGRAM_UID );
         program.setName( "TestProgram" );
-
         event.setProgram( PROGRAM_UID );
     }
 
     @Test
-    public void failOnCategoryOptionStartDateBeforeEventDate()
+    void failOnCategoryOptionStartDateBeforeEventDate()
     {
         event.setEventDate( "2019-05-01" );
         event.setDueDate( "2019-05-10" );
-
         CategoryOptionCombo categoryOptionCombo = createCategoryOptionCombo( "2020-01-01", true );
         mockContext( categoryOptionCombo );
-
         ImportSummary importSummary = rule.check( new ImmutableEvent( event ), this.workContext );
         assertHasError( importSummary, event,
             "Event date 2019-05-01 is before start date 2020-01-01 for attributeOption 'test'" );
     }
 
     @Test
-    public void failOnCategoryOptionEndDateBeforeEventDate()
+    void failOnCategoryOptionEndDateBeforeEventDate()
     {
         event.setEventDate( "2019-05-01" );
         event.setDueDate( "2019-05-10" );
-
         CategoryOptionCombo categoryOptionCombo = createCategoryOptionCombo( "2019-04-01", false );
         mockContext( categoryOptionCombo );
-
         ImportSummary importSummary = rule.check( new ImmutableEvent( event ), this.workContext );
         assertHasError( importSummary, event,
             "Event date 2019-05-01 is after end date 2019-04-01 for attributeOption 'test' in program 'TestProgram'" );
     }
 
     @Test
-    public void succeedBeforeOpenDaysAfterCoEndDate()
+    void succeedBeforeOpenDaysAfterCoEndDate()
     {
         event.setEventDate( "2019-05-01" );
         event.setDueDate( "2019-05-10" );
-
         program.setOpenDaysAfterCoEndDate( 31 );
-
         CategoryOptionCombo categoryOptionCombo = createCategoryOptionCombo( "2019-04-01", false );
         mockContext( categoryOptionCombo );
-
         ImportSummary importSummary = rule.check( new ImmutableEvent( event ), this.workContext );
         assertNoError( importSummary );
     }
@@ -115,7 +110,6 @@ public class AttributeOptionComboDateCheckTest extends BaseValidationTest
         Map<String, CategoryOptionCombo> cocMap = new HashMap<>();
         cocMap.put( event.getUid(), categoryOptionCombo );
         when( workContext.getCategoryOptionComboMap() ).thenReturn( cocMap );
-
         Map<String, Program> programsMap = new HashMap<>();
         programsMap.put( PROGRAM_UID, program );
         when( workContext.getProgramsMap() ).thenReturn( programsMap );
@@ -135,7 +129,6 @@ public class AttributeOptionComboDateCheckTest extends BaseValidationTest
         {
             categoryOptionA.setEndDate( DateUtils.parseDate( date ) );
         }
-
         catOptions.add( categoryOptionA );
         categoryOptionCombo.setCategoryOptions( catOptions );
         return categoryOptionCombo;

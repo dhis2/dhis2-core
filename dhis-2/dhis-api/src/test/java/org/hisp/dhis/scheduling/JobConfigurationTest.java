@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,29 +27,29 @@
  */
 package org.hisp.dhis.scheduling;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.scheduling.parameters.MockJobParameters;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for {@link JobConfiguration}.
  *
  * @author Volker Schmidt
  */
-public class JobConfigurationTest
+class JobConfigurationTest
 {
+
     private JobParameters jobParameters;
 
     private JobConfiguration jobConfiguration;
 
-    @Before
-    public void setUp()
+    @BeforeEach
+    void setUp()
     {
         jobParameters = new MockJobParameters();
-
         jobConfiguration = new JobConfiguration();
         jobConfiguration.setJobType( JobType.ANALYTICS_TABLE );
         jobConfiguration.setJobStatus( JobStatus.COMPLETED );
@@ -60,7 +60,7 @@ public class JobConfigurationTest
     }
 
     @Test
-    public void hasNonConfigurableJobChangesFalse()
+    void hasNonConfigurableJobChangesFalse()
     {
         final JobConfiguration jc = new JobConfiguration();
         jc.setJobType( JobType.ANALYTICS_TABLE );
@@ -72,7 +72,7 @@ public class JobConfigurationTest
     }
 
     @Test
-    public void hasNonConfigurableJobChangesCron()
+    void hasNonConfigurableJobChangesCron()
     {
         final JobConfiguration jc = new JobConfiguration();
         jc.setJobType( JobType.ANALYTICS_TABLE );
@@ -85,7 +85,7 @@ public class JobConfigurationTest
     }
 
     @Test
-    public void hasNonConfigurableEnabled()
+    void hasNonConfigurableEnabled()
     {
         final JobConfiguration jc = new JobConfiguration();
         jc.setJobType( JobType.ANALYTICS_TABLE );
@@ -97,7 +97,7 @@ public class JobConfigurationTest
     }
 
     @Test
-    public void hasNonConfigurableJobChangesJobType()
+    void hasNonConfigurableJobChangesJobType()
     {
         final JobConfiguration jc = new JobConfiguration();
         jc.setJobType( JobType.DATA_INTEGRITY );
@@ -109,7 +109,7 @@ public class JobConfigurationTest
     }
 
     @Test
-    public void hasNonConfigurableJobChangesJobStatus()
+    void hasNonConfigurableJobChangesJobStatus()
     {
         final JobConfiguration jc = new JobConfiguration();
         jc.setJobType( JobType.ANALYTICS_TABLE );
@@ -121,7 +121,7 @@ public class JobConfigurationTest
     }
 
     @Test
-    public void hasNonConfigurableJobChangesJobParameters()
+    void hasNonConfigurableJobChangesJobParameters()
     {
         final JobConfiguration jc = new JobConfiguration();
         jc.setJobType( JobType.ANALYTICS_TABLE );

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -42,19 +42,19 @@ import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
-public class TrackedEntityTypeObjectBundleHookTest
+@MockitoSettings( strictness = Strictness.LENIENT )
+@ExtendWith( MockitoExtension.class )
+class TrackedEntityTypeObjectBundleHookTest
 {
-
-    @Rule
-    public MockitoRule rule = MockitoJUnit.rule();
 
     @InjectMocks
     private TrackedEntityTypeObjectBundleHook trackedEntityTypeObjectBundleHook;
@@ -69,7 +69,7 @@ public class TrackedEntityTypeObjectBundleHookTest
 
     private static TrackedEntityAttribute trackedEntityAttribute;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         trackedEntityType = new TrackedEntityType();
@@ -79,7 +79,7 @@ public class TrackedEntityTypeObjectBundleHookTest
     }
 
     @Test
-    public void shouldReportNoErrorTetHasNoTeas()
+    void shouldReportNoErrorTetHasNoTeas()
     {
 
         assertEquals( 0, trackedEntityTypeObjectBundleHook.validate( trackedEntityType, bundle ).size() );
@@ -87,7 +87,7 @@ public class TrackedEntityTypeObjectBundleHookTest
     }
 
     @Test
-    public void shouldReportNoErrorTeaExists()
+    void shouldReportNoErrorTeaExists()
     {
 
         when( preheat.get( any(), any() ) ).thenReturn( new TrackedEntityAttribute() );
@@ -103,7 +103,7 @@ public class TrackedEntityTypeObjectBundleHookTest
     }
 
     @Test
-    public void shouldReportErrorTeaNotExists()
+    void shouldReportErrorTeaNotExists()
     {
 
         trackedEntityAttribute = new TrackedEntityAttribute();

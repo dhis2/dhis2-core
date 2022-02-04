@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,7 @@
 package org.hisp.dhis.webapi.controller;
 
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
 /**
@@ -38,10 +38,11 @@ import org.springframework.http.HttpStatus;
  *
  * @author Jan Bernitt
  */
-public class TrackerImportControllerTest extends DhisControllerConvenienceTest
+class TrackerImportControllerTest extends DhisControllerConvenienceTest
 {
+
     @Test
-    public void testAsyncPostJsonTracker()
+    void testAsyncPostJsonTracker()
     {
         assertWebMessage( "OK", 200, "OK", "Tracker job added",
             POST( "/tracker?async=true", "{}" ).content( HttpStatus.OK ) );

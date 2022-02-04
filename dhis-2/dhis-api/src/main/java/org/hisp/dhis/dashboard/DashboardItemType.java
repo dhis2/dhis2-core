@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,6 +33,7 @@ package org.hisp.dhis.dashboard;
 public enum DashboardItemType
 {
     VISUALIZATION,
+    EVENT_VISUALIZATION,
     EVENT_CHART,
     MAP,
     EVENT_REPORT,

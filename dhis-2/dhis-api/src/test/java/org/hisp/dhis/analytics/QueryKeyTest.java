@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,18 +27,18 @@
  */
 package org.hisp.dhis.analytics;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Lars Helge Overland
  */
-public class QueryKeyTest
+class QueryKeyTest
 {
     @Test
-    public void testAsPlainKey()
+    void testAsPlainKey()
     {
         String key = new QueryKey()
             .add( "dimension", "dx" )
@@ -62,7 +62,7 @@ public class QueryKeyTest
     }
 
     @Test
-    public void testAsPlainKeyIgnoreNull()
+    void testAsPlainKeyIgnoreNull()
     {
         String key = new QueryKey()
             .add( "dimension", "dx" )
@@ -74,7 +74,7 @@ public class QueryKeyTest
     }
 
     @Test
-    public void testNoCollision()
+    void testNoCollision()
     {
         String keyA = new QueryKey()
             .add( "dimension", "dx" )

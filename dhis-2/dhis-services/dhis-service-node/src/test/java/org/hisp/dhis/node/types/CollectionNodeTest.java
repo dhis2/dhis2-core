@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,20 +28,21 @@
 package org.hisp.dhis.node.types;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hamcrest.Matchers;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for {@link CollectionNodeTest}.
  *
  * @author Volker Schmidt
  */
-public class CollectionNodeTest
+class CollectionNodeTest
 {
+
     @Test
-    public void createEmpty()
+    void createEmpty()
     {
         final CollectionNode collectionNode = new CollectionNode( "tests", 0 );
         assertEquals( "tests", collectionNode.getName() );
@@ -49,7 +50,7 @@ public class CollectionNodeTest
     }
 
     @Test
-    public void createNonEmpty()
+    void createNonEmpty()
     {
         final CollectionNode collectionNode = new CollectionNode( "tests", 10 );
         assertEquals( "tests", collectionNode.getName() );
@@ -57,12 +58,12 @@ public class CollectionNodeTest
     }
 
     @Test
-    public void getChildren()
+    void getChildren()
     {
         final CollectionNode collectionNode = new CollectionNode( "tests", 0 );
-
         final SimpleNode simpleNode1 = new SimpleNode( "id", "My Test 1" )
         {
+
             @Override
             public int getOrder()
             {
@@ -71,6 +72,7 @@ public class CollectionNodeTest
         };
         final SimpleNode simpleNode2 = new SimpleNode( "id", "My Test 2" )
         {
+
             @Override
             public int getOrder()
             {
@@ -79,29 +81,28 @@ public class CollectionNodeTest
         };
         final SimpleNode simpleNode3 = new SimpleNode( "id", "My Test 3" )
         {
+
             @Override
             public int getOrder()
             {
                 return 15;
             }
         };
-
         collectionNode.addChild( simpleNode1 );
         collectionNode.addChild( simpleNode2 );
         collectionNode.addChild( simpleNode3 );
-
         assertThat( collectionNode.getChildren(), Matchers.contains( simpleNode2, simpleNode1, simpleNode3 ) );
     }
 
     @Test
-    public void getEmptyChildren()
+    void getEmptyChildren()
     {
         final CollectionNode collectionNode = new CollectionNode( "tests", 0 );
         assertEquals( 0, collectionNode.getChildren().size() );
     }
 
     @Test
-    public void getSingleChildren()
+    void getSingleChildren()
     {
         final CollectionNode collectionNode = new CollectionNode( "tests", 0 );
         final SimpleNode simpleNode1 = new SimpleNode( "id", "My Test 1" );

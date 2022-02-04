@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,10 @@
 package org.hisp.dhis.analytics;
 
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,19 +43,18 @@ import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Lars Helge Overland
  */
-public class DataQueryGroupsTest
-    extends DhisConvenienceTest
+class DataQueryGroupsTest extends DhisConvenienceTest
 {
+
     // -------------------------------------------------------------------------
     // Fixture
     // -------------------------------------------------------------------------
-
     private DataElement deA;
 
     private DataElement deB;
@@ -80,21 +82,19 @@ public class DataQueryGroupsTest
     // -------------------------------------------------------------------------
     // Tests
     // -------------------------------------------------------------------------
-
-    @Before
-    public void before()
+    @BeforeEach
+    void before()
     {
-        deA = createDataElement( 'A', new CategoryCombo() ); // INTEGER, SUM
+        // INTEGER, SUM
+        deA = createDataElement( 'A', new CategoryCombo() );
         deB = createDataElement( 'B', new CategoryCombo() );
         deC = createDataElement( 'C', new CategoryCombo() );
         deD = createDataElement( 'D', new CategoryCombo() );
         deE = createDataElement( 'E', new CategoryCombo() );
         deF = createDataElement( 'F', new CategoryCombo() );
         deG = createDataElement( 'G', new CategoryCombo() );
-
         deF.setAggregationType( AggregationType.AVERAGE_SUM_ORG_UNIT );
         deG.setAggregationType( AggregationType.AVERAGE_SUM_ORG_UNIT );
-
         ouA = createOrganisationUnit( 'A' );
         ouB = createOrganisationUnit( 'B' );
         ouC = createOrganisationUnit( 'C' );
@@ -103,44 +103,34 @@ public class DataQueryGroupsTest
     }
 
     @Test
-    public void planQueryA()
+    void planQueryA()
     {
-        DataQueryParams paramsA = DataQueryParams.newBuilder()
-            .withDataElements( getList( deA, deB ) )
+        DataQueryParams paramsA = DataQueryParams.newBuilder().withDataElements( getList( deA, deB ) )
             .withOrganisationUnits( getList( ouA, ouB, ouC, ouD, ouE ) )
             .withPeriods( getList( createPeriod( "2000Q1" ), createPeriod( "2000Q2" ), createPeriod( "2000Q3" ),
                 createPeriod( "2000Q4" ), createPeriod( "2001Q1" ), createPeriod( "2001Q2" ) ) )
             .withAggregationType( AnalyticsAggregationType.SUM ).build();
-
-        DataQueryParams paramsB = DataQueryParams.newBuilder()
-            .withDataElements( getList( deC, deD ) )
+        DataQueryParams paramsB = DataQueryParams.newBuilder().withDataElements( getList( deC, deD ) )
             .withOrganisationUnits( getList( ouA, ouB, ouC, ouD, ouE ) )
             .withPeriods( getList( createPeriod( "2000Q1" ), createPeriod( "2000Q2" ), createPeriod( "2000Q3" ),
                 createPeriod( "2000Q4" ), createPeriod( "2001Q1" ), createPeriod( "2001Q2" ) ) )
             .withAggregationType( AnalyticsAggregationType.SUM ).build();
-
-        DataQueryParams paramsC = DataQueryParams.newBuilder()
-            .withDataElements( getList( deE ) )
+        DataQueryParams paramsC = DataQueryParams.newBuilder().withDataElements( getList( deE ) )
             .withOrganisationUnits( getList( ouA, ouB, ouC, ouD, ouE ) )
             .withPeriods( getList( createPeriod( "2000Q1" ), createPeriod( "2000Q2" ), createPeriod( "2000Q3" ),
                 createPeriod( "2000Q4" ), createPeriod( "2001Q1" ), createPeriod( "2001Q2" ) ) )
             .withAggregationType( AnalyticsAggregationType.SUM ).build();
-
-        DataQueryParams paramsD = DataQueryParams.newBuilder()
-            .withDataElements( getList( deF, deG ) )
+        DataQueryParams paramsD = DataQueryParams.newBuilder().withDataElements( getList( deF, deG ) )
             .withOrganisationUnits( getList( ouA, ouB, ouC, ouD, ouE ) )
             .withPeriods( getList( createPeriod( "2000Q1" ), createPeriod( "2000Q2" ), createPeriod( "2000Q3" ),
                 createPeriod( "2000Q4" ), createPeriod( "2001Q1" ), createPeriod( "2001Q2" ) ) )
             .withAggregationType( AnalyticsAggregationType.AVERAGE ).build();
-
         List<DataQueryParams> queries = new ArrayList<>();
         queries.add( paramsA );
         queries.add( paramsB );
         queries.add( paramsC );
         queries.add( paramsD );
-
         DataQueryGroups queryGroups = DataQueryGroups.newBuilder().withQueries( queries ).build();
-
         assertEquals( 2, queryGroups.getSequentialQueries().size() );
         assertEquals( 4, queryGroups.getAllQueries().size() );
         assertEquals( 3, queryGroups.getLargestGroupSize() );
@@ -150,7 +140,7 @@ public class DataQueryGroupsTest
     }
 
     @Test
-    public void getQueryA()
+    void getQueryA()
     {
         DimensionalObject dimA = new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X,
             getList( deA, deB ) );
@@ -158,16 +148,11 @@ public class DataQueryGroupsTest
             DimensionType.ORGANISATION_UNIT, getList( ouA, ouB, ouC ) );
         DimensionalObject dimC = new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD,
             getList( createPeriod( "2000Q1" ) ) );
-
-        DataQueryParams paramsA = DataQueryParams.newBuilder()
-            .addDimension( dimA )
-            .addDimension( dimB )
+        DataQueryParams paramsA = DataQueryParams.newBuilder().addDimension( dimA ).addDimension( dimB )
             .addFilter( dimC ).build();
-
         assertNotNull( paramsA.getDimension( DimensionalObject.DATA_X_DIM_ID ) );
         assertNotNull( paramsA.getDimension( DimensionalObject.ORGUNIT_DIM_ID ) );
         assertNotNull( paramsA.getFilter( DimensionalObject.PERIOD_DIM_ID ) );
-
         assertEquals( 2, paramsA.getDimension( DimensionalObject.DATA_X_DIM_ID ).getItems().size() );
         assertEquals( 3, paramsA.getDimension( DimensionalObject.ORGUNIT_DIM_ID ).getItems().size() );
         assertEquals( 1, paramsA.getFilter( DimensionalObject.PERIOD_DIM_ID ).getItems().size() );

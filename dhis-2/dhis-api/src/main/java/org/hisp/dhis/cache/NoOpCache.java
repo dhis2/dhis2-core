@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.cache;
 
+import static java.util.Collections.emptySet;
 import static org.springframework.util.Assert.hasText;
 
 import java.util.Optional;
@@ -42,6 +43,8 @@ import java.util.stream.Stream;
  */
 public class NoOpCache<V> implements Cache<V>
 {
+    private static final String VALUE_CANNOT_BE_NULL = "Value cannot be null";
+
     private final V defaultValue;
 
     public NoOpCache( CacheBuilder<V> cacheBuilder )
@@ -88,11 +91,17 @@ public class NoOpCache<V> implements Cache<V>
     }
 
     @Override
+    public Iterable<String> keys()
+    {
+        return emptySet();
+    }
+
+    @Override
     public void put( String key, V value )
     {
         if ( null == value )
         {
-            throw new IllegalArgumentException( "Value cannot be null" );
+            throw new IllegalArgumentException( VALUE_CANNOT_BE_NULL );
         }
         // No operation
     }
@@ -100,8 +109,19 @@ public class NoOpCache<V> implements Cache<V>
     @Override
     public void put( String key, V value, long ttlInSeconds )
     {
-        hasText( key, "Value cannot be null" );
+        hasText( key, VALUE_CANNOT_BE_NULL );
         // No operation
+    }
+
+    @Override
+    public boolean putIfAbsent( String key, V value )
+    {
+        if ( null == value )
+        {
+            throw new IllegalArgumentException( VALUE_CANNOT_BE_NULL );
+        }
+        // No operation
+        return false;
     }
 
     @Override

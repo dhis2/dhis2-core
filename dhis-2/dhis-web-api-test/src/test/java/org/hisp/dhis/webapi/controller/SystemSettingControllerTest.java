@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,16 +31,16 @@ import static java.util.Arrays.stream;
 import static org.hisp.dhis.webapi.WebClient.Body;
 import static org.hisp.dhis.webapi.WebClient.ContentType;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.hisp.dhis.webapi.json.JsonObject;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 
@@ -49,80 +49,75 @@ import org.springframework.http.HttpStatus;
  *
  * @author Jan Bernitt
  */
-public class SystemSettingControllerTest extends DhisControllerConvenienceTest
+class SystemSettingControllerTest extends DhisControllerConvenienceTest
 {
+
     @Autowired
     private SystemSettingManager systemSettingManager;
 
     @Test
-    public void testSetSystemSettingOrTranslation_NoSuchObject()
+    void testSetSystemSettingOrTranslation_NoSuchObject()
     {
         assertWebMessage( "Conflict", 409, "ERROR", "Key is not supported: xyz",
             POST( "/systemSettings/xyz?value=abc" ).content( HttpStatus.CONFLICT ) );
     }
 
     @Test
-    public void testSetSystemSettingOrTranslation_NoValue()
+    void testSetSystemSettingOrTranslation_NoValue()
     {
         assertWebMessage( "Conflict", 409, "ERROR", "Value must be specified as query param or as payload",
             POST( "/systemSettings/xyz" ).content( HttpStatus.CONFLICT ) );
     }
 
     @Test
-    public void testSetSystemSettingOrTranslation_Setting()
+    void testSetSystemSettingOrTranslation_Setting()
     {
-        assertWebMessage( "OK", 200, "OK",
-            "System setting 'keyUiLocale' set to value 'en'.",
+        assertWebMessage( "OK", 200, "OK", "System setting 'keyUiLocale' set to value 'en'.",
             POST( "/systemSettings/keyUiLocale?", Body( "en" ), ContentType( ContextUtils.CONTENT_TYPE_TEXT ) )
                 .content( HttpStatus.OK ) );
     }
 
     @Test
-    public void testSetSystemSettingOrTranslation_Translation()
+    void testSetSystemSettingOrTranslation_Translation()
     {
         assertStatus( HttpStatus.OK, POST( "/systemSettings/keyUiLocale?value=de" ) );
-
         assertWebMessage( "OK", 200, "OK",
             "Translation for system setting 'keyUiLocale' and locale: 'de' set to: 'Sprache'",
-            POST( "/systemSettings/keyUiLocale?locale=de&value=Sprache" )
-                .content( HttpStatus.OK ) );
+            POST( "/systemSettings/keyUiLocale?locale=de&value=Sprache" ).content( HttpStatus.OK ) );
     }
 
     @Test
-    public void testSetSystemSettingOrTranslation_TranslationNoSetting()
+    void testSetSystemSettingOrTranslation_TranslationNoSetting()
     {
-        assertWebMessage( "Conflict", 409, "ERROR",
-            "No entry found for key: keyUiLocale",
-            POST( "/systemSettings/keyUiLocale?locale=de&value=Sprache" )
-                .content( HttpStatus.CONFLICT ) );
+        assertWebMessage( "Conflict", 409, "ERROR", "No entry found for key: keyUiLocale",
+            POST( "/systemSettings/keyUiLocale?locale=de&value=Sprache" ).content( HttpStatus.CONFLICT ) );
     }
 
     @Test
-    public void testSetSystemSettingV29()
+    void testSetSystemSettingV29()
     {
         assertWebMessage( "OK", 200, "OK", "System settings imported",
             POST( "/systemSettings", "{'keyUiLocale':'en'}" ).content( HttpStatus.OK ) );
     }
 
     @Test
-    public void testSetSystemSettingV29_Empty()
+    void testSetSystemSettingV29_Empty()
     {
         assertWebMessage( "OK", 200, "OK", "System settings imported",
             POST( "/systemSettings", "{}" ).content( HttpStatus.OK ) );
     }
 
     @Test
-    public void testSetSystemSettingV29_NoSuchObject()
+    void testSetSystemSettingV29_NoSuchObject()
     {
         assertWebMessage( "Conflict", 409, "ERROR", "Key(s) is not supported: xyz, abc",
             POST( "/systemSettings", "{'xyz':'en','abc':'foo'}" ).content( HttpStatus.CONFLICT ) );
     }
 
     @Test
-    public void testGetSystemSettingOrTranslationAsJson()
+    void testGetSystemSettingOrTranslationAsJson()
     {
         assertStatus( HttpStatus.OK, POST( "/systemSettings/keyUiLocale?value=de" ) );
-
         JsonObject setting = GET( "/systemSettings/keyUiLocale" ).content( HttpStatus.OK );
         assertTrue( setting.isObject() );
         assertEquals( 1, setting.size() );
@@ -130,29 +125,24 @@ public class SystemSettingControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void testGetSystemSettingsJson()
+    void testGetSystemSettingsJson()
     {
         assertStatus( HttpStatus.OK, POST( "/systemSettings/keyUiLocale?value=de" ) );
-
         JsonObject setting = GET( "/systemSettings?key=keyUiLocale" ).content( HttpStatus.OK );
         assertTrue( setting.isObject() );
         assertEquals( 1, setting.size() );
         assertEquals( "de", setting.getString( "keyUiLocale" ).string() );
-
     }
 
     @Test
-    public void testGetSystemSettingsJson_AllKeys()
+    void testGetSystemSettingsJson_AllKeys()
     {
         assertStatus( HttpStatus.OK, POST( "/systemSettings/keyUiLocale?value=de" ) );
-
         JsonObject setting = GET( "/systemSettings" ).content( HttpStatus.OK );
         assertTrue( setting.isObject() );
-        stream( SettingKey.values() )
-            .filter( key -> !key.isConfidential() && key.getDefaultValue() != null )
-            .forEach( key -> assertTrue( key.getName(), setting.get( key.getName() ).exists() ) );
-        stream( SettingKey.values() )
-            .filter( SettingKey::isConfidential )
-            .forEach( key -> assertFalse( key.getName(), setting.get( key.getName() ).exists() ) );
+        stream( SettingKey.values() ).filter( key -> !key.isConfidential() && key.getDefaultValue() != null )
+            .forEach( key -> assertTrue( setting.get( key.getName() ).exists(), key.getName() ) );
+        stream( SettingKey.values() ).filter( SettingKey::isConfidential )
+            .forEach( key -> assertFalse( setting.get( key.getName() ).exists(), key.getName() ) );
     }
 }

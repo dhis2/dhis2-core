@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,8 +29,8 @@ package org.hisp.dhis.tracker.preheat.supplier;
 
 import static org.hisp.dhis.program.ProgramType.WITHOUT_REGISTRATION;
 import static org.hisp.dhis.program.ProgramType.WITH_REGISTRATION;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -45,21 +45,25 @@ import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import com.google.common.collect.Lists;
 
 /**
  * @author Luciano Fiandesio
  */
-public class ProgramInstanceSupplierTest extends DhisConvenienceTest
+@MockitoSettings( strictness = Strictness.LENIENT )
+@ExtendWith( MockitoExtension.class )
+class ProgramInstanceSupplierTest extends DhisConvenienceTest
 {
+
     @InjectMocks
     private ProgramInstanceSupplier supplier;
 
@@ -68,9 +72,6 @@ public class ProgramInstanceSupplierTest extends DhisConvenienceTest
 
     @Mock
     private ProgramStore programStore;
-
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     private List<ProgramInstance> programInstances;
 
@@ -82,7 +83,7 @@ public class ProgramInstanceSupplierTest extends DhisConvenienceTest
 
     private final BeanRandomizer rnd = BeanRandomizer.create();
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         programWithRegistration = createProgram( 'A' );
@@ -104,7 +105,7 @@ public class ProgramInstanceSupplierTest extends DhisConvenienceTest
     }
 
     @Test
-    public void verifySupplierWhenNoEventProgramArePresent()
+    void verifySupplierWhenNoEventProgramArePresent()
     {
         // given
         TrackerPreheat preheat = new TrackerPreheat();
@@ -125,7 +126,7 @@ public class ProgramInstanceSupplierTest extends DhisConvenienceTest
     }
 
     @Test
-    public void verifySupplierWhenNoProgramsArePresent()
+    void verifySupplierWhenNoProgramsArePresent()
     {
         // given
         TrackerPreheat preheat = new TrackerPreheat();
@@ -145,7 +146,7 @@ public class ProgramInstanceSupplierTest extends DhisConvenienceTest
     }
 
     @Test
-    public void verifySupplier()
+    void verifySupplier()
     {
         // given
         TrackerPreheat preheat = new TrackerPreheat();

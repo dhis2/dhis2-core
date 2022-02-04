@@ -5,7 +5,7 @@ env:
 
 on:
   pull_request: 
-    types: [ labeled, synchronize ]
+    types: [ opened, labeled, synchronize ]
 concurrency:
     group: ${{ github.workflow}}-${{ github.ref }}
     cancel-in-progress: true
@@ -14,6 +14,9 @@ jobs:
     env:
       CORE_IMAGE_NAME: "dhis2/core:local"
       TEST_IMAGE_NAME: "dhis2/tests:local"
+      PR_NUMBER: ${{ github.event.number }}
+      DOCKER_CHANNEL: "dhis2/core-pr"
+    
     runs-on: ubuntu-latest
     if: "!contains(github.event.pull_request.labels.*.name, 'skip-api-tests')"
     steps:
@@ -22,14 +25,28 @@ jobs:
         uses: actions/setup-java@v2
         with:
           java-version: 11
-          distribution: zulu
+          distribution: temurin
           cache: maven
       - name: Build core image
         run: |
           bash ./dhis-2/build-dev.sh
 
+      - name: Login to Docker Hub
+        if: "contains(github.event.pull_request.labels.*.name, 'publish-docker-image')"
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DHIS2_BOT_DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DHIS2_BOT_DOCKER_HUB_PASSWORD }}
+      
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
+        
+      - name: Publish docker image
+        if: "contains(github.event.pull_request.labels.*.name, 'publish-docker-image')"
+        run: |
+          docker tag $CORE_IMAGE_NAME $DOCKER_CHANNEL:$PR_NUMBER
+          docker push $DOCKER_CHANNEL:$PR_NUMBER
+
       - name: Build test image
         uses: docker/build-push-action@v2
         with:

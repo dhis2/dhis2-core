@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,10 @@
  */
 package org.hisp.dhis.predictor;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -92,6 +95,15 @@ public class PredictorGroup
         }
 
         members.clear();
+    }
+
+    public List<Predictor> getSortedMembers()
+    {
+        List<Predictor> predictors = new ArrayList<>( members );
+
+        predictors.sort( Comparator.comparing( BaseIdentifiableObject::getName ) );
+
+        return predictors;
     }
 
     // -------------------------------------------------------------------------

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,45 +37,46 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Luciano Fiandesio
  */
-public class EventGeometryCheckTest extends BaseValidationTest
+@MockitoSettings( strictness = Strictness.LENIENT )
+class EventGeometryCheckTest extends BaseValidationTest
 {
+
     private EventGeometryCheck rule;
 
-    @Before
-    public void setUp()
+    @BeforeEach
+    void setUp()
     {
         rule = new EventGeometryCheck();
     }
 
     @Test
-    public void allowEventWithNoGeometry()
+    void allowEventWithNoGeometry()
     {
         ProgramStage programStage = createProgramStage();
-
         when( workContext.getProgramStage( programStageIdScheme, event.getProgramStage() ) ).thenReturn( programStage );
         ImportSummary importSummary = rule.check( new ImmutableEvent( event ), workContext );
         assertNoError( importSummary );
     }
 
     @Test
-    public void failOnEventWithGeometryAndProgramStageWithNoGeometry()
+    void failOnEventWithGeometryAndProgramStageWithNoGeometry()
     {
         event.setGeometry( createRandomPoint() );
         ProgramStage programStage = createProgramStage();
         programStage.setFeatureType( FeatureType.NONE );
         when( workContext.getProgramStage( programStageIdScheme, event.getProgramStage() ) ).thenReturn( programStage );
-
         ImportSummary importSummary = rule.check( new ImmutableEvent( event ), workContext );
-
         assertHasError( importSummary, event,
             "Geometry (Point) does not conform to the feature type (None) specified for the program stage: "
                 + programStage.getUid() );
@@ -84,7 +85,6 @@ public class EventGeometryCheckTest extends BaseValidationTest
     private ProgramStage createProgramStage()
     {
         Program program = createProgram( 'P' );
-
         return DhisConvenienceTest.createProgramStage( 'A', program );
     }
 
@@ -96,5 +96,4 @@ public class EventGeometryCheckTest extends BaseValidationTest
         /* Longitude (= x coord) first ! */
         return geometryFactory.createPoint( new Coordinate( longitude, latitude ) );
     }
-
 }
