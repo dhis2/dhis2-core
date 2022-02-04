@@ -277,8 +277,8 @@ public class HibernateDataApprovalStore
             && categoryService.getDefaultCategoryOptionCombo().equals( attributeOptionCombos.toArray()[0] );
 
         boolean maySeeDefaultCategoryCombo = (CollectionUtils
-            .isEmpty( user.getUserCredentials().getCogsDimensionConstraints() )
-            && CollectionUtils.isEmpty( user.getUserCredentials().getCatDimensionConstraints() ));
+            .isEmpty( user.getCogsDimensionConstraints() )
+            && CollectionUtils.isEmpty( user.getCatDimensionConstraints() ));
 
         // ---------------------------------------------------------------------
         // Validate

@@ -35,6 +35,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -62,7 +63,6 @@ import org.hisp.dhis.node.NodeService;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.Preset;
 import org.hisp.dhis.node.types.CollectionNode;
-import org.hisp.dhis.node.types.ComplexNode;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.program.ProgramService;
@@ -74,7 +74,6 @@ import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.PasswordValidationResult;
 import org.hisp.dhis.user.PasswordValidationService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
@@ -155,54 +154,109 @@ public class MeController
         Sets.newHashSet( UserSettingKey.values() ) );
 
     @GetMapping
-    public void getCurrentUser( HttpServletResponse response, @CurrentUser( required = true ) User user )
-        throws Exception
+    public @ResponseBody MeDto getCurrentUser( HttpServletResponse response, @CurrentUser( required = true ) User user )
     {
-        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
+//        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
+//
+//        if ( fields.isEmpty() )
+//        {
+//            fields.addAll( Preset.ALL.getFields() );
+//        }
+//
+//        for ( String field : fields )
+//        {
+//            if ( field.contains( "userCredentials" ) )
+//            {
+//                String replacedField = field.replace( "userCredentials", "user" );
+//                fields.remove( field );
+//                fields.add( replacedField );
+//            }
+//        }
+//
+////        if ( fields.contains( "userCredentials" ))
+////        {
+////            fields.remove( "userCredentials" );
+////            fields.add( "user" );
+////        }
+//
+//        CollectionNode collectionNode = fieldFilterService.toCollectionNode( User.class,
+//            new FieldFilterParams( Collections.singletonList( user ), fields ) );
+//
+//        response.setContentType( APPLICATION_JSON_VALUE );
+//        setNoStore( response );
+//
+//        RootNode rootNode = NodeUtils.createRootNode( collectionNode.getChildren().get( 0 ) );
+//
+//        if ( fieldsContains( "settings", fields ) )
+//        {
+//            rootNode.addChild( new ComplexNode( "settings" ) ).addChildren(
+//                NodeUtils.createSimples(
+//                    userSettingService.getUserSettingsWithFallbackByUserAsMap( user, USER_SETTING_KEYS, true ) ) );
+//        }
+//
+//        if ( fieldsContains( "authorities", fields ) )
+//        {
+//            rootNode.addChild( new CollectionNode( "authorities" ) ).addChildren(
+//                NodeUtils.createSimples( user.getAllAuthorities() ) );
+//        }
+//
+//        if ( fieldsContains( "programs", fields ) )
+//        {
+//            rootNode.addChild( new CollectionNode( "programs" ) ).addChildren(
+//                NodeUtils.createSimples( programService.getUserPrograms().stream()
+//                    .map( BaseIdentifiableObject::getUid )
+//                    .collect( Collectors.toList() ) ) );
+//        }
+//
+//        if ( fieldsContains( "dataSets", fields ) )
+//        {
+//            rootNode.addChild( new CollectionNode( "dataSets" ) ).addChildren(
+//                NodeUtils.createSimples( dataSetService.getUserDataRead( user ).stream()
+//                    .map( BaseIdentifiableObject::getUid )
+//                    .collect( Collectors.toList() ) ) );
+//        }
+//
+//        nodeService.serialize( rootNode, APPLICATION_JSON_VALUE, response.getOutputStream() );
 
-        if ( fields.isEmpty() )
-        {
-            fields.addAll( Preset.ALL.getFields() );
-        }
+        MeDto meDto = new MeDto(
+            user.getUid(),
+            user.getUsername(),
+            user.getSurname(),
+            user.getFirstName(),
+            user.getEmployer(),
+            user.getLanguages(),
+            user.getGender(),
+            user.getJobTitle(),
+            user.getCreated().toString(),
+            user.getLastUpdated().toString(),
+            user.getDataViewOrganisationUnits(),
+            user.getFavorites(),
+            user.getSharing(),
+            user.getUserGroupAccesses(),
+            user.getUserAccesses(),
+            user.getGroups(),
+            user.getTranslations(),
+            user.getTeiSearchOrganisationUnits(),
+            user.getOrganisationUnits(),
+            user.getExternalAccess(),
+            user.getDisplayName(),
+            user.getAccess(),
+            user.getName(),
+            user.getEmail(),
+            user.getUserCredentials() ,
+            userSettingService.getUserSettingsWithFallbackByUserAsMap( user, USER_SETTING_KEYS, true ),
+            programService.getUserPrograms().stream()
+                                .map( BaseIdentifiableObject::getUid )
+                                .collect( Collectors.toList() ),
+            new ArrayList<>(user.getAllAuthorities()),
+            dataSetService.getUserDataRead( user ).stream()
+                .map( BaseIdentifiableObject::getUid )
+                .collect( Collectors.toList() )
 
-        CollectionNode collectionNode = fieldFilterService.toCollectionNode( User.class,
-            new FieldFilterParams( Collections.singletonList( user ), fields ) );
+            );
 
-        response.setContentType( APPLICATION_JSON_VALUE );
-        setNoStore( response );
 
-        RootNode rootNode = NodeUtils.createRootNode( collectionNode.getChildren().get( 0 ) );
-
-        if ( fieldsContains( "settings", fields ) )
-        {
-            rootNode.addChild( new ComplexNode( "settings" ) ).addChildren(
-                NodeUtils.createSimples(
-                    userSettingService.getUserSettingsWithFallbackByUserAsMap( user, USER_SETTING_KEYS, true ) ) );
-        }
-
-        if ( fieldsContains( "authorities", fields ) )
-        {
-            rootNode.addChild( new CollectionNode( "authorities" ) ).addChildren(
-                NodeUtils.createSimples( user.getUserCredentials().getAllAuthorities() ) );
-        }
-
-        if ( fieldsContains( "programs", fields ) )
-        {
-            rootNode.addChild( new CollectionNode( "programs" ) ).addChildren(
-                NodeUtils.createSimples( programService.getUserPrograms().stream()
-                    .map( BaseIdentifiableObject::getUid )
-                    .collect( Collectors.toList() ) ) );
-        }
-
-        if ( fieldsContains( "dataSets", fields ) )
-        {
-            rootNode.addChild( new CollectionNode( "dataSets" ) ).addChildren(
-                NodeUtils.createSimples( dataSetService.getUserDataRead( user ).stream()
-                    .map( BaseIdentifiableObject::getUid )
-                    .collect( Collectors.toList() ) ) );
-        }
-
-        nodeService.serialize( rootNode, APPLICATION_JSON_VALUE, response.getOutputStream() );
+        return meDto;
     }
 
     private boolean fieldsContains( String key, List<String> fields )
@@ -261,7 +315,7 @@ public class MeController
     }
 
     @GetMapping( value = { "/authorization", "/authorities" }, produces = APPLICATION_JSON_VALUE )
-    public ResponseEntity<Set<String>> getAuthorities( @CurrentUser( required = true ) UserCredentials currentUser )
+    public ResponseEntity<Set<String>> getAuthorities( @CurrentUser( required = true ) User currentUser )
         throws IOException,
         NotAuthenticatedException
     {
@@ -272,7 +326,7 @@ public class MeController
     @GetMapping( value = { "/authorization/{authority}",
         "/authorities/{authority}" }, produces = APPLICATION_JSON_VALUE )
     public ResponseEntity<Boolean> hasAuthority( @PathVariable String authority,
-        @CurrentUser( required = true ) UserCredentials currentUser )
+        @CurrentUser( required = true ) User currentUser )
     {
         return ResponseEntity.ok().cacheControl( noStore() )
             .body( currentUser.isAuthorized( authority ) );
@@ -324,7 +378,7 @@ public class MeController
             throw new WebMessageException( conflict( "OldPassword and newPassword must be provided" ) );
         }
 
-        boolean valid = passwordManager.matches( oldPassword, currentUser.getUserCredentials().getPassword() );
+        boolean valid = passwordManager.matches( oldPassword, currentUser.getPassword() );
 
         if ( !valid )
         {
@@ -334,7 +388,7 @@ public class MeController
         updatePassword( currentUser, newPassword );
         manager.update( currentUser );
 
-        userService.expireActiveSessions( currentUser.getUserCredentials() );
+        userService.expireActiveSessions( currentUser );
     }
 
     @PostMapping( value = "/verifyPassword", consumes = "text/*" )
@@ -402,7 +456,7 @@ public class MeController
                 conflict( "Required attribute 'password' missing or null." ) );
         }
 
-        boolean valid = passwordManager.matches( password, currentUser.getUserCredentials().getPassword() );
+        boolean valid = passwordManager.matches( password, currentUser.getPassword() );
 
         RootNode rootNode = NodeUtils.createRootNode( "response" );
         rootNode.addChild( new SimpleNode( "isCorrectPassword", valid ) );
@@ -464,12 +518,7 @@ public class MeController
         currentUser.setEducation( stringWithDefault( user.getEducation(), currentUser.getEducation() ) );
         currentUser.setInterests( stringWithDefault( user.getInterests(), currentUser.getInterests() ) );
         currentUser.setLanguages( stringWithDefault( user.getLanguages(), currentUser.getLanguages() ) );
-
-        if ( user.getUserCredentials() != null && currentUser.getUserCredentials() != null )
-        {
-            UserCredentials userCredentials = user.getUserCredentials();
-            currentUser.getUserCredentials().setTwoFA( userCredentials.isTwoFA() );
-        }
+        currentUser.setTwoFA( user.isTwoFA() );
     }
 
     private void updatePassword( User currentUser, String password )
@@ -484,7 +533,7 @@ public class MeController
 
             if ( result.isValid() )
             {
-                userService.encodeAndSetPassword( currentUser.getUserCredentials(), password );
+                userService.encodeAndSetPassword( currentUser, password );
             }
             else
             {

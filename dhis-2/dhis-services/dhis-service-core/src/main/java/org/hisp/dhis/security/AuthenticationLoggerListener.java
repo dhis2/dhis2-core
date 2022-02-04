@@ -31,7 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.security.oidc.DhisOidcUser;
-import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.user.User;
 import org.springframework.context.ApplicationListener;
 import org.springframework.security.authentication.event.AbstractAuthenticationEvent;
 import org.springframework.security.authentication.event.AbstractAuthenticationFailureEvent;
@@ -100,8 +100,8 @@ public class AuthenticationLoggerListener
 
             if ( principal != null )
             {
-                UserCredentials userCredentials = principal.getUserCredentials();
-                authName = userCredentials.getUsername();
+                User user = principal.getUser();
+                authName = user.getUsername();
             }
 
             WebAuthenticationDetails oauthDetails = (WebAuthenticationDetails) authenticationToken.getDetails();
@@ -115,8 +115,8 @@ public class AuthenticationLoggerListener
 
             if ( principal != null )
             {
-                UserCredentials userCredentials = principal.getUserCredentials();
-                authName = userCredentials.getUsername();
+                User user = principal.getUser();
+                authName = user.getUsername();
             }
         }
 

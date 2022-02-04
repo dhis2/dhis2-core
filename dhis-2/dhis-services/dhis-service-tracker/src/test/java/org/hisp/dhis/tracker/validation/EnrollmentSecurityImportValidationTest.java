@@ -71,6 +71,7 @@ import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
@@ -236,7 +237,7 @@ public class EnrollmentSecurityImportValidationTest
 
         User user = userService.getUser( ADMIN_USER_UID );
         trackerBundleParams.setUserId( user.getUid() );
-
+        injectSecurityContext( user );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
 
         assertEquals( 0, trackerImportReport.getValidationReport().getErrorReports().size() );
@@ -252,6 +253,7 @@ public class EnrollmentSecurityImportValidationTest
             "tracker/validations/enrollments_te_enrollments-data.json" );
 
         User user = userService.getUser( USER_2 );
+        injectSecurityContext( user );
         params.setUser( user );
         params.setImportStrategy( TrackerImportStrategy.CREATE );
 
@@ -266,6 +268,8 @@ public class EnrollmentSecurityImportValidationTest
     public void testUserNoAccessToTrackedEntity()
         throws IOException
     {
+        clearSecurityContext();
+
         setupMetadata();
 
         programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
@@ -297,6 +301,8 @@ public class EnrollmentSecurityImportValidationTest
     public void testUserNoWriteAccessToProgram()
         throws IOException
     {
+        clearSecurityContext();
+
         setupMetadata();
 
         programA.setPublicAccess( AccessStringHelper.DATA_READ );
@@ -327,6 +333,8 @@ public class EnrollmentSecurityImportValidationTest
     public void testUserHasWriteAccessToProgram()
         throws IOException
     {
+        clearSecurityContext();
+
         setupMetadata();
 
         programA.setPublicAccess( AccessStringHelper.FULL );
@@ -353,6 +361,8 @@ public class EnrollmentSecurityImportValidationTest
     public void testUserHasNoAccessToProgramTeiType()
         throws IOException
     {
+        clearSecurityContext();
+
         setupMetadata();
 
         programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );

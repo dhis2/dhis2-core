@@ -69,10 +69,6 @@
       "surname": "admin",
       "lastCheckedInterpretations": "2020-02-10T09:06:47.644",
       "firstName": "admin",
-      "userCredentials": {
-        "lastUpdated": "2020-02-10T09:07:34.946",
-        "id": "KvMx6c1eoYo",
-        "created": "2020-02-10T09:07:34.946",
         "name": "admin admin",
         "lastLogin": "2020-02-20T11:59:35.930",
         "displayName": "admin admin",
@@ -85,9 +81,6 @@
         "selfRegistered": false,
         "favorite": false,
         "username": "admin",
-        "userInfo": {
-          "id": "M5zQapPyTZI"
-        },
         "access": {
           "read": true,
           "update": true,
@@ -101,14 +94,12 @@
         "catDimensionConstraints": [],
         "translations": [],
         "userGroupAccesses": [],
-        "attributeValues": [],
         "userRoles": [
           {
             "id": "yrB6vc5Ip3r"
           }
         ],
-        "userAccesses": []
-      },
+        "userAccesses": [],
       "teiSearchOrganisationUnits": [],
       "organisationUnits": [
         {

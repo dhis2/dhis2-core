@@ -90,9 +90,6 @@ public class DefaultUserService
     private final UserStore userStore;
 
     private final UserGroupService userGroupService;
-
-    private final UserCredentialsStore userCredentialsStore;
-
     private final UserAuthorityGroupStore userAuthorityGroupStore;
 
     private final CurrentUserService currentUserService;
@@ -106,14 +103,13 @@ public class DefaultUserService
     private final Cache<String> userDisplayNameCache;
 
     public DefaultUserService( UserStore userStore, UserGroupService userGroupService,
-        UserCredentialsStore userCredentialsStore, UserAuthorityGroupStore userAuthorityGroupStore,
+        UserAuthorityGroupStore userAuthorityGroupStore,
         CurrentUserService currentUserService, SystemSettingManager systemSettingManager,
         CacheProvider cacheProvider,
         @Lazy PasswordManager passwordManager, @Lazy SessionRegistry sessionRegistry )
     {
         checkNotNull( userStore );
         checkNotNull( userGroupService );
-        checkNotNull( userCredentialsStore );
         checkNotNull( userAuthorityGroupStore );
         checkNotNull( systemSettingManager );
         checkNotNull( passwordManager );
@@ -121,7 +117,6 @@ public class DefaultUserService
 
         this.userStore = userStore;
         this.userGroupService = userGroupService;
-        this.userCredentialsStore = userCredentialsStore;
         this.userAuthorityGroupStore = userAuthorityGroupStore;
         this.currentUserService = currentUserService;
         this.systemSettingManager = systemSettingManager;
@@ -192,18 +187,14 @@ public class DefaultUserService
     @Transactional( readOnly = true )
     public User getUserByUuid( UUID uuid )
     {
-        UserCredentials userCredentials = userCredentialsStore.getUserCredentialsByUuid( uuid );
-
-        return userCredentials != null ? userCredentials.getUserInfo() : null;
+        return userStore.getUserByUuid( uuid );
     }
 
     @Override
     @Transactional( readOnly = true )
     public User getUserByUsername( String username )
     {
-        UserCredentials userCredentials = userCredentialsStore.getUserCredentialsByUsername( username );
-
-        return userCredentials != null ? userCredentials.getUserInfo() : null;
+        return userStore.getUserByUsername( username );
     }
 
     @Override
@@ -331,14 +322,14 @@ public class DefaultUserService
         }
 
         if ( params.isAuthSubset()
-            && (params.getUser() == null || !params.getUser().getUserCredentials().hasAuthorities()) )
+            && (params.getUser() == null || !params.getUser().hasAuthorities()) )
         {
             log.warn( "Cannot get users with authority subset as user does not have any authorities" );
             return false;
         }
 
         if ( params.isDisjointRoles()
-            && (params.getUser() == null || !params.getUser().getUserCredentials().hasUserAuthorityGroups()) )
+            && (params.getUser() == null || !params.getUser().hasUserAuthorityGroups()) )
         {
             log.warn( "Cannot get users with disjoint roles as user does not have any user roles" );
             return false;
@@ -358,18 +349,18 @@ public class DefaultUserService
 
     @Override
     @Transactional( readOnly = true )
-    public boolean isLastSuperUser( UserCredentials userCredentials )
+    public boolean isLastSuperUser( User useer )
     {
-        if ( !userCredentials.isSuper() )
+        if ( !useer.isSuper() )
         {
             return false; // Cannot be last if not super user
         }
 
-        Collection<UserCredentials> users = userCredentialsStore.getAll();
+        Collection<User> users = userStore.getAll();
 
-        for ( UserCredentials user : users )
+        for ( User user : users )
         {
-            if ( user.isSuper() && !user.equals( userCredentials ) )
+            if ( user.isSuper() && !user.equals( useer ) )
             {
                 return false;
             }
@@ -411,14 +402,14 @@ public class DefaultUserService
             return false;
         }
 
-        boolean canAdd = currentUser.getUserCredentials().isAuthorized( UserGroup.AUTH_USER_ADD );
+        boolean canAdd = currentUser.isAuthorized( UserGroup.AUTH_USER_ADD );
 
         if ( canAdd )
         {
             return true;
         }
 
-        boolean canAddInGroup = currentUser.getUserCredentials().isAuthorized( UserGroup.AUTH_USER_ADD_IN_GROUP );
+        boolean canAddInGroup = currentUser.isAuthorized( UserGroup.AUTH_USER_ADD_IN_GROUP );
 
         if ( !canAddInGroup )
         {
@@ -535,137 +526,97 @@ public class DefaultUserService
         FilterUtils.filter( userRoles, new UserAuthorityGroupCanIssueFilter( user, canGrantOwnUserAuthorityGroups ) );
     }
 
-    // -------------------------------------------------------------------------
-    // UserCredentials
-    // -------------------------------------------------------------------------
-
-    @Override
-    @Transactional
-    public long addUserCredentials( UserCredentials userCredentials )
-    {
-        userCredentialsStore.save( userCredentials );
-        return userCredentials.getId();
-    }
-
-    @Override
-    @Transactional
-    public void updateUserCredentials( UserCredentials userCredentials )
-    {
-        userCredentialsStore.update( userCredentials );
-    }
-
     @Override
     @Transactional( readOnly = true )
-    public List<UserCredentials> getAllUserCredentials()
+    public List<User> getUsersByUsernames( Collection<String> usernames )
     {
-        return userCredentialsStore.getAll();
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public List<UserCredentials> getUserCredentialsByUsernames( Collection<String> usernames )
-    {
-        return userCredentialsStore.getUserCredentialsByUsernames( usernames );
+        return userStore.getUserByUsernames( usernames );
     }
 
     @Override
     @Transactional
     public void encodeAndSetPassword( User user, String rawPassword )
     {
-        encodeAndSetPassword( user.getUserCredentials(), rawPassword );
-    }
-
-    @Override
-    @Transactional
-    public void encodeAndSetPassword( UserCredentials userCredentials, String rawPassword )
-    {
-        if ( StringUtils.isEmpty( rawPassword ) && !userCredentials.isExternalAuth() )
+        if ( StringUtils.isEmpty( rawPassword ) && !user.isExternalAuth() )
         {
             return; // Leave unchanged if internal authentication and no
-                    // password supplied
+            // password supplied
         }
 
-        if ( userCredentials.isExternalAuth() )
+        if ( user.isExternalAuth() )
         {
-            userCredentials.setPassword( UserService.PW_NO_INTERNAL_LOGIN );
+            user.setPassword( UserService.PW_NO_INTERNAL_LOGIN );
 
             return; // Set unusable, not-encoded password if external
-                    // authentication
+            // authentication
         }
 
-        boolean isNewPassword = StringUtils.isBlank( userCredentials.getPassword() ) ||
-            !passwordManager.matches( rawPassword, userCredentials.getPassword() );
+        boolean isNewPassword = StringUtils.isBlank( user.getPassword() ) ||
+            !passwordManager.matches( rawPassword, user.getPassword() );
 
         if ( isNewPassword )
         {
-            userCredentials.setPasswordLastUpdated( new Date() );
+            user.setPasswordLastUpdated( new Date() );
         }
 
         // Encode and set password
 
-        userCredentials.setPassword( passwordManager.encode( rawPassword ) );
-        userCredentials.getPreviousPasswords().add( passwordManager.encode( rawPassword ) );
+        user.setPassword( passwordManager.encode( rawPassword ) );
+        user.getPreviousPasswords().add( passwordManager.encode( rawPassword ) );
     }
 
     @Override
     @Transactional( readOnly = true )
-    public UserCredentials getUserCredentialsByIdToken( String token )
+    public User getUserByIdToken( String token )
     {
-        return userCredentialsStore.getUserCredentialsByIdToken( token );
+        return userStore.getUserByIdToken( token );
     }
 
     @Override
     @Transactional( readOnly = true )
-    public UserCredentials getUserCredentialsByUsername( String username )
+    public User getUserWithEagerFetchAuthorities( String username )
     {
-        return userCredentialsStore.getUserCredentialsByUsername( username );
-    }
+        User user = userStore.getUserByUsername( username );
 
-    @Override
-    @Transactional( readOnly = true )
-    public UserCredentials getUserCredentialsWithEagerFetchAuthorities( String username )
-    {
-        UserCredentials userCredentials = userCredentialsStore.getUserCredentialsByUsername( username );
-
-        if ( userCredentials != null )
+        if ( user != null )
         {
-            userCredentials.getAllAuthorities();
+            user.getAllAuthorities();
         }
 
-        return userCredentials;
+        return user;
     }
 
     @Override
     @Transactional( readOnly = true )
-    public UserCredentials getUserCredentialsByOpenId( String openId )
+    public User getUserByOpenId( String openId )
     {
-        UserCredentials userCredentials = userCredentialsStore.getUserCredentialsByOpenId( openId );
+        User user = userStore.getUserByOpenId( openId );
 
-        if ( userCredentials != null )
+        if ( user != null )
         {
-            userCredentials.getAllAuthorities();
+            user.getAllAuthorities();
         }
 
-        return userCredentials;
+        return user;
     }
 
     @Override
     @Transactional( readOnly = true )
-    public UserCredentials getUserCredentialsByLdapId( String ldapId )
+    public User getUserByLdapId( String ldapId )
     {
-        return userCredentialsStore.getUserCredentialsByLdapId( ldapId );
+        return userStore.getUserByLdapId( ldapId );
     }
 
     @Override
     @Transactional
     public void setLastLogin( String username )
     {
-        UserCredentials credentials = getUserCredentialsByUsername( username );
+        User user = getUserByUsername( username );
 
-        if ( credentials != null )
+        if ( user != null )
         {
-            credentials.setLastLogin( new Date() );
-            updateUserCredentials( credentials );
+            user.setLastLogin( new Date() );
+            updateUser( user );
         }
     }
 
@@ -691,7 +642,7 @@ public class DefaultUserService
 
     @Override
     @Transactional( readOnly = true )
-    public boolean credentialsNonExpired( UserCredentials credentials )
+    public boolean userNonExpired( User user )
     {
         int credentialsExpires = systemSettingManager.credentialsExpires();
 
@@ -700,20 +651,20 @@ public class DefaultUserService
             return true;
         }
 
-        if ( credentials == null || credentials.getPasswordLastUpdated() == null )
+        if ( user == null || user.getPasswordLastUpdated() == null )
         {
             return true;
         }
 
-        int months = DateUtils.monthsBetween( credentials.getPasswordLastUpdated(), new Date() );
+        int months = DateUtils.monthsBetween( user.getPasswordLastUpdated(), new Date() );
 
         return months < credentialsExpires;
     }
 
     @Override
-    public boolean isAccountExpired( UserCredentials credentials )
+    public boolean isAccountExpired( User user )
     {
-        return !credentials.isAccountNonExpired();
+        return !user.isAccountNonExpired();
     }
 
     @Override
@@ -722,8 +673,7 @@ public class DefaultUserService
     {
         List<ErrorReport> errors = new ArrayList<>();
 
-        if ( currentUser == null || currentUser.getUserCredentials() == null || user == null
-            || user.getUserCredentials() == null )
+        if ( currentUser == null || user == null )
         {
             return errors;
         }
@@ -733,11 +683,11 @@ public class DefaultUserService
         boolean canGrantOwnUserAuthorityGroups = systemSettingManager
             .getBoolSetting( SettingKey.CAN_GRANT_OWN_USER_AUTHORITY_GROUPS );
 
-        List<UserAuthorityGroup> roles = userAuthorityGroupStore.getByUid( user.getUserCredentials()
+        List<UserAuthorityGroup> roles = userAuthorityGroupStore.getByUid( user
             .getUserAuthorityGroups().stream().map( BaseIdentifiableObject::getUid ).collect( Collectors.toList() ) );
 
         roles.forEach( ur -> {
-            if ( !currentUser.getUserCredentials().canIssueUserRole( ur, canGrantOwnUserAuthorityGroups ) )
+            if ( !currentUser.canIssueUserRole( ur, canGrantOwnUserAuthorityGroups ) )
             {
                 errors.add( new ErrorReport( UserAuthorityGroup.class, ErrorCode.E3003, currentUser.getUsername(),
                     ur.getName() ) );
@@ -746,14 +696,14 @@ public class DefaultUserService
 
         // Validate user group
 
-        boolean canAdd = currentUser.getUserCredentials().isAuthorized( UserGroup.AUTH_USER_ADD );
+        boolean canAdd = currentUser.isAuthorized( UserGroup.AUTH_USER_ADD );
 
         if ( canAdd )
         {
             return errors;
         }
 
-        boolean canAddInGroup = currentUser.getUserCredentials().isAuthorized( UserGroup.AUTH_USER_ADD_IN_GROUP );
+        boolean canAddInGroup = currentUser.isAuthorized( UserGroup.AUTH_USER_ADD_IN_GROUP );
 
         if ( !canAddInGroup )
         {
@@ -798,15 +748,15 @@ public class DefaultUserService
     @Transactional
     public void set2FA( User user, Boolean twoFa )
     {
-        user.getUserCredentials().setTwoFA( twoFa );
+        user.setTwoFA( twoFa );
 
         updateUser( user );
     }
 
     @Override
-    public void expireActiveSessions( UserCredentials credentials )
+    public void expireActiveSessions( User user )
     {
-        List<SessionInformation> sessions = sessionRegistry.getAllSessions( credentials, false );
+        List<SessionInformation> sessions = sessionRegistry.getAllSessions( user, false );
 
         sessions.forEach( SessionInformation::expireNow );
     }
@@ -838,8 +788,8 @@ public class DefaultUserService
 
     @Override
 
-    public List<UserCredentials> getUsersWithAuthority( String authority )
+    public List<User> getUsersWithAuthority( String authority )
     {
-        return userCredentialsStore.getHasAuthority( authority );
+        return userStore.getHasAuthority( authority );
     }
 }

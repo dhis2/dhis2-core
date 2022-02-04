@@ -46,7 +46,6 @@ import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -158,14 +157,14 @@ public class CredentialsExpiryAlertJob implements Job
 
     private String createText( User user )
     {
-        return String.format( TEXT, user.getUsername(), getRemainingDays( user.getUserCredentials() ) );
+        return String.format( TEXT, user.getUsername(), getRemainingDays( user ) );
     }
 
-    private int getRemainingDays( UserCredentials userCredentials )
+    private int getRemainingDays( User user )
     {
         int daysBeforeChangeRequired = systemSettingManager.getIntSetting( SettingKey.CREDENTIALS_EXPIRES ) * 30;
 
-        Date passwordLastUpdated = userCredentials.getPasswordLastUpdated();
+        Date passwordLastUpdated = user.getPasswordLastUpdated();
 
         return (daysBeforeChangeRequired - DateUtils.daysBetween( passwordLastUpdated, new Date() ));
     }

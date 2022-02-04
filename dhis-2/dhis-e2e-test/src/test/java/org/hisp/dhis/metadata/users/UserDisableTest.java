@@ -73,13 +73,13 @@ public class UserDisableTest
         loginActions.loginAsSuperUser();
 
         ApiResponse preChangeResponse = userActions.get( userId );
-        preChangeResponse.validate().statusCode( 200 ).body( "userCredentials.disabled", is( false ) );
+        preChangeResponse.validate().statusCode( 200 ).body( "disabled", is( false ) );
 
         ApiResponse response = userActions.post( userId + "/disabled", new Object(), null );
         response.validate().statusCode( 204 );
 
         ApiResponse getResponse = userActions.get( userId );
-        getResponse.validate().statusCode( 200 ).body( "userCredentials.disabled", is( true ) );
+        getResponse.validate().statusCode( 200 ).body( "disabled", is( true ) );
 
         loginActions.addAuthenticationHeader( userName, password );
         loginActions.getLoggedInUserInfo().validate().statusCode( 401 );
@@ -92,13 +92,13 @@ public class UserDisableTest
         loginActions.loginAsSuperUser();
 
         ApiResponse preChangeResponse = userActions.get( userId );
-        preChangeResponse.validate().statusCode( 200 ).body( "userCredentials.disabled", is( false ) );
+        preChangeResponse.validate().statusCode( 200 ).body( "disabled", is( false ) );
 
         ApiResponse response = userActions.post( userId + "/disabled", new Object(), null );
         response.validate().statusCode( 204 );
 
         ApiResponse getResponse = userActions.get( userId );
-        getResponse.validate().statusCode( 200 ).body( "userCredentials.disabled", is( true ) );
+        getResponse.validate().statusCode( 200 ).body( "disabled", is( true ) );
 
         loginActions.addAuthenticationHeader( userName, password );
         loginActions.getLoggedInUserInfo().validate().statusCode( 401 );
@@ -109,7 +109,7 @@ public class UserDisableTest
         enableResponse.validate().statusCode( 204 );
 
         ApiResponse getAfterEnabled = userActions.get( userId );
-        getAfterEnabled.validate().statusCode( 200 ).body( "userCredentials.disabled", is( false ) );
+        getAfterEnabled.validate().statusCode( 200 ).body( "disabled", is( false ) );
 
         loginActions.addAuthenticationHeader( userName, password );
         loginActions.getLoggedInUserInfo().validate().statusCode( 200 );

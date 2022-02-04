@@ -48,7 +48,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -295,7 +295,7 @@ public class GetHistoryAction
 
         if ( dataValue != null )
         {
-            UserCredentials credentials = userService.getUserCredentialsByUsername( dataValue.getStoredBy() );
+            User credentials = userService.getUserByUsername( dataValue.getStoredBy() );
             storedBy = credentials != null ? credentials.getName() : dataValue.getStoredBy();
         }
 

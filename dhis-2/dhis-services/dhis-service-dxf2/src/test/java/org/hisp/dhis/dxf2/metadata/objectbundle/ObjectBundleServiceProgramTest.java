@@ -386,6 +386,8 @@ public class ObjectBundleServiceProgramTest
 
         User testUser = createUser( "A", testAuths );
 
+        injectSecurityContext( testUser );
+
         params = new ObjectBundleParams();
         params.setObjectBundleMode( ObjectBundleMode.COMMIT );
         params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
@@ -433,6 +435,7 @@ public class ObjectBundleServiceProgramTest
         };
 
         User testUser = createUser( "A", testAuths );
+
 
         TrackedEntityAttribute tea1 = manager.get( TrackedEntityAttribute.class, "cpaMZredRXb" );
         TrackedEntityAttribute tea2 = manager.get( TrackedEntityAttribute.class, "QhEcRpLZwMb" );

@@ -49,7 +49,6 @@ import org.hisp.dhis.schema.annotation.Gist.Transform;
 import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
 
@@ -67,9 +66,7 @@ public class DefaultGistAccessControl implements GistAccessControl
 
     private static final Set<String> PUBLIC_USER_PROPERTY_PATHS = unmodifiableSet(
         new HashSet<>(
-            asList( "id", "code", "displayName", "name", "surname", "firstName", "userCredentials.username" ) ) );
-
-    private static final Set<String> PUBLIC_USER_CREDENTIALS_PROPERTY_PATHS = singleton( "username" );
+            asList( "id", "code", "displayName", "name", "surname", "firstName", "username" ) ) );
 
     private static final Set<String> PUBLIC_PROPERTY_PATHS = unmodifiableSet(
         new HashSet<>( asList( "sharing", "access", "translations" ) ) );
@@ -145,15 +142,11 @@ public class DefaultGistAccessControl implements GistAccessControl
             return true;
         }
         boolean isUserField = type == User.class;
-        boolean isUserCredentialsField = type == UserCredentials.class;
         if ( isUserField && PUBLIC_USER_PROPERTY_PATHS.contains( path ) )
         {
             return true;
         }
-        if ( isUserCredentialsField && PUBLIC_USER_CREDENTIALS_PROPERTY_PATHS.contains( path ) )
-        {
-            return true;
-        }
+
         @SuppressWarnings( "unchecked" )
         Class<? extends IdentifiableObject> ioType = (Class<? extends IdentifiableObject>) type;
         return PUBLIC_PROPERTY_PATHS.contains( path ) || aclService.canRead( currentUser, ioType );

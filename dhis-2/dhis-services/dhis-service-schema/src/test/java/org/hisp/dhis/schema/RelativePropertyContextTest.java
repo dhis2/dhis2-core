@@ -45,7 +45,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * This tests the {@link RelativePropertyContext}. We use a integration test so
+ * This tests the {@link RelativePropertyContext}. We use an integration test, so
  * we can use DHIS2 model to test the {@link RelativePropertyContext} with.
  *
  * @author Jan Bernitt
@@ -65,7 +65,6 @@ public class RelativePropertyContextTest extends DhisSpringTest
         assertPropertyDoesExist( OrganisationUnit.class, "level", Integer.class );
 
         assertPropertyDoesNotExist( UserGroup.class, "members" );
-        assertPropertyDoesNotExist( User.class, "password" );
     }
 
     @Test

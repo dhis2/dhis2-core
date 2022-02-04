@@ -53,7 +53,6 @@ import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.springframework.stereotype.Component;
 
@@ -235,7 +234,7 @@ public class ReferencesCheck implements ValidationCheck
     private boolean skipCheck( Class<?> klass )
     {
         return klass != null
-            && (UserCredentials.class.isAssignableFrom( klass ) || EmbeddedObject.class.isAssignableFrom( klass )
+            && (EmbeddedObject.class.isAssignableFrom( klass )
                 || Period.class.isAssignableFrom( klass ) || PeriodType.class.isAssignableFrom( klass ));
     }
 

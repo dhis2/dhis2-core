@@ -78,13 +78,8 @@ public class MessageServiceTest
         userB = createUser( 'B' );
 
         userService.addUser( sender );
-        userService.addUserCredentials( sender.getUserCredentials() );
-
         userService.addUser( userA );
-        userService.addUserCredentials( userA.getUserCredentials() );
-
         userService.addUser( userB );
-        userService.addUserCredentials( userB.getUserCredentials() );
 
         users = new HashSet<>();
         users.add( userA );

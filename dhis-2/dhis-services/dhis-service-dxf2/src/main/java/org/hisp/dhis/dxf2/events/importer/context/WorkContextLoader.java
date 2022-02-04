@@ -39,7 +39,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentials;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -167,29 +166,26 @@ public class WorkContextLoader
             //
             if ( currentUser != null )
             {
-                UserCredentials userCredentials = currentUser.getUserCredentials();
-                initUserCredentials( userCredentials );
+                initUser( currentUser );
                 importOptions.setUser( currentUser );
             }
         }
         else
         {
-            final User user = importOptions.getUser();
-            UserCredentials userCredentials = user.getUserCredentials();
-            initUserCredentials( userCredentials );
+            initUser( importOptions.getUser() );
         }
     }
 
     /**
      * Force Hibernate to pre-load all collections for the
-     * {@see UserCredentials} object and fetch the "isSuper()" data. This is
+     * {@see User} object and fetch the "isSuper()" data. This is
      * required to avoid an Hibernate error later, when this object becomes
      * detached from the Hibernate Session.
      */
-    private void initUserCredentials( UserCredentials userCredentials )
+    private void initUser( User user )
     {
-        userCredentials = HibernateProxyUtils.unproxy( userCredentials );
+        user = HibernateProxyUtils.unproxy( user );
 
-        userCredentials.isSuper();
+        user.isSuper();
     }
 }

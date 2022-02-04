@@ -37,7 +37,7 @@ import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.trackedentity.*;
 import org.hisp.dhis.tracker.util.Constant;
 import org.hisp.dhis.tracker.validation.service.attribute.TrackedAttributeValidationService;
-import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.joda.time.IllegalFieldValueException;
 import org.junit.Before;
@@ -162,18 +162,18 @@ public class TrackedAttributeValidationServiceTest
     }
 
     @Test
-    public void shouldFailWhenUserCredentialNotFound()
+    public void shouldFailWhenUserNotFound()
     {
-        when( userService.getUserCredentialsByUsername( "user" ) ).thenReturn( null );
+        when( userService.getUserByUsername( "user" ) ).thenReturn( null );
 
         tea.setValueType( ValueType.USERNAME );
         assertNotNull( trackedEntityAttributeService.validateValueType( tea, "user" ) );
     }
 
     @Test
-    public void successWhenUserCredentialExists()
+    public void successWhenUserExists()
     {
-        when( userService.getUserCredentialsByUsername( "user" ) ).thenReturn( new UserCredentials() );
+        when( userService.getUserByUsername( "user" ) ).thenReturn( new User() );
 
         tea.setValueType( ValueType.USERNAME );
         assertNull( trackedEntityAttributeService.validateValueType( tea, "user" ) );

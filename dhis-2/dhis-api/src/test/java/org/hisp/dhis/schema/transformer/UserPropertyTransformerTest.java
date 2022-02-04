@@ -32,7 +32,6 @@ import static org.junit.Assert.assertEquals;
 import java.util.UUID;
 
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentials;
 import org.junit.Test;
 
 /**
@@ -46,13 +45,10 @@ public class UserPropertyTransformerTest
     public void testUserTransform()
     {
         User user = new User();
-        UserCredentials userCredentials = new UserCredentials();
-        userCredentials.setUuid( uuid );
-        userCredentials.setCreatedBy( user );
-        userCredentials.setUsername( "test" );
-        userCredentials.setUserInfo( user );
+        user.setUuid( uuid );
+        user.setCreatedBy( user );
+        user.setUsername( "test" );
 
-        user.setUserCredentials( userCredentials );
         user.setCreatedBy( user );
 
         UserPropertyTransformer transformer = new UserPropertyTransformer();

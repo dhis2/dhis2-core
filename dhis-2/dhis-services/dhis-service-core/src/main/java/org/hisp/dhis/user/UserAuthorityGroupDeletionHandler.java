@@ -56,7 +56,7 @@ public class UserAuthorityGroupDeletionHandler
 
     private void deleteUser( User user )
     {
-        UserCredentials credentials = user.getUserCredentials();
+        User credentials = user;
 
         for ( UserAuthorityGroup group : credentials.getUserAuthorityGroups() )
         {

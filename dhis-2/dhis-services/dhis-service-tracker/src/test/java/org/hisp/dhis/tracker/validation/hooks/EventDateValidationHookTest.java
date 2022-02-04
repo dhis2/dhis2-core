@@ -51,15 +51,15 @@ import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
-import org.hisp.dhis.user.UserCredentials;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+
+import org.apache.commons.compress.utils.Sets;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
-import com.google.common.collect.Sets;
 
 /**
  * @author Enrico Colasante
@@ -292,12 +292,10 @@ public class EventDateValidationHookTest
     private User getEditExpiredUser()
     {
         User user = createUser( 'A' );
-        UserCredentials userCredentials = createUserCredentials( 'A', user );
         UserAuthorityGroup userAuthorityGroup = createUserAuthorityGroup( 'A' );
         userAuthorityGroup.setAuthorities( Sets.newHashSet( Authorities.F_EDIT_EXPIRED.getAuthority() ) );
 
-        userCredentials.setUserAuthorityGroups( Sets.newHashSet( userAuthorityGroup ) );
-        user.setUserCredentials( userCredentials );
+        user.setUserAuthorityGroups( Sets.newHashSet( userAuthorityGroup ) );
 
         return user;
     }

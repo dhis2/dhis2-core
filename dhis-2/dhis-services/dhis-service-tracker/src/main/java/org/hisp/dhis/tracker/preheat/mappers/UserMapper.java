@@ -27,13 +27,17 @@
  */
 package org.hisp.dhis.tracker.preheat.mappers;
 
+import java.util.Set;
+
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserAuthorityGroup;
+
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
-@Mapper( uses = DebugMapper.class )
+@Mapper( uses = { DebugMapper.class, UserAuthorityGroupMapper.class } )
 public interface UserMapper extends PreheatMapper<User>
 {
     UserMapper INSTANCE = Mappers.getMapper( UserMapper.class );
@@ -42,5 +46,9 @@ public interface UserMapper extends PreheatMapper<User>
     @Mapping( target = "id" )
     @Mapping( target = "uid" )
     @Mapping( target = "code" )
+    @Mapping( target = "username" )
+    @Mapping( target = "userAuthorityGroups" )
     User map( User user );
+
+    Set<UserAuthorityGroup> map( Set<UserAuthorityGroup> userAuthorityGroups );
 }

@@ -171,6 +171,7 @@ public class ProgramRuleIntegrationTest
         programRuleService.updateProgramRule( programRuleB );
 
         userA = userService.getUser( "M5zQapPyTZI" );
+        injectSecurityContext( userA );
     }
 
     @Test

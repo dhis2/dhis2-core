@@ -61,7 +61,6 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
-import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupAccessService;
 import org.hisp.dhis.user.UserGroupService;
@@ -208,12 +207,9 @@ public class DataApprovalAuditServiceTest extends TransactionalIntegrationTest
 
         user.setFirstName( "Test" );
         user.setSurname( userName );
+        user.setUsername( userName );
 
-        UserCredentials credentials = user.getUserCredentials();
-
-        credentials.setUsername( userName );
-
-        for ( UserAuthorityGroup role : credentials.getUserAuthorityGroups() )
+        for ( UserAuthorityGroup role : user.getUserAuthorityGroups() )
         {
             role.setName( CodeGenerator.generateUid() ); // Give the role an
                                                          // arbitrary name
@@ -221,7 +217,6 @@ public class DataApprovalAuditServiceTest extends TransactionalIntegrationTest
             userService.addUserAuthorityGroup( role );
         }
 
-        userService.addUserCredentials( credentials );
         userService.addUser( user );
 
         return mockCurrentUserService;
@@ -340,8 +335,8 @@ public class DataApprovalAuditServiceTest extends TransactionalIntegrationTest
         categoryService.updateCategoryOptionGroup( optionGroupA );
         categoryService.updateCategoryOptionGroup( optionGroupB );
 
-        userCService.getCurrentUser().getUserCredentials().getCatDimensionConstraints().add( categoryA );
-        userDService.getCurrentUser().getUserCredentials().getCogsDimensionConstraints().add( optionGroupSetB );
+        userCService.getCurrentUser().getCatDimensionConstraints().add( categoryA );
+        userDService.getCurrentUser().getCogsDimensionConstraints().add( optionGroupSetB );
 
         dateA = getDate( 2017, 1, 1 );
         dateB = getDate( 2018, 1, 1 );

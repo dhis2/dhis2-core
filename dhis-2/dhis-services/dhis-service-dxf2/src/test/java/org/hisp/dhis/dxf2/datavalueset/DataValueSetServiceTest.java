@@ -960,6 +960,8 @@ public class DataValueSetServiceTest extends TransactionalIntegrationTest
     public void testImportDataValuesInvalidAttributeOptionComboDates()
         throws Exception
     {
+        clearSecurityContext();
+
         categoryOptionA.setStartDate( peB.getStartDate() );
         categoryOptionA.setEndDate( peB.getEndDate() );
 
@@ -987,6 +989,8 @@ public class DataValueSetServiceTest extends TransactionalIntegrationTest
     public void testImportDataValuesInvalidAttributeOptionComboOrgUnit()
         throws Exception
     {
+        clearSecurityContext();
+
         categoryOptionA.setOrganisationUnits( Sets.newHashSet( ouA, ouB ) );
 
         categoryService.updateCategoryOption( categoryOptionA );
@@ -1114,8 +1118,9 @@ public class DataValueSetServiceTest extends TransactionalIntegrationTest
 
     @Test
     public void testImportDataValuesWithDataSetAllowsPeriods()
-        throws Exception
     {
+        clearSecurityContext();
+
         Date thisMonth = DateUtils.truncate( new Date(), Calendar.MONTH );
 
         dsA.setExpiryDays( 62 );
@@ -1172,6 +1177,9 @@ public class DataValueSetServiceTest extends TransactionalIntegrationTest
     public void testImportValueDataSetWriteFail()
         throws IOException
     {
+        clearSecurityContext();
+
+        List<User> allUsers = userService.getAllUsers();
         enableDataSharing( user, dsA, AccessStringHelper.READ );
 
         dataSetService.updateDataSet( dsB );
@@ -1195,6 +1203,8 @@ public class DataValueSetServiceTest extends TransactionalIntegrationTest
     public void testImportValueDefaultCatComboOk()
         throws IOException
     {
+        clearSecurityContext();
+
         enableDataSharing( user, dsA, AccessStringHelper.DATA_READ_WRITE );
         dataSetService.updateDataSet( dsA );
 

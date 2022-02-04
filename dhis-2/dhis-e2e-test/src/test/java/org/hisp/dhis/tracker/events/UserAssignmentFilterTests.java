@@ -110,7 +110,7 @@ public class UserAssignmentFilterTests
         createEvents( eventsBody );
     }
 
-    @Test
+    @Test//Fails12098E2E
     public void eventsShouldBeFilteredByAssignedUser()
         throws Exception
     {
@@ -122,7 +122,7 @@ public class UserAssignmentFilterTests
             .body( "events.assignedUser", everyItem( equalTo( userId ) ) );
     }
 
-    @Test
+    @Test//Fails12098E2E
     public void eventsShouldBeFilteredForAssignedUser()
     {
         // arrange
@@ -137,7 +137,7 @@ public class UserAssignmentFilterTests
             .body( "events.assignedUser", everyItem( equalTo( userId ) ) );
     }
 
-    @Test
+    @Test//Fails12098E2E
     public void eventsShouldBeFilteredByUnassigned()
     {
         // arrange
@@ -164,7 +164,7 @@ public class UserAssignmentFilterTests
             .body( "events.assignedUser", everyItem( is( emptyOrNullString() ) ) );
     }
 
-    @Test
+    @Test//Fails12098E2E
     public void eventsShouldBeFilteredForAssignedUserByStatus()
     {
         // arrange

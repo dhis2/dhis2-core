@@ -89,7 +89,7 @@ public class SupplementaryDataProvider
 
         if ( currentUserService.getCurrentUser() != null )
         {
-            supplementaryData.put( USER, currentUserService.getCurrentUser().getUserCredentials()
+            supplementaryData.put( USER, currentUserService.getCurrentUser()
                 .getUserAuthorityGroups().stream().map( UserAuthorityGroup::getUid ).collect( Collectors.toList() ) );
         }
 

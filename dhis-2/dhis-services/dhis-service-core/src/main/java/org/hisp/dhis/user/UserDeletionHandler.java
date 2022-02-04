@@ -65,7 +65,7 @@ public class UserDeletionHandler
 
     private void deleteUserAuthorityGroup( UserAuthorityGroup authorityGroup )
     {
-        for ( UserCredentials credentials : authorityGroup.getMembers() )
+        for ( User credentials : authorityGroup.getMembers() )
         {
             credentials.getUserAuthorityGroups().remove( authorityGroup );
             idObjectManager.updateNoAcl( credentials );
@@ -92,7 +92,7 @@ public class UserDeletionHandler
 
     private DeletionVeto allowDeleteUserAuthorityGroup( UserAuthorityGroup authorityGroup )
     {
-        for ( UserCredentials credentials : authorityGroup.getMembers() )
+        for ( User credentials : authorityGroup.getMembers() )
         {
             for ( UserAuthorityGroup role : credentials.getUserAuthorityGroups() )
             {

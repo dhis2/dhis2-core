@@ -115,12 +115,12 @@ class DataApprovalPermissionsEvaluator
             .getBoolSetting( SettingKey.ACCEPTANCE_REQUIRED_FOR_APPROVAL );
         boolean hideUnapprovedData = systemSettingManager.hideUnapprovedDataInAnalytics();
 
-        ev.authorizedToApprove = ev.user.getUserCredentials().isAuthorized( DataApproval.AUTH_APPROVE );
-        ev.authorizedToApproveAtLowerLevels = ev.user.getUserCredentials()
+        ev.authorizedToApprove = ev.user.isAuthorized( DataApproval.AUTH_APPROVE );
+        ev.authorizedToApproveAtLowerLevels = ev.user
             .isAuthorized( DataApproval.AUTH_APPROVE_LOWER_LEVELS );
-        ev.authorizedToAcceptAtLowerLevels = ev.user.getUserCredentials()
+        ev.authorizedToAcceptAtLowerLevels = ev.user
             .isAuthorized( DataApproval.AUTH_ACCEPT_LOWER_LEVELS );
-        Boolean authorizedToViewUnapprovedData = ev.user.getUserCredentials()
+        Boolean authorizedToViewUnapprovedData = ev.user
             .isAuthorized( DataApproval.AUTH_VIEW_UNAPPROVED_DATA );
 
         ev.mayViewLowerLevelUnapprovedData = !hideUnapprovedData || authorizedToViewUnapprovedData;

@@ -143,8 +143,8 @@ public class DefaultDataApprovalAuditService
     {
         User user = currentUserService.getCurrentUser();
 
-        Set<CategoryOptionGroupSet> cogDimensionConstraints = user.getUserCredentials().getCogsDimensionConstraints();
-        Set<Category> catDimensionConstraints = user.getUserCredentials().getCatDimensionConstraints();
+        Set<CategoryOptionGroupSet> cogDimensionConstraints = user.getCogsDimensionConstraints();
+        Set<Category> catDimensionConstraints = user.getCatDimensionConstraints();
 
         if ( currentUserService.currentUserIsSuper() ||
             (CollectionUtils.isEmpty( cogDimensionConstraints ) && CollectionUtils.isEmpty( catDimensionConstraints )) )

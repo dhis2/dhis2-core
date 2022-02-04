@@ -678,6 +678,7 @@ public class CriteriaQueryEngineTest extends TransactionalIntegrationTest
         Query query = Query.from( schemaService.getDynamicSchema( DataElement.class ) );
         query.add( Restrictions.eq( "id", de.getUid() ) );
         query.setUser( userA );
+        injectSecurityContext( userA );
         List<? extends IdentifiableObject> objects = queryEngine.query( query );
 
         assertEquals( 0, objects.size() );
@@ -700,6 +701,7 @@ public class CriteriaQueryEngineTest extends TransactionalIntegrationTest
 
         Query query = Query.from( schemaService.getDynamicSchema( DataElement.class ) );
         query.setUser( userB );
+        injectSecurityContext( userB );
         List<? extends IdentifiableObject> objects = queryEngine.query( query );
 
         // UserB is the owner so DEA is in the result list
@@ -710,6 +712,7 @@ public class CriteriaQueryEngineTest extends TransactionalIntegrationTest
 
         query = Query.from( schemaService.getDynamicSchema( DataElement.class ) );
         query.setUser( userA );
+        injectSecurityContext( userA );
         objects = queryEngine.query( query );
 
         // UserA isn't the owner and DEA is not public so it doesn't present in

@@ -83,14 +83,14 @@ public class GistDescribeControllerTest extends AbstractGistControllerTest
     @Test
     public void testDescribe_Error_ValidationFailed()
     {
-        JsonObject description = GET( "/users/gist?describe=true&fields=userCredentials.password",
+        JsonObject description = GET( "/users/gist?describe=true&fields=password",
             getSuperuserUid() ).content();
 
         assertTrue( description.has( "error", "unplanned", "planned", "status" ) );
         assertTrue( description.getObject( "error" ).has( "type", "message" ) );
         assertTrue( description.getObject( "unplanned" ).has( "fields", "filters", "orders" ) );
         assertEquals( "validation-failed", description.getString( "status" ).string() );
-        assertEquals( "Property `userCredentials.password` is not readable.",
+        assertEquals( "Property `password` is not readable.",
             description.getObject( "error" ).getString( "message" ).string() );
     }
 

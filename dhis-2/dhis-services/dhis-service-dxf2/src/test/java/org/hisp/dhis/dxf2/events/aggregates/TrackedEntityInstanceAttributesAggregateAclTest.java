@@ -45,7 +45,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
-import org.hisp.dhis.user.UserCredentials;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -146,12 +145,11 @@ public class TrackedEntityInstanceAttributesAggregateAclTest extends TrackerTest
 
     protected void setUserAuthorityToNonSuper( User user )
     {
-        UserCredentials userCredentials = new UserCredentials();
         UserAuthorityGroup userAuthorityGroup = new UserAuthorityGroup();
+        userAuthorityGroup.setName( "UserAuthorityGroup_" + user.getUsername() );
         userAuthorityGroup.setUid( CodeGenerator.generateUid() );
         userAuthorityGroup
             .setAuthorities( new HashSet<>( Collections.singletonList( "user" ) ) );
-        userCredentials.setUserAuthorityGroups( Sets.newHashSet( userAuthorityGroup ) );
-        user.setUserCredentials( userCredentials );
+        user.setUserAuthorityGroups( Sets.newHashSet( userAuthorityGroup ) );
     }
 }

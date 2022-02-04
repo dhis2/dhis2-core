@@ -266,7 +266,7 @@ public class DefaultTrackedEntityAttributeService
         }
         else if ( ValueType.USERNAME == valueType )
         {
-            if ( userService.getUserCredentialsByUsername( value ) == null )
+            if ( userService.getUserByUsername( value ) == null )
             {
                 return "Value '" + errorValue + "' is not a valid username for attribute "
                     + trackedEntityAttribute.getUid();

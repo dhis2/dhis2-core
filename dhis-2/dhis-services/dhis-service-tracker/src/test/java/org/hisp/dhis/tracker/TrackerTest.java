@@ -46,16 +46,20 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationR
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
 /**
  * @author Luciano Fiandesio
  */
+@Slf4j
 public abstract class TrackerTest extends TransactionalIntegrationTest
 {
     @Autowired
@@ -109,7 +113,9 @@ public abstract class TrackerTest extends TransactionalIntegrationTest
 
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validationReport = objectBundleValidationService.validate( bundle );
-        assertFalse( validationReport.hasErrorReports() );
+        validationReport.forEachErrorReport( errorReport -> log.error( errorReport.toString() ) );
+        boolean condition = validationReport.hasErrorReports();
+        assertFalse( condition );
 
         objectBundleService.commit( bundle );
 
@@ -148,7 +154,16 @@ public abstract class TrackerTest extends TransactionalIntegrationTest
 
     protected void assertNoImportErrors( TrackerImportReport report )
     {
-        assertTrue( report.getValidationReport().getErrorReports().isEmpty() );
+        List<TrackerErrorReport> errorReports = report.getValidationReport().getErrorReports();
+        boolean empty = errorReports.isEmpty();
+        if( !empty )
+        {
+            for( TrackerErrorReport errorReport : errorReports )
+            {
+                log.error( "Import errors: " + errorReport.getErrorMessage() );
+            }
+        }
+        assertTrue( empty );
     }
 
     @Override

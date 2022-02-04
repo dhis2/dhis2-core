@@ -333,18 +333,12 @@
           "id": "SR705r4KVRu"
         }
       ],
-      "userCredentials": {
-        "id": "m3ww4DWJtMf",
         "user": {
           "id": "ZK1wkC59FCw"
         },
         "username": "admin",
         "catDimensionConstraints": [ ],
-        "created": "2016-03-10T05:00:11.882+0000",
         "selfRegistered": false,
-        "userInfo": {
-          "id": "ZK1wkC59FCw"
-        },
         "passwordLastUpdated": "2016-03-10T05:00:11.791+0000",
         "lastLogin": "2016-03-10T05:00:11.791+0000",
         "invitation": false,
@@ -355,8 +349,7 @@
             "id": "VIkpd2KHCb1"
           }
         ],
-        "externalAuth": false
-      },
+        "externalAuth": false,
       "lastUpdated": "2016-03-10T05:01:28.993+0000",
       "teiSearchOrganisationUnits": [ ],
       "id": "ZK1wkC59FCw",

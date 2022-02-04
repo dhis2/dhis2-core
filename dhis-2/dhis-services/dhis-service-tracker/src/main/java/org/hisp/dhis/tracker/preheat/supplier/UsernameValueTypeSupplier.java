@@ -48,7 +48,6 @@ import org.hisp.dhis.tracker.preheat.DetachUtils;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.mappers.UserMapper;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Component;
 
@@ -86,10 +85,7 @@ public class UsernameValueTypeSupplier extends AbstractPreheatSupplier
             .collect( Collectors.toList() );
         usernames.addAll( usernamesFromEvents );
 
-        List<User> users = userService.getUserCredentialsByUsernames( usernames )
-            .stream()
-            .map( UserCredentials::getUser )
-            .collect( Collectors.toList() );
+        List<User> users = userService.getUsersByUsernames( usernames );
 
         Map<String, User> validUsers = DetachUtils.detach( UserMapper.INSTANCE, users ).stream()
             .collect( Collectors.toMap( User::getUsername, Function.identity() ) );

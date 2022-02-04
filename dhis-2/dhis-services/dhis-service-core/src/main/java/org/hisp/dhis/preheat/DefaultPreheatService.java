@@ -220,22 +220,23 @@ public class DefaultPreheatService implements PreheatService
             }
         }
 
-        if ( uniqueCollectionMap.containsKey( User.class ) )
-        {
-            List<IdentifiableObject> userCredentials = new ArrayList<>();
-
-            for ( IdentifiableObject identifiableObject : uniqueCollectionMap.get( User.class ) )
-            {
-                User user = (User) identifiableObject;
-
-                if ( user.getUserCredentials() != null )
-                {
-                    userCredentials.add( user.getUserCredentials() );
-                }
-            }
-
-            uniqueCollectionMap.put( UserCredentials.class, userCredentials );
-        }
+        //Fails12098?
+//        if ( uniqueCollectionMap.containsKey( User.class ) )
+//        {
+//            List<IdentifiableObject> userCredentials = new ArrayList<>();
+//
+//            for ( IdentifiableObject identifiableObject : uniqueCollectionMap.get( User.class ) )
+//            {
+//                User user = (User) identifiableObject;
+//
+//                if ( user.getUserCredentials() != null )
+//                {
+//                    userCredentials.add( user.getUserCredentials() );
+//                }
+//            }
+//
+//            uniqueCollectionMap.put( UserCredentials.class, userCredentials );
+//        }
 
         // assign an uid to objects without an UID, if they don't have UID but
         // an existing object exists then reuse the UID
@@ -729,20 +730,13 @@ public class DefaultPreheatService implements PreheatService
     @SuppressWarnings( "unchecked" )
     private void collectScanTargets( Map<Class<?>, List<?>> targets )
     {
+        //Fails12098?
         if ( targets.containsKey( User.class ) )
         {
             List<User> users = (List<User>) targets.get( User.class );
-            List<UserCredentials> userCredentials = new ArrayList<>();
 
-            for ( User user : users )
-            {
-                if ( user.getUserCredentials() != null )
-                {
-                    userCredentials.add( user.getUserCredentials() );
-                }
-            }
 
-            targets.put( UserCredentials.class, userCredentials );
+            targets.put( User.class, users );
         }
 
         for ( Map.Entry<Class<?>, List<?>> entry : new HashMap<>( targets ).entrySet() )
@@ -804,7 +798,8 @@ public class DefaultPreheatService implements PreheatService
         {
             Schema schema = schemaService.getDynamicSchema( objectClass );
             List<IdentifiableObject> identifiableObjects = objects.get( objectClass );
-            uniqueMap.put( objectClass, handleUniqueProperties( schema, identifier, identifiableObjects ) );
+            Map<String, Map<Object, String>> value = handleUniqueProperties( schema, identifier, identifiableObjects );
+            uniqueMap.put( objectClass, value );
         }
 
         return uniqueMap;
@@ -858,8 +853,21 @@ public class DefaultPreheatService implements PreheatService
                 for ( IdentifiableObject refObject : refObjects )
                 {
                     IdentifiableObject ref = getPersistedObject( preheat, identifier, refObject );
-                    if ( ref != null && ref.getId() != 0 )
+                    if ( ref == null )
+                    {
+                        continue;
+                    }
+
+                    if ( ref.getId() == 0 )
+                    {
+                        log.error( "Reference object with id 0 found for " + object.getClass().getSimpleName()  );
+//                        throw new RuntimeException( "Not right" );
+                        //Fails12098?
+                    }
+                    else
+                    {
                         objects.add( ref );
+                    }
                 }
 
                 ReflectionUtils.invokeMethod( object, property.getSetterMethod(), objects );
@@ -984,8 +992,7 @@ public class DefaultPreheatService implements PreheatService
 
     private boolean skipConnect( Class<?> klass )
     {
-        return klass != null
-            && (UserCredentials.class.isAssignableFrom( klass ) || EmbeddedObject.class.isAssignableFrom( klass ));
+        return klass != null && EmbeddedObject.class.isAssignableFrom( klass );
     }
 
     private boolean isOnlyUID( Class<?> klass )

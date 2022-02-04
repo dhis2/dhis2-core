@@ -236,9 +236,14 @@ public class DefaultAclService implements AclService
 
             return writeCommonCheck( schema, user, object, objType );
         }
-        else if ( schema.isImplicitPrivateAuthority() && checkSharingAccess( user, object, objType ) )
+        else
         {
-            return true;
+            boolean implicitPrivateAuthority = schema.isImplicitPrivateAuthority();
+            boolean b = checkSharingAccess( user, object, objType );
+            if ( implicitPrivateAuthority && b )
+            {
+                return true;
+            }
         }
 
         return false;
@@ -682,12 +687,14 @@ public class DefaultAclService implements AclService
 
     private boolean canAccess( User user, Collection<String> anyAuthorities )
     {
-        return haveOverrideAuthority( user ) || anyAuthorities.isEmpty() || haveAuthority( user, anyAuthorities );
+        boolean b = haveOverrideAuthority( user );
+        return b || anyAuthorities.isEmpty() || haveAuthority( user, anyAuthorities );
     }
 
     private boolean haveAuthority( User user, Collection<String> anyAuthorities )
     {
-        return containsAny( user.getUserCredentials().getAllAuthorities(), anyAuthorities );
+        Set<String> allAuthorities = user.getAllAuthorities();
+        return containsAny( allAuthorities, anyAuthorities );
     }
 
     /**

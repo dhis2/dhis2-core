@@ -75,7 +75,7 @@ public abstract class AbstractSpringSecurityCurrentUserService implements Curren
         if ( principal instanceof DhisOidcUser )
         {
             DhisOidcUser dhisOidcUser = (DhisOidcUser) authentication.getPrincipal();
-            return dhisOidcUser.getUserCredentials().getUsername();
+            return dhisOidcUser.getUser().getUsername();
         }
 
         throw new RuntimeException( "Authentication principal is not supported; principal:" + principal );

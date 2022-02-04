@@ -37,7 +37,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
 
 public final class MentionUtils
@@ -62,10 +61,10 @@ public final class MentionUtils
         while ( matcher.find() )
         {
             String username = matcher.group( 1 );
-            UserCredentials userCredentials = userService.getUserCredentialsByUsername( username );
-            if ( userCredentials != null )
+            User user = userService.getUserByUsername( username );
+            if ( user != null )
             {
-                users.add( userCredentials.getUserInfo() );
+                users.add( user );
             }
         }
         return users;

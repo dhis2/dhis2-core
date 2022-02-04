@@ -464,7 +464,6 @@ public class DataApprovalServiceTest
 
         userService.addUser( userA );
         userService.addUser( userB );
-        userService.addUserCredentials( userA.getUserCredentials() );
     }
 
     @Override

@@ -66,15 +66,15 @@ public class DhisOauthAuthenticationProvider extends DaoAuthenticationProvider
 
         String username = auth.getName();
 
-        UserDetails userCredentials = getUserDetailsService().loadUserByUsername( username );
+        UserDetails user = getUserDetailsService().loadUserByUsername( username );
 
-        if ( userCredentials == null )
+        if ( user == null )
         {
             throw new BadCredentialsException( "Invalid username or password" );
         }
 
         // -------------------------------------------------------------------------
-        // Delegate authentication downstream, using UserCredentials as
+        // Delegate authentication downstream, using User as
         // principal
         // -------------------------------------------------------------------------
 
@@ -83,9 +83,9 @@ public class DhisOauthAuthenticationProvider extends DaoAuthenticationProvider
         // Put detached state of the user credentials into the session as user
         // credentials must not be updated during session execution
 
-        userCredentials = SerializationUtils.clone( userCredentials );
+        user = SerializationUtils.clone( user );
 
-        return new UsernamePasswordAuthenticationToken( userCredentials, result.getCredentials(),
+        return new UsernamePasswordAuthenticationToken( user, result.getCredentials(),
             result.getAuthorities() );
     }
 

@@ -123,7 +123,7 @@ public class UserControllerUtils
      */
     private CollectionNode getWorkflowLevelNodes( User user, DataApprovalWorkflow workflow )
     {
-        Set<String> authorities = user.getUserCredentials().getAllAuthorities();
+        Set<String> authorities = user.getAllAuthorities();
 
         boolean canApprove = authorities.contains( AUTHORITY_ALL ) || authorities.contains( AUTH_APPROVE );
         boolean canApproveLowerLevels = authorities.contains( AUTHORITY_ALL )

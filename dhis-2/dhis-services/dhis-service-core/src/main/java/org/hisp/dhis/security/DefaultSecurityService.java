@@ -58,7 +58,6 @@ import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.system.velocity.VelocityManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
@@ -246,29 +245,29 @@ public class DefaultSecurityService
         {
             String username = "invite-" + user.getEmail() + "-" + CodeGenerator.generateUid();
 
-            user.getUserCredentials().setUsername( username );
+            user.setUsername( username );
         }
 
         String rawPassword = CodeGenerator.getRandomSecureToken( INVITED_USER_PASSWORD_LENGTH_BYTES );
 
         user.setSurname( StringUtils.isEmpty( user.getSurname() ) ? TBD_NAME : user.getSurname() );
         user.setFirstName( StringUtils.isEmpty( user.getFirstName() ) ? TBD_NAME : user.getFirstName() );
-        user.getUserCredentials().setInvitation( true );
+        user.setInvitation( true );
 
         userService.encodeAndSetPassword( user, rawPassword );
     }
 
     @Override
-    public String validateRestore( UserCredentials credentials )
+    public String validateRestore( User credentials )
     {
-        if ( credentials == null || credentials.getUserInfo() == null )
+        if ( credentials == null )
         {
             log.warn( "Could not send restore/invite message as user is null: " + credentials );
             return "no_user_credentials";
         }
 
-        if ( credentials.getUserInfo().getEmail() == null ||
-            !ValidationUtils.emailIsValid( credentials.getUserInfo().getEmail() ) )
+        if ( credentials.getEmail() == null ||
+            !ValidationUtils.emailIsValid( credentials.getEmail() ) )
         {
             log.warn( "Could not send restore/invite message as user has no email or email is invalid" );
             return "user_does_not_have_valid_email";
@@ -284,23 +283,23 @@ public class DefaultSecurityService
     }
 
     @Override
-    public String validateInvite( UserCredentials credentials )
+    public String validateInvite( User credentials )
     {
-        if ( credentials == null || credentials.getUserInfo() == null )
+        if ( credentials == null  )
         {
             log.warn( "Could not send invite message as user is null" );
             return "no_user_credentials";
         }
 
         if ( credentials.getUsername() != null &&
-            userService.getUserCredentialsByUsername( credentials.getUsername() ) != null )
+            userService.getUserByUsername( credentials.getUsername() ) != null )
         {
             log.warn( "Could not send invite message as username is already taken: " + credentials );
             return "username_taken";
         }
 
-        if ( credentials.getUserInfo().getEmail() == null ||
-            !ValidationUtils.emailIsValid( credentials.getUserInfo().getEmail() ) )
+        if ( credentials.getEmail() == null ||
+            !ValidationUtils.emailIsValid( credentials.getEmail() ) )
         {
             log.warn( "Could not send restore/invite message as user has no email or email is invalid" );
             return "user_does_not_have_valid_email";
@@ -316,7 +315,7 @@ public class DefaultSecurityService
     }
 
     @Override
-    public boolean sendRestoreOrInviteMessage( UserCredentials credentials, String rootPath,
+    public boolean sendRestoreOrInviteMessage( User credentials, String rootPath,
         RestoreOptions restoreOptions )
     {
         String encodedTokens = generateAndPersistTokens( credentials, restoreOptions );
@@ -334,10 +333,10 @@ public class DefaultSecurityService
         vars.put( "applicationTitle", applicationTitle );
         vars.put( "restorePath", rootPath + RESTORE_PATH + restoreType.getAction() );
         vars.put( "token", encodedTokens );
-        vars.put( "welcomeMessage", credentials.getUserInfo().getWelcomeMessage() );
+        vars.put( "welcomeMessage", credentials.getWelcomeMessage() );
 
         I18n i18n = i18nManager.getI18n( ObjectUtils.firstNonNull(
-            (Locale) userSettingService.getUserSetting( UserSettingKey.UI_LOCALE, credentials.getUserInfo() ),
+            (Locale) userSettingService.getUserSetting( UserSettingKey.UI_LOCALE, credentials ),
             LocaleManager.DEFAULT_LOCALE ) );
 
         vars.put( "i18n", i18n );
@@ -359,13 +358,13 @@ public class DefaultSecurityService
         // -------------------------------------------------------------------------
 
         emailMessageSender
-            .sendMessage( messageSubject, messageBody, null, null, ImmutableSet.of( credentials.getUserInfo() ), true );
+            .sendMessage( messageSubject, messageBody, null, null, ImmutableSet.of( credentials ), true );
 
         return true;
     }
 
     @Override
-    public String generateAndPersistTokens( UserCredentials credentials, RestoreOptions restoreOptions )
+    public String generateAndPersistTokens( User user, RestoreOptions restoreOptions )
     {
         RestoreType restoreType = restoreOptions.getRestoreType();
 
@@ -380,11 +379,11 @@ public class DefaultSecurityService
             .time();
 
         // The id token is not hashed since we use it for lookup.
-        credentials.setIdToken( idToken );
-        credentials.setRestoreToken( hashedRestoreToken );
-        credentials.setRestoreExpiry( expiry );
+        user.setIdToken( idToken );
+        user.setRestoreToken( hashedRestoreToken );
+        user.setRestoreExpiry( expiry );
 
-        userService.updateUserCredentials( credentials );
+        userService.updateUser( user );
 
         return Base64.getUrlEncoder().withoutPadding().encodeToString( (idToken + ":" + restoreToken).getBytes() );
     }
@@ -403,27 +402,27 @@ public class DefaultSecurityService
     }
 
     @Override
-    public boolean restore( UserCredentials credentials, String token, String newPassword, RestoreType restoreType )
+    public boolean restore( User user, String token, String newPassword, RestoreType restoreType )
     {
-        if ( credentials == null || token == null || newPassword == null
-            || !canRestore( credentials, token, restoreType ) )
+        if ( user == null || token == null || newPassword == null
+            || !canRestore( user, token, restoreType ) )
         {
             return false;
         }
 
-        credentials.setRestoreToken( null );
-        credentials.setRestoreExpiry( null );
-        credentials.setIdToken( null );
-        credentials.setInvitation( false );
+        user.setRestoreToken( null );
+        user.setRestoreExpiry( null );
+        user.setIdToken( null );
+        user.setInvitation( false );
 
-        userService.encodeAndSetPassword( credentials, newPassword );
-        userService.updateUserCredentials( credentials );
+        userService.encodeAndSetPassword( user, newPassword );
+        userService.updateUser( user );
 
         return true;
     }
 
     @Override
-    public boolean canRestore( UserCredentials credentials, String token, RestoreType restoreType )
+    public boolean canRestore( User credentials, String token, RestoreType restoreType )
     {
         String logPrefix = "Restore user: " + credentials.getUid() + ", username: " + credentials.getUsername() + " ";
 
@@ -449,7 +448,7 @@ public class DefaultSecurityService
      * @param restoreType the restore type.
      * @return null if restore is valid, a descriptive error string otherwise.
      */
-    private String verifyRestore( UserCredentials credentials, String token, RestoreType restoreType )
+    private String verifyRestore( User credentials, String token, RestoreType restoreType )
     {
         String errorMessage = credentials.isRestorable();
 
@@ -497,7 +496,7 @@ public class DefaultSecurityService
      * @return null if success, otherwise error string.
      */
     @Override
-    public String verifyRestoreToken( UserCredentials credentials, String restoreToken, RestoreType restoreType )
+    public String verifyRestoreToken( User credentials, String restoreToken, RestoreType restoreType )
     {
         if ( credentials == null )
         {
@@ -647,13 +646,11 @@ public class DefaultSecurityService
     {
         User user = currentUserService.getCurrentUser();
 
-        if ( user != null && user.getUserCredentials() != null )
+        if ( user != null )
         {
-            UserCredentials userCredentials = user.getUserCredentials();
-
             for ( String authority : authorities )
             {
-                if ( userCredentials.isAuthorized( authority ) )
+                if ( user.isAuthorized( authority ) )
                 {
                     return true;
                 }

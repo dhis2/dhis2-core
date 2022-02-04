@@ -19,52 +19,28 @@
         "write": true,
         "manage": true
       },
-      "userCredentials": {
-        "lastUpdated": "2019-04-23T09:35:14.980",
-        "id": "cguDGoo8Amj",
-        "created": "2019-04-23T09:35:14.980",
-        "name": "TA Superuser",
-        "displayName": "TA Superuser",
-        "externalAuth": false,
-        "externalAccess": false,
-        "disabled": false,
-        "twoFA": false,
-        "passwordLastUpdated": "2019-04-23T09:35:15.052",
-        "invitation": false,
-        "selfRegistered": false,
-        "favorite": false,
-        "username": "tasuperadmin",
-        "password": "Test1212?",
-        "userInfo": {
-          "id": "PQD6wXJ2r5j"
-        },
-        "access": {
-          "read": true,
-          "update": true,
-          "externalize": true,
-          "delete": true,
-          "write": true,
-          "manage": true
-        },
-        "favorites": [],
-        "cogsDimensionConstraints": [],
-        "catDimensionConstraints": [],
-        "translations": [],
-        "userGroupAccesses": [
-          {
-            "access": "rwrw----",
-            "userGroupUid": "OPVIvvXzNTw",
-            "id": "OPVIvvXzNTw"
-          }
-        ],
-        "attributeValues": [],
-        "userRoles": [
-          {
-            "id": "yrB6vc5Ip7r"
-          }
-        ],
-        "userAccesses": []
-      },
+      "externalAuth": false,
+      "disabled": false,
+      "twoFA": false,
+      "passwordLastUpdated": "2019-04-23T09:35:15.052",
+      "invitation": false,
+      "selfRegistered": false,
+      "username": "tasuperadmin",
+      "password": "Test1212?",
+      "cogsDimensionConstraints": [],
+      "catDimensionConstraints": [],
+      "userGroupAccesses": [
+        {
+          "access": "rwrw----",
+          "userGroupUid": "OPVIvvXzNTw",
+          "id": "OPVIvvXzNTw"
+        }
+      ],
+      "userRoles": [
+        {
+          "id": "yrB6vc5Ip7r"
+        }
+      ],
       "favorites": [],
       "teiSearchOrganisationUnits": [
         {
@@ -136,52 +112,28 @@
         "write": true,
         "manage": true
       },
-      "userCredentials": {
-        "lastUpdated": "2019-04-23T09:35:14.980",
-        "id": "cguDGoo8Amk",
-        "created": "2019-04-23T09:35:14.980",
-        "name": "TA Admin",
-        "displayName": "TA Admin",
-        "externalAuth": false,
-        "externalAccess": false,
-        "disabled": false,
-        "twoFA": false,
-        "passwordLastUpdated": "2019-04-23T09:35:15.052",
-        "invitation": false,
-        "selfRegistered": false,
-        "favorite": false,
-        "username": "taadmin",
-        "password": "Test1212?",
-        "userInfo": {
-          "id": "PQD6wXJ2r5k"
-        },
-        "access": {
-          "read": true,
-          "update": true,
-          "externalize": true,
-          "delete": true,
-          "write": true,
-          "manage": true
-        },
-        "favorites": [],
-        "cogsDimensionConstraints": [],
-        "catDimensionConstraints": [],
-        "translations": [],
-        "userGroupAccesses": [
-          {
-            "access": "rwrw----",
-            "userGroupUid": "OPVIvvXzNTw",
-            "id": "OPVIvvXzNTw"
-          }
-        ],
-        "attributeValues": [],
-        "userRoles": [
-          {
-            "id": "Ufph3mGRmMo"
-          }
-        ],
-        "userAccesses": []
-      },
+      "externalAuth": false,
+      "disabled": false,
+      "twoFA": false,
+      "passwordLastUpdated": "2019-04-23T09:35:15.052",
+      "invitation": false,
+      "selfRegistered": false,
+      "username": "taadmin",
+      "password": "Test1212?",
+      "cogsDimensionConstraints": [],
+      "catDimensionConstraints": [],
+      "userGroupAccesses": [
+        {
+          "access": "rwrw----",
+          "userGroupUid": "OPVIvvXzNTw",
+          "id": "OPVIvvXzNTw"
+        }
+      ],
+      "userRoles": [
+        {
+          "id": "Ufph3mGRmMo"
+        }
+      ],
       "favorites": [],
       "teiSearchOrganisationUnits": [
         {

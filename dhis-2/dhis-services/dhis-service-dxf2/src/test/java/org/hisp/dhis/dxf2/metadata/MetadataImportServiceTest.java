@@ -246,8 +246,11 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
     @Test
     public void testImportWithSkipSharingIsTrueAndNoPermission()
     {
+        clearSecurityContext();
+
         User userA = createUser( "A" );
         userService.addUser( userA );
+
 
         Dashboard dashboard = new Dashboard();
         dashboard.setName( "DashboardA" );
@@ -267,7 +270,8 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
 
         // Check sharing data
         IdentifiableObject savedDashboard = manager.get( Dashboard.class, dashboard.getUid() );
-        assertFalse( aclService.canWrite( userA, savedDashboard ) );
+        boolean condition = aclService.canWrite( userA, savedDashboard );
+        assertFalse( condition );
         assertTrue( aclService.canRead( userA, savedDashboard ) );
 
         // Update dashboard with skipSharing=true and no sharing data in payload
@@ -291,6 +295,8 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
     {
         User userA = createUser( 'A' );
         userService.addUser( userA );
+
+        injectSecurityContext( userA );
 
         Dashboard dashboard = new Dashboard();
         dashboard.setName( "DashboardA" );
@@ -333,6 +339,8 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
         User user = createUser( "A", "ALL" );
         manager.save( user );
 
+        injectSecurityContext( user );
+
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/dataset_with_accesses_skipSharing.json" ).getInputStream(),
             RenderFormat.JSON );
@@ -373,6 +381,8 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
         User user = createUser( "A", "ALL" );
         manager.save( user );
 
+        injectSecurityContext( user );
+
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/dataset_with_accesses_skipSharing.json" ).getInputStream(),
             RenderFormat.JSON );
@@ -411,6 +421,8 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
         User user = createUser( "A", "ALL" );
         manager.save( user );
 
+        injectSecurityContext( user );
+
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/dataset_with_accesses_skipSharing.json" ).getInputStream(),
             RenderFormat.JSON );
@@ -435,6 +447,9 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
     {
         User user = createUser( "A", "ALL" );
         manager.save( user );
+
+        injectSecurityContext( user );
+
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/dataset_with_accesses_skipSharing.json" ).getInputStream(),
             RenderFormat.JSON );
@@ -464,6 +479,8 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
     {
         User user = createUser( "A", "ALL" );
         manager.save( user );
+
+        injectSecurityContext( user );
 
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/dataset_with_accesses_skipSharing.json" ).getInputStream(),
@@ -508,6 +525,8 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
     {
         User user = createUser( "A", "ALL" );
         manager.save( user );
+
+        injectSecurityContext( user );
 
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/dataset_with_accesses_skipSharing.json" ).getInputStream(),
@@ -683,6 +702,8 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
     {
         User user = createUser( "A", "ALL" );
         manager.save( user );
+
+        injectSecurityContext( user );
 
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/dataset_with_accesses_skipSharing.json" ).getInputStream(),
@@ -906,6 +927,8 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
         User userA = createUser( 'A', Lists.newArrayList( "ALL" ) );
         userService.addUser( userA );
 
+        injectSecurityContext( userA );
+
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService
             .fromMetadata( new ClassPathResource( "dxf2/usergroups.json" ).getInputStream(), RenderFormat.JSON );
 
@@ -984,6 +1007,8 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
         User userA = createUser( 'A', Lists.newArrayList( "ALL" ) );
         userService.addUser( userA );
 
+        injectSecurityContext( userA );
+
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService
             .fromMetadata( new ClassPathResource( "dxf2/usergroups.json" ).getInputStream(), RenderFormat.JSON );
 
@@ -1021,6 +1046,8 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
         User userF = createUser( 'F', Lists.newArrayList( "ALL" ) );
         userService.addUser( userF );
 
+        injectSecurityContext( userF );
+
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/create_user_without_createdBy.json" ).getInputStream(), RenderFormat.JSON );
 
@@ -1030,7 +1057,7 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
         assertEquals( Status.OK, report.getStatus() );
 
         User user = manager.get( User.class, "MwhEJUnTHkn" );
-        assertNotNull( user.getUserCredentials().getCreatedBy() );
+        assertNotNull( user.getCreatedBy() );
     }
 
     @Test
@@ -1098,6 +1125,8 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
     {
         User user = createUser( "A", "ALL" );
         manager.save( user );
+
+        injectSecurityContext( user );
 
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/program_programStage_with_sharing.json" ).getInputStream(),

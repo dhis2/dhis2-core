@@ -225,7 +225,7 @@ public class UserSettingController
         }
         else
         {
-            user = userService.getUserCredentialsByUsername( username ).getUserInfo();
+            user = userService.getUserByUsername( username );
         }
 
         if ( user == null )
@@ -238,7 +238,7 @@ public class UserSettingController
             Set<String> userGroups = user.getGroups().stream().map( UserGroup::getUid ).collect( Collectors.toSet() );
 
             if ( !userService.canAddOrUpdateUser( userGroups ) &&
-                !currentUser.getUserCredentials().canModifyUser( user.getUserCredentials() ) )
+                !currentUser.canModifyUser( user ) )
             {
                 throw new WebMessageException(
                     unauthorized( "You are not authorized to access user: " + user.getUsername() ) );

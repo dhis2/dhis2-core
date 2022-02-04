@@ -76,7 +76,6 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
-import org.hisp.dhis.user.UserCredentials;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -284,11 +283,11 @@ public class Preheat
         IdentifiableObject object )
     {
         byKey.putIfAbsent( key, object );
-        if ( object instanceof User )
-        {
-            getOrCreate( identifier, UserCredentials.class ).putIfAbsent( key,
-                ((User) object).getUserCredentials() );
-        }
+//        if ( object instanceof User )
+//        {
+//            getOrCreate( identifier, User.class ).putIfAbsent( key,
+//                ((User) object) );
+//        }
     }
 
     public <T extends IdentifiableObject> Preheat replace( PreheatIdentifier identifier, T object )
@@ -310,11 +309,11 @@ public class Preheat
             return this;
         }
         getOrCreate( identifier, klass ).put( key, object );
-        if ( object instanceof User )
-        {
-            getOrCreate( identifier, UserCredentials.class ).putIfAbsent( key,
-                ((User) object).getUserCredentials() );
-        }
+//        if ( object instanceof User )
+//        {
+//            getOrCreate( identifier, User.class ).putIfAbsent( key,
+//                ((User) object) );
+//        }
         return this;
     }
 
@@ -505,7 +504,6 @@ public class Preheat
         Class<? extends IdentifiableObject> klass )
     {
         return (klass == User.class
-            || klass == UserCredentials.class
             || klass == UserAuthorityGroup.class)
                 ? PreheatIdentifier.UID
                 : identifier;

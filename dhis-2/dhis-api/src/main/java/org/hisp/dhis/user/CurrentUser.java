@@ -34,7 +34,7 @@ import java.lang.annotation.Target;
 
 /**
  * Can be used to annotate controller parameters of type {@link User},
- * {@link UserCredentials} and {@link UserInfo} if the current user as returned
+ * if the current user as returned
  * by the {@link CurrentUserService} should be injected.
  *
  * If the annotation is used with a {@link String} parameter the

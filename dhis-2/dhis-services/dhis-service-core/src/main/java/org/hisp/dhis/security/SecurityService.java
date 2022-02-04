@@ -31,7 +31,6 @@ import java.io.IOException;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentials;
 
 /**
  * @author Lars Helge Overland
@@ -99,11 +98,11 @@ public interface SecurityService
      * @param credentials the user credentials.
      * @return a string if restore cannot be performed, null otherwise.
      */
-    String validateRestore( UserCredentials credentials );
+    String validateRestore( User credentials );
 
     /**
      * Indicates whether an invite is allowed for the given user. Delegates to
-     * validateRestore( UserCredentials ). The requirements are.
+     * validateRestore( User ). The requirements are.
      * <p>
      * <ul>
      * <li>no_user_credentials</li>
@@ -113,7 +112,7 @@ public interface SecurityService
      * @param credentials the user credentials.
      * @return a string if invite cannot be performed, null otherwise.
      */
-    String validateInvite( UserCredentials credentials );
+    String validateInvite( User credentials );
 
     /**
      * Invokes the initRestore method and dispatches email messages with restore
@@ -125,7 +124,7 @@ public interface SecurityService
      * @return false if any of the arguments are null or if the user credentials
      *         identified by the user name does not exist, true otherwise.
      */
-    boolean sendRestoreOrInviteMessage( UserCredentials credentials, String rootPath, RestoreOptions restoreOptions );
+    boolean sendRestoreOrInviteMessage( User credentials, String rootPath, RestoreOptions restoreOptions );
 
     /**
      * Populates the restoreToken property and idToken of the given credentials
@@ -138,7 +137,7 @@ public interface SecurityService
      * @return an encoded string containing both id token and
      *         hashed/restoreToken, delimited with : clear-text code.
      */
-    String generateAndPersistTokens( UserCredentials credentials, RestoreOptions restoreOptions );
+    String generateAndPersistTokens( User credentials, RestoreOptions restoreOptions );
 
     /**
      * Decodes the id and hashed/restore token used for restore or invite.
@@ -170,7 +169,7 @@ public interface SecurityService
      * @param restoreType type of restore operation (e.g. pw recovery, invite).
      * @return true or false.
      */
-    boolean restore( UserCredentials credentials, String token, String newPassword, RestoreType restoreType );
+    boolean restore( User credentials, String token, String newPassword, RestoreType restoreType );
 
     /**
      * Tests whether the given token and code are valid for the given user name.
@@ -183,7 +182,7 @@ public interface SecurityService
      * @param restoreType type of restore operation (e.g. pw recovery, invite).
      * @return true or false.
      */
-    boolean canRestore( UserCredentials credentials, String token, RestoreType restoreType );
+    boolean canRestore( User credentials, String token, RestoreType restoreType );
 
     /**
      * Tests whether the given token in combination with the given user name is
@@ -196,7 +195,7 @@ public interface SecurityService
      *         credentials identified by the user name does not exist, null if
      *         the arguments are valid.
      */
-    String verifyRestoreToken( UserCredentials credentials, String token, RestoreType restoreType );
+    String verifyRestoreToken( User credentials, String token, RestoreType restoreType );
 
     /**
      * Indicates whether the given username is an invite. The username is

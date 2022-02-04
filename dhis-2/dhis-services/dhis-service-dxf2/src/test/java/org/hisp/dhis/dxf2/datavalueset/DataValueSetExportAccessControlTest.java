@@ -129,12 +129,14 @@ public class DataValueSetExportAccessControlTest
 
     private OrganisationUnit ouA;
 
+    private User adminUser;
+
     @Override
     public void setUpTest()
     {
         userService = _userService;
 
-        createAndInjectAdminUser();
+        adminUser = createAndInjectAdminUser();
 
         // Metadata
 
@@ -255,16 +257,15 @@ public class DataValueSetExportAccessControlTest
     public void testExportAttributeOptionComboAccessSuperUser()
         throws IOException
     {
-        // User
+//        // User
+//
+        User adminUser = createUser( 'A', Lists.newArrayList( "ALL" ) );
+        adminUser.setOrganisationUnits( Sets.newHashSet( ouA ) );
+        setCurrentUser( adminUser );
+//        // Sharing
 
-        User user = createUser( 'A', Lists.newArrayList( "ALL" ) );
-        user.setOrganisationUnits( Sets.newHashSet( ouA ) );
-        setCurrentUser( user );
-
-        // Sharing
-
-        enableDataSharing( user, coA, DATA_READ );
-        enableDataSharing( user, coB, DATA_READ );
+        enableDataSharing( adminUser, coA, DATA_READ );
+        enableDataSharing( adminUser, coB, DATA_READ );
 
         idObjectManager.update( coA );
         idObjectManager.update( coB );

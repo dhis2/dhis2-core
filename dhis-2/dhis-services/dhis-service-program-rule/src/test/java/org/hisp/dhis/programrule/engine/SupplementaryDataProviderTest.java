@@ -43,7 +43,6 @@ import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
-import org.hisp.dhis.user.UserCredentials;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -71,7 +70,6 @@ public class SupplementaryDataProviderTest
     @InjectMocks
     private SupplementaryDataProvider providerToTest;
 
-    private User currentUser;
 
     private OrganisationUnit orgUnitA;
 
@@ -80,10 +78,9 @@ public class SupplementaryDataProviderTest
     @Before
     public void setUp()
     {
-        currentUser = createUser( 'A' );
-        UserCredentials userCredentials = createUserCredentials( 'A', currentUser );
-        userCredentials.setUserAuthorityGroups( getAuthorityGroups() );
-        when( currentUserService.getCurrentUser() ).thenReturn( currentUser );
+        User user = createUser( 'A');
+        user.setUserAuthorityGroups( getAuthorityGroups() );
+        when( currentUserService.getCurrentUser() ).thenReturn( user );
 
         orgUnitA = createOrganisationUnit( 'A' );
         orgUnitB = createOrganisationUnit( 'B' );

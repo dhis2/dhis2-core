@@ -53,7 +53,7 @@ import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.render.ObjectValueTypeRenderingOption;
 import org.hisp.dhis.render.StaticRenderingConfiguration;
 import org.hisp.dhis.render.type.ValueTypeRenderingType;
-import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 
 import com.google.common.collect.ImmutableSet;
@@ -222,7 +222,7 @@ public class ValidationUtils
      */
     public static boolean usernameIsValid( String username )
     {
-        return username != null && username.length() <= UserCredentials.USERNAME_MAX_LENGTH;
+        return username != null && username.length() <= User.USERNAME_MAX_LENGTH;
     }
 
     /**

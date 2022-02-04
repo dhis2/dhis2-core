@@ -52,7 +52,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.webapi.controller.event.mapper.RequestToSearchParamsMapper;
 import org.junit.Before;
 import org.junit.Rule;
@@ -107,8 +106,6 @@ public class EventRequestToParamsMapperTest
 
         Program program = new Program();
         User user = new User();
-        UserCredentials uc = new UserCredentials();
-        user.setUserCredentials( uc );
         OrganisationUnit ou = new OrganisationUnit();
         TrackedEntityInstance tei = new TrackedEntityInstance();
         DataElement de = new DataElement();

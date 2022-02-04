@@ -127,7 +127,6 @@ import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.transaction.annotation.Transactional;
@@ -1002,7 +1001,7 @@ public abstract class AbstractEventService implements EventService
             if ( importConflicts != null )
             {
                 importConflicts.addConflict( "Username", validUsername + " is more than "
-                    + UserCredentials.USERNAME_MAX_LENGTH + " characters, using current username instead" );
+                    + User.USERNAME_MAX_LENGTH + " characters, using current username instead" );
             }
 
             validUsername = User.getSafeUsername( fallbackUsername );

@@ -156,22 +156,22 @@ public class GistValidationControllerTest extends AbstractGistControllerTest
     }
 
     @Test
-    public void testValidation_Access_UserCredentialsPublicFields()
+    public void testValidation_Access_UserPublicFields2()
     {
         switchToGuestUser();
 
         assertEquals( "admin",
-            GET( "/users/{id}/gist?fields=userCredentials.username", getSuperuserUid() ).content().string() );
+            GET( "/users/{id}/gist?fields=username", getSuperuserUid() ).content().string() );
     }
 
     @Test
-    public void testValidation_Access_UserCredentialsPrivateFields()
+    public void testValidation_Access_UserPrivateFields2()
     {
         switchToGuestUser();
 
-        String url = "/users/{id}/gist?fields=userCredentials.twoFA,userCredentials.disabled";
+        String url = "/users/{id}/gist?fields=twoFA,disabled";
         assertEquals(
-            "Field `userCredentials.twoFA` is not readable as user is not allowed to view objects of type User.",
+            "Field `twoFA` is not readable as user is not allowed to view objects of type User.",
             GET( url, getSuperuserUid() ).error( HttpStatus.FORBIDDEN ).getMessage() );
 
         switchToSuperuser();

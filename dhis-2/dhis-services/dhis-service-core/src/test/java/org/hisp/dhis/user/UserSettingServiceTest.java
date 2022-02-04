@@ -60,11 +60,8 @@ public class UserSettingServiceTest
         userSettingService.invalidateCache();
 
         userA = createUser( 'A' );
+        userA.setUsername( "usernameA" );
         userService.addUser( userA );
-        UserCredentials userCredentialsA = userA.getUserCredentials();
-        userCredentialsA.setUsername( "usernameA" );
-        userCredentialsA.setUserInfo( userA );
-        userService.addUserCredentials( userCredentialsA );
     }
 
     @Test

@@ -92,6 +92,7 @@ public class TrackerOwnershipManagerTest extends DhisSpringTest
 
         CurrentUserService mockCurrentUserService = new MockCurrentUserService( false, newHashSet( organisationUnitA ),
             newHashSet( organisationUnitA ), "" );
+
         setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
             mockCurrentUserService, trackerOwnershipAccessManager );
 

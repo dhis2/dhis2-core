@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.security.ldap.authentication;
 
-import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.ldap.core.DirContextOperations;
@@ -58,16 +58,16 @@ public class DhisBindAuthenticator
     @Override
     public DirContextOperations authenticate( Authentication authentication )
     {
-        UserCredentials userCredentials = userService.getUserCredentialsByUsername( authentication.getName() );
+        User user = userService.getUserByUsername( authentication.getName() );
 
-        if ( userCredentials == null )
+        if ( user == null )
         {
             throw new BadCredentialsException( "Incorrect user credentials" );
         }
 
-        if ( userCredentials.hasLdapId() )
+        if ( user.hasLdapId() )
         {
-            authentication = new UsernamePasswordAuthenticationToken( userCredentials.getLdapId(),
+            authentication = new UsernamePasswordAuthenticationToken( user.getLdapId(),
                 authentication.getCredentials() );
         }
 

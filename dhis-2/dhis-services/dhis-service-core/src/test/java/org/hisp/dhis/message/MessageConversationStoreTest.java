@@ -118,7 +118,6 @@ public class MessageConversationStoreTest
     {
         User user = createUser( id );
         userService.addUser( user );
-        userService.addUserCredentials( user.getUserCredentials() );
         return user;
     }
 

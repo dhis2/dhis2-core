@@ -52,7 +52,6 @@ import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.parse.ParserType;
 import org.hisp.dhis.sms.parse.SMSParserException;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentials;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -92,7 +91,6 @@ public class SmsUtilsTest
 
         userA = new User();
         userA.setAutoFields();
-        userA.setUserCredentials( new UserCredentials() );
         userA.setPhoneNumber( phoneNumber );
         userA.setEmail( email );
 

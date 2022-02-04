@@ -130,6 +130,8 @@ public class EventImportValidationTest
             "tracker/validations/enrollments_te_te-data.json" );
 
         User user = userService.getUser( ADMIN_USER_UID );
+        injectSecurityContext( user );
+
         trackerImportParams.setUser( user );
 
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );

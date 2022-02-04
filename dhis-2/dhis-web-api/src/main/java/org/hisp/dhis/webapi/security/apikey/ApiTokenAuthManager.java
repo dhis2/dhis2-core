@@ -37,7 +37,6 @@ import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.security.apikey.ApiToken;
 import org.hisp.dhis.security.apikey.ApiTokenService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -94,10 +93,10 @@ public class ApiTokenAuthManager implements AuthenticationManager
 
             validateTokenExpiry( apiToken.getExpire() );
 
-            UserCredentials userCredentials = validateUserCredentials( apiToken );
+            User user = validateUser( apiToken );
 
             ApiTokenAuthenticationToken authenticationToken = new ApiTokenAuthenticationToken( apiToken,
-                userCredentials );
+                user );
 
             apiTokenCache.put( tokenKey, authenticationToken );
 
@@ -105,7 +104,7 @@ public class ApiTokenAuthManager implements AuthenticationManager
         }
     }
 
-    private UserCredentials validateUserCredentials( ApiToken apiToken )
+    private User validateUser( ApiToken apiToken )
     {
         User createdBy = apiToken.getCreatedBy();
         if ( createdBy == null )
@@ -114,19 +113,19 @@ public class ApiTokenAuthManager implements AuthenticationManager
                 ApiTokenErrors.invalidToken( "The API token does not have any owner." ) );
         }
 
-        UserCredentials userCredentials = userService
-            .getUserCredentialsWithEagerFetchAuthorities( createdBy.getUsername() );
-        if ( userCredentials == null )
+        User user = userService
+            .getUserWithEagerFetchAuthorities( createdBy.getUsername() );
+        if ( user == null )
         {
             throw new ApiTokenAuthenticationException(
                 ApiTokenErrors.invalidToken( "The API token owner does not exists." ) );
         }
 
-        boolean is2FAEnabled = !userCredentials.isTwoFA();
-        boolean enabled = !userCredentials.isDisabled();
-        boolean credentialsNonExpired = userService.credentialsNonExpired( userCredentials );
-        boolean accountNonLocked = !securityService.isLocked( userCredentials.getUsername() );
-        boolean accountNonExpired = !userService.isAccountExpired( userCredentials );
+        boolean is2FAEnabled = !user.isTwoFA();
+        boolean enabled = !user.isDisabled();
+        boolean credentialsNonExpired = userService.userNonExpired( user );
+        boolean accountNonLocked = !securityService.isLocked( user.getUsername() );
+        boolean accountNonExpired = !userService.isAccountExpired( user );
 
         if ( ObjectUtils.anyIsFalse( enabled, is2FAEnabled, credentialsNonExpired, accountNonLocked,
             accountNonExpired ) )
@@ -135,7 +134,7 @@ public class ApiTokenAuthManager implements AuthenticationManager
                 ApiTokenErrors.invalidToken( "The API token is disabled, locked or 2FA is enabled." ) );
         }
 
-        return userCredentials;
+        return user;
     }
 
     private void validateTokenExpiry( Long expiry )

@@ -143,7 +143,7 @@ public class UserAssignmentTests
         } );
     }
 
-    @Test
+    @Test//Fails12098E2E
     public void eventUserAssignmentShouldBeRemoved()
         throws Exception
     {

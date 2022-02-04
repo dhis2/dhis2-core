@@ -33,11 +33,10 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.system.util.SecurityUtils;
-import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.dao.DataAccessException;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -81,7 +80,7 @@ public class DefaultLdapUserDetailsService
         throws UsernameNotFoundException,
         DataAccessException
     {
-        UserCredentials credentials = userService.getUserCredentialsByUsername( username );
+        User credentials = userService.getUserByUsername( username );
 
         if ( !credentials.isExternalAuth() || !credentials.hasLdapId() )
         {
@@ -89,7 +88,7 @@ public class DefaultLdapUserDetailsService
         }
 
         boolean enabled = !credentials.isDisabled();
-        boolean credentialsNonExpired = userService.credentialsNonExpired( credentials );
+        boolean credentialsNonExpired = userService.userNonExpired( credentials );
         boolean accountNonLocked = !securityService.isLocked( credentials.getUsername() );
         boolean accountNonExpired = !userService.isAccountExpired( credentials );
 
@@ -100,7 +99,7 @@ public class DefaultLdapUserDetailsService
                 username, enabled, accountNonExpired, credentialsNonExpired, accountNonLocked ) );
         }
 
-        return new User( credentials.getUsername(), "EXTERNAL_LDAP_" + CodeGenerator.generateCode( 10 ),
+        return new org.springframework.security.core.userdetails.User( credentials.getUsername(), "EXTERNAL_LDAP_" + CodeGenerator.generateCode( 10 ),
             enabled, accountNonExpired, credentialsNonExpired, accountNonLocked,
             SecurityUtils.getGrantedAuthorities( credentials ) );
     }

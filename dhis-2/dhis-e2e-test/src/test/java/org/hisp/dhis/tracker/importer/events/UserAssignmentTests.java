@@ -100,7 +100,7 @@ public class UserAssignmentTests
             .body( "assignedUser", equalTo( loggedInUser ) );
     }
 
-    @Test
+    @Test//Fails12098E2E //flipflopping works if done first
     public void shouldRemoveUserAssignment()
         throws Exception
     {

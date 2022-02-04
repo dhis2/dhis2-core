@@ -142,15 +142,17 @@ public class UserServiceTest
     }
 
     @Test
-    public void testGetUserCredentialsByUsernames()
+    public void testGetUserByUsernames()
     {
-        addUser( 'A' );
-        addUser( 'B' );
+        addUser( 'a' );
+        addUser( 'b' );
 
-        assertEquals( 2, userService.getUserCredentialsByUsernames( asList( "UsernameA", "UsernameB" ) ).size() );
+        List<User> allUsers = userService.getAllUsers();
+
+        assertEquals( 2, userService.getUsersByUsernames( asList( "usernamea", "usernameb" ) ).size() );
         assertEquals( 2,
-            userService.getUserCredentialsByUsernames( asList( "UsernameA", "UsernameB", "usernameX" ) ).size() );
-        assertEquals( 0, userService.getUserCredentialsByUsernames( asList( "usernameC" ) ).size() );
+            userService.getUsersByUsernames( asList( "usernamea", "usernameb", "usernamex" ) ).size() );
+        assertEquals( 0, userService.getUsersByUsernames( List.of( "usernamec" ) ).size() );
     }
 
     @Test
@@ -186,8 +188,8 @@ public class UserServiceTest
     @Test
     public void testUserByQuery()
     {
-        User userA = addUser( 'A', credentials -> credentials.getUser().setFirstName( "Chris" ) );
-        User userB = addUser( 'B', credentials -> credentials.getUser().setFirstName( "Chris" ) );
+        User userA = addUser( 'A', user -> user.setFirstName( "Chris" ) );
+        User userB = addUser( 'B', user -> user.setFirstName( "Chris" ) );
 
         assertContainsOnly( userService.getUsers( getDefaultParams().setQuery( "Chris" ) ), userA, userB );
         assertContainsOnly( userService.getUsers( getDefaultParams().setQuery( "hris SURNAM" ) ), userA, userB );
@@ -391,9 +393,9 @@ public class UserServiceTest
     {
         systemSettingManager.saveSystemSetting( CAN_GRANT_OWN_USER_AUTHORITY_GROUPS, true );
 
-        addUser( 'A', credentials -> credentials.getUser().setPhoneNumber( "73647271" ) );
-        User userB = addUser( 'B', credentials -> credentials.getUser().setPhoneNumber( "23452134" ) );
-        addUser( 'C', credentials -> credentials.getUser().setPhoneNumber( "14543232" ) );
+        addUser( 'A', user -> user.setPhoneNumber( "73647271" ) );
+        User userB = addUser( 'B', user -> user.setPhoneNumber( "23452134" ) );
+        addUser( 'C', user -> user.setPhoneNumber( "14543232" ) );
 
         List<User> users = userService.getUsersByPhoneNumber( "23452134" );
 
@@ -436,22 +438,19 @@ public class UserServiceTest
     @Test
     public void testGetOrdered()
     {
-        User userA = addUser( 'A', credentials -> {
-            User user = credentials.getUser();
+        User userA = addUser( 'A', user -> {
             user.setSurname( "Yong" );
             user.setFirstName( "Anne" );
             user.setEmail( "lost@space.com" );
             user.getOrganisationUnits().add( unitA );
         } );
-        User userB = addUser( 'B', credentials -> {
-            User user = credentials.getUser();
+        User userB = addUser( 'B', user -> {
             user.setSurname( "Arden" );
             user.setFirstName( "Jenny" );
             user.setEmail( "Inside@other.com" );
             user.getOrganisationUnits().add( unitA );
         } );
-        User userC = addUser( 'C', credentials -> {
-            User user = credentials.getUser();
+        User userC = addUser( 'C', user -> {
             user.setSurname( "Smith" );
             user.setFirstName( "Igor" );
             user.setEmail( "home@other.com" );
@@ -534,9 +533,9 @@ public class UserServiceTest
     @Test
     public void testGetManagedGroupsSelfRegistered()
     {
-        User userA = addUser( 'A', UserCredentials::setSelfRegistered, true );
+        User userA = addUser( 'A', User::setSelfRegistered, true );
         addUser( 'B' );
-        User userC = addUser( 'C', UserCredentials::setSelfRegistered, true );
+        User userC = addUser( 'C', User::setSelfRegistered, true );
         addUser( 'D' );
 
         UserQueryParams params = getDefaultParams()
@@ -565,9 +564,9 @@ public class UserServiceTest
     public void testGetInvitations()
     {
         addUser( 'A' );
-        User userB = addUser( 'B', UserCredentials::setInvitation, true );
+        User userB = addUser( 'B', User::setInvitation, true );
         addUser( 'C' );
-        User userD = addUser( 'D', UserCredentials::setInvitation, true );
+        User userD = addUser( 'D', User::setInvitation, true );
 
         UserQueryParams params = getDefaultParams()
             .setInvitationStatus( UserInvitationStatus.ALL );
@@ -585,9 +584,9 @@ public class UserServiceTest
     public void testGetExpiringUser()
     {
         User userA = addUser( 'A' );
-        addUser( 'B', UserCredentials::setDisabled, true );
+        addUser( 'B', User::setDisabled, true );
         User userC = addUser( 'C' );
-        addUser( 'D', UserCredentials::setDisabled, true );
+        addUser( 'D', User::setDisabled, true );
 
         assertContainsOnly( userService.getExpiringUsers(), userA, userC );
     }
@@ -600,24 +599,24 @@ public class UserServiceTest
         Date inSixDays = Date.from( now.plusDays( 6 ).toInstant() );
         Date inEightDays = Date.from( now.plusDays( 8 ).toInstant() );
         User userA = addUser( 'A' );
-        addUser( 'B', UserCredentials::setAccountExpiry, inFiveDays );
+        addUser( 'B', User::setAccountExpiry, inFiveDays );
         User userC = addUser( 'C' );
-        addUser( 'D', UserCredentials::setAccountExpiry, inSixDays );
-        addUser( 'E', UserCredentials::setAccountExpiry, inEightDays );
+        addUser( 'D', User::setAccountExpiry, inSixDays );
+        addUser( 'E', User::setAccountExpiry, inEightDays );
 
         List<UserAccountExpiryInfo> soonExpiringAccounts = userService.getExpiringUserAccounts( 7 );
         Set<String> soonExpiringAccountNames = soonExpiringAccounts.stream()
             .map( UserAccountExpiryInfo::getUsername ).collect( toSet() );
-        assertEquals( new HashSet<>( asList( "UsernameB", "UsernameD" ) ), soonExpiringAccountNames );
+        assertEquals( new HashSet<>( asList( "usernameD","usernameB" ) ), soonExpiringAccountNames );
 
         soonExpiringAccounts = userService.getExpiringUserAccounts( 9 );
         soonExpiringAccountNames = soonExpiringAccounts.stream()
             .map( UserAccountExpiryInfo::getUsername ).collect( toSet() );
-        assertEquals( new HashSet<>( asList( "UsernameB", "UsernameD", "UsernameE" ) ), soonExpiringAccountNames );
+        assertEquals( new HashSet<>( asList( "usernameB", "usernameD", "usernameE" ) ), soonExpiringAccountNames );
 
         for ( UserAccountExpiryInfo expiryInfo : soonExpiringAccounts )
         {
-            assertEquals( expiryInfo.getUsername().replace( "Username", "Email" ), expiryInfo.getEmail() );
+            assertEquals( expiryInfo.getUsername().replace( "username", "Email" ), expiryInfo.getEmail() );
         }
     }
 
@@ -630,13 +629,13 @@ public class UserServiceTest
         Date fourMonthAgo = Date.from( now.minusMonths( 4 ).toInstant() );
         Date twentyTwoDaysAgo = Date.from( now.minusDays( 22 ).toInstant() );
 
-        User userA = addUser( 'A', UserCredentials::setLastLogin, threeMonthAgo );
+        User userA = addUser( 'A', User::setLastLogin, threeMonthAgo );
         User userB = addUser( 'B', credentials -> {
             credentials.setDisabled( true );
             credentials.setLastLogin( fourMonthAgo );
         } );
 
-        addUser( 'C', UserCredentials::setLastLogin, twentyTwoDaysAgo );
+        addUser( 'C', User::setLastLogin, twentyTwoDaysAgo );
         addUser( 'D' );
 
         // User A gets disabled, B would but already was, C is active, D last
@@ -664,13 +663,13 @@ public class UserServiceTest
         Date fourMonthAgo = Date.from( now.minusMonths( 4 ).toInstant() );
         Date twentyTwoDaysAgo = Date.from( now.minusDays( 22 ).toInstant() );
 
-        User userA = addUser( 'A', UserCredentials::setLastLogin, threeMonthAgo );
+        User userA = addUser( 'A', User::setLastLogin, threeMonthAgo );
         User userB = addUser( 'B', credentials -> {
             credentials.setDisabled( true );
             credentials.setLastLogin( Date.from( now.minusMonths( 4 ).plusDays( 2 ).toInstant() ) );
         } );
 
-        addUser( 'C', UserCredentials::setLastLogin, twentyTwoDaysAgo );
+        addUser( 'C', User::setLastLogin, twentyTwoDaysAgo );
         addUser( 'D' );
 
         assertEquals( singleton( "EmailA" ),

@@ -65,7 +65,6 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
-import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupAccessService;
 import org.hisp.dhis.user.UserGroupService;
@@ -200,19 +199,15 @@ public class ValidationResultStoreTest
 
         user.setFirstName( "Test" );
         user.setSurname( userName );
+        user.setUsername( userName );
 
-        UserCredentials credentials = user.getUserCredentials();
-
-        credentials.setUsername( userName );
-
-        for ( UserAuthorityGroup role : credentials.getUserAuthorityGroups() )
+        for ( UserAuthorityGroup role : user.getUserAuthorityGroups() )
         {
             role.setName( CodeGenerator.generateUid() );
 
             userService.addUserAuthorityGroup( role );
         }
 
-        userService.addUserCredentials( credentials );
         userService.addUser( user );
 
         return mockCurrentUserService;
@@ -331,8 +326,8 @@ public class ValidationResultStoreTest
         categoryService.updateCategoryOptionGroup( optionGroupA );
         categoryService.updateCategoryOptionGroup( optionGroupB );
 
-        userCService.getCurrentUser().getUserCredentials().getCatDimensionConstraints().add( categoryA );
-        userDService.getCurrentUser().getUserCredentials().getCogsDimensionConstraints().add( optionGroupSetB );
+        userCService.getCurrentUser().getCatDimensionConstraints().add( categoryA );
+        userDService.getCurrentUser().getCogsDimensionConstraints().add( optionGroupSetB );
 
         expressionA = new Expression( "expressionA", "descriptionA" );
         expressionB = new Expression( "expressionB", "descriptionB" );

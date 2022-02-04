@@ -222,17 +222,17 @@ public class PatchServiceTest
     }
 
     @Test
-    public void testUpdateUserCredentialsOnUser()
+    public void testUpdateUser()
     {
         User user = createAndInjectAdminUser();
-        assertEquals( "admin", user.getUserCredentials().getUsername() );
+        assertEquals( "admin", user.getUsername() );
 
         Patch patch = new Patch()
-            .addMutation( new Mutation( "userCredentials.username", "dhis" ) );
+            .addMutation( new Mutation( "username", "dhis" ) );
 
         patchService.apply( patch, user );
 
-        assertEquals( "dhis", user.getUserCredentials().getUsername() );
+        assertEquals( "dhis", user.getUsername() );
     }
 
     @Test

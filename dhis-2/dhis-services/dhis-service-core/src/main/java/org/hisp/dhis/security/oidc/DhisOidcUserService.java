@@ -31,7 +31,7 @@ import java.util.Map;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
@@ -89,11 +89,11 @@ public class DhisOidcUserService
 
         if ( claimValue != null )
         {
-            UserCredentials userCredentials = userService.getUserCredentialsByOpenId( (String) claimValue );
+            User user = userService.getUserByOpenId( (String) claimValue );
 
-            if ( userCredentials != null )
+            if ( user != null )
             {
-                return new DhisOidcUser( userCredentials, attributes, IdTokenClaimNames.SUB, oidcUser.getIdToken() );
+                return new DhisOidcUser( user, attributes, IdTokenClaimNames.SUB, oidcUser.getIdToken() );
             }
         }
 

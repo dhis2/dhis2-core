@@ -308,7 +308,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         Object value = property.getGetterMethod().invoke( object );
         property.getSetterMethod().invoke( persistedObject, value );
 
-        MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() );
+        Map<String, List<String>> parameterValuesMap = contextService.getParameterValuesMap();
+        MetadataImportParams params = importService.getParamsFromMap( parameterValuesMap );
         params.setUser( currentUser )
             .setImportStrategy( ImportStrategy.UPDATE )
             .addObject( persistedObject );
@@ -367,6 +368,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         final JsonPatch patch = jsonMapper.readValue( request.getInputStream(), JsonPatch.class );
         final T patchedObject = jsonPatchManager.apply( patch, persistedObject );
 
+        // we don't allow changing IDs //Fails12098??
+        ((BaseIdentifiableObject) patchedObject).setId( persistedObject.getId() );
         // we don't allow changing UIDs
         ((BaseIdentifiableObject) patchedObject).setUid( persistedObject.getUid() );
 

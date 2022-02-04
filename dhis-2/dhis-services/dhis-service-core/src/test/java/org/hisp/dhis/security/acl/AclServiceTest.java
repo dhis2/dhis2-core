@@ -1139,7 +1139,7 @@ public class AclServiceTest extends TransactionalIntegrationTest
         manager.save( userAuthorityGroup );
 
         User userB = createUser( 'B' );
-        userB.getUserCredentials().getUserAuthorityGroups().add( userAuthorityGroup );
+        userB.getUserAuthorityGroups().add( userAuthorityGroup );
         manager.save( userB );
 
         visualization.getSharing().addUserAccess( new UserAccess( userB, AccessStringHelper.FULL ) );
@@ -1174,7 +1174,7 @@ public class AclServiceTest extends TransactionalIntegrationTest
         manager.save( userAuthorityGroup );
 
         User userB = createUser( 'B' );
-        userB.getUserCredentials().getUserAuthorityGroups().add( userAuthorityGroup );
+        userB.getUserAuthorityGroups().add( userAuthorityGroup );
         manager.save( userB );
 
         manager.update( visualization );

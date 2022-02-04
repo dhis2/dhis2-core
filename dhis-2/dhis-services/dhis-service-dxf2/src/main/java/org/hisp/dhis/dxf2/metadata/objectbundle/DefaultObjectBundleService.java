@@ -227,7 +227,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
                 if ( object instanceof User )
                 {
-                    ((User) object).getUserCredentials().setCreatedBy( bundle.getOverrideUser() );
+                    (object).setCreatedBy( bundle.getOverrideUser() );
                 }
             }
 
@@ -308,7 +308,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
                 if ( object instanceof User )
                 {
-                    ((User) object).getUserCredentials().setCreatedBy( bundle.getOverrideUser() );
+                    (object).setCreatedBy( bundle.getOverrideUser() );
                 }
             }
 

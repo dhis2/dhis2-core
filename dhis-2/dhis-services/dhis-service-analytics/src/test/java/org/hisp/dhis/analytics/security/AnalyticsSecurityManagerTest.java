@@ -161,7 +161,7 @@ public class AnalyticsSecurityManagerTest
         user.setOrganisationUnits( userOrgUnits );
         user.setDataViewOrganisationUnits( userOrgUnits );
         user.setDataViewMaxOrganisationUnitLevel( 3 );
-        user.getUserCredentials().setCatDimensionConstraints( catDimensionConstraints );
+        user.setCatDimensionConstraints( catDimensionConstraints );
 
         userService.addUser( user );
         injectSecurityContext( user );

@@ -226,7 +226,7 @@ public class EventAnalyticsServiceTest
 
         // The user
         User user = createUser( "A", "F_VIEW_EVENT_ANALYTICS" );
-        user.getUserCredentials().setCatDimensionConstraints( catDimensionConstraints );
+        user.setCatDimensionConstraints( catDimensionConstraints );
         userService.addUser( user );
         enableDataSharing( user, aProgram, AccessStringHelper.DATA_READ_WRITE );
         idObjectManager.update( user );
@@ -282,7 +282,7 @@ public class EventAnalyticsServiceTest
 
         // The user
         User user = createUser( "A", "F_VIEW_EVENT_ANALYTICS" );
-        user.getUserCredentials().setCatDimensionConstraints( catDimensionConstraints );
+        user.setCatDimensionConstraints( catDimensionConstraints );
         userService.addUser( user );
         enableDataSharing( user, aProgram, AccessStringHelper.DATA_READ_WRITE );
         idObjectManager.update( user );

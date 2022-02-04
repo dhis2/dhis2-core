@@ -42,7 +42,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Lars Helge Overland
  */
-public class UserCredentialsStoreTest
+public class UserStoreTest2
     extends DhisSpringTest
 {
 
@@ -55,7 +55,7 @@ public class UserCredentialsStoreTest
     public static final String AUTH_D = "AuthD";
 
     @Autowired
-    private UserCredentialsStore userCredentialsStore;
+    private UserStore userStore;
 
     @Autowired
     private UserService userService;
@@ -92,40 +92,34 @@ public class UserCredentialsStoreTest
     }
 
     @Test
-    public void testAddGetUserCredentials()
+    public void testAddGetUser()
     {
         User userA = createUser( 'A' );
         User userB = createUser( 'B' );
 
-        UserCredentials credentialsA = createUserCredentials( 'A', userA );
-        UserCredentials credentialsB = createUserCredentials( 'B', userB );
+        userStore.save( userA );
+        long idA = userA.getId();
+        userStore.save( userB );
+        long idB = userB.getId();
 
-        userCredentialsStore.save( credentialsA );
-        long idA = credentialsA.getId();
-        userCredentialsStore.save( credentialsB );
-        long idB = credentialsB.getId();
-
-        assertEquals( credentialsA, userCredentialsStore.get( idA ) );
-        assertEquals( credentialsB, userCredentialsStore.get( idB ) );
+        assertEquals( userA, userStore.get( idA ) );
+        assertEquals( userB, userStore.get( idB ) );
     }
 
     @Test
-    public void testGetUserCredentialsByUuid()
+    public void testGetUserByUuid()
     {
         User userA = createUser( 'A' );
         User userB = createUser( 'B' );
 
-        UserCredentials credentialsA = createUserCredentials( 'A', userA );
-        UserCredentials credentialsB = createUserCredentials( 'B', userB );
+        userStore.save( userA );
+        userStore.save( userB );
 
-        userCredentialsStore.save( credentialsA );
-        userCredentialsStore.save( credentialsB );
+        UUID uuidA = userA.getUuid();
+        UUID uuidB = userB.getUuid();
 
-        UUID uuidA = credentialsA.getUuid();
-        UUID uuidB = credentialsB.getUuid();
-
-        UserCredentials ucA = userCredentialsStore.getUserCredentialsByUuid( uuidA );
-        UserCredentials ucB = userCredentialsStore.getUserCredentialsByUuid( uuidB );
+        User ucA = userStore.getUserByUuid( uuidA );
+        User ucB = userStore.getUserByUuid( uuidB );
 
         assertNotNull( ucA );
         assertNotNull( ucB );
@@ -140,10 +134,10 @@ public class UserCredentialsStoreTest
         User userA = addUser( 'A', roleA );
         User userB = addUser( 'B', roleB, roleC );
 
-        List<UserCredentials> usersWithAuthorityA = userService.getUsersWithAuthority( AUTH_D );
-        assertTrue( usersWithAuthorityA.contains( userA.getUserCredentials() ) );
+        List<User> usersWithAuthorityA = userService.getUsersWithAuthority( AUTH_D );
+        assertTrue( usersWithAuthorityA.contains( userA ) );
 
-        List<UserCredentials> usersWithAuthorityB = userService.getUsersWithAuthority( AUTH_D );
-        assertFalse( usersWithAuthorityB.contains( userB.getUserCredentials() ) );
+        List<User> usersWithAuthorityB = userService.getUsersWithAuthority( AUTH_D );
+        assertFalse( usersWithAuthorityB.contains( userB ) );
     }
 }

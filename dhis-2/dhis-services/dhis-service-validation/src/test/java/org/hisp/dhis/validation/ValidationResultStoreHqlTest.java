@@ -58,7 +58,6 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.validation.comparator.ValidationResultQuery;
 import org.hisp.dhis.validation.hibernate.HibernateValidationResultStore;
 import org.junit.Before;
@@ -125,16 +124,14 @@ public class ValidationResultStoreHqlTest
         OrganisationUnit unit = new OrganisationUnit();
         unit.setUid( orgUnitUid );
         user.setDataViewOrganisationUnits( singleton( unit ) );
-        UserCredentials credentials = new UserCredentials();
-        user.setUserCredentials( credentials );
 
         // categories
         Set<Category> categories = category == null ? emptySet() : singleton( category );
-        credentials.setCatDimensionConstraints( categories );
+        user.setCatDimensionConstraints( categories );
 
         // option groups
         Set<CategoryOptionGroupSet> options = groupSet == null ? emptySet() : singleton( groupSet );
-        credentials.setCogsDimensionConstraints( options );
+        user.setCogsDimensionConstraints( options );
     }
 
     @Test

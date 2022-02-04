@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -34,6 +35,7 @@ import java.util.stream.Collectors;
 
 import lombok.AllArgsConstructor;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.adapter.BaseIdentifiableObject_;
@@ -50,7 +52,6 @@ import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
-import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Component;
 
@@ -59,6 +60,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @AllArgsConstructor
+@Slf4j
 public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
 {
     private final UserService userService;
@@ -82,35 +84,32 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
     @Override
     public void preCreate( User user, ObjectBundle bundle )
     {
-        if ( user.getUserCredentials() == null )
+        if ( user == null )
             return;
 
         User currentUser = currentUserService.getCurrentUser();
 
         if ( currentUser != null )
         {
-            user.getUserCredentials().getCogsDimensionConstraints().addAll(
-                currentUser.getUserCredentials().getCogsDimensionConstraints() );
+            user.getCogsDimensionConstraints().addAll(
+                currentUser.getCogsDimensionConstraints() );
 
-            user.getUserCredentials().getCatDimensionConstraints().addAll(
-                currentUser.getUserCredentials().getCatDimensionConstraints() );
+            user.getCatDimensionConstraints().addAll(
+                currentUser.getCatDimensionConstraints() );
         }
 
-        bundle.putExtras( user, "uc", user.getUserCredentials() );
-        user.setUserCredentials( null );
+//        bundle.putExtras( user, "uc", user );
     }
 
     @Override
     public void postCreate( User user, ObjectBundle bundle )
     {
-        if ( !bundle.hasExtras( user, "uc" ) )
-            return;
+//        if ( !bundle.hasExtras( user, "uc" ) )
+//            return;
 
-        final UserCredentials userCredentials = (UserCredentials) bundle.getExtras( user, "uc" );
-
-        if ( !StringUtils.isEmpty( userCredentials.getPassword() ) )
+        if ( !StringUtils.isEmpty( user.getPassword() ) )
         {
-            userService.encodeAndSetPassword( userCredentials, userCredentials.getPassword() );
+            userService.encodeAndSetPassword( user, user.getPassword() );
         }
 
         if ( user.getAvatar() != null )
@@ -120,20 +119,19 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
             fileResourceService.updateFileResource( fileResource );
         }
 
-        userCredentials.setUserInfo( user );
-        preheatService.connectReferences( userCredentials, bundle.getPreheat(), bundle.getPreheatIdentifier() );
-        sessionFactory.getCurrentSession().save( userCredentials );
-        user.setUserCredentials( userCredentials );
+        preheatService.connectReferences( user, bundle.getPreheat(), bundle.getPreheatIdentifier() );
+//        sessionFactory.getCurrentSession().save( user );
         sessionFactory.getCurrentSession().update( user );
-        bundle.removeExtras( user, "uc" );
+//        bundle.removeExtras( user, "uc" );
     }
 
     @Override
     public void preUpdate( User user, User persisted, ObjectBundle bundle )
     {
-        if ( user.getUserCredentials() == null )
+        if ( user == null )
             return;
-        bundle.putExtras( user, "uc", user.getUserCredentials() );
+
+        bundle.putExtras( user, "uc", user );
 
         if ( persisted.getAvatar() != null
             && (user.getAvatar() == null || !persisted.getAvatar().getUid().equals( user.getAvatar().getUid() )) )
@@ -151,33 +149,39 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
     }
 
     @Override
-    public void postUpdate( User user, ObjectBundle bundle )
+    public void postUpdate( User persistedUser, ObjectBundle bundle )
     {
-        if ( !bundle.hasExtras( user, "uc" ) )
+        if ( !bundle.hasExtras( persistedUser, "uc" ) )
             return;
 
-        final UserCredentials userCredentials = (UserCredentials) bundle.getExtras( user, "uc" );
-        final UserCredentials persistedUserCredentials = bundle.getPreheat().get( bundle.getPreheatIdentifier(),
-            UserCredentials.class, user );
+//        final UserCredentials userCredentials = (UserCredentials) bundle.getExtras( user, "uc" );
+        final User preUpdateUser = (User) bundle.getExtras( persistedUser, "uc" );
 
-        if ( !StringUtils.isEmpty( userCredentials.getPassword() ) )
+        final User persistedUserCredentials = bundle.getPreheat().get( bundle.getPreheatIdentifier(),
+            User.class, persistedUser );
+
+        boolean hasUpdated = false;
+        if ( !StringUtils.isEmpty( preUpdateUser.getPassword() ) )
         {
-            userService.encodeAndSetPassword( persistedUserCredentials, userCredentials.getPassword() );
+            userService.encodeAndSetPassword( persistedUserCredentials, preUpdateUser.getPassword() );
+//            sessionFactory.getCurrentSession().update( persistedUser );
+            hasUpdated = true;
         }
 
-        if ( userCredentials != persistedUserCredentials )
+        if ( preUpdateUser != persistedUserCredentials )
         {
             mergeService.merge(
-                new MergeParams<>( userCredentials, persistedUserCredentials ).setMergeMode( bundle.getMergeMode() ) );
+                new MergeParams<>( persistedUser, persistedUserCredentials ).setMergeMode( bundle.getMergeMode() ) );
             preheatService.connectReferences( persistedUserCredentials, bundle.getPreheat(),
                 bundle.getPreheatIdentifier() );
+            hasUpdated = true;
         }
 
-        persistedUserCredentials.setUserInfo( user );
-        user.setUserCredentials( persistedUserCredentials );
-
-        sessionFactory.getCurrentSession().update( user.getUserCredentials() );
-        bundle.removeExtras( user, "uc" );
+        if ( hasUpdated )
+        {
+            sessionFactory.getCurrentSession().update( persistedUser );
+        }
+        bundle.removeExtras( persistedUser, "uc" );
     }
 
     @Override
@@ -186,11 +190,8 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
     {
         Iterable<User> objects = bundle.getObjects( User.class );
         Map<String, Map<String, Object>> userReferences = bundle.getObjectReferences( User.class );
-        Map<String, Map<String, Object>> userCredentialsReferences = bundle
-            .getObjectReferences( UserCredentials.class );
 
-        if ( userReferences == null || userReferences.isEmpty() || userCredentialsReferences == null
-            || userCredentialsReferences.isEmpty() )
+        if ( userReferences == null || userReferences.isEmpty() )
         {
             return;
         }
@@ -198,7 +199,7 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
         for ( User identifiableObject : objects )
         {
             User user = identifiableObject;
-            handleNoAccessRoles( user, bundle );
+
 
             user = bundle.getPreheat().get( bundle.getPreheatIdentifier(), user );
             Map<String, Object> userReferenceMap = userReferences.get( identifiableObject.getUid() );
@@ -208,40 +209,47 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
                 continue;
             }
 
-            UserCredentials userCredentials = user.getUserCredentials();
-
-            if ( userCredentials == null )
+            if ( user == null )
             {
                 continue;
             }
 
-            Map<String, Object> userCredentialsReferenceMap = userCredentialsReferences.get( userCredentials.getUid() );
+//            Map<String, Object> userReferencesMap = userReferences.get( user.getUid() );
+//            if ( userReferencesMap == null || userReferencesMap.isEmpty() )
+//            {
+//                continue;
+//            }
 
-            if ( userCredentialsReferenceMap == null || userCredentialsReferenceMap.isEmpty() )
+            Set<UserAuthorityGroup> userAuthorityGroups = (Set<UserAuthorityGroup>) userReferenceMap.get( "userRoles" );
+            if( userAuthorityGroups != null )
             {
-                continue;
+                user.setUserAuthorityGroups( userAuthorityGroups );
+            }else
+            {
+                user.setUserAuthorityGroups( new HashSet<>() );
             }
+
+            handleNoAccessRoles( user, bundle );
 
             user.setOrganisationUnits( (Set<OrganisationUnit>) userReferenceMap.get( "organisationUnits" ) );
             user.setDataViewOrganisationUnits(
                 (Set<OrganisationUnit>) userReferenceMap.get( "dataViewOrganisationUnits" ) );
-            userCredentials
-                .setCreatedBy( (User) userCredentialsReferenceMap.get( BaseIdentifiableObject_.CREATED_BY ) );
+            user
+                .setCreatedBy( (User) userReferenceMap.get( BaseIdentifiableObject_.CREATED_BY ) );
 
-            if ( userCredentials.getCreatedBy() == null )
+            if ( user.getCreatedBy() == null )
             {
-                userCredentials.setCreatedBy( bundle.getUser() );
+                user.setCreatedBy( bundle.getUser() );
             }
 
-            userCredentials.setLastUpdatedBy( bundle.getUser() );
+            user.setLastUpdatedBy( bundle.getUser() );
 
-            userCredentials.setUserInfo( user );
 
             preheatService.connectReferences( user, bundle.getPreheat(), bundle.getPreheatIdentifier() );
-            preheatService.connectReferences( userCredentials, bundle.getPreheat(), bundle.getPreheatIdentifier() );
+//            preheatService.connectReferences( user, bundle.getPreheat(), bundle.getPreheatIdentifier() );
 
-            user.setUserCredentials( userCredentials );
             sessionFactory.getCurrentSession().update( user );
+            log.error( "Updated user: " + user.getUid() );
         }
     }
 
@@ -256,10 +264,10 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
     private void handleNoAccessRoles( User user, ObjectBundle bundle )
     {
         Set<String> preHeatedRoles = bundle.getPreheat().get( PreheatIdentifier.UID, user )
-            .getUserCredentials().getUserAuthorityGroups().stream().map( BaseIdentifiableObject::getUid )
+            .getUserAuthorityGroups().stream().map( BaseIdentifiableObject::getUid )
             .collect( Collectors.toSet() );
 
-        user.getUserCredentials().getUserAuthorityGroups().stream()
+        user.getUserAuthorityGroups().stream()
             .filter( role -> !preHeatedRoles.contains( role.getUid() ) )
             .forEach( role -> {
                 UserAuthorityGroup persistedRole = bundle.getPreheat().get( PreheatIdentifier.UID, role );
@@ -271,7 +279,7 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
 
                 if ( !aclService.canRead( bundle.getUser(), persistedRole ) )
                 {
-                    bundle.getPreheat().get( PreheatIdentifier.UID, user ).getUserCredentials().getUserAuthorityGroups()
+                    bundle.getPreheat().get( PreheatIdentifier.UID, user ).getUserAuthorityGroups()
                         .add( persistedRole );
                     bundle.getPreheat().put( PreheatIdentifier.UID, persistedRole );
                 }

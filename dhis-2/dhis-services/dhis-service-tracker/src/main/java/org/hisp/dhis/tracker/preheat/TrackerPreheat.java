@@ -69,7 +69,6 @@ import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentials;
 
 import com.google.api.client.util.Lists;
 import com.google.api.client.util.Maps;
@@ -321,19 +320,19 @@ public class TrackerPreheat
 
         if ( User.class.isAssignableFrom( klass ) )
         {
-            if ( !map.containsKey( UserCredentials.class ) )
+            if ( !map.containsKey( User.class ) )
             {
-                map.put( UserCredentials.class, new HashMap<>() );
+                map.put( User.class, new HashMap<>() );
             }
 
             User user = (User) object;
 
-            Map<String, IdentifiableObject> identifierMap = map.get( UserCredentials.class );
+            Map<String, IdentifiableObject> identifierMap = map.get( User.class );
 
             if ( !StringUtils.isEmpty( identifier.getIdentifier( user ) ) &&
                 !identifierMap.containsKey( identifier.getIdentifier( user ) ) )
             {
-                identifierMap.put( identifier.getIdentifier( user ), user.getUserCredentials() );
+                identifierMap.put( identifier.getIdentifier( user ), user );
             }
         }
 

@@ -29,7 +29,7 @@ package org.hisp.dhis.security.oidc;
 
 import java.util.Map;
 
-import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.user.User;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
@@ -44,14 +44,14 @@ public class DhisOidcUser
 {
     private final OidcIdToken oidcIdToken;
 
-    private final UserCredentials userCredentials;
+    private final User user;
 
-    public DhisOidcUser( UserCredentials userCredentials, Map<String, Object> attributes, String nameAttributeKey,
+    public DhisOidcUser( User user, Map<String, Object> attributes, String nameAttributeKey,
         OidcIdToken idToken )
     {
-        super( userCredentials.getAuthorities(), attributes, nameAttributeKey );
+        super( user.getAuthorities(), attributes, nameAttributeKey );
         this.oidcIdToken = idToken;
-        this.userCredentials = userCredentials;
+        this.user = user;
     }
 
     @Override
@@ -72,8 +72,8 @@ public class DhisOidcUser
         return oidcIdToken;
     }
 
-    public UserCredentials getUserCredentials()
+    public User getUser()
     {
-        return userCredentials;
+        return user;
     }
 }

@@ -87,7 +87,7 @@ public class UserContextInterceptor extends HandlerInterceptorAdapter implements
 
         String locale = request.getParameter( PARAM_LOCALE );
 
-        User user = currentUserService.getCurrentUserInTransaction();
+        User user = currentUserService.getCurrentUser();
 
         if ( user != null )
         {

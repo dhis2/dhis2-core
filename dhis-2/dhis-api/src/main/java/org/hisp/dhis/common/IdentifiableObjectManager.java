@@ -37,7 +37,6 @@ import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserInfo;
 
 /**
  * @author Lars Helge Overland
@@ -86,7 +85,7 @@ public interface IdentifiableObjectManager
     <T extends IdentifiableObject> T getByUniqueAttributeValue( Class<T> type, Attribute attribute, String value );
 
     <T extends IdentifiableObject> T getByUniqueAttributeValue( Class<T> type, Attribute attribute, String value,
-        UserInfo userInfo );
+        User userInfo );
 
     <T extends IdentifiableObject> T search( Class<T> type, String query );
 
