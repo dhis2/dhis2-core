@@ -31,12 +31,14 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
+import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.notification.ProgramNotificationMessageRenderer;
 import org.hisp.dhis.notification.ProgramStageNotificationMessageRenderer;
 import org.hisp.dhis.program.ProgramInstance;
@@ -76,16 +78,20 @@ public class DefaultTrackerNotificationWebHookService implements TrackerNotifica
 
     private final RenderService renderService;
 
+    private final ProgramStageNotificationMessageRenderer programStageNotificationMessageRenderer;
+
     public DefaultTrackerNotificationWebHookService( @NonNull ProgramInstanceService programInstanceService,
         @NonNull ProgramStageInstanceService programStageInstanceService,
         @Nonnull RestTemplate restTemplate, @Nonnull RenderService renderService,
-        @Nonnull ProgramNotificationTemplateService templateService )
+        @Nonnull ProgramNotificationTemplateService templateService,
+        @Nonnull ProgramStageNotificationMessageRenderer programStageNotificationMessageRenderer )
     {
         this.programInstanceService = programInstanceService;
         this.programStageInstanceService = programStageInstanceService;
         this.restTemplate = restTemplate;
         this.renderService = renderService;
         this.templateService = templateService;
+        this.programStageNotificationMessageRenderer = programStageNotificationMessageRenderer;
     }
 
     @Override
@@ -124,10 +130,17 @@ public class DefaultTrackerNotificationWebHookService implements TrackerNotifica
         List<ProgramNotificationTemplate> templates = templateService
             .getProgramStageLinkedToWebHookNotifications( instance.getProgramStage() );
 
-        Map<String, String> payload = new HashMap<>();
+        Map<String, String> standardVariables = new HashMap<>();
         ProgramStageNotificationMessageRenderer.VARIABLE_RESOLVERS
-            .forEach( ( key, value ) -> payload.put( key.name(), value.apply( instance ) ) );
-        sendPost( templates, renderService.toJsonAsString( payload ) );
+            .forEach( ( key, value ) -> standardVariables.put( key.name(), value.apply( instance ) ) );
+
+        Map<String, String> dataElements = programStageNotificationMessageRenderer.resolveTrackedEntityAttributeValues(
+            instance.getEventDataValues().stream().map( EventDataValue::getDataElement ).collect( Collectors.toSet() ),
+            instance );
+
+        standardVariables.putAll( dataElements );
+
+        sendPost( templates, renderService.toJsonAsString( standardVariables ) );
     }
 
     private void sendPost( List<ProgramNotificationTemplate> templates, String payload )

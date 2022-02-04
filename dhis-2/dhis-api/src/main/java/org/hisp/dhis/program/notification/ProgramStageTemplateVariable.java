@@ -58,6 +58,8 @@ public enum ProgramStageTemplateVariable
     PROGRAM_NAME( "program_name" ),
     PROGRAM_STAGE_NAME( "program_stage_name" ),
     ORG_UNIT_NAME( "org_unit_name" ),
+    ORG_UNIT_ID( "org_unit_id" ),
+    ORG_UNIT_CODE( "org_unit_code" ),
     DUE_DATE( "due_date" ),
     DAYS_SINCE_DUE_DATE( "days_since_due_date" ),
     DAYS_UNTIL_DUE_DATE( "days_until_due_date" ),
@@ -89,7 +91,7 @@ public enum ProgramStageTemplateVariable
 
     public static boolean isValidVariableName( String expressionName )
     {
-        return variableNameMap.keySet().contains( expressionName );
+        return variableNameMap.containsKey( expressionName );
     }
 
     public static ProgramStageTemplateVariable fromVariableName( String variableName )
