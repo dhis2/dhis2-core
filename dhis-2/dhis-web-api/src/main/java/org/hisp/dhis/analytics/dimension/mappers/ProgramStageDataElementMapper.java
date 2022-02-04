@@ -46,11 +46,11 @@ public class ProgramStageDataElementMapper extends BaseDimensionalItemObjectMapp
         ProgramStageDataElement.class );
 
     @Override
-    public DimensionResponse map( BaseIdentifiableObject dimension )
+    public DimensionResponse map( BaseIdentifiableObject dimension, String prefix )
     {
         ProgramStageDataElement programStageDataElement = (ProgramStageDataElement) dimension;
 
-        final DimensionResponse mapped = super.map( programStageDataElement.getDataElement() )
+        final DimensionResponse mapped = super.map( programStageDataElement.getDataElement(), prefix )
             .withValueType( programStageDataElement.getDataElement().getValueType().name() )
             .withId( getProgramStageDataElementUid( programStageDataElement ) );
 
