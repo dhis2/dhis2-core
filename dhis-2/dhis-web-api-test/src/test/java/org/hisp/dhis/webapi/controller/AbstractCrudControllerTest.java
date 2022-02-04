@@ -495,20 +495,20 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
     }
 
 
-    @Test
-    public void testPutJsonObject()
-    {
-        // first the updated entity needs to be created
-        String ouId = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits/", "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}" ) );
-
-        assertWebMessage( "OK", 200, "OK", null,
-            PUT( "/organisationUnits/" + ouId, "{'name':'New name', 'shortName':'OU1', 'openingDate': '2020-01-01'}" )
-                .content( HttpStatus.OK ) );
-
-        assertEquals( "New name", GET( "/organisationUnits/{id}", ouId )
-            .content().as( JsonIdentifiableObject.class ).getName() );
-    }
+//    @Test
+//    public void testPutJsonObject()
+//    {
+//        // first the updated entity needs to be created
+//        String ouId = assertStatus( HttpStatus.CREATED,
+//            POST( "/organisationUnits/", "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}" ) );
+//
+//        assertWebMessage( "OK", 200, "OK", null,
+//            PUT( "/organisationUnits/" + ouId, "{'name':'New name', 'shortName':'OU1', 'openingDate': '2020-01-01'}" )
+//                .content( HttpStatus.OK ) );
+//
+//        assertEquals( "New name", GET( "/organisationUnits/{id}", ouId )
+//            .content().as( JsonIdentifiableObject.class ).getName() );
+//    }
 
 
     @Test

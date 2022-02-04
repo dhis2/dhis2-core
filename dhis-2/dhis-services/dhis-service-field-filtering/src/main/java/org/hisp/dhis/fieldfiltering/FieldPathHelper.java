@@ -44,7 +44,6 @@ import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
@@ -240,8 +239,9 @@ public class FieldPathHelper
 
     private boolean isComplex( Property property )
     {
+        // || UserCredentials.class.isAssignableFrom( property.getKlass() ) //Merge12098
         return property.is( PropertyType.COMPLEX ) || property.itemIs( PropertyType.COMPLEX )
-            || property.isEmbeddedObject() || UserCredentials.class.isAssignableFrom( property.getKlass() )
+            || property.isEmbeddedObject()
             || Sharing.class.isAssignableFrom( property.getKlass() )
             || UserAccess.class.isAssignableFrom( property.getKlass() )
             || UserGroupAccess.class.isAssignableFrom( property.getKlass() );

@@ -225,7 +225,12 @@ public class ValidationUtils
      */
     public static boolean usernameIsValid( String username )
     {
-        return username != null && username.length() <= User.USERNAME_MAX_LENGTH;
+        if ( username == null )
+        {
+            return false;
+        }
+        Matcher matcher = USERNAME_PATTERN.matcher( username );
+        return matcher.matches();
     }
 
     /**
