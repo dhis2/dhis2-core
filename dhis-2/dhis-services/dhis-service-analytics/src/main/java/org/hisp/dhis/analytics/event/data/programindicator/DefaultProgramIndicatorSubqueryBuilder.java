@@ -28,10 +28,7 @@
 package org.hisp.dhis.analytics.event.data.programindicator;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.hisp.dhis.analytics.event.data.JdbcEventAnalyticsManager.PSISTATUS_IN_DEFAULT_STATUSES;
 
 import java.util.Date;
 
@@ -127,8 +124,7 @@ public class DefaultProgramIndicatorSubqueryBuilder
                 + getPrgIndSql( programIndicator.getFilter(), programIndicator, earliestStartDate, latestDate );
         }
 
-        return "(SELECT " + function + " (" + aggregateSql + (where.isBlank() ? " WHERE " : " AND ")
-            + getEventStatusExpressionOf( programIndicator.getExpression() + programIndicator.getFilter() ) + ")";
+        return "(SELECT " + function + " (" + aggregateSql + ")";
     }
 
     private String getFrom( ProgramIndicator pi )
@@ -178,21 +174,6 @@ public class DefaultProgramIndicatorSubqueryBuilder
         }
 
         return isNotBlank( condition ) ? " WHERE " + condition : condition;
-    }
-
-    private String getEventStatusExpressionOf( final String expressionFilter )
-    {
-        if ( isNotBlank( expressionFilter ) )
-        {
-            if ( containsIgnoreCase( expressionFilter, ("V{scheduled_event_count}") ) )
-            {
-                return " psistatus in ('SCHEDULE') ";
-            }
-
-            return PSISTATUS_IN_DEFAULT_STATUSES;
-        }
-
-        return EMPTY;
     }
 
     private boolean isEnrollment( AnalyticsType outerSqlEntity )

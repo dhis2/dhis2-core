@@ -113,7 +113,7 @@ public class JdbcEventAnalyticsManager
 
     private static final String ORG_UNIT_UID_LEVEL_COLUMN_PREFIX = "uidlevel";
 
-    public static final String PSISTATUS_IN_DEFAULT_STATUSES = " psistatus in ('ACTIVE', 'COMPLETED')";
+    public static final String PSISTATUS_IN_DEFAULT_STATUSES = " psistatus in ('ACTIVE', 'COMPLETED') ";
 
     private final EventTimeFieldSqlRenderer timeFieldSqlRenderer;
 
@@ -559,8 +559,8 @@ public class JdbcEventAnalyticsManager
                 + params.getEventStatus().stream().map( e -> "'" + e.name() + "'" ).collect( joining( "," ) ) + ") ";
         }
         else
-        {
-            // Default status
+        { // TODO: MAIKEL: Check for event_count expression
+          // Default status
             sql += hlp.whereAnd() + PSISTATUS_IN_DEFAULT_STATUSES;
         }
 
