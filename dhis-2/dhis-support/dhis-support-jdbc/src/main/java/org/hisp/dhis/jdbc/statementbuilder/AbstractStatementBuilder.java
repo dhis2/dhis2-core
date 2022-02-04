@@ -369,34 +369,8 @@ public abstract class AbstractStatementBuilder
                 getBoundaryCondition( programIndicator.getStartEventBoundary(), programIndicator, null,
                     reportingStartDate, reportingEndDate )
                 + " ") : "")
-            + programStageCondition + "order by " + getBoundaryColumn( programIndicator ) + " "
-            + createOrderTypeAndOffset( stageOffset )
+            + programStageCondition + "order by executiondate" + createOrderTypeAndOffset( stageOffset )
             + " limit 1 )";
-    }
-
-    private String getBoundaryColumn( final ProgramIndicator programIndicator )
-    {
-        if ( programIndicator.getStartEventBoundary() != null )
-        {
-            return getBoundaryColumn( programIndicator.getStartEventBoundary().getBoundaryTarget() );
-        }
-        else if ( programIndicator.getEndEventBoundary() != null )
-        {
-            return getBoundaryColumn( programIndicator.getEndEventBoundary().getBoundaryTarget() );
-        }
-
-        return "executiondate";
-    }
-
-    private String getBoundaryColumn( final String boundaryTarget )
-    {
-        switch ( boundaryTarget )
-        {
-        case "SCHEDULED_DATE":
-            return "duedate";
-        default:
-            return "executiondate";
-        }
     }
 
     private String createOrderTypeAndOffset( String stageOffset )

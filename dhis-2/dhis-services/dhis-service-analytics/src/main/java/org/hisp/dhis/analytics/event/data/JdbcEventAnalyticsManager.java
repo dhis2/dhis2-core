@@ -559,8 +559,8 @@ public class JdbcEventAnalyticsManager
                 + params.getEventStatus().stream().map( e -> "'" + e.name() + "'" ).collect( joining( "," ) ) + ") ";
         }
         else
-        { // TODO: MAIKEL: Check for event_count expression
-          // Default status
+        {
+            // Default status. For backward compatibility.
             sql += hlp.whereAnd() + PSISTATUS_IN_DEFAULT_STATUSES;
         }
 

@@ -207,11 +207,9 @@ public class ProgramIndicator
      */
     public AnalyticsPeriodBoundary getEndEventBoundary()
     {
-        for ( final AnalyticsPeriodBoundary boundary : analyticsPeriodBoundaries )
+        for ( AnalyticsPeriodBoundary boundary : analyticsPeriodBoundaries )
         {
-            final boolean isBoundarySupported = boundary.isEventDateBoundary() || boundary.isScheduledDateBoundary();
-
-            if ( isBoundarySupported && boundary.getAnalyticsPeriodBoundaryType().isEndBoundary() )
+            if ( boundary.isEventDateBoundary() && boundary.getAnalyticsPeriodBoundaryType().isEndBoundary() )
             {
                 return boundary;
             }
@@ -229,11 +227,9 @@ public class ProgramIndicator
      */
     public AnalyticsPeriodBoundary getStartEventBoundary()
     {
-        for ( final AnalyticsPeriodBoundary boundary : analyticsPeriodBoundaries )
+        for ( AnalyticsPeriodBoundary boundary : analyticsPeriodBoundaries )
         {
-            final boolean isBoundarySupported = boundary.isEventDateBoundary() || boundary.isScheduledDateBoundary();
-
-            if ( isBoundarySupported && boundary.getAnalyticsPeriodBoundaryType().isStartBoundary() )
+            if ( boundary.isEventDateBoundary() && boundary.getAnalyticsPeriodBoundaryType().isStartBoundary() )
             {
                 return boundary;
             }
