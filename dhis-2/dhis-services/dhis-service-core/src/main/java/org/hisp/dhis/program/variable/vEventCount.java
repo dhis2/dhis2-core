@@ -42,6 +42,8 @@ public class vEventCount
     {
         // Counts only the default 'psistatus' for events/V{event_count}. Needed
         // for backward compatibility.
-        return "case when psistatus in ('ACTIVE', 'COMPLETED') then 1 end";
+        return "case "
+            + "when psistatus in ('ACTIVE', 'COMPLETED') then 1 "
+            + "end";
     }
 }
