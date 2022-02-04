@@ -43,8 +43,8 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeTableManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackerTrigramIndexingJob;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests the {@link TrackerTrigramIndexingJob} using mocks to only test the
@@ -64,7 +64,7 @@ public class TrackerTrigramIndexingJobTest
     private final TrackerTrigramIndexingJob job = new TrackerTrigramIndexingJob( trackedEntityAttributeService,
         trackedEntityAttributeTableManager );
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         // mock normal run conditions

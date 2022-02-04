@@ -41,6 +41,7 @@ import lombok.NonNull;
 import org.hisp.dhis.analytics.Rectangle;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.dimension.DimensionFilteringAndPagingService;
+import org.hisp.dhis.analytics.dimension.DimensionMapperService;
 import org.hisp.dhis.analytics.dimensions.AnalyticsDimensionsPagingWrapper;
 import org.hisp.dhis.analytics.event.EventAnalyticsDimensionsService;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
@@ -93,6 +94,9 @@ public class EventAnalyticsController
 
     @NotNull
     private final ExecutionPlanStore executionPlanStore;
+
+    @NotNull
+    private final DimensionMapperService dimensionMapperService;
 
     // -------------------------------------------------------------------------
     // Aggregate
@@ -213,7 +217,9 @@ public class EventAnalyticsController
         configResponseForJson( response );
         return dimensionFilteringAndPagingService
             .pageAndFilter(
-                eventAnalyticsDimensionsService.getAggregateDimensionsByProgramStageId( programStageId ),
+                dimensionMapperService.toDimensionResponse(
+                    eventAnalyticsDimensionsService.getAggregateDimensionsByProgramStageId( programStageId ),
+                    programStageId ),
                 dimensionsCriteria,
                 fields );
     }
@@ -379,7 +385,9 @@ public class EventAnalyticsController
         configResponseForJson( response );
         return dimensionFilteringAndPagingService
             .pageAndFilter(
-                eventAnalyticsDimensionsService.getQueryDimensionsByProgramStageId( programStageId ),
+                dimensionMapperService.toDimensionResponse(
+                    eventAnalyticsDimensionsService.getQueryDimensionsByProgramStageId( programStageId ),
+                    programStageId ),
                 dimensionsCriteria,
                 fields );
     }

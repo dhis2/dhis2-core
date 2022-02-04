@@ -34,7 +34,7 @@ public abstract class BaseDimensionMapper implements DimensionMapper
 {
 
     @Override
-    public DimensionResponse map( BaseIdentifiableObject dimension )
+    public DimensionResponse map( BaseIdentifiableObject dimension, String prefix )
     {
         DimensionResponse mapped = DimensionResponse.builder()
             .id( dimension.getUid() )
