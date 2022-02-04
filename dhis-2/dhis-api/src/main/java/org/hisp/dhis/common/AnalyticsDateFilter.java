@@ -27,59 +27,52 @@
  */
 package org.hisp.dhis.common;
 
-import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.apache.commons.lang3.StringUtils.replaceOnce;
+import java.util.Arrays;
+import java.util.Optional;
+import java.util.function.Function;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+import org.hisp.dhis.analytics.TimeField;
+
 /**
- * @author Lars Helge Overland
+ * Enum to map time fields into functions that can extract respective date from
+ * controller parameters
  */
 @Getter
 @RequiredArgsConstructor
-public enum QueryOperator
+public enum AnalyticsDateFilter
 {
-    EQ( "=", true ),
-    GT( ">" ),
-    GE( ">=" ),
-    LT( "<" ),
-    LE( "<=" ),
-    LIKE( "like" ),
-    IN( "in", true ),
-    SW( "sw" ),
-    EW( "ew" ),
-    // Analytics specifics
-    IEQ( "==", true ),
-    NE( "!=", true ),
-    NIEQ( "!==", true ),
-    NLIKE( "not like" ),
-    ILIKE( "ilike" ),
-    NILIKE( "not ilike" );
+    EVENT_DATE( TimeField.EVENT_DATE, EventsAnalyticsQueryCriteria::getEventDate, null ),
+    ENROLLMENT_DATE( TimeField.ENROLLMENT_DATE, EventsAnalyticsQueryCriteria::getEnrollmentDate,
+        EnrollmentAnalyticsQueryCriteria::getEnrollmentDate ),
+    SCHEDULED_DATE( TimeField.SCHEDULED_DATE, EventsAnalyticsQueryCriteria::getScheduledDate, null ),
+    INCIDENT_DATE( TimeField.INCIDENT_DATE, EventsAnalyticsQueryCriteria::getIncidentDate,
+        EnrollmentAnalyticsQueryCriteria::getIncidentDate ),
+    LAST_UPDATED( TimeField.LAST_UPDATED, EventsAnalyticsQueryCriteria::getLastUpdated,
+        EnrollmentAnalyticsQueryCriteria::getLastUpdated );
 
-    private final String value;
+    private final TimeField timeField;
 
-    private final boolean nullAllowed;
+    private final Function<EventsAnalyticsQueryCriteria, String> eventExtractor;
 
-    QueryOperator( String value )
+    private final Function<EnrollmentAnalyticsQueryCriteria, String> enrollmentExtractor;
+
+    public static Optional<AnalyticsDateFilter> of( String dateField )
     {
-        this.value = value;
-        this.nullAllowed = false;
+        return Arrays.stream( values() )
+            .filter( analyticsDateFilter -> analyticsDateFilter.name().equalsIgnoreCase( dateField ) )
+            .findFirst();
     }
 
-    public static QueryOperator fromString( String string )
+    public boolean appliesToEnrollments()
     {
-        if ( string == null || string.isEmpty() )
-        {
-            return null;
-        }
-
-        if ( string.trim().startsWith( "!" ) )
-        {
-            return valueOf( "N" + replaceOnce( string, "!", EMPTY ).toUpperCase() );
-        }
-
-        return valueOf( string.toUpperCase() );
+        return enrollmentExtractor != null;
     }
 
+    public boolean appliesToEvents()
+    {
+        return eventExtractor != null;
+    }
 }

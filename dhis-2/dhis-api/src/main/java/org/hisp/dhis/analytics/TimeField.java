@@ -25,61 +25,57 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.analytics;
 
-import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.apache.commons.lang3.StringUtils.replaceOnce;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Sets;
 
 /**
- * @author Lars Helge Overland
+ * enum to map database column names to "business" names
  */
-@Getter
-@RequiredArgsConstructor
-public enum QueryOperator
+public enum TimeField
 {
-    EQ( "=", true ),
-    GT( ">" ),
-    GE( ">=" ),
-    LT( "<" ),
-    LE( "<=" ),
-    LIKE( "like" ),
-    IN( "in", true ),
-    SW( "sw" ),
-    EW( "ew" ),
-    // Analytics specifics
-    IEQ( "==", true ),
-    NE( "!=", true ),
-    NIEQ( "!==", true ),
-    NLIKE( "not like" ),
-    ILIKE( "ilike" ),
-    NILIKE( "not ilike" );
+    EVENT_DATE( "executiondate" ),
+    ENROLLMENT_DATE( "enrollmentdate" ),
+    INCIDENT_DATE( "incidentdate" ),
+    // Not a typo, different naming convention between FE and database
+    SCHEDULED_DATE( "duedate" ),
+    COMPLETED_DATE( "completeddate" ),
+    CREATED( "created" ),
+    LAST_UPDATED( "lastupdated" );
 
-    private final String value;
+    @Getter
+    private String field;
 
-    private final boolean nullAllowed;
+    public static final Collection<String> DEFAULT_TIME_FIELDS = ImmutableList.of( EVENT_DATE.name(),
+        LAST_UPDATED.name(), ENROLLMENT_DATE.name() );
 
-    QueryOperator( String value )
+    private static final Set<String> FIELD_NAMES = Sets.newHashSet( TimeField.values() )
+        .stream().map( TimeField::name )
+        .collect( Collectors.toSet() );
+
+    TimeField( String field )
     {
-        this.value = value;
-        this.nullAllowed = false;
+        this.field = field;
     }
 
-    public static QueryOperator fromString( String string )
+    public static Optional<TimeField> of( String timeField )
     {
-        if ( string == null || string.isEmpty() )
-        {
-            return null;
-        }
-
-        if ( string.trim().startsWith( "!" ) )
-        {
-            return valueOf( "N" + replaceOnce( string, "!", EMPTY ).toUpperCase() );
-        }
-
-        return valueOf( string.toUpperCase() );
+        return Arrays.stream( values() )
+            .filter( tf -> tf.name().equals( timeField ) )
+            .findFirst();
     }
 
+    public static boolean fieldIsValid( String field )
+    {
+        return field != null && FIELD_NAMES.contains( field );
+    }
 }

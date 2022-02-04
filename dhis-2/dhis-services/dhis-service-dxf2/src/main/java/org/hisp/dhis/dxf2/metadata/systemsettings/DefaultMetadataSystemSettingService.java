@@ -27,9 +27,10 @@
  */
 package org.hisp.dhis.dxf2.metadata.systemsettings;
 
+import lombok.AllArgsConstructor;
+
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
@@ -38,28 +39,31 @@ import org.springframework.stereotype.Service;
  *
  * @author anilkumk.
  */
+@AllArgsConstructor
 @Service( "org.hisp.dhis.dxf2.metadata.sync.MetadataSystemSettingService" )
 @Scope( "prototype" )
 public class DefaultMetadataSystemSettingService
     implements MetadataSystemSettingService
 {
-    @Autowired
-    private SystemSettingManager systemSettingManager;
+    private final SystemSettingManager systemSettingManager;
 
     private final String API_URL = "/api/metadata/version";
 
     private final String BASELINE_URL = API_URL + "/history?baseline=";
 
+    @Override
     public String getRemoteInstanceUserName()
     {
         return systemSettingManager.getStringSetting( SettingKey.REMOTE_INSTANCE_USERNAME );
     }
 
+    @Override
     public String getRemoteInstancePassword()
     {
         return systemSettingManager.getStringSetting( SettingKey.REMOTE_INSTANCE_PASSWORD );
     }
 
+    @Override
     public String getVersionDetailsUrl( String versionName )
     {
         return systemSettingManager.getStringSetting( SettingKey.REMOTE_INSTANCE_URL ) + API_URL
@@ -67,6 +71,7 @@ public class DefaultMetadataSystemSettingService
             + versionName;
     }
 
+    @Override
     public String getDownloadVersionSnapshotURL( String versionName )
     {
         return systemSettingManager.getStringSetting( SettingKey.REMOTE_INSTANCE_URL ) + API_URL + "/"
@@ -74,28 +79,33 @@ public class DefaultMetadataSystemSettingService
             + "/data.gz";
     }
 
+    @Override
     public String getMetaDataDifferenceURL( String versionName )
     {
         return systemSettingManager.getStringSetting( SettingKey.REMOTE_INSTANCE_URL ) + BASELINE_URL
             + versionName;
     }
 
+    @Override
     public String getEntireVersionHistory()
     {
         return systemSettingManager.getStringSetting( SettingKey.REMOTE_INSTANCE_URL ) + API_URL
             + "/history";
     }
 
+    @Override
     public void setSystemMetadataVersion( String versionName )
     {
         systemSettingManager.saveSystemSetting( SettingKey.SYSTEM_METADATA_VERSION, versionName );
     }
 
+    @Override
     public String getSystemMetadataVersion()
     {
         return systemSettingManager.getStringSetting( SettingKey.SYSTEM_METADATA_VERSION );
     }
 
+    @Override
     public Boolean getStopMetadataSyncSetting()
     {
         Boolean stopSyncSetting = systemSettingManager.getBooleanSetting( SettingKey.STOP_METADATA_SYNC );

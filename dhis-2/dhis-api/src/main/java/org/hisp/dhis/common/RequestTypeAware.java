@@ -27,59 +27,26 @@
  */
 package org.hisp.dhis.common;
 
-import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.apache.commons.lang3.StringUtils.replaceOnce;
+import static org.hisp.dhis.common.RequestTypeAware.RequestType.QUERY;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
-/**
- * @author Lars Helge Overland
- */
-@Getter
-@RequiredArgsConstructor
-public enum QueryOperator
+public class RequestTypeAware
 {
-    EQ( "=", true ),
-    GT( ">" ),
-    GE( ">=" ),
-    LT( "<" ),
-    LE( "<=" ),
-    LIKE( "like" ),
-    IN( "in", true ),
-    SW( "sw" ),
-    EW( "ew" ),
-    // Analytics specifics
-    IEQ( "==", true ),
-    NE( "!=", true ),
-    NIEQ( "!==", true ),
-    NLIKE( "not like" ),
-    ILIKE( "ilike" ),
-    NILIKE( "not ilike" );
+    private RequestType requestType = RequestType.OTHER;
 
-    private final String value;
-
-    private final boolean nullAllowed;
-
-    QueryOperator( String value )
+    public RequestTypeAware withQueryRequestType()
     {
-        this.value = value;
-        this.nullAllowed = false;
+        requestType = QUERY;
+        return this;
     }
 
-    public static QueryOperator fromString( String string )
+    public boolean isRequestTypeQuery()
     {
-        if ( string == null || string.isEmpty() )
-        {
-            return null;
-        }
-
-        if ( string.trim().startsWith( "!" ) )
-        {
-            return valueOf( "N" + replaceOnce( string, "!", EMPTY ).toUpperCase() );
-        }
-
-        return valueOf( string.toUpperCase() );
+        return QUERY == requestType;
     }
 
+    enum RequestType
+    {
+        QUERY,
+        OTHER;
+    }
 }
