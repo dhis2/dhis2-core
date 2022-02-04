@@ -30,13 +30,11 @@ package org.hisp.dhis.tracker.validation.hooks;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hisp.dhis.relationship.RelationshipEntity.TRACKED_ENTITY_INSTANCE;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
-import java.util.List;
-import java.util.Map;
+import java.util.Collections;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -71,44 +69,31 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 
-import com.google.api.client.util.Maps;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 /**
  * @author Enrico Colasante
  */
-@MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
 class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
 {
 
-    private static final String PROGRAM_WITHOUT_REGISTRATION_ID = "PROGRAM_WITHOUT_REGISTRATION_ID";
-
-    private static final String PROGRAM_WITH_REGISTRATION_ID = "PROGRAM_WITH_REGISTRATION_ID";
+    private static final String PROGRAM_UID = "PROGRAM_UID";
 
     private static final String PROGRAM_STAGE_ID = "PROGRAM_STAGE_ID";
 
     private static final String ORG_UNIT_ID = "ORG_UNIT_ID";
 
-    private static final String ANOTHER_ORG_UNIT_ID = "ANOTHER_ORG_UNIT_ID";
-
     private static final String TEI_TYPE_ID = "TEI_TYPE_ID";
-
-    private static final String TEI_ID = "TEI_ID";
 
     private static final String ANOTHER_TEI_TYPE_ID = "ANOTHER_TEI_TYPE_ID";
 
-    private static final String ANOTHER_TEI_ID = "ANOTHER_TEI_ID";
+    private static final String TEI_ID = "TEI_ID";
 
     private static final String ENROLLMENT_ID = "ENROLLMENT_ID";
 
-    private static final String ANOTHER_ENROLLMENT_ID = "ANOTHER_ENROLLMENT_ID";
-
-    private PreCheckDataRelationsValidationHook validatorToTest;
+    private PreCheckDataRelationsValidationHook hook;
 
     @Mock
     private CategoryService categoryService;
@@ -123,113 +108,39 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
 
     private ValidationErrorReporter reporter;
 
-    private OrganisationUnit organisationUnit;
-
-    private OrganisationUnit anotherOrganisationUnit;
-
-    private Program programWithRegistration;
-
-    private Program programWithoutRegistration;
-
-    private TrackedEntityType trackedEntityType;
-
     @BeforeEach
-    public void setUp()
+    void setUp()
     {
-        validatorToTest = new PreCheckDataRelationsValidationHook( categoryService );
-        bundle = TrackerBundle.builder().preheat( preheat ).build();
+        hook = new PreCheckDataRelationsValidationHook( categoryService );
 
+        bundle = TrackerBundle.builder().preheat( preheat ).build();
         when( ctx.getBundle() ).thenReturn( bundle );
 
-        organisationUnit = createOrganisationUnit( 'A' );
-        organisationUnit.setUid( ORG_UNIT_ID );
-        when( ctx.getOrganisationUnit( ORG_UNIT_ID ) ).thenReturn( organisationUnit );
-
-        anotherOrganisationUnit = createOrganisationUnit( 'B' );
-        anotherOrganisationUnit.setUid( ANOTHER_ORG_UNIT_ID );
-        when( ctx.getOrganisationUnit( ANOTHER_ORG_UNIT_ID ) ).thenReturn( anotherOrganisationUnit );
-
-        trackedEntityType = createTrackedEntityType( 'A' );
-        trackedEntityType.setUid( TEI_TYPE_ID );
-        when( ctx.getTrackedEntityType( TEI_TYPE_ID ) ).thenReturn( trackedEntityType );
-
-        setupPrograms();
-
-        Map<String, List<String>> programWithOrgUnits = Maps.newHashMap();
-        programWithOrgUnits.put( PROGRAM_WITH_REGISTRATION_ID, Lists.newArrayList( ORG_UNIT_ID ) );
-
-        when( ctx.getProgramWithOrgUnitsMap() ).thenReturn( programWithOrgUnits );
-    }
-
-    private void setupPrograms()
-    {
-        programWithoutRegistration = createProgram( 'A' );
-        programWithoutRegistration.setUid( PROGRAM_WITHOUT_REGISTRATION_ID );
-        programWithoutRegistration.setProgramType( ProgramType.WITHOUT_REGISTRATION );
-        programWithoutRegistration.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
-        programWithoutRegistration.setTrackedEntityType( trackedEntityType );
-        when( ctx.getProgram( PROGRAM_WITHOUT_REGISTRATION_ID ) ).thenReturn( programWithoutRegistration );
-
-        programWithRegistration = createProgram( 'B' );
-        programWithRegistration.setUid( PROGRAM_WITH_REGISTRATION_ID );
-        programWithRegistration.setProgramType( ProgramType.WITH_REGISTRATION );
-        programWithRegistration.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
-        programWithRegistration.setTrackedEntityType( trackedEntityType );
-        when( ctx.getProgram( PROGRAM_WITH_REGISTRATION_ID ) ).thenReturn( programWithRegistration );
-    }
-
-    private void setupForEvents()
-    {
-        ProgramStage programStage = createProgramStage( 'A', programWithRegistration );
-        programStage.setUid( PROGRAM_STAGE_ID );
-        when( ctx.getProgramStage( PROGRAM_STAGE_ID ) ).thenReturn( programStage );
-
-        ProgramInstance programInstance = new ProgramInstance();
-        programInstance.setUid( ENROLLMENT_ID );
-        programInstance.setProgram( programWithRegistration );
-        when( ctx.getProgramInstance( ENROLLMENT_ID ) ).thenReturn( programInstance );
-
-        ProgramInstance anotherProgramInstance = new ProgramInstance();
-        anotherProgramInstance.setUid( ANOTHER_ENROLLMENT_ID );
-        anotherProgramInstance.setProgram( programWithoutRegistration );
-        when( ctx.getProgramInstance( ANOTHER_ENROLLMENT_ID ) ).thenReturn( anotherProgramInstance );
-
-        when( preheat.getDefault( CategoryOptionCombo.class ) ).thenReturn( createCategoryOptionCombo( 'A' ) );
-    }
-
-    private void setupEnrollments()
-    {
-        TrackedEntityType anotherTrackedEntityType = createTrackedEntityType( 'B' );
-        anotherTrackedEntityType.setUid( ANOTHER_TEI_TYPE_ID );
-        when( ctx.getTrackedEntityType( ANOTHER_TEI_TYPE_ID ) ).thenReturn( anotherTrackedEntityType );
-
-        TrackedEntityInstance trackedEntity = createTrackedEntityInstance( organisationUnit );
-        trackedEntity.setUid( TEI_ID );
-        trackedEntity.setTrackedEntityType( trackedEntityType );
-
-        when( ctx.getTrackedEntityInstance( TEI_ID ) ).thenReturn( trackedEntity );
-
-        TrackedEntityInstance anotherTrackedEntity = createTrackedEntityInstance( organisationUnit );
-        anotherTrackedEntity.setUid( ANOTHER_TEI_ID );
-        anotherTrackedEntity.setTrackedEntityType( anotherTrackedEntityType );
-
-        when( ctx.getTrackedEntityInstance( ANOTHER_TEI_ID ) ).thenReturn( anotherTrackedEntity );
+        reporter = new ValidationErrorReporter( ctx );
     }
 
     @Test
     void verifyValidationSuccessForEnrollment()
     {
-        setupEnrollments();
+        OrganisationUnit orgUnit = organisationUnit( ORG_UNIT_ID );
+        when( ctx.getOrganisationUnit( ORG_UNIT_ID ) )
+            .thenReturn( orgUnit );
+        TrackedEntityType teiType = trackedEntityType( TEI_TYPE_ID );
+        when( ctx.getProgram( PROGRAM_UID ) )
+            .thenReturn( programWithRegistration( PROGRAM_UID, orgUnit, teiType ) );
+        when( ctx.getProgramWithOrgUnitsMap() )
+            .thenReturn( Collections.singletonMap( PROGRAM_UID, Collections.singletonList( ORG_UNIT_ID ) ) );
+        when( ctx.getTrackedEntityInstance( TEI_ID ) )
+            .thenReturn( trackedEntityInstance( TEI_TYPE_ID, teiType, orgUnit ) );
+
         Enrollment enrollment = Enrollment.builder()
-            .enrollment( CodeGenerator.generateUid() )
-            .program( PROGRAM_WITH_REGISTRATION_ID )
             .orgUnit( ORG_UNIT_ID )
+            .program( PROGRAM_UID )
+            .enrollment( CodeGenerator.generateUid() )
             .trackedEntity( TEI_ID )
             .build();
 
-        reporter = new ValidationErrorReporter( ctx );
-
-        validatorToTest.validateEnrollment( reporter, enrollment );
+        hook.validateEnrollment( reporter, enrollment );
 
         assertFalse( reporter.hasErrors() );
     }
@@ -237,103 +148,131 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     @Test
     void verifyValidationFailsWhenEnrollmentIsNotARegistration()
     {
-        setupEnrollments();
+        OrganisationUnit orgUnit = organisationUnit( ORG_UNIT_ID );
+        when( ctx.getOrganisationUnit( ORG_UNIT_ID ) )
+            .thenReturn( orgUnit );
+        when( ctx.getProgram( PROGRAM_UID ) )
+            .thenReturn( programWithoutRegistration( PROGRAM_UID, orgUnit ) );
+        when( ctx.getProgramWithOrgUnitsMap() )
+            .thenReturn( Collections.singletonMap( PROGRAM_UID, Collections.singletonList( ORG_UNIT_ID ) ) );
+
         Enrollment enrollment = Enrollment.builder()
-            .enrollment( CodeGenerator.generateUid() )
-            .trackedEntity( TEI_ID )
-            .program( PROGRAM_WITHOUT_REGISTRATION_ID )
             .orgUnit( ORG_UNIT_ID )
+            .enrollment( CodeGenerator.generateUid() )
+            .program( PROGRAM_UID )
             .build();
 
-        reporter = new ValidationErrorReporter( ctx );
+        hook.validateEnrollment( reporter, enrollment );
 
-        validatorToTest.validateEnrollment( reporter, enrollment );
-
-        assertTrue( reporter.hasErrors() );
-        assertEquals( TrackerErrorCode.E1014, reporter.getReportList().get( 0 ).getErrorCode() );
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1014 ) );
     }
 
     @Test
     void verifyValidationFailsWhenEnrollmentAndProgramOrganisationUnitDontMatch()
     {
-        setupEnrollments();
+        OrganisationUnit orgUnit = organisationUnit( ORG_UNIT_ID );
+        when( ctx.getOrganisationUnit( ORG_UNIT_ID ) )
+            .thenReturn( orgUnit );
+        OrganisationUnit anotherOrgUnit = organisationUnit( CodeGenerator.generateUid() );
+        when( ctx.getProgram( PROGRAM_UID ) )
+            .thenReturn( programWithRegistration( PROGRAM_UID, anotherOrgUnit ) );
+        when( ctx.getProgramWithOrgUnitsMap() )
+            .thenReturn(
+                Collections.singletonMap( PROGRAM_UID, Collections.singletonList( anotherOrgUnit.getUid() ) ) );
+
         Enrollment enrollment = Enrollment.builder()
             .enrollment( CodeGenerator.generateUid() )
-            .trackedEntity( TEI_ID )
-            .program( PROGRAM_WITH_REGISTRATION_ID )
-            .orgUnit( ANOTHER_ORG_UNIT_ID )
+            .program( PROGRAM_UID )
+            .orgUnit( ORG_UNIT_ID )
             .build();
 
-        reporter = new ValidationErrorReporter( ctx );
+        hook.validateEnrollment( reporter, enrollment );
 
-        validatorToTest.validateEnrollment( reporter, enrollment );
-
-        assertTrue( reporter.hasErrors() );
-        assertEquals( TrackerErrorCode.E1041, reporter.getReportList().get( 0 ).getErrorCode() );
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1041 ) );
     }
 
     @Test
     void verifyValidationFailsWhenEnrollmentAndProgramTeiTypeDontMatch()
     {
-        setupEnrollments();
+        OrganisationUnit orgUnit = organisationUnit( ORG_UNIT_ID );
+        when( ctx.getOrganisationUnit( ORG_UNIT_ID ) )
+            .thenReturn( orgUnit );
+        when( ctx.getProgram( PROGRAM_UID ) )
+            .thenReturn( programWithRegistration( PROGRAM_UID, orgUnit, trackedEntityType( TEI_TYPE_ID ) ) );
+        when( ctx.getProgramWithOrgUnitsMap() )
+            .thenReturn( Collections.singletonMap( PROGRAM_UID, Collections.singletonList( ORG_UNIT_ID ) ) );
+        TrackedEntityType anotherTrackedEntityType = trackedEntityType( TEI_ID, 'B' );
+        when( ctx.getTrackedEntityInstance( TEI_ID ) )
+            .thenReturn( trackedEntityInstance( TEI_ID, anotherTrackedEntityType, orgUnit ) );
+
         Enrollment enrollment = Enrollment.builder()
             .enrollment( CodeGenerator.generateUid() )
-            .program( PROGRAM_WITH_REGISTRATION_ID )
+            .program( PROGRAM_UID )
             .orgUnit( ORG_UNIT_ID )
-            .trackedEntity( ANOTHER_TEI_ID )
+            .trackedEntity( TEI_ID )
             .build();
 
-        reporter = new ValidationErrorReporter( ctx );
+        hook.validateEnrollment( reporter, enrollment );
 
-        validatorToTest.validateEnrollment( reporter, enrollment );
-
-        assertTrue( reporter.hasErrors() );
-        assertEquals( TrackerErrorCode.E1022, reporter.getReportList().get( 0 ).getErrorCode() );
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1022 ) );
     }
 
     @Test
     void verifyValidationFailsWhenEnrollmentAndProgramTeiTypeDontMatchAndTEIIsInPayload()
     {
-        setupEnrollments();
-        Enrollment enrollment = Enrollment.builder()
-            .enrollment( CodeGenerator.generateUid() )
-            .program( PROGRAM_WITH_REGISTRATION_ID )
-            .orgUnit( ORG_UNIT_ID )
-            .trackedEntity( ANOTHER_TEI_ID )
-            .build();
-
-        reporter = new ValidationErrorReporter( ctx );
-
-        when( ctx.getTrackedEntityInstance( ANOTHER_TEI_ID ) ).thenReturn( null );
+        OrganisationUnit orgUnit = organisationUnit( ORG_UNIT_ID );
+        when( ctx.getOrganisationUnit( ORG_UNIT_ID ) )
+            .thenReturn( orgUnit );
+        when( ctx.getProgram( PROGRAM_UID ) )
+            .thenReturn( programWithRegistration( PROGRAM_UID, orgUnit, trackedEntityType( TEI_TYPE_ID ) ) );
+        when( ctx.getProgramWithOrgUnitsMap() )
+            .thenReturn( Collections.singletonMap( PROGRAM_UID, Collections.singletonList( ORG_UNIT_ID ) ) );
+        when( ctx.getTrackedEntityInstance( TEI_ID ) ).thenReturn( null );
 
         TrackedEntity trackedEntity = TrackedEntity.builder()
-            .trackedEntity( ANOTHER_TEI_ID )
+            .trackedEntity( TEI_ID )
             .trackedEntityType( ANOTHER_TEI_TYPE_ID )
             .build();
+        bundle.setTrackedEntities( Collections.singletonList( trackedEntity ) );
 
-        bundle.setTrackedEntities( Lists.newArrayList( trackedEntity ) );
+        Enrollment enrollment = Enrollment.builder()
+            .enrollment( CodeGenerator.generateUid() )
+            .program( PROGRAM_UID )
+            .orgUnit( ORG_UNIT_ID )
+            .trackedEntity( TEI_ID )
+            .build();
 
-        validatorToTest.validateEnrollment( reporter, enrollment );
+        hook.validateEnrollment( reporter, enrollment );
 
-        assertTrue( reporter.hasErrors() );
-        assertEquals( TrackerErrorCode.E1022, reporter.getReportList().get( 0 ).getErrorCode() );
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1022 ) );
     }
 
     @Test
     void verifyValidationSuccessForEvent()
     {
-        setupForEvents();
+        OrganisationUnit orgUnit = organisationUnit( ORG_UNIT_ID );
+        when( ctx.getOrganisationUnit( ORG_UNIT_ID ) )
+            .thenReturn( orgUnit );
+        Program program = programWithRegistration( PROGRAM_UID, orgUnit );
+        when( ctx.getProgram( PROGRAM_UID ) )
+            .thenReturn( program );
+        when( ctx.getProgramWithOrgUnitsMap() )
+            .thenReturn( Collections.singletonMap( PROGRAM_UID, Collections.singletonList( ORG_UNIT_ID ) ) );
+        when( ctx.getProgramStage( PROGRAM_STAGE_ID ) )
+            .thenReturn( programStage( PROGRAM_STAGE_ID, program ) );
+        when( ctx.getProgramInstance( ENROLLMENT_ID ) )
+            .thenReturn( programInstance( ENROLLMENT_ID, program ) );
+
+        when( preheat.getDefault( CategoryOptionCombo.class ) ).thenReturn( createCategoryOptionCombo( 'A' ) );
         Event event = Event.builder()
             .event( CodeGenerator.generateUid() )
-            .program( PROGRAM_WITH_REGISTRATION_ID )
+            .program( PROGRAM_UID )
             .programStage( PROGRAM_STAGE_ID )
             .orgUnit( ORG_UNIT_ID )
             .enrollment( ENROLLMENT_ID )
             .build();
 
-        reporter = new ValidationErrorReporter( ctx );
-
-        validatorToTest.validateEvent( reporter, event );
+        hook.validateEvent( reporter, event );
 
         assertFalse( reporter.hasErrors() );
     }
@@ -341,87 +280,115 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     @Test
     void verifyValidationFailsWhenEventAndProgramStageProgramDontMatch()
     {
-        setupForEvents();
+        OrganisationUnit orgUnit = organisationUnit( ORG_UNIT_ID );
+        when( ctx.getOrganisationUnit( ORG_UNIT_ID ) )
+            .thenReturn( orgUnit );
+        Program program = programWithRegistration( PROGRAM_UID, orgUnit );
+        when( ctx.getProgram( PROGRAM_UID ) )
+            .thenReturn( program );
+        when( ctx.getProgramWithOrgUnitsMap() )
+            .thenReturn( Collections.singletonMap( PROGRAM_UID, Collections.singletonList( ORG_UNIT_ID ) ) );
+        when( ctx.getProgramStage( PROGRAM_STAGE_ID ) )
+            .thenReturn(
+                programStage( PROGRAM_STAGE_ID, programWithRegistration( CodeGenerator.generateUid(), orgUnit ) ) );
+
         Event event = Event.builder()
             .event( CodeGenerator.generateUid() )
-            .program( PROGRAM_WITHOUT_REGISTRATION_ID )
+            .program( PROGRAM_UID )
             .programStage( PROGRAM_STAGE_ID )
-            .orgUnit( ANOTHER_ORG_UNIT_ID )
+            .orgUnit( ORG_UNIT_ID )
             .build();
 
-        reporter = new ValidationErrorReporter( ctx );
+        hook.validateEvent( reporter, event );
 
-        validatorToTest.validateEvent( reporter, event );
-
-        assertTrue( reporter.hasErrors() );
-        assertThat(
-            reporter.getReportList().stream().map( TrackerErrorReport::getErrorCode ).collect( Collectors.toList() ),
-            hasItem( TrackerErrorCode.E1089 ) );
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1089 ) );
     }
 
     @Test
     void verifyValidationFailsWhenProgramIsRegistrationAndEnrollmentIsMissing()
     {
-        setupForEvents();
+        OrganisationUnit orgUnit = organisationUnit( ORG_UNIT_ID );
+        when( ctx.getOrganisationUnit( ORG_UNIT_ID ) )
+            .thenReturn( orgUnit );
+        Program program = programWithRegistration( PROGRAM_UID, orgUnit );
+        when( ctx.getProgram( PROGRAM_UID ) )
+            .thenReturn( program );
+        when( ctx.getProgramWithOrgUnitsMap() )
+            .thenReturn( Collections.singletonMap( PROGRAM_UID, Collections.singletonList( ORG_UNIT_ID ) ) );
+        when( ctx.getProgramStage( PROGRAM_STAGE_ID ) )
+            .thenReturn( programStage( PROGRAM_STAGE_ID, program ) );
+
         Event event = Event.builder()
             .event( CodeGenerator.generateUid() )
-            .program( PROGRAM_WITH_REGISTRATION_ID )
+            .program( PROGRAM_UID )
             .programStage( PROGRAM_STAGE_ID )
             .orgUnit( ORG_UNIT_ID )
             .build();
 
-        reporter = new ValidationErrorReporter( ctx );
+        hook.validateEvent( reporter, event );
 
-        validatorToTest.validateEvent( reporter, event );
-
-        assertTrue( reporter.hasErrors() );
-        assertThat(
-            reporter.getReportList().stream().map( TrackerErrorReport::getErrorCode ).collect( Collectors.toList() ),
-            hasItem( TrackerErrorCode.E1033 ) );
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1033 ) );
     }
 
     @Test
     void verifyValidationFailsWhenEventAndEnrollmentProgramDontMatch()
     {
-        setupForEvents();
+        OrganisationUnit orgUnit = organisationUnit( ORG_UNIT_ID );
+        when( ctx.getOrganisationUnit( ORG_UNIT_ID ) )
+            .thenReturn( orgUnit );
+        Program program = programWithRegistration( PROGRAM_UID, orgUnit );
+        when( ctx.getProgram( PROGRAM_UID ) )
+            .thenReturn( program );
+        when( ctx.getProgramWithOrgUnitsMap() )
+            .thenReturn( Collections.singletonMap( PROGRAM_UID, Collections.singletonList( ORG_UNIT_ID ) ) );
+        when( ctx.getProgramStage( PROGRAM_STAGE_ID ) )
+            .thenReturn( programStage( PROGRAM_STAGE_ID, program ) );
+        when( ctx.getProgramInstance( ENROLLMENT_ID ) )
+            .thenReturn(
+                programInstance( ENROLLMENT_ID, programWithRegistration( CodeGenerator.generateUid(), orgUnit ) ) );
+
         Event event = Event.builder()
             .event( CodeGenerator.generateUid() )
-            .program( PROGRAM_WITH_REGISTRATION_ID )
+            .program( PROGRAM_UID )
             .programStage( PROGRAM_STAGE_ID )
             .orgUnit( ORG_UNIT_ID )
-            .enrollment( ANOTHER_ENROLLMENT_ID )
+            .enrollment( ENROLLMENT_ID )
             .build();
 
-        reporter = new ValidationErrorReporter( ctx );
+        hook.validateEvent( reporter, event );
 
-        validatorToTest.validateEvent( reporter, event );
-
-        assertTrue( reporter.hasErrors() );
-        assertThat(
-            reporter.getReportList().stream().map( TrackerErrorReport::getErrorCode ).collect( Collectors.toList() ),
-            hasItem( TrackerErrorCode.E1079 ) );
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1079 ) );
     }
 
     @Test
     void verifyValidationFailsWhenEventAndProgramOrganisationUnitDontMatch()
     {
-        setupForEvents();
+        OrganisationUnit orgUnit = organisationUnit( ORG_UNIT_ID );
+        when( ctx.getOrganisationUnit( ORG_UNIT_ID ) )
+            .thenReturn( orgUnit );
+        OrganisationUnit anotherOrgUnit = organisationUnit( CodeGenerator.generateUid() );
+        Program program = programWithRegistration( PROGRAM_UID, anotherOrgUnit );
+        when( ctx.getProgram( PROGRAM_UID ) )
+            .thenReturn( program );
+        when( ctx.getProgramWithOrgUnitsMap() )
+            .thenReturn(
+                Collections.singletonMap( PROGRAM_UID, Collections.singletonList( anotherOrgUnit.getUid() ) ) );
+        when( ctx.getProgramStage( PROGRAM_STAGE_ID ) )
+            .thenReturn( programStage( PROGRAM_STAGE_ID, program ) );
+        when( ctx.getProgramInstance( ENROLLMENT_ID ) )
+            .thenReturn( programInstance( ENROLLMENT_ID, program ) );
+
         Event event = Event.builder()
             .event( CodeGenerator.generateUid() )
-            .program( PROGRAM_WITH_REGISTRATION_ID )
+            .program( PROGRAM_UID )
             .programStage( PROGRAM_STAGE_ID )
-            .orgUnit( ANOTHER_ORG_UNIT_ID )
+            .orgUnit( ORG_UNIT_ID )
             .enrollment( ENROLLMENT_ID )
             .build();
 
-        reporter = new ValidationErrorReporter( ctx );
+        hook.validateEvent( reporter, event );
 
-        validatorToTest.validateEvent( reporter, event );
-
-        assertTrue( reporter.hasErrors() );
-        assertThat(
-            reporter.getReportList().stream().map( TrackerErrorReport::getErrorCode ).collect( Collectors.toList() ),
-            hasItem( TrackerErrorCode.E1029 ) );
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1029 ) );
     }
 
     @Test
@@ -440,14 +407,10 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .relationshipType( relType.getUid() )
             .build();
 
-        reporter = new ValidationErrorReporter( ctx );
-
-        validatorToTest.validateRelationship( reporter, relationship );
+        hook.validateRelationship( reporter, relationship );
 
         assertTrue( reporter.hasErrors() );
-        assertThat(
-            reporter.getReportList().stream().map( TrackerErrorReport::getErrorCode ).collect( Collectors.toList() ),
-            hasItem( TrackerErrorCode.E4012 ) );
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E4012 ) );
         assertThat(
             reporter.getReportList().stream().map( TrackerErrorReport::getErrorMessage ).collect( Collectors.toList() ),
             hasItem( "Could not find `trackedEntity`: `validTrackedEntity`, linked to Relationship." ) );
@@ -481,14 +444,88 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .relationshipType( relType.getUid() )
             .build();
 
-        reporter = new ValidationErrorReporter( ctx );
-
-        validatorToTest.validateRelationship( reporter, relationship );
+        hook.validateRelationship( reporter, relationship );
 
         assertFalse( reporter.hasErrors() );
     }
 
-    private RelationshipType createRelTypeConstraint( RelationshipEntity from, RelationshipEntity to )
+    private OrganisationUnit organisationUnit( String uid )
+    {
+        OrganisationUnit organisationUnit = createOrganisationUnit( 'A' );
+        organisationUnit.setUid( uid );
+        return organisationUnit;
+    }
+
+    private Program programWithRegistration( String uid, OrganisationUnit orgUnit )
+    {
+        return program( uid, ProgramType.WITH_REGISTRATION, 'A', orgUnit, trackedEntityType( TEI_TYPE_ID ) );
+    }
+
+    // Note : parameters that always have the same value are kept to
+    // make connections between different entities clear when looking at the
+    // test. Without having to navigate to the
+    // helpers.
+    private Program programWithRegistration( @SuppressWarnings( "SameParameterValue" ) String uid,
+        OrganisationUnit orgUnit, TrackedEntityType teiType )
+    {
+        return program( uid, ProgramType.WITH_REGISTRATION, 'A', orgUnit, teiType );
+    }
+
+    private Program programWithoutRegistration( @SuppressWarnings( "SameParameterValue" ) String uid,
+        OrganisationUnit orgUnit )
+    {
+        return program( uid, ProgramType.WITHOUT_REGISTRATION, 'B', orgUnit, trackedEntityType( TEI_TYPE_ID ) );
+    }
+
+    private Program program( String uid, ProgramType type, char uniqueCharacter, OrganisationUnit orgUnit,
+        TrackedEntityType teiType )
+    {
+        Program program = createProgram( uniqueCharacter );
+        program.setUid( uid );
+        program.setProgramType( type );
+        program.setOrganisationUnits( Sets.newHashSet( orgUnit ) );
+        program.setTrackedEntityType( teiType );
+        return program;
+    }
+
+    private TrackedEntityType trackedEntityType( @SuppressWarnings( "SameParameterValue" ) String uid )
+    {
+        return trackedEntityType( uid, 'A' );
+    }
+
+    private TrackedEntityType trackedEntityType( String uid, char uniqueChar )
+    {
+        TrackedEntityType trackedEntityType = createTrackedEntityType( uniqueChar );
+        trackedEntityType.setUid( uid );
+        return trackedEntityType;
+    }
+
+    private TrackedEntityInstance trackedEntityInstance( @SuppressWarnings( "SameParameterValue" ) String uid,
+        TrackedEntityType type, OrganisationUnit orgUnit )
+    {
+        TrackedEntityInstance tei = createTrackedEntityInstance( orgUnit );
+        tei.setUid( uid );
+        tei.setTrackedEntityType( type );
+        return tei;
+    }
+
+    private ProgramStage programStage( @SuppressWarnings( "SameParameterValue" ) String uid, Program program )
+    {
+        ProgramStage programStage = createProgramStage( 'A', program );
+        programStage.setUid( uid );
+        return programStage;
+    }
+
+    private ProgramInstance programInstance( @SuppressWarnings( "SameParameterValue" ) String uid, Program program )
+    {
+        ProgramInstance programInstance = new ProgramInstance();
+        programInstance.setUid( uid );
+        programInstance.setProgram( program );
+        return programInstance;
+    }
+
+    private RelationshipType createRelTypeConstraint( @SuppressWarnings( "SameParameterValue" ) RelationshipEntity from,
+        @SuppressWarnings( "SameParameterValue" ) RelationshipEntity to )
     {
         RelationshipType relType = new RelationshipType();
         relType.setUid( CodeGenerator.generateUid() );
