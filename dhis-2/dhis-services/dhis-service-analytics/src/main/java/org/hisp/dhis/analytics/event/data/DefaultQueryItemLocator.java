@@ -298,18 +298,19 @@ public class DefaultQueryItemLocator
                 return null;
             }
 
-            String params = matcher.group( 0 )
-                .replace( "[", "" )
-                .replace( "]", "" );
+            String[] tokens = getMatchedRepeatableStageParamTokens( matcher );
 
-            String[] values = params.split( "," );
-
-            if ( values.length > 1 )
+            if ( tokens == null )
             {
-                repeatableStageParams.setCount( Integer.parseInt( values[1].trim() ) );
+                return null;
             }
 
-            repeatableStageParams.setStartIndex( Integer.parseInt( values[0] ) );
+            if ( tokens.length > 1 )
+            {
+                repeatableStageParams.setCount( Integer.parseInt( tokens[1].trim() ) );
+            }
+
+            repeatableStageParams.setStartIndex( Integer.parseInt( tokens[0] ) );
         }
 
             return repeatableStageParams;
@@ -334,50 +335,41 @@ public class DefaultQueryItemLocator
 
         case PS_INDEX_COUNT_START_DATE_END_DATE_REGEX:
         {
-            if ( !matcher.find() )
+            String[] tokens = getMatchedRepeatableStageParamTokens( matcher );
+
+            if ( tokens == null )
             {
                 return null;
             }
 
-            String params = matcher.group( 0 )
-                .replace( "[", "" )
-                .replace( "]", "" );
-
-            String[] values = params.split( "," );
-
-            if ( values.length > 3 )
+            if ( tokens.length > 3 )
             {
-                repeatableStageParams.setCount( Integer.parseInt( values[1].trim() ) );
+                repeatableStageParams.setCount( Integer.parseInt( tokens[1].trim() ) );
 
-                repeatableStageParams.setStartDate( DateUtils.parseDate( values[2].trim() ) );
+                repeatableStageParams.setStartDate( DateUtils.parseDate( tokens[2].trim() ) );
 
-                repeatableStageParams.setEndDate( DateUtils.parseDate( values[3].trim() ) );
+                repeatableStageParams.setEndDate( DateUtils.parseDate( tokens[3].trim() ) );
             }
 
-            repeatableStageParams.setStartIndex( Integer.parseInt( values[0] ) );
+            repeatableStageParams.setStartIndex( Integer.parseInt( tokens[0] ) );
         }
 
             return repeatableStageParams;
 
         case PS_START_DATE_END_DATE_REGEX:
         {
-            if ( !matcher.find() )
+            String[] tokens = getMatchedRepeatableStageParamTokens( matcher );
+
+            if ( tokens == null )
             {
                 return null;
             }
 
-            String params = matcher.group( 0 )
-                .replace( "[", "" )
-                .replace( "]", "" );
-
-            String[] values = params.split( "," );
-
-            if ( values.length > 1 )
+            if ( tokens.length > 1 )
             {
+                repeatableStageParams.setStartDate( DateUtils.parseDate( tokens[0].trim() ) );
 
-                repeatableStageParams.setStartDate( DateUtils.parseDate( values[0].trim() ) );
-
-                repeatableStageParams.setEndDate( DateUtils.parseDate( values[1].trim() ) );
+                repeatableStageParams.setEndDate( DateUtils.parseDate( tokens[1].trim() ) );
             }
 
             repeatableStageParams.setCount( Integer.MAX_VALUE );
@@ -391,6 +383,20 @@ public class DefaultQueryItemLocator
 
             return null;
         }
+    }
+
+    private static String[] getMatchedRepeatableStageParamTokens( Matcher matcher )
+    {
+        if ( !matcher.find() )
+        {
+            return null;
+        }
+
+        String params = matcher.group( 0 )
+            .replace( "[", "" )
+            .replace( "]", "" );
+
+        return params.split( "," );
     }
 
     private RelationshipType getRelationshipTypeOrFail( String dimension )
