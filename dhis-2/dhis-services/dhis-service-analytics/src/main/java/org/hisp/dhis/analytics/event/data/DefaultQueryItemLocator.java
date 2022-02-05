@@ -391,40 +391,6 @@ public class DefaultQueryItemLocator
 
             return null;
         }
-
-        // final Pattern pattern = Pattern.compile( PS_INDEX_REGEX );
-        //
-        // final Matcher matcher = pattern.matcher( dimension );
-        //
-        // if ( matcher.find() )
-        // {
-        // String params = matcher.group( 0 )
-        // .replace( "[", "" )
-        // .replace( "]", "" );
-        //
-        // RepeatableStageParams repeatableStageParams = new
-        // RepeatableStageParams();
-        //
-        // if ( "*".equals( params ) )
-        // {
-        // repeatableStageParams.setStartIndex( 0 );
-        // repeatableStageParams.setCount( Integer.MAX_VALUE );
-        // }
-        // else
-        // {
-        // String[] values = params.split( "," );
-        //
-        // if ( values.length > 1 )
-        // {
-        // repeatableStageParams.setCount( Integer.parseInt( values[1] ) );
-        // }
-        // repeatableStageParams.setStartIndex( Integer.parseInt( values[0] ) );
-        // }
-        //
-        // return repeatableStageParams;
-        // }
-        //
-        // return null;
     }
 
     private RelationshipType getRelationshipTypeOrFail( String dimension )
