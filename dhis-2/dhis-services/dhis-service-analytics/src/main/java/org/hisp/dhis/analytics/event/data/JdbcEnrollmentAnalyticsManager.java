@@ -37,6 +37,9 @@ import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
@@ -504,6 +507,8 @@ public class JdbcEnrollmentAnalyticsManager
                     + " from " + eventTableName
                     + " where " + eventTableName + ".pi = " + ANALYTICS_TBL_ALIAS + ".pi "
                     + "and " + colName + " is not null " + "and ps = '" + item.getProgramStage().getUid() + "' "
+                    + getExecutionDateFilter( item.getRepeatableStageParams().getStartDate(),
+                        item.getRepeatableStageParams().getEndDate() )
                     + ORDER_BY_EXECUTION_DATE + createOrderTypeAndOffset( item.getProgramStageOffset() )
                     + getLimit( item.getRepeatableStageParams().getCount() ) + " ) as t1)";
 
@@ -520,6 +525,35 @@ public class JdbcEnrollmentAnalyticsManager
         {
             return quoteAlias( colName );
         }
+    }
+
+    private static String getExecutionDateFilter( Date startDate, Date endDate )
+    {
+        String pattern = "yyyy-MM-dd";
+
+        DateFormat df = new SimpleDateFormat( pattern );
+
+        StringBuilder sb = new StringBuilder();
+
+        if ( startDate != null )
+        {
+            String start = df.format( startDate );
+
+            sb.append( " and executiondate >= " );
+
+            sb.append( String.format( "'%s' ", start ) );
+        }
+
+        if ( endDate != null )
+        {
+            String end = df.format( endDate );
+
+            sb.append( " and executiondate <= " );
+
+            sb.append( String.format( "'%s' ", end ) );
+        }
+
+        return sb.toString();
     }
 
     private static String getLimit( int count )

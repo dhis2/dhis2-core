@@ -32,6 +32,7 @@ import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.common.DimensionalObject.ITEM_SEP;
 import static org.hisp.dhis.common.DimensionalObject.PROGRAMSTAGE_SEP;
 
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -62,6 +63,7 @@ import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Component;
 
 /**
@@ -83,7 +85,22 @@ public class DefaultQueryItemLocator
 
     private final RelationshipTypeService relationshipTypeService;
 
-    private final static String INDEX_REGEX = "\\[\\*\\]|\\[-?\\d+,?\\d*\\]";
+    private final static String PS_INDEX_REGEX = "\\[-?\\d+\\]";
+
+    private final static String PS_ASTERISK_REGEX = "\\[\\*\\]";
+
+    private final static String PS_INDEX_COUNT_REGEX = "\\[-?\\d+,\\s*\\d+\\]";
+
+    private final static String PS_INDEX_COUNT_START_DATE_END_DATE_REGEX = "\\[-?\\d+,\\s*\\d+,\\s*\\d{4}\\-(0[1-9]|1[012])\\-(0[1-9]|[12][0-9]|3[01]),\\s*\\d{4}\\-(0[1-9]|1[012])\\-(0[1-9]|[12][0-9]|3[01])\\]";
+
+    private final static String PS_START_DATE_END_DATE_REGEX = "\\[\\d{4}\\-(0[1-9]|1[012])\\-(0[1-9]|[12][0-9]|3[01]),\\s*\\d{4}\\-(0[1-9]|1[012])\\-(0[1-9]|[12][0-9]|3[01])\\]";
+
+    private final static Pattern[] PS_PARAMS_PATTERN_LIST = {
+        Pattern.compile( PS_INDEX_REGEX ),
+        Pattern.compile( PS_ASTERISK_REGEX ),
+        Pattern.compile( PS_INDEX_COUNT_REGEX ),
+        Pattern.compile( PS_INDEX_COUNT_START_DATE_END_DATE_REGEX ),
+        Pattern.compile( PS_START_DATE_END_DATE_REGEX ) };
 
     public DefaultQueryItemLocator( ProgramStageService programStageService, DataElementService dataElementService,
         TrackedEntityAttributeService attributeService, ProgramIndicatorService programIndicatorService,
@@ -230,9 +247,16 @@ public class DefaultQueryItemLocator
 
     private static String removeOffset( String dimension )
     {
-        final Pattern pattern = Pattern.compile( INDEX_REGEX );
+        Optional<Pattern> pattern = Arrays.stream( PS_PARAMS_PATTERN_LIST )
+            .filter( p -> p.matcher( dimension ).find() )
+            .findFirst();
 
-        final Matcher matcher = pattern.matcher( dimension );
+        if ( pattern.isEmpty() )
+        {
+            return dimension;
+        }
+
+        final Matcher matcher = pattern.get().matcher( dimension );
 
         if ( matcher.find() )
         {
@@ -244,38 +268,163 @@ public class DefaultQueryItemLocator
 
     private static RepeatableStageParams getRepeatableStageParams( String dimension )
     {
-        final Pattern pattern = Pattern.compile( INDEX_REGEX );
+        Optional<Pattern> pattern = Arrays.stream( PS_PARAMS_PATTERN_LIST )
+            .filter( p -> p.matcher( dimension ).find() )
+            .findFirst();
 
-        final Matcher matcher = pattern.matcher( dimension );
-
-        if ( matcher.find() )
+        if ( pattern.isEmpty() )
         {
+            return null;
+        }
+
+        final Matcher matcher = pattern.get().matcher( dimension );
+
+        final RepeatableStageParams repeatableStageParams = new RepeatableStageParams();
+
+        switch ( pattern.get().toString() )
+        {
+        case PS_ASTERISK_REGEX:
+
+            repeatableStageParams.setStartIndex( 0 );
+
+            repeatableStageParams.setCount( Integer.MAX_VALUE );
+
+            return repeatableStageParams;
+
+        case PS_INDEX_COUNT_REGEX:
+        {
+            if ( !matcher.find() )
+            {
+                return null;
+            }
+
             String params = matcher.group( 0 )
                 .replace( "[", "" )
                 .replace( "]", "" );
 
-            RepeatableStageParams repeatableStageParams = new RepeatableStageParams();
+            String[] values = params.split( "," );
 
-            if ( "*".equals( params ) )
+            if ( values.length > 1 )
             {
-                repeatableStageParams.setStartIndex( 0 );
-                repeatableStageParams.setCount( Integer.MAX_VALUE );
-            }
-            else
-            {
-                String[] values = params.split( "," );
-
-                if ( values.length > 1 )
-                {
-                    repeatableStageParams.setCount( Integer.parseInt( values[1] ) );
-                }
-                repeatableStageParams.setStartIndex( Integer.parseInt( values[0] ) );
+                repeatableStageParams.setCount( Integer.parseInt( values[1].trim() ) );
             }
 
-            return repeatableStageParams;
+            repeatableStageParams.setStartIndex( Integer.parseInt( values[0] ) );
         }
 
-        return null;
+            return repeatableStageParams;
+
+        case PS_INDEX_REGEX:
+        {
+            if ( !matcher.find() )
+            {
+                return null;
+            }
+
+            String index = matcher.group( 0 )
+                .replace( "[", "" )
+                .replace( "]", "" );
+
+            repeatableStageParams.setStartIndex( Integer.parseInt( index ) );
+
+            repeatableStageParams.setCount( 1 );
+        }
+
+            return repeatableStageParams;
+
+        case PS_INDEX_COUNT_START_DATE_END_DATE_REGEX:
+        {
+            if ( !matcher.find() )
+            {
+                return null;
+            }
+
+            String params = matcher.group( 0 )
+                .replace( "[", "" )
+                .replace( "]", "" );
+
+            String[] values = params.split( "," );
+
+            if ( values.length > 3 )
+            {
+                repeatableStageParams.setCount( Integer.parseInt( values[1].trim() ) );
+
+                repeatableStageParams.setStartDate( DateUtils.parseDate( values[2].trim() ) );
+
+                repeatableStageParams.setEndDate( DateUtils.parseDate( values[3].trim() ) );
+            }
+
+            repeatableStageParams.setStartIndex( Integer.parseInt( values[0] ) );
+        }
+
+            return repeatableStageParams;
+
+        case PS_START_DATE_END_DATE_REGEX:
+        {
+            if ( !matcher.find() )
+            {
+                return null;
+            }
+
+            String params = matcher.group( 0 )
+                .replace( "[", "" )
+                .replace( "]", "" );
+
+            String[] values = params.split( "," );
+
+            if ( values.length > 1 )
+            {
+
+                repeatableStageParams.setStartDate( DateUtils.parseDate( values[0].trim() ) );
+
+                repeatableStageParams.setEndDate( DateUtils.parseDate( values[1].trim() ) );
+            }
+
+            repeatableStageParams.setCount( Integer.MAX_VALUE );
+
+            repeatableStageParams.setStartIndex( 0 );
+        }
+
+            return repeatableStageParams;
+
+        default:
+
+            return null;
+        }
+
+        // final Pattern pattern = Pattern.compile( PS_INDEX_REGEX );
+        //
+        // final Matcher matcher = pattern.matcher( dimension );
+        //
+        // if ( matcher.find() )
+        // {
+        // String params = matcher.group( 0 )
+        // .replace( "[", "" )
+        // .replace( "]", "" );
+        //
+        // RepeatableStageParams repeatableStageParams = new
+        // RepeatableStageParams();
+        //
+        // if ( "*".equals( params ) )
+        // {
+        // repeatableStageParams.setStartIndex( 0 );
+        // repeatableStageParams.setCount( Integer.MAX_VALUE );
+        // }
+        // else
+        // {
+        // String[] values = params.split( "," );
+        //
+        // if ( values.length > 1 )
+        // {
+        // repeatableStageParams.setCount( Integer.parseInt( values[1] ) );
+        // }
+        // repeatableStageParams.setStartIndex( Integer.parseInt( values[0] ) );
+        // }
+        //
+        // return repeatableStageParams;
+        // }
+        //
+        // return null;
     }
 
     private RelationshipType getRelationshipTypeOrFail( String dimension )
