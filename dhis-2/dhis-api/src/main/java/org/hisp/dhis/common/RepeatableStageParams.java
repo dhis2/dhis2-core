@@ -65,7 +65,7 @@ public class RepeatableStageParams
         RepeatableStageParams other = (RepeatableStageParams) o;
 
         return other.startIndex == startIndex && other.count == count
-            && other.startDate == startDate && other.endDate == endDate;
+            && other.startDate.equals( startDate ) && other.endDate.equals( endDate );
     }
 
     @Override
