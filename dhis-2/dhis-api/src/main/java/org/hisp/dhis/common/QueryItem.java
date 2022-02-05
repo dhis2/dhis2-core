@@ -381,10 +381,11 @@ public class QueryItem
     @Override
     public String toString()
     {
-        return "[Item: " + item + ", legend set: " + legendSet + ", filters: " + filters +
-            ", value type: " + valueType + ", optionSet: " + optionSet +
-            ", program: " + program + ", program stage: " + programStage +
-            "repeatable program stage params: " + repeatableStageParams.toString() + "]";
+        return "[Item: " + item + ", legend set: " + legendSet + ", filters: " + filters
+            + ", value type: " + valueType + ", optionSet: " + optionSet
+            + ", program: " + program + ", program stage: " + programStage
+            + "repeatable program stage params: "
+            + (repeatableStageParams != null ? repeatableStageParams.toString() : null) + "]";
     }
 
     // -------------------------------------------------------------------------
