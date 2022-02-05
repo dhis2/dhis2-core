@@ -68,6 +68,14 @@ public class RepeatableStageParams
             && other.startDate == startDate && other.endDate == endDate;
     }
 
+    @Override
+    public int hashCode()
+    {
+        return (startIndex + count)
+            * (startDate == null ? "null".hashCode() : startDate.hashCode())
+            * (endDate == null ? "null".hashCode() : endDate.hashCode());
+    }
+
     public boolean isNumberValueType()
     {
         return count == 1;

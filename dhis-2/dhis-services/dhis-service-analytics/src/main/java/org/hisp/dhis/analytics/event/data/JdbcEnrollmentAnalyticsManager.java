@@ -474,9 +474,11 @@ public class JdbcEnrollmentAnalyticsManager
 
             return "(select " + colName
                 + " from " + eventTableName
-                + " where " + eventTableName + ".pi = " + ANALYTICS_TBL_ALIAS + ".pi " +
-                "and " + colName + " is not null " + "and ps = '" + item.getProgramStage().getUid() + "' " +
-                ORDER_BY_EXECUTION_DATE + createOrderTypeAndOffset( item.getProgramStageOffset() )
+                + " where " + eventTableName + ".pi = " + ANALYTICS_TBL_ALIAS + ".pi "
+                + "and " + colName + " is not null " + "and ps = '" + item.getProgramStage().getUid() + "' "
+                + getExecutionDateFilter( item.getRepeatableStageParams().getStartDate(),
+                    item.getRepeatableStageParams().getEndDate() )
+                + ORDER_BY_EXECUTION_DATE + createOrderTypeAndOffset( item.getProgramStageOffset() )
                 + " " + LIMIT_1 + " )";
 
         }

@@ -70,7 +70,7 @@ public class GridHeader
 
     private String programStage;
 
-    private RepeatableStageParams repeatableStageParams;
+    private transient RepeatableStageParams repeatableStageParams;
 
     // -------------------------------------------------------------------------
     // Constructors

@@ -85,17 +85,17 @@ public class DefaultQueryItemLocator
 
     private final RelationshipTypeService relationshipTypeService;
 
-    private final static String PS_INDEX_REGEX = "\\[-?\\d+\\]";
+    private static final String PS_INDEX_REGEX = "\\[-?\\d+\\]";
 
-    private final static String PS_ASTERISK_REGEX = "\\[\\*\\]";
+    private static final String PS_ASTERISK_REGEX = "\\[\\*\\]";
 
-    private final static String PS_INDEX_COUNT_REGEX = "\\[-?\\d+,\\s*\\d+\\]";
+    private static final String PS_INDEX_COUNT_REGEX = "\\[-?\\d+,\\s*\\d+\\]";
 
-    private final static String PS_INDEX_COUNT_START_DATE_END_DATE_REGEX = "\\[-?\\d+,\\s*\\d+,\\s*\\d{4}\\-(0[1-9]|1[012])\\-(0[1-9]|[12][0-9]|3[01]),\\s*\\d{4}\\-(0[1-9]|1[012])\\-(0[1-9]|[12][0-9]|3[01])\\]";
+    private static final String PS_INDEX_COUNT_START_DATE_END_DATE_REGEX = "\\[-?\\d+,\\s*\\d+,\\s*\\d{4}\\-(0[1-9]|1[012])\\-(0[1-9]|[12][0-9]|3[01]),\\s*\\d{4}\\-(0[1-9]|1[012])\\-(0[1-9]|[12][0-9]|3[01])\\]";
 
-    private final static String PS_START_DATE_END_DATE_REGEX = "\\[\\d{4}\\-(0[1-9]|1[012])\\-(0[1-9]|[12][0-9]|3[01]),\\s*\\d{4}\\-(0[1-9]|1[012])\\-(0[1-9]|[12][0-9]|3[01])\\]";
+    private static final String PS_START_DATE_END_DATE_REGEX = "\\[\\d{4}\\-(0[1-9]|1[012])\\-(0[1-9]|[12][0-9]|3[01]),\\s*\\d{4}\\-(0[1-9]|1[012])\\-(0[1-9]|[12][0-9]|3[01])\\]";
 
-    private final static Pattern[] PS_PARAMS_PATTERN_LIST = {
+    private static final Pattern[] PS_PARAMS_PATTERN_LIST = {
         Pattern.compile( PS_INDEX_REGEX ),
         Pattern.compile( PS_ASTERISK_REGEX ),
         Pattern.compile( PS_INDEX_COUNT_REGEX ),
@@ -293,11 +293,6 @@ public class DefaultQueryItemLocator
 
         case PS_INDEX_COUNT_REGEX:
         {
-            if ( !matcher.find() )
-            {
-                return null;
-            }
-
             String[] tokens = getMatchedRepeatableStageParamTokens( matcher );
 
             if ( tokens == null )

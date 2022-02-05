@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.common;
 
+import java.io.Serializable;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -35,7 +37,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 @Getter
 @AllArgsConstructor
-public class Reference
+public class Reference implements Serializable
 {
     @JsonProperty
     private String uuid;
