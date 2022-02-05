@@ -914,6 +914,10 @@ class GridTest
             gridA.getHeaders().get( 0 ).getRepeatableStageParams() );
 
         assertNull( gridA.getHeaders().get( 1 ).getRepeatableStageParams() );
+
+        assertEquals( 0, gridA.getHeaders().get( 0 ).getStageOffset() );
+
+        assertNull( gridA.getHeaders().get( 1 ).getStageOffset() );
     }
 
     // -------------------------------------------------------------------------

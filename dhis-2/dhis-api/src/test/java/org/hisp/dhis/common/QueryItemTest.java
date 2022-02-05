@@ -75,6 +75,10 @@ class QueryItemTest
 
     private DataElement deB;
 
+    private RepeatableStageParams rspA;
+
+    private RepeatableStageParams rspB;
+
     @BeforeEach
     void before()
     {
@@ -100,6 +104,15 @@ class QueryItemTest
         deA.setOptionSet( osA );
         deB = new DataElement( "DataElementB" );
         deB.setLegendSets( Lists.newArrayList( lsA ) );
+
+        rspA = new RepeatableStageParams();
+        rspA.setStartIndex( 1 );
+        rspA.setCount( 2 );
+
+        rspB = new RepeatableStageParams();
+        rspB.setStartIndex( 10 );
+        rspB.setCount( 20 );
+
     }
 
     @Test
@@ -119,11 +132,14 @@ class QueryItemTest
     {
         QueryItem qiA = new QueryItem( deB, lsA, ValueType.TEXT, AggregationType.SUM, null );
         qiA.addFilter( new QueryFilter( QueryOperator.IN, "UIDA;UIDB" ) );
+        qiA.setRepeatableStageParams( rspA );
         List<String> expected = Lists.newArrayList( "UIDA", "UIDB" );
         assertEquals( expected, qiA.getLegendSetFilterItemsOrAll() );
         QueryItem qiB = new QueryItem( deB, lsA, ValueType.TEXT, AggregationType.SUM, null );
         expected = Lists.newArrayList( "UIDA", "UIDB", "UIDC" );
         assertEquals( expected, qiB.getLegendSetFilterItemsOrAll() );
+        assertEquals( rspA, qiA.getRepeatableStageParams() );
+        assertEquals( rspA.toString(), qiA.getRepeatableStageParams().toString() );
     }
 
     @Test

@@ -35,6 +35,7 @@ import lombok.Getter;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 
+@lombok.Generated
 @Getter
 @AllArgsConstructor
 public class Reference implements Serializable

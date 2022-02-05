@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.common;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -79,5 +80,12 @@ class RepeatableStageParamsTest
         assertFalse( repeatableStageParamsSet.add( repeatableStageParams_2 ) );
         assertTrue( repeatableStageParamsSet.add( repeatableStageParams_4 ) );
         assertTrue( repeatableStageParamsSet.add( repeatableStageParams_5 ) );
+
+        assertEquals( 0, repeatableStageParams_1.getStartIndex() );
+        assertEquals( 100, repeatableStageParams_1.getCount() );
+        assertEquals( DateUtils.parseDate( "2022-01-01" ), repeatableStageParams_1.getStartDate() );
+        assertEquals( DateUtils.parseDate( "2022-01-31" ), repeatableStageParams_1.getEndDate() );
+
+        assertEquals( repeatableStageParams_1, repeatableStageParams_2 );
     }
 }
