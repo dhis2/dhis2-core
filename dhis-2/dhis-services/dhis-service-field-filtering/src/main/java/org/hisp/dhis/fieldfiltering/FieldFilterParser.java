@@ -27,6 +27,10 @@
  */
 package org.hisp.dhis.fieldfiltering;
 
+import static org.apache.commons.lang3.StringUtils.containsAny;
+import static org.apache.commons.lang3.StringUtils.isAlphanumeric;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -66,6 +70,8 @@ public class FieldFilterParser
         boolean isExclude = false; // token is !, which means do not include
         boolean isPreset = false; // token is :, which means it's a preset
 
+        // simple token parser that both tokenizes and builds up the internal
+        // fields paths.
         for ( int idx = 0; idx < fieldSplit.length; idx++ )
         {
             String token = fieldSplit[idx];
@@ -83,7 +89,7 @@ public class FieldFilterParser
                 {
                     token = fieldSplit[idx];
 
-                    if ( (StringUtils.containsAny( token, ":", "~", "|" )) )
+                    if ( (containsAny( token, ":", "~", "|" )) )
                     {
                         if ( token.equals( ":" ) )
                         {
@@ -204,7 +210,7 @@ public class FieldFilterParser
     {
         String name = fieldNameBuilder.toString();
 
-        if ( !StringUtils.isEmpty( name ) )
+        if ( !isEmpty( name ) )
         {
             FieldPath fieldPath = new FieldPath( name, new ArrayList<>( path ), isExclude, isPreset, transformers );
             fieldPaths.add( fieldPath );
@@ -218,65 +224,64 @@ public class FieldFilterParser
 
     private static boolean isBlockStart( String token )
     {
-        return token != null && StringUtils.containsAny( token, "[", "(" );
+        return token != null && containsAny( token, "[", "(" );
     }
 
     private static boolean isBlockEnd( String token )
     {
-        return token != null && StringUtils.containsAny( token, "]", ")" );
+        return token != null && containsAny( token, "]", ")" );
     }
 
     // please be aware that this also could mean both block start, and parameter
     // start depending on context
     private static boolean isParameterStart( String token )
     {
-        return StringUtils.containsAny( token, "(" );
+        return containsAny( token, "(" );
     }
 
     // please be aware that this also could mean both block end, and parameter
     // end depending on context
     private static boolean isParameterEnd( String token )
     {
-        return StringUtils.containsAny( token, ")" );
+        return containsAny( token, ")" );
     }
 
     private static boolean isParameterSeparator( String token )
     {
-        return StringUtils.containsAny( token, ";" );
+        return containsAny( token, ";" );
     }
 
     private static boolean isFieldSeparator( String token )
     {
-        return StringUtils.containsAny( token, "," );
+        return containsAny( token, "," );
     }
 
     private static boolean isAlphanumericOrSpecial( String token )
     {
-        return StringUtils.isAlphanumeric( token )
-            || StringUtils.containsAny( token, "*", ":", "{", "}", "~", "!", "|" );
+        return isAlphanumeric( token ) || containsAny( token, "*", ":", "{", "}", "~", "!", "|" );
     }
 
     private static boolean isExclude( String token )
     {
-        return StringUtils.containsAny( token, "!" );
+        return containsAny( token, "!" );
     }
 
     private static boolean isPreset( String token )
     {
-        return StringUtils.containsAny( token, ":" );
+        return containsAny( token, ":" );
     }
 
     private static boolean isAllAlias( String token )
     {
         // special case, convert * to all (preset=true)
-        return StringUtils.containsAny( token, "*" );
+        return containsAny( token, "*" );
     }
 
     private static boolean isTransformer( String[] fieldSplit, int idx )
     {
         String token = fieldSplit[idx];
 
-        return StringUtils.containsAny( token, "~", "|" )
+        return containsAny( token, "~", "|" )
             || (fieldSplit.length > 1 && ":".equals( fieldSplit[idx] ) && ":".equals( fieldSplit[idx + 1] ));
     }
 
