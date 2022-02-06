@@ -177,8 +177,8 @@ public class DefaultQueryItemLocator
             if ( programStage != null )
             {
                 qi.setProgramStage( programStage );
-                qi.setRepeatableStageParams( getRepeatableStageParams( dimension ) );
 
+                qi.setRepeatableStageParams( getRepeatableStageParams( dimension ) );
             }
             else if ( type != null && type.equals( EventOutputType.ENROLLMENT ) )
             {
@@ -268,20 +268,16 @@ public class DefaultQueryItemLocator
 
     private static RepeatableStageParams getRepeatableStageParams( String dimension )
     {
-        Optional<Pattern> pattern = Arrays.stream( PS_PARAMS_PATTERN_LIST )
+        Pattern pattern = Arrays.stream( PS_PARAMS_PATTERN_LIST )
             .filter( p -> p.matcher( dimension ).find() )
-            .findFirst();
+            .findFirst()
+            .orElse( Pattern.compile( PS_INDEX_REGEX ) );
 
-        if ( pattern.isEmpty() )
-        {
-            return null;
-        }
-
-        final Matcher matcher = pattern.get().matcher( dimension );
+        final Matcher matcher = pattern.matcher( dimension );
 
         final RepeatableStageParams repeatableStageParams = new RepeatableStageParams();
 
-        switch ( pattern.get().toString() )
+        switch ( pattern.toString() )
         {
         case PS_ASTERISK_REGEX:
 
@@ -294,11 +290,6 @@ public class DefaultQueryItemLocator
         case PS_INDEX_COUNT_REGEX:
         {
             String[] tokens = getMatchedRepeatableStageParamTokens( matcher );
-
-            if ( tokens == null )
-            {
-                return null;
-            }
 
             if ( tokens.length > 1 )
             {
@@ -332,11 +323,6 @@ public class DefaultQueryItemLocator
         {
             String[] tokens = getMatchedRepeatableStageParamTokens( matcher );
 
-            if ( tokens == null )
-            {
-                return null;
-            }
-
             if ( tokens.length > 3 )
             {
                 repeatableStageParams.setCount( Integer.parseInt( tokens[1].trim() ) );
@@ -354,11 +340,6 @@ public class DefaultQueryItemLocator
         case PS_START_DATE_END_DATE_REGEX:
         {
             String[] tokens = getMatchedRepeatableStageParamTokens( matcher );
-
-            if ( tokens == null )
-            {
-                return null;
-            }
 
             if ( tokens.length > 1 )
             {
@@ -382,14 +363,14 @@ public class DefaultQueryItemLocator
 
     private static String[] getMatchedRepeatableStageParamTokens( Matcher matcher )
     {
-        if ( !matcher.find() )
-        {
-            return null;
-        }
+        String params = "0";
 
-        String params = matcher.group( 0 )
-            .replace( "[", "" )
-            .replace( "]", "" );
+        if ( matcher.find() )
+        {
+            params = matcher.group( 0 )
+                .replace( "[", "" )
+                .replace( "]", "" );
+        }
 
         return params.split( "," );
     }
