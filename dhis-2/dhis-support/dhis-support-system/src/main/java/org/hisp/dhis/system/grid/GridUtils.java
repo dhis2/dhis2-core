@@ -28,24 +28,46 @@
 package org.hisp.dhis.system.grid;
 
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
-import static org.hisp.dhis.system.util.PDFUtils.*;
+import static org.hisp.dhis.common.adapter.OutputFormatter.maybeFormat;
+import static org.hisp.dhis.system.util.PDFUtils.addTableToDocument;
+import static org.hisp.dhis.system.util.PDFUtils.closeDocument;
+import static org.hisp.dhis.system.util.PDFUtils.getEmptyCell;
+import static org.hisp.dhis.system.util.PDFUtils.getItalicCell;
+import static org.hisp.dhis.system.util.PDFUtils.getSubtitleCell;
+import static org.hisp.dhis.system.util.PDFUtils.getTextCell;
+import static org.hisp.dhis.system.util.PDFUtils.getTitleCell;
+import static org.hisp.dhis.system.util.PDFUtils.openDocument;
+import static org.hisp.dhis.system.util.PDFUtils.resetPaddings;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
-import net.sf.jasperreports.engine.*;
+import net.sf.jasperreports.engine.JasperCompileManager;
+import net.sf.jasperreports.engine.JasperExportManager;
+import net.sf.jasperreports.engine.JasperFillManager;
+import net.sf.jasperreports.engine.JasperPrint;
+import net.sf.jasperreports.engine.JasperReport;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.velocity.VelocityContext;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObjectUtils;
@@ -211,7 +233,7 @@ public class GridUtils
         {
             for ( Object col : row )
             {
-                table.addCell( getTextCell( col ) );
+                table.addCell( getTextCell( maybeFormat( col ) ) );
             }
         }
 
@@ -328,10 +350,10 @@ public class GridUtils
 
             for ( Object column : columns )
             {
-                if ( column != null && MathUtils.isNumeric( String.valueOf( column ) ) )
+                if ( column != null && Number.class.isAssignableFrom( column.getClass() ) )
                 {
-                    xlsRow.createCell( columnIndex++, CellType.NUMERIC )
-                        .setCellValue( Double.parseDouble( String.valueOf( column ) ) );
+                    xlsRow.createCell( columnIndex++, CellType.STRING )
+                        .setCellValue( String.valueOf( maybeFormat( column ) ) );
                 }
                 else
                 {
@@ -373,7 +395,7 @@ public class GridUtils
         {
             for ( Object value : row )
             {
-                csvWriter.write( value != null ? String.valueOf( value ) : StringUtils.EMPTY );
+                csvWriter.write( value != null ? String.valueOf( maybeFormat( value ) ) : StringUtils.EMPTY );
             }
 
             csvWriter.endRecord();
@@ -468,7 +490,7 @@ public class GridUtils
 
             for ( Object field : row )
             {
-                writer.writeElement( ATTR_FIELD, field != null ? String.valueOf( field ) : EMPTY );
+                writer.writeElement( ATTR_FIELD, field != null ? String.valueOf( maybeFormat( field ) ) : EMPTY );
             }
 
             writer.closeElement();
