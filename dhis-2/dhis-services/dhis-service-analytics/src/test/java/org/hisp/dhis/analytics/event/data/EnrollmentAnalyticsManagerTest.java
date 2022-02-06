@@ -112,10 +112,6 @@ class EnrollmentAnalyticsManagerTest extends
     @Captor
     private ArgumentCaptor<String> sql;
 
-    private String DEFAULT_COLUMNS = "pi,tei,enrollmentdate,incidentdate,storedby,lastupdated,ST_AsGeoJSON(pigeometry),longitude,latitude,ouname,oucode,enrollmentstatus";
-
-    private final String TABLE_NAME = "analytics_enrollment";
-
     private final BeanRandomizer rnd = BeanRandomizer.create();
 
     @BeforeEach
@@ -363,7 +359,7 @@ class EnrollmentAnalyticsManagerTest extends
 
         ProgramIndicator programIndicatorA = createProgramIndicator( 'A', programA, "", "" );
 
-        RelationshipType relationshipTypeA = createRelationshipType( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
+        RelationshipType relationshipTypeA = createRelationshipType();
 
         EventQueryParams.Builder params = new EventQueryParams.Builder(
             createRequestParams( programIndicatorA, relationshipTypeA ) ).withStartDate( startDate )
@@ -402,7 +398,7 @@ class EnrollmentAnalyticsManagerTest extends
 
         ProgramIndicator programIndicatorA = createProgramIndicator( 'A', programA, "", "" );
 
-        RelationshipType relationshipTypeA = createRelationshipType( RelationshipEntity.TRACKED_ENTITY_INSTANCE,
+        RelationshipType relationshipTypeA = createRelationshipType(
             RelationshipEntity.PROGRAM_INSTANCE );
 
         EventQueryParams.Builder params = new EventQueryParams.Builder(
@@ -435,16 +431,15 @@ class EnrollmentAnalyticsManagerTest extends
     @Override
     String getTableName()
     {
-        return this.TABLE_NAME;
+        return "analytics_enrollment";
     }
 
-    private RelationshipType createRelationshipType( RelationshipEntity fromConstraint,
-        RelationshipEntity toConstraint )
+    private RelationshipType createRelationshipType( RelationshipEntity toConstraint )
     {
         RelationshipType relationshipTypeA = rnd.nextObject( RelationshipType.class );
 
         RelationshipConstraint from = new RelationshipConstraint();
-        from.setRelationshipEntity( fromConstraint );
+        from.setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
 
         RelationshipConstraint to = new RelationshipConstraint();
         to.setRelationshipEntity( toConstraint );
@@ -454,13 +449,14 @@ class EnrollmentAnalyticsManagerTest extends
         return relationshipTypeA;
     }
 
-    private RelationshipType createRelationshipType( RelationshipEntity fromToConstraint )
+    private RelationshipType createRelationshipType()
     {
-        return createRelationshipType( fromToConstraint, fromToConstraint );
+        return createRelationshipType( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
     }
 
     private void assertSql( String actual, String expected )
     {
+        String DEFAULT_COLUMNS = "pi,tei,enrollmentdate,incidentdate,storedby,lastupdated,ST_AsGeoJSON(pigeometry),longitude,latitude,ouname,oucode,enrollmentstatus";
         assertThat( actual, is( "select " + DEFAULT_COLUMNS + "," + expected ) );
     }
 
@@ -474,7 +470,7 @@ class EnrollmentAnalyticsManagerTest extends
 
         ProgramIndicator programIndicatorA = createProgramIndicator( 'A', programB, "", "" );
 
-        RelationshipType relationshipTypeA = createRelationshipType( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
+        RelationshipType relationshipTypeA = createRelationshipType();
 
         EventQueryParams.Builder params = new EventQueryParams.Builder(
             createRequestParams( programIndicatorA, relationshipTypeA ) ).withStartDate( startDate )
@@ -561,7 +557,6 @@ class EnrollmentAnalyticsManagerTest extends
         // When
         String columnSql = subject.getColumn( item );
 
-        String expected = "(select json_agg(t1) from (select \\\"fWIAEtYVEGk\\\", incidentdate, duedate, executiondate  from analytics_event_prabcdefghB where analytics_event_prabcdefghB.pi = ax.pi and \\\"fWIAEtYVEGk\\\" is not null and ps = 'pgabcdefghC'  and executiondate >= '2022-01-01'  and executiondate <= '2022-01-31' order by executiondate desc LIMIT 100 ) as t1)";
         // Then
         assertThat( columnSql,
             is( "(select json_agg(t1) from (select \"" + dataElementA.getUid()
@@ -590,7 +585,6 @@ class EnrollmentAnalyticsManagerTest extends
         // When
         String columnSql = subject.getColumn( item );
 
-        String expected = "(select json_agg(t1) from (select \\\"fWIAEtYVEGk\\\", incidentdate, duedate, executiondate  from analytics_event_prabcdefghB where analytics_event_prabcdefghB.pi = ax.pi and \\\"fWIAEtYVEGk\\\" is not null and ps = 'pgabcdefghC'  and executiondate >= '2022-01-01'  and executiondate <= '2022-01-31' order by executiondate desc LIMIT 100 ) as t1)";
         // Then
         assertThat( columnSql,
             is( "(select \"" + dataElementA.getUid()

@@ -48,6 +48,7 @@ class RepeatableStageParamsTest
         RepeatableStageParams repeatableStageParams_3 = new RepeatableStageParams();
         RepeatableStageParams repeatableStageParams_4 = new RepeatableStageParams();
         RepeatableStageParams repeatableStageParams_5 = new RepeatableStageParams();
+        RepeatableStageParams repeatableStageParams_6 = new RepeatableStageParams();
 
         repeatableStageParams_1.setStartIndex( 0 );
         repeatableStageParams_1.setCount( 100 );
@@ -70,6 +71,9 @@ class RepeatableStageParamsTest
         repeatableStageParams_5.setStartIndex( 0 );
         repeatableStageParams_5.setCount( 3 );
 
+        repeatableStageParams_6.setStartIndex( 0 );
+        repeatableStageParams_6.setCount( 1 );
+
         // act
         Set<RepeatableStageParams> repeatableStageParamsSet = new HashSet<>();
 
@@ -87,5 +91,7 @@ class RepeatableStageParamsTest
         assertEquals( DateUtils.parseDate( "2022-01-31" ), repeatableStageParams_1.getEndDate() );
 
         assertEquals( repeatableStageParams_1, repeatableStageParams_2 );
+        assertFalse( repeatableStageParams_1.isNumberValueType() );
+        assertTrue( repeatableStageParams_6.isNumberValueType() );
     }
 }

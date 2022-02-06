@@ -32,10 +32,10 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 import org.junit.jupiter.api.Test;
 
-public class GridHeaderTest
+class GridHeaderTest
 {
     @Test
-    public void getNoRepeatableStageParamTest()
+    void getNoRepeatableStageParamTest()
     {
 
         GridHeader gridHeader = new GridHeader( "name", "column", ValueType.REFERENCE, false, false,
@@ -45,7 +45,7 @@ public class GridHeaderTest
     }
 
     @Test
-    public void getStageOffsetOfNoRepeatableStageParamTest()
+    void getStageOffsetOfNoRepeatableStageParamTest()
     {
 
         GridHeader gridHeader = new GridHeader( "name", "column", ValueType.REFERENCE, false, false,
@@ -55,7 +55,7 @@ public class GridHeaderTest
     }
 
     @Test
-    public void getWithRepeatableStageParamTest()
+    void getWithRepeatableStageParamTest()
     {
         RepeatableStageParams repeatableStageParams = new RepeatableStageParams();
 
@@ -70,7 +70,7 @@ public class GridHeaderTest
     }
 
     @Test
-    public void getStageOffsetWithRepeatableStageParamTest()
+    void getStageOffsetWithRepeatableStageParamTest()
     {
         RepeatableStageParams repeatableStageParams = new RepeatableStageParams();
 
