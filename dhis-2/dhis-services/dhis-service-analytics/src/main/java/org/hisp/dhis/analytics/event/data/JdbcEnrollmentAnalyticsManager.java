@@ -459,12 +459,13 @@ public class JdbcEnrollmentAnalyticsManager
 
             final String eventTableName = ANALYTICS_EVENT + item.getProgram().getUid();
 
-            if ( item.hasRepeatableStageParams() && !item.getRepeatableStageParams().isNumberValueType() )
+            if ( item.getProgramStage().getRepeatable() &&
+                item.hasRepeatableStageParams() && !item.getRepeatableStageParams().isNumberValueType() )
             {
                 return "(select json_agg(t1) from (select " + colName + ", incidentdate, duedate, executiondate "
                     + " from " + eventTableName
                     + " where " + eventTableName + ".pi = " + ANALYTICS_TBL_ALIAS + ".pi "
-                    + "and " + colName + " is not null " + "and ps = '" + item.getProgramStage().getUid() + "' "
+                    + "and " + colName + " is not null " + "and ps = '" + item.getProgramStage().getUid() + "'"
                     + getExecutionDateFilter( item.getRepeatableStageParams().getStartDate(),
                         item.getRepeatableStageParams().getEndDate() )
                     + ORDER_BY_EXECUTION_DATE + createOrderTypeAndOffset( item.getProgramStageOffset() )
@@ -472,7 +473,7 @@ public class JdbcEnrollmentAnalyticsManager
 
             }
 
-            if ( item.hasRepeatableStageParams() )
+            if ( item.getProgramStage().getRepeatable() && item.hasRepeatableStageParams() )
             {
                 return "(select " + colName
                     + " from " + eventTableName
@@ -483,6 +484,7 @@ public class JdbcEnrollmentAnalyticsManager
                     + ORDER_BY_EXECUTION_DATE + createOrderTypeAndOffset( item.getProgramStageOffset() )
                     + " " + LIMIT_1 + " )";
             }
+
             return "(select " + colName
                 + " from " + eventTableName
                 + " where " + eventTableName + ".pi = " + ANALYTICS_TBL_ALIAS + ".pi "

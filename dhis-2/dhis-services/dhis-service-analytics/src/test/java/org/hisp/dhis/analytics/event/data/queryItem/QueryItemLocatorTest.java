@@ -203,7 +203,7 @@ class QueryItemLocatorTest
     }
 
     @Test
-    void verifyDimensionReturnsDataElementForEnrollmentQuery()
+    void verifyDimensionReturnsDataElementForEnrollmentQueryWithStartIndex()
     {
 
         DataElement dataElementA = createDataElement( 'A' );
@@ -219,7 +219,85 @@ class QueryItemLocatorTest
         when( programStageService.getProgramStage( programStageUid ) ).thenReturn( programStageA );
 
         QueryItem queryItem = subject.getQueryItemFromDimension(
-            programStageUid + withStageOffset + PROGRAMSTAGE_SEP + dimension,
+            programStageUid + "[-1]" + PROGRAMSTAGE_SEP + dimension,
+            programA, EventOutputType.ENROLLMENT );
+
+        assertThat( queryItem, is( notNullValue() ) );
+        assertThat( queryItem.getItem(), is( dataElementA ) );
+        assertThat( queryItem.getProgram(), is( programA ) );
+        assertThat( queryItem.getProgramStage(), is( programStageA ) );
+    }
+
+    @Test
+    void verifyDimensionReturnsDataElementForEnrollmentQueryWithStartIndexAndCount()
+    {
+
+        DataElement dataElementA = createDataElement( 'A' );
+
+        ProgramStage programStageA = createProgramStage( 'A', programA );
+
+        programStageA.setProgramStageDataElements(
+            Sets.newHashSet( createProgramStageDataElement( programStageA, dataElementA, 1 ) ) );
+
+        programA.setProgramStages( Sets.newHashSet( programStageA ) );
+
+        when( dataElementService.getDataElement( dimension ) ).thenReturn( dataElementA );
+        when( programStageService.getProgramStage( programStageUid ) ).thenReturn( programStageA );
+
+        QueryItem queryItem = subject.getQueryItemFromDimension(
+            programStageUid + "[-1,1]" + PROGRAMSTAGE_SEP + dimension,
+            programA, EventOutputType.ENROLLMENT );
+
+        assertThat( queryItem, is( notNullValue() ) );
+        assertThat( queryItem.getItem(), is( dataElementA ) );
+        assertThat( queryItem.getProgram(), is( programA ) );
+        assertThat( queryItem.getProgramStage(), is( programStageA ) );
+    }
+
+    @Test
+    void verifyDimensionReturnsDataElementForEnrollmentQueryWithStartIndexAndCountAndBothDates()
+    {
+
+        DataElement dataElementA = createDataElement( 'A' );
+
+        ProgramStage programStageA = createProgramStage( 'A', programA );
+
+        programStageA.setProgramStageDataElements(
+            Sets.newHashSet( createProgramStageDataElement( programStageA, dataElementA, 1 ) ) );
+
+        programA.setProgramStages( Sets.newHashSet( programStageA ) );
+
+        when( dataElementService.getDataElement( dimension ) ).thenReturn( dataElementA );
+        when( programStageService.getProgramStage( programStageUid ) ).thenReturn( programStageA );
+
+        QueryItem queryItem = subject.getQueryItemFromDimension(
+            programStageUid + "[-1,1, 2022-01-01, 2022-01-31]" + PROGRAMSTAGE_SEP + dimension,
+            programA, EventOutputType.ENROLLMENT );
+
+        assertThat( queryItem, is( notNullValue() ) );
+        assertThat( queryItem.getItem(), is( dataElementA ) );
+        assertThat( queryItem.getProgram(), is( programA ) );
+        assertThat( queryItem.getProgramStage(), is( programStageA ) );
+    }
+
+    @Test
+    void verifyDimensionReturnsDataElementForEnrollmentQueryWithAsterisk()
+    {
+
+        DataElement dataElementA = createDataElement( 'A' );
+
+        ProgramStage programStageA = createProgramStage( 'A', programA );
+
+        programStageA.setProgramStageDataElements(
+            Sets.newHashSet( createProgramStageDataElement( programStageA, dataElementA, 1 ) ) );
+
+        programA.setProgramStages( Sets.newHashSet( programStageA ) );
+
+        when( dataElementService.getDataElement( dimension ) ).thenReturn( dataElementA );
+        when( programStageService.getProgramStage( programStageUid ) ).thenReturn( programStageA );
+
+        QueryItem queryItem = subject.getQueryItemFromDimension(
+            programStageUid + "[*]" + PROGRAMSTAGE_SEP + dimension,
             programA, EventOutputType.ENROLLMENT );
 
         assertThat( queryItem, is( notNullValue() ) );

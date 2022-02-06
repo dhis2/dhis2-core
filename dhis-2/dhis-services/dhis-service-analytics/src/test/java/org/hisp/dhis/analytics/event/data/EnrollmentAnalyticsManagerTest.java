@@ -59,6 +59,7 @@ import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
+import org.hisp.dhis.common.RepeatableStageParams;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
@@ -70,6 +71,7 @@ import org.hisp.dhis.relationship.RelationshipConstraint;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.system.grid.ListGrid;
+import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -536,6 +538,65 @@ class EnrollmentAnalyticsManagerTest extends
             is( "(select \"" + dataElementA.getUid()
                 + "\" from analytics_event_" + programA.getUid() + " where analytics_event_" + programA.getUid()
                 + ".pi = ax.pi and \"" + dataElementA.getUid() + "\" is not null and ps = '" + programStage.getUid()
+                + "' order by executiondate desc limit 1 )" ) );
+    }
+
+    @Test
+    void verifyGetColumnOfTypeCoordinateAndWithProgramStagesAndParamsWithReferenceTypeValue()
+    {
+        // Given
+        DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
+
+        QueryItem item = new QueryItem( dio );
+        item.setValueType( ValueType.COORDINATE );
+        item.setProgramStage( programStageWithRepeatableParams );
+        item.setProgram( programB );
+        RepeatableStageParams repeatableStageParams = new RepeatableStageParams();
+
+        repeatableStageParams.setStartIndex( 0 );
+        repeatableStageParams.setCount( 100 );
+        repeatableStageParams.setStartDate( DateUtils.parseDate( "2022-01-01" ) );
+        repeatableStageParams.setEndDate( DateUtils.parseDate( "2022-01-31" ) );
+        item.setRepeatableStageParams( repeatableStageParams );
+        // When
+        String columnSql = subject.getColumn( item );
+
+        String expected = "(select json_agg(t1) from (select \\\"fWIAEtYVEGk\\\", incidentdate, duedate, executiondate  from analytics_event_prabcdefghB where analytics_event_prabcdefghB.pi = ax.pi and \\\"fWIAEtYVEGk\\\" is not null and ps = 'pgabcdefghC'  and executiondate >= '2022-01-01'  and executiondate <= '2022-01-31' order by executiondate desc LIMIT 100 ) as t1)";
+        // Then
+        assertThat( columnSql,
+            is( "(select json_agg(t1) from (select \"" + dataElementA.getUid()
+                + "\", incidentdate, duedate, executiondate  from analytics_event_" + programB.getUid()
+                + " where analytics_event_" + programB.getUid()
+                + ".pi = ax.pi and \"" + dataElementA.getUid() + "\" is not null and ps = '"
+                + programStageWithRepeatableParams.getUid()
+                + "' and executiondate >= '2022-01-01'  and executiondate <= '2022-01-31' order by executiondate desc LIMIT 100 ) as t1)" ) );
+    }
+
+    @Test
+    void verifyGetColumnOfTypeCoordinateAndWithProgramStagesAndParamsWithNumberTypeValue()
+    {
+        // Given
+        DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
+
+        QueryItem item = new QueryItem( dio );
+        item.setValueType( ValueType.COORDINATE );
+        item.setProgramStage( programStageWithRepeatableParams );
+        item.setProgram( programB );
+        RepeatableStageParams repeatableStageParams = new RepeatableStageParams();
+
+        repeatableStageParams.setStartIndex( 0 );
+        repeatableStageParams.setCount( 1 );
+        item.setRepeatableStageParams( repeatableStageParams );
+        // When
+        String columnSql = subject.getColumn( item );
+
+        String expected = "(select json_agg(t1) from (select \\\"fWIAEtYVEGk\\\", incidentdate, duedate, executiondate  from analytics_event_prabcdefghB where analytics_event_prabcdefghB.pi = ax.pi and \\\"fWIAEtYVEGk\\\" is not null and ps = 'pgabcdefghC'  and executiondate >= '2022-01-01'  and executiondate <= '2022-01-31' order by executiondate desc LIMIT 100 ) as t1)";
+        // Then
+        assertThat( columnSql,
+            is( "(select \"" + dataElementA.getUid()
+                + "\" from analytics_event_" + programB.getUid() + " where analytics_event_" + programB.getUid()
+                + ".pi = ax.pi and \"" + dataElementA.getUid() + "\" is not null and ps = '"
+                + programStageWithRepeatableParams.getUid()
                 + "' order by executiondate desc limit 1 )" ) );
     }
 
