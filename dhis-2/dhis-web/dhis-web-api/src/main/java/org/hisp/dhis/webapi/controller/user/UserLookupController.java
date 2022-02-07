@@ -85,6 +85,8 @@ public class UserLookupController
     {
         UserQueryParams params = new UserQueryParams()
             .setQuery( query )
+            .setDisabled( false )
+            .setUserOrgUnits( true )
             .setMax( 25 );
 
         List<UserLookup> users = userService.getUsers( params ).stream()
@@ -107,6 +109,8 @@ public class UserLookupController
         UserQueryParams params = new UserQueryParams()
             .setQuery( query )
             .setUserGroups( Sets.newHashSet( feedbackRecipients ) )
+            .setDisabled( false )
+            .setUserOrgUnits( true )
             .setMax( 25 );
 
         List<UserLookup> users = userService.getUsers( params ).stream()
