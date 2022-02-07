@@ -551,6 +551,43 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
+    void eventValidationSucceedsWhenEventAOCAndEventCOsAreSetAndProgramHasDefaultCC()
+    {
+        OrganisationUnit orgUnit = setupOrgUnit();
+        Program program = setupProgram( orgUnit );
+
+        CategoryCombo defaultCC = defaultCategoryCombo();
+        program.setCategoryCombo( defaultCC );
+        CategoryOptionCombo defaultAOC = firstCategoryOptionCombo( defaultCC );
+
+        CategoryOption defaultCO = defaultCC.getCategoryOptions().get( 0 );
+        program.setCategoryCombo( defaultCC );
+        when( preheat.getCategoryOption( defaultCO.getUid() ) ).thenReturn( defaultCO );
+
+        when( categoryService.getCategoryOptionCombo( defaultCC, Sets.newHashSet( defaultCO ) ) )
+            .thenReturn( defaultAOC );
+        when( preheat.getIdentifiers() ).thenReturn( TrackerIdentifierParams.builder()
+            .dataElementIdScheme( TrackerIdentifier.UID ).build() );
+
+        Event event = eventBuilder()
+            .attributeOptionCombo( defaultAOC.getUid() )
+            .attributeCategoryOptions( defaultCO.getUid() )
+            .build();
+
+        hook.validateEvent( reporter, event );
+
+        assertFalse( reporter.hasErrors() );
+        assertEquals( defaultAOC,
+            reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ),
+            "AOC id should be cached" );
+        String cacheKey = defaultCO.getUid() + program.getCategoryCombo().getUid();
+        assertTrue( reporter.getValidationContext().getCachedEventAOCProgramCC()
+            .containsKey( cacheKey ), "AOC id should be cached" );
+        assertEquals( defaultAOC.getUid(), reporter.getValidationContext().getCachedEventAOCProgramCC()
+            .get( cacheKey ), "AOC id should be cached" );
+    }
+
+    @Test
     void eventValidationSucceedsWhenEventAOCAndEventCOsAreSetAndBothFound()
     {
         OrganisationUnit orgUnit = setupOrgUnit();
