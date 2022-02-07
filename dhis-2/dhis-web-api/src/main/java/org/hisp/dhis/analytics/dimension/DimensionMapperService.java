@@ -45,17 +45,23 @@ public class DimensionMapperService
 
     public Collection<DimensionResponse> toDimensionResponse( Collection<BaseIdentifiableObject> dimensions )
     {
+        return toDimensionResponse( dimensions, null );
+    }
+
+    public Collection<DimensionResponse> toDimensionResponse( Collection<BaseIdentifiableObject> dimensions,
+        String prefix )
+    {
         return dimensions.stream()
-            .map( this::toDimensionResponse )
+            .map( bio -> toDimensionResponse( bio, prefix ) )
             .collect( Collectors.toList() );
     }
 
-    private DimensionResponse toDimensionResponse( BaseIdentifiableObject dimension )
+    private DimensionResponse toDimensionResponse( BaseIdentifiableObject dimension, String prefix )
     {
         return mappers.stream()
             .filter( dimensionMapper -> dimensionMapper.supports( dimension ) )
             .findFirst()
-            .map( dimensionMapper -> dimensionMapper.map( dimension ) )
+            .map( dimensionMapper -> dimensionMapper.map( dimension, prefix ) )
             .orElseThrow( () -> new IllegalArgumentException(
                 "Unsupported dimension type: " + getRealClass( dimension ) ) );
     }

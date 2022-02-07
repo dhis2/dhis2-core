@@ -109,7 +109,7 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
 
     private final ImmutableMap<ProgramRuleVariableSourceType, Function<ProgramRuleVariable, RuleVariable>> VARIABLE_MAPPER = new ImmutableMap.Builder<ProgramRuleVariableSourceType, Function<ProgramRuleVariable, RuleVariable>>()
         .put( ProgramRuleVariableSourceType.CALCULATED_VALUE,
-            prv -> RuleVariableCalculatedValue.create( prv.getName(), "", RuleValueType.TEXT ) )
+            prv -> RuleVariableCalculatedValue.create( prv.getName(), prv.getUid(), toMappedValueType( prv ) ) )
         .put( ProgramRuleVariableSourceType.TEI_ATTRIBUTE,
             prv -> RuleVariableAttribute.create( prv.getName(), prv.getAttribute().getUid(),
                 toMappedValueType( prv ) ) )
@@ -150,7 +150,7 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
         } )
         .put( ProgramRuleVariableSourceType.CALCULATED_VALUE, prv -> DataItem.builder()
             .value( ObjectUtils.firstNonNull( prv.getDisplayName(), prv.getName() ) )
-            .valueType( ItemValueType.TEXT )
+            .valueType( getItemValueType( prv.getValueType() ) )
             .build() )
         .put( ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT, this::getDisplayName )
         .put( ProgramRuleVariableSourceType.DATAELEMENT_PREVIOUS_EVENT, this::getDisplayName )

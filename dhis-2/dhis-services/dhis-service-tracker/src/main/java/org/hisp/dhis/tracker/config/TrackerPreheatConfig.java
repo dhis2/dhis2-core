@@ -37,7 +37,7 @@ import org.springframework.context.annotation.Configuration;
 
 import com.google.common.collect.ImmutableList;
 
-@Configuration
+@Configuration( "trackerPreheatConfig" )
 public class TrackerPreheatConfig
 {
     private final List<Class<? extends PreheatSupplier>> preheatOrder = ImmutableList.of(

@@ -34,6 +34,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
+ * Field transformer that renames property keys.
+ *
+ * Usage: "?fields=id::(i),name::rename(n)"
+ *
  * @author Morten Olav Hansen
  */
 public class RenameFieldTransformer implements FieldTransformer

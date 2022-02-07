@@ -32,8 +32,8 @@ import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -42,8 +42,8 @@ import org.hisp.dhis.analytics.dimensions.AnalyticsDimensionsPagingWrapper;
 import org.hisp.dhis.common.DimensionsCriteria;
 import org.hisp.dhis.fieldfiltering.FieldFilterParams;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -52,20 +52,19 @@ public class DimensionFilteringAndPagingServiceTest
 
     private final FieldFilterService fieldFilterService = mock( FieldFilterService.class );
 
-    private final DimensionMapperService dimensionMapperService = mock( DimensionMapperService.class );
-
     private DimensionFilteringAndPagingService service;
 
-    @Before
+    private Collection<DimensionResponse> dimensionResponses;
+
+    @BeforeEach
     public void setup()
     {
-        service = new DimensionFilteringAndPagingService( fieldFilterService, dimensionMapperService );
+        service = new DimensionFilteringAndPagingService( fieldFilterService );
 
-        List<DimensionResponse> dimensionResponses = IntStream.rangeClosed( 1, 10 )
+        dimensionResponses = IntStream.rangeClosed( 1, 10 )
             .mapToObj( this::buildDimensionResponse )
             .collect( Collectors.toList() );
 
-        when( dimensionMapperService.toDimensionResponse( any() ) ).thenReturn( dimensionResponses );
         when( fieldFilterService.toObjectNodes( any() ) )
             .thenAnswer( invocationOnMock -> {
                 FieldFilterParams<DimensionResponse> argument = invocationOnMock.getArgument( 0 );
@@ -80,7 +79,7 @@ public class DimensionFilteringAndPagingServiceTest
         criteria.setPageSize( 5 );
 
         AnalyticsDimensionsPagingWrapper<ObjectNode> pagingWrapper = service.pageAndFilter(
-            Collections.emptyList(),
+            dimensionResponses,
             criteria,
             Collections.singletonList( "*" ) );
 
@@ -94,7 +93,7 @@ public class DimensionFilteringAndPagingServiceTest
         criteria.setFilter( Set.of( "name:eq:test" ) );
 
         AnalyticsDimensionsPagingWrapper<ObjectNode> pagingWrapper = service.pageAndFilter(
-            Collections.emptyList(),
+            dimensionResponses,
             criteria,
             Collections.singletonList( "*" ) );
 

@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.trackedentity;
 
-import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
 import java.util.List;
@@ -42,7 +41,7 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeTableManager;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 

@@ -27,43 +27,35 @@
  */
 package org.hisp.dhis.analytics.dimension.mappers;
 
-import java.util.Set;
+import static org.hisp.dhis.analytics.dimension.DimensionMapperTestSupport.asserter;
 
-import lombok.Getter;
-
-import org.hisp.dhis.analytics.dimension.BaseDimensionMapper;
+import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.analytics.dimension.DimensionResponse;
-import org.hisp.dhis.common.BaseDimensionalItemObject;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
+import org.hisp.dhis.common.DimensionItemType;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.program.ProgramIndicator;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.springframework.stereotype.Service;
+import org.junit.jupiter.api.Test;
 
-@Service
-public class BaseDimensionalItemObjectMapper extends BaseDimensionMapper
+import com.google.common.collect.ImmutableList;
+
+class DataElementMapperTest
 {
 
-    @Getter
-    private final Set<Class<? extends BaseIdentifiableObject>> supportedClasses = Set.of(
-        ProgramIndicator.class,
-        DataElement.class,
-        TrackedEntityAttribute.class );
+    private static final DimensionItemType DIMENSION_ITEM_TYPE = DimensionItemType.DATA_ELEMENT;
 
-    @Override
-    public DimensionResponse map( BaseIdentifiableObject dimension, String prefix )
+    @Test
+    void testDataElementObjectMapperId()
     {
-        BaseDimensionalItemObject baseDimensionalItemObject = (BaseDimensionalItemObject) dimension;
-        DimensionResponse responseWithDimensionType = super.map( dimension, prefix )
-            .withDimensionType( baseDimensionalItemObject.getDimensionItemType().name() );
-        if ( dimension instanceof ValueTypedDimensionalItemObject )
-        {
-            ValueTypedDimensionalItemObject valueTypedDimensionalItemObject = (ValueTypedDimensionalItemObject) dimension;
-            return responseWithDimensionType
-                .withValueType( valueTypedDimensionalItemObject.getValueType().name() );
-        }
-        return responseWithDimensionType;
+        asserter( new DataElementMapper(),
+            DataElement::new,
+            ImmutableList.of(
+                b -> b.setDimensionItemType( DIMENSION_ITEM_TYPE ),
+                b -> b.setValueType( ValueType.TEXT ),
+                b -> b.setUid( "DE_ID" ) ),
+            ImmutableList.of(
+                Pair.of( DimensionResponse::getDimensionType, DIMENSION_ITEM_TYPE ),
+                Pair.of( DimensionResponse::getId, "PROGRAM_STAGE_ID.DE_ID" ) ),
+            "PROGRAM_STAGE_ID" );
     }
 
 }
