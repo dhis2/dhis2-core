@@ -33,6 +33,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
+ * Field transformer that returns the size of the value of a given key.
+ *
+ * Usage: "?fields=id,name::size,dataElementGroups::size"
+ *
  * @author Morten Olav Hansen
  */
 public class SizeFieldTransformer implements FieldTransformer
