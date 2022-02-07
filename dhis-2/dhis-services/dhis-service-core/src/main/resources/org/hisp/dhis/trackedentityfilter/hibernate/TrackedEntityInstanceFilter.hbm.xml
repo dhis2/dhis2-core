@@ -40,6 +40,8 @@
     
     <property name="eventFilters" type="jlbEventFilter" />
 
+    <property name="attributeValueFilters" type="jlbAttributeValueFilter" />
+
     <property name="translations" type="jblTranslations"/>
 
     <!-- Sharing -->
