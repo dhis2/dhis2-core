@@ -33,30 +33,36 @@ import static org.hisp.dhis.commons.collection.CollectionUtils.mapToSet;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.fieldfiltering.FieldFilterParams;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
-import org.hisp.dhis.fieldfiltering.FieldPreset;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.schema.descriptors.CategoryComboSchemaDescriptor;
-import org.hisp.dhis.schema.descriptors.CategoryOptionSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.CategorySchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.DataElementSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.DataSetSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.IndicatorSchemaDescriptor;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Lars Helge Overland
@@ -66,40 +72,85 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 public class DefaultDataSetMetadataExportService
     implements DataSetMetadataExportService
 {
+    private static final String FIELD_CATEGORY_OPTIONS = "categoryOptions";
+
+    private static final String FIELD_ID = "id";
+
+    private static final String FIELD_PRESET_SIMPLE = ":simple";
+
     private final FieldFilterService fieldFilterService;
 
     private final IdentifiableObjectManager idObjectManager;
 
+    private final CategoryService categoryService;
+
+    private final ExpressionService expressionService;
+
+    private final CurrentUserService currentUserService;
+
+    // TODO add category options within categories with data write sharing
+    // TODO string array references between entities
+    // TODO only include attribute category options with data write access
+    // TODO explode indicator expressions
+    // TODO add lock exceptions
+    // TODO add validation caching (ETag and If-None-Match).
+
     @Override
     public ObjectNode getDataSetMetadata()
     {
+        User user = currentUserService.getCurrentUser();
         List<DataSet> dataSets = idObjectManager.getDataWriteAll( DataSet.class );
         Set<DataElement> dataElements = flatMapToSet( dataSets, DataSet::getDataElements );
         Set<Indicator> indicators = flatMapToSet( dataSets, DataSet::getIndicators );
-        Set<CategoryCombo> categoryCombos = flatMapToSet( dataElements, DataElement::getCategoryCombos );
-        categoryCombos.addAll( mapToSet( dataSets, DataSet::getCategoryCombo ) );
-        Set<Category> categories = flatMapToSet( categoryCombos, CategoryCombo::getCategories );
-        Set<CategoryOption> categoryOptions = flatMapToSet( categories, Category::getCategoryOptions );
+        Set<CategoryCombo> dataElementCategoryCombos = flatMapToSet( dataElements, DataElement::getCategoryCombos );
+        Set<CategoryCombo> dataSetCategoryCombos = mapToSet( dataSets, DataSet::getCategoryCombo );
+        Set<Category> dataElementCategories = flatMapToSet( dataElementCategoryCombos, CategoryCombo::getCategories );
+        Set<Category> dataSetCategories = flatMapToSet( dataSetCategoryCombos, CategoryCombo::getCategories );
 
-        // TODO string array references between entities
-        // TODO only include attribute category options with data write access
+        expressionService.substituteIndicatorExpressions( indicators );
 
         ObjectNode rootNode = fieldFilterService.createObjectNode();
 
         rootNode.putArray( DataSetSchemaDescriptor.PLURAL )
-            .addAll( asObjectNodes( dataSets, DataSet.class ) );
+            .addAll( asObjectNodes( dataSets, Set.of(), DataSet.class ) );
         rootNode.putArray( DataElementSchemaDescriptor.PLURAL )
-            .addAll( asObjectNodes( dataElements, DataElement.class ) );
+            .addAll( asObjectNodes( dataElements, Set.of(), DataElement.class ) );
         rootNode.putArray( IndicatorSchemaDescriptor.PLURAL )
-            .addAll( asObjectNodes( indicators, Indicator.class ) );
+            .addAll( asObjectNodes( indicators, Set.of(), Indicator.class ) );
         rootNode.putArray( CategoryComboSchemaDescriptor.PLURAL )
-            .addAll( asObjectNodes( categoryCombos, CategoryCombo.class ) );
+            .addAll( asObjectNodes( dataElementCategoryCombos, Set.of( "categories" ), CategoryCombo.class ) )
+            .addAll( asObjectNodes( dataSetCategoryCombos, Set.of( "categories" ), CategoryCombo.class ) );
         rootNode.putArray( CategorySchemaDescriptor.PLURAL )
-            .addAll( asObjectNodes( categories, Category.class ) );
-        rootNode.putArray( CategoryOptionSchemaDescriptor.PLURAL )
-            .addAll( asObjectNodes( categoryOptions, CategoryOption.class ) );
+            .addAll( asObjectNodes( dataElementCategories, Set.of(), Category.class ) )
+            .addAll( getDataSetCategories( dataSetCategories, user ) );
 
         return rootNode;
+    }
+
+    /**
+     * Returns a list of object nodes representing the given categories. Each
+     * category node has an array of category option for which the current user
+     * has data write sharing access for.
+     *
+     * @param categories the list of {@link Category}.
+     * @param user the current {@link User}.
+     * @return a list of {@link ObjectNode}.
+     */
+    private List<ObjectNode> getDataSetCategories( Collection<Category> categories, User user )
+    {
+        List<ObjectNode> categoryNodes = asObjectNodes( categories, Set.of(), Category.class );
+
+        Map<String, ObjectNode> objectNodeMap = getIdObjectNodeMap( categoryNodes );
+
+        for ( Category category : categories )
+        {
+            List<CategoryOption> categoryOptions = categoryService.getDataWriteCategoryOptions( category, user );
+            ObjectNode categoryNode = objectNodeMap.get( category.getUid() );
+            categoryNode.putArray( FIELD_CATEGORY_OPTIONS )
+                .addAll( asObjectNodes( categoryOptions, Set.of(), CategoryOption.class ) );
+        }
+
+        return categoryNodes;
     }
 
     /**
@@ -110,14 +161,30 @@ public class DefaultDataSetMetadataExportService
      * @return an {@link ObjectNode}.
      */
     private <T extends IdentifiableObject> List<ObjectNode> asObjectNodes(
-        Collection<T> objects, Class<T> type )
+        Collection<T> objects, Set<String> extraFilters, Class<T> type )
     {
+        Set<String> filters = ImmutableSet.<String> builder()
+            .add( FIELD_PRESET_SIMPLE ).addAll( extraFilters ).build();
+
         FieldFilterParams<T> fieldFilterParams = FieldFilterParams.<T> builder()
             .objects( new ArrayList<>( objects ) )
-            .filters( Set.of( ":" + FieldPreset.SIMPLE ) )
+            .filters( filters )
             .skipSharing( true )
             .build();
 
         return fieldFilterService.toObjectNodes( fieldFilterParams );
+    }
+
+    /**
+     * Returns a mapping from identifier to {@link ObjectNode} for the given
+     * collection of object nodes.
+     *
+     * @param objectNodes the collection of object nodes.
+     * @return a mapping from identifier to {@link ObjectNode}.
+     */
+    private Map<String, ObjectNode> getIdObjectNodeMap( Collection<ObjectNode> objectNodes )
+    {
+        return objectNodes.stream().collect(
+            Collectors.toMap( n -> n.get( FIELD_ID ).asText(), Function.identity() ) );
     }
 }
