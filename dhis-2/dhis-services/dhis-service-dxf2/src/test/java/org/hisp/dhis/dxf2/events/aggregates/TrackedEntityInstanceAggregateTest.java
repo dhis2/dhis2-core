@@ -310,7 +310,7 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
     }
 
     @Test
-    void testIncludeDeletedIsPropagetedFromTeiToEnrollmentsAndEvents()
+    public void testIncludeDeletedIsPropagetedFromTeiToEnrollmentsAndEvents()
     {
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
