@@ -112,7 +112,8 @@ public class DefaultEventStore
 
         if ( programStages.isEmpty() )
         {
-            jdbcTemplate.query( withAclCheck( GET_EVENTS_SQL, ctx, ACL_FILTER_SQL_NO_PROGRAM_STAGE ),
+            jdbcTemplate.query( withIncludeDeleted(
+                withAclCheck( GET_EVENTS_SQL, ctx, ACL_FILTER_SQL_NO_PROGRAM_STAGE ), ctx, "psi" ),
                 createIdsParam( enrollmentsId )
                     .addValue( "trackedEntityTypeIds", ctx.getTrackedEntityTypes() )
                     .addValue( "programStageIds", programStages )
@@ -121,7 +122,8 @@ public class DefaultEventStore
         }
         else
         {
-            jdbcTemplate.query( withAclCheck( GET_EVENTS_SQL, ctx, ACL_FILTER_SQL ),
+            jdbcTemplate.query( withIncludeDeleted(
+                withAclCheck( GET_EVENTS_SQL, ctx, ACL_FILTER_SQL ), ctx, "psi" ),
                 createIdsParam( enrollmentsId )
                     .addValue( "trackedEntityTypeIds", ctx.getTrackedEntityTypes() )
                     .addValue( "programStageIds", programStages )
