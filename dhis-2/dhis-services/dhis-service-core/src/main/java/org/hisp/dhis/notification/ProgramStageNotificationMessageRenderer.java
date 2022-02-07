@@ -93,7 +93,7 @@ public class ProgramStageNotificationMessageRenderer
     }
 
     @Override
-    public Map<String, String> resolveTrackedEntityAttributeValues( Set<String> attributeKeys,
+    protected Map<String, String> resolveTrackedEntityAttributeValues( Set<String> attributeKeys,
         ProgramStageInstance entity )
     {
         if ( attributeKeys.isEmpty() )
