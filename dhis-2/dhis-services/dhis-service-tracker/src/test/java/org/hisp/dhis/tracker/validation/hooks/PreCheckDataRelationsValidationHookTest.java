@@ -256,7 +256,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
-    void eventValidationSucceeds()
+    void eventValidationSucceedsWhenAOCAndCOsAreNotSetAndProgramHasDefaultCC()
     {
         // NOTE: this hook will not fail an event
         // for a program with non default category combo
@@ -420,6 +420,42 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1029 ) );
         assertNull( reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ),
             "AOC id should not be cached" );
+    }
+
+    @Test
+    void eventValidationSucceedsWhenAOCAndCOsAreNotSet()
+    {
+        // NOTE: this hook will not fail an event
+        // for a program with non default category combo
+        // with no attribute option combo
+        // and no attribute category options
+        // The event will only fail to import in the
+        // EventCategoryOptValidationHook
+        // non-default category combination => E1055
+        // this mechanism relies on this hook putting the defaultAOC in the
+        // cache
+        // for the other hook to read it
+
+        OrganisationUnit orgUnit = setupOrgUnit();
+        Program program = setupProgram( orgUnit );
+
+        CategoryCombo defaultCC = defaultCategoryCombo();
+        program.setCategoryCombo( defaultCC );
+        CategoryOptionCombo defaultAOC = firstCategoryOptionCombo( defaultCC );
+        when( preheat.getDefault( CategoryOptionCombo.class ) ).thenReturn( defaultAOC );
+
+        CategoryCombo cc = categoryCombo();
+        program.setCategoryCombo( cc );
+
+        Event event = eventBuilder()
+            .build();
+
+        hook.validateEvent( reporter, event );
+
+        assertFalse( reporter.hasErrors() );
+        assertEquals( defaultAOC,
+            reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ),
+            "AOC id should be cached" );
     }
 
     @Test
