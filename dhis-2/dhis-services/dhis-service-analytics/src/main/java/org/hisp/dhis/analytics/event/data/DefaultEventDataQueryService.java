@@ -43,6 +43,7 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionalItemIds;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
@@ -228,7 +229,8 @@ public class DefaultEventDataQueryService
         EventQueryParams eventQueryParams = builder.build();
 
         // partitioning can be used only when default period is specified
-        if ( hasNotDefaultPeriod( eventQueryParams ) )
+        // empty period dimension means default period
+        if ( hasPeriodDimension( eventQueryParams ) && hasNotDefaultPeriod( eventQueryParams ) )
         {
             builder.withSkipPartitioning( true );
             eventQueryParams = builder.build();
@@ -237,13 +239,23 @@ public class DefaultEventDataQueryService
         return eventQueryParams;
     }
 
+    private boolean hasPeriodDimension( EventQueryParams eventQueryParams )
+    {
+        return Objects.nonNull( getPeriodDimension( eventQueryParams ) );
+    }
+
     private boolean hasNotDefaultPeriod( EventQueryParams eventQueryParams )
     {
-        return Optional.ofNullable( eventQueryParams.getDimension( PERIOD_DIM_ID ) )
+        return Optional.ofNullable( getPeriodDimension( eventQueryParams ) )
             .map( DimensionalObject::getItems )
             .orElse( Collections.emptyList() )
             .stream()
             .noneMatch( this::isDefaultPeriod );
+    }
+
+    private DimensionalObject getPeriodDimension( EventQueryParams eventQueryParams )
+    {
+        return eventQueryParams.getDimension( PERIOD_DIM_ID );
     }
 
     private boolean isDefaultPeriod( DimensionalItemObject dimensionalItemObject )
