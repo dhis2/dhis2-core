@@ -40,7 +40,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.dataapproval.DataApprovalService;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
@@ -128,9 +127,6 @@ public class GetDataValuesForDataSetAction
     @Autowired
     private InputUtils inputUtils;
 
-    @Autowired
-    private DataApprovalService dataApprovalService;
-
     // -------------------------------------------------------------------------
     // Input
     // -------------------------------------------------------------------------
@@ -204,7 +200,7 @@ public class GetDataValuesForDataSetAction
 
     public String getLocked()
     {
-        return locked.getErrorMessage();
+        return locked.name();
     }
 
     private boolean complete = false;
@@ -342,7 +338,6 @@ public class GetDataValuesForDataSetAction
 
             locked = dataSetService.getLockStatus( currentUser, dataSet, period, organisationUnit,
                 attributeOptionCombo, null );
-
         }
         else
         {
@@ -352,16 +347,12 @@ public class GetDataValuesForDataSetAction
 
             for ( OrganisationUnit ou : children )
             {
-
                 if ( ou.getDataSets().contains( dataSet ) )
                 {
-                    LockStatus lockedInterim;
-                    lockedInterim = dataSetService.getLockStatus( currentUser, dataSet, period, ou,
-                            attributeOptionCombo, null );
+                    locked = dataSetService.getLockStatus( currentUser, dataSet, period, ou,
+                        attributeOptionCombo, null );
 
-                    locked = lockedInterim != LockStatus.OPEN ? lockedInterim : locked;
-
-                    if ( locked == LockStatus.LOCKED )
+                    if ( locked != LockStatus.OPEN )
                     {
                         break;
                     }

@@ -27,21 +27,9 @@
  */
 package org.hisp.dhis.dataset;
 
-public enum LockStatus 
+public enum LockStatus
 {
-    LOCKED("locked"),
-    APPROVED("approved"),
-    OPEN(null);
-
-    private String errorMessage;
-
-    LockStatus( String errorMessage )
-    {
-        this.errorMessage = errorMessage;
-    }
-
-    public String getErrorMessage()
-    {
-        return errorMessage;
-    }
+    LOCKED,
+    APPROVED,
+    OPEN;
 }
