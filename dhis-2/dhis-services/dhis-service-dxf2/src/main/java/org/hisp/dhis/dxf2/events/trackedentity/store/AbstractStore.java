@@ -146,6 +146,22 @@ public abstract class AbstractStore
 
     /**
      *
+     * @param sql an sql statement to which we want to "attach" the include
+     *        delete condition
+     * @param ctx the {@see AAggregateContext} object containing information
+     *        about the inclusion of deleted records
+     * @param prefix the prefix of the table to use in the query to check the
+     *        deleted column
+     *
+     * @return a merge between the sql and the aclSql
+     */
+    protected String withIncludeDeleted( String sql, AggregateContext ctx, String prefix )
+    {
+        return ctx.getQueryParams().isIncludeDeleted() ? sql : sql + " AND " + prefix + ".deleted=false";
+    }
+
+    /**
+     *
      * @param sql an sql statement to which we want to "attach" the ACL sharing
      *        condition
      * @param ctx the {@see AAggregateContext} object containing information
