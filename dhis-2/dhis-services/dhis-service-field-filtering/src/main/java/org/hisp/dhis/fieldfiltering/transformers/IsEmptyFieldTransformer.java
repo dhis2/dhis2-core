@@ -33,6 +33,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
+ * Field transformer that check if an array is empty or not.
+ *
+ * Usage: "?fields=id,name,dataElementGroups::isEmpty"
+ *
  * @author Morten Olav Hansen
  */
 public class IsEmptyFieldTransformer implements FieldTransformer
@@ -51,6 +55,7 @@ public class IsEmptyFieldTransformer implements FieldTransformer
 
         if ( value.isArray() )
         {
+            // overwrite array node with true/false depending on empty status
             ((ObjectNode) parent).put( fieldName, value.isEmpty() );
         }
 

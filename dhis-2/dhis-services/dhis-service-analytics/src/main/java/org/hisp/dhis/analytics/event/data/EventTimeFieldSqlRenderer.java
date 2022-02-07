@@ -95,20 +95,9 @@ class EventTimeFieldSqlRenderer extends TimeFieldSqlRenderer
     }
 
     @Override
-    protected String getSqlConditionHasStartEndDate( EventQueryParams params )
+    protected String getColumnName( EventQueryParams params )
     {
-        String timeCol = getTimeCol( params.getOutputType(), getTimeField( params ) );
-
-        return new StringBuilder()
-            .append( timeCol )
-            .append( " >= '" )
-            .append( getMediumDateString( params.getStartDate() ) )
-            .append( "' and " )
-            .append( timeCol )
-            .append( " <= '" )
-            .append( getMediumDateString( params.getEndDate() ) )
-            .append( "' " )
-            .toString();
+        return getTimeCol( params.getOutputType(), getTimeField( params ) );
     }
 
     @Override

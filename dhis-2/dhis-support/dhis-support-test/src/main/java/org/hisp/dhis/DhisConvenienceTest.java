@@ -1600,6 +1600,21 @@ public abstract class DhisConvenienceTest
         return programRuleVariable;
     }
 
+    public static ProgramRuleVariable createProgramRuleVariableWithSourceType( char uniqueCharacter,
+        Program parentProgram,
+        ProgramRuleVariableSourceType sourceType, ValueType valueType )
+    {
+        ProgramRuleVariable programRuleVariable = new ProgramRuleVariable();
+        programRuleVariable.setAutoFields();
+
+        programRuleVariable.setName( PROGRAM_RULE_VARIABLE + uniqueCharacter );
+        programRuleVariable.setProgram( parentProgram );
+        programRuleVariable.setSourceType( sourceType );
+        programRuleVariable.setValueType( valueType );
+
+        return programRuleVariable;
+    }
+
     public static ProgramRuleVariable createProgramRuleVariableWithDataElement( char uniqueCharacter,
         Program parentProgram, DataElement dataElement )
     {

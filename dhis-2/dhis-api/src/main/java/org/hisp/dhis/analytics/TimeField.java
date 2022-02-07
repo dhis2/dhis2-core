@@ -25,45 +25,57 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.dimension.mappers;
+package org.hisp.dhis.analytics;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import lombok.Getter;
 
-import org.hisp.dhis.analytics.dimension.BaseDimensionMapper;
-import org.hisp.dhis.analytics.dimension.DimensionResponse;
-import org.hisp.dhis.common.BaseDimensionalItemObject;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.program.ProgramIndicator;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.springframework.stereotype.Service;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Sets;
 
-@Service
-public class BaseDimensionalItemObjectMapper extends BaseDimensionMapper
+/**
+ * enum to map database column names to "business" names
+ */
+public enum TimeField
 {
+    EVENT_DATE( "executiondate" ),
+    ENROLLMENT_DATE( "enrollmentdate" ),
+    INCIDENT_DATE( "incidentdate" ),
+    // Not a typo, different naming convention between FE and database
+    SCHEDULED_DATE( "duedate" ),
+    COMPLETED_DATE( "completeddate" ),
+    CREATED( "created" ),
+    LAST_UPDATED( "lastupdated" );
 
     @Getter
-    private final Set<Class<? extends BaseIdentifiableObject>> supportedClasses = Set.of(
-        ProgramIndicator.class,
-        DataElement.class,
-        TrackedEntityAttribute.class );
+    private String field;
 
-    @Override
-    public DimensionResponse map( BaseIdentifiableObject dimension, String prefix )
+    public static final Collection<String> DEFAULT_TIME_FIELDS = ImmutableList.of( EVENT_DATE.name(),
+        LAST_UPDATED.name(), ENROLLMENT_DATE.name() );
+
+    private static final Set<String> FIELD_NAMES = Sets.newHashSet( TimeField.values() )
+        .stream().map( TimeField::name )
+        .collect( Collectors.toSet() );
+
+    TimeField( String field )
     {
-        BaseDimensionalItemObject baseDimensionalItemObject = (BaseDimensionalItemObject) dimension;
-        DimensionResponse responseWithDimensionType = super.map( dimension, prefix )
-            .withDimensionType( baseDimensionalItemObject.getDimensionItemType().name() );
-        if ( dimension instanceof ValueTypedDimensionalItemObject )
-        {
-            ValueTypedDimensionalItemObject valueTypedDimensionalItemObject = (ValueTypedDimensionalItemObject) dimension;
-            return responseWithDimensionType
-                .withValueType( valueTypedDimensionalItemObject.getValueType().name() );
-        }
-        return responseWithDimensionType;
+        this.field = field;
     }
 
+    public static Optional<TimeField> of( String timeField )
+    {
+        return Arrays.stream( values() )
+            .filter( tf -> tf.name().equals( timeField ) )
+            .findFirst();
+    }
+
+    public static boolean fieldIsValid( String field )
+    {
+        return field != null && FIELD_NAMES.contains( field );
+    }
 }

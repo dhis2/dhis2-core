@@ -25,57 +25,53 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.fieldfiltering;
+package org.hisp.dhis.common;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Collections;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Set;
 
-import lombok.Builder;
-import lombok.Data;
+import org.junit.jupiter.api.Test;
 
-import org.apache.commons.lang3.StringUtils;
-
-/**
- * @author Morten Olav Hansen
- */
-@Data
-@Builder
-public class FieldFilterParams<T>
+public class EventDataQueryRequestTest
 {
-    /**
-     * Objects to apply filters on.
-     */
-    private final List<T> objects;
 
-    @Builder.Default
-    private final Set<String> filters = Collections.singleton( "*" );
-
-    /**
-     * Do not include sharing properties (user, sharing, publicAccess, etc).
-     */
-    private final boolean skipSharing;
-
-    public static <O> FieldFilterParams<O> of( List<O> objects, List<String> filters )
+    @Test
+    void testDimensionRefactoringOnlyWhenQuery()
     {
-        return FieldFilterParams
-            .<O> builder()
-            .objects( objects )
-            .filters( Collections.singleton( StringUtils.join( filters, "," ) ) )
+        EventsAnalyticsQueryCriteria criteria = new EventsAnalyticsQueryCriteria();
+        criteria.setIncidentDate( "YESTERDAY" );
+        criteria.setDimension( Set.of( "pe:TODAY" ) );
+
+        EventDataQueryRequest eventDataQueryRequest = EventDataQueryRequest.builder()
+            .fromCriteria( criteria )
             .build();
-    }
 
-    public static <O> FieldFilterParams<O> of( O object, List<String> filters )
-    {
-        return FieldFilterParams
-            .<O> builder()
-            .objects( Collections.singletonList( object ) )
-            .filters( Collections.singleton( StringUtils.join( filters, "," ) ) )
+        assertEquals( eventDataQueryRequest.getDimension(), Set.of( "pe:TODAY" ) );
+
+        eventDataQueryRequest = EventDataQueryRequest.builder()
+            .fromCriteria( (EventsAnalyticsQueryCriteria) criteria.withQueryRequestType() )
             .build();
-    }
 
-    public FieldFilterParams<T> copyOf()
-    {
-        return new FieldFilterParams<>( objects, filters, skipSharing );
+        assertEquals( eventDataQueryRequest.getDimension(), Set.of( "pe:TODAY;YESTERDAY:INCIDENT_DATE" ) );
+
+        criteria = new EventsAnalyticsQueryCriteria();
+        criteria.setIncidentDate( "TODAY" );
+        criteria.setDimension( new HashSet<>() );
+
+        eventDataQueryRequest = EventDataQueryRequest.builder()
+            .fromCriteria( criteria )
+            .build();
+
+        assertEquals( eventDataQueryRequest.getDimension(), Collections.emptySet() );
+
+        eventDataQueryRequest = EventDataQueryRequest.builder()
+            .fromCriteria( (EventsAnalyticsQueryCriteria) criteria.withQueryRequestType() )
+            .build();
+
+        assertEquals( eventDataQueryRequest.getDimension(), Set.of( "pe:TODAY:INCIDENT_DATE" ) );
+
     }
 }

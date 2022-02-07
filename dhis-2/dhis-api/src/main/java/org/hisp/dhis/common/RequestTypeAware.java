@@ -25,38 +25,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.fieldfiltering;
+package org.hisp.dhis.common;
 
-import org.springframework.core.Ordered;
+import static org.hisp.dhis.common.RequestTypeAware.RequestType.QUERY;
 
-import com.fasterxml.jackson.databind.JsonNode;
-
-/**
- * Interface for FieldTransformers, used to modify the Jackson Json tree
- * dynamically (for example renaming of keys).
- *
- * @author Morten Olav Hansen
- */
-@FunctionalInterface
-public interface FieldTransformer extends Ordered
+public class RequestTypeAware
 {
-    JsonNode apply( String path, JsonNode value, JsonNode parent );
+    private RequestType requestType = RequestType.OTHER;
 
-    default String getFieldName( String path )
+    public RequestTypeAware withQueryRequestType()
     {
-        int idx = path.lastIndexOf( '.' );
-        String key = path;
-
-        if ( idx > -1 )
-        {
-            key = path.substring( idx + 1 );
-        }
-
-        return key;
+        requestType = QUERY;
+        return this;
     }
 
-    default int getOrder()
+    public boolean isRequestTypeQuery()
     {
-        return Ordered.HIGHEST_PRECEDENCE;
+        return QUERY == requestType;
+    }
+
+    enum RequestType
+    {
+        QUERY,
+        OTHER;
     }
 }

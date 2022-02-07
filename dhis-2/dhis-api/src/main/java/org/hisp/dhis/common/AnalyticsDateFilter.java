@@ -25,44 +25,54 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.dimension;
+package org.hisp.dhis.common;
 
-import static org.hisp.dhis.hibernate.HibernateProxyUtils.getRealClass;
+import java.util.Arrays;
+import java.util.Optional;
+import java.util.function.Function;
 
-import java.util.Collection;
-import java.util.stream.Collectors;
-
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.springframework.stereotype.Service;
+import org.hisp.dhis.analytics.TimeField;
 
-@Service
+/**
+ * Enum to map time fields into functions that can extract respective date from
+ * controller parameters
+ */
+@Getter
 @RequiredArgsConstructor
-public class DimensionMapperService
+public enum AnalyticsDateFilter
 {
-    private final Collection<DimensionMapper> mappers;
+    EVENT_DATE( TimeField.EVENT_DATE, EventsAnalyticsQueryCriteria::getEventDate, null ),
+    ENROLLMENT_DATE( TimeField.ENROLLMENT_DATE, EventsAnalyticsQueryCriteria::getEnrollmentDate,
+        EnrollmentAnalyticsQueryCriteria::getEnrollmentDate ),
+    SCHEDULED_DATE( TimeField.SCHEDULED_DATE, EventsAnalyticsQueryCriteria::getScheduledDate, null ),
+    INCIDENT_DATE( TimeField.INCIDENT_DATE, EventsAnalyticsQueryCriteria::getIncidentDate,
+        EnrollmentAnalyticsQueryCriteria::getIncidentDate ),
+    LAST_UPDATED( TimeField.LAST_UPDATED, EventsAnalyticsQueryCriteria::getLastUpdated,
+        EnrollmentAnalyticsQueryCriteria::getLastUpdated );
 
-    public Collection<DimensionResponse> toDimensionResponse( Collection<BaseIdentifiableObject> dimensions )
+    private final TimeField timeField;
+
+    private final Function<EventsAnalyticsQueryCriteria, String> eventExtractor;
+
+    private final Function<EnrollmentAnalyticsQueryCriteria, String> enrollmentExtractor;
+
+    public static Optional<AnalyticsDateFilter> of( String dateField )
     {
-        return toDimensionResponse( dimensions, null );
+        return Arrays.stream( values() )
+            .filter( analyticsDateFilter -> analyticsDateFilter.name().equalsIgnoreCase( dateField ) )
+            .findFirst();
     }
 
-    public Collection<DimensionResponse> toDimensionResponse( Collection<BaseIdentifiableObject> dimensions,
-        String prefix )
+    public boolean appliesToEnrollments()
     {
-        return dimensions.stream()
-            .map( bio -> toDimensionResponse( bio, prefix ) )
-            .collect( Collectors.toList() );
+        return enrollmentExtractor != null;
     }
 
-    private DimensionResponse toDimensionResponse( BaseIdentifiableObject dimension, String prefix )
+    public boolean appliesToEvents()
     {
-        return mappers.stream()
-            .filter( dimensionMapper -> dimensionMapper.supports( dimension ) )
-            .findFirst()
-            .map( dimensionMapper -> dimensionMapper.map( dimension, prefix ) )
-            .orElseThrow( () -> new IllegalArgumentException(
-                "Unsupported dimension type: " + getRealClass( dimension ) ) );
+        return eventExtractor != null;
     }
 }
