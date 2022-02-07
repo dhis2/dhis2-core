@@ -169,13 +169,14 @@ class DataSetServiceTest extends DhisTest
         user.setFirstName( "John" );
         user.setSurname( "Doe" );
 
-        // Not needed when we have proper cascade all in User.hbm on userAuthorityGroups set
-//        Set<UserAuthorityGroup> userAuthorityGroups = user.getUserAuthorityGroups();
-//        for ( UserAuthorityGroup userAuthorityGroup : userAuthorityGroups )
-//        {
-//            userService.addUserAuthorityGroup( userAuthorityGroup );
-//        }
-
+        // Not needed when we have proper cascade all in User.hbm on
+        // userAuthorityGroups set
+        // Set<UserAuthorityGroup> userAuthorityGroups =
+        // user.getUserAuthorityGroups();
+        // for ( UserAuthorityGroup userAuthorityGroup : userAuthorityGroups )
+        // {
+        // userService.addUserAuthorityGroup( userAuthorityGroup );
+        // }
 
         userService.addUser( mockCurrentUserService.getCurrentUser() );
     }

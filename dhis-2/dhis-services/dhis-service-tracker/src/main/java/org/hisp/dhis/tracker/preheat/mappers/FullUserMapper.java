@@ -50,7 +50,7 @@ public interface FullUserMapper extends PreheatMapper<User>
     @Mapping( target = "uuid" )
     @Mapping( target = "code" )
     @Mapping( target = "username" )
-    @Mapping( target = "userAuthorityGroups")
+    @Mapping( target = "userAuthorityGroups" )
     @Mapping( target = "organisationUnits", qualifiedByName = "organisationUnits" )
     @Mapping( target = "teiSearchOrganisationUnits", qualifiedByName = "teiSearchOrganisationUnits" )
     @Mapping( target = "groups", qualifiedByName = "groups" )

@@ -197,14 +197,14 @@ public class HibernateUserStore
 
         hql += "from User u ";
 
-//        if ( count )
-//        {
-//            hql += "inner join u.userCredentials uc ";
-//        }
-//        else
-//        {
-//            hql += "inner join fetch u.userCredentials uc ";
-//        }
+        // if ( count )
+        // {
+        // hql += "inner join u.userCredentials uc ";
+        // }
+        // else
+        // {
+        // hql += "inner join fetch u.userCredentials uc ";
+        // }
 
         if ( params.isPrefetchUserGroups() && !count )
         {

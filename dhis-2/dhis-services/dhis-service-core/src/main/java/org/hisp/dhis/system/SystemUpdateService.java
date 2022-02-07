@@ -49,7 +49,6 @@ import org.hisp.dhis.system.util.HttpUtils;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserStore;
-
 import org.springframework.stereotype.Service;
 
 import com.google.api.client.http.HttpStatusCodes;

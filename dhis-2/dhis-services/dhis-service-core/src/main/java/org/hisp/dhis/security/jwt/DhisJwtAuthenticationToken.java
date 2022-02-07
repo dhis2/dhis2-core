@@ -31,7 +31,6 @@ import java.util.Collection;
 
 import org.hisp.dhis.security.oidc.DhisOidcUser;
 import org.hisp.dhis.user.User;
-
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
 import org.springframework.security.oauth2.jwt.Jwt;

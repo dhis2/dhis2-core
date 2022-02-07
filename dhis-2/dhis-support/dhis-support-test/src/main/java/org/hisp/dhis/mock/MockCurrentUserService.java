@@ -72,7 +72,7 @@ public class MockCurrentUserService
         User user = new User();
         user.setUsername( "currentUser" );
         user.getUserAuthorityGroups().add( userRole );
-//        user.setAutoFields();//Fails12098???
+        // user.setAutoFields();//Fails12098???
         user.setFirstName( "Current" );
         user.setSurname( "User" );
         user.setOrganisationUnits( organisationUnits );

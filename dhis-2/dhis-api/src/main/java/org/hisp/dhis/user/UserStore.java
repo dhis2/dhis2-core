@@ -115,9 +115,9 @@ public interface UserStore
     CurrentUserGroupInfo getCurrentUserGroupInfo( long userId );
 
     /**
-     * Sets {@link User#setDisabled(boolean)} to {@code true} for all
-     * users where the {@link User#getLastLogin()} is before or equal
-     * to the provided pivot {@link Date}.
+     * Sets {@link User#setDisabled(boolean)} to {@code true} for all users
+     * where the {@link User#getLastLogin()} is before or equal to the provided
+     * pivot {@link Date}.
      *
      * @param inactiveSince the most recent point in time that is considered
      *        inactive together with accounts only active further in the past.
@@ -126,9 +126,8 @@ public interface UserStore
     int disableUsersInactiveSince( Date inactiveSince );
 
     /**
-     * Selects all not disabled users where the
-     * {@link User#getLastLogin()} is within the given time-frame and
-     * which have an email address.
+     * Selects all not disabled users where the {@link User#getLastLogin()} is
+     * within the given time-frame and which have an email address.
      *
      * @param from start of the selected time-frame (inclusive)
      * @param to end of the selected time-frame (exclusive)
@@ -147,8 +146,7 @@ public interface UserStore
     List<User> getUserByUsernames( Collection<String> usernames );
 
     /**
-     * Retrieves the User associated with the User with the given
-     * open ID.
+     * Retrieves the User associated with the User with the given open ID.
      *
      * @param openId open ID.
      * @return the User or null if there is no match.
@@ -156,8 +154,7 @@ public interface UserStore
     User getUserByOpenId( String openId );
 
     /**
-     * Retrieves the User associated with the User with the given
-     * LDAP ID.
+     * Retrieves the User associated with the User with the given LDAP ID.
      *
      * @param ldapId LDAP ID.
      * @return the User.
@@ -165,8 +162,7 @@ public interface UserStore
     User getUserByLdapId( String ldapId );
 
     /**
-     * Retrieves the User associated with the User with the given id
-     * token.
+     * Retrieves the User associated with the User with the given id token.
      *
      * @param token the restore token of the User.
      * @return the User.

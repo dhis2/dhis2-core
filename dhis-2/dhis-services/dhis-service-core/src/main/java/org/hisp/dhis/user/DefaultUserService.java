@@ -90,6 +90,7 @@ public class DefaultUserService
     private final UserStore userStore;
 
     private final UserGroupService userGroupService;
+
     private final UserAuthorityGroupStore userAuthorityGroupStore;
 
     private final CurrentUserService currentUserService;

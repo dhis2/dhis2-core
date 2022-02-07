@@ -54,7 +54,6 @@ import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.render.ObjectValueTypeRenderingOption;
 import org.hisp.dhis.render.StaticRenderingConfiguration;
 import org.hisp.dhis.render.type.ValueTypeRenderingType;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 
 import com.google.common.collect.ImmutableSet;

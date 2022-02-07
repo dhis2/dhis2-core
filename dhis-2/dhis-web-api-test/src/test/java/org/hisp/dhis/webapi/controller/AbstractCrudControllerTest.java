@@ -41,11 +41,12 @@ import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 
 import java.util.List;
 import java.util.Set;
+
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonResponse;
-import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
@@ -421,7 +422,6 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
             DELETE( "/users/xyz/subscriber" ).content( HttpStatus.CONFLICT ) );
     }
 
-
     @Test
     void testPutJsonObject_NoSuchObject()
     {
@@ -480,8 +480,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
             GET( "/users/{id}", userId ).content().as( JsonUser.class ).getAccountExpiry() );
     }
 
-
-    @Test///Merge12098
+    @Test /// Merge12098
     void testPutJsonObject()
     {
         // first the updated entity needs to be created
@@ -494,22 +493,22 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
             GET( "/organisationUnits/{id}", ouId ).content().as( JsonIdentifiableObject.class ).getName() );
     }
 
-
-//    @Test
-//    public void testPutJsonObject()
-//    {
-//        // first the updated entity needs to be created
-//        String ouId = assertStatus( HttpStatus.CREATED,
-//            POST( "/organisationUnits/", "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}" ) );
-//
-//        assertWebMessage( "OK", 200, "OK", null,
-//            PUT( "/organisationUnits/" + ouId, "{'name':'New name', 'shortName':'OU1', 'openingDate': '2020-01-01'}" )
-//                .content( HttpStatus.OK ) );
-//
-//        assertEquals( "New name", GET( "/organisationUnits/{id}", ouId )
-//            .content().as( JsonIdentifiableObject.class ).getName() );
-//    }
-
+    // @Test
+    // public void testPutJsonObject()
+    // {
+    // // first the updated entity needs to be created
+    // String ouId = assertStatus( HttpStatus.CREATED,
+    // POST( "/organisationUnits/", "{'name':'My Unit', 'shortName':'OU1',
+    // 'openingDate': '2020-01-01'}" ) );
+    //
+    // assertWebMessage( "OK", 200, "OK", null,
+    // PUT( "/organisationUnits/" + ouId, "{'name':'New name',
+    // 'shortName':'OU1', 'openingDate': '2020-01-01'}" )
+    // .content( HttpStatus.OK ) );
+    //
+    // assertEquals( "New name", GET( "/organisationUnits/{id}", ouId )
+    // .content().as( JsonIdentifiableObject.class ).getName() );
+    // }
 
     @Test
     void testPutJsonObject_accountExpiry_NaN()

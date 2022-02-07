@@ -61,7 +61,6 @@ import org.hisp.dhis.tracker.report.TrackerTypeReport;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.validation.TrackerValidationService;
 import org.hisp.dhis.user.User;
-
 import org.springframework.stereotype.Service;
 
 import com.google.common.collect.ImmutableMap;

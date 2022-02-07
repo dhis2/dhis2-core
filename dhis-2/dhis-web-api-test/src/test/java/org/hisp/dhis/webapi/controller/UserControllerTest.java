@@ -72,11 +72,11 @@ class UserControllerTest extends DhisControllerConvenienceTest
     @BeforeEach
     void setUp()
     {
-        peter = createUser( "peter");
+        peter = createUser( "peter" );
 
         this.peter = switchToNewUser( "Peter" );
         switchToSuperuser();
-//        switchContextToUser( this.peter );
+        // switchContextToUser( this.peter );
         assertStatus( HttpStatus.OK, PATCH( "/users/{id}?importReportMode=ERRORS", peter.getUid(),
             Body( "[{'op': 'replace', 'path': '/email', 'value': 'peter@pan.net'}]" ) ) );
     }

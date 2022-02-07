@@ -45,8 +45,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * This tests the {@link RelativePropertyContext}. We use an integration test, so
- * we can use DHIS2 model to test the {@link RelativePropertyContext} with.
+ * This tests the {@link RelativePropertyContext}. We use an integration test,
+ * so we can use DHIS2 model to test the {@link RelativePropertyContext} with.
  *
  * @author Jan Bernitt
  */

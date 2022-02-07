@@ -28,7 +28,6 @@
 package org.hisp.dhis.useraccount.action;
 
 import org.apache.struts2.ServletActionContext;
-
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -209,7 +209,6 @@ public class AccountController
             return badRequest( result.getErrorMessage() );
         }
 
-
         boolean restoreSuccess = securityService.restore( user, restoreToken, password,
             RestoreType.RECOVER_PASSWORD );
 
@@ -431,7 +430,6 @@ public class AccountController
 
             user.setSelfRegistered( true );
             user.getUserAuthorityGroups().add( userRole );
-
 
             userService.addUser( user );
 

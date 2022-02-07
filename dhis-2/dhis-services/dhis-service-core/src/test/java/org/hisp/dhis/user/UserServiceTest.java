@@ -498,7 +498,7 @@ class UserServiceTest extends DhisSpringTest
         List<UserAccountExpiryInfo> soonExpiringAccounts = userService.getExpiringUserAccounts( 7 );
         Set<String> soonExpiringAccountNames = soonExpiringAccounts.stream()
             .map( UserAccountExpiryInfo::getUsername ).collect( toSet() );
-        assertEquals( new HashSet<>( asList( "usernameb","usernamed" ) ), soonExpiringAccountNames );
+        assertEquals( new HashSet<>( asList( "usernameb", "usernamed" ) ), soonExpiringAccountNames );
 
         soonExpiringAccounts = userService.getExpiringUserAccounts( 9 );
         soonExpiringAccountNames = soonExpiringAccounts.stream()

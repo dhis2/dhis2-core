@@ -156,67 +156,73 @@ public class MeController
     @GetMapping
     public @ResponseBody MeDto getCurrentUser( HttpServletResponse response, @CurrentUser( required = true ) User user )
     {
-//        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
-//
-//        if ( fields.isEmpty() )
-//        {
-//            fields.addAll( Preset.ALL.getFields() );
-//        }
-//
-//        for ( String field : fields )
-//        {
-//            if ( field.contains( "userCredentials" ) )
-//            {
-//                String replacedField = field.replace( "userCredentials", "user" );
-//                fields.remove( field );
-//                fields.add( replacedField );
-//            }
-//        }
-//
-////        if ( fields.contains( "userCredentials" ))
-////        {
-////            fields.remove( "userCredentials" );
-////            fields.add( "user" );
-////        }
-//
-//        CollectionNode collectionNode = fieldFilterService.toCollectionNode( User.class,
-//            new FieldFilterParams( Collections.singletonList( user ), fields ) );
-//
-//        response.setContentType( APPLICATION_JSON_VALUE );
-//        setNoStore( response );
-//
-//        RootNode rootNode = NodeUtils.createRootNode( collectionNode.getChildren().get( 0 ) );
-//
-//        if ( fieldsContains( "settings", fields ) )
-//        {
-//            rootNode.addChild( new ComplexNode( "settings" ) ).addChildren(
-//                NodeUtils.createSimples(
-//                    userSettingService.getUserSettingsWithFallbackByUserAsMap( user, USER_SETTING_KEYS, true ) ) );
-//        }
-//
-//        if ( fieldsContains( "authorities", fields ) )
-//        {
-//            rootNode.addChild( new CollectionNode( "authorities" ) ).addChildren(
-//                NodeUtils.createSimples( user.getAllAuthorities() ) );
-//        }
-//
-//        if ( fieldsContains( "programs", fields ) )
-//        {
-//            rootNode.addChild( new CollectionNode( "programs" ) ).addChildren(
-//                NodeUtils.createSimples( programService.getUserPrograms().stream()
-//                    .map( BaseIdentifiableObject::getUid )
-//                    .collect( Collectors.toList() ) ) );
-//        }
-//
-//        if ( fieldsContains( "dataSets", fields ) )
-//        {
-//            rootNode.addChild( new CollectionNode( "dataSets" ) ).addChildren(
-//                NodeUtils.createSimples( dataSetService.getUserDataRead( user ).stream()
-//                    .map( BaseIdentifiableObject::getUid )
-//                    .collect( Collectors.toList() ) ) );
-//        }
-//
-//        nodeService.serialize( rootNode, APPLICATION_JSON_VALUE, response.getOutputStream() );
+        // List<String> fields = Lists.newArrayList(
+        // contextService.getParameterValues( "fields" ) );
+        //
+        // if ( fields.isEmpty() )
+        // {
+        // fields.addAll( Preset.ALL.getFields() );
+        // }
+        //
+        // for ( String field : fields )
+        // {
+        // if ( field.contains( "userCredentials" ) )
+        // {
+        // String replacedField = field.replace( "userCredentials", "user" );
+        // fields.remove( field );
+        // fields.add( replacedField );
+        // }
+        // }
+        //
+        //// if ( fields.contains( "userCredentials" ))
+        //// {
+        //// fields.remove( "userCredentials" );
+        //// fields.add( "user" );
+        //// }
+        //
+        // CollectionNode collectionNode = fieldFilterService.toCollectionNode(
+        // User.class,
+        // new FieldFilterParams( Collections.singletonList( user ), fields ) );
+        //
+        // response.setContentType( APPLICATION_JSON_VALUE );
+        // setNoStore( response );
+        //
+        // RootNode rootNode = NodeUtils.createRootNode(
+        // collectionNode.getChildren().get( 0 ) );
+        //
+        // if ( fieldsContains( "settings", fields ) )
+        // {
+        // rootNode.addChild( new ComplexNode( "settings" ) ).addChildren(
+        // NodeUtils.createSimples(
+        // userSettingService.getUserSettingsWithFallbackByUserAsMap( user,
+        // USER_SETTING_KEYS, true ) ) );
+        // }
+        //
+        // if ( fieldsContains( "authorities", fields ) )
+        // {
+        // rootNode.addChild( new CollectionNode( "authorities" ) ).addChildren(
+        // NodeUtils.createSimples( user.getAllAuthorities() ) );
+        // }
+        //
+        // if ( fieldsContains( "programs", fields ) )
+        // {
+        // rootNode.addChild( new CollectionNode( "programs" ) ).addChildren(
+        // NodeUtils.createSimples( programService.getUserPrograms().stream()
+        // .map( BaseIdentifiableObject::getUid )
+        // .collect( Collectors.toList() ) ) );
+        // }
+        //
+        // if ( fieldsContains( "dataSets", fields ) )
+        // {
+        // rootNode.addChild( new CollectionNode( "dataSets" ) ).addChildren(
+        // NodeUtils.createSimples( dataSetService.getUserDataRead( user
+        // ).stream()
+        // .map( BaseIdentifiableObject::getUid )
+        // .collect( Collectors.toList() ) ) );
+        // }
+        //
+        // nodeService.serialize( rootNode, APPLICATION_JSON_VALUE,
+        // response.getOutputStream() );
 
         MeDto meDto = new MeDto(
             user.getUid(),
@@ -243,18 +249,17 @@ public class MeController
             user.getAccess(),
             user.getName(),
             user.getEmail(),
-            user.getUserCredentials() ,
+            user.getUserCredentials(),
             userSettingService.getUserSettingsWithFallbackByUserAsMap( user, USER_SETTING_KEYS, true ),
             programService.getUserPrograms().stream()
-                                .map( BaseIdentifiableObject::getUid )
-                                .collect( Collectors.toList() ),
-            new ArrayList<>(user.getAllAuthorities()),
+                .map( BaseIdentifiableObject::getUid )
+                .collect( Collectors.toList() ),
+            new ArrayList<>( user.getAllAuthorities() ),
             dataSetService.getUserDataRead( user ).stream()
                 .map( BaseIdentifiableObject::getUid )
                 .collect( Collectors.toList() )
 
-            );
-
+        );
 
         return meDto;
     }

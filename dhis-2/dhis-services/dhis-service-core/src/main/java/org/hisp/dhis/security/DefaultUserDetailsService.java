@@ -93,8 +93,8 @@ public class DefaultUserDetailsService
                 username, enabled, accountNonExpired, credentialsNonExpired, accountNonLocked ) );
         }
 
-        return new org.springframework.security.core.userdetails.User
-        ( credentials.getUsername(), credentials.getPassword(),
+        return new org.springframework.security.core.userdetails.User( credentials.getUsername(),
+            credentials.getPassword(),
             enabled, accountNonExpired, credentialsNonExpired, accountNonLocked,
             SecurityUtils.getGrantedAuthorities( credentials ) );
     }

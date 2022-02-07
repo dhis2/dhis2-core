@@ -182,7 +182,7 @@ class UserPropertyTransformerTest extends DhisSpringTest
 
         assertEquals( "usernamea", simple.getUser().getUsername() );
         assertEquals( user.getUid(), simple.getUser().getUid() );
-        assertEquals( uuid, simple.getUser().getUuid());
+        assertEquals( uuid, simple.getUser().getUuid() );
     }
 
     @Test

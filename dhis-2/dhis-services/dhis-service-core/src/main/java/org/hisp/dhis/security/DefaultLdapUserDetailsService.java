@@ -99,7 +99,8 @@ public class DefaultLdapUserDetailsService
                 username, enabled, accountNonExpired, credentialsNonExpired, accountNonLocked ) );
         }
 
-        return new org.springframework.security.core.userdetails.User( credentials.getUsername(), "EXTERNAL_LDAP_" + CodeGenerator.generateCode( 10 ),
+        return new org.springframework.security.core.userdetails.User( credentials.getUsername(),
+            "EXTERNAL_LDAP_" + CodeGenerator.generateCode( 10 ),
             enabled, accountNonExpired, credentialsNonExpired, accountNonLocked,
             SecurityUtils.getGrantedAuthorities( credentials ) );
     }

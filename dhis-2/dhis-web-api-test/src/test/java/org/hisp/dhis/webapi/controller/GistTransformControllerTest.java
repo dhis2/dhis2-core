@@ -50,7 +50,8 @@ class GistTransformControllerTest extends AbstractGistControllerTest
             "/users/{uid}/gist?fields=surname~rename(name),username~rename(alias)",
             getSuperuserUid() ).content();
         assertEquals( "admin", user.getString( "name" ).string() );
-//        assertEquals( "admin", user.getObject( "account" ).getString( "alias" ).string() );
+        // assertEquals( "admin", user.getObject( "account" ).getString( "alias"
+        // ).string() );
         assertEquals( 2, user.size() );
     }
 

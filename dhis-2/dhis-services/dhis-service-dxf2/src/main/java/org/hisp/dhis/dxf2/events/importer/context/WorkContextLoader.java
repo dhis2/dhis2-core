@@ -177,10 +177,10 @@ public class WorkContextLoader
     }
 
     /**
-     * Force Hibernate to pre-load all collections for the
-     * {@see User} object and fetch the "isSuper()" data. This is
-     * required to avoid an Hibernate error later, when this object becomes
-     * detached from the Hibernate Session.
+     * Force Hibernate to pre-load all collections for the {@see User} object
+     * and fetch the "isSuper()" data. This is required to avoid an Hibernate
+     * error later, when this object becomes detached from the Hibernate
+     * Session.
      */
     private void initUser( User user )
     {

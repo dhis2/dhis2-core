@@ -69,7 +69,7 @@ class TrackedEntityTypeValidationTest extends DhisSpringTest
         userService = _userService;
     }
 
-//    @Test //Fails12098
+    // @Test //Fails12098
     @Ignore
     void shouldSuccessTrackedEntityAttributeExists()
         throws IOException

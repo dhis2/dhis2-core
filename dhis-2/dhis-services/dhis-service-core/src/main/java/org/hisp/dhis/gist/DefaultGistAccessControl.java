@@ -28,7 +28,6 @@
 package org.hisp.dhis.gist;
 
 import static java.util.Arrays.asList;
-import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.unmodifiableSet;
 

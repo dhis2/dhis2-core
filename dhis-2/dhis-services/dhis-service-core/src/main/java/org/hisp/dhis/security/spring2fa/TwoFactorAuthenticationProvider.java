@@ -142,7 +142,7 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider
 
         // Put detached state of the user credentials into the session as user
         // credentials must not be updated during session execution
-            //Fails12098? Do we need this?
+        // Fails12098? Do we need this?
         user = SerializationUtils.clone( user );
 
         // Initialize cached authorities

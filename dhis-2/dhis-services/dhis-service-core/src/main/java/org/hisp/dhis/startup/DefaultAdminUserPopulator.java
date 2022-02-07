@@ -141,7 +141,6 @@ public class DefaultAdminUserPopulator
 
         userService.encodeAndSetPassword( user, password );
 
-
         userService.addUser( user );
     }
 }

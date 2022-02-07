@@ -51,9 +51,9 @@ import org.hisp.dhis.webapi.security.utils.JwtUtils;
 import org.hisp.dhis.webapi.security.utils.TestJoseHeaders;
 import org.hisp.dhis.webapi.security.utils.TestJwks;
 import org.hisp.dhis.webapi.security.utils.TestJwtClaimsSets;
+import org.junit.Ignore;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.Ignore;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -139,7 +139,7 @@ class JwtBearerTokenTest extends DhisControllerWithJwtTokenAuthTest
         jwtDecoder.decode( tokenValue );
     }
 
-    @Test //Fails12098
+    @Test // Fails12098
     @Ignore
     void testSuccessfulRequest()
     {
@@ -158,7 +158,7 @@ class JwtBearerTokenTest extends DhisControllerWithJwtTokenAuthTest
             GET( "/me", JwtTokenHeader( "NOT_A_JWT_TOKEN" ) ) );
     }
 
-    @Test //Fails12098
+    @Test // Fails12098
     @Ignore
     void testExpiredToken()
     {

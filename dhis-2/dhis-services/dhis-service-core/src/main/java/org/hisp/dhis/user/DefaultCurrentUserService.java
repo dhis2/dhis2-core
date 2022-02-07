@@ -32,12 +32,12 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.HashSet;
 import java.util.Set;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.spring.AbstractSpringSecurityCurrentUserService;
-
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -104,12 +104,13 @@ public class DefaultCurrentUserService
         User user = userStore.getUserByUsername( username );
         if ( user == null )
         {
-            // This should only happen at startup, (routines) . Maybe this can be solved by manually inserting the first user with sql
+            // This should only happen at startup, (routines) . Maybe this can
+            // be solved by manually inserting the first user with sql
             return null;
-//            throw new IllegalStateException( "No current user" );
+            // throw new IllegalStateException( "No current user" );
         }
 
-//        // TODO: this is pretty ugly way to retrieve auths
+        // // TODO: this is pretty ugly way to retrieve auths
         user.getAllAuthorities();
         return user;
     }
@@ -200,10 +201,11 @@ public class DefaultCurrentUserService
         User currentUser = getCurrentUser();
         if ( currentUser == null )
         {
-            log.error("Dont like this! username=" + username);
+            log.error( "Dont like this! username=" + username );
             return null;
-            //            throw new RuntimeException(
-            //                "Could not retrieve current user! Are the user injected into the security context?" );
+            // throw new RuntimeException(
+            // "Could not retrieve current user! Are the user injected into the
+            // security context?" );
         }
         CurrentUserGroupInfo currentUserGroupInfo = userStore.getCurrentUserGroupInfo( currentUser.getId() );
         return currentUserGroupInfo;

@@ -57,10 +57,10 @@ class ValidationRunner
 
         for ( ValidationCheck validationCheck : validationChecks )
         {
-            TypeReport check = validationCheck.check( bundle, klass, persistedObjects, nonPersistedObjects, importMode, ctx );
+            TypeReport check = validationCheck.check( bundle, klass, persistedObjects, nonPersistedObjects, importMode,
+                ctx );
             typeReport.merge( check );
         }
-
 
         return typeReport;
     }

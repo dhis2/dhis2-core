@@ -359,7 +359,6 @@ class ObjectBundleServiceProgramTest extends TransactionalIntegrationTest
             "F_USER_ADD_WITHIN_MANAGED_GROUP" };
         User testUser = createUser( "A", testAuths );
 
-
         TrackedEntityAttribute tea1 = manager.get( TrackedEntityAttribute.class, "cpaMZredRXb" );
         TrackedEntityAttribute tea2 = manager.get( TrackedEntityAttribute.class, "QhEcRpLZwMb" );
         UserAccess userAccess1 = new UserAccess( testUser, "rw------" );

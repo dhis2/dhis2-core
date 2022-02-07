@@ -29,7 +29,6 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
 
 import static java.util.Collections.emptyList;
 import static org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationUtils.createObjectReport;
-import static org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationUtils.joinObjects;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -74,19 +73,21 @@ public class UniquenessCheck implements ObjectValidationCheck
         {
             List<ErrorReport> errorReports;
 
-//            if ( object instanceof User )
-//            {
-//                User user = (User) object;
-//                errorReports = checkUniqueness( user, bundle.getPreheat(), bundle.getPreheatIdentifier(), ctx );
-////                UserCredentials userCredentials = user.getUserCredentials();
-////                errorReports = joinObjects(
-////                    ,
-////                    checkUniqueness( userCredentials, bundle.getPreheat(), bundle.getPreheatIdentifier(), ctx ) );
-//            }
-//            else
-//            {
-                errorReports = checkUniqueness( object, bundle.getPreheat(), bundle.getPreheatIdentifier(), ctx );
-//            }
+            // if ( object instanceof User )
+            // {
+            // User user = (User) object;
+            // errorReports = checkUniqueness( user, bundle.getPreheat(),
+            // bundle.getPreheatIdentifier(), ctx );
+            //// UserCredentials userCredentials = user.getUserCredentials();
+            //// errorReports = joinObjects(
+            //// ,
+            //// checkUniqueness( userCredentials, bundle.getPreheat(),
+            // bundle.getPreheatIdentifier(), ctx ) );
+            // }
+            // else
+            // {
+            errorReports = checkUniqueness( object, bundle.getPreheat(), bundle.getPreheatIdentifier(), ctx );
+            // }
 
             if ( !errorReports.isEmpty() )
             {
@@ -146,7 +147,8 @@ public class UniquenessCheck implements ObjectValidationCheck
                             identifiersWithName,
                             objectIdentifier );
 
-                        errorReports.add( errorReport.setMainId( objectIdentifier ).setErrorProperty( property.getName() ) );
+                        errorReports
+                            .add( errorReport.setMainId( objectIdentifier ).setErrorProperty( property.getName() ) );
                     }
                 }
                 else

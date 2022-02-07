@@ -39,12 +39,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -59,16 +58,17 @@ import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.security.Authorities;
+import org.jboss.aerogear.security.otp.api.Base32;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.jboss.aerogear.security.otp.api.Base32;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 
 /**
  * @author Nguyen Hong Duc
@@ -91,8 +91,8 @@ public class User
     private String username;
 
     /**
-     * Indicates whether this user can only be authenticated externally,
-     * such as through OpenID or LDAP.
+     * Indicates whether this user can only be authenticated externally, such as
+     * through OpenID or LDAP.
      */
     private boolean externalAuth;
 
@@ -260,14 +260,13 @@ public class User
      */
     private List<String> apps = new ArrayList<>();
 
-
-
     public User()
     {
         this.twoFA = false;
         this.lastLogin = null;
         this.passwordLastUpdated = new Date();
-        //this.setAutoFields(); // Needed to support user credentials uniqueness
+        // this.setAutoFields(); // Needed to support user credentials
+        // uniqueness
         if ( uuid == null )
         {
             uuid = UUID.randomUUID();
@@ -275,16 +274,15 @@ public class User
         this.setSecret();
     }
 
-//    public void setAutoFields()
-//    {
-//        if ( uuid == null )
-//        {
-//            uuid = UUID.randomUUID();
-//        }
-//
-////        super.setAutoFields();
-//    }
-
+    // public void setAutoFields()
+    // {
+    // if ( uuid == null )
+    // {
+    // uuid = UUID.randomUUID();
+    // }
+    //
+    //// super.setAutoFields();
+    // }
 
     /**
      * Returns a concatenated String of the display names of all user authority
@@ -314,8 +312,8 @@ public class User
     }
 
     /**
-     * Indicates whether this user has at least one authority
-     * through its user authority groups.
+     * Indicates whether this user has at least one authority through its user
+     * authority groups.
      */
     public boolean hasAuthorities()
     {
@@ -331,8 +329,7 @@ public class User
     }
 
     /**
-     * Tests whether this user has any of the authorities in the
-     * given set.
+     * Tests whether this user has any of the authorities in the given set.
      *
      * @param auths the authorities to compare with.
      * @return true or false.
@@ -359,9 +356,9 @@ public class User
     }
 
     /**
-     * Indicates whether this user is a super user, implying that
-     * the ALL authority is present in at least one of the user authority groups
-     * of this user.
+     * Indicates whether this user is a super user, implying that the ALL
+     * authority is present in at least one of the user authority groups of this
+     * user.
      */
     public boolean isSuper()
     {
@@ -370,12 +367,11 @@ public class User
     }
 
     /**
-     * Indicates whether this user can issue the given user
-     * authority group. First the given authority group must not be null. Second
-     * this user must not contain the given authority group. Third
-     * the authority group must be a subset of the aggregated user authorities
-     * of this user, or this user must have the ALL
-     * authority.
+     * Indicates whether this user can issue the given user authority group.
+     * First the given authority group must not be null. Second this user must
+     * not contain the given authority group. Third the authority group must be
+     * a subset of the aggregated user authorities of this user, or this user
+     * must have the ALL authority.
      *
      * @param group the user authority group.
      * @param canGrantOwnUserAuthorityGroups indicates whether this users can
@@ -404,8 +400,8 @@ public class User
     }
 
     /**
-     * Indicates whether this user can issue all of the user
-     * authority groups in the given collection.
+     * Indicates whether this user can issue all of the user authority groups in
+     * the given collection.
      *
      * @param groups the collection of user authority groups.
      * @param canGrantOwnUserAuthorityGroups indicates whether this users can
@@ -425,9 +421,9 @@ public class User
     }
 
     /**
-     * Indicates whether this user can modify the given user.
-     * This user must have the ALL authority or possess
-     * all user authorities of the other user to do so.
+     * Indicates whether this user can modify the given user. This user must
+     * have the ALL authority or possess all user authorities of the other user
+     * to do so.
      *
      * @param other the user to modify.
      */
@@ -537,7 +533,6 @@ public class User
     // -------------------------------------------------------------------------
     // hashCode and equals
     // ----------
-
 
     public UUID getUuid()
     {
@@ -809,7 +804,6 @@ public class User
     {
         this.accountExpiry = accountExpiry;
     }
-
 
     // -------------------------------------------------------------------------
     // Two Factor Authentication methods
@@ -1320,7 +1314,8 @@ public class User
     }
 
     @JsonProperty
-    // This is a temporary fix to maintain backwards compatibility with the old UserCredentials class.
+    // This is a temporary fix to maintain backwards compatibility with the old
+    // UserCredentials class.
     public UserCredWrapper getUserCredentials()
     {
 
@@ -1336,7 +1331,8 @@ public class User
         return userCredWrapper;
     }
 
-    // This is a temporary fix to maintain backwards compatibility with the old UserCredentials class.
+    // This is a temporary fix to maintain backwards compatibility with the old
+    // UserCredentials class.
     protected void setUserCredentials( User user )
     {
         if ( user != null )
@@ -1349,27 +1345,28 @@ public class User
             if ( user.getPassword() == null && this.getPassword() != null )
             {
                 user.setPassword( this.getPassword() );
-            }// add inverse
+            } // add inverse
 
+            // copyProperties( user, this, "userCredentials", "uuid",
+            // "id","uid","access", "sharing",
+            // "created", "lastUpdated","lastUpdatedBy", "code",
+            // "userInfo","publicAccess","name","secret","password",
+            // "firstName", "lastName", "surname", "email", "phoneNumber",
+            // "introduction","passwordLastUpdated",
+            // "gender","birthday","nationality","employer","education","interests","languages",
+            // "welcomeMessage","lastCheckedInterpretations","groups","whatsApp","facebookMessenger",
+            // "skype","telegram","twitter","avatar","organisationUnits","dataViewOrganisationUnits",
+            // "teiSearchOrganisationUnits","dataViewMaxOrganisationUnitLevel","apps",
+            // "user" );
 
-
-//            copyProperties( user, this, "userCredentials", "uuid", "id","uid","access", "sharing",
-//                "created", "lastUpdated","lastUpdatedBy", "code", "userInfo","publicAccess","name","secret","password",
-//                "firstName", "lastName", "surname", "email", "phoneNumber", "introduction","passwordLastUpdated",
-//                "gender","birthday","nationality","employer","education","interests","languages",
-//                "welcomeMessage","lastCheckedInterpretations","groups","whatsApp","facebookMessenger",
-//                "skype","telegram","twitter","avatar","organisationUnits","dataViewOrganisationUnits",
-//                "teiSearchOrganisationUnits","dataViewMaxOrganisationUnitLevel","apps",
-//                "user" );
-
-
-            copyProperties( user, this, "userCredentials", "uuid", "id","uid","access", "sharing",
-                "created", "lastUpdated","lastUpdatedBy", "code", "userInfo","publicAccess","name","secret","password",
-                "firstName", "lastName", "surname", "email", "phoneNumber", "introduction","passwordLastUpdated",
-                "gender","birthday","nationality","employer","education","interests","languages",
-                "welcomeMessage","lastCheckedInterpretations","groups","whatsApp","facebookMessenger",
-                "skype","telegram","twitter","avatar",
-                "dataViewMaxOrganisationUnitLevel","apps",
+            copyProperties( user, this, "userCredentials", "uuid", "id", "uid", "access", "sharing",
+                "created", "lastUpdated", "lastUpdatedBy", "code", "userInfo", "publicAccess", "name", "secret",
+                "password",
+                "firstName", "lastName", "surname", "email", "phoneNumber", "introduction", "passwordLastUpdated",
+                "gender", "birthday", "nationality", "employer", "education", "interests", "languages",
+                "welcomeMessage", "lastCheckedInterpretations", "groups", "whatsApp", "facebookMessenger",
+                "skype", "telegram", "twitter", "avatar",
+                "dataViewMaxOrganisationUnitLevel", "apps",
                 "user" );
         }
         log.info( "UserCredentials set" );

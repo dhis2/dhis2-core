@@ -249,23 +249,24 @@ public class DefaultPreheatService implements PreheatService
             }
         }
 
-        //Fails12098?
-//        if ( uniqueCollectionMap.containsKey( User.class ) )
-//        {
-//            List<IdentifiableObject> userCredentials = new ArrayList<>();
-//
-//            for ( IdentifiableObject identifiableObject : uniqueCollectionMap.get( User.class ) )
-//            {
-//                User user = (User) identifiableObject;
-//
-//                if ( user.getUserCredentials() != null )
-//                {
-//                    userCredentials.add( user.getUserCredentials() );
-//                }
-//            }
-//
-//            uniqueCollectionMap.put( UserCredentials.class, userCredentials );
-//        }
+        // Fails12098?
+        // if ( uniqueCollectionMap.containsKey( User.class ) )
+        // {
+        // List<IdentifiableObject> userCredentials = new ArrayList<>();
+        //
+        // for ( IdentifiableObject identifiableObject :
+        // uniqueCollectionMap.get( User.class ) )
+        // {
+        // User user = (User) identifiableObject;
+        //
+        // if ( user.getUserCredentials() != null )
+        // {
+        // userCredentials.add( user.getUserCredentials() );
+        // }
+        // }
+        //
+        // uniqueCollectionMap.put( UserCredentials.class, userCredentials );
+        // }
 
         // assign an uid to objects without an UID, if they don't have UID but
         // an existing object exists then reuse the UID
@@ -764,11 +765,10 @@ public class DefaultPreheatService implements PreheatService
     @SuppressWarnings( "unchecked" )
     private void collectScanTargets( Map<Class<?>, List<?>> targets )
     {
-        //Fails12098?
+        // Fails12098?
         if ( targets.containsKey( User.class ) )
         {
             List<User> users = (List<User>) targets.get( User.class );
-
 
             targets.put( User.class, users );
         }
@@ -894,9 +894,9 @@ public class DefaultPreheatService implements PreheatService
 
                     if ( ref.getId() == 0 )
                     {
-                        log.error( "Reference object with id 0 found for " + object.getClass().getSimpleName()  );
-//                        throw new RuntimeException( "Not right" );
-                        //Fails12098?
+                        log.error( "Reference object with id 0 found for " + object.getClass().getSimpleName() );
+                        // throw new RuntimeException( "Not right" );
+                        // Fails12098?
                     }
                     else
                     {

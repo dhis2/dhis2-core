@@ -285,7 +285,7 @@ public class DefaultSecurityService
     @Override
     public String validateInvite( User credentials )
     {
-        if ( credentials == null  )
+        if ( credentials == null )
         {
             log.warn( "Could not send invite message as user is null" );
             return "no_user_credentials";

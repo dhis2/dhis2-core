@@ -116,7 +116,7 @@ public class UnregisteredSMSListener
         if ( userGroup != null )
         {
             User anonymousUser = userService.getUserByUsername( userName );
-            //Fails112098? What does this really do?
+            // Fails112098? What does this really do?
             if ( anonymousUser == null )
             {
                 User user = new User();

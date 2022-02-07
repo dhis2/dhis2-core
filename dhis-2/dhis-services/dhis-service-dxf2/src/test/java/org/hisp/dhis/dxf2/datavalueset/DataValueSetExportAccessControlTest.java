@@ -231,12 +231,12 @@ class DataValueSetExportAccessControlTest extends TransactionalIntegrationTest
     void testExportAttributeOptionComboAccessSuperUser()
         throws IOException
     {
-//        // User
-//
+        // // User
+        //
         User adminUser = createUser( 'A', Lists.newArrayList( "ALL" ) );
         adminUser.setOrganisationUnits( Sets.newHashSet( ouA ) );
         setCurrentUser( adminUser );
-//        // Sharing
+        // // Sharing
 
         enableDataSharing( adminUser, coA, DATA_READ );
         enableDataSharing( adminUser, coB, DATA_READ );

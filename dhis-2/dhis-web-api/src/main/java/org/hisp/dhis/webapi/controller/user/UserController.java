@@ -96,7 +96,6 @@ import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -612,8 +611,7 @@ public class UserController
             currentUser.getAllAuthorities();
         }
 
-
-        parsedUserObject.setId( users.get( 0 ).getId() ); //Fails12098??
+        parsedUserObject.setId( users.get( 0 ).getId() ); // Fails12098??
         parsedUserObject.setUid( userUid );
         mergeLastLoginAttribute( users.get( 0 ), parsedUserObject );
 
@@ -665,7 +663,7 @@ public class UserController
             currentUser = currentUserService.getCurrentUser();
         }
 
-        //Fails12098??
+        // Fails12098??
         List<String> uids = getUids( parsed.getGroups() );
         userGroupService.updateUserGroups( parsed, uids, currentUser );
         log.info( "Updated user groups for user: " + user.getUid() );

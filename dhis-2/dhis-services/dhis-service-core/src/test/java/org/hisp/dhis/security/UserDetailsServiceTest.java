@@ -43,8 +43,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 
 /**
  * Tests the effects of {@link User#setDisabled(boolean)} or
- * {@link User#setAccountExpiry(Date)} on the {@link UserDetails}
- * ability to log in.
+ * {@link User#setAccountExpiry(Date)} on the {@link UserDetails} ability to log
+ * in.
  *
  * @author Jan Bernitt
  */
@@ -56,7 +56,6 @@ class UserDetailsServiceTest extends DhisSpringTest
 
     @Autowired
     private UserDetailsService userDetailsService;
-
 
     private User user;
 

@@ -239,7 +239,8 @@ public class FieldPathHelper
 
     private boolean isComplex( Property property )
     {
-        // || UserCredentials.class.isAssignableFrom( property.getKlass() ) //Merge12098
+        // || UserCredentials.class.isAssignableFrom( property.getKlass() )
+        // //Merge12098
         return property.is( PropertyType.COMPLEX ) || property.itemIs( PropertyType.COMPLEX )
             || property.isEmbeddedObject()
             || Sharing.class.isAssignableFrom( property.getKlass() )

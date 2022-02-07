@@ -60,7 +60,7 @@ public class GistPropertyIntrospector implements PropertyIntrospector
     private void initFromGistAnnotation( Property property )
     {
         Method getter = property.getGetterMethod();
-        if(getter != null )
+        if ( getter != null )
         {
             Gist gist = getAnnotation( getter, Gist.class );
             if ( gist != null )

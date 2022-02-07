@@ -37,7 +37,6 @@ import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.user.User;
-
 import org.springframework.stereotype.Component;
 
 /**

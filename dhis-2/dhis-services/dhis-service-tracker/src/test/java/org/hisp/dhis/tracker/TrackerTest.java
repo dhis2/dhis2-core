@@ -34,6 +34,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -51,8 +53,6 @@ import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
@@ -148,9 +148,9 @@ public abstract class TrackerTest extends TransactionalIntegrationTest
     {
         List<TrackerErrorReport> errorReports = report.getValidationReport().getErrors();
         boolean empty = errorReports.isEmpty();
-        if( !empty )
+        if ( !empty )
         {
-            for( TrackerErrorReport errorReport : errorReports )
+            for ( TrackerErrorReport errorReport : errorReports )
             {
                 log.error( "Import errors: " + errorReport.getErrorMessage() );
             }

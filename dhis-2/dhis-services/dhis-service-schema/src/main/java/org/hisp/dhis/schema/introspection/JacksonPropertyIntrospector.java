@@ -145,7 +145,6 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector
                 }
             }
 
-
             initFromJacksonXmlElementWrapper( property );
             initFromEnumConstants( property );
 
@@ -176,7 +175,6 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector
         {
             return property.getFieldName();
         }
-
 
         property.setKlass( Primitives.wrap( getter.getReturnType() ) );
         property.setReadable( true );

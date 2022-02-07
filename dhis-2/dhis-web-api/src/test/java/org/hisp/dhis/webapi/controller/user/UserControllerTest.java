@@ -63,8 +63,8 @@ import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.Ignore;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -130,7 +130,7 @@ class UserControllerTest
         parsedUser.setGroups( new HashSet<>( Arrays.asList( userGroup1, userGroup2 ) ) );
     }
 
-//    @Test//Fails12098
+    // @Test//Fails12098
     @SuppressWarnings( "unchecked" )
     @Ignore
     public void updateUserGroups()
@@ -174,7 +174,7 @@ class UserControllerTest
         verifyNoInteractions( userGroupService );
     }
 
-    //@Test//Fails12098
+    // @Test//Fails12098
     @SuppressWarnings( "unchecked" )
     @Ignore
     public void updateUserGroupsSameUser()

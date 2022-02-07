@@ -49,7 +49,6 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
-import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
 
 /**
@@ -109,16 +108,16 @@ public class DefaultSchemaValidator implements SchemaValidator
             }
         }
 
-        //Fails12098????
-//        if ( object instanceof User )
-//        {
-//            User user = (User) object;
-//
-////            if ( user.getUser() != null )
-////            {
-////                errors.addAll( validate( user, persisted ) );
-////            }
-//        }
+        // Fails12098????
+        // if ( object instanceof User )
+        // {
+        // User user = (User) object;
+        //
+        //// if ( user.getUser() != null )
+        //// {
+        //// errors.addAll( validate( user, persisted ) );
+        //// }
+        // }
         return errors;
     }
 

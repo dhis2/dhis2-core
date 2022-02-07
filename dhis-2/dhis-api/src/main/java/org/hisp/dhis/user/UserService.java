@@ -225,20 +225,17 @@ public interface UserService
     boolean canAddOrUpdateUser( Collection<String> userGroups, User currentUser );
 
     /**
-     * Retrieves the User associated with the User with the given id
-     * token.
+     * Retrieves the User associated with the User with the given id token.
      *
      * @param token the id token of the User.
      * @return the User.
      */
     User getUserByIdToken( String token );
 
-
     User getUserWithEagerFetchAuthorities( String username );
 
     /**
-     * Retrieves the User associated with the User with the given
-     * OpenID.
+     * Retrieves the User associated with the User with the given OpenID.
      *
      * @param openId the openId of the User.
      * @return the User or null if there is no match
@@ -246,8 +243,7 @@ public interface UserService
     User getUserByOpenId( String openId );
 
     /**
-     * Retrieves the User associated with the User with the given
-     * LDAP ID.
+     * Retrieves the User associated with the User with the given LDAP ID.
      *
      * @param ldapId the ldapId of the User.
      * @return the User.
@@ -255,14 +251,12 @@ public interface UserService
     User getUserByLdapId( String ldapId );
 
     /**
-     * Encodes and sets the password of the User. Due to business
-     * logic required on password updates the password for a user should only be
-     * changed using this method or {@link #encodeAndSetPassword(User, String)
-     * encodeAndSetPassword} and not directly on the User or User
-     * object.
+     * Encodes and sets the password of the User. Due to business logic required
+     * on password updates the password for a user should only be changed using
+     * this method or {@link #encodeAndSetPassword(User, String)
+     * encodeAndSetPassword} and not directly on the User or User object.
      * <p>
-     * Note that the changes made to the User object are not
-     * persisted.
+     * Note that the changes made to the User object are not persisted.
      *
      * @param user the User
      * @param rawPassword the raw password.
@@ -270,8 +264,8 @@ public interface UserService
     void encodeAndSetPassword( User user, String rawPassword );
 
     /**
-     * Updates the last login date of User with the given username
-     * with the current date.
+     * Updates the last login date of User with the given username with the
+     * current date.
      *
      * @param username the username of the User.
      */
@@ -382,11 +376,9 @@ public interface UserService
     List<ErrorReport> validateUser( User user, User currentUser );
 
     /**
-     * Returns list of active users who are expiring with in few
-     * days.
+     * Returns list of active users who are expiring with in few days.
      *
-     * @return list of active users who are expiring with in few
-     *         days.
+     * @return list of active users who are expiring with in few days.
      */
     List<User> getExpiringUsers();
 
@@ -416,9 +408,9 @@ public interface UserService
     boolean isAccountExpired( User user );
 
     /**
-     * Sets {@link User#setDisabled(boolean)} to {@code true} for all
-     * users where the {@link User#getLastLogin()} is before or equal
-     * to the provided pivot {@link Date}.
+     * Sets {@link User#setDisabled(boolean)} to {@code true} for all users
+     * where the {@link User#getLastLogin()} is before or equal to the provided
+     * pivot {@link Date}.
      *
      * @param inactiveSince the most recent point in time that is considered
      *        inactive together with accounts only active further in the past.#
@@ -427,9 +419,8 @@ public interface UserService
     int disableUsersInactiveSince( Date inactiveSince );
 
     /**
-     * Selects all not disabled users where the
-     * {@link User#getLastLogin()} is within the given time-frame and
-     * which have an email address.
+     * Selects all not disabled users where the {@link User#getLastLogin()} is
+     * within the given time-frame and which have an email address.
      *
      * @param from start of the selected time-frame (inclusive)
      * @param to end of the selected time-frame (exclusive)

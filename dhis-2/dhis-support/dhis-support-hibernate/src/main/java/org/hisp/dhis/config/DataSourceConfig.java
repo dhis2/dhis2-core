@@ -191,8 +191,8 @@ public class DataSourceConfig
 
     private static void executeAfterMethod( MethodExecutionContext executionContext )
     {
-//        Method method = executionContext.getMethod();
-//        Class<?> targetClass = executionContext.getTarget().getClass();
+        // Method method = executionContext.getMethod();
+        // Class<?> targetClass = executionContext.getTarget().getClass();
 
         Thread thread = Thread.currentThread();
         StackTraceElement[] stackTrace = thread.getStackTrace();
@@ -204,9 +204,9 @@ public class DataSourceConfig
             String className = stackTraceElement.getClassName();
             int pos = className.lastIndexOf( '.' );
             String packageName = className.substring( 0, pos );
-//            log.info( "Package:" + packageName +
-//                ", method: " + stackTraceElement.getMethodName() +
-//                ", line:" + stackTraceElement.getLineNumber() );
+            // log.info( "Package:" + packageName +
+            // ", method: " + stackTraceElement.getMethodName() +
+            // ", line:" + stackTraceElement.getLineNumber() );
 
             if ( className.contains( "org.hisp.dhis.cacheinvalidation.KnownTransactionsService" ) || methodName.equals(
                 "getSingleResult" ) || methodName.equals( "doFilterInternal" ) )
@@ -214,19 +214,18 @@ public class DataSourceConfig
                 break;
             }
 
-
             if ( packageName.startsWith( "org.hisp.dhis" ) && !methodName.equals( "executeAfterMethod" ) )
             {
                 StackTraceElement nextElement = stackTrace[i - 1];
                 String methodName1 = nextElement.getMethodName();
                 String className1 = nextElement.getClassName();
 
-                log.info( "---- JDBC: " + className + "#" + methodName + " ---- \n ----" + className1 + "#" + methodName1 );
+                log.info(
+                    "---- JDBC: " + className + "#" + methodName + " ---- \n ----" + className1 + "#" + methodName1 );
                 break;
             }
 
         }
-
 
     }
 
@@ -241,7 +240,7 @@ public class DataSourceConfig
             try
             {
                 Objects.requireNonNull( query );
-                return this.formatter.format( query ) +"\n";
+                return this.formatter.format( query ) + "\n";
             }
             catch ( Exception e )
             {

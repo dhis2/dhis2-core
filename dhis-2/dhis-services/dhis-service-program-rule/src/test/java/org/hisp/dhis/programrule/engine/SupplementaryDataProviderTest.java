@@ -72,7 +72,6 @@ class SupplementaryDataProviderTest extends DhisConvenienceTest
     @InjectMocks
     private SupplementaryDataProvider providerToTest;
 
-
     private OrganisationUnit orgUnitA;
 
     private OrganisationUnit orgUnitB;
@@ -80,7 +79,7 @@ class SupplementaryDataProviderTest extends DhisConvenienceTest
     @BeforeEach
     void setUp()
     {
-        User user = createUser( 'A');
+        User user = createUser( 'A' );
         user.setUserAuthorityGroups( getAuthorityGroups() );
         when( currentUserService.getCurrentUser() ).thenReturn( user );
         orgUnitA = createOrganisationUnit( 'A' );
