@@ -469,7 +469,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
-    void eventValidationFailsWhenOnlyAOCIsSetToUnknownAndProgramHasDefaultCC()
+    void eventValidationFailsWhenOnlyAOCIsSetToUnknownAndEventProgramHasDefaultCC()
     {
         OrganisationUnit orgUnit = setupOrgUnit();
         Program program = setupProgram( orgUnit );
