@@ -29,9 +29,6 @@ package org.hisp.dhis.program;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.startsWith;
-import static org.hisp.dhis.program.AnalyticsPeriodBoundary.SCHEDULED_DATE;
-import static org.hisp.dhis.program.AnalyticsPeriodBoundaryType.AFTER_START_OF_REPORTING_PERIOD;
-import static org.hisp.dhis.program.AnalyticsPeriodBoundaryType.BEFORE_END_OF_REPORTING_PERIOD;
 import static org.hisp.dhis.program.AnalyticsType.ENROLLMENT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -39,7 +36,6 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashSet;
-import java.util.Set;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -183,39 +179,11 @@ class ProgramIndicatorServiceVariableTest extends DhisSpringTest
     }
 
     @Test
-    void testEventStatusEnrollmentWithScheduledBoundary()
-    {
-        // Given
-        final ProgramIndicator programIndicatorBoundaryScheduled = createProgramIndicator( 'S', programA, "70", null );
-        programIndicatorBoundaryScheduled.setAnalyticsType( ENROLLMENT );
-        programIndicatorBoundaryScheduled
-            .setAnalyticsPeriodBoundaries( Set.of(
-                new AnalyticsPeriodBoundary( SCHEDULED_DATE, BEFORE_END_OF_REPORTING_PERIOD, null, 0 ),
-                new AnalyticsPeriodBoundary( SCHEDULED_DATE, AFTER_START_OF_REPORTING_PERIOD, null, 0 ) ) );
-
-        // Initialize boundaries
-        for ( final AnalyticsPeriodBoundary boundary : programIndicatorBoundaryScheduled
-            .getAnalyticsPeriodBoundaries() )
-        {
-            boundary.setAutoFields();
-        }
-
-        // When
-        final String result = getSqlEnrollment( "V{event_status}", programIndicatorBoundaryScheduled );
-
-        // Then
-        assertEquals(
-            "(select psistatus from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and"
-                + " psistatus is not null and duedate < cast( '2020-02-01' as date ) and"
-                + " duedate >= cast( '2020-01-01' as date ) order by duedate desc limit 1 )",
-            result );
-    }
-
-    @Test
     void testEventCount()
     {
-        assertEquals( "psi", getSql( "V{event_count}" ) );
-        assertEquals( "psi", getSqlEnrollment( "V{event_count}" ) );
+        assertEquals( "case when psistatus in ('ACTIVE', 'COMPLETED') then 1 end", getSql( "V{event_count}" ) );
+        assertEquals( "case when psistatus in ('ACTIVE', 'COMPLETED') then 1 end",
+            getSqlEnrollment( "V{event_count}" ) );
     }
 
     @Test

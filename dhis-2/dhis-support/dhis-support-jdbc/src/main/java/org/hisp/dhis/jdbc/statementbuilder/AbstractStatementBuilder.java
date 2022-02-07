@@ -369,7 +369,7 @@ public abstract class AbstractStatementBuilder
                 getBoundaryCondition( programIndicator.getStartEventBoundary(), programIndicator, null,
                     reportingStartDate, reportingEndDate )
                 + " ") : "")
-            + programStageCondition + "order by executiondate" + createOrderTypeAndOffset( stageOffset )
+            + programStageCondition + "order by executiondate " + createOrderTypeAndOffset( stageOffset )
             + " limit 1 )";
     }
 
