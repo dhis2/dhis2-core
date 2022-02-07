@@ -43,6 +43,7 @@ import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.analytics.QueryPlanner;
+import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
@@ -89,6 +90,9 @@ class JdbcAnalyticsManagerTest
 
     private JdbcAnalyticsManager subject;
 
+    @Mock
+    private ExecutionPlanStore executionPlanStore;
+
     @BeforeEach
     public void setUp()
     {
@@ -100,7 +104,7 @@ class JdbcAnalyticsManagerTest
 
         when( jdbcTemplate.queryForRowSet( sql.capture() ) ).thenReturn( rowSet );
 
-        subject = new JdbcAnalyticsManager( queryPlanner, jdbcTemplate );
+        subject = new JdbcAnalyticsManager( queryPlanner, jdbcTemplate, executionPlanStore );
     }
 
     @Test
@@ -167,7 +171,7 @@ class JdbcAnalyticsManagerTest
     private void assertExpectedSql( String sortOrder )
     {
 
-        String lastAggregationTypeSql = "(select \"year\",\"pestartdate\",\"peenddate\",\"level\",\"daysxvalue\","
+        String lastAggregationTypeSql = "(select \"year\",\"pestartdate\",\"peenddate\",\"oulevel\",\"daysxvalue\","
             + "\"daysno\",\"value\",\"textvalue\",\"dx\",cast('201501' as text) as \"pe\",\"ou\","
             + "row_number() over (partition by dx, ou, co, ao order by peenddate " + sortOrder + ", pestartdate "
             + sortOrder + ") as pe_rank "
@@ -180,7 +184,7 @@ class JdbcAnalyticsManagerTest
     private void assertExpectedLastSql( String sortOrder )
     {
 
-        String lastAggregationTypeSql = "(select \"year\",\"pestartdate\",\"peenddate\",\"level\",\"daysxvalue\","
+        String lastAggregationTypeSql = "(select \"year\",\"pestartdate\",\"peenddate\",\"oulevel\",\"daysxvalue\","
             + "\"daysno\",\"value\",\"textvalue\",\"dx\",cast('201501' as text) as \"pe\",\"ou\","
             + "row_number() over (partition by dx, ou, co, ao order by peenddate " + sortOrder + ", pestartdate "
             + sortOrder + ") as pe_rank "

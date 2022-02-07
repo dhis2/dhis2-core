@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static java.lang.String.format;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
 
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
@@ -68,13 +69,16 @@ class LockExceptionControllerTest extends DhisControllerConvenienceTest
     {
         String dsId2 = assertStatus( HttpStatus.CREATED,
             POST( "/dataSets/", "{'name':'My data set', 'periodType':'Monthly'}" ) );
-        assertStatus( HttpStatus.NO_CONTENT, POST( "/lockExceptions/?ou={ou}&pe=2021-01&ds={ds}", ouId, dsId2 ) );
+        assertWebMessage( "Conflict", 409, "ERROR",
+            format( "None of the target organisation unit(s) %s is linked to the specified data set: %s",
+                ouId, dsId2 ),
+            POST( "/lockExceptions/?ou={ou}&pe=2021-01&ds={ds}", ouId, dsId2 ).content( HttpStatus.CONFLICT ) );
     }
 
     @Test
     void testAddLockException_NoOrgUnit()
     {
-        assertWebMessage( "Conflict", 409, "ERROR", " OrganisationUnit ID is invalid.",
+        assertWebMessage( "Conflict", 409, "ERROR", "OrganisationUnit ID is invalid.",
             POST( "/lockExceptions/?ou=&pe=2021-01&ds=" + dsId ).content( HttpStatus.CONFLICT ) );
     }
 

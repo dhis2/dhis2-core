@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.json.domain;
 
-import org.hisp.dhis.webapi.json.JsonString;
+import org.hisp.dhis.jsontree.JsonString;
 
 /**
  * Web API equivalent of a 8 character access pattern as used in

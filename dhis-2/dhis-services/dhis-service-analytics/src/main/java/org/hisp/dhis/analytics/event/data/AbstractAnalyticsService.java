@@ -43,16 +43,21 @@ import static org.hisp.dhis.common.ValueType.COORDINATE;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentGraphMap;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentNameGraphMap;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryValidator;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.calendar.Calendar;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
@@ -62,6 +67,7 @@ import org.hisp.dhis.common.MetadataItem;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.User;
@@ -153,7 +159,12 @@ public abstract class AbstractAnalyticsService
         // Data
         // ---------------------------------------------------------------------
 
-        long count = addEventData( grid, params );
+        long count = 0;
+
+        if ( !params.isSkipData() || params.analyzeOnly() )
+        {
+            count = addEventData( grid, params );
+        }
 
         // ---------------------------------------------------------------------
         // Meta-data
@@ -212,8 +223,11 @@ public abstract class AbstractAnalyticsService
         {
             final Map<String, Object> metadata = new HashMap<>();
 
-            metadata.put( ITEMS.getKey(), getMetadataItems( params ) );
-            metadata.put( DIMENSIONS.getKey(), getDimensionItems( params ) );
+            List<Option> options = getItemOptions( grid );
+
+            metadata.put( ITEMS.getKey(), getMetadataItems( params, options ) );
+
+            metadata.put( DIMENSIONS.getKey(), getDimensionItems( params, options ) );
 
             if ( params.isHierarchyMeta() || params.isShowHierarchy() )
             {
@@ -239,12 +253,49 @@ public abstract class AbstractAnalyticsService
     }
 
     /**
+     * Returns a map of metadata item options and {@link Option}.
+     *
+     * @param grid the Grid instance.
+     * @return a list of options.
+     */
+    protected List<Option> getItemOptions( Grid grid )
+    {
+        List<Option> options = new ArrayList<>();
+
+        for ( int i = 0; i < grid.getHeaders().size(); ++i )
+        {
+            GridHeader gridHeader = grid.getHeaders().get( i );
+
+            if ( gridHeader.hasOptionSet() )
+            {
+                final int columnIndex = i;
+
+                options.addAll( gridHeader
+                    .getOptionSetObject()
+                    .getOptions()
+                    .stream()
+                    .filter( opt -> grid.getRows().stream().anyMatch( r -> {
+                        Object o = r.get( columnIndex );
+                        if ( o instanceof String )
+                        {
+                            return ((String) o).equalsIgnoreCase( opt.getCode() );
+                        }
+
+                        return false;
+                    } ) ).collect( Collectors.toList() ) );
+            }
+        }
+
+        return options.stream().distinct().collect( Collectors.toList() );
+    }
+
+    /**
      * Returns a map of metadata item identifiers and {@link MetadataItem}.
      *
      * @param params the data query parameters.
      * @return a map.
      */
-    private Map<String, MetadataItem> getMetadataItems( EventQueryParams params )
+    private Map<String, MetadataItem> getMetadataItems( EventQueryParams params, List<Option> itemOptions )
     {
         Map<String, MetadataItem> metadataItemMap = AnalyticsUtils.getDimensionMetadataItemMap( params );
 
@@ -259,23 +310,60 @@ public abstract class AbstractAnalyticsService
         }
 
         params.getItemLegends().stream()
-            .filter( legend -> legend != null )
+            .filter( Objects::nonNull )
             .forEach( legend -> metadataItemMap.put( legend.getUid(),
                 new MetadataItem( legend.getDisplayName(), includeDetails ? legend.getUid() : null,
                     legend.getCode() ) ) );
 
-        params.getItemOptions().stream()
-            .filter( option -> option != null )
-            .forEach( option -> metadataItemMap.put( option.getUid(),
-                new MetadataItem( option.getDisplayName(), includeDetails ? option.getUid() : null,
-                    option.getCode() ) ) );
+        addMetadataItems( metadataItemMap, params, itemOptions );
 
         params.getItemsAndItemFilters().stream()
-            .filter( item -> item != null )
+            .filter( Objects::nonNull )
             .forEach( item -> metadataItemMap.put( item.getItemId(),
                 new MetadataItem( item.getItem().getDisplayName(), includeDetails ? item.getItem() : null ) ) );
 
         return metadataItemMap;
+    }
+
+    /**
+     * Add into the MetadataItemMap itemOptions
+     *
+     * @param metadataItemMap MetadataItemMap.
+     * @param params EventQueryParams.
+     * @param itemOptions itemOtion list.
+     */
+    private void addMetadataItems( final Map<String, MetadataItem> metadataItemMap, final EventQueryParams params,
+        final List<Option> itemOptions )
+    {
+        boolean includeDetails = params.isIncludeMetadataDetails();
+
+        if ( !params.isSkipData() )
+        {
+            // filtering if the rows in grid are there (skipData = false)
+            itemOptions.forEach( option -> metadataItemMap.put( option.getUid(),
+                new MetadataItem( option.getDisplayName(), includeDetails ? option.getUid() : null,
+                    option.getCode() ) ) );
+        }
+        else
+        {
+            // filtering if the rows in grid are not there (skipData = true
+            // only)
+            // dimension=Zj7UnCAulEk.K6uUAvq500H:IN:A00;A60;A01 -> IN indicates
+            // there is a filter
+            // the stream contains all options if no filter or only options fit
+            // to the filter
+            // options can be divided by separator <<;>>
+            params.getItemOptions().stream()
+                .filter( option -> option != null &&
+                    (params.getItems().stream().noneMatch( QueryItem::hasFilter ) ||
+                        params.getItems().stream().filter( QueryItem::hasFilter )
+                            .anyMatch( qi -> qi.getFilters().stream()
+                                .anyMatch( f -> Arrays.stream( f.getFilter().split( ";" ) )
+                                    .anyMatch( ft -> ft.equalsIgnoreCase( option.getCode() ) ) ) )) )
+                .forEach( option -> metadataItemMap.put( option.getUid(),
+                    new MetadataItem( option.getDisplayName(), includeDetails ? option.getUid() : null,
+                        option.getCode() ) ) );
+        }
     }
 
     /**
@@ -285,7 +373,7 @@ public abstract class AbstractAnalyticsService
      * @param params the data query parameters.
      * @return a map.
      */
-    private Map<String, List<String>> getDimensionItems( EventQueryParams params )
+    private Map<String, List<String>> getDimensionItems( EventQueryParams params, List<Option> itemOptions )
     {
         Calendar calendar = PeriodType.getCalendar();
 
@@ -305,7 +393,7 @@ public abstract class AbstractAnalyticsService
         {
             if ( item.hasOptionSet() )
             {
-                dimensionItems.put( item.getItemId(), item.getOptionSetFilterItemsOrAll() );
+                dimensionItems.put( item.getItemId(), getDimensionItemUidList( params, item, itemOptions ) );
             }
             else if ( item.hasLegendSet() )
             {
@@ -334,6 +422,28 @@ public abstract class AbstractAnalyticsService
         }
 
         return dimensionItems;
+    }
+
+    /**
+     * Return list of dimension item uids
+     *
+     * @param params EventQueryParams.
+     * @param item QueryItem
+     * @param itemOptions itemOtion list.
+     * @return a list of uids.
+     */
+    private List<String> getDimensionItemUidList( EventQueryParams params, QueryItem item, List<Option> itemOptions )
+    {
+        if ( params.isSkipData() )
+        {
+            return item.getOptionSetFilterItemsOrAll();
+        }
+        else
+        {
+            return itemOptions.stream()
+                .map( BaseIdentifiableObject::getUid )
+                .collect( Collectors.toList() );
+        }
     }
 
     /**

@@ -103,7 +103,7 @@ public class DefaultAnalyticsService
 
         queryValidator.validate( params );
 
-        if ( analyticsCache.isEnabled() )
+        if ( analyticsCache.isEnabled() && !params.analyzeOnly() )
         {
             final DataQueryParams immutableParams = newBuilder( params ).build();
 

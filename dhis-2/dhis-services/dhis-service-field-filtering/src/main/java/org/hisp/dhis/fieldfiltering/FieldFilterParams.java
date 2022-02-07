@@ -43,10 +43,18 @@ import org.apache.commons.lang3.StringUtils;
 @Builder
 public class FieldFilterParams<T>
 {
+    /**
+     * Objects to apply filters on.
+     */
     private final List<T> objects;
 
     @Builder.Default
     private final Set<String> filters = Collections.singleton( "*" );
+
+    /**
+     * Do not include sharing properties (user, sharing, publicAccess, etc).
+     */
+    private final boolean skipSharing;
 
     public static <O> FieldFilterParams<O> of( List<O> objects, List<String> filters )
     {
@@ -66,8 +74,8 @@ public class FieldFilterParams<T>
             .build();
     }
 
-    public FieldFilterParams<T> copy()
+    public FieldFilterParams<T> copyOf()
     {
-        return new FieldFilterParams<>( objects, filters );
+        return new FieldFilterParams<>( objects, filters, skipSharing );
     }
 }

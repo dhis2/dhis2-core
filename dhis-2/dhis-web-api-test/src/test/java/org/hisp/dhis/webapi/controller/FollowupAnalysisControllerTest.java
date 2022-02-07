@@ -34,14 +34,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.util.Arrays;
 
 import org.hisp.dhis.dataanalysis.FollowupAnalysisRequest;
 import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.webapi.json.JsonList;
-import org.hisp.dhis.webapi.json.JsonObject;
-import org.hisp.dhis.webapi.json.JsonResponse;
+import org.hisp.dhis.jsontree.JsonList;
+import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.webapi.json.domain.JsonError;
 import org.hisp.dhis.webapi.json.domain.JsonFollowupValue;
 import org.junit.jupiter.api.Test;
@@ -201,7 +202,8 @@ class FollowupAnalysisControllerTest extends AbstractDataValueControllerTest
         JsonError error = GET( "/dataAnalysis/followup?ou={ou}&de={de}&pe=2021&maxResults=11111", orgUnitId,
             dataElementId ).error( HttpStatus.CONFLICT );
         assertEquals( ErrorCode.E2206, error.getErrorCode() );
-        assertEquals( "Max results exceeds the allowed max limit: `10,000`", error.getMessage() );
+        assertEquals( "Max results exceeds the allowed max limit: `" + NumberFormat.getInstance().format( 10000 ) + "`",
+            error.getMessage() );
     }
 
     private void assertFollowupValues( String orgUnitId, String dataElementId, String period,

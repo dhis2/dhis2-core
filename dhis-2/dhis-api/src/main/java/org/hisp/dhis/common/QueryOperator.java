@@ -47,6 +47,8 @@ public enum QueryOperator
     LE( "<=" ),
     LIKE( "like" ),
     IN( "in", true ),
+    SW( "sw" ),
+    EW( "ew" ),
     // Analytics specifics
     IEQ( "==", true ),
     NE( "!=", true ),

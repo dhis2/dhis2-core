@@ -163,6 +163,7 @@ public class JacksonObjectMapperConfig
         objectMapper.registerModules( module, javaTimeModule, new Jdk8Module() );
 
         objectMapper.setSerializationInclusion( JsonInclude.Include.NON_NULL );
+        objectMapper.setDefaultPropertyInclusion( JsonInclude.Include.NON_NULL );
         objectMapper.disable( SerializationFeature.WRITE_DATES_AS_TIMESTAMPS );
         objectMapper.disable( SerializationFeature.FAIL_ON_EMPTY_BEANS );
         objectMapper.enable( SerializationFeature.WRAP_EXCEPTIONS );

@@ -132,6 +132,8 @@ public class DefaultEventAnalyticsService
 
     private static final String NAME_LAST_UPDATED = "Last Updated";
 
+    private static final String NAME_SCHEDULED_DATE = "Scheduled date";
+
     private static final String NAME_ENROLLMENT_DATE = "Enrollment date";
 
     private static final String NAME_INCIDENT_DATE = "Incident date";
@@ -153,6 +155,10 @@ public class DefaultEventAnalyticsService
     private static final String NAME_EXTENT = "Extent";
 
     private static final String NAME_POINTS = "Points";
+
+    private static final String NAME_PROGRAM_STATUS = "Program status";
+
+    private static final String NAME_EVENT_STATUS = "Event status";
 
     private static final Option OPT_TRUE = new Option( "Yes", "1" );
 
@@ -241,7 +247,7 @@ public class DefaultEventAnalyticsService
 
         queryValidator.validate( params );
 
-        if ( analyticsCache.isEnabled() )
+        if ( analyticsCache.isEnabled() && !params.analyzeOnly() )
         {
             final EventQueryParams immutableParams = new EventQueryParams.Builder( params ).build();
             return analyticsCache.getOrFetch( params, p -> getAggregatedEventDataGrid( immutableParams ) );
@@ -503,7 +509,7 @@ public class DefaultEventAnalyticsService
         // Headers and data
         // ---------------------------------------------------------------------
 
-        if ( !params.isSkipData() )
+        if ( !params.isSkipData() || params.analyzeOnly() )
         {
             // -----------------------------------------------------------------
             // Headers
@@ -714,6 +720,12 @@ public class DefaultEventAnalyticsService
             .addHeader( new GridHeader( ITEM_STORED_BY, NAME_STORED_BY, TEXT, false, true ) )
             .addHeader( new GridHeader( ITEM_LAST_UPDATED, NAME_LAST_UPDATED, DATE, false, true ) );
 
+        if ( params.containsScheduledDatePeriod() )
+        {
+            grid.addHeader( new GridHeader(
+                ITEM_SCHEDULED_DATE, NAME_SCHEDULED_DATE, DATE, false, true ) );
+        }
+
         if ( params.getProgram().isRegistration() )
         {
             grid
@@ -741,7 +753,11 @@ public class DefaultEventAnalyticsService
             .addHeader( new GridHeader(
                 ITEM_ORG_UNIT_NAME, NAME_ORG_UNIT_NAME, TEXT, false, true ) )
             .addHeader( new GridHeader(
-                ITEM_ORG_UNIT_CODE, NAME_ORG_UNIT_CODE, TEXT, false, true ) );
+                ITEM_ORG_UNIT_CODE, NAME_ORG_UNIT_CODE, TEXT, false, true ) )
+            .addHeader( new GridHeader(
+                ITEM_PROGRAM_STATUS, NAME_PROGRAM_STATUS, TEXT, false, true ) )
+            .addHeader( new GridHeader(
+                ITEM_EVENT_STATUS, NAME_EVENT_STATUS, TEXT, false, true ) );
 
         return grid;
     }
@@ -765,7 +781,7 @@ public class DefaultEventAnalyticsService
 
         long count = 0;
 
-        if ( params.getPartitions().hasAny() )
+        if ( params.getPartitions().hasAny() || params.isSkipPartitioning() )
         {
             if ( params.isPaging() )
             {

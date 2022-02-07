@@ -104,6 +104,8 @@ public class DataAggregator
 
         dataHandler.addValidationResultValues( params, grid );
 
+        dataHandler.addPerformanceMetrics( params, grid );
+
         // ---------------------------------------------------------------------
         // Meta-data
         // ---------------------------------------------------------------------

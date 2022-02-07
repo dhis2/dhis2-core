@@ -41,11 +41,26 @@ import org.hisp.dhis.program.ProgramStatus;
  */
 @Data
 @NoArgsConstructor
-public class EnrollmentAnalyticsQueryCriteria
+public class EnrollmentAnalyticsQueryCriteria extends RequestTypeAware
 {
     private Date startDate;
 
     private Date endDate;
+
+    /**
+     * Date interval for enrollment date;
+     */
+    private String enrollmentDate;
+
+    /**
+     * Time interval for incident date;
+     */
+    private String incidentDate;
+
+    /**
+     * Time interval for last updated date;
+     */
+    private String lastUpdated;
 
     private String timeField;
 
@@ -80,7 +95,7 @@ public class EnrollmentAnalyticsQueryCriteria
 
     private IdScheme dataIdScheme;
 
-    private ProgramStatus programStatus;
+    private Set<ProgramStatus> programStatus;
 
     private Integer page;
 
