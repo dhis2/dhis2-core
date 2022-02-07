@@ -84,4 +84,12 @@ public interface TrackedEntityInstanceFilterService
      */
     List<TrackedEntityInstanceFilter> getAll();
 
+    /**
+     * Validate the trackedEntityInstanceFilter
+     *
+     * @param teiFilter
+     * @return list of errors for each validation failures
+     */
+    List<String> validate( TrackedEntityInstanceFilter teiFilter );
+
 }

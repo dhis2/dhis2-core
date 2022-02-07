@@ -32,6 +32,9 @@ import org.springframework.core.Ordered;
 import com.fasterxml.jackson.databind.JsonNode;
 
 /**
+ * Interface for FieldTransformers, used to modify the Jackson Json tree
+ * dynamically (for example renaming of keys).
+ *
  * @author Morten Olav Hansen
  */
 @FunctionalInterface
