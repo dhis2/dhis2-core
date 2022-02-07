@@ -27,15 +27,13 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Date;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.commons.util.RelationshipUtils;
-import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
@@ -49,18 +47,19 @@ import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.junit.jupiter.api.Test;
+import org.hisp.dhis.webapi.json.JsonObject;
+import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 
-class TrackerRelationshipsExportControllerTest extends DhisControllerConvenienceTest
+public class TrackerRelationshipsExportControllerTest extends DhisControllerConvenienceTest
 {
 
     @Autowired
     private IdentifiableObjectManager manager;
 
     @Test
-    void testGetRelationshipByEvent()
+    public void testGetRelationshipByEvent()
     {
         OrganisationUnit orgUnit = createOrganisationUnit( 'A' );
         manager.save( orgUnit );
@@ -97,8 +96,6 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
         r.setFrom( rItem1 );
         r.setTo( rItem2 );
         r.setRelationshipType( rType );
-        r.setKey( RelationshipUtils.generateRelationshipKey( r ) );
-        r.setInvertedKey( RelationshipUtils.generateRelationshipInvertedKey( r ) );
         manager.save( r );
 
         JsonObject relationship = GET( "/tracker/relationships?event=" + programStageInstance.getUid() )
