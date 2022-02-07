@@ -147,6 +147,9 @@ public class FieldFilterService
         return objectMapper;
     }
 
+    /**
+     * Recursively applies FieldTransformers to a Json node.
+     */
     private void applyTransformers( JsonNode node, JsonNode parent, String path,
         Map<String, List<FieldTransformer>> fieldTransformers )
     {
