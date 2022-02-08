@@ -259,6 +259,30 @@ class QueryItemLocatorTest
     }
 
     @Test
+    void verifyDimensionReturnsDataElementForEnrollmentQueryWithStartIndexAndCountAndRelativePeriod()
+    {
+
+        DataElement dataElementA = createDataElement( 'A' );
+
+        ProgramStage programStageA = createProgramStage( 'A', programA );
+
+        configureDimensionForQueryItem( dataElementA, programStageA );
+
+        QueryItem queryItem = subject.getQueryItemFromDimension(
+            programStageUid + "[-1,1, LAST_3_MONTHS]" + PROGRAMSTAGE_SEP + dimension,
+            programA, EventOutputType.ENROLLMENT );
+
+        assertThat( queryItem, is( notNullValue() ) );
+        assertThat( queryItem.getItem(), is( dataElementA ) );
+        assertThat( queryItem.getProgram(), is( programA ) );
+        assertThat( queryItem.getProgramStage(), is( programStageA ) );
+
+        assertThrows( IllegalQueryException.class, () -> subject.getQueryItemFromDimension(
+            programStageUid + "[-1,1, LAST_A3_MONTHS]" + PROGRAMSTAGE_SEP + dimension,
+            programA, EventOutputType.ENROLLMENT ) );
+    }
+
+    @Test
     void verifyDimensionReturnsDataElementForEnrollmentQueryWithStartBothDates()
     {
 
@@ -279,9 +303,32 @@ class QueryItemLocatorTest
     }
 
     @Test
-    void verifyDimensionReturnsDataElementForEnrollmentQueryWithAsterisk()
+    void verifyDimensionReturnsDataElementForEnrollmentQueryWithRelativePeriod()
     {
 
+        DataElement dataElementA = createDataElement( 'A' );
+
+        ProgramStage programStageA = createProgramStage( 'A', programA );
+
+        configureDimensionForQueryItem( dataElementA, programStageA );
+
+        QueryItem queryItem = subject.getQueryItemFromDimension(
+            programStageUid + "[LAST_10_YEARS]" + PROGRAMSTAGE_SEP + dimension,
+            programA, EventOutputType.ENROLLMENT );
+
+        assertThat( queryItem, is( notNullValue() ) );
+        assertThat( queryItem.getItem(), is( dataElementA ) );
+        assertThat( queryItem.getProgram(), is( programA ) );
+        assertThat( queryItem.getProgramStage(), is( programStageA ) );
+
+        assertThrows( IllegalQueryException.class, () -> subject.getQueryItemFromDimension(
+            programStageUid + "[LAST_A3_MONTHS]" + PROGRAMSTAGE_SEP + dimension,
+            programA, EventOutputType.ENROLLMENT ) );
+    }
+
+    @Test
+    void verifyDimensionReturnsDataElementForEnrollmentQueryWithAsterisk()
+    {
         DataElement dataElementA = createDataElement( 'A' );
 
         ProgramStage programStageA = createProgramStage( 'A', programA );
