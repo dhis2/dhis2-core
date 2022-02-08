@@ -30,7 +30,6 @@ package org.hisp.dhis.tracker.validation.hooks;
 import static org.hisp.dhis.category.CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
 import static org.hisp.dhis.category.CategoryOption.DEFAULT_NAME;
 import static org.hisp.dhis.tracker.TrackerType.EVENT;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1055;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1056;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1057;
 import static org.hisp.dhis.tracker.validation.hooks.AssertValidationErrorReporter.hasTrackerError;
@@ -162,19 +161,6 @@ class EventCategoryOptValidationHookTest extends DhisConvenienceTest
         hook.validateEvent( reporter, event );
 
         assertFalse( reporter.hasErrors() );
-    }
-
-    @Test
-    void testDefaultCocWithNonDefaultCatCombo()
-    {
-
-        program.setCategoryCombo( catCombo );
-        when( validationContext.getCachedEventCategoryOptionCombo( any() ) )
-            .thenReturn( defaultCatOptionCombo );
-
-        hook.validateEvent( reporter, event );
-
-        hasTrackerError( reporter, E1055, EVENT, event.getUid() );
     }
 
     @Test

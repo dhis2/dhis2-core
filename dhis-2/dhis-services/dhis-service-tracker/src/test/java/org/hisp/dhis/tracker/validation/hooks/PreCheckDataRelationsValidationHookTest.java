@@ -35,6 +35,10 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.Collections;
@@ -49,6 +53,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DataDimensionType;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
@@ -258,14 +263,6 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     @Test
     void eventValidationSucceedsWhenAOCAndCOsAreNotSetAndProgramHasDefaultCC()
     {
-        // NOTE: this hook will not fail an event
-        // for a program with non default category combo
-        // with no attribute option combo
-        // and no attribute category options
-        // The event will only fail to import in the
-        // EventCategoryOptValidationHook
-        // non-default category combination => E1055
-
         OrganisationUnit orgUnit = organisationUnit( ORG_UNIT_ID );
         when( ctx.getOrganisationUnit( ORG_UNIT_ID ) )
             .thenReturn( orgUnit );
@@ -315,6 +312,11 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .thenReturn(
                 programStage( PROGRAM_STAGE_ID, programWithRegistration( CodeGenerator.generateUid(), orgUnit ) ) );
 
+        CategoryCombo defaultCC = defaultCategoryCombo();
+        program.setCategoryCombo( defaultCC );
+        CategoryOptionCombo defaultAOC = firstCategoryOptionCombo( defaultCC );
+        when( preheat.getDefault( CategoryOptionCombo.class ) ).thenReturn( defaultAOC );
+
         Event event = Event.builder()
             .event( CodeGenerator.generateUid() )
             .program( PROGRAM_UID )
@@ -325,8 +327,6 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         hook.validateEvent( reporter, event );
 
         assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1089 ) );
-        assertNull( reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ),
-            "AOC id should not be cached" );
     }
 
     @Test
@@ -343,6 +343,11 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         when( ctx.getProgramStage( PROGRAM_STAGE_ID ) )
             .thenReturn( programStage( PROGRAM_STAGE_ID, program ) );
 
+        CategoryCombo defaultCC = defaultCategoryCombo();
+        program.setCategoryCombo( defaultCC );
+        CategoryOptionCombo defaultAOC = firstCategoryOptionCombo( defaultCC );
+        when( preheat.getDefault( CategoryOptionCombo.class ) ).thenReturn( defaultAOC );
+
         Event event = Event.builder()
             .event( CodeGenerator.generateUid() )
             .program( PROGRAM_UID )
@@ -352,9 +357,8 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
 
         hook.validateEvent( reporter, event );
 
+        assertEquals( 1, reporter.getReportList().size() );
         assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1033 ) );
-        assertNull( reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ),
-            "AOC id should not be cached" );
     }
 
     @Test
@@ -374,6 +378,11 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .thenReturn(
                 programInstance( ENROLLMENT_ID, programWithRegistration( CodeGenerator.generateUid(), orgUnit ) ) );
 
+        CategoryCombo defaultCC = defaultCategoryCombo();
+        program.setCategoryCombo( defaultCC );
+        CategoryOptionCombo defaultAOC = firstCategoryOptionCombo( defaultCC );
+        when( preheat.getDefault( CategoryOptionCombo.class ) ).thenReturn( defaultAOC );
+
         Event event = Event.builder()
             .event( CodeGenerator.generateUid() )
             .program( PROGRAM_UID )
@@ -384,9 +393,8 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
 
         hook.validateEvent( reporter, event );
 
+        assertEquals( 1, reporter.getReportList().size() );
         assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1079 ) );
-        assertNull( reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ),
-            "AOC id should not be cached" );
     }
 
     @Test
@@ -407,6 +415,11 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         when( ctx.getProgramInstance( ENROLLMENT_ID ) )
             .thenReturn( programInstance( ENROLLMENT_ID, program ) );
 
+        CategoryCombo defaultCC = defaultCategoryCombo();
+        program.setCategoryCombo( defaultCC );
+        CategoryOptionCombo defaultAOC = firstCategoryOptionCombo( defaultCC );
+        when( preheat.getDefault( CategoryOptionCombo.class ) ).thenReturn( defaultAOC );
+
         Event event = Event.builder()
             .event( CodeGenerator.generateUid() )
             .program( PROGRAM_UID )
@@ -417,45 +430,26 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
 
         hook.validateEvent( reporter, event );
 
+        assertEquals( 1, reporter.getReportList().size() );
         assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1029 ) );
-        assertNull( reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ),
-            "AOC id should not be cached" );
     }
 
     @Test
-    void eventValidationSucceedsWhenAOCAndCOsAreNotSet()
+    void eventValidationFailsWhenNoAOCAndNoCOsAreSetAndProgramHasNonDefaultCC()
     {
-        // NOTE: this hook will not fail an event
-        // for a program with non default category combo
-        // with no attribute option combo
-        // and no attribute category options
-        // The event will only fail to import in the
-        // EventCategoryOptValidationHook
-        // non-default category combination => E1055
-        // this mechanism relies on this hook putting the defaultAOC in the
-        // cache
-        // for the other hook to read it
-
         OrganisationUnit orgUnit = setupOrgUnit();
         Program program = setupProgram( orgUnit );
-
-        CategoryCombo defaultCC = defaultCategoryCombo();
-        program.setCategoryCombo( defaultCC );
-        CategoryOptionCombo defaultAOC = firstCategoryOptionCombo( defaultCC );
-        when( preheat.getDefault( CategoryOptionCombo.class ) ).thenReturn( defaultAOC );
-
-        CategoryCombo cc = categoryCombo();
-        program.setCategoryCombo( cc );
+        program.setCategoryCombo( categoryCombo() );
 
         Event event = eventBuilder()
             .build();
 
         hook.validateEvent( reporter, event );
 
-        assertFalse( reporter.hasErrors() );
-        assertEquals( defaultAOC,
-            reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ),
-            "AOC id should be cached" );
+        assertEquals( 1, reporter.getReportList().size() );
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1055 ) );
+        assertNull( reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ),
+            "AOC id should not be cached" );
     }
 
     @Test
@@ -464,22 +458,15 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         OrganisationUnit orgUnit = setupOrgUnit();
         Program program = setupProgram( orgUnit );
 
-        CategoryCombo defaultCC = defaultCategoryCombo();
-        CategoryOptionCombo defaultAOC = firstCategoryOptionCombo( defaultCC );
-        when( preheat.getDefault( CategoryOptionCombo.class ) ).thenReturn( defaultAOC );
-
         CategoryCombo cc = categoryCombo();
         program.setCategoryCombo( cc );
-        CategoryOptionCombo aoc = firstCategoryOptionCombo( cc );
         CategoryOption co = cc.getCategoryOptions().get( 0 );
-        // when( preheat.getCategoryOption( co.getUid() ) ).thenReturn( co );
-        // when( categoryService.getCategoryOptionCombo( cc, Sets.newHashSet( co
-        // ) ) ).thenReturn( aoc );
-        // when( preheat.getIdentifiers() ).thenReturn(
-        // TrackerIdentifierParams.builder()
-        // .dataElementIdScheme( TrackerIdentifier.UID ).build() );
-        // when( preheat.getCategoryOptionCombo( aoc.getUid() ) ).thenReturn(
-        // aoc );
+        when( preheat.getCategoryOption( co.getUid() ) ).thenReturn( co );
+        CategoryOptionCombo aoc = firstCategoryOptionCombo( cc );
+        when( categoryService.getCategoryOptionCombo( cc, Sets.newHashSet( co ) ) ).thenReturn( aoc );
+        when( preheat.getIdentifiers() ).thenReturn(
+            TrackerIdentifierParams.builder()
+                .categoryOptionComboIdScheme( TrackerIdentifier.NAME ).build() );
 
         Event event = eventBuilder()
             .attributeCategoryOptions( co.getUid() )
@@ -488,14 +475,37 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         hook.validateEvent( reporter, event );
 
         assertFalse( reporter.hasErrors() );
-        // DHIS2-12460 this here shows the root of the bug.
-        // it shows that even if the program has a non-default cc
-        // the cos selected are part of the non-default cc
-        // the current implementation uses the default cc instead of finding
-        // the AOC id using the program.cc and event.cos
-        assertEquals( defaultAOC,
+        assertEquals( aoc,
             reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ),
             "AOC id should be cached" );
+        verify( preheat, times( 1 ) ).put( TrackerIdentifier.NAME, aoc );
+    }
+
+    @Test
+    void eventValidationFailsWhenOnlyCOsAreSetButAOCCannotBeFound()
+    {
+        OrganisationUnit orgUnit = setupOrgUnit();
+        Program program = setupProgram( orgUnit );
+
+        CategoryCombo cc = categoryCombo();
+        program.setCategoryCombo( cc );
+        CategoryOption co = cc.getCategoryOptions().get( 0 );
+        when( preheat.getCategoryOption( co.getUid() ) ).thenReturn( co );
+
+        when( categoryService.getCategoryOptionCombo( cc, Sets.newHashSet( co ) ) ).thenReturn( null );
+
+        Event event = eventBuilder()
+            .attributeCategoryOptions( co.getUid() )
+            .build();
+
+        hook.validateEvent( reporter, event );
+
+        assertEquals( 1, reporter.getReportList().size() );
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1115 &&
+            r.getErrorMessage().contains( program.getCategoryCombo().getUid() ) ) );
+        assertNull( reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ),
+            "AOC id should not be cached" );
+        verify( preheat, times( 0 ) ).put( any(), (IdentifiableObject) any() );
     }
 
     @Test
@@ -506,10 +516,11 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
 
         CategoryCombo defaultCC = defaultCategoryCombo();
         program.setCategoryCombo( defaultCC );
-        CategoryOptionCombo defaultAOC = firstCategoryOptionCombo( defaultCC );
-        when( preheat.getDefault( CategoryOptionCombo.class ) ).thenReturn( defaultAOC );
 
         CategoryOption defaultCO = defaultCC.getCategoryOptions().get( 0 );
+        when( preheat.getCategoryOption( defaultCO.getUid() ) ).thenReturn( defaultCO );
+        CategoryOptionCombo defaultAOC = firstCategoryOptionCombo( defaultCC );
+        when( preheat.getDefault( CategoryOptionCombo.class ) ).thenReturn( defaultAOC );
 
         Event event = eventBuilder()
             .attributeCategoryOptions( defaultCO.getUid() )
@@ -521,36 +532,19 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         assertEquals( defaultAOC,
             reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ),
             "AOC id should be cached" );
+        verify( preheat, times( 0 ) ).put( any(), eq( defaultAOC ) );
     }
 
     @Test
-    void eventValidationSucceedsWhenOnlyCOsAreSetToCONotInCCAndEventProgramHasDefaultCC()
+    void eventValidationFailsWhenOnlyCOsAreSetToCONotInCCAndEventProgramHasDefaultCC()
     {
-        // TODO(DHIS2-12460) do we want this behavior?
-        // We import an event for a program with a default category combo where
-        // the event payload has only the
-        // attribute category options set to a category option that is not in
-        // the default category combo
-        // the event is then persisted with the default attributeoptioncomboid |
-        // 4 (default, uid='HllvX50cXC0')
         OrganisationUnit orgUnit = setupOrgUnit();
         Program program = setupProgram( orgUnit );
-
-        CategoryCombo defaultCC = defaultCategoryCombo();
-        program.setCategoryCombo( defaultCC );
-        CategoryOptionCombo defaultAOC = firstCategoryOptionCombo( defaultCC );
-        when( preheat.getDefault( CategoryOptionCombo.class ) ).thenReturn( defaultAOC );
+        program.setCategoryCombo( defaultCategoryCombo() );
 
         CategoryCombo cc = categoryCombo();
         CategoryOption co = cc.getCategoryOptions().get( 0 );
-        program.setCategoryCombo( cc );
-        CategoryOptionCombo aoc = firstCategoryOptionCombo( cc );
-        // when( preheat.getCategoryOption( co.getUid() ) ).thenReturn( co );
-        // when( categoryService.getCategoryOptionCombo( cc, Sets.newHashSet( co
-        // ) ) ).thenReturn( aoc );
-        // when( preheat.getIdentifiers() ).thenReturn(
-        // TrackerIdentifierParams.builder()
-        // .dataElementIdScheme( TrackerIdentifier.UID ).build() );
+        when( preheat.getCategoryOption( co.getUid() ) ).thenReturn( co );
 
         Event event = eventBuilder()
             .attributeCategoryOptions( co.getUid() )
@@ -558,14 +552,42 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
 
         hook.validateEvent( reporter, event );
 
-        assertFalse( reporter.hasErrors() );
-        assertEquals( defaultAOC,
-            reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ),
-            "AOC id should be cached" );
+        assertEquals( 1, reporter.getReportList().size() );
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1117 &&
+            r.getErrorMessage().contains( co.getUid() ) &&
+            r.getErrorMessage().contains( program.getCategoryCombo().getUid() ) ) );
+        assertNull( reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ),
+            "AOC id should not be cached" );
+        verify( preheat, times( 0 ) ).put( any(), (IdentifiableObject) any() );
     }
 
     @Test
-    void eventValidationSucceedsWhenOnlyAOCIsSetAndItExists()
+    void eventValidationFailsWhenOnlyCOsAreSetToCONotInProgramCC()
+    {
+        OrganisationUnit orgUnit = setupOrgUnit();
+        Program program = setupProgram( orgUnit );
+        program.setCategoryCombo( categoryCombo() );
+
+        CategoryOption co = createCategoryOption( 'B' );
+        when( preheat.getCategoryOption( co.getUid() ) ).thenReturn( co );
+
+        Event event = eventBuilder()
+            .attributeCategoryOptions( co.getUid() )
+            .build();
+
+        hook.validateEvent( reporter, event );
+
+        assertEquals( 1, reporter.getReportList().size() );
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1117 &&
+            r.getErrorMessage().contains( co.getUid() ) &&
+            r.getErrorMessage().contains( program.getCategoryCombo().getUid() ) ) );
+        assertNull( reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ),
+            "AOC id should not be cached" );
+        verify( preheat, times( 0 ) ).put( any(), (IdentifiableObject) any() );
+    }
+
+    @Test
+    void eventValidationSucceedsWhenOnlyAOCIsSet()
     {
         OrganisationUnit orgUnit = setupOrgUnit();
         Program program = setupProgram( orgUnit );
@@ -597,6 +619,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         program.setCategoryCombo( defaultCC );
         CategoryOptionCombo defaultAOC = firstCategoryOptionCombo( defaultCC );
         when( preheat.getCategoryOptionCombo( defaultAOC.getUid() ) ).thenReturn( defaultAOC );
+        when( preheat.getDefault( CategoryOptionCombo.class ) ).thenReturn( defaultAOC );
 
         Event event = eventBuilder()
             .attributeOptionCombo( defaultAOC.getUid() )
@@ -611,15 +634,11 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
-    void eventValidationFailsWhenOnlyAOCIsSetToUnknownAndEventProgramHasDefaultCC()
+    void eventValidationFailsWhenOnlyAOCIsSetEventProgramHasDefaultCCAndAOCIsNotFound()
     {
         OrganisationUnit orgUnit = setupOrgUnit();
         Program program = setupProgram( orgUnit );
-
-        CategoryCombo defaultCC = defaultCategoryCombo();
-        program.setCategoryCombo( defaultCC );
-        CategoryOptionCombo defaultAOC = firstCategoryOptionCombo( defaultCC );
-        when( preheat.getDefault( CategoryOptionCombo.class ) ).thenReturn( defaultAOC );
+        program.setCategoryCombo( defaultCategoryCombo() );
 
         String UNKNOWN_AOC_ID = CodeGenerator.generateUid();
         when( preheat.getCategoryOptionCombo( UNKNOWN_AOC_ID ) ).thenReturn( null );
@@ -637,13 +656,12 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
-    void eventValidationFailsWhenOnlyAOCIsSetAndItDoesNotExist()
+    void eventValidationFailsWhenOnlyAOCIsSetAndAOCIsNotFound()
     {
         OrganisationUnit orgUnit = setupOrgUnit();
         Program program = setupProgram( orgUnit );
+        program.setCategoryCombo( categoryCombo() );
 
-        CategoryCombo cc = categoryCombo();
-        program.setCategoryCombo( cc );
         String UNKNOWN_AOC_ID = CodeGenerator.generateUid();
         when( preheat.getCategoryOptionCombo( UNKNOWN_AOC_ID ) ).thenReturn( null );
 
@@ -655,6 +673,54 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
 
         assertEquals( 1, reporter.getReportList().size() );
         assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1115 ) );
+        assertNull( reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ),
+            "AOC id should not be cached" );
+    }
+
+    @Test
+    void eventValidationFailsWhenOnlyAOCIsSetToAOCNotInProgramCC()
+    {
+        OrganisationUnit orgUnit = setupOrgUnit();
+        Program program = setupProgram( orgUnit );
+        program.setCategoryCombo( categoryCombo( 'A' ) );
+
+        CategoryOptionCombo aoc = firstCategoryOptionCombo( categoryCombo( 'B' ) );
+        when( preheat.getCategoryOptionCombo( aoc.getUid() ) ).thenReturn( aoc );
+
+        Event event = eventBuilder()
+            .attributeOptionCombo( aoc.getUid() )
+            .build();
+
+        hook.validateEvent( reporter, event );
+
+        assertEquals( 1, reporter.getReportList().size() );
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1054 &&
+            r.getErrorMessage().contains( aoc.getUid() ) &&
+            r.getErrorMessage().contains( program.getCategoryCombo().getUid() ) ) );
+        assertNull( reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ),
+            "AOC id should not be cached" );
+    }
+
+    @Test
+    void eventValidationFailsWhenOnlyAOCIsSetToAOCNotInProgramCCAndEventProgramHasDefaultCC()
+    {
+        OrganisationUnit orgUnit = setupOrgUnit();
+        Program program = setupProgram( orgUnit );
+        program.setCategoryCombo( defaultCategoryCombo() );
+
+        CategoryOptionCombo aoc = firstCategoryOptionCombo( categoryCombo( 'B' ) );
+        when( preheat.getCategoryOptionCombo( aoc.getUid() ) ).thenReturn( aoc );
+
+        Event event = eventBuilder()
+            .attributeOptionCombo( aoc.getUid() )
+            .build();
+
+        hook.validateEvent( reporter, event );
+
+        assertEquals( 1, reporter.getReportList().size() );
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1054 &&
+            r.getErrorMessage().contains( aoc.getUid() ) &&
+            r.getErrorMessage().contains( program.getCategoryCombo().getUid() ) ) );
         assertNull( reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ),
             "AOC id should not be cached" );
     }
@@ -668,15 +734,12 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         CategoryCombo defaultCC = defaultCategoryCombo();
         program.setCategoryCombo( defaultCC );
         CategoryOptionCombo defaultAOC = firstCategoryOptionCombo( defaultCC );
+        when( preheat.getCategoryOptionCombo( defaultAOC.getUid() ) ).thenReturn( defaultAOC );
+        when( preheat.getDefault( CategoryOptionCombo.class ) ).thenReturn( defaultAOC );
 
         CategoryOption defaultCO = defaultCC.getCategoryOptions().get( 0 );
         program.setCategoryCombo( defaultCC );
         when( preheat.getCategoryOption( defaultCO.getUid() ) ).thenReturn( defaultCO );
-
-        when( categoryService.getCategoryOptionCombo( defaultCC, Sets.newHashSet( defaultCO ) ) )
-            .thenReturn( defaultAOC );
-        when( preheat.getIdentifiers() ).thenReturn( TrackerIdentifierParams.builder()
-            .dataElementIdScheme( TrackerIdentifier.UID ).build() );
 
         Event event = eventBuilder()
             .attributeOptionCombo( defaultAOC.getUid() )
@@ -689,11 +752,15 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         assertEquals( defaultAOC,
             reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ),
             "AOC id should be cached" );
-        String cacheKey = defaultCO.getUid() + program.getCategoryCombo().getUid();
-        assertTrue( reporter.getValidationContext().getCachedEventAOCProgramCC()
-            .containsKey( cacheKey ), "AOC id should be cached" );
-        assertEquals( defaultAOC.getUid(), reporter.getValidationContext().getCachedEventAOCProgramCC()
-            .get( cacheKey ), "AOC id should be cached" );
+        // TODO do we need this?
+        // String cacheKey = defaultCO.getUid() +
+        // program.getCategoryCombo().getUid();
+        // assertTrue(
+        // reporter.getValidationContext().getCachedEventAOCProgramCC()
+        // .containsKey( cacheKey ), "AOC id should be cached" );
+        // assertEquals( defaultAOC.getUid(),
+        // reporter.getValidationContext().getCachedEventAOCProgramCC()
+        // .get( cacheKey ), "AOC id should be cached" );
     }
 
     @Test
@@ -703,13 +770,11 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         Program program = setupProgram( orgUnit );
 
         CategoryCombo cc = categoryCombo();
-        CategoryOption co = cc.getCategoryOptions().get( 0 );
         program.setCategoryCombo( cc );
-        CategoryOptionCombo aoc = firstCategoryOptionCombo( cc );
+        CategoryOption co = cc.getCategoryOptions().get( 0 );
         when( preheat.getCategoryOption( co.getUid() ) ).thenReturn( co );
-        when( categoryService.getCategoryOptionCombo( cc, Sets.newHashSet( co ) ) ).thenReturn( aoc );
-        when( preheat.getIdentifiers() ).thenReturn( TrackerIdentifierParams.builder()
-            .dataElementIdScheme( TrackerIdentifier.UID ).build() );
+        CategoryOptionCombo aoc = firstCategoryOptionCombo( cc );
+        when( preheat.getCategoryOptionCombo( aoc.getUid() ) ).thenReturn( aoc );
 
         Event event = eventBuilder()
             .attributeOptionCombo( aoc.getUid() )
@@ -722,52 +787,41 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         assertEquals( aoc,
             reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ),
             "AOC id should be cached" );
-        String cacheKey = co.getUid() + program.getCategoryCombo().getUid();
-        assertTrue( reporter.getValidationContext().getCachedEventAOCProgramCC()
-            .containsKey( cacheKey ), "AOC id should be cached" );
-        assertEquals( aoc.getUid(), reporter.getValidationContext().getCachedEventAOCProgramCC()
-            .get( cacheKey ), "AOC id should be cached" );
+        // TODO do we need this?
+        // String cacheKey = co.getUid() + program.getCategoryCombo().getUid();
+        // assertTrue(
+        // reporter.getValidationContext().getCachedEventAOCProgramCC()
+        // .containsKey( cacheKey ), "AOC id should be cached" );
+        // assertEquals( aoc.getUid(),
+        // reporter.getValidationContext().getCachedEventAOCProgramCC()
+        // .get( cacheKey ), "AOC id should be cached" );
     }
 
     @Test
-    void eventValidationSucceedsWhenEventAOCAndEventCOsAreSetAndAOCIsNotFound()
+    void eventValidationFailsWhenEventAOCAndEventCOsAreSetAndAOCIsNotFound()
     {
-        // TODO(DHIS2-12460) do we want this behavior?
-        // We end up importing an event with an invalid AOC id in the payload.
-        // The event is eventually persisted with no attributeoptioncomboid set
-        // This seems like a bug to me.
-
-        // TODO check again if my test setup reflects what is happening in the
-        // real world. The behavior described above
-        // is shown.
         OrganisationUnit orgUnit = setupOrgUnit();
         Program program = setupProgram( orgUnit );
 
         CategoryCombo cc = categoryCombo();
-        CategoryOption co = cc.getCategoryOptions().get( 0 );
         program.setCategoryCombo( cc );
-        CategoryOptionCombo aoc = firstCategoryOptionCombo( cc );
+        CategoryOption co = cc.getCategoryOptions().get( 0 );
         when( preheat.getCategoryOption( co.getUid() ) ).thenReturn( co );
-        when( categoryService.getCategoryOptionCombo( cc, Sets.newHashSet( co ) ) ).thenReturn( aoc );
-        when( preheat.getIdentifiers() ).thenReturn( TrackerIdentifierParams.builder()
-            .dataElementIdScheme( TrackerIdentifier.UID ).build() );
+
+        String UNKNOWN_AOC_ID = CodeGenerator.generateUid();
+        when( preheat.getCategoryOptionCombo( UNKNOWN_AOC_ID ) ).thenReturn( null );
 
         Event event = eventBuilder()
-            .attributeOptionCombo( CodeGenerator.generateUid() )
+            .attributeOptionCombo( UNKNOWN_AOC_ID )
             .attributeCategoryOptions( co.getUid() )
             .build();
 
         hook.validateEvent( reporter, event );
 
-        assertFalse( reporter.hasErrors() );
-        assertEquals( aoc,
-            reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ),
-            "AOC id should be cached" );
-        String cacheKey = co.getUid() + program.getCategoryCombo().getUid();
-        assertTrue( reporter.getValidationContext().getCachedEventAOCProgramCC()
-            .containsKey( cacheKey ), "AOC id should be cached" );
-        assertEquals( aoc.getUid(), reporter.getValidationContext().getCachedEventAOCProgramCC()
-            .get( cacheKey ), "AOC id should be cached" );
+        assertEquals( 1, reporter.getReportList().size() );
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1115 ) );
+        assertNull( reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ),
+            "AOC id should not be cached" );
     }
 
     @Test
@@ -777,21 +831,58 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         Program program = setupProgram( orgUnit );
 
         CategoryCombo cc = categoryCombo();
-        CategoryOption co = cc.getCategoryOptions().get( 0 );
         program.setCategoryCombo( cc );
         CategoryOptionCombo aoc = firstCategoryOptionCombo( cc );
-        when( preheat.getCategoryOption( co.getUid() ) ).thenReturn( null );
+        when( preheat.getCategoryOptionCombo( aoc.getUid() ) ).thenReturn( aoc );
+
+        String UNKNOWN_CO_ID = CodeGenerator.generateUid();
+        when( preheat.getCategoryOption( UNKNOWN_CO_ID ) ).thenReturn( null );
 
         Event event = eventBuilder()
             .attributeOptionCombo( aoc.getUid() )
-            .attributeCategoryOptions( co.getUid() )
+            .attributeCategoryOptions( UNKNOWN_CO_ID )
             .build();
 
         hook.validateEvent( reporter, event );
 
-        assertEquals( 2, reporter.getReportList().size() );
+        assertEquals( 1, reporter.getReportList().size() );
         assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1116 ) );
+        assertNull( reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ),
+            "AOC id should not be cached" );
+    }
+
+    @Test
+    void eventValidationFailsAccumulatingAOCAndCOsNotFoundErrors()
+    {
+        OrganisationUnit orgUnit = setupOrgUnit();
+        Program program = setupProgram( orgUnit );
+
+        CategoryCombo cc = categoryCombo();
+        program.setCategoryCombo( cc );
+        CategoryOption co = cc.getCategoryOptions().get( 0 );
+        when( preheat.getCategoryOption( co.getUid() ) ).thenReturn( co );
+
+        String UNKNOWN_CO_ID1 = CodeGenerator.generateUid();
+        when( preheat.getCategoryOption( UNKNOWN_CO_ID1 ) ).thenReturn( null );
+        String UNKNOWN_CO_ID2 = CodeGenerator.generateUid();
+        when( preheat.getCategoryOption( UNKNOWN_CO_ID2 ) ).thenReturn( null );
+
+        String UNKNOWN_AOC_ID = CodeGenerator.generateUid();
+        when( preheat.getCategoryOptionCombo( UNKNOWN_AOC_ID ) ).thenReturn( null );
+
+        Event event = eventBuilder()
+            .attributeOptionCombo( UNKNOWN_AOC_ID )
+            .attributeCategoryOptions( UNKNOWN_CO_ID1 + ";" + co.getUid() + ";" + UNKNOWN_CO_ID2 )
+            .build();
+
+        hook.validateEvent( reporter, event );
+
+        assertEquals( 3, reporter.getReportList().size() );
         assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1115 ) );
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1116
+            && r.getErrorMessage().contains( UNKNOWN_CO_ID1 ) ) );
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1116
+            && r.getErrorMessage().contains( UNKNOWN_CO_ID2 ) ) );
         assertNull( reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ),
             "AOC id should not be cached" );
     }
@@ -803,22 +894,24 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         Program program = setupProgram( orgUnit );
 
         CategoryCombo cc = categoryCombo();
-        CategoryOption co = cc.getCategoryOptions().get( 0 );
         program.setCategoryCombo( cc );
         CategoryOptionCombo aoc = firstCategoryOptionCombo( cc );
-        when( preheat.getCategoryOption( co.getUid() ) ).thenReturn( co );
-        when( categoryService.getCategoryOptionCombo( cc, Sets.newHashSet( co ) ) ).thenReturn( null );
+        when( preheat.getCategoryOptionCombo( aoc.getUid() ) ).thenReturn( aoc );
+
+        CategoryOption eventCO = createCategoryOption( 'C' );
+        when( preheat.getCategoryOption( eventCO.getUid() ) ).thenReturn( eventCO );
 
         Event event = eventBuilder()
             .attributeOptionCombo( aoc.getUid() )
-            .attributeCategoryOptions( co.getUid() )
+            .attributeCategoryOptions( eventCO.getUid() )
             .build();
 
         hook.validateEvent( reporter, event );
 
-        assertEquals( 2, reporter.getReportList().size() );
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1117 ) );
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1115 ) );
+        assertEquals( 1, reporter.getReportList().size() );
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1117 &&
+            r.getErrorMessage().contains( eventCO.getUid() ) &&
+            r.getErrorMessage().contains( program.getCategoryCombo().getUid() ) ) );
         assertNull( reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ),
             "AOC id should not be cached" );
     }
@@ -996,9 +1089,14 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
 
     private CategoryCombo categoryCombo()
     {
-        CategoryOption co = createCategoryOption( 'A' );
-        Category ca = createCategory( 'A', co );
-        CategoryCombo cc = createCategoryCombo( 'A', ca );
+        return categoryCombo( 'A' );
+    }
+
+    private CategoryCombo categoryCombo( char uniqueIdentifier )
+    {
+        CategoryOption co = createCategoryOption( uniqueIdentifier );
+        Category ca = createCategory( uniqueIdentifier, co );
+        CategoryCombo cc = createCategoryCombo( uniqueIdentifier, ca );
         cc.setDataDimensionType( DataDimensionType.ATTRIBUTE );
         CategoryOptionCombo aoc = createCategoryOptionCombo( cc, co );
         cc.setOptionCombos( Sets.newHashSet( aoc ) );
