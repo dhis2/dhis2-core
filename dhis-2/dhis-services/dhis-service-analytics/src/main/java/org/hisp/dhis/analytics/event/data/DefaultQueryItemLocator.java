@@ -32,33 +32,27 @@ import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.common.DimensionalObject.ITEM_SEP;
 import static org.hisp.dhis.common.DimensionalObject.PROGRAMSTAGE_SEP;
 
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.event.QueryItemLocator;
+import org.hisp.dhis.analytics.util.RepeatableStageParamsHelper;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.RepeatableStageParams;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.common.exception.InvalidRepeatableStageParamsException;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.legend.LegendSetService;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.RelativePeriodEnum;
-import org.hisp.dhis.period.RelativePeriods;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
@@ -68,7 +62,6 @@ import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Component;
 
 /**
@@ -89,30 +82,6 @@ public class DefaultQueryItemLocator
     private final LegendSetService legendSetService;
 
     private final RelationshipTypeService relationshipTypeService;
-
-    private static final String PS_INDEX_REGEX = "\\[-?\\d+\\]";
-
-    private static final String PS_ASTERISK_REGEX = "\\[\\*\\]";
-
-    private static final String PS_INDEX_COUNT_REGEX = "\\[-?\\d+,\\s*\\d+\\]";
-
-    private static final String PS_INDEX_COUNT_START_DATE_END_DATE_REGEX = "\\[-?\\d+,\\s*\\d+,\\s*\\d{4}\\-(0[1-9]|1[012])\\-(0[1-9]|[12][0-9]|3[01]),\\s*\\d{4}\\-(0[1-9]|1[012])\\-(0[1-9]|[12][0-9]|3[01])\\]";
-
-    private static final String PS_INDEX_COUNT_RELATIVE_PERIOD_REGEX = "\\[-?\\d+,\\s*\\d+,\\s*\\w+\\]";
-
-    private static final String PS_START_DATE_END_DATE_REGEX = "\\[\\d{4}\\-(0[1-9]|1[012])\\-(0[1-9]|[12][0-9]|3[01]),\\s*\\d{4}\\-(0[1-9]|1[012])\\-(0[1-9]|[12][0-9]|3[01])\\]";
-
-    private static final String PS_RELATIVE_PERIOD_REGEX = "\\[\\w+\\]";
-
-    private static final Pattern[] PS_PARAMS_PATTERN_LIST = {
-        Pattern.compile( PS_INDEX_REGEX ),
-        Pattern.compile( PS_ASTERISK_REGEX ),
-        Pattern.compile( PS_INDEX_COUNT_REGEX ),
-        Pattern.compile( PS_INDEX_COUNT_START_DATE_END_DATE_REGEX ),
-        Pattern.compile( PS_INDEX_COUNT_RELATIVE_PERIOD_REGEX ),
-        Pattern.compile( PS_START_DATE_END_DATE_REGEX ),
-        Pattern.compile( PS_RELATIVE_PERIOD_REGEX )
-    };
 
     public DefaultQueryItemLocator( ProgramStageService programStageService, DataElementService dataElementService,
         TrackedEntityAttributeService attributeService, ProgramIndicatorService programIndicatorService,
@@ -142,7 +111,7 @@ public class DefaultQueryItemLocator
 
     private LegendSet getLegendSet( String dimension )
     {
-        dimension = removeOffset( dimension );
+        dimension = RepeatableStageParamsHelper.removeOffset( dimension );
 
         String[] legendSplit = dimension.split( ITEM_SEP );
 
@@ -153,7 +122,7 @@ public class DefaultQueryItemLocator
     private String getElement( String dimension, int pos )
     {
 
-        String dim = StringUtils.substringBefore( removeOffset( dimension ), ITEM_SEP );
+        String dim = StringUtils.substringBefore( RepeatableStageParamsHelper.removeOffset( dimension ), ITEM_SEP );
 
         String[] dimSplit = dim.split( "\\" + PROGRAMSTAGE_SEP );
 
@@ -257,201 +226,19 @@ public class DefaultQueryItemLocator
             : null);
     }
 
-    private static String removeOffset( String dimension )
-    {
-        Optional<Pattern> pattern = Arrays.stream( PS_PARAMS_PATTERN_LIST )
-            .filter( p -> p.matcher( dimension ).find() )
-            .findFirst();
-
-        if ( pattern.isEmpty() )
-        {
-            return dimension;
-        }
-
-        final Matcher matcher = pattern.get().matcher( dimension );
-
-        if ( matcher.find() )
-        {
-            return dimension.replace( matcher.group( 0 ), "" );
-        }
-
-        return dimension;
-    }
-
     private static RepeatableStageParams getRepeatableStageParams( String dimension )
     {
-        Pattern pattern = Arrays.stream( PS_PARAMS_PATTERN_LIST )
-            .filter( p -> p.matcher( dimension ).find() )
-            .findFirst()
-            .orElse( Pattern.compile( PS_INDEX_REGEX ) );
-
-        final Matcher matcher = pattern.matcher( dimension );
-
-        switch ( pattern.toString() )
+        try
         {
-        case PS_ASTERISK_REGEX:
+            return RepeatableStageParamsHelper.getRepeatableStageParams( dimension );
 
-            return getRepeatableStageParams( 0, Integer.MAX_VALUE );
-
-        case PS_INDEX_COUNT_REGEX:
+        }
+        catch ( InvalidRepeatableStageParamsException e )
         {
-            String[] tokens = getMatchedRepeatableStageParamTokens( matcher );
+            ErrorMessage errorMessage = new ErrorMessage( dimension, ErrorCode.E1101 );
 
-            if ( tokens.length > 1 )
-            {
-                return getRepeatableStageParams( Integer.parseInt( tokens[0].trim() ),
-                    Integer.parseInt( tokens[1].trim() ) );
-            }
-
-            return getRepeatableStageParams( Integer.parseInt( tokens[0].trim() ), 1 );
+            throw new IllegalQueryException( errorMessage );
         }
-        case PS_INDEX_REGEX:
-
-            if ( !matcher.find() )
-            {
-                return null;
-            }
-
-            String index = matcher.group( 0 )
-                .replace( "[", "" )
-                .replace( "]", "" );
-
-            return getRepeatableStageParams( Integer.parseInt( index ), 1 );
-
-        case PS_INDEX_COUNT_START_DATE_END_DATE_REGEX:
-        {
-            String[] tokens = getMatchedRepeatableStageParamTokens( matcher );
-
-            if ( tokens.length > 3 )
-            {
-                return getRepeatableStageParams( Integer.parseInt( tokens[0] ), Integer.parseInt( tokens[1].trim() ),
-                    DateUtils.parseDate( tokens[2].trim() ), DateUtils.parseDate( tokens[3].trim() ) );
-            }
-
-            return getRepeatableStageParams( Integer.parseInt( tokens[0] ), 1 );
-        }
-        case PS_INDEX_COUNT_RELATIVE_PERIOD_REGEX:
-        {
-            String[] tokens = getMatchedRepeatableStageParamTokens( matcher );
-
-            if ( tokens.length <= 2 || !RelativePeriodEnum.contains( tokens[2].trim() ) )
-            {
-                ErrorMessage errorMessage = new ErrorMessage( tokens[2].trim(), ErrorCode.E1101 );
-
-                throw new IllegalQueryException( errorMessage );
-
-            }
-
-            List<Period> periods = RelativePeriods
-                .getRelativePeriodsFromEnum( RelativePeriodEnum.valueOf( tokens[2].trim() ), new Date() );
-
-            if ( periods.isEmpty() )
-            {
-                ErrorMessage errorMessage = new ErrorMessage( tokens[2].trim(), ErrorCode.E1101 );
-
-                throw new IllegalQueryException( errorMessage );
-            }
-
-            return getRepeatableStageParams( Integer.parseInt( tokens[0] ), Integer.parseInt( tokens[1].trim() ),
-                periods.get( 0 ).getStartDate(), periods.get( periods.size() - 1 ).getEndDate() );
-        }
-        case PS_START_DATE_END_DATE_REGEX:
-        {
-            String[] tokens = getMatchedRepeatableStageParamTokens( matcher );
-
-            if ( tokens.length > 1 )
-            {
-                return getRepeatableStageParams( DateUtils.parseDate( tokens[0].trim() ),
-                    DateUtils.parseDate( tokens[1].trim() ) );
-            }
-
-            return getRepeatableStageParams( 0, Integer.MAX_VALUE );
-        }
-        case PS_RELATIVE_PERIOD_REGEX:
-        {
-            String[] tokens = getMatchedRepeatableStageParamTokens( matcher );
-
-            if ( tokens.length <= 0 || !RelativePeriodEnum.contains( tokens[0].trim() ) )
-            {
-                ErrorMessage errorMessage = new ErrorMessage( tokens[0].trim(), ErrorCode.E1101 );
-
-                throw new IllegalQueryException( errorMessage );
-
-            }
-
-            List<Period> periods = RelativePeriods
-                .getRelativePeriodsFromEnum( RelativePeriodEnum.valueOf( tokens[0].trim() ), new Date() );
-
-            if ( periods.isEmpty() )
-            {
-                ErrorMessage errorMessage = new ErrorMessage( tokens[0].trim(), ErrorCode.E1101 );
-
-                throw new IllegalQueryException( errorMessage );
-            }
-
-            return getRepeatableStageParams( 0, Integer.MAX_VALUE, periods.get( 0 ).getStartDate(),
-                periods.get( periods.size() - 1 ).getEndDate() );
-        }
-        default:
-
-            return null;
-        }
-    }
-
-    private static RepeatableStageParams getRepeatableStageParams( int startIndex, int count )
-    {
-        final RepeatableStageParams repeatableStageParams = new RepeatableStageParams();
-
-        repeatableStageParams.setStartIndex( startIndex );
-
-        repeatableStageParams.setCount( count );
-
-        return repeatableStageParams;
-    }
-
-    private static RepeatableStageParams getRepeatableStageParams( int startIndex, int count, Date startDate,
-        Date endDate )
-    {
-        final RepeatableStageParams repeatableStageParams = new RepeatableStageParams();
-
-        repeatableStageParams.setStartIndex( startIndex );
-
-        repeatableStageParams.setCount( count );
-
-        repeatableStageParams.setStartDate( startDate );
-
-        repeatableStageParams.setEndDate( endDate );
-
-        return repeatableStageParams;
-    }
-
-    private static RepeatableStageParams getRepeatableStageParams( Date startDate, Date endDate )
-    {
-        final RepeatableStageParams repeatableStageParams = new RepeatableStageParams();
-
-        repeatableStageParams.setStartIndex( 0 );
-
-        repeatableStageParams.setCount( Integer.MAX_VALUE );
-
-        repeatableStageParams.setStartDate( startDate );
-
-        repeatableStageParams.setEndDate( endDate );
-
-        return repeatableStageParams;
-    }
-
-    private static String[] getMatchedRepeatableStageParamTokens( Matcher matcher )
-    {
-        String params = "0";
-
-        if ( matcher.find() )
-        {
-            params = matcher.group( 0 )
-                .replace( "[", "" )
-                .replace( "]", "" );
-        }
-
-        return params.split( "," );
     }
 
     private RelationshipType getRelationshipTypeOrFail( String dimension )
