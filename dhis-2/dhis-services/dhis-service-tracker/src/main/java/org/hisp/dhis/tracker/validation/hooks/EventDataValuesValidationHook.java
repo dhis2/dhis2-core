@@ -101,11 +101,12 @@ public class EventDataValuesValidationHook
             final List<String> mandatoryDataElements = programStage.getProgramStageDataElements()
                 .stream()
                 .filter( ProgramStageDataElement::isCompulsory )
-                .map( de -> de.getDataElement().getUid() )
+                .map( de -> context.getIdentifiers().getDataElementIdScheme()
+                    .getIdentifier( de.getDataElement() ) )
                 .collect( Collectors.toList() );
-            List<String> wrongMandatoryDataValue = validateMandatoryDataValue( programStage, event,
+            List<String> missingDataValue = validateMandatoryDataValue( programStage, event,
                 mandatoryDataElements );
-            wrongMandatoryDataValue
+            missingDataValue
                 .forEach( de -> reporter.addError( event, E1303, de ) );
         }
     }
@@ -153,7 +154,8 @@ public class EventDataValuesValidationHook
     {
         final Set<String> dataElements = programStage.getProgramStageDataElements()
             .stream()
-            .map( de -> de.getDataElement().getUid() )
+            .map( de -> reporter.getValidationContext().getIdentifiers().getDataElementIdScheme()
+                .getIdentifier( de.getDataElement() ) )
             .collect( Collectors.toSet() );
 
         Set<String> payloadDataElements = event.getDataValues().stream()

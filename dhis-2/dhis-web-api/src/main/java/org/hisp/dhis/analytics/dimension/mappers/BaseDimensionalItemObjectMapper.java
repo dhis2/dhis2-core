@@ -52,10 +52,10 @@ public class BaseDimensionalItemObjectMapper extends BaseDimensionMapper
         TrackedEntityAttribute.class );
 
     @Override
-    public DimensionResponse map( BaseIdentifiableObject dimension )
+    public DimensionResponse map( BaseIdentifiableObject dimension, String prefix )
     {
         BaseDimensionalItemObject baseDimensionalItemObject = (BaseDimensionalItemObject) dimension;
-        DimensionResponse responseWithDimensionType = super.map( dimension )
+        DimensionResponse responseWithDimensionType = super.map( dimension, prefix )
             .withDimensionType( baseDimensionalItemObject.getDimensionItemType().name() );
         if ( dimension instanceof ValueTypedDimensionalItemObject )
         {

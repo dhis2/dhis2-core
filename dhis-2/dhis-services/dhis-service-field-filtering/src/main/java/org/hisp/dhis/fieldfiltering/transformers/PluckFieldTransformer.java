@@ -35,6 +35,10 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
+ * Field transformer that plucks out a property from an array.
+ *
+ * Usage: "?fields=id,name,dataElementGroups::pluck(id)"
+ *
  * @author Morten Olav Hansen
  */
 public class PluckFieldTransformer implements FieldTransformer

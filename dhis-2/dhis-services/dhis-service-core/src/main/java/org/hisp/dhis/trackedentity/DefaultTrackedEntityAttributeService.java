@@ -41,6 +41,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
@@ -93,12 +94,15 @@ public class DefaultTrackedEntityAttributeService
 
     private final ProgramTrackedEntityAttributeStore programAttributeStore;
 
+    private final OrganisationUnitService organisationUnitService;
+
     public DefaultTrackedEntityAttributeService( TrackedEntityAttributeStore attributeStore,
         ProgramService programService, TrackedEntityTypeService trackedEntityTypeService,
         FileResourceService fileResourceService, UserService userService, CurrentUserService currentUserService,
         AclService aclService, TrackedEntityAttributeStore trackedEntityAttributeStore,
         TrackedEntityTypeAttributeStore entityTypeAttributeStore,
-        ProgramTrackedEntityAttributeStore programAttributeStore )
+        ProgramTrackedEntityAttributeStore programAttributeStore,
+        OrganisationUnitService organisationUnitService )
     {
         checkNotNull( attributeStore );
         checkNotNull( programService );
@@ -110,6 +114,7 @@ public class DefaultTrackedEntityAttributeService
         checkNotNull( trackedEntityAttributeStore );
         checkNotNull( entityTypeAttributeStore );
         checkNotNull( programAttributeStore );
+        checkNotNull( organisationUnitService );
 
         this.attributeStore = attributeStore;
         this.programService = programService;
@@ -121,6 +126,7 @@ public class DefaultTrackedEntityAttributeService
         this.trackedEntityAttributeStore = trackedEntityAttributeStore;
         this.entityTypeAttributeStore = entityTypeAttributeStore;
         this.programAttributeStore = programAttributeStore;
+        this.organisationUnitService = organisationUnitService;
     }
 
     // -------------------------------------------------------------------------
@@ -291,6 +297,15 @@ public class DefaultTrackedEntityAttributeService
         {
             return "Value '" + errorValue + "' is not a valid option for attribute " +
                 trackedEntityAttribute.getUid() + " and option set " + trackedEntityAttribute.getOptionSet().getUid();
+        }
+        else if ( ValueType.FILE_RESOURCE == valueType && fileResourceService.getFileResource( value ) == null )
+        {
+            return "Value '" + value + "' is not a valid file resource.";
+        }
+        else if ( ValueType.ORGANISATION_UNIT == valueType
+            && organisationUnitService.getOrganisationUnit( value ) == null )
+        {
+            return "Value '" + value + "' is not a valid organisation unit.";
         }
 
         return null;

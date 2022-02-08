@@ -56,6 +56,8 @@ public interface EventAnalyticsService
 
     String ITEM_LAST_UPDATED = "lastupdated";
 
+    String ITEM_SCHEDULED_DATE = "scheduleddate";
+
     String ITEM_ENROLLMENT_DATE = "enrollmentdate";
 
     String ITEM_INCIDENT_DATE = "incidentdate";
