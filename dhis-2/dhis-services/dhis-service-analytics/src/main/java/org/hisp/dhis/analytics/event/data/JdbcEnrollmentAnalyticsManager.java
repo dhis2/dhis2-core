@@ -37,8 +37,6 @@ import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
@@ -68,6 +66,8 @@ import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicatorService;
+import org.hisp.dhis.system.util.SqlUtils;
+import org.hisp.dhis.util.DateUtils;
 import org.locationtech.jts.util.Assert;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.jdbc.BadSqlGrammarException;
@@ -512,28 +512,20 @@ public class JdbcEnrollmentAnalyticsManager
 
     private static String getExecutionDateFilter( Date startDate, Date endDate )
     {
-        String pattern = "yyyy-MM-dd";
-
-        DateFormat df = new SimpleDateFormat( pattern );
-
         StringBuilder sb = new StringBuilder();
 
         if ( startDate != null )
         {
-            String start = df.format( startDate );
-
             sb.append( " and executiondate >= " );
 
-            sb.append( String.format( "'%s' ", start ) );
+            sb.append( SqlUtils.singleQuote( DateUtils.getMediumDateString( startDate ) ) );
         }
 
         if ( endDate != null )
         {
-            String end = df.format( endDate );
-
             sb.append( " and executiondate <= " );
 
-            sb.append( String.format( "'%s' ", end ) );
+            sb.append( SqlUtils.singleQuote( DateUtils.getMediumDateString( endDate ) ) );
         }
 
         return sb.toString();
