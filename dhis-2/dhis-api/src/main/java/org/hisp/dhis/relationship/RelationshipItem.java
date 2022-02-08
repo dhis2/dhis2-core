@@ -27,18 +27,12 @@
  */
 package org.hisp.dhis.relationship;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -58,12 +52,6 @@ public class RelationshipItem implements EmbeddedObject
     private ProgramInstance programInstance;
 
     private ProgramStageInstance programStageInstance;
-
-    private Set<TrackedEntityTypeAttribute> entityTypeAttributes = new HashSet<>();
-
-    private Set<TrackedEntityAttribute> trackedEntityAttributes = new HashSet<>();
-
-    private Set<DataElement> dataElements = new HashSet<>();
 
     public RelationshipItem()
     {
@@ -130,44 +118,5 @@ public class RelationshipItem implements EmbeddedObject
     public void setProgramStageInstance( ProgramStageInstance programStageInstance )
     {
         this.programStageInstance = programStageInstance;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    public Set<TrackedEntityTypeAttribute> getEntityTypeAttributes()
-    {
-        return entityTypeAttributes;
-    }
-
-    public void setEntityTypeAttributes( Set<TrackedEntityTypeAttribute> entityTypeAttributes )
-    {
-        this.entityTypeAttributes = entityTypeAttributes;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    public Set<TrackedEntityAttribute> getTrackedEntityAttributes()
-    {
-        return trackedEntityAttributes;
-    }
-
-    public void setTrackedEntityAttributes( Set<TrackedEntityAttribute> trackedEntityAttributes )
-    {
-        this.trackedEntityAttributes = trackedEntityAttributes;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    public Set<DataElement> getDataElements()
-    {
-        return dataElements;
-    }
-
-    public void setDataElements( Set<DataElement> dataElements )
-    {
-        this.dataElements = dataElements;
     }
 }

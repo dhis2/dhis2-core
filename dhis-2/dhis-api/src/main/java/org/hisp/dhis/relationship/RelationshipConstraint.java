@@ -27,14 +27,22 @@
  */
 package org.hisp.dhis.relationship;
 
+import java.util.HashSet;
+import java.util.Set;
+
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
@@ -54,6 +62,12 @@ public class RelationshipConstraint
     private Program program;
 
     private ProgramStage programStage;
+
+    private Set<TrackedEntityTypeAttribute> entityTypeAttributes = new HashSet<>();
+
+    private Set<TrackedEntityAttribute> trackedEntityAttributes = new HashSet<>();
+
+    private Set<DataElement> dataElements = new HashSet<>();
 
     public RelationshipConstraint()
     {
@@ -116,6 +130,45 @@ public class RelationshipConstraint
     public void setProgramStage( ProgramStage programStage )
     {
         this.programStage = programStage;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    public Set<TrackedEntityTypeAttribute> getEntityTypeAttributes()
+    {
+        return entityTypeAttributes;
+    }
+
+    public void setEntityTypeAttributes( Set<TrackedEntityTypeAttribute> entityTypeAttributes )
+    {
+        this.entityTypeAttributes = entityTypeAttributes;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    public Set<TrackedEntityAttribute> getTrackedEntityAttributes()
+    {
+        return trackedEntityAttributes;
+    }
+
+    public void setTrackedEntityAttributes( Set<TrackedEntityAttribute> trackedEntityAttributes )
+    {
+        this.trackedEntityAttributes = trackedEntityAttributes;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    public Set<DataElement> getDataElements()
+    {
+        return dataElements;
+    }
+
+    public void setDataElements( Set<DataElement> dataElements )
+    {
+        this.dataElements = dataElements;
     }
 
     @Override
