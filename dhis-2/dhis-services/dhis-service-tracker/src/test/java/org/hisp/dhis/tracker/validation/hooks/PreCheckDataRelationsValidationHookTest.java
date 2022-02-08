@@ -523,6 +523,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
 
         hook.validateEvent( reporter, event );
 
+        assertEquals( 1, reporter.getReportList().size() );
         assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1115 ) );
         assertNull( reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ),
             "AOC id should not be cached" );
@@ -545,6 +546,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
 
         hook.validateEvent( reporter, event );
 
+        assertEquals( 1, reporter.getReportList().size() );
         assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1115 ) );
         assertNull( reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ),
             "AOC id should not be cached" );
@@ -639,6 +641,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
 
         hook.validateEvent( reporter, event );
 
+        assertEquals( 2, reporter.getReportList().size() );
         assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1116 ) );
         assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1115 ) );
         assertNull( reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ),
@@ -665,6 +668,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
 
         hook.validateEvent( reporter, event );
 
+        assertEquals( 2, reporter.getReportList().size() );
         assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1117 ) );
         assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1115 ) );
         assertNull( reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ),
