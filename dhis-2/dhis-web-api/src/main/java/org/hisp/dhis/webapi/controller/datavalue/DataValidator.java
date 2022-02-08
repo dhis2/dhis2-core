@@ -50,6 +50,7 @@ import org.hisp.dhis.common.ValueTypeOptions;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.dataset.LockStatus;
 import org.hisp.dhis.datavalue.AggregateAccessManager;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
@@ -386,7 +387,8 @@ public class DataValidator
     {
         if ( dataSet == null
             ? dataSetService.isLocked( user, dataElement, period, organisationUnit, attributeOptionCombo, null )
-            : dataSetService.isLocked( user, dataSet, period, organisationUnit, attributeOptionCombo, null ) )
+            : dataSetService.getLockStatus( user, dataSet, period, organisationUnit, attributeOptionCombo,
+                null ) != LockStatus.OPEN )
         {
             throw new IllegalQueryException( new ErrorMessage( ErrorCode.E2017 ) );
         }
