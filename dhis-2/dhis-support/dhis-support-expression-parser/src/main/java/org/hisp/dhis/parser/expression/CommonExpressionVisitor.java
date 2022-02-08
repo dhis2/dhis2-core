@@ -432,7 +432,7 @@ public class CommonExpressionVisitor
     {
         return (queryMods == null)
             ? QueryModifiers.builder()
-            : queryMods.cloneBuilder();
+            : queryMods.toBuilder();
     }
 
     // -------------------------------------------------------------------------

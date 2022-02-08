@@ -32,6 +32,7 @@ import java.util.Date;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.ToString;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -42,8 +43,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @author Jim Grace
  */
 @Getter
+@ToString
 @EqualsAndHashCode
-@Builder
+@Builder( toBuilder = true )
 public class QueryModifiers
 {
     /**
@@ -65,15 +67,4 @@ public class QueryModifiers
      */
     @JsonProperty
     private final Date maxDate;
-
-    /**
-     * Create a builder starting with values from this object.
-     */
-    public QueryModifiersBuilder cloneBuilder()
-    {
-        return builder()
-            .periodOffset( this.periodOffset )
-            .minDate( this.minDate )
-            .maxDate( this.maxDate );
-    }
 }
