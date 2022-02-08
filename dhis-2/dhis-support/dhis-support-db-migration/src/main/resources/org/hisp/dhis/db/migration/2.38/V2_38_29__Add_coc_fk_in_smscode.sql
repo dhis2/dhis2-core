@@ -2,3 +2,6 @@
 -- Adds CategoryOptionCombo id as foreign key in smscodes table
 
 ALTER table smscodes ALTER COLUMN optionid type bigint;
+ALTER table smscodes
+    ADD CONSTRAINT fk_categoryoptioncombo_categoryoptioncomboid FOREIGN KEY (optionid)
+        REFERENCES categoryoptioncombo(categoryoptioncomboid);
