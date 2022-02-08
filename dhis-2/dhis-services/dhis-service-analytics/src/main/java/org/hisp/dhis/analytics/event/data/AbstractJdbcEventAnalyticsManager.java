@@ -48,6 +48,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.SortOrder;
+import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
@@ -101,19 +102,23 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
     protected final ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder;
 
+    protected final ExecutionPlanStore executionPlanStore;
+
     public AbstractJdbcEventAnalyticsManager( @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate,
         StatementBuilder statementBuilder, ProgramIndicatorService programIndicatorService,
-        ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder )
+        ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder, ExecutionPlanStore executionPlanStore )
     {
         checkNotNull( jdbcTemplate );
         checkNotNull( statementBuilder );
         checkNotNull( programIndicatorService );
         checkNotNull( programIndicatorSubqueryBuilder );
+        checkNotNull( executionPlanStore );
 
         this.jdbcTemplate = jdbcTemplate;
         this.statementBuilder = statementBuilder;
         this.programIndicatorService = programIndicatorService;
         this.programIndicatorSubqueryBuilder = programIndicatorSubqueryBuilder;
+        this.executionPlanStore = executionPlanStore;
     }
 
     /**
@@ -356,7 +361,14 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
         try
         {
-            getAggregatedEventData( grid, params, sql );
+            if ( params.analyzeOnly() )
+            {
+                executionPlanStore.addExecutionPlan( params.getAnalyzeOrderId(), sql );
+            }
+            else
+            {
+                getAggregatedEventData( grid, params, sql );
+            }
         }
         catch ( BadSqlGrammarException ex )
         {

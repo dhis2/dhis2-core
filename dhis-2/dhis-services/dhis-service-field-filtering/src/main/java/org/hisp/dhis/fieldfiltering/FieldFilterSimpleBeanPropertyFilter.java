@@ -29,9 +29,11 @@ package org.hisp.dhis.fieldfiltering;
 
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
+
+import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonStreamContext;
@@ -41,6 +43,11 @@ import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 
 /**
+ * PropertyFilter that supports filtering using FieldPaths, also supports
+ * skipping of all fields related to sharing.
+ *
+ * The filter _must_ be set on the ObjectMapper before serialising an object.
+ *
  * @author Morten Olav Hansen
  */
 @RequiredArgsConstructor
@@ -48,7 +55,7 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
 {
     private final List<FieldPath> fieldPaths;
 
-    private static final Map<FieldPath, String> FULL_PATH_CACHE = new ConcurrentHashMap<>();
+    private final boolean skipSharing;
 
     @Override
     protected boolean include( final BeanPropertyWriter writer )
@@ -64,13 +71,29 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
 
     protected boolean include( final PropertyWriter writer, final JsonGenerator jgen )
     {
-        String path = getPath( writer, jgen );
+        PathValue pathValue = getPath( writer, jgen );
+        String path = pathValue.getPath();
+
+        if ( pathValue.getValue() == null )
+        {
+            return false;
+        }
+
+        if ( skipSharing &&
+            StringUtils.equalsAny( path, "user", "publicAccess", "externalAccess", "userGroupAccesses",
+                "userAccesses", "sharing" ) )
+        {
+            return false;
+        }
+
+        if ( pathValue.isInsideMap() )
+        {
+            return true;
+        }
 
         for ( FieldPath fieldPath : fieldPaths )
         {
-            String fullPath = FULL_PATH_CACHE.computeIfAbsent( fieldPath, FieldPath::toFullPath );
-
-            if ( fullPath.equals( path ) )
+            if ( fieldPath.toFullPath().equals( path ) )
             {
                 return true;
             }
@@ -79,19 +102,29 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
         return false;
     }
 
-    private String getPath( PropertyWriter writer, JsonGenerator jgen )
+    private PathValue getPath( PropertyWriter writer, JsonGenerator jgen )
     {
         StringBuilder nestedPath = new StringBuilder();
         JsonStreamContext sc = jgen.getOutputContext();
+        Object value = null;
+        boolean isInsideMap = false;
 
         if ( sc != null )
         {
             nestedPath.append( writer.getName() );
+            value = sc.getCurrentValue();
             sc = sc.getParent();
         }
 
         while ( sc != null )
         {
+            if ( sc.getCurrentValue() != null && Map.class.isAssignableFrom( sc.getCurrentValue().getClass() ) )
+            {
+                sc = sc.getParent();
+                isInsideMap = true;
+                continue;
+            }
+
             if ( sc.getCurrentName() != null && sc.getCurrentValue() != null )
             {
                 nestedPath.insert( 0, "." );
@@ -101,7 +134,12 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
             sc = sc.getParent();
         }
 
-        return nestedPath.toString();
+        if ( value != null && Map.class.isAssignableFrom( value.getClass() ) )
+        {
+            isInsideMap = true;
+        }
+
+        return new PathValue( nestedPath.toString(), value, isInsideMap );
     }
 
     @Override
@@ -117,4 +155,18 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
             writer.serializeAsOmittedField( pojo, jgen, provider );
         }
     }
+}
+
+/**
+ * Simple container class used by getPath to handle Maps.
+ */
+@Data
+@RequiredArgsConstructor
+class PathValue
+{
+    private final String path;
+
+    private final Object value;
+
+    private final boolean insideMap;
 }

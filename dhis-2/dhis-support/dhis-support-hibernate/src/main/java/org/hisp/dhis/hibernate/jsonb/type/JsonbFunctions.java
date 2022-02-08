@@ -80,6 +80,11 @@ public class JsonbFunctions
     public static final String EXTRACT_PATH_TEXT = "jsonb_extract_path_text";
 
     /**
+     * Built-in function of PostgresQL
+     */
+    public static final String JSONB_TYPEOF = "jsonb_typeof";
+
+    /**
      * Use the regex operator '~*' to match a given string with a given regular
      * expression $1 String to search $2 Regular expression for matching
      */

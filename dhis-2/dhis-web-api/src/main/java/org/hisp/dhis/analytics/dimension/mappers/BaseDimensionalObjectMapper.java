@@ -49,9 +49,9 @@ public class BaseDimensionalObjectMapper extends BaseDimensionMapper
         Category.class );
 
     @Override
-    public DimensionResponse map( BaseIdentifiableObject dimension )
+    public DimensionResponse map( BaseIdentifiableObject dimension, String prefix )
     {
-        return super.map( dimension )
+        return super.map( dimension, prefix )
             .withDimensionType( ((BaseDimensionalObject) dimension).getDimensionType().name() );
     }
 }

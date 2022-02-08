@@ -206,9 +206,8 @@ class AnalyticsControllerTest
         final ResultActions resultActions = mockMvc.perform( get( ENDPOINT + ".xls" )
             .param( "dimension", "dx:fbfJHSPpUQD;cYeuwXTCPkU" )
             .param( "filter", "pe:2014Q1;2014Q2" ) )
-            // .andExpect( content().contentType( "application/xml" ) ) // Note:
-            // we do not
-            // send contentType with xsl payload
+            // .andExpect( content().contentType( "application/xml" ) )
+            // Note: we do not send contentType with xsl payload
             .andExpect( status().isOk() );
 
         // Convert content to Excel sheet
@@ -218,7 +217,7 @@ class AnalyticsControllerTest
         assertThat( book.getSheetAt( 0 ).getRow( 2 ).getCell( 0 ).getStringCellValue(), is( "de1" ) );
         assertThat( book.getSheetAt( 0 ).getRow( 2 ).getCell( 1 ).getStringCellValue(), is( "ou2" ) );
         assertThat( book.getSheetAt( 0 ).getRow( 2 ).getCell( 2 ).getStringCellValue(), is( "pe1" ) );
-        assertThat( book.getSheetAt( 0 ).getRow( 2 ).getCell( 3 ).getNumericCellValue(), is( 3.0 ) );
+        assertThat( book.getSheetAt( 0 ).getRow( 2 ).getCell( 3 ).getStringCellValue(), is( "3" ) );
     }
 
     @Test

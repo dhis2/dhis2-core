@@ -29,9 +29,9 @@ package org.hisp.dhis.webapi;
 
 import static org.hisp.dhis.webapi.utils.WebClientUtils.failOnException;
 
+import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.utils.TestUtils;
-import org.hisp.dhis.webapi.json.JsonResponse;
 import org.hisp.dhis.webapi.security.config.WebMvcConfig;
 import org.hisp.dhis.webapi.utils.DhisMockMvcControllerTest;
 import org.junit.jupiter.api.BeforeEach;

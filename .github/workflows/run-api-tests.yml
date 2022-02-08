@@ -15,7 +15,8 @@ jobs:
       CORE_IMAGE_NAME: "dhis2/core:local"
       TEST_IMAGE_NAME: "dhis2/tests:local"
       PR_NUMBER: ${{ github.event.number }}
-      DOCKER_CHANNEL: "dhis2/pr"
+      DOCKER_CHANNEL: "dhis2/core-pr"
+    
     runs-on: ubuntu-latest
     if: "!contains(github.event.pull_request.labels.*.name, 'skip-api-tests')"
     steps:
@@ -24,7 +25,7 @@ jobs:
         uses: actions/setup-java@v2
         with:
           java-version: 11
-          distribution: zulu
+          distribution: temurin
           cache: maven
       - name: Build core image
         run: |

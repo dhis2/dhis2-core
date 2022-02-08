@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dxf2.metadata.sync;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
@@ -38,7 +39,6 @@ import org.hisp.dhis.feedback.Stats;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.metadata.version.VersionType;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -48,12 +48,12 @@ import org.springframework.stereotype.Component;
  * @author aamerm
  */
 @Slf4j
+@AllArgsConstructor
 @Component( "metadataSyncPostProcessor" )
 @Scope( "prototype" )
 public class MetadataSyncPostProcessor
 {
-    @Autowired
-    private EmailService emailService;
+    private final EmailService emailService;
 
     public boolean handleSyncNotificationsAndAbortStatus( MetadataSyncSummary metadataSyncSummary,
         MetadataRetryContext retryContext, MetadataVersion dataVersion )
