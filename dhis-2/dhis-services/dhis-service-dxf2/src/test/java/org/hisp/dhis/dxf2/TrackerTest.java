@@ -300,25 +300,28 @@ public abstract class TrackerTest extends IntegrationTestBase
         return _persistTrackedEntityInstanceWithEnrollmentAndEvents( 5, enrollmentValues );
     }
 
-    public void deleteOneEnrollment(
+    public Enrollment deleteOneEnrollment(
         org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance trackedEntityInstance )
     {
         List<Enrollment> enrollments = trackedEntityInstance.getEnrollments();
-        if ( !enrollments.isEmpty() )
-        {
-            Enrollment enrollment = enrollments.get( 0 );
-            enrollmentService.deleteEnrollment( enrollment.getEnrollment() );
-        }
+        assertThat( enrollments, is( not( empty() ) ) );
+
+        Enrollment enrollment = enrollments.get( 0 );
+        ImportSummary importSummary = enrollmentService.deleteEnrollment( enrollment.getEnrollment() );
+        assertEquals( 0, importSummary.getConflictCount() );
+        return enrollment;
+
     }
 
-    public void deleteOneEvent( Enrollment enrollment )
+    public Event deleteOneEvent( Enrollment enrollment )
     {
         List<Event> events = enrollment.getEvents();
-        if ( !events.isEmpty() )
-        {
-            Event event = events.get( 0 );
-            eventService.deleteEvent( event.getEvent() );
-        }
+        assertThat( events, is( not( empty() ) ) );
+
+        Event event = events.get( 0 );
+        ImportSummary importSummary = eventService.deleteEvent( event.getEvent() );
+        assertEquals( 0, importSummary.getConflictCount() );
+        return event;
     }
 
     private TrackedEntityInstance _persistTrackedEntityInstanceWithEnrollmentAndEvents( int eventSize,
