@@ -28,6 +28,7 @@
 package org.hisp.dhis.dxf2;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -304,7 +305,7 @@ public abstract class TrackerTest extends IntegrationTestBase
         org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance trackedEntityInstance )
     {
         List<Enrollment> enrollments = trackedEntityInstance.getEnrollments();
-        assertThat( enrollments.size(), is( 0 ) );
+        assertThat( enrollments.size(), is( not( 0 ) ) );
 
         Enrollment enrollment = enrollments.get( 0 );
         ImportSummary importSummary = enrollmentService.deleteEnrollment( enrollment.getEnrollment() );
@@ -316,7 +317,7 @@ public abstract class TrackerTest extends IntegrationTestBase
     public Event deleteOneEvent( Enrollment enrollment )
     {
         List<Event> events = enrollment.getEvents();
-        assertThat( events.size(), is( 0 ) );
+        assertThat( events.size(), is( not( 0 ) ) );
 
         Event event = events.get( 0 );
         ImportSummary importSummary = eventService.deleteEvent( event.getEvent() );
