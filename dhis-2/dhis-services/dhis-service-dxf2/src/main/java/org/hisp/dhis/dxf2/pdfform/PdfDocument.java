@@ -106,7 +106,7 @@ public abstract class PdfDocument<T extends IdentifiableObject>
 
     private void setHeaderFooterOnDocument()
     {
-        HeaderFooter header = new HeaderFooter( new Phrase( settings.getFooter(),
+        HeaderFooter header = new HeaderFooter( new Phrase( settings.getHeader(),
             settings.getFont( PdfFormFontSettings.FONTTYPE_FOOTER ) ), false );
         header.setBorder( Rectangle.NO_BORDER );
         header.setAlignment( Element.ALIGN_LEFT );

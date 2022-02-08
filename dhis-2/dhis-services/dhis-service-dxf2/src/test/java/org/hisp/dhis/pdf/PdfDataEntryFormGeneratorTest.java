@@ -90,6 +90,7 @@ public class PdfDataEntryFormGeneratorTest
         Category categoryB = createCategory( 'B', optionB );
         manager.save( categoryB );
         CategoryCombo categoryCombo = createCategoryCombo( 'A', categoryA, categoryB );
+        manager.save( categoryCombo );
 
         CategoryOptionCombo categoryOptionCombo = createCategoryOptionCombo( categoryCombo, optionA, optionB );
         manager.save( categoryOptionCombo );
@@ -98,14 +99,14 @@ public class PdfDataEntryFormGeneratorTest
 
         manager.save( dataSet );
 
-        PdfDataEntrySettings settings = new PdfDataEntrySettings();
-        settings.setI18nFormat( i18nManager.getI18nFormat() );
-
-        settings.setServerName( "test server" );
+        PdfDataEntrySettings settings = PdfDataEntrySettings.builder()
+            .format( i18nManager.getI18nFormat() )
+            .serverName( "test server" )
+            .headerText( "header text" )
+            .build();
 
         ByteArrayOutputStream baos = formGenerator.generateDataEntry( dataSet, settings );
 
         Assert.assertNotNull( baos );
-
     }
 }

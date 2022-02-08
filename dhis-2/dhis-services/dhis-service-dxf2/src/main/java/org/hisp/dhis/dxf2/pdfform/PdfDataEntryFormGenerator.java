@@ -28,20 +28,20 @@
 package org.hisp.dhis.dxf2.pdfform;
 
 import java.io.ByteArrayOutputStream;
-
-import lombok.AllArgsConstructor;
+import java.io.IOException;
 
 import org.hisp.dhis.dataset.DataSet;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.lowagie.text.Document;
+import com.lowagie.text.DocumentException;
 import com.lowagie.text.pdf.PdfWriter;
 
 /**
  * @author viet@dhis2.org
  */
 @Service
-@AllArgsConstructor
 public class PdfDataEntryFormGenerator
 {
     /**
@@ -50,29 +50,32 @@ public class PdfDataEntryFormGenerator
      * @param dataSet DataSet or ProgramStage to be used for generating PDF data
      *        entry form.
      * @param settings {@link PdfDataEntrySettings}
-     * @return
+     * @return ByteArrayOutputStream contains the generated PDF.
      */
+    @Transactional( readOnly = true )
     public ByteArrayOutputStream generateDataEntry( DataSet dataSet, PdfDataEntrySettings settings )
+        throws IOException,
+        DocumentException
     {
         Document document = new Document();
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        try
+
+        try ( ByteArrayOutputStream outputStream = new ByteArrayOutputStream() )
         {
-            PdfWriter writer = PdfWriter.getInstance( document, baos );
+            PdfWriter writer = PdfWriter.getInstance( document, outputStream );
             document.open();
 
             PdfDocument pdfDocument = new DataSetPdfDocument( document, settings );
             pdfDocument.write( writer, dataSet );
+
+            return outputStream;
         }
-        catch ( Exception ex )
+        catch ( IOException | DocumentException e )
         {
-            throw new RuntimeException( ex );
+            throw e;
         }
         finally
         {
             document.close();
         }
-
-        return baos;
     }
 }

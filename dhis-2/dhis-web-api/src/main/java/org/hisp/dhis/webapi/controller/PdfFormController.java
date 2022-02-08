@@ -32,7 +32,6 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importSummary;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -64,6 +63,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.lowagie.text.DocumentException;
 
 /**
  * @author James Chang <jamesbchang@gmail.com>
@@ -104,8 +105,9 @@ public class PdfFormController
 
     @GetMapping( "/dataSet/{dataSetUid}" )
     public void getFormPdfDataSet( @PathVariable String dataSetUid, HttpServletRequest request,
-        HttpServletResponse response, OutputStream out )
-        throws IOException
+        HttpServletResponse response )
+        throws IOException,
+        DocumentException
     {
         DataSet dataSet = dataSetService.getDataSet( dataSetUid );
 
@@ -114,20 +116,21 @@ public class PdfFormController
             throw new IllegalArgumentException( "Can't find DataSet with uid: " + dataSetUid );
         }
 
-        PdfDataEntrySettings settings = new PdfDataEntrySettings();
-        settings.setI18nFormat( i18nManager.getI18nFormat() );
+        PdfDataEntrySettings settings = PdfDataEntrySettings.builder()
+            .format( i18nManager.getI18nFormat() )
+            .headerText( i18nManager.getI18n().getString( PdfDataEntrySettings.HEADER_TEXT_KEY ) )
+            .serverName( request.getServerName() )
+            .build();
 
-        settings.setServerName( request.getServerName() );
-
-        ByteArrayOutputStream baos = pdfGenerator.generateDataEntry( dataSet, settings );
+        ByteArrayOutputStream outputStream = pdfGenerator.generateDataEntry( dataSet, settings );
 
         String fileName = dataSet.getName() + "_" + DateUtils.getMediumDateString() + ".pdf";
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_PDF, CacheStrategy.NO_CACHE, fileName,
             true );
 
-        response.setContentLength( baos.size() );
-        baos.writeTo( response.getOutputStream() );
+        response.setContentLength( outputStream.size() );
+        outputStream.writeTo( response.getOutputStream() );
     }
 
     @PostMapping( "/dataSet" )

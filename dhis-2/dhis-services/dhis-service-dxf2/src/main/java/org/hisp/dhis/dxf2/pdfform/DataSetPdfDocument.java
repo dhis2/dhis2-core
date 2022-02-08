@@ -61,6 +61,9 @@ import com.lowagie.text.Element;
 import com.lowagie.text.pdf.PdfWriter;
 
 /**
+ * Contains all functions needed for generating a PDF data entry form for a
+ * DataSet.
+ *
  * @author viet@dhis2.org
  */
 public class DataSetPdfDocument extends PdfDocument<DataSet>
@@ -90,6 +93,17 @@ public class DataSetPdfDocument extends PdfDocument<DataSet>
         document.add( Chunk.NEWLINE );
     }
 
+    /**
+     * Create all metadata selection input fields for DataSet data entry form.
+     * <p>
+     * Those including OrganisationUnit, Period, AttributeCategoryOption
+     *
+     * @param writer {@link PdfWriter}
+     * @param dataSet {@link DataSet} to be used for generating PDF data entry
+     *        form
+     * @throws IOException
+     * @throws DocumentException
+     */
     private void createMetadataSelections( PdfWriter writer, DataSet dataSet )
         throws IOException,
         DocumentException
@@ -98,6 +112,15 @@ public class DataSetPdfDocument extends PdfDocument<DataSet>
         createAttributeSelectionFields( writer, dataSet );
     }
 
+    /**
+     * Create all data value input fields for given DataSet.
+     *
+     * @param writer {@link PdfWriter}
+     * @param dataSet {@link DataSet} to be used for generating PDF data entry
+     *        form
+     * @throws DocumentException
+     * @throws IOException
+     */
     private void createDataEntryForDataSet( PdfWriter writer, DataSet dataSet )
         throws DocumentException,
         IOException
@@ -114,6 +137,20 @@ public class DataSetPdfDocument extends PdfDocument<DataSet>
         }
     }
 
+    /**
+     * Create a data value input field for given DataElement.
+     * <p>
+     * The input field can be text field, checkbox or dropdown selection
+     *
+     * @param writer {@link PdfWriter}
+     * @param table {@link PdfTable}
+     * @param dataElement {@link DataElement} to be used for generating the
+     *        input field.
+     * @param categoryOptionCombo {@link CategoryOptionCombo} to be used for
+     *        generating the input field.
+     * @throws DocumentException
+     * @throws IOException
+     */
     private void createDataEntryInputField( PdfWriter writer, PdfTable table, DataElement dataElement,
         CategoryOptionCombo categoryOptionCombo )
         throws DocumentException,
@@ -163,6 +200,14 @@ public class DataSetPdfDocument extends PdfDocument<DataSet>
         }
     }
 
+    /**
+     * Create all data value input fields for given DataSet Section
+     *
+     * @param writer {@link PdfWriter}
+     * @param section {@link PdfWriter} to be used for generating input fields.
+     * @throws DocumentException
+     * @throws IOException
+     */
     private void createDataEntryForSection( PdfWriter writer, Section section )
         throws DocumentException,
         IOException
@@ -184,6 +229,14 @@ public class DataSetPdfDocument extends PdfDocument<DataSet>
         table.addToTable( mainTable );
     }
 
+    /**
+     * Create data value input fields for given Set of DataElement
+     *
+     * @param writer {@link PdfWriter}
+     * @param dataElements {@link DataElement}
+     * @throws DocumentException
+     * @throws IOException
+     */
     private void createDataEntryDataElements( PdfWriter writer, Set<DataElement> dataElements )
         throws DocumentException,
         IOException
@@ -203,6 +256,12 @@ public class DataSetPdfDocument extends PdfDocument<DataSet>
         table.addToTable( mainTable );
     }
 
+    /**
+     * Create input fields for OrganisationUnit and Period.
+     *
+     * @throws DocumentException
+     * @throws IOException
+     */
     private void createOrgUnitAndPeriodInputs( PdfWriter writer, DataSet dataSet )
         throws DocumentException,
         IOException
@@ -213,6 +272,12 @@ public class DataSetPdfDocument extends PdfDocument<DataSet>
             .addToTable( mainTable );
     }
 
+    /**
+     * Create drop down selection field which contains all periods of given
+     * DataSet.
+     *
+     * @return {@link PdfSelectField}
+     */
     private PdfSelectField createPeriodSelectionField( PdfWriter writer, DataSet dataSet )
     {
         List<Period> periods = getPeriods( dataSet.getPeriodType() );
@@ -229,6 +294,12 @@ public class DataSetPdfDocument extends PdfDocument<DataSet>
             .build();
     }
 
+    /**
+     * Create a text input field which user can enter OrganisationUnit ID.
+     *
+     * @param writer
+     * @return
+     */
     private PdfTextInputField createOrgUnitInputField( PdfWriter writer )
     {
         return PdfTextInputField.builder()

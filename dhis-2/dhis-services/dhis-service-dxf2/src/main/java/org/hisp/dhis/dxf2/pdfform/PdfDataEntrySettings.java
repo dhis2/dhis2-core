@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.dxf2.pdfform;
 
+import lombok.Builder;
+
 import org.hisp.dhis.i18n.I18nFormat;
 
 import com.lowagie.text.Font;
@@ -36,9 +38,12 @@ import com.lowagie.text.Rectangle;
 /**
  * @author viet@dhis2.org
  */
+@Builder
 public class PdfDataEntrySettings
 {
-    public String FOOTERTEXT_DEFAULT = "PDF Template generated from DHIS %s - %s";
+    public static String FOOTERTEXT_DEFAULT = "PDF Template generated from DHIS %s - %s";
+
+    public static String HEADER_TEXT_KEY = "pdf_data_entry_form_header_text";
 
     public static final int PERIODRANGE_PREVYEARS = 1;
 
@@ -49,6 +54,8 @@ public class PdfDataEntrySettings
     public static final int PERIODRANGE_FUTUREYEARS_YEARLY = 6;
 
     public static final int TEXTBOXWIDTH = 160;
+
+    private String headerText;
 
     private String serverName;
 
@@ -65,14 +72,19 @@ public class PdfDataEntrySettings
         return fontSettings.getFont( fontType );
     }
 
-    public String getFooter()
+    public String getHeader()
     {
-        return String.format( FOOTERTEXT_DEFAULT, serverName, "Please save file after completing data entry" );
+        return String.format( FOOTERTEXT_DEFAULT, serverName, headerText );
     }
 
     public void setServerName( String serverName )
     {
         this.serverName = serverName;
+    }
+
+    public void setHeaderText( String headerText )
+    {
+        this.headerText = headerText;
     }
 
     public Rectangle getDefaultPageSize()
