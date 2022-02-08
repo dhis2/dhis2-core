@@ -524,6 +524,47 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
+    void eventValidationSucceedsWhenOnlyCOsAreSetToCONotInCCAndEventProgramHasDefaultCC()
+    {
+        // TODO(DHIS2-12460) do we want this behavior?
+        // We import an event for a program with a default category combo where
+        // the event payload has only the
+        // attribute category options set to a category option that is not in
+        // the default category combo
+        // the event is then persisted with the default attributeoptioncomboid |
+        // 4 (default, uid='HllvX50cXC0')
+        OrganisationUnit orgUnit = setupOrgUnit();
+        Program program = setupProgram( orgUnit );
+
+        CategoryCombo defaultCC = defaultCategoryCombo();
+        program.setCategoryCombo( defaultCC );
+        CategoryOptionCombo defaultAOC = firstCategoryOptionCombo( defaultCC );
+        when( preheat.getDefault( CategoryOptionCombo.class ) ).thenReturn( defaultAOC );
+
+        CategoryCombo cc = categoryCombo();
+        CategoryOption co = cc.getCategoryOptions().get( 0 );
+        program.setCategoryCombo( cc );
+        CategoryOptionCombo aoc = firstCategoryOptionCombo( cc );
+        // when( preheat.getCategoryOption( co.getUid() ) ).thenReturn( co );
+        // when( categoryService.getCategoryOptionCombo( cc, Sets.newHashSet( co
+        // ) ) ).thenReturn( aoc );
+        // when( preheat.getIdentifiers() ).thenReturn(
+        // TrackerIdentifierParams.builder()
+        // .dataElementIdScheme( TrackerIdentifier.UID ).build() );
+
+        Event event = eventBuilder()
+            .attributeCategoryOptions( co.getUid() )
+            .build();
+
+        hook.validateEvent( reporter, event );
+
+        assertFalse( reporter.hasErrors() );
+        assertEquals( defaultAOC,
+            reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ),
+            "AOC id should be cached" );
+    }
+
+    @Test
     void eventValidationSucceedsWhenOnlyAOCIsSetAndItExists()
     {
         OrganisationUnit orgUnit = setupOrgUnit();
