@@ -459,6 +459,46 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
+    void eventValidationSucceedsWhenOnlyCOsAreSetAndExist()
+    {
+        OrganisationUnit orgUnit = setupOrgUnit();
+        Program program = setupProgram( orgUnit );
+
+        CategoryCombo defaultCC = defaultCategoryCombo();
+        CategoryOptionCombo defaultAOC = firstCategoryOptionCombo( defaultCC );
+        when( preheat.getDefault( CategoryOptionCombo.class ) ).thenReturn( defaultAOC );
+
+        CategoryCombo cc = categoryCombo();
+        program.setCategoryCombo( cc );
+        CategoryOptionCombo aoc = firstCategoryOptionCombo( cc );
+        CategoryOption co = cc.getCategoryOptions().get( 0 );
+        // when( preheat.getCategoryOption( co.getUid() ) ).thenReturn( co );
+        // when( categoryService.getCategoryOptionCombo( cc, Sets.newHashSet( co
+        // ) ) ).thenReturn( aoc );
+        // when( preheat.getIdentifiers() ).thenReturn(
+        // TrackerIdentifierParams.builder()
+        // .dataElementIdScheme( TrackerIdentifier.UID ).build() );
+        // when( preheat.getCategoryOptionCombo( aoc.getUid() ) ).thenReturn(
+        // aoc );
+
+        Event event = eventBuilder()
+            .attributeCategoryOptions( co.getUid() )
+            .build();
+
+        hook.validateEvent( reporter, event );
+
+        assertFalse( reporter.hasErrors() );
+        // DHIS2-12460 this here shows the root of the bug.
+        // it shows that even if the program has a non-default cc
+        // the cos selected are part of the non-default cc
+        // the current implementation uses the default cc instead of finding
+        // the AOC id using the program.cc and event.cos
+        assertEquals( defaultAOC,
+            reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ),
+            "AOC id should be cached" );
+    }
+
+    @Test
     void eventValidationSucceedsWhenOnlyCOsAreSetAndEventProgramHasDefaultCC()
     {
         OrganisationUnit orgUnit = setupOrgUnit();
