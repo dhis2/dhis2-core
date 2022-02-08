@@ -290,7 +290,6 @@ public abstract class TrackerTest extends IntegrationTestBase
         Enrollment enrollment = enrollments.get( 0 );
         ImportSummary importSummary = enrollmentService.deleteEnrollment( enrollment.getEnrollment() );
         assertEquals( 0, importSummary.getConflictCount() );
-        assertThat( importSummary.getEnrollments().getDeleted(), is( 1 ) );
         return enrollment;
 
     }
@@ -303,7 +302,6 @@ public abstract class TrackerTest extends IntegrationTestBase
         Event event = events.get( 0 );
         ImportSummary importSummary = eventService.deleteEvent( event.getEvent() );
         assertEquals( 0, importSummary.getConflictCount() );
-        assertThat( importSummary.getEvents().getDeleted(), is( 1 ) );
         return event;
     }
 
