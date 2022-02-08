@@ -730,6 +730,47 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
+    void eventValidationSucceedsWhenEventAOCAndEventCOsAreSetAndAOCIsNotFound()
+    {
+        // TODO(DHIS2-12460) do we want this behavior?
+        // We end up importing an event with an invalid AOC id in the payload.
+        // The event is eventually persisted with no attributeoptioncomboid set
+        // This seems like a bug to me.
+
+        // TODO check again if my test setup reflects what is happening in the
+        // real world. The behavior described above
+        // is shown.
+        OrganisationUnit orgUnit = setupOrgUnit();
+        Program program = setupProgram( orgUnit );
+
+        CategoryCombo cc = categoryCombo();
+        CategoryOption co = cc.getCategoryOptions().get( 0 );
+        program.setCategoryCombo( cc );
+        CategoryOptionCombo aoc = firstCategoryOptionCombo( cc );
+        when( preheat.getCategoryOption( co.getUid() ) ).thenReturn( co );
+        when( categoryService.getCategoryOptionCombo( cc, Sets.newHashSet( co ) ) ).thenReturn( aoc );
+        when( preheat.getIdentifiers() ).thenReturn( TrackerIdentifierParams.builder()
+            .dataElementIdScheme( TrackerIdentifier.UID ).build() );
+
+        Event event = eventBuilder()
+            .attributeOptionCombo( CodeGenerator.generateUid() )
+            .attributeCategoryOptions( co.getUid() )
+            .build();
+
+        hook.validateEvent( reporter, event );
+
+        assertFalse( reporter.hasErrors() );
+        assertEquals( aoc,
+            reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ),
+            "AOC id should be cached" );
+        String cacheKey = co.getUid() + program.getCategoryCombo().getUid();
+        assertTrue( reporter.getValidationContext().getCachedEventAOCProgramCC()
+            .containsKey( cacheKey ), "AOC id should be cached" );
+        assertEquals( aoc.getUid(), reporter.getValidationContext().getCachedEventAOCProgramCC()
+            .get( cacheKey ), "AOC id should be cached" );
+    }
+
+    @Test
     void eventValidationFailsWhenEventAOCAndEventCOsAreSetAndCOIsNotFound()
     {
         OrganisationUnit orgUnit = setupOrgUnit();
