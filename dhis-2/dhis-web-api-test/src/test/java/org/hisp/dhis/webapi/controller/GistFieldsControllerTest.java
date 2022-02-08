@@ -39,7 +39,6 @@ import org.hisp.dhis.attribute.Attribute.ObjectType;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonString;
-import org.junit.Ignore;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
@@ -98,16 +97,17 @@ class GistFieldsControllerTest extends AbstractGistControllerTest
         assertFalse( user.has( "surname" ) );
     }
 
-    // @Test //Fails12098
-    @Ignore
-    void testField_Complex_SquareBracketsSyntax()
-    {
-        JsonObject user = GET( "/users/{uid}/gist?fields=id,username", getSuperuserUid() )
-            .content();
-        assertEquals( 2, user.size() );
-        assertFalse( user.has( "username" ) );
-        assertFalse( user.has( "id" ) );
-    }
+    // @org.junit.Test //Fails12098
+    // public void testField_Complex_SquareBracketsSyntax()
+    // {
+    // JsonObject user = GET(
+    // "/users/{uid}/gist?fields=id,userCredentials[id,username]",
+    // getSuperuserUid() ).content();
+    //
+    // assertEquals( 2, user.size() );
+    // assertEquals( asList( "id", "username" ), user.getObject(
+    // "userCredentials" ).names() );
+    // }
 
     @Test
     void testField_PresetExpandsToReadableFields()

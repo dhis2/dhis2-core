@@ -1302,9 +1302,6 @@
       "selfRegistered": false,
       "favorite": false,
       "username": "User D",
-      "userInfo": {
-        "id": "Lpa5INiC3Qf"
-      },
       "access": {
         "read": true,
         "update": true,
@@ -1357,9 +1354,6 @@
       "selfRegistered": false,
       "favorite": false,
       "username": "User C",
-      "userInfo": {
-        "id": "CKrrGm5Be8O"
-      },
       "access": {
         "read": true,
         "update": true,
@@ -1412,9 +1406,6 @@
       "selfRegistered": false,
       "favorite": false,
       "username": "User ALL",
-      "userInfo": {
-        "id": "GTqb3WOZMop"
-      },
       "access": {
         "read": true,
         "update": true,
@@ -1513,9 +1504,6 @@
       "selfRegistered": false,
       "favorite": false,
       "username": "User B",
-      "userInfo": {
-        "id": "aDy67f9ijOe"
-      },
       "access": {
         "read": true,
         "update": true,
@@ -1568,9 +1556,6 @@
       "selfRegistered": false,
       "favorite": false,
       "username": "User A",
-      "userInfo": {
-        "id": "O2PajOxjJSa"
-      },
       "access": {
         "read": true,
         "update": true,

@@ -50,7 +50,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.UserAccess;
-import org.junit.Ignore;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
@@ -214,8 +213,7 @@ class ObjectBundleServiceUserTest extends TransactionalIntegrationTest
         assertEquals( 1, validate.getErrorReportsCountByCode( User.class, ErrorCode.E4005 ) );
     }
 
-    // @Test //Fails12098
-    @Ignore
+    @Test
     void testUpdateUserWithNoAccessUserRole()
         throws IOException
     {

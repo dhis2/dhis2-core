@@ -148,7 +148,8 @@ public class ReferencesCheck implements ValidationCheck
             // HACK this needs to be redone when the move to using
             // uuid as user identifiers is ready
             boolean isUserReference = User.class.isAssignableFrom( property.getKlass() ) &&
-                ("user".equals( property.getName() ) || "lastUpdatedBy".equals( property.getName() ));
+                ("user".equals( property.getName() ) || "lastUpdatedBy".equals( property.getName() )
+                    || "createdBy".equals( property.getName() )); // Q12098
 
             if ( !(isUserReference && skipSharing) )
             {

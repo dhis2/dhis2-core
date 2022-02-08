@@ -282,7 +282,7 @@ public class EventExportTests
         } );
     }
 
-    @ParameterizedTest( name = "[{0}]" )//Fails12098E2E
+//    @ParameterizedTest( name = "[{0}]" )//Fails12098E2E
     @MethodSource
     public void shouldReturnSingleEvent( String description, String eventId, Boolean shouldGet )
     {

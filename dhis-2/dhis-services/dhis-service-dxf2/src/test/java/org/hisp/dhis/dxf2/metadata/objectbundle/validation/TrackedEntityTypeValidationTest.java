@@ -33,6 +33,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
@@ -44,11 +46,11 @@ import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.user.UserService;
-import org.junit.Ignore;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
+@Slf4j
 class TrackedEntityTypeValidationTest extends DhisSpringTest
 {
 
@@ -69,8 +71,7 @@ class TrackedEntityTypeValidationTest extends DhisSpringTest
         userService = _userService;
     }
 
-    // @Test //Fails12098
-    @Ignore
+    @Test
     void shouldSuccessTrackedEntityAttributeExists()
         throws IOException
     {

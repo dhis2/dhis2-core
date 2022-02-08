@@ -133,7 +133,6 @@ public class DefaultAdminUserPopulator
 
         userService.addUserAuthorityGroup( userAuthorityGroup );
 
-        user.setUid( "KvMx6c1eoYo" );
         user.setUuid( UUID.fromString( "6507f586-f154-4ec1-a25e-d7aa51de5216" ) );
         user.setCode( username );
         user.setUsername( username );

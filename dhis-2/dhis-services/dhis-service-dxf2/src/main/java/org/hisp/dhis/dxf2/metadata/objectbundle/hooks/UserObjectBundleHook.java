@@ -223,13 +223,6 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
                 continue;
             }
 
-            // Map<String, Object> userReferencesMap = userReferences.get(
-            // user.getUid() );
-            // if ( userReferencesMap == null || userReferencesMap.isEmpty() )
-            // {
-            // continue;
-            // }
-
             Set<UserAuthorityGroup> userAuthorityGroups = (Set<UserAuthorityGroup>) userReferenceMap.get( "userRoles" );
             if ( userAuthorityGroups != null )
             {
@@ -239,8 +232,6 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
             {
                 user.setUserAuthorityGroups( new HashSet<>() );
             }
-
-            handleNoAccessRoles( user, bundle );
 
             user.setOrganisationUnits( (Set<OrganisationUnit>) userReferenceMap.get( "organisationUnits" ) );
             user.setDataViewOrganisationUnits(
@@ -256,11 +247,10 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
             user.setLastUpdatedBy( bundle.getUser() );
 
             preheatService.connectReferences( user, bundle.getPreheat(), bundle.getPreheatIdentifier() );
-            // preheatService.connectReferences( user, bundle.getPreheat(),
-            // bundle.getPreheatIdentifier() );
+
+            handleNoAccessRoles( user, bundle, userAuthorityGroups );
 
             sessionFactory.getCurrentSession().update( user );
-            log.error( "Updated user: " + user.getUid() );
         }
     }
 
@@ -272,28 +262,59 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
      * @param user the updating User.
      * @param bundle the ObjectBundle.
      */
-    private void handleNoAccessRoles( User user, ObjectBundle bundle )
+    private void handleNoAccessRoles( User user, ObjectBundle bundle, Set<UserAuthorityGroup> userAuthorityGroups )
     {
-        Set<String> preHeatedRoles = bundle.getPreheat().get( PreheatIdentifier.UID, user )
-            .getUserAuthorityGroups().stream().map( BaseIdentifiableObject::getUid )
+
+        Set<UserAuthorityGroup> roles = user
+            .getUserAuthorityGroups();
+        Set<String> currentRoles = roles.stream().map( BaseIdentifiableObject::getUid )
             .collect( Collectors.toSet() );
 
-        user.getUserAuthorityGroups().stream()
-            .filter( role -> !preHeatedRoles.contains( role.getUid() ) )
-            .forEach( role -> {
-                UserAuthorityGroup persistedRole = bundle.getPreheat().get( PreheatIdentifier.UID, role );
+        if ( userAuthorityGroups != null )
+        {
+            userAuthorityGroups.stream()
+                .filter( role -> !currentRoles.contains( role.getUid() ) )
+                .forEach( role -> {
+                    UserAuthorityGroup persistedRole = bundle.getPreheat().get( PreheatIdentifier.UID, role );
 
-                if ( persistedRole == null )
-                {
-                    persistedRole = manager.getNoAcl( UserAuthorityGroup.class, role.getUid() );
-                }
+                    if ( persistedRole == null )
+                    {
+                        persistedRole = manager.getNoAcl( UserAuthorityGroup.class, role.getUid() );
+                    }
 
-                if ( !aclService.canRead( bundle.getUser(), persistedRole ) )
-                {
-                    bundle.getPreheat().get( PreheatIdentifier.UID, user ).getUserAuthorityGroups()
-                        .add( persistedRole );
-                    bundle.getPreheat().put( PreheatIdentifier.UID, persistedRole );
-                }
-            } );
+                    if ( !aclService.canRead( bundle.getUser(), persistedRole ) )
+                    {
+                        roles.add( persistedRole );
+                    }
+                } );
+        }
+
+        // Q12098
+        // Set<String> preHeatedRoles = bundle.getPreheat().get(
+        // PreheatIdentifier.UID, user )
+        // .getUserAuthorityGroups().stream().map(
+        // BaseIdentifiableObject::getUid )
+        // .collect( Collectors.toSet() );
+        //
+        // user.getUserAuthorityGroups().stream()
+        // .filter( role -> !preHeatedRoles.contains( role.getUid() ) )
+        // .forEach( role -> {
+        // UserAuthorityGroup persistedRole = bundle.getPreheat().get(
+        // PreheatIdentifier.UID, role );
+        //
+        // if ( persistedRole == null )
+        // {
+        // persistedRole = manager.getNoAcl( UserAuthorityGroup.class,
+        // role.getUid() );
+        // }
+        //
+        // if ( !aclService.canRead( bundle.getUser(), persistedRole ) )
+        // {
+        // bundle.getPreheat().get( PreheatIdentifier.UID, user
+        // ).getUserAuthorityGroups()
+        // .add( persistedRole );
+        // bundle.getPreheat().put( PreheatIdentifier.UID, persistedRole );
+        // }
+        // } );
     }
 }

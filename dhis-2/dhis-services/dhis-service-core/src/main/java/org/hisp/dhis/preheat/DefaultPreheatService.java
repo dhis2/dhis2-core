@@ -765,14 +765,6 @@ public class DefaultPreheatService implements PreheatService
     @SuppressWarnings( "unchecked" )
     private void collectScanTargets( Map<Class<?>, List<?>> targets )
     {
-        // Fails12098?
-        if ( targets.containsKey( User.class ) )
-        {
-            List<User> users = (List<User>) targets.get( User.class );
-
-            targets.put( User.class, users );
-        }
-
         for ( Map.Entry<Class<?>, List<?>> entry : new HashMap<>( targets ).entrySet() )
         {
             Class<?> klass = entry.getKey();
@@ -894,9 +886,10 @@ public class DefaultPreheatService implements PreheatService
 
                     if ( ref.getId() == 0 )
                     {
-                        log.error( "Reference object with id 0 found for " + object.getClass().getSimpleName() );
+                        log.error( "Reference object with id 0 found for " + object.getClass().getSimpleName()
+                            + "  ref:" + ref );
                         // throw new RuntimeException( "Not right" );
-                        // Fails12098?
+                        // Q12098?
                     }
                     else
                     {

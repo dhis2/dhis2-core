@@ -63,7 +63,6 @@ import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserService;
-import org.junit.Ignore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -132,7 +131,6 @@ class UserControllerTest
 
     // @Test//Fails12098
     @SuppressWarnings( "unchecked" )
-    @Ignore
     public void updateUserGroups()
     {
         when( userService.getUser( "def2" ) ).thenReturn( user );
@@ -176,7 +174,6 @@ class UserControllerTest
 
     // @Test//Fails12098
     @SuppressWarnings( "unchecked" )
-    @Ignore
     public void updateUserGroupsSameUser()
     {
         currentUser.setId( 1001 );
