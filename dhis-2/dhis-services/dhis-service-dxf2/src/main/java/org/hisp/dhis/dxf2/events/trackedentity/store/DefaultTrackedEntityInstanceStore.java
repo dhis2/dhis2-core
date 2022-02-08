@@ -132,7 +132,7 @@ public class DefaultTrackedEntityInstanceStore extends AbstractStore implements 
             return new HashMap<>();
         }
 
-        String sql = withAclCheck( GET_TEIS_SQL, ctx, "tei.trackedentitytypeid in (:teiTypeIds)" );
+        String sql = getQuery( GET_TEIS_SQL, ctx, "tei.trackedentitytypeid in (:teiTypeIds)", "tei" );
         jdbcTemplate.query( applySortOrder( sql, StringUtils.join( ids, "," ), "trackedentityinstanceid" ),
             createIdsParam( ids ).addValue( "teiTypeIds", ctx.getTrackedEntityTypes() ), handler );
 

@@ -80,8 +80,7 @@ public class DefaultEnrollmentStore extends AbstractStore implements EnrollmentS
     {
         EnrollmentRowCallbackHandler handler = new EnrollmentRowCallbackHandler();
 
-        jdbcTemplate.query( withIncludeDeleted(
-            withAclCheck( GET_ENROLLMENT_SQL_BY_TEI, ctx, " pi.programid IN (:programIds)" ), ctx, "pi" ),
+        jdbcTemplate.query( getQuery( GET_ENROLLMENT_SQL_BY_TEI, ctx, " pi.programid IN (:programIds)", "pi" ),
             createIdsParam( ids ).addValue( "programIds", ctx.getPrograms() ), handler );
 
         return handler.getItems();
