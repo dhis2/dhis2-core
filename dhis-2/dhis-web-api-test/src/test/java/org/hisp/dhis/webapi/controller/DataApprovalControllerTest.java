@@ -68,7 +68,7 @@ class DataApprovalControllerTest extends DhisControllerConvenienceTest
         ouId = assertStatus( HttpStatus.CREATED,
             POST( "/organisationUnits/", "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01', "
                 + "'parent':{'id': '" + ou1Id + "'}}" ) );
-        assertStatus( HttpStatus.NO_CONTENT,
+        assertStatus( HttpStatus.OK,
             POST( "/users/" + getCurrentUser().getUid() + "/organisationUnits/" + ou1Id ) );
         String level1Id = assertStatus( HttpStatus.CREATED,
             POST( "/dataApprovalLevels/", "{'name':'L1', 'level': 1, 'orgUnitLevel': 1}" ) );
