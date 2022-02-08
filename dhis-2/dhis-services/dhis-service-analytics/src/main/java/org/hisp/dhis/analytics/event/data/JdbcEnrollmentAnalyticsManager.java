@@ -518,14 +518,14 @@ public class JdbcEnrollmentAnalyticsManager
         {
             sb.append( " and executiondate >= " );
 
-            sb.append( SqlUtils.singleQuote( DateUtils.getMediumDateString( startDate ) ) );
+            sb.append( String.format( "%s ", SqlUtils.singleQuote( DateUtils.getMediumDateString( startDate ) ) ) );
         }
 
         if ( endDate != null )
         {
             sb.append( " and executiondate <= " );
 
-            sb.append( SqlUtils.singleQuote( DateUtils.getMediumDateString( endDate ) ) );
+            sb.append( String.format( "%s ", SqlUtils.singleQuote( DateUtils.getMediumDateString( endDate ) ) ) );
         }
 
         return sb.toString();
