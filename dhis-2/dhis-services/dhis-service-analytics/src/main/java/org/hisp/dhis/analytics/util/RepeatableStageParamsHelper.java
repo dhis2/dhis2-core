@@ -68,6 +68,10 @@ public class RepeatableStageParamsHelper
         Pattern.compile( PS_RELATIVE_PERIOD_REGEX )
     };
 
+    private RepeatableStageParamsHelper()
+    {
+    }
+
     public static RepeatableStageParams getRepeatableStageParams( String dimension )
         throws InvalidRepeatableStageParamsException
     {
