@@ -228,8 +228,8 @@ public class DefaultEventDataQueryService
 
         EventQueryParams eventQueryParams = builder.build();
 
-        // partitioning can be used only when default period is specified
-        // empty period dimension means default period
+        // partitioning can be used only when default period is specified.
+        // empty period dimension means default period.
         if ( hasPeriodDimension( eventQueryParams ) && hasNotDefaultPeriod( eventQueryParams ) )
         {
             builder.withSkipPartitioning( true );
