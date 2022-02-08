@@ -459,6 +459,31 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
+    void eventValidationSucceedsWhenOnlyCOsAreSetAndEventProgramHasDefaultCC()
+    {
+        OrganisationUnit orgUnit = setupOrgUnit();
+        Program program = setupProgram( orgUnit );
+
+        CategoryCombo defaultCC = defaultCategoryCombo();
+        program.setCategoryCombo( defaultCC );
+        CategoryOptionCombo defaultAOC = firstCategoryOptionCombo( defaultCC );
+        when( preheat.getDefault( CategoryOptionCombo.class ) ).thenReturn( defaultAOC );
+
+        CategoryOption defaultCO = defaultCC.getCategoryOptions().get( 0 );
+
+        Event event = eventBuilder()
+            .attributeCategoryOptions( defaultCO.getUid() )
+            .build();
+
+        hook.validateEvent( reporter, event );
+
+        assertFalse( reporter.hasErrors() );
+        assertEquals( defaultAOC,
+            reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ),
+            "AOC id should be cached" );
+    }
+
+    @Test
     void eventValidationSucceedsWhenOnlyAOCIsSetAndItExists()
     {
         OrganisationUnit orgUnit = setupOrgUnit();
@@ -486,10 +511,10 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     {
         OrganisationUnit orgUnit = setupOrgUnit();
         Program program = setupProgram( orgUnit );
+
         CategoryCombo defaultCC = defaultCategoryCombo();
         program.setCategoryCombo( defaultCC );
         CategoryOptionCombo defaultAOC = firstCategoryOptionCombo( defaultCC );
-
         when( preheat.getCategoryOptionCombo( defaultAOC.getUid() ) ).thenReturn( defaultAOC );
 
         Event event = eventBuilder()
@@ -509,6 +534,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     {
         OrganisationUnit orgUnit = setupOrgUnit();
         Program program = setupProgram( orgUnit );
+
         CategoryCombo defaultCC = defaultCategoryCombo();
         program.setCategoryCombo( defaultCC );
         CategoryOptionCombo defaultAOC = firstCategoryOptionCombo( defaultCC );
