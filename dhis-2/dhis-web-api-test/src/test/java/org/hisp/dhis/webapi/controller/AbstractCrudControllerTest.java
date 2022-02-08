@@ -54,6 +54,7 @@ import org.hisp.dhis.webapi.json.domain.JsonError;
 import org.hisp.dhis.webapi.json.domain.JsonErrorReport;
 import org.hisp.dhis.webapi.json.domain.JsonGeoMap;
 import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
+import org.hisp.dhis.webapi.json.domain.JsonStats;
 import org.hisp.dhis.webapi.json.domain.JsonTranslation;
 import org.hisp.dhis.webapi.json.domain.JsonTypeReport;
 import org.hisp.dhis.webapi.json.domain.JsonUser;
@@ -555,7 +556,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
         String userId = getCurrentUser().getUid();
         // first create an object which has a collection
         String groupId = assertStatus( HttpStatus.CREATED, POST( "/userGroups/", "{'name':'testers'}" ) );
-        assertStatus( HttpStatus.NO_CONTENT,
+        assertStatus( HttpStatus.OK,
             POST( "/userGroups/" + groupId + "/users", "{'additions': [{'id':'" + userId + "'}]}" ) );
         assertUserGroupHasOnlyUser( groupId, userId );
     }
@@ -569,19 +570,60 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
             POST( "/userGroups/", "{'name':'testers', 'users':[{'id':'" + userId + "'}]}" ) );
         String peter = "{'name': 'Peter', 'firstName':'Peter', 'surname':'Pan', 'username':'peter47'}";
         String peterUserId = assertStatus( HttpStatus.CREATED, POST( "/users", peter ) );
-        assertStatus( HttpStatus.NO_CONTENT,
-            PUT( "/userGroups/" + groupId + "/users", "{'identifiableObjects':[{'id':'" + peterUserId + "'}]}" ) );
+
+        JsonWebMessage message = PUT( "/userGroups/" + groupId + "/users",
+            "{'identifiableObjects':[{'id':'" + peterUserId + "'}]}" )
+                .content( HttpStatus.OK ).as( JsonWebMessage.class );
+        JsonStats stats = message.getResponse().as( JsonTypeReport.class ).getStats();
+        assertEquals( 1, stats.getUpdated() );
+        assertEquals( 1, stats.getDeleted() );
         assertUserGroupHasOnlyUser( groupId, peterUserId );
     }
 
     @Test
-    void testAddCollectionItem()
+    void testAddCollectionItem_Owned()
     {
         String userId = getCurrentUser().getUid();
         // first create an object which has a collection
         String groupId = assertStatus( HttpStatus.CREATED, POST( "/userGroups/", "{'name':'testers'}" ) );
-        assertStatus( HttpStatus.NO_CONTENT, POST( "/userGroups/{uid}/users/{itemId}", groupId, userId ) );
+        assertStatus( HttpStatus.OK, POST( "/userGroups/{uid}/users/{itemId}", groupId, userId ) );
         assertUserGroupHasOnlyUser( groupId, userId );
+    }
+
+    @Test
+    void testAddCollectionItem_NonOwned()
+    {
+        String userId = getCurrentUser().getUid();
+        // first create an object which has a collection
+        String groupId = assertStatus( HttpStatus.CREATED, POST( "/userGroups/", "{'name':'testers'}" ) );
+        assertStatus( HttpStatus.OK, POST( "/users/{uid}/userGroups/{itemId}", userId, groupId ) );
+        assertUserGroupHasOnlyUser( groupId, userId );
+    }
+
+    @Test
+    void testDeleteCollectionItem_Owned()
+    {
+        String userId = getCurrentUser().getUid();
+        // first create an object which has a collection
+        String groupId = assertStatus( HttpStatus.CREATED, POST( "/userGroups/", "{'name':'testers'}" ) );
+        assertStatus( HttpStatus.OK, POST( "/userGroups/{uid}/users/{itemId}", groupId, userId ) );
+        assertUserGroupHasOnlyUser( groupId, userId );
+
+        assertStatus( HttpStatus.OK, DELETE( "/userGroups/{uid}/users/{itemId}", groupId, userId ) );
+        assertUserGroupHasNoUser( groupId );
+    }
+
+    @Test
+    void testDeleteCollectionItem_NonOwned()
+    {
+        String userId = getCurrentUser().getUid();
+        // first create an object which has a collection
+        String groupId = assertStatus( HttpStatus.CREATED, POST( "/userGroups/", "{'name':'testers'}" ) );
+        assertStatus( HttpStatus.OK, POST( "/users/{uid}/userGroups/{itemId}", userId, groupId ) );
+        assertUserGroupHasOnlyUser( groupId, userId );
+
+        assertStatus( HttpStatus.OK, DELETE( "/users/{uid}/userGroups/{itemId}", userId, groupId ) );
+        assertUserGroupHasNoUser( groupId );
     }
 
     @Test
@@ -591,7 +633,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
         // first create an object which has a collection
         String groupId = assertStatus( HttpStatus.CREATED,
             POST( "/userGroups/", "{'name':'testers', 'users':[{'id':'" + userId + "'}]}" ) );
-        assertStatus( HttpStatus.NO_CONTENT,
+        assertStatus( HttpStatus.OK,
             DELETE( "/userGroups/" + groupId + "/users", "{'identifiableObjects':[{'id':'" + userId + "'}]}" ) );
         assertEquals( 0, GET( "/userGroups/{uid}/users/", groupId ).content().getArray( "users" ).size() );
     }
@@ -638,9 +680,16 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
 
     private void assertUserGroupHasOnlyUser( String groupId, String userId )
     {
-        JsonList<JsonUser> usersInGroup = GET( "/userGroups/{uid}/users/{itemId}", groupId, userId ).content()
+        JsonList<JsonUser> usersInGroup = GET( "/userGroups/{uid}/users/", groupId, userId ).content()
             .getList( "users", JsonUser.class );
         assertEquals( 1, usersInGroup.size() );
         assertEquals( userId, usersInGroup.get( 0 ).getId() );
+    }
+
+    private void assertUserGroupHasNoUser( String groupId )
+    {
+        JsonList<JsonUser> usersInGroup = GET( "/userGroups/{uid}/users/", groupId ).content()
+            .getList( "users", JsonUser.class );
+        assertEquals( 0, usersInGroup.size() );
     }
 }

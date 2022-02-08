@@ -27,9 +27,7 @@
  */
 package org.hisp.dhis.metadata;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.Matchers.*;
-
+import com.google.gson.JsonObject;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.metadata.OptionActions;
@@ -40,7 +38,10 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.google.gson.JsonObject;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.Matchers.emptyArray;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.not;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -154,7 +155,7 @@ public class OptionSetTests
         // act
         optionActions.optionSetActions.delete( createdOptionSet + "/options/" + optionId )
             .validate()
-            .statusCode( 204 );
+            .statusCode( 200 );
 
         // assert
         optionActions.optionSetActions.get( createdOptionSet )
