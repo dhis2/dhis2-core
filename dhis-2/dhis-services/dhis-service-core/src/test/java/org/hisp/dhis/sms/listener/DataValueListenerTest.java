@@ -529,10 +529,12 @@ public class DataValueListenerTest extends DhisConvenienceTest
         smsCode = new SMSCode();
         smsCode.setCode( "de" );
         smsCode.setDataElement( dataElement );
+        smsCode.setOptionId( defaultCategoryOptionCombo );
 
         smsCodeForcompulsory = new SMSCode();
         smsCodeForcompulsory.setCode( "deb" );
         smsCodeForcompulsory.setDataElement( dataElementB );
+        smsCodeForcompulsory.setOptionId( categoryOptionCombo );
         smsCodeForcompulsory.setCompulsory( true );
 
         smsSpecialCharacter = new SMSSpecialCharacter();
