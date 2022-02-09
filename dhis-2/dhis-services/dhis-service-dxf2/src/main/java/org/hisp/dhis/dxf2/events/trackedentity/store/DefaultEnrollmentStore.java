@@ -49,14 +49,16 @@ import com.google.common.collect.Multimap;
 @Repository
 public class DefaultEnrollmentStore extends AbstractStore implements EnrollmentStore
 {
-    private final static String GET_ENROLLMENT_SQL_BY_TEI = EnrollmentQuery.getQuery();
+    private static final String GET_ENROLLMENT_SQL_BY_TEI = EnrollmentQuery.getQuery();
 
-    private final static String GET_NOTES_SQL = "select pi.uid as key, tec.uid, tec.commenttext, " +
+    private static final String GET_NOTES_SQL = "select pi.uid as key, tec.uid, tec.commenttext, " +
         "tec.creator, tec.created " +
         "from trackedentitycomment tec join programinstancecomments pic " +
         "on tec.trackedentitycommentid = pic.trackedentitycommentid " +
         "join programinstance pi on pic.programinstanceid = pi.programinstanceid " +
         "where pic.programinstanceid in (:ids)";
+
+    private static final String FILTER_OUT_DELETED_ENROLLMENTS = "pi.deleted=false";
 
     public DefaultEnrollmentStore( @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate )
     {
@@ -80,7 +82,8 @@ public class DefaultEnrollmentStore extends AbstractStore implements EnrollmentS
     {
         EnrollmentRowCallbackHandler handler = new EnrollmentRowCallbackHandler();
 
-        jdbcTemplate.query( withAclCheck( GET_ENROLLMENT_SQL_BY_TEI, ctx, " pi.programid IN (:programIds)" ),
+        jdbcTemplate.query( getQuery( GET_ENROLLMENT_SQL_BY_TEI, ctx, " pi.programid IN (:programIds)",
+            FILTER_OUT_DELETED_ENROLLMENTS ),
             createIdsParam( ids ).addValue( "programIds", ctx.getPrograms() ), handler );
 
         return handler.getItems();

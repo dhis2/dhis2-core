@@ -171,6 +171,7 @@ public class EventExportTests
         if ( shouldReturn )
         {
             response.validate().statusCode( 200 )
+                .body( "events", hasSize( greaterThanOrEqualTo( 1 ) ) )
                 .body( "events.orgUnit", everyItem( in( orgUnit ) ) );
 
             return;
