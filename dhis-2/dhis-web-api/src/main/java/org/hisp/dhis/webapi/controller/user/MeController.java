@@ -95,6 +95,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
@@ -219,13 +220,12 @@ public class MeController
     }
 
     @GetMapping( "/dataApprovalWorkflows" )
-    public void getCurrentUserDataApprovalWorkflows( HttpServletResponse response,
+    public ResponseEntity<ObjectNode> getCurrentUserDataApprovalWorkflows( HttpServletResponse response,
         @CurrentUser( required = true ) User user )
         throws Exception
     {
-        RootNode rootNode = userControllerUtils.getUserDataApprovalWorkflows( user );
-
-        nodeService.serialize( rootNode, APPLICATION_JSON_VALUE, response.getOutputStream() );
+        ObjectNode objectNode = userControllerUtils.getUserDataApprovalWorkflows( user );
+        return ResponseEntity.ok( objectNode );
     }
 
     @PutMapping( value = "", consumes = APPLICATION_JSON_VALUE )

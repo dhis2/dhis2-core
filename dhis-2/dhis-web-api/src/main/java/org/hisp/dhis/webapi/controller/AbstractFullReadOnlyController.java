@@ -51,18 +51,11 @@ import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.fieldfilter.Defaults;
-import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
-import org.hisp.dhis.node.Node;
-import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.Preset;
 import org.hisp.dhis.node.config.InclusionStrategy;
 import org.hisp.dhis.node.config.InclusionStrategy.Include;
-import org.hisp.dhis.node.types.CollectionNode;
-import org.hisp.dhis.node.types.ComplexNode;
-import org.hisp.dhis.node.types.RootNode;
-import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Pagination;
 import org.hisp.dhis.query.Query;
@@ -233,10 +226,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
 
         cachePrivate( response );
 
-        org.hisp.dhis.fieldfiltering.FieldFilterParams<T> params = org.hisp.dhis.fieldfiltering.FieldFilterParams
-            .of( entities, fields );
-
-        List<ObjectNode> objectNodes = fieldFilterService2.toObjectNodes( params );
+        List<ObjectNode> objectNodes = fieldFilterService2.toObjectNodes( entities, fields );
         JsonRoot jsonRoot = new JsonRoot();
 
         if ( pager != null )
@@ -250,7 +240,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     }
 
     @GetMapping( "/{uid}" )
-    public @ResponseBody RootNode getObject(
+    public @ResponseBody ResponseEntity<ObjectNode> getObject(
         @PathVariable( "uid" ) String pvUid,
         @RequestParam Map<String, String> rpParameters,
         @CurrentUser User currentUser,
@@ -275,11 +265,11 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
 
         cachePrivate( response );
 
-        return getObjectInternal( pvUid, rpParameters, filters, fields, currentUser );
+        return ResponseEntity.ok( getObjectInternal( pvUid, rpParameters, filters, fields, currentUser ) );
     }
 
     @GetMapping( "/{uid}/{property}" )
-    public @ResponseBody RootNode getObjectProperty(
+    public @ResponseBody ResponseEntity<ObjectNode> getObjectProperty(
         @PathVariable( "uid" ) String pvUid, @PathVariable( "property" ) String pvProperty,
         @RequestParam Map<String, String> rpParameters,
         TranslateParams translateParams,
@@ -315,58 +305,10 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
 
             cachePrivate( response );
 
-            return getObjectInternal( pvUid, rpParameters, Lists.newArrayList(),
+            ObjectNode objectNode = getObjectInternal( pvUid, rpParameters, Lists.newArrayList(),
                 Lists.newArrayList( pvProperty + fieldFilter ), currentUser );
-        }
-        finally
-        {
-            UserContext.reset();
-        }
-    }
 
-    @GetMapping( "/{uid}/{property}/{itemId}" )
-    public @ResponseBody RootNode getCollectionItem(
-        @PathVariable( "uid" ) String pvUid,
-        @PathVariable( "property" ) String pvProperty,
-        @PathVariable( "itemId" ) String pvItemId,
-        @RequestParam Map<String, String> parameters,
-        TranslateParams translateParams,
-        HttpServletResponse response, @CurrentUser User currentUser )
-        throws Exception
-    {
-        setUserContext( currentUser, translateParams );
-
-        try
-        {
-            if ( !aclService.canRead( currentUser, getEntityClass() ) )
-            {
-                throw new ReadAccessDeniedException(
-                    "You don't have the proper permissions to read objects of this type." );
-            }
-
-            RootNode rootNode = getObjectInternal( pvUid, parameters, Lists.newArrayList(),
-                Lists.newArrayList( pvProperty + "[:all]" ), currentUser );
-
-            // TODO optimize this using field filter (collection filtering)
-            if ( !rootNode.getChildren().isEmpty() && rootNode.getChildren().get( 0 ).isCollection() )
-            {
-                rootNode.getChildren().get( 0 ).getChildren().stream().filter( Node::isComplex ).forEach( node -> {
-                    node.getChildren().stream()
-                        .filter( child -> child.isSimple() && child.getName().equals( "id" )
-                            && !((SimpleNode) child).getValue().equals( pvItemId ) )
-                        .forEach( child -> rootNode.getChildren().get( 0 ).removeChild( node ) );
-                } );
-            }
-
-            if ( rootNode.getChildren().isEmpty() || rootNode.getChildren().get( 0 ).getChildren().isEmpty() )
-            {
-                throw new WebMessageException(
-                    notFound( pvProperty + " with ID " + pvItemId + " could not be found." ) );
-            }
-
-            cachePrivate( response );
-
-            return rootNode;
+            return ResponseEntity.ok( objectNode );
         }
         finally
         {
@@ -375,7 +317,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     }
 
     @SuppressWarnings( "unchecked" )
-    private RootNode getObjectInternal( String uid, Map<String, String> parameters,
+    private ObjectNode getObjectInternal( String uid, Map<String, String> parameters,
         List<String> filters, List<String> fields, User currentUser )
         throws Exception
     {
@@ -396,7 +338,6 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
         entities = (List<T>) queryService.query( query );
 
         handleLinksAndAccess( entities, fields, true );
-
         handleAttributeValues( entities, fields );
 
         for ( T entity : entities )
@@ -404,35 +345,9 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
             postProcessResponseEntity( entity, options, parameters );
         }
 
-        CollectionNode collectionNode = fieldFilterService.toCollectionNode( getEntityClass(),
-            new FieldFilterParams( entities, fields, Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) )
-                .setUser( currentUser ) );
+        List<ObjectNode> objectNodes = fieldFilterService2.toObjectNodes( entities, fields );
 
-        if ( options.isTrue( "useWrapper" ) || entities.size() > 1 )
-        {
-            RootNode rootNode = NodeUtils.createMetadata( collectionNode );
-            rootNode.getConfig().setInclusionStrategy( getInclusionStrategy( parameters.get( "inclusionStrategy" ) ) );
-
-            return rootNode;
-        }
-        else
-        {
-            List<Node> children = collectionNode.getChildren();
-            RootNode rootNode;
-
-            if ( !children.isEmpty() )
-            {
-                rootNode = NodeUtils.createRootNode( children.get( 0 ) );
-            }
-            else
-            {
-                rootNode = NodeUtils.createRootNode( new ComplexNode( getSchema().getSingular() ) );
-            }
-
-            rootNode.getConfig().setInclusionStrategy( getInclusionStrategy( parameters.get( "inclusionStrategy" ) ) );
-
-            return rootNode;
-        }
+        return objectNodes.get( 0 );
     }
 
     @SuppressWarnings( "unchecked" )

@@ -89,6 +89,12 @@ public class FieldFilterService
         this.jsonMapper = configureFieldFilterObjectMapper( jsonMapper );
     }
 
+    public <T> List<ObjectNode> toObjectNodes( List<T> objects, List<String> filters )
+    {
+        FieldFilterParams<T> params = FieldFilterParams.of( objects, filters );
+        return toObjectNodes( params );
+    }
+
     public List<ObjectNode> toObjectNodes( FieldFilterParams<?> params )
     {
         List<ObjectNode> objectNodes = new ArrayList<>();
