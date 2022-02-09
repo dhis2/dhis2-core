@@ -38,11 +38,13 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
 
 import java.beans.PropertyEditorSupport;
 import java.util.Date;
+import java.util.function.Function;
 
 import javax.servlet.ServletException;
 
 import org.hibernate.exception.ConstraintViolationException;
 import org.hisp.dhis.common.DeleteNotAllowedException;
+import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.MaintenanceModeException;
 import org.hisp.dhis.common.QueryRuntimeException;
@@ -109,15 +111,8 @@ public class CrudControllerAdvice
     @InitBinder
     protected void initBinder( WebDataBinder binder )
     {
-        binder.registerCustomEditor( Date.class, new PropertyEditorSupport()
-        {
-            @Override
-            public void setAsText( String value )
-                throws IllegalArgumentException
-            {
-                setValue( DateUtils.parseDate( value ) );
-            }
-        } );
+        binder.registerCustomEditor( Date.class, new FromTextPropertyEditor( DateUtils::parseDate ) );
+        binder.registerCustomEditor( IdentifiableProperty.class, new FromTextPropertyEditor( String::toUpperCase ) );
     }
 
     @ExceptionHandler( IllegalQueryException.class )
@@ -417,5 +412,27 @@ public class CrudControllerAdvice
         }
 
         return false;
+    }
+
+    /**
+     * Simple adapter to {@link PropertyEditorSupport} that allows to use lambda
+     * {@link Function}s to convert value from its text representation.
+     */
+    private static final class FromTextPropertyEditor extends PropertyEditorSupport
+    {
+
+        private final Function<String, Object> fromText;
+
+        private FromTextPropertyEditor( Function<String, Object> fromText )
+        {
+            this.fromText = fromText;
+        }
+
+        @Override
+        public void setAsText( String text )
+            throws IllegalArgumentException
+        {
+            setValue( fromText.apply( text ) );
+        }
     }
 }
