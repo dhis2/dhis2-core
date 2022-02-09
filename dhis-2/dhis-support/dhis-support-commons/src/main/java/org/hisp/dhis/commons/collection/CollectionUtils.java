@@ -49,14 +49,14 @@ public class CollectionUtils
      * Performs a flat mapping of the given collection using the given mapping
      * function.
      *
-     * @param <T>
-     * @param <U>
+     * @param <A>
+     * @param <B>
      * @param collection the collection of objects to map.
      * @param mapper the mapping function.
      * @return a set of mapped objects.
      */
-    public static <T, U> Set<U> flatMapToSet( Collection<T> collection,
-        Function<? super T, ? extends Collection<U>> mapper )
+    public static <A, B> Set<B> flatMapToSet( Collection<A> collection,
+        Function<? super A, ? extends Collection<B>> mapper )
     {
         return collection.stream()
             .map( mapper )
@@ -68,13 +68,13 @@ public class CollectionUtils
      * Performs a mapping of the given collection using the given mapping
      * function.
      *
-     * @param <T>
-     * @param <U>
+     * @param <A>
+     * @param <B>
      * @param collection collection the collection of objects to map.
      * @param mapper the mapping function.
      * @return a set of mapped objects.
      */
-    public static <T, U> Set<U> mapToSet( Collection<T> collection, Function<? super T, ? extends U> mapper )
+    public static <A, B> Set<B> mapToSet( Collection<A> collection, Function<? super A, ? extends B> mapper )
     {
         return collection.stream()
             .map( mapper )
@@ -84,14 +84,14 @@ public class CollectionUtils
     /**
      * Returns the intersection of the given Collections.
      *
+     * @param <A>
      * @param c1 the first Collection.
      * @param c2 the second Collection.
-     * @param <T> the type.
      * @return the intersection of the Collections.
      */
-    public static <T> Collection<T> intersection( Collection<T> c1, Collection<T> c2 )
+    public static <A> Collection<A> intersection( Collection<A> c1, Collection<A> c2 )
     {
-        Set<T> set1 = new HashSet<>( c1 );
+        Set<A> set1 = new HashSet<>( c1 );
         set1.retainAll( new HashSet<>( c2 ) );
         return set1;
     }
