@@ -206,8 +206,6 @@ class DataValueListenerTest extends DhisConvenienceTest
 
     private OutboundMessageResponse response;
 
-    private boolean locked = false;
-
     private boolean smsConfigured = true;
 
     private String message = "";
