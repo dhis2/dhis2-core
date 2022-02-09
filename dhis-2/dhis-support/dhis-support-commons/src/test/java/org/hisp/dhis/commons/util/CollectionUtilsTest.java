@@ -37,7 +37,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.junit.jupiter.api.Test;
 
-public class CollectionUtilsTest
+class CollectionUtilsTest
 {
     @Test
     public void testFlatMapToSet()
