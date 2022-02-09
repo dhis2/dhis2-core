@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
