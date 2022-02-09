@@ -525,8 +525,19 @@ class ExpressionServiceTest extends DhisSpringTest
         }
         Map<DimensionalItemId, DimensionalItemObject> itemMap = new HashMap<>();
         expressionService.getExpressionDimensionalItemMaps( expr, parseType, dataType, itemMap, itemMap );
-        Object value = expressionService.getExpressionValue( expr, parseType, itemMap, valueMap, constantMap,
-            ORG_UNIT_COUNT_MAP, null, DAYS, missingValueStrategy, null, TEST_SAMPLE_PERIODS, samples, dataType );
+        Object value = expressionService.getExpressionValue( ExpressionParams.builder()
+                .expression( expr )
+                .parseType( parseType )
+                .dataType( dataType )
+                .itemMap( itemMap )
+                .valueMap( valueMap )
+                .constantMap( constantMap )
+                .orgUnitCountMap( ORG_UNIT_COUNT_MAP )
+                .days( DAYS )
+                .missingValueStrategy( missingValueStrategy )
+                .samplePeriods( TEST_SAMPLE_PERIODS )
+                .periodValueMap( samples )
+                .build() );
         return result( value, itemMap.values() );
     }
 

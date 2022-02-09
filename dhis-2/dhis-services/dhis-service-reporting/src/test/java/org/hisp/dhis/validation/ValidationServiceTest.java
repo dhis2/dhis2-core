@@ -72,6 +72,7 @@ import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.datavalue.DataValueStore;
 import org.hisp.dhis.expression.Expression;
+import org.hisp.dhis.expression.ExpressionParams;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -513,7 +514,8 @@ class ValidationServiceTest extends DhisTest
             {
                 String test = result.getLeftsideValue()
                     + result.getValidationRule().getOperator().getMathematicalOperator() + result.getRightsideValue();
-                assertFalse( (Boolean) expressionService.getExpressionValue( test, SIMPLE_TEST ) );
+                assertFalse( (Boolean) expressionService.getExpressionValue( ExpressionParams.builder()
+                    .expression( test ).parseType( SIMPLE_TEST ).build() ) );
             }
         }
     }
