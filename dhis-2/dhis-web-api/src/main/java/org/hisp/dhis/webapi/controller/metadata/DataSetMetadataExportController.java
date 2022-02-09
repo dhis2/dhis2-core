@@ -32,14 +32,12 @@ import lombok.AllArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.metadata.DataSetMetadataExportService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * @author Lars Helge Overland
@@ -55,8 +53,6 @@ public class DataSetMetadataExportController
     @GetMapping
     public ResponseEntity<JsonNode> getMetadata()
     {
-        ObjectNode jsonNode = exportService.getDataSetMetadata();
-
-        return new ResponseEntity<>( jsonNode, HttpStatus.OK );
+        return ResponseEntity.ok( exportService.getDataSetMetadata() );
     }
 }
