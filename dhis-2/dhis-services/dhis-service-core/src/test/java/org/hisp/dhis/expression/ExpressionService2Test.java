@@ -402,15 +402,15 @@ class ExpressionService2Test extends DhisSpringTest
         Map<DimensionalItemObject, Object> valueMap, Map<String, Integer> orgUnitCountMap, Integer days )
     {
         return castDouble( target.getExpressionValue( ExpressionParams.builder()
-                .expression( expression )
-                .parseType( INDICATOR_EXPRESSION )
-                .itemMap( itemMap )
-                .valueMap( valueMap )
-                .constantMap( constantMap() )
-                .orgUnitCountMap( orgUnitCountMap )
-                .days( days )
-                .missingValueStrategy( NEVER_SKIP )
-                .build() ) );
+            .expression( expression )
+            .parseType( INDICATOR_EXPRESSION )
+            .itemMap( itemMap )
+            .valueMap( valueMap )
+            .constantMap( constantMap() )
+            .orgUnitCountMap( orgUnitCountMap )
+            .days( days )
+            .missingValueStrategy( NEVER_SKIP )
+            .build() ) );
     }
 
     @Test

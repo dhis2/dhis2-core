@@ -50,9 +50,7 @@ import org.apache.commons.lang3.RandomUtils;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.MapMap;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DataExportParams;
@@ -190,7 +188,7 @@ class DataValidationTaskTest
 
         when( expressionService.getExpressionValue( ExpressionParams.builder()
             .expression( "8.4!=-10.0" ).parseType( SIMPLE_TEST ).build() ) )
-            .thenReturn( true );
+                .thenReturn( true );
 
         subject.init( organisationUnits, ctx, analyticsService );
         subject.run();

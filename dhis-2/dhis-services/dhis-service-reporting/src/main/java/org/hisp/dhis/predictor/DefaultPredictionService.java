@@ -423,16 +423,16 @@ public class DefaultPredictionService
         {
             if ( aocData.get( p ) != null &&
                 (Boolean) expressionService.getExpressionValue( ExpressionParams.builder()
-                .expression( skipTest.getExpression() )
-                .parseType( PREDICTOR_SKIP_TEST )
-                .itemMap( itemMap )
-                .valueMap( aocData.get( p ) )
-                .constantMap( constantMap )
-                .orgUnitGroupMap( orgUnitGroupMap )
-                .days( p.getDaysInPeriod() )
-                .missingValueStrategy( skipTest.getMissingValueStrategy() )
-                .orgUnit( orgUnit )
-                .build() ) )
+                    .expression( skipTest.getExpression() )
+                    .parseType( PREDICTOR_SKIP_TEST )
+                    .itemMap( itemMap )
+                    .valueMap( aocData.get( p ) )
+                    .constantMap( constantMap )
+                    .orgUnitGroupMap( orgUnitGroupMap )
+                    .days( p.getDaysInPeriod() )
+                    .missingValueStrategy( skipTest.getMissingValueStrategy() )
+                    .orgUnit( orgUnit )
+                    .build() ) )
             {
                 skippedPeriods.add( p );
             }

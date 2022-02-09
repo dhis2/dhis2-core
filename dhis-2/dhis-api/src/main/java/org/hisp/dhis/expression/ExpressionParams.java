@@ -27,10 +27,17 @@
  */
 package org.hisp.dhis.expression;
 
+import static org.hisp.dhis.expression.MissingValueStrategy.NEVER_SKIP;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
+
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -39,12 +46,6 @@ import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.period.Period;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static org.hisp.dhis.expression.MissingValueStrategy.NEVER_SKIP;
 
 /**
  * Parameters to evaluate an expression in {@see ExpressionService}
