@@ -258,6 +258,22 @@ public class PreCheckDataRelationsValidationHook
             && !StringUtils.isBlank( event.getAttributeCategoryOptions() ) )
         {
             aoc = fetchAttributeOptionCombo( reporter, event, program );
+            if ( aoc != null )
+            {
+                // TODO validation hooks should not need to mutate the payload.
+                // This
+                // should be moved to a pre-processor.
+                event.setAttributeOptionCombo(
+                    reporter.getValidationContext().getIdentifiers().getCategoryOptionComboIdScheme()
+                        .getIdentifier( aoc ) );
+                // TODO validation hooks should not need to populate the
+                // preheat. Move this to the preheat.
+                // We need the AOC in the preheat so we can allow users not to
+                // send it. We need to set it on the
+                // ProgramStageInstance before persisting.
+                TrackerIdentifier identifier = preheat.getIdentifiers().getCategoryOptionComboIdScheme();
+                preheat.put( identifier, aoc );
+            }
         }
         else
         {
@@ -423,13 +439,6 @@ public class PreCheckDataRelationsValidationHook
 
         CategoryOptionCombo aoc = categoryService
             .getCategoryOptionCombo( categoryCombo, getCategoryOptions( preheat, event ) );
-        if ( aoc != null )
-        {
-            // TODO validation hooks should not need to populate the preheat
-            // anymore
-            TrackerIdentifier identifier = preheat.getIdentifiers().getCategoryOptionComboIdScheme();
-            preheat.put( identifier, aoc );
-        }
         reporter.getValidationContext().putCachedEventAOCProgramCC( cacheKey,
             aoc != null ? aoc.getUid() : null );
         return aoc;

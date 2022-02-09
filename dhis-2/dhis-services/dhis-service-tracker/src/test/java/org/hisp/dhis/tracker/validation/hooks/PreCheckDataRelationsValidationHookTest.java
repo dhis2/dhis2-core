@@ -469,6 +469,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
                 .categoryOptionComboIdScheme( TrackerIdentifier.NAME ).build() );
 
         Event event = eventBuilder()
+            .attributeOptionCombo( null )
             .attributeCategoryOptions( co.getUid() )
             .build();
 
@@ -478,6 +479,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         assertEquals( aoc,
             reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ),
             "AOC id should be cached" );
+        assertEquals( aoc.getName(), event.getAttributeOptionCombo(), "AOC id should be set by the validation" );
         verify( preheat, times( 1 ) ).put( TrackerIdentifier.NAME, aoc );
     }
 
