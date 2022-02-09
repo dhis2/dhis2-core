@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,6 +33,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hisp.dhis.matchers.DateTimeFormatMatcher.hasDateTimeFormat;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -306,6 +307,55 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
             .getTrackedEntityInstances( queryParams, params, false, true );
 
         assertThat( limitedTrackedEntityInstances5, hasSize( 0 ) );
+    }
+
+    @Test
+    public void testIncludeDeletedIsPropagetedFromTeiToEnrollmentsAndEvents()
+    {
+        TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
+        queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+        queryParams.setTrackedEntityType( trackedEntityTypeA );
+        queryParams.setIncludeDeleted( true );
+
+        TrackedEntityInstanceParams params = TrackedEntityInstanceParams.TRUE;
+
+        doInTransaction( () -> {
+            this.persistTrackedEntityInstanceWithEnrollmentAndEvents();
+            this.persistTrackedEntityInstanceWithEnrollmentAndEvents();
+            this.persistTrackedEntityInstanceWithEnrollmentAndEvents();
+            this.persistTrackedEntityInstanceWithEnrollmentAndEvents();
+        } );
+
+        List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
+            .getTrackedEntityInstances( queryParams, params, false, true );
+        assertThat( trackedEntityInstances, hasSize( 4 ) );
+        assertThat( trackedEntityInstances.get( 0 ).getEnrollments(), hasSize( 1 ) );
+        assertFalse( trackedEntityInstances.get( 0 ).getEnrollments().get( 0 ).isDeleted() );
+        assertThat( trackedEntityInstances.get( 1 ).getEnrollments().get( 0 ).getEvents(), hasSize( 5 ) );
+        assertFalse( trackedEntityInstances.get( 1 ).getEnrollments().get( 0 ).getEvents().stream()
+            .anyMatch( Event::isDeleted ) );
+
+        this.deleteOneEnrollment( trackedEntityInstances.get( 0 ) );
+        this.deleteOneEvent( trackedEntityInstances.get( 1 ).getEnrollments().get( 0 ) );
+
+        trackedEntityInstances = trackedEntityInstanceService
+            .getTrackedEntityInstances( queryParams, params, false, true );
+
+        assertThat( trackedEntityInstances, hasSize( 4 ) );
+        assertThat( trackedEntityInstances.get( 0 ).getEnrollments(), hasSize( 1 ) );
+        assertTrue( trackedEntityInstances.get( 0 ).getEnrollments().get( 0 ).isDeleted() );
+        assertThat( trackedEntityInstances.get( 1 ).getEnrollments().get( 0 ).getEvents(), hasSize( 5 ) );
+        assertTrue( trackedEntityInstances.get( 1 ).getEnrollments().get( 0 ).getEvents().stream()
+            .anyMatch( Event::isDeleted ) );
+
+        queryParams.setIncludeDeleted( false );
+        trackedEntityInstances = trackedEntityInstanceService
+            .getTrackedEntityInstances( queryParams, params, false, true );
+        assertThat( trackedEntityInstances, hasSize( 4 ) );
+        assertThat( trackedEntityInstances.get( 0 ).getEnrollments(), hasSize( 0 ) );
+        assertThat( trackedEntityInstances.get( 1 ).getEnrollments().get( 0 ).getEvents(), hasSize( 4 ) );
+        assertFalse( trackedEntityInstances.get( 1 ).getEnrollments().get( 0 ).getEvents().stream()
+            .anyMatch( Event::isDeleted ) );
     }
 
     @Test
