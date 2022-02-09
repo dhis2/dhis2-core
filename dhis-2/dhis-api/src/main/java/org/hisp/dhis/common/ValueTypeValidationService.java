@@ -25,46 +25,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events.importer;
-
-import lombok.Builder;
-import lombok.Getter;
-
-import org.hisp.dhis.artemis.audit.AuditManager;
-import org.hisp.dhis.common.ValueTypeValidationService;
-import org.hisp.dhis.program.ProgramInstanceStore;
-import org.hisp.dhis.programrule.ProgramRuleVariableService;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.JdbcTemplate;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
+package org.hisp.dhis.common;
 
 /**
- * Centralizes a collection of services and components that can be accessed by
- * the consumer.
+ * @author abyot
  *
- * @author maikel arabori
  */
-@Getter
-@Builder
-public class ServiceDelegator
+public interface ValueTypeValidationService
 {
-    private final ProgramInstanceStore programInstanceStore;
-
-    private final TrackerAccessManager trackerAccessManager;
-
-    private final ProgramRuleVariableService programRuleVariableService;
-
-    private final ApplicationEventPublisher applicationEventPublisher;
-
-    private final EventImporterUserService eventImporterUserService;
-
-    private final ObjectMapper jsonMapper;
-
-    private final JdbcTemplate jdbcTemplate;
-
-    private final AuditManager auditManager;
-
-    private ValueTypeValidationService valueTypeValidationService;
+    String dataValueIsValid( ValueTypedDimensionalItemObject dataValueObject, String value );
 }

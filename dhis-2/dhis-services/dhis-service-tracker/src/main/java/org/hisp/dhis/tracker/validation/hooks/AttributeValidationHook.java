@@ -37,6 +37,7 @@ import java.util.Objects;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
@@ -46,7 +47,6 @@ import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
-import org.hisp.dhis.tracker.validation.service.attribute.TrackedAttributeValidationService;
 
 /**
  * @author Luciano Fiandesio
@@ -54,11 +54,11 @@ import org.hisp.dhis.tracker.validation.service.attribute.TrackedAttributeValida
 public abstract class AttributeValidationHook extends AbstractTrackerDtoValidationHook
 {
 
-    private final TrackedAttributeValidationService teAttrService;
+    private final TrackedEntityAttributeService trackedEntityAttributeService;
 
-    protected AttributeValidationHook( TrackedAttributeValidationService teAttrService )
+    protected AttributeValidationHook( TrackedEntityAttributeService trackedEntityAttributeService )
     {
-        this.teAttrService = teAttrService;
+        this.trackedEntityAttributeService = trackedEntityAttributeService;
     }
 
     protected void validateAttrValueType( ValidationErrorReporter errorReporter, TrackerDto dto, Attribute attr,
@@ -71,34 +71,7 @@ public abstract class AttributeValidationHook extends AbstractTrackerDtoValidati
 
         TrackerImportValidationContext context = errorReporter.getValidationContext();
 
-        String error;
-
-        if ( valueType.equals( ValueType.ORGANISATION_UNIT ) )
-        {
-            error = context.getOrganisationUnit( attr.getValue() ) == null
-                ? " Value " + attr.getValue() + " is not a valid org unit value"
-                : null;
-        }
-        else if ( valueType.equals( ValueType.USERNAME ) )
-        {
-            error = context.usernameExists( attr.getValue() ) ? null
-                : " Value " + attr.getValue() + " is not a valid username value";
-        }
-        else
-        {
-            // We need to do try/catch here since validateValueType() since
-            // validateValueType can cast IllegalArgumentException e.g.
-            // on at
-            // org.joda.time.format.DateTimeFormatter.parseDateTime(DateTimeFormatter.java:945)
-            try
-            {
-                error = teAttrService.validateValueType( teAttr, attr.getValue() );
-            }
-            catch ( Exception e )
-            {
-                error = e.getMessage();
-            }
-        }
+        String error = trackedEntityAttributeService.validateValueType( teAttr, attr.getValue() );
 
         if ( error != null )
         {

@@ -38,6 +38,7 @@ import java.util.Arrays;
 import java.util.Set;
 
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.common.ValueTypeValidationService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.fileresource.FileResource;
@@ -73,6 +74,9 @@ class EventDataValuesValidationHookTest
     @Mock
     private TrackerImportValidationContext context;
 
+    @Mock
+    private ValueTypeValidationService dataValueValidationService;
+
     private static final String programStageUid = "programStageUid";
 
     private static final String dataElementUid = "dataElement";
@@ -80,7 +84,7 @@ class EventDataValuesValidationHookTest
     @BeforeEach
     public void setUp()
     {
-        hook = new EventDataValuesValidationHook();
+        hook = new EventDataValuesValidationHook( dataValueValidationService );
 
         when( context.getBundle() ).thenReturn( TrackerBundle.builder().build() );
     }

@@ -45,6 +45,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.TrackerIdScheme;
@@ -55,7 +56,6 @@ import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.ReferenceTrackerEntity;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
-import org.hisp.dhis.tracker.validation.service.attribute.TrackedAttributeValidationService;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Maps;
@@ -68,9 +68,9 @@ import com.google.common.collect.Streams;
 public class EnrollmentAttributeValidationHook extends AttributeValidationHook
 {
 
-    public EnrollmentAttributeValidationHook( TrackedAttributeValidationService teAttrService )
+    public EnrollmentAttributeValidationHook( TrackedEntityAttributeService trackedEntityAttributeService )
     {
-        super( teAttrService );
+        super( trackedEntityAttributeService );
     }
 
     @Override

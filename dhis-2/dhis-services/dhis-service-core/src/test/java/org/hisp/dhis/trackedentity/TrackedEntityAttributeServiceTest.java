@@ -36,7 +36,9 @@ import static org.mockito.Mockito.when;
 import java.util.Arrays;
 import java.util.Optional;
 
+import org.hisp.dhis.common.DefaultValueTypeValidationService;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.common.ValueTypeValidationService;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
@@ -76,13 +78,16 @@ class TrackedEntityAttributeServiceTest
     private AclService aclService;
 
     @Mock
-    private TrackedEntityAttributeStore attributeStore;
+    private UserService userService;
+
+    @Mock
+    private OrganisationUnitService organisationUnitService;
 
     @Mock
     private FileResourceService fileResourceService;
 
     @Mock
-    private UserService userService;
+    private TrackedEntityAttributeStore attributeStore;
 
     @Mock
     private TrackedEntityTypeAttributeStore entityTypeAttributeStore;
@@ -91,9 +96,6 @@ class TrackedEntityAttributeServiceTest
     private ProgramTrackedEntityAttributeStore programAttributeStore;
 
     private TrackedEntityAttributeService trackedEntityAttributeService;
-
-    @Mock
-    private OrganisationUnitService organisationUnitService;
 
     private TrackedEntityInstance teiPassedInPayload;
 
@@ -108,9 +110,12 @@ class TrackedEntityAttributeServiceTest
     @BeforeEach
     public void setUp()
     {
+        ValueTypeValidationService valueTypeValidationService = new DefaultValueTypeValidationService(
+            fileResourceService, organisationUnitService, userService );
+
         trackedEntityAttributeService = new DefaultTrackedEntityAttributeService( attributeStore, programService,
-            trackedEntityTypeService, fileResourceService, userService, currentUserService, aclService,
-            trackedEntityAttributeStore, entityTypeAttributeStore, programAttributeStore, organisationUnitService );
+            trackedEntityTypeService, currentUserService, aclService,
+            trackedEntityAttributeStore, entityTypeAttributeStore, programAttributeStore, valueTypeValidationService );
 
         orgUnit = new OrganisationUnit( "orgUnitA" );
 
@@ -193,8 +198,7 @@ class TrackedEntityAttributeServiceTest
     {
         tea.setValueType( ValueType.DATE );
         String teaValue = "Firstname";
-        assertThrows( IllegalArgumentException.class,
-            () -> trackedEntityAttributeService.validateValueType( tea, teaValue ) );
+        assertNotNull( trackedEntityAttributeService.validateValueType( tea, teaValue ) );
     }
 
     @Test
@@ -234,7 +238,7 @@ class TrackedEntityAttributeServiceTest
         Option option1 = new Option();
         option1.setCode( "CODE1" );
 
-        optionSet.setOptions( Arrays.asList( null, option, option1 ) );
+        optionSet.setOptions( Arrays.asList( option, option1 ) );
         tea.setOptionSet( optionSet );
 
         assertNull( trackedEntityAttributeService.validateValueType( tea, "CODE" ) );

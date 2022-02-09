@@ -40,7 +40,6 @@ import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1112;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ATTRIBUTE_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.TRACKED_ENTITY_ATTRIBUTE_VALUE_CANT_BE_NULL;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -51,6 +50,7 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
@@ -60,7 +60,6 @@ import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.util.Constant;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
-import org.hisp.dhis.tracker.validation.service.attribute.TrackedAttributeValidationService;
 import org.springframework.stereotype.Component;
 
 /**
@@ -71,10 +70,10 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
 {
     private final DhisConfigurationProvider dhisConfigurationProvider;
 
-    public TrackedEntityAttributeValidationHook( TrackedAttributeValidationService teAttrService,
+    public TrackedEntityAttributeValidationHook( TrackedEntityAttributeService trackedEntityAttributeService,
         DhisConfigurationProvider dhisConfigurationProvider )
     {
-        super( teAttrService );
+        super( trackedEntityAttributeService );
         checkNotNull( dhisConfigurationProvider );
         this.dhisConfigurationProvider = dhisConfigurationProvider;
     }
@@ -123,14 +122,6 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
         checkNotNull( trackedEntity, TrackerImporterAssertErrors.TRACKED_ENTITY_CANT_BE_NULL );
         checkNotNull( trackedEntityType, TrackerImporterAssertErrors.TRACKED_ENTITY_TYPE_CANT_BE_NULL );
 
-        Map<String, TrackedEntityAttributeValue> valueMap = new HashMap<>();
-        if ( tei != null )
-        {
-            valueMap = tei.getTrackedEntityAttributeValues()
-                .stream()
-                .collect( Collectors.toMap( v -> v.getAttribute().getUid(), v -> v ) );
-        }
-
         for ( Attribute attribute : trackedEntity.getAttributes() )
         {
             TrackedEntityAttribute tea = reporter.getValidationContext()
@@ -160,12 +151,7 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
 
             validateAttributeValue( reporter, trackedEntity, tea, attribute.getValue() );
             validateAttrValueType( reporter, trackedEntity, attribute, tea );
-            validateOptionSet( reporter, trackedEntity, tea,
-                attribute.getValue() );
-
             validateAttributeUniqueness( reporter, trackedEntity, attribute.getValue(), tea, tei, orgUnit );
-
-            validateFileNotAlreadyAssigned( reporter, trackedEntity, attribute, valueMap );
         }
     }
 

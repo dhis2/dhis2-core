@@ -28,9 +28,7 @@
 package org.hisp.dhis.tracker.validation.hooks;
 
 import static com.google.api.client.util.Preconditions.checkNotNull;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1009;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1076;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1084;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1303;
 import static org.hisp.dhis.tracker.validation.hooks.ValidationUtils.needsToValidateDataValues;
 import static org.hisp.dhis.tracker.validation.hooks.ValidationUtils.validateMandatoryDataValue;
@@ -41,11 +39,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.ValueTypeValidationService;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
-import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
@@ -60,6 +57,14 @@ import org.springframework.stereotype.Component;
 public class EventDataValuesValidationHook
     extends AbstractTrackerDtoValidationHook
 {
+    private final ValueTypeValidationService dataValueValidationService;
+
+    public EventDataValuesValidationHook( ValueTypeValidationService dataValueValidationService )
+    {
+        checkNotNull( dataValueValidationService );
+        this.dataValueValidationService = dataValueValidationService;
+    }
+
     @Override
     public void validateEvent( ValidationErrorReporter reporter, Event event )
     {
@@ -81,7 +86,7 @@ public class EventDataValuesValidationHook
                 continue;
             }
 
-            validateDataElement( reporter, dataElement, dataValue, programStage, event );
+            validateDataValue( reporter, dataElement, dataValue, programStage, event );
             if ( dataValue.getValue() != null )
             {
                 validateOptionSet( reporter, event, dataElement, dataValue.getValue() );
@@ -111,10 +116,10 @@ public class EventDataValuesValidationHook
         }
     }
 
-    private void validateDataElement( ValidationErrorReporter reporter, DataElement dataElement,
+    private void validateDataValue( ValidationErrorReporter reporter, DataElement dataElement,
         DataValue dataValue, ProgramStage programStage, Event event )
     {
-        final String status = ValidationUtils.dataValueIsValid( dataValue.getValue(), dataElement );
+        final String status = dataValueValidationService.dataValueIsValid( dataElement, dataValue.getValue() );
 
         if ( status != null )
         {
@@ -124,7 +129,6 @@ public class EventDataValuesValidationHook
         else
         {
             validateNullDataValues( reporter, dataElement, programStage, dataValue, event );
-            validateFileNotAlreadyAssigned( reporter, event, dataValue, dataElement );
         }
     }
 
@@ -170,26 +174,5 @@ public class EventDataValuesValidationHook
                     programStage.getUid() );
             }
         }
-    }
-
-    private void validateFileNotAlreadyAssigned( ValidationErrorReporter reporter, Event event, DataValue dataValue,
-        DataElement dataElement )
-    {
-        if ( dataValue == null || dataValue.getValue() == null )
-        {
-            return;
-        }
-
-        boolean isFile = dataElement.getValueType() != null && dataElement.getValueType().isFile();
-        if ( !isFile )
-        {
-            return;
-        }
-
-        FileResource fileResource = reporter.getValidationContext().getFileResource( dataValue.getValue() );
-
-        reporter.addErrorIfNull( fileResource, event, E1084, dataValue.getValue() );
-        reporter.addErrorIf( () -> fileResource != null && fileResource.isAssigned(), event,
-            E1009, dataValue.getValue() );
     }
 }

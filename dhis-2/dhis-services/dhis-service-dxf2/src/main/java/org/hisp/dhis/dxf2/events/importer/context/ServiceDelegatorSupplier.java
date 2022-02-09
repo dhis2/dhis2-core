@@ -33,10 +33,9 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.artemis.audit.AuditManager;
+import org.hisp.dhis.common.ValueTypeValidationService;
 import org.hisp.dhis.dxf2.events.importer.EventImporterUserService;
 import org.hisp.dhis.dxf2.events.importer.ServiceDelegator;
-import org.hisp.dhis.fileresource.FileResourceService;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.ProgramInstanceStore;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
@@ -80,10 +79,7 @@ public class ServiceDelegatorSupplier implements Supplier<ServiceDelegator>
     private final AuditManager auditManager;
 
     @NonNull
-    private final FileResourceService fileResourceService;
-
-    @NonNull
-    private final OrganisationUnitService organisationUnitService;
+    private ValueTypeValidationService valueTypeValidationService;
 
     @Override
     public ServiceDelegator get()
@@ -97,8 +93,7 @@ public class ServiceDelegatorSupplier implements Supplier<ServiceDelegator>
             .jsonMapper( jsonMapper )
             .jdbcTemplate( jdbcTemplate )
             .auditManager( auditManager )
-            .fileResourceService( fileResourceService )
-            .organisationUnitService( organisationUnitService )
+            .valueTypeValidationService( valueTypeValidationService )
             .build();
     }
 }
