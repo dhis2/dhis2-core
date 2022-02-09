@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.util.List;
@@ -105,8 +106,7 @@ public class SMSCommandObjectBundleServiceTest extends TransactionalIntegrationT
         params.setObjects( metadata );
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
-        validate.forEachErrorReport( System.out::println );
-        assertFalse( validate.hasErrorReports() );
+        assertTrue( validate.getErrorReports().isEmpty() );
         objectBundleService.commit( bundle );
 
         SMSCommand smsCommand = manager.get( SMSCommand.class, "em8Bg4LCr1a" );
