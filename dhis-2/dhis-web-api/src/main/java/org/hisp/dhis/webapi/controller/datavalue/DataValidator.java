@@ -385,8 +385,10 @@ public class DataValidator
         final DataSet dataSet, final OrganisationUnit organisationUnit, final CategoryOptionCombo attributeOptionCombo )
     {
         if ( dataSet == null
-            ? dataSetService.isLocked( user, dataElement, period, organisationUnit, attributeOptionCombo, null )
-            : dataSetService.isLocked( user, dataSet, period, organisationUnit, attributeOptionCombo, null ) )
+            ? !dataSetService.getLockStatus( user, dataElement, period, organisationUnit, attributeOptionCombo, null )
+                .isOpen()
+            : !dataSetService.getLockStatus( user, dataSet, period, organisationUnit, attributeOptionCombo,
+                null ).isOpen() )
         {
             throw new IllegalQueryException( new ErrorMessage( ErrorCode.E2017 ) );
         }

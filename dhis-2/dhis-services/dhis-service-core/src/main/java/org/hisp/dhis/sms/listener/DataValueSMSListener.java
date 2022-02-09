@@ -127,8 +127,8 @@ public class DataValueSMSListener
         Period period = getPeriod( smsCommand, date );
         DataSet dataSet = smsCommand.getDataset();
 
-        if ( dataSetService.isLocked( null, dataSet, period, orgUnit,
-            dataElementCategoryService.getDefaultCategoryOptionCombo(), null ) )
+        if ( !dataSetService.getLockStatus( null, dataSet, period, orgUnit,
+            dataElementCategoryService.getDefaultCategoryOptionCombo(), null ).isOpen() )
         {
             sendFeedback( String.format( DATASET_LOCKED, dataSet.getUid(), period.getName() ), sms.getOriginator(),
                 ERROR );
