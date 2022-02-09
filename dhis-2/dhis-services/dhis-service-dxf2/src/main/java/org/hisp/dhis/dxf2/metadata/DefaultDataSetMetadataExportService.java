@@ -51,6 +51,7 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.fieldfiltering.FieldFilterParams;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
+import org.hisp.dhis.fieldfiltering.FieldPreset;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.schema.descriptors.CategoryComboSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.CategorySchemaDescriptor;
@@ -159,6 +160,9 @@ public class DefaultDataSetMetadataExportService
      *
      * @param <T>
      * @param objects the collection of objects.
+     * @param extraFilters the set of filters to apply in addition to
+     *        {@link FieldPreset#SIMPLE}.
+     * @param type the class type.
      * @return an {@link ObjectNode}.
      */
     private <T extends IdentifiableObject> List<ObjectNode> asObjectNodes(
