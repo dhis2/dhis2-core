@@ -27,8 +27,9 @@
  */
 package org.hisp.dhis.dxf2.events.event;
 
-import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+import static org.hisp.dhis.common.SlimPager.FIRST_PAGE;
 import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ATTRIBUTE_OPTION_COMBO_ID;
 import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_COMPLETED_BY_ID;
 import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_COMPLETED_DATE_ID;
@@ -418,7 +419,7 @@ public abstract class AbstractEventService implements EventService
             }
             else
             {
-                pager = handleLastPageFlag( params, organisationUnits, grid );
+                pager = handleLastPageFlag( params, grid );
             }
 
             metaData.put( PAGER_META_KEY, pager );
@@ -429,39 +430,40 @@ public abstract class AbstractEventService implements EventService
         return grid;
     }
 
-    private Pager handleLastPageFlag( final EventSearchParams params, final List<OrganisationUnit> organisationUnits,
-        final Grid grid )
+    /**
+     * This method will apply the logic related to the parameter
+     * 'totalPages=false'. This works in conjunction with the method:
+     * {@link org.hisp.dhis.dxf2.events.event.JdbcEventStore#getEventPagingQuery(EventSearchParams)}
+     *
+     * This is needed because we need to query (pageSize + 1) at DB level. The
+     * resulting query will allow us to evaluate if we are in the last page or
+     * not. And this is what his method does, returning the respective Pager
+     * object.
+     *
+     * @param params the request params
+     * @param grid the populated Grid object
+     * @return the populated SlimPager instance
+     */
+    private Pager handleLastPageFlag( final EventSearchParams params, final Grid grid )
     {
-        final Pager pager;
+        final int originalPage = params.getPage();
+        final int originalPageSize = params.getPageSize();
         boolean isLastPage = false;
 
-        final int oneElement = 1;
-        final int originalPageSize = params.getPageSize();
-        final int originalPage = params.getPage();
-
-        // Always 1, as we want to get only the next element.
-        params.setPageSize( oneElement );
-
-        // Sets the next page, so we can check if there is one element
-        // on the next page.
-        params.setPage( originalPageSize * originalPage + oneElement );
-
-        final List<Map<String, String>> events = eventStore.getEventsGrid( params, organisationUnits );
-
-        final boolean hasMoreElements = isNotEmpty( events );
-
-        if ( !hasMoreElements && !isEmpty( grid.getRows() ) )
+        if ( isNotEmpty( grid.getRows() ) )
         {
-            isLastPage = true;
+            isLastPage = grid.getRows().size() <= originalPageSize;
+            if ( !isLastPage )
+            {
+                // Get the same number of elements of the pageSize, forcing
+                // the removal of the last additional element added at querying
+                // time.
+                grid.getRows().retainAll( grid.getRows().subList( 0, originalPageSize ) );
+            }
         }
 
-        pager = new SlimPager( originalPage, originalPageSize, isLastPage );
-
-        // Restore the original page param values so we do not impact the flow.
-        params.setPageSize( originalPageSize );
-        params.setPage( originalPage );
-
-        return pager;
+        return new SlimPager( defaultIfNull( originalPage, FIRST_PAGE ), originalPageSize,
+            isLastPage );
     }
 
     @Transactional( readOnly = true )

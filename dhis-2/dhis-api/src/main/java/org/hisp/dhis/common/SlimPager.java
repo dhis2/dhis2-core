@@ -43,14 +43,9 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 @JsonInclude( NON_NULL )
 public class SlimPager extends Pager
 {
-    private Boolean lastPage;
+    public static final int FIRST_PAGE = 1;
 
-    public SlimPager( final int page, final int pageSize )
-    {
-        // Total is always ZERO, as the main goal of this object it to never
-        // count the total of pages.
-        force( page, pageSize );
-    }
+    private Boolean lastPage;
 
     public SlimPager( final int page, final int pageSize, final Boolean lastPage )
     {

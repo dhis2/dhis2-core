@@ -27,8 +27,10 @@
  */
 package org.hisp.dhis.dxf2.events.enrollment;
 
-import static org.apache.commons.collections4.CollectionUtils.isEmpty;
+import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+import static org.hisp.dhis.common.SlimPager.FIRST_PAGE;
 import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
 import static org.hisp.dhis.trackedentity.TrackedEntityAttributeService.TEA_VALUE_MAX_LENGTH;
 
@@ -197,9 +199,7 @@ public abstract class AbstractEnrollmentService
     public Enrollments getEnrollments( ProgramInstanceQueryParams params )
     {
         final Enrollments enrollments = new Enrollments();
-
-        final List<ProgramInstance> programInstances = programInstanceService.getProgramInstances( params );
-        enrollments.setEnrollments( getEnrollments( programInstances ) );
+        final List<ProgramInstance> programInstances = new ArrayList<>();
 
         if ( !params.isPaging() && !params.isSkipPaging() )
         {
@@ -212,7 +212,9 @@ public abstract class AbstractEnrollmentService
 
             if ( params.isTotalPages() )
             {
-                int count = programInstanceService.countProgramInstances( params );
+                programInstances.addAll( programInstanceService.getProgramInstances( params ) );
+
+                final int count = programInstanceService.countProgramInstances( params );
                 pager = new Pager( params.getPageWithDefault(), count, params.getPageSizeWithDefault() );
             }
             else
@@ -223,42 +225,48 @@ public abstract class AbstractEnrollmentService
             enrollments.setPager( pager );
         }
 
+        enrollments.setEnrollments( getEnrollments( programInstances ) );
+
         return enrollments;
     }
 
+    /**
+     * This method will apply the logic related to the parameter
+     * 'totalPages=false'. This works in conjunction with the method:
+     * {@link org.hisp.dhis.program.hibernate.HibernateProgramInstanceStore#getProgramInstances(ProgramInstanceQueryParams)}
+     *
+     * This is needed because we need to query (pageSize + 1) at DB level. The
+     * resulting query will allow us to evaluate if we are in the last page or
+     * not. And this is what his method does, returning the respective Pager
+     * object.
+     *
+     * @param params the request params
+     * @param programInstances the reference to the list of ProgramInstance
+     * @return the populated SlimPager instance
+     */
     private Pager handleLastPageFlag( final ProgramInstanceQueryParams params,
         final List<ProgramInstance> programInstances )
     {
-        final Pager pager;
+        final int originalPage = params.getPage();
+        final int originalPageSize = params.getPageSize();
         boolean isLastPage = false;
 
-        final int oneElement = 1;
-        final int originalPageSize = params.getPageSize();
-        final int originalPage = params.getPage();
+        programInstances.addAll( programInstanceService.getProgramInstances( params ) );
 
-        // Always 1, as we want to get only the next element.
-        params.setPageSize( oneElement );
-
-        // Sets the next page, so we can check if there is one element
-        // on the next page.
-        params.setPage( originalPageSize * originalPage + oneElement );
-
-        final List<ProgramInstance> nextProgramInstanceSingle = programInstanceService
-            .getProgramInstances( params );
-        final boolean hasMoreElements = isNotEmpty( nextProgramInstanceSingle );
-
-        if ( !hasMoreElements && !isEmpty( programInstances ) )
+        if ( isNotEmpty( programInstances ) )
         {
-            isLastPage = true;
+            isLastPage = programInstances.size() <= originalPageSize;
+            if ( !isLastPage )
+            {
+                // Get the same number of elements of the pageSize, forcing
+                // the removal of the last additional element added at querying
+                // time.
+                programInstances.retainAll( programInstances.subList( 0, originalPageSize ) );
+            }
         }
 
-        pager = new SlimPager( originalPage, originalPageSize, isLastPage );
-
-        // Restore the original page param values so we do not impact the flow.
-        params.setPageSize( originalPageSize );
-        params.setPage( originalPage );
-
-        return pager;
+        return new SlimPager( defaultIfNull( originalPage, FIRST_PAGE ), originalPageSize,
+            isLastPage );
     }
 
     @Override
@@ -424,7 +432,7 @@ public abstract class AbstractEnrollmentService
 
         List<Enrollment> validEnrollments = enrollments.stream()
             .filter( e -> !conflictingEnrollmentUids.contains( e.getEnrollment() ) )
-            .collect( Collectors.toList() );
+            .collect( toList() );
 
         List<List<Enrollment>> partitions = Lists.partition( validEnrollments, FLUSH_FREQUENCY );
         List<Event> events = new ArrayList<>();
@@ -464,7 +472,7 @@ public abstract class AbstractEnrollmentService
         ImportSummaries importSummaries )
     {
         List<String> foundEnrollments = programInstanceService.getProgramInstancesUidsIncludingDeleted(
-            enrollments.stream().map( Enrollment::getEnrollment ).collect( Collectors.toList() ) );
+            enrollments.stream().map( Enrollment::getEnrollment ).collect( toList() ) );
 
         for ( String foundEnrollmentUid : foundEnrollments )
         {
@@ -1249,7 +1257,7 @@ public abstract class AbstractEnrollmentService
         }
 
         Collection<String> trackedEntityInstances = enrollments.stream().map( Enrollment::getTrackedEntityInstance )
-            .collect( Collectors.toList() );
+            .collect( toList() );
 
         if ( !trackedEntityInstances.isEmpty() )
         {
