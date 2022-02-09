@@ -78,6 +78,10 @@ public class DefaultDataSetMetadataExportService
 
     private static final String FIELD_PRESET_SIMPLE = ":simple";
 
+    private static final Set<String> FIELDS_INDICATOR = Set.of( "explodedNumerator", "explodedDenominator" );
+
+    private static final Set<String> FIELDS_CAT_COMBOS = Set.of( "categories~pluck" );
+
     private final FieldFilterService fieldFilterService;
 
     private final IdentifiableObjectManager idObjectManager;
@@ -113,11 +117,10 @@ public class DefaultDataSetMetadataExportService
         rootNode.putArray( DataElementSchemaDescriptor.PLURAL )
             .addAll( asObjectNodes( dataElements, Set.of(), DataElement.class ) );
         rootNode.putArray( IndicatorSchemaDescriptor.PLURAL )
-            .addAll(
-                asObjectNodes( indicators, Set.of( "explodedNumerator", "explodedDenominator" ), Indicator.class ) );
+            .addAll( asObjectNodes( indicators, FIELDS_INDICATOR, Indicator.class ) );
         rootNode.putArray( CategoryComboSchemaDescriptor.PLURAL )
-            .addAll( asObjectNodes( dataElementCategoryCombos, Set.of( "categories~pluck" ), CategoryCombo.class ) )
-            .addAll( asObjectNodes( dataSetCategoryCombos, Set.of( "categories~pluck" ), CategoryCombo.class ) );
+            .addAll( asObjectNodes( dataElementCategoryCombos, FIELDS_CAT_COMBOS, CategoryCombo.class ) )
+            .addAll( asObjectNodes( dataSetCategoryCombos, FIELDS_CAT_COMBOS, CategoryCombo.class ) );
         rootNode.putArray( CategorySchemaDescriptor.PLURAL )
             .addAll( asObjectNodes( dataElementCategories, Set.of(), Category.class ) )
             .addAll( getDataSetCategories( dataSetCategories, user ) );
