@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.dxf2.events.enrollment;
 
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
 import static org.hisp.dhis.trackedentity.TrackedEntityAttributeService.TEA_VALUE_MAX_LENGTH;
 
@@ -194,7 +196,10 @@ public abstract class AbstractEnrollmentService
     @Override
     public Enrollments getEnrollments( ProgramInstanceQueryParams params )
     {
-        Enrollments enrollments = new Enrollments();
+        final Enrollments enrollments = new Enrollments();
+
+        final List<ProgramInstance> programInstances = programInstanceService.getProgramInstances( params );
+        enrollments.setEnrollments( getEnrollments( programInstances ) );
 
         if ( !params.isPaging() && !params.isSkipPaging() )
         {
@@ -212,16 +217,48 @@ public abstract class AbstractEnrollmentService
             }
             else
             {
-                pager = new SlimPager( params.getPage(), params.getPageSize() );
+                pager = handleLastPageFlag( params, programInstances );
             }
 
             enrollments.setPager( pager );
         }
 
-        List<ProgramInstance> programInstances = programInstanceService.getProgramInstances( params );
-        enrollments.setEnrollments( getEnrollments( programInstances ) );
-
         return enrollments;
+    }
+
+    private Pager handleLastPageFlag( final ProgramInstanceQueryParams params,
+        final List<ProgramInstance> programInstances )
+    {
+        final Pager pager;
+        boolean isLastPage = false;
+
+        final int oneElement = 1;
+        final int originalPageSize = params.getPageSize();
+        final int originalPage = params.getPage();
+
+        // Always 1, as we want to get only the next element.
+        params.setPageSize( oneElement );
+
+        // Sets the next page, so we can check if there is one element
+        // on the next page.
+        params.setPage( originalPageSize * originalPage + oneElement );
+
+        final List<ProgramInstance> nextProgramInstanceSingle = programInstanceService
+            .getProgramInstances( params );
+        final boolean hasMoreElements = isNotEmpty( nextProgramInstanceSingle );
+
+        if ( !hasMoreElements && !isEmpty( programInstances ) )
+        {
+            isLastPage = true;
+        }
+
+        pager = new SlimPager( originalPage, originalPageSize, isLastPage );
+
+        // Restore the original page param values so we do not impact the flow.
+        params.setPageSize( originalPageSize );
+        params.setPage( originalPage );
+
+        return pager;
     }
 
     @Override

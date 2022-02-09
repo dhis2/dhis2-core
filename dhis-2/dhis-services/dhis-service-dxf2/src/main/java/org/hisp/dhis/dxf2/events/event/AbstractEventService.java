@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.dxf2.events.event;
 
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ATTRIBUTE_OPTION_COMBO_ID;
 import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_COMPLETED_BY_ID;
 import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_COMPLETED_DATE_ID;
@@ -416,7 +418,7 @@ public abstract class AbstractEventService implements EventService
             }
             else
             {
-                pager = new SlimPager( params.getPage(), params.getPageSize() );
+                pager = handleLastPageFlag( params, organisationUnits, grid );
             }
 
             metaData.put( PAGER_META_KEY, pager );
@@ -425,6 +427,41 @@ public abstract class AbstractEventService implements EventService
         grid.setMetaData( metaData );
 
         return grid;
+    }
+
+    private Pager handleLastPageFlag( final EventSearchParams params, final List<OrganisationUnit> organisationUnits,
+        final Grid grid )
+    {
+        final Pager pager;
+        boolean isLastPage = false;
+
+        final int oneElement = 1;
+        final int originalPageSize = params.getPageSize();
+        final int originalPage = params.getPage();
+
+        // Always 1, as we want to get only the next element.
+        params.setPageSize( oneElement );
+
+        // Sets the next page, so we can check if there is one element
+        // on the next page.
+        params.setPage( originalPageSize * originalPage + oneElement );
+
+        final List<Map<String, String>> events = eventStore.getEventsGrid( params, organisationUnits );
+
+        final boolean hasMoreElements = isNotEmpty( events );
+
+        if ( !hasMoreElements && !isEmpty( grid.getRows() ) )
+        {
+            isLastPage = true;
+        }
+
+        pager = new SlimPager( originalPage, originalPageSize, isLastPage );
+
+        // Restore the original page param values so we do not impact the flow.
+        params.setPageSize( originalPageSize );
+        params.setPage( originalPage );
+
+        return pager;
     }
 
     @Transactional( readOnly = true )

@@ -33,6 +33,7 @@ import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.node.types.ComplexNode;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.node.types.SimpleNode;
@@ -101,13 +102,13 @@ public final class NodeUtils
         return pagerNode;
     }
 
-    public static Node createSlimPager( Pager pager )
+    public static Node createSlimPager( final SlimPager pager )
     {
-        ComplexNode pagerNode = new ComplexNode( "pager" );
+        final ComplexNode pagerNode = new ComplexNode( "pager" );
         pagerNode.setMetadata( true );
-
         pagerNode.addChild( new SimpleNode( "page", pager.getPage() ) );
         pagerNode.addChild( new SimpleNode( "pageSize", pager.getPageSize() ) );
+        pagerNode.addChild( new SimpleNode( "isLastPage", pager.isLastPage() ) );
 
         return pagerNode;
     }

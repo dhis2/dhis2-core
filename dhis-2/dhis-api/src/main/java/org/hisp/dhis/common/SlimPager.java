@@ -43,39 +43,32 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 @JsonInclude( NON_NULL )
 public class SlimPager extends Pager
 {
-    private Integer page;
+    private Boolean lastPage;
 
-    private Integer pageSize;
-
-    public SlimPager( final Integer page, final Integer pageSize )
+    public SlimPager( final int page, final int pageSize )
     {
-        this.page = page;
-        this.pageSize = pageSize;
+        // Total is always ZERO, as the main goal of this object it to never
+        // count the total of pages.
+        force( page, pageSize );
+    }
+
+    public SlimPager( final int page, final int pageSize, final Boolean lastPage )
+    {
+        // Total is always ZERO, as the main goal of this object it to never
+        // count the total of pages.
+        force( page, pageSize );
+        this.lastPage = lastPage;
     }
 
     /**
-     * The current page.
+     * Store a boolean value to indicate if this is the last page or not.
      *
-     * @return the current page.
+     * @return true if this is the last page, false otherwise
      */
-    @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
-    public int getPage()
+    public Boolean isLastPage()
     {
-        return page;
-    }
-
-    /**
-     * How many items per page.
-     *
-     * @return number of items per page.
-     */
-    @Override
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    public int getPageSize()
-    {
-        return pageSize;
+        return lastPage;
     }
 }
