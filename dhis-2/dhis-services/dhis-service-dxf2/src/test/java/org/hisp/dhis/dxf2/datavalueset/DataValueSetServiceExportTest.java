@@ -61,6 +61,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.user.CurrentUserService;
@@ -101,6 +102,9 @@ public class DataValueSetServiceExportTest
 
     @Autowired
     private UserService _userService;
+
+    @Autowired
+    private PeriodService periodService;
 
     @Autowired
     private ObjectMapper jsonMapper;
