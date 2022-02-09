@@ -33,6 +33,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hisp.dhis.matchers.DateTimeFormatMatcher.hasDateTimeFormat;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -258,6 +259,55 @@ class TrackedEntityInstanceAggregateTest extends TrackerTest
         final List<TrackedEntityInstance> limitedTrackedEntityInstances5 = trackedEntityInstanceService
             .getTrackedEntityInstances( queryParams, params, false, true );
         assertThat( limitedTrackedEntityInstances5, hasSize( 0 ) );
+    }
+
+    @Test
+    void testIncludeDeletedIsPropagetedFromTeiToEnrollmentsAndEvents()
+    {
+        TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
+        queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+        queryParams.setTrackedEntityType( trackedEntityTypeA );
+        queryParams.setIncludeDeleted( true );
+
+        TrackedEntityInstanceParams params = TrackedEntityInstanceParams.TRUE;
+
+        doInTransaction( () -> {
+            this.persistTrackedEntityInstanceWithEnrollmentAndEvents();
+            this.persistTrackedEntityInstanceWithEnrollmentAndEvents();
+            this.persistTrackedEntityInstanceWithEnrollmentAndEvents();
+            this.persistTrackedEntityInstanceWithEnrollmentAndEvents();
+        } );
+
+        List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
+            .getTrackedEntityInstances( queryParams, params, false, true );
+        assertThat( trackedEntityInstances, hasSize( 4 ) );
+        assertThat( trackedEntityInstances.get( 0 ).getEnrollments(), hasSize( 1 ) );
+        assertFalse( trackedEntityInstances.get( 0 ).getEnrollments().get( 0 ).isDeleted() );
+        assertThat( trackedEntityInstances.get( 1 ).getEnrollments().get( 0 ).getEvents(), hasSize( 5 ) );
+        assertFalse( trackedEntityInstances.get( 1 ).getEnrollments().get( 0 ).getEvents().stream()
+            .anyMatch( Event::isDeleted ) );
+
+        this.deleteOneEnrollment( trackedEntityInstances.get( 0 ) );
+        this.deleteOneEvent( trackedEntityInstances.get( 1 ).getEnrollments().get( 0 ) );
+
+        trackedEntityInstances = trackedEntityInstanceService
+            .getTrackedEntityInstances( queryParams, params, false, true );
+
+        assertThat( trackedEntityInstances, hasSize( 4 ) );
+        assertThat( trackedEntityInstances.get( 0 ).getEnrollments(), hasSize( 1 ) );
+        assertTrue( trackedEntityInstances.get( 0 ).getEnrollments().get( 0 ).isDeleted() );
+        assertThat( trackedEntityInstances.get( 1 ).getEnrollments().get( 0 ).getEvents(), hasSize( 5 ) );
+        assertTrue( trackedEntityInstances.get( 1 ).getEnrollments().get( 0 ).getEvents().stream()
+            .anyMatch( Event::isDeleted ) );
+
+        queryParams.setIncludeDeleted( false );
+        trackedEntityInstances = trackedEntityInstanceService
+            .getTrackedEntityInstances( queryParams, params, false, true );
+        assertThat( trackedEntityInstances, hasSize( 4 ) );
+        assertThat( trackedEntityInstances.get( 0 ).getEnrollments(), hasSize( 0 ) );
+        assertThat( trackedEntityInstances.get( 1 ).getEnrollments().get( 0 ).getEvents(), hasSize( 4 ) );
+        assertFalse( trackedEntityInstances.get( 1 ).getEnrollments().get( 0 ).getEvents().stream()
+            .anyMatch( Event::isDeleted ) );
     }
 
     @Test
