@@ -46,6 +46,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.UserContext;
+import org.hisp.dhis.commons.jackson.domain.JsonRoot;
 import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -82,11 +83,13 @@ import org.hisp.dhis.webapi.utils.PaginationUtils;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Enums;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
@@ -123,6 +126,9 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
 
     @Autowired
     protected FieldFilterService fieldFilterService;
+
+    @Autowired
+    protected org.hisp.dhis.fieldfiltering.FieldFilterService fieldFilterService2;
 
     @Autowired
     protected LinkService linkService;
@@ -168,7 +174,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     // --------------------------------------------------------------------------
 
     @GetMapping
-    public @ResponseBody RootNode getObjectList(
+    public @ResponseBody ResponseEntity<JsonRoot> getObjectList(
         @RequestParam Map<String, String> rpParameters, OrderParams orderParams,
         HttpServletResponse response, @CurrentUser User currentUser )
         throws QueryParserException
@@ -221,25 +227,26 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
         postProcessResponseEntities( entities, options, rpParameters );
 
         handleLinksAndAccess( entities, fields, false );
-
         handleAttributeValues( entities, fields );
 
         linkService.generatePagerLinks( pager, getEntityClass() );
 
-        RootNode rootNode = NodeUtils.createMetadata();
-        rootNode.getConfig().setInclusionStrategy( getInclusionStrategy( rpParameters.get( "inclusionStrategy" ) ) );
+        cachePrivate( response );
+
+        org.hisp.dhis.fieldfiltering.FieldFilterParams<T> params = org.hisp.dhis.fieldfiltering.FieldFilterParams
+            .of( entities, fields );
+
+        List<ObjectNode> objectNodes = fieldFilterService2.toObjectNodes( params );
+        JsonRoot jsonRoot = new JsonRoot();
 
         if ( pager != null )
         {
-            rootNode.addChild( NodeUtils.createPager( pager ) );
+            jsonRoot.setProperty( "pager", pager );
         }
 
-        rootNode.addChild( fieldFilterService.toCollectionNode( getEntityClass(),
-            new FieldFilterParams( entities, fields, Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) ) ) );
+        jsonRoot.setProperty( getSchema().getCollectionName(), objectNodes );
 
-        cachePrivate( response );
-
-        return rootNode;
+        return ResponseEntity.ok( jsonRoot );
     }
 
     @GetMapping( "/{uid}" )
@@ -258,6 +265,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
 
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
         List<String> filters = Lists.newArrayList( contextService.getParameterValues( "filter" ) );
+
         forceFiltering( filters );
 
         if ( fields.isEmpty() )
