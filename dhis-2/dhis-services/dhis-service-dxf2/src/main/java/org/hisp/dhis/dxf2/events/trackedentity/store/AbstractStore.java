@@ -158,18 +158,18 @@ public abstract class AbstractStore
 
     /**
      *
-     * @param sql an sql statement to which we want to "attach" the ACL sharingn
+     * @param sql an sql statement to which we want to "attach" the ACL sharing
      *        and the include delete condition
      * @param ctx the {@see AggregateContext} object containing information
      *        about the inclusion of deleted records and the current user
      * @param aclSql the sql statement as WHERE condition to filter out elements
      *        for which the user has no sharing access
-     * @param prefix the prefix of the table to use in the query to check the
-     *        deleted column
+     * @param deletedSql the sql statement as WHERE condition to filter out
+     *        elements that are soft deleted
      * @return a merge between the sql, the aclSql and the include delete
      *         condition
      */
-    protected String getQuery( String sql, AggregateContext ctx, String aclSql, String prefix )
+    protected String getQuery( String sql, AggregateContext ctx, String aclSql, String deletedSql )
     {
         if ( !ctx.isSuperUser() )
         {
@@ -177,7 +177,7 @@ public abstract class AbstractStore
         }
         if ( !ctx.getQueryParams().isIncludeDeleted() )
         {
-            sql = sql + " AND " + prefix + ".deleted=false";
+            sql = sql + " AND " + deletedSql;
         }
         return sql;
     }
