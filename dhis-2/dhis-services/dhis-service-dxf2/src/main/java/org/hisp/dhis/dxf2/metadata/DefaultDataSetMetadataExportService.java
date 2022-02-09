@@ -88,9 +88,6 @@ public class DefaultDataSetMetadataExportService
 
     private final CurrentUserService currentUserService;
 
-    // TODO add category options within categories with data write sharing
-    // TODO string array references between entities
-    // TODO only include attribute category options with data write access
     // TODO explode indicator expressions
     // TODO add lock exceptions
     // TODO add validation caching (ETag and If-None-Match).
@@ -116,10 +113,11 @@ public class DefaultDataSetMetadataExportService
         rootNode.putArray( DataElementSchemaDescriptor.PLURAL )
             .addAll( asObjectNodes( dataElements, Set.of(), DataElement.class ) );
         rootNode.putArray( IndicatorSchemaDescriptor.PLURAL )
-            .addAll( asObjectNodes( indicators, Set.of(), Indicator.class ) );
+            .addAll(
+                asObjectNodes( indicators, Set.of( "explodedNumerator", "explodedDenominator" ), Indicator.class ) );
         rootNode.putArray( CategoryComboSchemaDescriptor.PLURAL )
-            .addAll( asObjectNodes( dataElementCategoryCombos, Set.of( "categories" ), CategoryCombo.class ) )
-            .addAll( asObjectNodes( dataSetCategoryCombos, Set.of( "categories" ), CategoryCombo.class ) );
+            .addAll( asObjectNodes( dataElementCategoryCombos, Set.of( "categories~pluck" ), CategoryCombo.class ) )
+            .addAll( asObjectNodes( dataSetCategoryCombos, Set.of( "categories~pluck" ), CategoryCombo.class ) );
         rootNode.putArray( CategorySchemaDescriptor.PLURAL )
             .addAll( asObjectNodes( dataElementCategories, Set.of(), Category.class ) )
             .addAll( getDataSetCategories( dataSetCategories, user ) );
