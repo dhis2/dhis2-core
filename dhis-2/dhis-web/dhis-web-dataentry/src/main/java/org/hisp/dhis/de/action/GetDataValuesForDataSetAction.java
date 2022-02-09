@@ -352,7 +352,7 @@ public class GetDataValuesForDataSetAction
                     locked = dataSetService.getLockStatus( currentUser, dataSet, period, ou,
                         attributeOptionCombo, null );
 
-                    if ( locked != LockStatus.OPEN )
+                    if ( !locked.isOpen() )
                     {
                         break;
                     }

@@ -32,4 +32,9 @@ public enum LockStatus
     LOCKED,
     APPROVED,
     OPEN;
+
+    public boolean isOpen()
+    {
+        return this == OPEN;
+    }
 }

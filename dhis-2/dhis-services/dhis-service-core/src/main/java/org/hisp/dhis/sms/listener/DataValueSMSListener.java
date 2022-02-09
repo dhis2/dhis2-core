@@ -41,7 +41,6 @@ import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
-import org.hisp.dhis.dataset.LockStatus;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.message.MessageSender;
@@ -128,8 +127,8 @@ public class DataValueSMSListener
         Period period = getPeriod( smsCommand, date );
         DataSet dataSet = smsCommand.getDataset();
 
-        if ( dataSetService.getLockStatus( null, dataSet, period, orgUnit,
-            dataElementCategoryService.getDefaultCategoryOptionCombo(), null ) != LockStatus.OPEN )
+        if ( !dataSetService.getLockStatus( null, dataSet, period, orgUnit,
+            dataElementCategoryService.getDefaultCategoryOptionCombo(), null ).isOpen() )
         {
             sendFeedback( String.format( DATASET_LOCKED, dataSet.getUid(), period.getName() ), sms.getOriginator(),
                 ERROR );
