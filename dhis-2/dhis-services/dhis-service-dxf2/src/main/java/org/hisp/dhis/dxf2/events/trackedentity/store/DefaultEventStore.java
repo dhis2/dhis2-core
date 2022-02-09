@@ -72,6 +72,10 @@ public class DefaultEventStore
         "join programinstance pi on psic.programstageinstanceid = pi.programinstanceid " +
         "where psic.programstageinstanceid in (:ids)";
 
+    private final static String ACL_FILTER_SQL_NO_PROGRAM_STAGE = "CASE WHEN p.type = 'WITH_REGISTRATION' THEN " +
+        "p.trackedentitytypeid in (:trackedEntityTypeIds) else true END " +
+        "AND pi.programid IN (:programIds)";
+
     final static String ACL_FILTER_SQL = "CASE WHEN p.type = 'WITH_REGISTRATION' THEN " +
         "p.trackedentitytypeid in (:trackedEntityTypeIds) else true END " +
         "AND psi.programstageid in (:programStageIds) AND pi.programid IN (:programIds)";
@@ -105,10 +109,26 @@ public class DefaultEventStore
     {
         EventRowCallbackHandler handler = new EventRowCallbackHandler();
 
-        AclQueryWithParams aclQueryWithParams = getAclQueryWithParams( ctx, createIdsParam( enrollmentsId ) );
+        List<Long> programStages = ctx.getProgramStages();
 
-        jdbcTemplate.query( withAclCheck( GET_EVENTS_SQL, ctx, aclQueryWithParams.getQuery() ),
-            aclQueryWithParams.getQueryParams(), handler );
+        if ( programStages.isEmpty() )
+        {
+            jdbcTemplate.query( getQuery( GET_EVENTS_SQL, ctx, ACL_FILTER_SQL_NO_PROGRAM_STAGE, "psi" ),
+                createIdsParam( enrollmentsId )
+                    .addValue( "trackedEntityTypeIds", ctx.getTrackedEntityTypes() )
+                    .addValue( "programStageIds", programStages )
+                    .addValue( "programIds", ctx.getPrograms() ),
+                handler );
+        }
+        else
+        {
+            jdbcTemplate.query( getQuery( GET_EVENTS_SQL, ctx, ACL_FILTER_SQL, "psi" ),
+                createIdsParam( enrollmentsId )
+                    .addValue( "trackedEntityTypeIds", ctx.getTrackedEntityTypes() )
+                    .addValue( "programStageIds", programStages )
+                    .addValue( "programIds", ctx.getPrograms() ),
+                handler );
+        }
 
         return handler.getItems();
     }
