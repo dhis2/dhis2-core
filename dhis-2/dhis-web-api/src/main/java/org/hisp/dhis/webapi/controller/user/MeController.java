@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.user;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
+import static org.springframework.beans.BeanUtils.copyProperties;
 import static org.springframework.http.CacheControl.noStore;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -47,6 +48,8 @@ import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -55,8 +58,8 @@ import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.fieldfilter.FieldFilterParams;
-import org.hisp.dhis.fieldfilter.FieldFilterService;
+import org.hisp.dhis.fieldfiltering.FieldFilterService;
+
 import org.hisp.dhis.interpretation.InterpretationService;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.node.NodeService;
@@ -68,6 +71,8 @@ import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.PasswordManager;
+import org.hisp.dhis.security.acl.Access;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CredentialsInfo;
 import org.hisp.dhis.user.CurrentUser;
@@ -91,6 +96,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
@@ -121,6 +127,9 @@ public class MeController
     private FieldFilterService fieldFilterService;
 
     @Autowired
+    private org.hisp.dhis.fieldfilter.FieldFilterService oldFieldFilterService;
+
+    @Autowired
     private IdentifiableObjectManager manager;
 
     @Autowired
@@ -148,81 +157,24 @@ public class MeController
     private DataSetService dataSetService;
 
     @Autowired
+    private AclService aclService;
+
+    @Autowired
     private DataApprovalLevelService approvalLevelService;
 
     private static final Set<UserSettingKey> USER_SETTING_KEYS = new HashSet<>(
         Sets.newHashSet( UserSettingKey.values() ) );
 
+
+
     @GetMapping
-    public @ResponseBody MeDto getCurrentUser( HttpServletResponse response, @CurrentUser( required = true ) User user )
+    public ResponseEntity<JsonNode> getCurrentUser(@CurrentUser( required = true ) User user, @RequestParam( defaultValue = "*" ) List<String> fields )
     {
-        // List<String> fields = Lists.newArrayList(
-        // contextService.getParameterValues( "fields" ) );
-        //
-        // if ( fields.isEmpty() )
-        // {
-        // fields.addAll( Preset.ALL.getFields() );
-        // }
-        //
-        // for ( String field : fields )
-        // {
-        // if ( field.contains( "userCredentials" ) )
-        // {
-        // String replacedField = field.replace( "userCredentials", "user" );
-        // fields.remove( field );
-        // fields.add( replacedField );
-        // }
-        // }
-        //
-        //// if ( fields.contains( "userCredentials" ))
-        //// {
-        //// fields.remove( "userCredentials" );
-        //// fields.add( "user" );
-        //// }
-        //
-        // CollectionNode collectionNode = fieldFilterService.toCollectionNode(
-        // User.class,
-        // new FieldFilterParams( Collections.singletonList( user ), fields ) );
-        //
-        // response.setContentType( APPLICATION_JSON_VALUE );
-        // setNoStore( response );
-        //
-        // RootNode rootNode = NodeUtils.createRootNode(
-        // collectionNode.getChildren().get( 0 ) );
-        //
-        // if ( fieldsContains( "settings", fields ) )
-        // {
-        // rootNode.addChild( new ComplexNode( "settings" ) ).addChildren(
-        // NodeUtils.createSimples(
-        // userSettingService.getUserSettingsWithFallbackByUserAsMap( user,
-        // USER_SETTING_KEYS, true ) ) );
-        // }
-        //
-        // if ( fieldsContains( "authorities", fields ) )
-        // {
-        // rootNode.addChild( new CollectionNode( "authorities" ) ).addChildren(
-        // NodeUtils.createSimples( user.getAllAuthorities() ) );
-        // }
-        //
-        // if ( fieldsContains( "programs", fields ) )
-        // {
-        // rootNode.addChild( new CollectionNode( "programs" ) ).addChildren(
-        // NodeUtils.createSimples( programService.getUserPrograms().stream()
-        // .map( BaseIdentifiableObject::getUid )
-        // .collect( Collectors.toList() ) ) );
-        // }
-        //
-        // if ( fieldsContains( "dataSets", fields ) )
-        // {
-        // rootNode.addChild( new CollectionNode( "dataSets" ) ).addChildren(
-        // NodeUtils.createSimples( dataSetService.getUserDataRead( user
-        // ).stream()
-        // .map( BaseIdentifiableObject::getUid )
-        // .collect( Collectors.toList() ) ) );
-        // }
-        //
-        // nodeService.serialize( rootNode, APPLICATION_JSON_VALUE,
-        // response.getOutputStream() );
+        if ( fieldsContains( "access", fields ) )
+        {
+            Access access = aclService.getAccess( user, user );
+            user.setAccess( access );
+        }
 
         MeDto meDto = new MeDto(
             user.getUid(),
@@ -235,21 +187,21 @@ public class MeController
             user.getJobTitle(),
             user.getCreated().toString(),
             user.getLastUpdated().toString(),
-            user.getDataViewOrganisationUnits(),
+            user.getDataViewOrganisationUnits(),//.stream().map( BaseIdentifiableObject::getUid ).collect( Collectors.toList() ),
             user.getFavorites(),
             user.getSharing(),
             user.getUserGroupAccesses(),
             user.getUserAccesses(),
-            user.getGroups(),
+            user.getGroups(),//.stream().map( BaseIdentifiableObject::getUid ).collect( Collectors.toList() )
             user.getTranslations(),
-            user.getTeiSearchOrganisationUnits(),
-            user.getOrganisationUnits(),
+            user.getTeiSearchOrganisationUnits(),//.stream().map( BaseIdentifiableObject::getUid ).collect( Collectors.toList() )
+            user.getOrganisationUnits(), //.stream().map( BaseIdentifiableObject::getUid ).collect( Collectors.toList() )
             user.getExternalAccess(),
             user.getDisplayName(),
             user.getAccess(),
             user.getName(),
             user.getEmail(),
-            user.getUserCredentials(),
+            null,
             userSettingService.getUserSettingsWithFallbackByUserAsMap( user, USER_SETTING_KEYS, true ),
             programService.getUserPrograms().stream()
                 .map( BaseIdentifiableObject::getUid )
@@ -258,10 +210,16 @@ public class MeController
             dataSetService.getUserDataRead( user ).stream()
                 .map( BaseIdentifiableObject::getUid )
                 .collect( Collectors.toList() )
-
         );
 
-        return meDto;
+        UserCredWrapperDto userCredWrapperDto = new UserCredWrapperDto();
+        copyProperties( meDto, userCredWrapperDto, "userCredentials");
+        meDto.setUserCredentials( userCredWrapperDto );
+
+        var params = org.hisp.dhis.fieldfiltering.FieldFilterParams.of( meDto, fields );
+        ObjectNode jsonNodes = fieldFilterService.toObjectNodes( params ).get( 0 );
+
+        return ResponseEntity.ok(jsonNodes);
     }
 
     private boolean fieldsContains( String key, List<String> fields )
@@ -310,8 +268,8 @@ public class MeController
             fields.addAll( Preset.ALL.getFields() );
         }
 
-        CollectionNode collectionNode = fieldFilterService.toCollectionNode( User.class,
-            new FieldFilterParams( Collections.singletonList( currentUser ), fields ) );
+        CollectionNode collectionNode = oldFieldFilterService.toCollectionNode( User.class,
+            new org.hisp.dhis.fieldfilter.FieldFilterParams( Collections.singletonList( currentUser ), fields ) );
 
         response.setContentType( APPLICATION_JSON_VALUE );
         nodeService.serialize( NodeUtils.createRootNode( collectionNode.getChildren().get( 0 ) ),

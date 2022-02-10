@@ -142,6 +142,7 @@ public class OptionSetTests
             .body( "options", hasSize( 0 ) );
     }
 
+    //Fails12098
     @Test
     public void shouldRemoveOptionFromCollection()
     {

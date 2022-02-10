@@ -1358,10 +1358,9 @@ public class User
             // "skype","telegram","twitter","avatar","organisationUnits","dataViewOrganisationUnits",
             // "teiSearchOrganisationUnits","dataViewMaxOrganisationUnitLevel","apps",
             // "user" );
-
+//"password",
             copyProperties( user, this, "userCredentials", "uuid", "id", "uid", "access", "sharing",
                 "created", "lastUpdated", "lastUpdatedBy", "code", "userInfo", "publicAccess", "name", "secret",
-                "password",
                 "firstName", "lastName", "surname", "email", "phoneNumber", "introduction", "passwordLastUpdated",
                 "gender", "birthday", "nationality", "employer", "education", "interests", "languages",
                 "welcomeMessage", "lastCheckedInterpretations", "groups", "whatsApp", "facebookMessenger",

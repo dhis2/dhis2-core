@@ -223,8 +223,7 @@ public class TrackedEntityInstanceAclReadTests
         user.setDataRead( dataRead );
     }
 
-    //Fails12098E2E
-//    @ParameterizedTest
+    @ParameterizedTest
     @ValueSource( strings = { "O2PajOxjJSa", "aDy67f9ijOe", "CKrrGm5Be8O", "Lpa5INiC3Qf", "GTqb3WOZMop" } )
     public void testUserDataAndOrgUnitScopeReadAccess( String userUid )
     {
