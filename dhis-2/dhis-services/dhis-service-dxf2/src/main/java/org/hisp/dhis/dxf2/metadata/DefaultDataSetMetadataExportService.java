@@ -51,7 +51,6 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.fieldfiltering.FieldFilterParams;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
-import org.hisp.dhis.fieldfiltering.FieldPreset;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.schema.descriptors.CategoryComboSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.CategorySchemaDescriptor;
@@ -79,9 +78,16 @@ public class DefaultDataSetMetadataExportService
 
     private static final String FIELD_PRESET_SIMPLE = ":simple";
 
-    private static final Set<String> FIELDS_INDICATOR = Set.of( "explodedNumerator", "explodedDenominator" );
+    private static final Set<String> FIELDS_DATA_SETS = Set.of( "categoryCombo~pluck" );
 
-    private static final Set<String> FIELDS_CAT_COMBOS = Set.of( "categories~pluck" );
+    private static final Set<String> FIELDS_DATA_ELEMENTS = Set.of( "categoryCombo~pluck" );
+
+    private static final Set<String> FIELDS_INDICATORS = Set.of( "explodedNumerator", "explodedDenominator" );
+
+    private static final Set<String> FIELDS_DATAELEMENT_CAT_COMBOS = Set
+        .of( "categories~pluck,categoryOptionCombos[:id,code,name,displayName]" );
+
+    private static final Set<String> FIELDS_DATA_SET_CAT_COMBOS = Set.of( "categories~pluck" );
 
     private final FieldFilterService fieldFilterService;
 
@@ -93,7 +99,6 @@ public class DefaultDataSetMetadataExportService
 
     private final CurrentUserService currentUserService;
 
-    // TODO explode indicator expressions
     // TODO add lock exceptions
     // TODO add validation caching (ETag and If-None-Match).
 
@@ -114,14 +119,14 @@ public class DefaultDataSetMetadataExportService
         ObjectNode rootNode = fieldFilterService.createObjectNode();
 
         rootNode.putArray( DataSetSchemaDescriptor.PLURAL )
-            .addAll( asObjectNodes( dataSets, Set.of(), DataSet.class ) );
+            .addAll( asObjectNodes( dataSets, FIELDS_DATA_SETS, DataSet.class ) );
         rootNode.putArray( DataElementSchemaDescriptor.PLURAL )
-            .addAll( asObjectNodes( dataElements, Set.of(), DataElement.class ) );
+            .addAll( asObjectNodes( dataElements, FIELDS_DATA_ELEMENTS, DataElement.class ) );
         rootNode.putArray( IndicatorSchemaDescriptor.PLURAL )
-            .addAll( asObjectNodes( indicators, FIELDS_INDICATOR, Indicator.class ) );
+            .addAll( asObjectNodes( indicators, FIELDS_INDICATORS, Indicator.class ) );
         rootNode.putArray( CategoryComboSchemaDescriptor.PLURAL )
-            .addAll( asObjectNodes( dataElementCategoryCombos, FIELDS_CAT_COMBOS, CategoryCombo.class ) )
-            .addAll( asObjectNodes( dataSetCategoryCombos, FIELDS_CAT_COMBOS, CategoryCombo.class ) );
+            .addAll( asObjectNodes( dataElementCategoryCombos, FIELDS_DATAELEMENT_CAT_COMBOS, CategoryCombo.class ) )
+            .addAll( asObjectNodes( dataSetCategoryCombos, FIELDS_DATA_SET_CAT_COMBOS, CategoryCombo.class ) );
         rootNode.putArray( CategorySchemaDescriptor.PLURAL )
             .addAll( asObjectNodes( dataElementCategories, Set.of(), Category.class ) )
             .addAll( getDataSetCategories( dataSetCategories, user ) );
@@ -161,7 +166,7 @@ public class DefaultDataSetMetadataExportService
      * @param <T>
      * @param objects the collection of objects.
      * @param extraFilters the set of filters to apply in addition to
-     *        {@link FieldPreset#SIMPLE}.
+     *        <code>simple</code>.
      * @param type the class type.
      * @return an {@link ObjectNode}.
      */
