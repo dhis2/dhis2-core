@@ -77,6 +77,10 @@ import com.google.common.collect.Sets;
 class TrackedEntityCriteriaMapperTest extends DhisWebSpringTest
 {
 
+    private static final QueryOperator SUPPORTED_QUERY_OPERATOR = QueryOperator.EQ;
+
+    private static final QueryOperator NOT_SUPPORTED_QUERY_OPERATOR = QueryOperator.LE;
+
     @Autowired
     private OrganisationUnitService organisationUnitService;
 
@@ -230,10 +234,22 @@ class TrackedEntityCriteriaMapperTest extends DhisWebSpringTest
     }
 
     @Test
+    void verifyCriteriaMappingFailOnInvalidFilter()
+    {
+        TrackedEntityInstanceCriteria criteria = new TrackedEntityInstanceCriteria();
+        criteria.setFilter( newHashSet( filtF.getUid() + ":" + SUPPORTED_QUERY_OPERATOR, filtG.getUid() ) );
+        IllegalQueryException e = assertThrows( IllegalQueryException.class,
+            () -> trackedEntityCriteriaMapper.map( criteria ) );
+        assertEquals( "Query item or filter is invalid: " + filtF.getUid() + ":" + SUPPORTED_QUERY_OPERATOR,
+            e.getMessage() );
+    }
+
+    @Test
     void verifyCriteriaMappingFailOnMissingFilter()
     {
         TrackedEntityInstanceCriteria criteria = new TrackedEntityInstanceCriteria();
-        criteria.setFilter( newHashSet( filtF.getUid(), filtG.getUid(), "missing" ) );
+        criteria.setFilter(
+            newHashSet( filtF.getUid() + ":" + SUPPORTED_QUERY_OPERATOR + ":3", filtG.getUid(), "missing" ) );
         IllegalQueryException e = assertThrows( IllegalQueryException.class,
             () -> trackedEntityCriteriaMapper.map( criteria ) );
         assertEquals( "Attribute does not exist: missing", e.getMessage() );
@@ -247,6 +263,17 @@ class TrackedEntityCriteriaMapperTest extends DhisWebSpringTest
         IllegalQueryException e = assertThrows( IllegalQueryException.class,
             () -> trackedEntityCriteriaMapper.map( criteria ) );
         assertEquals( "Program does not exist: " + programA.getUid() + "A", e.getMessage() );
+    }
+
+    @Test
+    void verifyCriteriaMappingFailOnNotAllowedSearchType()
+    {
+        TrackedEntityInstanceCriteria criteria = new TrackedEntityInstanceCriteria();
+        criteria.setFilter( newHashSet( attrD.getUid() + ":" + NOT_SUPPORTED_QUERY_OPERATOR + ":3", attrE.getUid() ) );
+        IllegalQueryException e = assertThrows( IllegalQueryException.class,
+            () -> trackedEntityCriteriaMapper.map( criteria ) );
+        assertEquals( "Search type " + NOT_SUPPORTED_QUERY_OPERATOR + " is not allowed for attribute " + attrD.getUid(),
+            e.getMessage() );
     }
 
     @Test

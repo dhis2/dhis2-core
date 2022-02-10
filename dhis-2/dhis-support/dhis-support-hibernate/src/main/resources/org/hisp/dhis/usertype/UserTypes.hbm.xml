@@ -159,4 +159,8 @@
     <param name="clazz">org.hisp.dhis.security.apikey.ApiTokenAttribute</param>
   </typedef>
 
+  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonListBinaryType" name="jsbSearchTypes">
+    <param name="clazz">org.hisp.dhis.common.QueryOperator</param>
+  </typedef>
+
 </hibernate-mapping>

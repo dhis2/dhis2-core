@@ -27,12 +27,15 @@
  */
 package org.hisp.dhis.trackedentity;
 
+import java.util.List;
+
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ObjectStyle;
+import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
 import org.hisp.dhis.option.OptionSet;
@@ -56,6 +59,8 @@ public class TrackedEntityAttribute
     private String description;
 
     private ValueType valueType;
+
+    private List<QueryOperator> allowedSearchTypes;
 
     private Boolean inherit = false;
 
@@ -238,6 +243,18 @@ public class TrackedEntityAttribute
     public void setValueType( ValueType valueType )
     {
         this.valueType = valueType;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public List<QueryOperator> getAllowedSearchTypes()
+    {
+        return allowedSearchTypes;
+    }
+
+    public void setAllowedSearchTypes( List<QueryOperator> allowedSearchTypes )
+    {
+        this.allowedSearchTypes = allowedSearchTypes;
     }
 
     @JsonProperty

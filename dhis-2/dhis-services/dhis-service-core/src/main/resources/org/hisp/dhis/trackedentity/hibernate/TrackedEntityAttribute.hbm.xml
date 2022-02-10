@@ -31,6 +31,8 @@
       </type>
     </property>
 
+    <property name="allowedSearchTypes" column="allowedsearchtypes" type="jsbSearchTypes" />
+
     <property name="aggregationType" length="40" not-null="true">
       <type name="org.hibernate.type.EnumType">
         <param name="enumClass">org.hisp.dhis.analytics.AggregationType</param>

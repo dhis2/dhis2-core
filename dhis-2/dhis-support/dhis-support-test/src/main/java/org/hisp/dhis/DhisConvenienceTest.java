@@ -75,6 +75,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitDescendants;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.commons.util.RelationshipUtils;
@@ -1979,6 +1980,7 @@ public abstract class DhisConvenienceTest
         attribute.setCode( "AttributeCode" + uniqueChar );
         attribute.setDescription( "Attribute" + uniqueChar );
         attribute.setValueType( ValueType.TEXT );
+        attribute.setAllowedSearchTypes( Lists.newArrayList( QueryOperator.LIKE, QueryOperator.EQ ) );
         attribute.setAggregationType( AggregationType.NONE );
 
         return attribute;

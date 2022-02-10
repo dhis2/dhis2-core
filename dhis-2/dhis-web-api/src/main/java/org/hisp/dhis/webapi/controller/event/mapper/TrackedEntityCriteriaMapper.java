@@ -257,35 +257,32 @@ public class TrackedEntityCriteriaMapper
             throw new IllegalQueryException( "Query item or filter is invalid: " + item );
         }
 
-        QueryItem queryItem = getItem( split[0], attributes );
+        TrackedEntityAttribute attribute = attributes.get( split[0] );
+
+        if ( attribute == null )
+        {
+            throw new IllegalQueryException( "Attribute does not exist: " + split[0] );
+        }
+
+        QueryItem queryItem = new QueryItem( attribute, null, attribute.getValueType(), attribute.getAggregationType(),
+            attribute.getOptionSet(), attribute.isUnique() );
+        ;
 
         if ( split.length > 1 ) // Filters specified
         {
             for ( int i = 1; i < split.length; i += 2 )
             {
                 QueryOperator operator = QueryOperator.fromString( split[i] );
+                if ( !attribute.getAllowedSearchTypes().contains( operator ) )
+                {
+                    throw new IllegalQueryException(
+                        "Search type " + operator + " is not allowed for attribute " + split[0] );
+                }
                 queryItem.getFilters().add( new QueryFilter( operator, split[i + 1] ) );
             }
         }
 
         return queryItem;
-    }
-
-    private QueryItem getItem( String item, Map<String, TrackedEntityAttribute> attributes )
-    {
-        if ( attributes.isEmpty() )
-        {
-            throw new IllegalQueryException( "Attribute does not exist: " + item );
-        }
-
-        TrackedEntityAttribute at = attributes.get( item );
-
-        if ( at == null )
-        {
-            throw new IllegalQueryException( "Attribute does not exist: " + item );
-        }
-
-        return new QueryItem( at, null, at.getValueType(), at.getAggregationType(), at.getOptionSet(), at.isUnique() );
     }
 
     private Program validateProgram( TrackedEntityInstanceCriteria criteria )
