@@ -25,41 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.fieldfiltering;
+package org.hisp.dhis.dxf2.metadata;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import org.junit.jupiter.api.Test;
-
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
- * @author Morten Olav Hansen
+ * Service responsible for retrieving metadata associated with data sets. The
+ * object response is suitable for applications for data capture and form
+ * rendering. This is a specialized service which related to the general
+ * {@link MetadataExportService}.
+ *
+ * @author Lars Helge Overland
  */
-class FieldFilterParamsTest
+public interface DataSetMetadataExportService
 {
-    @Test
-    void testBuilderWithObjectAndFilters()
-    {
-        FieldFilterParams<String> params = FieldFilterParams.<String> builder()
-            .objects( Lists.newArrayList( "A", "B", "C" ) ).filters( Sets.newHashSet( "id", "name" ) ).build();
-        assertTrue( params.getObjects().contains( "A" ) );
-        assertTrue( params.getObjects().contains( "B" ) );
-        assertTrue( params.getObjects().contains( "C" ) );
-        assertTrue( params.getFilters().contains( "id" ) );
-        assertTrue( params.getFilters().contains( "name" ) );
-    }
-
-    @Test
-    void testBuilderWithDefault()
-    {
-        FieldFilterParams<String> params = FieldFilterParams.<String> builder()
-            .objects( Lists.newArrayList( "A", "B", "C" ) ).build();
-        assertTrue( params.getObjects().contains( "A" ) );
-        assertTrue( params.getObjects().contains( "B" ) );
-        assertTrue( params.getObjects().contains( "C" ) );
-        assertEquals( "*", params.getFilters().iterator().next() );
-    }
+    /**
+     * Retrieves metadata for data sets for which the current user has data
+     * write access together with other relevant entities such as data elements,
+     * category combinations, categories and category options.
+     *
+     * @return an {@link ObjectNode}.
+     */
+    ObjectNode getDataSetMetadata();
 }

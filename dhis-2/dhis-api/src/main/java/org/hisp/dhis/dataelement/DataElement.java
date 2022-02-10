@@ -91,6 +91,9 @@ public class DataElement extends BaseDimensionalItemObject
      */
     private ValueType valueType;
 
+    /**
+     * Abstract class representing options for value types.
+     */
     private ValueTypeOptions valueTypeOptions;
 
     /**
