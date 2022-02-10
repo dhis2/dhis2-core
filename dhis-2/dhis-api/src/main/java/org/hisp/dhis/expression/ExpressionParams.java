@@ -53,25 +53,31 @@ import org.hisp.dhis.period.Period;
  * @author Jim Grace
  */
 @Getter
-@ToString
-@EqualsAndHashCode
+@ToString( onlyExplicitlyIncluded = true )
+@EqualsAndHashCode( onlyExplicitlyIncluded = true )
 @Builder( toBuilder = true )
 public class ExpressionParams
 {
     /**
      * The expression to parse
      */
+    @ToString.Include
+    @EqualsAndHashCode.Include
     private String expression;
 
     /**
      * The type of expression to parse (Indicator, Predictor, etc.)
      */
+    @ToString.Include
+    @EqualsAndHashCode.Include
     private ParseType parseType;
 
     /**
      * The expected return data type (often but not always determined by the
      * type of expression to parse).
      */
+    @ToString.Include
+    @EqualsAndHashCode.Include
     private DataType dataType;
 
     /**
@@ -91,12 +97,16 @@ public class ExpressionParams
     /**
      * Map of constant values to use in evaluating the expression
      */
+    @ToString.Include
+    @EqualsAndHashCode.Include
     @Builder.Default
     private Map<String, Constant> constantMap = new HashMap<>();
 
     /**
      * Map of organisation unit counts to use in evaluating the expression
      */
+    @ToString.Include
+    @EqualsAndHashCode.Include
     @Builder.Default
     private Map<String, Integer> orgUnitCountMap = new HashMap<>();
 
@@ -110,22 +120,30 @@ public class ExpressionParams
     /**
      * The number of calendar days to be used in evaluating the expression
      */
+    @ToString.Include
+    @EqualsAndHashCode.Include
     private Integer days;
 
     /**
      * The missing value strategy (what to do if data values are missing)
      */
+    @ToString.Include
+    @EqualsAndHashCode.Include
     @Builder.Default
     private MissingValueStrategy missingValueStrategy = NEVER_SKIP;
 
     /**
-     * The current organisaiton unit the expression is being evaluated for
+     * The current organisation unit the expression is being evaluated for
      */
+    @ToString.Include
+    @EqualsAndHashCode.Include
     private OrganisationUnit orgUnit;
 
     /**
      * For predictors, a list of periods in which we will look for sampled data
      */
+    @ToString.Include
+    @EqualsAndHashCode.Include
     private List<Period> samplePeriods;
 
     /**

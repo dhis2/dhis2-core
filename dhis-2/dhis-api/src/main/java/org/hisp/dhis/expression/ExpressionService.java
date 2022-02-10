@@ -274,6 +274,7 @@ public interface ExpressionService
      * Generates the calculated value for an expression.
      *
      * @param exParams the expression parameters.
+     * @return the calculated value.
      */
     Object getExpressionValue( ExpressionParams exParams );
 }
