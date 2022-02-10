@@ -137,6 +137,32 @@
       "numeratorDescription": "Numerator",
       "code": "IndicatorCodeA",
       "annualized": false
+    },
+    {
+      "lastUpdated": "2016-03-11T04:41:35.392+0000",
+      "indicatorType": {
+        "id": "fwlQ75eDqMU"
+      },
+      "publicAccess": "rw------",
+      "userGroupAccesses": [ ],
+      "denominator": "#{fJ37vbwWMYR.OqLTH91vKYK}",
+      "explodedDenominator": "#{fJ37vbwWMYR.OqLTH91vKYK}",
+      "description": "IndicatorDescriptionB",
+      "denominatorDescription": "Denominator",
+      "shortName": "IndicatorShortB",
+      "decimals": 2,
+      "user": {
+        "id": "Fiob73BgnJm"
+      },
+      "numerator": "#{epE3XMALioY.OqLTH91vKYK}",
+      "explodedNumerator": "#{epE3XMALioY.OqLTH91vKYK}",
+      "created": "2016-03-11T04:41:35.390+0000",
+      "name": "IndicatorB",
+      "id": "rFYrq0w2n1f",
+      "attributeValues": [ ],
+      "numeratorDescription": "Numerator",
+      "code": "IndicatorCodeB",
+      "annualized": false
     }
   ],
   "trackedEntityTypes": [

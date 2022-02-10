@@ -25,41 +25,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.fieldfiltering;
+package org.hisp.dhis.webapi.controller.metadata;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import lombok.AllArgsConstructor;
 
-import org.junit.jupiter.api.Test;
+import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.dxf2.metadata.DataSetMetadataExportService;
+import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import com.fasterxml.jackson.databind.JsonNode;
 
 /**
- * @author Morten Olav Hansen
+ * @author Lars Helge Overland
  */
-class FieldFilterParamsTest
+@Controller
+@AllArgsConstructor
+@RequestMapping( "/dataSetMetadata" )
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+public class DataSetMetadataExportController
 {
-    @Test
-    void testBuilderWithObjectAndFilters()
-    {
-        FieldFilterParams<String> params = FieldFilterParams.<String> builder()
-            .objects( Lists.newArrayList( "A", "B", "C" ) ).filters( Sets.newHashSet( "id", "name" ) ).build();
-        assertTrue( params.getObjects().contains( "A" ) );
-        assertTrue( params.getObjects().contains( "B" ) );
-        assertTrue( params.getObjects().contains( "C" ) );
-        assertTrue( params.getFilters().contains( "id" ) );
-        assertTrue( params.getFilters().contains( "name" ) );
-    }
+    private final DataSetMetadataExportService exportService;
 
-    @Test
-    void testBuilderWithDefault()
+    @GetMapping
+    public ResponseEntity<JsonNode> getMetadata()
     {
-        FieldFilterParams<String> params = FieldFilterParams.<String> builder()
-            .objects( Lists.newArrayList( "A", "B", "C" ) ).build();
-        assertTrue( params.getObjects().contains( "A" ) );
-        assertTrue( params.getObjects().contains( "B" ) );
-        assertTrue( params.getObjects().contains( "C" ) );
-        assertEquals( "*", params.getFilters().iterator().next() );
+        return ResponseEntity.ok( exportService.getDataSetMetadata() );
     }
 }

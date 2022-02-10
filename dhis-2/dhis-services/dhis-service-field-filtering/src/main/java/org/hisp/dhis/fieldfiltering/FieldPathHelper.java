@@ -57,10 +57,6 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class FieldPathHelper
 {
-    public static final String PRESET_ALL = "all";
-
-    public static final String PRESET_OWNER = "owner";
-
     private final SchemaService schemaService;
 
     public void apply( List<FieldPath> fieldPaths, Class<?> rootKlass )
@@ -191,6 +187,14 @@ public class FieldPathHelper
         } );
     }
 
+    /**
+     * Applies field presets. See {@link FieldPreset}.
+     *
+     * @param presets the list of {@link FieldPath}.
+     * @param fieldPathMap mapping of full path and {@link FieldPath} to be
+     *        populated.
+     * @param rootKlass the root class type of the entity.
+     */
     public void applyPresets( List<FieldPath> presets, Map<String, FieldPath> fieldPathMap,
         Class<?> rootKlass )
     {
@@ -204,16 +208,27 @@ public class FieldPathHelper
             {
                 continue;
             }
-
-            if ( PRESET_ALL.equals( preset.getName() ) )
+            if ( FieldPreset.ALL.equals( preset.getName() ) )
             {
                 schema.getProperties()
                     .forEach( p -> fieldPaths.add( toFieldPath( preset.getPath(), p ) ) );
             }
-            else if ( PRESET_OWNER.equals( preset.getName() ) )
+            else if ( FieldPreset.OWNER.equals( preset.getName() ) )
             {
                 schema.getProperties()
                     .stream().filter( Property::isOwner )
+                    .forEach( p -> fieldPaths.add( toFieldPath( preset.getPath(), p ) ) );
+            }
+            else if ( FieldPreset.IDENTIFIABLE.equals( preset.getName() ) )
+            {
+                schema.getProperties()
+                    .stream().filter( p -> FieldPreset.IDENTIFIABLE_FIELDS.contains( p.getName() ) )
+                    .forEach( p -> fieldPaths.add( toFieldPath( preset.getPath(), p ) ) );
+            }
+            else if ( FieldPreset.SIMPLE.equals( preset.getName() ) )
+            {
+                schema.getProperties()
+                    .stream().filter( p -> p.getPropertyType().isSimple() )
                     .forEach( p -> fieldPaths.add( toFieldPath( preset.getPath(), p ) ) );
             }
         }

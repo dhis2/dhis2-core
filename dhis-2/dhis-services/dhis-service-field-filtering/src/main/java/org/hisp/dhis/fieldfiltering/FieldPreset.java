@@ -27,39 +27,24 @@
  */
 package org.hisp.dhis.fieldfiltering;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import org.junit.jupiter.api.Test;
-
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import java.util.List;
 
 /**
- * @author Morten Olav Hansen
+ * Constants for available field presets. A preset represents a short-hand
+ * notation for a specific category of fields.
+ *
+ * @author Lars Helge Overland
  */
-class FieldFilterParamsTest
+public interface FieldPreset
 {
-    @Test
-    void testBuilderWithObjectAndFilters()
-    {
-        FieldFilterParams<String> params = FieldFilterParams.<String> builder()
-            .objects( Lists.newArrayList( "A", "B", "C" ) ).filters( Sets.newHashSet( "id", "name" ) ).build();
-        assertTrue( params.getObjects().contains( "A" ) );
-        assertTrue( params.getObjects().contains( "B" ) );
-        assertTrue( params.getObjects().contains( "C" ) );
-        assertTrue( params.getFilters().contains( "id" ) );
-        assertTrue( params.getFilters().contains( "name" ) );
-    }
+    List<String> IDENTIFIABLE_FIELDS = List.of(
+        "id", "code", "name", "created", "lastUpdated", "lastUpdatedBy" );
 
-    @Test
-    void testBuilderWithDefault()
-    {
-        FieldFilterParams<String> params = FieldFilterParams.<String> builder()
-            .objects( Lists.newArrayList( "A", "B", "C" ) ).build();
-        assertTrue( params.getObjects().contains( "A" ) );
-        assertTrue( params.getObjects().contains( "B" ) );
-        assertTrue( params.getObjects().contains( "C" ) );
-        assertEquals( "*", params.getFilters().iterator().next() );
-    }
+    String ALL = "all";
+
+    String OWNER = "owner";
+
+    String IDENTIFIABLE = "identifiable";
+
+    String SIMPLE = "simple";
 }

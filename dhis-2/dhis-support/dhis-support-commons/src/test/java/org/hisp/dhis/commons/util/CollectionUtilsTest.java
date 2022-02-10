@@ -25,41 +25,44 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.fieldfiltering;
+package org.hisp.dhis.commons.util;
 
+import static org.hisp.dhis.commons.collection.CollectionUtils.flatMapToSet;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.List;
+import java.util.Set;
+
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataset.DataSet;
 import org.junit.jupiter.api.Test;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-
-/**
- * @author Morten Olav Hansen
- */
-class FieldFilterParamsTest
+class CollectionUtilsTest
 {
     @Test
-    void testBuilderWithObjectAndFilters()
+    public void testFlatMapToSet()
     {
-        FieldFilterParams<String> params = FieldFilterParams.<String> builder()
-            .objects( Lists.newArrayList( "A", "B", "C" ) ).filters( Sets.newHashSet( "id", "name" ) ).build();
-        assertTrue( params.getObjects().contains( "A" ) );
-        assertTrue( params.getObjects().contains( "B" ) );
-        assertTrue( params.getObjects().contains( "C" ) );
-        assertTrue( params.getFilters().contains( "id" ) );
-        assertTrue( params.getFilters().contains( "name" ) );
-    }
+        DataElement deA = new DataElement();
+        DataElement deB = new DataElement();
+        DataElement deC = new DataElement();
+        DataSet dsA = new DataSet();
+        DataSet dsB = new DataSet();
 
-    @Test
-    void testBuilderWithDefault()
-    {
-        FieldFilterParams<String> params = FieldFilterParams.<String> builder()
-            .objects( Lists.newArrayList( "A", "B", "C" ) ).build();
-        assertTrue( params.getObjects().contains( "A" ) );
-        assertTrue( params.getObjects().contains( "B" ) );
-        assertTrue( params.getObjects().contains( "C" ) );
-        assertEquals( "*", params.getFilters().iterator().next() );
+        deA.setAutoFields();
+        deB.setAutoFields();
+        deC.setAutoFields();
+        dsA.setAutoFields();
+        dsB.setAutoFields();
+
+        dsA.addDataSetElement( deA );
+        dsA.addDataSetElement( deB );
+        dsB.addDataSetElement( deB );
+        dsB.addDataSetElement( deC );
+
+        List<DataSet> dataSets = List.of( dsA, dsB );
+
+        Set<DataElement> dataElements = flatMapToSet( dataSets, DataSet::getDataElements );
+
+        assertEquals( 3, dataElements.size() );
     }
 }
