@@ -48,7 +48,7 @@ public interface PredictionService
     PredictionSummary predictJob( PredictorJobParameters predictorJobParameters, JobConfiguration jobId );
 
     /**
-     * Executes predictors and/or predictor groups for a date range
+     * Executes predictors and/or predictor groups for a date range in a job
      *
      * @param startDate the start date of the predictor run
      * @param endDate the end date of the predictor run
@@ -59,6 +59,18 @@ public interface PredictionService
      */
     PredictionSummary predictTask( Date startDate, Date endDate,
         List<String> predictors, List<String> predictorGroups, JobConfiguration jobId );
+
+    /**
+     * Executes predictors and/or predictor groups for a date range
+     *
+     * @param startDate the start date of the predictor run
+     * @param endDate the end date of the predictor run
+     * @param predictors predictor(s) to run
+     * @param predictorGroups predictor group(s) to run
+     * @return a summary of what was predicted
+     */
+    PredictionSummary predictAll( Date startDate, Date endDate,
+        List<String> predictors, List<String> predictorGroups );
 
     /**
      * Executes a single predictor for a date range

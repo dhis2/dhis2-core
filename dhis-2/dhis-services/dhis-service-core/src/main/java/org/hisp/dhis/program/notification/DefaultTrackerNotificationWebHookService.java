@@ -103,10 +103,14 @@ public class DefaultTrackerNotificationWebHookService implements TrackerNotifica
         List<ProgramNotificationTemplate> templates = templateService
             .getProgramLinkedToWebHookNotifications( instance.getProgram() );
 
-        Map<String, String> payload = new HashMap<>();
+        Map<String, String> requestPayload = new HashMap<>();
         ProgramNotificationMessageRenderer.VARIABLE_RESOLVERS
-            .forEach( ( key, value ) -> payload.put( key.name(), value.apply( instance ) ) );
-        sendPost( templates, renderService.toJsonAsString( payload ) );
+            .forEach( ( key, value ) -> requestPayload.put( key.name(), value.apply( instance ) ) );
+
+        // populate tracked entity attributes
+        instance.getEntityInstance().getTrackedEntityAttributeValues()
+            .forEach( attr -> requestPayload.put( attr.getAttribute().getUid(), attr.getValue() ) );
+        sendPost( templates, renderService.toJsonAsString( requestPayload ) );
     }
 
     @Override
@@ -124,10 +128,19 @@ public class DefaultTrackerNotificationWebHookService implements TrackerNotifica
         List<ProgramNotificationTemplate> templates = templateService
             .getProgramStageLinkedToWebHookNotifications( instance.getProgramStage() );
 
-        Map<String, String> payload = new HashMap<>();
+        // populate environment variables
+        Map<String, String> requestPayload = new HashMap<>();
         ProgramStageNotificationMessageRenderer.VARIABLE_RESOLVERS
-            .forEach( ( key, value ) -> payload.put( key.name(), value.apply( instance ) ) );
-        sendPost( templates, renderService.toJsonAsString( payload ) );
+            .forEach( ( key, value ) -> requestPayload.put( key.name(), value.apply( instance ) ) );
+
+        // populate data values
+        instance.getEventDataValues().forEach( dv -> requestPayload.put( dv.getDataElement(), dv.getValue() ) );
+
+        // populate tracked entity attributes
+        instance.getProgramInstance().getEntityInstance().getTrackedEntityAttributeValues()
+            .forEach( attr -> requestPayload.put( attr.getAttribute().getUid(), attr.getValue() ) );
+
+        sendPost( templates, renderService.toJsonAsString( requestPayload ) );
     }
 
     private void sendPost( List<ProgramNotificationTemplate> templates, String payload )
