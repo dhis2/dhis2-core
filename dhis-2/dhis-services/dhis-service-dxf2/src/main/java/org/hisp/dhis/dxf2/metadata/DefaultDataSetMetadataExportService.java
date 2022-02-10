@@ -85,7 +85,7 @@ public class DefaultDataSetMetadataExportService
     private static final Set<String> FIELDS_INDICATORS = Set.of( "explodedNumerator", "explodedDenominator" );
 
     private static final Set<String> FIELDS_DATAELEMENT_CAT_COMBOS = Set
-        .of( "categories~pluck,categoryOptionCombos[:id,code,name,displayName]" );
+        .of( "categories~pluck,categoryOptionCombos[id,code,name,displayName]" );
 
     private static final Set<String> FIELDS_DATA_SET_CAT_COMBOS = Set.of( "categories~pluck" );
 
