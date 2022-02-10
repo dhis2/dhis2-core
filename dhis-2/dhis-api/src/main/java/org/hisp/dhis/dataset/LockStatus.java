@@ -25,41 +25,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.schema;
+package org.hisp.dhis.dataset;
 
-import org.hisp.dhis.common.DxfNamespaces;
-
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-@JacksonXmlRootElement( localName = "propertyType", namespace = DxfNamespaces.DXF_2_0 )
-public enum PropertyType
+public enum LockStatus
 {
-    IDENTIFIER,
-    TEXT,
-    NUMBER,
-    INTEGER,
-    BOOLEAN,
-    USERNAME,
-    EMAIL,
-    PASSWORD,
-    URL,
-    DATE,
-    PHONENUMBER,
-    GEOLOCATION,
-    COLOR,
-    CONSTANT,
+    LOCKED,
+    APPROVED,
+    OPEN;
 
-    COMPLEX,
-    COLLECTION,
-    REFERENCE;
-
-    public boolean isSimple()
+    public boolean isOpen()
     {
-        return IDENTIFIER == this || TEXT == this || NUMBER == this || INTEGER == this || BOOLEAN == this
-            || USERNAME == this || EMAIL == this || PASSWORD == this || URL == this || DATE == this
-            || PHONENUMBER == this || GEOLOCATION == this || COLOR == this || CONSTANT == this;
+        return this == OPEN;
     }
 }

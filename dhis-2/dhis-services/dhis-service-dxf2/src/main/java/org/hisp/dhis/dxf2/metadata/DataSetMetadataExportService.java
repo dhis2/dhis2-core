@@ -25,41 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.schema;
+package org.hisp.dhis.dxf2.metadata;
 
-import org.hisp.dhis.common.DxfNamespaces;
-
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Service responsible for retrieving metadata associated with data sets. The
+ * object response is suitable for applications for data capture and form
+ * rendering. This is a specialized service which related to the general
+ * {@link MetadataExportService}.
+ *
+ * @author Lars Helge Overland
  */
-@JacksonXmlRootElement( localName = "propertyType", namespace = DxfNamespaces.DXF_2_0 )
-public enum PropertyType
+public interface DataSetMetadataExportService
 {
-    IDENTIFIER,
-    TEXT,
-    NUMBER,
-    INTEGER,
-    BOOLEAN,
-    USERNAME,
-    EMAIL,
-    PASSWORD,
-    URL,
-    DATE,
-    PHONENUMBER,
-    GEOLOCATION,
-    COLOR,
-    CONSTANT,
-
-    COMPLEX,
-    COLLECTION,
-    REFERENCE;
-
-    public boolean isSimple()
-    {
-        return IDENTIFIER == this || TEXT == this || NUMBER == this || INTEGER == this || BOOLEAN == this
-            || USERNAME == this || EMAIL == this || PASSWORD == this || URL == this || DATE == this
-            || PHONENUMBER == this || GEOLOCATION == this || COLOR == this || CONSTANT == this;
-    }
+    /**
+     * Retrieves metadata for data sets for which the current user has data
+     * write access together with other relevant entities such as data elements,
+     * category combinations, categories and category options.
+     *
+     * @return an {@link ObjectNode}.
+     */
+    ObjectNode getDataSetMetadata();
 }

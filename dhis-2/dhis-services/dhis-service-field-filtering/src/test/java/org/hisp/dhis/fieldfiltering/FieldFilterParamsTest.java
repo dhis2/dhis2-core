@@ -40,7 +40,6 @@ import com.google.common.collect.Sets;
  */
 class FieldFilterParamsTest
 {
-
     @Test
     void testBuilderWithObjectAndFilters()
     {

@@ -25,41 +25,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.schema;
+package org.hisp.dhis.webapi.controller.metadata;
 
-import org.hisp.dhis.common.DxfNamespaces;
+import lombok.AllArgsConstructor;
 
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.dxf2.metadata.DataSetMetadataExportService;
+import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import com.fasterxml.jackson.databind.JsonNode;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Lars Helge Overland
  */
-@JacksonXmlRootElement( localName = "propertyType", namespace = DxfNamespaces.DXF_2_0 )
-public enum PropertyType
+@Controller
+@AllArgsConstructor
+@RequestMapping( "/dataSetMetadata" )
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+public class DataSetMetadataExportController
 {
-    IDENTIFIER,
-    TEXT,
-    NUMBER,
-    INTEGER,
-    BOOLEAN,
-    USERNAME,
-    EMAIL,
-    PASSWORD,
-    URL,
-    DATE,
-    PHONENUMBER,
-    GEOLOCATION,
-    COLOR,
-    CONSTANT,
+    private final DataSetMetadataExportService exportService;
 
-    COMPLEX,
-    COLLECTION,
-    REFERENCE;
-
-    public boolean isSimple()
+    @GetMapping
+    public ResponseEntity<JsonNode> getMetadata()
     {
-        return IDENTIFIER == this || TEXT == this || NUMBER == this || INTEGER == this || BOOLEAN == this
-            || USERNAME == this || EMAIL == this || PASSWORD == this || URL == this || DATE == this
-            || PHONENUMBER == this || GEOLOCATION == this || COLOR == this || CONSTANT == this;
+        return ResponseEntity.ok( exportService.getDataSetMetadata() );
     }
 }

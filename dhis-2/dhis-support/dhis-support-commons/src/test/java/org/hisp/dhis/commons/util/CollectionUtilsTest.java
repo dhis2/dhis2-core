@@ -25,41 +25,44 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.schema;
+package org.hisp.dhis.commons.util;
 
-import org.hisp.dhis.common.DxfNamespaces;
+import static org.hisp.dhis.commons.collection.CollectionUtils.flatMapToSet;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.List;
+import java.util.Set;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-@JacksonXmlRootElement( localName = "propertyType", namespace = DxfNamespaces.DXF_2_0 )
-public enum PropertyType
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataset.DataSet;
+import org.junit.jupiter.api.Test;
+
+class CollectionUtilsTest
 {
-    IDENTIFIER,
-    TEXT,
-    NUMBER,
-    INTEGER,
-    BOOLEAN,
-    USERNAME,
-    EMAIL,
-    PASSWORD,
-    URL,
-    DATE,
-    PHONENUMBER,
-    GEOLOCATION,
-    COLOR,
-    CONSTANT,
-
-    COMPLEX,
-    COLLECTION,
-    REFERENCE;
-
-    public boolean isSimple()
+    @Test
+    public void testFlatMapToSet()
     {
-        return IDENTIFIER == this || TEXT == this || NUMBER == this || INTEGER == this || BOOLEAN == this
-            || USERNAME == this || EMAIL == this || PASSWORD == this || URL == this || DATE == this
-            || PHONENUMBER == this || GEOLOCATION == this || COLOR == this || CONSTANT == this;
+        DataElement deA = new DataElement();
+        DataElement deB = new DataElement();
+        DataElement deC = new DataElement();
+        DataSet dsA = new DataSet();
+        DataSet dsB = new DataSet();
+
+        deA.setAutoFields();
+        deB.setAutoFields();
+        deC.setAutoFields();
+        dsA.setAutoFields();
+        dsB.setAutoFields();
+
+        dsA.addDataSetElement( deA );
+        dsA.addDataSetElement( deB );
+        dsB.addDataSetElement( deB );
+        dsB.addDataSetElement( deC );
+
+        List<DataSet> dataSets = List.of( dsA, dsB );
+
+        Set<DataElement> dataElements = flatMapToSet( dataSets, DataSet::getDataElements );
+
+        assertEquals( 3, dataElements.size() );
     }
 }

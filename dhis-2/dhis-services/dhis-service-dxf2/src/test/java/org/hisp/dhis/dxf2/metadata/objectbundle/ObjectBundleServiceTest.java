@@ -850,7 +850,7 @@ class ObjectBundleServiceTest extends TransactionalIntegrationTest
         List<Indicator> indicators = manager.getAll( Indicator.class );
         assertFalse( organisationUnits.isEmpty() );
         assertEquals( 3, dataElements.size() );
-        assertEquals( 1, indicators.size() );
+        assertEquals( 2, indicators.size() );
     }
 
     @Test

@@ -277,7 +277,7 @@ public class GetMetaDataAction
             categoryOptionMap.put( category.getUid(), categoryOptions );
         }
 
-        Set<String> invalidIds = new HashSet<>();
+        Set<String> nonAccessibleDataSetIds = new HashSet<>();
 
         for ( DataSet dataSet : dataSets )
         {
@@ -290,14 +290,14 @@ public class GetMetaDataAction
                     if ( !categoryOptionMap.containsKey( category.getUid() )
                         || categoryOptionMap.get( category.getUid() ).isEmpty() )
                     {
-                        invalidIds.add( dataSet.getUid() );
+                        nonAccessibleDataSetIds.add( dataSet.getUid() );
                         break;
                     }
                 }
             }
         }
 
-        dataSets = dataSets.stream().filter( dataSet -> !invalidIds.contains( dataSet.getUid() ) )
+        dataSets = dataSets.stream().filter( dataSet -> !nonAccessibleDataSetIds.contains( dataSet.getUid() ) )
             .collect( Collectors.toList() );
 
         lockExceptions = dataSetService.getAllLockExceptions();

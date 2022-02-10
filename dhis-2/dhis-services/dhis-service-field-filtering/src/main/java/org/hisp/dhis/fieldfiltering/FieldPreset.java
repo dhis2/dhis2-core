@@ -25,41 +25,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.schema;
+package org.hisp.dhis.fieldfiltering;
 
-import org.hisp.dhis.common.DxfNamespaces;
-
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.List;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Constants for available field presets. A preset represents a short-hand
+ * notation for a specific category of fields.
+ *
+ * TODO: Centralize this with the existing Preset enum in dhis-service-node.
+ *
+ * @author Lars Helge Overland
  */
-@JacksonXmlRootElement( localName = "propertyType", namespace = DxfNamespaces.DXF_2_0 )
-public enum PropertyType
+public interface FieldPreset
 {
-    IDENTIFIER,
-    TEXT,
-    NUMBER,
-    INTEGER,
-    BOOLEAN,
-    USERNAME,
-    EMAIL,
-    PASSWORD,
-    URL,
-    DATE,
-    PHONENUMBER,
-    GEOLOCATION,
-    COLOR,
-    CONSTANT,
+    List<String> IDENTIFIABLE_FIELDS = List.of(
+        "id", "code", "name", "created", "lastUpdated", "lastUpdatedBy" );
 
-    COMPLEX,
-    COLLECTION,
-    REFERENCE;
+    String ALL = "all";
 
-    public boolean isSimple()
-    {
-        return IDENTIFIER == this || TEXT == this || NUMBER == this || INTEGER == this || BOOLEAN == this
-            || USERNAME == this || EMAIL == this || PASSWORD == this || URL == this || DATE == this
-            || PHONENUMBER == this || GEOLOCATION == this || COLOR == this || CONSTANT == this;
-    }
+    String OWNER = "owner";
+
+    String IDENTIFIABLE = "identifiable";
+
+    String SIMPLE = "simple";
 }
