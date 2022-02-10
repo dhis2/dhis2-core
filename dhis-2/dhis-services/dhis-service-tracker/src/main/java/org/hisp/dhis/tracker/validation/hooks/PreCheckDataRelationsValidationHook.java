@@ -211,7 +211,6 @@ public class PreCheckDataRelationsValidationHook
             return;
         }
 
-        isValid = true;
         isValid = validateAttributeOptionComboIsInProgramCategoryCombo( reporter, event, program ) && isValid;
         isValid = validateAttributeCategoryOptionsAreInProgramCategoryCombo( reporter, event, program ) && isValid;
         if ( !isValid )
@@ -336,8 +335,16 @@ public class PreCheckDataRelationsValidationHook
             .getCategoryOptionCombo( event.getAttributeOptionCombo() );
         if ( !program.getCategoryCombo().equals( aoc.getCategoryCombo() ) )
         {
-            reporter.addError( event, TrackerErrorCode.E1054,
-                event.getAttributeOptionCombo(), program.getCategoryCombo() );
+            if ( aoc.getCategoryCombo().isDefault() )
+            {
+                reporter.addError( event, TrackerErrorCode.E1055,
+                    event.getAttributeOptionCombo(), program.getCategoryCombo() );
+            }
+            else
+            {
+                reporter.addError( event, TrackerErrorCode.E1054,
+                    event.getAttributeOptionCombo(), program.getCategoryCombo() );
+            }
             return false;
         }
         return true;
