@@ -69,7 +69,8 @@ public class DimensionFilteringAndPagingService
         "code", comparing( DimensionResponse::getCode, nullsFirst( naturalOrder() ) ),
         "uid", comparing( DimensionResponse::getId, nullsFirst( naturalOrder() ) ),
         "id", comparing( DimensionResponse::getId, nullsFirst( naturalOrder() ) ),
-        "name", comparing( DimensionResponse::getName, nullsFirst( naturalOrder() ) ) );
+        "name", comparing( DimensionResponse::getName, nullsFirst( naturalOrder() ) ),
+        "displayName", comparing( DimensionResponse::getDisplayName, nullsFirst( naturalOrder() ) ) );
 
     public AnalyticsDimensionsPagingWrapper<ObjectNode> pageAndFilter(
         Collection<DimensionResponse> dimensionResponses,

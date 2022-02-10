@@ -25,31 +25,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.fieldfiltering;
+package org.hisp.dhis.dataset;
 
-import java.util.List;
-
-/**
- * Constants for available field presets. A preset represents a short-hand
- * notation for a specific category of fields.
- *
- * <<<<<<< HEAD TODO: Centralize this with the existing Preset enum in
- * dhis-service-node.
- *
- * ======= >>>>>>> master
- *
- * @author Lars Helge Overland
- */
-public interface FieldPreset
+public enum LockStatus
 {
-    List<String> IDENTIFIABLE_FIELDS = List.of(
-        "id", "code", "name", "created", "lastUpdated", "lastUpdatedBy" );
+    LOCKED,
+    APPROVED,
+    OPEN;
 
-    String ALL = "all";
-
-    String OWNER = "owner";
-
-    String IDENTIFIABLE = "identifiable";
-
-    String SIMPLE = "simple";
+    public boolean isOpen()
+    {
+        return this == OPEN;
+    }
 }
