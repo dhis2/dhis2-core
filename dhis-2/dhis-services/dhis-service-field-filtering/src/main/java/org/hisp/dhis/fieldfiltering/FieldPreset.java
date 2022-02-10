@@ -33,10 +33,7 @@ import java.util.List;
  * Constants for available field presets. A preset represents a short-hand
  * notation for a specific category of fields.
  *
- * <<<<<<< HEAD TODO: Centralize this with the existing Preset enum in
- * dhis-service-node.
- *
- * ======= >>>>>>> master
+ * TODO: Centralize this with the existing Preset enum in dhis-service-node.
  *
  * @author Lars Helge Overland
  */
