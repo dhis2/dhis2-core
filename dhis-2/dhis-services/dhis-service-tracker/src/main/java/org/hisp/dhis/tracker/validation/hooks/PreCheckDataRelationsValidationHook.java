@@ -377,7 +377,7 @@ public class PreCheckDataRelationsValidationHook
 
         TrackerPreheat preheat = reporter.getValidationContext().getBundle().getPreheat();
         CategoryOptionCombo aoc;
-        if ( program.getCategoryCombo().isDefault() )
+        if ( program.getCategoryCombo().isDefault() && StringUtils.isBlank( event.getAttributeOptionCombo() ) )
         {
             aoc = preheat.getDefault( CategoryOptionCombo.class );
         }
@@ -404,6 +404,12 @@ public class PreCheckDataRelationsValidationHook
         }
         else
         {
+            // Note: there is a potential case when there are multiple AOCs in
+            // the default CC
+            // this should not happen, but it's technically possible. In this
+            // case with event.AOC provided,
+            // stick to the given AOC in the payload instead of
+            // preheat.getDefault( CategoryOptionCombo.class )
             aoc = preheat.getCategoryOptionCombo( event.getAttributeOptionCombo() );
         }
         return aoc;

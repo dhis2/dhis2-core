@@ -620,7 +620,6 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         program.setCategoryCombo( defaultCC );
         CategoryOptionCombo defaultAOC = firstCategoryOptionCombo( defaultCC );
         when( preheat.getCategoryOptionCombo( defaultAOC.getUid() ) ).thenReturn( defaultAOC );
-        when( preheat.getDefault( CategoryOptionCombo.class ) ).thenReturn( defaultAOC );
 
         Event event = eventBuilder()
             .attributeOptionCombo( defaultAOC.getUid() )
@@ -758,7 +757,6 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         program.setCategoryCombo( defaultCC );
         CategoryOptionCombo defaultAOC = firstCategoryOptionCombo( defaultCC );
         when( preheat.getCategoryOptionCombo( defaultAOC.getUid() ) ).thenReturn( defaultAOC );
-        when( preheat.getDefault( CategoryOptionCombo.class ) ).thenReturn( defaultAOC );
 
         CategoryOption defaultCO = defaultCC.getCategoryOptions().get( 0 );
         program.setCategoryCombo( defaultCC );
