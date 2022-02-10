@@ -56,6 +56,8 @@ public class ProgramStageNotificationMessageRenderer
         .put( ProgramStageTemplateVariable.PROGRAM_NAME, psi -> psi.getProgramStage().getProgram().getDisplayName() )
         .put( ProgramStageTemplateVariable.PROGRAM_STAGE_NAME, psi -> psi.getProgramStage().getDisplayName() )
         .put( ProgramStageTemplateVariable.ORG_UNIT_NAME, psi -> psi.getOrganisationUnit().getDisplayName() )
+        .put( ProgramStageTemplateVariable.ORG_UNIT_ID, psi -> psi.getOrganisationUnit().getUid() )
+        .put( ProgramStageTemplateVariable.ORG_UNIT_CODE, psi -> psi.getOrganisationUnit().getCode() )
         .put( ProgramStageTemplateVariable.DUE_DATE, psi -> formatDate( psi.getDueDate() ) )
         .put( ProgramStageTemplateVariable.EVENT_DATE, psi -> formatDate( psi.getExecutionDate() ) )
         .put( ProgramStageTemplateVariable.DAYS_SINCE_DUE_DATE, psi -> daysSince( psi.getDueDate() ) )
@@ -64,6 +66,10 @@ public class ProgramStageNotificationMessageRenderer
         .put( ProgramStageTemplateVariable.EVENT_ORG_UNIT_ID, psi -> psi.getOrganisationUnit().getUid() )
         .put( ProgramStageTemplateVariable.ENROLLMENT_ORG_UNIT_ID,
             psi -> psi.getProgramInstance().getOrganisationUnit().getUid() )
+        .put( ProgramStageTemplateVariable.ENROLLMENT_ORG_UNIT_NAME,
+            psi -> psi.getProgramInstance().getOrganisationUnit().getName() )
+        .put( ProgramStageTemplateVariable.ENROLLMENT_ORG_UNIT_CODE,
+            psi -> psi.getProgramInstance().getOrganisationUnit().getCode() )
         .put( ProgramStageTemplateVariable.PROGRAM_ID, psi -> psi.getProgramStage().getProgram().getUid() )
         .put( ProgramStageTemplateVariable.PROGRAM_STAGE_ID, psi -> psi.getProgramStage().getUid() )
         .put( ProgramStageTemplateVariable.ENROLLMENT_ID, psi -> psi.getProgramInstance().getUid() )
