@@ -197,8 +197,7 @@ public class PreCheckDataRelationsValidationHook
     private void validateEventCategoryCombo( ValidationErrorReporter reporter,
         Event event, Program program )
     {
-        boolean isValid = true;
-        isValid = validateAttributeOptionComboExists( reporter, event ) && isValid;
+        boolean isValid = validateAttributeOptionComboExists( reporter, event );
         isValid = validateCategoryOptionsExist( reporter, event ) && isValid;
         isValid = validateDefaultProgramCategoryCombo( reporter, event, program ) && isValid;
         if ( !isValid )
@@ -211,7 +210,7 @@ public class PreCheckDataRelationsValidationHook
             return;
         }
 
-        isValid = validateAttributeOptionComboIsInProgramCategoryCombo( reporter, event, program ) && isValid;
+        isValid = validateAttributeOptionComboIsInProgramCategoryCombo( reporter, event, program );
         isValid = validateAttributeCategoryOptionsAreInProgramCategoryCombo( reporter, event, program ) && isValid;
         if ( !isValid )
         {
@@ -231,6 +230,8 @@ public class PreCheckDataRelationsValidationHook
         // previously did.
         if ( !validateAttributeOptionComboFound( reporter, event, program, aoc ) )
             return;
+        if ( !validateAttributeOptionComboMatchesCategoryOptions( reporter, event, aoc ) )
+            return;
 
         // TODO resolving and "caching" the AOC id should move into the preheat
         // as validations should not access the DB
@@ -241,65 +242,6 @@ public class PreCheckDataRelationsValidationHook
         // provided in the payload and the program cc is non default.
         reporter.getValidationContext()
             .cacheEventCategoryOptionCombo( event.getUid(), aoc );
-    }
-
-    private CategoryOptionCombo resolveAttributeOptionCombo( ValidationErrorReporter reporter, Event event,
-        Program program )
-    {
-
-        TrackerPreheat preheat = reporter.getValidationContext().getBundle().getPreheat();
-        CategoryOptionCombo aoc;
-        if ( program.getCategoryCombo().isDefault() )
-        {
-            aoc = preheat.getDefault( CategoryOptionCombo.class );
-        }
-        else if ( StringUtils.isBlank( event.getAttributeOptionCombo() )
-            && !StringUtils.isBlank( event.getAttributeCategoryOptions() ) )
-        {
-            aoc = fetchAttributeOptionCombo( reporter, event, program );
-            if ( aoc != null )
-            {
-                // TODO validation hooks should not need to mutate the payload.
-                // This
-                // should be moved to a pre-processor.
-                event.setAttributeOptionCombo(
-                    reporter.getValidationContext().getIdentifiers().getCategoryOptionComboIdScheme()
-                        .getIdentifier( aoc ) );
-                // TODO validation hooks should not need to populate the
-                // preheat. Move this to the preheat.
-                // We need the AOC in the preheat so we can allow users not to
-                // send it. We need to set it on the
-                // ProgramStageInstance before persisting.
-                TrackerIdentifier identifier = preheat.getIdentifiers().getCategoryOptionComboIdScheme();
-                preheat.put( identifier, aoc );
-            }
-        }
-        else
-        {
-            aoc = preheat.getCategoryOptionCombo( event.getAttributeOptionCombo() );
-        }
-        return aoc;
-    }
-
-    private boolean validateAttributeOptionComboFound( ValidationErrorReporter reporter, Event event, Program program,
-        CategoryOptionCombo aoc )
-    {
-        if ( aoc != null )
-        {
-            return true;
-        }
-
-        // we used the program CC in finding the AOC id, if the AOC id was not
-        // provided in the payload
-        if ( StringUtils.isBlank( event.getAttributeOptionCombo() ) )
-        {
-            reporter.addError( event, TrackerErrorCode.E1115, program.getCategoryCombo() );
-        }
-        else
-        {
-            reporter.addError( event, TrackerErrorCode.E1115, event.getAttributeOptionCombo() );
-        }
-        return false;
     }
 
     private boolean validateAttributeOptionComboExists( ValidationErrorReporter reporter, Event event )
@@ -429,6 +371,44 @@ public class PreCheckDataRelationsValidationHook
         return true;
     }
 
+    private CategoryOptionCombo resolveAttributeOptionCombo( ValidationErrorReporter reporter, Event event,
+        Program program )
+    {
+
+        TrackerPreheat preheat = reporter.getValidationContext().getBundle().getPreheat();
+        CategoryOptionCombo aoc;
+        if ( program.getCategoryCombo().isDefault() )
+        {
+            aoc = preheat.getDefault( CategoryOptionCombo.class );
+        }
+        else if ( StringUtils.isBlank( event.getAttributeOptionCombo() )
+            && !StringUtils.isBlank( event.getAttributeCategoryOptions() ) )
+        {
+            aoc = fetchAttributeOptionCombo( reporter, event, program );
+            if ( aoc != null )
+            {
+                // TODO validation hooks should not need to mutate the payload.
+                // This
+                // should be moved to a pre-processor.
+                event.setAttributeOptionCombo(
+                    reporter.getValidationContext().getIdentifiers().getCategoryOptionComboIdScheme()
+                        .getIdentifier( aoc ) );
+                // TODO validation hooks should not need to populate the
+                // preheat. Move this to the preheat.
+                // We need the AOC in the preheat so we can allow users not to
+                // send it. We need to set it on the
+                // ProgramStageInstance before persisting.
+                TrackerIdentifier identifier = preheat.getIdentifiers().getCategoryOptionComboIdScheme();
+                preheat.put( identifier, aoc );
+            }
+        }
+        else
+        {
+            aoc = preheat.getCategoryOptionCombo( event.getAttributeOptionCombo() );
+        }
+        return aoc;
+    }
+
     private CategoryOptionCombo fetchAttributeOptionCombo( ValidationErrorReporter reporter, Event event,
         Program program )
     {
@@ -461,6 +441,52 @@ public class PreCheckDataRelationsValidationHook
             categoryOptions.add( preheat.getCategoryOption( id ) );
         }
         return categoryOptions;
+    }
+
+    private boolean validateAttributeOptionComboFound( ValidationErrorReporter reporter, Event event, Program program,
+        CategoryOptionCombo aoc )
+    {
+        if ( aoc != null )
+        {
+            return true;
+        }
+
+        // we used the program CC in finding the AOC id, if the AOC id was not
+        // provided in the payload
+        if ( StringUtils.isBlank( event.getAttributeOptionCombo() ) )
+        {
+            reporter.addError( event, TrackerErrorCode.E1115, program.getCategoryCombo() );
+        }
+        else
+        {
+            reporter.addError( event, TrackerErrorCode.E1115, event.getAttributeOptionCombo() );
+        }
+        return false;
+    }
+
+    private boolean validateAttributeOptionComboMatchesCategoryOptions( ValidationErrorReporter reporter, Event event,
+        CategoryOptionCombo aoc )
+    {
+        if ( StringUtils.isBlank( event.getAttributeCategoryOptions() ) )
+        {
+            return true;
+        }
+
+        Set<CategoryOption> categoryOptions = getCategoryOptions(
+            reporter.getValidationContext().getBundle().getPreheat(), event );
+        if ( !isAOCForCOs( aoc, categoryOptions ) )
+        {
+            reporter.addError( event, TrackerErrorCode.E1117,
+                event.getAttributeCategoryOptions(), event.getAttributeOptionCombo() );
+            return false;
+        }
+        return true;
+    }
+
+    private boolean isAOCForCOs( CategoryOptionCombo aoc, Set<CategoryOption> categoryOptions )
+    {
+        return aoc.getCategoryOptions().containsAll( categoryOptions )
+            && aoc.getCategoryOptions().size() == categoryOptions.size();
     }
 
     private String getEnrollmentProgramUidFromEvent( TrackerImportValidationContext context,

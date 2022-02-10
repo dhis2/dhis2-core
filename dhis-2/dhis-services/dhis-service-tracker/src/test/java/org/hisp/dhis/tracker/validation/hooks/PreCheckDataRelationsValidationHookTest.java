@@ -78,7 +78,6 @@ import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -776,15 +775,6 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         assertEquals( defaultAOC,
             reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ),
             "AOC id should be cached" );
-        // TODO do we need this?
-        // String cacheKey = defaultCO.getUid() +
-        // program.getCategoryCombo().getUid();
-        // assertTrue(
-        // reporter.getValidationContext().getCachedEventAOCProgramCC()
-        // .containsKey( cacheKey ), "AOC id should be cached" );
-        // assertEquals( defaultAOC.getUid(),
-        // reporter.getValidationContext().getCachedEventAOCProgramCC()
-        // .get( cacheKey ), "AOC id should be cached" );
     }
 
     @Test
@@ -811,14 +801,6 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         assertEquals( aoc,
             reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ),
             "AOC id should be cached" );
-        // TODO do we need this?
-        // String cacheKey = co.getUid() + program.getCategoryCombo().getUid();
-        // assertTrue(
-        // reporter.getValidationContext().getCachedEventAOCProgramCC()
-        // .containsKey( cacheKey ), "AOC id should be cached" );
-        // assertEquals( aoc.getUid(),
-        // reporter.getValidationContext().getCachedEventAOCProgramCC()
-        // .get( cacheKey ), "AOC id should be cached" );
     }
 
     @Test
@@ -965,6 +947,66 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             r.getErrorMessage().contains( program.getCategoryCombo().getUid() ) ) );
         assertNull( reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ),
             "AOC id should not be cached" );
+    }
+
+    @Test
+    void eventValidationFailsWhenEventAOCAndEventCOsAreSetAndInProgramCCButDoNotMatch()
+    {
+        OrganisationUnit orgUnit = setupOrgUnit();
+        Program program = setupProgram( orgUnit );
+        CategoryCombo cc = categoryCombo();
+        program.setCategoryCombo( cc );
+
+        CategoryOptionCombo aoc1 = cc.getSortedOptionCombos().get( 0 );
+        CategoryOption co1 = (CategoryOption) aoc1.getCategoryOptions().toArray()[0];
+        when( preheat.getCategoryOption( co1.getUid() ) ).thenReturn( co1 );
+
+        CategoryOptionCombo aoc2 = cc.getSortedOptionCombos().get( 1 );
+        when( preheat.getCategoryOptionCombo( aoc2.getUid() ) ).thenReturn( aoc2 );
+
+        Event event = eventBuilder()
+            .attributeOptionCombo( aoc2.getUid() )
+            .attributeCategoryOptions( co1.getUid() )
+            .build();
+
+        hook.validateEvent( reporter, event );
+
+        assertEquals( 1, reporter.getReportList().size() );
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1117 &&
+            r.getErrorMessage().contains( co1.getUid() ) &&
+            r.getErrorMessage().contains( aoc2.getUid() ) ) );
+        assertNull( reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ),
+            "AOC id should not be cached" );
+        verify( preheat, times( 0 ) ).put( any(), (IdentifiableObject) any() );
+    }
+
+    @Test
+    void eventValidationFailsWhenEventAOCAndEventCOsAreSetAndInProgramCCButNotAllCOsInAOCAreGiven()
+    {
+        OrganisationUnit orgUnit = setupOrgUnit();
+        Program program = setupProgram( orgUnit );
+        CategoryCombo cc = categoryComboWithTwoCategories();
+        program.setCategoryCombo( cc );
+
+        CategoryOptionCombo aoc = firstCategoryOptionCombo( cc );
+        when( preheat.getCategoryOptionCombo( aoc.getUid() ) ).thenReturn( aoc );
+        CategoryOption co1 = (CategoryOption) aoc.getCategoryOptions().toArray()[0];
+        when( preheat.getCategoryOption( co1.getUid() ) ).thenReturn( co1 );
+
+        Event event = eventBuilder()
+            .attributeOptionCombo( aoc.getUid() )
+            .attributeCategoryOptions( co1.getUid() )
+            .build();
+
+        hook.validateEvent( reporter, event );
+
+        assertEquals( 1, reporter.getReportList().size() );
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1117 &&
+            r.getErrorMessage().contains( co1.getUid() ) &&
+            r.getErrorMessage().contains( aoc.getUid() ) ) );
+        assertNull( reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ),
+            "AOC id should not be cached" );
+        verify( preheat, times( 0 ) ).put( any(), (IdentifiableObject) any() );
     }
 
     @Test
@@ -1145,33 +1187,37 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
 
     private CategoryCombo categoryCombo( char uniqueIdentifier )
     {
-        CategoryOption co = createCategoryOption( uniqueIdentifier );
-        Category ca = createCategory( uniqueIdentifier, co );
+        CategoryOption co1 = createCategoryOption( uniqueIdentifier );
+        CategoryOption co2 = createCategoryOption( uniqueIdentifier );
+        Category ca = createCategory( uniqueIdentifier, co1, co2 );
         CategoryCombo cc = createCategoryCombo( uniqueIdentifier, ca );
         cc.setDataDimensionType( DataDimensionType.ATTRIBUTE );
-        CategoryOptionCombo aoc = createCategoryOptionCombo( cc, co );
-        cc.setOptionCombos( Sets.newHashSet( aoc ) );
+        CategoryOptionCombo aoc1 = createCategoryOptionCombo( cc, co1 );
+        CategoryOptionCombo aoc2 = createCategoryOptionCombo( cc, co2 );
+        cc.setOptionCombos( Sets.newHashSet( aoc1, aoc2 ) );
         return cc;
     }
 
-    /**
-     * Helper to get the first coc from a cc. /* Needed since the Java Set
-     * interface does not allow getting an element. /* Turned off warnings
-     * regarding null, since assertions make sure that we return an element or
-     * fail;
-     */
-    @NotNull
+    private CategoryCombo categoryComboWithTwoCategories()
+    {
+        char uniqueIdentifier = 'A';
+        CategoryOption co1 = createCategoryOption( uniqueIdentifier );
+        Category ca1 = createCategory( uniqueIdentifier, co1 );
+        CategoryOption co2 = createCategoryOption( uniqueIdentifier );
+        Category ca2 = createCategory( uniqueIdentifier, co2 );
+        CategoryCombo cc = createCategoryCombo( uniqueIdentifier, ca1, ca2 );
+        cc.setDataDimensionType( DataDimensionType.ATTRIBUTE );
+        CategoryOptionCombo aoc1 = createCategoryOptionCombo( cc, co1, co2 );
+        cc.setOptionCombos( Sets.newHashSet( aoc1 ) );
+        return cc;
+    }
+
     private CategoryOptionCombo firstCategoryOptionCombo( CategoryCombo categoryCombo )
     {
         assertNotNull( categoryCombo.getOptionCombos() );
         assertFalse( categoryCombo.getOptionCombos().isEmpty() );
 
-        for ( CategoryOptionCombo coc : categoryCombo.getOptionCombos() )
-        {
-            return coc;
-        }
-        // noinspection ConstantConditions
-        return null;
+        return categoryCombo.getSortedOptionCombos().get( 0 );
     }
 
     private Event.EventBuilder eventBuilder()
