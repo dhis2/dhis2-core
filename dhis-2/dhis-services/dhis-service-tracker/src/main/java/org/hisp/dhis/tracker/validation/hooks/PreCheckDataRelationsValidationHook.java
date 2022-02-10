@@ -296,22 +296,19 @@ public class PreCheckDataRelationsValidationHook
         Event event,
         Program program )
     {
-        // This validates that an event.attributeCategoryOptions in the payload
-        // are within the programs' category combo
-        // this includes both cases where the program category combo is default
-        // and non-default
-        if ( StringUtils.isBlank( event.getAttributeCategoryOptions() ) )
+        if ( StringUtils.isBlank( event.getAttributeCategoryOptions() )
+            || StringUtils.isBlank( event.getAttributeOptionCombo() ) )
         {
             return true;
         }
-
-        Set<CategoryOption> uniqueCos = new HashSet<>( program.getCategoryCombo().getCategoryOptions() );
         Set<CategoryOption> categoryOptions = getCategoryOptions(
             reporter.getValidationContext().getBundle().getPreheat(), event );
-        if ( !uniqueCos.containsAll( categoryOptions ) )
+        CategoryOptionCombo aoc = reporter.getValidationContext().getBundle().getPreheat()
+            .getCategoryOptionCombo( event.getAttributeOptionCombo() );
+        if ( !aoc.getCategoryOptions().containsAll( categoryOptions ) )
         {
             reporter.addError( event, TrackerErrorCode.E1117,
-                event.getAttributeCategoryOptions(), program.getCategoryCombo() );
+                program.getCategoryCombo(), event.getAttributeCategoryOptions() );
             return false;
         }
         return true;
@@ -354,20 +351,23 @@ public class PreCheckDataRelationsValidationHook
     private boolean validateDefaultProgramCategoryCombo( ValidationErrorReporter reporter, Event event,
         Program program )
     {
-        // This validates that empty event.attributeOptionCombo and
-        // event.attributeCategoryOptions are only allowed
-        // for programs with the default category combo.
-        if ( !StringUtils.isBlank( event.getAttributeOptionCombo() )
-            || !StringUtils.isBlank( event.getAttributeCategoryOptions() ) )
-        {
-            return true;
-        }
-
-        if ( !program.getCategoryCombo().isDefault() )
+        if ( StringUtils.isBlank( event.getAttributeOptionCombo() ) &&
+            StringUtils.isBlank( event.getAttributeCategoryOptions() ) &&
+            !program.getCategoryCombo().isDefault() )
         {
             reporter.addError( event, TrackerErrorCode.E1055 );
             return false;
         }
+        CategoryOptionCombo aoc = reporter.getValidationContext().getBundle().getPreheat()
+            .getCategoryOptionCombo( event.getAttributeOptionCombo() );
+        if ( !StringUtils.isBlank( event.getAttributeOptionCombo() ) &&
+            aoc != null && aoc.getCategoryCombo().isDefault() &&
+            !program.getCategoryCombo().isDefault() )
+        {
+            reporter.addError( event, TrackerErrorCode.E1055 );
+            return false;
+        }
+
         return true;
     }
 
@@ -461,11 +461,11 @@ public class PreCheckDataRelationsValidationHook
         // provided in the payload
         if ( StringUtils.isBlank( event.getAttributeOptionCombo() ) )
         {
-            reporter.addError( event, TrackerErrorCode.E1115, program.getCategoryCombo() );
+            reporter.addError( event, TrackerErrorCode.E1117, program.getCategoryCombo() );
         }
         else
         {
-            reporter.addError( event, TrackerErrorCode.E1115, event.getAttributeOptionCombo() );
+            reporter.addError( event, TrackerErrorCode.E1117, event.getAttributeCategoryOptions() );
         }
         return false;
     }
@@ -482,8 +482,7 @@ public class PreCheckDataRelationsValidationHook
             reporter.getValidationContext().getBundle().getPreheat(), event );
         if ( !isAOCForCOs( aoc, categoryOptions ) )
         {
-            reporter.addError( event, TrackerErrorCode.E1117,
-                event.getAttributeCategoryOptions(), event.getAttributeOptionCombo() );
+            reporter.addError( event, TrackerErrorCode.E1117, event.getAttributeCategoryOptions() );
             return false;
         }
         return true;

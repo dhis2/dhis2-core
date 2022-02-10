@@ -502,7 +502,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         hook.validateEvent( reporter, event );
 
         assertEquals( 1, reporter.getReportList().size() );
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1115 &&
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1117 &&
             r.getErrorMessage().contains( program.getCategoryCombo().getUid() ) ) );
         assertNull( reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ),
             "AOC id should not be cached" );
@@ -541,7 +541,10 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     {
         OrganisationUnit orgUnit = setupOrgUnit();
         Program program = setupProgram( orgUnit );
-        program.setCategoryCombo( defaultCategoryCombo() );
+        CategoryCombo defaultCC = defaultCategoryCombo();
+        program.setCategoryCombo( defaultCC );
+        CategoryOptionCombo defaultAOC = firstCategoryOptionCombo( defaultCC );
+        when( preheat.getDefault( CategoryOptionCombo.class ) ).thenReturn( defaultAOC );
 
         CategoryCombo cc = categoryCombo();
         CategoryOption co = cc.getCategoryOptions().get( 0 );
@@ -555,8 +558,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
 
         assertEquals( 1, reporter.getReportList().size() );
         assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1117 &&
-            r.getErrorMessage().contains( co.getUid() ) &&
-            r.getErrorMessage().contains( program.getCategoryCombo().getUid() ) ) );
+            r.getErrorMessage().contains( co.getUid() ) ) );
         assertNull( reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ),
             "AOC id should not be cached" );
         verify( preheat, times( 0 ) ).put( any(), (IdentifiableObject) any() );
@@ -567,10 +569,12 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     {
         OrganisationUnit orgUnit = setupOrgUnit();
         Program program = setupProgram( orgUnit );
-        program.setCategoryCombo( categoryCombo() );
+        CategoryCombo cc = categoryCombo();
+        program.setCategoryCombo( cc );
 
         CategoryOption co = createCategoryOption( 'B' );
         when( preheat.getCategoryOption( co.getUid() ) ).thenReturn( co );
+        when( categoryService.getCategoryOptionCombo( cc, Sets.newHashSet( co ) ) ).thenReturn( null );
 
         Event event = eventBuilder()
             .attributeCategoryOptions( co.getUid() )
@@ -580,7 +584,6 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
 
         assertEquals( 1, reporter.getReportList().size() );
         assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1117 &&
-            r.getErrorMessage().contains( co.getUid() ) &&
             r.getErrorMessage().contains( program.getCategoryCombo().getUid() ) ) );
         assertNull( reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ),
             "AOC id should not be cached" );
@@ -941,7 +944,6 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
 
         assertEquals( 1, reporter.getReportList().size() );
         assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1117 &&
-            r.getErrorMessage().contains( eventCO.getUid() ) &&
             r.getErrorMessage().contains( program.getCategoryCombo().getUid() ) ) );
         assertNull( reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ),
             "AOC id should not be cached" );
@@ -971,8 +973,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
 
         assertEquals( 1, reporter.getReportList().size() );
         assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1117 &&
-            r.getErrorMessage().contains( co1.getUid() ) &&
-            r.getErrorMessage().contains( aoc2.getUid() ) ) );
+            r.getErrorMessage().contains( program.getCategoryCombo().getUid() ) ) );
         assertNull( reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ),
             "AOC id should not be cached" );
         verify( preheat, times( 0 ) ).put( any(), (IdentifiableObject) any() );
@@ -1000,8 +1001,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
 
         assertEquals( 1, reporter.getReportList().size() );
         assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1117 &&
-            r.getErrorMessage().contains( co1.getUid() ) &&
-            r.getErrorMessage().contains( aoc.getUid() ) ) );
+            r.getErrorMessage().contains( co1.getUid() ) ) );
         assertNull( reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ),
             "AOC id should not be cached" );
         verify( preheat, times( 0 ) ).put( any(), (IdentifiableObject) any() );
