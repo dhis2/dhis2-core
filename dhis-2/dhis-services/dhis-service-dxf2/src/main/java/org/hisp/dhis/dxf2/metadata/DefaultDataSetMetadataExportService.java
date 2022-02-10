@@ -78,16 +78,18 @@ public class DefaultDataSetMetadataExportService
 
     private static final String FIELD_PRESET_SIMPLE = ":simple";
 
-    private static final Set<String> FIELDS_DATA_SETS = Set.of( "categoryCombo~pluck" );
+    private static final Set<String> FIELDS_DATA_SETS = Set.of(
+        "sections[:simple,dataElements~pluck,indicators~pluck," +
+            "greyedFields[dataElement~pluck,categoryOptionCombo~pluck],categoryCombo~pluck" );
 
     private static final Set<String> FIELDS_DATA_ELEMENTS = Set.of( "categoryCombo~pluck" );
 
     private static final Set<String> FIELDS_INDICATORS = Set.of( "explodedNumerator", "explodedDenominator" );
 
-    private static final Set<String> FIELDS_DATAELEMENT_CAT_COMBOS = Set
-        .of( "categories~pluck,categoryOptionCombos[id,code,name,displayName]" );
+    private static final Set<String> FIELDS_DATAELEMENT_CAT_COMBOS = Set.of(
+        "isDefault,categories~pluck,categoryOptionCombos[id,code,name,displayName]" );
 
-    private static final Set<String> FIELDS_DATA_SET_CAT_COMBOS = Set.of( "categories~pluck" );
+    private static final Set<String> FIELDS_DATA_SET_CAT_COMBOS = Set.of( "isDefault,categories~pluck" );
 
     private final FieldFilterService fieldFilterService;
 
