@@ -127,8 +127,8 @@ public class DataValueSMSListener
         Period period = getPeriod( smsCommand, date );
         DataSet dataSet = smsCommand.getDataset();
 
-        if ( dataSetService.isLocked( null, dataSet, period, orgUnit,
-            dataElementCategoryService.getDefaultCategoryOptionCombo(), null ) )
+        if ( !dataSetService.getLockStatus( null, dataSet, period, orgUnit,
+            dataElementCategoryService.getDefaultCategoryOptionCombo(), null ).isOpen() )
         {
             sendFeedback( String.format( DATASET_LOCKED, dataSet.getUid(), period.getName() ), sms.getOriginator(),
                 ERROR );
@@ -223,7 +223,8 @@ public class DataValueSMSListener
             storedBy = "[unknown] from [" + sender + "]";
         }
 
-        CategoryOptionCombo optionCombo = dataElementCategoryService.getCategoryOptionCombo( code.getOptionId() );
+        CategoryOptionCombo optionCombo = dataElementCategoryService
+            .getCategoryOptionCombo( code.getOptionId().getId() );
 
         Period period = getPeriod( command, date );
 
@@ -375,7 +376,8 @@ public class DataValueSMSListener
         for ( SMSCode code : command.getCodes() )
         {
 
-            CategoryOptionCombo optionCombo = dataElementCategoryService.getCategoryOptionCombo( code.getOptionId() );
+            CategoryOptionCombo optionCombo = dataElementCategoryService
+                .getCategoryOptionCombo( code.getOptionId().getId() );
 
             period = getPeriod( command, date );
 
@@ -437,7 +439,8 @@ public class DataValueSMSListener
         for ( SMSCode code : command.getCodes() )
         {
 
-            CategoryOptionCombo optionCombo = dataElementCategoryService.getCategoryOptionCombo( code.getOptionId() );
+            CategoryOptionCombo optionCombo = dataElementCategoryService
+                .getCategoryOptionCombo( code.getOptionId().getId() );
 
             period = getPeriod( command, date );
 

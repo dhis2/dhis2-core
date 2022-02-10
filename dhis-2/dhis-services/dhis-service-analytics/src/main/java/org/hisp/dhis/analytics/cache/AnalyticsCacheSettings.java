@@ -31,6 +31,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.Math.max;
 import static org.hisp.dhis.analytics.AnalyticsCacheTtlMode.FIXED;
 import static org.hisp.dhis.analytics.AnalyticsCacheTtlMode.PROGRESSIVE;
+import static org.hisp.dhis.common.cache.CacheStrategy.CACHE_TWO_WEEKS;
 import static org.hisp.dhis.common.cache.CacheStrategy.NO_CACHE;
 import static org.hisp.dhis.setting.SettingKey.ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR;
 import static org.hisp.dhis.setting.SettingKey.ANALYTICS_CACHE_TTL_MODE;
@@ -110,7 +111,13 @@ public class AnalyticsCacheSettings
 
     /**
      * Retrieves the expiration time in seconds based on the system settings
-     * defined by the {@link org.hisp.dhis.setting.SettingKey#CACHE_STRATEGY}
+     * based on the {@link org.hisp.dhis.setting.SettingKey#CACHE_STRATEGY}. If
+     * it says not to cache, return 0 so no caching will take place. Otherwise
+     * return a long time. This is because we flush the analytics cache after on
+     * analytics rebuild. For this purpose, two weeks is considered to be "a
+     * long time". Two weeks is likely to be longer than until the next
+     * analytics rebuild, and if it isn't, this ensures that all cache entries
+     * will eventually be aged out.
      *
      * @see CacheStrategy
      *
@@ -121,25 +128,9 @@ public class AnalyticsCacheSettings
         final CacheStrategy cacheStrategy = systemSettingManager.getSystemSetting( CACHE_STRATEGY,
             CacheStrategy.class );
 
-        if ( cacheStrategy != null && cacheStrategy.hasExpirationTimeSet() )
-        {
-            return cacheStrategy.toSeconds();
-        }
-        else
-        {
-            // Try to get a default value
-            final CacheStrategy defaultExpirationTime = (CacheStrategy) CACHE_STRATEGY.getDefaultValue();
-
-            if ( defaultExpirationTime.hasExpirationTimeSet() )
-            {
-                return defaultExpirationTime.toSeconds();
-            }
-            else
-            {
-                // Return ZERO (always expire)
-                return NO_CACHE.toSeconds();
-            }
-        }
+        return (NO_CACHE.equals( cacheStrategy ))
+            ? NO_CACHE.toSeconds()
+            : CACHE_TWO_WEEKS.toSeconds();
     }
 
     /**

@@ -15,7 +15,7 @@
 
 		<property name="formula" type="text" />
 		
-		<property name="compulsory" />
+		<property name="compulsory"/>
 
 		<many-to-one name="dataElement" class="org.hisp.dhis.dataelement.DataElement"
 			column="dataelementid" foreign-key="fk_dataelement_dataelementid" />
@@ -24,7 +24,8 @@
 			class="org.hisp.dhis.trackedentity.TrackedEntityAttribute" column="trackedentityattributeid"
 			foreign-key="fk_trackedentityattribute_trackedentityattributeid" />
 
-		<property name="optionId" type="integer" />
+		<many-to-one name="optionId" class="org.hisp.dhis.category.CategoryOptionCombo"
+					 column="optionid" foreign-key="fk_categoryoptioncombo_categoryoptioncomboid" />
 
 	</class>
 </hibernate-mapping> 

@@ -164,7 +164,7 @@ public class DefaultPredictionService
         {
             notifier.notify( jobId, NotificationLevel.INFO, "Making predictions", false );
 
-            predictionSummary = predictInternal( startDate, endDate, predictors, predictorGroups );
+            predictionSummary = predictAll( startDate, endDate, predictors, predictorGroups );
 
             notifier.update( jobId, NotificationLevel.INFO, "Prediction done", true )
                 .addJobSummary( jobId, predictionSummary, PredictionSummary.class );
@@ -182,7 +182,8 @@ public class DefaultPredictionService
         return predictionSummary;
     }
 
-    private PredictionSummary predictInternal( Date startDate, Date endDate, List<String> predictors,
+    @Override
+    public PredictionSummary predictAll( Date startDate, Date endDate, List<String> predictors,
         List<String> predictorGroups )
     {
         List<Predictor> predictorList = new ArrayList<>();

@@ -31,7 +31,7 @@
     "max":"${element.max}"
   }#if( $velocityCount < $size2 ),#end
   #end ],
-  "locked":${locked},
+  "locked":"$!encoder.jsonEncode( ${locked} )",
   "complete":${complete},
   "date":"$!format.formatDate( $date )",
   "storedBy":"$!encoder.jsonEncode( ${storedBy} )",
