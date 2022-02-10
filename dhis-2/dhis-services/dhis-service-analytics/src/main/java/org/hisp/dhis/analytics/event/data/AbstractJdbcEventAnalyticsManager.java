@@ -762,14 +762,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
         }
         else
         {
-            String value = sqlRowSet.getString( index );
-
-            if ( value != null )
-            {
-                value = value.trim();
-            }
-
-            grid.addValue( value );
+            grid.addValue( StringUtils.trimToNull( sqlRowSet.getString( index ) ) );
         }
     }
 

@@ -32,6 +32,9 @@ import java.util.Date;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * Parameters for repeatable stage values
+ */
 @Getter
 @Setter
 public class RepeatableStageParams
@@ -46,6 +49,11 @@ public class RepeatableStageParams
     // related to execution date
     private Date endDate;
 
+    /**
+     * to string
+     *
+     * @return string representation
+     */
     @Override
     public String toString()
     {
@@ -54,6 +62,11 @@ public class RepeatableStageParams
             + " startDate:" + startDate + " endDate: " + endDate;
     }
 
+    /**
+     *
+     * @param o
+     * @return true if equal
+     */
     @Override
     public boolean equals( Object o )
     {
@@ -69,6 +82,10 @@ public class RepeatableStageParams
             && (endDate == null || other.endDate.equals( endDate ));
     }
 
+    /**
+     *
+     * @return classical hash code for compare
+     */
     @Override
     public int hashCode()
     {
@@ -77,7 +94,11 @@ public class RepeatableStageParams
             * (endDate == null ? "null".hashCode() : endDate.hashCode());
     }
 
-    public boolean isNumberValueType()
+    /**
+     *
+     * @return true if value type should be considered as number
+     */
+    public boolean simpleStageValueExpected()
     {
         return count == 1;
     }

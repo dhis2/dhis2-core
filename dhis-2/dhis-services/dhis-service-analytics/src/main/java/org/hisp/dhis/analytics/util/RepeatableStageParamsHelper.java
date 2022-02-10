@@ -44,18 +44,25 @@ import org.hisp.dhis.util.DateUtils;
 
 public class RepeatableStageParamsHelper
 {
+    // [-1]
     private static final String PS_INDEX_REGEX = "\\[-?\\d+\\]";
 
+    // [*]
     private static final String PS_ASTERISK_REGEX = "\\[\\*\\]";
 
+    // [1, 2]
     private static final String PS_INDEX_COUNT_REGEX = "\\[-?\\d+,\\s*\\d+\\]";
 
+    // [1, 2, 2022-01-01, 2022-03-31]
     private static final String PS_INDEX_COUNT_START_DATE_END_DATE_REGEX = "\\[-?\\d+,\\s*\\d+,\\s*\\d{4}\\-(0[1-9]|1[012])\\-(0[1-9]|[12][0-9]|3[01]),\\s*\\d{4}\\-(0[1-9]|1[012])\\-(0[1-9]|[12][0-9]|3[01])\\]";
 
+    // [1,30, LAST_YEAR]
     private static final String PS_INDEX_COUNT_RELATIVE_PERIOD_REGEX = "\\[-?\\d+,\\s*\\d+,\\s*\\w+\\]";
 
+    // [2022-01-01, 2022-03-31]
     private static final String PS_START_DATE_END_DATE_REGEX = "\\[\\d{4}\\-(0[1-9]|1[012])\\-(0[1-9]|[12][0-9]|3[01]),\\s*\\d{4}\\-(0[1-9]|1[012])\\-(0[1-9]|[12][0-9]|3[01])\\]";
 
+    // [LAST_3_MONTHS]
     private static final String PS_RELATIVE_PERIOD_REGEX = "\\[\\w+\\]";
 
     private static final Pattern[] PS_PARAMS_PATTERN_LIST = {
@@ -68,10 +75,19 @@ public class RepeatableStageParamsHelper
         Pattern.compile( PS_RELATIVE_PERIOD_REGEX )
     };
 
+    /**
+     * private constructor
+     */
     private RepeatableStageParamsHelper()
     {
     }
 
+    /**
+     *
+     * @param dimension
+     * @return RepeatableStageParams
+     * @throws InvalidRepeatableStageParamsException
+     */
     public static RepeatableStageParams getRepeatableStageParams( String dimension )
         throws InvalidRepeatableStageParamsException
     {
@@ -120,6 +136,12 @@ public class RepeatableStageParamsHelper
         }
     }
 
+    /**
+     *
+     * @param matcher
+     * @return the string representation of start index
+     * @throws InvalidRepeatableStageParamsException
+     */
     private static String getDefaultIndex( Matcher matcher )
         throws InvalidRepeatableStageParamsException
     {
@@ -133,6 +155,12 @@ public class RepeatableStageParamsHelper
             .replace( "]", "" );
     }
 
+    /**
+     *
+     * @param period
+     * @return relative period
+     * @throws InvalidRepeatableStageParamsException
+     */
     private static List<Period> getRelativePeriods( String period )
         throws InvalidRepeatableStageParamsException
     {
@@ -152,7 +180,14 @@ public class RepeatableStageParamsHelper
         return periods;
     }
 
-    public static String removeOffset( String dimension )
+    /**
+     *
+     * @param dimension
+     * @return dimension without params like
+     *         edqlbukwRfQ[2021-01-01,2022-05-31].vANAXwtLwcT ->
+     *         edqlbukwRfQ.vANAXwtLwcT
+     */
+    public static String removeRepeatableStageParams( String dimension )
     {
         Optional<Pattern> pattern = Arrays.stream( PS_PARAMS_PATTERN_LIST )
             .filter( p -> p.matcher( dimension ).find() )
@@ -173,6 +208,12 @@ public class RepeatableStageParamsHelper
         return dimension;
     }
 
+    /**
+     *
+     * @param startIndex
+     * @param count
+     * @return RepeatableStageParams instance
+     */
     private static RepeatableStageParams getRepeatableStageParams( int startIndex, int count )
     {
         final RepeatableStageParams repeatableStageParams = new RepeatableStageParams();
@@ -184,6 +225,14 @@ public class RepeatableStageParamsHelper
         return repeatableStageParams;
     }
 
+    /**
+     *
+     * @param startIndex
+     * @param count
+     * @param periods
+     * @return RepeatableStageParams instance
+     * @throws InvalidRepeatableStageParamsException
+     */
     private static RepeatableStageParams getRepeatableStageParams( int startIndex, int count, List<Period> periods )
         throws InvalidRepeatableStageParamsException
     {
@@ -196,6 +245,14 @@ public class RepeatableStageParamsHelper
             periods.get( periods.size() - 1 ).getEndDate() );
     }
 
+    /**
+     *
+     * @param startIndex
+     * @param count
+     * @param startDate
+     * @param endDate
+     * @return RepeatableStageParams instance
+     */
     private static RepeatableStageParams getRepeatableStageParams( int startIndex, int count, Date startDate,
         Date endDate )
     {
@@ -212,6 +269,12 @@ public class RepeatableStageParamsHelper
         return repeatableStageParams;
     }
 
+    /**
+     *
+     * @param periods
+     * @return RepeatableStageParams instance
+     * @throws InvalidRepeatableStageParamsException
+     */
     private static RepeatableStageParams getRepeatableStageParams( List<Period> periods )
         throws InvalidRepeatableStageParamsException
     {
@@ -224,6 +287,12 @@ public class RepeatableStageParamsHelper
             periods.get( periods.size() - 1 ).getEndDate() );
     }
 
+    /**
+     *
+     * @param startDate
+     * @param endDate
+     * @return RepeatableStageParams instance
+     */
     private static RepeatableStageParams getRepeatableStageParams( Date startDate, Date endDate )
     {
         final RepeatableStageParams repeatableStageParams = new RepeatableStageParams();
@@ -239,6 +308,13 @@ public class RepeatableStageParamsHelper
         return repeatableStageParams;
     }
 
+    /**
+     *
+     * @param matcher
+     * @param expectedTokenCount
+     * @return RepeatableStageParams instance
+     * @throws InvalidRepeatableStageParamsException
+     */
     private static List<String> getMatchedRepeatableStageParamTokens( Matcher matcher, int expectedTokenCount )
         throws InvalidRepeatableStageParamsException
     {

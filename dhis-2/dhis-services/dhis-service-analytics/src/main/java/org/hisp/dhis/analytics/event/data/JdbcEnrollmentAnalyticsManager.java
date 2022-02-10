@@ -460,7 +460,7 @@ public class JdbcEnrollmentAnalyticsManager
             final String eventTableName = ANALYTICS_EVENT + item.getProgram().getUid();
 
             if ( item.getProgramStage().getRepeatable() &&
-                item.hasRepeatableStageParams() && !item.getRepeatableStageParams().isNumberValueType() )
+                item.hasRepeatableStageParams() && !item.getRepeatableStageParams().simpleStageValueExpected() )
             {
                 return "(select json_agg(t1) from (select " + colName + ", incidentdate, duedate, executiondate "
                     + " from " + eventTableName

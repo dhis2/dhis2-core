@@ -111,7 +111,7 @@ public class DefaultQueryItemLocator
 
     private LegendSet getLegendSet( String dimension )
     {
-        dimension = RepeatableStageParamsHelper.removeOffset( dimension );
+        dimension = RepeatableStageParamsHelper.removeRepeatableStageParams( dimension );
 
         String[] legendSplit = dimension.split( ITEM_SEP );
 
@@ -122,7 +122,8 @@ public class DefaultQueryItemLocator
     private String getElement( String dimension, int pos )
     {
 
-        String dim = StringUtils.substringBefore( RepeatableStageParamsHelper.removeOffset( dimension ), ITEM_SEP );
+        String dim = StringUtils.substringBefore( RepeatableStageParamsHelper.removeRepeatableStageParams( dimension ),
+            ITEM_SEP );
 
         String[] dimSplit = dim.split( "\\" + PROGRAMSTAGE_SEP );
 

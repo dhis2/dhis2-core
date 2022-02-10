@@ -146,7 +146,7 @@ public abstract class AbstractAnalyticsService
                 RepeatableStageParams repeatableStageParams = item.getRepeatableStageParams();
 
                 grid.addHeader( new GridHeader( name, column,
-                    repeatableStageParams.isNumberValueType() ? ValueType.NUMBER : ValueType.REFERENCE,
+                    repeatableStageParams.simpleStageValueExpected() ? ValueType.NUMBER : ValueType.REFERENCE,
                     false, true, item.getOptionSet(), item.getLegendSet(),
                     item.getProgramStage().getUid(), item.getRepeatableStageParams() ) );
             }

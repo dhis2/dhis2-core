@@ -34,6 +34,8 @@ import lombok.Getter;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
 @lombok.Generated
 @Getter
@@ -41,8 +43,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 public class Reference implements Serializable
 {
     @JsonProperty
+    @JacksonXmlElementWrapper( localName = "uuid", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "uuid", namespace = DxfNamespaces.DXF_2_0 )
     private String uuid;
 
     @JsonProperty
+    @JacksonXmlElementWrapper( localName = "node", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "node", namespace = DxfNamespaces.DXF_2_0 )
     private transient JsonNode node;
 }

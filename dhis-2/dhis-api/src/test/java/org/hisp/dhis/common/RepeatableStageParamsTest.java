@@ -91,7 +91,7 @@ class RepeatableStageParamsTest
         assertEquals( DateUtils.parseDate( "2022-01-31" ), repeatableStageParams_1.getEndDate() );
 
         assertEquals( repeatableStageParams_1, repeatableStageParams_2 );
-        assertFalse( repeatableStageParams_1.isNumberValueType() );
-        assertTrue( repeatableStageParams_6.isNumberValueType() );
+        assertFalse( repeatableStageParams_1.simpleStageValueExpected() );
+        assertTrue( repeatableStageParams_6.simpleStageValueExpected() );
     }
 }
