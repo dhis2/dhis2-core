@@ -99,7 +99,6 @@ public class DefaultDataSetMetadataExportService
 
     private final CurrentUserService currentUserService;
 
-    // TODO explode indicator expressions
     // TODO add lock exceptions
     // TODO add validation caching (ETag and If-None-Match).
 
