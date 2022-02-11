@@ -110,7 +110,7 @@ public enum TrackerErrorCode
     E1114( "TrackedEntity: `{0}`, is already deleted and cannot be modified." ),
     E1115( "Could not find CategoryOptionCombo: `{0}`." ),
     E1116( "Could not find CategoryOption: `{0}`." ),
-    E1117( "CategoryOptionCombo does not exist for given category combo and category options: `{0}`." ),
+    E1117( "CategoryOptionCombo does not exist for category combo `{0}` and category options `{1}`." ),
     E1118( "Assigned user `{0}` is not a valid uid." ),
     E1119( "A Tracker Note with uid `{0}` already exists." ),
     E1120( "ProgramStage `{0}` does not allow user assignment" ),

@@ -212,7 +212,7 @@ public class PreCheckDataRelationsValidationHook
         // previously did.
         if ( !validateAttributeOptionComboFound( reporter, event, program, aoc ) )
             return;
-        if ( !validateAttributeOptionComboMatchesCategoryOptions( reporter, event, aoc ) )
+        if ( !validateAttributeOptionComboMatchesCategoryOptions( reporter, event, program, aoc ) )
             return;
 
         // TODO resolving and "caching" the AOC id should move into the preheat
@@ -449,20 +449,12 @@ public class PreCheckDataRelationsValidationHook
             return true;
         }
 
-        // we used the program CC in finding the AOC id, if the AOC id was not
-        // provided in the payload
-        if ( StringUtils.isBlank( event.getAttributeOptionCombo() ) )
-        {
-            reporter.addError( event, TrackerErrorCode.E1117, program.getCategoryCombo() );
-        }
-        else
-        {
-            reporter.addError( event, TrackerErrorCode.E1117, event.getAttributeCategoryOptions() );
-        }
+        addAOCAndCOCombinationError( event, reporter, program );
         return false;
     }
 
     private boolean validateAttributeOptionComboMatchesCategoryOptions( ValidationErrorReporter reporter, Event event,
+        Program program,
         CategoryOptionCombo aoc )
     {
         if ( StringUtils.isBlank( event.getAttributeCategoryOptions() ) )
@@ -472,11 +464,27 @@ public class PreCheckDataRelationsValidationHook
 
         if ( isNotAOCForCOs( reporter.getValidationContext().getBundle().getPreheat(), event, aoc ) )
         {
-            reporter.addError( event, TrackerErrorCode.E1117, event.getAttributeCategoryOptions() );
+            addAOCAndCOCombinationError( event, reporter, program );
             return false;
         }
 
         return true;
+    }
+
+    private void addAOCAndCOCombinationError( Event event, ValidationErrorReporter reporter, Program program )
+    {
+        // we used the program CC in finding the AOC id, if the AOC id was not
+        // provided in the payload
+        if ( StringUtils.isBlank( event.getAttributeOptionCombo() ) )
+        {
+            reporter.addError( event, TrackerErrorCode.E1117, program.getCategoryCombo(),
+                event.getAttributeCategoryOptions() );
+        }
+        else
+        {
+            reporter.addError( event, TrackerErrorCode.E1117, event.getAttributeOptionCombo(),
+                event.getAttributeCategoryOptions() );
+        }
     }
 
     private boolean isNotAOCForCOs( TrackerPreheat preheat, Event event, CategoryOptionCombo aoc )
