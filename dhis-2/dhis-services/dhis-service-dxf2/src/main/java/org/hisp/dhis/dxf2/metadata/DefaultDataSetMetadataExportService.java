@@ -60,7 +60,6 @@ import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Lars Helge Overland
@@ -70,22 +69,21 @@ import com.google.common.collect.ImmutableSet;
 public class DefaultDataSetMetadataExportService
     implements DataSetMetadataExportService
 {
-    private static final String FIELD_PRESET_SIMPLE = ":simple";
+    private static final String FIELDS_DATA_SETS = ":simple,categoryCombo[id],sections[:simple,dataElements~pluck[id],indicators~pluck[id],"
+        +
+        "greyedFields[dataElement[id],categoryOptionCombo[id]]]";
 
-    private static final Set<String> FIELDS_DATA_SETS = Set.of(
-        "sections[:simple,dataElements~pluck[id],indicators~pluck[id]," +
-            "greyedFields[dataElement[id],categoryOptionCombo[id]],categoryCombo[id]" );
+    private static final String FIELDS_DATA_ELEMENTS = ":identifiable,displayName,displayShortName,displayFormName," +
+        "zeroIsSignificant,valueType,aggregationType,categoryCombo[id],optionSet,commentOptionSet";
 
-    private static final Set<String> FIELDS_DATA_ELEMENTS = Set.of( "categoryCombo[id]" );
+    private static final String FIELDS_INDICATORS = ":simple,explodedNumerator,explodedDenominator";
 
-    private static final Set<String> FIELDS_INDICATORS = Set.of( "explodedNumerator", "explodedDenominator" );
+    private static final String FIELDS_DATAELEMENT_CAT_COMBOS = ":simple,isDefault,categories~pluck[id]," +
+        "categoryOptionCombos[id,code,name,displayName,categoryOptions~pluck[id]]";
 
-    private static final Set<String> FIELDS_DATAELEMENT_CAT_COMBOS = Set.of(
-        "isDefault,categories~pluck[id],categoryOptionCombos[id,code,name,displayName,categoryOptions~pluck[id]]" );
+    private static final String FIELDS_DATA_SET_CAT_COMBOS = ":simple,isDefault,categories~pluck[id]";
 
-    private static final Set<String> FIELDS_DATA_SET_CAT_COMBOS = Set.of( "isDefault,categories~pluck[id]" );
-
-    private static final Set<String> FIELDS_CATEGORIES = Set.of( "categoryOptions~pluck[id]" );
+    private static final String FIELDS_CATEGORIES = ":simple,categoryOptions~pluck[id]";
 
     private final FieldFilterService fieldFilterService;
 
@@ -130,7 +128,7 @@ public class DefaultDataSetMetadataExportService
             .addAll( asObjectNodes( dataElementCategories, FIELDS_CATEGORIES, Category.class ) )
             .addAll( asObjectNodes( dataSetCategories, FIELDS_CATEGORIES, Category.class ) );
         rootNode.putArray( CategoryOptionSchemaDescriptor.PLURAL )
-            .addAll( asObjectNodes( categoryOptions, Set.of(), CategoryOption.class ) );
+            .addAll( asObjectNodes( categoryOptions, FIELDS_CATEGORIES, CategoryOption.class ) );
 
         return rootNode;
     }
@@ -158,20 +156,16 @@ public class DefaultDataSetMetadataExportService
      *
      * @param <T>
      * @param objects the collection of objects.
-     * @param extraFilters the set of filters to apply in addition to
-     *        <code>simple</code>.
+     * @param filters the filters to apply.
      * @param type the class type.
      * @return an {@link ObjectNode}.
      */
     private <T extends IdentifiableObject> List<ObjectNode> asObjectNodes(
-        Collection<T> objects, Set<String> extraFilters, Class<T> type )
+        Collection<T> objects, String filters, Class<T> type )
     {
-        Set<String> filters = ImmutableSet.<String> builder()
-            .add( FIELD_PRESET_SIMPLE ).addAll( extraFilters ).build();
-
         FieldFilterParams<T> fieldFilterParams = FieldFilterParams.<T> builder()
             .objects( new ArrayList<>( objects ) )
-            .filters( filters )
+            .filters( Set.of( filters ) )
             .skipSharing( true )
             .build();
 
