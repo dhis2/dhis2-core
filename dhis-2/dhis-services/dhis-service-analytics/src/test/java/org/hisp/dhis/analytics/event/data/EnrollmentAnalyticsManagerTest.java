@@ -244,24 +244,6 @@ class EnrollmentAnalyticsManagerTest extends
     }
 
     @Test
-    void verifyGetEventsWithCreatedByAndLastUpdatedByParams()
-    {
-        mockEmptyRowSet();
-
-        EventQueryParams params = createRequestParamsWithCreatedByAndLastUpdatedBy();
-
-        subject.getEnrollments( params, new ListGrid(), 10000 );
-
-        verify( jdbcTemplate ).queryForRowSet( sql.capture() );
-
-        String expected = "ax.\"monthly\",ax.\"ou\"  from " + getTable( programA.getUid() )
-            + " as ax where ax.\"monthly\" in ('2000Q1') and (uidlevel1 = 'ouabcdefghA' )"
-            + " and createdby in ('userA','userB') and lastupdatedby in ('userC','userD') limit 10001";
-
-        assertSql( sql.getValue(), expected );
-    }
-
-    @Test
     void verifyWithProgramStageAndNumericDataElementAndFilter2()
     {
 

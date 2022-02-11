@@ -94,8 +94,15 @@ public class JdbcEnrollmentAnalyticsManager
 
     private static final String LIMIT_1 = "limit 1";
 
+    public static final String CREATED_BY_DISPLAY_NAME_COLUMN = "concat(createdbylastname, ', ', createdbyname, "
+        + "' (', createdbyusername, ')') as createdbydisplayname";
+
+    public static final String LAST_UPDATED_BY_DISPLAY_NAME_COLUMN = "concat(lastupdatedbylastname, ', '"
+        + ", lastupdatedbyname, ' (', lastupdatedbyusername, ')') as lastupdatedbydisplayaname";
+
     private List<String> COLUMNS = Lists.newArrayList( "pi", "tei", "enrollmentdate", "incidentdate",
-        "storedby", "createdby", "lastupdatedby", "lastupdated", "ST_AsGeoJSON(pigeometry)", "longitude", "latitude",
+        "storedby", CREATED_BY_DISPLAY_NAME_COLUMN, LAST_UPDATED_BY_DISPLAY_NAME_COLUMN, "lastupdated",
+        "ST_AsGeoJSON(pigeometry)", "longitude", "latitude",
         "ouname", "oucode", "enrollmentstatus" );
 
     public JdbcEnrollmentAnalyticsManager( JdbcTemplate jdbcTemplate, StatementBuilder statementBuilder,
@@ -334,22 +341,6 @@ public class JdbcEnrollmentAnalyticsManager
         {
             sql += "and enrollmentstatus in ("
                 + params.getProgramStatus().stream().map( p -> encode( p.name(), true ) )
-                    .collect( joining( "," ) )
-                + ") ";
-        }
-
-        if ( params.hasCreatedBy() )
-        {
-            sql += hlp.whereAnd() + " createdby in ("
-                + params.getCreatedBy().stream().map( username -> encode( username, true ) )
-                    .collect( joining( "," ) )
-                + ") ";
-        }
-
-        if ( params.hasLastUpdatedBy() )
-        {
-            sql += hlp.whereAnd() + " lastupdatedby in ("
-                + params.getLastUpdatedBy().stream().map( username -> encode( username, true ) )
                     .collect( joining( "," ) )
                 + ") ";
         }

@@ -207,8 +207,6 @@ public class DefaultEventDataQueryService
             .withDataIdScheme( request.getDataIdScheme() )
             .withOutputIdScheme( request.getOutputIdScheme() )
             .withEventStatuses( request.getEventStatus() )
-            .withCreatedByUsernames( request.getCreatedBy() )
-            .withLastUpdatedByUsernames( request.getLastUpdatedBy() )
             .withDisplayProperty( request.getDisplayProperty() )
             .withTimeField( request.getTimeField() )
             .withOrgUnitField( request.getOrgUnitField() )

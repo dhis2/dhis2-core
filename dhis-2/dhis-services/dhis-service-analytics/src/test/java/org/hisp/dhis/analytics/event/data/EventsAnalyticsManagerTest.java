@@ -258,22 +258,6 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
     }
 
     @Test
-    void verifyGetEventsWithCreatedByAndLastUpdatedByParams()
-    {
-        mockEmptyRowSet();
-
-        subject.getEvents( createRequestParamsWithCreatedByAndLastUpdatedBy(), createGrid(), 100 );
-
-        verify( jdbcTemplate ).queryForRowSet( sql.capture() );
-
-        String expected = "ax.\"monthly\",ax.\"ou\"  from " + getTable( programA.getUid() )
-            + " as ax where ax.\"monthly\" in ('2000Q1') and ax.\"uidlevel1\" in ('ouabcdefghA')"
-            + " and createdby in ('userA','userB') and lastupdatedby in ('userC','userD') limit 101";
-
-        assertSql( expected, sql.getValue() );
-    }
-
-    @Test
     void verifyGetEventsWithMissingValueEqFilter()
     {
         String expected = "ax.\"fWIAEtYVEGk\" is null";
