@@ -156,7 +156,7 @@ public class DhisJwtAuthenticationManagerResolver implements AuthenticationManag
                     mappingClaimKey, mappingValue ) );
             }
 
-            Collection<GrantedAuthority> grantedAuthorities = new ArrayList<>();
+            Collection<GrantedAuthority> grantedAuthorities = userCredentials.getAuthorities();
 
             return new DhisJwtAuthenticationToken( jwt, grantedAuthorities, mappingValue, userCredentials );
         };
