@@ -417,12 +417,14 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         validatorToTest.validateEnrollment( reporter, enrollment );
 
         assertFalse( reporter.hasErrors() );
+        verify( organisationUnitService, times( 0 ) ).isInUserHierarchyCached( user, organisationUnit );
 
         when( ctx.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.DELETE );
 
         validatorToTest.validateEnrollment( reporter, enrollment );
 
         assertFalse( reporter.hasErrors() );
+        verify( organisationUnitService, times( 0 ) ).isInUserHierarchyCached( user, organisationUnit );
     }
 
     @Test
