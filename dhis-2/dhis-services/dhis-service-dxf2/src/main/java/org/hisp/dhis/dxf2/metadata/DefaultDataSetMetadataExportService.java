@@ -69,8 +69,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 public class DefaultDataSetMetadataExportService
     implements DataSetMetadataExportService
 {
-    private static final String FIELDS_DATA_SETS = ":simple,categoryCombo[id],sections[:simple,dataElements~pluck[id],indicators~pluck[id],"
-        +
+    private static final String FIELDS_DATA_SETS = ":simple,categoryCombo[id]," +
+        "sections[:simple,dataElements~pluck[id],indicators~pluck[id]," +
         "greyedFields[dataElement[id],categoryOptionCombo[id]]]";
 
     private static final String FIELDS_DATA_ELEMENTS = ":identifiable,displayName,displayShortName,displayFormName," +
