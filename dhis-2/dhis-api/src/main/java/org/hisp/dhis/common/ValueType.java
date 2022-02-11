@@ -33,6 +33,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 
+import org.geotools.geojson.GeoJSON;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -71,7 +72,8 @@ public enum ValueType
     AGE( Date.class, false ),
     URL( String.class, false ),
     FILE_RESOURCE( String.class, true, FileTypeValueOptions.class ),
-    IMAGE( String.class, false, FileTypeValueOptions.class );
+    IMAGE( String.class, false, FileTypeValueOptions.class ),
+    GEOJSON( GeoJSON.class, false );
 
     public static final Set<ValueType> INTEGER_TYPES = ImmutableSet.of(
         INTEGER, INTEGER_POSITIVE, INTEGER_NEGATIVE, INTEGER_ZERO_OR_POSITIVE );
@@ -92,7 +94,7 @@ public enum ValueType
         FILE_RESOURCE, IMAGE );
 
     public static final Set<ValueType> GEO_TYPES = ImmutableSet.of(
-        COORDINATE );
+        COORDINATE, GEOJSON );
 
     public static final Set<ValueType> NUMERIC_TYPES = ImmutableSet.<ValueType> builder().addAll(
         INTEGER_TYPES ).addAll( DECIMAL_TYPES ).build();

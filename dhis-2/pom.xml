@@ -113,6 +113,7 @@
         <jackson-datatype-jts.version>1.0-2.7</jackson-datatype-jts.version>
         <jackson-datatype-hibernate5.version>2.11.2</jackson-datatype-hibernate5.version>
         <classmate.version>1.5.1</classmate.version>
+        <geojson-jackson.version>1.14</geojson-jackson.version>
 
         <!-- JAXB -->
         <jaxb-api.version>2.4.0-b180830.0359</jaxb-api.version>
@@ -1890,6 +1891,12 @@
                 <groupId>com.fasterxml.jackson.datatype</groupId>
                 <artifactId>jackson-datatype-hibernate5</artifactId>
                 <version>${jackson-datatype-hibernate5.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>de.grundid.opendatalab</groupId>
+                <artifactId>geojson-jackson</artifactId>
+                <version>${geojson-jackson.version}</version>
             </dependency>
 
             <!-- GeoTools -->
