@@ -228,7 +228,7 @@ public class PreCheckDataRelationsValidationHook
 
     private boolean validateAttributeOptionComboExists( ValidationErrorReporter reporter, Event event )
     {
-        if ( StringUtils.isBlank( event.getAttributeOptionCombo() ) )
+        if ( hasNoAttributeOptionComboSet( event ) )
         {
             return true;
         }
@@ -243,9 +243,14 @@ public class PreCheckDataRelationsValidationHook
         return true;
     }
 
+    private boolean hasNoAttributeOptionComboSet( Event event )
+    {
+        return StringUtils.isBlank( event.getAttributeOptionCombo() );
+    }
+
     private boolean validateCategoryOptionsExist( ValidationErrorReporter reporter, Event event )
     {
-        if ( StringUtils.isBlank( event.getAttributeCategoryOptions() ) )
+        if ( hasNoAttributeCategoryOptionsSet( event ) )
         {
             return true;
         }
@@ -262,6 +267,11 @@ public class PreCheckDataRelationsValidationHook
             }
         }
         return allCOsExist;
+    }
+
+    private boolean hasNoAttributeCategoryOptionsSet( Event event )
+    {
+        return StringUtils.isBlank( event.getAttributeCategoryOptions() );
     }
 
     private Set<String> parseCategoryOptions( Event event )
@@ -290,8 +300,8 @@ public class PreCheckDataRelationsValidationHook
     private boolean validateDefaultProgramCategoryCombo( ValidationErrorReporter reporter, Event event,
         Program program )
     {
-        if ( StringUtils.isBlank( event.getAttributeOptionCombo() ) &&
-            StringUtils.isBlank( event.getAttributeCategoryOptions() ) &&
+        if ( hasNoAttributeOptionComboSet( event ) &&
+            hasNoAttributeCategoryOptionsSet( event ) &&
             !program.getCategoryCombo().isDefault() )
         {
             reporter.addError( event, TrackerErrorCode.E1055 );
@@ -299,7 +309,7 @@ public class PreCheckDataRelationsValidationHook
         }
         CategoryOptionCombo aoc = reporter.getValidationContext().getBundle().getPreheat()
             .getCategoryOptionCombo( event.getAttributeOptionCombo() );
-        if ( !StringUtils.isBlank( event.getAttributeOptionCombo() ) &&
+        if ( hasAttributeOptionComboSet( event ) &&
             aoc != null && aoc.getCategoryCombo().isDefault() &&
             !program.getCategoryCombo().isDefault() )
         {
@@ -310,10 +320,15 @@ public class PreCheckDataRelationsValidationHook
         return true;
     }
 
+    private boolean hasAttributeOptionComboSet( Event event )
+    {
+        return !hasNoAttributeOptionComboSet( event );
+    }
+
     private boolean validateAttributeOptionComboIsInProgramCategoryCombo( ValidationErrorReporter reporter, Event event,
         Program program )
     {
-        if ( StringUtils.isBlank( event.getAttributeOptionCombo() ) )
+        if ( hasNoAttributeOptionComboSet( event ) )
         {
             return true;
         }
@@ -345,8 +360,7 @@ public class PreCheckDataRelationsValidationHook
     private boolean validateAttributeCategoryOptionsAreInProgramCategoryCombo( ValidationErrorReporter reporter,
         Event event )
     {
-        if ( StringUtils.isBlank( event.getAttributeCategoryOptions() )
-            || StringUtils.isBlank( event.getAttributeOptionCombo() ) )
+        if ( hasNoAttributeOptionComboSet( event ) || hasNoAttributeCategoryOptionsSet( event ) )
         {
             return true;
         }
@@ -369,12 +383,11 @@ public class PreCheckDataRelationsValidationHook
 
         TrackerPreheat preheat = reporter.getValidationContext().getBundle().getPreheat();
         CategoryOptionCombo aoc;
-        if ( program.getCategoryCombo().isDefault() && StringUtils.isBlank( event.getAttributeOptionCombo() ) )
+        if ( hasNoAttributeOptionComboSet( event ) && program.getCategoryCombo().isDefault() )
         {
             aoc = preheat.getDefault( CategoryOptionCombo.class );
         }
-        else if ( StringUtils.isBlank( event.getAttributeOptionCombo() )
-            && !StringUtils.isBlank( event.getAttributeCategoryOptions() ) )
+        else if ( hasNoAttributeOptionComboSet( event ) && hasAttributeCategoryOptionsSet( event ) )
         {
             aoc = fetchAttributeOptionCombo( reporter, event, program );
             if ( aoc != null )
@@ -405,6 +418,11 @@ public class PreCheckDataRelationsValidationHook
             aoc = preheat.getCategoryOptionCombo( event.getAttributeOptionCombo() );
         }
         return aoc;
+    }
+
+    private boolean hasAttributeCategoryOptionsSet( Event event )
+    {
+        return !hasNoAttributeCategoryOptionsSet( event );
     }
 
     private CategoryOptionCombo fetchAttributeOptionCombo( ValidationErrorReporter reporter, Event event,
@@ -457,7 +475,7 @@ public class PreCheckDataRelationsValidationHook
         Program program,
         CategoryOptionCombo aoc )
     {
-        if ( StringUtils.isBlank( event.getAttributeCategoryOptions() ) )
+        if ( hasNoAttributeCategoryOptionsSet( event ) )
         {
             return true;
         }
@@ -475,7 +493,7 @@ public class PreCheckDataRelationsValidationHook
     {
         // we used the program CC in finding the AOC id, if the AOC id was not
         // provided in the payload
-        if ( StringUtils.isBlank( event.getAttributeOptionCombo() ) )
+        if ( hasNoAttributeOptionComboSet( event ) )
         {
             reporter.addError( event, TrackerErrorCode.E1117, program.getCategoryCombo(),
                 event.getAttributeCategoryOptions() );
