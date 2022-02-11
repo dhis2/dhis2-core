@@ -128,13 +128,28 @@ public class PreCheckDataRelationsValidationHook
     public void validateEvent( ValidationErrorReporter reporter, Event event )
     {
         TrackerImportValidationContext context = reporter.getValidationContext();
-
         ProgramStage programStage = context.getProgramStage( event.getProgramStage() );
         OrganisationUnit organisationUnit = context.getOrganisationUnit( event.getOrgUnit() );
         Program program = context.getProgram( event.getProgram() );
 
         validateProgramStageInProgram( reporter, event, programStage, program );
+        validateRegistrationProgram( reporter, event, context, program );
+        validateProgramHasOrgUnit( reporter, event, context, organisationUnit, program );
+        validateEventCategoryCombo( reporter, event, program );
+    }
 
+    private void validateProgramStageInProgram( ValidationErrorReporter reporter, Event event,
+        ProgramStage programStage, Program program )
+    {
+        if ( !program.getUid().equals( programStage.getProgram().getUid() ) )
+        {
+            reporter.addError( event, E1089, event, programStage, program );
+        }
+    }
+
+    private void validateRegistrationProgram( ValidationErrorReporter reporter, Event event,
+        TrackerImportValidationContext context, Program program )
+    {
         if ( program.isRegistration() )
         {
             if ( StringUtils.isEmpty( event.getEnrollment() ) )
@@ -150,18 +165,6 @@ public class PreCheckDataRelationsValidationHook
                     reporter.addError( event, E1079, event, program, event.getEnrollment() );
                 }
             }
-        }
-
-        validateProgramHasOrgUnit( reporter, event, context, organisationUnit, program );
-        validateEventCategoryCombo( reporter, event, program );
-    }
-
-    private void validateProgramStageInProgram( ValidationErrorReporter reporter, Event event,
-        ProgramStage programStage, Program program )
-    {
-        if ( !program.getUid().equals( programStage.getProgram().getUid() ) )
-        {
-            reporter.addError( event, E1089, event, programStage, program );
         }
     }
 
