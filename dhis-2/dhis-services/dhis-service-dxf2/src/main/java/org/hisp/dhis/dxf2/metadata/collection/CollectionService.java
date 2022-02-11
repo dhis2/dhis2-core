@@ -30,21 +30,22 @@ package org.hisp.dhis.dxf2.metadata.collection;
 import java.util.Collection;
 
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.feedback.TypeReport;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public interface CollectionService
 {
-    void addCollectionItems( IdentifiableObject object, String propertyName,
+    TypeReport addCollectionItems( IdentifiableObject object, String propertyName,
         Collection<? extends IdentifiableObject> objects )
         throws Exception;
 
-    void delCollectionItems( IdentifiableObject object, String propertyName,
+    TypeReport delCollectionItems( IdentifiableObject object, String propertyName,
         Collection<? extends IdentifiableObject> objects )
         throws Exception;
 
-    void replaceCollectionItems( IdentifiableObject object, String propertyName,
+    TypeReport replaceCollectionItems( IdentifiableObject object, String propertyName,
         Collection<? extends IdentifiableObject> objects )
         throws Exception;
 }

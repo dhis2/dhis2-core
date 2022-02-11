@@ -38,6 +38,8 @@ import java.util.List;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -54,6 +56,9 @@ class TrackedEntityInstanceFilterServiceTest extends DhisSpringTest
 
     @Autowired
     private TrackedEntityInstanceFilterService trackedEntityInstanceFilterService;
+
+    @Autowired
+    private TrackedEntityAttributeService trackedEntityAttributeService;
 
     @Autowired
     private UserService _userService;
@@ -101,6 +106,50 @@ class TrackedEntityInstanceFilterServiceTest extends DhisSpringTest
         assertEquals( trackedEntityInstanceFilters.size(), 2 );
         assertTrue( trackedEntityInstanceFilters.contains( trackedEntityInstanceFilterA ) );
         assertTrue( trackedEntityInstanceFilters.contains( trackedEntityInstanceFilterB ) );
+    }
+
+    @Test
+    void testValidateProgramInTeiFilter()
+    {
+        TrackedEntityInstanceFilter trackedEntityInstanceFilterA = createTrackedEntityInstanceFilter( 'A', programA );
+        assertEquals( 0, trackedEntityInstanceFilterService.validate( trackedEntityInstanceFilterA ).size() );
+        trackedEntityInstanceFilterA.setProgram( createProgram( 'z' ) );
+        List<String> errors = trackedEntityInstanceFilterService.validate( trackedEntityInstanceFilterA );
+        assertEquals( 1, errors.size() );
+        assertTrue( errors.get( 0 ).equals(
+            "Program is specified but does not exist: " + trackedEntityInstanceFilterA.getProgram().getUid() ) );
+    }
+
+    @Test
+    void testValidateAttributeInTeiAttributeValueFilter()
+    {
+        TrackedEntityInstanceFilter trackedEntityInstanceFilterA = createTrackedEntityInstanceFilter( 'A', programA );
+        TrackedEntityAttribute attributeA = createTrackedEntityAttribute( 'A' );
+        TrackedEntityAttribute attributeB = createTrackedEntityAttribute( 'B' );
+        trackedEntityAttributeService.addTrackedEntityAttribute( attributeA );
+
+        AttributeValueFilter avf1 = new AttributeValueFilter();
+        avf1.setAttribute( attributeA.getUid() );
+        avf1.setEq( "abc" );
+        trackedEntityInstanceFilterA.getAttributeValueFilters().add( avf1 );
+        assertEquals( 0, trackedEntityInstanceFilterService.validate( trackedEntityInstanceFilterA ).size() );
+
+        AttributeValueFilter avf2 = new AttributeValueFilter();
+        avf2.setAttribute( attributeB.getUid() );
+        avf2.setEq( "abcef" );
+        trackedEntityInstanceFilterA.getAttributeValueFilters().add( avf2 );
+
+        List<String> errors = trackedEntityInstanceFilterService.validate( trackedEntityInstanceFilterA );
+        assertEquals( 1, errors.size() );
+        assertTrue(
+            errors.get( 0 ).equals( "No tracked entity attribute found for attribute:" + avf2.getAttribute() ) );
+
+        trackedEntityInstanceFilterA.getAttributeValueFilters().clear();
+        avf2.setAttribute( "" );
+        trackedEntityInstanceFilterA.getAttributeValueFilters().add( avf2 );
+        errors = trackedEntityInstanceFilterService.validate( trackedEntityInstanceFilterA );
+        assertEquals( 1, errors.size() );
+        assertTrue( errors.get( 0 ).equals( "Attribute Uid is missing in filter" ) );
     }
 
     @Test

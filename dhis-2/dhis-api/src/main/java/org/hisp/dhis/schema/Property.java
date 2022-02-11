@@ -134,7 +134,7 @@ public class Property implements Ordered, Klass
     /**
      * This property is true if the type pointed to does not export any
      * properties itself, it is then assumed to be a primitive type. If
-     * collection is true, this this check is done on the generic type of the
+     * collection is true, then this check is done on the generic type of the
      * collection, e.g. List<String> would set simple to be true, but
      * List<DataElement> would set it to false.
      */

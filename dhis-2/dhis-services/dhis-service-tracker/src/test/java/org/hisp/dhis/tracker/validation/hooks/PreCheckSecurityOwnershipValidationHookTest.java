@@ -37,6 +37,8 @@ import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1103;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1104;
 import static org.hisp.dhis.tracker.validation.hooks.AssertValidationErrorReporter.hasTrackerError;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import org.apache.commons.lang3.StringUtils;
@@ -887,6 +889,43 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         validatorToTest.validateEvent( reporter, event );
 
         hasTrackerError( reporter, E1083, TrackerType.EVENT, event.getUid() );
+    }
+
+    @Test
+    void verifySuccessEventValidationWhenProgramStageInstanceHasNoOrgUnitAssigned()
+    {
+        String enrollmentUid = CodeGenerator.generateUid();
+        Event event = Event.builder()
+            .event( CodeGenerator.generateUid() )
+            .enrollment( enrollmentUid )
+            .orgUnit( ORG_UNIT_ID )
+            .programStage( PS_ID )
+            .program( PROGRAM_ID )
+            .status( EventStatus.COMPLETED )
+            .build();
+
+        when( ctx.getStrategy( event ) ).thenReturn( TrackerImportStrategy.UPDATE );
+        ProgramInstance programInstance = getEnrollment( enrollmentUid );
+
+        ProgramStageInstance programStageInstance = getEvent();
+        programStageInstance.setProgramInstance( programInstance );
+        programStageInstance.setOrganisationUnit( null );
+
+        when( ctx.getProgramStageInstance( event.getEvent() ) ).thenReturn( programStageInstance );
+        when( ctx.getProgramInstance( event.getEnrollment() ) ).thenReturn( programInstance );
+        when( ctx.getProgram( PROGRAM_ID ) ).thenReturn( program );
+        when( ctx.getOrganisationUnit( ORG_UNIT_ID ) ).thenReturn( organisationUnit );
+        when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
+        when( aclService.canDataRead( user, program ) ).thenReturn( true );
+        when( aclService.canDataWrite( user, programStage ) ).thenReturn( true );
+
+        reporter = new ValidationErrorReporter( ctx );
+
+        validatorToTest.validateEvent( reporter, event );
+
+        verify( organisationUnitService, times( 0 ) ).isInUserHierarchyCached( user, organisationUnit );
+
+        assertFalse( reporter.hasErrors() );
     }
 
     private TrackedEntityInstance getTEIWithNoProgramInstances()

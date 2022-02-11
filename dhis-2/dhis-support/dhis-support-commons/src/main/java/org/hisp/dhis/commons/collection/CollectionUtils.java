@@ -33,6 +33,8 @@ import java.util.Iterator;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Utility methods for operations on various collections.
@@ -44,16 +46,52 @@ public class CollectionUtils
     public static final String[] STRING_ARR = new String[0];
 
     /**
+     * Performs a flat mapping of the given collection using the given mapping
+     * function.
+     *
+     * @param <A>
+     * @param <B>
+     * @param collection the collection of objects to map.
+     * @param mapper the mapping function.
+     * @return a set of mapped objects.
+     */
+    public static <A, B> Set<B> flatMapToSet( Collection<A> collection,
+        Function<? super A, ? extends Collection<B>> mapper )
+    {
+        return collection.stream()
+            .map( mapper )
+            .flatMap( Collection::stream )
+            .collect( Collectors.toSet() );
+    }
+
+    /**
+     * Performs a mapping of the given collection using the given mapping
+     * function.
+     *
+     * @param <A>
+     * @param <B>
+     * @param collection collection the collection of objects to map.
+     * @param mapper the mapping function.
+     * @return a set of mapped objects.
+     */
+    public static <A, B> Set<B> mapToSet( Collection<A> collection, Function<? super A, ? extends B> mapper )
+    {
+        return collection.stream()
+            .map( mapper )
+            .collect( Collectors.toSet() );
+    }
+
+    /**
      * Returns the intersection of the given Collections.
      *
+     * @param <A>
      * @param c1 the first Collection.
      * @param c2 the second Collection.
-     * @param <T> the type.
      * @return the intersection of the Collections.
      */
-    public static <T> Collection<T> intersection( Collection<T> c1, Collection<T> c2 )
+    public static <A> Collection<A> intersection( Collection<A> c1, Collection<A> c2 )
     {
-        Set<T> set1 = new HashSet<>( c1 );
+        Set<A> set1 = new HashSet<>( c1 );
         set1.retainAll( new HashSet<>( c2 ) );
         return set1;
     }
@@ -122,7 +160,13 @@ public class CollectionUtils
             .forEach( item -> collection.add( item ) );
     }
 
-    public static boolean isEmpty( Collection collection )
+    /**
+     * Indicates whether the given collection is null or empty.
+     *
+     * @param collection the collection.
+     * @return true if the given collection is null or empty, false otherwise.
+     */
+    public static boolean isEmpty( Collection<?> collection )
     {
         return collection == null || collection.isEmpty();
     }
