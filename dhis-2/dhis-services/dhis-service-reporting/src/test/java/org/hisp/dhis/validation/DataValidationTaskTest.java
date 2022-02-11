@@ -58,6 +58,7 @@ import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.expression.Expression;
+import org.hisp.dhis.expression.ExpressionParams;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.expression.Operator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -160,7 +161,9 @@ class DataValidationTaskTest
 
         ValidationRunContext ctx = ValidationRunContext.newBuilder()
             .withOrgUnits( organisationUnits )
+            .withItemMap( new HashMap<>() )
             .withConstantMap( constantMap )
+            .withOrgUnitGroupMap( new HashMap<>() )
             .withDefaultAttributeCombo( categoryOptionCombo )
             .withPeriodTypeXs( periodTypes )
             .withMaxResults( 500 )
@@ -183,7 +186,9 @@ class DataValidationTaskTest
         mockExpressionService( leftExpression, vals, ctx, 8.4 );
         mockExpressionService( rightExpression, vals, ctx, -10.0 );
 
-        when( expressionService.getExpressionValue( "8.4!=-10.0", SIMPLE_TEST ) ).thenReturn( true );
+        when( expressionService.getExpressionValue( ExpressionParams.builder()
+            .expression( "8.4!=-10.0" ).parseType( SIMPLE_TEST ).build() ) )
+                .thenReturn( true );
 
         subject.init( organisationUnits, ctx, analyticsService );
         subject.run();
@@ -230,17 +235,23 @@ class DataValidationTaskTest
     private void mockExpressionService( Expression expression, Map<DimensionalItemObject, Object> vals,
         ValidationRunContext ctx, Double val )
     {
-        when( expressionService.getExpressionValue( expression.getExpression(), VALIDATION_RULE_EXPRESSION, null, vals,
-            ctx.getConstantMap(), null, null, p1.getDaysInPeriod(), expression.getMissingValueStrategy(), ouA ) )
-                .thenReturn( val );
+        ExpressionParams exParams = ExpressionParams.builder()
+            .expression( expression.getExpression() )
+            .parseType( VALIDATION_RULE_EXPRESSION )
+            .valueMap( vals )
+            .constantMap( ctx.getConstantMap() )
+            .missingValueStrategy( expression.getMissingValueStrategy() )
+            .orgUnit( ouA )
+            .build();
 
-        when( expressionService.getExpressionValue( expression.getExpression(), VALIDATION_RULE_EXPRESSION, null, vals,
-            ctx.getConstantMap(), null, null, p2.getDaysInPeriod(), expression.getMissingValueStrategy(), ouA ) )
-                .thenReturn( val );
+        when( expressionService.getExpressionValue( exParams.toBuilder().days( p1.getDaysInPeriod() ).build() ) )
+            .thenReturn( val );
 
-        when( expressionService.getExpressionValue( expression.getExpression(), VALIDATION_RULE_EXPRESSION, null, vals,
-            ctx.getConstantMap(), null, null, p3.getDaysInPeriod(), expression.getMissingValueStrategy(), ouA ) )
-                .thenReturn( val );
+        when( expressionService.getExpressionValue( exParams.toBuilder().days( p2.getDaysInPeriod() ).build() ) )
+            .thenReturn( val );
+
+        when( expressionService.getExpressionValue( exParams.toBuilder().days( p3.getDaysInPeriod() ).build() ) )
+            .thenReturn( val );
     }
 
     private ValidationRuleExtended createValidationRuleExtended( Expression left, Expression right, Operator op )
