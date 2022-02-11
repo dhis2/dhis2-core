@@ -133,10 +133,7 @@ public class PreCheckDataRelationsValidationHook
         OrganisationUnit organisationUnit = context.getOrganisationUnit( event.getOrgUnit() );
         Program program = context.getProgram( event.getProgram() );
 
-        if ( !program.getUid().equals( programStage.getProgram().getUid() ) )
-        {
-            reporter.addError( event, E1089, event, programStage, program );
-        }
+        validateProgramStageInProgram( reporter, event, programStage, program );
 
         if ( program.isRegistration() )
         {
@@ -155,12 +152,26 @@ public class PreCheckDataRelationsValidationHook
             }
         }
 
+        validateProgramHasOrgUnit( reporter, event, context, organisationUnit, program );
+        validateEventCategoryCombo( reporter, event, program );
+    }
+
+    private void validateProgramStageInProgram( ValidationErrorReporter reporter, Event event,
+        ProgramStage programStage, Program program )
+    {
+        if ( !program.getUid().equals( programStage.getProgram().getUid() ) )
+        {
+            reporter.addError( event, E1089, event, programStage, program );
+        }
+    }
+
+    private void validateProgramHasOrgUnit( ValidationErrorReporter reporter, Event event,
+        TrackerImportValidationContext context, OrganisationUnit organisationUnit, Program program )
+    {
         if ( programDoesNotHaveOrgUnit( program, organisationUnit, context.getProgramWithOrgUnitsMap() ) )
         {
             reporter.addError( event, E1029, organisationUnit, program );
         }
-
-        validateEventCategoryCombo( reporter, event, program );
     }
 
     private void validateEventCategoryCombo( ValidationErrorReporter reporter,
