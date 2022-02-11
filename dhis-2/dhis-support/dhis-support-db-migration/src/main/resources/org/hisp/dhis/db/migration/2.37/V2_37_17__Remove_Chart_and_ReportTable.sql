@@ -31,10 +31,12 @@ DROP TABLE IF EXISTS chart_dataelementgroupsetdimensions;
 DROP TABLE IF EXISTS chart_datadimensionitems;
 DROP TABLE IF EXISTS chart_categoryoptiongroupsetdimensions;
 DROP TABLE IF EXISTS chart_categorydimensions;
-DROP TABLE IF EXISTS chart;
+DROP TABLE IF EXISTS chart CASCADE;
+DROP TABLE IF EXISTS charttranslations CASCADE;
 
 -- Drop all ReportTable tables
-DROP TABLE IF EXISTS reporttable;
+DROP TABLE IF EXISTS reporttable CASCADE;
+DROP TABLE IF EXISTS dashboarditem_reporttables CASCADE;
 DROP TABLE IF EXISTS reporttable_categorydimensions;
 DROP TABLE IF EXISTS reporttable_categoryoptiongroupsetdimensions;
 DROP TABLE IF EXISTS reporttable_columns;
