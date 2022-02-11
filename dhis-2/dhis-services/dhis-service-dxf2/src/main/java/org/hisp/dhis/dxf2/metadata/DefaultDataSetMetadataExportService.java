@@ -70,6 +70,7 @@ public class DefaultDataSetMetadataExportService
     implements DataSetMetadataExportService
 {
     private static final String FIELDS_DATA_SETS = ":simple,categoryCombo[id]," +
+        "dataSetElements[dataElement[id],categoryCombo[id]]," +
         "sections[:simple,dataElements~pluck[id],indicators~pluck[id]," +
         "greyedFields[dataElement[id],categoryOptionCombo[id]]]";
 
