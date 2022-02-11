@@ -31,9 +31,17 @@ import static com.google.api.client.util.Preconditions.checkNotNull;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1083;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1100;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1103;
-import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.*;
+import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ENROLLMENT_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.EVENT_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ORGANISATION_UNIT_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.PROGRAM_INSTANCE_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.TRACKED_ENTITY_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.USER_CANT_BE_NULL;
 
 import java.util.Optional;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.event.EventStatus;
@@ -63,6 +71,7 @@ import org.springframework.stereotype.Component;
  * @author Ameen <ameen@dhis2.org>
  */
 @Component
+@Slf4j
 public class PreCheckSecurityOwnershipValidationHook
     extends AbstractTrackerDtoValidationHook
 {
@@ -124,21 +133,16 @@ public class PreCheckSecurityOwnershipValidationHook
         TrackerImportStrategy strategy = context.getStrategy( enrollment );
         TrackerBundle bundle = context.getBundle();
         User user = bundle.getUser();
-        Program program = context.getProgram( enrollment.getProgram() );
+        Program program = strategy.isUpdateOrDelete() ? context.getProgramInstance( enrollment.getEnrollment() )
+            .getProgram() : context.getProgram( enrollment.getProgram() );
         OrganisationUnit ownerOrgUnit = context.getOwnerOrganisationUnit( enrollment.getTrackedEntity(),
             enrollment.getProgram() );
 
         checkNotNull( user, USER_CANT_BE_NULL );
         checkNotNull( enrollment, ENROLLMENT_CANT_BE_NULL );
-        checkNotNull( enrollment.getOrgUnit(), ORGANISATION_UNIT_CANT_BE_NULL );
+        checkNotNull( program, PROGRAM_CANT_BE_NULL );
 
-        // If enrollment is newly created, or going to be deleted, capture scope
-        // has to be checked
-        if ( program.isWithoutRegistration() || strategy.isCreate() || strategy.isDelete() )
-        {
-            trackerImportAccessManager
-                .checkOrgUnitInCaptureScope( reporter, context.getOrganisationUnit( enrollment.getOrgUnit() ) );
-        }
+        checkEnrollmentOrgUnit( reporter, context, strategy, enrollment, program );
 
         if ( strategy.isDelete() )
         {
@@ -150,8 +154,45 @@ public class PreCheckSecurityOwnershipValidationHook
                 enrollment.getEnrollment() );
         }
 
+        String trackedEntity = context.getStrategy( enrollment ).isDelete()
+            ? context.getProgramInstance( enrollment.getEnrollment() ).getEntityInstance().getUid()
+            : enrollment.getTrackedEntity();
+
         trackerImportAccessManager.checkWriteEnrollmentAccess( reporter, program,
-            enrollment.getTrackedEntity(), getOrgUnitFromTei( context, enrollment.getTrackedEntity() ), ownerOrgUnit );
+            trackedEntity, getOrgUnitFromTei( context, trackedEntity ), ownerOrgUnit );
+    }
+
+    private void checkEnrollmentOrgUnit( ValidationErrorReporter reporter, TrackerImportValidationContext context,
+        TrackerImportStrategy strategy, Enrollment enrollment,
+        Program program )
+    {
+        OrganisationUnit enrollmentOrgUnit;
+
+        if ( strategy.isUpdateOrDelete() )
+        {
+            enrollmentOrgUnit = context.getProgramInstance( enrollment.getEnrollment() )
+                .getOrganisationUnit();
+
+            if ( enrollmentOrgUnit == null )
+            {
+                log.warn( "ProgramInstance " + enrollment.getEnrollment()
+                    + " has no organisation unit assigned, so we skip user validation" );
+                return;
+            }
+        }
+        else
+        {
+            checkNotNull( enrollment.getOrgUnit(), ORGANISATION_UNIT_CANT_BE_NULL );
+            enrollmentOrgUnit = context.getOrganisationUnit( enrollment.getOrgUnit() );
+        }
+
+        // If enrollment is newly created, or going to be deleted, capture scope
+        // has to be checked
+        if ( program.isWithoutRegistration() || strategy.isCreate() || strategy.isDelete() )
+        {
+            trackerImportAccessManager
+                .checkOrgUnitInCaptureScope( reporter, enrollmentOrgUnit );
+        }
     }
 
     @Override
@@ -193,7 +234,6 @@ public class PreCheckSecurityOwnershipValidationHook
         }
         else
         {
-
             validateCreateEvent( reporter, user,
                 categoryOptionCombo,
                 programStage,
