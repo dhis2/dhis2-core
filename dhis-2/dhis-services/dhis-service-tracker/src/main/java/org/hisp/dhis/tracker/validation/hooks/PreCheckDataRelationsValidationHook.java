@@ -104,7 +104,7 @@ public class PreCheckDataRelationsValidationHook
 
         reporter.addErrorIf( () -> !program.isRegistration(), enrollment, E1014, program );
 
-        if ( !programHasOrgUnit( program, organisationUnit, context.getProgramWithOrgUnitsMap() ) )
+        if ( programDoesNotHaveOrgUnit( program, organisationUnit, context.getProgramWithOrgUnitsMap() ) )
         {
             reporter.addError( enrollment, E1041, organisationUnit, program );
         }
@@ -148,7 +148,7 @@ public class PreCheckDataRelationsValidationHook
             }
         }
 
-        if ( !programHasOrgUnit( program, organisationUnit, context.getProgramWithOrgUnitsMap() ) )
+        if ( programDoesNotHaveOrgUnit( program, organisationUnit, context.getProgramWithOrgUnitsMap() ) )
         {
             reporter.addError( event, E1029, organisationUnit, program );
         }
@@ -185,12 +185,9 @@ public class PreCheckDataRelationsValidationHook
                 reporter.addError( relationship, E4012, trackerType.getName(), uid.get() );
             }
         }
-        else if ( EVENT.equals( trackerType ) )
+        else if ( EVENT.equals( trackerType ) && uid.isPresent() && !ValidationUtils.eventExist( ctx, uid.get() ) )
         {
-            if ( uid.isPresent() && !ValidationUtils.eventExist( ctx, uid.get() ) )
-            {
-                reporter.addError( relationship, E4012, trackerType.getName(), uid.get() );
-            }
+            reporter.addError( relationship, E4012, trackerType.getName(), uid.get() );
         }
     }
 
@@ -556,11 +553,11 @@ public class PreCheckDataRelationsValidationHook
         return null;
     }
 
-    private boolean programHasOrgUnit( Program program, OrganisationUnit orgUnit,
+    private boolean programDoesNotHaveOrgUnit( Program program, OrganisationUnit orgUnit,
         Map<String, List<String>> programAndOrgUnitsMap )
     {
-        return programAndOrgUnitsMap.containsKey( program.getUid() )
-            && programAndOrgUnitsMap.get( program.getUid() ).contains( orgUnit.getUid() );
+        return !programAndOrgUnitsMap.containsKey( program.getUid() )
+            || !programAndOrgUnitsMap.get( program.getUid() ).contains( orgUnit.getUid() );
     }
 
     @Override
