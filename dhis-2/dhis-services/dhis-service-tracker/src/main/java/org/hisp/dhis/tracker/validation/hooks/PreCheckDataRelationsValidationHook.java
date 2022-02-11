@@ -264,10 +264,6 @@ public class PreCheckDataRelationsValidationHook
     private boolean validateAttributeOptionComboIsInProgramCategoryCombo( ValidationErrorReporter reporter, Event event,
         Program program )
     {
-        // This validates that an event.attributeOptionCombo id in the payload
-        // is within the programs' category combo
-        // this includes both cases where the program category combo is default
-        // and non-default
         if ( StringUtils.isBlank( event.getAttributeOptionCombo() ) )
         {
             return true;
@@ -277,16 +273,8 @@ public class PreCheckDataRelationsValidationHook
             .getCategoryOptionCombo( event.getAttributeOptionCombo() );
         if ( !program.getCategoryCombo().equals( aoc.getCategoryCombo() ) )
         {
-            if ( aoc.getCategoryCombo().isDefault() )
-            {
-                reporter.addError( event, TrackerErrorCode.E1055,
-                    event.getAttributeOptionCombo(), program.getCategoryCombo() );
-            }
-            else
-            {
-                reporter.addError( event, TrackerErrorCode.E1054,
-                    event.getAttributeOptionCombo(), program.getCategoryCombo() );
-            }
+            reporter.addError( event, TrackerErrorCode.E1054,
+                event.getAttributeOptionCombo(), program.getCategoryCombo() );
             return false;
         }
         return true;
