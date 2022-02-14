@@ -464,7 +464,6 @@ class EnrollmentAnalyticsManagerTest extends
 
     private void assertSql( String actual, String expected )
     {
-        String DEFAULT_COLUMNS = "pi,tei,enrollmentdate,incidentdate,storedby,lastupdated,ST_AsGeoJSON(pigeometry),longitude,latitude,ouname,oucode,enrollmentstatus";
         assertThat( actual, is( "select " + DEFAULT_COLUMNS + "," + expected ) );
     }
 

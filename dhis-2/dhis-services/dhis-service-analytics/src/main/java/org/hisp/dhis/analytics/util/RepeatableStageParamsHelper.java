@@ -132,7 +132,7 @@ public class RepeatableStageParamsHelper
 
             return getRepeatableStageParams( getRelativePeriods( tokens.get( 0 ) ) );
         default:
-            return null;
+            return new RepeatableStageParams();
         }
     }
 
