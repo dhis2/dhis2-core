@@ -28,11 +28,13 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.apache.commons.lang3.StringUtils.joinWith;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.DIMENSIONS;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ITEMS;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_HIERARCHY;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_NAME_HIERARCHY;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.PAGER;
+import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
@@ -136,7 +138,6 @@ public abstract class AbstractAnalyticsService
             }
             else if ( hasNonDefaultRepeatableProgramStageOffset( item ) )
             {
-
                 String name = item.getProgramStage().getUid() + "[" + item.getProgramStageOffset() + "]." +
                     item.getItem().getUid();
 
@@ -148,9 +149,10 @@ public abstract class AbstractAnalyticsService
             }
             else
             {
-                String column = item.getItem().getDisplayProperty( params.getDisplayProperty() );
+                final String uid = getItemUid( item );
+                final String column = item.getItem().getDisplayProperty( params.getDisplayProperty() );
 
-                grid.addHeader( new GridHeader( item.getItem().getUid(), column, item.getValueType(),
+                grid.addHeader( new GridHeader( uid, column, item.getValueType(),
                     false, true, item.getOptionSet(), item.getLegendSet() ) );
             }
         }
@@ -195,6 +197,24 @@ public abstract class AbstractAnalyticsService
         maybeApplyHeaders( params, grid );
 
         return grid;
+    }
+
+    /**
+     * Based on the given item this method returns the correct uid based on
+     * internal rules/requirements.
+     *
+     * @param item the current QueryItem
+     * @return the correct uid based on the item type
+     */
+    private String getItemUid( final QueryItem item )
+    {
+        String uid = item.getItem().getUid();
+
+        if ( item.getItem().getDimensionItemType() == DATA_ELEMENT && item.getProgramStage() != null )
+        {
+            uid = joinWith( ".", item.getProgramStage().getUid(), uid );
+        }
+        return uid;
     }
 
     protected abstract Grid createGridWithHeaders( EventQueryParams params );
