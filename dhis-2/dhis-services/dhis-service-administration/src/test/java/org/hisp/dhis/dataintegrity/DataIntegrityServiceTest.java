@@ -61,8 +61,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.antlr.ParserException;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
@@ -217,7 +217,7 @@ class DataIntegrityServiceTest
             programRuleVariableService, dataElementService, indicatorService, dataSetService,
             organisationUnitService, organisationUnitGroupService, validationRuleService, expressionService,
             dataEntryFormService, categoryService, periodService, programIndicatorService,
-            mock( SessionFactory.class ) );
+            mock( CacheProvider.class ), mock( DataIntegrityStore.class ) );
         setUpFixtures();
     }
 

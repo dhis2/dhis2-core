@@ -25,49 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.json.domain;
-
-import org.hisp.dhis.dataintegrity.DataIntegritySeverity;
-import org.hisp.dhis.jsontree.Expected;
-import org.hisp.dhis.jsontree.JsonObject;
+package org.hisp.dhis.dataintegrity;
 
 /**
- * JSON API equivalent of the
- * {@link org.hisp.dhis.dataintegrity.DataIntegrityCheck}.
+ * Database support for running data integrity checks.
+ * <p>
+ * Mainly this supports the YAML based checks that have SQL in the YAML.
  *
  * @author Jan Bernitt
  */
-public interface JsonDataIntegrityCheck extends JsonObject
+public interface DataIntegrityStore
 {
-    @Expected
-    default String getName()
-    {
-        return getString( "name" ).string();
-    }
+    /**
+     * Runs a query for a {@link DataIntegritySummary}
+     *
+     * @param check the check the SQL belongs to
+     * @param sql the native SQL to run from a YAML declaration
+     * @return the mapped summary
+     */
+    DataIntegritySummary querySummary( DataIntegrityCheck check, String sql );
 
-    default String getSection()
-    {
-        return getString( "section" ).string();
-    }
-
-    default DataIntegritySeverity getSeverity()
-    {
-        return getString( "severity" ).parsed( DataIntegritySeverity::valueOf );
-    }
-
-    default String getDescription()
-    {
-        return getString( "description" ).string();
-    }
-
-    default String getIntroduction()
-    {
-        return getString( "introduction" ).string();
-    }
-
-    default String getRecommendation()
-    {
-        return getString( "recommendation" ).string();
-    }
-
+    /**
+     * Runs a query for a {@link DataIntegrityDetails}.
+     *
+     * @param check the check the SQL belongs to
+     * @param sql the native SQL to run from a YAML declaration
+     * @return the mapped details
+     */
+    DataIntegrityDetails queryDetails( DataIntegrityCheck check, String sql );
 }

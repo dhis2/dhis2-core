@@ -35,6 +35,7 @@ import org.hisp.dhis.dataintegrity.DataIntegrityCheckType;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonDataIntegritySummary;
+import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
@@ -52,9 +53,9 @@ class DataIntegritySummaryControllerTest extends DhisControllerConvenienceTest
     {
         assertStatus( HttpStatus.CREATED,
             POST( "/categories", "{'name': 'CatDog', 'shortName': 'CD', 'dataDimensionType': 'ATTRIBUTE'}" ) );
-        JsonObject content = GET( "/dataIntegrity/summary?checks=categories-no-options" ).content();
-        JsonDataIntegritySummary summary = content.get( "categories_no_options", JsonDataIntegritySummary.class );
-        assertTrue( summary.exists() );
+
+        postSummary( "categories-no-options" );
+        JsonDataIntegritySummary summary = getSummary( "categories-no-options" );
         assertEquals( 1, summary.getCount() );
         assertEquals( 50, summary.getPercentage().intValue() );
     }
@@ -64,9 +65,10 @@ class DataIntegritySummaryControllerTest extends DhisControllerConvenienceTest
     {
         for ( DataIntegrityCheckType type : DataIntegrityCheckType.values() )
         {
-            JsonObject content = GET( "/dataIntegrity/summary?checks={name}", type.getName() ).content();
-            JsonDataIntegritySummary summary = content.get( type.getName(), JsonDataIntegritySummary.class );
-            assertTrue( summary.exists() );
+            String check = type.getName();
+            postSummary( check );
+            JsonDataIntegritySummary summary = getSummary( check );
+            assertTrue( summary.getCount() >= 0, "summary threw an exception" );
         }
     }
 
@@ -75,10 +77,29 @@ class DataIntegritySummaryControllerTest extends DhisControllerConvenienceTest
     {
         assertStatus( HttpStatus.CREATED,
             POST( "/categories", "{'name': 'CatDog', 'shortName': 'CD', 'dataDimensionType': 'ATTRIBUTE'}" ) );
+
+        postSummary( "categories-no-options" );
         JsonDataIntegritySummary summary = GET( "/dataIntegrity/categories-no-options/summary" ).content()
             .as( JsonDataIntegritySummary.class );
         assertTrue( summary.exists() );
+        assertTrue( summary.isObject() );
         assertEquals( 1, summary.getCount() );
         assertEquals( 50, summary.getPercentage().intValue() );
+    }
+
+    private JsonDataIntegritySummary getSummary( String check )
+    {
+        JsonObject content = GET( "/dataIntegrity/summary?checks={check}&timeout=1000", check ).content();
+        JsonDataIntegritySummary summary = content.get( check.replace( '-', '_' ), JsonDataIntegritySummary.class );
+        assertTrue( summary.exists() );
+        assertTrue( summary.isObject() );
+        return summary;
+    }
+
+    private void postSummary( String check )
+    {
+        HttpResponse trigger = POST( "/dataIntegrity/summary?checks=" + check );
+        assertEquals( "http://localhost/dataIntegrity/summary?checks=" + check, trigger.location() );
+        assertTrue( trigger.content().isA( JsonWebMessage.class ) );
     }
 }

@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.cache;
 
+import static java.util.concurrent.TimeUnit.HOURS;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -127,7 +128,9 @@ public class DefaultCacheProvider
         securityCache,
         runningJobsInfo,
         completedJobsInfo,
-        jobCancelRequested
+        jobCancelRequested,
+        dataIntegritySummaryCache,
+        dataIntegrityDetailsCache
     }
 
     private final Map<String, Cache<?>> allCaches = new ConcurrentHashMap<>();
@@ -597,5 +600,21 @@ public class DefaultCacheProvider
         return registerCache( this.<V> newBuilder()
             .forRegion( Region.jobCancelRequested.name() )
             .expireAfterWrite( 60, SECONDS ) );
+    }
+
+    @Override
+    public <V> Cache<V> createDataIntegritySummaryCache()
+    {
+        return registerCache( this.<V> newBuilder()
+            .forRegion( Region.dataIntegritySummaryCache.name() )
+            .expireAfterWrite( 1, HOURS ) );
+    }
+
+    @Override
+    public <V> Cache<V> createDataIntegrityDetailsCache()
+    {
+        return registerCache( this.<V> newBuilder()
+            .forRegion( Region.dataIntegrityDetailsCache.name() )
+            .expireAfterWrite( 1, HOURS ) );
     }
 }

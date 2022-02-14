@@ -32,9 +32,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.dataintegrity.DataIntegrityCheckType;
+import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonDataIntegrityDetails;
+import org.hisp.dhis.webapi.json.domain.JsonDataIntegrityDetails.JsonDataIntegrityIssue;
+import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
@@ -46,15 +49,14 @@ import org.springframework.http.HttpStatus;
  */
 class DataIntegrityDetailsControllerTest extends DhisControllerConvenienceTest
 {
-
     @Test
     void testCategories_no_options()
     {
         String uid = assertStatus( HttpStatus.CREATED,
             POST( "/categories", "{'name': 'CatDog', 'shortName': 'CD', 'dataDimensionType': 'ATTRIBUTE'}" ) );
-        JsonObject content = GET( "/dataIntegrity/details?checks=categories-no-options" ).content();
-        JsonDataIntegrityDetails details = content.get( "categories_no_options", JsonDataIntegrityDetails.class );
-        assertTrue( details.exists() );
+
+        postDetails( "categories-no-options" );
+        JsonDataIntegrityDetails details = getDetails( "categories-no-options" );
         assertEquals( 1, details.getIssues().size() );
         assertEquals( uid, details.getIssues().get( 0 ).getId() );
         assertEquals( "CatDog", details.getIssues().get( 0 ).getName() );
@@ -65,10 +67,9 @@ class DataIntegrityDetailsControllerTest extends DhisControllerConvenienceTest
     {
         for ( DataIntegrityCheckType type : DataIntegrityCheckType.values() )
         {
-            JsonObject content = GET( "/dataIntegrity/details?checks={name}", type.getName() ).content();
-            JsonDataIntegrityDetails details = content.get( type.getName(), JsonDataIntegrityDetails.class );
-            assertTrue( details.exists() );
-            assertTrue( details.isObject() );
+            String check = type.getName();
+            postDetails( check );
+            JsonDataIntegrityDetails details = getDetails( check );
             assertTrue( details.getIssues().isEmpty() );
         }
     }
@@ -78,11 +79,38 @@ class DataIntegrityDetailsControllerTest extends DhisControllerConvenienceTest
     {
         String uid = assertStatus( HttpStatus.CREATED,
             POST( "/categories", "{'name': 'CatDog', 'shortName': 'CD', 'dataDimensionType': 'ATTRIBUTE'}" ) );
-        JsonDataIntegrityDetails details = GET( "/dataIntegrity/categories-no-options/details" ).content()
-            .as( JsonDataIntegrityDetails.class );
+
+        postDetails( "categories-no-options" );
+        JsonDataIntegrityDetails details = GET( "/dataIntegrity/categories-no-options/details?timeout=1000" )
+            .content().as( JsonDataIntegrityDetails.class );
+
         assertTrue( details.exists() );
-        assertEquals( 1, details.getIssues().size() );
-        assertEquals( uid, details.getIssues().get( 0 ).getId() );
-        assertEquals( "CatDog", details.getIssues().get( 0 ).getName() );
+        assertTrue( details.isObject() );
+        JsonList<JsonDataIntegrityIssue> issues = details.getIssues();
+        assertTrue( issues.exists() );
+        assertEquals( 1, issues.size() );
+        assertEquals( uid, issues.get( 0 ).getId() );
+        assertEquals( "CatDog", issues.get( 0 ).getName() );
+    }
+
+    private JsonDataIntegrityDetails getDetails( String check )
+    {
+        JsonObject content = GET( "/dataIntegrity/details?checks={check}&timeout=1000", check ).content();
+        JsonDataIntegrityDetails details = content.get( check.replace( '-', '_' ), JsonDataIntegrityDetails.class );
+        assertTrue( details.exists(), "check " + check + " did not complete in time or threw an exception" );
+        assertTrue( details.isObject() );
+        return details;
+    }
+
+    /**
+     * Triggers the single check provided
+     *
+     * @param check name of the check to perform
+     */
+    private void postDetails( String check )
+    {
+        HttpResponse trigger = POST( "/dataIntegrity/details?checks=" + check );
+        assertEquals( "http://localhost/dataIntegrity/details?checks=" + check, trigger.location() );
+        assertTrue( trigger.content().isA( JsonWebMessage.class ) );
     }
 }
