@@ -68,10 +68,10 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.STDDEV;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.STDDEV_POP;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.STDDEV_SAMP;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.SUM;
+import static org.hisp.dhis.util.ObjectUtils.firstNonNull;
 import static org.springframework.util.ObjectUtils.isEmpty;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -93,7 +93,6 @@ import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.MapMap;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.constant.Constant;
@@ -113,7 +112,6 @@ import org.hisp.dhis.expression.function.FunctionOrgUnitGroup;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorValue;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -381,11 +379,21 @@ public class DefaultExpressionService
 
         Integer days = periods != null ? getDaysFromPeriods( periods ) : null;
 
-        Double denominatorValue = getExpressionValue( indicator.getDenominator(), INDICATOR_EXPRESSION,
-            itemMap, valueMap, constantMap, orgUnitCountMap, null, days, SKIP_IF_ALL_VALUES_MISSING, null );
+        ExpressionParams exParams = ExpressionParams.builder()
+            .parseType( INDICATOR_EXPRESSION )
+            .itemMap( itemMap )
+            .valueMap( valueMap )
+            .constantMap( constantMap )
+            .orgUnitCountMap( orgUnitCountMap )
+            .days( days )
+            .missingValueStrategy( SKIP_IF_ALL_VALUES_MISSING )
+            .build();
 
-        Double numeratorValue = getExpressionValue( indicator.getNumerator(), INDICATOR_EXPRESSION,
-            itemMap, valueMap, constantMap, orgUnitCountMap, null, days, SKIP_IF_ALL_VALUES_MISSING, null );
+        Double denominatorValue = castDouble( getExpressionValue( exParams.toBuilder()
+            .expression( indicator.getDenominator() ).build() ) );
+
+        Double numeratorValue = castDouble( getExpressionValue( exParams.toBuilder()
+            .expression( indicator.getNumerator() ).build() ) );
 
         if ( denominatorValue != null && denominatorValue != 0d && numeratorValue != null )
         {
@@ -582,54 +590,32 @@ public class DefaultExpressionService
     // -------------------------------------------------------------------------
 
     @Override
-    public Object getExpressionValue( String expression, ParseType parseType )
+    public Object getExpressionValue( ExpressionParams exParams )
     {
-        return getExpressionValue( expression, parseType,
-            new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>(), null,
-            null, NEVER_SKIP, null, DEFAULT_SAMPLE_PERIODS, new MapMap<>(), parseType.getDataType() );
-    }
-
-    @Override
-    public Double getExpressionValue( String expression, ParseType parseType,
-        Map<DimensionalItemId, DimensionalItemObject> itemMap, Map<DimensionalItemObject, Object> valueMap,
-        Map<String, Constant> constantMap, Map<String, Integer> orgUnitCountMap,
-        Map<String, OrganisationUnitGroup> orgUnitGroupMap, Integer days,
-        MissingValueStrategy missingValueStrategy, OrganisationUnit orgUnit )
-    {
-        return castDouble( getExpressionValue( expression, parseType, itemMap, valueMap,
-            constantMap, orgUnitCountMap, orgUnitGroupMap, days, missingValueStrategy, orgUnit,
-            DEFAULT_SAMPLE_PERIODS, new MapMap<>(), parseType.getDataType() ) );
-    }
-
-    @Override
-    public Object getExpressionValue( String expression, ParseType parseType,
-        Map<DimensionalItemId, DimensionalItemObject> itemMap, Map<DimensionalItemObject, Object> valueMap,
-        Map<String, Constant> constantMap, Map<String, Integer> orgUnitCountMap,
-        Map<String, OrganisationUnitGroup> orgUnitGroupMap, Integer days,
-        MissingValueStrategy missingValueStrategy, OrganisationUnit orgUnit, List<Period> samplePeriods,
-        MapMap<Period, DimensionalItemObject, Object> periodValueMap, DataType dataType )
-    {
-        if ( isEmpty( expression ) )
+        if ( isEmpty( exParams.getExpression() ) )
         {
             return null;
         }
 
-        CommonExpressionVisitor visitor = newVisitor( parseType, ITEM_EVALUATE,
-            samplePeriods, constantMap, missingValueStrategy );
+        DataType dataType = firstNonNull( exParams.getDataType(), exParams.getParseType().getDataType() );
+        List<Period> samplePeriods = firstNonNull( exParams.getSamplePeriods(), DEFAULT_SAMPLE_PERIODS );
 
-        visitor.setDimItemMap( itemMap );
-        visitor.setItemValueMap( valueMap );
-        visitor.setPeriodItemValueMap( periodValueMap );
-        visitor.setOrgUnitCountMap( orgUnitCountMap );
-        visitor.setOrgUnitGroupMap( orgUnitGroupMap );
-        visitor.setOrganisationUnit( orgUnit );
+        CommonExpressionVisitor visitor = newVisitor( exParams.getParseType(), ITEM_EVALUATE,
+            samplePeriods, exParams.getConstantMap(), exParams.getMissingValueStrategy() );
 
-        if ( days != null )
+        visitor.setDimItemMap( exParams.getItemMap() );
+        visitor.setItemValueMap( exParams.getValueMap() );
+        visitor.setPeriodItemValueMap( exParams.getPeriodValueMap() );
+        visitor.setOrgUnitCountMap( exParams.getOrgUnitCountMap() );
+        visitor.setOrgUnitGroupMap( exParams.getOrgUnitGroupMap() );
+        visitor.setOrganisationUnit( exParams.getOrgUnit() );
+
+        if ( exParams.getDays() != null )
         {
-            visitor.setDays( Double.valueOf( days ) );
+            visitor.setDays( Double.valueOf( exParams.getDays() ) );
         }
 
-        Object value = visit( expression, dataType, visitor, true );
+        Object value = visit( exParams.getExpression(), dataType, visitor, true );
 
         int itemsFound = visitor.getItemsFound();
         int itemValuesFound = visitor.getItemValuesFound();
@@ -639,7 +625,7 @@ public class DefaultExpressionService
             return null;
         }
 
-        switch ( missingValueStrategy )
+        switch ( exParams.getMissingValueStrategy() )
         {
         case SKIP_IF_ANY_VALUE_MISSING:
             if ( itemValuesFound < itemsFound )

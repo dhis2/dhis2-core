@@ -32,7 +32,6 @@ import static org.hisp.dhis.common.OrganisationUnitDescendants.DESCENDANTS;
 import static org.hisp.dhis.expression.MissingValueStrategy.NEVER_SKIP;
 import static org.hisp.dhis.expression.ParseType.PREDICTOR_EXPRESSION;
 import static org.hisp.dhis.expression.ParseType.PREDICTOR_SKIP_TEST;
-import static org.hisp.dhis.parser.expression.ParserUtils.DEFAULT_SAMPLE_PERIODS;
 import static org.hisp.dhis.predictor.PredictionFormatter.formatPrediction;
 import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
 
@@ -69,6 +68,7 @@ import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.expression.Expression;
+import org.hisp.dhis.expression.ExpressionParams;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
@@ -164,7 +164,7 @@ public class DefaultPredictionService
         {
             notifier.notify( jobId, NotificationLevel.INFO, "Making predictions", false );
 
-            predictionSummary = predictInternal( startDate, endDate, predictors, predictorGroups );
+            predictionSummary = predictAll( startDate, endDate, predictors, predictorGroups );
 
             notifier.update( jobId, NotificationLevel.INFO, "Prediction done", true )
                 .addJobSummary( jobId, predictionSummary, PredictionSummary.class );
@@ -182,7 +182,8 @@ public class DefaultPredictionService
         return predictionSummary;
     }
 
-    private PredictionSummary predictInternal( Date startDate, Date endDate, List<String> predictors,
+    @Override
+    public PredictionSummary predictAll( Date startDate, Date endDate, List<String> predictors,
         List<String> predictorGroups )
     {
         List<Predictor> predictorList = new ArrayList<>();
@@ -326,10 +327,20 @@ public class DefaultPredictionService
                         continue;
                     }
 
-                    Object value = expressionService.getExpressionValue( predictor.getGenerator().getExpression(),
-                        PREDICTOR_EXPRESSION, itemMap, c.getValueMap(), constantMap, null, orgUnitGroupMap,
-                        c.getOutputPeriod().getDaysInPeriod(), generator.getMissingValueStrategy(), data.getOrgUnit(),
-                        samplePeriods, c.getPeriodValueMap(), expressionDataType );
+                    Object value = expressionService.getExpressionValue( ExpressionParams.builder()
+                        .expression( predictor.getGenerator().getExpression() )
+                        .parseType( PREDICTOR_EXPRESSION )
+                        .dataType( expressionDataType )
+                        .itemMap( itemMap )
+                        .valueMap( c.getValueMap() )
+                        .constantMap( constantMap )
+                        .orgUnitGroupMap( orgUnitGroupMap )
+                        .days( c.getOutputPeriod().getDaysInPeriod() )
+                        .missingValueStrategy( generator.getMissingValueStrategy() )
+                        .orgUnit( data.getOrgUnit() )
+                        .samplePeriods( samplePeriods )
+                        .periodValueMap( c.getPeriodValueMap() )
+                        .build() );
 
                     if ( value != null || generator.getMissingValueStrategy() == NEVER_SKIP )
                     {
@@ -411,11 +422,18 @@ public class DefaultPredictionService
 
         for ( Period p : allSamplePeriods )
         {
-            if ( aocData.get( p ) != null
-                && Boolean.TRUE == expressionService.getExpressionValue( skipTest.getExpression(),
-                    PREDICTOR_SKIP_TEST, itemMap, aocData.get( p ), constantMap, null, orgUnitGroupMap,
-                    p.getDaysInPeriod(), skipTest.getMissingValueStrategy(), orgUnit,
-                    DEFAULT_SAMPLE_PERIODS, new MapMap<>(), DataType.BOOLEAN ) )
+            if ( aocData.get( p ) != null &&
+                (Boolean) expressionService.getExpressionValue( ExpressionParams.builder()
+                    .expression( skipTest.getExpression() )
+                    .parseType( PREDICTOR_SKIP_TEST )
+                    .itemMap( itemMap )
+                    .valueMap( aocData.get( p ) )
+                    .constantMap( constantMap )
+                    .orgUnitGroupMap( orgUnitGroupMap )
+                    .days( p.getDaysInPeriod() )
+                    .missingValueStrategy( skipTest.getMissingValueStrategy() )
+                    .orgUnit( orgUnit )
+                    .build() ) )
             {
                 skippedPeriods.add( p );
             }

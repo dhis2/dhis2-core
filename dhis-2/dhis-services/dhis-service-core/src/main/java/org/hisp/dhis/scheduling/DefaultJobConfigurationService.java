@@ -223,15 +223,19 @@ public class DefaultJobConfigurationService
             return jobParameters;
         }
 
-        final Set<String> propertyNames = Stream.of( PropertyUtils.getPropertyDescriptors( clazz ) )
-            .filter( pd -> pd.getReadMethod() != null && pd.getWriteMethod() != null
-                && pd.getReadMethod().getAnnotation( JsonProperty.class ) != null )
-            .map( PropertyDescriptor::getName )
+        final Set<PropertyDescriptor> properties = Stream.of( PropertyUtils.getPropertyDescriptors( clazz ) )
+            .filter( pd -> pd.getReadMethod() != null && pd.getWriteMethod() != null )
             .collect( Collectors.toSet() );
 
-        for ( Field field : Stream.of( clazz.getDeclaredFields() ).filter( f -> propertyNames.contains( f.getName() ) )
-            .collect( Collectors.toList() ) )
+        for ( Field field : clazz.getDeclaredFields() )
         {
+            PropertyDescriptor descriptor = properties.stream().filter( pd -> pd.getName().equals( field.getName() ) )
+                .findFirst().orElse( null );
+            if ( descriptor == null || (descriptor.getReadMethod().getAnnotation( JsonProperty.class ) == null
+                && field.getAnnotation( JsonProperty.class ) == null) )
+            {
+                continue;
+            }
             Property property = new Property( Primitives.wrap( field.getType() ), null, null );
             property.setName( field.getName() );
             property.setFieldName( TextUtils.getPrettyPropertyName( field.getName() ) );
