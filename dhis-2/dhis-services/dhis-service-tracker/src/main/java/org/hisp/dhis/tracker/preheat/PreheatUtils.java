@@ -59,7 +59,6 @@ public class PreheatUtils
         {
             return Optional.ofNullable( identifier.getIdentifier( object ) );
         }
-        // TODO TrackerIdScheme.AUTO ??
 
         return Optional.empty();
     }
