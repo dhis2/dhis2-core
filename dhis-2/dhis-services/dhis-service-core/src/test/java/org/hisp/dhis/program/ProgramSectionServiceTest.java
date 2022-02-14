@@ -37,13 +37,13 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author viet@dhis2.org
  */
-public class ProgramSectionServiceTest
+class ProgramSectionServiceTest
     extends DhisSpringTest
 {
     @Autowired
@@ -66,7 +66,7 @@ public class ProgramSectionServiceTest
     }
 
     @Test
-    public void testUpdateWithAuthority()
+    void testUpdateWithAuthority()
     {
         Program program = createProgram( 'A' );
         manager.save( program );
@@ -83,7 +83,7 @@ public class ProgramSectionServiceTest
     }
 
     @Test
-    public void testSaveWithoutAuthority()
+    void testSaveWithoutAuthority()
     {
         Program program = createProgram( 'A' );
         manager.save( program );
