@@ -92,6 +92,14 @@ public class HibernateDataIntegrityStore implements DataIntegrityStore
 
     private static int parseCount( Object value )
     {
-        return value == null ? 0 : ((Number) value).intValue();
+        if ( value == null )
+        {
+            return 0;
+        }
+        if ( value instanceof String )
+        {
+            return Integer.parseInt( (String) value );
+        }
+        return ((Number) value).intValue();
     }
 }
