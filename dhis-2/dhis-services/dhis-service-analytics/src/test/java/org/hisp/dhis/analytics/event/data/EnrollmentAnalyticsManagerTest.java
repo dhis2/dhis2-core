@@ -36,6 +36,8 @@ import static org.hisp.dhis.DhisConvenienceTest.createProgram;
 import static org.hisp.dhis.DhisConvenienceTest.createProgramIndicator;
 import static org.hisp.dhis.DhisConvenienceTest.getDate;
 import static org.hisp.dhis.analytics.QueryKey.NV;
+import static org.hisp.dhis.analytics.event.data.JdbcEnrollmentAnalyticsManager.CREATED_BY_DISPLAY_NAME_COLUMN;
+import static org.hisp.dhis.analytics.event.data.JdbcEnrollmentAnalyticsManager.LAST_UPDATED_BY_DISPLAY_NAME_COLUMN;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.common.DimensionalObject.OPTION_SEP;
@@ -110,7 +112,9 @@ class EnrollmentAnalyticsManagerTest extends
     @Captor
     private ArgumentCaptor<String> sql;
 
-    private String DEFAULT_COLUMNS = "pi,tei,enrollmentdate,incidentdate,storedby,lastupdated,ST_AsGeoJSON(pigeometry),longitude,latitude,ouname,oucode,enrollmentstatus";
+    private String DEFAULT_COLUMNS = "pi,tei,enrollmentdate,incidentdate,storedby,"
+        + CREATED_BY_DISPLAY_NAME_COLUMN + "," + LAST_UPDATED_BY_DISPLAY_NAME_COLUMN
+        + ",lastupdated,ST_AsGeoJSON(pigeometry),longitude,latitude,ouname,oucode,enrollmentstatus";
 
     private final String TABLE_NAME = "analytics_enrollment";
 
@@ -236,8 +240,8 @@ class EnrollmentAnalyticsManagerTest extends
         verify( jdbcTemplate ).queryForRowSet( sql.capture() );
 
         String expected = "ax.\"monthly\",ax.\"ou\"  from " + getTable( programA.getUid() )
-            + " as ax where ax.\"monthly\" in ('2000Q1') and (uidlevel1 = 'ouabcdefghA' )" +
-            " and enrollmentstatus in ('ACTIVE','COMPLETED') limit 10001";
+            + " as ax where ax.\"monthly\" in ('2000Q1') and (uidlevel1 = 'ouabcdefghA' )"
+            + " and enrollmentstatus in ('ACTIVE','COMPLETED') limit 10001";
 
         assertSql( sql.getValue(), expected );
     }
