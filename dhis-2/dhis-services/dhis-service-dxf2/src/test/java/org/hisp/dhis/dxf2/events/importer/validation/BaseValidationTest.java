@@ -42,6 +42,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.ValueTypeValidationService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
@@ -86,6 +87,9 @@ public abstract class BaseValidationTest
     @Mock
     protected ProgramInstanceStore programInstanceStore;
 
+    @Mock
+    protected ValueTypeValidationService valueTypeValidationService;
+
     @BeforeEach
     public void superSetUp()
     {
@@ -98,6 +102,7 @@ public abstract class BaseValidationTest
         // Service delegator
         when( serviceDelegator.getJsonMapper() ).thenReturn( objectMapper );
         when( serviceDelegator.getProgramInstanceStore() ).thenReturn( programInstanceStore );
+        when( serviceDelegator.getValueTypeValidationService() ).thenReturn( valueTypeValidationService );
 
     }
 

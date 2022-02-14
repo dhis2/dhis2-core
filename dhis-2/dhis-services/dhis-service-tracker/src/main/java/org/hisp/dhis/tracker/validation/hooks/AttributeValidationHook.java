@@ -35,9 +35,11 @@ import java.util.List;
 import java.util.Objects;
 
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.common.ValueTypeValidationService;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
@@ -54,11 +56,12 @@ import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 public abstract class AttributeValidationHook extends AbstractTrackerDtoValidationHook
 {
 
-    private final TrackedEntityAttributeService trackedEntityAttributeService;
+    private final ValueTypeValidationService valueTypeValidationService;
 
-    protected AttributeValidationHook( TrackedEntityAttributeService trackedEntityAttributeService )
+    protected AttributeValidationHook( ValueTypeValidationService valueTypeValidationService )
     {
-        this.trackedEntityAttributeService = trackedEntityAttributeService;
+        checkNotNull( valueTypeValidationService );
+        this.valueTypeValidationService = valueTypeValidationService;
     }
 
     protected void validateAttrValueType( ValidationErrorReporter errorReporter, TrackerDto dto, Attribute attr,
@@ -71,17 +74,17 @@ public abstract class AttributeValidationHook extends AbstractTrackerDtoValidati
 
         TrackerImportValidationContext context = errorReporter.getValidationContext();
 
-        String error = trackedEntityAttributeService.validateValueType( teAttr, attr.getValue() );
+        ErrorMessage errorMessage = valueTypeValidationService.dataValueIsValid( teAttr, attr.getValue() );
 
-        if ( error != null )
+        if ( errorMessage != null )
         {
             TrackerBundle bundle = context.getBundle();
             TrackerErrorReport err = TrackerErrorReport.builder()
                 .uid( dto.getUid() )
                 .trackerType( dto.getTrackerType() )
-                .errorCode( TrackerErrorCode.E1007 )
+                .errorCode( getTrackerErrorCode( errorMessage ) )
                 .addArg( valueType.toString() )
-                .addArg( error )
+                .addArg( errorMessage.getMessage() )
                 .build( bundle );
             errorReporter.addError( err );
         }
@@ -130,6 +133,31 @@ public abstract class AttributeValidationHook extends AbstractTrackerDtoValidati
                 errorReporter.addError( err );
                 return;
             }
+        }
+    }
+
+    private TrackerErrorCode getTrackerErrorCode( ErrorMessage errorMesage )
+    {
+        switch ( errorMesage.getErrorCode() )
+        {
+        case E2027:
+            return TrackerErrorCode.E1084;
+        case E2029:
+            return TrackerErrorCode.E1125;
+        case E2030:
+            return TrackerErrorCode.E1007;
+        case E2040:
+            return TrackerErrorCode.E1101;
+        case E2041:
+            return TrackerErrorCode.E1105;
+        case E2042:
+            return TrackerErrorCode.E1106;
+        case E2043:
+            return TrackerErrorCode.E1302;
+        case E2026:
+            return TrackerErrorCode.E1009;
+        default:
+            return null;
         }
     }
 

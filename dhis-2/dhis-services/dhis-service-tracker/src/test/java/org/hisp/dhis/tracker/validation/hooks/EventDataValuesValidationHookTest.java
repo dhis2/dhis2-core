@@ -37,13 +37,16 @@ import static org.mockito.Mockito.when;
 import java.util.Arrays;
 import java.util.Set;
 
+import org.hisp.dhis.common.DefaultValueTypeValidationService;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.ValueTypeValidationService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ValidationStrategy;
@@ -55,6 +58,7 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -75,7 +79,13 @@ class EventDataValuesValidationHookTest
     private TrackerImportValidationContext context;
 
     @Mock
-    private ValueTypeValidationService dataValueValidationService;
+    private FileResourceService fileResourceService;
+
+    @Mock
+    private OrganisationUnitService organisationUnitService;
+
+    @Mock
+    private UserService userService;
 
     private static final String programStageUid = "programStageUid";
 
@@ -84,7 +94,10 @@ class EventDataValuesValidationHookTest
     @BeforeEach
     public void setUp()
     {
-        hook = new EventDataValuesValidationHook( dataValueValidationService );
+        ValueTypeValidationService valueTypeValidationService = new DefaultValueTypeValidationService(
+            fileResourceService, organisationUnitService, userService );
+
+        hook = new EventDataValuesValidationHook( valueTypeValidationService );
 
         when( context.getBundle() ).thenReturn( TrackerBundle.builder().build() );
     }
@@ -391,7 +404,6 @@ class EventDataValuesValidationHookTest
         when( context.getDataElement( dataElementUid ) ).thenReturn( validDataElement );
 
         DataValue validDataValue = dataValue( "QX4LpiTZmUH" );
-        when( context.getFileResource( validDataValue.getValue() ) ).thenReturn( null );
 
         ProgramStage programStage = programStage( validDataElement );
         when( context.getProgramStage( programStageUid ) ).thenReturn( programStage );
@@ -666,9 +678,12 @@ class EventDataValuesValidationHookTest
         ValidationErrorReporter reporter = new ValidationErrorReporter( context );
 
         FileResource fileResource = new FileResource();
+        fileResource.setUid( "QX4LpiTZmUH" );
         fileResource.setAssigned( true );
+
+        when( fileResourceService.getFileResource( "QX4LpiTZmUH" ) ).thenReturn( fileResource );
+
         DataValue validDataValue = dataValue( "QX4LpiTZmUH" );
-        when( context.getFileResource( validDataValue.getValue() ) ).thenReturn( fileResource );
         Event event = Event.builder()
             .programStage( programStage.getUid() )
             .status( EventStatus.SKIPPED )
@@ -697,7 +712,6 @@ class EventDataValuesValidationHookTest
         runAndAssertValidationForDataValue( ValueType.DATETIME, "wrong_date_time" );
         runAndAssertValidationForDataValue( ValueType.COORDINATE, "10" );
         runAndAssertValidationForDataValue( ValueType.URL, "not_valid_url" );
-        runAndAssertValidationForDataValue( ValueType.FILE_RESOURCE, "not_valid_uid" );
     }
 
     @Test

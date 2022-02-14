@@ -41,11 +41,11 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.ValueTypeValidationService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.TrackerIdScheme;
@@ -68,9 +68,9 @@ import com.google.common.collect.Streams;
 public class EnrollmentAttributeValidationHook extends AttributeValidationHook
 {
 
-    public EnrollmentAttributeValidationHook( TrackedEntityAttributeService trackedEntityAttributeService )
+    public EnrollmentAttributeValidationHook( ValueTypeValidationService valueTypeValidationService )
     {
-        super( trackedEntityAttributeService );
+        super( valueTypeValidationService );
     }
 
     @Override

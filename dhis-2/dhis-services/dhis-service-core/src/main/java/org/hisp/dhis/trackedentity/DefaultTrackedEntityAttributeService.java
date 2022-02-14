@@ -35,6 +35,7 @@ import java.util.stream.Collectors;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueTypeValidationService;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
@@ -225,7 +226,9 @@ public class DefaultTrackedEntityAttributeService
             return "Value length is greater than 50000 chars for attribute " + trackedEntityAttribute.getUid();
         }
 
-        return dataValueValidationService.dataValueIsValid( trackedEntityAttribute, value );
+        ErrorMessage errorMessage = dataValueValidationService.dataValueIsValid( trackedEntityAttribute, value );
+
+        return errorMessage != null ? errorMessage.getMessage() : null;
     }
 
     @Override

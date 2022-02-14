@@ -110,6 +110,11 @@ public enum ErrorCode
     E2037( "Order not supported: `{0}`" ),
     E2038( "Field not supported: `{0}`" ),
     E2039( "StageOffset is allowed only for repeatable stages (`{0}` is not repeatable)" ),
+    E2040( "Data value has invalid image type: `{0}`" ),
+    E2041( "Data value has invalid organisation unit: `{0}`" ),
+    E2042( "Data value has invalid username: `{0}`" ),
+    E2043( "Data value is invalid." ),
+    E2044( "Data value has no valid type: `{0}`" ),
 
     /* Outlier detection */
     E2200( "At least one data element must be specified" ),

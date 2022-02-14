@@ -27,11 +27,13 @@
  */
 package org.hisp.dhis.common;
 
+import org.hisp.dhis.feedback.ErrorMessage;
+
 /**
  * @author abyot
  *
  */
 public interface ValueTypeValidationService
 {
-    String dataValueIsValid( ValueTypedDimensionalItemObject dataValueObject, String value );
+    ErrorMessage dataValueIsValid( ValueTypedDimensionalItemObject dataValueObject, String value );
 }

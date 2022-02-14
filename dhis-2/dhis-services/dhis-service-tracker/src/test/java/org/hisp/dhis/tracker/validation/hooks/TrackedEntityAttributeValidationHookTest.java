@@ -38,11 +38,15 @@ import java.util.Arrays;
 import java.util.Collections;
 
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.DefaultValueTypeValidationService;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.common.ValueTypeValidationService;
 import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
@@ -54,10 +58,10 @@ import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.util.Constant;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
+import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -71,7 +75,6 @@ import org.mockito.quality.Strictness;
 class TrackedEntityAttributeValidationHookTest
 {
 
-    @InjectMocks
     private TrackedEntityAttributeValidationHook trackedEntityAttributeValidationHook;
 
     @Mock
@@ -83,9 +86,25 @@ class TrackedEntityAttributeValidationHookTest
     @Mock
     private TrackedEntityAttribute trackedEntityAttribute;
 
+    @Mock
+    private FileResourceService fileResourceService;
+
+    @Mock
+    private OrganisationUnitService organisationUnitService;
+
+    @Mock
+    private UserService userService;
+
     @BeforeEach
     public void setUp()
     {
+
+        ValueTypeValidationService valueTypeValidationService = new DefaultValueTypeValidationService(
+            fileResourceService, organisationUnitService, userService );
+
+        trackedEntityAttributeValidationHook = new TrackedEntityAttributeValidationHook( valueTypeValidationService,
+            dhisConfigurationProvider );
+
         TrackerBundle bundle = TrackerBundle.builder().build();
         when( validationContext.getBundle() ).thenReturn( bundle );
         when( dhisConfigurationProvider.getEncryptionStatus() ).thenReturn( EncryptionStatus.OK );

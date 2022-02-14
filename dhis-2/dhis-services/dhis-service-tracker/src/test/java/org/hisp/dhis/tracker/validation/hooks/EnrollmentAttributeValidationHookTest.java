@@ -39,6 +39,7 @@ import java.util.HashSet;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.common.ValueTypeValidationService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -69,8 +70,6 @@ import org.mockito.quality.Strictness;
 @ExtendWith( MockitoExtension.class )
 class EnrollmentAttributeValidationHookTest
 {
-
-    @InjectMocks
     private EnrollmentAttributeValidationHook hookToTest;
 
     @Mock
@@ -88,6 +87,9 @@ class EnrollmentAttributeValidationHookTest
     @Mock
     private TrackedEntityInstance trackedEntityInstance;
 
+    @Mock
+    private ValueTypeValidationService valueTypeValidationService;
+
     private final static String trackedEntity = "trackedEntity";
 
     private final static String trackedAttribute = "attribute";
@@ -102,6 +104,7 @@ class EnrollmentAttributeValidationHookTest
     public void setUp()
     {
 
+        hookToTest = new EnrollmentAttributeValidationHook( valueTypeValidationService );
         trackedEntityAttribute = new TrackedEntityAttribute( "name", "description", ValueType.TEXT, false,
             false );
         trackedEntityAttribute.setUid( trackedAttribute );

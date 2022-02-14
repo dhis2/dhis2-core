@@ -46,11 +46,11 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.ValueTypeValidationService;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
@@ -70,10 +70,10 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
 {
     private final DhisConfigurationProvider dhisConfigurationProvider;
 
-    public TrackedEntityAttributeValidationHook( TrackedEntityAttributeService trackedEntityAttributeService,
+    public TrackedEntityAttributeValidationHook( ValueTypeValidationService valueTypeValidationService,
         DhisConfigurationProvider dhisConfigurationProvider )
     {
-        super( trackedEntityAttributeService );
+        super( valueTypeValidationService );
         checkNotNull( dhisConfigurationProvider );
         this.dhisConfigurationProvider = dhisConfigurationProvider;
     }

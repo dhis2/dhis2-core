@@ -49,6 +49,8 @@ import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageInstance;
@@ -186,12 +188,13 @@ public class DataValueCheck implements Checker
         }
         else
         {
-            String status = ctx.getServiceDelegator().getValueTypeValidationService().dataValueIsValid( dataElement,
+            ErrorMessage errorMessage = ctx.getServiceDelegator().getValueTypeValidationService().dataValueIsValid(
+                dataElement,
                 dataValue.getValue() );
 
-            if ( status != null )
+            if ( errorMessage != null )
             {
-                importConflicts.addConflict( dataElement.getUid(), status );
+                importConflicts.addConflict( dataElement.getUid(), errorMessage.getMessage() );
             }
         }
 

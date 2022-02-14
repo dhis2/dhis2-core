@@ -34,6 +34,8 @@ import java.util.Set;
 
 import javax.imageio.ImageIO;
 
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.option.OptionSet;
@@ -72,8 +74,18 @@ public class DefaultValueTypeValidationService implements ValueTypeValidationSer
     }
 
     @Override
-    public String dataValueIsValid( ValueTypedDimensionalItemObject dataValueObject, String value )
+    public ErrorMessage dataValueIsValid( ValueTypedDimensionalItemObject dataValueObject, String value )
     {
+        if ( dataValueObject == null || dataValueObject.getValueType() == null )
+        {
+            return new ErrorMessage( ErrorCode.E2043 );
+        }
+
+        if ( dataValueObject.getValueType() == null )
+        {
+            return new ErrorMessage( ErrorCode.E2044, dataValueObject.getValueType() );
+        }
+
         if ( dataValueObject.hasOptionSet() )
         {
             return validateOptionDataValue( dataValueObject, value );
@@ -94,10 +106,12 @@ public class DefaultValueTypeValidationService implements ValueTypeValidationSer
         {
             return validateUserDataValue( value );
         }
-        return ValidationUtils.dataValueIsValid( value, dataValueObject.getValueType() );
+        return ValidationUtils.dataValueIsValid( value, dataValueObject.getValueType() ) != null
+            ? new ErrorMessage( ErrorCode.E2030, dataValueObject.getValueType() )
+            : null;
     }
 
-    private String validateOptionDataValue( ValueTypedDimensionalItemObject dataValueObject,
+    private ErrorMessage validateOptionDataValue( ValueTypedDimensionalItemObject dataValueObject,
         String value )
     {
         OptionSet optionSet = dataValueObject.getOptionSet();
@@ -107,12 +121,12 @@ public class DefaultValueTypeValidationService implements ValueTypeValidationSer
             return null;
         }
 
-        return !optionSet.getOptionCodesAsSet().contains( value )
-            ? "Value is not a valid option of the data element option set: " + value
+        return !optionSet.getOptionCodesAsSet().stream().anyMatch( value::equalsIgnoreCase )
+            ? new ErrorMessage( ErrorCode.E2029, value )
             : null;
     }
 
-    private String validateFileResourceDataValue( String value )
+    private ErrorMessage validateFileResourceDataValue( String value )
     {
         if ( isNullOrEmpty( value ) )
         {
@@ -121,15 +135,20 @@ public class DefaultValueTypeValidationService implements ValueTypeValidationSer
 
         FileResource fileResource = fileResourceService.getFileResource( value );
 
-        if ( fileResource == null || !fileResource.isAssigned() )
+        if ( fileResource == null )
         {
-            return "Value is not a valid file resource: " + value;
+            return new ErrorMessage( ErrorCode.E2027, value );
+        }
+
+        if ( fileResource.isAssigned() )
+        {
+            return new ErrorMessage( ErrorCode.E2026, value );
         }
 
         return null;
     }
 
-    private String validateImageDataValue( String value )
+    private ErrorMessage validateImageDataValue( String value )
     {
         if ( isNullOrEmpty( value ) )
         {
@@ -141,19 +160,24 @@ public class DefaultValueTypeValidationService implements ValueTypeValidationSer
 
         FileResource fileResource = fileResourceService.getFileResource( value );
 
-        if ( fileResource == null || !fileResource.isAssigned() )
+        if ( fileResource == null )
         {
-            return "Value is not a valid file resource: " + value;
+            return new ErrorMessage( ErrorCode.E2027, value );
+        }
+
+        if ( fileResource.isAssigned() )
+        {
+            return new ErrorMessage( ErrorCode.E2026, value );
         }
         else if ( !validImageFormats.contains( fileResource.getFormat() ) )
         {
-            return "File resource is not a valid image: " + value;
+            return new ErrorMessage( ErrorCode.E2040, fileResource.getFormat() );
         }
 
         return null;
     }
 
-    private String validateOrgUnitDataValue( String value )
+    private ErrorMessage validateOrgUnitDataValue( String value )
     {
         if ( isNullOrEmpty( value ) )
         {
@@ -161,18 +185,18 @@ public class DefaultValueTypeValidationService implements ValueTypeValidationSer
         }
 
         return organisationUnitService.getOrganisationUnit( value ) == null
-            ? "Value is not a valid organisation unit: " + value
+            ? new ErrorMessage( ErrorCode.E2041, value )
             : null;
     }
 
-    private String validateUserDataValue( String value )
+    private ErrorMessage validateUserDataValue( String value )
     {
         if ( isNullOrEmpty( value ) )
         {
             return null;
         }
 
-        return userService.getUserCredentialsByUsername( value ) == null ? "Value is not a valid username:  " + value
+        return userService.getUserCredentialsByUsername( value ) == null ? new ErrorMessage( ErrorCode.E2042, value )
             : null;
     }
 }

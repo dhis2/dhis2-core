@@ -41,6 +41,8 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.ValueTypeValidationService;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.tracker.domain.DataValue;
@@ -57,12 +59,12 @@ import org.springframework.stereotype.Component;
 public class EventDataValuesValidationHook
     extends AbstractTrackerDtoValidationHook
 {
-    private final ValueTypeValidationService dataValueValidationService;
+    private final ValueTypeValidationService valueTypeValidationService;
 
-    public EventDataValuesValidationHook( ValueTypeValidationService dataValueValidationService )
+    public EventDataValuesValidationHook( ValueTypeValidationService valueTypeValidationService )
     {
-        checkNotNull( dataValueValidationService );
-        this.dataValueValidationService = dataValueValidationService;
+        checkNotNull( valueTypeValidationService );
+        this.valueTypeValidationService = valueTypeValidationService;
     }
 
     @Override
@@ -87,10 +89,6 @@ public class EventDataValuesValidationHook
             }
 
             validateDataValue( reporter, dataElement, dataValue, programStage, event );
-            if ( dataValue.getValue() != null )
-            {
-                validateOptionSet( reporter, event, dataElement, dataValue.getValue() );
-            }
         }
 
         validateMandatoryDataValues( event, context, reporter );
@@ -119,12 +117,14 @@ public class EventDataValuesValidationHook
     private void validateDataValue( ValidationErrorReporter reporter, DataElement dataElement,
         DataValue dataValue, ProgramStage programStage, Event event )
     {
-        final String status = dataValueValidationService.dataValueIsValid( dataElement, dataValue.getValue() );
+        final ErrorMessage errorMessage = valueTypeValidationService.dataValueIsValid( dataElement,
+            dataValue.getValue() );
 
-        if ( status != null )
+        System.out.println( " error errorMessage:  " + errorMessage );
+        if ( errorMessage != null )
         {
-            reporter.addError( event, TrackerErrorCode.E1302, dataElement.getUid(),
-                status );
+            reporter.addError( event, getTrackerErrorCode( errorMessage ), dataElement.getUid(),
+                errorMessage.getMessage() );
         }
         else
         {
@@ -173,6 +173,31 @@ public class EventDataValuesValidationHook
                 reporter.addError( event, TrackerErrorCode.E1305, payloadDataElement,
                     programStage.getUid() );
             }
+        }
+    }
+
+    private TrackerErrorCode getTrackerErrorCode( ErrorMessage errorMessage )
+    {
+        switch ( errorMessage.getErrorCode() )
+        {
+        case E2027:
+            return TrackerErrorCode.E1084;
+        case E2029:
+            return TrackerErrorCode.E1125;
+        case E2030:
+            return TrackerErrorCode.E1302;
+        case E2040:
+            return TrackerErrorCode.E1101;
+        case E2041:
+            return TrackerErrorCode.E1105;
+        case E2042:
+            return TrackerErrorCode.E1106;
+        case E2043:
+            return TrackerErrorCode.E1302;
+        case E2026:
+            return TrackerErrorCode.E1009;
+        default:
+            return null;
         }
     }
 }

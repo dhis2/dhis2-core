@@ -66,5 +66,5 @@ public class ServiceDelegator
 
     private final AuditManager auditManager;
 
-    private ValueTypeValidationService valueTypeValidationService;
+    private final ValueTypeValidationService valueTypeValidationService;
 }
