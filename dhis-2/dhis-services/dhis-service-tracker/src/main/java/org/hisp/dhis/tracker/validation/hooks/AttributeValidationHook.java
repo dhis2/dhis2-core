@@ -36,7 +36,6 @@ import java.util.Objects;
 
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.ValueTypeValidationService;
-import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
