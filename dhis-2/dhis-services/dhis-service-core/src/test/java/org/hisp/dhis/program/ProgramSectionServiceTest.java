@@ -27,14 +27,17 @@
  */
 package org.hisp.dhis.program;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.junit.Assert;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -73,10 +76,10 @@ public class ProgramSectionServiceTest
         manager.save( programSection );
 
         User userA = createUser( "A", "F_PROGRAM_PUBLIC_ADD" );
-        Assert.assertTrue( aclService.canUpdate( userA, programSection ) );
+        assertTrue( aclService.canUpdate( userA, programSection ) );
 
         User userB = createUser( "B" );
-        Assert.assertFalse( aclService.canUpdate( userB, programSection ) );
+        assertFalse( aclService.canUpdate( userB, programSection ) );
     }
 
     @Test
@@ -89,6 +92,6 @@ public class ProgramSectionServiceTest
         ProgramSection programSection = createProgramSection( 'A', program );
         manager.save( programSection );
 
-        Assert.assertNotNull( manager.get( ProgramSection.class, programSection.getId() ) );
+        assertNotNull( manager.get( ProgramSection.class, programSection.getId() ) );
     }
 }
