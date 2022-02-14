@@ -70,7 +70,6 @@ public class SystemActions
             .extractList( "completed" ).contains( true );
 
         with()
-            .pollInterval( 1, TimeUnit.SECONDS )
             .atMost( 20, TimeUnit.SECONDS )
             .await().until( () -> taskIsCompleted.call() );
 
