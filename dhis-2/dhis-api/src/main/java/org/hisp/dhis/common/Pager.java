@@ -177,4 +177,17 @@ public class Pager
     {
         this.prevPage = prevPage;
     }
+
+    /**
+     * Method used when we don't need any pagination logic. We just want to
+     * simply set the current page and page size.
+     *
+     * @param page
+     * @param pageSize
+     */
+    public void force( int page, int pageSize )
+    {
+        this.page = page;
+        this.pageSize = pageSize;
+    }
 }
