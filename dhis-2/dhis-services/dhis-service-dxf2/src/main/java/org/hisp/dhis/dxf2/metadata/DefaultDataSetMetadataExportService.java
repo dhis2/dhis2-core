@@ -33,10 +33,7 @@ import static org.hisp.dhis.commons.collection.CollectionUtils.mapToSet;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import lombok.AllArgsConstructor;
 
@@ -53,6 +50,7 @@ import org.hisp.dhis.fieldfiltering.FieldFilterParams;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.schema.descriptors.CategoryComboSchemaDescriptor;
+import org.hisp.dhis.schema.descriptors.CategoryOptionSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.CategorySchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.DataElementSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.DataSetSchemaDescriptor;
@@ -62,7 +60,6 @@ import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Lars Helge Overland
@@ -72,24 +69,24 @@ import com.google.common.collect.ImmutableSet;
 public class DefaultDataSetMetadataExportService
     implements DataSetMetadataExportService
 {
-    private static final String FIELD_CATEGORY_OPTIONS = "categoryOptions";
+    private static final String FIELDS_DATA_SETS = ":simple,categoryCombo[id]," +
+        "dataSetElements[dataElement[id],categoryCombo[id]]," +
+        "compulsoryDataElementOperands[dataElement[id],categoryOptionCombo[id]]," +
+        "dataInputPeriods[period,openingDate,closingDate]," +
+        "sections[:simple,dataElements~pluck[id],indicators~pluck[id]," +
+        "greyedFields[dataElement[id],categoryOptionCombo[id]]]";
 
-    private static final String FIELD_ID = "id";
+    private static final String FIELDS_DATA_ELEMENTS = ":identifiable,displayName,displayShortName,displayFormName," +
+        "zeroIsSignificant,valueType,aggregationType,categoryCombo[id],optionSet[id],commentOptionSet";
 
-    private static final String FIELD_PRESET_SIMPLE = ":simple";
+    private static final String FIELDS_INDICATORS = ":simple,explodedNumerator,explodedDenominator";
 
-    private static final Set<String> FIELDS_DATA_SETS = Set.of(
-        "sections[:simple,dataElements~pluck,indicators~pluck," +
-            "greyedFields[dataElement~pluck,categoryOptionCombo~pluck],categoryCombo~pluck" );
+    private static final String FIELDS_DATAELEMENT_CAT_COMBOS = ":simple,isDefault,categories~pluck[id]," +
+        "categoryOptionCombos[id,code,name,displayName,categoryOptions~pluck[id]]";
 
-    private static final Set<String> FIELDS_DATA_ELEMENTS = Set.of( "categoryCombo~pluck" );
+    private static final String FIELDS_DATA_SET_CAT_COMBOS = ":simple,isDefault,categories~pluck[id]";
 
-    private static final Set<String> FIELDS_INDICATORS = Set.of( "explodedNumerator", "explodedDenominator" );
-
-    private static final Set<String> FIELDS_DATAELEMENT_CAT_COMBOS = Set.of(
-        "isDefault,categories~pluck,categoryOptionCombos[id,code,name,displayName]" );
-
-    private static final Set<String> FIELDS_DATA_SET_CAT_COMBOS = Set.of( "isDefault,categories~pluck" );
+    private static final String FIELDS_CATEGORIES = ":simple,categoryOptions~pluck[id]";
 
     private final FieldFilterService fieldFilterService;
 
@@ -115,6 +112,7 @@ public class DefaultDataSetMetadataExportService
         Set<CategoryCombo> dataSetCategoryCombos = mapToSet( dataSets, DataSet::getCategoryCombo );
         Set<Category> dataElementCategories = flatMapToSet( dataElementCategoryCombos, CategoryCombo::getCategories );
         Set<Category> dataSetCategories = flatMapToSet( dataSetCategoryCombos, CategoryCombo::getCategories );
+        Set<CategoryOption> categoryOptions = getCategoryOptions( dataElementCategories, dataSetCategories, user );
 
         expressionService.substituteIndicatorExpressions( indicators );
 
@@ -130,36 +128,30 @@ public class DefaultDataSetMetadataExportService
             .addAll( asObjectNodes( dataElementCategoryCombos, FIELDS_DATAELEMENT_CAT_COMBOS, CategoryCombo.class ) )
             .addAll( asObjectNodes( dataSetCategoryCombos, FIELDS_DATA_SET_CAT_COMBOS, CategoryCombo.class ) );
         rootNode.putArray( CategorySchemaDescriptor.PLURAL )
-            .addAll( asObjectNodes( dataElementCategories, Set.of(), Category.class ) )
-            .addAll( getDataSetCategories( dataSetCategories, user ) );
+            .addAll( asObjectNodes( dataElementCategories, FIELDS_CATEGORIES, Category.class ) )
+            .addAll( asObjectNodes( dataSetCategories, FIELDS_CATEGORIES, Category.class ) );
+        rootNode.putArray( CategoryOptionSchemaDescriptor.PLURAL )
+            .addAll( asObjectNodes( categoryOptions, FIELDS_CATEGORIES, CategoryOption.class ) );
 
         return rootNode;
     }
 
     /**
-     * Returns a list of object nodes representing the given categories. Each
-     * category node has an array of category option for which the current user
-     * has data write sharing access for.
+     * Returns category options for the given data element and data set
+     * categories. For the data set categories, only category options which the
+     * current user has data write access to are returned.
      *
-     * @param categories the list of {@link Category}.
-     * @param user the current {@link User}.
-     * @return a list of {@link ObjectNode}.
+     * @param dataElementCategories the data element categories.
+     * @param dataSetCategories the data set categories.
+     * @param user the current user.
+     * @return a set of {@link CategoryOption}.
      */
-    private List<ObjectNode> getDataSetCategories( Collection<Category> categories, User user )
+    private Set<CategoryOption> getCategoryOptions(
+        Set<Category> dataElementCategories, Set<Category> dataSetCategories, User user )
     {
-        List<ObjectNode> categoryNodes = asObjectNodes( categories, Set.of(), Category.class );
-
-        Map<String, ObjectNode> objectNodeMap = getIdObjectNodeMap( categoryNodes );
-
-        for ( Category category : categories )
-        {
-            List<CategoryOption> categoryOptions = categoryService.getDataWriteCategoryOptions( category, user );
-            ObjectNode categoryNode = objectNodeMap.get( category.getUid() );
-            categoryNode.putArray( FIELD_CATEGORY_OPTIONS )
-                .addAll( asObjectNodes( categoryOptions, Set.of(), CategoryOption.class ) );
-        }
-
-        return categoryNodes;
+        Set<CategoryOption> options = flatMapToSet( dataElementCategories, Category::getCategoryOptions );
+        dataSetCategories.forEach( c -> options.addAll( categoryService.getDataWriteCategoryOptions( c, user ) ) );
+        return options;
     }
 
     /**
@@ -167,36 +159,19 @@ public class DefaultDataSetMetadataExportService
      *
      * @param <T>
      * @param objects the collection of objects.
-     * @param extraFilters the set of filters to apply in addition to
-     *        <code>simple</code>.
+     * @param filters the filters to apply.
      * @param type the class type.
      * @return an {@link ObjectNode}.
      */
     private <T extends IdentifiableObject> List<ObjectNode> asObjectNodes(
-        Collection<T> objects, Set<String> extraFilters, Class<T> type )
+        Collection<T> objects, String filters, Class<T> type )
     {
-        Set<String> filters = ImmutableSet.<String> builder()
-            .add( FIELD_PRESET_SIMPLE ).addAll( extraFilters ).build();
-
         FieldFilterParams<T> fieldFilterParams = FieldFilterParams.<T> builder()
             .objects( new ArrayList<>( objects ) )
-            .filters( filters )
+            .filters( Set.of( filters ) )
             .skipSharing( true )
             .build();
 
         return fieldFilterService.toObjectNodes( fieldFilterParams );
-    }
-
-    /**
-     * Returns a mapping from identifier to {@link ObjectNode} for the given
-     * collection of object nodes.
-     *
-     * @param objectNodes the collection of object nodes.
-     * @return a mapping from identifier to {@link ObjectNode}.
-     */
-    private Map<String, ObjectNode> getIdObjectNodeMap( Collection<ObjectNode> objectNodes )
-    {
-        return objectNodes.stream().collect(
-            Collectors.toMap( n -> n.get( FIELD_ID ).asText(), Function.identity() ) );
     }
 }

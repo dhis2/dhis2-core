@@ -28,6 +28,7 @@
 package org.hisp.dhis.validation;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.antlr.AntlrParserUtils.castDouble;
 import static org.hisp.dhis.expression.MissingValueStrategy.NEVER_SKIP;
 import static org.hisp.dhis.expression.ParseType.SIMPLE_TEST;
 import static org.hisp.dhis.expression.ParseType.VALIDATION_RULE_EXPRESSION;
@@ -56,6 +57,7 @@ import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.expression.Expression;
+import org.hisp.dhis.expression.ExpressionParams;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.expression.Operator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -354,7 +356,8 @@ public class DataValidationTask
         String test = leftSide
             + ruleX.getRule().getOperator().getMathematicalOperator()
             + rightSide;
-        return !(Boolean) expressionService.getExpressionValue( test, SIMPLE_TEST );
+        return !(Boolean) expressionService.getExpressionValue( ExpressionParams.builder()
+            .expression( test ).parseType( SIMPLE_TEST ).build() );
     }
 
     /**
@@ -494,9 +497,17 @@ public class DataValidationTask
                 values.putAll( nonAocValues );
             }
 
-            Double value = expressionService.getExpressionValue( expression.getExpression(), VALIDATION_RULE_EXPRESSION,
-                context.getItemMap(), values, context.getConstantMap(), null, context.getOrgUnitGroupMap(),
-                period.getDaysInPeriod(), expression.getMissingValueStrategy(), orgUnit );
+            Double value = castDouble( expressionService.getExpressionValue( ExpressionParams.builder()
+                .expression( expression.getExpression() )
+                .parseType( VALIDATION_RULE_EXPRESSION )
+                .itemMap( context.getItemMap() )
+                .valueMap( values )
+                .constantMap( context.getConstantMap() )
+                .orgUnitGroupMap( context.getOrgUnitGroupMap() )
+                .days( period.getDaysInPeriod() )
+                .missingValueStrategy( expression.getMissingValueStrategy() )
+                .orgUnit( orgUnit )
+                .build() ) );
 
             if ( MathUtils.isValidDouble( value ) )
             {

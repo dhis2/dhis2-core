@@ -63,6 +63,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.expression.Expression;
+import org.hisp.dhis.expression.ExpressionParams;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.mock.MockAnalyticsService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -391,7 +392,8 @@ class AnalyticsValidationServiceTest extends TransactionalIntegrationTest
         {
             String test = result.getLeftsideValue() + result.getValidationRule().getOperator().getMathematicalOperator()
                 + result.getRightsideValue();
-            assertFalse( (Boolean) expressionService.getExpressionValue( test, SIMPLE_TEST ) );
+            assertFalse( (Boolean) expressionService.getExpressionValue( ExpressionParams.builder()
+                .expression( test ).parseType( SIMPLE_TEST ).build() ) );
         }
     }
 
