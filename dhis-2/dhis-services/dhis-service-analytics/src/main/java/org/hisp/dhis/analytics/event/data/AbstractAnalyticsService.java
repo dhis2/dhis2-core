@@ -149,15 +149,7 @@ public abstract class AbstractAnalyticsService
             }
             else
             {
-                String uid = item.getItem().getUid();
-
-                if ( item.getItem().getDimensionItemType() == DATA_ELEMENT )
-                {
-                    if ( item.getProgramStage() != null )
-                    {
-                        uid = joinWith( ".", item.getProgramStage().getUid(), uid );
-                    }
-                }
+                final String uid = getItemUid( item );
 
                 final String column = item.getItem().getDisplayProperty( params.getDisplayProperty() );
 
@@ -206,6 +198,24 @@ public abstract class AbstractAnalyticsService
         maybeApplyHeaders( params, grid );
 
         return grid;
+    }
+
+    /**
+     * Based on the given item this method returns the correct uid based on
+     * internal rules/requirements.
+     *
+     * @param item the current QueryItem
+     * @return the correct uid based on the item type
+     */
+    private String getItemUid( final QueryItem item )
+    {
+        String uid = item.getItem().getUid();
+
+        if ( item.getItem().getDimensionItemType() == DATA_ELEMENT && item.getProgramStage() != null )
+        {
+            uid = joinWith( ".", item.getProgramStage().getUid(), uid );
+        }
+        return uid;
     }
 
     protected abstract Grid createGridWithHeaders( EventQueryParams params );
