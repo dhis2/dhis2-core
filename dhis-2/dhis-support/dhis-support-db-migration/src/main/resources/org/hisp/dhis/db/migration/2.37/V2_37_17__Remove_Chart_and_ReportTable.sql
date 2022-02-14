@@ -35,8 +35,6 @@ DROP TABLE IF EXISTS chart CASCADE;
 DROP TABLE IF EXISTS charttranslations CASCADE;
 
 -- Drop all ReportTable tables
-DROP TABLE IF EXISTS reporttable CASCADE;
-DROP TABLE IF EXISTS dashboarditem_reporttables CASCADE;
 DROP TABLE IF EXISTS reporttable_categorydimensions;
 DROP TABLE IF EXISTS reporttable_categoryoptiongroupsetdimensions;
 DROP TABLE IF EXISTS reporttable_columns;
@@ -49,6 +47,8 @@ DROP TABLE IF EXISTS reporttable_orgunitgroupsetdimensions;
 DROP TABLE IF EXISTS reporttable_orgunitlevels;
 DROP TABLE IF EXISTS reporttable_periods;
 DROP TABLE IF EXISTS reporttable_rows;
+DROP TABLE IF EXISTS reporttable CASCADE;
+DROP TABLE IF EXISTS dashboarditem_reporttables CASCADE;
 
 UPDATE datastatisticsevent
 SET eventtype = 'VISUALIZATION_VIEW'
