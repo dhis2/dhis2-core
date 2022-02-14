@@ -60,13 +60,13 @@ public class V2_38_32__Add_new_user_role_for_analytics_explain_endpoint extends 
                 superUserRoleIds.add( superUserRole.getInt( 1 ) );
             }
         }
-        catch ( SQLException ex )
+        catch ( SQLException e )
         {
-            log.error( "Flyway java migration error", ex );
-            throw new FlywayException( ex );
+            log.error( "Flyway java migration error", e );
+            throw new FlywayException( e );
         }
 
-        if ( superUserRoleIds.size() > 0 )
+        if ( !superUserRoleIds.isEmpty() )
         {
             try ( PreparedStatement ps = context.getConnection().prepareStatement(
                 "INSERT INTO userroleauthorities (userroleid, authority) VALUES (?, 'F_PERFORM_ANALYTICS_EXPLAIN')" ) )
