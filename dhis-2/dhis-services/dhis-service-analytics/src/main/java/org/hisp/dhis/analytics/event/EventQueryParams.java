@@ -197,7 +197,7 @@ public class EventQueryParams
     /**
      * Indicates the event status.
      */
-    private Set<EventStatus> eventStatus;
+    private Set<EventStatus> eventStatus = new HashSet<>();
 
     /**
      * Indicates whether the data dimension items should be collapsed into a
@@ -423,6 +423,7 @@ public class EventQueryParams
         itemFilters.forEach( e -> key.add( "itemFilter", "[" + e.getKey() + "]" ) );
         headers.forEach( header -> key.add( "headers", "[" + header + "]" ) );
         itemProgramIndicators.forEach( e -> key.add( "itemProgramIndicator", e.getUid() ) );
+        eventStatus.forEach( status -> key.add( "eventStatus", "[" + status + "]" ) );
         asc.forEach( e -> e.getUid() );
         desc.forEach( e -> e.getUid() );
 
@@ -437,7 +438,6 @@ public class EventQueryParams
             .addIgnoreNull( "limit", limit )
             .addIgnoreNull( "outputType", outputType )
             .addIgnoreNull( "outputIdScheme", outputIdScheme )
-            .addIgnoreNull( "eventStatus", eventStatus )
             .addIgnoreNull( "collapseDataDimensions", collapseDataDimensions )
             .addIgnoreNull( "coordinatesOnly", coordinatesOnly )
             .addIgnoreNull( "coordinateOuFallback", coordinateOuFallback )

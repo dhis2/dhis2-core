@@ -35,12 +35,10 @@ import java.util.Set;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.MapMap;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorValue;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.period.Period;
 
@@ -275,59 +273,8 @@ public interface ExpressionService
     /**
      * Generates the calculated value for an expression.
      *
-     * @param expression the expression string.
-     * @param parseType the type of expression to parse.
+     * @param exParams the expression parameters.
      * @return the calculated value.
      */
-    Object getExpressionValue( String expression, ParseType parseType );
-
-    /**
-     * Generates the calculated numeric value for an expression.
-     *
-     * @param expression the expression string.
-     * @param parseType the type of expression to parse.
-     * @param itemMap map of dimensional item objects to value in expression.
-     * @param valueMap the dimensional item object values to use for
-     *        calculation.
-     * @param constantMap map of constants to use for calculation.
-     * @param orgUnitCountMap the map of organisation unit group member counts.
-     * @param orgUnitGroupMap the map of organisation unit groups.
-     * @param days the number of days to use in the calculation.
-     * @param missingValueStrategy the strategy to use when data values are
-     *        missing when calculating the expression.
-     * @param orgUnit the current organisation unit.
-     * @return the calculated value as a double.
-     */
-    Double getExpressionValue( String expression, ParseType parseType,
-        Map<DimensionalItemId, DimensionalItemObject> itemMap, Map<DimensionalItemObject, Object> valueMap,
-        Map<String, Constant> constantMap, Map<String, Integer> orgUnitCountMap,
-        Map<String, OrganisationUnitGroup> orgUnitGroupMap, Integer days,
-        MissingValueStrategy missingValueStrategy, OrganisationUnit orgUnit );
-
-    /**
-     * Generates the calculated value for an expression.
-     *
-     * @param expression the expression string.
-     * @param parseType the type of expression to parse.
-     * @param itemMap map of dimensional item objects to value in expression.
-     * @param valueMap the dimensional item object values to use for
-     *        calculation.
-     * @param constantMap map of constants to use for calculation.
-     * @param orgUnitCountMap the map of organisation unit group member counts.
-     * @param orgUnitGroupMap the map of organisation unit groups.
-     * @param days the number of days to use in the calculation.
-     * @param missingValueStrategy the strategy to use when data values are
-     *        missing when calculating the expression.
-     * @param orgUnit the current organisation unit.
-     * @param samplePeriods periods for samples to aggregate.
-     * @param periodValueMap values for aggregate functions by period.
-     * @param dataType the data type the expression should return.
-     * @return the calculated value.
-     */
-    Object getExpressionValue( String expression, ParseType parseType,
-        Map<DimensionalItemId, DimensionalItemObject> itemMap, Map<DimensionalItemObject, Object> valueMap,
-        Map<String, Constant> constantMap, Map<String, Integer> orgUnitCountMap,
-        Map<String, OrganisationUnitGroup> orgUnitGroupMap, Integer days,
-        MissingValueStrategy missingValueStrategy, OrganisationUnit orgUnit, List<Period> samplePeriods,
-        MapMap<Period, DimensionalItemObject, Object> periodValueMap, DataType dataType );
+    Object getExpressionValue( ExpressionParams exParams );
 }

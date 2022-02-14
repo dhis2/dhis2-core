@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.event.data;
 
 import static java.util.stream.Collectors.joining;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.encode;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
@@ -96,9 +97,16 @@ public class JdbcEnrollmentAnalyticsManager
 
     private static final String LIMIT_1 = "limit 1";
 
+    public static final String CREATED_BY_DISPLAY_NAME_COLUMN = "concat(createdbylastname, ', ', createdbyname, "
+        + "' (', createdbyusername, ')') as createdbydisplayname";
+
+    public static final String LAST_UPDATED_BY_DISPLAY_NAME_COLUMN = "concat(lastupdatedbylastname, ', '"
+        + ", lastupdatedbyname, ' (', lastupdatedbyusername, ')') as lastupdatedbydisplayaname";
+
     private List<String> COLUMNS = Lists.newArrayList( "pi", "tei", "enrollmentdate", "incidentdate",
-        "storedby", "lastupdated", "ST_AsGeoJSON(pigeometry)", "longitude", "latitude", "ouname", "oucode",
-        "enrollmentstatus" );
+        "storedby", CREATED_BY_DISPLAY_NAME_COLUMN, LAST_UPDATED_BY_DISPLAY_NAME_COLUMN, "lastupdated",
+        "ST_AsGeoJSON(pigeometry)", "longitude", "latitude",
+        "ouname", "oucode", "enrollmentstatus" );
 
     public JdbcEnrollmentAnalyticsManager( JdbcTemplate jdbcTemplate, StatementBuilder statementBuilder,
         ProgramIndicatorService programIndicatorService,
@@ -335,7 +343,9 @@ public class JdbcEnrollmentAnalyticsManager
         if ( params.hasProgramStatus() )
         {
             sql += "and enrollmentstatus in ("
-                + params.getProgramStatus().stream().map( p -> "'" + p.name() + "'" ).collect( joining( "," ) ) + ") ";
+                + params.getProgramStatus().stream().map( p -> encode( p.name(), true ) )
+                    .collect( joining( "," ) )
+                + ") ";
         }
 
         if ( params.isCoordinatesOnly() )
