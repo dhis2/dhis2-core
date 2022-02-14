@@ -57,6 +57,7 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.PerformanceMetrics;
+import org.hisp.dhis.common.Reference;
 import org.hisp.dhis.common.adapter.JacksonRowDataSerializer;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.system.util.MathUtils;
@@ -119,6 +120,8 @@ public class ListGrid
      * represents rows and the second represents columns.
      */
     private List<List<Object>> grid;
+
+    private List<Reference> refs;
 
     /**
      * Indicating the current row in the grid for writing data.
@@ -477,6 +480,13 @@ public class ListGrid
     public List<List<Object>> getRows()
     {
         return grid;
+    }
+
+    @Override
+    @JsonProperty
+    public List<Reference> getRefs()
+    {
+        return refs;
     }
 
     @Override
@@ -1117,6 +1127,19 @@ public class ListGrid
         performanceMetrics.setTotalTimeInMillis( Precision.round( total, 3 ) );
 
         performanceMetrics.setExecutionPlans( plans );
+
+        return this;
+    }
+
+    @Override
+    public Grid addReference( Reference reference )
+    {
+        if ( refs == null )
+        {
+            refs = new ArrayList<>();
+        }
+
+        refs.add( reference );
 
         return this;
     }
