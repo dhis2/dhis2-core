@@ -38,6 +38,7 @@ import lombok.Getter;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.translation.Translation;
+import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.sharing.Sharing;
 
@@ -127,6 +128,9 @@ public class MeDto
     @JsonProperty()
     private String email;
 
+    @JsonProperty
+    private Set<UserAuthorityGroup> userRoles;
+
     @JsonProperty()
     private UserCredWrapperDto userCredentials;
 
@@ -136,7 +140,6 @@ public class MeDto
     @JsonProperty()
     private List<String> programs;
 
-    // authorities
     @JsonProperty()
     private List<String> authorities;
 

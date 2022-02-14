@@ -174,17 +174,17 @@ public class JdbcEventStore implements EventStore
         " psinote.creator                as psinote_storedby," +
         " psinote.uid                    as psinote_uid," +
         " psinote.lastupdated            as psinote_lastupdated," +
-        " usernote.userid                as usernote_id," +
-        " usernote.code                  as usernote_code," +
-        " usernote.uid                   as usernote_uid," +
-        " usernote.username              as usernote_username," +
+        " userinfo.userinfoid            as usernote_id," +
+        " userinfo.code                  as usernote_code," +
+        " userinfo.uid                   as usernote_uid," +
+        " userinfo.username              as usernote_username," +
         " userinfo.firstname             as userinfo_firstname," +
         " userinfo.surname               as userinfo_surname" +
         " from programstageinstancecomments psic" +
         " inner join trackedentitycomment psinote" +
         " on psic.trackedentitycommentid = psinote.trackedentitycommentid" +
-        " left join users usernote on psinote.lastupdatedby = usernote.userid" +
-        " left join userinfo on usernote.userid = userinfo.userinfoid";
+        " left join userinfo on psinote.lastupdatedby = userinfo.userinfoid ";
+//        " left join userinfo on usernote.userid = userinfo.userinfoid";
 
     private static final String PSI_STATUS_EQ = " psi.status = '";
 
@@ -997,7 +997,7 @@ public class JdbcEventStore implements EventStore
             + "psi.created as psi_created, psi.createdbyuserinfo as psi_createdbyuserinfo, psi.lastupdated as psi_lastupdated, psi.lastupdatedbyuserinfo as psi_lastupdatedbyuserinfo, "
             + "psi.completeddate as psi_completeddate, psi.deleted as psi_deleted, "
             + "ST_AsText( psi.geometry ) as psi_geometry, au.uid as user_assigned, (au.firstName || ' ' || au.surName) as user_assigned_name,"
-            + "auc.username as user_assigned_username, cocco.categoryoptionid AS cocco_categoryoptionid, deco.uid AS deco_uid, " );
+            + "au.username as user_assigned_username, cocco.categoryoptionid AS cocco_categoryoptionid, deco.uid AS deco_uid, " );
 
         if ( (params.getCategoryOptionCombo() == null || params.getCategoryOptionCombo().isDefault())
             && !isSuper( user ) )
@@ -1031,8 +1031,8 @@ public class JdbcEventStore implements EventStore
             + "inner join organisationunit ou on (coalesce(po.organisationunitid, psi.organisationunitid)=ou.organisationunitid) "
             + "left join trackedentityinstance tei on tei.trackedentityinstanceid=pi.trackedentityinstanceid "
             + "left join organisationunit teiou on (tei.organisationunitid=teiou.organisationunitid) "
-            + "left join users auc on (psi.assigneduserid=auc.userid) "
-            + "left join userinfo au on (auc.userid=au.userinfoid) " );
+            + "left join userinfo au on (psi.assigneduserid=au.userinfoid) ");
+//            + "left join userinfo au on (auc.userid=au.userinfoid) " );
 
         Set<String> joinedColumns = new HashSet<>();
 
@@ -1274,8 +1274,8 @@ public class JdbcEventStore implements EventStore
             + "inner join categoryoptioncombo coc on coc.categoryoptioncomboid = psi.attributeoptioncomboid "
             + "left join trackedentityprogramowner po on (pi.trackedentityinstanceid=po.trackedentityinstanceid) "
             + "inner join organisationunit ou on (coalesce(po.organisationunitid, psi.organisationunitid)=ou.organisationunitid) "
-            + "left join users auc on (psi.assigneduserid=auc.userid) "
-            + "left join userinfo au on (auc.userid=au.userinfoid) " );
+            + "left join userinfo au on (psi.assigneduserid=au.userinfoid) ");
+//            + "left join userinfo au on (auc.userid=au.userinfoid) " );
 
         Set<String> joinedColumns = new HashSet<>();
 

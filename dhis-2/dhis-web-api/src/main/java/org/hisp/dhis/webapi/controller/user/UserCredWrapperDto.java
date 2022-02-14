@@ -91,4 +91,7 @@ public class UserCredWrapperDto
 
     @JsonProperty()
     private Access access;
+
+    @JsonProperty
+    private Set<UserAuthorityGroup> userRoles;
 }

@@ -123,6 +123,8 @@ public class OwnershipTests
 
         trackerActions.postAndGetJobReport( object )
             .validateSuccessfulImport();
+
+        String s = "s";
     }
 
     @ValueSource( strings = { "CREATE_AND_UPDATE", "UPDATE", "DELETE" } )

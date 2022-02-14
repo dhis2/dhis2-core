@@ -91,8 +91,8 @@ public class MetadataImportTest
     }
 
     //Fails12098E2E
-//    @ParameterizedTest( name = "withImportStrategy[{0}]" )
-//    @CsvSource( { "CREATE, ignored, 409", "CREATE_AND_UPDATE, updated, 200" } )
+    @ParameterizedTest( name = "withImportStrategy[{0}]" )
+    @CsvSource( { "CREATE, ignored, 409", "CREATE_AND_UPDATE, updated, 200" } )
     public void shouldUpdateExistingMetadata( String importStrategy, String expected, int expectedStatusCode )
     {
         // arrange

@@ -201,6 +201,7 @@ public class MeController
             user.getAccess(),
             user.getName(),
             user.getEmail(),
+            user.getUserAuthorityGroups(),
             null,
             userSettingService.getUserSettingsWithFallbackByUserAsMap( user, USER_SETTING_KEYS, true ),
             programService.getUserPrograms().stream()
