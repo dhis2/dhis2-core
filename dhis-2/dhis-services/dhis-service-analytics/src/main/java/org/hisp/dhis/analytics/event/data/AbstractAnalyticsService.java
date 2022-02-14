@@ -68,6 +68,7 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.MetadataItem;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.RepeatableStageParams;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -143,9 +144,12 @@ public abstract class AbstractAnalyticsService
 
                 String column = item.getItem().getDisplayProperty( params.getDisplayProperty() );
 
-                grid.addHeader( new GridHeader( name, column, item.getValueType(),
+                RepeatableStageParams repeatableStageParams = item.getRepeatableStageParams();
+
+                grid.addHeader( new GridHeader( name, column,
+                    repeatableStageParams.simpleStageValueExpected() ? ValueType.NUMBER : ValueType.REFERENCE,
                     false, true, item.getOptionSet(), item.getLegendSet(),
-                    item.getProgramStage().getUid(), item.getProgramStageOffset() ) );
+                    item.getProgramStage().getUid(), item.getRepeatableStageParams() ) );
             }
             else
             {
@@ -492,6 +496,7 @@ public abstract class AbstractAnalyticsService
 
     private boolean hasNonDefaultRepeatableProgramStageOffset( QueryItem item )
     {
-        return item.getProgramStage() != null && item.getProgramStageOffset() != 0;
+        return item != null && item.getProgramStage() != null && item.getRepeatableStageParams() != null
+            && (item.getRepeatableStageParams().getStartIndex() != 0 || item.getRepeatableStageParams().getCount() > 1);
     }
 }

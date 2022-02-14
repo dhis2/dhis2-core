@@ -70,7 +70,11 @@ abstract class EventAnalyticsTest
 
     protected ProgramStage programStage;
 
+    protected ProgramStage programStageWithRepeatableParams;
+
     protected Program programA;
+
+    protected Program programB;
 
     protected DataElement dataElementA;
 
@@ -78,7 +82,10 @@ abstract class EventAnalyticsTest
     void setUpData()
     {
         programA = createProgram( 'A' );
+        programB = createProgram( 'B' );
         programStage = createProgramStage( 'B', programA );
+        programStageWithRepeatableParams = createProgramStage( 'C', programB );
+        programStageWithRepeatableParams.setRepeatable( true );
         dataElementA = createDataElement( 'A', ValueType.INTEGER, AggregationType.SUM );
         dataElementA.setUid( "fWIAEtYVEGk" );
     }
