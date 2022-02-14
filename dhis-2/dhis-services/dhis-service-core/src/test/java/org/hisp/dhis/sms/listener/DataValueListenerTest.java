@@ -477,6 +477,8 @@ class DataValueListenerTest extends DhisConvenienceTest
         assertNotNull( updatedIncomingSms );
         assertEquals( SmsMessageStatus.FAILED, updatedIncomingSms.getStatus() );
         assertFalse( updatedIncomingSms.isParsed() );
+        verify( dataSetService, times( 0 ) ).getLockStatus( any( User.class ), any( DataSet.class ),
+            any( Period.class ), any( OrganisationUnit.class ), any( CategoryOptionCombo.class ), any( Date.class ) );
     }
 
     @Test
