@@ -66,38 +66,6 @@ public class RepeatableStageParams
 
     /**
      *
-     * @param o
-     * @return true if equal
-     */
-    // @Override
-    // public boolean equals( Object o )
-    // {
-    // if ( !(o instanceof RepeatableStageParams) )
-    // {
-    // return false;
-    // }
-    //
-    // RepeatableStageParams other = (RepeatableStageParams) o;
-    //
-    // return other.startIndex == startIndex && other.count == count
-    // && (startDate == null || other.startDate.equals( startDate ))
-    // && (endDate == null || other.endDate.equals( endDate ));
-    // }
-    //
-    // /**
-    // *
-    // * @return classical hash code for compare
-    // */
-    // @Override
-    // public int hashCode()
-    // {
-    // return (startIndex + count)
-    // * (startDate == null ? "null".hashCode() : startDate.hashCode())
-    // * (endDate == null ? "null".hashCode() : endDate.hashCode());
-    // }
-
-    /**
-     *
      * @return true if value type should be considered as number
      */
     public boolean simpleStageValueExpected()
