@@ -46,6 +46,8 @@ public enum ErrorCode
     E1105( "Data set not found or not accessible: `{0}`" ),
     E1106( "There are duplicate translation record for property `{0}` and locale `{1}`" ),
     E1107( "Object type `{0}` is not translatable." ),
+    E1108( "Could not add item to collection: {0}" ),
+    E1109( "Could not remove item from collection: {0}" ),
 
     /* Org unit merge */
     E1500( "At least two source orgs unit must be specified" ),
@@ -380,7 +382,9 @@ public enum ErrorCode
 
     // datastore query validation
     E7650( "Not a valid path: `{0}`" ),
-    E7651( "Illegal fields expression. Expected `,`, `[` or `]` at position {0} but found `{1}`" );
+    E7651( "Illegal fields expression. Expected `,`, `[` or `]` at position {0} but found `{1}`" ),
+    E7652( "Illegal filter expression `{0}`: {1}" ),
+    E7653( "Illegal filter `{0}`: {1}" );
 
     private String message;
 

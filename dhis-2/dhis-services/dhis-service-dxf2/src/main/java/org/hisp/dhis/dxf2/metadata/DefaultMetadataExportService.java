@@ -37,6 +37,7 @@ import java.util.Set;
 
 import javax.annotation.Nonnull;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.attribute.Attribute;
@@ -100,7 +101,6 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.visualization.Visualization;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -110,32 +110,25 @@ import com.google.common.collect.Sets;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Slf4j
+@AllArgsConstructor
 @Service( "org.hisp.dhis.dxf2.metadata.MetadataExportService" )
 public class DefaultMetadataExportService implements MetadataExportService
 {
-    @Autowired
-    private SchemaService schemaService;
+    private final SchemaService schemaService;
 
-    @Autowired
-    private QueryService queryService;
+    private final QueryService queryService;
 
-    @Autowired
-    private FieldFilterService fieldFilterService;
+    private final FieldFilterService fieldFilterService;
 
-    @Autowired
-    private CurrentUserService currentUserService;
+    private final CurrentUserService currentUserService;
 
-    @Autowired
-    private ProgramRuleService programRuleService;
+    private final ProgramRuleService programRuleService;
 
-    @Autowired
-    private ProgramRuleVariableService programRuleVariableService;
+    private final ProgramRuleVariableService programRuleVariableService;
 
-    @Autowired
-    private SystemService systemService;
+    private final SystemService systemService;
 
-    @Autowired
-    private AttributeService attributeService;
+    private final AttributeService attributeService;
 
     @Override
     @SuppressWarnings( "unchecked" )
@@ -155,8 +148,8 @@ public class DefaultMetadataExportService implements MetadataExportService
             schemaService.getMetadataSchemas().stream()
                 .filter( schema -> schema.isIdentifiableObject() && schema.isPersisted() )
                 .filter( s -> !s.isSecondaryMetadata() )
-                .forEach(
-                    schema -> params.getClasses().add( (Class<? extends IdentifiableObject>) schema.getKlass() ) );
+                .forEach( schema -> params.getClasses()
+                    .add( (Class<? extends IdentifiableObject>) schema.getKlass() ) );
         }
 
         log.info( "(" + params.getUsername() + ") Export:Start" );

@@ -238,7 +238,7 @@ class EventQueryParamsTest extends DhisConvenienceTest
         EventQueryParams params = new EventQueryParams.Builder().withProgram( prA ).withTimeField( deC.getUid() )
             .addItem( iA ).build();
         assertTrue( params.timeFieldIsValid() );
-        params = new EventQueryParams.Builder().withProgram( prA ).withTimeField( TimeField.DUE_DATE.name() )
+        params = new EventQueryParams.Builder().withProgram( prA ).withTimeField( TimeField.SCHEDULED_DATE.name() )
             .addItem( iA ).build();
         assertTrue( params.timeFieldIsValid() );
         params = new EventQueryParams.Builder().withProgram( prA ).withTimeField( "someInvalidTimeField" ).addItem( iA )

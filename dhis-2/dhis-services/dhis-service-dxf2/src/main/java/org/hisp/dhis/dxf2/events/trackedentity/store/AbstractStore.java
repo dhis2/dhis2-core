@@ -159,17 +159,27 @@ public abstract class AbstractStore
     /**
      *
      * @param sql an sql statement to which we want to "attach" the ACL sharing
-     *        condition
-     * @param ctx the {@see AAggregateContext} object containing information
-     *        about the current user
+     *        and the include delete condition
+     * @param ctx the {@see AggregateContext} object containing information
+     *        about the inclusion of deleted records and the current user
      * @param aclSql the sql statement as WHERE condition to filter out elements
      *        for which the user has no sharing access
-     *
-     * @return a merge between the sql and the aclSql
+     * @param deletedSql the sql statement as WHERE condition to filter out
+     *        elements that are soft deleted
+     * @return a merge between the sql, the aclSql and the include delete
+     *         condition
      */
-    protected String withAclCheck( String sql, AggregateContext ctx, String aclSql )
+    protected String getQuery( String sql, AggregateContext ctx, String aclSql, String deletedSql )
     {
-        return ctx.isSuperUser() ? sql : sql + " AND " + aclSql;
+        if ( !ctx.isSuperUser() )
+        {
+            sql = sql + " AND " + aclSql;
+        }
+        if ( !ctx.getQueryParams().isIncludeDeleted() )
+        {
+            sql = sql + " AND " + deletedSql;
+        }
+        return sql;
     }
 
     protected String applySortOrder( String sql, String sortOrderIds, String idColumn )

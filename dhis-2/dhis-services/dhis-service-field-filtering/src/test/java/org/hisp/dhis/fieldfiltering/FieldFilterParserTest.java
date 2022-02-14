@@ -44,7 +44,6 @@ import com.google.common.collect.Sets;
  */
 class FieldFilterParserTest
 {
-
     @Test
     void testDepth0Filters()
     {

@@ -43,6 +43,11 @@ import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 
 /**
+ * PropertyFilter that supports filtering using FieldPaths, also supports
+ * skipping of all fields related to sharing.
+ *
+ * The filter _must_ be set on the ObjectMapper before serialising an object.
+ *
  * @author Morten Olav Hansen
  */
 @RequiredArgsConstructor
@@ -152,6 +157,9 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
     }
 }
 
+/**
+ * Simple container class used by getPath to handle Maps.
+ */
 @Data
 @RequiredArgsConstructor
 class PathValue

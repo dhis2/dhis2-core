@@ -97,6 +97,12 @@ public class TrackedEntityInstanceFilter
      */
     private List<EventFilter> eventFilters = new ArrayList<>();
 
+    /**
+     * Property to filter tracked entity instances based on tracked entity
+     * attribute values
+     */
+    private List<AttributeValueFilter> attributeValueFilters = new ArrayList<>();
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -214,5 +220,18 @@ public class TrackedEntityInstanceFilter
     public void setEventFilters( List<EventFilter> eventFilters )
     {
         this.eventFilters = eventFilters;
+    }
+
+    @JsonProperty( "attributeValueFilters" )
+    @JacksonXmlElementWrapper( localName = "attributeValueFilters", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "attributeValueFilters", namespace = DxfNamespaces.DXF_2_0 )
+    public List<AttributeValueFilter> getAttributeValueFilters()
+    {
+        return attributeValueFilters;
+    }
+
+    public void setAttributeValueFilters( List<AttributeValueFilter> attributeValueFilters )
+    {
+        this.attributeValueFilters = attributeValueFilters;
     }
 }

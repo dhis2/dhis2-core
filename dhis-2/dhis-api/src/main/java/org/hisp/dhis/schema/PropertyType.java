@@ -58,8 +58,8 @@ public enum PropertyType
 
     public boolean isSimple()
     {
-        return IDENTIFIER == this || TEXT == this || NUMBER == this || INTEGER == this || EMAIL == this
-            || USERNAME == this || PASSWORD == this || URL == this || DATE == this || PHONENUMBER == this
-            || GEOLOCATION == this || COLOR == this || CONSTANT == this;
+        return IDENTIFIER == this || TEXT == this || NUMBER == this || INTEGER == this || BOOLEAN == this
+            || USERNAME == this || EMAIL == this || PASSWORD == this || URL == this || DATE == this
+            || PHONENUMBER == this || GEOLOCATION == this || COLOR == this || CONSTANT == this;
     }
 }

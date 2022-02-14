@@ -41,6 +41,8 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.function.Supplier;
 
+import lombok.AllArgsConstructor;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.category.Category;
@@ -78,7 +80,6 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.system.util.CsvUtils;
 import org.hisp.dhis.validation.Importance;
 import org.hisp.dhis.validation.ValidationRule;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.csvreader.CsvReader;
@@ -86,24 +87,20 @@ import com.csvreader.CsvReader;
 /**
  * @author Lars Helge Overland
  */
+@AllArgsConstructor
 @Service( "org.hisp.dhis.dxf2.csv.CsvImportService" )
 public class DefaultCsvImportService
     implements CsvImportService
 {
-    @Autowired
-    private CategoryService categoryService;
+    private final CategoryService categoryService;
 
-    @Autowired
-    private OrganisationUnitGroupService organisationUnitGroupService;
+    private final OrganisationUnitGroupService organisationUnitGroupService;
 
-    @Autowired
-    private DataElementGroupService dataElementGroupService;
+    private final DataElementGroupService dataElementGroupService;
 
-    @Autowired
-    private IndicatorGroupService indicatorGroupService;
+    private final IndicatorGroupService indicatorGroupService;
 
-    @Autowired
-    private OptionService optionService;
+    private final OptionService optionService;
 
     private static final String JSON_GEOM_TEMPL = "{\"type\":\"%s\", \"coordinates\":%s}";
 

@@ -52,7 +52,7 @@ abstract class AbstractDataValueControllerTest extends DhisControllerConvenience
         orgUnitId = assertStatus( HttpStatus.CREATED,
             POST( "/organisationUnits/", "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}" ) );
         // add OU to users hierarchy
-        assertStatus( HttpStatus.NO_CONTENT, POST( "/users/{id}/organisationUnits", getCurrentUser().getUid(),
+        assertStatus( HttpStatus.OK, POST( "/users/{id}/organisationUnits", getCurrentUser().getUid(),
             Body( "{'additions':[{'id':'" + orgUnitId + "'}]}" ) ) );
         JsonObject ccDefault = GET(
             "/categoryCombos/gist?fields=id,categoryOptionCombos::ids&pageSize=1&headless=true&filter=name:eq:default" )
