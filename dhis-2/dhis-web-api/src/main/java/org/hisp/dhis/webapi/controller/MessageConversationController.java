@@ -141,7 +141,7 @@ public class MessageConversationController
                 Collectors.toList() ) );
         }
 
-        Boolean markRead = Boolean.parseBoolean( parameters.get( "markRead" ) );
+        boolean markRead = Boolean.parseBoolean( parameters.get( "markRead" ) );
 
         if ( markRead )
         {
