@@ -176,8 +176,8 @@ public class TrackerExportTests
             Arguments.of( "like", "av", containsString( "av" ) ),
             Arguments.of( "sw", "Te", startsWith( "Te" ) ),
             Arguments.of( "ew", "AVO", endsWith( "avo" ) ),
-            Arguments.of( "ew", "Bravo", containsString( "Bravo" ) ),
-            Arguments.of( "in", "Bravo", containsString( "Bravo" ) ) );
+            Arguments.of( "ew", "Bravo", endsWith( "Bravo" ) ),
+            Arguments.of( "in", "Bravo", equalTo( "Bravo" ) ) );
     }
 
     @MethodSource( )
