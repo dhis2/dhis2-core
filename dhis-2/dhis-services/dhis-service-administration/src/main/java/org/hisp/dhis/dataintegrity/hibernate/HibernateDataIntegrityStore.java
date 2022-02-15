@@ -62,7 +62,8 @@ public class HibernateDataIntegrityStore implements DataIntegrityStore
     {
         Object[] summary = (Object[]) sessionFactory.getCurrentSession()
             .createNativeQuery( sql ).getSingleResult();
-        return new DataIntegritySummary( check, new Date(), parseCount( summary[0] ), parsePercentage( summary[1] ) );
+        return new DataIntegritySummary( check, new Date(), null, parseCount( summary[0] ),
+            parsePercentage( summary[1] ) );
     }
 
     @Override
@@ -71,7 +72,7 @@ public class HibernateDataIntegrityStore implements DataIntegrityStore
     {
         @SuppressWarnings( "unchecked" )
         List<Object[]> rows = sessionFactory.getCurrentSession().createNativeQuery( sql ).list();
-        return new DataIntegrityDetails( check, new Date(), rows.stream()
+        return new DataIntegrityDetails( check, new Date(), null, rows.stream()
             .map( row -> new DataIntegrityIssue( (String) row[0],
                 (String) row[1], row.length == 2 ? null : (String) row[2], null ) )
             .collect( toUnmodifiableList() ) );

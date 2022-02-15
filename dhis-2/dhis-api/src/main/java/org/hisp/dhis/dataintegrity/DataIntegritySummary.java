@@ -52,6 +52,9 @@ public class DataIntegritySummary implements Serializable
     private final Date finishedTime;
 
     @JsonProperty
+    private final String error;
+
+    @JsonProperty
     private final int count;
 
     @JsonProperty

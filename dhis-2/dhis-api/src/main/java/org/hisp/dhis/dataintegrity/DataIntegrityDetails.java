@@ -59,6 +59,9 @@ public class DataIntegrityDetails implements Serializable
     private final Date finishedTime;
 
     @JsonProperty
+    private final String error;
+
+    @JsonProperty
     private final List<DataIntegrityIssue> issues;
 
     @Getter

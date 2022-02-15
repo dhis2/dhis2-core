@@ -519,8 +519,8 @@ public class DefaultDataIntegrityService
             .severity( DataIntegritySeverity.WARNING )
             .section( "Legacy" )
             .description( name.replace( '_', ' ' ) )
-            .runDetailsCheck( c -> new DataIntegrityDetails( c, new Date(), check.get() ) )
-            .runSummaryCheck( c -> new DataIntegritySummary( c, new Date(), check.get().size(), null ) )
+            .runDetailsCheck( c -> new DataIntegrityDetails( c, new Date(), null, check.get() ) )
+            .runSummaryCheck( c -> new DataIntegritySummary( c, new Date(), null, check.get().size(), null ) )
             .build() );
     }
 
@@ -814,7 +814,7 @@ public class DefaultDataIntegrityService
     {
         runDataIntegrityChecks( "Data Integrity summary checks", expandChecks( checks ), progress, summaryCache,
             check -> check.getRunSummaryCheck().apply( check ),
-            ( check, ex ) -> new DataIntegritySummary( check, new Date(), -1, null ) );
+            ( check, ex ) -> new DataIntegritySummary( check, new Date(), ex.getMessage(), -1, null ) );
     }
 
     @Override
@@ -830,8 +830,7 @@ public class DefaultDataIntegrityService
     {
         runDataIntegrityChecks( "Data Integrity details checks", expandChecks( checks ), progress, detailsCache,
             check -> check.getRunDetailsCheck().apply( check ),
-            ( check, ex ) -> new DataIntegrityDetails( check, new Date(),
-                List.of( new DataIntegrityIssue( "", "", ex.getMessage(), List.of() ) ) ) );
+            ( check, ex ) -> new DataIntegrityDetails( check, new Date(), ex.getMessage(), List.of() ) );
     }
 
     private <T> Map<String, T> getCached( Set<String> checks, long timeout, Cache<T> cache )

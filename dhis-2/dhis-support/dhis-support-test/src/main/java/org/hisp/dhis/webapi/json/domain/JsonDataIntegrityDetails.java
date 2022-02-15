@@ -49,6 +49,11 @@ public interface JsonDataIntegrityDetails extends JsonDataIntegrityCheck
         return get( "finishedTime", JsonDate.class ).date();
     }
 
+    default String getError()
+    {
+        return getString( "error" ).string( null );
+    }
+
     @Expected
     default JsonList<JsonDataIntegrityIssue> getIssues()
     {
