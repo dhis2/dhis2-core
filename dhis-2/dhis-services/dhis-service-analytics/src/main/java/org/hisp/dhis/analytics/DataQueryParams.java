@@ -1590,7 +1590,8 @@ public class DataQueryParams
 
     /**
      * Returns the data elements which category combinations have skip total
-     * enabled.
+     * enabled, and not all categories of the category combo of the given data
+     * element are specified as dimensions or filters with items.
      */
     public List<DataElement> getSkipTotalDataElements()
     {
