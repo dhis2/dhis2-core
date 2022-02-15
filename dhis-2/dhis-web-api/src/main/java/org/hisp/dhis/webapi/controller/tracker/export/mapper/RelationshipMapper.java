@@ -25,42 +25,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.domain.mapper;
+package org.hisp.dhis.webapi.controller.tracker.export.mapper;
 
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.chrono.ChronoZonedDateTime;
-import java.util.Date;
-import java.util.Optional;
-
-import org.hisp.dhis.util.DateUtils;
+import org.hisp.dhis.tracker.domain.Relationship;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
-@Mapper
-abstract class InstantMapper
+@Mapper( uses = {
+    RelationshipItemMapper.class,
+    InstantMapper.class } )
+public interface RelationshipMapper
+    extends DomainMapper<org.hisp.dhis.dxf2.events.trackedentity.Relationship, Relationship>
 {
-
-    Instant fromString( String dateAsString )
-    {
-        return DateUtils.instantFromDateAsString( dateAsString );
-    }
-
-    Instant fromDate( Date date )
-    {
-        if ( date instanceof java.sql.Date )
-        {
-            return fromSqlDate( (java.sql.Date) date );
-        }
-        return DateUtils.instantFromDate( date );
-    }
-
-    Instant fromSqlDate( java.sql.Date date )
-    {
-        return Optional.ofNullable( date )
-            .map( java.sql.Date::toLocalDate )
-            .map( localDate -> localDate.atStartOfDay( ZoneId.systemDefault() ) )
-            .map( ChronoZonedDateTime::toInstant )
-            .orElse( null );
-    }
-
+    @Mapping( target = "createdAt", source = "created" )
+    @Mapping( target = "updatedAt", source = "lastUpdated" )
+    Relationship from( org.hisp.dhis.dxf2.events.trackedentity.Relationship relationship );
 }
