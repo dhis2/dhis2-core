@@ -294,7 +294,7 @@ public enum ErrorCode
     E7131( "Query failed, likely because the query timed out" ),
     E7132( "An indicator expression caused division by zero operation" ),
     E7133( "Query cannot be executed, possibly because of invalid types or invalid operation" ),
-    E7134( "Cannot retrieve total value for data element with skip total category combination: `{0}`" ),
+    E7134( "Cannot retrieve total value for data elements with skip total category combination" ),
 
     /* Event analytics */
     E7200( "At least one organisation unit must be specified" ),

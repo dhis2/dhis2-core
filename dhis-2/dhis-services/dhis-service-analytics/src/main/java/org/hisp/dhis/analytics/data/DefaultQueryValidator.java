@@ -44,7 +44,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.OutputFormat;
 import org.hisp.dhis.analytics.QueryValidator;
-import org.hisp.dhis.category.Category;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -132,6 +131,7 @@ public class DefaultQueryValidator
                 error = new ErrorMessage( ErrorCode.E7103, getDimensions( params.getDimensionsAsFilters() ) );
             }
         }
+
         if ( !params.hasPeriods() && !params.isSkipPartitioning() && !params.hasStartEndDate() )
         {
             error = new ErrorMessage( ErrorCode.E7104 );
@@ -183,6 +183,10 @@ public class DefaultQueryValidator
         {
             error = new ErrorMessage( ErrorCode.E7115, getUids( nonAggDataElements ) );
         }
+        else if ( !skipTotalDataElements.isEmpty() )
+        {
+            error = new ErrorMessage( ErrorCode.E7134 );
+        }
         else if ( params.isOutputFormat( OutputFormat.DATA_VALUE_SET ) )
         {
             if ( !params.hasDimension( DATA_X_DIM_ID ) )
@@ -196,19 +200,6 @@ public class DefaultQueryValidator
             else if ( !params.hasDimension( ORGUNIT_DIM_ID ) )
             {
                 error = new ErrorMessage( ErrorCode.E7119 );
-            }
-        }
-        else if ( !skipTotalDataElements.isEmpty() )
-        {
-            for ( DataElement dataElement : skipTotalDataElements )
-            {
-                for ( Category category : dataElement.getCategoryCombo().getCategories() )
-                {
-                    if ( !params.hasDimensionOrFilterWithItems( category.getDimension() ) )
-                    {
-                        error = new ErrorMessage( ErrorCode.E7134, dataElement.getDimensionItem() );
-                    }
-                }
             }
         }
 
