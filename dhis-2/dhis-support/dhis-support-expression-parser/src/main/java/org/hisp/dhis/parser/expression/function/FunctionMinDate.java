@@ -25,26 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.expression.dataitem;
+package org.hisp.dhis.parser.expression.function;
 
-import static org.hisp.dhis.common.DimensionItemType.INDICATOR;
+import static org.hisp.dhis.parser.expression.ParserUtils.parseExpressionDate;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
-import org.hisp.dhis.common.DimensionalItemId;
+import java.util.Date;
+
+import org.hisp.dhis.common.QueryModifiers;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import org.hisp.dhis.parser.expression.ExpressionItem;
 
 /**
- * Expression item Indicator
+ * Function minDate
  *
- * @author Luciano Fiandesio
+ * @author Jim Grace
  */
-public class DimItemIndicator
-    extends DimensionalItem
+public class FunctionMinDate
+    implements ExpressionItem
 {
     @Override
-    public DimensionalItemId getDimensionalItemId( ExprContext ctx,
-        CommonExpressionVisitor visitor )
+    public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        return new DimensionalItemId( INDICATOR, ctx.uid0.getText(), visitor.getQueryMods() );
+        Date minDate = parseExpressionDate( ctx.minDate.getText() );
+
+        QueryModifiers queryMods = visitor.getQueryModsBuilder().minDate( minDate ).build();
+
+        return visitor.visitWithQueryMods( ctx.expr( 0 ), queryMods );
     }
 }

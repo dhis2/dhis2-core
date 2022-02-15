@@ -1379,6 +1379,22 @@ public class DataQueryParams
     }
 
     /**
+     * Indicates whether this query has a start date.
+     */
+    public boolean hasStartDate()
+    {
+        return startDate != null;
+    }
+
+    /**
+     * Indicates whether this query has an end date.
+     */
+    public boolean hasEndDate()
+    {
+        return endDate != null;
+    }
+
+    /**
      * Indicates whether this query has a start and end date.
      */
     public boolean hasStartEndDate()

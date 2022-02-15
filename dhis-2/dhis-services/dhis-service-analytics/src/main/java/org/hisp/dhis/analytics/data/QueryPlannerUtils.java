@@ -38,6 +38,7 @@ import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.ListMap;
+import org.hisp.dhis.common.QueryModifiers;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -107,6 +108,32 @@ public class QueryPlannerUtils
             DataType dataType = (valueType.isText() || valueType.isDate()) ? DataType.TEXT : DataType.NUMERIC;
 
             map.putValue( dataType, dataElement );
+        }
+
+        return map;
+    }
+
+    /**
+     * Creates a mapping between minDate/maxDate query modifiers and data
+     * elements for the given data elements.
+     *
+     * @param dataElements list of data elements.
+     */
+    public static ListMap<QueryModifiers, DimensionalItemObject> getMinMaxDateDateElementMap(
+        List<DimensionalItemObject> dataElements )
+    {
+        ListMap<QueryModifiers, DimensionalItemObject> map = new ListMap<>();
+
+        for ( DimensionalItemObject element : dataElements )
+        {
+            QueryModifiers queryMods = element.getQueryMods();
+
+            // Get QueryModifiers but only with min and max date, nothing else
+            QueryModifiers minMaxDateModifiers = (queryMods == null)
+                ? QueryModifiers.builder().build()
+                : QueryModifiers.builder().minDate( queryMods.getMinDate() ).maxDate( queryMods.getMaxDate() ).build();
+
+            map.putValue( minMaxDateModifiers, element );
         }
 
         return map;
