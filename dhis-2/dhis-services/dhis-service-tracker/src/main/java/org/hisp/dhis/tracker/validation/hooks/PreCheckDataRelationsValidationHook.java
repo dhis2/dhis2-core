@@ -135,7 +135,7 @@ public class PreCheckDataRelationsValidationHook
         validateProgramStageInProgram( reporter, event, programStage, program );
         validateRegistrationProgram( reporter, event, context, program );
         validateProgramHasOrgUnit( reporter, event, context, organisationUnit, program );
-        validateEventCategoryCombo( reporter, event, program );
+        validateEventCategoryOptionCombo( reporter, event, program );
     }
 
     private void validateProgramStageInProgram( ValidationErrorReporter reporter, Event event,
@@ -177,7 +177,7 @@ public class PreCheckDataRelationsValidationHook
         }
     }
 
-    private void validateEventCategoryCombo( ValidationErrorReporter reporter,
+    private void validateEventCategoryOptionCombo( ValidationErrorReporter reporter,
         Event event, Program program )
     {
         boolean isValid = validateAttributeOptionComboExists( reporter, event );
