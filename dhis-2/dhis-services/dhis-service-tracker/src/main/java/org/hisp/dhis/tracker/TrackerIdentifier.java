@@ -29,7 +29,8 @@ package org.hisp.dhis.tracker;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import org.hisp.dhis.attribute.AttributeValue;
@@ -41,17 +42,18 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @author Stian Sandvold
  */
 
-@Data
+@Getter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor( staticName = "of" )
+@EqualsAndHashCode
 public class TrackerIdentifier
 {
-    public final static TrackerIdentifier UID = builder().idScheme( TrackerIdScheme.UID ).build();
+    public static final TrackerIdentifier UID = builder().idScheme( TrackerIdScheme.UID ).build();
 
-    public final static TrackerIdentifier CODE = builder().idScheme( TrackerIdScheme.CODE ).build();
+    public static final TrackerIdentifier CODE = builder().idScheme( TrackerIdScheme.CODE ).build();
 
-    public final static TrackerIdentifier NAME = builder().idScheme( TrackerIdScheme.NAME ).build();
+    public static final TrackerIdentifier NAME = builder().idScheme( TrackerIdScheme.NAME ).build();
 
     @JsonProperty
     @Builder.Default
