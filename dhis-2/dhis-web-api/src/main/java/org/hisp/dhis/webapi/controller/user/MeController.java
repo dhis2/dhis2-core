@@ -48,8 +48,6 @@ import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -59,7 +57,6 @@ import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
-
 import org.hisp.dhis.interpretation.InterpretationService;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.node.NodeService;
@@ -100,6 +97,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
@@ -165,10 +164,9 @@ public class MeController
     private static final Set<UserSettingKey> USER_SETTING_KEYS = new HashSet<>(
         Sets.newHashSet( UserSettingKey.values() ) );
 
-
-
     @GetMapping
-    public ResponseEntity<JsonNode> getCurrentUser(@CurrentUser( required = true ) User user, @RequestParam( defaultValue = "*" ) List<String> fields )
+    public ResponseEntity<JsonNode> getCurrentUser( @CurrentUser( required = true ) User user,
+        @RequestParam( defaultValue = "*" ) List<String> fields )
     {
         if ( fieldsContains( "access", fields ) )
         {
@@ -187,15 +185,24 @@ public class MeController
             user.getJobTitle(),
             user.getCreated().toString(),
             user.getLastUpdated().toString(),
-            user.getDataViewOrganisationUnits(),//.stream().map( BaseIdentifiableObject::getUid ).collect( Collectors.toList() ),
+            user.getDataViewOrganisationUnits(), // .stream().map(
+                                                 // BaseIdentifiableObject::getUid
+                                                 // ).collect(
+                                                 // Collectors.toList() ),
             user.getFavorites(),
             user.getSharing(),
             user.getUserGroupAccesses(),
             user.getUserAccesses(),
-            user.getGroups(),//.stream().map( BaseIdentifiableObject::getUid ).collect( Collectors.toList() )
+            user.getGroups(), // .stream().map( BaseIdentifiableObject::getUid
+                              // ).collect( Collectors.toList() )
             user.getTranslations(),
-            user.getTeiSearchOrganisationUnits(),//.stream().map( BaseIdentifiableObject::getUid ).collect( Collectors.toList() )
-            user.getOrganisationUnits(), //.stream().map( BaseIdentifiableObject::getUid ).collect( Collectors.toList() )
+            user.getTeiSearchOrganisationUnits(), // .stream().map(
+                                                  // BaseIdentifiableObject::getUid
+                                                  // ).collect(
+                                                  // Collectors.toList() )
+            user.getOrganisationUnits(), // .stream().map(
+                                         // BaseIdentifiableObject::getUid
+                                         // ).collect( Collectors.toList() )
             user.getExternalAccess(),
             user.getDisplayName(),
             user.getAccess(),
@@ -210,17 +217,16 @@ public class MeController
             new ArrayList<>( user.getAllAuthorities() ),
             dataSetService.getUserDataRead( user ).stream()
                 .map( BaseIdentifiableObject::getUid )
-                .collect( Collectors.toList() )
-        );
+                .collect( Collectors.toList() ) );
 
         UserCredWrapperDto userCredWrapperDto = new UserCredWrapperDto();
-        copyProperties( meDto, userCredWrapperDto, "userCredentials");
+        copyProperties( meDto, userCredWrapperDto, "userCredentials" );
         meDto.setUserCredentials( userCredWrapperDto );
 
         var params = org.hisp.dhis.fieldfiltering.FieldFilterParams.of( meDto, fields );
         ObjectNode jsonNodes = fieldFilterService.toObjectNodes( params ).get( 0 );
 
-        return ResponseEntity.ok(jsonNodes);
+        return ResponseEntity.ok( jsonNodes );
     }
 
     private boolean fieldsContains( String key, List<String> fields )

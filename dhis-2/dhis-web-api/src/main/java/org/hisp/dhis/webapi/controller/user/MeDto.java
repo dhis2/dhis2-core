@@ -34,6 +34,7 @@ import java.util.Set;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.Setter;
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.acl.Access;
@@ -44,7 +45,6 @@ import org.hisp.dhis.user.sharing.Sharing;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Setter;
 
 @Getter
 @Setter
@@ -56,94 +56,94 @@ public class MeDto
     {
     }
 
-    @JsonProperty()
+    @JsonProperty( )
     private String id;
 
-    @JsonProperty()
+    @JsonProperty( )
     private String username;
 
-    @JsonProperty()
+    @JsonProperty( )
     private String surname;
 
-    @JsonProperty()
+    @JsonProperty( )
     private String firstName;
 
-    @JsonProperty()
+    @JsonProperty( )
     private String employer;
 
-    @JsonProperty()
+    @JsonProperty( )
     private String languages;
 
-    @JsonProperty()
+    @JsonProperty( )
     private String gender;
 
-    @JsonProperty()
+    @JsonProperty( )
     private String jobTitle;
 
-    @JsonProperty()
+    @JsonProperty( )
     private String created;
 
-    @JsonProperty()
+    @JsonProperty( )
     private String lastUpdated;
 
-    @JsonProperty()
+    @JsonProperty( )
     private Set<OrganisationUnit> dataViewOrganisationUnits;
 
-    @JsonProperty()
+    @JsonProperty( )
     protected Set<String> favorites;
 
-    @JsonProperty()
+    @JsonProperty( )
     protected Sharing sharing;
 
-    @JsonProperty()
+    @JsonProperty( )
     private Set<org.hisp.dhis.user.UserGroupAccess> userGroupAccesses;
 
-    @JsonProperty()
+    @JsonProperty( )
     private Set<org.hisp.dhis.user.UserAccess> userAccesses;
 
-    @JsonProperty()
+    @JsonProperty( )
     private Set<UserGroup> userGroups;
 
-    @JsonProperty()
+    @JsonProperty( )
     private Set<Translation> translations;
 
-    @JsonProperty()
+    @JsonProperty( )
     private Set<OrganisationUnit> teiSearchOrganisationUnits;
 
-    @JsonProperty()
+    @JsonProperty( )
     private Set<OrganisationUnit> organisationUnits;
 
-    @JsonProperty()
+    @JsonProperty( )
     private Boolean externalAccess;
 
-    @JsonProperty()
+    @JsonProperty( )
     private String displayName;
 
-    @JsonProperty()
+    @JsonProperty( )
     private Access access;
 
-    @JsonProperty()
+    @JsonProperty( )
     private String name;
 
-    @JsonProperty()
+    @JsonProperty( )
     private String email;
 
     @JsonProperty
     private Set<UserAuthorityGroup> userRoles;
 
-    @JsonProperty()
+    @JsonProperty( )
     private UserCredWrapperDto userCredentials;
 
-    @JsonProperty()
+    @JsonProperty( )
     private Map<String, Serializable> settings;
 
-    @JsonProperty()
+    @JsonProperty( )
     private List<String> programs;
 
-    @JsonProperty()
+    @JsonProperty( )
     private List<String> authorities;
 
-    @JsonProperty()
+    @JsonProperty( )
     private List<String> dataSets;
 
     protected void setUserCredentials( UserCredWrapperDto userCredWrapperDto )
