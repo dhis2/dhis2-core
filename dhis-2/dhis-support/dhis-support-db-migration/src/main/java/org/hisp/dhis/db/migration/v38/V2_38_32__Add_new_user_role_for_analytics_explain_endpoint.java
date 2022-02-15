@@ -62,7 +62,7 @@ public class V2_38_32__Add_new_user_role_for_analytics_explain_endpoint extends 
         }
         catch ( SQLException e )
         {
-            log.error( "Flyway java migration error", e );
+            log.error( "Flyway java migration error (select)", e );
             throw new FlywayException( e );
         }
 
@@ -79,7 +79,7 @@ public class V2_38_32__Add_new_user_role_for_analytics_explain_endpoint extends 
             }
             catch ( SQLException e )
             {
-                log.error( "Flyway java migration error:", e );
+                log.error( "Flyway java migration error (insert):", e );
                 throw new FlywayException( e );
             }
         }
