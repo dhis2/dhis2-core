@@ -27,20 +27,9 @@
  */
 package org.hisp.dhis.aggregate;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.greaterThanOrEqualTo;
-import static org.hamcrest.Matchers.hasItems;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.notNullValue;
-
-import java.io.File;
-import java.io.IOException;
-
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.SystemActions;
@@ -55,9 +44,11 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
+import java.io.File;
+import java.io.IOException;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -115,32 +106,28 @@ public class DataImportTest
     {
         ApiResponse response = dataValueSetActions
             .postFile( new File( "src/test/resources/aggregate/dataValues_bulk.json" ),
-                new QueryParamsBuilder().addAll( "reportMode=DEBUG", "async=true" ) );
-
-        response.validate().statusCode( 200 );
+                new QueryParamsBuilder().addAll( "reportMode=DEBUG", "async=true" ) )
+            .validateStatus( 200 );
 
         String taskId = response.extractString( "response.id" );
 
         // Validate that job was successful
 
-        response = systemActions.waitUntilTaskCompleted( "DATAVALUE_IMPORT", taskId );
-
-        assertThat( response.extractList( "message" ), hasItems(
-            containsString( "Process started" ),
-            containsString( "Importing data values" ),
-            containsString( "Import done" ) ) );
+        systemActions.waitUntilTaskCompleted( "DATAVALUE_IMPORT", taskId )
+            .validate()
+            .body( "message", contains( "Process started", "Importing data values", "Import done" ) );
 
         // validate task summaries were created
-        response = systemActions.getTaskSummariesResponse( "DATAVALUE_IMPORT", taskId );
+        ApiResponse taskSummariesResponse = systemActions.waitForTaskSummaries( "DATAVALUE_IMPORT", taskId );
 
-        response.validate().statusCode( 200 )
+        taskSummariesResponse.validate().statusCode( 200 )
             .body( "status", equalTo( "SUCCESS" ) )
             .rootPath( "importCount" )
             .body( "deleted", equalTo( 0 ) )
             .body( "ignored", equalTo( 0 ) );
 
-        ImportSummary importSummary = response.getImportSummaries().get( 0 );
-        assertThat( response.getAsString(),
+        ImportSummary importSummary = taskSummariesResponse.getImportSummaries().get( 0 );
+        assertThat( taskSummariesResponse.getAsString(),
             importSummary.getImportCount().getImported() + importSummary.getImportCount().getUpdated(),
             greaterThan( 0 ) );
     }
@@ -155,7 +142,7 @@ public class DataImportTest
 
         JsonObject importedPayload = new JsonFileReader(
             new File( "src/test/resources/aggregate/dataValues_single_dataset.json" ) )
-                .get();
+            .get();
         ApiResponse response = dataValueSetActions.post( importedPayload );
 
         response.validate().statusCode( 200 )
