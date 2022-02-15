@@ -32,16 +32,20 @@ import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
+import static org.hisp.dhis.util.DateUtils.parseDate;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 
 import org.apache.commons.collections4.MultiValuedMap;
@@ -66,6 +70,7 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ListMap;
+import org.hisp.dhis.common.QueryModifiers;
 import org.hisp.dhis.common.ReportingRate;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -803,6 +808,43 @@ class QueryPlannerTest extends DhisSpringTest
     }
 
     /**
+     * Query spans 5 QueryModifiers minDate/MaxDate combinations.
+     */
+    @Test
+    void planQueryN()
+    {
+        QueryModifiers modsA = QueryModifiers.builder().minDate( parseDate( "2022-01-01" ) ).build();
+        QueryModifiers modsB = QueryModifiers.builder().minDate( parseDate( "2022-02-01" ) ).build();
+        QueryModifiers modsC = QueryModifiers.builder().maxDate( parseDate( "2022-12-31" ) ).build();
+        QueryModifiers modsD = QueryModifiers.builder().minDate( parseDate( "2022-01-01" ) )
+            .maxDate( parseDate( "2022-12-31" ) ).build();
+        deC.setQueryMods( modsA );
+        deD.setQueryMods( modsB );
+        deG.setQueryMods( modsC );
+        deH.setQueryMods( modsD );
+        deI.setQueryMods( modsD );
+        deC.setAggregationType( AggregationType.SUM );
+        deD.setAggregationType( AggregationType.SUM );
+        deI.setAggregationType( AggregationType.SUM );
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withDataElements( getList( deA, deB, deC, deD, deG, deH, deI ) )
+            .withPeriods( getList( createPeriod( "2022" ) ) )
+            .build();
+        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().withOptimalQueries( 4 )
+            .withTableType( ANALYTICS_TABLE_TYPE ).build();
+        DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
+        assertEquals( 5, queryGroups.getAllQueries().size() );
+        assertEquals( 1, queryGroups.getSequentialQueries().size() );
+        assertEquals( 5, queryGroups.getLargestGroupSize() );
+        List<DataQueryParams> group = queryGroups.getAllQueries();
+        assertQueryMods( group, null, deA, deB );
+        assertQueryMods( group, modsA, deC );
+        assertQueryMods( group, modsB, deD );
+        assertQueryMods( group, modsC, deG );
+        assertQueryMods( group, modsD, deH, deI );
+    }
+
+    /**
      * Create 4 queries (one for each period) due to the FIRST aggregation type.
      */
     @Test
@@ -1089,5 +1131,35 @@ class QueryPlannerTest extends DhisSpringTest
             final Double val = findValueByUid.apply( dimensionItemObjectValue.getDimensionalItemObject().getUid() );
             assertEquals( val, dimensionItemObjectValue.getValue() );
         }
+    }
+
+    private void assertQueryMods( List<DataQueryParams> group, QueryModifiers mods, DataElement... elements )
+    {
+        List<DataElement> modElements = Arrays.asList( elements );
+
+        for ( DataQueryParams params : group )
+        {
+            List<DimensionalItemObject> groupElements = params.getDataElements();
+            assertNotEquals( 0, groupElements.size() );
+
+            QueryModifiers groupMods = groupElements.get( 0 ).getQueryMods();
+
+            if ( Objects.equals( mods, groupMods ) )
+            {
+                assertTrue( Objects.equals( params.getStartDate(), mods == null ? null : mods.getMinDate() ) );
+                assertTrue( Objects.equals( params.getEndDate(), mods == null ? null : mods.getMaxDate() ) );
+
+                assertEquals( modElements.size(), groupElements.size() );
+                assertTrue( groupElements.containsAll( modElements ) );
+
+                groupElements.forEach( e -> {
+                    assertEquals( mods, e.getQueryMods() );
+                } );
+
+                return;
+            }
+        }
+
+        throw new RuntimeException( "No group found for queryMods " + mods );
     }
 }

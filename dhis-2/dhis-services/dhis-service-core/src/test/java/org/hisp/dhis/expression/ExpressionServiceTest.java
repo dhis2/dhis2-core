@@ -30,6 +30,7 @@ package org.hisp.dhis.expression;
 import static java.util.Collections.singletonList;
 import static org.hisp.dhis.analytics.DataType.BOOLEAN;
 import static org.hisp.dhis.analytics.DataType.TEXT;
+import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
 import static org.hisp.dhis.common.ReportingRateMetric.ACTUAL_REPORTS;
 import static org.hisp.dhis.common.ReportingRateMetric.ACTUAL_REPORTS_ON_TIME;
 import static org.hisp.dhis.common.ReportingRateMetric.EXPECTED_REPORTS;
@@ -43,6 +44,7 @@ import static org.hisp.dhis.expression.MissingValueStrategy.SKIP_IF_ANY_VALUE_MI
 import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
 import static org.hisp.dhis.expression.ParseType.PREDICTOR_EXPRESSION;
 import static org.hisp.dhis.expression.ParseType.VALIDATION_RULE_EXPRESSION;
+import static org.hisp.dhis.util.DateUtils.parseDate;
 import static org.hisp.dhis.utils.Assertions.assertMapEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -71,6 +73,7 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.MapMap;
+import org.hisp.dhis.common.QueryModifiers;
 import org.hisp.dhis.common.ReportingRate;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.constant.Constant;
@@ -525,8 +528,19 @@ class ExpressionServiceTest extends DhisSpringTest
         }
         Map<DimensionalItemId, DimensionalItemObject> itemMap = new HashMap<>();
         expressionService.getExpressionDimensionalItemMaps( expr, parseType, dataType, itemMap, itemMap );
-        Object value = expressionService.getExpressionValue( expr, parseType, itemMap, valueMap, constantMap,
-            ORG_UNIT_COUNT_MAP, null, DAYS, missingValueStrategy, null, TEST_SAMPLE_PERIODS, samples, dataType );
+        Object value = expressionService.getExpressionValue( ExpressionParams.builder()
+            .expression( expr )
+            .parseType( parseType )
+            .dataType( dataType )
+            .itemMap( itemMap )
+            .valueMap( valueMap )
+            .constantMap( constantMap )
+            .orgUnitCountMap( ORG_UNIT_COUNT_MAP )
+            .days( DAYS )
+            .missingValueStrategy( missingValueStrategy )
+            .samplePeriods( TEST_SAMPLE_PERIODS )
+            .periodValueMap( samples )
+            .build() );
         return result( value, itemMap.values() );
     }
 
@@ -703,6 +717,17 @@ class ExpressionServiceTest extends DhisSpringTest
     ExpressionValidationOutcome validity( String expr, ParseType parseType )
     {
         return expressionService.expressionIsValid( expr, parseType );
+    }
+
+    private DimensionalItemId parseItemId( String expr )
+    {
+        expressionService.getExpressionDescription( expr, INDICATOR_EXPRESSION, DataType.NUMERIC );
+
+        Set<DimensionalItemId> ids = expressionService.getExpressionDimensionalItemIds( expr, INDICATOR_EXPRESSION );
+
+        assertEquals( 1, ids.size() );
+
+        return ids.iterator().next();
     }
 
     // -------------------------------------------------------------------------
@@ -1263,6 +1288,33 @@ class ExpressionServiceTest extends DhisSpringTest
         assertEquals( value.getMultiplier(), DELTA, 36500 );
         assertEquals( value.getDivisor(), DELTA, 1 );
         assertEquals( value.getValue(), DELTA, 146000.0 );
+    }
+
+    @Test
+    void testIndicatorFunctionParsing()
+    {
+        DimensionalItemId id;
+
+        id = new DimensionalItemId( DATA_ELEMENT, "dataElemenA",
+            QueryModifiers.builder().periodOffset( 10 ).build() );
+        assertEquals( id, parseItemId( "#{dataElemenA}.periodOffset(10)" ) );
+
+        id = new DimensionalItemId( DATA_ELEMENT, "dataElemenA",
+            QueryModifiers.builder().periodOffset( -5 ).build() );
+        assertEquals( id, parseItemId( "#{dataElemenA}.periodOffset(-2).periodOffset(-3)" ) );
+
+        id = new DimensionalItemId( DATA_ELEMENT, "dataElemenA",
+            QueryModifiers.builder().minDate( parseDate( "2020-01-01" ) ).build() );
+        assertEquals( id, parseItemId( "#{dataElemenA}.minDate(2020-1-1)" ) );
+
+        id = new DimensionalItemId( DATA_ELEMENT, "dataElemenA",
+            QueryModifiers.builder().maxDate( parseDate( "2021-12-31" ) ).build() );
+        assertEquals( id, parseItemId( "#{dataElemenA}.maxDate(2021-12-31)" ) );
+
+        id = new DimensionalItemId( DATA_ELEMENT, "dataElemenA",
+            QueryModifiers.builder().periodOffset( -3 ).minDate( parseDate( "2021-04-01" ) )
+                .maxDate( parseDate( "2021-04-30" ) ).build() );
+        assertEquals( id, parseItemId( "#{dataElemenA}.periodOffset(-3).minDate(2021-04-1).maxDate(2021-4-30)" ) );
     }
 
     private Indicator createIndicator( char uniqueCharacter, IndicatorType type, String numerator )

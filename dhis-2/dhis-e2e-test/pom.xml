@@ -82,6 +82,11 @@
       <version>2.4.0</version>
       <scope>compile</scope>
     </dependency>
+    <dependency>
+      <groupId>org.awaitility</groupId>
+      <artifactId>awaitility</artifactId>
+      <version>4.1.0</version>
+    </dependency>
   </dependencies>
 
   <build>

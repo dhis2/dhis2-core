@@ -33,8 +33,10 @@ import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.feedback.ErrorCode.E7230;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -49,10 +51,15 @@ import java.util.Set;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.Reference;
+import org.hisp.dhis.common.RepeatableStageParams;
 import org.hisp.dhis.common.ValueType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 
 /**
@@ -76,7 +83,8 @@ class GridTest
     {
         gridA = new ListGrid();
         gridB = new ListGrid();
-        headerA = new GridHeader( "ColA", "colA", ValueType.TEXT, false, true );
+        headerA = new GridHeader( "ColA", "colA", ValueType.TEXT, false, true,
+            null, null, "programStage", new RepeatableStageParams() );
         headerB = new GridHeader( "ColB", "colB", ValueType.TEXT, false, true );
         headerC = new GridHeader( "ColC", "colC", ValueType.TEXT, true, false );
         gridA.addHeader( headerA );
@@ -864,6 +872,52 @@ class GridTest
         assertThat( grid.getRow( 2 ).get( 0 ), is( equalTo( "c-1" ) ) );
         assertThat( grid.getRow( 2 ).get( 1 ), is( equalTo( "c" ) ) );
         assertThat( grid.getRow( 2 ).get( 2 ), is( equalTo( 3 ) ) );
+    }
+
+    @Test
+    void referenceTest()
+    {
+        String jsonString = "{ \"id\" : \n" +
+            "      {\n" +
+            "         \"firstName\": \"something\",\n" +
+            "         \"lastName\" : \"something\"\n" +
+            "      }\n" +
+            "}";
+
+        ObjectMapper mapper = new ObjectMapper();
+
+        JsonNode node = null;
+        try
+        {
+            node = mapper.readTree( jsonString );
+        }
+        catch ( JsonProcessingException e )
+        {
+            fail();
+        }
+
+        Reference reference = new Reference( "uuid", node );
+
+        gridA.addReference( reference );
+
+        // assert
+        assertEquals( 1, gridA.getRefs().size() );
+
+        assertNull( gridB.getRefs() );
+    }
+
+    @Test
+    void repeatableStageParamInHeaderTest()
+    {
+        // arrange act assert
+        assertEquals( "startIndex:0 count:1 startDate:null endDate: null",
+            gridA.getHeaders().get( 0 ).getRepeatableStageParams() );
+
+        assertNull( gridA.getHeaders().get( 1 ).getRepeatableStageParams() );
+
+        assertEquals( 0, gridA.getHeaders().get( 0 ).getStageOffset() );
+
+        assertNull( gridA.getHeaders().get( 1 ).getStageOffset() );
     }
 
     // -------------------------------------------------------------------------

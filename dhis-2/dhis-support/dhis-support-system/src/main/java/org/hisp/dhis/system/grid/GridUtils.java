@@ -73,6 +73,7 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObjectUtils;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.Reference;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.Encoder;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -94,6 +95,7 @@ import org.htmlparser.tags.TableTag;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
 import com.csvreader.CsvWriter;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.lowagie.text.Document;
 import com.lowagie.text.pdf.PdfPTable;
 
@@ -159,6 +161,10 @@ public class GridUtils
     private static final String ATTR_ROWS = "rows";
 
     private static final String ATTR_ROW = "row";
+
+    private static final String ATTR_REFS = "refs";
+
+    private static final String ATTR_REF = "ref";
 
     private static final String ATTR_FIELD = "field";
 
@@ -481,7 +487,38 @@ public class GridUtils
                 String.valueOf( header.isMeta() ) );
         }
 
+        // headers
         writer.closeElement();
+
+        List<Reference> refs = grid.getRefs();
+
+        if ( !(refs == null || refs.isEmpty()) )
+        {
+            writer.openElement( ATTR_REFS );
+
+            grid.getRefs().forEach( ref -> {
+                writer.openElement( ATTR_REF );
+
+                writer.writeElement( "uuid", ref.getUuid() );
+
+                XmlMapper xmlMapper = new XmlMapper();
+
+                try
+                {
+                    xmlMapper.writeValue( writer.getXmlStreamWriter(), ref.getNode() );
+                }
+                catch ( IOException e )
+                {
+                    log.warn( "Grid will be truncated, some references not applicable" );
+
+                }
+                // ref
+                writer.closeElement();
+            } );
+            // refs
+            writer.closeElement();
+        }
+
         writer.openElement( ATTR_ROWS );
 
         for ( List<Object> row : grid.getRows() )
@@ -496,7 +533,7 @@ public class GridUtils
             writer.closeElement();
         }
 
-        writer.closeElement();
+        // rows
         writer.closeElement();
 
         writer.closeDocument();

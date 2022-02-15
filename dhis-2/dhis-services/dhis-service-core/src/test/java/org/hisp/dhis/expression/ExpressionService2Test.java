@@ -32,6 +32,7 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hisp.dhis.antlr.AntlrParserUtils.castDouble;
 import static org.hisp.dhis.category.CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
 import static org.hisp.dhis.expression.Expression.SEPARATOR;
 import static org.hisp.dhis.expression.ExpressionService.SYMBOL_DAYS;
@@ -400,8 +401,16 @@ class ExpressionService2Test extends DhisSpringTest
     private Double exprValue( String expression, Map<DimensionalItemId, DimensionalItemObject> itemMap,
         Map<DimensionalItemObject, Object> valueMap, Map<String, Integer> orgUnitCountMap, Integer days )
     {
-        return target.getExpressionValue( expression, INDICATOR_EXPRESSION, itemMap, valueMap,
-            constantMap(), orgUnitCountMap, null, days, NEVER_SKIP, null );
+        return castDouble( target.getExpressionValue( ExpressionParams.builder()
+            .expression( expression )
+            .parseType( INDICATOR_EXPRESSION )
+            .itemMap( itemMap )
+            .valueMap( valueMap )
+            .constantMap( constantMap() )
+            .orgUnitCountMap( orgUnitCountMap )
+            .days( days )
+            .missingValueStrategy( NEVER_SKIP )
+            .build() ) );
     }
 
     @Test

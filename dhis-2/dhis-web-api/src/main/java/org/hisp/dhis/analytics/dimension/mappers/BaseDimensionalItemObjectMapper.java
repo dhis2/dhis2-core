@@ -36,7 +36,6 @@ import org.hisp.dhis.analytics.dimension.DimensionResponse;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.springframework.stereotype.Service;
@@ -48,7 +47,6 @@ public class BaseDimensionalItemObjectMapper extends BaseDimensionMapper
     @Getter
     private final Set<Class<? extends BaseIdentifiableObject>> supportedClasses = Set.of(
         ProgramIndicator.class,
-        DataElement.class,
         TrackedEntityAttribute.class );
 
     @Override

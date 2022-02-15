@@ -103,8 +103,6 @@ public interface Grid
 
     PerformanceMetrics getPerformanceMetrics();
 
-    // Grid setPerformanceMetrics( PerformanceMetrics performanceMetrics );
-
     /**
      * Sets a map of internal meta-data.
      */
@@ -257,6 +255,8 @@ public interface Grid
      * Returns all rows.
      */
     List<List<Object>> getRows();
+
+    List<Reference> getRefs();
 
     /**
      * Returns all visible rows, ie. rows with a corresponding header that is
@@ -507,6 +507,8 @@ public interface Grid
     Grid addRows( SqlRowSet rs, int maxLimit );
 
     Grid maybeAddPerformanceMetrics( List<ExecutionPlan> plans );
+
+    Grid addReference( Reference reference );
 
     /**
      * This method will keep, in the Grid, only the given list of headers. All
