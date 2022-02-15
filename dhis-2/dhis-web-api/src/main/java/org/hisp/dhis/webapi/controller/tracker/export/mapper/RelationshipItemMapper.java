@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.mapper;
 
-import org.hisp.dhis.tracker.domain.RelationshipItem;
+import org.hisp.dhis.webapi.controller.tracker.payload.RelationshipItem;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 

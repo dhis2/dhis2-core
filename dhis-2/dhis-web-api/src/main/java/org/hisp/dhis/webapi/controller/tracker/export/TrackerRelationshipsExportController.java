@@ -117,12 +117,12 @@ public class TrackerRelationshipsExportController
     }
 
     @GetMapping
-    PagingWrapper<org.hisp.dhis.tracker.domain.Relationship> getInstances(
+    PagingWrapper<org.hisp.dhis.webapi.controller.tracker.payload.Relationship> getInstances(
         TrackerRelationshipCriteria criteria )
         throws WebMessageException
     {
 
-        List<org.hisp.dhis.tracker.domain.Relationship> relationships = tryGetRelationshipFrom(
+        List<org.hisp.dhis.webapi.controller.tracker.payload.Relationship> relationships = tryGetRelationshipFrom(
             criteria.getTei(),
             TrackedEntityInstance.class,
             () -> notFound( "No trackedEntityInstance '" + criteria.getTei() + "' found." ),
@@ -151,7 +151,7 @@ public class TrackerRelationshipsExportController
             throw new WebMessageException( badRequest( "Missing required parameter 'tei', 'enrollment' or 'event'." ) );
         }
 
-        PagingWrapper<org.hisp.dhis.tracker.domain.Relationship> relationshipPagingWrapper = new PagingWrapper<>();
+        PagingWrapper<org.hisp.dhis.webapi.controller.tracker.payload.Relationship> relationshipPagingWrapper = new PagingWrapper<>();
 
         if ( criteria.isPagingRequest() )
         {
@@ -166,7 +166,7 @@ public class TrackerRelationshipsExportController
     }
 
     @GetMapping( "{id}" )
-    public org.hisp.dhis.tracker.domain.Relationship getRelationship(
+    public org.hisp.dhis.webapi.controller.tracker.payload.Relationship getRelationship(
         @PathVariable String id )
         throws WebMessageException
     {
@@ -177,7 +177,7 @@ public class TrackerRelationshipsExportController
     }
 
     @SneakyThrows
-    private List<org.hisp.dhis.tracker.domain.Relationship> tryGetRelationshipFrom(
+    private List<org.hisp.dhis.webapi.controller.tracker.payload.Relationship> tryGetRelationshipFrom(
         String identifier,
         Class<?> type,
         Supplier<WebMessage> notFoundMessageSupplier,

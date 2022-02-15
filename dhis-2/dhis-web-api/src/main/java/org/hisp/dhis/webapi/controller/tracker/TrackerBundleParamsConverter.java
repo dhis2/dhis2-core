@@ -35,11 +35,11 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.domain.Note;
-import org.hisp.dhis.tracker.domain.Relationship;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.webapi.controller.tracker.payload.Enrollment;
+import org.hisp.dhis.webapi.controller.tracker.payload.Event;
+import org.hisp.dhis.webapi.controller.tracker.payload.Note;
+import org.hisp.dhis.webapi.controller.tracker.payload.Relationship;
+import org.hisp.dhis.webapi.controller.tracker.payload.TrackedEntity;
 
 import com.fasterxml.jackson.databind.util.StdConverter;
 

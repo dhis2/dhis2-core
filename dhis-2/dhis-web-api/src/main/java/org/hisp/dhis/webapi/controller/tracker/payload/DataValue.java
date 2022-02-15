@@ -25,19 +25,48 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export.mapper;
+package org.hisp.dhis.webapi.controller.tracker.payload;
 
-import org.hisp.dhis.webapi.controller.tracker.payload.Relationship;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import java.time.Instant;
 
-@Mapper( uses = {
-    RelationshipItemMapper.class,
-    InstantMapper.class } )
-public interface RelationshipMapper
-    extends DomainMapper<org.hisp.dhis.dxf2.events.trackedentity.Relationship, Relationship>
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+/**
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
+ */
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class DataValue
 {
-    @Mapping( target = "createdAt", source = "created" )
-    @Mapping( target = "updatedAt", source = "lastUpdated" )
-    Relationship from( org.hisp.dhis.dxf2.events.trackedentity.Relationship relationship );
+    @JsonProperty
+    private Instant createdAt;
+
+    @JsonProperty
+    private Instant updatedAt;
+
+    @JsonProperty
+    private String storedBy;
+
+    @JsonProperty
+    private boolean providedElsewhere;
+
+    @JsonProperty
+    @Builder.Default
+    private String dataElement = "";
+
+    @JsonProperty
+    private String value;
+
+    @JsonProperty
+    private String createdBy;
+
+    @JsonProperty
+    private String lastUpdatedBy;
 }

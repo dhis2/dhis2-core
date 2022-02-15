@@ -91,10 +91,10 @@ public class TrackerEventsExportController
 
     private final ProgramStageInstanceService programStageInstanceService;
 
-    private final CsvEventService<org.hisp.dhis.tracker.domain.Event> csvEventService;
+    private final CsvEventService<org.hisp.dhis.webapi.controller.tracker.payload.Event> csvEventService;
 
     @GetMapping( produces = APPLICATION_JSON_VALUE )
-    public PagingWrapper<org.hisp.dhis.tracker.domain.Event> getEvents(
+    public PagingWrapper<org.hisp.dhis.webapi.controller.tracker.payload.Event> getEvents(
         TrackerEventCriteria eventCriteria, @RequestParam Map<String, String> parameters, HttpServletRequest request )
         throws WebMessageException
     {
@@ -109,7 +109,8 @@ public class TrackerEventsExportController
 
         if ( areAllEnrollmentsInvalid( eventCriteria, eventSearchParams ) )
         {
-            return new PagingWrapper<org.hisp.dhis.tracker.domain.Event>().withInstances( Collections.emptyList() );
+            return new PagingWrapper<org.hisp.dhis.webapi.controller.tracker.payload.Event>()
+                .withInstances( Collections.emptyList() );
         }
 
         Events events = eventService.getEvents( eventSearchParams );
@@ -119,7 +120,7 @@ public class TrackerEventsExportController
             events.getEvents().forEach( e -> e.setHref( getUri( e.getEvent(), request ) ) );
         }
 
-        PagingWrapper<org.hisp.dhis.tracker.domain.Event> eventPagingWrapper = new PagingWrapper<>();
+        PagingWrapper<org.hisp.dhis.webapi.controller.tracker.payload.Event> eventPagingWrapper = new PagingWrapper<>();
 
         if ( eventCriteria.isPagingRequest() )
         {
@@ -207,7 +208,7 @@ public class TrackerEventsExportController
     }
 
     @GetMapping( "/{uid}" )
-    public org.hisp.dhis.tracker.domain.Event getEvent(
+    public org.hisp.dhis.webapi.controller.tracker.payload.Event getEvent(
         @PathVariable( "uid" ) String uid,
         @RequestParam Map<String, String> parameters,
         HttpServletRequest request )

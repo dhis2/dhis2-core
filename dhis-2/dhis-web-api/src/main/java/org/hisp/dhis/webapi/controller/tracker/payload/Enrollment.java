@@ -25,8 +25,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker;
+package org.hisp.dhis.webapi.controller.tracker.payload;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,51 +36,107 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import org.hisp.dhis.webapi.controller.tracker.payload.Enrollment;
-import org.hisp.dhis.webapi.controller.tracker.payload.Event;
-import org.hisp.dhis.webapi.controller.tracker.payload.Relationship;
-import org.hisp.dhis.webapi.controller.tracker.payload.TrackedEntity;
+import org.hisp.dhis.tracker.TrackerType;
+import org.locationtech.jts.geom.Geometry;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 /**
- * Maps the Tracker import payload
- *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@JsonDeserialize( converter = TrackerBundleParamsConverter.class )
-public class TrackerBundleParams
+public class Enrollment
+    implements TrackerDto
 {
-    /**
-     * Tracked entities to import.
-     */
     @JsonProperty
-    @Builder.Default
-    private List<TrackedEntity> trackedEntities = new ArrayList<>();
+    private String enrollment;
 
-    /**
-     * Enrollments to import.
-     */
     @JsonProperty
-    @Builder.Default
-    private List<Enrollment> enrollments = new ArrayList<>();
+    private Instant createdAt;
 
-    /**
-     * Events to import.
-     */
+    @JsonProperty
+    private Instant createdAtClient;
+
+    @JsonProperty
+    private Instant updatedAt;
+
+    @JsonProperty
+    private Instant updatedAtClient;
+
+    @JsonProperty
+    private String trackedEntity;
+
+    @JsonProperty
+    private String program;
+
+    @JsonProperty
+    private EnrollmentStatus status;
+
+    @JsonProperty
+    private String orgUnit;
+
+    @JsonProperty
+    private String orgUnitName;
+
+    @JsonProperty
+    private Instant enrolledAt;
+
+    @JsonProperty
+    private Instant occurredAt;
+
+    @JsonProperty
+    private boolean followUp;
+
+    @JsonProperty
+    private String completedBy;
+
+    @JsonProperty
+    private Instant completedAt;
+
+    @JsonProperty
+    private boolean deleted;
+
+    @JsonProperty
+    private String storedBy;
+
+    @JsonProperty
+    private String createdBy;
+
+    @JsonProperty
+    private String updatedBy;
+
+    @JsonProperty
+    private Geometry geometry;
+
     @JsonProperty
     @Builder.Default
     private List<Event> events = new ArrayList<>();
 
-    /**
-     * Relationships to import.
-     */
     @JsonProperty
     @Builder.Default
     private List<Relationship> relationships = new ArrayList<>();
+
+    @JsonProperty
+    @Builder.Default
+    private List<Attribute> attributes = new ArrayList<>();
+
+    @JsonProperty
+    @Builder.Default
+    private List<Note> notes = new ArrayList<>();
+
+    // TODO do I need trackerDto?
+    @Override
+    public String getUid()
+    {
+        return this.enrollment;
+    }
+
+    @Override
+    public TrackerType getTrackerType()
+    {
+        return TrackerType.ENROLLMENT;
+    }
 }

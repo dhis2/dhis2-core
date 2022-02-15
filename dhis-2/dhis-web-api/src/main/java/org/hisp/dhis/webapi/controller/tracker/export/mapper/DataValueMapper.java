@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.mapper;
 
-import org.hisp.dhis.tracker.domain.DataValue;
+import org.hisp.dhis.webapi.controller.tracker.payload.DataValue;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 

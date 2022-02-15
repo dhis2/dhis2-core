@@ -25,8 +25,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker;
+package org.hisp.dhis.webapi.controller.tracker.payload;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,51 +36,88 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import org.hisp.dhis.webapi.controller.tracker.payload.Enrollment;
-import org.hisp.dhis.webapi.controller.tracker.payload.Event;
-import org.hisp.dhis.webapi.controller.tracker.payload.Relationship;
-import org.hisp.dhis.webapi.controller.tracker.payload.TrackedEntity;
+import org.hisp.dhis.tracker.TrackerType;
+import org.locationtech.jts.geom.Geometry;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 /**
- * Maps the Tracker import payload
- *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@JsonDeserialize( converter = TrackerBundleParamsConverter.class )
-public class TrackerBundleParams
+public class TrackedEntity
+    implements TrackerDto
 {
-    /**
-     * Tracked entities to import.
-     */
+    @JsonProperty
+    private String trackedEntity;
+
+    @JsonProperty
+    private String trackedEntityType;
+
+    @JsonProperty
+    private Instant createdAt;
+
+    @JsonProperty
+    private Instant createdAtClient;
+
+    @JsonProperty
+    private Instant updatedAt;
+
+    @JsonProperty
+    private Instant updatedAtClient;
+
+    @JsonProperty
+    private String orgUnit;
+
+    @JsonProperty
+    private boolean inactive;
+
+    @JsonProperty
+    private boolean deleted;
+
+    @JsonProperty
+    private boolean potentialDuplicate;
+
+    @JsonProperty
+    private Geometry geometry;
+
+    @JsonProperty
+    private String storedBy;
+
+    @JsonProperty
+    private String createdBy;
+
+    @JsonProperty
+    private String updatedBy;
+
     @JsonProperty
     @Builder.Default
-    private List<TrackedEntity> trackedEntities = new ArrayList<>();
+    private List<Relationship> relationships = new ArrayList<>();
 
-    /**
-     * Enrollments to import.
-     */
+    @JsonProperty
+    @Builder.Default
+    private List<Attribute> attributes = new ArrayList<>();
+
     @JsonProperty
     @Builder.Default
     private List<Enrollment> enrollments = new ArrayList<>();
 
-    /**
-     * Events to import.
-     */
     @JsonProperty
     @Builder.Default
-    private List<Event> events = new ArrayList<>();
+    private List<ProgramOwner> programOwners = new ArrayList<>();
 
-    /**
-     * Relationships to import.
-     */
-    @JsonProperty
-    @Builder.Default
-    private List<Relationship> relationships = new ArrayList<>();
+    @Override
+    public String getUid()
+    {
+        return this.trackedEntity;
+    }
+
+    @Override
+    public TrackerType getTrackerType()
+    {
+        return TrackerType.TRACKED_ENTITY;
+    }
 }

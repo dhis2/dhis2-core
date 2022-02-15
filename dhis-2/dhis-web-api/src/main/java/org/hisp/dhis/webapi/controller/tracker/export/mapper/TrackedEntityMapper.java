@@ -28,7 +28,7 @@
 package org.hisp.dhis.webapi.controller.tracker.export.mapper;
 
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.webapi.controller.tracker.payload.TrackedEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
