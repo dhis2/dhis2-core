@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.program.function;
 
-import static org.hisp.dhis.parser.expression.CommonExpressionVisitor.DEFAULT_BOOLEAN_VALUE;
+import static org.hisp.dhis.parser.expression.ParserUtils.DEFAULT_BOOLEAN_VALUE;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
@@ -52,13 +52,13 @@ public class D2HasValue
     @Override
     public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        boolean savedReplaceNulls = visitor.getReplaceNulls();
+        boolean savedReplaceNulls = visitor.getExState().isReplaceNulls();
 
-        visitor.setReplaceNulls( false );
+        visitor.getExState().setReplaceNulls( false );
 
         String argSql = (String) getProgramArgType( ctx ).getSql( ctx, visitor );
 
-        visitor.setReplaceNulls( savedReplaceNulls );
+        visitor.getExState().setReplaceNulls( savedReplaceNulls );
 
         return "(" + argSql + " is not null)";
     }

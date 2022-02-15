@@ -31,10 +31,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.antlr.AntlrParserUtils.castClass;
 import static org.hisp.dhis.antlr.AntlrParserUtils.castString;
 import static org.hisp.dhis.jdbc.StatementBuilder.ANALYTICS_TBL_ALIAS;
+import static org.hisp.dhis.parser.expression.ExpressionItem.ITEM_GET_DESCRIPTIONS;
+import static org.hisp.dhis.parser.expression.ExpressionItem.ITEM_GET_SQL;
 import static org.hisp.dhis.parser.expression.ParserUtils.COMMON_EXPRESSION_ITEMS;
-import static org.hisp.dhis.parser.expression.ParserUtils.DEFAULT_SAMPLE_PERIODS;
-import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_GET_DESCRIPTIONS;
-import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_GET_SQL;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.AVG;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.A_BRACE;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.COUNT;
@@ -76,15 +75,19 @@ import org.hisp.dhis.antlr.Parser;
 import org.hisp.dhis.antlr.ParserException;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.commons.util.TextUtils;
-import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.jdbc.StatementBuilder;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ExpressionItem;
 import org.hisp.dhis.parser.expression.ExpressionItemMethod;
+import org.hisp.dhis.parser.expression.ProgramExpressionParams;
 import org.hisp.dhis.parser.expression.function.RepeatableProgramStageOffset;
 import org.hisp.dhis.parser.expression.function.VectorAvg;
 import org.hisp.dhis.parser.expression.function.VectorCount;
@@ -141,8 +144,6 @@ public class DefaultProgramIndicatorService
 
     private final TrackedEntityAttributeService attributeService;
 
-    private final ConstantService constantService;
-
     private final StatementBuilder statementBuilder;
 
     private final IdentifiableObjectStore<ProgramIndicatorGroup> programIndicatorGroupStore;
@@ -153,33 +154,48 @@ public class DefaultProgramIndicatorService
 
     private final Cache<String> analyticsSqlCache;
 
+    private final ExpressionService expressionService;
+
+    private final OrganisationUnitService organisationUnitService;
+
+    private final OrganisationUnitGroupService organisationUnitGroupService;
+
+    private final DimensionService dimensionService;
+
     public DefaultProgramIndicatorService( ProgramIndicatorStore programIndicatorStore,
         ProgramStageService programStageService, DataElementService dataElementService,
-        TrackedEntityAttributeService attributeService, ConstantService constantService,
-        StatementBuilder statementBuilder,
+        TrackedEntityAttributeService attributeService, StatementBuilder statementBuilder,
         @Qualifier( "org.hisp.dhis.program.ProgramIndicatorGroupStore" ) IdentifiableObjectStore<ProgramIndicatorGroup> programIndicatorGroupStore,
-        I18nManager i18nManager, RelationshipTypeService relationshipTypeService, CacheProvider cacheProvider )
+        I18nManager i18nManager, RelationshipTypeService relationshipTypeService, CacheProvider cacheProvider,
+        ExpressionService expressionService, OrganisationUnitService organisationUnitService,
+        OrganisationUnitGroupService organisationUnitGroupService, DimensionService dimensionService )
     {
         checkNotNull( programIndicatorStore );
         checkNotNull( programStageService );
         checkNotNull( dataElementService );
         checkNotNull( attributeService );
-        checkNotNull( constantService );
         checkNotNull( statementBuilder );
         checkNotNull( programIndicatorGroupStore );
         checkNotNull( i18nManager );
         checkNotNull( relationshipTypeService );
+        checkNotNull( expressionService );
+        checkNotNull( organisationUnitService );
+        checkNotNull( organisationUnitGroupService );
+        checkNotNull( dimensionService );
 
         this.programIndicatorStore = programIndicatorStore;
         this.programStageService = programStageService;
         this.dataElementService = dataElementService;
         this.attributeService = attributeService;
-        this.constantService = constantService;
         this.statementBuilder = statementBuilder;
         this.programIndicatorGroupStore = programIndicatorGroupStore;
         this.i18nManager = i18nManager;
         this.relationshipTypeService = relationshipTypeService;
         this.analyticsSqlCache = cacheProvider.createAnalyticsSqlCache();
+        this.expressionService = expressionService;
+        this.organisationUnitService = organisationUnitService;
+        this.organisationUnitGroupService = organisationUnitGroupService;
+        this.dimensionService = dimensionService;
     }
 
     public static final ImmutableMap<Integer, ExpressionItem> PROGRAM_INDICATOR_ITEMS = ImmutableMap
@@ -338,7 +354,7 @@ public class DefaultProgramIndicatorService
     @Transactional( readOnly = true )
     public void validate( String expression, Class<?> clazz, Map<String, String> itemDescriptions )
     {
-        CommonExpressionVisitor visitor = newVisitor( ITEM_GET_DESCRIPTIONS );
+        CommonExpressionVisitor visitor = newVisitor( ITEM_GET_DESCRIPTIONS, null );
 
         castClass( clazz, Parser.visit( expression, visitor ) );
 
@@ -389,15 +405,19 @@ public class DefaultProgramIndicatorService
     {
         Set<String> uids = getDataElementAndAttributeIdentifiers( expression, programIndicator.getAnalyticsType() );
 
-        CommonExpressionVisitor visitor = newVisitor( ITEM_GET_SQL );
+        ProgramExpressionParams progExParams = ProgramExpressionParams.builder()
+            .programIndicator( programIndicator )
+            .reportingStartDate( startDate )
+            .reportingEndDate( endDate )
+            .dataElementAndAttributeIdentifiers( uids )
+            .build();
+
+        CommonExpressionVisitor visitor = newVisitor( ITEM_GET_SQL, progExParams );
 
         visitor.setExpressionLiteral( new SqlLiteral() );
-        visitor.setProgramIndicator( programIndicator );
-        visitor.setReportingStartDate( startDate );
-        visitor.setReportingEndDate( endDate );
-        visitor.setDataElementAndAttributeIdentifiers( uids );
 
         String sql = castString( Parser.visit( expression, visitor ) );
+
         return (tableAlias != null ? sql.replaceAll( ANALYTICS_TBL_ALIAS + "\\.", tableAlias + "\\." ) : sql);
     }
 
@@ -485,21 +505,24 @@ public class DefaultProgramIndicatorService
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private CommonExpressionVisitor newVisitor( ExpressionItemMethod itemMethod )
+    private CommonExpressionVisitor newVisitor( ExpressionItemMethod itemMethod, ProgramExpressionParams progExParams )
     {
-        return CommonExpressionVisitor.newBuilder()
-            .withItemMap( PROGRAM_INDICATOR_ITEMS )
-            .withItemMethod( itemMethod )
-            .withConstantMap( constantService.getConstantMap() )
-            .withProgramIndicatorService( this )
-            .withProgramStageService( programStageService )
-            .withDataElementService( dataElementService )
-            .withAttributeService( attributeService )
-            .withRelationshipTypeService( relationshipTypeService )
-            .withStatementBuilder( statementBuilder )
-            .withI18n( i18nManager.getI18n() )
-            .withSamplePeriods( DEFAULT_SAMPLE_PERIODS )
-            .buildForProgramIndicatorExpressions();
+        return CommonExpressionVisitor.builder()
+            .dimensionService( dimensionService )
+            .organisationUnitService( organisationUnitService )
+            .organisationUnitGroupService( organisationUnitGroupService )
+            .programIndicatorService( this )
+            .programStageService( programStageService )
+            .dataElementService( dataElementService )
+            .attributeService( attributeService )
+            .relationshipTypeService( relationshipTypeService )
+            .statementBuilder( statementBuilder )
+            .i18n( i18nManager.getI18n() )
+            .constantMap( expressionService.getConstantMap() )
+            .itemMap( PROGRAM_INDICATOR_ITEMS )
+            .itemMethod( itemMethod )
+            .progExParams( progExParams )
+            .build();
     }
 
     private String getDescription( String expression, Class<?> clazz )

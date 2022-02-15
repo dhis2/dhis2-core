@@ -40,7 +40,7 @@ import org.hisp.dhis.parser.expression.ExpressionItem;
  *
  * @author Jim Grace
  */
-public class ItemOrgUnitGroup
+public class ItemOrgUnitGroupCount
     implements ExpressionItem
 {
     @Override
@@ -60,9 +60,9 @@ public class ItemOrgUnitGroup
     }
 
     @Override
-    public Object getOrgUnitGroup( ExprContext ctx, CommonExpressionVisitor visitor )
+    public Object getExpressionInfo( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        visitor.getOrgUnitGroupIds().add( ctx.uid0.getText() );
+        visitor.getExInfo().getOrgUnitGroupCountIds().add( ctx.uid0.getText() );
 
         return DOUBLE_VALUE_IF_NULL;
     }
@@ -70,7 +70,7 @@ public class ItemOrgUnitGroup
     @Override
     public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        Integer count = visitor.getOrgUnitCountMap().get( ctx.uid0.getText() );
+        Integer count = visitor.getExParams().getOrgUnitCountMap().get( ctx.uid0.getText() );
 
         if ( count == null ) // Shouldn't happen for a valid expression.
         {
@@ -78,18 +78,5 @@ public class ItemOrgUnitGroup
         }
 
         return count.doubleValue();
-    }
-
-    @Override
-    public Object regenerate( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        Integer count = visitor.getOrgUnitCountMap().get( ctx.uid0.getText() );
-
-        if ( count == null )
-        {
-            return ctx.getText();
-        }
-
-        return count.toString();
     }
 }

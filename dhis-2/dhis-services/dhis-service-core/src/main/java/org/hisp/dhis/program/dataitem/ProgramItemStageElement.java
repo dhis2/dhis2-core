@@ -36,6 +36,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import org.hisp.dhis.parser.expression.ProgramExpressionParams;
 import org.hisp.dhis.program.ProgramExpressionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
@@ -74,7 +75,7 @@ public class ProgramItemStageElement
             throw new ParserExceptionWithoutContext( "Data element " + dataElementId + " not found" );
         }
 
-        if ( isNonDefaultStageOffset( visitor.getStageOffset() )
+        if ( isNonDefaultStageOffset( visitor.getExState().getStageOffset() )
             && !isRepeatableStage( stageService, programStageId ) )
         {
             throw new ParserException( getErrorMessage( programStageId ) );
@@ -97,7 +98,9 @@ public class ProgramItemStageElement
 
         String dataElementId = ctx.uid1.getText();
 
-        int stageOffset = visitor.getStageOffset();
+        ProgramExpressionParams progExParams = visitor.getProgExParams();
+
+        int stageOffset = visitor.getExState().getStageOffset();
 
         String column;
 
@@ -108,7 +111,8 @@ public class ProgramItemStageElement
                 column = visitor.getStatementBuilder().getProgramIndicatorEventColumnSql( programStageId,
                     Integer.valueOf( stageOffset ).toString(),
                     SqlUtils.quote( dataElementId ),
-                    visitor.getReportingStartDate(), visitor.getReportingEndDate(), visitor.getProgramIndicator() );
+                    progExParams.getReportingStartDate(), progExParams.getReportingEndDate(),
+                    progExParams.getProgramIndicator() );
             }
             else
             {
@@ -118,11 +122,11 @@ public class ProgramItemStageElement
         else
         {
             column = visitor.getStatementBuilder().getProgramIndicatorDataValueSelectSql(
-                programStageId, dataElementId, visitor.getReportingStartDate(), visitor.getReportingEndDate(),
-                visitor.getProgramIndicator() );
+                programStageId, dataElementId, progExParams.getReportingStartDate(), progExParams.getReportingEndDate(),
+                progExParams.getProgramIndicator() );
         }
 
-        if ( visitor.getReplaceNulls() )
+        if ( visitor.getExState().isReplaceNulls() )
         {
             DataElement dataElement = visitor.getDataElementService().getDataElement( dataElementId );
 

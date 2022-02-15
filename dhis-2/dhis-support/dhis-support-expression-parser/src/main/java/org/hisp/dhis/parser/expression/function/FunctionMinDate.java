@@ -49,7 +49,7 @@ public class FunctionMinDate
     {
         Date minDate = parseExpressionDate( ctx.minDate.getText() );
 
-        QueryModifiers queryMods = visitor.getQueryModsBuilder().minDate( minDate ).build();
+        QueryModifiers queryMods = visitor.getExState().getQueryModsBuilder().minDate( minDate ).build();
 
         return visitor.visitWithQueryMods( ctx.expr( 0 ), queryMods );
     }

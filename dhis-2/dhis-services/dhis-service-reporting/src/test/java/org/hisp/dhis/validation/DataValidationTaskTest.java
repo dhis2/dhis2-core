@@ -51,7 +51,6 @@ import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValue;
@@ -110,8 +109,6 @@ class DataValidationTaskTest
 
     private Period p3;
 
-    private Map<String, Constant> constantMap;
-
     @BeforeEach
     public void setUp()
     {
@@ -134,10 +131,6 @@ class DataValidationTaskTest
         p1 = createPeriod( "201901" );
         p2 = createPeriod( "201902" );
         p3 = createPeriod( "201903" );
-
-        constantMap = new HashMap<>();
-        constantMap.put( "Gfd3ppDfq8E", new Constant( "a", 5.0 ) );
-        constantMap.put( "bCqvfPR02Im", new Constant( "pi", 3.14 ) );
     }
 
     /**
@@ -162,7 +155,6 @@ class DataValidationTaskTest
         ValidationRunContext ctx = ValidationRunContext.newBuilder()
             .withOrgUnits( organisationUnits )
             .withItemMap( new HashMap<>() )
-            .withConstantMap( constantMap )
             .withOrgUnitGroupMap( new HashMap<>() )
             .withDefaultAttributeCombo( categoryOptionCombo )
             .withPeriodTypeXs( periodTypes )
@@ -183,8 +175,8 @@ class DataValidationTaskTest
         Map<DimensionalItemObject, Object> vals = new HashMap<>();
         vals.put( deA, 12.4 );
 
-        mockExpressionService( leftExpression, vals, ctx, 8.4 );
-        mockExpressionService( rightExpression, vals, ctx, -10.0 );
+        mockExpressionService( leftExpression, vals, 8.4 );
+        mockExpressionService( rightExpression, vals, -10.0 );
 
         when( expressionService.getExpressionValue( ExpressionParams.builder()
             .expression( "8.4!=-10.0" ).parseType( SIMPLE_TEST ).build() ) )
@@ -214,7 +206,6 @@ class DataValidationTaskTest
 
         ValidationRunContext ctx = ValidationRunContext.newBuilder()
             .withOrgUnits( organisationUnits )
-            .withConstantMap( constantMap )
             .withDefaultAttributeCombo( categoryOptionCombo )
             .withPeriodTypeXs( periodTypes )
             .withMaxResults( 500 )
@@ -232,14 +223,12 @@ class DataValidationTaskTest
         assertThat( ctx.getValidationResults().size(), is( 0 ) );
     }
 
-    private void mockExpressionService( Expression expression, Map<DimensionalItemObject, Object> vals,
-        ValidationRunContext ctx, Double val )
+    private void mockExpressionService( Expression expression, Map<DimensionalItemObject, Object> vals, Double val )
     {
         ExpressionParams exParams = ExpressionParams.builder()
             .expression( expression.getExpression() )
             .parseType( VALIDATION_RULE_EXPRESSION )
             .valueMap( vals )
-            .constantMap( ctx.getConstantMap() )
             .missingValueStrategy( expression.getMissingValueStrategy() )
             .orgUnit( ouA )
             .build();

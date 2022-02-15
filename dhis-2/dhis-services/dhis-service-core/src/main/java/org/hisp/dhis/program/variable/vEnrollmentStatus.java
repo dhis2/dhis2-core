@@ -47,7 +47,7 @@ public class vEnrollmentStatus
     @Override
     public Object getSql( CommonExpressionVisitor visitor )
     {
-        if ( AnalyticsType.EVENT == visitor.getProgramIndicator().getAnalyticsType() )
+        if ( AnalyticsType.EVENT == visitor.getProgExParams().getProgramIndicator().getAnalyticsType() )
         {
             return "pistatus";
         }

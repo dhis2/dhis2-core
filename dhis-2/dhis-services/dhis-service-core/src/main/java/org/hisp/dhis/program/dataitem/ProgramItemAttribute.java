@@ -67,7 +67,7 @@ public class ProgramItemAttribute
 
         String column = visitor.getStatementBuilder().columnQuote( attributeId );
 
-        if ( visitor.getReplaceNulls() )
+        if ( visitor.getExState().isReplaceNulls() )
         {
             TrackedEntityAttribute attribute = visitor.getAttributeService().getTrackedEntityAttribute( attributeId );
 

@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
 
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
+import org.hisp.dhis.expression.ExpressionParams;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ExpressionItem;
@@ -66,9 +67,9 @@ public class FunctionOrgUnitGroup
     }
 
     @Override
-    public Object getOrgUnitGroup( ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor )
+    public Object getExpressionInfo( ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        visitor.getOrgUnitGroupIds().addAll(
+        visitor.getExInfo().getOrgUnitGroupIds().addAll(
             ctx.UID().stream()
                 .map( TerminalNode::getText )
                 .collect( Collectors.toList() ) );
@@ -79,13 +80,15 @@ public class FunctionOrgUnitGroup
     @Override
     public Object evaluate( ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        if ( visitor.getOrganizationUnit() != null )
+        ExpressionParams exParams = visitor.getExParams();
+
+        if ( exParams.getOrgUnit() != null )
         {
             for ( TerminalNode uid : ctx.UID() )
             {
-                OrganisationUnitGroup oug = visitor.getOrgUnitGroupMap().get( uid.getText() );
+                OrganisationUnitGroup oug = exParams.getOrgUnitGroupMap().get( uid.getText() );
 
-                if ( oug != null && oug.getMembers().contains( visitor.getOrganizationUnit() ) )
+                if ( oug != null && oug.getMembers().contains( exParams.getOrgUnit() ) )
                 {
                     return true;
                 }

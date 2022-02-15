@@ -25,32 +25,47 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.variable;
+package org.hisp.dhis.expression;
 
-import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.parser.expression.ProgramExpressionParams;
-import org.hisp.dhis.program.AnalyticsType;
+import java.util.HashSet;
+import java.util.Set;
+
+import lombok.Getter;
+import lombok.Setter;
+
+import org.hisp.dhis.common.DimensionalItemId;
 
 /**
- * Program indicator variable: event date (also used for execution date)
+ * Information parsed from an expression
+ * <p>
+ * This is only information that is gathered from parsing the expression, and
+ * contains no information from any other source such as the database (either
+ * data or metadata). In other words, the same expression string will always
+ * result in the same information here.
  *
  * @author Jim Grace
  */
-public class vEventDate
-    extends ProgramDateVariable
+@Getter
+@Setter
+public class ExpressionInfo
 {
-    @Override
-    public Object getSql( CommonExpressionVisitor visitor )
-    {
-        ProgramExpressionParams progExParams = visitor.getProgExParams();
+    /**
+     * The dimensional item ids found.
+     */
+    private Set<DimensionalItemId> itemIds = new HashSet<>();
 
-        if ( AnalyticsType.ENROLLMENT == progExParams.getProgramIndicator().getAnalyticsType() )
-        {
-            return visitor.getStatementBuilder().getProgramIndicatorEventColumnSql(
-                null, "executiondate", progExParams.getReportingStartDate(), progExParams.getReportingEndDate(),
-                progExParams.getProgramIndicator() );
-        }
+    /**
+     * The sampled dimensional item ids found (for predictors).
+     */
+    private Set<DimensionalItemId> sampleItemIds = new HashSet<>();
 
-        return "executiondate";
-    }
+    /**
+     * Ids of org unit groups that will need org unit group member counts.
+     */
+    private Set<String> orgUnitGroupCountIds = new HashSet<>();
+
+    /**
+     * Ids of org unit groups found in orgUnits.groups function.
+     */
+    private Set<String> orgUnitGroupIds = new HashSet<>();
 }

@@ -31,8 +31,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.startsWith;
 import static org.hisp.dhis.antlr.AntlrParserUtils.castString;
-import static org.hisp.dhis.parser.expression.ParserUtils.DEFAULT_SAMPLE_PERIODS;
-import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_GET_SQL;
+import static org.hisp.dhis.parser.expression.ExpressionItem.ITEM_GET_SQL;
 import static org.hisp.dhis.program.DefaultProgramIndicatorService.PROGRAM_INDICATOR_ITEMS;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -51,6 +50,7 @@ import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import org.hisp.dhis.parser.expression.ProgramExpressionParams;
 import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -307,25 +307,28 @@ class ProgramSqlGeneratorVariablesTest extends DhisConvenienceTest
         dataElementsAndAttributesIdentifiers.add( BASE_UID + "b" );
         dataElementsAndAttributesIdentifiers.add( BASE_UID + "c" );
 
-        subject = CommonExpressionVisitor.newBuilder()
-            .withItemMap( PROGRAM_INDICATOR_ITEMS )
-            .withItemMethod( ITEM_GET_SQL )
-            .withConstantMap( new HashMap<>() )
-            .withProgramIndicatorService( programIndicatorService )
-            .withProgramStageService( programStageService )
-            .withDataElementService( dataElementService )
-            .withAttributeService( attributeService )
-            .withRelationshipTypeService( relationshipTypeService )
-            .withStatementBuilder( statementBuilder )
-            .withI18n( new I18n( null, null ) )
-            .withSamplePeriods( DEFAULT_SAMPLE_PERIODS )
-            .buildForProgramIndicatorExpressions();
+        ProgramExpressionParams progExParams = ProgramExpressionParams.builder()
+            .programIndicator( programIndicator )
+            .reportingStartDate( startDate )
+            .reportingEndDate( endDate )
+            .dataElementAndAttributeIdentifiers( dataElementsAndAttributesIdentifiers )
+            .build();
+
+        subject = CommonExpressionVisitor.builder()
+            .itemMap( PROGRAM_INDICATOR_ITEMS )
+            .itemMethod( ITEM_GET_SQL )
+            .constantMap( new HashMap<>() )
+            .programIndicatorService( programIndicatorService )
+            .programStageService( programStageService )
+            .dataElementService( dataElementService )
+            .attributeService( attributeService )
+            .relationshipTypeService( relationshipTypeService )
+            .statementBuilder( statementBuilder )
+            .i18n( new I18n( null, null ) )
+            .progExParams( progExParams )
+            .build();
 
         subject.setExpressionLiteral( exprLiteral );
-        subject.setProgramIndicator( programIndicator );
-        subject.setReportingStartDate( startDate );
-        subject.setReportingEndDate( endDate );
-        subject.setDataElementAndAttributeIdentifiers( dataElementsAndAttributesIdentifiers );
 
         return Parser.visit( expression, subject );
     }

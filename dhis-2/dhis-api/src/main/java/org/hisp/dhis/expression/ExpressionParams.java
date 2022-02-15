@@ -28,6 +28,7 @@
 package org.hisp.dhis.expression;
 
 import static org.hisp.dhis.expression.MissingValueStrategy.NEVER_SKIP;
+import static org.hisp.dhis.util.ObjectUtils.firstNonNull;
 
 import java.util.HashMap;
 import java.util.List;
@@ -42,10 +43,10 @@ import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.MapMap;
-import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodType;
 
 /**
  * Parameters to evaluate an expression in {@see ExpressionService}
@@ -95,14 +96,6 @@ public class ExpressionParams
     private Map<DimensionalItemObject, Object> valueMap = new HashMap<>();
 
     /**
-     * Map of constant values to use in evaluating the expression
-     */
-    @ToString.Include
-    @EqualsAndHashCode.Include
-    @Builder.Default
-    private Map<String, Constant> constantMap = new HashMap<>();
-
-    /**
      * Map of organisation unit counts to use in evaluating the expression
      */
     @ToString.Include
@@ -118,11 +111,13 @@ public class ExpressionParams
     private Map<String, OrganisationUnitGroup> orgUnitGroupMap = new HashMap<>();
 
     /**
-     * The number of calendar days to be used in evaluating the expression
+     * The number of calendar days to be used in evaluating the expression.
+     * Defaults to zero for the purpose of expression syntax checking.
      */
     @ToString.Include
     @EqualsAndHashCode.Include
-    private Integer days;
+    @Builder.Default
+    private Integer days = 0;
 
     /**
      * The missing value strategy (what to do if data values are missing)
@@ -140,11 +135,14 @@ public class ExpressionParams
     private OrganisationUnit orgUnit;
 
     /**
-     * For predictors, a list of periods in which we will look for sampled data
+     * For predictors, a list of periods in which we will look for sampled data.
+     * Defaults to a single dummy period when we don't have an actual list of
+     * periods, so we can do syntax checking.
      */
     @ToString.Include
     @EqualsAndHashCode.Include
-    private List<Period> samplePeriods;
+    @Builder.Default
+    private List<Period> samplePeriods = List.of( PeriodType.getPeriodFromIsoString( "19990101" ) );
 
     /**
      * For predictors, a value map from item to value, for each of the periods
@@ -152,4 +150,13 @@ public class ExpressionParams
      */
     @Builder.Default
     private MapMap<Period, DimensionalItemObject, Object> periodValueMap = new MapMap<>();
+
+    // -------------------------------------------------------------------------
+    // Logic
+    // -------------------------------------------------------------------------
+
+    public DataType getDataType()
+    {
+        return firstNonNull( dataType, parseType.getDataType() );
+    }
 }

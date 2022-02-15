@@ -30,9 +30,8 @@ package org.hisp.dhis.program;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.antlr.AntlrParserUtils.castString;
-import static org.hisp.dhis.parser.expression.ParserUtils.DEFAULT_SAMPLE_PERIODS;
-import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_GET_DESCRIPTIONS;
-import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_GET_SQL;
+import static org.hisp.dhis.parser.expression.ExpressionItem.ITEM_GET_DESCRIPTIONS;
+import static org.hisp.dhis.parser.expression.ExpressionItem.ITEM_GET_SQL;
 import static org.hisp.dhis.program.DefaultProgramIndicatorService.PROGRAM_INDICATOR_ITEMS;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
@@ -47,9 +46,9 @@ import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.antlr.AntlrExprLiteral;
 import org.hisp.dhis.antlr.Parser;
 import org.hisp.dhis.antlr.literal.DefaultLiteral;
+import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.constant.Constant;
-import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -57,8 +56,11 @@ import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ExpressionItemMethod;
+import org.hisp.dhis.parser.expression.ProgramExpressionParams;
 import org.hisp.dhis.parser.expression.literal.SqlLiteral;
 import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -80,7 +82,6 @@ import com.google.common.collect.ImmutableMap;
 @ExtendWith( MockitoExtension.class )
 class ProgramSqlGeneratorItemsTest extends DhisConvenienceTest
 {
-
     private ProgramIndicator programIndicator;
 
     private ProgramStage programStageA;
@@ -103,9 +104,6 @@ class ProgramSqlGeneratorItemsTest extends DhisConvenienceTest
     private ProgramIndicatorService programIndicatorService;
 
     @Mock
-    private ConstantService constantService;
-
-    @Mock
     private ProgramStageService programStageService;
 
     @Mock
@@ -116,6 +114,15 @@ class ProgramSqlGeneratorItemsTest extends DhisConvenienceTest
 
     @Mock
     private RelationshipTypeService relationshipTypeService;
+
+    @Mock
+    private OrganisationUnitService organisationUnitService;
+
+    @Mock
+    private OrganisationUnitGroupService organisationUnitGroupService;
+
+    @Mock
+    private DimensionService dimensionService;
 
     private StatementBuilder statementBuilder;
 
@@ -176,7 +183,6 @@ class ProgramSqlGeneratorItemsTest extends DhisConvenienceTest
     void testDataElementNotFound()
     {
         when( attributeService.getTrackedEntityAttribute( attributeA.getUid() ) ).thenReturn( attributeA );
-        when( constantService.getConstant( constantA.getUid() ) ).thenReturn( constantA );
         when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
 
         assertThrows( org.hisp.dhis.antlr.ParserException.class, () -> test( "#{ProgrmStagA.NotElementA}" ) );
@@ -244,25 +250,31 @@ class ProgramSqlGeneratorItemsTest extends DhisConvenienceTest
         dataElementsAndAttributesIdentifiers.add( BASE_UID + "b" );
         dataElementsAndAttributesIdentifiers.add( BASE_UID + "c" );
 
-        CommonExpressionVisitor visitor = CommonExpressionVisitor.newBuilder()
-            .withItemMap( PROGRAM_INDICATOR_ITEMS )
-            .withItemMethod( itemMethod )
-            .withConstantMap( constantMap )
-            .withProgramIndicatorService( programIndicatorService )
-            .withProgramStageService( programStageService )
-            .withDataElementService( dataElementService )
-            .withAttributeService( attributeService )
-            .withRelationshipTypeService( relationshipTypeService )
-            .withStatementBuilder( statementBuilder )
-            .withI18n( new I18n( null, null ) )
-            .withSamplePeriods( DEFAULT_SAMPLE_PERIODS )
-            .buildForProgramIndicatorExpressions();
+        ProgramExpressionParams progExParams = ProgramExpressionParams.builder()
+            .programIndicator( programIndicator )
+            .reportingStartDate( startDate )
+            .reportingEndDate( endDate )
+            .dataElementAndAttributeIdentifiers( dataElementsAndAttributesIdentifiers )
+            .build();
+
+        CommonExpressionVisitor visitor = CommonExpressionVisitor.builder()
+            .dimensionService( dimensionService )
+            .organisationUnitService( organisationUnitService )
+            .organisationUnitGroupService( organisationUnitGroupService )
+            .programIndicatorService( programIndicatorService )
+            .programStageService( programStageService )
+            .dataElementService( dataElementService )
+            .attributeService( attributeService )
+            .relationshipTypeService( relationshipTypeService )
+            .statementBuilder( statementBuilder )
+            .i18n( new I18n( null, null ) )
+            .constantMap( constantMap )
+            .itemMap( PROGRAM_INDICATOR_ITEMS )
+            .itemMethod( itemMethod )
+            .progExParams( progExParams )
+            .build();
 
         visitor.setExpressionLiteral( exprLiteral );
-        visitor.setProgramIndicator( programIndicator );
-        visitor.setReportingStartDate( startDate );
-        visitor.setReportingEndDate( endDate );
-        visitor.setDataElementAndAttributeIdentifiers( dataElementsAndAttributesIdentifiers );
 
         return Parser.visit( expression, visitor );
     }

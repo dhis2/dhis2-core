@@ -65,11 +65,13 @@ public class FunctionOrgUnitAncestor
     @Override
     public Object evaluate( ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        if ( visitor.getOrganizationUnit() != null )
+        OrganisationUnit orgUnit = visitor.getExParams().getOrgUnit();
+
+        if ( orgUnit != null )
         {
             for ( TerminalNode uid : ctx.UID() )
             {
-                if ( visitor.getOrganizationUnit().getPath().contains( uid.getText() + "/" ) )
+                if ( orgUnit.getPath().contains( uid.getText() + "/" ) )
                 {
                     return true;
                 }
