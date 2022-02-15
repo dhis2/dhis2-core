@@ -156,6 +156,26 @@ public class TrackerImportParamsBuilderTest
         } );
     }
 
+    @Test
+    public void testCategoryOptionComboIdentifier()
+    {
+        Arrays.stream( TrackerIdScheme.values() ).forEach( e -> {
+            paramMap.put( "categoryOptionComboIdScheme", Collections.singletonList( e.name() ) );
+            TrackerImportParams params = TrackerImportParamsBuilder.build( paramMap );
+            assertThat( params.getIdentifiers().getCategoryOptionComboIdScheme().getIdScheme(), is( e ) );
+        } );
+    }
+
+    @Test
+    public void testCategoryOptionIdentifier()
+    {
+        Arrays.stream( TrackerIdScheme.values() ).forEach( e -> {
+            paramMap.put( "categoryOptionIdScheme", Collections.singletonList( e.name() ) );
+            TrackerImportParams params = TrackerImportParamsBuilder.build( paramMap );
+            assertThat( params.getIdentifiers().getCategoryOptionIdScheme().getIdScheme(), is( e ) );
+        } );
+    }
+
     private void assertDefaultParams( TrackerImportParams params )
     {
         assertThat( params.getValidationMode(), is( ValidationMode.FULL ) );
