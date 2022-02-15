@@ -180,7 +180,7 @@ public class PreCheckSecurityOwnershipValidationHook
         checkNotNull( enrollment, ENROLLMENT_CANT_BE_NULL );
         checkNotNull( program, PROGRAM_CANT_BE_NULL );
 
-        checkEnrollmentOrgUnit( enrollment, context, strategy, program, reporter );
+        checkEnrollmentOrgUnit( reporter, context, strategy, enrollment, program );
 
         if ( strategy.isDelete() )
         {
@@ -205,10 +205,10 @@ public class PreCheckSecurityOwnershipValidationHook
             ownerOrgUnit );
     }
 
-    private void checkEnrollmentOrgUnit( Enrollment enrollment, TrackerImportValidationContext context,
-        TrackerImportStrategy strategy, Program program, ValidationErrorReporter reporter )
+    private void checkEnrollmentOrgUnit( ValidationErrorReporter reporter, TrackerImportValidationContext context,
+        TrackerImportStrategy strategy, Enrollment enrollment, Program program )
     {
-        OrganisationUnit enrollmentOrgUnit = null;
+        OrganisationUnit enrollmentOrgUnit;
 
         if ( strategy.isUpdateOrDelete() )
         {
@@ -494,7 +494,7 @@ public class PreCheckSecurityOwnershipValidationHook
         checkNotNull( programStage, PROGRAM_STAGE_CANT_BE_NULL );
         checkNotNull( programStage.getProgram(), PROGRAM_CANT_BE_NULL );
 
-        checkEventOrgUnitWriteAccess( reporter, event, eventOrgUnit, isCreatableInSearchScope, bundle, user );
+        checkEventOrgUnitWriteAccess( reporter, bundle, event, eventOrgUnit, isCreatableInSearchScope, user );
 
         if ( programStage.getProgram().isWithoutRegistration() )
         {
@@ -519,9 +519,9 @@ public class PreCheckSecurityOwnershipValidationHook
         }
     }
 
-    private void checkEventOrgUnitWriteAccess( ValidationErrorReporter reporter, Event event,
+    private void checkEventOrgUnitWriteAccess( ValidationErrorReporter reporter, TrackerBundle bundle, Event event,
         OrganisationUnit eventOrgUnit,
-        boolean isCreatableInSearchScope, TrackerBundle bundle, User user )
+        boolean isCreatableInSearchScope, User user )
     {
         if ( eventOrgUnit == null )
         {
