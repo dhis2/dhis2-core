@@ -25,51 +25,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.event;
+package org.hisp.dhis.common;
 
-import org.hisp.dhis.common.Grid;
+import java.io.Serializable;
 
-/**
- * This interface is responsible for retrieving aggregated event data. Data will
- * be returned in a grid object or as a dimensional key-value mapping.
- *
- * @author Markus Bekken
- */
-public interface EnrollmentAnalyticsService
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+
+@lombok.Generated
+@Getter
+@AllArgsConstructor
+public class Reference implements Serializable
 {
-    String ITEM_TEI = "tei";
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "uuid", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "uuid", namespace = DxfNamespaces.DXF_2_0 )
+    private String uuid;
 
-    String ITEM_PI = "pi";
-
-    String ITEM_ENROLLMENT_DATE = "enrollmentdate";
-
-    String ITEM_INCIDENT_DATE = "incidentdate";
-
-    String ITEM_STORED_BY = "storedby";
-
-    String ITEM_CREATED_BY_DISPLAY_NAME = "createdbydisplayname";
-
-    String ITEM_LAST_UPDATED_BY_DISPLAY_NAME = "lastupdatedbydisplayname";
-
-    String ITEM_LAST_UPDATED = "lastupdated";
-
-    String ITEM_GEOMETRY = "geometry";
-
-    String ITEM_LONGITUDE = "longitude";
-
-    String ITEM_LATITUDE = "latitude";
-
-    String ITEM_ORG_UNIT_NAME = "ouname";
-
-    String ITEM_ORG_UNIT_CODE = "oucode";
-
-    String ITEM_PROGRAM_STATUS = "programstatus";
-
-    /**
-     * Returns a list of enrollments matching the given query.
-     *
-     * @param params the envent query parameters.
-     * @return enrollments with event data as a Grid object.
-     */
-    Grid getEnrollments( EventQueryParams params );
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "node", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "node", namespace = DxfNamespaces.DXF_2_0 )
+    private transient JsonNode node;
 }

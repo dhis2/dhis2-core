@@ -68,6 +68,7 @@ public enum ValueType
     USERNAME( String.class, false ),
     COORDINATE( Point.class, true ),
     ORGANISATION_UNIT( OrganisationUnit.class, false ),
+    REFERENCE( Reference.class, false ),
     AGE( Date.class, false ),
     URL( String.class, false ),
     FILE_RESOURCE( String.class, true, FileTypeValueOptions.class ),
@@ -165,6 +166,11 @@ public enum ValueType
     public boolean isOrganisationUnit()
     {
         return ORGANISATION_UNIT == this;
+    }
+
+    public boolean isReference()
+    {
+        return REFERENCE == this;
     }
 
     /**

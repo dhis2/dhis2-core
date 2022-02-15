@@ -25,51 +25,51 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.event;
+package org.hisp.dhis.common;
 
-import org.hisp.dhis.common.Grid;
+import java.util.Date;
+
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
- * This interface is responsible for retrieving aggregated event data. Data will
- * be returned in a grid object or as a dimensional key-value mapping.
- *
- * @author Markus Bekken
+ * Parameters for repeatable stage values
  */
-public interface EnrollmentAnalyticsService
+@Getter
+@Setter
+@EqualsAndHashCode( of = { "startIndex", "count", "startDate", "endDate" } )
+public class RepeatableStageParams
 {
-    String ITEM_TEI = "tei";
+    private int startIndex;
 
-    String ITEM_PI = "pi";
+    private int count = 1;
 
-    String ITEM_ENROLLMENT_DATE = "enrollmentdate";
+    // related to execution date
+    private Date startDate;
 
-    String ITEM_INCIDENT_DATE = "incidentdate";
-
-    String ITEM_STORED_BY = "storedby";
-
-    String ITEM_CREATED_BY_DISPLAY_NAME = "createdbydisplayname";
-
-    String ITEM_LAST_UPDATED_BY_DISPLAY_NAME = "lastupdatedbydisplayname";
-
-    String ITEM_LAST_UPDATED = "lastupdated";
-
-    String ITEM_GEOMETRY = "geometry";
-
-    String ITEM_LONGITUDE = "longitude";
-
-    String ITEM_LATITUDE = "latitude";
-
-    String ITEM_ORG_UNIT_NAME = "ouname";
-
-    String ITEM_ORG_UNIT_CODE = "oucode";
-
-    String ITEM_PROGRAM_STATUS = "programstatus";
+    // related to execution date
+    private Date endDate;
 
     /**
-     * Returns a list of enrollments matching the given query.
+     * to string
      *
-     * @param params the envent query parameters.
-     * @return enrollments with event data as a Grid object.
+     * @return string representation
      */
-    Grid getEnrollments( EventQueryParams params );
+    @Override
+    public String toString()
+    {
+        return "startIndex:" + startIndex + " count:"
+            + (count == Integer.MAX_VALUE ? "all" : count)
+            + " startDate:" + startDate + " endDate: " + endDate;
+    }
+
+    /**
+     *
+     * @return true if value type should be considered as number
+     */
+    public boolean simpleStageValueExpected()
+    {
+        return count == 1;
+    }
 }

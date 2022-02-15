@@ -35,17 +35,18 @@ import static org.hisp.dhis.common.DimensionalObject.PROGRAMSTAGE_SEP;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.event.QueryItemLocator;
+import org.hisp.dhis.analytics.util.RepeatableStageParamsHelper;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.RepeatableStageParams;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.common.exception.InvalidRepeatableStageParamsException;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -82,8 +83,6 @@ public class DefaultQueryItemLocator
 
     private final RelationshipTypeService relationshipTypeService;
 
-    private final static String INDEX_REGEX = "\\[-?\\d+\\]";
-
     public DefaultQueryItemLocator( ProgramStageService programStageService, DataElementService dataElementService,
         TrackedEntityAttributeService attributeService, ProgramIndicatorService programIndicatorService,
         LegendSetService legendSetService, RelationshipTypeService relationshipTypeService )
@@ -112,7 +111,7 @@ public class DefaultQueryItemLocator
 
     private LegendSet getLegendSet( String dimension )
     {
-        dimension = removeOffset( dimension );
+        dimension = RepeatableStageParamsHelper.removeRepeatableStageParams( dimension );
 
         String[] legendSplit = dimension.split( ITEM_SEP );
 
@@ -123,7 +122,8 @@ public class DefaultQueryItemLocator
     private String getElement( String dimension, int pos )
     {
 
-        String dim = StringUtils.substringBefore( removeOffset( dimension ), ITEM_SEP );
+        String dim = StringUtils.substringBefore( RepeatableStageParamsHelper.removeRepeatableStageParams( dimension ),
+            ITEM_SEP );
 
         String[] dimSplit = dim.split( "\\" + PROGRAMSTAGE_SEP );
 
@@ -159,7 +159,8 @@ public class DefaultQueryItemLocator
             if ( programStage != null )
             {
                 qi.setProgramStage( programStage );
-                qi.setProgramStageOffset( getProgramStageOffset( dimension ) );
+
+                qi.setRepeatableStageParams( getRepeatableStageParams( dimension ) );
             }
             else if ( type != null && type.equals( EventOutputType.ENROLLMENT ) )
             {
@@ -226,34 +227,19 @@ public class DefaultQueryItemLocator
             : null);
     }
 
-    private static String removeOffset( String dimension )
+    private static RepeatableStageParams getRepeatableStageParams( String dimension )
     {
-        final Pattern pattern = Pattern.compile( INDEX_REGEX );
-
-        final Matcher matcher = pattern.matcher( dimension );
-
-        if ( matcher.find() )
+        try
         {
-            return dimension.replace( matcher.group( 0 ), "" );
+            return RepeatableStageParamsHelper.getRepeatableStageParams( dimension );
+
         }
-
-        return dimension;
-    }
-
-    private static int getProgramStageOffset( String dimension )
-    {
-        final Pattern pattern = Pattern.compile( INDEX_REGEX );
-
-        final Matcher matcher = pattern.matcher( dimension );
-
-        if ( matcher.find() )
+        catch ( InvalidRepeatableStageParamsException e )
         {
-            return Integer.parseInt( matcher.group( 0 )
-                .replace( "[", "" )
-                .replace( "]", "" ) );
-        }
+            ErrorMessage errorMessage = new ErrorMessage( dimension, ErrorCode.E1101 );
 
-        return 0;
+            throw new IllegalQueryException( errorMessage );
+        }
     }
 
     private RelationshipType getRelationshipTypeOrFail( String dimension )
