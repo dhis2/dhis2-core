@@ -82,7 +82,7 @@ public class ProgramNotificationListener
     public void onProgramRuleEvent( ProgramRuleStageEvent event )
     {
         programNotificationService.sendProgramRuleTriggeredEventNotifications( event.getTemplate(),
-            event.getProgramStageInstance().getId() );
+            event.getProgramStageInstance() );
     }
 
     @TransactionalEventListener( fallbackExecution = true )
