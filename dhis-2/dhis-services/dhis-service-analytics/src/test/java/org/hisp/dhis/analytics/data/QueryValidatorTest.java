@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.analytics.data;
 
+import static org.hisp.dhis.DhisConvenienceTest.createCategory;
+import static org.hisp.dhis.DhisConvenienceTest.createCategoryCombo;
+import static org.hisp.dhis.DhisConvenienceTest.createCategoryOption;
 import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
 import static org.hisp.dhis.DhisConvenienceTest.createDataElementGroup;
 import static org.hisp.dhis.DhisConvenienceTest.createDataElementGroupSet;
@@ -48,6 +51,9 @@ import static org.mockito.Mockito.mock;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.OutputFormat;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -79,12 +85,27 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith( MockitoExtension.class )
 class QueryValidatorTest
 {
-
     private DefaultQueryValidator queryValidator;
 
     // -------------------------------------------------------------------------
     // Fixture
     // -------------------------------------------------------------------------
+
+    private CategoryOption coA;
+
+    private CategoryOption coB;
+
+    private CategoryOption coC;
+
+    private CategoryOption coD;
+
+    private Category caA;
+
+    private Category caB;
+
+    private CategoryCombo ccA;
+
+    private CategoryCombo ccB;
 
     private IndicatorType itA;
 
@@ -122,6 +143,18 @@ class QueryValidatorTest
         queryValidator = new DefaultQueryValidator( mock( SystemSettingManager.class ) );
         PeriodType pt = new MonthlyPeriodType();
 
+        coA = createCategoryOption( 'A' );
+        coB = createCategoryOption( 'B' );
+        coC = createCategoryOption( 'C' );
+        coD = createCategoryOption( 'D' );
+
+        caA = createCategory( 'A', coA, coB );
+        caB = createCategory( 'B', coC, coD );
+
+        ccA = createCategoryCombo( 'A', caA );
+        ccB = createCategoryCombo( 'B', caB );
+        ccB.setSkipTotal( true );
+
         itA = createIndicatorType( 'A' );
 
         inA = createIndicator( 'A', itA );
@@ -131,6 +164,9 @@ class QueryValidatorTest
 
         deA = createDataElement( 'A', ValueType.INTEGER, AggregationType.SUM );
         deB = createDataElement( 'B', ValueType.INTEGER, AggregationType.SUM );
+
+        deA.setCategoryCombo( ccA );
+        deB.setCategoryCombo( ccA );
 
         pdeA = new ProgramDataElementDimensionItem( prA, deA );
         pdeB = new ProgramDataElementDimensionItem( prA, deB );
