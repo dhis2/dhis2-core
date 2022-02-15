@@ -726,7 +726,7 @@ public class Program
      * Indicates whether this program has a category combination which is
      * different from the default category combination.
      */
-    public boolean hasCategoryCombo()
+    public boolean hasNonDefaultCategoryCombo()
     {
         return categoryCombo != null && !CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME.equals( categoryCombo.getName() );
     }
