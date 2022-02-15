@@ -176,6 +176,8 @@ class DataValueListenerTest extends DhisConvenienceTest
 
     private DataSet dataSet;
 
+    private DataSet dataSetB;
+
     private Period period;
 
     private User user;
@@ -457,6 +459,29 @@ class DataValueListenerTest extends DhisConvenienceTest
     }
 
     @Test
+    void testIfOrgUnitNotInDataSet()
+    {
+        when( userService.getUser( anyString() ) ).thenReturn( user );
+        when( smsCommandService.getSMSCommand( anyString(), any() ) ).thenReturn( keyValueCommand );
+        doAnswer( invocation -> {
+            updatedIncomingSms = (IncomingSms) invocation.getArguments()[0];
+            return updatedIncomingSms;
+        } ).when( incomingSmsService ).update( any() );
+
+        keyValueCommand.setSeparator( null );
+        keyValueCommand.setCodeValueSeparator( null );
+        keyValueCommand.setDataset( dataSetB );
+
+        subject.receive( incomingSms );
+
+        assertNotNull( updatedIncomingSms );
+        assertEquals( SmsMessageStatus.FAILED, updatedIncomingSms.getStatus() );
+        assertFalse( updatedIncomingSms.isParsed() );
+        verify( dataSetService, times( 0 ) ).getLockStatus( any( User.class ), any( DataSet.class ),
+            any( Period.class ), any( OrganisationUnit.class ), any( CategoryOptionCombo.class ), any( Date.class ) );
+    }
+
+    @Test
     void testDefaultSeparator()
     {
         mockServices();
@@ -499,6 +524,9 @@ class DataValueListenerTest extends DhisConvenienceTest
         organisationUnitA = createOrganisationUnit( 'O' );
         organisationUnitB = createOrganisationUnit( 'P' );
         dataSet = createDataSet( 'D' );
+        dataSetB = createDataSet( 'B' );
+        dataSet.addOrganisationUnit( organisationUnitA );
+        dataSet.addOrganisationUnit( organisationUnitB );
         period = createPeriod( new Date(), new Date() );
 
         user = createUser( 'U' );

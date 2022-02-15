@@ -72,7 +72,9 @@ public class DataValueSMSListener
     extends
     CommandSMSListener
 {
-    private static final String DATASET_LOCKED = "Dataset: %s is locked for period: %s";
+    private static final String DATASET_LOCKED = "Dataset: [%]s is locked for period: [%s]";
+
+    private static final String OU_NOT_IN_DATASET = "Organisation unit [%s] is not assigned to dataSet [%s]";
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -126,6 +128,15 @@ public class DataValueSMSListener
 
         Period period = getPeriod( smsCommand, date );
         DataSet dataSet = smsCommand.getDataset();
+
+        if ( orgUnit != null && !dataSet.hasOrganisationUnit( orgUnit ) )
+        {
+            sendFeedback( String.format( OU_NOT_IN_DATASET, orgUnit.getUid(), dataSet.getUid() ), sms.getOriginator(),
+                ERROR );
+
+            update( sms, SmsMessageStatus.FAILED, false );
+            return;
+        }
 
         if ( !dataSetService.getLockStatus( null, dataSet, period, orgUnit,
             dataElementCategoryService.getDefaultCategoryOptionCombo(), null ).isOpen() )
