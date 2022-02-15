@@ -29,7 +29,8 @@ package org.hisp.dhis.tracker;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -40,10 +41,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  *
  * @author Stian Sandvold
  */
-@Data
+@Getter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode
 public class TrackerIdentifierParams
 {
     /**
