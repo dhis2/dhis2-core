@@ -112,7 +112,6 @@ public class DefaultQueryValidator
             .forEach( pde -> dataElements.add( ((ProgramDataElementDimensionItem) pde).getDataElement() ) );
         final List<DataElement> nonAggDataElements = FilterUtils.inverseFilter( asTypedList( dataElements ),
             AggregatableDataElementFilter.INSTANCE );
-        final List<DataElement> skipTotalDataElements = params.getSkipTotalDataElements();
 
         if ( !params.isSkipDataDimensionValidation() )
         {
@@ -183,7 +182,7 @@ public class DefaultQueryValidator
         {
             error = new ErrorMessage( ErrorCode.E7115, getUids( nonAggDataElements ) );
         }
-        else if ( !skipTotalDataElements.isEmpty() )
+        else if ( !params.getSkipTotalDataElements().isEmpty() )
         {
             error = new ErrorMessage( ErrorCode.E7134 );
         }
