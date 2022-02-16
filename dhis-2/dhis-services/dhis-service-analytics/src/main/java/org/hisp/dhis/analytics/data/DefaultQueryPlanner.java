@@ -51,7 +51,6 @@ import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.analytics.Partitions;
 import org.hisp.dhis.analytics.QueryPlanner;
 import org.hisp.dhis.analytics.QueryPlannerParams;
-import org.hisp.dhis.analytics.QueryValidator;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.PartitionUtils;
 import org.hisp.dhis.analytics.util.PeriodOffsetUtils;
@@ -83,16 +82,12 @@ import com.google.common.collect.Lists;
 public class DefaultQueryPlanner
     implements QueryPlanner
 {
-    private final QueryValidator queryValidator;
-
     private final PartitionManager partitionManager;
 
-    public DefaultQueryPlanner( QueryValidator queryValidator, PartitionManager partitionManager )
+    public DefaultQueryPlanner( PartitionManager partitionManager )
     {
-        checkNotNull( queryValidator );
         checkNotNull( partitionManager );
 
-        this.queryValidator = queryValidator;
         this.partitionManager = partitionManager;
     }
 
@@ -103,8 +98,6 @@ public class DefaultQueryPlanner
     @Override
     public DataQueryGroups planQuery( DataQueryParams params, QueryPlannerParams plannerParams )
     {
-        queryValidator.validate( params );
-
         params = PeriodOffsetUtils.addShiftedPeriods( params );
 
         // ---------------------------------------------------------------------
