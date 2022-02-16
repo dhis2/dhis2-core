@@ -39,18 +39,15 @@ import lombok.Setter;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.hisp.dhis.antlr.AntlrExpressionVisitor;
 import org.hisp.dhis.common.DimensionService;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.QueryModifiers;
 import org.hisp.dhis.constant.Constant;
-import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.expression.ExpressionInfo;
 import org.hisp.dhis.expression.ExpressionParams;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.jdbc.StatementBuilder;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.program.ProgramStageService;
-import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 
 /**
@@ -65,21 +62,15 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 public class CommonExpressionVisitor
     extends AntlrExpressionVisitor
 {
+    private IdentifiableObjectManager idObjectManager;
+
     private DimensionService dimensionService;
-
-    private OrganisationUnitService organisationUnitService;
-
-    private OrganisationUnitGroupService organisationUnitGroupService;
 
     private ProgramIndicatorService programIndicatorService;
 
     private ProgramStageService programStageService;
 
-    private DataElementService dataElementService;
-
     private TrackedEntityAttributeService attributeService;
-
-    private RelationshipTypeService relationshipTypeService;
 
     private StatementBuilder statementBuilder;
 

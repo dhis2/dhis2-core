@@ -99,7 +99,6 @@ import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.expression.dataitem.DimItemDataElementAndOperand;
 import org.hisp.dhis.expression.dataitem.DimItemIndicator;
 import org.hisp.dhis.expression.dataitem.DimItemProgramAttribute;
@@ -116,8 +115,6 @@ import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorValue;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ExpressionItem;
 import org.hisp.dhis.parser.expression.ExpressionItemMethod;
@@ -162,13 +159,7 @@ public class DefaultExpressionService
 
     private final HibernateGenericStore<Expression> expressionStore;
 
-    private final DataElementService dataElementService;
-
     private final ConstantService constantService;
-
-    private final OrganisationUnitService organisationUnitService;
-
-    private final OrganisationUnitGroupService organisationUnitGroupService;
 
     private final DimensionService dimensionService;
 
@@ -267,16 +258,11 @@ public class DefaultExpressionService
 
     public DefaultExpressionService(
         @Qualifier( "org.hisp.dhis.expression.ExpressionStore" ) HibernateGenericStore<Expression> expressionStore,
-        DataElementService dataElementService, ConstantService constantService,
-        OrganisationUnitService organisationUnitService, OrganisationUnitGroupService organisationUnitGroupService,
-        DimensionService dimensionService, IdentifiableObjectManager idObjectManager,
+        ConstantService constantService, DimensionService dimensionService, IdentifiableObjectManager idObjectManager,
         StatementBuilder statementBuilder, I18nManager i18nManager, CacheProvider cacheProvider )
     {
         checkNotNull( expressionStore );
-        checkNotNull( dataElementService );
         checkNotNull( constantService );
-        checkNotNull( organisationUnitGroupService );
-        checkNotNull( organisationUnitService );
         checkNotNull( dimensionService );
         checkNotNull( idObjectManager );
         checkNotNull( statementBuilder );
@@ -284,10 +270,7 @@ public class DefaultExpressionService
         checkNotNull( cacheProvider );
 
         this.expressionStore = expressionStore;
-        this.dataElementService = dataElementService;
         this.constantService = constantService;
-        this.organisationUnitGroupService = organisationUnitGroupService;
-        this.organisationUnitService = organisationUnitService;
         this.dimensionService = dimensionService;
         this.idObjectManager = idObjectManager;
         this.statementBuilder = statementBuilder;
@@ -517,7 +500,7 @@ public class DefaultExpressionService
     {
         return getExpressionDimensionalItemIds( expression, parseType ).stream()
             .filter( DimensionalItemId::isDataElementOrOperand )
-            .map( i -> dataElementService.getDataElement( i.getId0() ) )
+            .map( i -> idObjectManager.get( DataElement.class, i.getId0() ) )
             .collect( Collectors.toSet() );
     }
 
@@ -724,10 +707,8 @@ public class DefaultExpressionService
     private CommonExpressionVisitor newVisitor( ExpressionItemMethod itemMethod, ExpressionParams exParams )
     {
         return CommonExpressionVisitor.builder()
+            .idObjectManager( idObjectManager )
             .dimensionService( dimensionService )
-            .organisationUnitService( organisationUnitService )
-            .organisationUnitGroupService( organisationUnitGroupService )
-            .dataElementService( dataElementService )
             .statementBuilder( statementBuilder )
             .i18n( i18nManager.getI18n() )
             .constantMap( getConstantMap() )

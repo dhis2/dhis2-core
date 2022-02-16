@@ -36,7 +36,6 @@ import static org.hisp.dhis.program.DefaultProgramIndicatorService.PROGRAM_INDIC
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Date;
-import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -45,15 +44,14 @@ import org.hisp.dhis.antlr.AntlrExprLiteral;
 import org.hisp.dhis.antlr.Parser;
 import org.hisp.dhis.antlr.ParserException;
 import org.hisp.dhis.antlr.literal.DefaultLiteral;
-import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.common.DimensionService;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ProgramExpressionParams;
 import org.hisp.dhis.random.BeanRandomizer;
-import org.hisp.dhis.relationship.RelationshipTypeService;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -81,16 +79,13 @@ class ProgramSqlGeneratorVariablesTest extends DhisConvenienceTest
     @Mock
     private ProgramStageService programStageService;
 
+    @Mock
+    private IdentifiableObjectManager idObjectManager;
+
+    @Mock
+    private DimensionService dimensionService;
+
     private StatementBuilder statementBuilder;
-
-    @Mock
-    private DataElementService dataElementService;
-
-    @Mock
-    private TrackedEntityAttributeService attributeService;
-
-    @Mock
-    private RelationshipTypeService relationshipTypeService;
 
     private CommonExpressionVisitor subject;
 
@@ -315,16 +310,14 @@ class ProgramSqlGeneratorVariablesTest extends DhisConvenienceTest
             .build();
 
         subject = CommonExpressionVisitor.builder()
-            .itemMap( PROGRAM_INDICATOR_ITEMS )
-            .itemMethod( ITEM_GET_SQL )
-            .constantMap( new HashMap<>() )
+            .idObjectManager( idObjectManager )
+            .dimensionService( dimensionService )
             .programIndicatorService( programIndicatorService )
             .programStageService( programStageService )
-            .dataElementService( dataElementService )
-            .attributeService( attributeService )
-            .relationshipTypeService( relationshipTypeService )
             .statementBuilder( statementBuilder )
             .i18n( new I18n( null, null ) )
+            .itemMap( PROGRAM_INDICATOR_ITEMS )
+            .itemMethod( ITEM_GET_SQL )
             .progExParams( progExParams )
             .build();
 

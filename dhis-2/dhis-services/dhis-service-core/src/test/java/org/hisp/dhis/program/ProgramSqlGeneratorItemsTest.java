@@ -47,24 +47,20 @@ import org.hisp.dhis.antlr.AntlrExprLiteral;
 import org.hisp.dhis.antlr.Parser;
 import org.hisp.dhis.antlr.literal.DefaultLiteral;
 import org.hisp.dhis.common.DimensionService;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
-import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ExpressionItemMethod;
 import org.hisp.dhis.parser.expression.ProgramExpressionParams;
 import org.hisp.dhis.parser.expression.literal.SqlLiteral;
-import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -107,19 +103,7 @@ class ProgramSqlGeneratorItemsTest extends DhisConvenienceTest
     private ProgramStageService programStageService;
 
     @Mock
-    private DataElementService dataElementService;
-
-    @Mock
-    private TrackedEntityAttributeService attributeService;
-
-    @Mock
-    private RelationshipTypeService relationshipTypeService;
-
-    @Mock
-    private OrganisationUnitService organisationUnitService;
-
-    @Mock
-    private OrganisationUnitGroupService organisationUnitGroupService;
+    private IdentifiableObjectManager idObjectManager;
 
     @Mock
     private DimensionService dimensionService;
@@ -162,7 +146,7 @@ class ProgramSqlGeneratorItemsTest extends DhisConvenienceTest
     @Test
     void testDataElement()
     {
-        when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
+        when( idObjectManager.get( DataElement.class, dataElementA.getUid() ) ).thenReturn( dataElementA );
         when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
 
         String sql = test( "#{ProgrmStagA.DataElmentA}" );
@@ -172,7 +156,7 @@ class ProgramSqlGeneratorItemsTest extends DhisConvenienceTest
     @Test
     void testDataElementAllowingNulls()
     {
-        when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
+        when( idObjectManager.get( DataElement.class, dataElementA.getUid() ) ).thenReturn( dataElementA );
         when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
 
         String sql = test( "d2:oizp(#{ProgrmStagA.DataElmentA})" );
@@ -182,7 +166,7 @@ class ProgramSqlGeneratorItemsTest extends DhisConvenienceTest
     @Test
     void testDataElementNotFound()
     {
-        when( attributeService.getTrackedEntityAttribute( attributeA.getUid() ) ).thenReturn( attributeA );
+        when( idObjectManager.get( TrackedEntityAttribute.class, attributeA.getUid() ) ).thenReturn( attributeA );
         when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
 
         assertThrows( org.hisp.dhis.antlr.ParserException.class, () -> test( "#{ProgrmStagA.NotElementA}" ) );
@@ -191,7 +175,7 @@ class ProgramSqlGeneratorItemsTest extends DhisConvenienceTest
     @Test
     void testAttribute()
     {
-        when( attributeService.getTrackedEntityAttribute( attributeA.getUid() ) ).thenReturn( attributeA );
+        when( idObjectManager.get( TrackedEntityAttribute.class, attributeA.getUid() ) ).thenReturn( attributeA );
 
         String sql = test( "A{Attribute0A}" );
         assertThat( sql, is( "coalesce(\"Attribute0A\"::numeric,0)" ) );
@@ -200,7 +184,7 @@ class ProgramSqlGeneratorItemsTest extends DhisConvenienceTest
     @Test
     void testAttributeAllowingNulls()
     {
-        when( attributeService.getTrackedEntityAttribute( attributeA.getUid() ) ).thenReturn( attributeA );
+        when( idObjectManager.get( TrackedEntityAttribute.class, attributeA.getUid() ) ).thenReturn( attributeA );
 
         String sql = test( "d2:oizp(A{Attribute0A})" );
         assertThat( sql, is( "coalesce(case when \"Attribute0A\" >= 0 then 1 else 0 end, 0)" ) );
@@ -258,14 +242,10 @@ class ProgramSqlGeneratorItemsTest extends DhisConvenienceTest
             .build();
 
         CommonExpressionVisitor visitor = CommonExpressionVisitor.builder()
+            .idObjectManager( idObjectManager )
             .dimensionService( dimensionService )
-            .organisationUnitService( organisationUnitService )
-            .organisationUnitGroupService( organisationUnitGroupService )
             .programIndicatorService( programIndicatorService )
             .programStageService( programStageService )
-            .dataElementService( dataElementService )
-            .attributeService( attributeService )
-            .relationshipTypeService( relationshipTypeService )
             .statementBuilder( statementBuilder )
             .i18n( new I18n( null, null ) )
             .constantMap( constantMap )

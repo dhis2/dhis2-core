@@ -78,7 +78,6 @@ import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
-import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.i18n.I18nManager;
@@ -88,8 +87,6 @@ import org.hisp.dhis.indicator.IndicatorValue;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -118,16 +115,7 @@ class ExpressionService2Test extends DhisSpringTest
     private HibernateGenericStore<Expression> hibernateGenericStore;
 
     @Mock
-    private DataElementService dataElementService;
-
-    @Mock
     private ConstantService constantService;
-
-    @Mock
-    private OrganisationUnitService organisationUnitService;
-
-    @Mock
-    private OrganisationUnitGroupService organisationUnitGroupService;
 
     @Mock
     private DimensionService dimensionService;
@@ -253,9 +241,8 @@ class ExpressionService2Test extends DhisSpringTest
     @BeforeEach
     public void setUp()
     {
-        target = new DefaultExpressionService( hibernateGenericStore, dataElementService, constantService,
-            organisationUnitService, organisationUnitGroupService, dimensionService, idObjectManager,
-            statementBuilder, i18nManager, cacheProvider );
+        target = new DefaultExpressionService( hibernateGenericStore, constantService, dimensionService,
+            idObjectManager, statementBuilder, i18nManager, cacheProvider );
 
         categoryOptionA = new CategoryOption( "Under 5" );
         categoryOptionB = new CategoryOption( "Over 5" );
@@ -544,9 +531,9 @@ class ExpressionService2Test extends DhisSpringTest
     @Test
     void testGetExpressionDataElements()
     {
-        when( dataElementService.getDataElement( opA.getDimensionItem().split( "\\." )[0] ) )
+        when( idObjectManager.get( DataElement.class, opA.getDimensionItem().split( "\\." )[0] ) )
             .thenReturn( opA.getDataElement() );
-        when( dataElementService.getDataElement( opB.getDimensionItem().split( "\\." )[0] ) )
+        when( idObjectManager.get( DataElement.class, opB.getDimensionItem().split( "\\." )[0] ) )
             .thenReturn( opB.getDataElement() );
         Set<DataElement> dataElements = target.getExpressionDataElements( expressionA, INDICATOR_EXPRESSION );
 
@@ -554,9 +541,9 @@ class ExpressionService2Test extends DhisSpringTest
         assertThat( dataElements, hasItems( opA.getDataElement(), opB.getDataElement() ) );
 
         // Expression G
-        when( dataElementService.getDataElement( deA.getUid() ) ).thenReturn( deA );
-        when( dataElementService.getDataElement( deB.getUid() ) ).thenReturn( deB );
-        when( dataElementService.getDataElement( deC.getUid() ) ).thenReturn( deC );
+        when( idObjectManager.get( DataElement.class, deA.getUid() ) ).thenReturn( deA );
+        when( idObjectManager.get( DataElement.class, deB.getUid() ) ).thenReturn( deB );
+        when( idObjectManager.get( DataElement.class, deC.getUid() ) ).thenReturn( deC );
 
         dataElements = target.getExpressionDataElements( expressionG, INDICATOR_EXPRESSION );
 
@@ -613,7 +600,7 @@ class ExpressionService2Test extends DhisSpringTest
         when( dimensionService.getDataDimensionalItemObject( getId( opE ) ) ).thenReturn( opE );
         when( dimensionService.getDataDimensionalItemObject( getId( opF ) ) ).thenReturn( opF );
         when( dimensionService.getDataDimensionalItemObject( getId( reportingRate ) ) ).thenReturn( reportingRate );
-        when( organisationUnitGroupService.getOrganisationUnitGroup( groupA.getUid() ) ).thenReturn( groupA );
+        when( idObjectManager.get( OrganisationUnitGroup.class, groupA.getUid() ) ).thenReturn( groupA );
 
         assertTrue( target.expressionIsValid( expressionA, VALIDATION_RULE_EXPRESSION ).isValid() );
         assertTrue( target.expressionIsValid( expressionB, VALIDATION_RULE_EXPRESSION ).isValid() );
@@ -682,7 +669,7 @@ class ExpressionService2Test extends DhisSpringTest
         description = target.getExpressionDescription( expressionE, INDICATOR_EXPRESSION );
         assertThat( description, is( opA.getDisplayName() + "*" + constantA.getDisplayName() ) );
 
-        when( organisationUnitGroupService.getOrganisationUnitGroup( groupA.getUid() ) ).thenReturn( groupA );
+        when( idObjectManager.get( OrganisationUnitGroup.class, groupA.getUid() ) ).thenReturn( groupA );
         description = target.getExpressionDescription( expressionH, INDICATOR_EXPRESSION );
         assertThat( description, is( opA.getDisplayName() + "*" + groupA.getDisplayName() ) );
 

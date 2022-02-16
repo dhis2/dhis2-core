@@ -48,7 +48,8 @@ public class ProgramItemAttribute
     {
         String attributeId = getProgramAttributeId( ctx );
 
-        TrackedEntityAttribute attribute = visitor.getAttributeService().getTrackedEntityAttribute( attributeId );
+        TrackedEntityAttribute attribute = visitor.getIdObjectManager()
+            .get( TrackedEntityAttribute.class, attributeId );
 
         if ( attribute == null )
         {
@@ -69,7 +70,8 @@ public class ProgramItemAttribute
 
         if ( visitor.getExState().isReplaceNulls() )
         {
-            TrackedEntityAttribute attribute = visitor.getAttributeService().getTrackedEntityAttribute( attributeId );
+            TrackedEntityAttribute attribute = visitor.getIdObjectManager()
+                .get( TrackedEntityAttribute.class, attributeId );
 
             if ( attribute == null )
             {

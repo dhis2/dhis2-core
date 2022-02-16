@@ -63,7 +63,7 @@ public class ProgramItemStageElement
         ProgramStageService stageService = visitor.getProgramStageService();
 
         ProgramStage programStage = stageService.getProgramStage( programStageId );
-        DataElement dataElement = visitor.getDataElementService().getDataElement( dataElementId );
+        DataElement dataElement = visitor.getIdObjectManager().get( DataElement.class, dataElementId );
 
         if ( programStage == null )
         {
@@ -128,7 +128,7 @@ public class ProgramItemStageElement
 
         if ( visitor.getExState().isReplaceNulls() )
         {
-            DataElement dataElement = visitor.getDataElementService().getDataElement( dataElementId );
+            DataElement dataElement = visitor.getIdObjectManager().get( DataElement.class, dataElementId );
 
             if ( dataElement == null )
             {

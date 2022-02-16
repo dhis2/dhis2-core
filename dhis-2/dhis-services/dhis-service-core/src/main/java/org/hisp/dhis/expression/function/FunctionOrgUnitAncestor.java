@@ -49,7 +49,7 @@ public class FunctionOrgUnitAncestor
     {
         for ( TerminalNode uid : ctx.UID() )
         {
-            OrganisationUnit orgUnit = visitor.getOrganisationUnitService().getOrganisationUnit( uid.getText() );
+            OrganisationUnit orgUnit = visitor.getIdObjectManager().get( OrganisationUnit.class, uid.getText() );
 
             if ( orgUnit == null )
             {

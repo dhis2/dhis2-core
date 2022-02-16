@@ -52,8 +52,8 @@ public class FunctionOrgUnitGroup
     {
         for ( TerminalNode uid : ctx.UID() )
         {
-            OrganisationUnitGroup orgUnitGroup = visitor.getOrganisationUnitGroupService()
-                .getOrganisationUnitGroup( uid.getText() );
+            OrganisationUnitGroup orgUnitGroup = visitor.getIdObjectManager()
+                .get( OrganisationUnitGroup.class, uid.getText() );
 
             if ( orgUnitGroup == null )
             {

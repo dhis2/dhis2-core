@@ -51,8 +51,8 @@ public class D2RelationshipCount
         {
             String relationshipId = trimQuotes( ctx.QUOTED_UID().getText() );
 
-            RelationshipType relationshipType = visitor.getRelationshipTypeService()
-                .getRelationshipType( relationshipId );
+            RelationshipType relationshipType = visitor.getIdObjectManager()
+                .get( RelationshipType.class, relationshipId );
 
             if ( relationshipType == null )
             {

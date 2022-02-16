@@ -46,8 +46,8 @@ public class ItemOrgUnitGroupCount
     @Override
     public Object getDescription( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        OrganisationUnitGroup orgUnitGroup = visitor.getOrganisationUnitGroupService()
-            .getOrganisationUnitGroup( ctx.uid0.getText() );
+        OrganisationUnitGroup orgUnitGroup = visitor.getIdObjectManager()
+            .get( OrganisationUnitGroup.class, ctx.uid0.getText() );
 
         if ( orgUnitGroup == null )
         {

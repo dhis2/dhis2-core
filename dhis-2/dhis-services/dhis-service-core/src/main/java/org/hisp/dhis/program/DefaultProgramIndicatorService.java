@@ -76,14 +76,12 @@ import org.hisp.dhis.antlr.ParserException;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.DimensionService;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.commons.util.TextUtils;
-import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.jdbc.StatementBuilder;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ExpressionItem;
 import org.hisp.dhis.parser.expression.ExpressionItemMethod;
@@ -117,8 +115,6 @@ import org.hisp.dhis.program.function.D2YearsBetween;
 import org.hisp.dhis.program.function.D2Zing;
 import org.hisp.dhis.program.function.D2Zpvc;
 import org.hisp.dhis.program.variable.ProgramVariableItem;
-import org.hisp.dhis.relationship.RelationshipTypeService;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -138,64 +134,47 @@ public class DefaultProgramIndicatorService
 
     private final ProgramIndicatorStore programIndicatorStore;
 
+    private final IdentifiableObjectStore<ProgramIndicatorGroup> programIndicatorGroupStore;
+
     private final ProgramStageService programStageService;
 
-    private final DataElementService dataElementService;
-
-    private final TrackedEntityAttributeService attributeService;
+    private final IdentifiableObjectManager idObjectManager;
 
     private final StatementBuilder statementBuilder;
 
-    private final IdentifiableObjectStore<ProgramIndicatorGroup> programIndicatorGroupStore;
-
-    private final I18nManager i18nManager;
-
-    private final RelationshipTypeService relationshipTypeService;
-
-    private final Cache<String> analyticsSqlCache;
-
     private final ExpressionService expressionService;
-
-    private final OrganisationUnitService organisationUnitService;
-
-    private final OrganisationUnitGroupService organisationUnitGroupService;
 
     private final DimensionService dimensionService;
 
+    private final I18nManager i18nManager;
+
+    private final Cache<String> analyticsSqlCache;
+
     public DefaultProgramIndicatorService( ProgramIndicatorStore programIndicatorStore,
-        ProgramStageService programStageService, DataElementService dataElementService,
-        TrackedEntityAttributeService attributeService, StatementBuilder statementBuilder,
         @Qualifier( "org.hisp.dhis.program.ProgramIndicatorGroupStore" ) IdentifiableObjectStore<ProgramIndicatorGroup> programIndicatorGroupStore,
-        I18nManager i18nManager, RelationshipTypeService relationshipTypeService, CacheProvider cacheProvider,
-        ExpressionService expressionService, OrganisationUnitService organisationUnitService,
-        OrganisationUnitGroupService organisationUnitGroupService, DimensionService dimensionService )
+        ProgramStageService programStageService, IdentifiableObjectManager idObjectManager,
+        StatementBuilder statementBuilder, ExpressionService expressionService, DimensionService dimensionService,
+        I18nManager i18nManager, CacheProvider cacheProvider )
     {
         checkNotNull( programIndicatorStore );
-        checkNotNull( programStageService );
-        checkNotNull( dataElementService );
-        checkNotNull( attributeService );
-        checkNotNull( statementBuilder );
         checkNotNull( programIndicatorGroupStore );
-        checkNotNull( i18nManager );
-        checkNotNull( relationshipTypeService );
+        checkNotNull( programStageService );
+        checkNotNull( idObjectManager );
+        checkNotNull( statementBuilder );
         checkNotNull( expressionService );
-        checkNotNull( organisationUnitService );
-        checkNotNull( organisationUnitGroupService );
         checkNotNull( dimensionService );
+        checkNotNull( i18nManager );
+        checkNotNull( cacheProvider );
 
         this.programIndicatorStore = programIndicatorStore;
-        this.programStageService = programStageService;
-        this.dataElementService = dataElementService;
-        this.attributeService = attributeService;
-        this.statementBuilder = statementBuilder;
         this.programIndicatorGroupStore = programIndicatorGroupStore;
-        this.i18nManager = i18nManager;
-        this.relationshipTypeService = relationshipTypeService;
-        this.analyticsSqlCache = cacheProvider.createAnalyticsSqlCache();
+        this.programStageService = programStageService;
+        this.idObjectManager = idObjectManager;
+        this.statementBuilder = statementBuilder;
         this.expressionService = expressionService;
-        this.organisationUnitService = organisationUnitService;
-        this.organisationUnitGroupService = organisationUnitGroupService;
         this.dimensionService = dimensionService;
+        this.i18nManager = i18nManager;
+        this.analyticsSqlCache = cacheProvider.createAnalyticsSqlCache();
     }
 
     public static final ImmutableMap<Integer, ExpressionItem> PROGRAM_INDICATOR_ITEMS = ImmutableMap
@@ -508,14 +487,10 @@ public class DefaultProgramIndicatorService
     private CommonExpressionVisitor newVisitor( ExpressionItemMethod itemMethod, ProgramExpressionParams progExParams )
     {
         return CommonExpressionVisitor.builder()
+            .idObjectManager( idObjectManager )
             .dimensionService( dimensionService )
-            .organisationUnitService( organisationUnitService )
-            .organisationUnitGroupService( organisationUnitGroupService )
             .programIndicatorService( this )
             .programStageService( programStageService )
-            .dataElementService( dataElementService )
-            .attributeService( attributeService )
-            .relationshipTypeService( relationshipTypeService )
             .statementBuilder( statementBuilder )
             .i18n( i18nManager.getI18n() )
             .constantMap( expressionService.getConstantMap() )
