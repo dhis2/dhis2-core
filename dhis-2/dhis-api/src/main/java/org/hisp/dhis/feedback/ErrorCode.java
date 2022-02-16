@@ -242,6 +242,7 @@ public enum ErrorCode
         "This property need to be data element of value type date and belong the program stage." ),
     E6002( "Class name {0} is not supported." ),
     E6003( "Could not patch object with id {0}." ),
+    E6004( "Attribute `{0}` has invalid GeoJson value." ),
 
     /* File resource */
     E6100( "Filename not present" ),
