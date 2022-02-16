@@ -72,9 +72,13 @@ public class HibernateDataIntegrityStore implements DataIntegrityStore
         @SuppressWarnings( "unchecked" )
         List<Object[]> rows = sessionFactory.getCurrentSession().createNativeQuery( sql ).list();
         return new DataIntegrityDetails( check, new Date(), null, rows.stream()
-            .map( row -> new DataIntegrityIssue( (String) row[0],
-                (String) row[1], row.length == 2 ? null : (String) row[2], null ) )
+            .map( row -> new DataIntegrityIssue( getIndex( row, 0 ), getIndex( row, 1 ), getIndex( row, 2 ), null ) )
             .collect( toUnmodifiableList() ) );
+    }
+
+    private static String getIndex( Object[] row, int index )
+    {
+        return row.length <= index ? null : (String) row[index];
     }
 
     private static Double parsePercentage( Object value )
