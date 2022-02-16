@@ -32,8 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.dataintegrity.DataIntegrityCheckType;
-import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonDataIntegrityDetails;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
@@ -44,31 +42,14 @@ import org.springframework.http.HttpStatus;
  *
  * @author Jan Bernitt
  */
-class DataIntegrityDetailsControllerTest extends DhisControllerConvenienceTest
+class DataIntegrityDetailsControllerTest extends AbstractDataIntegrityControllerTest
 {
-
-    @Test
-    void testCategories_no_options()
-    {
-        String uid = assertStatus( HttpStatus.CREATED,
-            POST( "/categories", "{'name': 'CatDog', 'shortName': 'CD', 'dataDimensionType': 'ATTRIBUTE'}" ) );
-        JsonObject content = GET( "/dataIntegrity/details?checks=categories-no-options" ).content();
-        JsonDataIntegrityDetails details = content.get( "categories_no_options", JsonDataIntegrityDetails.class );
-        assertTrue( details.exists() );
-        assertEquals( 1, details.getIssues().size() );
-        assertEquals( uid, details.getIssues().get( 0 ).getId() );
-        assertEquals( "CatDog", details.getIssues().get( 0 ).getName() );
-    }
-
     @Test
     void testLegacyChecksOnly()
     {
         for ( DataIntegrityCheckType type : DataIntegrityCheckType.values() )
         {
-            JsonObject content = GET( "/dataIntegrity/details?checks={name}", type.getName() ).content();
-            JsonDataIntegrityDetails details = content.get( type.getName(), JsonDataIntegrityDetails.class );
-            assertTrue( details.exists() );
-            assertTrue( details.isObject() );
+            JsonDataIntegrityDetails details = getDetails( type.getName() );
             assertTrue( details.getIssues().isEmpty() );
         }
     }
@@ -78,11 +59,14 @@ class DataIntegrityDetailsControllerTest extends DhisControllerConvenienceTest
     {
         String uid = assertStatus( HttpStatus.CREATED,
             POST( "/categories", "{'name': 'CatDog', 'shortName': 'CD', 'dataDimensionType': 'ATTRIBUTE'}" ) );
+
         JsonDataIntegrityDetails details = GET( "/dataIntegrity/categories-no-options/details" ).content()
             .as( JsonDataIntegrityDetails.class );
+
         assertTrue( details.exists() );
         assertEquals( 1, details.getIssues().size() );
         assertEquals( uid, details.getIssues().get( 0 ).getId() );
         assertEquals( "CatDog", details.getIssues().get( 0 ).getName() );
     }
+
 }

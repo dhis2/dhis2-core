@@ -42,7 +42,6 @@ import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitStore;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonDataIntegrityReport;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,9 +53,8 @@ import org.springframework.http.HttpStatus;
  *
  * @author Jan Bernitt
  */
-class DataIntegrityReportControllerTest extends DhisControllerConvenienceTest
+class DataIntegrityReportControllerTest extends AbstractDataIntegrityControllerTest
 {
-
     /**
      * Needed to create cyclic references for org units
      */

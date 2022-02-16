@@ -53,7 +53,7 @@ class DataIntegrityYamlReaderTest
         readDataIntegrityYaml( "data-integrity-checks.yaml", checks::add,
             sql -> check -> new DataIntegritySummary( check, 1, 100d ), sql -> check -> new DataIntegrityDetails( check,
                 singletonList( new DataIntegrityIssue( "id", "name", sql, List.of() ) ) ) );
-        assertEquals( 1, checks.size() );
+        assertEquals( 5, checks.size() );
         DataIntegrityCheck check = checks.get( 0 );
         assertEquals( "categories_no_options", check.getName() );
         assertEquals( "Categories with no category options", check.getDescription() );
