@@ -84,6 +84,7 @@ class DataIntegrityCategoriesControllerTest extends AbstractDataIntegrityControl
         assertStatus( HttpStatus.CREATED,
             POST( "/categories", "{'name': 'CatDog', 'shortName': 'CD', 'dataDimensionType': 'ATTRIBUTE'}" ) );
 
+        postSummary( "categories-no-options" );
         JsonDataIntegritySummary summary = getSummary( "categories-no-options" );
         assertEquals( 1, summary.getCount() );
         assertEquals( 50, summary.getPercentage().intValue() );
@@ -95,6 +96,7 @@ class DataIntegrityCategoriesControllerTest extends AbstractDataIntegrityControl
         String uid = assertStatus( HttpStatus.CREATED,
             POST( "/categories", "{'name': 'CatDog', 'shortName': 'CD', 'dataDimensionType': 'ATTRIBUTE'}" ) );
 
+        postDetails( "categories-no-options" );
         JsonDataIntegrityDetails details = getDetails( "categories-no-options" );
 
         assertEquals( 1, details.getIssues().size() );
@@ -113,6 +115,7 @@ class DataIntegrityCategoriesControllerTest extends AbstractDataIntegrityControl
         String uid = CodeGenerator.generateUid();
         assertEquals( uid, updateDefaultCategoryToUid( uid ) );
 
+        postSummary( "categories_one_default_category" );
         JsonDataIntegritySummary summary = getSummary( "categories_one_default_category" );
 
         assertEquals( 1, summary.getCount() );
@@ -130,6 +133,7 @@ class DataIntegrityCategoriesControllerTest extends AbstractDataIntegrityControl
         String uid = CodeGenerator.generateUid();
         assertEquals( uid, updateDefaultCategoryToUid( uid ) );
 
+        postDetails( "categories_one_default_category" );
         JsonDataIntegrityDetails details = getDetails( "categories_one_default_category" );
 
         assertEquals( 1, details.getIssues().size() );
@@ -148,6 +152,7 @@ class DataIntegrityCategoriesControllerTest extends AbstractDataIntegrityControl
         String uid = CodeGenerator.generateUid();
         assertEquals( uid, updateDefaultCategoryOptionToUid( uid ) );
 
+        postSummary( "categories_one_default_category_option" );
         JsonDataIntegritySummary summary = getSummary( "categories_one_default_category_option" );
 
         assertEquals( 1, summary.getCount() );
@@ -165,6 +170,7 @@ class DataIntegrityCategoriesControllerTest extends AbstractDataIntegrityControl
         String uid = CodeGenerator.generateUid();
         assertEquals( uid, updateDefaultCategoryOptionToUid( uid ) );
 
+        postDetails( "categories_one_default_category_option" );
         JsonDataIntegrityDetails details = getDetails( "categories_one_default_category_option" );
 
         assertEquals( 1, details.getIssues().size() );
@@ -183,6 +189,7 @@ class DataIntegrityCategoriesControllerTest extends AbstractDataIntegrityControl
         String uid = CodeGenerator.generateUid();
         assertEquals( uid, updateDefaultCategoryComboToUid( uid ) );
 
+        postSummary( "categories_one_default_category_combo" );
         JsonDataIntegritySummary summary = getSummary( "categories_one_default_category_combo" );
 
         assertEquals( 1, summary.getCount() );
@@ -200,6 +207,7 @@ class DataIntegrityCategoriesControllerTest extends AbstractDataIntegrityControl
         String uid = CodeGenerator.generateUid();
         assertEquals( uid, updateDefaultCategoryComboToUid( uid ) );
 
+        postDetails( "categories_one_default_category_combo" );
         JsonDataIntegrityDetails details = getDetails( "categories_one_default_category_combo" );
 
         assertEquals( 1, details.getIssues().size() );
@@ -219,6 +227,7 @@ class DataIntegrityCategoriesControllerTest extends AbstractDataIntegrityControl
         String uid = CodeGenerator.generateUid();
         assertEquals( uid, updateDefaultCategoryOptionComboToUid( uid ) );
 
+        postSummary( "categories_one_default_category_option_combo" );
         JsonDataIntegritySummary summary = getSummary( "categories_one_default_category_option_combo" );
 
         assertEquals( 1, summary.getCount() );
@@ -237,6 +246,7 @@ class DataIntegrityCategoriesControllerTest extends AbstractDataIntegrityControl
         String uid = CodeGenerator.generateUid();
         assertEquals( uid, updateDefaultCategoryOptionComboToUid( uid ) );
 
+        postDetails( "categories_one_default_category_option_combo" );
         JsonDataIntegrityDetails details = getDetails( "categories_one_default_category_option_combo" );
 
         assertEquals( 1, details.getIssues().size() );
