@@ -60,7 +60,8 @@ public class HibernateDataIntegrityStore implements DataIntegrityStore
     public DataIntegritySummary querySummary( DataIntegrityCheck check, String sql )
     {
         Object summary = sessionFactory.getCurrentSession()
-            .createNativeQuery( sql ).getSingleResult();
+            .createNativeQuery( sql )
+            .getSingleResult();
         return new DataIntegritySummary( check, new Date(), null, parseCount( summary ),
             parsePercentage( summary ) );
     }
@@ -70,15 +71,22 @@ public class HibernateDataIntegrityStore implements DataIntegrityStore
     public DataIntegrityDetails queryDetails( DataIntegrityCheck check, String sql )
     {
         @SuppressWarnings( "unchecked" )
-        List<Object[]> rows = sessionFactory.getCurrentSession().createNativeQuery( sql ).list();
+        List<Object[]> rows = sessionFactory.getCurrentSession().createNativeQuery( sql )
+            .getResultList();
         return new DataIntegrityDetails( check, new Date(), null, rows.stream()
-            .map( row -> new DataIntegrityIssue( getIndex( row, 0 ), getIndex( row, 1 ), getIndex( row, 2 ), null ) )
+            .map( row -> new DataIntegrityIssue(
+                getIndex( row, 0 ), getIndex( row, 1 ), getIndex( row, 2 ), getRefs( row, 3 ) ) )
             .collect( toUnmodifiableList() ) );
     }
 
     private static String getIndex( Object[] row, int index )
     {
         return row.length <= index ? null : (String) row[index];
+    }
+
+    private static List<String> getRefs( Object[] row, int index )
+    {
+        return row.length <= index ? null : List.of( (String[]) row[index] );
     }
 
     private static Double parsePercentage( Object value )
