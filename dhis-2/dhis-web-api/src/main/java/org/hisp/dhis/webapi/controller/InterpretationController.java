@@ -174,7 +174,23 @@ public class InterpretationController extends AbstractCrudController<Interpretat
         final OrganisationUnit orgUnit = getUserOrganisationUnit( orgUnitUid, eventVisualization,
             currentUserService.getCurrentUser() );
 
-        return createInterpretation( new Interpretation( eventVisualization, orgUnit, text ) );
+        /*
+         * This is needed until the deprecated entities (EventChart and
+         * EventReport) are completely removed from the code base. Until there
+         * all interpretations saved on the new EventVisualization entity should
+         * also be available for the deprecated ones.
+         */
+        switch ( eventVisualization.getType() )
+        {
+        case LINE_LIST:
+        case PIVOT_TABLE:
+            final EventReport eventReport = idObjectManager.get( EventReport.class,
+                eventVisualization.getUid() );
+            return createInterpretation( new Interpretation( eventVisualization, eventReport, orgUnit, text ) );
+        default:
+            final EventChart eventChart = idObjectManager.get( EventChart.class, eventVisualization.getUid() );
+            return createInterpretation( new Interpretation( eventVisualization, eventChart, orgUnit, text ) );
+        }
     }
 
     @PostMapping( value = "/map/{uid}", consumes = { "text/html", "text/plain" } )
@@ -193,6 +209,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
 
     @PostMapping( value = "/eventReport/{uid}", consumes = { "text/html", "text/plain" } )
     @ResponseBody
+    @Deprecated
     public WebMessage writeEventReportInterpretation( @PathVariable( "uid" ) String uid,
         @RequestParam( value = "ou", required = false ) String orgUnitUid, @CurrentUser User currentUser,
         @RequestBody String text )
@@ -205,13 +222,17 @@ public class InterpretationController extends AbstractCrudController<Interpretat
             return conflict( "Event report does not exist or is not accessible: " + uid );
         }
 
+        final EventVisualization eventVisualization = idObjectManager.get( EventVisualization.class,
+            eventReport.getUid() );
+
         OrganisationUnit orgUnit = getUserOrganisationUnit( orgUnitUid, eventReport, currentUser );
 
-        return createInterpretation( new Interpretation( eventReport, orgUnit, text ) );
+        return createInterpretation( new Interpretation( eventVisualization, eventReport, orgUnit, text ) );
     }
 
     @PostMapping( value = "/eventChart/{uid}", consumes = { "text/html", "text/plain" } )
     @ResponseBody
+    @Deprecated
     public WebMessage writeEventChartInterpretation( @PathVariable( "uid" ) String uid,
         @RequestParam( value = "ou", required = false ) String orgUnitUid, @CurrentUser User currentUser,
         @RequestBody String text )
@@ -224,9 +245,12 @@ public class InterpretationController extends AbstractCrudController<Interpretat
             return conflict( "Event chart does not exist or is not accessible: " + uid );
         }
 
+        final EventVisualization eventVisualization = idObjectManager.get( EventVisualization.class,
+            eventChart.getUid() );
+
         OrganisationUnit orgUnit = getUserOrganisationUnit( orgUnitUid, eventChart, currentUser );
 
-        return createInterpretation( new Interpretation( eventChart, orgUnit, text ) );
+        return createInterpretation( new Interpretation( eventVisualization, eventChart, orgUnit, text ) );
     }
 
     @PostMapping( value = "/dataSetReport/{uid}", consumes = { "text/html", "text/plain" } )
