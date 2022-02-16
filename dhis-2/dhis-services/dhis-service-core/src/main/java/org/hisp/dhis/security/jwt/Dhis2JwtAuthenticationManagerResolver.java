@@ -29,7 +29,6 @@ package org.hisp.dhis.security.jwt;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -184,7 +183,7 @@ public class Dhis2JwtAuthenticationManagerResolver implements AuthenticationMana
                     mappingClaimKey, mappingValue ) );
             }
 
-            Collection<GrantedAuthority> grantedAuthorities = new ArrayList<>();
+            Collection<GrantedAuthority> grantedAuthorities = userCredentials.getAuthorities();
 
             return new DhisJwtAuthenticationToken( jwt, grantedAuthorities, mappingValue, userCredentials );
         };
