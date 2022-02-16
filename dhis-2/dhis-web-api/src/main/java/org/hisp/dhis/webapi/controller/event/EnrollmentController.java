@@ -166,7 +166,14 @@ public class EnrollmentController
 
             if ( enrollments.getPager() != null )
             {
-                rootNode.addChild( NodeUtils.createSlimPager( (SlimPager) enrollments.getPager() ) );
+                if ( params.isTotalPages() )
+                {
+                    rootNode.addChild( NodeUtils.createPager( enrollments.getPager() ) );
+                }
+                else
+                {
+                    rootNode.addChild( NodeUtils.createSlimPager( (SlimPager) enrollments.getPager() ) );
+                }
             }
 
             listEnrollments = enrollments.getEnrollments();

@@ -68,6 +68,7 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.PagerUtils;
+import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -545,7 +546,14 @@ public class EventController
 
         if ( events.getPager() != null )
         {
-            rootNode.addChild( NodeUtils.createPager( events.getPager() ) );
+            if ( params.isTotalPages() )
+            {
+                rootNode.addChild( NodeUtils.createPager( events.getPager() ) );
+            }
+            else
+            {
+                rootNode.addChild( NodeUtils.createSlimPager( (SlimPager) events.getPager() ) );
+            }
         }
 
         if ( !StringUtils.isEmpty( eventCriteria.getAttachment() ) )
