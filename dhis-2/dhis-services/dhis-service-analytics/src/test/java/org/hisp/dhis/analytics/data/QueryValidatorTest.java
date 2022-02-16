@@ -205,6 +205,31 @@ class QueryValidatorTest
     }
 
     @Test
+    void validateFailureNoPeriods()
+    {
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .addDimension(
+                new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA, ouB ) ) )
+            .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList() ) )
+            .addFilter( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, getList( deA, inA ) ) ).build();
+
+        assertValidatonError( ErrorCode.E7104, params );
+    }
+
+    @Test
+    void validateFailureNoDataItems()
+    {
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .addDimension(
+                new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA, ouB ) ) )
+            .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA, peB ) ) )
+            .addDimension( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, getList() ) )
+            .build();
+
+        assertValidatonError( ErrorCode.E7102, params );
+    }
+
+    @Test
     void validateFailureSingleIndicatorAsFilter()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
