@@ -29,12 +29,10 @@ package org.hisp.dhis.dxf2.adx;
 
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Date;
-import java.util.Set;
 
-import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.datavalueset.DataValueSetQueryParams;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.scheduling.JobConfiguration;
 
@@ -81,10 +79,7 @@ public interface AdxDataService
     // Methods
     // --------------------------------------------------------------------------
 
-    DataExportParams getFromUrl( Set<String> dataSets, Set<String> periods, Date startDate, Date endDate,
-        Set<String> organisationUnits, boolean includeChildren, Set<String> organisationUnitGroups,
-        Set<String> attributeOptionCombos, boolean includeDeleted, Date lastUpdated, String lastUpdatedDuration,
-        Integer limit, IdSchemes outputIdSchemes );
+    DataExportParams getFromUrl( DataValueSetQueryParams params );
 
     /**
      * Post data. Takes ADX Data from input stream and saves a series of DXF2

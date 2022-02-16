@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,35 +25,46 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.tracker.preheat.mappers;
 
-import java.util.function.Function;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/**
- * @author Lars Helge Overland
- */
-public enum IdentifiableProperty
+import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.program.Program;
+import org.junit.jupiter.api.Test;
+
+class ProgramMapperTest extends DhisConvenienceTest
 {
-    ID,
-    UID,
-    UUID,
-    NAME,
-    CODE,
-    ATTRIBUTE;
 
-    public static IdentifiableProperty in( IdSchemes schemes, Function<IdSchemes, IdScheme> primary )
+    @Test
+    void testCategoryComboIsSetForDefaultCategoryCombos()
     {
-        IdScheme scheme = primary.apply( schemes );
-        if ( scheme != null && scheme.isNotNull() )
-        {
-            return scheme.getIdentifiableProperty();
-        }
-        scheme = schemes.getIdScheme();
-        if ( scheme != null && scheme.isNotNull() )
-        {
-            return scheme.getIdentifiableProperty();
-        }
-        return UID;
+
+        Program program = new Program();
+        CategoryCombo cc = createCategoryCombo( 'A' );
+        cc.setName( CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME );
+        assertTrue( cc.isDefault(), "tests rely on this CC being the default one" );
+        program.setCategoryCombo( cc );
+
+        Program mappedProgram = ProgramMapper.INSTANCE.map( program );
+
+        assertEquals( cc, mappedProgram.getCategoryCombo() );
     }
 
+    @Test
+    void testCategoryComboIsSetForNonDefaultCategoryCombos()
+    {
+
+        Program program = new Program();
+        CategoryCombo cc = createCategoryCombo( 'A' );
+        assertFalse( cc.isDefault(), "tests rely on this CC NOT being the default one" );
+        program.setCategoryCombo( cc );
+
+        Program mappedProgram = ProgramMapper.INSTANCE.map( program );
+
+        assertEquals( cc, mappedProgram.getCategoryCombo() );
+    }
 }
