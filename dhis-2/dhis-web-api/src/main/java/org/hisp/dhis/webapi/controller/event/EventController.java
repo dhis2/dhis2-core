@@ -544,17 +544,7 @@ public class EventController
 
         RootNode rootNode = NodeUtils.createMetadata();
 
-        if ( events.getPager() != null )
-        {
-            if ( params.isTotalPages() )
-            {
-                rootNode.addChild( NodeUtils.createPager( events.getPager() ) );
-            }
-            else
-            {
-                rootNode.addChild( NodeUtils.createSlimPager( (SlimPager) events.getPager() ) );
-            }
-        }
+        addPager( params, events, rootNode );
 
         if ( !StringUtils.isEmpty( eventCriteria.getAttachment() ) )
         {
@@ -604,10 +594,7 @@ public class EventController
 
         RootNode rootNode = NodeUtils.createEvents();
 
-        if ( events.getPager() != null )
-        {
-            rootNode.addChild( NodeUtils.createPager( events.getPager() ) );
-        }
+        addPager( params, events, rootNode );
 
         if ( !StringUtils.isEmpty( eventCriteria.getAttachment() ) )
         {
@@ -621,6 +608,28 @@ public class EventController
                 .getChildren() );
 
         return rootNode;
+    }
+
+    /**
+     * Adds a pager object to the root node respecting the given params.
+     *
+     * @param params
+     * @param events
+     * @param rootNode
+     */
+    private void addPager( final EventSearchParams params, final Events events, final RootNode rootNode )
+    {
+        if ( events.getPager() != null )
+        {
+            if ( params.isTotalPages() )
+            {
+                rootNode.addChild( NodeUtils.createPager( events.getPager() ) );
+            }
+            else
+            {
+                rootNode.addChild( NodeUtils.createSlimPager( (SlimPager) events.getPager() ) );
+            }
+        }
     }
 
     @GetMapping( produces = { "application/csv", "application/csv+gzip", "text/csv" } )
