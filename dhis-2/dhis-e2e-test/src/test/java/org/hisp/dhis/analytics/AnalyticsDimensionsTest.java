@@ -178,8 +178,9 @@ public class AnalyticsDimensionsTest
 
         analyticsEventActions.query().getDimensionsByDimensionType( trackerProgramStage, "DATA_ELEMENT" )
             .validate()
-            .body( "dimensions", hasSize( greaterThanOrEqualTo( 1 ) ) )
-            .body( "dimensions.id", everyItem( in( dataElements ) ) );
+            .body( "dimensions", hasSize( equalTo( dataElements.size()) ) )
+            .body( "dimensions.id", everyItem( startsWith( trackerProgramStage ) ) )
+            .body( "dimensions.id", everyItem( CustomMatchers.containsOneOf( dataElements )) );
     }
 
     @Test

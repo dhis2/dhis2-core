@@ -96,9 +96,7 @@ class JdbcAnalyticsManagerTest
     @BeforeEach
     public void setUp()
     {
-        QueryPlanner queryPlanner = new DefaultQueryPlanner(
-            new DefaultQueryValidator( this.systemSettingManager ),
-            partitionManager );
+        QueryPlanner queryPlanner = new DefaultQueryPlanner( partitionManager );
 
         mockRowSet();
 

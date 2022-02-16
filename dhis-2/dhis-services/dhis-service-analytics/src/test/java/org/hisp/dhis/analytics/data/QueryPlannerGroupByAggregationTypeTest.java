@@ -52,7 +52,6 @@ import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.analytics.QueryPlanner;
 import org.hisp.dhis.analytics.QueryPlannerParams;
-import org.hisp.dhis.analytics.QueryValidator;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.BaseDimensionalObject;
@@ -78,11 +77,7 @@ import com.google.common.collect.Lists;
 @ExtendWith( MockitoExtension.class )
 class QueryPlannerGroupByAggregationTypeTest
 {
-
     private QueryPlanner subject;
-
-    @Mock
-    private QueryValidator queryValidator;
 
     @Mock
     private PartitionManager partitionManager;
@@ -90,7 +85,7 @@ class QueryPlannerGroupByAggregationTypeTest
     @BeforeEach
     public void setUp()
     {
-        subject = new DefaultQueryPlanner( queryValidator, partitionManager );
+        subject = new DefaultQueryPlanner( partitionManager );
     }
 
     @Test

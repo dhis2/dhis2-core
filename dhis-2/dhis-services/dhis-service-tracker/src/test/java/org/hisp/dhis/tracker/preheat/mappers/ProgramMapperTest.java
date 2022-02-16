@@ -25,26 +25,46 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.expression.dataitem;
+package org.hisp.dhis.tracker.preheat.mappers;
 
-import static org.hisp.dhis.common.DimensionItemType.INDICATOR;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.hisp.dhis.common.DimensionalItemId;
-import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.program.Program;
+import org.junit.jupiter.api.Test;
 
-/**
- * Expression item Indicator
- *
- * @author Luciano Fiandesio
- */
-public class DimItemIndicator
-    extends DimensionalItem
+class ProgramMapperTest extends DhisConvenienceTest
 {
-    @Override
-    public DimensionalItemId getDimensionalItemId( ExprContext ctx,
-        CommonExpressionVisitor visitor )
+
+    @Test
+    void testCategoryComboIsSetForDefaultCategoryCombos()
     {
-        return new DimensionalItemId( INDICATOR, ctx.uid0.getText(), visitor.getQueryMods() );
+
+        Program program = new Program();
+        CategoryCombo cc = createCategoryCombo( 'A' );
+        cc.setName( CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME );
+        assertTrue( cc.isDefault(), "tests rely on this CC being the default one" );
+        program.setCategoryCombo( cc );
+
+        Program mappedProgram = ProgramMapper.INSTANCE.map( program );
+
+        assertEquals( cc, mappedProgram.getCategoryCombo() );
+    }
+
+    @Test
+    void testCategoryComboIsSetForNonDefaultCategoryCombos()
+    {
+
+        Program program = new Program();
+        CategoryCombo cc = createCategoryCombo( 'A' );
+        assertFalse( cc.isDefault(), "tests rely on this CC NOT being the default one" );
+        program.setCategoryCombo( cc );
+
+        Program mappedProgram = ProgramMapper.INSTANCE.map( program );
+
+        assertEquals( cc, mappedProgram.getCategoryCombo() );
     }
 }

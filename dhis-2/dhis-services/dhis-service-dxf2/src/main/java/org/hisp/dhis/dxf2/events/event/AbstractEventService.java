@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.events.event;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+import static org.hisp.dhis.common.Pager.DEFAULT_PAGE_SIZE;
 import static org.hisp.dhis.common.SlimPager.FIRST_PAGE;
 import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ATTRIBUTE_OPTION_COMBO_ID;
 import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_COMPLETED_BY_ID;
@@ -445,8 +446,8 @@ public abstract class AbstractEventService implements EventService
      */
     private Pager handleLastPageFlag( final EventSearchParams params, final Grid grid )
     {
-        final int originalPage = params.getPage();
-        final int originalPageSize = params.getPageSize();
+        final Integer originalPage = defaultIfNull( params.getPage(), FIRST_PAGE );
+        final Integer originalPageSize = defaultIfNull( params.getPageSize(), DEFAULT_PAGE_SIZE );
         boolean isLastPage = false;
 
         if ( isNotEmpty( grid.getRows() ) )
@@ -461,8 +462,7 @@ public abstract class AbstractEventService implements EventService
             }
         }
 
-        return new SlimPager( defaultIfNull( originalPage, FIRST_PAGE ), originalPageSize,
-            isLastPage );
+        return new SlimPager( originalPage, originalPageSize, isLastPage );
     }
 
     @Transactional( readOnly = true )

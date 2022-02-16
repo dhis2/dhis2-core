@@ -387,7 +387,7 @@ public class JdbcEventAnalyticsTableManager
     {
         List<AnalyticsTableColumn> columns = new ArrayList<>();
 
-        if ( program.hasCategoryCombo() )
+        if ( program.hasNonDefaultCategoryCombo() )
         {
             List<Category> categories = program.getCategoryCombo().getCategories();
 

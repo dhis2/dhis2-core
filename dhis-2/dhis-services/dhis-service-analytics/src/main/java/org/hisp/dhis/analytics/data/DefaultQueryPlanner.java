@@ -33,6 +33,8 @@ import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
+import static org.hisp.dhis.util.DateUtils.getEarliest;
+import static org.hisp.dhis.util.DateUtils.getLatest;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,7 +51,6 @@ import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.analytics.Partitions;
 import org.hisp.dhis.analytics.QueryPlanner;
 import org.hisp.dhis.analytics.QueryPlannerParams;
-import org.hisp.dhis.analytics.QueryValidator;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.PartitionUtils;
 import org.hisp.dhis.analytics.util.PeriodOffsetUtils;
@@ -59,6 +60,7 @@ import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.ListMap;
+import org.hisp.dhis.common.QueryModifiers;
 import org.hisp.dhis.commons.collection.PaginatedList;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
@@ -80,16 +82,12 @@ import com.google.common.collect.Lists;
 public class DefaultQueryPlanner
     implements QueryPlanner
 {
-    private final QueryValidator queryValidator;
-
     private final PartitionManager partitionManager;
 
-    public DefaultQueryPlanner( QueryValidator queryValidator, PartitionManager partitionManager )
+    public DefaultQueryPlanner( PartitionManager partitionManager )
     {
-        checkNotNull( queryValidator );
         checkNotNull( partitionManager );
 
-        this.queryValidator = queryValidator;
         this.partitionManager = partitionManager;
     }
 
@@ -100,8 +98,6 @@ public class DefaultQueryPlanner
     @Override
     public DataQueryGroups planQuery( DataQueryParams params, QueryPlannerParams plannerParams )
     {
-        queryValidator.validate( params );
-
         params = PeriodOffsetUtils.addShiftedPeriods( params );
 
         // ---------------------------------------------------------------------
@@ -118,6 +114,7 @@ public class DefaultQueryPlanner
             .add( q -> groupByOrgUnitLevel( q ) )
             .add( q -> groupByPeriodType( q ) )
             .add( q -> groupByDataType( q ) )
+            .add( q -> groupByMinMaxDate( q ) )
             .add( q -> groupByAggregationType( q ) )
             .add( q -> groupByDaysInPeriod( q ) )
             .add( q -> groupByDataPeriodType( q ) )
@@ -437,6 +434,42 @@ public class DefaultQueryPlanner
         }
 
         logQuerySplit( queries, "data type" );
+
+        return queries;
+    }
+
+    /**
+     * Groups queries by their minDate/MaxDate query modifiers.
+     *
+     * @param params the {@link DataQueryParams}.
+     * @return a list of {@link DataQueryParams}.
+     */
+    private List<DataQueryParams> groupByMinMaxDate( DataQueryParams params )
+    {
+        List<DataQueryParams> queries = new ArrayList<>();
+
+        if ( !params.getDataElements().isEmpty() )
+        {
+            ListMap<QueryModifiers, DimensionalItemObject> minMaxDateDateElementMap = QueryPlannerUtils
+                .getMinMaxDateDateElementMap( params.getDataElements() );
+
+            for ( QueryModifiers queryMods : minMaxDateDateElementMap.keySet() )
+            {
+                DataQueryParams query = DataQueryParams.newBuilder( params )
+                    .withDataElements( minMaxDateDateElementMap.get( queryMods ) )
+                    .withStartDate( getLatest( params.getStartDate(), queryMods.getMinDate() ) )
+                    .withEndDate( getEarliest( params.getEndDate(), queryMods.getMaxDate() ) )
+                    .build();
+
+                queries.add( query );
+            }
+        }
+        else
+        {
+            queries.add( params );
+        }
+
+        logQuerySplit( queries, "minDate/maxDate query modifiers" );
 
         return queries;
     }

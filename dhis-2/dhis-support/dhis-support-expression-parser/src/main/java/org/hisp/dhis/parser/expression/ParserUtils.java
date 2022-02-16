@@ -56,7 +56,9 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.PAREN;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.PLUS;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.POWER;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.VERTICAL_BAR_2;
+import static org.hisp.dhis.util.DateUtils.parseDate;
 
+import java.util.Date;
 import java.util.List;
 
 import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
@@ -172,6 +174,31 @@ public class ParserUtils
      */
     public static final List<Period> DEFAULT_SAMPLE_PERIODS = ImmutableList.of(
         PeriodType.getPeriodFromIsoString( "20010101" ) );
+
+    /**
+     * Parse a date. The input format is guaranteed by the expression parser to
+     * be yyyy-m-d where m and d may be either 1 or 2 digits each.
+     *
+     * @param dateString the date string
+     * @return the parsed date
+     */
+    public static Date parseExpressionDate( String dateString )
+    {
+        String[] dateParts = dateString.split( "-" );
+
+        String fixedDateString = dateParts[0] +
+            "-" + (dateParts[1].length() == 1 ? "0" : "") + dateParts[1] +
+            "-" + (dateParts[2].length() == 1 ? "0" : "") + dateParts[2];
+
+        Date date = parseDate( fixedDateString );
+
+        if ( date == null )
+        {
+            throw new ParserExceptionWithoutContext( "Invalid date: " + dateString );
+        }
+
+        return date;
+    }
 
     /**
      * Assume that an item of the form #{...} has a syntax that could be used in

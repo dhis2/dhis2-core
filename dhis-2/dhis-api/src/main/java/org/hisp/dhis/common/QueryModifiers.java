@@ -25,26 +25,46 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.expression.dataitem;
+package org.hisp.dhis.common;
 
-import static org.hisp.dhis.common.DimensionItemType.INDICATOR;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
+import java.util.Date;
 
-import org.hisp.dhis.common.DimensionalItemId;
-import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Expression item Indicator
+ * {@see DimensionalItemObject} modifiers for an analytics query, resulting from
+ * a parsed indicator expression data item.
  *
- * @author Luciano Fiandesio
+ * @author Jim Grace
  */
-public class DimItemIndicator
-    extends DimensionalItem
+@Getter
+@ToString
+@EqualsAndHashCode
+@Builder( toBuilder = true )
+public class QueryModifiers
 {
-    @Override
-    public DimensionalItemId getDimensionalItemId( ExprContext ctx,
-        CommonExpressionVisitor visitor )
-    {
-        return new DimensionalItemId( INDICATOR, ctx.uid0.getText(), visitor.getQueryMods() );
-    }
+    /**
+     * Period offset: the offset can be applied within an indicator formula in
+     * order to "shift" the query period by the offset value (e.g. Feb 2022 with
+     * offset -1 becomes Jan 2022). An offset with value 0 means no offset.
+     */
+    @JsonProperty
+    private final int periodOffset;
+
+    /**
+     * The minimum date (start of any period) for querying this object.
+     */
+    @JsonProperty
+    private final Date minDate;
+
+    /**
+     * The maximum date (end of any period) for querying this object.
+     */
+    @JsonProperty
+    private final Date maxDate;
 }

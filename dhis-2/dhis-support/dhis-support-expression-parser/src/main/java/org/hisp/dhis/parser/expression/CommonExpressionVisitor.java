@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.parser.expression;
 
+import static org.hisp.dhis.common.QueryModifiers.QueryModifiersBuilder;
 import static org.hisp.dhis.expression.MissingValueStrategy.NEVER_SKIP;
 import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_REGENERATE;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
@@ -47,6 +48,7 @@ import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.MapMap;
+import org.hisp.dhis.common.QueryModifiers;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.dataelement.DataElement;
@@ -112,9 +114,9 @@ public class CommonExpressionVisitor
     private boolean replaceNulls = true;
 
     /**
-     * By default, the offset is not set.
+     * Item query modifiers, if any, in effect during parsing.
      */
-    private int periodOffset = 0;
+    private QueryModifiers queryMods = null;
 
     private int stageOffset = Integer.MIN_VALUE;
 
@@ -315,20 +317,21 @@ public class CommonExpressionVisitor
     }
 
     /**
-     * Visits a context using a period offset.
+     * Visits a context with a configuration of query modifiers.
      *
      * @param ctx any context
+     * @param mods the query modifiers
      * @return the value with the applied offset
      */
-    public Object visitWithPeriodOffset( ParserRuleContext ctx, int offset )
+    public Object visitWithQueryMods( ParserRuleContext ctx, QueryModifiers mods )
     {
-        int savedPeriodOffset = periodOffset;
+        QueryModifiers savedQueryMods = queryMods;
 
-        periodOffset = offset;
+        queryMods = mods;
 
         Object result = visit( ctx );
 
-        periodOffset = savedPeriodOffset;
+        queryMods = savedQueryMods;
 
         return result;
     }
@@ -415,6 +418,21 @@ public class CommonExpressionVisitor
     {
         return ctx.children.stream().map( this::castStringVisit )
             .collect( Collectors.joining() );
+    }
+
+    /**
+     * Returns a {@see QueryModifiersBuilder} that can be used to add modifiers
+     * to be be applied while parsing. If there are no query modifiers at
+     * present, returns a fresh builder. If there are query modifiers at
+     * present, returns a builder based on current modifiers.
+     *
+     * @return a {@see QueryModifiersBuilder}
+     */
+    public QueryModifiersBuilder getQueryModsBuilder()
+    {
+        return (queryMods == null)
+            ? QueryModifiers.builder()
+            : queryMods.toBuilder();
     }
 
     // -------------------------------------------------------------------------
@@ -533,9 +551,9 @@ public class CommonExpressionVisitor
         this.replaceNulls = replaceNulls;
     }
 
-    public int getPeriodOffset()
+    public QueryModifiers getQueryMods()
     {
-        return periodOffset;
+        return queryMods;
     }
 
     public int getStageOffset()

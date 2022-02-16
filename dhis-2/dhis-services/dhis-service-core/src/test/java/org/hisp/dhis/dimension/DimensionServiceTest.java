@@ -44,6 +44,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -60,6 +61,7 @@ import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.QueryModifiers;
 import org.hisp.dhis.common.ReportingRate;
 import org.hisp.dhis.common.ReportingRateMetric;
 import org.hisp.dhis.dataelement.DataElement;
@@ -153,6 +155,12 @@ class DimensionServiceTest extends DhisSpringTest
     private OrganisationUnitGroup ouGroupB;
 
     private OrganisationUnitGroup ouGroupC;
+
+    private QueryModifiers queryModsA;
+
+    private QueryModifiers queryModsB;
+
+    private QueryModifiers queryModsC;
 
     private DimensionalItemObject itemObjectA;
 
@@ -284,6 +292,9 @@ class DimensionServiceTest extends DhisSpringTest
         ouGroupSetA.getOrganisationUnitGroups().add( ouGroupB );
         ouGroupSetA.getOrganisationUnitGroups().add( ouGroupC );
         organisationUnitGroupService.updateOrganisationUnitGroupSet( ouGroupSetA );
+        queryModsA = QueryModifiers.builder().periodOffset( 10 ).build();
+        queryModsB = QueryModifiers.builder().minDate( new Date() ).build();
+        queryModsC = QueryModifiers.builder().maxDate( new Date() ).build();
         itemObjectA = deA;
         itemObjectB = new DataElementOperand( deA, cocA );
         itemObjectC = new DataElementOperand( deA, null, cocA );
@@ -646,18 +657,17 @@ class DimensionServiceTest extends DhisSpringTest
     }
 
     @Test
-    void testGetIndicatorDataDimensionalItemMapWithOffsetValue()
+    void testGetIndicatorDataDimensionalItemMapWithQueryMods()
     {
         Map<DimensionalItemId, DimensionalItemObject> result;
         // Given
-        int offset = 1;
         Set<DimensionalItemId> dimensionalItemIds = new HashSet<>();
-        deA.setPeriodOffset( offset );
-        deB.setPeriodOffset( offset );
-        deC.setPeriodOffset( offset );
-        DimensionalItemId itemIdA = new DimensionalItemId( DATA_ELEMENT, deA.getUid(), offset );
-        DimensionalItemId itemIdB = new DimensionalItemId( DATA_ELEMENT, deB.getUid(), offset );
-        DimensionalItemId itemIdC = new DimensionalItemId( DATA_ELEMENT, deC.getUid(), offset );
+        deA.setQueryMods( queryModsA );
+        deB.setQueryMods( queryModsB );
+        deC.setQueryMods( queryModsC );
+        DimensionalItemId itemIdA = new DimensionalItemId( DATA_ELEMENT, deA.getUid(), queryModsA );
+        DimensionalItemId itemIdB = new DimensionalItemId( DATA_ELEMENT, deB.getUid(), queryModsB );
+        DimensionalItemId itemIdC = new DimensionalItemId( DATA_ELEMENT, deC.getUid(), queryModsC );
         dimensionalItemIds.add( itemIdA );
         dimensionalItemIds.add( itemIdB );
         dimensionalItemIds.add( itemIdC );
@@ -676,18 +686,18 @@ class DimensionServiceTest extends DhisSpringTest
         DimensionalItemId deAId = new DimensionalItemId( DATA_ELEMENT, deA.getUid() );
         DimensionalItemId deBId = new DimensionalItemId( DATA_ELEMENT, deB.getUid() );
         DimensionalItemId deCId = new DimensionalItemId( DATA_ELEMENT, deC.getUid() );
-        DimensionalItemId deAOffset1Id = new DimensionalItemId( DATA_ELEMENT, deA.getUid(), 1 );
-        DimensionalItemId deBOffset1Id = new DimensionalItemId( DATA_ELEMENT, deB.getUid(), 1 );
-        DimensionalItemId deCOffset1Id = new DimensionalItemId( DATA_ELEMENT, deC.getUid(), 1 );
-        DimensionalItemId deAOffset2Id = new DimensionalItemId( DATA_ELEMENT, deA.getUid(), 2 );
-        DimensionalItemId deBOffset2Id = new DimensionalItemId( DATA_ELEMENT, deB.getUid(), 2 );
-        DimensionalItemId deCOffset2Id = new DimensionalItemId( DATA_ELEMENT, deC.getUid(), 2 );
-        DataElement deAOffset1 = makeDataElementOffsetFrom( deA, 1 );
-        DataElement deBOffset1 = makeDataElementOffsetFrom( deB, 1 );
-        DataElement deCOffset1 = makeDataElementOffsetFrom( deC, 1 );
-        DataElement deAOffset2 = makeDataElementOffsetFrom( deA, 2 );
-        DataElement deBOffset2 = makeDataElementOffsetFrom( deB, 2 );
-        DataElement deCOffset2 = makeDataElementOffsetFrom( deC, 2 );
+        DimensionalItemId deAOffset1Id = new DimensionalItemId( DATA_ELEMENT, deA.getUid(), queryModsA );
+        DimensionalItemId deBOffset1Id = new DimensionalItemId( DATA_ELEMENT, deB.getUid(), queryModsA );
+        DimensionalItemId deCOffset1Id = new DimensionalItemId( DATA_ELEMENT, deC.getUid(), queryModsA );
+        DimensionalItemId deAOffset2Id = new DimensionalItemId( DATA_ELEMENT, deA.getUid(), queryModsB );
+        DimensionalItemId deBOffset2Id = new DimensionalItemId( DATA_ELEMENT, deB.getUid(), queryModsB );
+        DimensionalItemId deCOffset2Id = new DimensionalItemId( DATA_ELEMENT, deC.getUid(), queryModsB );
+        DataElement deAOffset1 = makeDataElementWithQueryModsFrom( deA, queryModsA );
+        DataElement deBOffset1 = makeDataElementWithQueryModsFrom( deB, queryModsA );
+        DataElement deCOffset1 = makeDataElementWithQueryModsFrom( deC, queryModsA );
+        DataElement deAOffset2 = makeDataElementWithQueryModsFrom( deA, queryModsB );
+        DataElement deBOffset2 = makeDataElementWithQueryModsFrom( deB, queryModsB );
+        DataElement deCOffset2 = makeDataElementWithQueryModsFrom( deC, queryModsB );
         Set<DimensionalItemId> dimensionalItemIds = Sets.newHashSet( deAId, deBId, deCId, deAOffset1Id, deBOffset1Id,
             deCOffset1Id, deAOffset2Id, deBOffset2Id, deCOffset2Id );
         ImmutableMap<DimensionalItemId, DimensionalItemObject> dimensionalItemMap = ImmutableMap
@@ -725,12 +735,12 @@ class DimensionServiceTest extends DhisSpringTest
     // Supportive methods
     // -------------------------------------------------------------------------
     /**
-     * Make a DataElement with periodOffset based on another DataElement.
+     * Make a DataElement with query modifiers based on another DataElement.
      */
-    private DataElement makeDataElementOffsetFrom( DataElement dataElement, int offset )
+    private DataElement makeDataElementWithQueryModsFrom( DataElement dataElement, QueryModifiers queryMods )
     {
         DataElement de = SerializationUtils.clone( dataElement );
-        de.setPeriodOffset( offset );
+        de.setQueryMods( queryMods );
         return de;
     }
 }
