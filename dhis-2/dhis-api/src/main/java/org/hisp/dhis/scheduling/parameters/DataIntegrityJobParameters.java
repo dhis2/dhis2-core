@@ -52,11 +52,22 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 @JsonDeserialize( using = DataIntegrityJobParametersDeserializer.class )
 public class DataIntegrityJobParameters implements JobParameters
 {
+    public enum DataIntegrityReportType
+    {
+        REPORT,
+        SUMMARY,
+        DETAILS
+    }
+
     private static final long serialVersionUID = 1073997854310838296L;
 
     @JsonProperty( required = false )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     private Set<String> checks;
+
+    @JsonProperty( required = false )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    private DataIntegrityReportType type;
 
     @Override
     public Optional<ErrorReport> validate()

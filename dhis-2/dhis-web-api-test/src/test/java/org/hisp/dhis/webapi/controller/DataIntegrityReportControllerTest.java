@@ -188,7 +188,9 @@ class DataIntegrityReportControllerTest extends DhisControllerConvenienceTest
 
     private JsonDataIntegrityReport getDataIntegrityReport( String url )
     {
-        JsonObject response = POST( url ).content().getObject( "response" );
+        HttpResponse httpResponse = POST( url );
+        assertTrue( httpResponse.location().startsWith( "http://localhost/dataIntegrity/details?checks=" ) );
+        JsonObject response = httpResponse.content().getObject( "response" );
         String id = response.getString( "id" ).string();
         String jobType = response.getString( "jobType" ).string();
         return GET( "/system/taskSummaries/{type}/{id}", jobType, id ).content().as( JsonDataIntegrityReport.class );
