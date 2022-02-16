@@ -111,7 +111,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.EventSyncService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstanceQueryParams;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStageDataElement;
@@ -329,7 +328,7 @@ public abstract class AbstractEventService implements EventService
     /**
      * This method will apply the logic related to the parameter
      * 'totalPages=false'. This works in conjunction with the method:
-     * {@link org.hisp.dhis.program.hibernate.HibernateProgramInstanceStore#getProgramInstances(ProgramInstanceQueryParams)}
+     * {@link EventStore#getEvents(EventSearchParams,List<OrganisationUnit>,Map<String,Set<String>>)}
      *
      * This is needed because we need to query (pageSize + 1) at DB level. The
      * resulting query will allow us to evaluate if we are in the last page or
