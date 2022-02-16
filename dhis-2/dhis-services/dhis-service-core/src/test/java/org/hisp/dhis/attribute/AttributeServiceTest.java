@@ -30,6 +30,7 @@ package org.hisp.dhis.attribute;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.ValueType;
@@ -41,16 +42,13 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 class AttributeServiceTest extends DhisSpringTest
 {
-
     @Autowired
     private AttributeService attributeService;
 
     @Test
     void testAddAttribute()
     {
-        Attribute attribute = new Attribute();
-        attribute.setValueType( ValueType.TEXT );
-        attribute.setName( "attribute1" );
+        Attribute attribute = createAttribute( "attribute1", ValueType.TEXT );
         attributeService.addAttribute( attribute );
         attribute = attributeService.getAttribute( attribute.getId() );
         assertNotNull( attribute );
@@ -61,9 +59,7 @@ class AttributeServiceTest extends DhisSpringTest
     @Test
     void testDeleteAttribute()
     {
-        Attribute attribute = new Attribute();
-        attribute.setValueType( ValueType.TEXT );
-        attribute.setName( "attribute1" );
+        Attribute attribute = createAttribute( "attribute1", ValueType.TEXT );
         attributeService.addAttribute( attribute );
         attribute = attributeService.getAttribute( attribute.getId() );
         assertNotNull( attribute );
@@ -76,9 +72,7 @@ class AttributeServiceTest extends DhisSpringTest
     @Test
     void testGetAttribute()
     {
-        Attribute attribute = new Attribute();
-        attribute.setValueType( ValueType.TEXT );
-        attribute.setName( "attribute1" );
+        Attribute attribute = createAttribute( "attribute1", ValueType.TEXT );
         attributeService.addAttribute( attribute );
         attribute = attributeService.getAttribute( attribute.getId() );
         assertNotNull( attribute );
@@ -87,14 +81,22 @@ class AttributeServiceTest extends DhisSpringTest
     @Test
     void testGetAllAttributes()
     {
-        Attribute attribute1 = new Attribute();
-        attribute1.setValueType( ValueType.TEXT );
-        attribute1.setName( "attribute1" );
-        Attribute attribute2 = new Attribute();
-        attribute2.setValueType( ValueType.TEXT );
-        attribute2.setName( "attribute2" );
+        Attribute attribute1 = createAttribute( "attribute1", ValueType.TEXT );
+        Attribute attribute2 = createAttribute( "attribute2", ValueType.TEXT );
         attributeService.addAttribute( attribute1 );
         attributeService.addAttribute( attribute2 );
         assertEquals( 2, attributeService.getAllAttributes().size() );
+    }
+
+    @Test
+    void testGeoJSONAttribute()
+    {
+        Attribute attribute = createAttribute( "attributeGeoJson", ValueType.GEOJSON );
+        attributeService.addAttribute( attribute );
+
+        attribute = attributeService.getAttributeByName( attribute.getName() );
+        assertNotNull( attribute );
+        assertTrue( attribute.getValueType().isGeo() );
+        assertEquals( attribute.getValueType(), ValueType.GEOJSON );
     }
 }

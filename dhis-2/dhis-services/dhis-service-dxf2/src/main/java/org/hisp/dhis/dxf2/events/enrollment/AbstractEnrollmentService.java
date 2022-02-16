@@ -30,6 +30,7 @@ package org.hisp.dhis.dxf2.events.enrollment;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+import static org.hisp.dhis.common.Pager.DEFAULT_PAGE_SIZE;
 import static org.hisp.dhis.common.SlimPager.FIRST_PAGE;
 import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
 import static org.hisp.dhis.trackedentity.TrackedEntityAttributeService.TEA_VALUE_MAX_LENGTH;
@@ -247,8 +248,8 @@ public abstract class AbstractEnrollmentService
     private Pager handleLastPageFlag( final ProgramInstanceQueryParams params,
         final List<ProgramInstance> programInstances )
     {
-        final int originalPage = params.getPage();
-        final int originalPageSize = params.getPageSize();
+        final Integer originalPage = defaultIfNull( params.getPage(), FIRST_PAGE );
+        final Integer originalPageSize = defaultIfNull( params.getPageSize(), DEFAULT_PAGE_SIZE );
         boolean isLastPage = false;
 
         programInstances.addAll( programInstanceService.getProgramInstances( params ) );
@@ -265,8 +266,7 @@ public abstract class AbstractEnrollmentService
             }
         }
 
-        return new SlimPager( defaultIfNull( originalPage, FIRST_PAGE ), originalPageSize,
-            isLastPage );
+        return new SlimPager( originalPage, originalPageSize, isLastPage );
     }
 
     @Override

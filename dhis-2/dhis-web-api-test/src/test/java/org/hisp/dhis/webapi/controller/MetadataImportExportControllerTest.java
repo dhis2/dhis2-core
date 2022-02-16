@@ -30,14 +30,25 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.webapi.WebClient.Body;
 import static org.hisp.dhis.webapi.WebClient.ContentType;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.IOException;
+
+import org.geojson.GeoJsonObject;
+import org.geojson.Polygon;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.json.domain.JsonAttributeValue;
+import org.hisp.dhis.webapi.json.domain.JsonErrorReport;
+import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
 import org.hisp.dhis.webapi.json.domain.JsonImportSummary;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Tests the
@@ -48,7 +59,6 @@ import org.springframework.http.HttpStatus;
  */
 class MetadataImportExportControllerTest extends DhisControllerConvenienceTest
 {
-
     @Test
     void testPostJsonMetadata()
     {
@@ -152,5 +162,41 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest
             GET( "/programStages/{id}", "VoZMWi7rBgf" ).content().getString( "program.id" ).string() );
         assertEquals( "VoZMWi7rBgf",
             GET( "/programs/{id}", "VoZMWi7rBgj" ).content().getString( "programStages[0].id" ).string() );
+    }
+
+    @Test
+    void testPostValidGeoJsonAttribute()
+        throws IOException
+    {
+        POST( "/metadata",
+            "{\"organisationUnits\": [ {\"id\":\"rXnqqH2Pu6N\",\"name\": \"My Unit 2\",\"shortName\": \"OU2\",\"openingDate\": \"2020-01-01\","
+                + "\"attributeValues\": [{\"value\":  \"{\\\"type\\\": \\\"Polygon\\\","
+                + "\\\"coordinates\\\":  [[[100,0],[101,0],[101,1],[100,1],[100,0]]] }\","
+                + "\"attribute\": {\"id\": \"RRH9IFiZZYN\"}}]}],"
+                + "\"attributes\":[{\"id\":\"RRH9IFiZZYN\",\"valueType\":\"GEOJSON\",\"organisationUnitAttribute\":true,\"name\":\"testgeojson\"}]}" )
+                    .content( HttpStatus.OK );
+
+        JsonIdentifiableObject organisationUnit = GET( "/organisationUnits/{id}", "rXnqqH2Pu6N" ).content()
+            .asObject( JsonIdentifiableObject.class );
+
+        assertEquals( 1, organisationUnit.getAttributeValues().size() );
+        JsonAttributeValue attributeValue = organisationUnit.getAttributeValues().get( 0 );
+        GeoJsonObject geoJSON = new ObjectMapper().readValue( attributeValue.getValue(),
+            GeoJsonObject.class );
+        assertTrue( geoJSON instanceof Polygon );
+        Polygon polygon = (Polygon) geoJSON;
+        assertEquals( 100, polygon.getCoordinates().get( 0 ).get( 0 ).getLongitude() );
+    }
+
+    @Test
+    void testPostInValidGeoJsonAttribute()
+    {
+        JsonWebMessage message = POST( "/metadata",
+            "{\"organisationUnits\": [ {\"id\":\"rXnqqH2Pu6N\",\"name\": \"My Unit 2\",\"shortName\": \"OU2\",\"openingDate\": \"2020-01-01\","
+                + "\"attributeValues\": [{\"value\":  \"{\\\"type\\\": \\\"Polygon\\\"}\","
+                + "\"attribute\": {\"id\": \"RRH9IFiZZYN\"}}]}],"
+                + "\"attributes\":[{\"id\":\"RRH9IFiZZYN\",\"valueType\":\"GEOJSON\",\"organisationUnitAttribute\":true,\"name\":\"testgeojson\"}]}" )
+                    .content( HttpStatus.CONFLICT ).as( JsonWebMessage.class );
+        assertNotNull( message.find( JsonErrorReport.class, report -> report.getErrorCode() == ErrorCode.E6004 ) );
     }
 }

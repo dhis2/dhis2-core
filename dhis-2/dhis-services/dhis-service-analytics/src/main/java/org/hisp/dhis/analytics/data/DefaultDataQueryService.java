@@ -314,8 +314,7 @@ public class DefaultDataQueryService
     }
 
     // TODO Optimize so that org unit levels + boundary are used in query
-    // instead of
-    // fetching all org units one by one
+    // instead of fetching all org units one by one.
 
     @Override
     public DimensionalObject getDimension( String dimension, List<String> items, Date relativePeriodDate,
@@ -360,8 +359,8 @@ public class DefaultDataQueryService
                 }
                 else
                 {
-                    DimensionalItemObject dimItemObject = dimensionService.getDataDimensionalItemObject( inputIdScheme,
-                        uid );
+                    DimensionalItemObject dimItemObject = dimensionService.getDataDimensionalItemObject(
+                        inputIdScheme, uid );
 
                     if ( dimItemObject != null )
                     {
@@ -406,8 +405,9 @@ public class DefaultDataQueryService
 
             for ( String isoPeriod : items )
             {
-                // contains isoPeriod and timeField
+                // Contains isoPeriod and timeField
                 IsoPeriodHolder isoPeriodHolder = IsoPeriodHolder.of( isoPeriod );
+
                 if ( RelativePeriodEnum.contains( isoPeriodHolder.getIsoPeriod() ) )
                 {
                     containsRelativePeriods = true;
@@ -419,8 +419,7 @@ public class DefaultDataQueryService
                     List<Period> relativePeriods = RelativePeriods.getRelativePeriodsFromEnum( relativePeriod,
                         relativePeriodDate, format, true, financialYearStart );
 
-                    // if a custom time filter is specified, sets it in the
-                    // periods
+                    // If custom time filter is specified, set it in periods
                     if ( isoPeriodHolder.hasDateField() )
                     {
                         relativePeriods.forEach( period -> period.setDateField( isoPeriodHolder.getDateField() ) );
@@ -438,8 +437,7 @@ public class DefaultDataQueryService
                     }
                     else
                     {
-                        // parse the YYYYMMDD_YYYYMMDD period format
-                        tryParsingFreeDateRange( isoPeriodHolder )
+                        tryParseDateRange( isoPeriodHolder )
                             .ifPresent( periods::add );
                     }
                 }
@@ -643,9 +641,9 @@ public class DefaultDataQueryService
     }
 
     /**
-     * parses periods in YYYYMMDD_YYYYMMDD format
+     * Parses periods in <code>YYYYMMDD_YYYYMMDD</code> format.
      */
-    private Optional<Period> tryParsingFreeDateRange( IsoPeriodHolder isoPeriodHolder )
+    private Optional<Period> tryParseDateRange( IsoPeriodHolder isoPeriodHolder )
     {
         String[] dates = isoPeriodHolder.getIsoPeriod().split( PERIOD_FREE_RANGE_SEPARATOR );
         if ( dates.length == 2 )

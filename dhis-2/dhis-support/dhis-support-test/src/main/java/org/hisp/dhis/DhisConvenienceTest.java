@@ -696,6 +696,14 @@ public abstract class DhisConvenienceTest
         return attribute;
     }
 
+    public static Attribute createAttribute( String name, ValueType valueType )
+    {
+        Attribute attribute = new Attribute( name, valueType );
+        attribute.setAutoFields();
+
+        return attribute;
+    }
+
     public static AttributeValue createAttributeValue( Attribute attribute, String value )
     {
         return new AttributeValue( value, attribute );

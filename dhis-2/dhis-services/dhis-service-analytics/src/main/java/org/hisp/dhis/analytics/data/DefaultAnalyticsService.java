@@ -210,6 +210,7 @@ public class DefaultAnalyticsService
         removeEmptys( rows );
 
         queryValidator.validateTableLayout( params, columns, rows );
+        queryValidator.validate( params );
 
         final Visualization visualization = new Visualization();
 
