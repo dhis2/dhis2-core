@@ -29,10 +29,13 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import java.util.function.Consumer;
 
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.sms.command.SMSCommand;
+import org.hisp.dhis.sms.command.code.SMSCode;
 import org.hisp.dhis.sms.parse.ParserType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,6 +75,9 @@ public class SmsCommandObjectBundleHook extends AbstractObjectBundleHook
     @Autowired
     private TrackedEntityAttributeService trackedEntityAttributeService;
 
+    @Autowired
+    private CategoryService categoryService;
+
     @Override
     public <T extends IdentifiableObject> void preCreate( T object, ObjectBundle bundle )
     {
@@ -108,13 +114,23 @@ public class SmsCommandObjectBundleHook extends AbstractObjectBundleHook
 
     private void getReferences( SMSCommand command )
     {
-        command.getCodes().stream()
-            .filter( c -> c.hasDataElement() )
-            .forEach( c -> c.setDataElement( dataElementService.getDataElement( c.getDataElement().getUid() ) ) );
+        CategoryOptionCombo defaultCoc = categoryService.getDefaultCategoryOptionCombo();
 
         command.getCodes().stream()
-            .filter( c -> c.hasTrackedEntityAttribute() )
-            .forEach( c -> c.setTrackedEntityAttribute(
-                trackedEntityAttributeService.getTrackedEntityAttribute( c.getTrackedEntityAttribute().getUid() ) ) );
+            .filter( SMSCode::hasDataElement )
+            .forEach( c -> {
+                c.setOptionId( c.getOptionId() == null ? defaultCoc
+                    : categoryService.getCategoryOptionCombo( c.getOptionId().getUid() ) );
+                c.setDataElement( dataElementService.getDataElement( c.getDataElement().getUid() ) );
+            } );
+
+        command.getCodes().stream()
+            .filter( SMSCode::hasTrackedEntityAttribute )
+            .forEach( c -> {
+                c.setOptionId( c.getOptionId() == null ? defaultCoc
+                    : categoryService.getCategoryOptionCombo( c.getOptionId().getUid() ) );
+                c.setTrackedEntityAttribute(
+                    trackedEntityAttributeService.getTrackedEntityAttribute( c.getTrackedEntityAttribute().getUid() ) );
+            } );
     }
 }
