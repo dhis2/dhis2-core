@@ -17,15 +17,13 @@ services:
       POSTGRES_PASSWORD: dhis
 
   web:
-    image: "dhis2/core-dev:master"
+    image: "${IMAGE_NAME}"
     volumes:
     - ./config/dhis2_home/dhis.conf:/DHIS2_home/dhis.conf
     environment:
-      - JAVA_TOOL_OPTIONS="-agentlib:jdwp=transport=dt_socket,address=*:5005,server=y,suspend=n"
       - WAIT_FOR_DB_CONTAINER=db:5432 -t 0
     depends_on:
     - db
     - redis
     ports:
-    - "8080:8080"
-    - "5005:5005"
+    - "8080"
