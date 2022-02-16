@@ -95,7 +95,8 @@ public class AnalyticsDimensionsTest
             Arguments.of( "lastUpdated", "desc" ),
             Arguments.of( "created", "asc" ),
             Arguments.of( "displayName", "desc" ),
-            Arguments.of( "displayName", "asc" )
+            Arguments.of( "displayName", "asc" ),
+            Arguments.of( "dimensionType", "desc" )
         );
     }
 
