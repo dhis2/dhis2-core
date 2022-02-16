@@ -37,7 +37,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
@@ -68,7 +67,6 @@ import org.hisp.dhis.common.DimensionItemObjectValue;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.common.QueryModifiers;
 import org.hisp.dhis.common.ReportingRate;
@@ -100,7 +98,6 @@ import com.google.common.collect.Sets;
  */
 class QueryPlannerTest extends DhisSpringTest
 {
-
     private static final AnalyticsTableType ANALYTICS_TABLE_TYPE = AnalyticsTableType.DATA_VALUE;
 
     @Autowired
@@ -124,6 +121,7 @@ class QueryPlannerTest extends DhisSpringTest
     // -------------------------------------------------------------------------
     // Fixture
     // -------------------------------------------------------------------------
+
     private PeriodType monthly = new MonthlyPeriodType();
 
     private PeriodType yearly = new YearlyPeriodType();
@@ -660,19 +658,6 @@ class QueryPlannerTest extends DhisSpringTest
     }
 
     /**
-     * Expected to fail because of no periods specified.
-     */
-    @Test
-    void planQueryG()
-    {
-        DataQueryParams params = DataQueryParams.newBuilder().withDataElements( getList( deA, deB, deC ) )
-            .withOrganisationUnits( getList( ouA, ouB, ouC, ouD, ouE ) ).build();
-        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().withOptimalQueries( 4 )
-            .withTableType( ANALYTICS_TABLE_TYPE ).build();
-        assertThrows( IllegalQueryException.class, () -> queryPlanner.planQuery( params, plannerParams ) );
-    }
-
-    /**
      * Splits in 4 queries on data elements, then 2 queries on organisation
      * units to satisfy optimal for a total of 8 queries.
      */
@@ -721,19 +706,6 @@ class QueryPlannerTest extends DhisSpringTest
             assertTrue( samePeriodType( query.getPeriods() ) );
             assertDimensionNameNotNull( query );
         }
-    }
-
-    /**
-     * No periods specified, illegal query.
-     */
-    @Test
-    void planQueryJ()
-    {
-        DataQueryParams params = DataQueryParams.newBuilder().withDataElements( getList( deA, deB, deC, deD ) )
-            .withOrganisationUnits( getList( ouA, ouB, ouC, ouD, ouE ) ).build();
-        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().withOptimalQueries( 4 )
-            .withTableType( ANALYTICS_TABLE_TYPE ).build();
-        assertThrows( IllegalQueryException.class, () -> queryPlanner.planQuery( params, plannerParams ) );
     }
 
     /**
@@ -889,21 +861,6 @@ class QueryPlannerTest extends DhisSpringTest
             assertEquals( MonthlyPeriodType.NAME.toLowerCase(),
                 query.getDimension( PERIOD_DIM_ID ).getDimensionName() );
         }
-    }
-
-    /**
-     * No data dimension items or data element group set dimension items
-     * specified, illegal query.
-     */
-    @Test
-    void planQueryNoDataItems()
-    {
-        DataQueryParams params = DataQueryParams.newBuilder()
-            .withPeriods( getList( createPeriod( "200101" ), createPeriod( "200102" ) ) )
-            .withOrganisationUnits( getList( ouA, ouB, ouC, ouD, ouE ) ).build();
-        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().withOptimalQueries( 4 )
-            .withTableType( ANALYTICS_TABLE_TYPE ).build();
-        assertThrows( IllegalQueryException.class, () -> queryPlanner.planQuery( params, plannerParams ) );
     }
 
     /**
