@@ -171,21 +171,16 @@ public class PreCheckSecurityOwnershipValidationHook
         TrackerImportStrategy strategy = context.getStrategy( enrollment );
         TrackerBundle bundle = context.getBundle();
         User user = bundle.getUser();
-        Program program = context.getProgram( enrollment.getProgram() );
+        Program program = strategy.isUpdateOrDelete() ? context.getProgramInstance( enrollment.getEnrollment() )
+            .getProgram() : context.getProgram( enrollment.getProgram() );
         OrganisationUnit ownerOrgUnit = context.getOwnerOrganisationUnit( enrollment.getTrackedEntity(),
             enrollment.getProgram() );
 
         checkNotNull( user, USER_CANT_BE_NULL );
         checkNotNull( enrollment, ENROLLMENT_CANT_BE_NULL );
-        checkNotNull( enrollment.getOrgUnit(), ORGANISATION_UNIT_CANT_BE_NULL );
+        checkNotNull( program, PROGRAM_CANT_BE_NULL );
 
-        // If enrollment is newly created, or going to be deleted, capture scope
-        // has to be checked
-        if ( program.isWithoutRegistration() || strategy.isCreate() || strategy.isDelete() )
-        {
-            checkOrgUnitInCaptureScope( reporter, enrollment,
-                context.getOrganisationUnit( enrollment.getOrgUnit() ) );
-        }
+        checkEnrollmentOrgUnit( reporter, context, strategy, enrollment, program );
 
         if ( strategy.isDelete() )
         {
@@ -206,8 +201,40 @@ public class PreCheckSecurityOwnershipValidationHook
             }
         }
 
-        checkWriteEnrollmentAccess( reporter, enrollment, program, enrollment.getTrackedEntity(),
+        checkWriteEnrollmentAccess( reporter, enrollment, program, context,
             ownerOrgUnit );
+    }
+
+    private void checkEnrollmentOrgUnit( ValidationErrorReporter reporter, TrackerImportValidationContext context,
+        TrackerImportStrategy strategy, Enrollment enrollment, Program program )
+    {
+        OrganisationUnit enrollmentOrgUnit;
+
+        if ( strategy.isUpdateOrDelete() )
+        {
+            enrollmentOrgUnit = context.getProgramInstance( enrollment.getEnrollment() )
+                .getOrganisationUnit();
+
+            if ( enrollmentOrgUnit == null )
+            {
+                log.warn( "ProgramInstance " + enrollment.getEnrollment()
+                    + " has no organisation unit assigned, so we skip user validation" );
+                return;
+            }
+        }
+        else
+        {
+            checkNotNull( enrollment.getOrgUnit(), ORGANISATION_UNIT_CANT_BE_NULL );
+            enrollmentOrgUnit = context.getOrganisationUnit( enrollment.getOrgUnit() );
+        }
+
+        // If enrollment is newly created, or going to be deleted, capture scope
+        // has to be checked
+        if ( program.isWithoutRegistration() || strategy.isCreate()
+            || strategy.isDelete() )
+        {
+            checkOrgUnitInCaptureScope( reporter, enrollment, enrollmentOrgUnit );
+        }
     }
 
     @Override
@@ -248,7 +275,6 @@ public class PreCheckSecurityOwnershipValidationHook
         }
         else
         {
-
             validateCreateEvent( reporter, event, user,
                 categoryOptionCombo,
                 programStage,
@@ -435,7 +461,7 @@ public class PreCheckSecurityOwnershipValidationHook
     }
 
     private void checkWriteEnrollmentAccess( ValidationErrorReporter reporter, Enrollment enrollment, Program program,
-        String trackedEntity, OrganisationUnit ownerOrgUnit )
+        TrackerImportValidationContext context, OrganisationUnit ownerOrgUnit )
     {
         TrackerBundle bundle = reporter.getValidationContext().getBundle();
         User user = bundle.getUser();
@@ -447,6 +473,10 @@ public class PreCheckSecurityOwnershipValidationHook
 
         if ( program.isRegistration() )
         {
+            String trackedEntity = context.getStrategy( enrollment ).isDelete()
+                ? context.getProgramInstance( enrollment.getEnrollment() ).getEntityInstance().getUid()
+                : enrollment.getTrackedEntity();
+
             checkNotNull( program.getTrackedEntityType(), TRACKED_ENTITY_TYPE_CANT_BE_NULL );
             checkTeiTypeAndTeiProgramAccess( reporter, enrollment, user, trackedEntity,
                 ownerOrgUnit, program );
@@ -465,25 +495,7 @@ public class PreCheckSecurityOwnershipValidationHook
         checkNotNull( programStage, PROGRAM_STAGE_CANT_BE_NULL );
         checkNotNull( programStage.getProgram(), PROGRAM_CANT_BE_NULL );
 
-        if ( eventOrgUnit == null )
-        {
-            log.warn( "ProgramStageInstance " + event.getUid()
-                + " has no organisation unit assigned, so we skip user validation" );
-        }
-        else if ( isCreatableInSearchScope
-            ? !organisationUnitService.isInUserSearchHierarchyCached( user, eventOrgUnit )
-            : !organisationUnitService.isInUserHierarchyCached( user, eventOrgUnit ) )
-        {
-
-            TrackerErrorReport error = TrackerErrorReport.builder()
-                .uid( event.getUid() )
-                .trackerType( TrackerType.EVENT )
-                .errorCode( TrackerErrorCode.E1000 )
-                .addArg( user )
-                .addArg( eventOrgUnit )
-                .build( bundle );
-            reporter.addError( error );
-        }
+        checkEventOrgUnitWriteAccess( reporter, bundle, event, eventOrgUnit, isCreatableInSearchScope, user );
 
         if ( programStage.getProgram().isWithoutRegistration() )
         {
@@ -505,6 +517,31 @@ public class PreCheckSecurityOwnershipValidationHook
         if ( categoryOptionCombo != null )
         {
             checkWriteCategoryOptionComboAccess( reporter, event, categoryOptionCombo );
+        }
+    }
+
+    private void checkEventOrgUnitWriteAccess( ValidationErrorReporter reporter, TrackerBundle bundle, Event event,
+        OrganisationUnit eventOrgUnit,
+        boolean isCreatableInSearchScope, User user )
+    {
+        if ( eventOrgUnit == null )
+        {
+            log.warn( "ProgramStageInstance " + event.getUid()
+                + " has no organisation unit assigned, so we skip user validation" );
+        }
+        else if ( isCreatableInSearchScope
+            ? !organisationUnitService.isInUserSearchHierarchyCached( user, eventOrgUnit )
+            : !organisationUnitService.isInUserHierarchyCached( user, eventOrgUnit ) )
+        {
+
+            TrackerErrorReport error = TrackerErrorReport.builder()
+                .uid( event.getUid() )
+                .trackerType( TrackerType.EVENT )
+                .errorCode( TrackerErrorCode.E1000 )
+                .addArg( user )
+                .addArg( eventOrgUnit )
+                .build( bundle );
+            reporter.addError( error );
         }
     }
 

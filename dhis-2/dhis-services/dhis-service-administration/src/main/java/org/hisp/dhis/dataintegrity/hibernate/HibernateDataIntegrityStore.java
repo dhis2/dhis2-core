@@ -53,7 +53,6 @@ import org.springframework.transaction.annotation.Transactional;
 @AllArgsConstructor
 public class HibernateDataIntegrityStore implements DataIntegrityStore
 {
-
     private final SessionFactory sessionFactory;
 
     @Override
