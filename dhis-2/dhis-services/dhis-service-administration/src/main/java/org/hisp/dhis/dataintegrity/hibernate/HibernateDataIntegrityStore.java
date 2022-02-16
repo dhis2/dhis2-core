@@ -60,10 +60,10 @@ public class HibernateDataIntegrityStore implements DataIntegrityStore
     @Transactional( readOnly = true )
     public DataIntegritySummary querySummary( DataIntegrityCheck check, String sql )
     {
-        Object[] summary = (Object[]) sessionFactory.getCurrentSession()
+        Object summary = sessionFactory.getCurrentSession()
             .createNativeQuery( sql ).getSingleResult();
-        return new DataIntegritySummary( check, new Date(), null, parseCount( summary[0] ),
-            parsePercentage( summary[1] ) );
+        return new DataIntegritySummary( check, new Date(), null, parseCount( summary ),
+            parsePercentage( summary ) );
     }
 
     @Override
@@ -80,10 +80,16 @@ public class HibernateDataIntegrityStore implements DataIntegrityStore
 
     private static Double parsePercentage( Object value )
     {
-        if ( value == null )
+        if ( !(value instanceof Object[]) )
         {
             return null;
         }
+        Object[] row = (Object[]) value;
+        if ( row.length < 2 || row[1] == null )
+        {
+            return null;
+        }
+        value = row[1];
         if ( value instanceof String )
         {
             return Double.parseDouble( value.toString().replace( "%", "" ) );
@@ -93,6 +99,11 @@ public class HibernateDataIntegrityStore implements DataIntegrityStore
 
     private static int parseCount( Object value )
     {
+        if ( value instanceof Object[] )
+        {
+            Object[] row = (Object[]) value;
+            return row.length == 0 ? -1 : parseCount( row[0] );
+        }
         if ( value == null )
         {
             return 0;
