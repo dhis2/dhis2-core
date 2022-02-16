@@ -32,7 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.dataintegrity.DataIntegrityCheckType;
-import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.webapi.json.domain.JsonDataIntegritySummary;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
@@ -50,9 +49,10 @@ class DataIntegritySummaryControllerTest extends AbstractDataIntegrityController
     {
         for ( DataIntegrityCheckType type : DataIntegrityCheckType.values() )
         {
-            JsonObject content = GET( "/dataIntegrity/summary?checks={name}", type.getName() ).content();
-            JsonDataIntegritySummary summary = content.get( type.getName(), JsonDataIntegritySummary.class );
-            assertTrue( summary.exists() );
+            String check = type.getName();
+            postSummary( check );
+            JsonDataIntegritySummary summary = getSummary( check );
+            assertTrue( summary.getCount() >= 0, "summary threw an exception" );
         }
     }
 
@@ -61,9 +61,12 @@ class DataIntegritySummaryControllerTest extends AbstractDataIntegrityController
     {
         assertStatus( HttpStatus.CREATED,
             POST( "/categories", "{'name': 'CatDog', 'shortName': 'CD', 'dataDimensionType': 'ATTRIBUTE'}" ) );
+
+        postSummary( "categories-no-options" );
         JsonDataIntegritySummary summary = GET( "/dataIntegrity/categories-no-options/summary" ).content()
             .as( JsonDataIntegritySummary.class );
         assertTrue( summary.exists() );
+        assertTrue( summary.isObject() );
         assertEquals( 1, summary.getCount() );
         assertEquals( 50, summary.getPercentage().intValue() );
     }

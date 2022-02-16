@@ -32,7 +32,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.dataintegrity.DataIntegrityCheckType;
+import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.webapi.json.domain.JsonDataIntegrityDetails;
+import org.hisp.dhis.webapi.json.domain.JsonDataIntegrityDetails.JsonDataIntegrityIssue;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
@@ -49,7 +51,9 @@ class DataIntegrityDetailsControllerTest extends AbstractDataIntegrityController
     {
         for ( DataIntegrityCheckType type : DataIntegrityCheckType.values() )
         {
-            JsonDataIntegrityDetails details = getDetails( type.getName() );
+            String check = type.getName();
+            postDetails( check );
+            JsonDataIntegrityDetails details = getDetails( check );
             assertTrue( details.getIssues().isEmpty() );
         }
     }
@@ -60,13 +64,16 @@ class DataIntegrityDetailsControllerTest extends AbstractDataIntegrityController
         String uid = assertStatus( HttpStatus.CREATED,
             POST( "/categories", "{'name': 'CatDog', 'shortName': 'CD', 'dataDimensionType': 'ATTRIBUTE'}" ) );
 
-        JsonDataIntegrityDetails details = GET( "/dataIntegrity/categories-no-options/details" ).content()
-            .as( JsonDataIntegrityDetails.class );
+        postDetails( "categories-no-options" );
+        JsonDataIntegrityDetails details = GET( "/dataIntegrity/categories-no-options/details?timeout=1000" )
+            .content().as( JsonDataIntegrityDetails.class );
 
         assertTrue( details.exists() );
-        assertEquals( 1, details.getIssues().size() );
-        assertEquals( uid, details.getIssues().get( 0 ).getId() );
-        assertEquals( "CatDog", details.getIssues().get( 0 ).getName() );
+        assertTrue( details.isObject() );
+        JsonList<JsonDataIntegrityIssue> issues = details.getIssues();
+        assertTrue( issues.exists() );
+        assertEquals( 1, issues.size() );
+        assertEquals( uid, issues.get( 0 ).getId() );
+        assertEquals( "CatDog", issues.get( 0 ).getName() );
     }
-
 }
