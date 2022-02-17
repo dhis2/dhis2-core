@@ -76,7 +76,6 @@ class UserControllerTest extends DhisControllerConvenienceTest
 
         this.peter = switchToNewUser( "Peter" );
         switchToSuperuser();
-        // switchContextToUser( this.peter );
         assertStatus( HttpStatus.OK, PATCH( "/users/{id}?importReportMode=ERRORS", peter.getUid(),
             Body( "[{'op': 'replace', 'path': '/email', 'value': 'peter@pan.net'}]" ) ) );
     }

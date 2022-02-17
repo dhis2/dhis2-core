@@ -480,7 +480,7 @@ public class DefaultSecurityService
      * If error, returns one of the following strings:
      * <p/>
      * <ul>
-     * <li>user_parameter_is_null</li>
+     * <li>credentials_parameter_is_null</li>
      * <li>token_parameter_is_null</li>
      * <li>restore_type_parameter_is_null</li>
      * <li>cannot_parse_restore_options</li>

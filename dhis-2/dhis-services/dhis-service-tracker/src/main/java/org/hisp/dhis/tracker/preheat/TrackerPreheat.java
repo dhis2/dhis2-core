@@ -332,19 +332,14 @@ public class TrackerPreheat
 
         if ( User.class.isAssignableFrom( klass ) )
         {
-            if ( !map.containsKey( User.class ) )
-            {
-                map.put( User.class, new HashMap<>() );
-            }
-
-            User user = (User) object;
+            User userObject = (User) object;
 
             Map<String, IdentifiableObject> identifierMap = map.get( User.class );
 
-            if ( !StringUtils.isEmpty( identifier.getIdentifier( user ) ) &&
-                !identifierMap.containsKey( identifier.getIdentifier( user ) ) )
+            if ( !StringUtils.isEmpty( identifier.getIdentifier( userObject ) ) &&
+                !identifierMap.containsKey( identifier.getIdentifier( userObject ) ) )
             {
-                identifierMap.put( identifier.getIdentifier( user ), user );
+                identifierMap.put( identifier.getIdentifier( userObject ), userObject );
             }
         }
 

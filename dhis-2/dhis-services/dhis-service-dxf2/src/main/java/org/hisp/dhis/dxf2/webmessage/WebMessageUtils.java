@@ -215,6 +215,7 @@ public final class WebMessageUtils
     {
         if ( importReport.getStatus() != Status.OK )
         {
+            // TODO: 12577 Remove after fixing last test
             importReport.forEachErrorReport( errorReport -> {
                 String message = errorReport.getMessage();
                 log.error( message );

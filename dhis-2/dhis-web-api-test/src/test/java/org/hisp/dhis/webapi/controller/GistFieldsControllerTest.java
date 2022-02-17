@@ -97,19 +97,6 @@ class GistFieldsControllerTest extends AbstractGistControllerTest
         assertFalse( user.has( "surname" ) );
     }
 
-    // Fails12098
-    // @Test
-    // public void testField_Complex_SquareBracketsSyntax()
-    // {
-    // JsonObject user = GET(
-    // "/users/{uid}/gist?fields=id,userCredentials[id,username]",
-    // getSuperuserUid() ).content();
-    //
-    // assertEquals( 2, user.size() );
-    // assertEquals( asList( "id", "username" ), user.getObject(
-    // "userCredentials" ).names() );
-    // }
-
     @Test
     void testField_PresetExpandsToReadableFields()
     {

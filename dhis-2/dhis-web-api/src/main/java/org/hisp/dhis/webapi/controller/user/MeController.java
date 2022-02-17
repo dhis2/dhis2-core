@@ -185,24 +185,15 @@ public class MeController
             user.getJobTitle(),
             user.getCreated().toString(),
             user.getLastUpdated().toString(),
-            user.getDataViewOrganisationUnits(), // .stream().map(
-                                                 // BaseIdentifiableObject::getUid
-                                                 // ).collect(
-                                                 // Collectors.toList() ),
+            user.getDataViewOrganisationUnits(),
             user.getFavorites(),
             user.getSharing(),
             user.getUserGroupAccesses(),
             user.getUserAccesses(),
-            user.getGroups(), // .stream().map( BaseIdentifiableObject::getUid
-                              // ).collect( Collectors.toList() )
+            user.getGroups(),
             user.getTranslations(),
-            user.getTeiSearchOrganisationUnits(), // .stream().map(
-                                                  // BaseIdentifiableObject::getUid
-                                                  // ).collect(
-                                                  // Collectors.toList() )
-            user.getOrganisationUnits(), // .stream().map(
-                                         // BaseIdentifiableObject::getUid
-                                         // ).collect( Collectors.toList() )
+            user.getTeiSearchOrganisationUnits(),
+            user.getOrganisationUnits(),
             user.getExternalAccess(),
             user.getDisplayName(),
             user.getAccess(),

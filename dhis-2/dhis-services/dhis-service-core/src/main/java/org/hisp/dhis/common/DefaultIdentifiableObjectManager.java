@@ -1262,7 +1262,7 @@ public class DefaultIdentifiableObjectManager
         {
             store = identifiableObjectStoreMap.get( type.getSuperclass() );
 
-            if ( store == null && !User.class.isAssignableFrom( type ) )
+            if ( store == null )
             {
                 log.debug( "No IdentifiableObjectStore found for class: '{}'", type );
             }

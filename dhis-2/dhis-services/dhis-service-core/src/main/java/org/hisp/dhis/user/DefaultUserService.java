@@ -350,18 +350,18 @@ public class DefaultUserService
 
     @Override
     @Transactional( readOnly = true )
-    public boolean isLastSuperUser( User useer )
+    public boolean isLastSuperUser( User user )
     {
-        if ( !useer.isSuper() )
+        if ( !user.isSuper() )
         {
-            return false; // Cannot be last if not super user
+            return false; // Cannot be last if not superuser
         }
 
-        Collection<User> users = userStore.getAll();
+        Collection<User> allUsers = userStore.getAll();
 
-        for ( User user : users )
+        for ( User u : allUsers )
         {
-            if ( user.isSuper() && !user.equals( useer ) )
+            if ( u.isSuper() && !u.equals( user ) )
             {
                 return false;
             }

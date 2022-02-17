@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -75,6 +76,7 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
     public void validate( User user, ObjectBundle bundle,
         Consumer<ErrorReport> addReports )
     {
+        // TODO: 12577 This needs to be checking update also
         if ( bundle.getImportMode().isCreate() && !ValidationUtils.usernameIsValid( user.getUsername() ) )
         {
             addReports.accept(
@@ -106,16 +108,11 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
             user.getCatDimensionConstraints().addAll(
                 currentUser.getCatDimensionConstraints() );
         }
-
-        // bundle.putExtras( user, "uc", user );
     }
 
     @Override
     public void postCreate( User user, ObjectBundle bundle )
     {
-        // if ( !bundle.hasExtras( user, "uc" ) )
-        // return;
-
         if ( !StringUtils.isEmpty( user.getPassword() ) )
         {
             userService.encodeAndSetPassword( user, user.getPassword() );
@@ -129,9 +126,7 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
         }
 
         preheatService.connectReferences( user, bundle.getPreheat(), bundle.getPreheatIdentifier() );
-        // sessionFactory.getCurrentSession().save( user );
         sessionFactory.getCurrentSession().update( user );
-        // bundle.removeExtras( user, "uc" );
     }
 
     @Override
@@ -209,27 +204,16 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
             User user = identifiableObject;
 
             user = bundle.getPreheat().get( bundle.getPreheatIdentifier(), user );
+
             Map<String, Object> userReferenceMap = userReferences.get( identifiableObject.getUid() );
 
-            if ( userReferenceMap == null || userReferenceMap.isEmpty() )
-            {
-                continue;
-            }
-
-            if ( user == null )
+            if ( user == null || userReferenceMap == null || userReferenceMap.isEmpty() )
             {
                 continue;
             }
 
             Set<UserAuthorityGroup> userAuthorityGroups = (Set<UserAuthorityGroup>) userReferenceMap.get( "userRoles" );
-            if ( userAuthorityGroups != null )
-            {
-                user.setUserAuthorityGroups( userAuthorityGroups );
-            }
-            else
-            {
-                user.setUserAuthorityGroups( new HashSet<>() );
-            }
+            user.setUserAuthorityGroups( Objects.requireNonNullElseGet( userAuthorityGroups, HashSet::new ) );
 
             Set<OrganisationUnit> organisationUnits = (Set<OrganisationUnit>) userReferenceMap
                 .get( "organisationUnits" );
@@ -270,7 +254,6 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
      */
     private void handleNoAccessRoles( User user, ObjectBundle bundle, Set<UserAuthorityGroup> userAuthorityGroups )
     {
-
         Set<UserAuthorityGroup> roles = user
             .getUserAuthorityGroups();
         Set<String> currentRoles = roles.stream().map( BaseIdentifiableObject::getUid )

@@ -30,6 +30,8 @@ package org.hisp.dhis.dxf2.events.importer.context;
 import java.util.List;
 import java.util.Map;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.tuple.Pair;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.dxf2.common.ImportOptions;
@@ -46,6 +48,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Luciano Fiandesio
  */
 @Component
+@Slf4j
 public class WorkContextLoader
 {
     private final ProgramSupplier programSupplier;
@@ -168,6 +171,10 @@ public class WorkContextLoader
             {
                 initUser( currentUser );
                 importOptions.setUser( currentUser );
+            }
+            else
+            {
+                log.error( "No current user found" );
             }
         }
         else

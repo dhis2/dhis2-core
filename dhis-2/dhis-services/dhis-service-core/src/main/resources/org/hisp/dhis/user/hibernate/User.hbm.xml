@@ -16,8 +16,6 @@
     <id name="id" column="userinfoid">
       <generator class="native" />
     </id>
-<!--    &identifiableProperties;-->
-
 
     <property name="uid" column="uid" length="11" />
 

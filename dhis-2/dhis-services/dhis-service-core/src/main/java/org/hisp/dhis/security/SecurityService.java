@@ -90,7 +90,7 @@ public interface SecurityService
      * <p>
      * <ul>
      * <li>email_not_configured_for_system</li>
-     * <li>no_user</li>
+     * <li>no_user_credentials</li>
      * <li>user_does_not_have_valid_email</li>
      * <li>user_has_critical_authorities</li>
      * </ul>
@@ -105,7 +105,7 @@ public interface SecurityService
      * validateRestore( User ). The requirements are.
      * <p>
      * <ul>
-     * <li>no_user</li>
+     * <li>no_user_credentials</li>
      * <li>username_taken</li>
      * </ul>
      *

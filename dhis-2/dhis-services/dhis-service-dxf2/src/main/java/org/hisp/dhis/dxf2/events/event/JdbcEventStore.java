@@ -184,7 +184,6 @@ public class JdbcEventStore implements EventStore
         " inner join trackedentitycomment psinote" +
         " on psic.trackedentitycommentid = psinote.trackedentitycommentid" +
         " left join userinfo on psinote.lastupdatedby = userinfo.userinfoid ";
-    // " left join userinfo on usernote.userid = userinfo.userinfoid";
 
     private static final String PSI_STATUS_EQ = " psi.status = '";
 
@@ -1032,7 +1031,6 @@ public class JdbcEventStore implements EventStore
             + "left join trackedentityinstance tei on tei.trackedentityinstanceid=pi.trackedentityinstanceid "
             + "left join organisationunit teiou on (tei.organisationunitid=teiou.organisationunitid) "
             + "left join userinfo au on (psi.assigneduserid=au.userinfoid) " );
-        // + "left join userinfo au on (auc.userid=au.userinfoid) " );
 
         Set<String> joinedColumns = new HashSet<>();
 
@@ -1275,7 +1273,6 @@ public class JdbcEventStore implements EventStore
             + "left join trackedentityprogramowner po on (pi.trackedentityinstanceid=po.trackedentityinstanceid) "
             + "inner join organisationunit ou on (coalesce(po.organisationunitid, psi.organisationunitid)=ou.organisationunitid) "
             + "left join userinfo au on (psi.assigneduserid=au.userinfoid) " );
-        // + "left join userinfo au on (auc.userid=au.userinfoid) " );
 
         Set<String> joinedColumns = new HashSet<>();
 
