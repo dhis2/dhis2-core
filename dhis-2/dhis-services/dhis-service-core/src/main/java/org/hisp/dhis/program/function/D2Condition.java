@@ -64,11 +64,11 @@ public class D2Condition
     {
         String testExpression = trimQuotes( ctx.stringLiteral().getText() );
 
-        ProgramExpressionParams progExParams = visitor.getProgExParams();
+        ProgramExpressionParams params = visitor.getProgParams();
 
         String testSql = visitor.getProgramIndicatorService().getAnalyticsSql( testExpression,
-            progExParams.getProgramIndicator(), progExParams.getReportingStartDate(),
-            progExParams.getReportingEndDate() );
+            params.getProgramIndicator(), params.getReportingStartDate(),
+            params.getReportingEndDate() );
 
         String valueIfTrue = visitor.castStringVisit( ctx.expr( 0 ) );
         String valueIfFalse = visitor.castStringVisit( ctx.expr( 1 ) );

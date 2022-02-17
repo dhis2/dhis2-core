@@ -384,14 +384,14 @@ public class DefaultProgramIndicatorService
     {
         Set<String> uids = getDataElementAndAttributeIdentifiers( expression, programIndicator.getAnalyticsType() );
 
-        ProgramExpressionParams progExParams = ProgramExpressionParams.builder()
+        ProgramExpressionParams params = ProgramExpressionParams.builder()
             .programIndicator( programIndicator )
             .reportingStartDate( startDate )
             .reportingEndDate( endDate )
             .dataElementAndAttributeIdentifiers( uids )
             .build();
 
-        CommonExpressionVisitor visitor = newVisitor( ITEM_GET_SQL, progExParams );
+        CommonExpressionVisitor visitor = newVisitor( ITEM_GET_SQL, params );
 
         visitor.setExpressionLiteral( new SqlLiteral() );
 
@@ -484,7 +484,7 @@ public class DefaultProgramIndicatorService
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private CommonExpressionVisitor newVisitor( ExpressionItemMethod itemMethod, ProgramExpressionParams progExParams )
+    private CommonExpressionVisitor newVisitor( ExpressionItemMethod itemMethod, ProgramExpressionParams params )
     {
         return CommonExpressionVisitor.builder()
             .idObjectManager( idObjectManager )
@@ -496,7 +496,7 @@ public class DefaultProgramIndicatorService
             .constantMap( expressionService.getConstantMap() )
             .itemMap( PROGRAM_INDICATOR_ITEMS )
             .itemMethod( itemMethod )
-            .progExParams( progExParams )
+            .progParams( params )
             .build();
     }
 

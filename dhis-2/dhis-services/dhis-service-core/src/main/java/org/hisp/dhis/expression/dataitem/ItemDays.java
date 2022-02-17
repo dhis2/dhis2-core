@@ -53,7 +53,7 @@ public class ItemDays
     @Override
     public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        Integer days = visitor.getExParams().getDays();
+        Integer days = visitor.getParams().getDays();
 
         return days == null ? null : Double.valueOf( days );
     }

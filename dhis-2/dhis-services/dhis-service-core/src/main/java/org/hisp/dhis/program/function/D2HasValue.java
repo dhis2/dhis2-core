@@ -52,13 +52,13 @@ public class D2HasValue
     @Override
     public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        boolean savedReplaceNulls = visitor.getExState().isReplaceNulls();
+        boolean savedReplaceNulls = visitor.getState().isReplaceNulls();
 
-        visitor.getExState().setReplaceNulls( false );
+        visitor.getState().setReplaceNulls( false );
 
         String argSql = (String) getProgramArgType( ctx ).getSql( ctx, visitor );
 
-        visitor.getExState().setReplaceNulls( savedReplaceNulls );
+        visitor.getState().setReplaceNulls( savedReplaceNulls );
 
         return "(" + argSql + " is not null)";
     }

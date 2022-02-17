@@ -54,12 +54,12 @@ public abstract class ProgramCountFunction
 
         StatementBuilder sb = visitor.getStatementBuilder();
 
-        ProgramExpressionParams progExParams = visitor.getProgExParams();
+        ProgramExpressionParams params = visitor.getProgParams();
 
-        ProgramIndicator pi = progExParams.getProgramIndicator();
+        ProgramIndicator pi = params.getProgramIndicator();
 
-        Date startDate = progExParams.getReportingStartDate();
-        Date endDate = progExParams.getReportingEndDate();
+        Date startDate = params.getReportingStartDate();
+        Date endDate = params.getReportingEndDate();
 
         String programStage = ctx.uid0.getText();
         String dataElement = ctx.uid1.getText();

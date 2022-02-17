@@ -54,12 +54,12 @@ public class DimItemDataElementAndOperand
                 ctx.uid0.getText(),
                 ctx.uid1 == null ? null : ctx.uid1.getText(),
                 ctx.uid2 == null ? null : ctx.uid2.getText(),
-                ctx.getText(), visitor.getExState().getQueryMods() );
+                ctx.getText(), visitor.getState().getQueryMods() );
         }
         else
         {
             return new DimensionalItemId( DATA_ELEMENT,
-                ctx.uid0.getText(), visitor.getExState().getQueryMods() );
+                ctx.uid0.getText(), visitor.getState().getQueryMods() );
         }
     }
 

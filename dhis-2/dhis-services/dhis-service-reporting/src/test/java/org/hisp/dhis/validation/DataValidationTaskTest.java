@@ -225,7 +225,7 @@ class DataValidationTaskTest
 
     private void mockExpressionService( Expression expression, Map<DimensionalItemObject, Object> vals, Double val )
     {
-        ExpressionParams exParams = ExpressionParams.builder()
+        ExpressionParams params = ExpressionParams.builder()
             .expression( expression.getExpression() )
             .parseType( VALIDATION_RULE_EXPRESSION )
             .valueMap( vals )
@@ -233,13 +233,13 @@ class DataValidationTaskTest
             .orgUnit( ouA )
             .build();
 
-        when( expressionService.getExpressionValue( exParams.toBuilder().days( p1.getDaysInPeriod() ).build() ) )
+        when( expressionService.getExpressionValue( params.toBuilder().days( p1.getDaysInPeriod() ).build() ) )
             .thenReturn( val );
 
-        when( expressionService.getExpressionValue( exParams.toBuilder().days( p2.getDaysInPeriod() ).build() ) )
+        when( expressionService.getExpressionValue( params.toBuilder().days( p2.getDaysInPeriod() ).build() ) )
             .thenReturn( val );
 
-        when( expressionService.getExpressionValue( exParams.toBuilder().days( p3.getDaysInPeriod() ).build() ) )
+        when( expressionService.getExpressionValue( params.toBuilder().days( p3.getDaysInPeriod() ).build() ) )
             .thenReturn( val );
     }
 

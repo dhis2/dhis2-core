@@ -47,15 +47,15 @@ public class PeriodOffset
     @Override
     public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        ExpressionState exState = visitor.getExState();
+        ExpressionState state = visitor.getState();
 
-        int existingPeriodOffset = (exState.getQueryMods() == null) ? 0 : exState.getQueryMods().getPeriodOffset();
+        int existingPeriodOffset = (state.getQueryMods() == null) ? 0 : state.getQueryMods().getPeriodOffset();
 
         int parsedPeriodOffset = (ctx.period == null) ? 0 : firstNonNull( parseInt( ctx.period.getText() ), 0 );
 
         int periodOffset = existingPeriodOffset + parsedPeriodOffset;
 
-        QueryModifiers queryMods = exState.getQueryModsBuilder().periodOffset( periodOffset ).build();
+        QueryModifiers queryMods = state.getQueryModsBuilder().periodOffset( periodOffset ).build();
 
         return visitor.visitWithQueryMods( ctx.expr( 0 ), queryMods );
     }

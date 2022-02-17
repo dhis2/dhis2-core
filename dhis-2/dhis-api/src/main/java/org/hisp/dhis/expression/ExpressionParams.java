@@ -64,14 +64,14 @@ public class ExpressionParams
      */
     @ToString.Include
     @EqualsAndHashCode.Include
-    private String expression;
+    private final String expression;
 
     /**
      * The type of expression to parse (Indicator, Predictor, etc.)
      */
     @ToString.Include
     @EqualsAndHashCode.Include
-    private ParseType parseType;
+    private final ParseType parseType;
 
     /**
      * The expected return data type (often but not always determined by the
@@ -79,21 +79,21 @@ public class ExpressionParams
      */
     @ToString.Include
     @EqualsAndHashCode.Include
-    private DataType dataType;
+    private final DataType dataType;
 
     /**
      * A map from a parsed {@see DimensionalItemId} to its equivalent
      * {@see DimensionalItemObject}
      */
     @Builder.Default
-    private Map<DimensionalItemId, DimensionalItemObject> itemMap = new HashMap<>();
+    private final Map<DimensionalItemId, DimensionalItemObject> itemMap = new HashMap<>();
 
     /**
      * A map from a {@see DimensionalItemObject} to its value to use in
      * evaluating the expression
      */
     @Builder.Default
-    private Map<DimensionalItemObject, Object> valueMap = new HashMap<>();
+    private final Map<DimensionalItemObject, Object> valueMap = new HashMap<>();
 
     /**
      * Map of organisation unit counts to use in evaluating the expression
@@ -101,14 +101,14 @@ public class ExpressionParams
     @ToString.Include
     @EqualsAndHashCode.Include
     @Builder.Default
-    private Map<String, Integer> orgUnitCountMap = new HashMap<>();
+    private final Map<String, Integer> orgUnitCountMap = new HashMap<>();
 
     /**
      * Map of organisation unit groups to use for testing organisation unit
      * group membership
      */
     @Builder.Default
-    private Map<String, OrganisationUnitGroup> orgUnitGroupMap = new HashMap<>();
+    private final Map<String, OrganisationUnitGroup> orgUnitGroupMap = new HashMap<>();
 
     /**
      * The number of calendar days to be used in evaluating the expression.
@@ -117,7 +117,7 @@ public class ExpressionParams
     @ToString.Include
     @EqualsAndHashCode.Include
     @Builder.Default
-    private Integer days = 0;
+    private final Integer days = 0;
 
     /**
      * The missing value strategy (what to do if data values are missing)
@@ -125,14 +125,14 @@ public class ExpressionParams
     @ToString.Include
     @EqualsAndHashCode.Include
     @Builder.Default
-    private MissingValueStrategy missingValueStrategy = NEVER_SKIP;
+    private final MissingValueStrategy missingValueStrategy = NEVER_SKIP;
 
     /**
      * The current organisation unit the expression is being evaluated for
      */
     @ToString.Include
     @EqualsAndHashCode.Include
-    private OrganisationUnit orgUnit;
+    private final OrganisationUnit orgUnit;
 
     /**
      * For predictors, a list of periods in which we will look for sampled data.
@@ -142,14 +142,14 @@ public class ExpressionParams
     @ToString.Include
     @EqualsAndHashCode.Include
     @Builder.Default
-    private List<Period> samplePeriods = List.of( PeriodType.getPeriodFromIsoString( "19990101" ) );
+    private final List<Period> samplePeriods = List.of( PeriodType.getPeriodFromIsoString( "19990101" ) );
 
     /**
      * For predictors, a value map from item to value, for each of the periods
      * in which data is present
      */
     @Builder.Default
-    private MapMap<Period, DimensionalItemObject, Object> periodValueMap = new MapMap<>();
+    private final MapMap<Period, DimensionalItemObject, Object> periodValueMap = new MapMap<>();
 
     // -------------------------------------------------------------------------
     // Logic

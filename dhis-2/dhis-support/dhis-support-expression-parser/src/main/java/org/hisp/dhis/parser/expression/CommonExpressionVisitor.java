@@ -96,26 +96,26 @@ public class CommonExpressionVisitor
      * Parameters to evaluate the expression to a value.
      */
     @Builder.Default
-    private ExpressionParams exParams = ExpressionParams.builder().build();
+    private ExpressionParams params = ExpressionParams.builder().build();
 
     /**
      * Parameters to generate SQL from a program expression.
      */
     @Builder.Default
-    private ProgramExpressionParams progExParams = ProgramExpressionParams.builder().build();
+    private ProgramExpressionParams progParams = ProgramExpressionParams.builder().build();
 
     /**
      * State variables during an expression evaluation.
      */
     @Builder.Default
-    private ExpressionState exState = new ExpressionState();
+    private ExpressionState state = new ExpressionState();
 
     /**
      * Information found from parsing the raw expression (contains nothing that
      * is the result of data or metadata found in the database).
      */
     @Builder.Default
-    private ExpressionInfo exInfo = new ExpressionInfo();
+    private ExpressionInfo info = new ExpressionInfo();
 
     /**
      * Used to collect the string replacements to build a description. This may
@@ -161,13 +161,13 @@ public class CommonExpressionVisitor
      */
     public Object visitAllowingNulls( ParserRuleContext ctx )
     {
-        boolean savedReplaceNulls = exState.isReplaceNulls();
+        boolean savedReplaceNulls = state.isReplaceNulls();
 
-        exState.setReplaceNulls( false );
+        state.setReplaceNulls( false );
 
         Object result = visit( ctx );
 
-        exState.setReplaceNulls( savedReplaceNulls );
+        state.setReplaceNulls( savedReplaceNulls );
 
         return result;
     }
@@ -181,13 +181,13 @@ public class CommonExpressionVisitor
      */
     public Object visitWithQueryMods( ParserRuleContext ctx, QueryModifiers mods )
     {
-        QueryModifiers savedQueryMods = exState.getQueryMods();
+        QueryModifiers savedQueryMods = state.getQueryMods();
 
-        exState.setQueryMods( mods );
+        state.setQueryMods( mods );
 
         Object result = visit( ctx );
 
-        exState.setQueryMods( savedQueryMods );
+        state.setQueryMods( savedQueryMods );
 
         return result;
     }

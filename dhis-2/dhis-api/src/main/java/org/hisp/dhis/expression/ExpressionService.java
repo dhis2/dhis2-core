@@ -263,10 +263,10 @@ public interface ExpressionService
     /**
      * Generates the calculated value for an expression.
      *
-     * @param exParams the expression parameters.
+     * @param params the expression parameters.
      * @return the calculated value.
      */
-    Object getExpressionValue( ExpressionParams exParams );
+    Object getExpressionValue( ExpressionParams params );
 
     // -------------------------------------------------------------------------
     // Gets a (possibly cached) constant map

@@ -69,14 +69,14 @@ public abstract class VectorFunction
 
         // ItemIds in the last (or only) expr are from sampled periods.
 
-        ExpressionInfo exInfo = visitor.getExInfo();
+        ExpressionInfo info = visitor.getInfo();
 
-        Set<DimensionalItemId> savedItemIds = exInfo.getItemIds();
-        exInfo.setItemIds( exInfo.getSampleItemIds() );
+        Set<DimensionalItemId> savedItemIds = info.getItemIds();
+        info.setItemIds( info.getSampleItemIds() );
 
         Object result = visitor.visitExpr( ctx.expr().get( ctx.expr().size() - 1 ) );
 
-        exInfo.setItemIds( savedItemIds );
+        info.setItemIds( savedItemIds );
 
         return castDouble( result );
     }
@@ -114,7 +114,7 @@ public abstract class VectorFunction
      */
     public Object vectorHandleNulls( Object value, CommonExpressionVisitor visitor )
     {
-        return visitor.getExState().handleNulls( value, ValueType.NUMBER );
+        return visitor.getState().handleNulls( value, ValueType.NUMBER );
     }
 
     /**
@@ -143,14 +143,14 @@ public abstract class VectorFunction
      */
     private List<Double> getSampleValues( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        ExpressionState exState = visitor.getExState();
+        ExpressionState state = visitor.getState();
 
-        int savedItemsFound = exState.getItemsFound();
-        int savedItemValuesFound = exState.getItemValuesFound();
+        int savedItemsFound = state.getItemsFound();
+        int savedItemValuesFound = state.getItemValuesFound();
 
         List<Double> values = visitSampledPeriods( ctx, visitor );
 
-        if ( exState.getItemsFound() > 0 )
+        if ( state.getItemsFound() > 0 )
         {
             savedItemsFound++;
 
@@ -160,8 +160,8 @@ public abstract class VectorFunction
             }
         }
 
-        exState.setItemsFound( savedItemsFound );
-        exState.setItemValuesFound( savedItemValuesFound );
+        state.setItemsFound( savedItemsFound );
+        state.setItemValuesFound( savedItemValuesFound );
 
         return values;
     }
@@ -172,25 +172,25 @@ public abstract class VectorFunction
      */
     private List<Double> visitSampledPeriods( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        ExpressionParams exParams = visitor.getExParams();
-        ExpressionState exState = visitor.getExState();
+        ExpressionParams params = visitor.getParams();
+        ExpressionState state = visitor.getState();
 
         List<Double> values = new ArrayList<>();
 
-        for ( Period p : exParams.getSamplePeriods() )
+        for ( Period p : params.getSamplePeriods() )
         {
-            exState.setItemsFound( 0 );
-            exState.setItemValuesFound( 0 );
+            state.setItemsFound( 0 );
+            state.setItemValuesFound( 0 );
 
-            Map<DimensionalItemObject, Object> valueMap = firstNonNull( exParams.getPeriodValueMap().get( p ),
+            Map<DimensionalItemObject, Object> valueMap = firstNonNull( params.getPeriodValueMap().get( p ),
                 Collections.emptyMap() );
 
             Double value = visitWithValueMap( ctx, visitor, valueMap );
 
-            if ( (exParams.getMissingValueStrategy() == SKIP_IF_ANY_VALUE_MISSING
-                && exState.getItemValuesFound() < exState.getItemsFound())
-                || (exParams.getMissingValueStrategy() == SKIP_IF_ALL_VALUES_MISSING && exState.getItemsFound() != 0
-                    && exState.getItemValuesFound() == 0) )
+            if ( (params.getMissingValueStrategy() == SKIP_IF_ANY_VALUE_MISSING
+                && state.getItemValuesFound() < state.getItemsFound())
+                || (params.getMissingValueStrategy() == SKIP_IF_ALL_VALUES_MISSING && state.getItemsFound() != 0
+                    && state.getItemValuesFound() == 0) )
             {
                 value = null;
             }
@@ -210,15 +210,15 @@ public abstract class VectorFunction
     private Double visitWithValueMap( ExprContext ctx, CommonExpressionVisitor visitor,
         Map<DimensionalItemObject, Object> valueMap )
     {
-        ExpressionParams savedExParams = visitor.getExParams();
+        ExpressionParams savedParams = visitor.getParams();
 
-        ExpressionParams exParams = visitor.getExParams().toBuilder().valueMap( valueMap ).build();
+        ExpressionParams params = visitor.getParams().toBuilder().valueMap( valueMap ).build();
 
-        visitor.setExParams( exParams );
+        visitor.setParams( params );
 
         Double value = castDouble( visitor.visit( ctx ) );
 
-        visitor.setExParams( savedExParams );
+        visitor.setParams( savedParams );
 
         return value;
     }

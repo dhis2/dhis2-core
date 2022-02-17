@@ -65,11 +65,11 @@ public class ProgramItemPsEventdate
     @Override
     public final Object getSql( ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        ProgramExpressionParams progExParams = visitor.getProgExParams();
+        ProgramExpressionParams params = visitor.getProgParams();
 
         return visitor.getStatementBuilder().getProgramIndicatorEventColumnSql(
             ctx.uid0.getText(), "executiondate",
-            progExParams.getReportingStartDate(), progExParams.getReportingEndDate(),
-            progExParams.getProgramIndicator() );
+            params.getReportingStartDate(), params.getReportingEndDate(),
+            params.getProgramIndicator() );
     }
 }

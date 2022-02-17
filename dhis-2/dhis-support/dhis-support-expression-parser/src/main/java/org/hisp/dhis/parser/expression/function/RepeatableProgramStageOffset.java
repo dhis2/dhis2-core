@@ -52,15 +52,15 @@ public class RepeatableProgramStageOffset implements ExpressionItem
 
     private Object next( ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        ExpressionState exState = visitor.getExState();
+        ExpressionState state = visitor.getState();
 
-        int oldStageOffset = exState.getStageOffset();
+        int oldStageOffset = state.getStageOffset();
 
-        exState.setStageOffset( Integer.parseInt( ctx.stage.getText() ) );
+        state.setStageOffset( Integer.parseInt( ctx.stage.getText() ) );
 
         Object ret = visitor.visit( ctx.expr( 0 ) );
 
-        exState.setStageOffset( oldStageOffset );
+        state.setStageOffset( oldStageOffset );
 
         return ret;
     }

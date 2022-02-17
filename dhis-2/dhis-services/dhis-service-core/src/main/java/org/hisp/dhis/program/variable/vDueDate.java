@@ -42,16 +42,16 @@ public class vDueDate
     @Override
     public Object getSql( CommonExpressionVisitor visitor )
     {
-        ProgramExpressionParams progExParams = visitor.getProgExParams();
+        ProgramExpressionParams params = visitor.getProgParams();
 
-        if ( AnalyticsType.EVENT == progExParams.getProgramIndicator().getAnalyticsType() )
+        if ( AnalyticsType.EVENT == params.getProgramIndicator().getAnalyticsType() )
         {
             return "duedate";
         }
 
         return visitor.getStatementBuilder().getProgramIndicatorEventColumnSql(
-            null, "duedate", progExParams.getReportingStartDate(),
-            progExParams.getReportingEndDate(), progExParams.getProgramIndicator() );
+            null, "duedate", params.getReportingStartDate(),
+            params.getReportingEndDate(), params.getProgramIndicator() );
 
     }
 }

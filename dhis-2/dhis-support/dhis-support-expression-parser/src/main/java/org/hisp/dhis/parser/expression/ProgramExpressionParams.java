@@ -36,7 +36,7 @@ import lombok.Getter;
 import org.hisp.dhis.program.ProgramIndicator;
 
 /**
- * Parameters to generate SQL from a program expression
+ * Parameters to generate SQL from a program indicator expression
  *
  * @author Jim Grace
  */
@@ -47,20 +47,20 @@ public class ProgramExpressionParams
     /**
      * Program indicator
      */
-    private ProgramIndicator programIndicator;
+    private final ProgramIndicator programIndicator;
 
     /**
      * Program reporting start date
      */
-    private Date reportingStartDate;
+    private final Date reportingStartDate;
 
     /**
      * Program reporting end date
      */
-    private Date reportingEndDate;
+    private final Date reportingEndDate;
 
     /**
      * UIDs of all the DataElements and Attributes in the expression
      */
-    Set<String> dataElementAndAttributeIdentifiers;
+    private final Set<String> dataElementAndAttributeIdentifiers;
 }

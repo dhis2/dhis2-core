@@ -44,10 +44,10 @@ public class vEventStatus implements ProgramVariable
     @Override
     public Object getSql( CommonExpressionVisitor visitor )
     {
-        ProgramExpressionParams progExParams = visitor.getProgExParams();
+        ProgramExpressionParams params = visitor.getProgParams();
 
         return visitor.getStatementBuilder().getProgramIndicatorEventColumnSql(
-            null, "psistatus", progExParams.getReportingStartDate(), progExParams.getReportingEndDate(),
-            progExParams.getProgramIndicator() );
+            null, "psistatus", params.getReportingStartDate(), params.getReportingEndDate(),
+            params.getProgramIndicator() );
     }
 }

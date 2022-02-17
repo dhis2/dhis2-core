@@ -367,7 +367,7 @@ public class DefaultExpressionService
 
         Integer days = periods != null ? getDaysFromPeriods( periods ) : null;
 
-        ExpressionParams exParams = ExpressionParams.builder()
+        ExpressionParams params = ExpressionParams.builder()
             .parseType( INDICATOR_EXPRESSION )
             .itemMap( itemMap )
             .valueMap( valueMap )
@@ -376,10 +376,10 @@ public class DefaultExpressionService
             .missingValueStrategy( SKIP_IF_ALL_VALUES_MISSING )
             .build();
 
-        Double denominatorValue = castDouble( getExpressionValue( exParams.toBuilder()
+        Double denominatorValue = castDouble( getExpressionValue( params.toBuilder()
             .expression( indicator.getDenominator() ).build() ) );
 
-        Double numeratorValue = castDouble( getExpressionValue( exParams.toBuilder()
+        Double numeratorValue = castDouble( getExpressionValue( params.toBuilder()
             .expression( indicator.getNumerator() ).build() ) );
 
         if ( denominatorValue != null && denominatorValue != 0d && numeratorValue != null )
@@ -559,12 +559,12 @@ public class DefaultExpressionService
             return Collections.emptySet();
         }
 
-        ExpressionInfo exInfo = getExpressionInfo( ExpressionParams.builder()
+        ExpressionInfo info = getExpressionInfo( ExpressionParams.builder()
             .expression( expression )
             .parseType( parseType )
             .build() );
 
-        return exInfo.getOrgUnitGroupIds();
+        return info.getOrgUnitGroupIds();
     }
 
     // -------------------------------------------------------------------------
@@ -572,28 +572,28 @@ public class DefaultExpressionService
     // -------------------------------------------------------------------------
 
     @Override
-    public Object getExpressionValue( ExpressionParams exParams )
+    public Object getExpressionValue( ExpressionParams params )
     {
-        if ( isEmpty( exParams.getExpression() ) )
+        if ( isEmpty( params.getExpression() ) )
         {
             return null;
         }
 
-        CommonExpressionVisitor visitor = newVisitor( ITEM_EVALUATE, exParams );
+        CommonExpressionVisitor visitor = newVisitor( ITEM_EVALUATE, params );
 
-        Object value = visit( exParams.getExpression(), exParams.getDataType(), visitor, true );
+        Object value = visit( params.getExpression(), params.getDataType(), visitor, true );
 
-        ExpressionState exState = visitor.getExState();
+        ExpressionState state = visitor.getState();
 
-        int itemsFound = exState.getItemsFound();
-        int itemValuesFound = exState.getItemValuesFound();
+        int itemsFound = state.getItemsFound();
+        int itemValuesFound = state.getItemValuesFound();
 
-        if ( exState.isUnprotectedNullDateFound() )
+        if ( state.isUnprotectedNullDateFound() )
         {
             return null;
         }
 
-        switch ( exParams.getMissingValueStrategy() )
+        switch ( params.getMissingValueStrategy() )
         {
         case SKIP_IF_ANY_VALUE_MISSING:
             if ( itemValuesFound < itemsFound )
@@ -610,7 +610,7 @@ public class DefaultExpressionService
         case NEVER_SKIP:
             if ( value == null )
             {
-                switch ( exParams.getDataType() )
+                switch ( params.getDataType() )
                 {
                 case NUMERIC:
                     return 0d;
@@ -652,12 +652,12 @@ public class DefaultExpressionService
         }
         try
         {
-            ExpressionInfo exInfo = getExpressionInfo( ExpressionParams.builder()
+            ExpressionInfo info = getExpressionInfo( ExpressionParams.builder()
                 .expression( expression )
                 .parseType( INDICATOR_EXPRESSION )
                 .build() );
 
-            return exInfo.getOrgUnitGroupCountIds();
+            return info.getOrgUnitGroupCountIds();
         }
         catch ( ParserException e )
         {
@@ -680,31 +680,31 @@ public class DefaultExpressionService
             return;
         }
 
-        ExpressionInfo exInfo = getExpressionInfo( ExpressionParams.builder()
+        ExpressionInfo info = getExpressionInfo( ExpressionParams.builder()
             .expression( expression )
             .parseType( parseType )
             .build() );
 
-        itemIds.addAll( exInfo.getItemIds() );
-        sampleItemIds.addAll( exInfo.getSampleItemIds() );
+        itemIds.addAll( info.getItemIds() );
+        sampleItemIds.addAll( info.getSampleItemIds() );
     }
 
     /**
      * Gets the information that we need from an expression
      */
-    private ExpressionInfo getExpressionInfo( ExpressionParams exParams )
+    private ExpressionInfo getExpressionInfo( ExpressionParams params )
     {
-        CommonExpressionVisitor visitor = newVisitor( ITEM_GET_EXPRESSION_INFO, exParams );
+        CommonExpressionVisitor visitor = newVisitor( ITEM_GET_EXPRESSION_INFO, params );
 
-        visit( exParams.getExpression(), exParams.getDataType(), visitor, true );
+        visit( params.getExpression(), params.getDataType(), visitor, true );
 
-        return visitor.getExInfo();
+        return visitor.getInfo();
     }
 
     /**
      * Creates a new {@see CommonExpressionVisitor}
      */
-    private CommonExpressionVisitor newVisitor( ExpressionItemMethod itemMethod, ExpressionParams exParams )
+    private CommonExpressionVisitor newVisitor( ExpressionItemMethod itemMethod, ExpressionParams params )
     {
         return CommonExpressionVisitor.builder()
             .idObjectManager( idObjectManager )
@@ -712,9 +712,9 @@ public class DefaultExpressionService
             .statementBuilder( statementBuilder )
             .i18n( i18nManager.getI18n() )
             .constantMap( getConstantMap() )
-            .itemMap( PARSE_TYPE_EXPRESSION_ITEMS.get( exParams.getParseType() ) )
+            .itemMap( PARSE_TYPE_EXPRESSION_ITEMS.get( params.getParseType() ) )
             .itemMethod( itemMethod )
-            .exParams( exParams )
+            .params( params )
             .build();
     }
 

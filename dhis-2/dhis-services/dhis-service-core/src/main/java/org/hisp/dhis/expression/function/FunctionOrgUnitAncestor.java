@@ -65,7 +65,7 @@ public class FunctionOrgUnitAncestor
     @Override
     public Object evaluate( ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        OrganisationUnit orgUnit = visitor.getExParams().getOrgUnit();
+        OrganisationUnit orgUnit = visitor.getParams().getOrgUnit();
 
         if ( orgUnit != null )
         {

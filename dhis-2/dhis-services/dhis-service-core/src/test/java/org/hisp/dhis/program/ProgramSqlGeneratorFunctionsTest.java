@@ -588,7 +588,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
         dataElementsAndAttributesIdentifiers.add( BASE_UID + "b" );
         dataElementsAndAttributesIdentifiers.add( BASE_UID + "c" );
 
-        ProgramExpressionParams progExParams = ProgramExpressionParams.builder()
+        ProgramExpressionParams params = ProgramExpressionParams.builder()
             .programIndicator( programIndicator )
             .reportingStartDate( startDate )
             .reportingEndDate( endDate )
@@ -604,7 +604,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
             .i18n( new I18n( null, null ) )
             .itemMap( PROGRAM_INDICATOR_ITEMS )
             .itemMethod( itemMethod )
-            .progExParams( progExParams )
+            .progParams( params )
             .build();
 
         visitor.setExpressionLiteral( exprLiteral );

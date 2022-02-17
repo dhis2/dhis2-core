@@ -55,9 +55,9 @@ public abstract class ProgramMinMaxFunction
     {
         StatementBuilder sb = visitor.getStatementBuilder();
 
-        ProgramExpressionParams progExParams = visitor.getProgExParams();
+        ProgramExpressionParams params = visitor.getProgParams();
 
-        ProgramIndicator pi = progExParams.getProgramIndicator();
+        ProgramIndicator pi = params.getProgramIndicator();
 
         String columnName = "";
 
@@ -76,8 +76,8 @@ public abstract class ProgramMinMaxFunction
             return columnName;
         }
 
-        Date startDate = progExParams.getReportingStartDate();
-        Date endDate = progExParams.getReportingEndDate();
+        Date startDate = params.getReportingStartDate();
+        Date endDate = params.getReportingEndDate();
 
         String eventTableName = "analytics_event_" + pi.getProgram().getUid();
         String programStage = ctx.uid0.getText();

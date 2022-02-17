@@ -62,7 +62,7 @@ public class ItemOrgUnitGroupCount
     @Override
     public Object getExpressionInfo( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        visitor.getExInfo().getOrgUnitGroupCountIds().add( ctx.uid0.getText() );
+        visitor.getInfo().getOrgUnitGroupCountIds().add( ctx.uid0.getText() );
 
         return DOUBLE_VALUE_IF_NULL;
     }
@@ -70,7 +70,7 @@ public class ItemOrgUnitGroupCount
     @Override
     public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        Integer count = visitor.getExParams().getOrgUnitCountMap().get( ctx.uid0.getText() );
+        Integer count = visitor.getParams().getOrgUnitCountMap().get( ctx.uid0.getText() );
 
         if ( count == null ) // Shouldn't happen for a valid expression.
         {

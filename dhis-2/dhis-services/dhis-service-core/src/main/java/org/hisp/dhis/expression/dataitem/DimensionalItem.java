@@ -68,7 +68,7 @@ public abstract class DimensionalItem
     @Override
     public final Object getExpressionInfo( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        visitor.getExInfo().getItemIds().add( getDimensionalItemId( ctx, visitor ) );
+        visitor.getInfo().getItemIds().add( getDimensionalItemId( ctx, visitor ) );
 
         return DOUBLE_VALUE_IF_NULL;
     }
@@ -78,13 +78,13 @@ public abstract class DimensionalItem
     {
         DimensionalItemId itemId = getDimensionalItemId( ctx, visitor );
 
-        DimensionalItemObject item = visitor.getExParams().getItemMap().get( itemId );
+        DimensionalItemObject item = visitor.getParams().getItemMap().get( itemId );
 
         Object value = (item != null)
-            ? visitor.getExParams().getValueMap().get( item )
+            ? visitor.getParams().getValueMap().get( item )
             : null;
 
-        return visitor.getExState().handleNulls( value, getItemValueType( item ) );
+        return visitor.getState().handleNulls( value, getItemValueType( item ) );
     }
 
     /**

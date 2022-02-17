@@ -42,13 +42,13 @@ public class vCreationDate
     @Override
     public Object getSql( CommonExpressionVisitor visitor )
     {
-        ProgramExpressionParams progExParams = visitor.getProgExParams();
+        ProgramExpressionParams params = visitor.getProgParams();
 
-        if ( AnalyticsType.ENROLLMENT == progExParams.getProgramIndicator().getAnalyticsType() )
+        if ( AnalyticsType.ENROLLMENT == params.getProgramIndicator().getAnalyticsType() )
         {
             return visitor.getStatementBuilder().getProgramIndicatorEventColumnSql(
-                null, "created", progExParams.getReportingStartDate(),
-                progExParams.getReportingEndDate(), progExParams.getProgramIndicator() );
+                null, "created", params.getReportingStartDate(),
+                params.getReportingEndDate(), params.getProgramIndicator() );
         }
 
         return "created";

@@ -42,13 +42,13 @@ public class vEventDate
     @Override
     public Object getSql( CommonExpressionVisitor visitor )
     {
-        ProgramExpressionParams progExParams = visitor.getProgExParams();
+        ProgramExpressionParams params = visitor.getProgParams();
 
-        if ( AnalyticsType.ENROLLMENT == progExParams.getProgramIndicator().getAnalyticsType() )
+        if ( AnalyticsType.ENROLLMENT == params.getProgramIndicator().getAnalyticsType() )
         {
             return visitor.getStatementBuilder().getProgramIndicatorEventColumnSql(
-                null, "executiondate", progExParams.getReportingStartDate(), progExParams.getReportingEndDate(),
-                progExParams.getProgramIndicator() );
+                null, "executiondate", params.getReportingStartDate(), params.getReportingEndDate(),
+                params.getProgramIndicator() );
         }
 
         return "executiondate";

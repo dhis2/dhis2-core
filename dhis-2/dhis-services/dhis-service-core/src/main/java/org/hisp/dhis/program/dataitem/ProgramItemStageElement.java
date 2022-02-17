@@ -75,7 +75,7 @@ public class ProgramItemStageElement
             throw new ParserExceptionWithoutContext( "Data element " + dataElementId + " not found" );
         }
 
-        if ( isNonDefaultStageOffset( visitor.getExState().getStageOffset() )
+        if ( isNonDefaultStageOffset( visitor.getState().getStageOffset() )
             && !isRepeatableStage( stageService, programStageId ) )
         {
             throw new ParserException( getErrorMessage( programStageId ) );
@@ -98,9 +98,9 @@ public class ProgramItemStageElement
 
         String dataElementId = ctx.uid1.getText();
 
-        ProgramExpressionParams progExParams = visitor.getProgExParams();
+        ProgramExpressionParams params = visitor.getProgParams();
 
-        int stageOffset = visitor.getExState().getStageOffset();
+        int stageOffset = visitor.getState().getStageOffset();
 
         String column;
 
@@ -111,8 +111,8 @@ public class ProgramItemStageElement
                 column = visitor.getStatementBuilder().getProgramIndicatorEventColumnSql( programStageId,
                     Integer.valueOf( stageOffset ).toString(),
                     SqlUtils.quote( dataElementId ),
-                    progExParams.getReportingStartDate(), progExParams.getReportingEndDate(),
-                    progExParams.getProgramIndicator() );
+                    params.getReportingStartDate(), params.getReportingEndDate(),
+                    params.getProgramIndicator() );
             }
             else
             {
@@ -122,11 +122,11 @@ public class ProgramItemStageElement
         else
         {
             column = visitor.getStatementBuilder().getProgramIndicatorDataValueSelectSql(
-                programStageId, dataElementId, progExParams.getReportingStartDate(), progExParams.getReportingEndDate(),
-                progExParams.getProgramIndicator() );
+                programStageId, dataElementId, params.getReportingStartDate(), params.getReportingEndDate(),
+                params.getProgramIndicator() );
         }
 
-        if ( visitor.getExState().isReplaceNulls() )
+        if ( visitor.getState().isReplaceNulls() )
         {
             DataElement dataElement = visitor.getIdObjectManager().get( DataElement.class, dataElementId );
 

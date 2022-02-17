@@ -61,11 +61,11 @@ public class D2CountIfCondition
     {
         String conditionExpression = getConditionalExpression( ctx );
 
-        ProgramExpressionParams progExParams = visitor.getProgExParams();
+        ProgramExpressionParams params = visitor.getProgParams();
 
         String conditionSql = visitor.getProgramIndicatorService().getAnalyticsSql(
-            conditionExpression, progExParams.getProgramIndicator(),
-            progExParams.getReportingStartDate(), progExParams.getReportingEndDate() );
+            conditionExpression, params.getProgramIndicator(),
+            params.getReportingStartDate(), params.getReportingEndDate() );
 
         return conditionSql.substring( 1 );
     }

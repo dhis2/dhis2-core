@@ -69,7 +69,7 @@ public class FunctionOrgUnitGroup
     @Override
     public Object getExpressionInfo( ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        visitor.getExInfo().getOrgUnitGroupIds().addAll(
+        visitor.getInfo().getOrgUnitGroupIds().addAll(
             ctx.UID().stream()
                 .map( TerminalNode::getText )
                 .collect( Collectors.toList() ) );
@@ -80,15 +80,15 @@ public class FunctionOrgUnitGroup
     @Override
     public Object evaluate( ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        ExpressionParams exParams = visitor.getExParams();
+        ExpressionParams params = visitor.getParams();
 
-        if ( exParams.getOrgUnit() != null )
+        if ( params.getOrgUnit() != null )
         {
             for ( TerminalNode uid : ctx.UID() )
             {
-                OrganisationUnitGroup oug = exParams.getOrgUnitGroupMap().get( uid.getText() );
+                OrganisationUnitGroup oug = params.getOrgUnitGroupMap().get( uid.getText() );
 
-                if ( oug != null && oug.getMembers().contains( exParams.getOrgUnit() ) )
+                if ( oug != null && oug.getMembers().contains( params.getOrgUnit() ) )
                 {
                     return true;
                 }
