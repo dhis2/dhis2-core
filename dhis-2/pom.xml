@@ -71,7 +71,7 @@
         <dhis-json-tree.version>0.1.0</dhis-json-tree.version>
 
         <!-- Security-->
-        <spring-security.version>5.6.0</spring-security.version>
+        <spring-security.version>5.6.1</spring-security.version>
         <spring-security-oauth2.version>2.5.1.RELEASE</spring-security-oauth2.version>
         <spring-security-jwt.version>1.1.1.RELEASE</spring-security-jwt.version>
         <bcprov-jdk15on.version>1.69</bcprov-jdk15on.version>
@@ -96,7 +96,7 @@
         <!-- Data sources,db pools and db drivers-->
         <c3p0.version>0.9.5.5</c3p0.version>
         <HikariCP.version>5.0.0</HikariCP.version>
-        <postgresql-driver.version>42.3.2</postgresql-driver.version>
+        <postgresql-driver.version>42.3.3</postgresql-driver.version>
         <postgis-jdbc.version>2.5.0</postgis-jdbc.version>
         <datasource-proxy.version>1.7</datasource-proxy.version>
 
@@ -113,6 +113,7 @@
         <jackson-datatype-jts.version>1.0-2.7</jackson-datatype-jts.version>
         <jackson-datatype-hibernate5.version>2.11.2</jackson-datatype-hibernate5.version>
         <classmate.version>1.5.1</classmate.version>
+        <geojson-jackson.version>1.14</geojson-jackson.version>
 
         <!-- JAXB -->
         <jaxb-api.version>2.4.0-b180830.0359</jaxb-api.version>
@@ -121,7 +122,7 @@
         <jaxws-ri.version>2.3.2</jaxws-ri.version>
         <jakarta.xml.ws-api.version>3.0.1</jakarta.xml.ws-api.version>
         <javax.annotation-api.version>1.3.2</javax.annotation-api.version>
-        <xercesImpl.version>2.12.1</xercesImpl.version>
+        <xercesImpl.version>2.12.2</xercesImpl.version>
 
         <!--Reporting -->
         <jasperreports.version>6.18.1</jasperreports.version>
@@ -222,6 +223,7 @@
         <maven-antrun-plugin.version>1.7</maven-antrun-plugin.version>
         <maven-enforcer-plugin.version>3.0.0</maven-enforcer-plugin.version>
         <maven-dependency-plugin.version>3.2.0</maven-dependency-plugin.version>
+        <restrict-imports-enforcer.version>2.0.0</restrict-imports-enforcer.version>
         <versions-maven-plugin.version>2.8.1</versions-maven-plugin.version>
         <dependency-check-maven.version>6.0.3</dependency-check-maven.version>
         <spotbugs-maven-plugin.version>4.2.0</spotbugs-maven-plugin.version>
@@ -718,6 +720,13 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-enforcer-plugin</artifactId>
+                <dependencies>
+                    <dependency>
+                        <groupId>de.skuzzle.enforcer</groupId>
+                        <artifactId>restrict-imports-enforcer-rule</artifactId>
+                        <version>${restrict-imports-enforcer.version}</version>
+                    </dependency>
+                </dependencies>
                 <executions>
                     <execution>
                         <id>enforce-maven</id>
@@ -738,6 +747,13 @@
                                 <requireJavaVersion>
                                     <version>${minimum-java.version}</version>
                                 </requireJavaVersion>
+                                <RestrictImports>
+                                    <reason>Write JUnit 5 tests only; JUnit 4 cannot yet be excluded from our dependencies because of testcontainers issue https://github.com/testcontainers/testcontainers-java/issues/970</reason>
+                                    <bannedImports>
+                                        <bannedImport>org.junit.Test</bannedImport>
+                                        <bannedImport>org.junit.Assert.**</bannedImport>
+                                    </bannedImports>
+                                </RestrictImports>
                             </rules>
                         </configuration>
                     </execution>
@@ -1890,6 +1906,12 @@
                 <groupId>com.fasterxml.jackson.datatype</groupId>
                 <artifactId>jackson-datatype-hibernate5</artifactId>
                 <version>${jackson-datatype-hibernate5.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>de.grundid.opendatalab</groupId>
+                <artifactId>geojson-jackson</artifactId>
+                <version>${geojson-jackson.version}</version>
             </dependency>
 
             <!-- GeoTools -->

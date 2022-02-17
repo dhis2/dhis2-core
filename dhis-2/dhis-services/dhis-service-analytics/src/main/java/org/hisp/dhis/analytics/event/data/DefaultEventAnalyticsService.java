@@ -130,6 +130,10 @@ public class DefaultEventAnalyticsService
 
     private static final String NAME_STORED_BY = "Stored by";
 
+    private static final String NAME_CREATED_BY_DISPLAY_NAME = "Created by (display name)";
+
+    private static final String NAME_LAST_UPDATED_BY_DISPLAY_NAME = "Last updated by (display name)";
+
     private static final String NAME_LAST_UPDATED = "Last Updated";
 
     private static final String NAME_SCHEDULED_DATE = "Scheduled date";
@@ -718,6 +722,10 @@ public class DefaultEventAnalyticsService
             .addHeader( new GridHeader( ITEM_EVENT_DATE,
                 LabelMapper.getEventDateLabel( params.getProgramStage(), NAME_EVENT_DATE ), DATE, false, true ) )
             .addHeader( new GridHeader( ITEM_STORED_BY, NAME_STORED_BY, TEXT, false, true ) )
+            .addHeader( new GridHeader(
+                ITEM_CREATED_BY_DISPLAY_NAME, NAME_CREATED_BY_DISPLAY_NAME, TEXT, false, true ) )
+            .addHeader( new GridHeader(
+                ITEM_LAST_UPDATED_BY_DISPLAY_NAME, NAME_LAST_UPDATED_BY_DISPLAY_NAME, TEXT, false, true ) )
             .addHeader( new GridHeader( ITEM_LAST_UPDATED, NAME_LAST_UPDATED, DATE, false, true ) );
 
         if ( params.containsScheduledDatePeriod() )

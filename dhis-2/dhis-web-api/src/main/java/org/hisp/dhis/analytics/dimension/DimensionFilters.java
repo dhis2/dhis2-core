@@ -28,6 +28,7 @@
 package org.hisp.dhis.analytics.dimension;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -90,15 +91,42 @@ public class DimensionFilters implements Predicate<DimensionResponse>
     private static class SingleFilter implements Predicate<DimensionResponse>
     {
         private static final Map<String, Function<DimensionResponse, ?>> FIELD_EXTRACTORS = Map.of(
+            "id", DimensionResponse::getId,
+            "uid", DimensionResponse::getUid,
+            "code", DimensionResponse::getCode,
+            "valueType", DimensionResponse::getValueType,
             "name", DimensionResponse::getName,
             "dimensionType", DimensionResponse::getDimensionType,
             "displayName", DimensionResponse::getDisplayName,
             "displayShortName", DimensionResponse::getDisplayShortName );
 
-        private static final Map<String, BiFunction<String, String, Boolean>> OPERATOR_MAP = Map.of(
-            "eq", String::equalsIgnoreCase,
-            "like", String::contains,
-            "ilike", ( fv, v ) -> fv.toLowerCase().contains( v.toLowerCase() ) );
+        private static final Map<String, BiFunction<String, String, Boolean>> OPERATOR_MAP = new HashMap<>();
+
+        static
+        {
+            putOperator( "startsWith", String::startsWith, true );
+            putOperator( "endsWith", String::endsWith, true );
+            putOperator( "eq", String::equals );
+            putOperator( "ieq", String::equalsIgnoreCase );
+            putOperator( "ne", ( fv, v ) -> !fv.equals( v ) );
+            putOperator( "like", String::contains, true );
+            putOperator( "ilike", ( fv, v ) -> fv.toLowerCase().contains( v.toLowerCase() ), true );
+        }
+
+        private static void putOperator( String operator, BiFunction<String, String, Boolean> function )
+        {
+            putOperator( operator, function, false );
+        }
+
+        private static void putOperator( String operator, BiFunction<String, String, Boolean> function,
+            boolean negateAlso )
+        {
+            OPERATOR_MAP.put( operator, function );
+            if ( negateAlso )
+            {
+                OPERATOR_MAP.put( "!" + operator, ( s, s2 ) -> !function.apply( s, s2 ) );
+            }
+        }
 
         private String field;
 

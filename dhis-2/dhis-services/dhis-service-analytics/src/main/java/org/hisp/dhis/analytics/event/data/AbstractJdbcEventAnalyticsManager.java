@@ -41,6 +41,7 @@ import static org.hisp.dhis.system.util.MathUtils.getRounded;
 
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -62,6 +63,7 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryRuntimeException;
+import org.hisp.dhis.common.Reference;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -78,6 +80,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.util.Assert;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 
 /**
@@ -296,7 +300,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
             }
             else if ( queryItem.getValueType() == ValueType.NUMBER && !isGroupByClause )
             {
-                columns.add( "coalesce(" + getColumn( queryItem ) + ", 'NaN') as " + queryItem.getItemName() );
+                columns.add( "coalesce(" + getColumn( queryItem ) + ", null) as " + queryItem.getItemName() );
             }
             else
             {
@@ -733,9 +737,32 @@ public abstract class AbstractJdbcEventAnalyticsManager
                 grid.addValue( params.isSkipRounding() ? val : MathUtils.getRounded( val ) );
             }
         }
+        else if ( header.getValueType() == ValueType.REFERENCE )
+        {
+            String json = sqlRowSet.getString( index );
+
+            ObjectMapper mapper = new ObjectMapper();
+
+            try
+            {
+                JsonNode jsonNode = mapper.readTree( json );
+
+                String uid = UUID.randomUUID().toString();
+
+                Reference referenceNode = new Reference( uid, jsonNode );
+
+                grid.addValue( uid );
+
+                grid.addReference( referenceNode );
+            }
+            catch ( Exception e )
+            {
+                grid.addValue( json );
+            }
+        }
         else
         {
-            grid.addValue( sqlRowSet.getString( index ) );
+            grid.addValue( StringUtils.trimToNull( sqlRowSet.getString( index ) ) );
         }
     }
 

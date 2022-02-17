@@ -1326,6 +1326,9 @@ public class DataQueryParams
         return outputOrgUnitIdScheme != null && !IdScheme.UID.equals( outputOrgUnitIdScheme );
     }
 
+    /**
+     * Indicates whether a non-default identifier scheme is specified.
+     */
     public boolean hasCustomIdSchemaSet()
     {
         return isGeneralOutputIdSchemeSet() || isOutputDataElementIdSchemeSet() || isOutputOrgUnitIdSchemeSet();
@@ -1376,6 +1379,22 @@ public class DataQueryParams
     public boolean hasDataPeriodType()
     {
         return dataPeriodType != null;
+    }
+
+    /**
+     * Indicates whether this query has a start date.
+     */
+    public boolean hasStartDate()
+    {
+        return startDate != null;
+    }
+
+    /**
+     * Indicates whether this query has an end date.
+     */
+    public boolean hasEndDate()
+    {
+        return endDate != null;
     }
 
     /**
@@ -1567,6 +1586,21 @@ public class DataQueryParams
         }
 
         return null;
+    }
+
+    /**
+     * Returns the data elements which category combinations have skip total
+     * enabled, and not all categories of the category combo of the given data
+     * element are specified as dimensions or filters with items.
+     */
+    public List<DataElement> getSkipTotalDataElements()
+    {
+        List<DataElement> dataElements = DimensionalObjectUtils.asTypedList( getAllDataElements() );
+
+        return dataElements.stream()
+            .filter( de -> de.getCategoryCombo().isSkipTotal() )
+            .filter( de -> !isAllCategoriesDimensionOrFilterWithItems( de ) )
+            .collect( Collectors.toList() );
     }
 
     // -------------------------------------------------------------------------
@@ -1869,6 +1903,27 @@ public class DataQueryParams
             dimension.getItems().removeAll( existing );
             dimension.getItems().addAll( options );
         }
+    }
+
+    /**
+     * Indicates whether all categories of the category combo of the given data
+     * element are specified as dimensions or filters with items.
+     *
+     * @param dataElement the {@link DataElement}.
+     * @return true if all categories of the category combo of the given data
+     *         element are specified as dimensions or filters with items.
+     */
+    private boolean isAllCategoriesDimensionOrFilterWithItems( DataElement dataElement )
+    {
+        for ( Category category : dataElement.getCategoryCombo().getCategories() )
+        {
+            if ( !hasDimensionOrFilterWithItems( category.getDimension() ) )
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     // -------------------------------------------------------------------------
@@ -2580,10 +2635,10 @@ public class DataQueryParams
     }
 
     /**
-     * Returns a single list containing a Period object based on the "startDate"
+     * Returns a single list containing a period object based on the "startDate"
      * and "endDate" dates.
      *
-     * @return a single Period list or empty list if "startDate" or "endDate" is
+     * @return a single period list or empty list if "startDate" or "endDate" is
      *         null.
      */
     public List<Period> getStartEndDatesToSingleList()
@@ -2708,6 +2763,7 @@ public class DataQueryParams
     // -------------------------------------------------------------------------
     // Builder of immutable instances
     // -------------------------------------------------------------------------
+
     /**
      * Builder for {@link DataQueryParams} instances.
      */

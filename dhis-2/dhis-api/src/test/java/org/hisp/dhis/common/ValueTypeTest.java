@@ -104,4 +104,12 @@ class ValueTypeTest
         assertFalse( ValueType.FILE_RESOURCE.isAggregatable( AggregationType.NONE ) );
         assertFalse( ValueType.FILE_RESOURCE.isAggregatable( AggregationType.DEFAULT ) );
     }
+
+    @Test
+    void referenceTypeTest()
+    {
+        assertFalse( ValueType.REFERENCE.isAggregatable() );
+        assertTrue( ValueType.REFERENCE.isReference() );
+        assertFalse( ValueType.NUMBER.isReference() );
+    }
 }

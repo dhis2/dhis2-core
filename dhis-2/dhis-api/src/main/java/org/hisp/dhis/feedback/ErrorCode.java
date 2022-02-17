@@ -242,6 +242,7 @@ public enum ErrorCode
         "This property need to be data element of value type date and belong the program stage." ),
     E6002( "Class name {0} is not supported." ),
     E6003( "Could not patch object with id {0}." ),
+    E6004( "Attribute `{0}` has invalid GeoJson value." ),
 
     /* File resource */
     E6100( "Filename not present" ),
@@ -294,6 +295,7 @@ public enum ErrorCode
     E7131( "Query failed, likely because the query timed out" ),
     E7132( "An indicator expression caused division by zero operation" ),
     E7133( "Query cannot be executed, possibly because of invalid types or invalid operation" ),
+    E7134( "Cannot retrieve total value for data elements with skip total category combination" ),
 
     /* Event analytics */
     E7200( "At least one organisation unit must be specified" ),

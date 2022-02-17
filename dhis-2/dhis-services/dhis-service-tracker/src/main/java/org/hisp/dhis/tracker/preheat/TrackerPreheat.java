@@ -47,6 +47,8 @@ import lombok.Setter;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
@@ -285,6 +287,16 @@ public class TrackerPreheat
         String key )
     {
         return (T) map.getOrDefault( klass, new HashMap<>() ).get( key );
+    }
+
+    public CategoryOption getCategoryOption( String id )
+    {
+        return get( CategoryOption.class, id );
+    }
+
+    public CategoryOptionCombo getCategoryOptionCombo( String id )
+    {
+        return get( CategoryOptionCombo.class, id );
     }
 
     /**

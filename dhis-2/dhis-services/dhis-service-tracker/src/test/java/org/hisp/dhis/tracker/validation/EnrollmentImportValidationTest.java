@@ -213,6 +213,30 @@ class EnrollmentImportValidationTest extends AbstractImportValidationTest
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1015 ) ) ) );
     }
 
+    @Test
+    void testEnrollmentDeleteOk()
+        throws IOException
+    {
+        TrackerImportParams paramsCreate = createBundleFromJson(
+            "tracker/validations/enrollments_te_enrollments-data.json" );
+        paramsCreate.setImportStrategy( TrackerImportStrategy.CREATE );
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( paramsCreate );
+        assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
+        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
+
+        manager.flush();
+        manager.clear();
+
+        TrackerImportParams paramsDelete = createBundleFromJson(
+            "tracker/validations/enrollments_te_enrollments-data-delete.json" );
+        paramsDelete.setImportStrategy( TrackerImportStrategy.DELETE );
+
+        TrackerImportReport trackerImportReportDelete = trackerImportService.importTracker( paramsDelete );
+        assertEquals( 0, trackerImportReportDelete.getValidationReport().getErrors().size() );
+        assertEquals( TrackerStatus.OK, trackerImportReportDelete.getStatus() );
+        assertEquals( 1, trackerImportReportDelete.getStats().getDeleted() );
+    }
+
     /**
      * Notes with no value are ignored
      */

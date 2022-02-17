@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.tracker.importer;
 
+import org.hamcrest.Matcher;
+import org.hisp.dhis.Constants;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
@@ -73,7 +75,7 @@ public class TrackerExportTests
         eventId = response.extractImportedEvents().get( 0 );
     }
 
-    private Stream<Arguments> provideParams()
+    private Stream<Arguments> shouldReturnRequestedFields()
     {
         return Stream.of( new Arguments[] {
             Arguments.of( "/trackedEntities/" + teiId,
@@ -91,7 +93,7 @@ public class TrackerExportTests
         } );
     }
 
-    @MethodSource( "provideParams" )
+    @MethodSource()
     @ParameterizedTest
     public void shouldReturnRequestedFields( String endpoint, String fields, String fieldsToValidate )
     {
@@ -161,12 +163,36 @@ public class TrackerExportTests
     @Test
     public void shouldReturnSingleTeiGivenFilter()
     {
-
         trackerActions.get( "trackedEntities?orgUnit=O6uvpzGd5pu&program=f1AyMswryyQ&filter=kZeSYCgaHTk:in:Bravo" )
             .validate()
             .statusCode( 200 )
             .body( "instances.findAll { it.trackedEntity == 'Kj6vYde4LHh' }.size()", is( 1 ) )
             .body( "instances.attributes.flatten().findAll { it.attribute == 'kZeSYCgaHTk' }.value", everyItem( is( "Bravo" ) ) );
+    }
+
+    Stream<Arguments> shouldReturnTeisMatchingAttributeCriteria()
+    {
+        return Stream.of(
+            Arguments.of( "like", "av", containsString( "av" ) ),
+            Arguments.of( "sw", "Te", startsWith( "Te" ) ),
+            Arguments.of( "ew", "AVO", endsWith( "avo" ) ),
+            Arguments.of( "ew", "Bravo", endsWith( "Bravo" ) ),
+            Arguments.of( "in", "Bravo", equalTo( "Bravo" ) ) );
+    }
+
+    @MethodSource( )
+    @ParameterizedTest
+    public void shouldReturnTeisMatchingAttributeCriteria( String operator, String searchCriteria, Matcher everyItemMatcher )
+    {
+        QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder()
+            .add( "orgUnit", "O6uvpzGd5pu" )
+            .add( "program", Constants.TRACKER_PROGRAM_ID )
+            .add( "attribute", String.format( "kZeSYCgaHTk:%s:%s", operator, searchCriteria ) );
+
+        trackerActions.getTrackedEntities( queryParamsBuilder )
+            .validate().statusCode( 200 )
+            .body( "instances", hasSize( greaterThanOrEqualTo( 1 ) ) )
+            .body( "instances.attributes.flatten().findAll { it.attribute == 'kZeSYCgaHTk' }.value", everyItem( everyItemMatcher ) );
     }
 
     @Test

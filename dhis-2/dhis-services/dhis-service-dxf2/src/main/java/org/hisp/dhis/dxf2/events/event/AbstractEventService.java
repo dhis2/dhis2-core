@@ -27,6 +27,10 @@
  */
 package org.hisp.dhis.dxf2.events.event;
 
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+import static org.hisp.dhis.common.Pager.DEFAULT_PAGE_SIZE;
+import static org.hisp.dhis.common.SlimPager.FIRST_PAGE;
 import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ATTRIBUTE_OPTION_COMBO_ID;
 import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_COMPLETED_BY_ID;
 import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_COMPLETED_DATE_ID;
@@ -78,6 +82,7 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.dataelement.DataElement;
@@ -406,20 +411,59 @@ public abstract class AbstractEventService implements EventService
 
         if ( params.isPaging() )
         {
-            int count = 0;
+            final Pager pager;
 
             if ( params.isTotalPages() )
             {
-                count = eventStore.getEventCount( params, organisationUnits );
+                int count = eventStore.getEventCount( params, organisationUnits );
+                pager = new Pager( params.getPageWithDefault(), count, params.getPageSizeWithDefault() );
+            }
+            else
+            {
+                pager = handleLastPageFlag( params, grid );
             }
 
-            Pager pager = new Pager( params.getPageWithDefault(), count, params.getPageSizeWithDefault() );
             metaData.put( PAGER_META_KEY, pager );
         }
 
         grid.setMetaData( metaData );
 
         return grid;
+    }
+
+    /**
+     * This method will apply the logic related to the parameter
+     * 'totalPages=false'. This works in conjunction with the method:
+     * {@link org.hisp.dhis.dxf2.events.event.JdbcEventStore#getEventPagingQuery(EventSearchParams)}
+     *
+     * This is needed because we need to query (pageSize + 1) at DB level. The
+     * resulting query will allow us to evaluate if we are in the last page or
+     * not. And this is what his method does, returning the respective Pager
+     * object.
+     *
+     * @param params the request params
+     * @param grid the populated Grid object
+     * @return the populated SlimPager instance
+     */
+    private Pager handleLastPageFlag( final EventSearchParams params, final Grid grid )
+    {
+        final Integer originalPage = defaultIfNull( params.getPage(), FIRST_PAGE );
+        final Integer originalPageSize = defaultIfNull( params.getPageSize(), DEFAULT_PAGE_SIZE );
+        boolean isLastPage = false;
+
+        if ( isNotEmpty( grid.getRows() ) )
+        {
+            isLastPage = grid.getRows().size() <= originalPageSize;
+            if ( !isLastPage )
+            {
+                // Get the same number of elements of the pageSize, forcing
+                // the removal of the last additional element added at querying
+                // time.
+                grid.getRows().retainAll( grid.getRows().subList( 0, originalPageSize ) );
+            }
+        }
+
+        return new SlimPager( originalPage, originalPageSize, isLastPage );
     }
 
     @Transactional( readOnly = true )

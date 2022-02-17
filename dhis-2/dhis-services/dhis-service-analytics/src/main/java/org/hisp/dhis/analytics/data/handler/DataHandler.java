@@ -1067,8 +1067,12 @@ public class DataHandler
             return;
         }
 
-        final List<Object> adjustedRow = (dimensionalItemObject.getPeriodOffset() != 0)
-            ? getPeriodOffsetRow( row, periodIndex, dimensionalItemObject.getPeriodOffset() )
+        int periodOffset = (dimensionalItemObject.getQueryMods() == null)
+            ? 0
+            : dimensionalItemObject.getQueryMods().getPeriodOffset();
+
+        final List<Object> adjustedRow = (periodOffset != 0)
+            ? getPeriodOffsetRow( row, periodIndex, periodOffset )
             : row;
 
         if ( !isPeriodInPeriods( (String) adjustedRow.get( periodIndex ), basePeriods ) )

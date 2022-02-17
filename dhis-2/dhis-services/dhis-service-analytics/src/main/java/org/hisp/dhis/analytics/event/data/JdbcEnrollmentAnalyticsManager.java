@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.event.data;
 
 import static java.util.stream.Collectors.joining;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.encode;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
@@ -37,6 +38,7 @@ import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
 
+import java.util.Date;
 import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
@@ -65,6 +67,8 @@ import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicatorService;
+import org.hisp.dhis.system.util.SqlUtils;
+import org.hisp.dhis.util.DateUtils;
 import org.locationtech.jts.util.Assert;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.jdbc.BadSqlGrammarException;
@@ -93,9 +97,16 @@ public class JdbcEnrollmentAnalyticsManager
 
     private static final String LIMIT_1 = "limit 1";
 
+    public static final String CREATED_BY_DISPLAY_NAME_COLUMN = "concat(createdbylastname, ', ', createdbyname, "
+        + "' (', createdbyusername, ')') as createdbydisplayname";
+
+    public static final String LAST_UPDATED_BY_DISPLAY_NAME_COLUMN = "concat(lastupdatedbylastname, ', '"
+        + ", lastupdatedbyname, ' (', lastupdatedbyusername, ')') as lastupdatedbydisplayaname";
+
     private List<String> COLUMNS = Lists.newArrayList( "pi", "tei", "enrollmentdate", "incidentdate",
-        "storedby", "lastupdated", "ST_AsGeoJSON(pigeometry)", "longitude", "latitude", "ouname", "oucode",
-        "enrollmentstatus" );
+        "storedby", CREATED_BY_DISPLAY_NAME_COLUMN, LAST_UPDATED_BY_DISPLAY_NAME_COLUMN, "lastupdated",
+        "ST_AsGeoJSON(pigeometry)", "longitude", "latitude",
+        "ouname", "oucode", "enrollmentstatus" );
 
     public JdbcEnrollmentAnalyticsManager( JdbcTemplate jdbcTemplate, StatementBuilder statementBuilder,
         ProgramIndicatorService programIndicatorService,
@@ -332,7 +343,9 @@ public class JdbcEnrollmentAnalyticsManager
         if ( params.hasProgramStatus() )
         {
             sql += "and enrollmentstatus in ("
-                + params.getProgramStatus().stream().map( p -> "'" + p.name() + "'" ).collect( joining( "," ) ) + ") ";
+                + params.getProgramStatus().stream().map( p -> encode( p.name(), true ) )
+                    .collect( joining( "," ) )
+                + ") ";
         }
 
         if ( params.isCoordinatesOnly() )
@@ -456,11 +469,37 @@ public class JdbcEnrollmentAnalyticsManager
 
             final String eventTableName = ANALYTICS_EVENT + item.getProgram().getUid();
 
+            if ( item.getProgramStage().getRepeatable() &&
+                item.hasRepeatableStageParams() && !item.getRepeatableStageParams().simpleStageValueExpected() )
+            {
+                return "(select json_agg(t1) from (select " + colName + ", incidentdate, duedate, executiondate "
+                    + " from " + eventTableName
+                    + " where " + eventTableName + ".pi = " + ANALYTICS_TBL_ALIAS + ".pi "
+                    + "and " + colName + " is not null " + "and ps = '" + item.getProgramStage().getUid() + "'"
+                    + getExecutionDateFilter( item.getRepeatableStageParams().getStartDate(),
+                        item.getRepeatableStageParams().getEndDate() )
+                    + ORDER_BY_EXECUTION_DATE + createOrderTypeAndOffset( item.getProgramStageOffset() )
+                    + getLimit( item.getRepeatableStageParams().getCount() ) + " ) as t1)";
+
+            }
+
+            if ( item.getProgramStage().getRepeatable() && item.hasRepeatableStageParams() )
+            {
+                return "(select " + colName
+                    + " from " + eventTableName
+                    + " where " + eventTableName + ".pi = " + ANALYTICS_TBL_ALIAS + ".pi "
+                    + "and " + colName + " is not null " + "and ps = '" + item.getProgramStage().getUid() + "' "
+                    + getExecutionDateFilter( item.getRepeatableStageParams().getStartDate(),
+                        item.getRepeatableStageParams().getEndDate() )
+                    + ORDER_BY_EXECUTION_DATE + createOrderTypeAndOffset( item.getProgramStageOffset() )
+                    + " " + LIMIT_1 + " )";
+            }
+
             return "(select " + colName
                 + " from " + eventTableName
-                + " where " + eventTableName + ".pi = " + ANALYTICS_TBL_ALIAS + ".pi " +
-                "and " + colName + " is not null " + "and ps = '" + item.getProgramStage().getUid() + "' " +
-                ORDER_BY_EXECUTION_DATE + createOrderTypeAndOffset( item.getProgramStageOffset() )
+                + " where " + eventTableName + ".pi = " + ANALYTICS_TBL_ALIAS + ".pi "
+                + "and " + colName + " is not null " + "and ps = '" + item.getProgramStage().getUid() + "' "
+                + ORDER_BY_EXECUTION_DATE + createOrderTypeAndOffset( item.getProgramStageOffset() )
                 + " " + LIMIT_1 + " )";
         }
         else
@@ -478,27 +517,38 @@ public class JdbcEnrollmentAnalyticsManager
     @Override
     protected String getColumn( QueryItem item )
     {
-        String colName = item.getItemName();
+        return getColumn( item, "" );
+    }
 
-        if ( item.hasProgramStage() )
+    private static String getExecutionDateFilter( Date startDate, Date endDate )
+    {
+        StringBuilder sb = new StringBuilder();
+
+        if ( startDate != null )
         {
-            colName = quote( colName );
+            sb.append( " and executiondate >= " );
 
-            assertProgram( item );
-
-            String eventTableName = ANALYTICS_EVENT + item.getProgram().getUid();
-
-            return "(select " + colName
-                + " from " + eventTableName
-                + " where " + eventTableName + ".pi = " + ANALYTICS_TBL_ALIAS + ".pi " +
-                "and " + colName + " is not null " + "and ps = '" + item.getProgramStage().getUid() + "' " +
-                ORDER_BY_EXECUTION_DATE + createOrderTypeAndOffset( item.getProgramStageOffset() )
-                + " " + LIMIT_1 + " )";
+            sb.append( String.format( "%s ", SqlUtils.singleQuote( DateUtils.getMediumDateString( startDate ) ) ) );
         }
-        else
+
+        if ( endDate != null )
         {
-            return quoteAlias( colName );
+            sb.append( " and executiondate <= " );
+
+            sb.append( String.format( "%s ", SqlUtils.singleQuote( DateUtils.getMediumDateString( endDate ) ) ) );
         }
+
+        return sb.toString();
+    }
+
+    private static String getLimit( int count )
+    {
+        if ( count == Integer.MAX_VALUE )
+        {
+            return "";
+        }
+
+        return " LIMIT " + count;
     }
 
     private void assertProgram( final QueryItem item )

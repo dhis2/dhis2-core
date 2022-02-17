@@ -64,6 +64,7 @@ public class DefaultAdminUserPopulator
         "F_APPROVE_DATA_LOWER_LEVELS",
         "F_ACCEPT_DATA_LOWER_LEVELS",
         "F_PERFORM_MAINTENANCE",
+        "F_PERFORM_ANALYTICS_EXPLAIN",
         "F_LOCALE_ADD",
         "F_GENERATE_MIN_MAX_VALUES",
         "F_RUN_VALIDATION",
