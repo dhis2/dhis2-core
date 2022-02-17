@@ -35,6 +35,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import org.hisp.dhis.tracker.TrackerType;
+import org.hisp.dhis.tracker.domain.TrackerDto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

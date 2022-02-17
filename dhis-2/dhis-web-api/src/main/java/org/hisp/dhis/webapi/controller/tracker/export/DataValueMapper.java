@@ -25,38 +25,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export.relationships;
+package org.hisp.dhis.webapi.controller.tracker.export;
 
-import java.time.Instant;
+import org.hisp.dhis.tracker.domain.DataValue;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-/**
- * Notes are text-only objects attached to Events and Enrollments. An Event or
- * Enrollment may have multiple notes.
- *
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class Note
+@Mapper( uses = InstantMapper.class )
+public interface DataValueMapper extends DomainMapper<org.hisp.dhis.dxf2.events.event.DataValue, DataValue>
 {
-    @JsonProperty
-    private String note;
-
-    @JsonProperty
-    private Instant storedAt;
-
-    @JsonProperty
-    private String storedBy;
-
-    @JsonProperty
-    private String value;
+    @Mapping( target = "createdAt", source = "created" )
+    @Mapping( target = "updatedAt", source = "lastUpdated" )
+    DataValue from( org.hisp.dhis.dxf2.events.event.DataValue dataValue );
 }

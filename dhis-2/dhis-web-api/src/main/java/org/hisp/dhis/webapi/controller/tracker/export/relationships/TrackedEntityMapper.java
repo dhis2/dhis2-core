@@ -28,6 +28,11 @@
 package org.hisp.dhis.webapi.controller.tracker.export.relationships;
 
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.webapi.controller.tracker.export.AttributeMapper;
+import org.hisp.dhis.webapi.controller.tracker.export.DomainMapper;
+import org.hisp.dhis.webapi.controller.tracker.export.InstantMapper;
+import org.hisp.dhis.webapi.controller.tracker.export.ProgramOwnerMapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 

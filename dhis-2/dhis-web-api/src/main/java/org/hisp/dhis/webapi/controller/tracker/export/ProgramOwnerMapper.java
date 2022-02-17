@@ -25,24 +25,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export.relationships;
+package org.hisp.dhis.webapi.controller.tracker.export;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import org.hisp.dhis.tracker.domain.ProgramOwner;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
-public interface DomainMapper<FROM, TO>
+@Mapper
+public interface ProgramOwnerMapper
+    extends DomainMapper<org.hisp.dhis.dxf2.events.trackedentity.ProgramOwner, ProgramOwner>
 {
-    TO from( FROM from );
-
-    default List<TO> fromCollection( Collection<FROM> froms )
-    {
-        return Optional.ofNullable( froms )
-            .orElse( Collections.emptySet() )
-            .stream()
-            .map( this::from )
-            .collect( Collectors.toList() );
-    }
+    @Mapping( target = "orgUnit", source = "ownerOrgUnit" )
+    @Mapping( target = "trackedEntity", source = "trackedEntityInstance" )
+    ProgramOwner from( org.hisp.dhis.dxf2.events.trackedentity.ProgramOwner programOwner );
 }

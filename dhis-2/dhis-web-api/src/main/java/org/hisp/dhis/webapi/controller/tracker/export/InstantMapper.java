@@ -25,51 +25,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export.relationships;
+package org.hisp.dhis.webapi.controller.tracker.export;
 
-import org.hisp.dhis.program.ProgramStatus;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.chrono.ChronoZonedDateTime;
+import java.util.Date;
+import java.util.Optional;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public enum EnrollmentStatus
+import org.hisp.dhis.util.DateUtils;
+import org.mapstruct.Mapper;
+
+@Mapper
+public abstract class InstantMapper
 {
-    ACTIVE( 0, ProgramStatus.ACTIVE ),
-    COMPLETED( 1, ProgramStatus.COMPLETED ),
-    CANCELLED( 2, ProgramStatus.CANCELLED );
 
-    private final int value;
-
-    private final ProgramStatus programStatus;
-
-    EnrollmentStatus( int value, ProgramStatus programStatus )
+    public Instant fromString( String dateAsString )
     {
-        this.value = value;
-        this.programStatus = programStatus;
+        return DateUtils.instantFromDateAsString( dateAsString );
     }
 
-    public int getValue()
+    public Instant fromDate( Date date )
     {
-        return value;
-    }
-
-    public ProgramStatus getProgramStatus()
-    {
-        return programStatus;
-    }
-
-    public static EnrollmentStatus fromProgramStatus( ProgramStatus programStatus )
-    {
-        switch ( programStatus )
+        if ( date instanceof java.sql.Date )
         {
-        case ACTIVE:
-            return ACTIVE;
-        case CANCELLED:
-            return CANCELLED;
-        case COMPLETED:
-            return COMPLETED;
+            return fromSqlDate( (java.sql.Date) date );
         }
-
-        throw new IllegalArgumentException( "Enum value not found: " + programStatus );
+        return DateUtils.instantFromDate( date );
     }
+
+    public Instant fromSqlDate( java.sql.Date date )
+    {
+        return Optional.ofNullable( date )
+            .map( java.sql.Date::toLocalDate )
+            .map( localDate -> localDate.atStartOfDay( ZoneId.systemDefault() ) )
+            .map( ChronoZonedDateTime::toInstant )
+            .orElse( null );
+    }
+
 }
