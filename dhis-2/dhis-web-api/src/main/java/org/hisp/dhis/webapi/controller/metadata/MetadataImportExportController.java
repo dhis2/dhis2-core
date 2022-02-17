@@ -43,6 +43,8 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AsyncTaskExecutor;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -98,6 +100,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 @Controller
 @RequestMapping( "/metadata" )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+@Slf4j
 public class MetadataImportExportController
 {
     @Autowired
@@ -165,6 +168,7 @@ public class MetadataImportExportController
         }
         catch ( Exception e )
         {
+            // TODO 12577
             // Fails MetaDataImportTest.shouldUpdateExistingMetadata()
             // org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException:
             // {"class":"class org.hisp.dhis.program.ProgramStage",
@@ -173,7 +177,7 @@ public class MetadataImportExportController
             // "shortName":"null", "description":"null", "created":"Thu Feb 28
             // 11:41:32 PST 2019", "lastUpdated":"Thu Feb 17 16:25:53 PST 2022"
             // }
-            e.printStackTrace();
+            log.error( "Error importing metadata", e );
         }
 
         return importReport( importReport ).withPlainResponseBefore( DhisApiVersion.V38 );

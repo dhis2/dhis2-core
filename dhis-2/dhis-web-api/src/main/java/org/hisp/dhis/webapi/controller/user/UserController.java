@@ -597,7 +597,7 @@ public class UserController
         }
 
         User currentUser = currentUserService.getCurrentUser();
-        // TODO: Can we disallow currentUser == NULL ?
+
         if ( !aclService.canUpdate( currentUser, users.get( 0 ) ) )
         {
             throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this user." );
@@ -606,10 +606,7 @@ public class UserController
         // force initialization of all authorities of current user in order to
         // prevent cases where user must be reloaded later
         // (in case it gets detached)
-        if ( currentUser != null )
-        {
-            currentUser.getAllAuthorities();
-        }
+        currentUser.getAllAuthorities();
 
         parsedUserObject.setId( users.get( 0 ).getId() );
         parsedUserObject.setUid( userUid );

@@ -51,7 +51,6 @@ import org.hisp.dhis.webapi.security.utils.JwtUtils;
 import org.hisp.dhis.webapi.security.utils.TestJoseHeaders;
 import org.hisp.dhis.webapi.security.utils.TestJwks;
 import org.hisp.dhis.webapi.security.utils.TestJwtClaimsSets;
-import org.junit.Ignore;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -140,7 +139,6 @@ class JwtBearerTokenTest extends DhisControllerWithJwtTokenAuthTest
     }
 
     @Test
-    @Ignore
     void testSuccessfulRequest()
     {
         setupTestingProvider( CLIENT_ID_1, TEST_PROVIDER_ONE_NAME, TEST_PROVIDER_ONE_URI );
@@ -159,7 +157,6 @@ class JwtBearerTokenTest extends DhisControllerWithJwtTokenAuthTest
     }
 
     @Test
-    @Ignore
     void testExpiredToken()
     {
         dhis2JwtAuthenticationManagerResolver.setJwtDecoder( null );

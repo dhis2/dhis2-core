@@ -2440,7 +2440,8 @@ public abstract class DhisConvenienceTest
         }
 
         userService.encodeAndSetPassword( user, DEFAULT_ADMIN_PASSWORD );
-        long l = userService.addUser( user );
+
+        userService.addUser( user );
 
         return user;
     }

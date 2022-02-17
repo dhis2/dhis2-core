@@ -129,7 +129,7 @@ public class UserRoleController
 
         User user = userService.getUser( pvUserId );
 
-        if ( user == null || user == null )
+        if ( user == null )
         {
             throw new WebMessageException( notFound( "User does not exist: " + pvId ) );
         }

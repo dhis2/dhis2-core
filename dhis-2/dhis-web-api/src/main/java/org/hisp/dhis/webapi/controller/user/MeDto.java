@@ -52,10 +52,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @JsonInclude( JsonInclude.Include.ALWAYS )
 public class MeDto
 {
-    public MeDto()
-    {
-    }
-
     @JsonProperty( )
     private String id;
 

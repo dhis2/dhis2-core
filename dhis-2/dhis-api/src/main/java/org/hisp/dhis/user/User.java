@@ -350,8 +350,7 @@ public class User
      */
     public boolean isSuper()
     {
-        final boolean resultingSuper = userAuthorityGroups.stream().anyMatch( UserAuthorityGroup::isSuper );
-        return resultingSuper;
+        return userAuthorityGroups.stream().anyMatch( UserAuthorityGroup::isSuper );
     }
 
     /**

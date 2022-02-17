@@ -1044,7 +1044,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     {
         List<Function<Root<T>, Predicate>> predicates = new ArrayList<>();
 
-        if ( !dataSharingEnabled( user ) || user == null || groupInfo == null )
+        if ( user == null || !dataSharingEnabled( user ) || groupInfo == null )
         {
             return predicates;
         }
@@ -1058,7 +1058,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     {
         List<Function<Root<T>, Predicate>> predicates = new ArrayList<>();
 
-        if ( !dataSharingEnabled( user ) || user == null )
+        if ( user == null || !dataSharingEnabled( user ) )
         {
             return predicates;
         }
@@ -1269,7 +1269,6 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
     private User getCurrentUser()
     {
-        User currentUser = currentUserService.getCurrentUser();
-        return currentUser;
+        return currentUserService.getCurrentUser();
     }
 }

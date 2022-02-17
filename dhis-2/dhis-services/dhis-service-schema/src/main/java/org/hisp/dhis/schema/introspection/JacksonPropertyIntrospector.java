@@ -137,12 +137,9 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector
             initCollectionProperty( property );
 
             Method getterMethod = property.getGetterMethod();
-            if ( getterMethod != null )
+            if ( getterMethod != null && !property.isCollection() && !hasProperties( getterMethod.getReturnType() ) )
             {
-                if ( !property.isCollection() && !hasProperties( getterMethod.getReturnType() ) )
-                {
-                    property.setSimple( true );
-                }
+                property.setSimple( true );
             }
 
             initFromJacksonXmlElementWrapper( property );

@@ -269,11 +269,6 @@ public class Preheat
         IdentifiableObject object )
     {
         byKey.putIfAbsent( key, object );
-        // if ( object instanceof User )
-        // {
-        // getOrCreate( identifier, User.class ).putIfAbsent( key,
-        // ((User) object) );
-        // }
     }
 
     public <T extends IdentifiableObject> Preheat replace( PreheatIdentifier identifier, T object )
@@ -295,11 +290,6 @@ public class Preheat
             return this;
         }
         getOrCreate( identifier, klass ).put( key, object );
-        // if ( object instanceof User )
-        // {
-        // getOrCreate( identifier, User.class ).putIfAbsent( key,
-        // ((User) object) );
-        // }
         return this;
     }
 

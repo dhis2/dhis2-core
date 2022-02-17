@@ -104,13 +104,14 @@ public class DefaultCurrentUserService
         User user = userStore.getUserByUsername( username );
         if ( user == null )
         {
-            // This should only happen at startup, (routines) . Maybe this can
+            // TODO: 12577 This should only happen at startup, (routines) .
+            // Maybe this can
             // be solved by manually inserting the first user with sql
+            log.warn( "User is NULL, this should only happen at startup!" );
             return null;
-            // throw new IllegalStateException( "No current user" );
         }
 
-        // // TODO: this is pretty ugly way to retrieve auths
+        // // TODO: 12577
         user.getAllAuthorities();
         return user;
     }
@@ -201,13 +202,9 @@ public class DefaultCurrentUserService
         User currentUser = getCurrentUser();
         if ( currentUser == null )
         {
-            log.error( "Dont like this! username=" + username );
+            log.warn( "User is null, this should only happen at startup!" );
             return null;
-            // throw new RuntimeException(
-            // "Could not retrieve current user! Are the user injected into the
-            // security context?" );
         }
-        CurrentUserGroupInfo currentUserGroupInfo = userStore.getCurrentUserGroupInfo( currentUser.getId() );
-        return currentUserGroupInfo;
+        return userStore.getCurrentUserGroupInfo( currentUser.getId() );
     }
 }

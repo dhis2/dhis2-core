@@ -169,17 +169,17 @@ public class MockUserService
     @Override
     public List<User> getUsersByUsernames( Collection<String> usernames )
     {
-        List<User> users = new ArrayList<>();
+        List<User> usersByUsername = new ArrayList<>();
 
         for ( User user : this.users )
         {
             if ( usernames.contains( user.getUsername() ) )
             {
-                users.add( user );
+                usersByUsername.add( user );
             }
         }
 
-        return users;
+        return usersByUsername;
     }
 
     public User getUserByIdToken( String idToken )

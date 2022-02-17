@@ -181,8 +181,7 @@ public class TrackerBundle
     @JsonProperty
     public String getUsername()
     {
-        String username = User.username( user );
-        return username;
+        return User.username( user );
     }
 
     @Builder.Default

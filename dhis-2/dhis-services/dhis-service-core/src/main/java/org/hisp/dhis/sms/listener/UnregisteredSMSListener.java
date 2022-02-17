@@ -59,13 +59,6 @@ public class UnregisteredSMSListener
     extends
     CommandSMSListener
 {
-
-    private static final String USER_NAME = "anonymous";
-
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
     private final SMSCommandService smsCommandService;
 
     private final UserService userService;
@@ -119,7 +112,6 @@ public class UnregisteredSMSListener
             if ( anonymousUser == null )
             {
                 User user = new User();
-
                 user.setSurname( userName );
                 user.setFirstName( "" );
                 user.setAutoFields();
