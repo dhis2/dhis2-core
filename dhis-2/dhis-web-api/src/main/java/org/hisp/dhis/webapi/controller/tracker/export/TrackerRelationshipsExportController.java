@@ -52,7 +52,6 @@ import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
-import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -107,7 +106,7 @@ public class TrackerRelationshipsExportController
             .put( TrackedEntityInstance.class,
                 ( o, criteria ) -> relationshipService
                     .getRelationshipsByTrackedEntityInstance( (TrackedEntityInstance) o, criteria, false ) )
-            .put( ProgramStage.class,
+            .put( ProgramInstance.class,
                 ( o, criteria ) -> relationshipService.getRelationshipsByProgramInstance( (ProgramInstance) o, criteria,
                     false ) )
             .put( ProgramStageInstance.class,
