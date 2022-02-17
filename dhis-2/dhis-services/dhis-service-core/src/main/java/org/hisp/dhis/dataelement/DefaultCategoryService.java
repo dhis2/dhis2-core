@@ -566,11 +566,7 @@ public class DefaultCategoryService
     @Transactional( readOnly = true )
     public CategoryOptionCombo getDefaultCategoryOptionCombo()
     {
-        CategoryCombo categoryCombo = getCategoryComboByName( CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME );
-
-        return categoryCombo != null && categoryCombo.hasOptionCombos()
-            ? categoryCombo.getOptionCombos().iterator().next()
-            : null;
+        return categoryOptionComboStore.getByName( CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME );
     }
 
     @Override

@@ -53,17 +53,16 @@ import org.springframework.transaction.annotation.Transactional;
 @AllArgsConstructor
 public class HibernateDataIntegrityStore implements DataIntegrityStore
 {
-
     private final SessionFactory sessionFactory;
 
     @Override
     @Transactional( readOnly = true )
     public DataIntegritySummary querySummary( DataIntegrityCheck check, String sql )
     {
-        Object[] summary = (Object[]) sessionFactory.getCurrentSession()
+        Object summary = sessionFactory.getCurrentSession()
             .createNativeQuery( sql ).getSingleResult();
-        return new DataIntegritySummary( check, new Date(), null, parseCount( summary[0] ),
-            parsePercentage( summary[1] ) );
+        return new DataIntegritySummary( check, new Date(), null, parseCount( summary ),
+            parsePercentage( summary ) );
     }
 
     @Override
@@ -73,17 +72,27 @@ public class HibernateDataIntegrityStore implements DataIntegrityStore
         @SuppressWarnings( "unchecked" )
         List<Object[]> rows = sessionFactory.getCurrentSession().createNativeQuery( sql ).list();
         return new DataIntegrityDetails( check, new Date(), null, rows.stream()
-            .map( row -> new DataIntegrityIssue( (String) row[0],
-                (String) row[1], row.length == 2 ? null : (String) row[2], null ) )
+            .map( row -> new DataIntegrityIssue( getIndex( row, 0 ), getIndex( row, 1 ), getIndex( row, 2 ), null ) )
             .collect( toUnmodifiableList() ) );
+    }
+
+    private static String getIndex( Object[] row, int index )
+    {
+        return row.length <= index ? null : (String) row[index];
     }
 
     private static Double parsePercentage( Object value )
     {
-        if ( value == null )
+        if ( !(value instanceof Object[]) )
         {
             return null;
         }
+        Object[] row = (Object[]) value;
+        if ( row.length < 2 || row[1] == null )
+        {
+            return null;
+        }
+        value = row[1];
         if ( value instanceof String )
         {
             return Double.parseDouble( value.toString().replace( "%", "" ) );
@@ -93,6 +102,11 @@ public class HibernateDataIntegrityStore implements DataIntegrityStore
 
     private static int parseCount( Object value )
     {
+        if ( value instanceof Object[] )
+        {
+            Object[] row = (Object[]) value;
+            return row.length == 0 ? -1 : parseCount( row[0] );
+        }
         if ( value == null )
         {
             return 0;
