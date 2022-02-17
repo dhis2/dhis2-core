@@ -27,47 +27,56 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.hisp.dhis.dataintegrity.DataIntegrityCheckType;
+import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.json.domain.JsonDataIntegrityDetails;
 import org.hisp.dhis.webapi.json.domain.JsonDataIntegritySummary;
-import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpStatus;
+import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 
 /**
- * Tests the {@link DataIntegrityController} API with focus API returning
- * {@link org.hisp.dhis.dataintegrity.DataIntegritySummary}.
+ * Base class for all test classes for the {@link DataIntegrityController}.
  *
  * @author Jan Bernitt
  */
-class DataIntegritySummaryControllerTest extends AbstractDataIntegrityControllerTest
+abstract class AbstractDataIntegrityControllerTest extends DhisControllerConvenienceTest
 {
-    @Test
-    void testLegacyChecksHaveSummary()
+    protected final JsonDataIntegrityDetails getDetails( String check )
     {
-        for ( DataIntegrityCheckType type : DataIntegrityCheckType.values() )
-        {
-            String check = type.getName();
-            postSummary( check );
-            JsonDataIntegritySummary summary = getSummary( check );
-            assertTrue( summary.getCount() >= 0, "summary threw an exception" );
-        }
+        JsonObject content = GET( "/dataIntegrity/details?checks={check}&timeout=1000", check ).content();
+        JsonDataIntegrityDetails details = content.get( check.replace( '-', '_' ), JsonDataIntegrityDetails.class );
+        assertTrue( details.exists(), "check " + check + " did not complete in time or threw an exception" );
+        assertTrue( details.isObject() );
+        return details;
     }
 
-    @Test
-    void testSingleCheckByPath()
+    /**
+     * Triggers the single check provided
+     *
+     * @param check name of the check to perform
+     */
+    protected final void postDetails( String check )
     {
-        assertStatus( HttpStatus.CREATED,
-            POST( "/categories", "{'name': 'CatDog', 'shortName': 'CD', 'dataDimensionType': 'ATTRIBUTE'}" ) );
+        HttpResponse trigger = POST( "/dataIntegrity/details?checks=" + check );
+        assertEquals( "http://localhost/dataIntegrity/details?checks=" + check, trigger.location() );
+        assertTrue( trigger.content().isA( JsonWebMessage.class ) );
+    }
 
-        postSummary( "categories-no-options" );
-        JsonDataIntegritySummary summary = GET( "/dataIntegrity/categories-no-options/summary" ).content()
-            .as( JsonDataIntegritySummary.class );
+    protected final JsonDataIntegritySummary getSummary( String check )
+    {
+        JsonObject content = GET( "/dataIntegrity/summary?checks={check}&timeout=1000", check ).content();
+        JsonDataIntegritySummary summary = content.get( check.replace( '-', '_' ), JsonDataIntegritySummary.class );
         assertTrue( summary.exists() );
         assertTrue( summary.isObject() );
-        assertEquals( 1, summary.getCount() );
-        assertEquals( 50, summary.getPercentage().intValue() );
+        return summary;
+    }
+
+    protected final void postSummary( String check )
+    {
+        HttpResponse trigger = POST( "/dataIntegrity/summary?checks=" + check );
+        assertEquals( "http://localhost/dataIntegrity/summary?checks=" + check, trigger.location() );
+        assertTrue( trigger.content().isA( JsonWebMessage.class ) );
     }
 }

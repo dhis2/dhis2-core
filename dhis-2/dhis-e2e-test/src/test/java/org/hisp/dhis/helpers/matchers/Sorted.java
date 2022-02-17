@@ -25,63 +25,55 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.json.domain;
 
-import java.time.LocalDateTime;
+package org.hisp.dhis.helpers.matchers;
 
-import org.hisp.dhis.jsontree.Expected;
-import org.hisp.dhis.jsontree.JsonDate;
-import org.hisp.dhis.jsontree.JsonList;
-import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.jsontree.JsonString;
+import com.google.common.collect.Ordering;
+import org.hamcrest.Description;
+import org.hamcrest.TypeSafeDiagnosingMatcher;
 
 /**
- * JSON API equivalent of the
- * {@link org.hisp.dhis.dataintegrity.DataIntegrityDetails}.
- *
- * @author Jan Bernitt
+ * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public interface JsonDataIntegrityDetails extends JsonDataIntegrityCheck
+public class Sorted
+    extends TypeSafeDiagnosingMatcher<Iterable>
 {
-    @Expected
-    default LocalDateTime getFinishedTime()
+    private final String orderType;
+
+    private final Ordering ordering;
+
+    public Sorted( Ordering ordering, String orderType )
     {
-        return get( "finishedTime", JsonDate.class ).date();
+        this.ordering = ordering;
+        this.orderType = orderType;
     }
 
-    default String getError()
+    public static TypeSafeDiagnosingMatcher by( String orderType )
     {
-        return getString( "error" ).string( null );
+        Ordering ordering = Ordering.natural().nullsLast();
+
+        if ( isInDescendingOrder( orderType ) )
+        {
+            ordering = ordering.reverse().nullsLast();
+        }
+
+        return new Sorted( ordering, orderType );
     }
 
-    @Expected
-    default JsonList<JsonDataIntegrityIssue> getIssues()
+    private static boolean isInDescendingOrder( String orderType )
     {
-        return getList( "issues", JsonDataIntegrityIssue.class );
+        return orderType.equalsIgnoreCase( "desc" ) || orderType.equalsIgnoreCase( "descending" );
     }
 
-    interface JsonDataIntegrityIssue extends JsonObject
+    @Override
+    protected boolean matchesSafely( Iterable items, Description mismatchDescription )
     {
-        @Expected
-        default String getId()
-        {
-            return getString( "id" ).string();
-        }
+        return ordering.isOrdered( items );
+    }
 
-        @Expected
-        default String getName()
-        {
-            return getString( "name" ).string();
-        }
-
-        default JsonString getComment()
-        {
-            return getString( "comment" );
-        }
-
-        default JsonList<JsonString> getRefs()
-        {
-            return getList( "refs", JsonString.class );
-        }
+    @Override
+    public void describeTo( Description description )
+    {
+        description.appendText( "an iterable in " ).appendText( orderType ).appendText( " order" );
     }
 }
