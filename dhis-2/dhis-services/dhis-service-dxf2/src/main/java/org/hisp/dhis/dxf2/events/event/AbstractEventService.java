@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dxf2.events.event;
 
+import static java.util.Collections.emptyMap;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static org.hisp.dhis.common.Pager.DEFAULT_PAGE_SIZE;
@@ -54,6 +55,7 @@ import static org.hisp.dhis.dxf2.events.event.EventSearchParams.PAGER_META_KEY;
 import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -296,25 +298,68 @@ public abstract class AbstractEventService implements EventService
         }
 
         Events events = new Events();
+        List<Event> eventList = new ArrayList<>();
 
         if ( params.isPaging() )
         {
-            int count = 0;
+            final Pager pager;
 
             if ( params.isTotalPages() )
             {
-                count = eventStore.getEventCount( params, organisationUnits );
+                eventList.addAll( eventStore.getEvents( params, organisationUnits, emptyMap() ) );
+
+                int count = eventStore.getEventCount( params, organisationUnits );
+                pager = new Pager( params.getPageWithDefault(), count, params.getPageSizeWithDefault() );
+            }
+            else
+            {
+                pager = handleLastPageFlag( params, eventList, organisationUnits );
             }
 
-            Pager pager = new Pager( params.getPageWithDefault(), count, params.getPageSizeWithDefault() );
             events.setPager( pager );
         }
-
-        List<Event> eventList = eventStore.getEvents( params, organisationUnits, Collections.emptyMap() );
 
         events.setEvents( eventList );
 
         return events;
+    }
+
+    /**
+     * This method will apply the logic related to the parameter
+     * 'totalPages=false'. This works in conjunction with the method:
+     * {@link EventStore#getEvents(EventSearchParams,List<OrganisationUnit>,Map<String,Set<String>>)}
+     *
+     * This is needed because we need to query (pageSize + 1) at DB level. The
+     * resulting query will allow us to evaluate if we are in the last page or
+     * not. And this is what his method does, returning the respective Pager
+     * object.
+     *
+     * @param params the request params
+     * @param eventList the reference to the list of Event
+     * @return the populated SlimPager instance
+     */
+    private Pager handleLastPageFlag( final EventSearchParams params,
+        final List<Event> eventList, final List<OrganisationUnit> organisationUnits )
+    {
+        final Integer originalPage = defaultIfNull( params.getPage(), FIRST_PAGE );
+        final Integer originalPageSize = defaultIfNull( params.getPageSize(), DEFAULT_PAGE_SIZE );
+        boolean isLastPage = false;
+
+        eventList.addAll( eventStore.getEvents( params, organisationUnits, emptyMap() ) );
+
+        if ( isNotEmpty( eventList ) )
+        {
+            isLastPage = eventList.size() <= originalPageSize;
+            if ( !isLastPage )
+            {
+                // Get the same number of elements of the pageSize, forcing
+                // the removal of the last additional element added at querying
+                // time.
+                eventList.retainAll( eventList.subList( 0, originalPageSize ) );
+            }
+        }
+
+        return new SlimPager( originalPage, originalPageSize, isLastPage );
     }
 
     @Transactional( readOnly = true )
