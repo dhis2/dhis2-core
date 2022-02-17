@@ -1,4 +1,4 @@
-# Copyright (c) 2021, University of Oslo
+# Copyright (c) 2022, University of Oslo
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -25,24 +25,20 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 ---
-name: categories_no_options
-description: Categories with no category options
+name: categories_one_default_category
+description: Only one "default" category should exist
 section: Categories
 summary_sql: >-
-    select
-    COUNT(*) as value,
-    (100 * COUNT(*) / (SELECT COUNT(*) FROM dataelementcategory)) as percent
-    from dataelementcategory where categoryid
-    not in (select distinct categoryid from categories_categoryoptions);
+  SELECT count(*) AS count FROM dataelementcategory
+  WHERE name = 'default' AND uid != 'GLevLNI9wkl';
 details_sql: >-
-    SELECT uid,name from dataelementcategory
-    where categoryid
-    not in (select distinct categoryid from categories_categoryoptions)
-    ORDER BY name;
-severity: WARNING
+  SELECT uid, name FROM dataelementcategory
+  WHERE name = 'default' AND uid != 'GLevLNI9wkl'
+  ORDER BY categoryid;
+severity: SEVERE
 introduction: >
-    Categories should always have at least a single category options.
+  There should only exist one category with name and code "default".
 recommendation: >
-    Any categories without category options should either be removed from the
-    system if they are not in use. Otherwise, appropriate category options
-    should be added to the category.
+  Only the category with UID "GLevLNI9wkl" should be named "default" and have code "default".
+  Either rename the conflicting category or move all references to category "GLevLNI9wkl"
+  and then remove the unused conflicting category.
