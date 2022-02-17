@@ -266,7 +266,7 @@ public class SystemSettingController
         return Optional.empty();
     }
 
-    @GetMapping( produces = { APPLICATION_JSON_VALUE, ContextUtils.CONTENT_TYPE_HTML } )
+    @GetMapping( produces = APPLICATION_JSON_VALUE )
     public ResponseEntity<Map<String, Serializable>> getSystemSettingsJson(
         @RequestParam( value = "key", required = false ) Set<String> keys )
     {
@@ -275,14 +275,14 @@ public class SystemSettingController
             .body( systemSettingManager.getSystemSettings( getSettingKeysToFetch( keys ) ) );
     }
 
-    @GetMapping( produces = "application/javascript" )
+    @GetMapping( produces = "application/javascript", params = "callback" )
     public void getSystemSettingsJsonP( @RequestParam( value = "key", required = false ) Set<String> keys,
         @RequestParam( defaultValue = "callback" ) String callback, HttpServletResponse response )
         throws IOException
     {
         Set<SettingKey> settingKeys = getSettingKeysToFetch( keys );
 
-        response.setContentType( APPLICATION_JSON_VALUE );
+        response.setContentType( "application/javascript" );
         response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
         renderService.toJsonP( response.getOutputStream(), systemSettingManager.getSystemSettings( settingKeys ),
             callback );
