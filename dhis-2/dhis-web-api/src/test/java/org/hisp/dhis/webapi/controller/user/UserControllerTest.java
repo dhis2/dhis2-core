@@ -129,7 +129,7 @@ class UserControllerTest
         parsedUser.setGroups( new HashSet<>( Arrays.asList( userGroup1, userGroup2 ) ) );
     }
 
-    // @Test//Fails12098
+    // @Test//Fails12577
     @SuppressWarnings( "unchecked" )
     public void updateUserGroups()
     {
@@ -172,7 +172,7 @@ class UserControllerTest
         verifyNoInteractions( userGroupService );
     }
 
-    // @Test//Fails12098
+    // @Test//Fails12577
     @SuppressWarnings( "unchecked" )
     public void updateUserGroupsSameUser()
     {
