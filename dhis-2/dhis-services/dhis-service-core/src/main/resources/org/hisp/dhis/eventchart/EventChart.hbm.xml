@@ -157,7 +157,7 @@
         <property name="hideSubtitle"/>
 
         <set name="interpretations" inverse="true">
-            <key column="eventvisualizationid"/>
+            <key column="eventchartid"/>
             <one-to-many class="org.hisp.dhis.interpretation.Interpretation"/>
         </set>
 

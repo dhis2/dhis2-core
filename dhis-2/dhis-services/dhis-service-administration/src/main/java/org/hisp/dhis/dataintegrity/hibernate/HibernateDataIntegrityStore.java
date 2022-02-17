@@ -60,8 +60,7 @@ public class HibernateDataIntegrityStore implements DataIntegrityStore
     public DataIntegritySummary querySummary( DataIntegrityCheck check, String sql )
     {
         Object summary = sessionFactory.getCurrentSession()
-            .createNativeQuery( sql )
-            .getSingleResult();
+            .createNativeQuery( sql ).getSingleResult();
         return new DataIntegritySummary( check, new Date(), null, parseCount( summary ),
             parsePercentage( summary ) );
     }
