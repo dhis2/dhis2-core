@@ -40,7 +40,7 @@ import org.mapstruct.Mapping;
     NoteMapper.class,
     DataValueMapper.class,
     InstantMapper.class } )
-public interface EventMapper extends DomainMapper<org.hisp.dhis.dxf2.events.event.Event, Event>
+interface EventMapper extends DomainMapper<org.hisp.dhis.dxf2.events.event.Event, Event>
 {
     @Mapping( target = "relationships", ignore = true )
     @Mapping( target = "occurredAt", source = "eventDate" )

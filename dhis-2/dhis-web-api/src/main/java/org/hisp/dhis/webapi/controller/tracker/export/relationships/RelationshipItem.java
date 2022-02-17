@@ -45,7 +45,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class RelationshipItem
+class RelationshipItem
 {
     @JsonProperty
     private TrackedEntity trackedEntity;

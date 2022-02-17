@@ -41,7 +41,7 @@ import org.mapstruct.Mapping;
     NoteMapper.class,
     EventMapper.class,
     InstantMapper.class } )
-public interface EnrollmentMapper extends DomainMapper<org.hisp.dhis.dxf2.events.enrollment.Enrollment, Enrollment>
+interface EnrollmentMapper extends DomainMapper<org.hisp.dhis.dxf2.events.enrollment.Enrollment, Enrollment>
 {
     @Mapping( target = "relationships", ignore = true )
     @Mapping( target = "enrollment", source = "enrollment" )

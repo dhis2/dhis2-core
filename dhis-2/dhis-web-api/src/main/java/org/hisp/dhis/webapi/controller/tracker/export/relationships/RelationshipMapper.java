@@ -35,7 +35,7 @@ import org.mapstruct.Mapping;
 @Mapper( uses = {
     RelationshipItemMapper.class,
     InstantMapper.class } )
-public interface RelationshipMapper
+interface RelationshipMapper
     extends DomainMapper<org.hisp.dhis.dxf2.events.trackedentity.Relationship, Relationship>
 {
     @Mapping( target = "createdAt", source = "created" )

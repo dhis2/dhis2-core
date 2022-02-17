@@ -42,7 +42,7 @@ import org.mapstruct.Mapping;
     EnrollmentMapper.class,
     ProgramOwnerMapper.class,
     InstantMapper.class } )
-public interface TrackedEntityMapper extends DomainMapper<TrackedEntityInstance, TrackedEntity>
+interface TrackedEntityMapper extends DomainMapper<TrackedEntityInstance, TrackedEntity>
 {
     @Mapping( target = "relationships", ignore = true )
     @Mapping( target = "trackedEntity", source = "trackedEntityInstance" )

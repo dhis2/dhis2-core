@@ -46,7 +46,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Relationship implements TrackerDto
+class Relationship implements TrackerDto
 {
     @JsonProperty
     private String relationship;

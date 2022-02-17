@@ -36,7 +36,7 @@ import org.mapstruct.Mapping;
     EnrollmentMapper.class,
     EventMapper.class,
 } )
-public interface RelationshipItemMapper
+interface RelationshipItemMapper
     extends DomainMapper<org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem, RelationshipItem>
 {
     @Mapping( target = "trackedEntity", source = "trackedEntityInstance" )
