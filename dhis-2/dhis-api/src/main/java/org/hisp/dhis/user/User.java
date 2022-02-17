@@ -265,24 +265,12 @@ public class User
         this.twoFA = false;
         this.lastLogin = null;
         this.passwordLastUpdated = new Date();
-        // this.setAutoFields(); // Needed to support user credentials
-        // uniqueness
         if ( uuid == null )
         {
             uuid = UUID.randomUUID();
         }
         this.setSecret();
     }
-
-    // public void setAutoFields()
-    // {
-    // if ( uuid == null )
-    // {
-    // uuid = UUID.randomUUID();
-    // }
-    //
-    //// super.setAutoFields();
-    // }
 
     /**
      * Returns a concatenated String of the display names of all user authority
@@ -1347,18 +1335,6 @@ public class User
                 user.setPassword( this.getPassword() );
             } // add inverse
 
-            // copyProperties( user, this, "userCredentials", "uuid",
-            // "id","uid","access", "sharing",
-            // "created", "lastUpdated","lastUpdatedBy", "code",
-            // "userInfo","publicAccess","name","secret","password",
-            // "firstName", "lastName", "surname", "email", "phoneNumber",
-            // "introduction","passwordLastUpdated",
-            // "gender","birthday","nationality","employer","education","interests","languages",
-            // "welcomeMessage","lastCheckedInterpretations","groups","whatsApp","facebookMessenger",
-            // "skype","telegram","twitter","avatar","organisationUnits","dataViewOrganisationUnits",
-            // "teiSearchOrganisationUnits","dataViewMaxOrganisationUnitLevel","apps",
-            // "user" );
-            // "password",
             copyProperties( user, this, "userCredentials", "uuid", "id", "uid", "access", "sharing",
                 "created", "lastUpdated", "lastUpdatedBy", "code", "userInfo", "publicAccess", "name", "secret",
                 "firstName", "lastName", "surname", "email", "phoneNumber", "introduction", "passwordLastUpdated",
@@ -1368,8 +1344,6 @@ public class User
                 "dataViewMaxOrganisationUnitLevel", "apps",
                 "user" );
         }
-        log.info( "UserCredentials set" );
-
     }
 
     @JsonProperty( "userGroups" )

@@ -93,7 +93,7 @@ class UserSupplierTest
         {
             assertThat( preheat.get( User.class, userUid ), is( notNullValue() ) );
         }
-        // Make sure also User Credentials object are cached in the pre-heat
+        // Make sure also User object are cached in the pre-heat
         assertThat( preheat.getAll( User.class ), hasSize( 5 ) );
     }
 }

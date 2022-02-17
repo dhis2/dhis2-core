@@ -61,7 +61,6 @@ public class CurrentUserInfoHandlerMethodArgumentResolver implements HandlerMeth
         NativeWebRequest webRequest, WebDataBinderFactory binderFactory )
         throws Exception
     {
-        // Fails12098? remove?
         return currentUserService.getCurrentUser();
     }
 }

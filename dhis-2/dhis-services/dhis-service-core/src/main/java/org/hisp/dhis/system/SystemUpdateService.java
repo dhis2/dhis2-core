@@ -245,11 +245,11 @@ public class SystemUpdateService
     {
         Set<User> recipients = new HashSet<>();
 
-        List<User> user = userStore.getHasAuthority( "ALL" );
+        List<User> users = userStore.getHasAuthority( "ALL" );
 
-        for ( User credentials : user )
+        for ( User user : users )
         {
-            recipients.add( userService.getUserByUsername( credentials.getUsername() ) );
+            recipients.add( userService.getUserByUsername( user.getUsername() ) );
         }
 
         return recipients;

@@ -2610,19 +2610,19 @@ public abstract class DhisConvenienceTest
 
     protected final <T> User addUser( char uniqueCharacter, BiConsumer<User, T> setter, T value )
     {
-        return addUser( uniqueCharacter, credentials -> setter.accept( credentials, value ) );
+        return addUser( uniqueCharacter, user -> setter.accept( user, value ) );
     }
 
     protected final User addUser( char uniqueCharacter, OrganisationUnit... units )
     {
         return addUser( uniqueCharacter,
-            credentials -> credentials.getOrganisationUnits().addAll( asList( units ) ) );
+            user -> user.getOrganisationUnits().addAll( asList( units ) ) );
     }
 
     protected final User addUser( char uniqueCharacter, UserAuthorityGroup... roles )
     {
         return addUser( uniqueCharacter,
-            credentials -> credentials.getUserAuthorityGroups().addAll( asList( roles ) ) );
+            user -> user.getUserAuthorityGroups().addAll( asList( roles ) ) );
     }
 
     protected final User addUser( char uniqueCharacter, Consumer<User> consumer )

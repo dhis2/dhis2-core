@@ -107,11 +107,11 @@ public class DefaultUserSettingService
     @Transactional
     public void saveUserSetting( UserSettingKey key, Serializable value, String username )
     {
-        User credentials = userService.getUserByUsername( username );
+        User user = userService.getUserByUsername( username );
 
-        if ( credentials != null )
+        if ( user != null )
         {
-            saveUserSetting( key, value, credentials );
+            saveUserSetting( key, value, user );
         }
     }
 

@@ -38,11 +38,11 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 public class SecurityUtils
 {
-    public static Collection<GrantedAuthority> getGrantedAuthorities( User credentials )
+    public static Collection<GrantedAuthority> getGrantedAuthorities( User user )
     {
         Set<GrantedAuthority> authorities = new HashSet<>();
 
-        for ( UserAuthorityGroup group : credentials.getUserAuthorityGroups() )
+        for ( UserAuthorityGroup group : user.getUserAuthorityGroups() )
         {
             for ( String authority : group.getAuthorities() )
             {

@@ -87,7 +87,6 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider
 
         // Initialize all required properties of user credentials since these
         // will become detached
-
         user.getAllAuthorities();
 
         // -------------------------------------------------------------------------
@@ -141,8 +140,8 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider
         Authentication result = super.authenticate( auth );
 
         // Put detached state of the user credentials into the session as user
-        // credentials must not be updated during session execution
-        // Fails12098? Do we need this?
+        // must not be updated during session execution
+        // TODO: 12577, Do we need this?
         user = SerializationUtils.clone( user );
 
         // Initialize cached authorities

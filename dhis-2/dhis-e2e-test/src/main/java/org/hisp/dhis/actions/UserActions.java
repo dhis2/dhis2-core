@@ -85,7 +85,6 @@ public class UserActions
         JsonObject userRole = new JsonObject();
         userRole.addProperty( "id", userRoleId );
 
-//        object.get( "userCredentials" ).getAsJsonObject().get( "userRoles" ).getAsJsonArray().add( userRole );
         object.get( "userRoles" ).getAsJsonArray().add( userRole );
 
         this.update( userId, object ).validate().statusCode( 200 );

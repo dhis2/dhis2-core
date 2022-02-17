@@ -127,14 +127,14 @@ public class AccountController
 
         handleRecoveryLock( username );
 
-        User credentials = userService.getUserByUsername( username );
+        User user = userService.getUserByUsername( username );
 
-        if ( credentials == null )
+        if ( user == null )
         {
             return conflict( "User does not exist: " + username );
         }
 
-        String validRestore = securityService.validateRestore( credentials );
+        String validRestore = securityService.validateRestore( user );
 
         if ( validRestore != null )
         {
@@ -142,7 +142,7 @@ public class AccountController
         }
 
         if ( !securityService
-            .sendRestoreOrInviteMessage( credentials, ContextUtils.getContextPath( request ),
+            .sendRestoreOrInviteMessage( user, ContextUtils.getContextPath( request ),
                 RestoreOptions.RECOVER_PASSWORD_OPTION ) )
         {
             return conflict( "Account could not be recovered" );
@@ -447,14 +447,13 @@ public class AccountController
     public ResponseEntity<Map<String, String>> updatePassword(
         @RequestParam String oldPassword,
         @RequestParam String password,
-        @CurrentUser User currentUser,
+        @CurrentUser User user,
         HttpServletRequest request )
     {
-        String username = currentUser.getUsername();
-        User user = currentUser;
-
         Map<String, String> result = new HashMap<>();
-        if ( user == null )
+
+        String username = user.getUsername();
+        if ( username == null )
         {
             result.put( "status", "NON_EXPIRED" );
             result.put( "message", "Username is not valid, redirecting to login." );

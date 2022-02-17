@@ -228,7 +228,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
                 object.setCreatedBy( user );
             }
         }
-
+        // Fails MetaDataImportTest.shouldUpdateExistingMetaData()
         if ( !isUpdateAllowed( object, user ) )
         {
             AuditLogUtil.infoWrapper( log, username, object, AuditLogUtil.ACTION_UPDATE_DENIED );

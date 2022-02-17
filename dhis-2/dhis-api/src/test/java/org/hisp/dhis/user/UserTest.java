@@ -110,11 +110,6 @@ class UserTest
         assertThat( authorities1, Matchers.containsInAnyOrder( "x1", "x2", "z1", UserAuthorityGroup.AUTHORITY_ALL ) );
         Set<String> authorities2 = user.getAllAuthorities();
         assertEquals( authorities1, authorities2 );
-
-        // This actually tests the caching of the result and won't work after
-        // User refactor
-        // Fails12098?
-        // assertSame( authorities1, authorities2 );
     }
 
     @Test

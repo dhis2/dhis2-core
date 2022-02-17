@@ -73,7 +73,7 @@ public class SecurityUtils
     /**
      * Verifies that the secret for the given user matches the given code.
      *
-     * @param user the users credentials.
+     * @param user the users.
      * @param code the code.
      * @return true if the user secret matches the given code, false if not.
      */

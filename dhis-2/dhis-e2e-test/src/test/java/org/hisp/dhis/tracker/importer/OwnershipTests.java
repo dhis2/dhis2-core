@@ -111,7 +111,7 @@ public class OwnershipTests
         loginActions.loginAsAdmin();
     }
 
-    @Test//Fails12098E2E
+    @Test
     public void shouldNotValidateCaptureScopeForTei()
     {
         JsonObject object = trackerActions.getTrackedEntity( teiInSearchScope )
@@ -142,7 +142,7 @@ public class OwnershipTests
             .body( "errorCode", hasItems( "E1102" ) );
     }
 
-    @Test//Fails12098E2E
+    @Test
     public void shouldNotEnrollWhenOwnershipOutsideCaptureOu()
     {
         loginActions.loginAsUser( username, userPassword );
@@ -169,7 +169,7 @@ public class OwnershipTests
         return username;
     }
 
-    @Test//Fails12098E2E
+    @Test
     public void shouldNotValidateOwnershipIfProgramIsOpen()
     {
         loginActions.loginAsUser( username, userPassword );
@@ -178,7 +178,8 @@ public class OwnershipTests
             .body( "enrollments", hasSize( 0 ) );
 
         trackerActions
-            .postAndGetJobReport( new EnrollmentDataBuilder().array( openProgram, captureOu, teiInCaptureScope, "ACTIVE" ) )
+            .postAndGetJobReport(
+                new EnrollmentDataBuilder().array( openProgram, captureOu, teiInCaptureScope, "ACTIVE" ) )
             .validateSuccessfulImport();
 
     }

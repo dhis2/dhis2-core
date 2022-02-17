@@ -139,7 +139,7 @@ class JwtBearerTokenTest extends DhisControllerWithJwtTokenAuthTest
         jwtDecoder.decode( tokenValue );
     }
 
-    @Test // Fails12098
+    @Test
     @Ignore
     void testSuccessfulRequest()
     {
@@ -158,7 +158,7 @@ class JwtBearerTokenTest extends DhisControllerWithJwtTokenAuthTest
             GET( "/me", JwtTokenHeader( "NOT_A_JWT_TOKEN" ) ) );
     }
 
-    @Test // Fails12098
+    @Test
     @Ignore
     void testExpiredToken()
     {

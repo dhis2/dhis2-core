@@ -108,16 +108,6 @@ public class DefaultSchemaValidator implements SchemaValidator
             }
         }
 
-        // Fails12098????
-        // if ( object instanceof User )
-        // {
-        // User user = (User) object;
-        //
-        //// if ( user.getUser() != null )
-        //// {
-        //// errors.addAll( validate( user, persisted ) );
-        //// }
-        // }
         return errors;
     }
 

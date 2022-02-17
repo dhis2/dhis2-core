@@ -79,23 +79,23 @@ public class DefaultUserDetailsService
         throws UsernameNotFoundException,
         DataAccessException
     {
-        User credentials = userService.getUserByUsername( username );
+        User user = userService.getUserByUsername( username );
 
-        boolean enabled = !credentials.isDisabled();
-        boolean credentialsNonExpired = userService.userNonExpired( credentials );
-        boolean accountNonLocked = !securityService.isLocked( credentials.getUsername() );
-        boolean accountNonExpired = !userService.isAccountExpired( credentials );
+        boolean enabled = !user.isDisabled();
+        boolean credentialsNonExpired = userService.userNonExpired( user );
+        boolean accountNonLocked = !securityService.isLocked( user.getUsername() );
+        boolean accountNonExpired = !userService.isAccountExpired( user );
 
         if ( ObjectUtils.anyIsFalse( enabled, credentialsNonExpired, accountNonLocked, accountNonExpired ) )
         {
             log.debug( String.format(
-                "Login attempt for disabled/locked user: '%s', enabled: %b, account non-expired: %b, credentials non-expired: %b, account non-locked: %b",
+                "Login attempt for disabled/locked user: '%s', enabled: %b, account non-expired: %b, user non-expired: %b, account non-locked: %b",
                 username, enabled, accountNonExpired, credentialsNonExpired, accountNonLocked ) );
         }
 
-        return new org.springframework.security.core.userdetails.User( credentials.getUsername(),
-            credentials.getPassword(),
+        return new org.springframework.security.core.userdetails.User( user.getUsername(),
+            user.getPassword(),
             enabled, accountNonExpired, credentialsNonExpired, accountNonLocked,
-            SecurityUtils.getGrantedAuthorities( credentials ) );
+            SecurityUtils.getGrantedAuthorities( user ) );
     }
 }

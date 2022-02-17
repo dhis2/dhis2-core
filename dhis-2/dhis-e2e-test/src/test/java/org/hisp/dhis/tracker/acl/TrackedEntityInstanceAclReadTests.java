@@ -86,7 +86,6 @@ public class TrackedEntityInstanceAclReadTests
         // Setup as SuperUser
         new LoginActions().loginAsDefaultUser();
 
-        //Q12098 (why two times?)
         // Set up metadata (Import twice to connect all references)
         metadataActions.importAndValidateMetadata( new File( "src/test/resources/tracker/acl/metadata.json" ) );
         metadataActions.importAndValidateMetadata( new File( "src/test/resources/tracker/acl/metadata.json" ) );

@@ -73,21 +73,7 @@ public class UniquenessCheck implements ObjectValidationCheck
         {
             List<ErrorReport> errorReports;
 
-            // if ( object instanceof User )
-            // {
-            // User user = (User) object;
-            // errorReports = checkUniqueness( user, bundle.getPreheat(),
-            // bundle.getPreheatIdentifier(), ctx );
-            //// UserCredentials userCredentials = user.getUserCredentials();
-            //// errorReports = joinObjects(
-            //// ,
-            //// checkUniqueness( userCredentials, bundle.getPreheat(),
-            // bundle.getPreheatIdentifier(), ctx ) );
-            // }
-            // else
-            // {
             errorReports = checkUniqueness( object, bundle.getPreheat(), bundle.getPreheatIdentifier(), ctx );
-            // }
 
             if ( !errorReports.isEmpty() )
             {

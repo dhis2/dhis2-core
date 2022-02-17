@@ -250,25 +250,6 @@ public class DefaultPreheatService implements PreheatService
             }
         }
 
-        // Fails12098?
-        // if ( uniqueCollectionMap.containsKey( User.class ) )
-        // {
-        // List<IdentifiableObject> userCredentials = new ArrayList<>();
-        //
-        // for ( IdentifiableObject identifiableObject :
-        // uniqueCollectionMap.get( User.class ) )
-        // {
-        // User user = (User) identifiableObject;
-        //
-        // if ( user.getUserCredentials() != null )
-        // {
-        // userCredentials.add( user.getUserCredentials() );
-        // }
-        // }
-        //
-        // uniqueCollectionMap.put( UserCredentials.class, userCredentials );
-        // }
-
         // assign an uid to objects without an UID, if they don't have UID but
         // an existing object exists then reuse the UID
         for ( Class<? extends IdentifiableObject> klass : params.getObjects().keySet() )
@@ -911,10 +892,8 @@ public class DefaultPreheatService implements PreheatService
 
                     if ( ref.getId() == 0 )
                     {
-                        log.error( "Reference object with id 0 found for " + object.getClass().getSimpleName()
+                        log.warn( "Reference object with id 0 found for " + object.getClass().getSimpleName()
                             + "  ref:" + ref );
-                        // throw new RuntimeException( "Not right" );
-                        // Q12098?
                     }
                     else
                     {

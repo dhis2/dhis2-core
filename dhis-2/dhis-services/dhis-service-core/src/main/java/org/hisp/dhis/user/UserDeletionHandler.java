@@ -65,10 +65,10 @@ public class UserDeletionHandler
 
     private void deleteUserAuthorityGroup( UserAuthorityGroup authorityGroup )
     {
-        for ( User credentials : authorityGroup.getMembers() )
+        for ( User user : authorityGroup.getMembers() )
         {
-            credentials.getUserAuthorityGroups().remove( authorityGroup );
-            idObjectManager.updateNoAcl( credentials );
+            user.getUserAuthorityGroups().remove( authorityGroup );
+            idObjectManager.updateNoAcl( user );
         }
     }
 

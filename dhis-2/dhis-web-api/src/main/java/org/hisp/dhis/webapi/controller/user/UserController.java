@@ -611,7 +611,7 @@ public class UserController
             currentUser.getAllAuthorities();
         }
 
-        parsedUserObject.setId( users.get( 0 ).getId() ); // Fails12098??
+        parsedUserObject.setId( users.get( 0 ).getId() );
         parsedUserObject.setUid( userUid );
         mergeLastLoginAttribute( users.get( 0 ), parsedUserObject );
 
@@ -663,7 +663,6 @@ public class UserController
             currentUser = currentUserService.getCurrentUser();
         }
 
-        // Fails12098??
         List<String> uids = getUids( parsed.getGroups() );
         userGroupService.updateUserGroups( parsed, uids, currentUser );
         log.info( "Updated user groups for user: " + user.getUid() );
@@ -689,15 +688,13 @@ public class UserController
     }
 
     @Override
-    protected void postPatchEntity( User entity )
+    protected void postPatchEntity( User user )
     {
-        User credentials = entity;
-
         // Make sure we always expire all of the user's active sessions if we
         // have disabled the user.
-        if ( credentials != null && credentials.isDisabled() )
+        if ( user != null && user.isDisabled() )
         {
-            userService.expireActiveSessions( credentials );
+            userService.expireActiveSessions( user );
         }
     }
 
@@ -789,12 +786,12 @@ public class UserController
     private void validateInviteUser( User user, User currentUser )
         throws WebMessageException
     {
-        validateCreateUser( user, currentUser );
-
         if ( user == null )
         {
-            throw new WebMessageException( conflict( "User credentials is not present" ) );
+            throw new WebMessageException( conflict( "User is not present" ) );
         }
+
+        validateCreateUser( user, currentUser );
 
         String validateMessage = securityService.validateInvite( user );
 

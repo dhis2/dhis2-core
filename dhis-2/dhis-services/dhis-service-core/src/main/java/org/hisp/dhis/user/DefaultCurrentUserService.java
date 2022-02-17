@@ -118,9 +118,9 @@ public class DefaultCurrentUserService
     @Override
     public Long getUserId( String username )
     {
-        User credentials = userStore.getUserByUsername( username );
+        User user = userStore.getUserByUsername( username );
 
-        return credentials != null ? credentials.getId() : null;
+        return user != null ? user.getId() : null;
     }
 
     @Override

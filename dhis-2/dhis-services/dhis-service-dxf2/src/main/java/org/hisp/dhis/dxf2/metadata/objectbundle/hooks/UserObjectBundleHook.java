@@ -163,8 +163,6 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
         if ( !bundle.hasExtras( persistedUser, "uc" ) )
             return;
 
-        // final UserCredentials userCredentials = (UserCredentials)
-        // bundle.getExtras( user, "uc" );
         final User preUpdateUser = (User) bundle.getExtras( persistedUser, "uc" );
 
         final User persistedUserCredentials = bundle.getPreheat().get( bundle.getPreheatIdentifier(),
@@ -174,7 +172,6 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
         if ( !StringUtils.isEmpty( preUpdateUser.getPassword() ) )
         {
             userService.encodeAndSetPassword( persistedUserCredentials, preUpdateUser.getPassword() );
-            // sessionFactory.getCurrentSession().update( persistedUser );
             hasUpdated = true;
         }
 
@@ -191,6 +188,7 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
         {
             sessionFactory.getCurrentSession().update( persistedUser );
         }
+
         bundle.removeExtras( persistedUser, "uc" );
     }
 
@@ -233,11 +231,19 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
                 user.setUserAuthorityGroups( new HashSet<>() );
             }
 
-            user.setOrganisationUnits( (Set<OrganisationUnit>) userReferenceMap.get( "organisationUnits" ) );
-            user.setDataViewOrganisationUnits(
-                (Set<OrganisationUnit>) userReferenceMap.get( "dataViewOrganisationUnits" ) );
-            user
-                .setCreatedBy( (User) userReferenceMap.get( BaseIdentifiableObject_.CREATED_BY ) );
+            Set<OrganisationUnit> organisationUnits = (Set<OrganisationUnit>) userReferenceMap
+                .get( "organisationUnits" );
+            user.setOrganisationUnits( organisationUnits );
+
+            Set<OrganisationUnit> dataViewOrganisationUnits = (Set<OrganisationUnit>) userReferenceMap
+                .get( "dataViewOrganisationUnits" );
+            user.setDataViewOrganisationUnits( dataViewOrganisationUnits );
+
+            Set<OrganisationUnit> teiSearchOrganisationUnits = (Set<OrganisationUnit>) userReferenceMap
+                .get( "teiSearchOrganisationUnits" );
+            user.setTeiSearchOrganisationUnits( teiSearchOrganisationUnits );
+
+            user.setCreatedBy( (User) userReferenceMap.get( BaseIdentifiableObject_.CREATED_BY ) );
 
             if ( user.getCreatedBy() == null )
             {
@@ -288,33 +294,5 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
                     }
                 } );
         }
-
-        // Q12098
-        // Set<String> preHeatedRoles = bundle.getPreheat().get(
-        // PreheatIdentifier.UID, user )
-        // .getUserAuthorityGroups().stream().map(
-        // BaseIdentifiableObject::getUid )
-        // .collect( Collectors.toSet() );
-        //
-        // user.getUserAuthorityGroups().stream()
-        // .filter( role -> !preHeatedRoles.contains( role.getUid() ) )
-        // .forEach( role -> {
-        // UserAuthorityGroup persistedRole = bundle.getPreheat().get(
-        // PreheatIdentifier.UID, role );
-        //
-        // if ( persistedRole == null )
-        // {
-        // persistedRole = manager.getNoAcl( UserAuthorityGroup.class,
-        // role.getUid() );
-        // }
-        //
-        // if ( !aclService.canRead( bundle.getUser(), persistedRole ) )
-        // {
-        // bundle.getPreheat().get( PreheatIdentifier.UID, user
-        // ).getUserAuthorityGroups()
-        // .add( persistedRole );
-        // bundle.getPreheat().put( PreheatIdentifier.UID, persistedRole );
-        // }
-        // } );
     }
 }

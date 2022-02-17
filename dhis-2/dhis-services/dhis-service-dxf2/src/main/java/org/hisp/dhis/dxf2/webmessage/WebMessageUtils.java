@@ -30,6 +30,8 @@ package org.hisp.dhis.dxf2.webmessage;
 import java.util.List;
 import java.util.function.Supplier;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -50,6 +52,7 @@ import org.springframework.http.HttpStatus;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Slf4j
 public final class WebMessageUtils
 {
     public static WebMessage createWebMessage( String message, Status status, HttpStatus httpStatus )
@@ -212,6 +215,10 @@ public final class WebMessageUtils
     {
         if ( importReport.getStatus() != Status.OK )
         {
+            importReport.forEachErrorReport( errorReport -> {
+                String message = errorReport.getMessage();
+                log.error( message );
+            } );
             return new WebMessage( Status.WARNING, HttpStatus.CONFLICT )
                 .setMessage( "One more more errors occurred, please see full details in import report." )
                 .setResponse( new ImportReportWebMessageResponse( importReport ) );

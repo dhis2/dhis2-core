@@ -73,7 +73,6 @@ public class UserAuthorityGroup
 
     public UserAuthorityGroup()
     {
-        // Fails12098?
         setAutoFields();
     }
 
