@@ -266,7 +266,6 @@ public class TrackedEntityCriteriaMapper
 
         QueryItem queryItem = new QueryItem( attribute, null, attribute.getValueType(), attribute.getAggregationType(),
             attribute.getOptionSet(), attribute.isUnique() );
-        ;
 
         if ( split.length > 1 ) // Filters specified
         {
