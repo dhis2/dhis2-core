@@ -27,10 +27,9 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.relationships;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
@@ -41,10 +40,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Data
+@Getter
 @Builder
-@NoArgsConstructor
-@AllArgsConstructor
+@EqualsAndHashCode
 class RelationshipItem
 {
     @JsonProperty
