@@ -109,8 +109,134 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
         JsonObject jsonRelationship = relationship.getArray( "instances" ).get( 0 ).as( JsonObject.class );
         assertEquals( r.getUid(), jsonRelationship.getString( "relationship" ).string() );
         assertEquals( r.getRelationshipType().getUid(), jsonRelationship.getString( "relationshipType" ).string() );
-        assertEquals( programStageInstance.getUid(),
-            jsonRelationship.getObject( "from" ).getString( "event" ).string() );
-        assertEquals( tei.getUid(), jsonRelationship.getObject( "to" ).getString( "trackedEntity" ).string() );
+
+        JsonObject jsonEvent = jsonRelationship.getObject( "from" ).getObject( "event" );
+        assertEquals( programStageInstance.getUid(), jsonEvent.getString( "event" ).string() );
+        assertEquals( programStageInstance.getStatus().toString(), jsonEvent.getString( "status" ).string() );
+        assertEquals( programStageInstance.getProgramStage().getUid(), jsonEvent.getString( "programStage" ).string() );
+        assertEquals( programInstance.getUid(), jsonEvent.getString( "enrollment" ).string() );
+        assertTrue( jsonEvent.getArray( "relationships" ).isEmpty() );
+
+        JsonObject jsonTEI = jsonRelationship.getObject( "to" ).getObject( "trackedEntity" );
+        assertEquals( tei.getUid(), jsonTEI.getString( "trackedEntity" ).string() );
+        assertEquals( trackedEntityType.getUid(), jsonTEI.getString( "trackedEntityType" ).string() );
+        assertEquals( orgUnit.getUid(), jsonTEI.getString( "orgUnit" ).string() );
+        assertTrue( jsonTEI.getArray( "relationships" ).isEmpty() );
+    }
+
+    @Test
+    void testGetRelationshipByEnrollment()
+    {
+        OrganisationUnit orgUnit = createOrganisationUnit( 'A' );
+        manager.save( orgUnit );
+        Program program = createProgram( 'A' );
+        manager.save( program );
+        TrackedEntityType trackedEntityType = createTrackedEntityType( 'A' );
+        manager.save( trackedEntityType );
+        TrackedEntityInstance tei = createTrackedEntityInstance( orgUnit );
+        tei.setTrackedEntityType( trackedEntityType );
+        manager.save( tei );
+        RelationshipType rType = createRelationshipType( 'A' );
+        rType.getFromConstraint().setRelationshipEntity( RelationshipEntity.PROGRAM_INSTANCE );
+        rType.getToConstraint().setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
+        manager.save( rType );
+
+        ProgramInstance programInstance = new ProgramInstance( program, tei, orgUnit );
+        programInstance.setAutoFields();
+        programInstance.setEnrollmentDate( new Date() );
+        programInstance.setIncidentDate( new Date() );
+        programInstance.setStatus( ProgramStatus.COMPLETED );
+        manager.save( programInstance );
+
+        Relationship r = new Relationship();
+        RelationshipItem rItem1 = new RelationshipItem();
+        rItem1.setProgramInstance( programInstance );
+        RelationshipItem rItem2 = new RelationshipItem();
+        rItem2.setTrackedEntityInstance( tei );
+        r.setFrom( rItem1 );
+        r.setTo( rItem2 );
+        r.setRelationshipType( rType );
+        r.setKey( RelationshipUtils.generateRelationshipKey( r ) );
+        r.setInvertedKey( RelationshipUtils.generateRelationshipInvertedKey( r ) );
+        manager.save( r );
+
+        JsonObject relationship = GET( "/tracker/relationships?enrollment=" + programInstance.getUid() )
+            .content( HttpStatus.OK );
+
+        assertTrue( relationship.isObject() );
+        assertFalse( relationship.isEmpty() );
+        JsonObject jsonRelationship = relationship.getArray( "instances" ).get( 0 ).as( JsonObject.class );
+        assertEquals( r.getUid(), jsonRelationship.getString( "relationship" ).string() );
+        assertEquals( r.getRelationshipType().getUid(), jsonRelationship.getString( "relationshipType" ).string() );
+
+        JsonObject jsonEnrollment = jsonRelationship.getObject( "from" ).getObject( "enrollment" );
+        assertEquals( programInstance.getUid(), jsonEnrollment.getString( "enrollment" ).string() );
+        assertEquals( tei.getUid(), jsonEnrollment.getString( "trackedEntity" ).string() );
+        assertEquals( program.getUid(), jsonEnrollment.getString( "program" ).string() );
+        assertEquals( orgUnit.getUid(), jsonEnrollment.getString( "orgUnit" ).string() );
+        assertTrue( jsonEnrollment.getArray( "events" ).isEmpty() );
+        assertTrue( jsonEnrollment.getArray( "relationships" ).isEmpty() );
+
+        JsonObject jsonTEI = jsonRelationship.getObject( "to" ).getObject( "trackedEntity" );
+        assertEquals( tei.getUid(), jsonTEI.getString( "trackedEntity" ).string() );
+        assertEquals( trackedEntityType.getUid(), jsonTEI.getString( "trackedEntityType" ).string() );
+    }
+
+    @Test
+    void testGetRelationshipByTrackedEntity()
+    {
+        OrganisationUnit orgUnit = createOrganisationUnit( 'A' );
+        manager.save( orgUnit );
+        Program program = createProgram( 'A' );
+        manager.save( program );
+        TrackedEntityType trackedEntityType = createTrackedEntityType( 'A' );
+        manager.save( trackedEntityType );
+        TrackedEntityInstance tei = createTrackedEntityInstance( orgUnit );
+        tei.setTrackedEntityType( trackedEntityType );
+        manager.save( tei );
+        RelationshipType rType = createRelationshipType( 'A' );
+        rType.getFromConstraint().setRelationshipEntity( RelationshipEntity.PROGRAM_INSTANCE );
+        rType.getToConstraint().setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
+        manager.save( rType );
+
+        ProgramInstance programInstance = new ProgramInstance( program, tei, orgUnit );
+        programInstance.setAutoFields();
+        programInstance.setEnrollmentDate( new Date() );
+        programInstance.setIncidentDate( new Date() );
+        programInstance.setStatus( ProgramStatus.COMPLETED );
+        manager.save( programInstance );
+
+        Relationship r = new Relationship();
+        RelationshipItem rItem1 = new RelationshipItem();
+        rItem1.setProgramInstance( programInstance );
+        RelationshipItem rItem2 = new RelationshipItem();
+        rItem2.setTrackedEntityInstance( tei );
+        r.setFrom( rItem1 );
+        r.setTo( rItem2 );
+        r.setRelationshipType( rType );
+        r.setKey( RelationshipUtils.generateRelationshipKey( r ) );
+        r.setInvertedKey( RelationshipUtils.generateRelationshipInvertedKey( r ) );
+        manager.save( r );
+
+        JsonObject relationship = GET( "/tracker/relationships?tei=" + tei.getUid() )
+            .content( HttpStatus.OK );
+
+        assertTrue( relationship.isObject() );
+        assertFalse( relationship.isEmpty() );
+        JsonObject jsonRelationship = relationship.getArray( "instances" ).get( 0 ).as( JsonObject.class );
+        assertEquals( r.getUid(), jsonRelationship.getString( "relationship" ).string() );
+        assertEquals( r.getRelationshipType().getUid(), jsonRelationship.getString( "relationshipType" ).string() );
+
+        JsonObject jsonEnrollment = jsonRelationship.getObject( "from" ).getObject( "enrollment" );
+        assertEquals( programInstance.getUid(), jsonEnrollment.getString( "enrollment" ).string() );
+        assertEquals( tei.getUid(), jsonEnrollment.getString( "trackedEntity" ).string() );
+        assertEquals( program.getUid(), jsonEnrollment.getString( "program" ).string() );
+        assertEquals( orgUnit.getUid(), jsonEnrollment.getString( "orgUnit" ).string() );
+        assertTrue( jsonEnrollment.getArray( "events" ).isEmpty() );
+        assertTrue( jsonEnrollment.getArray( "relationships" ).isEmpty() );
+
+        JsonObject jsonTEI = jsonRelationship.getObject( "to" ).getObject( "trackedEntity" );
+        assertEquals( tei.getUid(), jsonTEI.getString( "trackedEntity" ).string() );
+        assertEquals( trackedEntityType.getUid(), jsonTEI.getString( "trackedEntityType" ).string() );
     }
 }

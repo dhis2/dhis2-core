@@ -56,10 +56,10 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
-import org.hisp.dhis.tracker.domain.mapper.RelationshipMapper;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
 import org.hisp.dhis.webapi.controller.event.webrequest.tracker.TrackerRelationshipCriteria;
+import org.hisp.dhis.webapi.controller.tracker.export.relationships.RelationshipMapper;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.mapstruct.factory.Mappers;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -116,12 +116,12 @@ public class TrackerRelationshipsExportController
     }
 
     @GetMapping
-    PagingWrapper<org.hisp.dhis.tracker.domain.Relationship> getInstances(
+    PagingWrapper<org.hisp.dhis.webapi.controller.tracker.export.relationships.Relationship> getInstances(
         TrackerRelationshipCriteria criteria )
         throws WebMessageException
     {
 
-        List<org.hisp.dhis.tracker.domain.Relationship> relationships = tryGetRelationshipFrom(
+        List<org.hisp.dhis.webapi.controller.tracker.export.relationships.Relationship> relationships = tryGetRelationshipFrom(
             criteria.getTei(),
             TrackedEntityInstance.class,
             () -> notFound( "No trackedEntityInstance '" + criteria.getTei() + "' found." ),
@@ -150,7 +150,7 @@ public class TrackerRelationshipsExportController
             throw new WebMessageException( badRequest( "Missing required parameter 'tei', 'enrollment' or 'event'." ) );
         }
 
-        PagingWrapper<org.hisp.dhis.tracker.domain.Relationship> relationshipPagingWrapper = new PagingWrapper<>();
+        PagingWrapper<org.hisp.dhis.webapi.controller.tracker.export.relationships.Relationship> relationshipPagingWrapper = new PagingWrapper<>();
 
         if ( criteria.isPagingRequest() )
         {
@@ -165,7 +165,7 @@ public class TrackerRelationshipsExportController
     }
 
     @GetMapping( "{id}" )
-    public org.hisp.dhis.tracker.domain.Relationship getRelationship(
+    public org.hisp.dhis.webapi.controller.tracker.export.relationships.Relationship getRelationship(
         @PathVariable String id )
         throws WebMessageException
     {
@@ -176,7 +176,7 @@ public class TrackerRelationshipsExportController
     }
 
     @SneakyThrows
-    private List<org.hisp.dhis.tracker.domain.Relationship> tryGetRelationshipFrom(
+    private List<org.hisp.dhis.webapi.controller.tracker.export.relationships.Relationship> tryGetRelationshipFrom(
         String identifier,
         Class<?> type,
         Supplier<WebMessage> notFoundMessageSupplier,
