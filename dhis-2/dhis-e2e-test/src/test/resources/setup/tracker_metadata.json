@@ -714,6 +714,7 @@
       },
       "translations": [],
       "attributeValues": [],
+      "allowedSearchTypes": ["EQ","GT","GE","LT","LE","LIKE","IN","SW","EW","IEQ","NE","NIEQ","NLIKE","ILIKE","NILIKE"],
       "legendSets": []
     },
     {
