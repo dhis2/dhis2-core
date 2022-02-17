@@ -43,6 +43,8 @@ public enum ErrorCode
     E1000( "API query must be specified" ),
     E1001( "API query contains an illegal string" ),
     E1002( "API version is invalid" ),
+    E1106( "There are duplicate translation record for property `{0}` and locale `{1}`" ),
+    E1107( "Object type `{0}` is not translatable." ),
 
     /* Data */
     E2000( "Query parameters cannot be null" ),

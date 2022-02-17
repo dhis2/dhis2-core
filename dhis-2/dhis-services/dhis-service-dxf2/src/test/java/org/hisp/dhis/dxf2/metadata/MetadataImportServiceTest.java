@@ -60,6 +60,7 @@ import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
 import org.hisp.dhis.eventreport.EventReport;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.node.NodeService;
@@ -416,6 +417,28 @@ public class MetadataImportServiceTest extends DhisSpringTest
 
         // Payload has translations and skipTranslation = false
         assertEquals( 2, dataSet.getTranslations().size() );
+    }
+
+    @Test
+    public void testImportNewObjectWithDuplicateTranslations()
+        throws IOException
+    {
+        User user = createUser( "A", "ALL" );
+        manager.save( user );
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/dataelement_duplicate_translations.json" ).getInputStream(),
+            RenderFormat.JSON );
+
+        MetadataImportParams params = createParams( ImportStrategy.CREATE, metadata );
+        params.setSkipTranslation( false );
+        params.setUser( user );
+
+        ImportReport report = importService.importMetadata( params );
+        assertEquals( Status.ERROR, report.getStatus() );
+
+        assertTrue( report.getErrorReports().stream()
+            .filter( errorReport -> errorReport.getErrorCode() == ErrorCode.E1106 ).findFirst().isPresent() );
+
     }
 
     /**

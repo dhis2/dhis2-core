@@ -1,0 +1,37 @@
+{
+  "dataElements": [
+    {
+      "attributeValues": [ ],
+      "userGroupAccesses": [ ],
+      "valueType": "TEXT",
+      "aggregationType": "SUM",
+      "created": "2016-02-17T06:15:06.079+0000",
+      "shortName": "DataElementShortB",
+      "aggregationLevels": [ ],
+      "id": "CCwk5Yx440o",
+      "domainType": "AGGREGATE",
+      "lastUpdated": "2016-02-17T06:15:59.378+0000",
+      "zeroIsSignificant": false,
+      "publicAccess": "rw------",
+      "code": "DataElementCodeB",
+      "name": "DataElementB",
+      "translations": [
+        {
+          "property": "NAME",
+          "locale": "en_GB",
+          "value": "ART monthly summary 1"
+        },
+        {
+          "property": "NAME",
+          "locale": "es",
+          "value": "ART monthly summary es"
+        },
+        {
+          "property": "NAME",
+          "locale": "en_GB",
+          "value": "ART monthly summary 2"
+        }
+      ]
+    }
+  ]
+}

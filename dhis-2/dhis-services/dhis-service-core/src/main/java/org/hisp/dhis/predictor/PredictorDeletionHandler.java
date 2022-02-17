@@ -32,9 +32,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.Iterator;
 import java.util.List;
 
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 /**
@@ -50,11 +52,14 @@ public class PredictorDeletionHandler
 
     private final PredictorService predictorService;
 
-    public PredictorDeletionHandler( PredictorService predictorService )
+    private final JdbcTemplate jdbcTemplate;
+
+    public PredictorDeletionHandler( PredictorService predictorService, JdbcTemplate jdbcTemplate )
     {
         checkNotNull( predictorService );
 
         this.predictorService = predictorService;
+        this.jdbcTemplate = jdbcTemplate;
     }
 
     // -------------------------------------------------------------------------
@@ -112,5 +117,17 @@ public class PredictorDeletionHandler
         }
 
         return null;
+    }
+
+    @Override
+    public String allowDeleteCategoryOptionCombo( CategoryOptionCombo coc )
+    {
+        return exists( "SELECT COUNT(*) FROM predictor where generatoroutputcombo=" + coc.getId() ) ? ERROR : null;
+    }
+
+    private boolean exists( String sql )
+    {
+        Integer count = jdbcTemplate.queryForObject( sql, Integer.class );
+        return count != null && count > 0;
     }
 }
