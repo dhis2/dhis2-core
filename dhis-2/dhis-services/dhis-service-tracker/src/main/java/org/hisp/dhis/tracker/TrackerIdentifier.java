@@ -34,7 +34,6 @@ import lombok.NoArgsConstructor;
 
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.util.ObjectUtils;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -53,8 +52,6 @@ public class TrackerIdentifier
     public final static TrackerIdentifier CODE = builder().idScheme( TrackerIdScheme.CODE ).build();
 
     public final static TrackerIdentifier NAME = builder().idScheme( TrackerIdScheme.NAME ).build();
-
-    public final static TrackerIdentifier AUTO = builder().idScheme( TrackerIdScheme.AUTO ).build();
 
     @JsonProperty
     @Builder.Default
@@ -81,8 +78,6 @@ public class TrackerIdentifier
                 .map( AttributeValue::getValue )
                 .findFirst()
                 .orElse( null );
-        case AUTO:
-            return ObjectUtils.firstNonNull( object.getUid(), object.getCode() );
         }
 
         throw new RuntimeException( "Unhandled identifier type." );

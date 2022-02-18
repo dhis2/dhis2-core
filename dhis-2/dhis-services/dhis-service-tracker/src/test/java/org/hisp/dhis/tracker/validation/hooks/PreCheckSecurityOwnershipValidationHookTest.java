@@ -29,8 +29,12 @@ package org.hisp.dhis.tracker.validation.hooks;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.*;
-import static org.junit.Assert.*;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1083;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1100;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1103;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -39,13 +43,20 @@ import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.*;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.*;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
@@ -407,6 +418,8 @@ public class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenience
         when( ctx.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.DELETE );
         when( ctx.programInstanceHasEvents( enrollment.getEnrollment() ) ).thenReturn( false );
         when( ctx.getTrackedEntityInstance( TEI_ID ) ).thenReturn( getTEIWithProgramInstances() );
+        when( ctx.getProgramInstance( enrollment.getEnrollment() ) )
+            .thenReturn( getEnrollment( enrollment.getEnrollment() ) );
 
         reporter = new ValidationErrorReporter( ctx, enrollment );
 
@@ -427,6 +440,8 @@ public class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenience
             .program( PROGRAM_ID )
             .build();
 
+        when( ctx.getProgramInstance( enrollment.getEnrollment() ) )
+            .thenReturn( getEnrollment( enrollment.getEnrollment() ) );
         when( ctx.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.DELETE );
         when( ctx.programInstanceHasEvents( enrollment.getEnrollment() ) ).thenReturn( true );
         when( ctx.getTrackedEntityInstance( TEI_ID ) ).thenReturn( getTEIWithProgramInstances() );
@@ -454,6 +469,8 @@ public class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenience
         when( ctx.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.DELETE );
         when( ctx.programInstanceHasEvents( enrollment.getEnrollment() ) ).thenReturn( true );
         when( ctx.getTrackedEntityInstance( TEI_ID ) ).thenReturn( getTEIWithProgramInstances() );
+        when( ctx.getProgramInstance( enrollment.getEnrollment() ) )
+            .thenReturn( getEnrollment( enrollment.getEnrollment() ) );
 
         reporter = new ValidationErrorReporter( ctx, enrollment );
 
@@ -638,6 +655,40 @@ public class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenience
         verify( trackerImportAccessManager ).checkEventWriteAccess( reporter, programStage, organisationUnit,
             organisationUnit, null,
             null, false );
+    }
+
+    @Test
+    public void verifyValidationSuccessForEnrollmentWhenProgramInstanceHasNoOrgUnitAssigned()
+    {
+        Enrollment enrollment = Enrollment.builder()
+            .enrollment( CodeGenerator.generateUid() )
+            .orgUnit( ORG_UNIT_ID )
+            .trackedEntity( TEI_ID )
+            .program( PROGRAM_ID )
+            .build();
+        when( ctx.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.UPDATE );
+
+        ProgramInstance programInstance = getEnrollment( enrollment.getEnrollment() );
+        programInstance.setOrganisationUnit( null );
+
+        when( ctx.getProgramInstance( enrollment.getEnrollment() ) )
+            .thenReturn( programInstance );
+
+        reporter = new ValidationErrorReporter( ctx );
+
+        validatorToTest.validateEnrollment( reporter, enrollment );
+
+        assertFalse( reporter.hasErrors() );
+        verify(
+            trackerImportAccessManager, times( 0 ) ).checkOrgUnitInCaptureScope( reporter, organisationUnit );
+
+        when( ctx.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.DELETE );
+
+        validatorToTest.validateEnrollment( reporter, enrollment );
+
+        assertFalse( reporter.hasErrors() );
+        verify(
+            trackerImportAccessManager, times( 0 ) ).checkOrgUnitInCaptureScope( reporter, organisationUnit );
     }
 
     private TrackedEntityInstance getTEIWithNoProgramInstances()
