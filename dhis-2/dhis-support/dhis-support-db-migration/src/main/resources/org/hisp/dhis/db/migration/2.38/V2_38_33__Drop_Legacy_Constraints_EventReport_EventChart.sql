@@ -20,7 +20,7 @@ $$
                     SELECT constraint_name
                     FROM information_schema.table_constraints
                     WHERE table_name = t
-                      AND constraint_name LIKE 'fk%'
+                      AND constraint_type = 'FOREIGN KEY'
                 )
                     LOOP
                         RAISE INFO '%','dropping ' || r.constraint_name || 'FROM TABLE ' || t;
@@ -49,7 +49,7 @@ $$
                     SELECT constraint_name
                     FROM information_schema.table_constraints
                     WHERE table_name = t
-                      AND constraint_name LIKE 'fk%'
+                      AND constraint_type = 'FOREIGN KEY'
                 )
                     LOOP
                         RAISE INFO '%','dropping ' || r.constraint_name || 'FROM TABLE ' || t;
