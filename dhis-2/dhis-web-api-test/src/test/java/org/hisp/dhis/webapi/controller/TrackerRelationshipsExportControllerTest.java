@@ -82,7 +82,25 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
     }
 
     @Test
-    void testGetRelationshipByEvent()
+    void getRelationshipsById()
+    {
+        TrackedEntityInstance tei = trackedEntityInstance();
+        ProgramInstance programInstance = programInstance( tei );
+        ProgramStageInstance programStageInstance = programStageInstance( programInstance );
+        RelationshipType rType = relationshipType( RelationshipEntity.PROGRAM_STAGE_INSTANCE,
+            RelationshipEntity.TRACKED_ENTITY_INSTANCE );
+        Relationship r = relationship( rType, programStageInstance, tei );
+
+        JsonObject relationship = GET( "/tracker/relationships/" + r.getUid() )
+            .content( HttpStatus.OK );
+
+        assertRelationship( relationship, r );
+        assertEvent( relationship.getObject( "from" ), programStageInstance );
+        assertTrackedEntity( relationship.getObject( "to" ), tei );
+    }
+
+    @Test
+    void getRelationshipsByEvent()
     {
         TrackedEntityInstance tei = trackedEntityInstance();
         ProgramInstance programInstance = programInstance( tei );
@@ -94,13 +112,13 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
         JsonObject relationship = GET( "/tracker/relationships?event=" + programStageInstance.getUid() )
             .content( HttpStatus.OK );
 
-        JsonObject jsonRelationship = assertRelationship( relationship, r );
+        JsonObject jsonRelationship = assertRelationships( relationship, r );
         assertEvent( jsonRelationship.getObject( "from" ), programStageInstance );
         assertTrackedEntity( jsonRelationship.getObject( "to" ), tei );
     }
 
     @Test
-    void testGetRelationshipByEnrollment()
+    void getRelationshipsByEnrollment()
     {
         TrackedEntityInstance tei = trackedEntityInstance();
         ProgramInstance programInstance = programInstance( tei );
@@ -111,13 +129,13 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
         JsonObject relationship = GET( "/tracker/relationships?enrollment=" + programInstance.getUid() )
             .content( HttpStatus.OK );
 
-        JsonObject jsonRelationship = assertRelationship( relationship, r );
+        JsonObject jsonRelationship = assertRelationships( relationship, r );
         assertEnrollment( jsonRelationship.getObject( "from" ), programInstance );
         assertTrackedEntity( jsonRelationship.getObject( "to" ), tei );
     }
 
     @Test
-    void testGetRelationshipByTrackedEntity()
+    void getRelationshipsByTrackedEntity()
     {
         TrackedEntityInstance tei = trackedEntityInstance();
         ProgramInstance programInstance = programInstance( tei );
@@ -128,7 +146,7 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
         JsonObject relationship = GET( "/tracker/relationships?tei=" + tei.getUid() )
             .content( HttpStatus.OK );
 
-        JsonObject jsonRelationship = assertRelationship( relationship, r );
+        JsonObject jsonRelationship = assertRelationships( relationship, r );
         assertEnrollment( jsonRelationship.getObject( "from" ), programInstance );
         assertTrackedEntity( jsonRelationship.getObject( "to" ), tei );
     }
@@ -202,14 +220,19 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
         return r;
     }
 
-    private JsonObject assertRelationship( JsonObject relationship, Relationship r )
+    private JsonObject assertRelationships( JsonObject body, Relationship r )
     {
-        assertFalse( relationship.isEmpty() );
-
-        JsonObject jsonRelationship = relationship.getArray( "instances" ).get( 0 ).as( JsonObject.class );
-        assertEquals( r.getUid(), jsonRelationship.getString( "relationship" ).string() );
-        assertEquals( r.getRelationshipType().getUid(), jsonRelationship.getString( "relationshipType" ).string() );
+        assertFalse( body.isEmpty() );
+        JsonObject jsonRelationship = body.getArray( "instances" ).get( 0 ).as( JsonObject.class );
+        assertRelationship( jsonRelationship, r );
         return jsonRelationship;
+    }
+
+    private void assertRelationship( JsonObject json, Relationship r )
+    {
+        assertFalse( json.isEmpty() );
+        assertEquals( r.getUid(), json.getString( "relationship" ).string() );
+        assertEquals( r.getRelationshipType().getUid(), json.getString( "relationshipType" ).string() );
     }
 
     private void assertEvent( JsonObject json, ProgramStageInstance programStageInstance )
