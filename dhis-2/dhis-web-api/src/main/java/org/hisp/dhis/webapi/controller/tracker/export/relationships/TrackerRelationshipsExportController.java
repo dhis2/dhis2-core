@@ -181,20 +181,18 @@ public class TrackerRelationshipsExportController
         Supplier<WebMessage> notFoundMessageSupplier,
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteria )
     {
-        if ( identifier != null )
+        if ( identifier == null )
         {
-            Object object = getObjectRetriever( type ).apply( identifier );
-            if ( object != null )
-            {
-                return RELATIONSHIP_MAPPER
-                    .fromCollection( getRelationshipRetriever( type ).apply( object, pagingAndSortingCriteria ) );
-            }
-            else
-            {
-                throw new WebMessageException( notFoundMessageSupplier.get() );
-            }
+            return null;
         }
-        return null;
+        Object object = getObjectRetriever( type ).apply( identifier );
+        if ( object == null )
+        {
+            throw new WebMessageException( notFoundMessageSupplier.get() );
+        }
+
+        return RELATIONSHIP_MAPPER
+            .fromCollection( getRelationshipRetriever( type ).apply( object, pagingAndSortingCriteria ) );
     }
 
     private BiFunction<Object, PagingAndSortingCriteriaAdapter, List<Relationship>> getRelationshipRetriever(
