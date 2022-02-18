@@ -75,7 +75,7 @@ import com.google.common.collect.ImmutableMap;
 @RequiredArgsConstructor
 public class TrackerRelationshipsExportController
 {
-    protected final static String RELATIONSHIPS = "relationships";
+    protected static final String RELATIONSHIPS = "relationships";
 
     private final TrackedEntityInstanceService trackedEntityInstanceService;
 
