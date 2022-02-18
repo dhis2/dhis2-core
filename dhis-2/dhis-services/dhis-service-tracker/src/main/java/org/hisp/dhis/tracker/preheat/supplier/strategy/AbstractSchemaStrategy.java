@@ -49,7 +49,6 @@ import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerImportParams;
-import org.hisp.dhis.tracker.preheat.PreheatUtils;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.cache.PreheatCacheService;
 import org.hisp.dhis.tracker.preheat.mappers.CopyMapper;
@@ -167,8 +166,8 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
                     // put objects in query based on given scheme. If the key
                     // can't get resolved, send null to the
                     // cacheService, which will ignore the entry
-                    objects.forEach( o -> cache.put( cacheKey,
-                        PreheatUtils.resolveKey( identifier, o ).orElseGet( null ), o, getCacheTTL(), getCapacity() ) );
+                    objects.forEach( o -> cache.put( cacheKey, identifier.getIdentifier( o ), o, getCacheTTL(),
+                        getCapacity() ) );
 
                     // add back the cached objects to the final list
                     objects.addAll( foundInCache.values() );

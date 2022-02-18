@@ -343,7 +343,8 @@ public class TrackerPreheat
             }
         }
 
-        PreheatUtils.resolveKey( identifier, object ).ifPresent( k -> map.get( klass ).put( k, object ) );
+        Optional.ofNullable( identifier.getIdentifier( object ) )
+            .ifPresent( k -> map.get( klass ).put( k, object ) );
 
         return this;
     }
