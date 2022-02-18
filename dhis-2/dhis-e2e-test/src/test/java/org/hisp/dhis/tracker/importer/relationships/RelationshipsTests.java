@@ -452,7 +452,6 @@ public class RelationshipsTests
             bodyPrefix = "relationships[0]";
         }
 
-        // TODO(DHIS2-12625) should we assert on the entire JSON inside from.trackedEntity, from.enrollment, from.event, to....?
         response.validate()
             .statusCode( 200 )
             .body( bodyPrefix, notNullValue() )
