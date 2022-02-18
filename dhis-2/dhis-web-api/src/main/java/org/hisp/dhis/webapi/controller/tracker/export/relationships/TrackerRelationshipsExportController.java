@@ -25,16 +25,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export;
+package org.hisp.dhis.webapi.controller.tracker.export.relationships;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.badRequest;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.webapi.controller.tracker.TrackerControllerSupport.RESOURCE_PATH;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -51,12 +51,10 @@ import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
-import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
-import org.hisp.dhis.tracker.domain.mapper.RelationshipMapper;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
 import org.hisp.dhis.webapi.controller.event.webrequest.tracker.TrackerRelationshipCriteria;
@@ -74,7 +72,7 @@ import com.google.common.collect.ImmutableMap;
 @RequiredArgsConstructor
 public class TrackerRelationshipsExportController
 {
-    protected final static String RELATIONSHIPS = "relationships";
+    protected static final String RELATIONSHIPS = "relationships";
 
     private final TrackedEntityInstanceService trackedEntityInstanceService;
 
@@ -104,7 +102,7 @@ public class TrackerRelationshipsExportController
             .put( TrackedEntityInstance.class,
                 ( o, criteria ) -> relationshipService
                     .getRelationshipsByTrackedEntityInstance( (TrackedEntityInstance) o, criteria, false ) )
-            .put( ProgramStage.class,
+            .put( ProgramInstance.class,
                 ( o, criteria ) -> relationshipService.getRelationshipsByProgramInstance( (ProgramInstance) o, criteria,
                     false ) )
             .put( ProgramStageInstance.class,
@@ -114,18 +112,18 @@ public class TrackerRelationshipsExportController
     }
 
     @GetMapping
-    PagingWrapper<org.hisp.dhis.tracker.domain.Relationship> getInstances(
+    PagingWrapper<org.hisp.dhis.webapi.controller.tracker.export.relationships.Relationship> getInstances(
         TrackerRelationshipCriteria criteria )
         throws WebMessageException
     {
 
-        List<org.hisp.dhis.tracker.domain.Relationship> relationships = tryGetRelationshipFrom(
+        List<org.hisp.dhis.webapi.controller.tracker.export.relationships.Relationship> relationships = tryGetRelationshipFrom(
             criteria.getTei(),
             TrackedEntityInstance.class,
-            () -> notFound( "No trackedEntityInstance '" + criteria.getTei() + "' found." ),
+            () -> notFound( "No trackedEntity '" + criteria.getTei() + "' found." ),
             criteria );
 
-        if ( Objects.isNull( relationships ) )
+        if ( relationships.isEmpty() )
         {
             relationships = tryGetRelationshipFrom(
                 criteria.getEnrollment(),
@@ -134,7 +132,7 @@ public class TrackerRelationshipsExportController
                 criteria );
         }
 
-        if ( Objects.isNull( relationships ) )
+        if ( relationships.isEmpty() )
         {
             relationships = tryGetRelationshipFrom(
                 criteria.getEvent(),
@@ -143,12 +141,12 @@ public class TrackerRelationshipsExportController
                 criteria );
         }
 
-        if ( Objects.isNull( relationships ) )
+        if ( relationships.isEmpty() )
         {
             throw new WebMessageException( badRequest( "Missing required parameter 'tei', 'enrollment' or 'event'." ) );
         }
 
-        PagingWrapper<org.hisp.dhis.tracker.domain.Relationship> relationshipPagingWrapper = new PagingWrapper<>();
+        PagingWrapper<org.hisp.dhis.webapi.controller.tracker.export.relationships.Relationship> relationshipPagingWrapper = new PagingWrapper<>();
 
         if ( criteria.isPagingRequest() )
         {
@@ -163,37 +161,35 @@ public class TrackerRelationshipsExportController
     }
 
     @GetMapping( "{id}" )
-    public org.hisp.dhis.tracker.domain.Relationship getRelationship(
+    public org.hisp.dhis.webapi.controller.tracker.export.relationships.Relationship getRelationship(
         @PathVariable String id )
         throws WebMessageException
     {
         return Optional.ofNullable( relationshipService.getRelationshipByUid( id ) )
             .map( RELATIONSHIP_MAPPER::from )
             .orElseThrow(
-                () -> new WebMessageException( notFound( "No relationship with id '" + id + "' was found." ) ) );
+                () -> new WebMessageException( notFound( "No relationship '" + id + "' found." ) ) );
     }
 
     @SneakyThrows
-    private List<org.hisp.dhis.tracker.domain.Relationship> tryGetRelationshipFrom(
+    private List<org.hisp.dhis.webapi.controller.tracker.export.relationships.Relationship> tryGetRelationshipFrom(
         String identifier,
         Class<?> type,
         Supplier<WebMessage> notFoundMessageSupplier,
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteria )
     {
-        if ( identifier != null )
+        if ( identifier == null )
         {
-            Object object = getObjectRetriever( type ).apply( identifier );
-            if ( object != null )
-            {
-                return RELATIONSHIP_MAPPER
-                    .fromCollection( getRelationshipRetriever( type ).apply( object, pagingAndSortingCriteria ) );
-            }
-            else
-            {
-                throw new WebMessageException( notFoundMessageSupplier.get() );
-            }
+            return Collections.emptyList();
         }
-        return null;
+        Object object = getObjectRetriever( type ).apply( identifier );
+        if ( object == null )
+        {
+            throw new WebMessageException( notFoundMessageSupplier.get() );
+        }
+
+        return RELATIONSHIP_MAPPER
+            .fromCollection( getRelationshipRetriever( type ).apply( object, pagingAndSortingCriteria ) );
     }
 
     private BiFunction<Object, PagingAndSortingCriteriaAdapter, List<Relationship>> getRelationshipRetriever(
