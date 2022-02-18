@@ -184,6 +184,21 @@ public class EventVisualizationController
         }
     }
 
+    @Override
+    protected void preUpdateEntity( final EventVisualization eventVisualization,
+        final EventVisualization newEventVisualization )
+    {
+        /**
+         * Once a legacy EventVisualization is updated through this new
+         * endpoint, it will automatically become a non-legacy
+         * EventVisualization.
+         */
+        if ( eventVisualization != null && eventVisualization.isLegacy() )
+        {
+            newEventVisualization.setLegacy( false );
+        }
+    }
+
     private void prepare( final EventVisualization eventVisualization )
     {
         dimensionService.mergeAnalyticalObject( eventVisualization );

@@ -74,6 +74,9 @@ class ProgramRuleEngineDescriptionTest extends DhisSpringTest
 
     private String incorrectConditionTextDE = "#{Program_Rule_Variable_Text_DE} == 'text_de' +";
 
+    private String extractDataMatrixValueExpression = "d2:extractDataMatrixValue('serial number'," +
+        " ']d201084700069915412110081996195256\u001D10DXB2005\u001D17220228') > 0";
+
     private String conditionNumericDE = "#{Program_Rule_Variable_Numeric_DE} == 14";
 
     private String conditionLiteralString = "1 > 2";
@@ -314,6 +317,14 @@ class ProgramRuleEngineDescriptionTest extends DhisSpringTest
         assertNotNull( result );
         assertFalse( result.isValid() );
         assertThat( result.getException(), instanceOf( IllegalStateException.class ) );
+    }
+
+    @Test
+    void testExtractDataMatrixValue()
+    {
+        RuleValidationResult result = validateRuleCondition( extractDataMatrixValueExpression, program );
+        assertNotNull( result );
+        assertTrue( result.isValid() );
     }
 
     @Test
