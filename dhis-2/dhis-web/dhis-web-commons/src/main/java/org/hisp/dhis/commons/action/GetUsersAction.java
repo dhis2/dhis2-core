@@ -82,10 +82,12 @@ public class GetUsersAction
     public String execute()
         throws Exception
     {
-        // TODO: Allow user with F_USER_VIEW_WITHIN_MANAGED_GROUP and restrict
-        // viewing to within managed groups.
+        canReadType( User.class );
 
         users = new ArrayList<>( userService.getAllUsers() );
+
+        User currentUser = currentUserService.getCurrentUser();
+        users.forEach( instance -> canReadInstance( instance, currentUser ) );
 
         ContextUtils.clearIfNotModified( ServletActionContext.getRequest(), ServletActionContext.getResponse(), users );
 
