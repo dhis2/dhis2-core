@@ -47,6 +47,6 @@ public class vProgramStageId
     @Override
     public Object getSql( CommonExpressionVisitor visitor )
     {
-        return AnalyticsType.EVENT == visitor.getProgramIndicator().getAnalyticsType() ? "ps" : "''";
+        return AnalyticsType.EVENT == visitor.getProgParams().getProgramIndicator().getAnalyticsType() ? "ps" : "''";
     }
 }

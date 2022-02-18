@@ -25,32 +25,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.variable;
+package org.hisp.dhis.parser.expression;
 
-import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.parser.expression.ProgramExpressionParams;
-import org.hisp.dhis.program.AnalyticsType;
+import java.util.Date;
+import java.util.Set;
+
+import lombok.Builder;
+import lombok.Getter;
+
+import org.hisp.dhis.program.ProgramIndicator;
 
 /**
- * Program indicator variable: creation date
+ * Parameters to generate SQL from a program indicator expression
  *
  * @author Jim Grace
  */
-public class vCreationDate
-    extends ProgramDateVariable
+@Getter
+@Builder
+public class ProgramExpressionParams
 {
-    @Override
-    public Object getSql( CommonExpressionVisitor visitor )
-    {
-        ProgramExpressionParams params = visitor.getProgParams();
+    /**
+     * Program indicator
+     */
+    private final ProgramIndicator programIndicator;
 
-        if ( AnalyticsType.ENROLLMENT == params.getProgramIndicator().getAnalyticsType() )
-        {
-            return visitor.getStatementBuilder().getProgramIndicatorEventColumnSql(
-                null, "created", params.getReportingStartDate(),
-                params.getReportingEndDate(), params.getProgramIndicator() );
-        }
+    /**
+     * Program reporting start date
+     */
+    private final Date reportingStartDate;
 
-        return "created";
-    }
+    /**
+     * Program reporting end date
+     */
+    private final Date reportingEndDate;
+
+    /**
+     * UIDs of all the DataElements and Attributes in the expression
+     */
+    private final Set<String> dataElementAndAttributeIdentifiers;
 }

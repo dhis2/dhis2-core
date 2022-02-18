@@ -43,7 +43,6 @@ import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.MapMapMap;
-import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.dataanalysis.ValidationRuleExpressionDetails;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
@@ -69,8 +68,6 @@ public class ValidationRunContext
     private List<OrganisationUnit> orgUnits;
 
     private List<PeriodTypeExtended> periodTypeXs;
-
-    private Map<String, Constant> constantMap;
 
     private Set<CategoryOptionGroup> cogDimensionConstraints;
 
@@ -153,11 +150,6 @@ public class ValidationRunContext
     public List<PeriodTypeExtended> getPeriodTypeXs()
     {
         return periodTypeXs;
-    }
-
-    public Map<String, Constant> getConstantMap()
-    {
-        return constantMap;
     }
 
     public Set<CategoryOptionGroup> getCogDimensionConstraints()
@@ -283,7 +275,6 @@ public class ValidationRunContext
         public ValidationRunContext build()
         {
             Validate.notNull( this.context.periodTypeXs, "Missing required property 'periodTypeXs'" );
-            Validate.notNull( this.context.constantMap, "Missing required property 'constantMap'" );
             Validate.notNull( this.context.orgUnits, "Missing required property 'orgUnits'" );
             Validate.notNull( this.context.defaultAttributeCombo, "Missing required property 'defaultAttributeCombo'" );
 
@@ -316,12 +307,6 @@ public class ValidationRunContext
             List<PeriodTypeExtended> periodTypeXs )
         {
             this.context.periodTypeXs = periodTypeXs;
-            return this;
-        }
-
-        public Builder withConstantMap( Map<String, Constant> constantMap )
-        {
-            this.context.constantMap = constantMap;
             return this;
         }
 

@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.program.variable;
 
-import static org.hisp.dhis.parser.expression.CommonExpressionVisitor.DEFAULT_DOUBLE_VALUE;
+import static org.hisp.dhis.parser.expression.ParserUtils.DEFAULT_DOUBLE_VALUE;
 
 /**
  * Program indicator double variable (uses default double for validity checking)
