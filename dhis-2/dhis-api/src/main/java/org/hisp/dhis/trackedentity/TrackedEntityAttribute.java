@@ -47,6 +47,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.collect.Lists;
 
 /**
  * @author Abyot Asalefew
@@ -60,7 +61,7 @@ public class TrackedEntityAttribute
 
     private ValueType valueType;
 
-    private List<QueryOperator> allowedSearchTypes;
+    private List<QueryOperator> allowedSearchTypes = Lists.newArrayList( QueryOperator.values() );
 
     private Boolean inherit = false;
 
