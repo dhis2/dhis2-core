@@ -100,6 +100,15 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
     }
 
     @Test
+    void getRelationshipsByIdNotFound()
+    {
+        assertEquals( "No relationship 'Hq3Kc6HK4OZ' found.",
+            GET( "/tracker/relationships/Hq3Kc6HK4OZ" )
+                .error( HttpStatus.NOT_FOUND )
+                .getMessage() );
+    }
+
+    @Test
     void getRelationshipsByEvent()
     {
         TrackedEntityInstance tei = trackedEntityInstance();
@@ -115,6 +124,16 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
         JsonObject jsonRelationship = assertRelationships( relationship, r );
         assertEvent( jsonRelationship.getObject( "from" ), programStageInstance );
         assertTrackedEntity( jsonRelationship.getObject( "to" ), tei );
+    }
+
+    @Test
+    void getRelationshipsByEventNotFound()
+    {
+
+        assertEquals( "No event 'Hq3Kc6HK4OZ' found.",
+            GET( "/tracker/relationships?event=Hq3Kc6HK4OZ" )
+                .error( HttpStatus.NOT_FOUND )
+                .getMessage() );
     }
 
     @Test
@@ -135,6 +154,16 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
     }
 
     @Test
+    void getRelationshipsByEnrollmentNotFound()
+    {
+
+        assertEquals( "No enrollment 'Hq3Kc6HK4OZ' found.",
+            GET( "/tracker/relationships?enrollment=Hq3Kc6HK4OZ" )
+                .error( HttpStatus.NOT_FOUND )
+                .getMessage() );
+    }
+
+    @Test
     void getRelationshipsByTrackedEntity()
     {
         TrackedEntityInstance tei = trackedEntityInstance();
@@ -149,6 +178,16 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
         JsonObject jsonRelationship = assertRelationships( relationship, r );
         assertEnrollment( jsonRelationship.getObject( "from" ), programInstance );
         assertTrackedEntity( jsonRelationship.getObject( "to" ), tei );
+    }
+
+    @Test
+    void getRelationshipsByTrackedEntityNotFound()
+    {
+
+        assertEquals( "No trackedEntity 'Hq3Kc6HK4OZ' found.",
+            GET( "/tracker/relationships?tei=Hq3Kc6HK4OZ" )
+                .error( HttpStatus.NOT_FOUND )
+                .getMessage() );
     }
 
     private TrackedEntityInstance trackedEntityInstance()

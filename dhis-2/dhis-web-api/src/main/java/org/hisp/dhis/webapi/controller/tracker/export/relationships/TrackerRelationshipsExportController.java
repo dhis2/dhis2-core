@@ -123,7 +123,7 @@ public class TrackerRelationshipsExportController
         List<org.hisp.dhis.webapi.controller.tracker.export.relationships.Relationship> relationships = tryGetRelationshipFrom(
             criteria.getTei(),
             TrackedEntityInstance.class,
-            () -> notFound( "No trackedEntityInstance '" + criteria.getTei() + "' found." ),
+            () -> notFound( "No trackedEntity '" + criteria.getTei() + "' found." ),
             criteria );
 
         if ( Objects.isNull( relationships ) )
@@ -171,7 +171,7 @@ public class TrackerRelationshipsExportController
         return Optional.ofNullable( relationshipService.getRelationshipByUid( id ) )
             .map( RELATIONSHIP_MAPPER::from )
             .orElseThrow(
-                () -> new WebMessageException( notFound( "No relationship with id '" + id + "' was found." ) ) );
+                () -> new WebMessageException( notFound( "No relationship '" + id + "' found." ) ) );
     }
 
     @SneakyThrows
