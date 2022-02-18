@@ -836,6 +836,20 @@ public class DateUtils
      * null, then null is returned.
      *
      * @param dates the dates.
+     * @return the earliest, non-null date.
+     */
+    public static Date getEarliest( Date... dates )
+    {
+        return Lists.newArrayList( dates ).stream()
+            .filter( Objects::nonNull )
+            .min( Date::compareTo ).orElse( null );
+    }
+
+    /**
+     * Returns the latest, non-null date of the given dates. If all dates are
+     * null, then null is returned.
+     *
+     * @param dates the dates.
      * @return the latest, non-null date.
      */
     public static Date getLatest( Date... dates )

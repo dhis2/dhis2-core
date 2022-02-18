@@ -36,6 +36,8 @@ import static org.hisp.dhis.DhisConvenienceTest.createProgram;
 import static org.hisp.dhis.DhisConvenienceTest.createProgramIndicator;
 import static org.hisp.dhis.DhisConvenienceTest.getDate;
 import static org.hisp.dhis.analytics.QueryKey.NV;
+import static org.hisp.dhis.analytics.event.data.JdbcEnrollmentAnalyticsManager.CREATED_BY_DISPLAY_NAME_COLUMN;
+import static org.hisp.dhis.analytics.event.data.JdbcEnrollmentAnalyticsManager.LAST_UPDATED_BY_DISPLAY_NAME_COLUMN;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.common.DimensionalObject.OPTION_SEP;
@@ -59,6 +61,7 @@ import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
+import org.hisp.dhis.common.RepeatableStageParams;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
@@ -70,6 +73,7 @@ import org.hisp.dhis.relationship.RelationshipConstraint;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.system.grid.ListGrid;
+import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -110,7 +114,9 @@ class EnrollmentAnalyticsManagerTest extends
     @Captor
     private ArgumentCaptor<String> sql;
 
-    private String DEFAULT_COLUMNS = "pi,tei,enrollmentdate,incidentdate,storedby,lastupdated,ST_AsGeoJSON(pigeometry),longitude,latitude,ouname,oucode,enrollmentstatus";
+    private String DEFAULT_COLUMNS = "pi,tei,enrollmentdate,incidentdate,storedby,"
+        + CREATED_BY_DISPLAY_NAME_COLUMN + "," + LAST_UPDATED_BY_DISPLAY_NAME_COLUMN
+        + ",lastupdated,ST_AsGeoJSON(pigeometry),longitude,latitude,ouname,oucode,enrollmentstatus";
 
     private final String TABLE_NAME = "analytics_enrollment";
 
@@ -193,7 +199,7 @@ class EnrollmentAnalyticsManagerTest extends
 
         if ( valueType == ValueType.NUMBER )
         {
-            subSelect = "coalesce(" + subSelect + ", 'NaN') as fWIAEtYVEGk";
+            subSelect = "coalesce(" + subSelect + ", null) as fWIAEtYVEGk";
         }
         String expected = "ax.\"monthly\",ax.\"ou\"," + subSelect + "  from " + getTable( programA.getUid() )
             + " as ax where ax.\"monthly\" in ('2000Q1') and (uidlevel1 = 'ouabcdefghA' ) " + "and ps = '"
@@ -236,8 +242,8 @@ class EnrollmentAnalyticsManagerTest extends
         verify( jdbcTemplate ).queryForRowSet( sql.capture() );
 
         String expected = "ax.\"monthly\",ax.\"ou\"  from " + getTable( programA.getUid() )
-            + " as ax where ax.\"monthly\" in ('2000Q1') and (uidlevel1 = 'ouabcdefghA' )" +
-            " and enrollmentstatus in ('ACTIVE','COMPLETED') limit 10001";
+            + " as ax where ax.\"monthly\" in ('2000Q1') and (uidlevel1 = 'ouabcdefghA' )"
+            + " and enrollmentstatus in ('ACTIVE','COMPLETED') limit 10001";
 
         assertSql( sql.getValue(), expected );
     }
@@ -257,7 +263,7 @@ class EnrollmentAnalyticsManagerTest extends
             + programA.getUid() + ".pi = ax.pi and \"fWIAEtYVEGk\" is not null and ps = '"
             + programStage.getUid() + "' order by executiondate desc limit 1 )";
 
-        String expected = "ax.\"monthly\",ax.\"ou\"," + "coalesce(" + subSelect + ", 'NaN') as fWIAEtYVEGk" + "  from "
+        String expected = "ax.\"monthly\",ax.\"ou\"," + "coalesce(" + subSelect + ", null) as fWIAEtYVEGk" + "  from "
             + getTable( programA.getUid() )
             + " as ax where ax.\"monthly\" in ('2000Q1') and (uidlevel1 = 'ouabcdefghA' ) "
             + "and ps = '" + programStage.getUid() + "' and " + subSelect + " > '10' limit 10001";
@@ -361,7 +367,7 @@ class EnrollmentAnalyticsManagerTest extends
 
         ProgramIndicator programIndicatorA = createProgramIndicator( 'A', programA, "", "" );
 
-        RelationshipType relationshipTypeA = createRelationshipType( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
+        RelationshipType relationshipTypeA = createRelationshipType();
 
         EventQueryParams.Builder params = new EventQueryParams.Builder(
             createRequestParams( programIndicatorA, relationshipTypeA ) ).withStartDate( startDate )
@@ -400,7 +406,7 @@ class EnrollmentAnalyticsManagerTest extends
 
         ProgramIndicator programIndicatorA = createProgramIndicator( 'A', programA, "", "" );
 
-        RelationshipType relationshipTypeA = createRelationshipType( RelationshipEntity.TRACKED_ENTITY_INSTANCE,
+        RelationshipType relationshipTypeA = createRelationshipType(
             RelationshipEntity.PROGRAM_INSTANCE );
 
         EventQueryParams.Builder params = new EventQueryParams.Builder(
@@ -433,16 +439,15 @@ class EnrollmentAnalyticsManagerTest extends
     @Override
     String getTableName()
     {
-        return this.TABLE_NAME;
+        return "analytics_enrollment";
     }
 
-    private RelationshipType createRelationshipType( RelationshipEntity fromConstraint,
-        RelationshipEntity toConstraint )
+    private RelationshipType createRelationshipType( RelationshipEntity toConstraint )
     {
         RelationshipType relationshipTypeA = rnd.nextObject( RelationshipType.class );
 
         RelationshipConstraint from = new RelationshipConstraint();
-        from.setRelationshipEntity( fromConstraint );
+        from.setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
 
         RelationshipConstraint to = new RelationshipConstraint();
         to.setRelationshipEntity( toConstraint );
@@ -452,9 +457,9 @@ class EnrollmentAnalyticsManagerTest extends
         return relationshipTypeA;
     }
 
-    private RelationshipType createRelationshipType( RelationshipEntity fromToConstraint )
+    private RelationshipType createRelationshipType()
     {
-        return createRelationshipType( fromToConstraint, fromToConstraint );
+        return createRelationshipType( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
     }
 
     private void assertSql( String actual, String expected )
@@ -472,7 +477,7 @@ class EnrollmentAnalyticsManagerTest extends
 
         ProgramIndicator programIndicatorA = createProgramIndicator( 'A', programB, "", "" );
 
-        RelationshipType relationshipTypeA = createRelationshipType( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
+        RelationshipType relationshipTypeA = createRelationshipType();
 
         EventQueryParams.Builder params = new EventQueryParams.Builder(
             createRequestParams( programIndicatorA, relationshipTypeA ) ).withStartDate( startDate )
@@ -536,6 +541,63 @@ class EnrollmentAnalyticsManagerTest extends
             is( "(select \"" + dataElementA.getUid()
                 + "\" from analytics_event_" + programA.getUid() + " where analytics_event_" + programA.getUid()
                 + ".pi = ax.pi and \"" + dataElementA.getUid() + "\" is not null and ps = '" + programStage.getUid()
+                + "' order by executiondate desc limit 1 )" ) );
+    }
+
+    @Test
+    void verifyGetColumnOfTypeCoordinateAndWithProgramStagesAndParamsWithReferenceTypeValue()
+    {
+        // Given
+        DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
+
+        QueryItem item = new QueryItem( dio );
+        item.setValueType( ValueType.COORDINATE );
+        item.setProgramStage( programStageWithRepeatableParams );
+        item.setProgram( programB );
+        RepeatableStageParams repeatableStageParams = new RepeatableStageParams();
+
+        repeatableStageParams.setStartIndex( 0 );
+        repeatableStageParams.setCount( 100 );
+        repeatableStageParams.setStartDate( DateUtils.parseDate( "2022-01-01" ) );
+        repeatableStageParams.setEndDate( DateUtils.parseDate( "2022-01-31" ) );
+        item.setRepeatableStageParams( repeatableStageParams );
+        // When
+        String columnSql = subject.getColumn( item );
+
+        // Then
+        assertThat( columnSql,
+            is( "(select json_agg(t1) from (select \"" + dataElementA.getUid()
+                + "\", incidentdate, duedate, executiondate  from analytics_event_" + programB.getUid()
+                + " where analytics_event_" + programB.getUid()
+                + ".pi = ax.pi and \"" + dataElementA.getUid() + "\" is not null and ps = '"
+                + programStageWithRepeatableParams.getUid()
+                + "' and executiondate >= '2022-01-01'  and executiondate <= '2022-01-31' order by executiondate desc LIMIT 100 ) as t1)" ) );
+    }
+
+    @Test
+    void verifyGetColumnOfTypeCoordinateAndWithProgramStagesAndParamsWithNumberTypeValue()
+    {
+        // Given
+        DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
+
+        QueryItem item = new QueryItem( dio );
+        item.setValueType( ValueType.COORDINATE );
+        item.setProgramStage( programStageWithRepeatableParams );
+        item.setProgram( programB );
+        RepeatableStageParams repeatableStageParams = new RepeatableStageParams();
+
+        repeatableStageParams.setStartIndex( 0 );
+        repeatableStageParams.setCount( 1 );
+        item.setRepeatableStageParams( repeatableStageParams );
+        // When
+        String columnSql = subject.getColumn( item );
+
+        // Then
+        assertThat( columnSql,
+            is( "(select \"" + dataElementA.getUid()
+                + "\" from analytics_event_" + programB.getUid() + " where analytics_event_" + programB.getUid()
+                + ".pi = ax.pi and \"" + dataElementA.getUid() + "\" is not null and ps = '"
+                + programStageWithRepeatableParams.getUid()
                 + "' order by executiondate desc limit 1 )" ) );
     }
 

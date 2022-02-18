@@ -32,7 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.dataintegrity.DataIntegrityCheckType;
 import org.hisp.dhis.jsontree.JsonList;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonDataIntegrityCheck;
 import org.junit.jupiter.api.Test;
 
@@ -42,9 +41,8 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class DataIntegrityChecksControllerTest extends DhisControllerConvenienceTest
+class DataIntegrityChecksControllerTest extends AbstractDataIntegrityControllerTest
 {
-
     @Test
     void testGetAvailableChecks()
     {
@@ -52,6 +50,10 @@ class DataIntegrityChecksControllerTest extends DhisControllerConvenienceTest
             .asList( JsonDataIntegrityCheck.class );
         assertFalse( checks.isEmpty() );
         assertCheckExists( "categories_no_options", checks );
+        assertCheckExists( "categories_one_default_category", checks );
+        assertCheckExists( "categories_one_default_category_option", checks );
+        assertCheckExists( "categories_one_default_category_combo", checks );
+        assertCheckExists( "categories_one_default_category_option_combo", checks );
         for ( DataIntegrityCheckType type : DataIntegrityCheckType.values() )
         {
             assertCheckExists( type.getName(), checks );

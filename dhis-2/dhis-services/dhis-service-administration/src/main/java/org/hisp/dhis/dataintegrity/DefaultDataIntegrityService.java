@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dataintegrity;
 
+import static java.lang.System.currentTimeMillis;
 import static java.util.Collections.unmodifiableCollection;
 import static java.util.Collections.unmodifiableSet;
 import static java.util.stream.Collectors.groupingBy;
@@ -41,6 +42,7 @@ import static org.hisp.dhis.expression.ParseType.VALIDATION_RULE_EXPRESSION;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -51,6 +53,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -58,11 +61,12 @@ import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.antlr.ParserException;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
@@ -105,9 +109,9 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Lars Helge Overland
  */
 @Slf4j
-@Service( "org.hisp.dhis.dataintegrity.DataIntegrityService" )
+@Service
 @Transactional
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class DefaultDataIntegrityService
     implements DataIntegrityService
 {
@@ -143,7 +147,20 @@ public class DefaultDataIntegrityService
 
     private final ProgramIndicatorService programIndicatorService;
 
-    private final SessionFactory sessionFactory;
+    private final CacheProvider cacheProvider;
+
+    private final DataIntegrityStore dataIntegrityStore;
+
+    private Cache<DataIntegritySummary> summaryCache;
+
+    private Cache<DataIntegrityDetails> detailsCache;
+
+    @PostConstruct
+    public void init()
+    {
+        summaryCache = cacheProvider.createDataIntegritySummaryCache();
+        detailsCache = cacheProvider.createDataIntegrityDetailsCache();
+    }
 
     private static int alphabeticalOrder( DataIntegrityIssue a, DataIntegrityIssue b )
     {
@@ -502,8 +519,8 @@ public class DefaultDataIntegrityService
             .severity( DataIntegritySeverity.WARNING )
             .section( "Legacy" )
             .description( name.replace( '_', ' ' ) )
-            .runDetailsCheck( c -> new DataIntegrityDetails( c, check.get() ) )
-            .runSummaryCheck( c -> new DataIntegritySummary( c, check.get().size(), null ) )
+            .runDetailsCheck( c -> new DataIntegrityDetails( c, new Date(), null, check.get() ) )
+            .runSummaryCheck( c -> new DataIntegritySummary( c, new Date(), null, check.get().size(), null ) )
             .build() );
     }
 
@@ -599,7 +616,8 @@ public class DefaultDataIntegrityService
     @Transactional( readOnly = true )
     public FlattenedDataIntegrityReport getReport( Set<String> checks, JobProgress progress )
     {
-        return new FlattenedDataIntegrityReport( getDetails( checks, progress ) );
+        runDetailsChecks( checks, progress );
+        return new FlattenedDataIntegrityReport( getDetails( checks, -1L ) );
     }
 
     /**
@@ -784,38 +802,95 @@ public class DefaultDataIntegrityService
     }
 
     @Override
-    @Transactional( readOnly = true )
-    public Map<String, DataIntegritySummary> getSummaries( Set<String> checks, JobProgress progress )
+    public Map<String, DataIntegritySummary> getSummaries( Set<String> checks, long timeout )
     {
-        return runDataIntegrityChecks( "Data Integrity summary checks", expandChecks( checks ), progress,
-            check -> check.getRunSummaryCheck().apply( check ) );
+        return getCached( checks, timeout, summaryCache );
+    }
+
+    // OBS! We intentionally do not open the transaction here to have each check
+    // be independent
+    @Override
+    public void runSummaryChecks( Set<String> checks, JobProgress progress )
+    {
+        runDataIntegrityChecks( "Data Integrity summary checks", expandChecks( checks ), progress, summaryCache,
+            check -> check.getRunSummaryCheck().apply( check ),
+            ( check, ex ) -> new DataIntegritySummary( check, new Date(), ex.getMessage(), -1, null ) );
     }
 
     @Override
-    @Transactional( readOnly = true )
-    public Map<String, DataIntegrityDetails> getDetails( Set<String> checks, JobProgress progress )
+    public Map<String, DataIntegrityDetails> getDetails( Set<String> checks, long timeout )
     {
-        return runDataIntegrityChecks( "Data Integrity details checks", expandChecks( checks ), progress,
-            check -> check.getRunDetailsCheck().apply( check ) );
+        return getCached( checks, timeout, detailsCache );
     }
 
-    private <T> Map<String, T> runDataIntegrityChecks( String stageDesc, Set<String> checks, JobProgress progress,
-        Function<DataIntegrityCheck, T> runCheck )
+    // OBS! We intentionally do not open the transaction here to have each check
+    // be independent
+    @Override
+    public void runDetailsChecks( Set<String> checks, JobProgress progress )
+    {
+        runDataIntegrityChecks( "Data Integrity details checks", expandChecks( checks ), progress, detailsCache,
+            check -> check.getRunDetailsCheck().apply( check ),
+            ( check, ex ) -> new DataIntegrityDetails( check, new Date(), ex.getMessage(), List.of() ) );
+    }
+
+    private <T> Map<String, T> getCached( Set<String> checks, long timeout, Cache<T> cache )
+    {
+        Set<String> names = expandChecks( checks );
+        long giveUpTime = currentTimeMillis() + timeout;
+        Map<String, T> resByName = new LinkedHashMap<>();
+        boolean retry = false;
+        do
+        {
+            if ( retry )
+            {
+                try
+                {
+                    Thread.sleep( Math.max( 10, Math.min( 50, (giveUpTime - currentTimeMillis()) / 2 ) ) );
+                }
+                catch ( InterruptedException ex )
+                {
+                    Thread.currentThread().interrupt();
+                    return resByName;
+                }
+            }
+            for ( String name : names )
+            {
+                if ( !resByName.containsKey( name ) )
+                {
+                    cache.get( name ).ifPresent( res -> resByName.put( name, res ) );
+                }
+            }
+            retry = resByName.size() < names.size() && (timeout < 0 || currentTimeMillis() < giveUpTime);
+        }
+        while ( retry );
+        return resByName;
+    }
+
+    private <T> void runDataIntegrityChecks( String stageDesc, Set<String> checks, JobProgress progress,
+        Cache<T> cache, Function<DataIntegrityCheck, T> runCheck,
+        BiFunction<DataIntegrityCheck, RuntimeException, T> createErrorReport )
     {
         progress.startingProcess( "Data Integrity check" );
         progress.startingStage( stageDesc, checks.size() );
-        Map<String, T> checkResults = new LinkedHashMap<>();
         progress.runStage( checks.stream().map( checksByName::get ).filter( Objects::nonNull ),
             DataIntegrityCheck::getDescription,
             check -> {
-                T res = runCheck.apply( check );
+                T res = null;
+                try
+                {
+                    res = runCheck.apply( check );
+                }
+                catch ( RuntimeException ex )
+                {
+                    cache.put( check.getName(), createErrorReport.apply( check, ex ) );
+                    throw ex;
+                }
                 if ( res != null )
                 {
-                    checkResults.put( check.getName(), res );
+                    cache.put( check.getName(), res );
                 }
             } );
         progress.completedProcess( null );
-        return checkResults;
     }
 
     private Set<String> expandChecks( Set<String> names )
@@ -853,46 +928,10 @@ public class DefaultDataIntegrityService
         if ( configurationsAreLoaded.compareAndSet( false, true ) )
         {
             readDataIntegrityYaml( "data-integrity-checks.yaml",
-                check -> checksByName.put( check.getName(), check ), this::querySummary, this::queryDetails );
+                check -> checksByName.put( check.getName(), check ),
+                sql -> check -> dataIntegrityStore.querySummary( check, sql ),
+                sql -> check -> dataIntegrityStore.queryDetails( check, sql ) );
         }
     }
 
-    private Function<DataIntegrityCheck, DataIntegritySummary> querySummary( String sql )
-    {
-        return check -> {
-            Object[] summary = (Object[]) sessionFactory.getCurrentSession()
-                .createNativeQuery( sql ).getSingleResult();
-            return new DataIntegritySummary( check, parseCount( summary[0] ), parsePercentage( summary[1] ) );
-        };
-    }
-
-    private Function<DataIntegrityCheck, DataIntegrityDetails> queryDetails( String sql )
-    {
-        return check -> {
-            @SuppressWarnings( "unchecked" )
-            List<Object[]> rows = sessionFactory.getCurrentSession().createNativeQuery( sql ).list();
-            return new DataIntegrityDetails( check, rows.stream()
-                .map( row -> new DataIntegrityIssue( (String) row[0],
-                    (String) row[1], row.length == 2 ? null : (String) row[2], null ) )
-                .collect( toUnmodifiableList() ) );
-        };
-    }
-
-    private static Double parsePercentage( Object value )
-    {
-        if ( value == null )
-        {
-            return null;
-        }
-        if ( value instanceof String )
-        {
-            return Double.parseDouble( value.toString().replace( "%", "" ) );
-        }
-        return ((Number) value).doubleValue();
-    }
-
-    private static int parseCount( Object value )
-    {
-        return value == null ? 0 : ((Number) value).intValue();
-    }
 }

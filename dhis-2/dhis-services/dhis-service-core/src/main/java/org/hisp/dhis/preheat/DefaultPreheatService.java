@@ -86,6 +86,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -355,6 +356,8 @@ public class DefaultPreheatService implements PreheatService
             List<? extends IdentifiableObject> uniqueAttributeValues = manager.getAllByAttributes( klass,
                 uniqueAttributes );
             handleUniqueAttributeValues( klass, uniqueAttributeValues, preheat );
+
+            loadAllClassesAttributes( klass, preheat );
         }
 
         if ( objects.containsKey( Attribute.class ) )
@@ -382,8 +385,30 @@ public class DefaultPreheatService implements PreheatService
                         preheat.getUniqueAttributes().get( klass ).add( attribute.getUid() );
                     } );
                 }
+
+                attribute.getSupportedClasses().forEach( klass -> preheat.addClassAttribute( klass, attribute ) );
             }
         }
+    }
+
+    /**
+     * Get all metadata attributes of the given klass from database and put them
+     * to preheat.attributesByTargetObjectType
+     *
+     * @param klass Class used for querying {@link Attribute}
+     * @param preheat {@link Preheat} to store all queried attributes
+     */
+    private void loadAllClassesAttributes( Class<? extends IdentifiableObject> klass, Preheat preheat )
+    {
+        List<Attribute> attributes = attributeService.getAttributes( klass );
+
+        if ( CollectionUtils.isEmpty( attributes )
+            || !CollectionUtils.isEmpty( preheat.getAttributesByClass( klass ) ) )
+        {
+            return;
+        }
+
+        preheat.addClassAttributes( klass, Sets.newHashSet( attributes ) );
     }
 
     private void handleUniqueAttributeValues( Class<? extends IdentifiableObject> klass,

@@ -28,6 +28,7 @@
 
 package org.hisp.dhis.analytics;
 
+import com.google.common.collect.Ordering;
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.ApiTest;
@@ -41,14 +42,18 @@ import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.Program;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.matchers.CustomMatchers;
+import org.hisp.dhis.helpers.matchers.Sorted;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -80,20 +85,37 @@ public class AnalyticsDimensionsTest
         analyticsEventActions = new AnalyticsEventActions();
     }
 
-    @ValueSource( strings = { "name:desc", "code:desc", "uid:asc", "lastUpdated:desc", "created:asc" } )
+    Stream<Arguments> shouldOrder()
+    {
+        return Stream.of(
+            Arguments.of( "name", "desc" ),
+            Arguments.of( "code", "desc" ),
+            Arguments.of( "uid", "asc" ),
+            Arguments.of( "id", "asc" ),
+            Arguments.of( "lastUpdated", "desc" ),
+            Arguments.of( "created", "asc" ),
+            Arguments.of( "displayName", "desc" ),
+            Arguments.of( "displayName", "asc" ),
+            Arguments.of( "dimensionType", "desc" )
+        );
+    }
+
+    @MethodSource
     @ParameterizedTest
-    public void shouldOrder( String order )
+    public void shouldOrder( String property, String direction )
     {
         QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder()
-            .add( "order", order );
+            .add( "order", String.format( "%s:%s", property, direction ) );
 
         analyticsEnrollmentsActions.query().getDimensions( trackerProgram.getUid(), queryParamsBuilder )
             .validate()
-            .body( "dimensions", hasSize( greaterThanOrEqualTo( 1 ) ) );
+            .body( "dimensions", hasSize( greaterThanOrEqualTo( 1 ) ) )
+            .body( "dimensions." + property, Sorted.by( direction ) );
 
         analyticsEventActions.query().getDimensions( trackerProgram.getProgramStages().get( 0 ), queryParamsBuilder )
             .validate()
-            .body( "dimensions", hasSize( greaterThanOrEqualTo( 1 ) ) );
+            .body( "dimensions", hasSize( greaterThanOrEqualTo( 1 ) ) )
+            .body( "dimensions." + property, Sorted.by( direction ) );
     }
 
     @Test
@@ -178,8 +200,9 @@ public class AnalyticsDimensionsTest
 
         analyticsEventActions.query().getDimensionsByDimensionType( trackerProgramStage, "DATA_ELEMENT" )
             .validate()
-            .body( "dimensions", hasSize( greaterThanOrEqualTo( 1 ) ) )
-            .body( "dimensions.id", everyItem( in( dataElements ) ) );
+            .body( "dimensions", hasSize( equalTo( dataElements.size() ) ) )
+            .body( "dimensions.id", everyItem( startsWith( trackerProgramStage ) ) )
+            .body( "dimensions.id", everyItem( CustomMatchers.containsOneOf( dataElements ) ) );
     }
 
     @Test

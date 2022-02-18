@@ -35,6 +35,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 
+import org.geojson.Feature;
+import org.geojson.GeoJsonObject;
 import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.attribute.exception.NonUniqueAttributeValueException;
 import org.hisp.dhis.category.CategoryService;
@@ -49,6 +51,8 @@ import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 
 /**
@@ -330,5 +334,35 @@ class AttributeValueServiceTest extends TransactionalIntegrationTest
         attributeService.addAttributeValue( dataElementA, avA );
         assertEquals( 1, manager.countAllValuesByAttributes( DataElement.class, Lists.newArrayList( attribute1 ) ) );
         assertThrows( DeleteNotAllowedException.class, () -> attributeService.deleteAttribute( attribute1 ) );
+    }
+
+    @Test
+    void testGeoJSONAttributeValue()
+        throws JsonProcessingException
+    {
+        Attribute attribute = new Attribute();
+        attribute.setValueType( ValueType.GEOJSON );
+        attribute.setName( "attributeGeoJson" );
+        attributeService.addAttribute( attribute );
+
+        String geoJson = "{\"type\": \"Feature\", \"geometry\": { \"type\": \"Point\"," +
+            "\"coordinates\": [125.6, 10.1] }, \"properties\": { \"name\": \"Dinagat Islands\" } }";
+
+        AttributeValue avA = new AttributeValue( geoJson, attribute );
+        dataElementA.getAttributeValues().add( avA );
+        dataElementStore.save( dataElementA );
+
+        List<DataElement> dataElements = dataElementStore.getByAttribute( attribute );
+        assertEquals( 1, dataElements.size() );
+        assertEquals( dataElementA.getUid(), dataElements.get( 0 ).getUid() );
+
+        dataElements = dataElementStore.getByAttributeAndValue( attribute, geoJson );
+        assertEquals( 1, dataElements.size() );
+        assertEquals( dataElementA.getUid(), dataElements.get( 0 ).getUid() );
+
+        DataElement dataElement = dataElements.get( 0 );
+        AttributeValue av = dataElement.getAttributeValues().iterator().next();
+        GeoJsonObject geoJsonObject = new ObjectMapper().readValue( av.getValue(), GeoJsonObject.class );
+        assertTrue( geoJsonObject instanceof Feature );
     }
 }

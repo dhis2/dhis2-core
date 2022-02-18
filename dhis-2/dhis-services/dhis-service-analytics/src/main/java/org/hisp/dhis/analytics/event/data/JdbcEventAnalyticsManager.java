@@ -31,10 +31,13 @@ import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.time.DateUtils.addYears;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LATITUDE;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LONGITUDE;
+import static org.hisp.dhis.analytics.event.data.JdbcEnrollmentAnalyticsManager.CREATED_BY_DISPLAY_NAME_COLUMN;
+import static org.hisp.dhis.analytics.event.data.JdbcEnrollmentAnalyticsManager.LAST_UPDATED_BY_DISPLAY_NAME_COLUMN;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.OU_GEOMETRY_COL_SUFFIX;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.DATE_PERIOD_STRUCT_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ORG_UNIT_STRUCT_ALIAS;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.encode;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
 import static org.hisp.dhis.common.AnalyticsDateFilter.SCHEDULED_DATE;
@@ -332,7 +335,8 @@ public class JdbcEventAnalyticsManager
     protected String getSelectClause( EventQueryParams params )
     {
         ImmutableList.Builder<String> cols = new ImmutableList.Builder<String>()
-            .add( "psi", "ps", "executiondate", "storedby", "lastupdated" );
+            .add( "psi", "ps", "executiondate", "storedby", CREATED_BY_DISPLAY_NAME_COLUMN,
+                LAST_UPDATED_BY_DISPLAY_NAME_COLUMN, "lastupdated" );
 
         if ( params.containsScheduledDatePeriod() )
         {
@@ -548,13 +552,15 @@ public class JdbcEventAnalyticsManager
         if ( params.hasProgramStatus() )
         {
             sql += hlp.whereAnd() + " pistatus in ("
-                + params.getProgramStatus().stream().map( p -> "'" + p.name() + "'" ).collect( joining( "," ) ) + ") ";
+                + params.getProgramStatus().stream().map( p -> encode( p.name(), true ) ).collect( joining( "," ) )
+                + ") ";
         }
 
         if ( params.hasEventStatus() )
         {
             sql += hlp.whereAnd() + " psistatus in ("
-                + params.getEventStatus().stream().map( e -> "'" + e.name() + "'" ).collect( joining( "," ) ) + ") ";
+                + params.getEventStatus().stream().map( e -> encode( e.name(), true ) ).collect( joining( "," ) )
+                + ") ";
         }
 
         if ( params.isCoordinatesOnly() || params.isGeometryOnly() )

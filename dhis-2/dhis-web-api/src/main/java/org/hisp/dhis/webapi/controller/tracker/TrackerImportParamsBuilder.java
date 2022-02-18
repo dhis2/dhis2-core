@@ -34,6 +34,8 @@ import static org.hisp.dhis.tracker.TrackerImportStrategy.CREATE_AND_UPDATE;
 import static org.hisp.dhis.tracker.ValidationMode.FULL;
 import static org.hisp.dhis.tracker.bundle.TrackerBundleMode.COMMIT;
 import static org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder.TrackerImportParamKey.ATOMIC_MODE_KEY;
+import static org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder.TrackerImportParamKey.CATEGORY_OPTION_COMBO_ID_SCHEME_KEY;
+import static org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder.TrackerImportParamKey.CATEGORY_OPTION_ID_SCHEME_KEY;
 import static org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder.TrackerImportParamKey.DATA_ELEMENT_ID_SCHEME_KEY;
 import static org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder.TrackerImportParamKey.FLUSH_MODE_KEY;
 import static org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder.TrackerImportParamKey.ID_SCHEME_KEY;
@@ -123,6 +125,8 @@ public class TrackerImportParamsBuilder
             .programIdScheme( bySchemeAndKey( parameters, PROGRAM_ID_SCHEME_KEY, idScheme ) )
             .programStageIdScheme( bySchemeAndKey( parameters, PROGRAM_STAGE_ID_SCHEME_KEY, idScheme ) )
             .dataElementIdScheme( bySchemeAndKey( parameters, DATA_ELEMENT_ID_SCHEME_KEY, idScheme ) )
+            .categoryOptionComboIdScheme( bySchemeAndKey( parameters, CATEGORY_OPTION_COMBO_ID_SCHEME_KEY, idScheme ) )
+            .categoryOptionIdScheme( bySchemeAndKey( parameters, CATEGORY_OPTION_ID_SCHEME_KEY, idScheme ) )
             .build();
     }
 
@@ -192,7 +196,9 @@ public class TrackerImportParamsBuilder
         ORG_UNIT_ID_SCHEME_KEY( "orgUnitIdScheme" ),
         PROGRAM_ID_SCHEME_KEY( "programIdScheme" ),
         PROGRAM_STAGE_ID_SCHEME_KEY( "programStageIdScheme" ),
-        DATA_ELEMENT_ID_SCHEME_KEY( "dataElementIdScheme" );
+        DATA_ELEMENT_ID_SCHEME_KEY( "dataElementIdScheme" ),
+        CATEGORY_OPTION_COMBO_ID_SCHEME_KEY( "categoryOptionComboIdScheme" ),
+        CATEGORY_OPTION_ID_SCHEME_KEY( "categoryOptionIdScheme" );
 
         @Getter
         private final String key;

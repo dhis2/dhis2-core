@@ -31,6 +31,7 @@ import static java.util.stream.Collectors.toUnmodifiableList;
 
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -53,6 +54,12 @@ public class DataIntegrityDetails implements Serializable
 {
     @JsonUnwrapped
     private final DataIntegrityCheck check;
+
+    @JsonProperty
+    private final Date finishedTime;
+
+    @JsonProperty
+    private final String error;
 
     @JsonProperty
     private final List<DataIntegrityIssue> issues;

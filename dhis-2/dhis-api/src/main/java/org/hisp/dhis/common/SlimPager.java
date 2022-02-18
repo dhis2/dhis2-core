@@ -25,42 +25,45 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.preheat;
+package org.hisp.dhis.common;
 
-import java.util.Optional;
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
+import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 
-import lombok.experimental.UtilityClass;
-
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.tracker.TrackerIdScheme;
-import org.hisp.dhis.tracker.TrackerIdentifier;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
 /**
- * @author Luciano Fiandesio
+ * Represents a light version of the Pager object. This should be used in cases
+ * where we do not need to represent page count and total of pages.
  */
-@UtilityClass
-public class PreheatUtils
+@JsonIgnoreProperties( value = { "total", "pageCount" } )
+@JsonInclude( NON_NULL )
+public class SlimPager extends Pager
 {
-    public <T extends IdentifiableObject> Optional<String> resolveKey( TrackerIdentifier identifier, T object )
-    {
-        if ( identifier.getIdScheme().equals( TrackerIdScheme.UID ) )
-        {
-            return Optional.ofNullable( object.getUid() );
-        }
-        else if ( identifier.getIdScheme().equals( TrackerIdScheme.CODE ) )
-        {
-            return Optional.ofNullable( object.getCode() );
-        }
-        else if ( identifier.getIdScheme().equals( TrackerIdScheme.NAME ) )
-        {
-            return Optional.ofNullable( object.getName() );
-        }
-        else if ( identifier.getIdScheme().equals( TrackerIdScheme.ATTRIBUTE ) )
-        {
-            return Optional.ofNullable( identifier.getIdentifier( object ) );
-        }
-        // TODO TrackerIdScheme.AUTO ??
+    public static final int FIRST_PAGE = 1;
 
-        return Optional.empty();
+    private Boolean lastPage;
+
+    public SlimPager( final int page, final int pageSize, final Boolean lastPage )
+    {
+        // Total is always ZERO, as the main goal of this object it to never
+        // count the total of pages.
+        force( page, pageSize );
+        this.lastPage = lastPage;
+    }
+
+    /**
+     * Store a boolean value to indicate if this is the last page or not.
+     *
+     * @return true if this is the last page, false otherwise
+     */
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    public Boolean isLastPage()
+    {
+        return lastPage;
     }
 }

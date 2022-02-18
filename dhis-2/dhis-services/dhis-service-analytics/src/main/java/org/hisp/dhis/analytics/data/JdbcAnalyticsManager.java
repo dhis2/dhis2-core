@@ -507,10 +507,15 @@ public class JdbcAnalyticsManager
                 + "' or " + quoteAlias( "coenddate" ) + " is null)) ";
         }
 
-        if ( tableType.hasPeriodDimension() && params.hasStartEndDate() )
+        if ( tableType.hasPeriodDimension() && params.hasStartDate() )
         {
             sql += sqlHelper.whereAnd() + " " +
-                quoteAlias( "pestartdate" ) + "  >= '" + getMediumDateString( params.getStartDate() ) + "' and " +
+                quoteAlias( "pestartdate" ) + "  >= '" + getMediumDateString( params.getStartDate() ) + "' ";
+        }
+
+        if ( tableType.hasPeriodDimension() && params.hasEndDate() )
+        {
+            sql += sqlHelper.whereAnd() + " " +
                 quoteAlias( "peenddate" ) + " <= '" + getMediumDateString( params.getEndDate() ) + "' ";
         }
 

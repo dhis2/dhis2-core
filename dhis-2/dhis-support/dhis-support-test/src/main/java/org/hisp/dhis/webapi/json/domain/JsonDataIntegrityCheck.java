@@ -69,4 +69,5 @@ public interface JsonDataIntegrityCheck extends JsonObject
     {
         return getString( "recommendation" ).string();
     }
+
 }

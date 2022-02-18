@@ -57,10 +57,31 @@ public class CustomMatchers
             @Override
             public void describeTo( Description description )
             {
-                description.appendText( "string that starts with one of " + strings.toString());
+                description.appendText( "a string that starts with one of " + strings.toString());
             }
         };
     }
 
+
+    public static TypeSafeDiagnosingMatcher<String> containsOneOf( List<String> strings) {
+        return new TypeSafeDiagnosingMatcher<>()
+        {
+            @Override
+            protected boolean matchesSafely( String item, Description mismatchDescription )
+            {
+                if ( strings != null )
+                {
+                    return strings.stream().anyMatch( item::contains );
+                }
+                return false;
+            }
+
+            @Override
+            public void describeTo( Description description )
+            {
+                description.appendText( "a string that contains one of " + strings.toString());
+            }
+        };
+    }
 
 }

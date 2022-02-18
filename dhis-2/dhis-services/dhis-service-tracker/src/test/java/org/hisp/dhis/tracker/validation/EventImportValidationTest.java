@@ -276,6 +276,21 @@ class EventImportValidationTest extends AbstractImportValidationTest
     }
 
     @Test
+    void testCOFoundButAOCNotFound()
+        throws IOException
+    {
+        TrackerImportParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/events_cant-find-aoc-but-co-exists.json" );
+        trackerBundleParams.setImportStrategy( TrackerImportStrategy.CREATE );
+
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
+
+        assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
+        assertThat( trackerImportReport.getValidationReport().getErrors(),
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1115 ) ) ) );
+    }
+
+    @Test
     void testNoCategoryOption()
         throws IOException
     {
@@ -296,7 +311,7 @@ class EventImportValidationTest extends AbstractImportValidationTest
             "tracker/validations/events_cant-find-cat-option-combo-set.json" );
         trackerBundleParams.setImportStrategy( TrackerImportStrategy.CREATE );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
-        assertEquals( 2, trackerImportReport.getValidationReport().getErrors().size() );
+        assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
         assertThat( trackerImportReport.getValidationReport().getErrors(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1117 ) ) ) );
     }

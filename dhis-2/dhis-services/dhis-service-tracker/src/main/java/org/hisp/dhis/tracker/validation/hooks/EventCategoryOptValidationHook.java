@@ -43,7 +43,6 @@ import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.util.DateUtils;
@@ -78,16 +77,7 @@ public class EventCategoryOptValidationHook
 
         CategoryOptionCombo categoryOptionCombo = reporter.getValidationContext()
             .getCachedEventCategoryOptionCombo( event.getUid() );
-
         checkNotNull( categoryOptionCombo, TrackerImporterAssertErrors.CATEGORY_OPTION_COMBO_CANT_BE_NULL );
-
-        if ( categoryOptionCombo.isDefault()
-            && program.getCategoryCombo() != null
-            && !program.getCategoryCombo().isDefault() )
-        {
-            reporter.addError( event, TrackerErrorCode.E1055 );
-            return;
-        }
 
         Date eventDate;
         try
