@@ -209,6 +209,11 @@ public class EventVisualization extends BaseAnalyticalObject
 
     /**
      * Indicates whether this is a legacy row (EventChart or EventReport).
+     *
+     * - EventVisualizations created through the new App will never be legacy.
+     *
+     * - Legacy EventVisualizations updated through the new App will always
+     * become non-legacy.
      */
     private boolean legacy;
 
@@ -1052,6 +1057,8 @@ public class EventVisualization extends BaseAnalyticalObject
         this.showDimensionLabels = showDimensionLabels;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public boolean isLegacy()
     {
         return legacy;
