@@ -458,8 +458,11 @@ public abstract class PeriodType
      */
     public static PeriodType getPeriodTypeFromIsoString( String isoPeriod )
     {
-        DateUnitType dateUnitType = DateUnitType.find( isoPeriod );
-        return dateUnitType != null ? PERIOD_TYPE_MAP.get( dateUnitType.getName() ) : null;
+        return DateUnitType.find( isoPeriod )
+            .map( DateUnitType.DateUnitTypeWithPattern::getDateUnitType )
+            .map( DateUnitType::getName )
+            .map( PERIOD_TYPE_MAP::get )
+            .orElse( null );
     }
 
     /**
