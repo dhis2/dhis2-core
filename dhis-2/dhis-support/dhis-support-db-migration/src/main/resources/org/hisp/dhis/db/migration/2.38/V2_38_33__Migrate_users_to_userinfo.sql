@@ -36,9 +36,8 @@ alter table userinfo
     add column if not exists "uuid" uuid;
 alter table userinfo
     add column if not exists accountexpiry timestamp without time zone default null;
-
-alter table if exists userinfo
-    add idtoken character varying(255);
+alter table userinfo
+    add column if not exists idtoken character varying(255);
 
 alter table userinfo drop column if exists restorecode;
 
@@ -85,33 +84,10 @@ alter table only metadataproposal
     drop constraint if exists fk_createdby_userid;
 alter table only metadataproposal
     add constraint fk_createdby_userid foreign key (createdby) references userinfo (userinfoid);
+
 alter table only metadataproposal
     drop constraint if exists fk_finalisedby_userid;
+
 alter table only metadataproposal
     add constraint fk_finalisedby_userid foreign key (finalisedby) references userinfo (userinfoid);
 
-
---
--- --     userid integer NOT NULL,
--- old_uid character varying(11) NOT NULL,
---
--- --     code character varying(50),
--- --     created timestamp without time zone NOT NULL,
--- --     lastupdated timestamp without time zone NOT NULL,
---     lastupdatedby integer,
---     creatoruserid integer,
---     username character varying(255) NOT NULL,
---     password character varying(60),
---     secret text NOT NULL,
---     twofa boolean NOT NULL,
---     externalauth boolean,
---     openid text,
---     ldapid text,
---     passwordlastupdated timestamp without time zone,
---     lastlogin timestamp without time zone,
---     restoretoken character varying(255),
---     restorecode character varying(255),
---     restoreexpiry timestamp without time zone,
---     selfregistered boolean,
---     invitation boolean,
---     disabled boolean
