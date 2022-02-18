@@ -32,9 +32,9 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.webapi.controller.tracker.TrackerControllerSupport.RESOURCE_PATH;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -126,7 +126,7 @@ public class TrackerRelationshipsExportController
             () -> notFound( "No trackedEntity '" + criteria.getTei() + "' found." ),
             criteria );
 
-        if ( Objects.isNull( relationships ) )
+        if ( relationships.isEmpty() )
         {
             relationships = tryGetRelationshipFrom(
                 criteria.getEnrollment(),
@@ -135,7 +135,7 @@ public class TrackerRelationshipsExportController
                 criteria );
         }
 
-        if ( Objects.isNull( relationships ) )
+        if ( relationships.isEmpty() )
         {
             relationships = tryGetRelationshipFrom(
                 criteria.getEvent(),
@@ -144,7 +144,7 @@ public class TrackerRelationshipsExportController
                 criteria );
         }
 
-        if ( Objects.isNull( relationships ) )
+        if ( relationships.isEmpty() )
         {
             throw new WebMessageException( badRequest( "Missing required parameter 'tei', 'enrollment' or 'event'." ) );
         }
@@ -183,7 +183,7 @@ public class TrackerRelationshipsExportController
     {
         if ( identifier == null )
         {
-            return null;
+            return Collections.emptyList();
         }
         Object object = getObjectRetriever( type ).apply( identifier );
         if ( object == null )
