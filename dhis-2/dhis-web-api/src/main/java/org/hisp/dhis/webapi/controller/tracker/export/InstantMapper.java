@@ -40,12 +40,12 @@ import org.mapstruct.Mapper;
 public interface InstantMapper
 {
 
-    default public Instant fromString( String dateAsString )
+    default Instant fromString( String dateAsString )
     {
         return DateUtils.instantFromDateAsString( dateAsString );
     }
 
-    default public Instant fromDate( Date date )
+    default Instant fromDate( Date date )
     {
         if ( date instanceof java.sql.Date )
         {
@@ -54,7 +54,7 @@ public interface InstantMapper
         return DateUtils.instantFromDate( date );
     }
 
-    default public Instant fromSqlDate( java.sql.Date date )
+    default Instant fromSqlDate( java.sql.Date date )
     {
         return Optional.ofNullable( date )
             .map( java.sql.Date::toLocalDate )
