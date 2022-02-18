@@ -543,7 +543,7 @@ public class EventController
         if ( fields.isEmpty() )
         {
             fields.add( "event,uid,program,programType,status,assignedUser,orgUnit,orgUnitName," +
-                "eventDate,orgUnit,orgUnitName,created,lastUpdated,followup" );
+                "eventDate,orgUnit,orgUnitName,created,lastUpdated,followup,dataValues" );
         }
 
         CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( attributeCc, attributeCos,
