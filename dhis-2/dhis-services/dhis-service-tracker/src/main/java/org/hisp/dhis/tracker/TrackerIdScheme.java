@@ -51,9 +51,4 @@ public enum TrackerIdScheme
      * Preheat using ATTRIBUTE identifiers
      */
     ATTRIBUTE,
-
-    /**
-     * Find first non-null identifier in order: UID, CODE
-     */
-    AUTO
 }
