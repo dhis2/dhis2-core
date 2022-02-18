@@ -109,6 +109,15 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
     }
 
     @Test
+    void getRelationshipsMissingParam()
+    {
+        assertEquals( "Missing required parameter 'tei', 'enrollment' or 'event'.",
+            GET( "/tracker/relationships" )
+                .error( HttpStatus.BAD_REQUEST )
+                .getMessage() );
+    }
+
+    @Test
     void getRelationshipsByEvent()
     {
         TrackedEntityInstance tei = trackedEntityInstance();
