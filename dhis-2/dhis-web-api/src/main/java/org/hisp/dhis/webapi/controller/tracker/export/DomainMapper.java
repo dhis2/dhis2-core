@@ -33,11 +33,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public interface DomainMapper<FROM, TO>
+public interface DomainMapper<F, T>
 {
-    TO from( FROM from );
+    T from( F from );
 
-    default List<TO> fromCollection( Collection<FROM> froms )
+    default List<T> fromCollection( Collection<F> froms )
     {
         return Optional.ofNullable( froms )
             .orElse( Collections.emptySet() )
