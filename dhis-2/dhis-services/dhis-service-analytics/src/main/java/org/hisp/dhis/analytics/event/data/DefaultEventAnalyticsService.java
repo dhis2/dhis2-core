@@ -88,6 +88,7 @@ import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.i18n.ui.DefaultI18nManager;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.system.database.DatabaseInfo;
@@ -191,9 +192,9 @@ public class DefaultEventAnalyticsService
         EventDataQueryService eventDataQueryService, AnalyticsSecurityManager securityManager,
         EventQueryPlanner queryPlanner, EventQueryValidator queryValidator, DatabaseInfo databaseInfo,
         AnalyticsCache analyticsCache, EnrollmentAnalyticsManager enrollmentAnalyticsManager,
-        SchemaIdResponseMapper schemaIdResponseMapper )
+        SchemaIdResponseMapper schemaIdResponseMapper, DefaultI18nManager defaultI18nManager )
     {
-        super( securityManager, queryValidator );
+        super( securityManager, queryValidator, defaultI18nManager );
 
         checkNotNull( dataElementService );
         checkNotNull( trackedEntityAttributeService );
@@ -605,7 +606,8 @@ public class DefaultEventAnalyticsService
         // Meta-data
         // ---------------------------------------------------------------------
 
-        addMetadata( params, grid );
+        // TODO DUSAN
+        addMetadata( params, null, grid );
 
         return grid;
     }

@@ -422,7 +422,10 @@ public class DefaultDataQueryService
                     // If custom time filter is specified, set it in periods
                     if ( isoPeriodHolder.hasDateField() )
                     {
-                        relativePeriods.forEach( period -> period.setDateField( isoPeriodHolder.getDateField() ) );
+                        relativePeriods.forEach( period -> {
+                            period.setDateField( isoPeriodHolder.getDateField() );
+                            period.setDescription( isoPeriodHolder.getIsoPeriod() );
+                        } );
                     }
 
                     periods.addAll( relativePeriods );
@@ -433,6 +436,14 @@ public class DefaultDataQueryService
 
                     if ( period != null )
                     {
+                        if ( isoPeriodHolder.hasDateField() )
+                        {
+                            period.setDescription( isoPeriodHolder.getIsoPeriod() );
+                        }
+
+                        dimensionalKeywords.addKeyword( isoPeriodHolder.getIsoPeriod(),
+                            i18n.getString( format.formatPeriod( period ) ) );
+
                         periods.add( period );
                     }
                     else
