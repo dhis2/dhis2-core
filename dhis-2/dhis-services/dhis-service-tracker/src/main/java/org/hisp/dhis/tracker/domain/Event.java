@@ -127,6 +127,12 @@ public class Event
     private String assignedUser;
 
     @JsonProperty
+    private String assignedUserUsername;
+
+    @JsonProperty
+    private String assignedUserDisplayName;
+
+    @JsonProperty
     private String createdBy;
 
     @JsonProperty
