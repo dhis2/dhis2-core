@@ -112,7 +112,7 @@ public abstract class AbstractAnalyticsService
         // params object is modified
         List<DimensionItemKeywords.Keyword> periodKeywords = params.getDimensions().stream().map(
             DimensionalObject::getDimensionItemKeywords )
-            .filter( dimensionItemKeywords -> !dimensionItemKeywords.isEmpty() )
+            .filter( dimensionItemKeywords -> dimensionItemKeywords != null && !dimensionItemKeywords.isEmpty() )
             .flatMap( dk -> dk.getKeywords().stream() ).collect( Collectors.toList() );
 
         params = new EventQueryParams.Builder( params )
@@ -249,6 +249,18 @@ public abstract class AbstractAnalyticsService
      * @param params the data query parameters.
      * @param grid the grid.
      */
+    protected void addMetadata( EventQueryParams params, Grid grid )
+    {
+        addMetadata( params, null, grid );
+    }
+
+    /**
+     * Adds meta data values to the given grid based on the given data query
+     * parameters.
+     *
+     * @param params the data query parameters.
+     * @param grid the grid.
+     */
     protected void addMetadata( EventQueryParams params, List<DimensionItemKeywords.Keyword> periodKeywords, Grid grid )
     {
         if ( !params.isSkipMeta() )
@@ -355,7 +367,7 @@ public abstract class AbstractAnalyticsService
             .forEach( item -> metadataItemMap.put( item.getItemId(),
                 new MetadataItem( item.getItem().getDisplayName(), includeDetails ? item.getItem() : null ) ) );
 
-        if ( periodKeywords != null && !periodKeywords.isEmpty() )
+        if ( hasPeriodKeywords( periodKeywords ) )
         {
             for ( DimensionItemKeywords.Keyword keyword : periodKeywords )
             {
@@ -367,6 +379,16 @@ public abstract class AbstractAnalyticsService
         }
 
         return metadataItemMap;
+    }
+
+    /**
+     * check the period dimension keywords
+     *
+     * @param periodKeywords PeriodKeywords.
+     */
+    private boolean hasPeriodKeywords( List<DimensionItemKeywords.Keyword> periodKeywords )
+    {
+        return periodKeywords != null && !periodKeywords.isEmpty();
     }
 
     /**

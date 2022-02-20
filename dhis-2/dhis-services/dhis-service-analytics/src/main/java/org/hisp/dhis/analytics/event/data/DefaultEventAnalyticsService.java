@@ -605,8 +605,7 @@ public class DefaultEventAnalyticsService
         // Meta-data
         // ---------------------------------------------------------------------
 
-        // TODO DUSAN
-        addMetadata( params, null, grid );
+        addMetadata( params, grid );
 
         return grid;
     }

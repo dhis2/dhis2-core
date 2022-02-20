@@ -439,7 +439,8 @@ public class DefaultDataQueryService
                         }
 
                         dimensionalKeywords.addKeyword( isoPeriodHolder.getIsoPeriod(),
-                            i18n.getString( format.formatPeriod( period ) ) );
+                            format != null ? i18n.getString( format.formatPeriod( period ) )
+                                : isoPeriodHolder.getIsoPeriod() );
 
                         periods.add( period );
                     }
