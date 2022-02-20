@@ -27,27 +27,106 @@
  */
 package org.hisp.dhis.webapi.controller.event.webrequest.tracker;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.badRequest;
 import static org.hisp.dhis.webapi.controller.event.webrequest.tracker.FieldTranslatorSupport.translate;
 
 import java.util.Optional;
 
-import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 
-@Data
 @NoArgsConstructor
+@EqualsAndHashCode( exclude = { "identifier", "identifierName", "identifierClass" } )
 public class TrackerRelationshipCriteria extends PagingAndSortingCriteriaAdapter
 {
 
+    @Setter
     private String tei;
 
+    @Setter
     private String enrollment;
 
+    @Setter
     private String event;
+
+    private String identifier;
+
+    private String identifierName;
+
+    private Class<?> identifierClass;
+
+    public String getIdentifierParam()
+        throws WebMessageException
+    {
+        if ( this.identifier != null )
+        {
+            return this.identifier;
+        }
+
+        int count = 0;
+        if ( !StringUtils.isBlank( this.tei ) )
+        {
+            this.identifier = this.tei;
+            this.identifierName = "trackedEntity";
+            this.identifierClass = TrackedEntityInstance.class;
+            count++;
+        }
+        if ( !StringUtils.isBlank( this.enrollment ) )
+        {
+            this.identifier = this.enrollment;
+            this.identifierName = "enrollment";
+            this.identifierClass = ProgramInstance.class;
+            count++;
+        }
+        if ( !StringUtils.isBlank( this.event ) )
+        {
+            this.identifier = this.event;
+            this.identifierName = "event";
+            this.identifierClass = ProgramStageInstance.class;
+            count++;
+        }
+
+        if ( count == 0 )
+        {
+            throw new WebMessageException( badRequest( "Missing required parameter 'tei', 'enrollment' or 'event'." ) );
+        }
+        else if ( count > 1 )
+        {
+            throw new WebMessageException(
+                badRequest( "Only one of parameters 'tei', 'enrollment' or 'event' is allowed." ) );
+        }
+        return this.identifier;
+    }
+
+    public String getIdentifierName()
+        throws WebMessageException
+    {
+        if ( this.identifierName == null )
+        {
+            this.getIdentifierParam();
+        }
+        return this.identifierName;
+    }
+
+    public Class<?> getIdentifierClass()
+        throws WebMessageException
+    {
+        if ( this.identifierClass == null )
+        {
+            this.getIdentifierParam();
+        }
+        return this.identifierClass;
+    }
 
     @Override
     public boolean isLegacy()
