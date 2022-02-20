@@ -53,7 +53,6 @@ import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.SetMap;
-import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataanalysis.ValidationRuleExpressionDetails;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
@@ -104,8 +103,6 @@ public class DefaultValidationService
 
     private final CategoryService categoryService;
 
-    private final ConstantService constantService;
-
     private final IdentifiableObjectManager idObjectManager;
 
     private final ValidationNotificationService notificationService;
@@ -122,7 +119,7 @@ public class DefaultValidationService
 
     public DefaultValidationService( PeriodService periodService, OrganisationUnitService organisationUnitService,
         ExpressionService expressionService, DimensionService dimensionService, DataValueService dataValueService,
-        CategoryService categoryService, ConstantService constantService, IdentifiableObjectManager idObjectManager,
+        CategoryService categoryService, IdentifiableObjectManager idObjectManager,
         ValidationNotificationService notificationService, ValidationRuleService validationRuleService,
         ApplicationContext applicationContext, ValidationResultService validationResultService,
         AnalyticsService analyticsService, CurrentUserService currentUserService )
@@ -133,7 +130,6 @@ public class DefaultValidationService
         checkNotNull( dimensionService );
         checkNotNull( dataValueService );
         checkNotNull( categoryService );
-        checkNotNull( constantService );
         checkNotNull( idObjectManager );
         checkNotNull( notificationService );
         checkNotNull( validationRuleService );
@@ -148,7 +144,6 @@ public class DefaultValidationService
         this.dimensionService = dimensionService;
         this.dataValueService = dataValueService;
         this.categoryService = categoryService;
-        this.constantService = constantService;
         this.idObjectManager = idObjectManager;
         this.notificationService = notificationService;
         this.validationRuleService = validationRuleService;
@@ -334,7 +329,6 @@ public class DefaultValidationService
         ValidationRunContext.Builder builder = ValidationRunContext.newBuilder()
             .withOrgUnits( orgUnits )
             .withPeriodTypeXs( new ArrayList<>( periodTypeXMap.values() ) )
-            .withConstantMap( constantService.getConstantMap() )
             .withInitialResults( validationResultService
                 .getValidationResults( parameterOrgUnit,
                     parameters.isIncludeOrgUnitDescendants(), parameters.getValidationRules(),

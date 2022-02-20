@@ -43,7 +43,7 @@ public class vZeroPosValueCount
     {
         String sql = "nullif(cast((";
 
-        for ( String uid : visitor.getDataElementAndAttributeIdentifiers() )
+        for ( String uid : visitor.getProgParams().getDataElementAndAttributeIdentifiers() )
         {
             sql += "case when " + visitor.getStatementBuilder().columnQuote( uid ) + " >= 0 then 1 else 0 end + ";
         }

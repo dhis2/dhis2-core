@@ -36,6 +36,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import org.hisp.dhis.parser.expression.ProgramExpressionParams;
 import org.hisp.dhis.program.ProgramExpressionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
@@ -62,7 +63,7 @@ public class ProgramItemStageElement
         ProgramStageService stageService = visitor.getProgramStageService();
 
         ProgramStage programStage = stageService.getProgramStage( programStageId );
-        DataElement dataElement = visitor.getDataElementService().getDataElement( dataElementId );
+        DataElement dataElement = visitor.getIdObjectManager().get( DataElement.class, dataElementId );
 
         if ( programStage == null )
         {
@@ -74,7 +75,7 @@ public class ProgramItemStageElement
             throw new ParserExceptionWithoutContext( "Data element " + dataElementId + " not found" );
         }
 
-        if ( isNonDefaultStageOffset( visitor.getStageOffset() )
+        if ( isNonDefaultStageOffset( visitor.getState().getStageOffset() )
             && !isRepeatableStage( stageService, programStageId ) )
         {
             throw new ParserException( getErrorMessage( programStageId ) );
@@ -97,7 +98,9 @@ public class ProgramItemStageElement
 
         String dataElementId = ctx.uid1.getText();
 
-        int stageOffset = visitor.getStageOffset();
+        ProgramExpressionParams params = visitor.getProgParams();
+
+        int stageOffset = visitor.getState().getStageOffset();
 
         String column;
 
@@ -108,7 +111,8 @@ public class ProgramItemStageElement
                 column = visitor.getStatementBuilder().getProgramIndicatorEventColumnSql( programStageId,
                     Integer.valueOf( stageOffset ).toString(),
                     SqlUtils.quote( dataElementId ),
-                    visitor.getReportingStartDate(), visitor.getReportingEndDate(), visitor.getProgramIndicator() );
+                    params.getReportingStartDate(), params.getReportingEndDate(),
+                    params.getProgramIndicator() );
             }
             else
             {
@@ -118,13 +122,13 @@ public class ProgramItemStageElement
         else
         {
             column = visitor.getStatementBuilder().getProgramIndicatorDataValueSelectSql(
-                programStageId, dataElementId, visitor.getReportingStartDate(), visitor.getReportingEndDate(),
-                visitor.getProgramIndicator() );
+                programStageId, dataElementId, params.getReportingStartDate(), params.getReportingEndDate(),
+                params.getProgramIndicator() );
         }
 
-        if ( visitor.getReplaceNulls() )
+        if ( visitor.getState().isReplaceNulls() )
         {
-            DataElement dataElement = visitor.getDataElementService().getDataElement( dataElementId );
+            DataElement dataElement = visitor.getIdObjectManager().get( DataElement.class, dataElementId );
 
             if ( dataElement == null )
             {

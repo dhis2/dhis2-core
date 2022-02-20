@@ -61,8 +61,6 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.common.MapMap;
 import org.hisp.dhis.commons.util.DebugUtils;
-import org.hisp.dhis.constant.Constant;
-import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.datavalue.DataValue;
@@ -104,8 +102,6 @@ public class DefaultPredictionService
     implements PredictionService, AnalyticsServiceTarget, CurrentUserServiceTarget
 {
     private final PredictorService predictorService;
-
-    private final ConstantService constantService;
 
     private final ExpressionService expressionService;
 
@@ -257,7 +253,6 @@ public class DefaultPredictionService
         Set<DimensionalItemObject> outputPeriodItems = new HashSet<>( outputPeriodItemMap.values() );
         Set<DimensionalItemObject> sampledItems = new HashSet<>( sampledItemMap.values() );
         Set<DimensionalItemObject> items = new HashSet<>( itemMap.values() );
-        Map<String, Constant> constantMap = constantService.getConstantMap();
         List<Period> outputPeriods = getPeriodsBetweenDates( predictor.getPeriodType(), startDate, endDate );
         Set<Period> existingOutputPeriods = getExistingPeriods( outputPeriods );
         ListMap<Period, Period> samplePeriodsMap = getSamplePeriodsMap( outputPeriods, predictor );
@@ -319,7 +314,7 @@ public class DefaultPredictionService
                     List<Period> samplePeriods = new ArrayList<>( samplePeriodsMap.get( c.getOutputPeriod() ) );
 
                     samplePeriods.removeAll( getSkippedPeriods( allSamplePeriods, itemMap, c.getPeriodValueMap(),
-                        skipTest, constantMap, orgUnitGroupMap, data.getOrgUnit() ) );
+                        skipTest, orgUnitGroupMap, data.getOrgUnit() ) );
 
                     if ( requireData && !dataIsPresent( outputPeriodItems, c.getValueMap(), sampledItems,
                         samplePeriods, c.getPeriodValueMap() ) )
@@ -333,7 +328,6 @@ public class DefaultPredictionService
                         .dataType( expressionDataType )
                         .itemMap( itemMap )
                         .valueMap( c.getValueMap() )
-                        .constantMap( constantMap )
                         .orgUnitGroupMap( orgUnitGroupMap )
                         .days( c.getOutputPeriod().getDaysInPeriod() )
                         .missingValueStrategy( generator.getMissingValueStrategy() )
@@ -410,8 +404,7 @@ public class DefaultPredictionService
      */
     private Set<Period> getSkippedPeriods( Set<Period> allSamplePeriods,
         Map<DimensionalItemId, DimensionalItemObject> itemMap, MapMap<Period, DimensionalItemObject, Object> aocData,
-        Expression skipTest, Map<String, Constant> constantMap, Map<String, OrganisationUnitGroup> orgUnitGroupMap,
-        OrganisationUnit orgUnit )
+        Expression skipTest, Map<String, OrganisationUnitGroup> orgUnitGroupMap, OrganisationUnit orgUnit )
     {
         Set<Period> skippedPeriods = new HashSet<>();
 
@@ -428,7 +421,6 @@ public class DefaultPredictionService
                     .parseType( PREDICTOR_SKIP_TEST )
                     .itemMap( itemMap )
                     .valueMap( aocData.get( p ) )
-                    .constantMap( constantMap )
                     .orgUnitGroupMap( orgUnitGroupMap )
                     .days( p.getDaysInPeriod() )
                     .missingValueStrategy( skipTest.getMissingValueStrategy() )
