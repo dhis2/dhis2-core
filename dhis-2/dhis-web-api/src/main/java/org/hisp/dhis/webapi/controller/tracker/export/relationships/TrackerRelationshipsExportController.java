@@ -45,6 +45,7 @@ import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.events.relationship.RelationshipService;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
@@ -119,6 +120,29 @@ public class TrackerRelationshipsExportController
         TrackerRelationshipCriteria criteria )
         throws WebMessageException
     {
+        int count = 0;
+        if ( !StringUtils.isBlank( criteria.getTei() ) )
+        {
+            count++;
+        }
+        if ( !StringUtils.isBlank( criteria.getEnrollment() ) )
+        {
+            count++;
+        }
+        if ( !StringUtils.isBlank( criteria.getEvent() ) )
+        {
+            count++;
+        }
+
+        if ( count == 0 )
+        {
+            throw new WebMessageException( badRequest( "Missing required parameter 'tei', 'enrollment' or 'event'." ) );
+        }
+        else if ( count > 1 )
+        {
+            throw new WebMessageException(
+                badRequest( "Only one of parameters 'tei', 'enrollment' or 'event' is allowed." ) );
+        }
 
         List<org.hisp.dhis.webapi.controller.tracker.export.relationships.Relationship> relationships = tryGetRelationshipFrom(
             criteria.getTei(),
@@ -142,11 +166,6 @@ public class TrackerRelationshipsExportController
                 ProgramStageInstance.class,
                 () -> notFound( "No event '" + criteria.getEvent() + "' found." ),
                 criteria );
-        }
-
-        if ( relationships.isEmpty() )
-        {
-            throw new WebMessageException( badRequest( "Missing required parameter 'tei', 'enrollment' or 'event'." ) );
         }
 
         PagingWrapper<org.hisp.dhis.webapi.controller.tracker.export.relationships.Relationship> relationshipPagingWrapper = new PagingWrapper<>();

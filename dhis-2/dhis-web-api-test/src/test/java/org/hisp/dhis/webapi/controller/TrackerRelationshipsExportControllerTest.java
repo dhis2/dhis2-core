@@ -119,6 +119,42 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
     }
 
     @Test
+    void getRelationshipsBadRequestWithAllParams()
+    {
+        assertEquals( "Only one of parameters 'tei', 'enrollment' or 'event' is allowed.",
+            GET( "/tracker/relationships?tei=Hq3Kc6HK4OZ&enrollment=Hq3Kc6HK4OZ&event=Hq3Kc6HK4OZ" )
+                .error( HttpStatus.BAD_REQUEST )
+                .getMessage() );
+    }
+
+    @Test
+    void getRelationshipsBadRequestWithTeiAndEnrollment()
+    {
+        assertEquals( "Only one of parameters 'tei', 'enrollment' or 'event' is allowed.",
+            GET( "/tracker/relationships?tei=Hq3Kc6HK4OZ&enrollment=Hq3Kc6HK4OZ" )
+                .error( HttpStatus.BAD_REQUEST )
+                .getMessage() );
+    }
+
+    @Test
+    void getRelationshipsBadRequestWithTeiAndEvent()
+    {
+        assertEquals( "Only one of parameters 'tei', 'enrollment' or 'event' is allowed.",
+            GET( "/tracker/relationships?tei=Hq3Kc6HK4OZ&event=Hq3Kc6HK4OZ" )
+                .error( HttpStatus.BAD_REQUEST )
+                .getMessage() );
+    }
+
+    @Test
+    void getRelationshipsBadRequestWithEnrollmentAndEvent()
+    {
+        assertEquals( "Only one of parameters 'tei', 'enrollment' or 'event' is allowed.",
+            GET( "/tracker/relationships?enrollment=Hq3Kc6HK4OZ&event=Hq3Kc6HK4OZ" )
+                .error( HttpStatus.BAD_REQUEST )
+                .getMessage() );
+    }
+
+    @Test
     void getRelationshipsByEvent()
     {
         TrackedEntityInstance tei = trackedEntityInstance();
@@ -196,25 +232,6 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
 
         assertEquals( "No trackedEntity 'Hq3Kc6HK4OZ' found.",
             GET( "/tracker/relationships?tei=Hq3Kc6HK4OZ" )
-                .error( HttpStatus.NOT_FOUND )
-                .getMessage() );
-    }
-
-    @Test
-    void getRelationshipsByMultipleParams()
-    {
-        TrackedEntityInstance tei = trackedEntityInstance();
-        ProgramInstance programInstance = programInstance( tei );
-
-        RelationshipType rType = relationshipType( RelationshipEntity.PROGRAM_INSTANCE,
-            RelationshipEntity.TRACKED_ENTITY_INSTANCE );
-        Relationship r = relationship( rType, programInstance, tei );
-
-        // the query parameters are processed in order tei, enrollment, event
-        // the first query parameter (unless another param found relationships)
-        // to find no relationships causes response NOT_FOUND
-        assertEquals( "No trackedEntity 'Hq3Kc6HK4OZ' found.",
-            GET( "/tracker/relationships?tei=Hq3Kc6HK4OZ&enrollment=" + programInstance.getUid() )
                 .error( HttpStatus.NOT_FOUND )
                 .getMessage() );
     }
@@ -298,11 +315,6 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
     private JsonObject assertFirstRelationship( JsonObject body, Relationship r )
     {
         return assertNthRelationship( body, r, 0 );
-    }
-
-    private JsonObject assertSecondRelationship( JsonObject body, Relationship r )
-    {
-        return assertNthRelationship( body, r, 1 );
     }
 
     private JsonObject assertNthRelationship( JsonObject body, Relationship r, int n )
