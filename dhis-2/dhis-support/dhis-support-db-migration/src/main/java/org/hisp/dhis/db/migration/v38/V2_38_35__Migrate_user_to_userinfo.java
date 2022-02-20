@@ -35,9 +35,9 @@ import org.flywaydb.core.api.migration.Context;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class V2_38_34__Migrate_user_to_userinfo extends BaseJavaMigration
+public class V2_38_35__Migrate_user_to_userinfo extends BaseJavaMigration
 {
-    private static final Logger log = LoggerFactory.getLogger( V2_38_34__Migrate_user_to_userinfo.class );
+    private static final Logger log = LoggerFactory.getLogger( V2_38_35__Migrate_user_to_userinfo.class );
 
     public void migrate( Context context )
         throws SQLException
@@ -63,7 +63,7 @@ public class V2_38_34__Migrate_user_to_userinfo extends BaseJavaMigration
             "FROM (SELECT * FROM users) AS uc " +
             "WHERE userinfo.userinfoid = uc.userid";
 
-        try (Statement statement = context.getConnection().createStatement())
+        try ( Statement statement = context.getConnection().createStatement() )
         {
             log.info( "Executing user/usercredentials migration query: [" + query + "]" );
             statement.execute( query );

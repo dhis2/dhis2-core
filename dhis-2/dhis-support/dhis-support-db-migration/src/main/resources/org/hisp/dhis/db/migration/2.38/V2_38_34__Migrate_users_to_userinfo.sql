@@ -1,6 +1,4 @@
 alter table userinfo
-    add column if not exists old_uid character varying(11);
-alter table userinfo
     add column if not exists lastupdatedby bigint;
 alter table userinfo
     add column if not exists creatoruserid bigint;
