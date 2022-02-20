@@ -71,10 +71,8 @@ import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.RepeatableStageParams;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.i18n.ui.DefaultI18nManager;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.User;
 
@@ -89,12 +87,8 @@ public abstract class AbstractAnalyticsService
 
     final EventQueryValidator queryValidator;
 
-    final DefaultI18nManager defaultI18nManager;
-
-    public AbstractAnalyticsService( AnalyticsSecurityManager securityManager, EventQueryValidator queryValidator,
-        DefaultI18nManager defaultI18nManager )
+    public AbstractAnalyticsService( AnalyticsSecurityManager securityManager, EventQueryValidator queryValidator )
     {
-        this.defaultI18nManager = defaultI18nManager;
         checkNotNull( securityManager );
         checkNotNull( queryValidator );
 
@@ -114,9 +108,8 @@ public abstract class AbstractAnalyticsService
 
         queryValidator.validate( params );
 
-        // Periods before EventQueryParams modification used by grid meta data
-        List<Period> originalPeriods = asTypedList( params.getPeriods() );
-
+        // keywords as well as their periods are removed in the next step,
+        // params object is modified
         List<DimensionItemKeywords.Keyword> periodKeywords = params.getDimensions().stream().map(
             DimensionalObject::getDimensionItemKeywords )
             .filter( dimensionItemKeywords -> !dimensionItemKeywords.isEmpty() )

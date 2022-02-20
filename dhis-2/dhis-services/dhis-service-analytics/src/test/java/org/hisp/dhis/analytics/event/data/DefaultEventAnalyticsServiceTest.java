@@ -50,7 +50,6 @@ import org.hisp.dhis.analytics.event.EventQueryPlanner;
 import org.hisp.dhis.analytics.event.EventQueryValidator;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.i18n.ui.DefaultI18nManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.system.database.DatabaseInfo;
@@ -107,16 +106,12 @@ class DefaultEventAnalyticsServiceTest
     @Mock
     private SchemaIdResponseMapper schemaIdResponseMapper;
 
-    @Mock
-    private DefaultI18nManager defaultI18nManager;
-
     @BeforeEach
     public void setUp()
     {
         defaultEventAnalyticsService = new DefaultEventAnalyticsService( dataElementService,
             trackedEntityAttributeService, eventAnalyticsManager, eventDataQueryService, securityManager, queryPlanner,
-            eventQueryValidator, databaseInfo, analyticsCache, enrollmentAnalyticsManager, schemaIdResponseMapper,
-            defaultI18nManager );
+            eventQueryValidator, databaseInfo, analyticsCache, enrollmentAnalyticsManager, schemaIdResponseMapper );
     }
 
     @Test

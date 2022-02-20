@@ -51,7 +51,6 @@ import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.i18n.ui.DefaultI18nManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
@@ -93,13 +92,10 @@ class AbstractAnalyticsServiceTest
     @Mock
     private EventQueryValidator eventQueryValidator;
 
-    @Mock
-    private DefaultI18nManager defaultI18nManager;
-
     @BeforeEach
     public void setUp()
     {
-        dummyAnalyticsService = new DummyAnalyticsService( securityManager, eventQueryValidator, defaultI18nManager );
+        dummyAnalyticsService = new DummyAnalyticsService( securityManager, eventQueryValidator );
 
         peA = MonthlyPeriodType.getPeriodFromIsoString( "201701" );
         ouA = createOrganisationUnit( 'A' );
@@ -160,10 +156,9 @@ class AbstractAnalyticsServiceTest
 
 class DummyAnalyticsService extends AbstractAnalyticsService
 {
-    public DummyAnalyticsService( AnalyticsSecurityManager securityManager, EventQueryValidator queryValidator,
-        DefaultI18nManager defaultI18nManager )
+    public DummyAnalyticsService( AnalyticsSecurityManager securityManager, EventQueryValidator queryValidator )
     {
-        super( securityManager, queryValidator, defaultI18nManager );
+        super( securityManager, queryValidator );
     }
 
     @Override

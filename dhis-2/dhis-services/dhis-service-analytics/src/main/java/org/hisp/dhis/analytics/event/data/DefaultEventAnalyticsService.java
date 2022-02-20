@@ -88,7 +88,6 @@ import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.i18n.ui.DefaultI18nManager;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.system.database.DatabaseInfo;
@@ -192,9 +191,9 @@ public class DefaultEventAnalyticsService
         EventDataQueryService eventDataQueryService, AnalyticsSecurityManager securityManager,
         EventQueryPlanner queryPlanner, EventQueryValidator queryValidator, DatabaseInfo databaseInfo,
         AnalyticsCache analyticsCache, EnrollmentAnalyticsManager enrollmentAnalyticsManager,
-        SchemaIdResponseMapper schemaIdResponseMapper, DefaultI18nManager defaultI18nManager )
+        SchemaIdResponseMapper schemaIdResponseMapper )
     {
-        super( securityManager, queryValidator, defaultI18nManager );
+        super( securityManager, queryValidator );
 
         checkNotNull( dataElementService );
         checkNotNull( trackedEntityAttributeService );

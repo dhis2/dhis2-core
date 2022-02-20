@@ -422,10 +422,7 @@ public class DefaultDataQueryService
                     // If custom time filter is specified, set it in periods
                     if ( isoPeriodHolder.hasDateField() )
                     {
-                        relativePeriods.forEach( period -> {
-                            period.setDateField( isoPeriodHolder.getDateField() );
-                            period.setDescription( isoPeriodHolder.getIsoPeriod() );
-                        } );
+                        relativePeriods.forEach( period -> period.setDateField( isoPeriodHolder.getDateField() ) );
                     }
 
                     periods.addAll( relativePeriods );
