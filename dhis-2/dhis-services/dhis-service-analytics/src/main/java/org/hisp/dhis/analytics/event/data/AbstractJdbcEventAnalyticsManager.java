@@ -155,10 +155,6 @@ public abstract class AbstractJdbcEventAnalyticsManager
      */
     private String getSortClause( EventQueryParams params )
     {
-
-        // item.getItem().getDimensionItemType() == DATA_ELEMENT &&
-        // item.getProgramStage() != null
-
         String sql = "";
 
         if ( params.isSorting() )
