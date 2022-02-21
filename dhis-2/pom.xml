@@ -710,7 +710,11 @@
                     <configuration>
                         <ignoredUnusedDeclaredDependencies>
                             <ignoredUnusedDeclaredDependency>org.projectlombok:lombok</ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>org.junit.jupiter:junit-jupiter</ignoredUnusedDeclaredDependency>
                         </ignoredUnusedDeclaredDependencies>
+                        <ignoredUsedUndeclaredDependencies>
+                            <ignoredUsedUndeclaredDependency>org.junit.jupiter:junit-jupiter-api</ignoredUsedUndeclaredDependency>
+                        </ignoredUsedUndeclaredDependencies>
                     </configuration>
                 </plugin>
             </plugins>
@@ -752,6 +756,12 @@
                                     <bannedImports>
                                         <bannedImport>org.junit.Test</bannedImport>
                                         <bannedImport>org.junit.Assert.**</bannedImport>
+                                    </bannedImports>
+                                </RestrictImports>
+                                <RestrictImports>
+                                    <reason>Use only JUnit 5 Assertions</reason>
+                                    <bannedImports>
+                                        <bannedImport>org.wildfly.common.Assert.**</bannedImport>
                                     </bannedImports>
                                 </RestrictImports>
                             </rules>
