@@ -50,8 +50,7 @@ import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteria
 public class TrackerRelationshipCriteria extends PagingAndSortingCriteriaAdapter
 {
 
-    @Setter
-    private String tei;
+    private String trackedEntity;
 
     @Setter
     private String enrollment;
@@ -65,6 +64,19 @@ public class TrackerRelationshipCriteria extends PagingAndSortingCriteriaAdapter
 
     private Class<?> identifierClass;
 
+    public void setTei( String tei )
+    {
+        // this setter is kept for backwards-compatibility
+        // query parameter 'tei' should still be allowed, but 'trackedEntity' is
+        // preferred.
+        this.trackedEntity = tei;
+    }
+
+    public void setTrackedEntity( String trackedEntity )
+    {
+        this.trackedEntity = trackedEntity;
+    }
+
     public String getIdentifierParam()
         throws WebMessageException
     {
@@ -74,9 +86,9 @@ public class TrackerRelationshipCriteria extends PagingAndSortingCriteriaAdapter
         }
 
         int count = 0;
-        if ( !StringUtils.isBlank( this.tei ) )
+        if ( !StringUtils.isBlank( this.trackedEntity ) )
         {
-            this.identifier = this.tei;
+            this.identifier = this.trackedEntity;
             this.identifierName = "trackedEntity";
             this.identifierClass = TrackedEntityInstance.class;
             count++;
@@ -98,12 +110,13 @@ public class TrackerRelationshipCriteria extends PagingAndSortingCriteriaAdapter
 
         if ( count == 0 )
         {
-            throw new WebMessageException( badRequest( "Missing required parameter 'tei', 'enrollment' or 'event'." ) );
+            throw new WebMessageException(
+                badRequest( "Missing required parameter 'trackedEntity', 'enrollment' or 'event'." ) );
         }
         else if ( count > 1 )
         {
             throw new WebMessageException(
-                badRequest( "Only one of parameters 'tei', 'enrollment' or 'event' is allowed." ) );
+                badRequest( "Only one of parameters 'trackedEntity', 'enrollment' or 'event' is allowed." ) );
         }
         return this.identifier;
     }

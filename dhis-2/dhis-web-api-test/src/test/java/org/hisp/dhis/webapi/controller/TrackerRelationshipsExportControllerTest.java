@@ -112,7 +112,7 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
     @Test
     void getRelationshipsMissingParam()
     {
-        assertEquals( "Missing required parameter 'tei', 'enrollment' or 'event'.",
+        assertEquals( "Missing required parameter 'trackedEntity', 'enrollment' or 'event'.",
             GET( "/tracker/relationships" )
                 .error( HttpStatus.BAD_REQUEST )
                 .getMessage() );
@@ -121,7 +121,7 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
     @Test
     void getRelationshipsBadRequestWithAllParams()
     {
-        assertEquals( "Only one of parameters 'tei', 'enrollment' or 'event' is allowed.",
+        assertEquals( "Only one of parameters 'trackedEntity', 'enrollment' or 'event' is allowed.",
             GET( "/tracker/relationships?tei=Hq3Kc6HK4OZ&enrollment=Hq3Kc6HK4OZ&event=Hq3Kc6HK4OZ" )
                 .error( HttpStatus.BAD_REQUEST )
                 .getMessage() );
@@ -130,7 +130,7 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
     @Test
     void getRelationshipsBadRequestWithTeiAndEnrollment()
     {
-        assertEquals( "Only one of parameters 'tei', 'enrollment' or 'event' is allowed.",
+        assertEquals( "Only one of parameters 'trackedEntity', 'enrollment' or 'event' is allowed.",
             GET( "/tracker/relationships?tei=Hq3Kc6HK4OZ&enrollment=Hq3Kc6HK4OZ" )
                 .error( HttpStatus.BAD_REQUEST )
                 .getMessage() );
@@ -139,7 +139,7 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
     @Test
     void getRelationshipsBadRequestWithTeiAndEvent()
     {
-        assertEquals( "Only one of parameters 'tei', 'enrollment' or 'event' is allowed.",
+        assertEquals( "Only one of parameters 'trackedEntity', 'enrollment' or 'event' is allowed.",
             GET( "/tracker/relationships?tei=Hq3Kc6HK4OZ&event=Hq3Kc6HK4OZ" )
                 .error( HttpStatus.BAD_REQUEST )
                 .getMessage() );
@@ -148,7 +148,7 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
     @Test
     void getRelationshipsBadRequestWithEnrollmentAndEvent()
     {
-        assertEquals( "Only one of parameters 'tei', 'enrollment' or 'event' is allowed.",
+        assertEquals( "Only one of parameters 'trackedEntity', 'enrollment' or 'event' is allowed.",
             GET( "/tracker/relationships?enrollment=Hq3Kc6HK4OZ&event=Hq3Kc6HK4OZ" )
                 .error( HttpStatus.BAD_REQUEST )
                 .getMessage() );
@@ -211,6 +211,23 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
 
     @Test
     void getRelationshipsByTrackedEntity()
+    {
+        TrackedEntityInstance tei = trackedEntityInstance();
+        ProgramInstance programInstance = programInstance( tei );
+        RelationshipType rType = relationshipType( RelationshipEntity.PROGRAM_INSTANCE,
+            RelationshipEntity.TRACKED_ENTITY_INSTANCE );
+        Relationship r = relationship( rType, programInstance, tei );
+
+        JsonObject relationship = GET( "/tracker/relationships?trackedEntity=" + tei.getUid() )
+            .content( HttpStatus.OK );
+
+        JsonObject jsonRelationship = assertFirstRelationship( relationship, r );
+        assertEnrollment( jsonRelationship.getObject( "from" ), programInstance );
+        assertTrackedEntity( jsonRelationship.getObject( "to" ), tei );
+    }
+
+    @Test
+    void getRelationshipsByTei()
     {
         TrackedEntityInstance tei = trackedEntityInstance();
         ProgramInstance programInstance = programInstance( tei );
