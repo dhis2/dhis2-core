@@ -50,9 +50,9 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserCredentialsStore;
 import org.hisp.dhis.user.UserService;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import com.google.api.client.http.HttpStatusCodes;
 import com.google.common.collect.ImmutableSet;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -120,7 +120,7 @@ public class SystemUpdateService
                 false, null, null, null, 0, true );
 
             int statusCode = httpResponse.getStatusCode();
-            if ( statusCode != HttpStatusCodes.STATUS_CODE_OK )
+            if ( statusCode != HttpStatus.OK.value() )
             {
                 throw new IllegalStateException(
                     "Failed to fetch the version file, "
