@@ -32,7 +32,6 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -273,19 +272,6 @@ public class SystemSettingController
         return ResponseEntity.ok()
             .cacheControl( CacheControl.noCache().cachePrivate() )
             .body( systemSettingManager.getSystemSettings( getSettingKeysToFetch( keys ) ) );
-    }
-
-    @GetMapping( produces = "application/javascript", params = "callback" )
-    public void getSystemSettingsJsonP( @RequestParam( value = "key", required = false ) Set<String> keys,
-        @RequestParam( defaultValue = "callback" ) String callback, HttpServletResponse response )
-        throws IOException
-    {
-        Set<SettingKey> settingKeys = getSettingKeysToFetch( keys );
-
-        response.setContentType( "application/javascript" );
-        response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
-        renderService.toJsonP( response.getOutputStream(), systemSettingManager.getSystemSettings( settingKeys ),
-            callback );
     }
 
     private Set<SettingKey> getSettingKeysToFetch( Set<String> keys )
