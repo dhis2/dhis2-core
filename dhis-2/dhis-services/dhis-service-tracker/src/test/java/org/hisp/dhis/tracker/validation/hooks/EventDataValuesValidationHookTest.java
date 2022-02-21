@@ -675,8 +675,6 @@ class EventDataValuesValidationHookTest
         DataValue validDataValue = dataValue( "QX4LpiTZmUH" );
         when( fileResourceService.getFileResource( validDataValue.getValue() ) ).thenReturn( fileResource );
 
-        // when( context.getFileResource( validDataValue.getValue() )
-        // ).thenReturn( fileResource );
         Event event = Event.builder()
             .programStage( programStage.getUid() )
             .status( EventStatus.SKIPPED )

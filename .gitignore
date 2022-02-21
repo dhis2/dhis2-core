@@ -1,6 +1,7 @@
 target
 *.log
 *.log.*
+bin/
 ./taret
 ./target
 ./target/classes
