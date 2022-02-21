@@ -453,9 +453,9 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
 
         final EventQueryParams.Builder eventQueryParamsBuilder = new EventQueryParams.Builder( params )
             .withProgram( program )
-            .addAscSortItem( piA )
-            .addDescSortItem( piB )
-            .addAscSortItem( deA );
+            .addAscSortItem( new QueryItem( piA ) )
+            .addDescSortItem( new QueryItem( piB ) )
+            .addAscSortItem( new QueryItem( deA ) );
 
         final String sql = subject.getEventsOrEnrollmentsSql( eventQueryParamsBuilder.build(), 100 );
 

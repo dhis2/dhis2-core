@@ -471,7 +471,7 @@ public class DefaultEventDataQueryService
         return queryItem;
     }
 
-    private DimensionalItemObject getSortItem( String item, Program program, EventOutputType type )
+    private QueryItem getSortItem( String item, Program program, EventOutputType type )
     {
         QueryItem queryItem;
 
@@ -487,7 +487,7 @@ public class DefaultEventDataQueryService
             queryItem = getQueryItem( item, program, type );
         }
 
-        return queryItem.getItem();
+        return queryItem;
     }
 
     private DimensionalItemObject getValueDimension( String value )
