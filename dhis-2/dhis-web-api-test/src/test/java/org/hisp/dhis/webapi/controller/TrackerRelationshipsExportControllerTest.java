@@ -119,37 +119,10 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
     }
 
     @Test
-    void getRelationshipsBadRequestWithAllParams()
+    void getRelationshipsBadRequestWithMultipleParams()
     {
         assertEquals( "Only one of parameters 'trackedEntity', 'enrollment' or 'event' is allowed.",
-            GET( "/tracker/relationships?tei=Hq3Kc6HK4OZ&enrollment=Hq3Kc6HK4OZ&event=Hq3Kc6HK4OZ" )
-                .error( HttpStatus.BAD_REQUEST )
-                .getMessage() );
-    }
-
-    @Test
-    void getRelationshipsBadRequestWithTeiAndEnrollment()
-    {
-        assertEquals( "Only one of parameters 'trackedEntity', 'enrollment' or 'event' is allowed.",
-            GET( "/tracker/relationships?tei=Hq3Kc6HK4OZ&enrollment=Hq3Kc6HK4OZ" )
-                .error( HttpStatus.BAD_REQUEST )
-                .getMessage() );
-    }
-
-    @Test
-    void getRelationshipsBadRequestWithTeiAndEvent()
-    {
-        assertEquals( "Only one of parameters 'trackedEntity', 'enrollment' or 'event' is allowed.",
-            GET( "/tracker/relationships?tei=Hq3Kc6HK4OZ&event=Hq3Kc6HK4OZ" )
-                .error( HttpStatus.BAD_REQUEST )
-                .getMessage() );
-    }
-
-    @Test
-    void getRelationshipsBadRequestWithEnrollmentAndEvent()
-    {
-        assertEquals( "Only one of parameters 'trackedEntity', 'enrollment' or 'event' is allowed.",
-            GET( "/tracker/relationships?enrollment=Hq3Kc6HK4OZ&event=Hq3Kc6HK4OZ" )
+            GET( "/tracker/relationships?trackedEntity=Hq3Kc6HK4OZ&enrollment=Hq3Kc6HK4OZ&event=Hq3Kc6HK4OZ" )
                 .error( HttpStatus.BAD_REQUEST )
                 .getMessage() );
     }
@@ -248,7 +221,7 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
     {
 
         assertEquals( "No trackedEntity 'Hq3Kc6HK4OZ' found.",
-            GET( "/tracker/relationships?tei=Hq3Kc6HK4OZ" )
+            GET( "/tracker/relationships?trackedEntity=Hq3Kc6HK4OZ" )
                 .error( HttpStatus.NOT_FOUND )
                 .getMessage() );
     }
