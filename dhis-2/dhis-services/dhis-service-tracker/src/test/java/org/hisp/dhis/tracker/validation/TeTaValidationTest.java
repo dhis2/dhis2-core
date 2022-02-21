@@ -230,11 +230,24 @@ class TeTaValidationTest extends AbstractImportValidationTest
         TrackerImportParams trackerImportParams = createBundleFromJson(
             "tracker/validations/te-program_with_tea_invalid_image_value.json" );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        assertEquals( 2, trackerImportReport.getValidationReport().getErrors().size() );
+        assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
         assertThat( trackerImportReport.getValidationReport().getErrors(),
-            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1085 ) ) ) );
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1084 ) ) ) );
+
+        FileResource fileResource = new FileResource( "test.pdf", "application/pdf", 0,
+            "d41d8cd98f00b204e9800998ecf8427e", FileResourceDomain.DOCUMENT );
+        fileResource.setUid( "Jzf6hHNP7jx" );
+        File file = File.createTempFile( "file-resource", "test" );
+        fileResourceService.saveFileResource( fileResource, file );
+        assertFalse( fileResource.isAssigned() );
+
+        trackerImportParams = createBundleFromJson(
+            "tracker/validations/te-program_with_tea_invalid_image_value2.json" );
+        trackerImportReport = trackerImportService.importTracker( trackerImportParams );
+        assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
         assertThat( trackerImportReport.getValidationReport().getErrors(),
-            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1007 ) ) ) );
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1101 ) ) ) );
+
     }
 
     @Test

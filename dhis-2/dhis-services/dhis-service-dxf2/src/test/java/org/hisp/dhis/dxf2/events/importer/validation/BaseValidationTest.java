@@ -53,6 +53,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.program.ProgramInstanceStore;
+import org.hisp.dhis.util.ValueTypeValidationUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -86,6 +87,9 @@ public abstract class BaseValidationTest
     @Mock
     protected ProgramInstanceStore programInstanceStore;
 
+    @Mock
+    protected ValueTypeValidationUtils valueTypeValidationUtils;
+
     @BeforeEach
     public void superSetUp()
     {
@@ -98,6 +102,7 @@ public abstract class BaseValidationTest
         // Service delegator
         when( serviceDelegator.getJsonMapper() ).thenReturn( objectMapper );
         when( serviceDelegator.getProgramInstanceStore() ).thenReturn( programInstanceStore );
+        when( serviceDelegator.getValueTypeValidationUtils() ).thenReturn( valueTypeValidationUtils );
 
     }
 

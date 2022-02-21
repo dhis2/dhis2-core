@@ -28,9 +28,7 @@
 package org.hisp.dhis.tracker.validation.hooks;
 
 import static com.google.api.client.util.Preconditions.checkNotNull;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1009;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1076;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1084;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1303;
 import static org.hisp.dhis.tracker.validation.hooks.ValidationUtils.needsToValidateDataValues;
 import static org.hisp.dhis.tracker.validation.hooks.ValidationUtils.validateMandatoryDataValue;
@@ -42,15 +40,15 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
-import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
+import org.hisp.dhis.util.ValueTypeValidationUtils;
 import org.springframework.stereotype.Component;
 
 /**
@@ -60,6 +58,13 @@ import org.springframework.stereotype.Component;
 public class EventDataValuesValidationHook
     extends AbstractTrackerDtoValidationHook
 {
+    private final ValueTypeValidationUtils valueTypeValidationUtils;
+
+    public EventDataValuesValidationHook( ValueTypeValidationUtils valueTypeValidationUtils )
+    {
+        this.valueTypeValidationUtils = valueTypeValidationUtils;
+    }
+
     @Override
     public void validateEvent( ValidationErrorReporter reporter, Event event )
     {
@@ -74,18 +79,7 @@ public class EventDataValuesValidationHook
             // event dates (createdAt, updatedAt) are ignored and set by the
             // system
             DataElement dataElement = context.getDataElement( dataValue.getDataElement() );
-
-            if ( dataElement == null )
-            {
-                reporter.addError( event, TrackerErrorCode.E1304, dataValue.getDataElement() );
-                continue;
-            }
-
-            validateDataElement( reporter, dataElement, dataValue, programStage, event );
-            if ( dataValue.getValue() != null )
-            {
-                validateOptionSet( reporter, event, dataElement, dataValue.getValue() );
-            }
+            validateDataValue( reporter, dataElement, dataValue, programStage, event );
         }
 
         validateMandatoryDataValues( event, context, reporter );
@@ -111,20 +105,21 @@ public class EventDataValuesValidationHook
         }
     }
 
-    private void validateDataElement( ValidationErrorReporter reporter, DataElement dataElement,
+    private void validateDataValue( ValidationErrorReporter reporter, DataElement dataElement,
         DataValue dataValue, ProgramStage programStage, Event event )
     {
-        final String status = ValidationUtils.dataValueIsValid( dataValue.getValue(), dataElement );
+        final ErrorMessage errorMessage = valueTypeValidationUtils.dataValueIsValid( dataElement,
+            dataValue.getValue() );
 
-        if ( status != null )
+        if ( errorMessage != null )
         {
-            reporter.addError( event, TrackerErrorCode.E1302, dataElement.getUid(),
-                status );
+            reporter.addError( event, getTrackerErrorCode( errorMessage ),
+                dataElement != null ? dataElement.getUid() : null,
+                errorMessage.getMessage() );
         }
         else
         {
             validateNullDataValues( reporter, dataElement, programStage, dataValue, event );
-            validateFileNotAlreadyAssigned( reporter, event, dataValue, dataElement );
         }
     }
 
@@ -172,24 +167,28 @@ public class EventDataValuesValidationHook
         }
     }
 
-    private void validateFileNotAlreadyAssigned( ValidationErrorReporter reporter, Event event, DataValue dataValue,
-        DataElement dataElement )
+    private TrackerErrorCode getTrackerErrorCode( ErrorMessage errorMessage )
     {
-        if ( dataValue == null || dataValue.getValue() == null )
+        switch ( errorMessage.getErrorCode() )
         {
-            return;
+        case E2027:
+            return TrackerErrorCode.E1084;
+        case E2029:
+            return TrackerErrorCode.E1125;
+        case E2030:
+            return TrackerErrorCode.E1085;
+        case E2040:
+            return TrackerErrorCode.E1101;
+        case E2041:
+            return TrackerErrorCode.E1105;
+        case E2042:
+            return TrackerErrorCode.E1106;
+        case E2043:
+            return TrackerErrorCode.E1304;
+        case E2026:
+            return TrackerErrorCode.E1009;
+        default:
+            return null;
         }
-
-        boolean isFile = dataElement.getValueType() != null && dataElement.getValueType().isFile();
-        if ( !isFile )
-        {
-            return;
-        }
-
-        FileResource fileResource = reporter.getValidationContext().getFileResource( dataValue.getValue() );
-
-        reporter.addErrorIfNull( fileResource, event, E1084, dataValue.getValue() );
-        reporter.addErrorIf( () -> fileResource != null && fileResource.isAssigned(), event,
-            E1009, dataValue.getValue() );
     }
 }

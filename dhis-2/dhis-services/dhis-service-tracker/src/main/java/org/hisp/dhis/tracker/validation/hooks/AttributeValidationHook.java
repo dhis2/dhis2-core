@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.validation.hooks;
 
 import static com.google.api.client.util.Preconditions.checkNotNull;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1077;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ATTRIBUTE_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.TRACKED_ENTITY_ATTRIBUTE_CANT_BE_NULL;
 
@@ -35,6 +36,7 @@ import java.util.List;
 import java.util.Objects;
 
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -45,8 +47,9 @@ import org.hisp.dhis.tracker.preheat.UniqueAttributeValue;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.util.Constant;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
-import org.hisp.dhis.tracker.validation.service.attribute.TrackedAttributeValidationService;
+import org.hisp.dhis.util.ValueTypeValidationUtils;
 
 /**
  * @author Luciano Fiandesio
@@ -54,11 +57,11 @@ import org.hisp.dhis.tracker.validation.service.attribute.TrackedAttributeValida
 public abstract class AttributeValidationHook extends AbstractTrackerDtoValidationHook
 {
 
-    private final TrackedAttributeValidationService teAttrService;
+    private final ValueTypeValidationUtils valueTypeValidationUtils;
 
-    protected AttributeValidationHook( TrackedAttributeValidationService teAttrService )
+    protected AttributeValidationHook( ValueTypeValidationUtils valueTypeValidationUtils )
     {
-        this.teAttrService = teAttrService;
+        this.valueTypeValidationUtils = valueTypeValidationUtils;
     }
 
     protected void validateAttrValueType( ValidationErrorReporter errorReporter, TrackerDto dto, Attribute attr,
@@ -71,44 +74,32 @@ public abstract class AttributeValidationHook extends AbstractTrackerDtoValidati
 
         TrackerImportValidationContext context = errorReporter.getValidationContext();
 
-        String error;
+        String value = attr.getValue();
 
-        if ( valueType.equals( ValueType.ORGANISATION_UNIT ) )
-        {
-            error = context.getOrganisationUnit( attr.getValue() ) == null
-                ? " Value " + attr.getValue() + " is not a valid org unit value"
-                : null;
-        }
-        else if ( valueType.equals( ValueType.USERNAME ) )
-        {
-            error = context.usernameExists( attr.getValue() ) ? null
-                : " Value " + attr.getValue() + " is not a valid username value";
-        }
-        else
-        {
-            // We need to do try/catch here since validateValueType() since
-            // validateValueType can cast IllegalArgumentException e.g.
-            // on at
-            // org.joda.time.format.DateTimeFormatter.parseDateTime(DateTimeFormatter.java:945)
-            try
-            {
-                error = teAttrService.validateValueType( teAttr, attr.getValue() );
-            }
-            catch ( Exception e )
-            {
-                error = e.getMessage();
-            }
-        }
-
-        if ( error != null )
+        if ( value != null && valueType.equals( ValueType.TEXT ) && value.length() > Constant.MAX_ATTR_VALUE_LENGTH )
         {
             TrackerBundle bundle = context.getBundle();
             TrackerErrorReport err = TrackerErrorReport.builder()
                 .uid( dto.getUid() )
                 .trackerType( dto.getTrackerType() )
-                .errorCode( TrackerErrorCode.E1007 )
+                .errorCode( E1077 )
+                .addArg( value )
+                .addArg( Constant.MAX_ATTR_VALUE_LENGTH )
+                .build( bundle );
+            errorReporter.addError( err );
+        }
+
+        ErrorMessage errorMessage = valueTypeValidationUtils.dataValueIsValid( teAttr, value );
+
+        if ( errorMessage != null )
+        {
+            TrackerBundle bundle = context.getBundle();
+            TrackerErrorReport err = TrackerErrorReport.builder()
+                .uid( dto.getUid() )
+                .trackerType( dto.getTrackerType() )
+                .errorCode( getTrackerErrorCode( errorMessage ) )
                 .addArg( valueType.toString() )
-                .addArg( error )
+                .addArg( errorMessage.getMessage() )
                 .build( bundle );
             errorReporter.addError( err );
         }
@@ -157,6 +148,31 @@ public abstract class AttributeValidationHook extends AbstractTrackerDtoValidati
                 errorReporter.addError( err );
                 return;
             }
+        }
+    }
+
+    private TrackerErrorCode getTrackerErrorCode( ErrorMessage errorMesage )
+    {
+        switch ( errorMesage.getErrorCode() )
+        {
+        case E2027:
+            return TrackerErrorCode.E1084;
+        case E2029:
+            return TrackerErrorCode.E1125;
+        case E2030:
+            return TrackerErrorCode.E1085;
+        case E2040:
+            return TrackerErrorCode.E1101;
+        case E2041:
+            return TrackerErrorCode.E1105;
+        case E2042:
+            return TrackerErrorCode.E1106;
+        case E2043:
+            return TrackerErrorCode.E1304;
+        case E2026:
+            return TrackerErrorCode.E1009;
+        default:
+            return null;
         }
     }
 

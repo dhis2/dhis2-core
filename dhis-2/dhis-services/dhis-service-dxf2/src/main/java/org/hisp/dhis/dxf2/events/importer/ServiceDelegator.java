@@ -31,11 +31,10 @@ import lombok.Builder;
 import lombok.Getter;
 
 import org.hisp.dhis.artemis.audit.AuditManager;
-import org.hisp.dhis.fileresource.FileResourceService;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.ProgramInstanceStore;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
+import org.hisp.dhis.util.ValueTypeValidationUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -67,7 +66,5 @@ public class ServiceDelegator
 
     private final AuditManager auditManager;
 
-    private final FileResourceService fileResourceService;
-
-    private final OrganisationUnitService organisationUnitService;
+    private final ValueTypeValidationUtils valueTypeValidationUtils;
 }

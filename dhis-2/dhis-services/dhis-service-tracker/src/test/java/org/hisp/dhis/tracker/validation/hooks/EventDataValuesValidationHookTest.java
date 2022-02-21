@@ -41,6 +41,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.program.ProgramStage;
@@ -55,9 +56,11 @@ import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.util.DateUtils;
+import org.hisp.dhis.util.ValueTypeValidationUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -70,8 +73,14 @@ class EventDataValuesValidationHookTest
 
     private EventDataValuesValidationHook hook;
 
+    @InjectMocks
+    private ValueTypeValidationUtils valueTypeValidationUtils;
+
     @Mock
     private TrackerImportValidationContext context;
+
+    @Mock
+    private FileResourceService fileResourceService;
 
     private static final String programStageUid = "programStageUid";
 
@@ -80,7 +89,7 @@ class EventDataValuesValidationHookTest
     @BeforeEach
     public void setUp()
     {
-        hook = new EventDataValuesValidationHook();
+        hook = new EventDataValuesValidationHook( valueTypeValidationUtils );
 
         when( context.getBundle() ).thenReturn( TrackerBundle.builder().build() );
     }
@@ -375,7 +384,7 @@ class EventDataValuesValidationHookTest
         hook.validateEvent( reporter, event );
 
         assertThat( reporter.getReportList(), hasSize( 1 ) );
-        assertEquals( TrackerErrorCode.E1302, reporter.getReportList().get( 0 ).getErrorCode() );
+        assertEquals( TrackerErrorCode.E1304, reporter.getReportList().get( 0 ).getErrorCode() );
     }
 
     @Test
@@ -387,7 +396,7 @@ class EventDataValuesValidationHookTest
         when( context.getDataElement( dataElementUid ) ).thenReturn( validDataElement );
 
         DataValue validDataValue = dataValue( "QX4LpiTZmUH" );
-        when( context.getFileResource( validDataValue.getValue() ) ).thenReturn( null );
+        when( fileResourceService.getFileResource( validDataValue.getValue() ) ).thenReturn( null );
 
         ProgramStage programStage = programStage( validDataElement );
         when( context.getProgramStage( programStageUid ) ).thenReturn( programStage );
@@ -664,7 +673,10 @@ class EventDataValuesValidationHookTest
         FileResource fileResource = new FileResource();
         fileResource.setAssigned( true );
         DataValue validDataValue = dataValue( "QX4LpiTZmUH" );
-        when( context.getFileResource( validDataValue.getValue() ) ).thenReturn( fileResource );
+        when( fileResourceService.getFileResource( validDataValue.getValue() ) ).thenReturn( fileResource );
+
+        // when( context.getFileResource( validDataValue.getValue() )
+        // ).thenReturn( fileResource );
         Event event = Event.builder()
             .programStage( programStage.getUid() )
             .status( EventStatus.SKIPPED )
@@ -693,7 +705,6 @@ class EventDataValuesValidationHookTest
         runAndAssertValidationForDataValue( ValueType.DATETIME, "wrong_date_time" );
         runAndAssertValidationForDataValue( ValueType.COORDINATE, "10" );
         runAndAssertValidationForDataValue( ValueType.URL, "not_valid_url" );
-        runAndAssertValidationForDataValue( ValueType.FILE_RESOURCE, "not_valid_uid" );
     }
 
     @Test
@@ -701,7 +712,7 @@ class EventDataValuesValidationHookTest
     {
         setUpIdentifiers();
 
-        DataValue validDataValue = dataValue( "code" );
+        DataValue validDataValue = dataValue( "CODE" );
         DataValue nullDataValue = dataValue( null );
 
         OptionSet optionSet = new OptionSet();
@@ -793,7 +804,7 @@ class EventDataValuesValidationHookTest
         hook.validateEvent( reporter, event );
 
         assertThat( reporter.getReportList(), hasSize( 1 ) );
-        assertEquals( TrackerErrorCode.E1302, reporter.getReportList().get( 0 ).getErrorCode() );
+        assertEquals( TrackerErrorCode.E1085, reporter.getReportList().get( 0 ).getErrorCode() );
     }
 
     private void setUpIdentifiers()

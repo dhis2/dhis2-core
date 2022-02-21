@@ -55,7 +55,7 @@ import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.ReferenceTrackerEntity;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
-import org.hisp.dhis.tracker.validation.service.attribute.TrackedAttributeValidationService;
+import org.hisp.dhis.util.ValueTypeValidationUtils;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Maps;
@@ -68,9 +68,9 @@ import com.google.common.collect.Streams;
 public class EnrollmentAttributeValidationHook extends AttributeValidationHook
 {
 
-    public EnrollmentAttributeValidationHook( TrackedAttributeValidationService teAttrService )
+    protected EnrollmentAttributeValidationHook( ValueTypeValidationUtils valueTypeValidationUtils )
     {
-        super( teAttrService );
+        super( valueTypeValidationUtils );
     }
 
     @Override
@@ -96,12 +96,9 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
 
             if ( attribute.getAttribute() != null && attribute.getValue() != null && teAttribute != null )
             {
-
                 attributeValueMap.put( attribute.getAttribute(), attribute.getValue() );
 
                 validateAttrValueType( reporter, enrollment, attribute, teAttribute );
-                validateOptionSet( reporter, enrollment, teAttribute,
-                    attribute.getValue() );
 
                 validateAttributeUniqueness( reporter,
                     enrollment,

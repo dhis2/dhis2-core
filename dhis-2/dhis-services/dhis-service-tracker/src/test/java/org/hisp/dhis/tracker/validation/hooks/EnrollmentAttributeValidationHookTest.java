@@ -53,6 +53,7 @@ import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
+import org.hisp.dhis.util.ValueTypeValidationUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -71,6 +72,8 @@ class EnrollmentAttributeValidationHookTest
 {
 
     @InjectMocks
+    private ValueTypeValidationUtils valueTypeValidationUtils;
+
     private EnrollmentAttributeValidationHook hookToTest;
 
     @Mock
@@ -101,6 +104,8 @@ class EnrollmentAttributeValidationHookTest
     @BeforeEach
     public void setUp()
     {
+
+        hookToTest = new EnrollmentAttributeValidationHook( valueTypeValidationUtils );
 
         trackedEntityAttribute = new TrackedEntityAttribute( "name", "description", ValueType.TEXT, false,
             false );

@@ -37,19 +37,18 @@ import java.util.Arrays;
 import java.util.Optional;
 
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.util.ValueTypeValidationUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -79,21 +78,15 @@ class TrackedEntityAttributeServiceTest
     private TrackedEntityAttributeStore attributeStore;
 
     @Mock
-    private FileResourceService fileResourceService;
-
-    @Mock
-    private UserService userService;
-
-    @Mock
     private TrackedEntityTypeAttributeStore entityTypeAttributeStore;
 
     @Mock
     private ProgramTrackedEntityAttributeStore programAttributeStore;
 
-    private TrackedEntityAttributeService trackedEntityAttributeService;
+    @InjectMocks
+    private ValueTypeValidationUtils valueTypeValidationUtils;
 
-    @Mock
-    private OrganisationUnitService organisationUnitService;
+    private TrackedEntityAttributeService trackedEntityAttributeService;
 
     private TrackedEntityInstance teiPassedInPayload;
 
@@ -109,8 +102,8 @@ class TrackedEntityAttributeServiceTest
     public void setUp()
     {
         trackedEntityAttributeService = new DefaultTrackedEntityAttributeService( attributeStore, programService,
-            trackedEntityTypeService, fileResourceService, userService, currentUserService, aclService,
-            trackedEntityAttributeStore, entityTypeAttributeStore, programAttributeStore, organisationUnitService );
+            trackedEntityTypeService, currentUserService, aclService,
+            trackedEntityAttributeStore, entityTypeAttributeStore, programAttributeStore, valueTypeValidationUtils );
 
         orgUnit = new OrganisationUnit( "orgUnitA" );
 
@@ -193,8 +186,7 @@ class TrackedEntityAttributeServiceTest
     {
         tea.setValueType( ValueType.DATE );
         String teaValue = "Firstname";
-        assertThrows( IllegalArgumentException.class,
-            () -> trackedEntityAttributeService.validateValueType( tea, teaValue ) );
+        assertNotNull( trackedEntityAttributeService.validateValueType( tea, teaValue ) );
     }
 
     @Test
@@ -234,7 +226,7 @@ class TrackedEntityAttributeServiceTest
         Option option1 = new Option();
         option1.setCode( "CODE1" );
 
-        optionSet.setOptions( Arrays.asList( null, option, option1 ) );
+        optionSet.setOptions( Arrays.asList( option, option1 ) );
         tea.setOptionSet( optionSet );
 
         assertNull( trackedEntityAttributeService.validateValueType( tea, "CODE" ) );
