@@ -215,11 +215,6 @@ public final class WebMessageUtils
     {
         if ( importReport.getStatus() != Status.OK )
         {
-            // TODO: 12577 Remove after fixing last test
-            importReport.forEachErrorReport( errorReport -> {
-                String message = errorReport.getMessage();
-                log.error( message );
-            } );
             return new WebMessage( Status.WARNING, HttpStatus.CONFLICT )
                 .setMessage( "One more more errors occurred, please see full details in import report." )
                 .setResponse( new ImportReportWebMessageResponse( importReport ) );

@@ -104,14 +104,10 @@ public class DefaultCurrentUserService
         User user = userStore.getUserByUsername( username );
         if ( user == null )
         {
-            // TODO: 12577 This should only happen at startup, (routines) .
-            // Maybe this can
-            // be solved by manually inserting the first user with sql
-            log.warn( "User is NULL, this should only happen at startup!" );
+            log.debug( "User is NULL, this should only happen at startup!" );
             return null;
         }
 
-        // // TODO: 12577
         user.getAllAuthorities();
         return user;
     }
@@ -155,15 +151,15 @@ public class DefaultCurrentUserService
     @Transactional( readOnly = true )
     public CurrentUserGroupInfo getCurrentUserGroupsInfo()
     {
-        User currentUserInfo = getCurrentUser();
+        User currentUser = getCurrentUser();
 
-        if ( currentUserInfo == null )
+        if ( currentUser == null )
         {
             return null;
         }
 
         return currentUserGroupInfoCache
-            .get( currentUserInfo.getUsername(), this::getCurrentUserGroupsInfo );
+            .get( currentUser.getUsername(), this::getCurrentUserGroupsInfo );
     }
 
     @Override

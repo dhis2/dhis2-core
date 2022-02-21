@@ -138,7 +138,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     @Override
     public void save( T object, boolean clearSharing )
     {
-        save( object, getCurrentUser(), clearSharing );
+        save( object, currentUserService.getCurrentUser(), clearSharing );
     }
 
     private void save( T object, User user, boolean clearSharing )
@@ -203,7 +203,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     @Override
     public void update( T object )
     {
-        update( object, getCurrentUser() );
+        update( object, currentUserService.getCurrentUser() );
     }
 
     @Override
@@ -246,7 +246,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     @Override
     public void delete( T object )
     {
-        this.delete( object, getCurrentUser() );
+        this.delete( object, currentUserService.getCurrentUser() );
     }
 
     @Override
@@ -273,7 +273,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     {
         T object = getSession().get( getClazz(), id );
 
-        if ( !isReadAllowed( object, getCurrentUser() ) )
+        if ( !isReadAllowed( object, currentUserService.getCurrentUser() ) )
         {
             AuditLogUtil.infoWrapper( log, currentUserService.getCurrentUsername(), object,
                 AuditLogUtil.ACTION_READ_DENIED );
@@ -359,7 +359,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
         T object = list != null && !list.isEmpty() ? list.get( 0 ) : null;
 
-        if ( !isReadAllowed( object, getCurrentUser() ) )
+        if ( !isReadAllowed( object, currentUserService.getCurrentUser() ) )
         {
             AuditLogUtil.infoWrapper( log, currentUserService.getCurrentUsername(), object,
                 AuditLogUtil.ACTION_READ_DENIED );
@@ -1265,10 +1265,5 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     public void flush()
     {
         getSession().flush();
-    }
-
-    private User getCurrentUser()
-    {
-        return currentUserService.getCurrentUser();
     }
 }

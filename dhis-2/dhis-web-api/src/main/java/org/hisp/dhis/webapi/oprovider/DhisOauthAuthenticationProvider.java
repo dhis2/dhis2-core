@@ -82,7 +82,6 @@ public class DhisOauthAuthenticationProvider extends DaoAuthenticationProvider
 
         // Put detached state of the user credentials into the session as user
         // must not be updated during session execution
-        // TODO: 12577 Do we need this?
         user = SerializationUtils.clone( user );
 
         return new UsernamePasswordAuthenticationToken( user, result.getCredentials(),
