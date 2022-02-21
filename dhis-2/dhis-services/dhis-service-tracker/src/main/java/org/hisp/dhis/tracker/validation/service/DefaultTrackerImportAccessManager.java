@@ -38,6 +38,7 @@ import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -60,6 +61,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class DefaultTrackerImportAccessManager
     implements TrackerImportAccessManager
 {
@@ -181,9 +183,14 @@ public class DefaultTrackerImportAccessManager
         checkNotNull( user, USER_CANT_BE_NULL );
         checkNotNull( programStage, PROGRAM_STAGE_CANT_BE_NULL );
         checkNotNull( programStage.getProgram(), PROGRAM_CANT_BE_NULL );
-        checkNotNull( eventOrgUnit, ORGANISATION_UNIT_CANT_BE_NULL );
 
-        if ( isCreatableInSearchScope ? !organisationUnitService.isInUserSearchHierarchyCached( user, eventOrgUnit )
+        if ( eventOrgUnit == null )
+        {
+            log.warn(
+                "No organisation unit assigned for program stage instance, so we skip event write access validation" );
+        }
+        else if ( isCreatableInSearchScope
+            ? !organisationUnitService.isInUserSearchHierarchyCached( user, eventOrgUnit )
             : !organisationUnitService.isInUserHierarchyCached( user, eventOrgUnit ) )
         {
             reporter.addError( newReport( TrackerErrorCode.E1000 )

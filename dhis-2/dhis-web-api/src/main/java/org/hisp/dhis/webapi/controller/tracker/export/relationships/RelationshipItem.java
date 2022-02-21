@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,42 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.preheat;
+package org.hisp.dhis.webapi.controller.tracker.export.relationships;
 
-import java.util.Optional;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
-import lombok.experimental.UtilityClass;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
 
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.tracker.TrackerIdScheme;
-import org.hisp.dhis.tracker.TrackerIdentifier;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * @author Luciano Fiandesio
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@UtilityClass
-public class PreheatUtils
+@Getter
+@Builder
+@EqualsAndHashCode
+class RelationshipItem
 {
-    public <T extends IdentifiableObject> Optional<String> resolveKey( TrackerIdentifier identifier, T object )
-    {
-        if ( identifier.getIdScheme().equals( TrackerIdScheme.UID ) )
-        {
-            return Optional.ofNullable( object.getUid() );
-        }
-        else if ( identifier.getIdScheme().equals( TrackerIdScheme.CODE ) )
-        {
-            return Optional.ofNullable( object.getCode() );
-        }
-        else if ( identifier.getIdScheme().equals( TrackerIdScheme.NAME ) )
-        {
-            return Optional.ofNullable( object.getName() );
-        }
-        else if ( identifier.getIdScheme().equals( TrackerIdScheme.ATTRIBUTE ) )
-        {
-            return Optional.ofNullable( identifier.getIdentifier( object ) );
-        }
-        // TODO TrackerIdScheme.AUTO ??
+    @JsonProperty
+    private TrackedEntity trackedEntity;
 
-        return Optional.empty();
-    }
+    @JsonProperty
+    private Enrollment enrollment;
+
+    @JsonProperty
+    private Event event;
 }

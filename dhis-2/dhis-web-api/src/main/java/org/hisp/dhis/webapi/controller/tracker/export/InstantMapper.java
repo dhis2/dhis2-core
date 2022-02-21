@@ -25,15 +25,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.domain.mapper;
+package org.hisp.dhis.webapi.controller.tracker.export;
 
-import org.hisp.dhis.tracker.domain.Note;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.chrono.ChronoZonedDateTime;
+import java.util.Date;
+import java.util.Optional;
+
+import org.hisp.dhis.util.DateUtils;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 
-@Mapper( uses = InstantMapper.class )
-public interface NoteMapper extends DomainMapper<org.hisp.dhis.dxf2.events.event.Note, Note>
+@Mapper
+public interface InstantMapper
 {
-    @Mapping( target = "storedAt", source = "storedDate" )
-    Note from( org.hisp.dhis.dxf2.events.event.Note note );
+
+    default Instant fromString( String dateAsString )
+    {
+        return DateUtils.instantFromDateAsString( dateAsString );
+    }
+
+    default Instant fromDate( Date date )
+    {
+        if ( date instanceof java.sql.Date )
+        {
+            return fromSqlDate( (java.sql.Date) date );
+        }
+        return DateUtils.instantFromDate( date );
+    }
+
+    default Instant fromSqlDate( java.sql.Date date )
+    {
+        return Optional.ofNullable( date )
+            .map( java.sql.Date::toLocalDate )
+            .map( localDate -> localDate.atStartOfDay( ZoneId.systemDefault() ) )
+            .map( ChronoZonedDateTime::toInstant )
+            .orElse( null );
+    }
+
 }

@@ -29,6 +29,7 @@ package org.hisp.dhis.sms.command.code;
 
 import java.io.Serializable;
 
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dataelement.DataElement;
@@ -52,13 +53,13 @@ public class SMSCode
 
     private TrackedEntityAttribute trackedEntityAttribute;
 
-    private int optionId;
+    private CategoryOptionCombo optionId;
 
     private String formula;
 
     private boolean compulsory = false;
 
-    public SMSCode( String code, DataElement dataElement, int optionId )
+    public SMSCode( String code, DataElement dataElement, CategoryOptionCombo optionId )
     {
         this.code = code;
         this.dataElement = dataElement;
@@ -123,12 +124,12 @@ public class SMSCode
 
     @JsonProperty
     @JacksonXmlProperty
-    public int getOptionId()
+    public CategoryOptionCombo getOptionId()
     {
         return optionId;
     }
 
-    public void setOptionId( int optionId )
+    public void setOptionId( CategoryOptionCombo optionId )
     {
         this.optionId = optionId;
     }

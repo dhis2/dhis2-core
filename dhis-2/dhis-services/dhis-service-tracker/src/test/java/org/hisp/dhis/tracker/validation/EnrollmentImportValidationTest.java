@@ -33,6 +33,7 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.core.Every.everyItem;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 import java.io.IOException;
 
@@ -252,6 +253,30 @@ public class EnrollmentImportValidationTest
 
         assertThat( validationReport.getErrorReports(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1015 ) ) ) );
+    }
+
+    @Test
+    public void testEnrollmentDeleteOk()
+        throws IOException
+    {
+        TrackerImportParams paramsCreate = createBundleFromJson(
+            "tracker/validations/enrollments_te_enrollments-data.json" );
+        paramsCreate.setImportStrategy( TrackerImportStrategy.CREATE );
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( paramsCreate );
+        assertFalse( trackerImportReport.getValidationReport().hasErrors() );
+        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
+
+        manager.flush();
+        manager.clear();
+
+        TrackerImportParams paramsDelete = createBundleFromJson(
+            "tracker/validations/enrollments_te_enrollments-data-delete.json" );
+        paramsDelete.setImportStrategy( TrackerImportStrategy.DELETE );
+
+        TrackerImportReport trackerImportReportDelete = trackerImportService.importTracker( paramsDelete );
+        assertFalse( trackerImportReport.getValidationReport().hasErrors() );
+        assertEquals( TrackerStatus.OK, trackerImportReportDelete.getStatus() );
+        assertEquals( 1, trackerImportReportDelete.getStats().getDeleted() );
     }
 
     /**

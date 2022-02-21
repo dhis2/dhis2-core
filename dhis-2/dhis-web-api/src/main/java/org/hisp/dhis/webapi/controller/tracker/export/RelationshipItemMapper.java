@@ -25,35 +25,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.webapi.controller.tracker.export;
 
-import java.util.function.Function;
+import org.hisp.dhis.tracker.domain.RelationshipItem;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 /**
- * @author Lars Helge Overland
+ * RelationshipItemMapper maps each side of the relationship to its UID.
  */
-public enum IdentifiableProperty
+@Mapper
+public interface RelationshipItemMapper
+    extends DomainMapper<org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem, RelationshipItem>
 {
-    ID,
-    UID,
-    UUID,
-    NAME,
-    CODE,
-    ATTRIBUTE;
-
-    public static IdentifiableProperty in( IdSchemes schemes, Function<IdSchemes, IdScheme> primary )
-    {
-        IdScheme scheme = primary.apply( schemes );
-        if ( scheme != null && scheme.isNotNull() )
-        {
-            return scheme.getIdentifiableProperty();
-        }
-        scheme = schemes.getIdScheme();
-        if ( scheme != null && scheme.isNotNull() )
-        {
-            return scheme.getIdentifiableProperty();
-        }
-        return UID;
-    }
-
+    @Mapping( target = "trackedEntity", source = "trackedEntityInstance.trackedEntityInstance" )
+    @Mapping( target = "enrollment", source = "enrollment.enrollment" )
+    @Mapping( target = "event", source = "event.event" )
+    RelationshipItem from( org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem relationshipItem );
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,17 +25,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.domain.mapper;
+package org.hisp.dhis.webapi.controller.tracker.export.relationships;
 
-import org.hisp.dhis.tracker.domain.ProgramOwner;
+import org.hisp.dhis.webapi.controller.tracker.export.DomainMapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper
-public interface ProgramOwnerMapper
-    extends DomainMapper<org.hisp.dhis.dxf2.events.trackedentity.ProgramOwner, ProgramOwner>
+@Mapper( uses = {
+    TrackedEntityMapper.class,
+    EnrollmentMapper.class,
+    EventMapper.class,
+} )
+interface RelationshipItemMapper
+    extends DomainMapper<org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem, RelationshipItem>
 {
-    @Mapping( target = "orgUnit", source = "ownerOrgUnit" )
     @Mapping( target = "trackedEntity", source = "trackedEntityInstance" )
-    ProgramOwner from( org.hisp.dhis.dxf2.events.trackedentity.ProgramOwner programOwner );
+    RelationshipItem from( org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem relationshipItem );
 }
