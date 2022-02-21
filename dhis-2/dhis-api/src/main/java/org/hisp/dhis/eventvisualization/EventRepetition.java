@@ -39,6 +39,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import org.hisp.dhis.common.EmbeddedObject;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
@@ -53,7 +55,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class EventRepetition implements Serializable
+public class EventRepetition implements Serializable, EmbeddedObject
 {
     /**
      * The attribute which the event repetition belongs to.
