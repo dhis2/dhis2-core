@@ -25,27 +25,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.domain.mapper;
+package org.hisp.dhis.webapi.controller.tracker.export;
 
-import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.chrono.ChronoZonedDateTime;
+import java.util.Date;
+import java.util.Optional;
+
+import org.hisp.dhis.util.DateUtils;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 
-@Mapper( uses = {
-    RelationshipMapper.class,
-    AttributeMapper.class,
-    EnrollmentMapper.class,
-    ProgramOwnerMapper.class,
-    InstantMapper.class } )
-public interface TrackedEntityMapper extends DomainMapper<TrackedEntityInstance, TrackedEntity>
+@Mapper
+public interface InstantMapper
 {
-    @Mapping( target = "trackedEntity", source = "trackedEntityInstance" )
-    @Mapping( target = "createdAt", source = "created" )
-    @Mapping( target = "createdAtClient", source = "createdAtClient" )
-    @Mapping( target = "updatedAt", source = "lastUpdated" )
-    @Mapping( target = "updatedAtClient", source = "lastUpdatedAtClient" )
-    @Mapping( target = "createdBy", source = "createdByUserInfo.username" )
-    @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo.username" )
-    TrackedEntity from( TrackedEntityInstance trackedEntityInstance );
+
+    default Instant fromString( String dateAsString )
+    {
+        return DateUtils.instantFromDateAsString( dateAsString );
+    }
+
+    default Instant fromDate( Date date )
+    {
+        if ( date instanceof java.sql.Date )
+        {
+            return fromSqlDate( (java.sql.Date) date );
+        }
+        return DateUtils.instantFromDate( date );
+    }
+
+    default Instant fromSqlDate( java.sql.Date date )
+    {
+        return Optional.ofNullable( date )
+            .map( java.sql.Date::toLocalDate )
+            .map( localDate -> localDate.atStartOfDay( ZoneId.systemDefault() ) )
+            .map( ChronoZonedDateTime::toInstant )
+            .orElse( null );
+    }
+
 }

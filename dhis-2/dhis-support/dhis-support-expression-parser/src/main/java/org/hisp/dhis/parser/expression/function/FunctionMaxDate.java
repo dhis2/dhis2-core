@@ -49,7 +49,7 @@ public class FunctionMaxDate
     {
         Date maxDate = parseExpressionDate( ctx.maxDate.getText() );
 
-        QueryModifiers queryMods = visitor.getQueryModsBuilder().maxDate( maxDate ).build();
+        QueryModifiers queryMods = visitor.getState().getQueryModsBuilder().maxDate( maxDate ).build();
 
         return visitor.visitWithQueryMods( ctx.expr( 0 ), queryMods );
     }

@@ -25,32 +25,60 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.variable;
+package org.hisp.dhis.webapi.controller.tracker.export.relationships;
 
-import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.parser.expression.ProgramExpressionParams;
-import org.hisp.dhis.program.AnalyticsType;
+import java.time.Instant;
+
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+
+import org.hisp.dhis.tracker.TrackerType;
+import org.hisp.dhis.tracker.domain.TrackerDto;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Program indicator variable: creation date
- *
- * @author Jim Grace
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class vCreationDate
-    extends ProgramDateVariable
+@Getter
+@Builder
+@EqualsAndHashCode
+class Relationship implements TrackerDto
 {
+    @JsonProperty
+    private String relationship;
+
+    @JsonProperty
+    private String relationshipName;
+
+    @JsonProperty
+    private String relationshipType;
+
+    @JsonProperty
+    private Instant createdAt;
+
+    @JsonProperty
+    private Instant updatedAt;
+
+    @JsonProperty
+    private boolean bidirectional;
+
+    @JsonProperty
+    private RelationshipItem from;
+
+    @JsonProperty
+    private RelationshipItem to;
+
     @Override
-    public Object getSql( CommonExpressionVisitor visitor )
+    public String getUid()
     {
-        ProgramExpressionParams params = visitor.getProgParams();
+        return relationship;
+    }
 
-        if ( AnalyticsType.ENROLLMENT == params.getProgramIndicator().getAnalyticsType() )
-        {
-            return visitor.getStatementBuilder().getProgramIndicatorEventColumnSql(
-                null, "created", params.getReportingStartDate(),
-                params.getReportingEndDate(), params.getProgramIndicator() );
-        }
-
-        return "created";
+    @Override
+    public TrackerType getTrackerType()
+    {
+        return TrackerType.RELATIONSHIP;
     }
 }

@@ -25,27 +25,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.domain.mapper;
+package org.hisp.dhis.webapi.controller.tracker.export;
 
-import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.DataValue;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper( uses = {
-    RelationshipMapper.class,
-    NoteMapper.class,
-    DataValueMapper.class,
-    InstantMapper.class } )
-public interface EventMapper extends DomainMapper<org.hisp.dhis.dxf2.events.event.Event, Event>
+@Mapper( uses = InstantMapper.class )
+public interface DataValueMapper extends DomainMapper<org.hisp.dhis.dxf2.events.event.DataValue, DataValue>
 {
-    @Mapping( target = "occurredAt", source = "eventDate" )
-    @Mapping( target = "scheduledAt", source = "dueDate" )
     @Mapping( target = "createdAt", source = "created" )
-    @Mapping( target = "createdAtClient", source = "createdAtClient" )
     @Mapping( target = "updatedAt", source = "lastUpdated" )
-    @Mapping( target = "updatedAtClient", source = "lastUpdatedAtClient" )
-    @Mapping( target = "completedAt", source = "completedDate" )
-    @Mapping( target = "createdBy", source = "createdByUserInfo.username" )
-    @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo.username" )
-    Event from( org.hisp.dhis.dxf2.events.event.Event event );
+    DataValue from( org.hisp.dhis.dxf2.events.event.DataValue dataValue );
 }
