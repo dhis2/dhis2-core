@@ -433,6 +433,15 @@ public class DefaultDataQueryService
 
                     if ( period != null )
                     {
+                        if ( isoPeriodHolder.hasDateField() )
+                        {
+                            period.setDescription( isoPeriodHolder.getIsoPeriod() );
+                        }
+
+                        dimensionalKeywords.addKeyword( isoPeriodHolder.getIsoPeriod(),
+                            format != null ? i18n.getString( format.formatPeriod( period ) )
+                                : isoPeriodHolder.getIsoPeriod() );
+
                         periods.add( period );
                     }
                     else
