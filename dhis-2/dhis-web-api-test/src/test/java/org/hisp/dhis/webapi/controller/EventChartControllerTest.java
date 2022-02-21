@@ -96,6 +96,8 @@ class EventChartControllerTest extends DhisControllerConvenienceTest
 
         // Then
         final JsonResponse response = GET( "/eventCharts/" + uid ).content();
+        System.err.println( response );
+
         final Map<String, JsonNode> nodeMap = (Map<String, JsonNode>) response.node().value();
 
         assertThat( nodeMap.values(), is( empty() ) );

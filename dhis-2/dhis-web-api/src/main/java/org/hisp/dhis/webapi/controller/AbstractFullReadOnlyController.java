@@ -343,7 +343,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
 
         List<ObjectNode> objectNodes = fieldFilterService2.toObjectNodes( entities, fields );
 
-        return objectNodes.get( 0 );
+        return objectNodes.isEmpty() ? fieldFilterService2.createObjectNode() : objectNodes.get( 0 );
     }
 
     @SuppressWarnings( "unchecked" )
