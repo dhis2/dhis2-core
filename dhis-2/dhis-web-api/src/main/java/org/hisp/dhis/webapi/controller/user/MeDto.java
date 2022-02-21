@@ -32,13 +32,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.translation.Translation;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.sharing.Sharing;
@@ -48,10 +48,45 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Getter
 @Setter
-@AllArgsConstructor
 @JsonInclude( JsonInclude.Include.ALWAYS )
 public class MeDto
 {
+    public MeDto( User user, Map<String, Serializable> settings, List<String> programs, List<String> authorities,
+        List<String> dataSets )
+    {
+        this.id = user.getUid();
+        this.username = user.getUsername();
+        this.surname = user.getSurname();
+        this.firstName = user.getFirstName();
+        this.employer = user.getEmployer();
+        this.languages = user.getLanguages();
+        this.gender = user.getGender();
+        this.jobTitle = user.getJobTitle();
+        this.created = user.getCreated().toString();
+        this.lastUpdated = user.getLastUpdated().toString();
+        this.dataViewOrganisationUnits = user.getDataViewOrganisationUnits();
+        this.favorites = user.getFavorites();
+        this.sharing = user.getSharing();
+        this.userGroupAccesses = user.getUserGroupAccesses();
+        this.userAccesses = user.getUserAccesses();
+        this.userGroups = user.getGroups();
+        this.translations = user.getTranslations();
+        this.teiSearchOrganisationUnits = user.getTeiSearchOrganisationUnits();
+        this.organisationUnits = user.getOrganisationUnits();
+        this.externalAccess = user.getExternalAccess();
+        this.displayName = user.getDisplayName();
+        this.access = user.getAccess();
+        this.name = user.getName();
+        this.email = user.getEmail();
+        this.userRoles = user.getUserAuthorityGroups();
+        this.userCredentials = null;
+
+        this.settings = settings;
+        this.programs = programs;
+        this.authorities = authorities;
+        this.dataSets = dataSets;
+    }
+
     @JsonProperty( )
     private String id;
 

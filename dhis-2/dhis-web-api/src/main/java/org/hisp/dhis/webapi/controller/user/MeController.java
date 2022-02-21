@@ -174,40 +174,12 @@ public class MeController
             user.setAccess( access );
         }
 
-        MeDto meDto = new MeDto(
-            user.getUid(),
-            user.getUsername(),
-            user.getSurname(),
-            user.getFirstName(),
-            user.getEmployer(),
-            user.getLanguages(),
-            user.getGender(),
-            user.getJobTitle(),
-            user.getCreated().toString(),
-            user.getLastUpdated().toString(),
-            user.getDataViewOrganisationUnits(),
-            user.getFavorites(),
-            user.getSharing(),
-            user.getUserGroupAccesses(),
-            user.getUserAccesses(),
-            user.getGroups(),
-            user.getTranslations(),
-            user.getTeiSearchOrganisationUnits(),
-            user.getOrganisationUnits(),
-            user.getExternalAccess(),
-            user.getDisplayName(),
-            user.getAccess(),
-            user.getName(),
-            user.getEmail(),
-            user.getUserAuthorityGroups(),
-            null,
+        MeDto meDto = new MeDto( user,
             userSettingService.getUserSettingsWithFallbackByUserAsMap( user, USER_SETTING_KEYS, true ),
-            programService.getUserPrograms().stream()
-                .map( BaseIdentifiableObject::getUid )
+            programService.getUserPrograms().stream().map( BaseIdentifiableObject::getUid )
                 .collect( Collectors.toList() ),
             new ArrayList<>( user.getAllAuthorities() ),
-            dataSetService.getUserDataRead( user ).stream()
-                .map( BaseIdentifiableObject::getUid )
+            dataSetService.getUserDataRead( user ).stream().map( BaseIdentifiableObject::getUid )
                 .collect( Collectors.toList() ) );
 
         UserCredWrapperDto userCredWrapperDto = new UserCredWrapperDto();

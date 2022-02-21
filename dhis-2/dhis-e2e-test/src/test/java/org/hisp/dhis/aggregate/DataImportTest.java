@@ -112,13 +112,9 @@ public class DataImportTest
         String taskId = response.extractString( "response.id" );
 
         // Validate that job was successful
-
-        systemActions.waitUntilTaskCompleted( "DATAVALUE_IMPORT", taskId );
-        // TODO: Somehow the order is different in the response, so we need to
-        // check for both
-        // .validate()
-        // .body( "message", contains( "Process started", "Importing data
-        // values", "Import done" ) );
+        systemActions.waitUntilTaskCompleted( "DATAVALUE_IMPORT", taskId )
+            .validate()
+            .body( "message", contains( "Process started", "Importing data values", "Import done" ) );
 
         // validate task summaries were created
         ApiResponse taskSummariesResponse = systemActions.waitForTaskSummaries( "DATAVALUE_IMPORT", taskId );

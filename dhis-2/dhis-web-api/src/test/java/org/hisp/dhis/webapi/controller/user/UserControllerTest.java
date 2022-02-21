@@ -64,6 +64,7 @@ import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -129,7 +130,8 @@ class UserControllerTest
         parsedUser.setGroups( new HashSet<>( Arrays.asList( userGroup1, userGroup2 ) ) );
     }
 
-    // @Test//Fails12577
+    @Test
+    @Disabled( "Disabled because of DHIS2-12577" )
     @SuppressWarnings( "unchecked" )
     public void updateUserGroups()
     {
@@ -172,8 +174,8 @@ class UserControllerTest
         verifyNoInteractions( userGroupService );
     }
 
-    // @Test//Fails12577
-    @SuppressWarnings( "unchecked" )
+    @Test
+    @Disabled( "Disabled because of DHIS2-12577" )
     public void updateUserGroupsSameUser()
     {
         currentUser.setId( 1001 );
