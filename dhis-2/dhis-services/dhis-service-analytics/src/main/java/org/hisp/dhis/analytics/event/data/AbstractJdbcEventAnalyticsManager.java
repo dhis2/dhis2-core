@@ -29,6 +29,8 @@ package org.hisp.dhis.analytics.event.data;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.analytics.DataQueryParams.NUMERATOR_DENOMINATOR_PROPERTIES_COUNT;
+import static org.hisp.dhis.analytics.SortOrder.ASC;
+import static org.hisp.dhis.analytics.SortOrder.DESC;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.OU_GEOMETRY_COL_SUFFIX;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.OU_NAME_COL_SUFFIX;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
@@ -36,6 +38,8 @@ import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.DATE_PERIOD_STRUCT_
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ORG_UNIT_STRUCT_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
+import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
+import static org.hisp.dhis.common.DimensionItemType.PROGRAM_INDICATOR;
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
 import static org.hisp.dhis.system.util.MathUtils.getRounded;
 
@@ -53,9 +57,7 @@ import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
-import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionType;
-import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
@@ -157,7 +159,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
         if ( params.isSorting() )
         {
-            sql += "order by " + getSortColumns( params, SortOrder.ASC ) + getSortColumns( params, SortOrder.DESC );
+            sql += "order by " + getSortColumns( params, ASC ) + getSortColumns( params, DESC );
 
             sql = TextUtils.removeLastComma( sql ) + " ";
         }
@@ -169,18 +171,29 @@ public abstract class AbstractJdbcEventAnalyticsManager
     {
         String sql = "";
 
-        for ( DimensionalItemObject item : order.equals( SortOrder.ASC ) ? params.getAsc() : params.getDesc() )
+        for ( QueryItem item : order == ASC ? params.getAsc() : params.getDesc() )
         {
-            if ( DimensionItemType.PROGRAM_INDICATOR.equals( item.getDimensionItemType() )
-                || DimensionItemType.DATA_ELEMENT.equals( item.getDimensionItemType() ) )
+            if ( item.getItem().getDimensionItemType() == PROGRAM_INDICATOR )
             {
-                sql += quote( item.getUid() );
+                sql += quote( item.getItem().getUid() );
+            }
+            else if ( item.getItem().getDimensionItemType() == DATA_ELEMENT )
+            {
+                if ( item.getProgramStage() != null )
+                {
+                    sql += quote( item.getProgramStage().getUid() + "." + item.getItem().getUid() );
+                }
+                else
+                {
+                    sql += quote( item.getItem().getUid() );
+                }
             }
             else
             {
-                sql += quoteAlias( item.getUid() );
+                sql += quoteAlias( item.getItem().getUid() );
             }
-            sql += order.equals( SortOrder.ASC ) ? " asc," : " desc,";
+
+            sql += order == ASC ? " asc," : " desc,";
         }
 
         return sql;

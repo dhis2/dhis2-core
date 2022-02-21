@@ -28,10 +28,12 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static java.util.stream.Collectors.joining;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.encode;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
+import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.common.QueryOperator.IN;
@@ -441,7 +443,7 @@ public class JdbcEnrollmentAnalyticsManager
                 createOrderTypeAndOffset( item.getProgramStageOffset() ) + " " + LIMIT_1 + " )";
         }
 
-        return StringUtils.EMPTY;
+        return EMPTY;
     }
 
     /**
@@ -460,6 +462,7 @@ public class JdbcEnrollmentAnalyticsManager
     protected String getColumn( final QueryItem item, final String suffix )
     {
         String colName = item.getItemName();
+        String alias = EMPTY;
 
         if ( item.hasProgramStage() )
         {
@@ -495,7 +498,12 @@ public class JdbcEnrollmentAnalyticsManager
                     + " " + LIMIT_1 + " )";
             }
 
-            return "(select " + colName
+            if ( item.getItem().getDimensionItemType() == DATA_ELEMENT && item.getProgramStage() != null )
+            {
+                alias = " as " + quote( item.getProgramStage().getUid() + "." + item.getItem().getUid() );
+            }
+
+            return "(select " + colName + alias
                 + " from " + eventTableName
                 + " where " + eventTableName + ".pi = " + ANALYTICS_TBL_ALIAS + ".pi "
                 + "and " + colName + " is not null " + "and ps = '" + item.getProgramStage().getUid() + "' "

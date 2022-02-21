@@ -151,12 +151,12 @@ public class EventQueryParams
     /**
      * Columns to sort ascending.
      */
-    private List<DimensionalItemObject> asc = new ArrayList<>();
+    private List<QueryItem> asc = new ArrayList<>();
 
     /**
      * Columns to sort descending.
      */
-    private List<DimensionalItemObject> desc = new ArrayList<>();
+    private List<QueryItem> desc = new ArrayList<>();
 
     /**
      * The organisation unit selection mode.
@@ -197,7 +197,7 @@ public class EventQueryParams
     /**
      * Indicates the event status.
      */
-    private Set<EventStatus> eventStatus = new HashSet<>();
+    private Set<EventStatus> eventStatus = new LinkedHashSet<>();
 
     /**
      * Indicates whether the data dimension items should be collapsed into a
@@ -256,7 +256,7 @@ public class EventQueryParams
     /**
      * Indicates the program status
      */
-    private Set<ProgramStatus> programStatus;
+    private Set<ProgramStatus> programStatus = new LinkedHashSet<>();
 
     /**
      * Indicates whether to include metadata details to response
@@ -307,7 +307,6 @@ public class EventQueryParams
         params.partitions = new Partitions( this.partitions );
         params.tableName = this.tableName;
         params.periodType = this.periodType;
-
         params.program = this.program;
         params.programStage = this.programStage;
         params.items = new ArrayList<>( this.items );
@@ -326,7 +325,7 @@ public class EventQueryParams
         params.limit = this.limit;
         params.outputType = this.outputType;
         params.outputIdScheme = this.outputIdScheme;
-        params.eventStatus = this.eventStatus;
+        params.eventStatus = new LinkedHashSet<>( this.eventStatus );
         params.collapseDataDimensions = this.collapseDataDimensions;
         params.coordinatesOnly = this.coordinatesOnly;
         params.coordinateOuFallback = this.coordinateOuFallback;
@@ -337,7 +336,7 @@ public class EventQueryParams
         params.fallbackCoordinateField = this.fallbackCoordinateField;
         params.bbox = this.bbox;
         params.includeClusterPoints = this.includeClusterPoints;
-        params.programStatus = this.programStatus;
+        params.programStatus = new LinkedHashSet<>( this.programStatus );
         params.includeMetadataDetails = this.includeMetadataDetails;
         params.dataIdScheme = this.dataIdScheme;
         params.periodType = this.periodType;
@@ -424,8 +423,8 @@ public class EventQueryParams
         headers.forEach( header -> key.add( "headers", "[" + header + "]" ) );
         itemProgramIndicators.forEach( e -> key.add( "itemProgramIndicator", e.getUid() ) );
         eventStatus.forEach( status -> key.add( "eventStatus", "[" + status + "]" ) );
-        asc.forEach( e -> e.getUid() );
-        desc.forEach( e -> e.getUid() );
+        asc.forEach( e -> e.getItem().getUid() );
+        desc.forEach( e -> e.getItem().getUid() );
 
         return key
             .addIgnoreNull( "value", value, () -> value.getUid() )
@@ -994,7 +993,7 @@ public class EventQueryParams
         return programIndicator;
     }
 
-    public List<DimensionalItemObject> getAsc()
+    public List<QueryItem> getAsc()
     {
         return asc;
     }
@@ -1005,7 +1004,7 @@ public class EventQueryParams
         return dimensions;
     }
 
-    public List<DimensionalItemObject> getDesc()
+    public List<QueryItem> getDesc()
     {
         return desc;
     }
@@ -1345,13 +1344,13 @@ public class EventQueryParams
             return this;
         }
 
-        public Builder addAscSortItem( DimensionalItemObject sortItem )
+        public Builder addAscSortItem( QueryItem sortItem )
         {
             this.params.asc.add( sortItem );
             return this;
         }
 
-        public Builder addDescSortItem( DimensionalItemObject sortItem )
+        public Builder addDescSortItem( QueryItem sortItem )
         {
             this.params.desc.add( sortItem );
             return this;
@@ -1395,7 +1394,11 @@ public class EventQueryParams
 
         public Builder withEventStatuses( Set<EventStatus> eventStatuses )
         {
-            this.params.eventStatus = eventStatuses;
+            if ( isNotEmpty( eventStatuses ) )
+            {
+                this.params.eventStatus.addAll( eventStatuses );
+            }
+
             return this;
         }
 
@@ -1455,7 +1458,11 @@ public class EventQueryParams
 
         public Builder withProgramStatuses( Set<ProgramStatus> programStatuses )
         {
-            this.params.programStatus = programStatuses;
+            if ( isNotEmpty( programStatuses ) )
+            {
+                this.params.programStatus.addAll( programStatuses );
+            }
+
             return this;
         }
 
