@@ -33,6 +33,7 @@ import static java.util.Collections.unmodifiableSet;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toUnmodifiableList;
+import static java.util.stream.Collectors.toUnmodifiableSet;
 import static org.hisp.dhis.commons.collection.ListUtils.getDuplicates;
 import static org.hisp.dhis.dataintegrity.DataIntegrityDetails.DataIntegrityIssue.toIssue;
 import static org.hisp.dhis.dataintegrity.DataIntegrityDetails.DataIntegrityIssue.toRefsList;
@@ -41,6 +42,7 @@ import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
 import static org.hisp.dhis.expression.ParseType.VALIDATION_RULE_EXPRESSION;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
@@ -616,6 +618,13 @@ public class DefaultDataIntegrityService
     @Transactional( readOnly = true )
     public FlattenedDataIntegrityReport getReport( Set<String> checks, JobProgress progress )
     {
+        if ( checks == null || checks.isEmpty() )
+        {
+            // report only needs these
+            checks = Arrays.stream( DataIntegrityCheckType.values() )
+                .map( DataIntegrityCheckType::getName )
+                .collect( toUnmodifiableSet() );
+        }
         runDetailsChecks( checks, progress );
         return new FlattenedDataIntegrityReport( getDetails( checks, -1L ) );
     }
