@@ -126,7 +126,7 @@ public interface ExpressionService
      * @param indicators the set of indicators.
      * @return a Set of OrganisationUnitGroups.
      */
-    Set<OrganisationUnitGroup> getIndicatorOrgUnitGroups( Collection<Indicator> indicators );
+    List<OrganisationUnitGroup> getOrgUnitGroupCountGroups( Collection<Indicator> indicators );
 
     /**
      * Generates the calculated value for the given parameters based on the
@@ -136,13 +136,12 @@ public interface ExpressionService
      * @param periods a List of periods for which to calculate the value.
      * @param itemMap map of dimensional item id to object in expression.
      * @param valueMap the map of data values.
-     * @param constantMap the map of constants.
      * @param orgUnitCountMap the map of organisation unit group member counts.
      * @return the calculated value as a double.
      */
     IndicatorValue getIndicatorValueObject( Indicator indicator, List<Period> periods,
         Map<DimensionalItemId, DimensionalItemObject> itemMap, Map<DimensionalItemObject, Object> valueMap,
-        Map<String, Constant> constantMap, Map<String, Integer> orgUnitCountMap );
+        Map<String, Integer> orgUnitCountMap );
 
     /**
      * Substitutes any constants and org unit group member counts in the
@@ -249,15 +248,6 @@ public interface ExpressionService
     Set<DimensionalItemId> getExpressionDimensionalItemIds( String expression, ParseType parseType );
 
     /**
-     * Returns all OrganisationUnitGroups in the given expression.
-     *
-     * @param expression the expression string.
-     * @param parseType the type of expression to parse.
-     * @return a Set of OrganisationUnitGroups in the expression string.
-     */
-    Set<OrganisationUnitGroup> getExpressionOrgUnitGroups( String expression, ParseType parseType );
-
-    /**
      * Returns set of all OrganisationUnitGroup UIDs in the given expression.
      *
      * @param expression the expression string.
@@ -273,8 +263,19 @@ public interface ExpressionService
     /**
      * Generates the calculated value for an expression.
      *
-     * @param exParams the expression parameters.
+     * @param params the expression parameters.
      * @return the calculated value.
      */
-    Object getExpressionValue( ExpressionParams exParams );
+    Object getExpressionValue( ExpressionParams params );
+
+    // -------------------------------------------------------------------------
+    // Gets a (possibly cached) constant map
+    // -------------------------------------------------------------------------
+
+    /**
+     * Gets the (possibly cached) constant map.
+     *
+     * @return the constant map.
+     */
+    Map<String, Constant> getConstantMap();
 }

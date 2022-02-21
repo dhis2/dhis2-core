@@ -28,6 +28,7 @@
 package org.hisp.dhis.program.variable;
 
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import org.hisp.dhis.parser.expression.ProgramExpressionParams;
 import org.hisp.dhis.program.AnalyticsType;
 
 /**
@@ -41,11 +42,13 @@ public class vEventDate
     @Override
     public Object getSql( CommonExpressionVisitor visitor )
     {
-        if ( AnalyticsType.ENROLLMENT == visitor.getProgramIndicator().getAnalyticsType() )
+        ProgramExpressionParams params = visitor.getProgParams();
+
+        if ( AnalyticsType.ENROLLMENT == params.getProgramIndicator().getAnalyticsType() )
         {
             return visitor.getStatementBuilder().getProgramIndicatorEventColumnSql(
-                null, "executiondate", visitor.getReportingStartDate(), visitor.getReportingEndDate(),
-                visitor.getProgramIndicator() );
+                null, "executiondate", params.getReportingStartDate(), params.getReportingEndDate(),
+                params.getProgramIndicator() );
         }
 
         return "executiondate";

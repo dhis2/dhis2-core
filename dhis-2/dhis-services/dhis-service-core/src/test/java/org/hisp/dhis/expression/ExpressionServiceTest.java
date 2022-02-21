@@ -48,9 +48,12 @@ import static org.hisp.dhis.util.DateUtils.parseDate;
 import static org.hisp.dhis.utils.Assertions.assertMapEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -253,8 +256,6 @@ class ExpressionServiceTest extends DhisSpringTest
     private Map<DimensionalItemObject, Object> valueMap;
 
     private MapMap<Period, DimensionalItemObject, Object> samples;
-
-    private Map<String, Constant> constantMap;
 
     private static final Map<String, Integer> ORG_UNIT_COUNT_MAP = new ImmutableMap.Builder<String, Integer>()
         .put( "orgUnitGrpA", 1000000 ).put( "orgUnitGrpB", 2000000 ).build();
@@ -483,7 +484,6 @@ class ExpressionServiceTest extends DhisSpringTest
         constantB.setUid( "xxxxxxxx025" );
         constantService.saveConstant( constantA );
         constantService.saveConstant( constantB );
-        constantMap = constantService.getConstantMap();
         valueMap = new ImmutableMap.Builder<DimensionalItemObject, Object>().put( dataElementA, 3.0 )
             .put( dataElementB, 13.0 ).put( dataElementF, "Str" ).put( dataElementG, "2022-01-15" )
             .put( dataElementH, true ).put( dataElementOperandA, 5.0 ).put( dataElementOperandB, 15.0 )
@@ -534,7 +534,6 @@ class ExpressionServiceTest extends DhisSpringTest
             .dataType( dataType )
             .itemMap( itemMap )
             .valueMap( valueMap )
-            .constantMap( constantMap )
             .orgUnitCountMap( ORG_UNIT_COUNT_MAP )
             .days( DAYS )
             .missingValueStrategy( missingValueStrategy )
@@ -682,18 +681,30 @@ class ExpressionServiceTest extends DhisSpringTest
     }
 
     /**
+     * Gets the organisation unit group counts (if any) in an expression
+     *
+     * @param expr the expression string
+     * @return a string with org unit group uids (if any)
+     */
+    private List<OrganisationUnitGroup> getOrgUnitGroupCountGroups( String expr )
+    {
+        Indicator indicator = new Indicator();
+        indicator.setNumerator( expr );
+        return expressionService.getOrgUnitGroupCountGroups( List.of( indicator ) );
+    }
+
+    /**
      * Gets the organisation unit groups (if any) in an expression
      *
      * @param expr the expression string
      * @return a string with org unit gruop names (if any)
      */
-    private String getOrgUnitGroups( String expr )
+    private String getOrgUnitGroupIds( String expr )
     {
-        Set<OrganisationUnitGroup> orgUnitGroups = expressionService.getExpressionOrgUnitGroups( expr,
-            PREDICTOR_EXPRESSION );
-        List<String> orgUnitGroupNames = orgUnitGroups.stream().map( BaseIdentifiableObject::getName ).sorted()
-            .collect( Collectors.toList() );
-        return String.join( ", ", orgUnitGroupNames );
+        List<String> uids = new ArrayList<>( expressionService.getExpressionOrgUnitGroupIds( expr,
+            PREDICTOR_EXPRESSION ) );
+        Collections.sort( uids );
+        return String.join( ", ", uids );
     }
 
     /**
@@ -1145,14 +1156,33 @@ class ExpressionServiceTest extends DhisSpringTest
     }
 
     @Test
-    void testGetOrgUnitGroups()
+    void testGetOrgUnitGroupCountGroups()
     {
-        assertEquals( "", getOrgUnitGroups( "#{dataElemenA} " ) );
-        assertEquals( "OugA", getOrgUnitGroups( "OUG{orgUnitGrpA}" ) );
-        assertEquals( "OugA, OugB, OugC",
-            getOrgUnitGroups( "OUG{orgUnitGrpA} + OUG{orgUnitGrpB} + OUG{orgUnitGrpC}" ) );
-        assertEquals( "OugA, OugB, OugC",
-            getOrgUnitGroups( "if(orgUnit.group(orgUnitGrpA,orgUnitGrpB,orgUnitGrpC),1,0)" ) );
+        List<OrganisationUnitGroup> ougs;
+
+        ougs = getOrgUnitGroupCountGroups( "#{dataElemenA}" );
+        assertEquals( 0, ougs.size() );
+
+        ougs = getOrgUnitGroupCountGroups( "OUG{orgUnitGrpA}" );
+        assertEquals( 1, ougs.size() );
+        assertTrue( ougs.contains( orgUnitGroupA ) );
+
+        ougs = getOrgUnitGroupCountGroups( "OUG{orgUnitGrpA} + OUG{orgUnitGrpB} + OUG{orgUnitGrpC}" );
+        assertEquals( 3, ougs.size() );
+        assertTrue( ougs.contains( orgUnitGroupA ) );
+        assertTrue( ougs.contains( orgUnitGroupB ) );
+        assertTrue( ougs.contains( orgUnitGroupC ) );
+    }
+
+    @Test
+    void testGetOrgUnitGroupIds()
+    {
+        assertEquals( "", getOrgUnitGroupIds( "#{dataElemenA} " ) );
+        assertEquals( "orgUnitGrpA", getOrgUnitGroupIds( "if(orgUnit.group(orgUnitGrpA),1,0)" ) );
+        assertEquals( "orgUnitGrpA, orgUnitGrpB",
+            getOrgUnitGroupIds( "if(orgUnit.group(orgUnitGrpA) && orgUnit.group(orgUnitGrpB),1,0)" ) );
+        assertEquals( "orgUnitGrpA, orgUnitGrpB, orgUnitGrpC",
+            getOrgUnitGroupIds( "if(orgUnit.group(orgUnitGrpA,orgUnitGrpB,orgUnitGrpC),1,0)" ) );
     }
 
     @Test
@@ -1250,7 +1280,7 @@ class ExpressionServiceTest extends DhisSpringTest
         indicatorB.setNumerator( "OUG{orgUnitGrpC}" );
         indicatorB.setDenominator( null );
         List<Indicator> indicators = Arrays.asList( indicatorA, indicatorB );
-        Set<OrganisationUnitGroup> items = expressionService.getIndicatorOrgUnitGroups( indicators );
+        List<OrganisationUnitGroup> items = expressionService.getOrgUnitGroupCountGroups( indicators );
         assertEquals( 3, items.size() );
         List<String> nameList = items.stream().map( BaseIdentifiableObject::getName ).sorted()
             .collect( Collectors.toList() );
@@ -1273,7 +1303,7 @@ class ExpressionServiceTest extends DhisSpringTest
         Map<DimensionalItemId, DimensionalItemObject> itemMap = expressionService
             .getIndicatorDimensionalItemMap( indicators );
         IndicatorValue value = expressionService.getIndicatorValueObject( indicatorA, singletonList( period ), itemMap,
-            valueMap, constantMap, null );
+            valueMap, null );
         assertEquals( value.getNumeratorValue(), DELTA, 2.5 );
         assertEquals( value.getDenominatorValue(), DELTA, 5.0 );
         assertEquals( value.getFactor(), DELTA, 100.0 );
@@ -1281,7 +1311,7 @@ class ExpressionServiceTest extends DhisSpringTest
         assertEquals( value.getDivisor(), DELTA, 1 );
         assertEquals( value.getValue(), DELTA, 50.0 );
         value = expressionService.getIndicatorValueObject( indicatorB, singletonList( period ), itemMap, valueMap,
-            constantMap, null );
+            null );
         assertEquals( value.getNumeratorValue(), DELTA, 20.0 );
         assertEquals( value.getDenominatorValue(), DELTA, 5.0 );
         assertEquals( value.getFactor(), DELTA, 36500.0 );

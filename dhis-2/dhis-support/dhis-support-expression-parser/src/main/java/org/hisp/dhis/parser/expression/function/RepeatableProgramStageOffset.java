@@ -29,6 +29,7 @@ package org.hisp.dhis.parser.expression.function;
 
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ExpressionItem;
+import org.hisp.dhis.parser.expression.ExpressionState;
 import org.hisp.dhis.parser.expression.antlr.ExpressionParser;
 
 /**
@@ -51,13 +52,15 @@ public class RepeatableProgramStageOffset implements ExpressionItem
 
     private Object next( ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        int oldStageOffset = visitor.getStageOffset();
+        ExpressionState state = visitor.getState();
 
-        visitor.setStageOffset( Integer.parseInt( ctx.stage.getText() ) );
+        int oldStageOffset = state.getStageOffset();
+
+        state.setStageOffset( Integer.parseInt( ctx.stage.getText() ) );
 
         Object ret = visitor.visit( ctx.expr( 0 ) );
 
-        visitor.setStageOffset( oldStageOffset );
+        state.setStageOffset( oldStageOffset );
 
         return ret;
     }

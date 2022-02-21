@@ -368,11 +368,11 @@ public class RelationshipsTests
 
         ApiResponse entityResponse = getEntityInRelationship( toInstance, toInstanceId );
 
-        validateRelationship( entityResponse, relType, fromInstance, fromInstanceId, toInstance, toInstanceId,
+        validateRelationshipInEntity( entityResponse, relType, fromInstance, fromInstanceId, toInstance, toInstanceId,
             createdRelationships.get( 0 ) );
 
         entityResponse = getEntityInRelationship( fromInstance, fromInstanceId );
-        validateRelationship( entityResponse, relType, fromInstance, fromInstanceId, toInstance, toInstanceId,
+        validateRelationshipInEntity( entityResponse, relType, fromInstance, fromInstanceId, toInstance, toInstanceId,
             createdRelationships.get( 0 ) );
     }
 
@@ -458,9 +458,28 @@ public class RelationshipsTests
             .rootPath( bodyPrefix )
             .body( "relationshipType", equalTo( relationshipTypeId ) )
             .body( "relationship", equalTo( relationshipId ) )
-            .body( String.format( "from.%s", fromInstance ),
-                equalTo( fromInstanceId ) )
-            .body( String.format( "to.%s", toInstance ), equalTo( toInstanceId ) );
+            .body( String.format( "from.%s.%s", fromInstance, fromInstance ), equalTo( fromInstanceId ) )
+            .body( String.format( "to.%s.%s", toInstance, toInstance ), equalTo( toInstanceId ) );
+    }
+
+    private void validateRelationshipInEntity( ApiResponse response, String relationshipTypeId, String fromInstance,
+                                       String fromInstanceId,
+                                       String toInstance, String toInstanceId, String relationshipId )
+    {
+        String bodyPrefix = "";
+        if ( response.getBody().getAsJsonArray( "relationships" ) != null )
+        {
+            bodyPrefix = "relationships[0]";
+        }
+
+        response.validate()
+                .statusCode( 200 )
+                .body( bodyPrefix, notNullValue() )
+                .rootPath( bodyPrefix )
+                .body( "relationshipType", equalTo( relationshipTypeId ) )
+                .body( "relationship", equalTo( relationshipId ) )
+                .body( String.format( "from.%s", fromInstance ), equalTo( fromInstanceId ) )
+                .body( String.format( "to.%s", toInstance ), equalTo( toInstanceId ) );
     }
 
     @AfterEach

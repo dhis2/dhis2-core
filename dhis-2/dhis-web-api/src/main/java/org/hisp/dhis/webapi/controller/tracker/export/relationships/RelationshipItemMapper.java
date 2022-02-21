@@ -25,42 +25,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.preheat;
+package org.hisp.dhis.webapi.controller.tracker.export.relationships;
 
-import java.util.Optional;
+import org.hisp.dhis.webapi.controller.tracker.export.DomainMapper;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
-import lombok.experimental.UtilityClass;
-
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.tracker.TrackerIdScheme;
-import org.hisp.dhis.tracker.TrackerIdentifier;
-
-/**
- * @author Luciano Fiandesio
- */
-@UtilityClass
-public class PreheatUtils
+@Mapper( uses = {
+    TrackedEntityMapper.class,
+    EnrollmentMapper.class,
+    EventMapper.class,
+} )
+interface RelationshipItemMapper
+    extends DomainMapper<org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem, RelationshipItem>
 {
-    public <T extends IdentifiableObject> Optional<String> resolveKey( TrackerIdentifier identifier, T object )
-    {
-        if ( identifier.getIdScheme().equals( TrackerIdScheme.UID ) )
-        {
-            return Optional.ofNullable( object.getUid() );
-        }
-        else if ( identifier.getIdScheme().equals( TrackerIdScheme.CODE ) )
-        {
-            return Optional.ofNullable( object.getCode() );
-        }
-        else if ( identifier.getIdScheme().equals( TrackerIdScheme.NAME ) )
-        {
-            return Optional.ofNullable( object.getName() );
-        }
-        else if ( identifier.getIdScheme().equals( TrackerIdScheme.ATTRIBUTE ) )
-        {
-            return Optional.ofNullable( identifier.getIdentifier( object ) );
-        }
-        // TODO TrackerIdScheme.AUTO ??
-
-        return Optional.empty();
-    }
+    @Mapping( target = "trackedEntity", source = "trackedEntityInstance" )
+    RelationshipItem from( org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem relationshipItem );
 }

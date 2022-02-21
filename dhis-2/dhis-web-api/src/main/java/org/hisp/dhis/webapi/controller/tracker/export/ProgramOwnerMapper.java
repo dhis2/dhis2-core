@@ -25,32 +25,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.variable;
+package org.hisp.dhis.webapi.controller.tracker.export;
 
-import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.parser.expression.ProgramExpressionParams;
-import org.hisp.dhis.program.AnalyticsType;
+import org.hisp.dhis.tracker.domain.ProgramOwner;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
-/**
- * Program indicator variable: creation date
- *
- * @author Jim Grace
- */
-public class vCreationDate
-    extends ProgramDateVariable
+@Mapper
+public interface ProgramOwnerMapper
+    extends DomainMapper<org.hisp.dhis.dxf2.events.trackedentity.ProgramOwner, ProgramOwner>
 {
-    @Override
-    public Object getSql( CommonExpressionVisitor visitor )
-    {
-        ProgramExpressionParams params = visitor.getProgParams();
-
-        if ( AnalyticsType.ENROLLMENT == params.getProgramIndicator().getAnalyticsType() )
-        {
-            return visitor.getStatementBuilder().getProgramIndicatorEventColumnSql(
-                null, "created", params.getReportingStartDate(),
-                params.getReportingEndDate(), params.getProgramIndicator() );
-        }
-
-        return "created";
-    }
+    @Mapping( target = "orgUnit", source = "ownerOrgUnit" )
+    @Mapping( target = "trackedEntity", source = "trackedEntityInstance" )
+    ProgramOwner from( org.hisp.dhis.dxf2.events.trackedentity.ProgramOwner programOwner );
 }

@@ -502,7 +502,6 @@ public class DataValidationTask
                 .parseType( VALIDATION_RULE_EXPRESSION )
                 .itemMap( context.getItemMap() )
                 .valueMap( values )
-                .constantMap( context.getConstantMap() )
                 .orgUnitGroupMap( context.getOrgUnitGroupMap() )
                 .days( period.getDaysInPeriod() )
                 .missingValueStrategy( expression.getMissingValueStrategy() )

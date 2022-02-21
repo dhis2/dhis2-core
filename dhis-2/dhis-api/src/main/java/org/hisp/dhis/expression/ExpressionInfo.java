@@ -25,17 +25,47 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.domain.mapper;
+package org.hisp.dhis.expression;
 
-import org.hisp.dhis.tracker.domain.ProgramOwner;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import java.util.HashSet;
+import java.util.Set;
 
-@Mapper
-public interface ProgramOwnerMapper
-    extends DomainMapper<org.hisp.dhis.dxf2.events.trackedentity.ProgramOwner, ProgramOwner>
+import lombok.Getter;
+import lombok.Setter;
+
+import org.hisp.dhis.common.DimensionalItemId;
+
+/**
+ * Information parsed from an expression
+ * <p>
+ * This is only information that is gathered from parsing the expression, and
+ * contains no information from any other source such as the database (either
+ * data or metadata). In other words, the same expression string will always
+ * result in the same information here.
+ *
+ * @author Jim Grace
+ */
+@Getter
+@Setter
+public class ExpressionInfo
 {
-    @Mapping( target = "orgUnit", source = "ownerOrgUnit" )
-    @Mapping( target = "trackedEntity", source = "trackedEntityInstance" )
-    ProgramOwner from( org.hisp.dhis.dxf2.events.trackedentity.ProgramOwner programOwner );
+    /**
+     * The dimensional item ids found.
+     */
+    private Set<DimensionalItemId> itemIds = new HashSet<>();
+
+    /**
+     * The sampled dimensional item ids found (for predictors).
+     */
+    private Set<DimensionalItemId> sampleItemIds = new HashSet<>();
+
+    /**
+     * Ids of org unit groups that will need org unit group member counts.
+     */
+    private Set<String> orgUnitGroupCountIds = new HashSet<>();
+
+    /**
+     * Ids of org unit groups found in orgUnits.groups function.
+     */
+    private Set<String> orgUnitGroupIds = new HashSet<>();
 }

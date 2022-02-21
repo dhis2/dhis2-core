@@ -54,17 +54,10 @@ public abstract class ProgramExpressionItem
     implements ExpressionItem
 {
     @Override
-    public final Object getItemId( ExprContext ctx, CommonExpressionVisitor visitor )
+    public final Object getExpressionInfo( ExprContext ctx, CommonExpressionVisitor visitor )
     {
         throw new ParserExceptionWithoutContext(
-            "Internal parsing error: getItemId called for program indicator item " + ctx.getText() );
-    }
-
-    @Override
-    public final Object getOrgUnitGroup( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        throw new ParserExceptionWithoutContext(
-            "Internal parsing error: getOrgUnitGroup called for program indicator item " + ctx.getText() );
+            "Internal parsing error: getExpressionInfo called for program indicator item " + ctx.getText() );
     }
 
     @Override

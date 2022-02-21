@@ -48,7 +48,8 @@ public class ProgramItemAttribute
     {
         String attributeId = getProgramAttributeId( ctx );
 
-        TrackedEntityAttribute attribute = visitor.getAttributeService().getTrackedEntityAttribute( attributeId );
+        TrackedEntityAttribute attribute = visitor.getIdObjectManager()
+            .get( TrackedEntityAttribute.class, attributeId );
 
         if ( attribute == null )
         {
@@ -67,9 +68,10 @@ public class ProgramItemAttribute
 
         String column = visitor.getStatementBuilder().columnQuote( attributeId );
 
-        if ( visitor.getReplaceNulls() )
+        if ( visitor.getState().isReplaceNulls() )
         {
-            TrackedEntityAttribute attribute = visitor.getAttributeService().getTrackedEntityAttribute( attributeId );
+            TrackedEntityAttribute attribute = visitor.getIdObjectManager()
+                .get( TrackedEntityAttribute.class, attributeId );
 
             if ( attribute == null )
             {

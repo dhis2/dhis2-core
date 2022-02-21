@@ -59,7 +59,6 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.VERTICAL_BA
 import static org.hisp.dhis.util.DateUtils.parseDate;
 
 import java.util.Date;
-import java.util.List;
 
 import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
 import org.hisp.dhis.parser.expression.dataitem.ItemConstant;
@@ -87,10 +86,7 @@ import org.hisp.dhis.parser.expression.operator.OperatorMathModulus;
 import org.hisp.dhis.parser.expression.operator.OperatorMathMultiply;
 import org.hisp.dhis.parser.expression.operator.OperatorMathPlus;
 import org.hisp.dhis.parser.expression.operator.OperatorMathPower;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodType;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
 /**
@@ -156,24 +152,20 @@ public class ParserUtils
 
         .build();
 
-    public static final ExpressionItemMethod ITEM_GET_DESCRIPTIONS = ExpressionItem::getDescription;
-
-    public static final ExpressionItemMethod ITEM_GET_IDS = ExpressionItem::getItemId;
-
-    public static final ExpressionItemMethod ITEM_GET_ORG_UNIT_GROUPS = ExpressionItem::getOrgUnitGroup;
-
-    public static final ExpressionItemMethod ITEM_EVALUATE = ExpressionItem::evaluate;
-
-    public static final ExpressionItemMethod ITEM_GET_SQL = ExpressionItem::getSql;
-
-    public static final ExpressionItemMethod ITEM_REGENERATE = ExpressionItem::regenerate;
+    /**
+     * Default value for data type double.
+     */
+    public static final double DEFAULT_DOUBLE_VALUE = 1d;
 
     /**
-     * Used for syntax checking when we don't have a list of actual periods for
-     * collecting samples.
+     * Default value for data type date.
      */
-    public static final List<Period> DEFAULT_SAMPLE_PERIODS = ImmutableList.of(
-        PeriodType.getPeriodFromIsoString( "20010101" ) );
+    public static final String DEFAULT_DATE_VALUE = "2017-07-08";
+
+    /**
+     * Default value for data type boolean.
+     */
+    public static final boolean DEFAULT_BOOLEAN_VALUE = false;
 
     /**
      * Parse a date. The input format is guaranteed by the expression parser to

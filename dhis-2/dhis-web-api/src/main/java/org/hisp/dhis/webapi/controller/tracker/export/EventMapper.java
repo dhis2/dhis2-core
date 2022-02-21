@@ -25,32 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.variable;
+package org.hisp.dhis.webapi.controller.tracker.export;
 
-import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.parser.expression.ProgramExpressionParams;
-import org.hisp.dhis.program.AnalyticsType;
+import org.hisp.dhis.tracker.domain.Event;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
-/**
- * Program indicator variable: creation date
- *
- * @author Jim Grace
- */
-public class vCreationDate
-    extends ProgramDateVariable
+@Mapper( uses = {
+    RelationshipMapper.class,
+    NoteMapper.class,
+    DataValueMapper.class,
+    InstantMapper.class } )
+public interface EventMapper extends DomainMapper<org.hisp.dhis.dxf2.events.event.Event, Event>
 {
-    @Override
-    public Object getSql( CommonExpressionVisitor visitor )
-    {
-        ProgramExpressionParams params = visitor.getProgParams();
-
-        if ( AnalyticsType.ENROLLMENT == params.getProgramIndicator().getAnalyticsType() )
-        {
-            return visitor.getStatementBuilder().getProgramIndicatorEventColumnSql(
-                null, "created", params.getReportingStartDate(),
-                params.getReportingEndDate(), params.getProgramIndicator() );
-        }
-
-        return "created";
-    }
+    @Mapping( target = "occurredAt", source = "eventDate" )
+    @Mapping( target = "scheduledAt", source = "dueDate" )
+    @Mapping( target = "createdAt", source = "created" )
+    @Mapping( target = "createdAtClient", source = "createdAtClient" )
+    @Mapping( target = "updatedAt", source = "lastUpdated" )
+    @Mapping( target = "updatedAtClient", source = "lastUpdatedAtClient" )
+    @Mapping( target = "completedAt", source = "completedDate" )
+    @Mapping( target = "createdBy", source = "createdByUserInfo.username" )
+    @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo.username" )
+    Event from( org.hisp.dhis.dxf2.events.event.Event event );
 }

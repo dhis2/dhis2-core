@@ -49,7 +49,7 @@ public class FunctionOrgUnitAncestor
     {
         for ( TerminalNode uid : ctx.UID() )
         {
-            OrganisationUnit orgUnit = visitor.getOrganisationUnitService().getOrganisationUnit( uid.getText() );
+            OrganisationUnit orgUnit = visitor.getIdObjectManager().get( OrganisationUnit.class, uid.getText() );
 
             if ( orgUnit == null )
             {
@@ -65,11 +65,13 @@ public class FunctionOrgUnitAncestor
     @Override
     public Object evaluate( ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        if ( visitor.getOrganizationUnit() != null )
+        OrganisationUnit orgUnit = visitor.getParams().getOrgUnit();
+
+        if ( orgUnit != null )
         {
             for ( TerminalNode uid : ctx.UID() )
             {
-                if ( visitor.getOrganizationUnit().getPath().contains( uid.getText() + "/" ) )
+                if ( orgUnit.getPath().contains( uid.getText() + "/" ) )
                 {
                     return true;
                 }
