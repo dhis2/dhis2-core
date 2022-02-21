@@ -25,54 +25,45 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.parser.expression.function;
 
-import java.util.Date;
-
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.ToString;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 import org.hisp.dhis.analytics.AggregationType;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
+import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
+import org.hisp.dhis.common.QueryModifiers;
+import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import org.hisp.dhis.parser.expression.ExpressionItem;
 
 /**
- * {@see DimensionalItemObject} modifiers for an analytics query, resulting from
- * a parsed indicator expression data item.
+ * Function aggregationType (for indicator expressions)
+ * <p>
+ * Overrides the default aggregation type of {@see DimensionalItemObject}.
  *
  * @author Jim Grace
  */
-@Getter
-@ToString
-@EqualsAndHashCode
-@Builder( toBuilder = true )
-public class QueryModifiers
+public class FunctionAggregationType
+    implements ExpressionItem
 {
-    /**
-     * Overrides the default aggregation type of this object.
-     */
-    @JsonProperty
-    private final AggregationType aggregationType;
+    @Override
+    public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
+    {
+        AggregationType aggregationType = parseAggregationType( ctx.aggregationType.getText() );
 
-    /**
-     * Period offset: the offset can be applied within an indicator formula in
-     * order to "shift" the query period by the offset value (e.g. Feb 2022 with
-     * offset -1 becomes Jan 2022). An offset with value 0 means no offset.
-     */
-    @JsonProperty
-    private final int periodOffset;
+        QueryModifiers queryMods = visitor.getState().getQueryModsBuilder().aggregationType( aggregationType ).build();
 
-    /**
-     * The minimum date (start of any period) for querying this object.
-     */
-    @JsonProperty
-    private final Date minDate;
+        return visitor.visitWithQueryMods( ctx.expr( 0 ), queryMods );
+    }
 
-    /**
-     * The maximum date (end of any period) for querying this object.
-     */
-    @JsonProperty
-    private final Date maxDate;
+    private AggregationType parseAggregationType( String text )
+    {
+        try
+        {
+            return AggregationType.valueOf( text );
+        }
+        catch ( IllegalArgumentException e )
+        {
+            throw new ParserExceptionWithoutContext( "Invalid aggregation type: " + text );
+        }
+    }
 }

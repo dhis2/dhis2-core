@@ -28,6 +28,7 @@
 package org.hisp.dhis.expression;
 
 import static java.util.Collections.singletonList;
+import static org.hisp.dhis.analytics.AggregationType.LAST;
 import static org.hisp.dhis.analytics.DataType.BOOLEAN;
 import static org.hisp.dhis.analytics.DataType.TEXT;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
@@ -113,7 +114,6 @@ import com.google.common.collect.Lists;
  */
 class ExpressionServiceTest extends DhisSpringTest
 {
-
     @Autowired
     private ExpressionService expressionService;
 
@@ -1219,7 +1219,10 @@ class ExpressionServiceTest extends DhisSpringTest
         assertNull( error( "#{dataElemenF}" ) );
         assertNull( error( "#{dataElemenG}" ) );
         assertNull( error( "#{dataElemenH}" ) );
-        assertNull( error( "if(A, 1, 0)" ) );
+        assertNull( error( "#{dataElemenA}.aggregationType(NOT_AN_AGGREGATION_TYPE)" ) );
+        assertNull( error( "#{dataElemenA}.periodOffset('notANumber')" ) );
+        assertNull( error( "#{dataElemenA}.maxDate(2022-13-01)" ) );
+        assertNull( error( "#{dataElemenA}.minDate(notADate)" ) );
     }
 
     // -------------------------------------------------------------------------
@@ -1324,6 +1327,14 @@ class ExpressionServiceTest extends DhisSpringTest
     void testIndicatorFunctionParsing()
     {
         DimensionalItemId id;
+
+        id = new DimensionalItemId( DATA_ELEMENT, "dataElemenA",
+            (QueryModifiers) null );
+        assertEquals( id, parseItemId( "#{dataElemenA}" ) );
+
+        id = new DimensionalItemId( DATA_ELEMENT, "dataElemenA",
+            QueryModifiers.builder().aggregationType( LAST ).build() );
+        assertEquals( id, parseItemId( "#{dataElemenA}.aggregationType(LAST)" ) );
 
         id = new DimensionalItemId( DATA_ELEMENT, "dataElemenA",
             QueryModifiers.builder().periodOffset( 10 ).build() );

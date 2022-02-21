@@ -83,6 +83,8 @@ public interface DimensionalObject
 
     String OPTION_SEP = ";";
 
+    String MULTI_CHOICES_OPTION_SEP = ",";
+
     String ITEM_SEP = "-";
 
     String PROGRAMSTAGE_SEP = ".";

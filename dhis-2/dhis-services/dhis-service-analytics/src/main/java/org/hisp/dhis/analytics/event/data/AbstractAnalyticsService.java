@@ -60,6 +60,7 @@ import org.hisp.dhis.analytics.event.EventQueryValidator;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DimensionItemKeywords;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
@@ -107,6 +108,13 @@ public abstract class AbstractAnalyticsService
 
         queryValidator.validate( params );
 
+        // keywords as well as their periods are removed in the next step,
+        // params object is modified
+        List<DimensionItemKeywords.Keyword> periodKeywords = params.getDimensions().stream().map(
+            DimensionalObject::getDimensionItemKeywords )
+            .filter( dimensionItemKeywords -> dimensionItemKeywords != null && !dimensionItemKeywords.isEmpty() )
+            .flatMap( dk -> dk.getKeywords().stream() ).collect( Collectors.toList() );
+
         params = new EventQueryParams.Builder( params )
             .withStartEndDatesForPeriods()
             .build();
@@ -147,7 +155,7 @@ public abstract class AbstractAnalyticsService
                 RepeatableStageParams repeatableStageParams = item.getRepeatableStageParams();
 
                 grid.addHeader( new GridHeader( name, column,
-                    repeatableStageParams.simpleStageValueExpected() ? ValueType.NUMBER : ValueType.REFERENCE,
+                    repeatableStageParams.simpleStageValueExpected() ? item.getValueType() : ValueType.REFERENCE,
                     false, true, item.getOptionSet(), item.getLegendSet(),
                     item.getProgramStage().getUid(), item.getRepeatableStageParams() ) );
             }
@@ -176,7 +184,7 @@ public abstract class AbstractAnalyticsService
         // Meta-data
         // ---------------------------------------------------------------------
 
-        addMetadata( params, grid );
+        addMetadata( params, periodKeywords, grid );
 
         // ---------------------------------------------------------------------
         // Data ID scheme
@@ -243,13 +251,25 @@ public abstract class AbstractAnalyticsService
      */
     protected void addMetadata( EventQueryParams params, Grid grid )
     {
+        addMetadata( params, null, grid );
+    }
+
+    /**
+     * Adds meta data values to the given grid based on the given data query
+     * parameters.
+     *
+     * @param params the data query parameters.
+     * @param grid the grid.
+     */
+    protected void addMetadata( EventQueryParams params, List<DimensionItemKeywords.Keyword> periodKeywords, Grid grid )
+    {
         if ( !params.isSkipMeta() )
         {
             final Map<String, Object> metadata = new HashMap<>();
 
             List<Option> options = getItemOptions( grid );
 
-            metadata.put( ITEMS.getKey(), getMetadataItems( params, options ) );
+            metadata.put( ITEMS.getKey(), getMetadataItems( params, periodKeywords, options ) );
 
             metadata.put( DIMENSIONS.getKey(), getDimensionItems( params, options ) );
 
@@ -319,7 +339,8 @@ public abstract class AbstractAnalyticsService
      * @param params the data query parameters.
      * @return a map.
      */
-    private Map<String, MetadataItem> getMetadataItems( EventQueryParams params, List<Option> itemOptions )
+    private Map<String, MetadataItem> getMetadataItems( EventQueryParams params,
+        List<DimensionItemKeywords.Keyword> periodKeywords, List<Option> itemOptions )
     {
         Map<String, MetadataItem> metadataItemMap = AnalyticsUtils.getDimensionMetadataItemMap( params );
 
@@ -346,7 +367,28 @@ public abstract class AbstractAnalyticsService
             .forEach( item -> metadataItemMap.put( item.getItemId(),
                 new MetadataItem( item.getItem().getDisplayName(), includeDetails ? item.getItem() : null ) ) );
 
+        if ( hasPeriodKeywords( periodKeywords ) )
+        {
+            for ( DimensionItemKeywords.Keyword keyword : periodKeywords )
+            {
+                if ( keyword.getMetadataItem() != null )
+                {
+                    metadataItemMap.put( keyword.getKey(), new MetadataItem( keyword.getMetadataItem().getName() ) );
+                }
+            }
+        }
+
         return metadataItemMap;
+    }
+
+    /**
+     * check the period dimension keywords
+     *
+     * @param periodKeywords PeriodKeywords.
+     */
+    private boolean hasPeriodKeywords( List<DimensionItemKeywords.Keyword> periodKeywords )
+    {
+        return periodKeywords != null && !periodKeywords.isEmpty();
     }
 
     /**
