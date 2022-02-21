@@ -140,11 +140,11 @@
         <batik-codec.version>1.14</batik-codec.version>
         <fop.version>2.5</fop.version>
         <mapstruct.version>1.4.2.Final</mapstruct.version>
-        <geotools.version>26.1</geotools.version>
+        <geotools.version>26.2</geotools.version>
         <jts.version>1.16.1</jts.version>
 
         <!-- Apache Artemis -->
-        <artemis.version>2.19.0</artemis.version>
+        <artemis.version>2.20.0</artemis.version>
         <activemq-artemis-native.version>1.0.2</activemq-artemis-native.version>
         <netty-all.version>4.1.59.Final</netty-all.version>
         <classgraph.version>4.8.138</classgraph.version>
