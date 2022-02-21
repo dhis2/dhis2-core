@@ -155,32 +155,11 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
     @Override
     public void postUpdate( User persistedUser, ObjectBundle bundle )
     {
-        if ( !bundle.hasExtras( persistedUser, "uc" ) )
-            return;
-
         final User preUpdateUser = (User) bundle.getExtras( persistedUser, "uc" );
 
-        final User persistedUserCredentials = bundle.getPreheat().get( bundle.getPreheatIdentifier(),
-            User.class, persistedUser );
-
-        boolean hasUpdated = false;
         if ( !StringUtils.isEmpty( preUpdateUser.getPassword() ) )
         {
-            userService.encodeAndSetPassword( persistedUserCredentials, preUpdateUser.getPassword() );
-            hasUpdated = true;
-        }
-
-        if ( preUpdateUser != persistedUserCredentials )
-        {
-            mergeService.merge(
-                new MergeParams<>( persistedUser, persistedUserCredentials ).setMergeMode( bundle.getMergeMode() ) );
-            preheatService.connectReferences( persistedUserCredentials, bundle.getPreheat(),
-                bundle.getPreheatIdentifier() );
-            hasUpdated = true;
-        }
-
-        if ( hasUpdated )
-        {
+            userService.encodeAndSetPassword( persistedUser, preUpdateUser.getPassword() );
             sessionFactory.getCurrentSession().update( persistedUser );
         }
 
