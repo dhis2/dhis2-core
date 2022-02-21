@@ -268,7 +268,7 @@ class EventDataQueryServiceTest extends DhisSpringTest
         assertEquals( 1, params.getFilterPeriods().size() );
         assertEquals( deA, params.getValue() );
         assertEquals( 1, params.getDesc().size() );
-        assertEquals( "executiondate", params.getDesc().get( 0 ).getName() );
+        assertEquals( "executiondate", params.getDesc().get( 0 ).getItem().getName() );
         assertEquals( AnalyticsAggregationType.AVERAGE, params.getAggregationType() );
     }
 
@@ -292,7 +292,7 @@ class EventDataQueryServiceTest extends DhisSpringTest
         assertEquals( 1, params.getFilterPeriods().size() );
         assertEquals( deA, params.getValue() );
         assertEquals( 1, params.getDesc().size() );
-        assertEquals( "ouname", params.getDesc().get( 0 ).getName() );
+        assertEquals( "ouname", params.getDesc().get( 0 ).getItem().getName() );
         assertEquals( AnalyticsAggregationType.AVERAGE, params.getAggregationType() );
     }
 
@@ -316,7 +316,7 @@ class EventDataQueryServiceTest extends DhisSpringTest
         assertEquals( 1, params.getFilterPeriods().size() );
         assertEquals( deA, params.getValue() );
         assertEquals( 1, params.getDesc().size() );
-        assertEquals( deA.getUid(), params.getDesc().get( 0 ).getUid() );
+        assertEquals( deA.getUid(), params.getDesc().get( 0 ).getItem().getUid() );
         assertEquals( AnalyticsAggregationType.AVERAGE, params.getAggregationType() );
     }
 
@@ -340,7 +340,7 @@ class EventDataQueryServiceTest extends DhisSpringTest
         assertEquals( 1, params.getFilterPeriods().size() );
         assertEquals( deA, params.getValue() );
         assertEquals( 1, params.getDesc().size() );
-        assertEquals( atA.getUid(), params.getDesc().get( 0 ).getUid() );
+        assertEquals( atA.getUid(), params.getDesc().get( 0 ).getItem().getUid() );
         assertEquals( AnalyticsAggregationType.AVERAGE, params.getAggregationType() );
     }
 

@@ -163,8 +163,8 @@ public class EventDataQueryRequest
         queryRequest.sortOrder = this.sortOrder;
         queryRequest.limit = this.limit;
         queryRequest.outputType = this.outputType;
-        queryRequest.eventStatus = this.eventStatus;
-        queryRequest.programStatus = this.programStatus;
+        queryRequest.eventStatus = new LinkedHashSet<>( this.eventStatus );
+        queryRequest.programStatus = new LinkedHashSet<>( this.programStatus );
         queryRequest.collapseDataDimensions = this.collapseDataDimensions;
         queryRequest.aggregateData = this.aggregateData;
         queryRequest.includeMetadataDetails = this.includeMetadataDetails;
