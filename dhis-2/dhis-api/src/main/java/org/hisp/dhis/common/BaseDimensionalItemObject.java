@@ -81,6 +81,20 @@ public class BaseDimensionalItemObject
     }
 
     // -------------------------------------------------------------------------
+    // Logic
+    // -------------------------------------------------------------------------
+
+    @Override
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public AggregationType getAggregationType()
+    {
+        return (queryMods != null && queryMods.getAggregationType() != null)
+            ? queryMods.getAggregationType()
+            : aggregationType;
+    }
+
+    // -------------------------------------------------------------------------
     // DimensionalItemObject
     // -------------------------------------------------------------------------
 
@@ -120,6 +134,11 @@ public class BaseDimensionalItemObject
     // Get and set methods
     // -------------------------------------------------------------------------
 
+    public void setAggregationType( AggregationType aggregationType )
+    {
+        this.aggregationType = aggregationType;
+    }
+
     @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
@@ -153,19 +172,6 @@ public class BaseDimensionalItemObject
     public void setLegendSets( List<LegendSet> legendSets )
     {
         this.legendSets = legendSets;
-    }
-
-    @Override
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public AggregationType getAggregationType()
-    {
-        return aggregationType;
-    }
-
-    public void setAggregationType( AggregationType aggregationType )
-    {
-        this.aggregationType = aggregationType;
     }
 
     @Override
