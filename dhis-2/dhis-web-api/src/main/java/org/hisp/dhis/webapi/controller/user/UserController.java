@@ -246,7 +246,7 @@ public class UserController
         List<User> users = Lists.newArrayList();
         Optional<User> user = Optional.ofNullable( userService.getUser( uid ) );
 
-        user.ifPresent(users::add);
+        user.ifPresent( users::add );
 
         return users;
     }

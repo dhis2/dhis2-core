@@ -54,8 +54,6 @@ import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
 import org.hisp.dhis.node.Preset;
-import org.hisp.dhis.node.config.InclusionStrategy;
-import org.hisp.dhis.node.config.InclusionStrategy.Include;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Pagination;
 import org.hisp.dhis.query.Query;
@@ -83,9 +81,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.base.Enums;
 import com.google.common.base.Joiner;
-import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 
 /**
@@ -504,21 +500,5 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     protected final Pagination getPaginationData( WebOptions options )
     {
         return PaginationUtils.getPaginationData( options );
-    }
-
-    private InclusionStrategy.Include getInclusionStrategy( String inclusionStrategy )
-    {
-        if ( inclusionStrategy != null )
-        {
-            Optional<Include> optional = Enums.getIfPresent( InclusionStrategy.Include.class,
-                inclusionStrategy );
-
-            if ( optional.isPresent() )
-            {
-                return optional.get();
-            }
-        }
-
-        return InclusionStrategy.Include.NON_NULL;
     }
 }
