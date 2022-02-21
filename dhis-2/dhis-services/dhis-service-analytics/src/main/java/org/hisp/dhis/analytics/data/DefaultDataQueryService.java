@@ -54,22 +54,26 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionalItemIds;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getLocalPeriodIdentifier;
 import static org.hisp.dhis.commons.collection.ListUtils.sort;
+import static org.hisp.dhis.i18n.I18nFormat.FORMAT_DATE;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_LEVEL;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_ORGUNIT_GROUP;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_USER_ORGUNIT;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_USER_ORGUNIT_CHILDREN;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_USER_ORGUNIT_GRANDCHILDREN;
+import static org.hisp.dhis.period.DailyPeriodType.ISO_FORMAT;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey;
@@ -128,8 +132,9 @@ import org.springframework.util.Assert;
 public class DefaultDataQueryService
     implements DataQueryService
 {
-    public static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter
-        .ofPattern( DailyPeriodType.ISO_FORMAT );
+    public static final Collection<DateTimeFormatter> DATE_TIME_FORMATTER = Stream.of( FORMAT_DATE, ISO_FORMAT )
+        .map( DateTimeFormatter::ofPattern )
+        .collect( Collectors.toList() );
 
     private IdentifiableObjectManager idObjectManager;
 
@@ -650,7 +655,8 @@ public class DefaultDataQueryService
     }
 
     /**
-     * Parses periods in <code>YYYYMMDD_YYYYMMDD</code> format.
+     * Parses periods in <code>YYYYMMDD_YYYYMMDD</code> or
+     * <code>YYYY-MM-DD_YYYY-MM-DD</code> format.
      */
     private Optional<Period> tryParseDateRange( IsoPeriodHolder isoPeriodHolder )
     {
@@ -674,14 +680,24 @@ public class DefaultDataQueryService
 
     private Optional<Date> safelyParseDate( String date )
     {
+        return DATE_TIME_FORMATTER.stream()
+            .map( dateTimeFormatter -> safelyParseDateUsingFormatter( date, dateTimeFormatter ) )
+            .filter( Objects::nonNull )
+            .findFirst();
+    }
+
+    private Date safelyParseDateUsingFormatter( String date, DateTimeFormatter dateTimeFormatter )
+    {
         try
         {
-            LocalDate parsed = LocalDate.parse( date, DATE_TIME_FORMATTER );
-            return Optional.of( Date.from( parsed.atStartOfDay( ZoneId.systemDefault() ).toInstant() ) );
+            return Date.from(
+                LocalDate.parse( date, dateTimeFormatter )
+                    .atStartOfDay( ZoneId.systemDefault() )
+                    .toInstant() );
         }
         catch ( Exception e )
         {
-            return Optional.empty();
+            return null;
         }
     }
 
