@@ -47,7 +47,6 @@ import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.preheat.PreheatIdentifier;
-import org.hisp.dhis.schema.MergeParams;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserService;
