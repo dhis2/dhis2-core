@@ -44,7 +44,7 @@ import org.hisp.dhis.util.DateUtils;
 
 public class RepeatableStageParamsHelper
 {
-    private static final String SEPARATOR = "_";
+    private static final String SEPARATOR = "~";
 
     // [-1]
     private static final String PS_INDEX_REGEX = "\\[-?\\d+\\]";
@@ -62,7 +62,9 @@ public class RepeatableStageParamsHelper
         SEPARATOR + "\\s*\\d{4}\\-(0[1-9]|1[012])\\-(0[1-9]|[12][0-9]|3[01])\\]";
 
     // [1,30, LAST_YEAR]
-    private static final String PS_INDEX_COUNT_RELATIVE_PERIOD_REGEX = "\\[-?\\d+,\\s*\\d+,\\s*\\w+\\]";
+    private static final String PS_INDEX_COUNT_RELATIVE_PERIOD_REGEX = "\\[-?\\d+" +
+        SEPARATOR + "\\s*\\d+" +
+        SEPARATOR + "\\s*\\w+\\]";
 
     // [2022-01-01, 2022-03-31]
     private static final String PS_START_DATE_END_DATE_REGEX = "\\[\\d{4}\\-(0[1-9]|1[012])\\-(0[1-9]|[12][0-9]|3[01])"
@@ -275,6 +277,8 @@ public class RepeatableStageParamsHelper
 
         repeatableStageParams.setEndDate( endDate );
 
+        repeatableStageParams.setDefaultObject( false );
+
         return repeatableStageParams;
     }
 
@@ -313,6 +317,8 @@ public class RepeatableStageParamsHelper
         repeatableStageParams.setStartDate( startDate );
 
         repeatableStageParams.setEndDate( endDate );
+
+        repeatableStageParams.setDefaultObject( false );
 
         return repeatableStageParams;
     }

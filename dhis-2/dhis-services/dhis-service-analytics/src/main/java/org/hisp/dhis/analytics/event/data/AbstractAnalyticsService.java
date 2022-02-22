@@ -162,6 +162,7 @@ public abstract class AbstractAnalyticsService
             else
             {
                 final String uid = getItemUid( item );
+
                 final String column = item.getItem().getDisplayProperty( params.getDisplayProperty() );
 
                 grid.addHeader( new GridHeader( uid, column, item.getValueType(),
