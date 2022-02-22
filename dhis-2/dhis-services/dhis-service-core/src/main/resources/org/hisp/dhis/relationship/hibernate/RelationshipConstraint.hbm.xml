@@ -32,6 +32,10 @@
                      column="programstageid"
                      foreign-key="fk_relationshipconstraint_programstage_programstageid"/>
 
+        <many-to-one name="trackerDataView" class="org.hisp.dhis.trackerdataview.TrackerDataView"
+                     column="trackerdataviewid"
+                     foreign-key="fk_relationshipconstraint_trackerdataviewid"/>
+
     </class>
 
 </hibernate-mapping>
