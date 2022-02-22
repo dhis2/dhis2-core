@@ -84,7 +84,7 @@
         <spring-session-data-redis.version>2.6.0</spring-session-data-redis.version>
         <spring-mobile-device.version>1.1.5.RELEASE</spring-mobile-device.version>
         <spring-hateoas.version>1.4.0</spring-hateoas.version>
-        <spring-retry.version>1.2.4.RELEASE</spring-retry.version>
+        <spring-retry.version>1.3.1</spring-retry.version>
         <spring-restdocs-mockmvc.version>2.0.4.RELEASE</spring-restdocs-mockmvc.version>
         <cache2k-api.version>1.6.0.Final</cache2k-api.version>
         <lettuce.version>6.1.5.RELEASE</lettuce.version>
@@ -140,7 +140,7 @@
         <batik-codec.version>1.14</batik-codec.version>
         <fop.version>2.5</fop.version>
         <mapstruct.version>1.4.2.Final</mapstruct.version>
-        <geotools.version>26.1</geotools.version>
+        <geotools.version>26.2</geotools.version>
         <jts.version>1.16.1</jts.version>
 
         <!-- Apache Artemis -->
