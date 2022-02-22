@@ -132,45 +132,6 @@ public class RelationshipConstraint
         this.programStage = programStage;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    public Set<TrackedEntityTypeAttribute> getEntityTypeAttributes()
-    {
-        return entityTypeAttributes;
-    }
-
-    public void setEntityTypeAttributes( Set<TrackedEntityTypeAttribute> entityTypeAttributes )
-    {
-        this.entityTypeAttributes = entityTypeAttributes;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    public Set<TrackedEntityAttribute> getTrackedEntityAttributes()
-    {
-        return trackedEntityAttributes;
-    }
-
-    public void setTrackedEntityAttributes( Set<TrackedEntityAttribute> trackedEntityAttributes )
-    {
-        this.trackedEntityAttributes = trackedEntityAttributes;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    public Set<DataElement> getDataElements()
-    {
-        return dataElements;
-    }
-
-    public void setDataElements( Set<DataElement> dataElements )
-    {
-        this.dataElements = dataElements;
-    }
-
     @Override
     public String toString()
     {

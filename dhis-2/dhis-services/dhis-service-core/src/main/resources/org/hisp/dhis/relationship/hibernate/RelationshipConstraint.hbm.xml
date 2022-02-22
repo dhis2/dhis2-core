@@ -32,23 +32,6 @@
                      column="programstageid"
                      foreign-key="fk_relationshipconstraint_programstage_programstageid"/>
 
-        <!--  Customized list of parameters -->
-        <set name="entityTypeAttributes" table="relationshipitementitytypeattribute" inverse="true">
-            <key column="relationshipitemid" foreign-key="fk_relationshipitem_typeattributeid"/>
-            <many-to-many class="org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute"
-                          column="trackedentitytypeattributeid" foreign-key="fk_relationshipitem_entitytypeattributeid"/>
-        </set>
-        <set name="trackedEntityAttributes" table="relationshipitemtrackedentityattribute" inverse="true">
-            <key column="relationshipitemid" foreign-key="fk_relationshipitem_attributeid"/>
-            <many-to-many class="org.hisp.dhis.trackedentity.TrackedEntityAttribute"
-                          column="trackedentityattributeid" foreign-key="fk_relationshipitem_entityattributeid"/>
-        </set>
-        <set name="dataElements" table="relationshipitemdataelement" inverse="true">
-            <key column="relationshipitemid" foreign-key="fk_relationshipitem_deid" />
-            <many-to-many class="org.hisp.dhis.dataelement.DataElement"
-                          column="dataelementid" foreign-key="fk_relationshipitem_dataelementid"/>
-        </set>
-
     </class>
 
 </hibernate-mapping>
