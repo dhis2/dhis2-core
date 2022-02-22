@@ -44,6 +44,8 @@ import org.hisp.dhis.util.DateUtils;
 
 public class RepeatableStageParamsHelper
 {
+    private static final String SEPARATOR = "_";
+
     // [-1]
     private static final String PS_INDEX_REGEX = "\\[-?\\d+\\]";
 
@@ -51,16 +53,21 @@ public class RepeatableStageParamsHelper
     private static final String PS_ASTERISK_REGEX = "\\[\\*\\]";
 
     // [1, 2]
-    private static final String PS_INDEX_COUNT_REGEX = "\\[-?\\d+,\\s*\\d+\\]";
+    private static final String PS_INDEX_COUNT_REGEX = "\\[-?\\d+" + SEPARATOR + "\\s*\\d+\\]";
 
     // [1, 2, 2022-01-01, 2022-03-31]
-    private static final String PS_INDEX_COUNT_START_DATE_END_DATE_REGEX = "\\[-?\\d+,\\s*\\d+,\\s*\\d{4}\\-(0[1-9]|1[012])\\-(0[1-9]|[12][0-9]|3[01]),\\s*\\d{4}\\-(0[1-9]|1[012])\\-(0[1-9]|[12][0-9]|3[01])\\]";
+    private static final String PS_INDEX_COUNT_START_DATE_END_DATE_REGEX = "\\[-?\\d+" +
+        SEPARATOR + "\\s*\\d+" +
+        SEPARATOR + "\\s*\\d{4}\\-(0[1-9]|1[012])\\-(0[1-9]|[12][0-9]|3[01])" +
+        SEPARATOR + "\\s*\\d{4}\\-(0[1-9]|1[012])\\-(0[1-9]|[12][0-9]|3[01])\\]";
 
     // [1,30, LAST_YEAR]
     private static final String PS_INDEX_COUNT_RELATIVE_PERIOD_REGEX = "\\[-?\\d+,\\s*\\d+,\\s*\\w+\\]";
 
     // [2022-01-01, 2022-03-31]
-    private static final String PS_START_DATE_END_DATE_REGEX = "\\[\\d{4}\\-(0[1-9]|1[012])\\-(0[1-9]|[12][0-9]|3[01]),\\s*\\d{4}\\-(0[1-9]|1[012])\\-(0[1-9]|[12][0-9]|3[01])\\]";
+    private static final String PS_START_DATE_END_DATE_REGEX = "\\[\\d{4}\\-(0[1-9]|1[012])\\-(0[1-9]|[12][0-9]|3[01])"
+        +
+        SEPARATOR + "\\s*\\d{4}\\-(0[1-9]|1[012])\\-(0[1-9]|[12][0-9]|3[01])\\]";
 
     // [LAST_3_MONTHS]
     private static final String PS_RELATIVE_PERIOD_REGEX = "\\[\\w+\\]";
@@ -222,6 +229,8 @@ public class RepeatableStageParamsHelper
 
         repeatableStageParams.setCount( count );
 
+        repeatableStageParams.setDefaultObject( false );
+
         return repeatableStageParams;
     }
 
@@ -327,7 +336,7 @@ public class RepeatableStageParamsHelper
                 .replace( "]", "" );
         }
 
-        String[] tokens = params.split( "," );
+        String[] tokens = params.split( SEPARATOR );
 
         if ( tokens.length != expectedTokenCount )
         {
