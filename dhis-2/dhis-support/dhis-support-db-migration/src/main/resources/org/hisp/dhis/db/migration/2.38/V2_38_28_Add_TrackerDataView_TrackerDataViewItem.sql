@@ -3,8 +3,6 @@
 CREATE TABLE IF NOT EXISTS trackerdataview
 (
     trackerdataviewid                               bigint                          NOT NULL,
-    uid                                             character varying(11)           NOT NULL,
-    lastupdatedby                                   integer,
     trackedentitytypeid                             bigint,
     programid                                       bigint,
     programstageid                                  bigint,

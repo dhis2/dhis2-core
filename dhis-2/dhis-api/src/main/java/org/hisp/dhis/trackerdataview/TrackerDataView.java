@@ -28,8 +28,6 @@
 package org.hisp.dhis.trackerdataview;
 
 import java.io.Serializable;
-import java.util.HashSet;
-import java.util.Set;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -38,6 +36,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -56,7 +55,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 @NoArgsConstructor
 @AllArgsConstructor
 @JacksonXmlRootElement( namespace = DxfNamespaces.DXF_2_0 )
-public class TrackerDataView implements Serializable
+public class TrackerDataView implements EmbeddedObject, Serializable
 {
     private long id;
 
@@ -75,8 +74,4 @@ public class TrackerDataView implements Serializable
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     private ProgramStage programStage;
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    private Set<TrackerDataViewItem> trackerDataViewItems = new HashSet<>();
 }

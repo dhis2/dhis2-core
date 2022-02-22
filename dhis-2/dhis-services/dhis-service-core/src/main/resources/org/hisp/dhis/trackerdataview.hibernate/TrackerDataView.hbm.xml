@@ -24,12 +24,6 @@
                      column="programstageid"
                      foreign-key="fk_trackerdataview_programstageid" />
 
-        <set name="trackerDataViewItems" table="trackerdataviewitem" cascade="all-delete-orphan">
-            <cache usage="read-write" />
-            <key column="trackerdataviewid" foreign-key="fk_trackerdataviewitem_dataviewid" />
-            <one-to-many class="org.hisp.dhis.trackerdataview.TrackerDataViewItem" />
-        </set>
-
     </class>
 
 </hibernate-mapping>
