@@ -183,6 +183,13 @@ public class DefaultQueryItemLocator
             ValueType valueType = legendSet != null ? ValueType.TEXT : at.getValueType();
 
             qi = new QueryItem( at, program, legendSet, valueType, at.getAggregationType(), at.getOptionSet() );
+
+            ProgramStage programStage = getProgramStageOrFail( dimension );
+
+            if ( programStage != null )
+            {
+                qi.setProgramStage( programStage );
+            }
         }
 
         return Optional.ofNullable( qi );
@@ -201,6 +208,8 @@ public class DefaultQueryItemLocator
 
         if ( pi != null )
         {
+            ProgramStage programStage = getProgramStageOrFail( dimension );
+
             if ( relationshipType != null )
             {
                 qi = new QueryItem( pi, program, legendSet, ValueType.NUMBER, pi.getAggregationType(), null,
@@ -212,6 +221,11 @@ public class DefaultQueryItemLocator
                 {
                     qi = new QueryItem( pi, program, legendSet, ValueType.NUMBER, pi.getAggregationType(), null );
                 }
+            }
+
+            if ( qi != null && programStage != null )
+            {
+                qi.setProgramStage( programStage );
             }
         }
 

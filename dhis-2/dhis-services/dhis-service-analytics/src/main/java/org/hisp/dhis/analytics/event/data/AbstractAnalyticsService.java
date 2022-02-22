@@ -34,7 +34,6 @@ import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ITEMS;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_HIERARCHY;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_NAME_HIERARCHY;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.PAGER;
-import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
@@ -222,10 +221,11 @@ public abstract class AbstractAnalyticsService
     {
         String uid = item.getItem().getUid();
 
-        if ( item.getItem().getDimensionItemType() == DATA_ELEMENT && item.getProgramStage() != null )
+        if ( item.hasProgramStage() )
         {
             uid = joinWith( ".", item.getProgramStage().getUid(), uid );
         }
+
         return uid;
     }
 
@@ -457,17 +457,19 @@ public abstract class AbstractAnalyticsService
 
         for ( QueryItem item : params.getItems() )
         {
+            final String itemUid = getItemUid( item );
+
             if ( item.hasOptionSet() )
             {
-                dimensionItems.put( item.getItemId(), getDimensionItemUidList( params, item, itemOptions ) );
+                dimensionItems.put( itemUid, getDimensionItemUidList( params, item, itemOptions ) );
             }
             else if ( item.hasLegendSet() )
             {
-                dimensionItems.put( item.getItemId(), item.getLegendSetFilterItemsOrAll() );
+                dimensionItems.put( itemUid, item.getLegendSetFilterItemsOrAll() );
             }
             else
             {
-                dimensionItems.put( item.getItemId(), Lists.newArrayList() );
+                dimensionItems.put( itemUid, Lists.newArrayList() );
             }
         }
 
