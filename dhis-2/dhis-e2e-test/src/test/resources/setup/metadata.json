@@ -51,7 +51,7 @@
         "owner": "M5zQapPyTZI",
         "userGroups": {},
         "external": false,
-        "public": "rw------",
+        "public": "rwrw----",
         "users": {}
       },
       "translations": [],
@@ -59,10 +59,6 @@
         {
           "id": "saPUs0jjtP0",
           "code": "TA_CATEGORY_ATTRIBUTE"
-        },
-        {
-          "id": "X7EZvFo6ero",
-          "code": "TA_CATEGORY_ATTRIBUTE_2"
         }
       ]
     },
@@ -105,12 +101,27 @@
         "owner": "M5zQapPyTZI",
         "userGroups": {},
         "external": false,
-        "public": "rw------",
+        "public": "rwrw----",
         "users": {}
       },
+      "categoryOptions": [
+        {
+          "id": "fjvZIRlTBrp"
+        }
+      ],
+      "categoryCombos": [
+        {
+          "id": "p0bh43XdKy5"
+        }
+      ],
+      "userGroupAccesses": [],
       "attributeValues": [],
-      "translations": [],
-      "categoryOptions": []
+      "userAccesses": [],
+      "items": [
+        {
+          "id": "fjvZIRlTBrp"
+        }
+      ]
     },
     {
       "code": "TA_CATEGORY_ATTRIBUTE_2",
