@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+        [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+        >
+
+<hibernate-mapping>
+    <class name="org.hisp.dhis.dataview.DataView" table="dataview">
+        <id name="id" column="dataviewid">
+            <generator class="native" />
+        </id>
+        &identifiableProperties;
+
+        <many-to-one name="trackedEntityType" class="org.hisp.dhis.trackedentity.TrackedEntityType"
+                     column="trackedentitytypeid"
+                     foreign-key="fk_dataview_trackedentitytypeid" />
+
+        <many-to-one name="program" class="org.hisp.dhis.program.Program"
+                     column="programid"
+                     foreign-key="fk_dataview_programid" />
+
+        <many-to-one name="programStage" class="org.hisp.dhis.program.ProgramStage"
+                     column="programstageid"
+                     foreign-key="fk_dataview_programstageid" />
+
+        <set name="dataViewItems" table="dataviewitem" cascade="all-delete-orphan">
+            <cache usage="read-write" />
+            <key column="dataviewid" foreign-key="fk_dataviewitem_dataviewid" />
+            <one-to-many class="org.hisp.dhis.dataview.DataViewItem" />
+        </set>
+
+    </class>
+
+</hibernate-mapping>
