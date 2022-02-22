@@ -28,7 +28,6 @@
 package org.hisp.dhis.commons.action;
 
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
 
 import com.opensymphony.xwork2.Action;
@@ -90,9 +89,7 @@ public class GetUserAction extends BaseAction
         }
         else if ( username != null )
         {
-            UserCredentials credentials = userService.getUserCredentialsByUsername( username );
-
-            user = credentials != null ? credentials.getUserInfo() : null;
+            user = userService.getUserByUsername( username );
         }
 
         canReadInstance( user, currentUserService.getCurrentUser() );

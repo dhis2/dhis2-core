@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.webapi.json.domain;
 
+import java.time.LocalDateTime;
+
+import org.hisp.dhis.jsontree.JsonDate;
 import org.hisp.dhis.jsontree.JsonList;
 
 /**
@@ -44,11 +47,6 @@ public interface JsonUser extends JsonIdentifiableObject
     default String getFirstName()
     {
         return getString( "firstName" ).string();
-    }
-
-    default JsonUserCredentials getUserCredentials()
-    {
-        return get( "userCredentials", JsonUserCredentials.class );
     }
 
     default JsonList<JsonUserGroup> getUserGroups()
@@ -71,4 +69,13 @@ public interface JsonUser extends JsonIdentifiableObject
         return getList( "teiSearchOrganisationUnits", JsonOrganisationUnit.class );
     }
 
+    default LocalDateTime getLastLogin()
+    {
+        return get( "lastLogin", JsonDate.class ).date();
+    }
+
+    default LocalDateTime getAccountExpiry()
+    {
+        return get( "accountExpiry", JsonDate.class ).date();
+    }
 }

@@ -154,6 +154,7 @@ class ProgramRuleIntegrationTest extends TransactionalIntegrationTest
         programRuleB.getProgramRuleActions().add( programRuleActionShowWarningForProgramStage );
         programRuleService.updateProgramRule( programRuleB );
         userA = userService.getUser( "M5zQapPyTZI" );
+        injectSecurityContext( userA );
     }
 
     @Test

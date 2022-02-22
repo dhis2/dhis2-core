@@ -135,6 +135,8 @@
         <artifactId>jetty-maven-plugin</artifactId>
         <version>${jetty.version}</version>
         <configuration>
+          <requestLog implementation="org.eclipse.jetty.server.CustomRequestLog">
+          </requestLog>
           <systemProperties>
             <systemProperty>
               <name>org.eclipse.jetty.server.Request.maxFormContentSize</name>

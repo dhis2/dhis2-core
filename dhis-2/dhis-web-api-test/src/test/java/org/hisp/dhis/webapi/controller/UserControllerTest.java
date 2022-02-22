@@ -44,7 +44,6 @@ import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.security.RestoreType;
 import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonErrorReport;
 import org.hisp.dhis.webapi.json.domain.JsonImportSummary;
@@ -73,7 +72,9 @@ class UserControllerTest extends DhisControllerConvenienceTest
     @BeforeEach
     void setUp()
     {
-        peter = switchToNewUser( "Peter" );
+        peter = createUser( "peter" );
+
+        this.peter = switchToNewUser( "Peter" );
         switchToSuperuser();
         assertStatus( HttpStatus.OK, PATCH( "/users/{id}?importReportMode=ERRORS", peter.getUid(),
             Body( "[{'op': 'replace', 'path': '/email', 'value': 'peter@pan.net'}]" ) ) );
@@ -170,7 +171,7 @@ class UserControllerTest extends DhisControllerConvenienceTest
     @Test
     void testPutJsonObject_Pre38()
     {
-        JsonObject user = GET( "/users/{id}", peter.getUid() ).content();
+        JsonObject user = GET( "/users/{uid}", peter.getUid() ).content();
         JsonImportSummary summary = PUT( "/37/users/" + peter.getUid(), user.toString() ).content( HttpStatus.OK )
             .as( JsonImportSummary.class );
         assertEquals( "ImportReport", summary.getResponseType() );
@@ -195,7 +196,7 @@ class UserControllerTest extends DhisControllerConvenienceTest
     void testPostJsonObject()
     {
         assertWebMessage( "Created", 201, "OK", null,
-            POST( "/users/", "{'surname':'S.','firstName':'Harry','userCredentials':{'username':'harrys'}}" )
+            POST( "/users/", "{'surname':'S.','firstName':'Harry', 'username':'harrys'}" )
                 .content( HttpStatus.CREATED ) );
     }
 
@@ -215,7 +216,7 @@ class UserControllerTest extends DhisControllerConvenienceTest
     void testPostJsonInvite()
     {
         assertWebMessage( "Created", 201, "OK", null, POST( "/users/invite",
-            "{'surname':'S.','firstName':'Harry', 'email':'test@example.com', 'userCredentials':{'username':'harrys'}}" )
+            "{'surname':'S.','firstName':'Harry', 'email':'test@example.com', 'username':'harrys'}" )
                 .content( HttpStatus.CREATED ) );
     }
 
@@ -234,9 +235,9 @@ class UserControllerTest extends DhisControllerConvenienceTest
         String[] idAndRestoreToken = securityService.decodeEncodedTokens( token );
         String idToken = idAndRestoreToken[0];
         String restoreToken = idAndRestoreToken[1];
-        UserCredentials userCredentials = userService.getUserCredentialsByIdToken( idToken );
-        assertNotNull( userCredentials );
-        String errorMessage = securityService.verifyRestoreToken( userCredentials, restoreToken,
+        User user = userService.getUserByIdToken( idToken );
+        assertNotNull( user );
+        String errorMessage = securityService.verifyRestoreToken( user, restoreToken,
             RestoreType.RECOVER_PASSWORD );
         assertNull( errorMessage );
     }

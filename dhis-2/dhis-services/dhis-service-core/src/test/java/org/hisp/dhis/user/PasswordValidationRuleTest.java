@@ -81,7 +81,7 @@ class PasswordValidationRuleTest
     private PasswordEncoder passwordEncoder;
 
     @Captor
-    private ArgumentCaptor<UserCredentials> userCredentialsArgumentCaptor;
+    private ArgumentCaptor<User> userArgumentCaptor;
 
     private SpecialCharacterValidationRule specialCharValidationRule;
 
@@ -226,11 +226,11 @@ class PasswordValidationRuleTest
             STRONG_PASSWORD + "19", STRONG_PASSWORD + "20", STRONG_PASSWORD + "21", STRONG_PASSWORD + "22" );
 
         CredentialsInfo credentialsInfo = new CredentialsInfo( USERNAME, STRONG_PASSWORD + "23", EMAIL, true );
-        UserCredentials userCredentials = new UserCredentials();
-        userCredentials.setPreviousPasswords( history );
+        User user = new User();
+        user.setPreviousPasswords( history );
 
-        Mockito.when( userService.getUserCredentialsByUsername( credentialsInfo.getUsername() ) )
-            .thenReturn( userCredentials );
+        Mockito.when( userService.getUserByUsername( credentialsInfo.getUsername() ) )
+            .thenReturn( user );
         Mockito.when( passwordEncoder.matches( Mockito.any( String.class ), Mockito.any( String.class ) ) )
             .thenReturn( false );
 
@@ -239,22 +239,22 @@ class PasswordValidationRuleTest
         history.add( STRONG_PASSWORD + "23" );
 
         credentialsInfo = new CredentialsInfo( USERNAME, STRONG_PASSWORD + "23", EMAIL, true );
-        userCredentials = new UserCredentials();
-        userCredentials.setPreviousPasswords( history );
+        user = new User();
+        user.setPreviousPasswords( history );
 
-        Mockito.when( userService.getUserCredentialsByUsername( credentialsInfo.getUsername() ) )
-            .thenReturn( userCredentials );
+        Mockito.when( userService.getUserByUsername( credentialsInfo.getUsername() ) )
+            .thenReturn( user );
         Mockito.when( passwordEncoder.matches( Mockito.any( String.class ), Mockito.any( String.class ) ) )
             .thenReturn( false );
         Mockito.doAnswer( invocation -> null ).when( userService )
-            .updateUserCredentials( Mockito.any( UserCredentials.class ) );
+            .updateUser( Mockito.any( User.class ) );
 
         assertThat( historyValidationRule.validate( credentialsInfo ).isValid(), is( true ) );
 
-        Mockito.verify( userService ).updateUserCredentials( userCredentialsArgumentCaptor.capture() );
+        Mockito.verify( userService ).updateUser( userArgumentCaptor.capture() );
 
-        Assertions.assertNotNull( userCredentialsArgumentCaptor.getValue() );
-        Assertions.assertEquals( 23, userCredentialsArgumentCaptor.getValue().getPreviousPasswords().size() );
-        assertFalse( userCredentialsArgumentCaptor.getValue().getPreviousPasswords().contains( STRONG_PASSWORD ) );
+        Assertions.assertNotNull( userArgumentCaptor.getValue() );
+        Assertions.assertEquals( 23, userArgumentCaptor.getValue().getPreviousPasswords().size() );
+        assertFalse( userArgumentCaptor.getValue().getPreviousPasswords().contains( STRONG_PASSWORD ) );
     }
 }

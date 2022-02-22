@@ -107,10 +107,10 @@ public class UserRoleController
             throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
         }
 
-        if ( !user.getUserCredentials().getUserAuthorityGroups().contains( userAuthorityGroup ) )
+        if ( !user.getUserAuthorityGroups().contains( userAuthorityGroup ) )
         {
-            user.getUserCredentials().getUserAuthorityGroups().add( userAuthorityGroup );
-            userService.updateUserCredentials( user.getUserCredentials() );
+            user.getUserAuthorityGroups().add( userAuthorityGroup );
+            userService.updateUser( user );
         }
     }
 
@@ -129,7 +129,7 @@ public class UserRoleController
 
         User user = userService.getUser( pvUserId );
 
-        if ( user == null || user.getUserCredentials() == null )
+        if ( user == null )
         {
             throw new WebMessageException( notFound( "User does not exist: " + pvId ) );
         }
@@ -139,10 +139,10 @@ public class UserRoleController
             throw new DeleteAccessDeniedException( "You don't have the proper permissions to delete this object." );
         }
 
-        if ( user.getUserCredentials().getUserAuthorityGroups().contains( userAuthorityGroup ) )
+        if ( user.getUserAuthorityGroups().contains( userAuthorityGroup ) )
         {
-            user.getUserCredentials().getUserAuthorityGroups().remove( userAuthorityGroup );
-            userService.updateUserCredentials( user.getUserCredentials() );
+            user.getUserAuthorityGroups().remove( userAuthorityGroup );
+            userService.updateUser( user );
         }
     }
 }

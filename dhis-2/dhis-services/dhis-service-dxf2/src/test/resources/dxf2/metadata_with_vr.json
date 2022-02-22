@@ -94,12 +94,9 @@
       "teiSearchOrganisationUnits": [ ],
       "dataViewOrganisationUnits": [ ],
       "lastUpdated": "2016-03-10T05:01:28.993+0000",
-      "userCredentials": {
-        "id": "m3ww4DWJtMf",
         "username": "admin",
         "disabled": false,
         "passwordLastUpdated": "2016-03-10T05:00:11.791+0000",
-        "created": "2016-03-10T05:00:11.882+0000",
         "selfRegistered": false,
         "invitation": false,
         "catDimensionConstraints": [ ],
@@ -114,10 +111,6 @@
           }
         ],
         "lastLogin": "2016-03-10T05:00:11.791+0000",
-        "userInfo": {
-          "id": "ZK1wkC59FCw"
-        }
-      },
       "surname": "admin",
       "attributeValues": [ ],
       "created": "2016-03-10T05:00:11.766+0000",

@@ -205,7 +205,7 @@ class EventAnalyticsServiceTest extends IntegrationTestBase
         Set<Category> catDimensionConstraints = Sets.newHashSet( caA, caB );
         // The user
         User user = createUser( "A", "F_VIEW_EVENT_ANALYTICS" );
-        user.getUserCredentials().setCatDimensionConstraints( catDimensionConstraints );
+        user.setCatDimensionConstraints( catDimensionConstraints );
         userService.addUser( user );
         enableDataSharing( user, aProgram, AccessStringHelper.DATA_READ_WRITE );
         idObjectManager.update( user );
@@ -250,7 +250,7 @@ class EventAnalyticsServiceTest extends IntegrationTestBase
         Set<Category> catDimensionConstraints = Sets.newHashSet( caA, caB );
         // The user
         User user = createUser( "A", "F_VIEW_EVENT_ANALYTICS" );
-        user.getUserCredentials().setCatDimensionConstraints( catDimensionConstraints );
+        user.setCatDimensionConstraints( catDimensionConstraints );
         userService.addUser( user );
         enableDataSharing( user, aProgram, AccessStringHelper.DATA_READ_WRITE );
         idObjectManager.update( user );

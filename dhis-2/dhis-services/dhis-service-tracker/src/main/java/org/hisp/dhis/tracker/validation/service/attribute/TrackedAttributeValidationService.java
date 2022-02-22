@@ -82,7 +82,7 @@ public class TrackedAttributeValidationService
                 .message( " '%s' is not true (true-only type) for attribute %s " )
                 .build(),
             ValueTypeValidationFunction.builder().valueType( ValueType.USERNAME )
-                .function( v -> userService.getUserCredentialsByUsername( v ) == null )
+                .function( v -> userService.getUserByUsername( v ) == null )
                 .message( " '%s' is not true (true-only type) for attribute %s " )
                 .build(),
             ValueTypeValidationFunction.builder().valueType( ValueType.DATETIME )

@@ -40,7 +40,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
 import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
-import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.converter.Converter;
@@ -175,17 +175,17 @@ public class Dhis2JwtAuthenticationManagerResolver implements AuthenticationMana
             String mappingClaimKey = clientRegistration.getMappingClaimKey();
             String mappingValue = jwt.getClaim( mappingClaimKey );
 
-            UserCredentials userCredentials = userService.getUserCredentialsByOpenId( mappingValue );
-            if ( userCredentials == null )
+            User user = userService.getUserByOpenId( mappingValue );
+            if ( user == null )
             {
                 throw new InvalidBearerTokenException( String.format(
                     "Found no matching DHIS2 user for the mapping claim:'%s' with the value:'%s'",
                     mappingClaimKey, mappingValue ) );
             }
 
-            Collection<GrantedAuthority> grantedAuthorities = userCredentials.getAuthorities();
+            Collection<GrantedAuthority> grantedAuthorities = user.getAuthorities();
 
-            return new DhisJwtAuthenticationToken( jwt, grantedAuthorities, mappingValue, userCredentials );
+            return new DhisJwtAuthenticationToken( jwt, grantedAuthorities, mappingValue, user );
         };
     }
 

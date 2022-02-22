@@ -116,7 +116,6 @@ public class ApiToken extends BaseIdentifiableObject implements MetadataObject
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Property( PropertyType.COLLECTION )
     public List<ApiTokenAttribute> getAttributes()
     {
         return attributes;

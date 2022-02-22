@@ -23,11 +23,6 @@
       "id": "M5zQapPyTZI",
       "firstName": "admin",
       "surname": "admin",
-      "userCredentials": {
-        "code": "admin",
-        "lastUpdated": "2017-07-28T09:22:30.171",
-        "id": "KvMx6c1eoYo",
-        "created": "2017-07-27T13:11:45.428",
         "name": "admin admin",
         "lastLogin": "2017-07-28T09:22:30.168",
         "displayName": "admin admin",
@@ -38,9 +33,6 @@
         "invitation": false,
         "selfRegistered": false,
         "username": "admin",
-        "userInfo": {
-          "id": "M5zQapPyTZI"
-        },
         "lastUpdatedBy": {
           "id": "M5zQapPyTZI"
         },
@@ -51,8 +43,7 @@
           {
             "id": "yrB6vc5Ip3r"
           }
-        ]
-      },
+        ],
       "organisationUnits": [
         {
           "id": "slHwfdjsnQr"

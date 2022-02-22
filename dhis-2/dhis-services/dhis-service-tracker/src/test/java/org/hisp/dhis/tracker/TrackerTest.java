@@ -34,6 +34,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -46,6 +48,7 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationR
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -56,6 +59,7 @@ import org.springframework.core.io.ClassPathResource;
 /**
  * @author Luciano Fiandesio
  */
+@Slf4j
 public abstract class TrackerTest extends TransactionalIntegrationTest
 {
 
@@ -103,7 +107,9 @@ public abstract class TrackerTest extends TransactionalIntegrationTest
         params.setObjects( metadata );
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validationReport = objectBundleValidationService.validate( bundle );
-        assertFalse( validationReport.hasErrorReports() );
+        validationReport.forEachErrorReport( errorReport -> log.error( errorReport.toString() ) );
+        boolean condition = validationReport.hasErrorReports();
+        assertFalse( condition );
         objectBundleService.commit( bundle );
         return bundle;
     }
@@ -140,7 +146,16 @@ public abstract class TrackerTest extends TransactionalIntegrationTest
 
     protected void assertNoImportErrors( TrackerImportReport report )
     {
-        assertTrue( report.getValidationReport().getErrors().isEmpty() );
+        List<TrackerErrorReport> errorReports = report.getValidationReport().getErrors();
+        boolean empty = errorReports.isEmpty();
+        if ( !empty )
+        {
+            for ( TrackerErrorReport errorReport : errorReports )
+            {
+                log.error( "Import errors: " + errorReport.getErrorMessage() );
+            }
+        }
+        assertTrue( empty );
     }
 
     @Override

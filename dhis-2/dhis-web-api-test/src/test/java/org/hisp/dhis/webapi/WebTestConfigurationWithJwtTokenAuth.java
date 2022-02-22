@@ -27,10 +27,17 @@
  */
 package org.hisp.dhis.webapi;
 
+import java.beans.PropertyVetoException;
+import java.sql.SQLException;
+
+import javax.sql.DataSource;
 import javax.transaction.Transactional;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.artemis.config.ArtemisConfig;
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
+import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.config.DataSourceConfig;
 import org.hisp.dhis.config.H2DhisConfigurationProvider;
 import org.hisp.dhis.config.HibernateConfig;
@@ -39,8 +46,12 @@ import org.hisp.dhis.config.ServiceConfig;
 import org.hisp.dhis.config.StartupConfig;
 import org.hisp.dhis.config.StoreConfig;
 import org.hisp.dhis.configuration.NotifierConfiguration;
+import org.hisp.dhis.datasource.DatabasePoolUtils;
 import org.hisp.dhis.db.migration.config.FlywayConfig;
+import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.h2.H2SqlFunction;
+import org.hisp.dhis.hibernate.HibernateConfigurationProvider;
 import org.hisp.dhis.jdbc.config.JdbcConfig;
 import org.hisp.dhis.leader.election.LeaderElectionConfiguration;
 import org.hisp.dhis.webapi.security.config.AuthenticationProviderConfig;
@@ -93,11 +104,46 @@ import org.springframework.stereotype.Service;
     AuthenticationProviderConfig.class,
 } )
 @Transactional
+@Slf4j
 public class WebTestConfigurationWithJwtTokenAuth
 {
     @Bean( name = "dhisConfigurationProvider" )
     public DhisConfigurationProvider dhisConfigurationProvider()
     {
         return new H2DhisConfigurationProvider( "h2TestConfigWithJWTAuth.conf" );
+    }
+
+    @Bean( "actualDataSource" )
+    public DataSource actualDataSource( HibernateConfigurationProvider hibernateConfigurationProvider )
+    {
+        final DhisConfigurationProvider config = dhisConfigurationProvider();
+        String jdbcUrl = config.getProperty( ConfigurationKey.CONNECTION_URL );
+        String username = config.getProperty( ConfigurationKey.CONNECTION_USERNAME );
+        String dbPoolType = config.getProperty( ConfigurationKey.DB_POOL_TYPE );
+
+        DatabasePoolUtils.PoolConfig.PoolConfigBuilder builder = DatabasePoolUtils.PoolConfig.builder();
+        builder.dhisConfig( config );
+        builder.hibernateConfig( hibernateConfigurationProvider );
+        builder.dbPoolType( dbPoolType );
+
+        try
+        {
+            final DataSource dbPool = DatabasePoolUtils.createDbPool( builder.build() );
+
+            // H2 JSON functions
+            H2SqlFunction.registerH2Functions( dbPool );
+
+            return dbPool;
+        }
+        catch ( SQLException | PropertyVetoException e )
+        {
+            String message = String.format( "Connection test failed for main database pool, " +
+                "jdbcUrl: '%s', user: '%s'", jdbcUrl, username );
+
+            log.error( message );
+            log.error( DebugUtils.getStackTrace( e ) );
+
+            throw new IllegalStateException( message, e );
+        }
     }
 }

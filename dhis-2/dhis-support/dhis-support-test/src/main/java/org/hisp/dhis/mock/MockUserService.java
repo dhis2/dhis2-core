@@ -42,7 +42,6 @@ import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccountExpiryInfo;
 import org.hisp.dhis.user.UserAuthorityGroup;
-import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserQueryParams;
 import org.hisp.dhis.user.UserService;
 
@@ -114,7 +113,7 @@ public class MockUserService
     }
 
     @Override
-    public boolean isLastSuperUser( UserCredentials userCredentials )
+    public boolean isLastSuperUser( User user )
     {
         return false;
     }
@@ -168,97 +167,61 @@ public class MockUserService
     }
 
     @Override
-    public long addUserCredentials( UserCredentials userCredentials )
+    public List<User> getUsersByUsernames( Collection<String> usernames )
     {
-        return 0;
-    }
+        List<User> usersByUsername = new ArrayList<>();
 
-    @Override
-    public void updateUserCredentials( UserCredentials userCredentials )
-    {
-    }
-
-    @Override
-    public List<UserCredentials> getUserCredentialsByUsernames( Collection<String> usernames )
-    {
-        List<UserCredentials> userCredentials = new ArrayList<>();
-
-        for ( User user : users )
+        for ( User user : this.users )
         {
             if ( usernames.contains( user.getUsername() ) )
             {
-                userCredentials.add( user.getUserCredentials() );
+                usersByUsername.add( user );
             }
         }
 
-        return userCredentials;
+        return usersByUsername;
     }
 
-    public UserCredentials getUserCredentialsByIdToken( String idToken )
+    public User getUserByIdToken( String idToken )
     {
         for ( User user : users )
         {
-            if ( user.getUserCredentials().getIdToken().equals( idToken ) )
+            if ( user.getIdToken().equals( idToken ) )
             {
-                return user.getUserCredentials();
+                return user;
             }
         }
         return null;
     }
 
     @Override
-    public UserCredentials getUserCredentialsByUsername( String username )
-    {
-        for ( User user : users )
-        {
-            if ( user.getUsername().equals( username ) )
-            {
-                return user.getUserCredentials();
-            }
-        }
-        return null;
-    }
-
-    @Override
-    public UserCredentials getUserCredentialsWithEagerFetchAuthorities( String username )
+    public User getUserWithEagerFetchAuthorities( String username )
     {
         for ( User user : users )
         {
             if ( user.getUsername().equals( username ) )
             {
-                UserCredentials userCredentials = user.getUserCredentials();
-                userCredentials.getAllAuthorities();
-                return userCredentials;
+                user.getAllAuthorities();
+                return user;
             }
         }
         return null;
     }
 
     @Override
-    public UserCredentials getUserCredentialsByOpenId( String openId )
+    public User getUserByOpenId( String openId )
     {
         return null;
     }
 
     @Override
-    public UserCredentials getUserCredentialsByLdapId( String ldapId )
-    {
-        return null;
-    }
-
-    @Override
-    public List<UserCredentials> getAllUserCredentials()
+    public User getUserByLdapId( String ldapId )
     {
         return null;
     }
 
     @Override
     public void encodeAndSetPassword( User user, String rawPassword )
-    {
-    }
-
-    @Override
-    public void encodeAndSetPassword( UserCredentials userCredentials, String rawPassword )
     {
     }
 
@@ -280,13 +243,13 @@ public class MockUserService
     }
 
     @Override
-    public boolean credentialsNonExpired( UserCredentials credentials )
+    public boolean userNonExpired( User user )
     {
         return false;
     }
 
     @Override
-    public boolean isAccountExpired( UserCredentials credentials )
+    public boolean isAccountExpired( User user )
     {
         return false;
     }
@@ -384,7 +347,7 @@ public class MockUserService
     }
 
     @Override
-    public void expireActiveSessions( UserCredentials credentials )
+    public void expireActiveSessions( User user )
     {
     }
 
@@ -419,7 +382,7 @@ public class MockUserService
     }
 
     @Override
-    public List<UserCredentials> getUsersWithAuthority( String authority )
+    public List<User> getUsersWithAuthority( String authority )
     {
         return Collections.emptyList();
     }

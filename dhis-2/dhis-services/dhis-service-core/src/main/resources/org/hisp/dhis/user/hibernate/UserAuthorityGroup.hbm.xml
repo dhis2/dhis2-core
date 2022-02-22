@@ -23,7 +23,7 @@
 
     <set name="members" table="userrolemembers" inverse="true">
       <key column="userroleid" />
-      <many-to-many column="userid" class="org.hisp.dhis.user.UserCredentials" />
+      <many-to-many column="userid" class="org.hisp.dhis.user.User" />
     </set>
 
     <set name="authorities" table="userroleauthorities">

@@ -30,7 +30,7 @@ package org.hisp.dhis.webapi.security.apikey;
 import java.util.Collections;
 
 import org.hisp.dhis.security.apikey.ApiToken;
-import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.user.User;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -43,7 +43,7 @@ public class ApiTokenAuthenticationToken extends AbstractAuthenticationToken
 
     private ApiToken tokenRef;
 
-    private UserCredentials userCredentials;
+    private User user;
 
     public ApiTokenAuthenticationToken( String tokenKey )
     {
@@ -51,23 +51,23 @@ public class ApiTokenAuthenticationToken extends AbstractAuthenticationToken
         this.tokenKey = tokenKey;
     }
 
-    public ApiTokenAuthenticationToken( ApiToken token, UserCredentials userCredentials )
+    public ApiTokenAuthenticationToken( ApiToken token, User user )
     {
         super( Collections.emptyList() );
         this.tokenRef = token;
-        this.userCredentials = userCredentials;
+        this.user = user;
     }
 
     @Override
-    public UserCredentials getCredentials()
+    public User getCredentials()
     {
-        return this.userCredentials;
+        return this.user;
     }
 
     @Override
     public UserDetails getPrincipal()
     {
-        return this.userCredentials;
+        return this.user;
     }
 
     public String getTokenKey()

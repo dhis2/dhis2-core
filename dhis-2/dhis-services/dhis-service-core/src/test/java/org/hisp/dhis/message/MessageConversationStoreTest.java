@@ -108,7 +108,6 @@ class MessageConversationStoreTest extends DhisSpringTest
     {
         User user = createUser( id );
         userService.addUser( user );
-        userService.addUserCredentials( user.getUserCredentials() );
         return user;
     }
 

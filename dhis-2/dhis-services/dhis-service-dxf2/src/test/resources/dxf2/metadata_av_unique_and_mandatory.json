@@ -314,11 +314,6 @@
       "surname": "admin",
       "firstName": "admin",
       "attributeValues": [],
-      "userCredentials": {
-        "id": "m3ww4DWJtMf",
-        "userInfo": {
-          "id": "W0AiiQXzQhv"
-        },
         "externalAuth": false,
         "cogsDimensionConstraints": [],
         "catDimensionConstraints": [],
@@ -330,11 +325,9 @@
         "selfRegistered": false,
         "invitation": false,
         "passwordLastUpdated": "2016-02-29T07:55:39.089+0000",
-        "created": "2016-02-29T07:55:39.180+0000",
         "disabled": false,
         "username": "admin",
-        "lastLogin": "2016-02-29T07:55:39.089+0000"
-      },
+        "lastLogin": "2016-02-29T07:55:39.089+0000",
       "lastUpdated": "2016-02-29T07:55:39.060+0000",
       "organisationUnits": [
         {

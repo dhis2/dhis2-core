@@ -345,9 +345,9 @@ public class DefaultValidationService
         {
             builder
                 .withCoDimensionConstraints(
-                    categoryService.getCoDimensionConstraints( currentUser.getUserCredentials() ) )
+                    categoryService.getCoDimensionConstraints( currentUser ) )
                 .withCogDimensionConstraints(
-                    categoryService.getCogDimensionConstraints( currentUser.getUserCredentials() ) );
+                    categoryService.getCogDimensionConstraints( currentUser ) );
         }
 
         return builder.build();

@@ -112,7 +112,6 @@ public class DataImportTest
         String taskId = response.extractString( "response.id" );
 
         // Validate that job was successful
-
         systemActions.waitUntilTaskCompleted( "DATAVALUE_IMPORT", taskId )
             .validate()
             .body( "message", contains( "Process started", "Importing data values", "Import done" ) );

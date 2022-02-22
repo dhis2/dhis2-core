@@ -100,7 +100,7 @@ public class LoginTests
 
         loginActions.getLoggedInUserInfo().validate()
             .statusCode( 200 )
-            .body( "userCredentials.username", equalTo( userName ) );
+            .body( "username", equalTo( userName ) );
     }
 
     @Test

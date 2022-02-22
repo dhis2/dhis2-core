@@ -114,7 +114,7 @@ public class MetadataSetupExtension
         for ( String user : users )
         {
             String userId = userActions.get( String.format(
-                "?filter=userCredentials.username:eq:%s", user ) )
+                "?filter=username:eq:%s", user ) )
                 .extractString( "users.id[0]" );
 
             if ( userId == null )

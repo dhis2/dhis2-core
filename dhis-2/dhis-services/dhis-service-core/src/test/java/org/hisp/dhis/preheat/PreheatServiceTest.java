@@ -325,6 +325,9 @@ class PreheatServiceTest extends TransactionalIntegrationTest
     {
         DataElementGroup dataElementGroup = fromJson( "preheat/degAUidRef.json", DataElementGroup.class );
         defaultSetup();
+
+        List<User> allUsers = userService.getAllUsers();
+
         PreheatParams params = new PreheatParams();
         params.setPreheatMode( PreheatMode.REFERENCE );
         params.getObjects().put( DataElementGroup.class, Lists.newArrayList( dataElementGroup ) );
@@ -335,9 +338,11 @@ class PreheatServiceTest extends TransactionalIntegrationTest
         assertContains( members, "DataElementA", "DataElementCodeA" );
         assertContains( members, "DataElementB", "DataElementCodeB" );
         assertContains( members, "DataElementC", "DataElementCodeC" );
-        assertEquals( "FirstNameA", dataElementGroup.getCreatedBy().getFirstName() );
-        assertEquals( "SurnameA", dataElementGroup.getCreatedBy().getSurname() );
-        assertEquals( "UserCodeA", dataElementGroup.getCreatedBy().getCode() );
+        User createdBy = dataElementGroup.getCreatedBy();
+
+        assertEquals( "FirstNameA", createdBy.getFirstName() );
+        assertEquals( "SurnameA", createdBy.getSurname() );
+        assertEquals( "UserCodeA", createdBy.getCode() );
     }
 
     @Test
@@ -403,7 +408,7 @@ class PreheatServiceTest extends TransactionalIntegrationTest
         params.setPreheatMode( PreheatMode.REFERENCE );
         params.setObjects( metadata );
         Preheat preheat = preheatService.preheat( params );
-        assertEquals( 3, preheat.getKlassKeyCount( PreheatIdentifier.UID ) );
+        assertEquals( 2, preheat.getKlassKeyCount( PreheatIdentifier.UID ) );
     }
 
     @Test
@@ -429,7 +434,7 @@ class PreheatServiceTest extends TransactionalIntegrationTest
         assertTrue( preheat.hasKlassKeys( PreheatIdentifier.CODE ) );
         assertTrue( preheat.hasKlassKeys( PreheatIdentifier.UID ) );
         assertEquals( 1, preheat.getKlassKeyCount( PreheatIdentifier.CODE ) );
-        assertEquals( 2, preheat.getKlassKeyCount( PreheatIdentifier.UID ) );
+        assertEquals( 1, preheat.getKlassKeyCount( PreheatIdentifier.UID ) );
     }
 
     @Test
@@ -455,7 +460,7 @@ class PreheatServiceTest extends TransactionalIntegrationTest
         assertTrue( preheat.hasKlassKeys( PreheatIdentifier.CODE ) );
         assertTrue( preheat.hasKlassKeys( PreheatIdentifier.UID ) );
         assertEquals( 1, preheat.getKlassKeyCount( PreheatIdentifier.CODE ) );
-        assertEquals( 2, preheat.getKlassKeyCount( PreheatIdentifier.UID ) );
+        assertEquals( 1, preheat.getKlassKeyCount( PreheatIdentifier.UID ) );
         assertNull( preheat.get( PreheatIdentifier.CODE, User.class, "some-user-uid" ) );
         assertNotNull( preheat.get( PreheatIdentifier.CODE, User.class, user1.getUid() ) );
     }

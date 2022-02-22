@@ -51,9 +51,16 @@ class ValidationRunner
     {
         TypeReport typeReport = new TypeReport( klass );
 
-        validatorsByImportStrategy.get( bundle.getImportMode() )
-            .forEach( validationCheck -> typeReport.merge( validationCheck.check( bundle, klass, persistedObjects,
-                nonPersistedObjects, bundle.getImportMode(), ctx ) ) );
+        ImportStrategy importMode = bundle.getImportMode();
+
+        List<ValidationCheck> validationChecks = validatorsByImportStrategy.get( importMode );
+
+        for ( ValidationCheck validationCheck : validationChecks )
+        {
+            TypeReport check = validationCheck.check( bundle, klass, persistedObjects, nonPersistedObjects, importMode,
+                ctx );
+            typeReport.merge( check );
+        }
 
         return typeReport;
     }

@@ -59,12 +59,8 @@ public class UserActions
             .addProperty( "id", id )
             .addProperty( "firstName", firstName )
             .addProperty( "surname", surname )
-            .addObject( "userCredentials", new JsonObjectBuilder()
-                .addProperty( "username", username )
-                .addProperty( "password", password ) )
-            .addObject( "userInfo", new JsonObjectBuilder().addProperty( "id", id ) )
-            .addObject( "userInfo", new JsonObjectBuilder()
-                .addProperty( "id", id ) )
+            .addProperty( "username", username )
+            .addProperty( "password", password )
             .build();
 
         ApiResponse response = this.post( user );
@@ -79,7 +75,7 @@ public class UserActions
     public void addRoleToUser( String userId, String userRoleId )
     {
         ApiResponse response = this.get( userId );
-        if ( response.extractList( "userCredentials.userRoles.id" ).contains( userRoleId ) )
+        if ( response.extractList( "userRoles.id" ).contains( userRoleId ) )
         {
             return;
         }
@@ -89,7 +85,7 @@ public class UserActions
         JsonObject userRole = new JsonObject();
         userRole.addProperty( "id", userRoleId );
 
-        object.get( "userCredentials" ).getAsJsonObject().get( "userRoles" ).getAsJsonArray().add( userRole );
+        object.get( "userRoles" ).getAsJsonArray().add( userRole );
 
         this.update( userId, object ).validate().statusCode( 200 );
     }
@@ -190,8 +186,7 @@ public class UserActions
     {
         new LoginActions().loginAsSuperUser();
         JsonObject user = this.get( userId ).getBody();
-        user.getAsJsonObject( "userCredentials" )
-            .addProperty( "password", password );
+        user.addProperty( "password", password );
 
         this.update( userId, user );
     }

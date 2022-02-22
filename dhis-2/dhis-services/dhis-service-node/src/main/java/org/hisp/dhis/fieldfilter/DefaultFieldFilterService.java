@@ -71,12 +71,12 @@ import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.PropertyTransformer;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccess;
-import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserGroupAccess;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserService;
@@ -381,8 +381,9 @@ public class DefaultFieldFilterService implements FieldFilterService
 
         if ( fieldMap.containsKey( "access" ) && schema.isIdentifiableObject() )
         {
-            ((BaseIdentifiableObject) object)
-                .setAccess( aclService.getAccess( (IdentifiableObject) object, user ) );
+            Access access = aclService.getAccess( (IdentifiableObject) object, user );
+
+            ((BaseIdentifiableObject) object).setAccess( access );
         }
 
         if ( fieldMap.containsKey( "attribute" ) && AttributeValue.class.isAssignableFrom( object.getClass() ) )
@@ -809,7 +810,7 @@ public class DefaultFieldFilterService implements FieldFilterService
 
     private boolean isProperIdObject( Class<?> klass )
     {
-        if ( UserCredentials.class.isAssignableFrom( klass ) || EmbeddedObject.class.isAssignableFrom( klass ) )
+        if ( EmbeddedObject.class.isAssignableFrom( klass ) )
         {
             return false;
         }

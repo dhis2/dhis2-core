@@ -57,8 +57,6 @@
           "code": "country"
         }
       ],
-      "userCredentials": {
-        "id": "m3ww4DWJtMf",
         "username": "UserAA",
         "userRoles": [
           {
@@ -76,11 +74,7 @@
         "catDimensionConstraints": [],
         "lastLogin": "2016-03-12T06:20:43.407+0000",
         "created": "2016-03-12T06:20:43.508+0000",
-        "userInfo": {
-          "id": "sPWjoHSY03y"
-        },
-        "passwordLastUpdated": "2016-03-12T06:20:43.407+0000"
-      },
+        "passwordLastUpdated": "2016-03-12T06:20:43.407+0000",
       "teiSearchOrganisationUnits": []
     }
   ]

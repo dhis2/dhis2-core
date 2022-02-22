@@ -64,32 +64,30 @@ import org.springframework.http.MediaType;
 class SchemaBasedControllerTest extends DhisControllerConvenienceTest
 {
 
-    private static final Set<String> IGNORED_SCHEMAS = new HashSet<>( asList( // can't
-                                                                              // POST
-                                                                              // files
-        "externalFileResource", // depends on files
-        "identifiableObject", // uses JSONB functions (improve test setup)
-        "dashboard", // uses dashboards (see above)
-        "pushanalysis", // no POST endpoint
-        "programInstance", // no POST endpoint
-        "metadataVersion", // depends on programInstance (see above)
-        "softDeletableObject", // generator insufficient for embedded fields
-        "relationship", // generator insufficient for embedded fields
-        "relationshipType", // generator insufficient
-        "programStageInstanceFilter", // required ObjectReport not required in
-                                      // schema
-        "interpretation", // generator insufficient to understand
-                          // userCredentials
-        "user", // API requires configurable=true
-        "jobConfiguration", // needs recipients (not a required field)
-        "messageConversation", // needs DataElement and TrackedEntityAttribute
-        "programRuleAction", // (not a required field)
-        // generator insufficient (embedded fields)
-        "validationRule", // required Program not required in schema
-        "programStage", // presumably server errors/bugs
-        // conflict (no details)
-        "trackedEntityInstance", // NPE in preheat when creating objects
-        "Predictor" ) );
+    private static final Set<String> IGNORED_SCHEMAS = new HashSet<>(
+        asList(
+            "externalFileResource", // can't POST files
+            "identifiableObject", // depends on files
+            "dashboard", // uses JSONB functions (improve test setup)
+            "pushanalysis", // uses dashboards (see above)
+            "programInstance", // no POST endpoint
+            "metadataVersion", // no POST endpoint
+            "softDeletableObject", // depends on programInstance (see above)
+            "relationship", // generator insufficient for embedded fields
+            "relationshipType", // generator insufficient for embedded fields
+            "programStageInstanceFilter", // generator insufficient
+            "interpretation", // required ObjectReport not required in schema
+            "user", // generator insufficient to understand user
+            "jobConfiguration", // API requires configurable=true
+            "messageConversation", // needs recipients (not a required field)
+            "programRuleAction", // needs DataElement and TrackedEntityAttribute
+                                 // (not a required field)
+            "validationRule", // generator insufficient (embedded fields)
+            "programStage", // presumably server errors/bugs
+            // presumably server errors/bugs
+            "trackedEntityInstance", // conflict (no details)
+            "Predictor" // NPE in preheat when creating objects
+        ) );
 
     /**
      * A list of endpoints that do not support the {@code /gist} API because
