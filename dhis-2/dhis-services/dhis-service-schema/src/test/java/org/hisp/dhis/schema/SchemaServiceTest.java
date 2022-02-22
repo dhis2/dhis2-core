@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.schema;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -35,16 +36,21 @@ import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobParameters;
+import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
 import org.hisp.dhis.sqlview.SqlView;
+import org.hisp.dhis.system.util.ReflectionUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import com.google.api.client.util.Sets;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 class SchemaServiceTest extends DhisSpringTest
 {
-
     @Autowired
     private SchemaService schemaService;
 
@@ -89,5 +95,39 @@ class SchemaServiceTest extends DhisSpringTest
         assertTrue( schema.isDataShareable() );
         assertTrue( schema.isDataWriteShareable() );
         assertTrue( schema.isDataReadShareable() );
+    }
+
+    @Test
+    void testCanScanJobParameters()
+    {
+        JobParameters parameters = new AnalyticsJobParameters( 10, Sets.newHashSet(), Sets.newHashSet(), true );
+        Schema schema = schemaService.getDynamicSchema( parameters.getClass() );
+
+        assertNotNull( schema );
+        assertFalse( schema.getProperties().isEmpty() );
+        assertEquals( 4, schema.getProperties().size() );
+    }
+
+    @Test
+    void testCanScanJobConfigurationWithJobParameters()
+    {
+        JobConfiguration configuration = new JobConfiguration();
+        configuration.setJobParameters( new AnalyticsJobParameters( 10, Sets.newHashSet(), Sets.newHashSet(), true ) );
+
+        Schema schema = schemaService.getDynamicSchema( configuration.getClass() );
+        assertNotNull( schema );
+        assertFalse( schema.getProperties().isEmpty() );
+
+        Property property = schema.getProperty( "jobParameters" );
+        assertNotNull( property );
+
+        Object jobParameters = ReflectionUtils.invokeMethod( configuration, property.getGetterMethod() );
+        assertNotNull( jobParameters );
+
+        schema = schemaService.getDynamicSchema( jobParameters.getClass() );
+
+        assertNotNull( schema );
+        assertFalse( schema.getProperties().isEmpty() );
+        assertEquals( 4, schema.getProperties().size() );
     }
 }
