@@ -13,11 +13,11 @@
         <many-to-one name="dataView" class="org.hisp.dhis.dataview.DataView" column="dataviewid"
                      foreign-key="fk_dataviewitem_dataviewid" unique-key="dataviewitem_unique_key" not-null="true" />
 
-        <many-to-one name="trackedEntityAttribute" lazy="false" class="org.hisp.dhis.trackedentity.TrackedEntityAttribute"
+        <many-to-one name="trackedEntityAttribute" class="org.hisp.dhis.trackedentity.TrackedEntityAttribute"
                      column="trackedentityattributeeid"
                      foreign-key="fk_dataviewitem_trackedentityattributeid" />
 
-        <many-to-one name="dataElement" lazy="false" class="org.hisp.dhis.dataelement.DataElement"
+        <many-to-one name="dataElement" class="org.hisp.dhis.dataelement.DataElement"
                      column="dataelementid"
                      foreign-key="fk_dataviewitem_dataelementid" />
 
