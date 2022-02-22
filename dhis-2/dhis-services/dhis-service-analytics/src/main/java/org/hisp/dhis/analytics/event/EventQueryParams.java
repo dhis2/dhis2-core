@@ -340,7 +340,7 @@ public class EventQueryParams
         params.includeMetadataDetails = this.includeMetadataDetails;
         params.dataIdScheme = this.dataIdScheme;
         params.periodType = this.periodType;
-        params.analyzeOrderId = this.analyzeOrderId;
+        params.explainOrderId = this.explainOrderId;
         params.dateRangeByDateFilter = this.dateRangeByDateFilter;
         params.skipPartitioning = this.skipPartitioning;
         return params;
@@ -1498,7 +1498,7 @@ public class EventQueryParams
 
         public Builder withAnalyzeOrderId()
         {
-            this.params.analyzeOrderId = UUID.randomUUID().toString();
+            this.params.explainOrderId = UUID.randomUUID().toString();
             return this;
         }
 

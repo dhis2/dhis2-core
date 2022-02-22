@@ -245,8 +245,12 @@ public class DefaultQueryItemLocator
     {
         try
         {
-            return RepeatableStageParamsHelper.getRepeatableStageParams( dimension );
+            RepeatableStageParams repeatableStageParams = RepeatableStageParamsHelper
+                .getRepeatableStageParams( dimension );
 
+            repeatableStageParams.setDimension( dimension );
+
+            return repeatableStageParams;
         }
         catch ( InvalidRepeatableStageParamsException e )
         {
