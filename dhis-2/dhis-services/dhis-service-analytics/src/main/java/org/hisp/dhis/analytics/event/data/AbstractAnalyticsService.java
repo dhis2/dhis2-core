@@ -319,7 +319,7 @@ public abstract class AbstractAnalyticsService
                     .getOptionSetObject()
                     .getOptions()
                     .stream()
-                    .filter( opt -> grid.getRows().stream().anyMatch( r -> {
+                    .filter( opt -> opt != null && grid.getRows().stream().anyMatch( r -> {
                         Object o = r.get( columnIndex );
                         if ( o instanceof String )
                         {
