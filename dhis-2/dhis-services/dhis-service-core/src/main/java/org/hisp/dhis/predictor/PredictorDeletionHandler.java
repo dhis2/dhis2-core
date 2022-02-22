@@ -32,6 +32,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.Iterator;
 import java.util.List;
 
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.expression.Expression;
@@ -123,6 +124,16 @@ public class PredictorDeletionHandler
     public String allowDeleteCategoryOptionCombo( CategoryOptionCombo coc )
     {
         return exists( "SELECT COUNT(*) FROM predictor where generatoroutputcombo=" + coc.getId() ) ? ERROR : null;
+    }
+
+    @Override
+    public String allowDeleteCategoryCombo( CategoryCombo categoryCombo )
+    {
+        return exists( "SELECT COUNT(*) FROM predictor p where exists ("
+            + "select 1 from categorycombos_optioncombos co"
+            + " where co.categorycomboid=" + categoryCombo.getId()
+            + " and co.categoryoptioncomboid=p.generatoroutputcombo"
+            + ")" ) ? ERROR : null;
     }
 
     private boolean exists( String sql )
