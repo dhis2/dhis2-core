@@ -182,7 +182,16 @@ public class ParserUtils
             "-" + (dateParts[1].length() == 1 ? "0" : "") + dateParts[1] +
             "-" + (dateParts[2].length() == 1 ? "0" : "") + dateParts[2];
 
-        Date date = parseDate( fixedDateString );
+        Date date;
+
+        try
+        {
+            date = parseDate( fixedDateString );
+        }
+        catch ( Exception e )
+        {
+            throw new ParserExceptionWithoutContext( "Invalid date: " + dateString + " " + e.getMessage() );
+        }
 
         if ( date == null )
         {

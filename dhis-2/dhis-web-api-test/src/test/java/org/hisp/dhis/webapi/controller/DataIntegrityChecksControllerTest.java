@@ -54,6 +54,7 @@ class DataIntegrityChecksControllerTest extends AbstractDataIntegrityControllerT
         assertCheckExists( "categories_one_default_category_option", checks );
         assertCheckExists( "categories_one_default_category_combo", checks );
         assertCheckExists( "categories_one_default_category_option_combo", checks );
+        assertCheckExists( "categories_unique_category_combo", checks );
         for ( DataIntegrityCheckType type : DataIntegrityCheckType.values() )
         {
             assertCheckExists( type.getName(), checks );

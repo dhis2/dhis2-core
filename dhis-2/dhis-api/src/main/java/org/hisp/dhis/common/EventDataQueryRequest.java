@@ -28,6 +28,7 @@
 package org.hisp.dhis.common;
 
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
+import static org.hisp.dhis.common.DimensionalObject.MULTI_CHOICES_OPTION_SEP;
 import static org.hisp.dhis.common.DimensionalObject.OPTION_SEP;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 
@@ -43,6 +44,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.SortOrder;
@@ -163,8 +165,8 @@ public class EventDataQueryRequest
         queryRequest.sortOrder = this.sortOrder;
         queryRequest.limit = this.limit;
         queryRequest.outputType = this.outputType;
-        queryRequest.eventStatus = this.eventStatus;
-        queryRequest.programStatus = this.programStatus;
+        queryRequest.eventStatus = new LinkedHashSet<>( this.eventStatus );
+        queryRequest.programStatus = new LinkedHashSet<>( this.programStatus );
         queryRequest.collapseDataDimensions = this.collapseDataDimensions;
         queryRequest.aggregateData = this.aggregateData;
         queryRequest.includeMetadataDetails = this.includeMetadataDetails;
@@ -253,7 +255,7 @@ public class EventDataQueryRequest
                     .filter( AnalyticsDateFilter::appliesToEvents )
                     .filter( analyticsDateFilter -> analyticsDateFilter.getEventExtractor().apply( criteria ) != null )
                     .map( analyticsDateFilter -> String.join( DIMENSION_NAME_SEP,
-                        analyticsDateFilter.getEventExtractor().apply( criteria ),
+                        withOptionSeparator( analyticsDateFilter.getEventExtractor().apply( criteria ) ),
                         analyticsDateFilter.getTimeField().name() ) )
                     .collect( Collectors.joining( OPTION_SEP ) );
 
@@ -269,6 +271,21 @@ public class EventDataQueryRequest
             {
                 return builder.dimension( criteria.getDimension() );
             }
+        }
+
+        private String withOptionSeparator( String options )
+        {
+            return joinOnOptionSeparator( splitOnMultiOptionSeparator( options ) );
+        }
+
+        private String joinOnOptionSeparator( String[] strings )
+        {
+            return StringUtils.join( strings, OPTION_SEP );
+        }
+
+        private String[] splitOnMultiOptionSeparator( String s )
+        {
+            return StringUtils.split( s, MULTI_CHOICES_OPTION_SEP );
         }
 
         public EventDataQueryRequestBuilder fromCriteria( EnrollmentAnalyticsQueryCriteria criteria )

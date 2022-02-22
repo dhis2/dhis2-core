@@ -45,6 +45,7 @@ import static org.hisp.dhis.parser.expression.ExpressionItem.ITEM_GET_DESCRIPTIO
 import static org.hisp.dhis.parser.expression.ExpressionItem.ITEM_GET_EXPRESSION_INFO;
 import static org.hisp.dhis.parser.expression.ParserUtils.COMMON_EXPRESSION_ITEMS;
 import static org.hisp.dhis.parser.expression.ParserUtils.DOUBLE_VALUE_IF_NULL;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.AGGREGATION_TYPE;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.AVG;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.A_BRACE;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.COUNT;
@@ -119,6 +120,7 @@ import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ExpressionItem;
 import org.hisp.dhis.parser.expression.ExpressionItemMethod;
 import org.hisp.dhis.parser.expression.ExpressionState;
+import org.hisp.dhis.parser.expression.function.FunctionAggregationType;
 import org.hisp.dhis.parser.expression.function.FunctionMaxDate;
 import org.hisp.dhis.parser.expression.function.FunctionMinDate;
 import org.hisp.dhis.parser.expression.function.PeriodOffset;
@@ -210,6 +212,7 @@ public class DefaultExpressionService
     private static final ImmutableMap<Integer, ExpressionItem> INDICATOR_EXPRESSION_ITEMS = ImmutableMap
         .<Integer, ExpressionItem> builder()
         .putAll( BASE_EXPRESSION_ITEMS )
+        .put( AGGREGATION_TYPE, new FunctionAggregationType() )
         .put( N_BRACE, new DimItemIndicator() )
         .put( MAX_DATE, new FunctionMaxDate() )
         .put( MIN_DATE, new FunctionMinDate() )

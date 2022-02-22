@@ -101,7 +101,7 @@
         <datasource-proxy.version>1.7</datasource-proxy.version>
 
         <!-- Servlet-->
-        <javax.servlet-api.version>3.1.0</javax.servlet-api.version>
+        <javax.servlet-api.version>4.0.1</javax.servlet-api.version>
 
         <!-- Struts -->
         <struts.version>2.5.27</struts.version>
@@ -144,7 +144,7 @@
         <jts.version>1.16.1</jts.version>
 
         <!-- Apache Artemis -->
-        <artemis.version>2.19.0</artemis.version>
+        <artemis.version>2.20.0</artemis.version>
         <activemq-artemis-native.version>1.0.2</activemq-artemis-native.version>
         <netty-all.version>4.1.59.Final</netty-all.version>
         <classgraph.version>4.8.138</classgraph.version>
