@@ -27,11 +27,12 @@
  */
 package org.hisp.dhis.trackerdataview;
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.GenericStore;
 
 /**
  * @author Zubair Asghar
  */
-public interface TrackerDataViewStore extends IdentifiableObjectStore<TrackerDataView>
+public interface TrackerDataViewStore extends GenericStore<TrackerDataView>
 {
+    TrackerDataView getByUid( String uid );
 }

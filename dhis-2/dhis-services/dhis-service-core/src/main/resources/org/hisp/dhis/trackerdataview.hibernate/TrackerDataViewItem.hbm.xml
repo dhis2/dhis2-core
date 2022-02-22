@@ -11,7 +11,7 @@
         </id>
 
         <many-to-one name="trackerDataView" class="org.hisp.dhis.trackerdataview.TrackerDataView" column="trackerdataviewid"
-                     foreign-key="fk_dataviewitem_dataviewid" unique-key="trackerdataviewitem_unique_key" not-null="true" />
+                     foreign-key="fk_dataviewitem_trackerdataviewid" unique-key="trackerdataviewitem_unique_key" not-null="true" />
 
         <many-to-one name="trackedEntityAttribute" class="org.hisp.dhis.trackedentity.TrackedEntityAttribute"
                      column="trackedentityattributeeid"

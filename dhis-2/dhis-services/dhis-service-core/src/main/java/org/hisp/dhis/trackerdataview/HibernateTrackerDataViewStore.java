@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.trackerdataview;
 
+import javax.persistence.criteria.CriteriaBuilder;
+
 import org.hibernate.SessionFactory;
-import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -40,13 +40,22 @@ import org.springframework.stereotype.Repository;
  */
 
 @Repository( "org.hisp.dhis.trackerdataview.TrackerDataViewStore" )
-public class HibernateTrackerDataViewStore extends HibernateIdentifiableObjectStore<TrackerDataView>
+public class HibernateTrackerDataViewStore extends HibernateGenericStore<TrackerDataView>
     implements TrackerDataViewStore
 {
     public HibernateTrackerDataViewStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, Class<TrackerDataView> clazz, CurrentUserService currentUserService,
-        AclService aclService, boolean cacheable )
+        ApplicationEventPublisher publisher,
+        Class<TrackerDataView> clazz, boolean cacheable )
     {
-        super( sessionFactory, jdbcTemplate, publisher, clazz, currentUserService, aclService, cacheable );
+        super( sessionFactory, jdbcTemplate, publisher, clazz, cacheable );
+    }
+
+    @Override
+    public TrackerDataView getByUid( String uid )
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getSingleResult( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( "uid" ), uid ) ) );
     }
 }

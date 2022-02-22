@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.trackerdataview;
 
+import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -36,7 +37,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -56,8 +56,14 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 @NoArgsConstructor
 @AllArgsConstructor
 @JacksonXmlRootElement( namespace = DxfNamespaces.DXF_2_0 )
-public class TrackerDataView extends BaseIdentifiableObject
+public class TrackerDataView implements Serializable
 {
+    private long id;
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    private String uid;
+
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     private TrackedEntityType trackedEntityType;
