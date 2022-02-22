@@ -1,16 +1,13 @@
 <?xml version="1.0"?>
 <!DOCTYPE hibernate-mapping PUBLIC
         "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
-        "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
-        [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
-        >
+        "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
 
 <hibernate-mapping>
     <class name="org.hisp.dhis.trackerdataview.TrackerDataView" table="trackerdataview">
         <id name="id" column="trackerdataviewid">
             <generator class="native" />
         </id>
-        &identifiableProperties;
 
         <many-to-one name="trackedEntityType" class="org.hisp.dhis.trackedentity.TrackedEntityType"
                      column="trackedentitytypeid"
