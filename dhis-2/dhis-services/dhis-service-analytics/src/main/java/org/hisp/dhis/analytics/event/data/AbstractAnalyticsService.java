@@ -147,12 +147,12 @@ public abstract class AbstractAnalyticsService
             }
             else if ( hasNonDefaultRepeatableProgramStageOffset( item ) )
             {
-                String name = item.getProgramStage().getUid() + "[" + item.getProgramStageOffset() + "]." +
-                    item.getItem().getUid();
 
                 String column = item.getItem().getDisplayProperty( params.getDisplayProperty() );
 
                 RepeatableStageParams repeatableStageParams = item.getRepeatableStageParams();
+
+                String name = repeatableStageParams.getDimension();
 
                 grid.addHeader( new GridHeader( name, column,
                     repeatableStageParams.simpleStageValueExpected() ? item.getValueType() : ValueType.REFERENCE,
@@ -162,6 +162,7 @@ public abstract class AbstractAnalyticsService
             else
             {
                 final String uid = getItemUid( item );
+
                 final String column = item.getItem().getDisplayProperty( params.getDisplayProperty() );
 
                 grid.addHeader( new GridHeader( uid, column, item.getValueType(),
@@ -539,6 +540,6 @@ public abstract class AbstractAnalyticsService
     private boolean hasNonDefaultRepeatableProgramStageOffset( QueryItem item )
     {
         return item != null && item.getProgramStage() != null && item.getRepeatableStageParams() != null
-            && (item.getRepeatableStageParams().getStartIndex() != 0 || item.getRepeatableStageParams().getCount() > 1);
+            && !item.getRepeatableStageParams().isDefaultObject();
     }
 }
