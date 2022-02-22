@@ -25,22 +25,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataview;
+package org.hisp.dhis.trackerdataview;
+
+import org.hisp.dhis.common.IdentifiableObjectStore;
 
 /**
  * @author Zubair Asghar
  */
-public interface DataViewService
+public interface TrackerDataViewStore extends IdentifiableObjectStore<TrackerDataView>
 {
-    void saveDataView( DataView dataView );
-
-    DataView getDataView( long dataViewId );
-
-    DataView getDataView( String uid );
-
-    void removeDataView( DataView dataView );
-
-    void removeDataView( String uid );
-
-    void updateDataView( DataView dataView );
 }

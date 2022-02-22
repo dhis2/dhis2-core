@@ -4,22 +4,22 @@
         "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
 
 <hibernate-mapping>
-    <class name="org.hisp.dhis.dataview.DataViewItem" table="dataviewitem">
+    <class name="org.hisp.dhis.trackerdataview.TrackerDataViewItem" table="trackerdataviewitem">
 
-        <id name="id" column="dataviewitemid">
+        <id name="id" column="trackerdataviewitemid">
             <generator class="native" />
         </id>
 
-        <many-to-one name="dataView" class="org.hisp.dhis.dataview.DataView" column="dataviewid"
-                     foreign-key="fk_dataviewitem_dataviewid" unique-key="dataviewitem_unique_key" not-null="true" />
+        <many-to-one name="trackerDataView" class="org.hisp.dhis.trackerdataview.TrackerDataView" column="trackerdataviewid"
+                     foreign-key="fk_dataviewitem_dataviewid" unique-key="trackerdataviewitem_unique_key" not-null="true" />
 
         <many-to-one name="trackedEntityAttribute" class="org.hisp.dhis.trackedentity.TrackedEntityAttribute"
                      column="trackedentityattributeeid"
-                     foreign-key="fk_dataviewitem_trackedentityattributeid" />
+                     foreign-key="fk_trackerdataviewitem_trackedentityattributeid" />
 
         <many-to-one name="dataElement" class="org.hisp.dhis.dataelement.DataElement"
                      column="dataelementid"
-                     foreign-key="fk_dataviewitem_dataelementid" />
+                     foreign-key="fk_trackerdataviewitem_dataelementid" />
 
     </class>
 

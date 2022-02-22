@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataview;
+package org.hisp.dhis.trackerdataview;
 
 import java.io.Serializable;
 
@@ -49,11 +49,11 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 @NoArgsConstructor
 @AllArgsConstructor
 @JacksonXmlRootElement( namespace = DxfNamespaces.DXF_2_0 )
-public class DataViewItem implements Serializable
+public class TrackerDataViewItem implements Serializable
 {
     private long id;
 
-    private DataView dataView;
+    private TrackerDataView trackerDataView;
 
     private TrackedEntityAttribute trackedEntityAttribute;
 
@@ -72,14 +72,14 @@ public class DataViewItem implements Serializable
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public DataView getDataView()
+    public TrackerDataView getTrackerDataView()
     {
-        return dataView;
+        return trackerDataView;
     }
 
-    public void setDataView( DataView dataView )
+    public void setTrackerDataView( TrackerDataView trackerDataView )
     {
-        this.dataView = dataView;
+        this.trackerDataView = trackerDataView;
     }
 
     @JsonProperty

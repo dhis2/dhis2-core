@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataview;
+package org.hisp.dhis.trackerdataview;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -38,65 +38,65 @@ import org.springframework.stereotype.Service;
  */
 
 @Slf4j
-@Service( "org.hisp.dhis.dataview.DataViewService" )
-public class DefaultDataViewService implements DataViewService
+@Service( "org.hisp.dhis.trackerdataview.TrackerDataViewService" )
+public class DefaultTrackerDataViewService implements TrackerDataViewService
 {
-    private final DataViewStore dataViewStore;
+    private final TrackerDataViewStore trackerDataViewStore;
 
-    public DefaultDataViewService( DataViewStore dataViewStore )
+    public DefaultTrackerDataViewService( TrackerDataViewStore trackerDataViewStore )
     {
 
-        checkNotNull( dataViewStore );
-        this.dataViewStore = dataViewStore;
+        checkNotNull( trackerDataViewStore );
+        this.trackerDataViewStore = trackerDataViewStore;
     }
 
     @Override
-    public void saveDataView( DataView dataView )
+    public void saveDataView( TrackerDataView trackerDataView )
     {
 
-        dataViewStore.save( dataView );
+        trackerDataViewStore.save( trackerDataView );
     }
 
     @Override
-    public DataView getDataView( long dataViewId )
+    public TrackerDataView getDataView( long dataViewId )
     {
-        return dataViewStore.get( dataViewId );
+        return trackerDataViewStore.get( dataViewId );
     }
 
     @Override
-    public DataView getDataView( String uid )
+    public TrackerDataView getDataView( String uid )
     {
-        return dataViewStore.getByUid( uid );
+        return trackerDataViewStore.getByUid( uid );
     }
 
     @Override
-    public void removeDataView( DataView dataView )
+    public void removeDataView( TrackerDataView trackerDataView )
     {
-        if ( getDataView( dataView.getId() ) == null )
+        if ( getDataView( trackerDataView.getId() ) == null )
         {
             return;
         }
 
-        dataViewStore.delete( dataView );
+        trackerDataViewStore.delete( trackerDataView );
     }
 
     @Override
     public void removeDataView( String uid )
     {
-        DataView dataView = getDataView( uid );
+        TrackerDataView trackerDataView = getDataView( uid );
 
-        if ( dataView == null )
+        if ( trackerDataView == null )
         {
             return;
         }
 
-        dataViewStore.delete( dataView );
+        trackerDataViewStore.delete( trackerDataView );
     }
 
     @Override
-    public void updateDataView( DataView dataView )
+    public void updateDataView( TrackerDataView trackerDataView )
     {
 
-        dataViewStore.update( dataView );
+        trackerDataViewStore.update( trackerDataView );
     }
 }

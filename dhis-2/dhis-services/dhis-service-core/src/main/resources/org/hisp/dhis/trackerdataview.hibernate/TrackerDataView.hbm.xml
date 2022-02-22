@@ -6,28 +6,28 @@
         >
 
 <hibernate-mapping>
-    <class name="org.hisp.dhis.dataview.DataView" table="dataview">
-        <id name="id" column="dataviewid">
+    <class name="org.hisp.dhis.trackerdataview.TrackerDataView" table="trackerdataview">
+        <id name="id" column="trackerdataviewid">
             <generator class="native" />
         </id>
         &identifiableProperties;
 
         <many-to-one name="trackedEntityType" class="org.hisp.dhis.trackedentity.TrackedEntityType"
                      column="trackedentitytypeid"
-                     foreign-key="fk_dataview_trackedentitytypeid" />
+                     foreign-key="fk_trackerdataview_trackedentitytypeid" />
 
         <many-to-one name="program" class="org.hisp.dhis.program.Program"
                      column="programid"
-                     foreign-key="fk_dataview_programid" />
+                     foreign-key="fk_trackerdataview_programid" />
 
         <many-to-one name="programStage" class="org.hisp.dhis.program.ProgramStage"
                      column="programstageid"
-                     foreign-key="fk_dataview_programstageid" />
+                     foreign-key="fk_trackerdataview_programstageid" />
 
-        <set name="dataViewItems" table="dataviewitem" cascade="all-delete-orphan">
+        <set name="trackerDataViewItems" table="trackerdataviewitem" cascade="all-delete-orphan">
             <cache usage="read-write" />
-            <key column="dataviewid" foreign-key="fk_dataviewitem_dataviewid" />
-            <one-to-many class="org.hisp.dhis.dataview.DataViewItem" />
+            <key column="trackerdataviewid" foreign-key="fk_trackerdataviewitem_dataviewid" />
+            <one-to-many class="org.hisp.dhis.trackerdataview.TrackerDataViewItem" />
         </set>
 
     </class>

@@ -25,52 +25,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataview;
-
-import java.util.HashSet;
-import java.util.Set;
-
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
-
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+package org.hisp.dhis.trackerdataview;
 
 /**
  * @author Zubair Asghar
  */
-
-@Getter
-@Setter
-@ToString
-@NoArgsConstructor
-@AllArgsConstructor
-@JacksonXmlRootElement( namespace = DxfNamespaces.DXF_2_0 )
-public class DataView extends BaseIdentifiableObject
+public interface TrackerDataViewService
 {
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    private TrackedEntityType trackedEntityType;
+    void saveDataView( TrackerDataView trackerDataView );
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    private Program program;
+    TrackerDataView getDataView( long dataViewId );
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    private ProgramStage programStage;
+    TrackerDataView getDataView( String uid );
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    private Set<DataViewItem> dataViewItems = new HashSet<>();
+    void removeDataView( TrackerDataView trackerDataView );
+
+    void removeDataView( String uid );
+
+    void updateDataView( TrackerDataView trackerDataView );
 }

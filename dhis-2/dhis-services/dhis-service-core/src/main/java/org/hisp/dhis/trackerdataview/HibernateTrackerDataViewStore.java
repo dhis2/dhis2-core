@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataview;
+package org.hisp.dhis.trackerdataview;
 
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
@@ -39,12 +39,12 @@ import org.springframework.stereotype.Repository;
  * @author Zubair Asghar
  */
 
-@Repository( "org.hisp.dhis.dataview.DataViewStore" )
-public class HibernateDataViewStore extends HibernateIdentifiableObjectStore<DataView>
-    implements DataViewStore
+@Repository( "org.hisp.dhis.trackerdataview.TrackerDataViewStore" )
+public class HibernateTrackerDataViewStore extends HibernateIdentifiableObjectStore<TrackerDataView>
+    implements TrackerDataViewStore
 {
-    public HibernateDataViewStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, Class<DataView> clazz, CurrentUserService currentUserService,
+    public HibernateTrackerDataViewStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        ApplicationEventPublisher publisher, Class<TrackerDataView> clazz, CurrentUserService currentUserService,
         AclService aclService, boolean cacheable )
     {
         super( sessionFactory, jdbcTemplate, publisher, clazz, currentUserService, aclService, cacheable );

@@ -36,9 +36,9 @@ import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.dataview.DataView;
-import org.hisp.dhis.dataview.DataViewService;
 import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.trackerdataview.TrackerDataView;
+import org.hisp.dhis.trackerdataview.TrackerDataViewService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -57,14 +57,14 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  */
 
 @Controller
-@RequestMapping( value = DataViewController.RESOURCE_PATH )
+@RequestMapping( value = TrackerDataViewController.RESOURCE_PATH )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 @RequiredArgsConstructor
-public class DataViewController
+public class TrackerDataViewController
 {
     public static final String RESOURCE_PATH = "/dataViews";
 
-    private final DataViewService dataViewService;
+    private final TrackerDataViewService trackerDataViewService;
 
     private final RenderService renderService;
 
@@ -73,9 +73,9 @@ public class DataViewController
     @GetMapping( produces = APPLICATION_JSON_VALUE )
     @ResponseBody
     @ResponseStatus( HttpStatus.OK )
-    public DataView getDataView( @RequestParam String dataViewId )
+    public TrackerDataView getDataView( @RequestParam String dataViewId )
     {
-        return dataViewService.getDataView( dataViewId );
+        return trackerDataViewService.getDataView( dataViewId );
     }
 
     // TODO correct userRole need to be provided here
@@ -85,8 +85,8 @@ public class DataViewController
     public void saveDataView( HttpServletRequest request )
         throws IOException
     {
-        DataView dataView = renderService.fromJson( request.getInputStream(), DataView.class );
-        dataViewService.saveDataView( dataView );
+        TrackerDataView trackerDataView = renderService.fromJson( request.getInputStream(), TrackerDataView.class );
+        trackerDataViewService.saveDataView( trackerDataView );
     }
 
     // TODO correct userRole need to be provided here
@@ -96,8 +96,8 @@ public class DataViewController
     public void updateDataView( HttpServletRequest request )
         throws IOException
     {
-        DataView dataView = renderService.fromJson( request.getInputStream(), DataView.class );
-        dataViewService.updateDataView( dataView );
+        TrackerDataView trackerDataView = renderService.fromJson( request.getInputStream(), TrackerDataView.class );
+        trackerDataViewService.updateDataView( trackerDataView );
     }
 
     @PreAuthorize( "hasRole('ALL')" )
@@ -105,6 +105,6 @@ public class DataViewController
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void deleteDataView( @RequestParam String dataViewId )
     {
-        dataViewService.removeDataView( dataViewId );
+        trackerDataViewService.removeDataView( dataViewId );
     }
 }
