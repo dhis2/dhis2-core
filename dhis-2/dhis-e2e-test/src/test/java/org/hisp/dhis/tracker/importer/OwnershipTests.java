@@ -159,7 +159,6 @@ public class OwnershipTests
         String username = (DataGenerator.randomEntityName() + "user").replace(" ",""  ).toLowerCase();
         String userid = userActions.addUser( username, Constants.USER_PASSWORD );
 
-        //userActions.addRoleToUser( userid, auth );
         userActions.grantUserAccessToOrgUnit( userid, captureOu );
         userActions.grantUserSearchAccessToOrgUnit( userid, searchOu );
         userActions.addUserToUserGroup( userid, Constants.USER_GROUP_ID );
@@ -176,7 +175,8 @@ public class OwnershipTests
             .body( "enrollments", hasSize( 0 ) );
 
         trackerActions
-            .postAndGetJobReport( new EnrollmentDataBuilder().array( openProgram, captureOu, teiInCaptureScope, "ACTIVE" ) )
+            .postAndGetJobReport(
+                new EnrollmentDataBuilder().array( openProgram, captureOu, teiInCaptureScope, "ACTIVE" ) )
             .validateSuccessfulImport();
 
     }

@@ -37,7 +37,6 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentials;
 
 /**
  * @author Abyot Asalefew
@@ -217,10 +216,10 @@ public interface CategoryService
      * Returns a set of CategoryOptions that may be seen by the current user, if
      * the current user has any Category constraint(s).
      *
-     * @param userCredentials User credentials to check restrictions for.
+     * @param user User user to check restrictions for.
      * @return Set of CategoryOptions if constrained, else null.
      */
-    Set<CategoryOption> getCoDimensionConstraints( UserCredentials userCredentials );
+    Set<CategoryOption> getCoDimensionConstraints( User user );
 
     /**
      * returns associations between categoryOptions and orgUnits
@@ -496,10 +495,10 @@ public interface CategoryService
      * Returns a set of CategoryOptionGroups that may be seen by the current
      * user, if the current user has any CategoryOptionGroupSet constraint(s).
      *
-     * @param userCredentials User credentials to check restrictions for.
+     * @param user User user to check restrictions for.
      * @return Set of CategoryOptionGroups if constrained, else null.
      */
-    Set<CategoryOptionGroup> getCogDimensionConstraints( UserCredentials userCredentials );
+    Set<CategoryOptionGroup> getCogDimensionConstraints( User user );
 
     // -------------------------------------------------------------------------
     // CategoryOptionGroupSet

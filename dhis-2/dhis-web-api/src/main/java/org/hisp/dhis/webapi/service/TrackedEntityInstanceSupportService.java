@@ -75,6 +75,8 @@ public class TrackedEntityInstanceSupportService
     @SneakyThrows
     public TrackedEntityInstance getTrackedEntityInstance( String id, String pr, List<String> fields )
     {
+        User user = currentUserService.getCurrentUser();
+
         TrackedEntityInstanceParams trackedEntityInstanceParams = getTrackedEntityInstanceParams( fields );
 
         TrackedEntityInstance trackedEntityInstance = trackedEntityInstanceService.getTrackedEntityInstance( id,
@@ -84,8 +86,6 @@ public class TrackedEntityInstanceSupportService
         {
             throw new NotFoundException( "TrackedEntityInstance", id );
         }
-
-        User user = currentUserService.getCurrentUser();
 
         if ( pr != null )
         {

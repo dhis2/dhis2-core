@@ -251,7 +251,7 @@ class SqlViewServiceTest extends DhisSpringTest
     @Test
     void testValidateProtectedTables3()
     {
-        SqlView sqlView = getSqlView( "select users.username \n FROM \"public\".users;" );
+        SqlView sqlView = getSqlView( "select userinfo.username \n FROM \"public\".users;" );
 
         assertIllegalQueryEx(
             assertThrows( IllegalQueryException.class, () -> sqlViewService.validateSqlView( sqlView, null, null ) ),

@@ -47,10 +47,9 @@ class GistTransformControllerTest extends AbstractGistControllerTest
     void testTransform_Rename()
     {
         JsonObject user = GET(
-            "/users/{uid}/gist?fields=surname~rename(name),userCredentials[username~rename(alias)]~rename(account)",
+            "/users/{uid}/gist?fields=surname~rename(name),username~rename(alias)",
             getSuperuserUid() ).content();
         assertEquals( "admin", user.getString( "name" ).string() );
-        assertEquals( "admin", user.getObject( "account" ).getString( "alias" ).string() );
         assertEquals( 2, user.size() );
     }
 

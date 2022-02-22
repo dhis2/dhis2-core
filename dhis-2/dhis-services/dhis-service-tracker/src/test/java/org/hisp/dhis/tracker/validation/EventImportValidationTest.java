@@ -125,6 +125,8 @@ class EventImportValidationTest extends AbstractImportValidationTest
         TrackerImportParams trackerImportParams = createBundleFromJson(
             "tracker/validations/enrollments_te_te-data.json" );
         User user = userService.getUser( ADMIN_USER_UID );
+        injectSecurityContext( user );
+
         trackerImportParams.setUser( user );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
         assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );

@@ -305,15 +305,9 @@
         }
       ],
       "dataViewOrganisationUnits": [ ],
-      "userCredentials": {
-        "id": "m3ww4DWJtMf",
         "catDimensionConstraints": [ ],
-        "userInfo": {
-          "id": "T12jeH7KPzk"
-        },
         "disabled": false,
         "username": "admin",
-        "created": "2016-03-08T07:26:52.033+0000",
         "selfRegistered": false,
         "cogsDimensionConstraints": [ ],
         "passwordLastUpdated": "2016-03-08T07:26:51.942+0000",
@@ -324,8 +318,7 @@
         ],
         "invitation": false,
         "externalAuth": false,
-        "lastLogin": "2016-03-08T07:26:51.942+0000"
-      },
+        "lastLogin": "2016-03-08T07:26:51.942+0000",
       "surname": "admin",
       "attributeValues": [ ],
       "id": "T12jeH7KPzk",

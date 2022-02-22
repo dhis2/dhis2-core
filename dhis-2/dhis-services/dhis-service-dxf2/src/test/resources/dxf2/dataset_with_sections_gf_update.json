@@ -240,8 +240,6 @@
         }
       ],
       "firstName": "admin",
-      "userCredentials": {
-        "id": "m3ww4DWJtMf",
         "cogsDimensionConstraints": [ ],
         "lastLogin": "2016-03-08T07:26:51.942+0000",
         "invitation": false,
@@ -249,18 +247,13 @@
         "passwordLastUpdated": "2016-03-08T07:26:51.942+0000",
         "selfRegistered": false,
         "externalAuth": false,
-        "created": "2016-03-08T07:26:52.033+0000",
         "disabled": false,
-        "userInfo": {
-          "id": "T12jeH7KPzk"
-        },
         "catDimensionConstraints": [ ],
         "userRoles": [
           {
             "id": "wSdzlWUHmEu"
           }
-        ]
-      },
+        ],
       "id": "T12jeH7KPzk",
       "created": "2016-03-08T07:26:51.909+0000",
       "teiSearchOrganisationUnits": [ ],

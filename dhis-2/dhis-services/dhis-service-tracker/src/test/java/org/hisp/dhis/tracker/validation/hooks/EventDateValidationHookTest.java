@@ -43,6 +43,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 
+import org.apache.commons.compress.utils.Sets;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.event.EventStatus;
@@ -56,7 +57,6 @@ import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
-import org.hisp.dhis.user.UserCredentials;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -64,8 +64,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-
-import com.google.common.collect.Sets;
 
 /**
  * @author Enrico Colasante
@@ -296,12 +294,10 @@ class EventDateValidationHookTest extends DhisConvenienceTest
     private User getEditExpiredUser()
     {
         User user = createUser( 'A' );
-        UserCredentials userCredentials = createUserCredentials( 'A', user );
         UserAuthorityGroup userAuthorityGroup = createUserAuthorityGroup( 'A' );
         userAuthorityGroup.setAuthorities( Sets.newHashSet( Authorities.F_EDIT_EXPIRED.getAuthority() ) );
 
-        userCredentials.setUserAuthorityGroups( Sets.newHashSet( userAuthorityGroup ) );
-        user.setUserCredentials( userCredentials );
+        user.setUserAuthorityGroups( Sets.newHashSet( userAuthorityGroup ) );
 
         return user;
     }

@@ -527,29 +527,20 @@
   "users": [
     {
       "firstName": "admin",
-      "userCredentials": {
         "userRoles": [
           {
             "id": "yrB6vc5Ip3r"
           }
         ],
-        "id": "JNRA5Y0EPes",
         "selfRegistered": false,
-        "created": "2016-03-17T01:51:26.794+0000",
         "externalAuth": false,
         "invitation": false,
         "catDimensionConstraints": [ ],
-        "lastUpdated": "2016-03-17T01:51:26.892+0000",
         "cogsDimensionConstraints": [ ],
         "passwordLastUpdated": "2016-03-17T01:51:26.795+0000",
         "username": "admin",
-        "code": "admin",
         "disabled": false,
         "lastLogin": "2016-03-17T01:51:26.794+0000",
-        "userInfo": {
-          "id": "M5zQapPyTZI"
-        }
-      },
       "organisationUnits": [
         {
           "id": "uyHni0GvBpD"

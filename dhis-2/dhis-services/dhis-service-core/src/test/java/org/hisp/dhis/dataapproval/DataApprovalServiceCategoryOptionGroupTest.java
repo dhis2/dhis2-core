@@ -72,7 +72,6 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
-import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupAccessService;
 import org.hisp.dhis.user.UserGroupService;
@@ -274,15 +273,13 @@ class DataApprovalServiceCategoryOptionGroupTest extends IntegrationTestBase
         User user = mockCurrentUserService.getCurrentUser();
         user.setFirstName( "Test" );
         user.setSurname( userName );
-        UserCredentials credentials = user.getUserCredentials();
-        credentials.setUsername( userName );
-        for ( UserAuthorityGroup role : credentials.getUserAuthorityGroups() )
+        user.setUsername( userName );
+        for ( UserAuthorityGroup role : user.getUserAuthorityGroups() )
         {
             // Arbitrary name
             role.setName( CodeGenerator.generateUid() );
             userService.addUserAuthorityGroup( role );
         }
-        userService.addUserCredentials( credentials );
         userService.addUser( user );
         return mockCurrentUserService;
     }
@@ -329,7 +326,7 @@ class DataApprovalServiceCategoryOptionGroupTest extends IntegrationTestBase
 
     private void constrainByMechanism( CurrentUserService user )
     {
-        user.getCurrentUser().getUserCredentials().getCatDimensionConstraints().add( mechanismCategory );
+        user.getCurrentUser().getCatDimensionConstraints().add( mechanismCategory );
     }
 
     // -------------------------------------------------------------------------

@@ -295,7 +295,7 @@ class DataQueryServiceTest extends DhisSpringTest
         userService.addUserAuthorityGroup( role );
         User user = createUser( 'A' );
         user.addOrganisationUnit( ouA );
-        user.getUserCredentials().getUserAuthorityGroups().add( role );
+        user.getUserAuthorityGroups().add( role );
         saveAndInjectUserSecurityContext( user );
     }
 

@@ -212,6 +212,7 @@ class EnrollmentSecurityImportValidationTest extends AbstractImportValidationTes
             "tracker/validations/enrollments_te_te-data.json" );
         User user = userService.getUser( ADMIN_USER_UID );
         trackerBundleParams.setUserId( user.getUid() );
+        injectSecurityContext( user );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
         assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
         assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
@@ -223,6 +224,7 @@ class EnrollmentSecurityImportValidationTest extends AbstractImportValidationTes
     {
         TrackerImportParams params = createBundleFromJson( "tracker/validations/enrollments_te_enrollments-data.json" );
         User user = userService.getUser( USER_2 );
+        injectSecurityContext( user );
         params.setUser( user );
         params.setImportStrategy( TrackerImportStrategy.CREATE );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
@@ -235,6 +237,8 @@ class EnrollmentSecurityImportValidationTest extends AbstractImportValidationTes
     void testUserNoAccessToTrackedEntity()
         throws IOException
     {
+        clearSecurityContext();
+
         setupMetadata();
         programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
         TrackedEntityType bPJ0FMtcnEh = trackedEntityTypeService.getTrackedEntityType( "bPJ0FMtcnEh" );
@@ -256,6 +260,8 @@ class EnrollmentSecurityImportValidationTest extends AbstractImportValidationTes
     void testUserNoWriteAccessToProgram()
         throws IOException
     {
+        clearSecurityContext();
+
         setupMetadata();
         programA.setPublicAccess( AccessStringHelper.DATA_READ );
         trackedEntityType.setPublicAccess( AccessStringHelper.DATA_READ );
@@ -277,6 +283,8 @@ class EnrollmentSecurityImportValidationTest extends AbstractImportValidationTes
     void testUserHasWriteAccessToProgram()
         throws IOException
     {
+        clearSecurityContext();
+
         setupMetadata();
         programA.setPublicAccess( AccessStringHelper.FULL );
         trackedEntityType.setPublicAccess( AccessStringHelper.DATA_READ );
@@ -296,6 +304,8 @@ class EnrollmentSecurityImportValidationTest extends AbstractImportValidationTes
     void testUserHasNoAccessToProgramTeiType()
         throws IOException
     {
+        clearSecurityContext();
+
         setupMetadata();
         programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
         programA.setTrackedEntityType( trackedEntityType );

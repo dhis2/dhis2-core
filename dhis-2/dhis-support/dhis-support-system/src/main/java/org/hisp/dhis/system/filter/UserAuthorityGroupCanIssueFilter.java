@@ -30,7 +30,6 @@ package org.hisp.dhis.system.filter;
 import org.hisp.dhis.commons.filter.Filter;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
-import org.hisp.dhis.user.UserCredentials;
 
 /**
  * @author Lars Helge Overland
@@ -38,7 +37,7 @@ import org.hisp.dhis.user.UserCredentials;
 public class UserAuthorityGroupCanIssueFilter
     implements Filter<UserAuthorityGroup>
 {
-    private UserCredentials userCredentials;
+    private User user;
 
     private boolean canGrantOwnUserAuthorityGroups = false;
 
@@ -48,9 +47,9 @@ public class UserAuthorityGroupCanIssueFilter
 
     public UserAuthorityGroupCanIssueFilter( User user, boolean canGrantOwnUserAuthorityGroups )
     {
-        if ( user != null && user.getUserCredentials() != null )
+        if ( user != null )
         {
-            this.userCredentials = user.getUserCredentials();
+            this.user = user;
             this.canGrantOwnUserAuthorityGroups = canGrantOwnUserAuthorityGroups;
         }
     }
@@ -58,6 +57,6 @@ public class UserAuthorityGroupCanIssueFilter
     @Override
     public boolean retain( UserAuthorityGroup group )
     {
-        return userCredentials != null && userCredentials.canIssueUserRole( group, canGrantOwnUserAuthorityGroups );
+        return user != null && user.canIssueUserRole( group, canGrantOwnUserAuthorityGroups );
     }
 }

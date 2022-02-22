@@ -65,7 +65,7 @@ public class UserAuthorityGroup
 
     private Set<String> authorities = new HashSet<>();
 
-    private Set<UserCredentials> members = new HashSet<>();
+    private Set<User> members = new HashSet<>();
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -73,23 +73,23 @@ public class UserAuthorityGroup
 
     public UserAuthorityGroup()
     {
-
+        setAutoFields();
     }
 
     // -------------------------------------------------------------------------
     // Logic
     // -------------------------------------------------------------------------
 
-    public void addUserCredentials( UserCredentials userCredentials )
+    public void addUser( User user )
     {
-        members.add( userCredentials );
-        userCredentials.getUserAuthorityGroups().add( this );
+        members.add( user );
+        user.getUserAuthorityGroups().add( this );
     }
 
-    public void removeUserCredentials( UserCredentials userCredentials )
+    public void removeUser( User useer )
     {
-        members.remove( userCredentials );
-        userCredentials.getUserAuthorityGroups().remove( this );
+        members.remove( useer );
+        useer.getUserAuthorityGroups().remove( this );
     }
 
     public boolean isSuper()
@@ -132,12 +132,12 @@ public class UserAuthorityGroup
         this.authorities = authorities;
     }
 
-    public Set<UserCredentials> getMembers()
+    public Set<User> getMembers()
     {
         return members;
     }
 
-    public void setMembers( Set<UserCredentials> members )
+    public void setMembers( Set<User> members )
     {
         this.members = members;
     }
@@ -150,11 +150,11 @@ public class UserAuthorityGroup
     {
         List<User> users = new ArrayList<>();
 
-        for ( UserCredentials userCredentials : members )
+        for ( User user : members )
         {
-            if ( userCredentials.getUserInfo() != null )
+            if ( user != null )
             {
-                users.add( userCredentials.getUserInfo() );
+                users.add( user );
             }
         }
 

@@ -74,7 +74,6 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentials;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -675,9 +674,7 @@ class DataValueSetImportValidatorTest
     private ImportContextBuilder createMinimalImportContext( DataValueContext valueContext )
     {
         User currentUser = new User();
-        UserCredentials credentials = new UserCredentials();
-        credentials.setUsername( "Guest" );
-        currentUser.setUserCredentials( credentials );
+        currentUser.setUsername( "Guest" );
         currentUser.setUid( CodeGenerator.generateUid() );
         return ImportContext.builder().summary( new ImportSummary() ).strategy( ImportStrategy.CREATE )
             .importOptions( new ImportOptions() ).currentUser( currentUser ).i18n( i18n )

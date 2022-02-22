@@ -136,7 +136,8 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector
             initFromJacksonXmlProperty( property );
             initCollectionProperty( property );
 
-            if ( !property.isCollection() && !hasProperties( property.getGetterMethod().getReturnType() ) )
+            Method getterMethod = property.getGetterMethod();
+            if ( getterMethod != null && !property.isCollection() && !hasProperties( getterMethod.getReturnType() ) )
             {
                 property.setSimple( true );
             }
@@ -166,6 +167,11 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector
     private static String initFromJsonProperty( Property property )
     {
         Method getter = property.getGetterMethod();
+
+        if ( getter == null )
+        {
+            return property.getFieldName();
+        }
 
         property.setKlass( Primitives.wrap( getter.getReturnType() ) );
         property.setReadable( true );
@@ -262,7 +268,14 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector
 
     private static void initCollectionProperty( Property property )
     {
-        Class<?> returnType = property.getGetterMethod().getReturnType();
+        Method getterMethod = property.getGetterMethod();
+
+        if ( getterMethod == null )
+        {
+            return;
+        }
+
+        Class<?> returnType = getterMethod.getReturnType();
 
         if ( !Collection.class.isAssignableFrom( returnType ) )
         {
@@ -274,7 +287,7 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector
         property.setCollectionName( property.getName() );
         property.setOrdered( List.class.isAssignableFrom( returnType ) );
 
-        Type type = property.getGetterMethod().getGenericReturnType();
+        Type type = getterMethod.getGenericReturnType();
 
         if ( type instanceof ParameterizedType )
         {

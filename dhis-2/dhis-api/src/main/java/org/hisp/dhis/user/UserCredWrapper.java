@@ -25,27 +25,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.preheat.mappers;
+package org.hisp.dhis.user;
 
-import java.util.Set;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import org.hisp.dhis.user.UserAuthorityGroup;
-import org.hisp.dhis.user.UserCredentials;
-import org.mapstruct.BeanMapping;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.factory.Mappers;
-
-@Mapper( uses = { DebugMapper.class, UserAuthorityGroupMapper.class } )
-public interface UserCredentialsMapper extends PreheatMapper<UserCredentials>
+public class UserCredWrapper extends User
 {
-    UserCredentialsMapper INSTANCE = Mappers.getMapper( UserCredentialsMapper.class );
-
-    @BeanMapping( ignoreByDefault = true )
-    @Mapping( target = "id" )
-    @Mapping( target = "username" )
-    @Mapping( target = "userAuthorityGroups" )
-    UserCredentials map( UserCredentials user );
-
-    Set<UserAuthorityGroup> map( Set<UserAuthorityGroup> userAuthorityGroups );
+    @JsonIgnore
+    @Override
+    public UserCredWrapper getUserCredentials()
+    {
+        return null;
+    }
 }

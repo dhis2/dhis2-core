@@ -802,11 +802,6 @@
     "created": "2020-12-17T12:50:43.176",
     "surname": "admin",
     "firstName": "admin",
-    "userCredentials": {
-      "code": "admin",
-      "lastUpdated": "2020-12-17T12:55:39.262",
-      "id": "KvMx6c1eoYo",
-      "created": "2020-12-17T12:50:43.302",
       "name": "admin admin",
       "lastLogin": "2020-12-17T12:55:39.262",
       "displayName": "admin admin",
@@ -819,9 +814,6 @@
       "selfRegistered": false,
       "favorite": false,
       "username": "admin",
-      "userInfo": {
-        "id": "M5zQapPyTZI"
-      },
       "access": {
         "read": true,
         "update": true,
@@ -841,12 +833,10 @@
       "catDimensionConstraints": [],
       "translations": [],
       "userGroupAccesses": [],
-      "attributeValues": [],
       "userRoles": [{
         "id": "yrB6vc5Ip3r"
       }],
-      "userAccesses": []
-    },
+      "userAccesses": [],
     "teiSearchOrganisationUnits": [],
     "organisationUnits": [],
     "dataViewOrganisationUnits": [],
@@ -859,10 +849,6 @@
       "surname": "Superuser",
       "email": "tasuperuser@dhis2.org",
       "firstName": "TA",
-      "userCredentials": {
-        "lastUpdated": "2019-04-23T09:35:14.980",
-        "id": "cguDGoo8Amj",
-        "created": "2019-04-23T09:35:14.980",
         "name": "TA Superuser",
         "displayName": "TA Superuser",
         "externalAuth": false,
@@ -874,9 +860,6 @@
         "selfRegistered": false,
         "favorite": false,
         "username": "tasuperadmin",
-        "userInfo": {
-          "id": "PQD6wXJ2r5j"
-        },
         "access": {
           "read": true,
           "update": true,
@@ -890,12 +873,10 @@
         "catDimensionConstraints": [],
         "translations": [],
         "userGroupAccesses": [],
-        "attributeValues": [],
         "userRoles": [{
           "id": "yrB6vc5Ip7r"
         }],
-        "userAccesses": []
-      },
+        "userAccesses": [],
       "teiSearchOrganisationUnits": [{
         "id": "O6uvpzGd5pu"
       },
@@ -944,10 +925,6 @@
       "surname": "Admin",
       "email": "taadmin@dhis2.org",
       "firstName": "TA",
-      "userCredentials": {
-        "lastUpdated": "2019-04-23T09:35:14.980",
-        "id": "cguDGoo8Amk",
-        "created": "2019-04-23T09:35:14.980",
         "name": "TA Admin",
         "displayName": "TA Admin",
         "externalAuth": false,
@@ -959,9 +936,6 @@
         "selfRegistered": false,
         "favorite": false,
         "username": "taadmin",
-        "userInfo": {
-          "id": "PQD6wXJ2r5k"
-        },
         "access": {
           "read": true,
           "update": true,
@@ -975,12 +949,10 @@
         "catDimensionConstraints": [],
         "translations": [],
         "userGroupAccesses": [],
-        "attributeValues": [],
         "userRoles": [{
           "id": "Ufph3mGRmMo"
         }],
-        "userAccesses": []
-      },
+        "userAccesses": [],
       "teiSearchOrganisationUnits": [{
         "id": "O6uvpzGd5pu"
       },

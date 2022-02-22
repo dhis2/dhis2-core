@@ -46,7 +46,6 @@ import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentials;
 import org.postgresql.util.PGobject;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -71,7 +70,7 @@ public class EventUtils
         {
             validUsername = User.getSafeUsername( fallBack );
         }
-        else if ( validUsername.length() > UserCredentials.USERNAME_MAX_LENGTH )
+        else if ( validUsername.length() > User.USERNAME_MAX_LENGTH )
         {
             validUsername = User.getSafeUsername( fallBack );
         }

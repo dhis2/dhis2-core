@@ -10,9 +10,6 @@
       "id": "M5zQapPyTZI",
       "surname": "admin",
       "firstName": "admin",
-      "userCredentials": {
-        "id": "KvMx6c1eoYo",
-        "name": "admin admin",
         "displayName": "admin admin",
         "externalAuth": false,
         "externalAccess": false,
@@ -23,9 +20,6 @@
         "selfRegistered": false,
         "favorite": false,
         "username": "admin",
-        "userInfo": {
-          "id": "M5zQapPyTZI"
-        },
         "access": {
           "read": true,
           "update": true,
@@ -39,8 +33,7 @@
             "id": "yrB6vc5Ip3r"
           }
         ],
-        "userAccesses": []
-      },
+        "userAccesses": [],
       "organisationUnits": [
         {
           "id": "PlKwabX2xRW"

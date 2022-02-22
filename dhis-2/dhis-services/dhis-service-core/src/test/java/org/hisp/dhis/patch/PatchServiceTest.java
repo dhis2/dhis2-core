@@ -183,13 +183,13 @@ class PatchServiceTest extends DhisSpringTest
     }
 
     @Test
-    void testUpdateUserCredentialsOnUser()
+    void testUpdateUser()
     {
         User user = createAndInjectAdminUser();
-        assertEquals( "admin", user.getUserCredentials().getUsername() );
-        Patch patch = new Patch().addMutation( new Mutation( "userCredentials.username", "dhis" ) );
+        assertEquals( "admin", user.getUsername() );
+        Patch patch = new Patch().addMutation( new Mutation( "username", "dhis" ) );
         patchService.apply( patch, user );
-        assertEquals( "dhis", user.getUserCredentials().getUsername() );
+        assertEquals( "dhis", user.getUsername() );
     }
 
     @Test

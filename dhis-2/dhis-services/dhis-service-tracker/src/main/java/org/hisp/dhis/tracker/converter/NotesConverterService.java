@@ -36,7 +36,6 @@ import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.tracker.domain.Note;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 
@@ -92,7 +91,7 @@ public class NotesConverterService implements TrackerConverterService<Note, Trac
         {
             validUsername = User.getSafeUsername( currentUser.getUsername() );
         }
-        else if ( validUsername.length() > UserCredentials.USERNAME_MAX_LENGTH )
+        else if ( validUsername.length() > User.USERNAME_MAX_LENGTH )
         {
             validUsername = User.getSafeUsername( currentUser.getUsername() );
         }

@@ -81,9 +81,7 @@ class UserMetadataOrgUnitMergeHandlerTest extends DhisSpringTest
         userB.addOrganisationUnit( ouB );
         userB.getDataViewOrganisationUnits().add( ouB );
         userB.getTeiSearchOrganisationUnits().add( ouB );
-        userService.addUserCredentials( userA.getUserCredentials() );
         userService.addUser( userA );
-        userService.addUserCredentials( userB.getUserCredentials() );
         userService.addUser( userB );
         assertTrue( ouA.getUsers().contains( userA ) );
         assertTrue( userA.getOrganisationUnits().contains( ouA ) );
