@@ -32,7 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.UUID;
 
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentials;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -47,12 +46,9 @@ class UserPropertyTransformerTest
     void testUserTransform()
     {
         User user = new User();
-        UserCredentials userCredentials = new UserCredentials();
-        userCredentials.setUuid( uuid );
-        userCredentials.setCreatedBy( user );
-        userCredentials.setUsername( "test" );
-        userCredentials.setUserInfo( user );
-        user.setUserCredentials( userCredentials );
+        user.setUuid( uuid );
+        user.setCreatedBy( user );
+        user.setUsername( "test" );
         user.setCreatedBy( user );
         UserPropertyTransformer transformer = new UserPropertyTransformer();
         UserPropertyTransformer.UserDto userDto = (UserPropertyTransformer.UserDto) transformer.transform( user );

@@ -47,9 +47,8 @@ import org.hisp.dhis.message.MessageType;
 import org.hisp.dhis.system.util.DhisHttpResponse;
 import org.hisp.dhis.system.util.HttpUtils;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentials;
-import org.hisp.dhis.user.UserCredentialsStore;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.UserStore;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -84,7 +83,7 @@ public class SystemUpdateService
     public static final String FIELD_NAME_URL = "url";
 
     @NonNull
-    private final UserCredentialsStore userCredentialsStore;
+    private final UserStore userStore;
 
     @NonNull
     private final UserService userService;
@@ -246,11 +245,11 @@ public class SystemUpdateService
     {
         Set<User> recipients = new HashSet<>();
 
-        List<UserCredentials> userCredentials = userCredentialsStore.getHasAuthority( "ALL" );
+        List<User> users = userStore.getHasAuthority( "ALL" );
 
-        for ( UserCredentials credentials : userCredentials )
+        for ( User user : users )
         {
-            recipients.add( userService.getUserByUsername( credentials.getUsername() ) );
+            recipients.add( userService.getUserByUsername( user.getUsername() ) );
         }
 
         return recipients;

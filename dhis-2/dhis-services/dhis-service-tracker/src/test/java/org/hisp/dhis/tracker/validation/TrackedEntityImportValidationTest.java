@@ -248,7 +248,7 @@ class TrackedEntityImportValidationTest extends AbstractImportValidationTest
         User user = userService.getUser( USER_3 );
         params.setUserId( user.getUid() );
         params.setUser( user );
-        user.getUserCredentials().setPassword( "user4password" );
+        user.setPassword( "user4password" );
         injectSecurityContext( user );
         params.setImportStrategy( TrackerImportStrategy.CREATE );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );

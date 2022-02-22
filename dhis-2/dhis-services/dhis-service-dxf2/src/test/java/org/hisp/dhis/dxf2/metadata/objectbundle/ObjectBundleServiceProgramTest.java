@@ -324,6 +324,9 @@ class ObjectBundleServiceProgramTest extends TransactionalIntegrationTest
             "F_PROGRAMSTAGE_ADD", "F_TRACKED_ENTITY_ADD", "F_TRACKED_ENTITY_UPDATE",
             "F_USER_ADD_WITHIN_MANAGED_GROUP" };
         User testUser = createUser( "A", testAuths );
+
+        injectSecurityContext( testUser );
+
         params = new ObjectBundleParams();
         params.setObjectBundleMode( ObjectBundleMode.COMMIT );
         params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
@@ -355,6 +358,7 @@ class ObjectBundleServiceProgramTest extends TransactionalIntegrationTest
             "F_PROGRAMSTAGE_ADD", "F_TRACKED_ENTITY_ADD", "F_TRACKED_ENTITY_UPDATE",
             "F_USER_ADD_WITHIN_MANAGED_GROUP" };
         User testUser = createUser( "A", testAuths );
+
         TrackedEntityAttribute tea1 = manager.get( TrackedEntityAttribute.class, "cpaMZredRXb" );
         TrackedEntityAttribute tea2 = manager.get( TrackedEntityAttribute.class, "QhEcRpLZwMb" );
         UserAccess userAccess1 = new UserAccess( testUser, "rw------" );

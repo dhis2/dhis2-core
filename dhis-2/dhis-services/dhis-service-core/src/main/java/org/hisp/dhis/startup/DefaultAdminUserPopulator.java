@@ -35,7 +35,6 @@ import java.util.UUID;
 import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
-import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
 
 import com.google.common.collect.ImmutableSet;
@@ -135,19 +134,13 @@ public class DefaultAdminUserPopulator
 
         userService.addUserAuthorityGroup( userAuthorityGroup );
 
-        UserCredentials userCredentials = new UserCredentials();
-        userCredentials.setUid( "KvMx6c1eoYo" );
-        userCredentials.setUuid( UUID.fromString( "6507f586-f154-4ec1-a25e-d7aa51de5216" ) );
-        userCredentials.setCode( username );
-        userCredentials.setUsername( username );
-        userCredentials.setUserInfo( user );
-        userCredentials.getUserAuthorityGroups().add( userAuthorityGroup );
+        user.setUuid( UUID.fromString( "6507f586-f154-4ec1-a25e-d7aa51de5216" ) );
+        user.setCode( username );
+        user.setUsername( username );
+        user.getUserAuthorityGroups().add( userAuthorityGroup );
 
-        userService.encodeAndSetPassword( userCredentials, password );
-        userService.addUserCredentials( userCredentials );
+        userService.encodeAndSetPassword( user, password );
 
-        user.setUserCredentials( userCredentials );
-
-        userService.updateUser( user );
+        userService.addUser( user );
     }
 }

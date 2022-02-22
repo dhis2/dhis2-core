@@ -87,7 +87,7 @@ class UserPropertyTransformerTest extends DhisSpringTest
     {
         Simple simple = new Simple( 1, "Simple1" );
         simple.setUser( createUser( 'a' ) );
-        simple.getUser().getUserCredentials().setUuid( uuid );
+        simple.getUser().setUuid( uuid );
         ComplexNode complexNode = nodeService.toNode( simple );
         RootNode rootNode = NodeUtils.createRootNode( complexNode );
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -98,9 +98,9 @@ class UserPropertyTransformerTest extends DhisSpringTest
         assertEquals( 1, simpleFromJson.getId() );
         assertEquals( "Simple1", simpleFromJson.getName() );
         assertNotNull( simple.getUser() );
-        assertNotNull( simple.getUser().getUserCredentials() );
-        assertEquals( "usernamea", simple.getUser().getUserCredentials().getUsername() );
-        assertEquals( uuid, simple.getUser().getUserCredentials().getUuid() );
+
+        assertEquals( "usernamea", simple.getUser().getUsername() );
+        assertEquals( uuid, simple.getUser().getUuid() );
     }
 
     @Test
@@ -109,7 +109,7 @@ class UserPropertyTransformerTest extends DhisSpringTest
     {
         Simple simple = new Simple( 1, "Simple1" );
         simple.setUser( createUser( 'a' ) );
-        simple.getUser().getUserCredentials().setUuid( uuid );
+        simple.getUser().setUuid( uuid );
         simple.getUsers().add( createUser( 'A' ) );
         simple.getUsers().add( createUser( 'B' ) );
         simple.getUsers().add( createUser( 'C' ) );
@@ -124,9 +124,9 @@ class UserPropertyTransformerTest extends DhisSpringTest
         assertEquals( 1, simpleFromJson.getId() );
         assertEquals( "Simple1", simpleFromJson.getName() );
         assertNotNull( simple.getUser() );
-        assertNotNull( simple.getUser().getUserCredentials() );
-        assertEquals( "usernamea", simple.getUser().getUserCredentials().getUsername() );
-        assertEquals( uuid, simple.getUser().getUserCredentials().getUuid() );
+
+        assertEquals( "usernamea", simple.getUser().getUsername() );
+        assertEquals( uuid, simple.getUser().getUuid() );
         assertNotNull( simple.getUsers() );
         assertEquals( 4, simple.getUsers().size() );
         FieldFilterParams params = new FieldFilterParams( Collections.singletonList( simple ),
@@ -140,7 +140,7 @@ class UserPropertyTransformerTest extends DhisSpringTest
     {
         Simple simple = new Simple( 1, "Simple1" );
         simple.setUser( createUser( 'a' ) );
-        simple.getUser().getUserCredentials().setUuid( uuid );
+        simple.getUser().setUuid( uuid );
         simple.getUsers().add( createUser( 'A' ) );
         simple.getUsers().add( createUser( 'B' ) );
         simple.getUsers().add( createUser( 'C' ) );
@@ -155,9 +155,9 @@ class UserPropertyTransformerTest extends DhisSpringTest
         assertEquals( 1, simpleFromJson.getId() );
         assertEquals( "Simple1", simpleFromJson.getName() );
         assertNotNull( simple.getUser() );
-        assertNotNull( simple.getUser().getUserCredentials() );
-        assertEquals( "usernamea", simple.getUser().getUserCredentials().getUsername() );
-        assertEquals( uuid, simple.getUser().getUserCredentials().getUuid() );
+
+        assertEquals( "usernamea", simple.getUser().getUsername() );
+        assertEquals( uuid, simple.getUser().getUuid() );
         assertNotNull( simple.getUsers() );
         assertEquals( 4, simple.getUsers().size() );
         FieldFilterParams params = new FieldFilterParams( Collections.singletonList( simple ),
@@ -172,18 +172,17 @@ class UserPropertyTransformerTest extends DhisSpringTest
         Simple simple = new Simple( 1, "Simple1" );
         User user = createUser( 'a' );
         simple.setUser( user );
-        simple.getUser().getUserCredentials().setUuid( uuid );
+        simple.getUser().setUuid( uuid );
         String jsonSource = jsonMapper.writeValueAsString( simple );
         verifyJsonSource( jsonSource );
         Simple simpleFromJson = jsonMapper.readValue( jsonSource, Simple.class );
         assertEquals( 1, simpleFromJson.getId() );
         assertEquals( "Simple1", simpleFromJson.getName() );
         assertNotNull( simple.getUser() );
-        assertNotNull( simple.getUser().getUserCredentials() );
-        assertEquals( "usernamea", simple.getUser().getUserCredentials().getUsername() );
+
+        assertEquals( "usernamea", simple.getUser().getUsername() );
         assertEquals( user.getUid(), simple.getUser().getUid() );
-        // assertEquals( uuid, simple.getUser().getUserCredentials().getUuid()
-        // );
+        assertEquals( uuid, simple.getUser().getUuid() );
     }
 
     @Test
@@ -193,18 +192,17 @@ class UserPropertyTransformerTest extends DhisSpringTest
         Simple simple = new Simple( 1, "Simple1" );
         User user = createUser( 'a' );
         simple.setUser( user );
-        simple.getUser().getUserCredentials().setUuid( uuid );
+        simple.getUser().setUuid( uuid );
         String xmlSource = xmlMapper.writeValueAsString( simple );
         verifyXmlSource( xmlSource );
         Simple simpleFromJson = xmlMapper.readValue( xmlSource, Simple.class );
         assertEquals( 1, simpleFromJson.getId() );
         assertEquals( "Simple1", simpleFromJson.getName() );
         assertNotNull( simple.getUser() );
-        assertNotNull( simple.getUser().getUserCredentials() );
-        assertEquals( "usernamea", simple.getUser().getUserCredentials().getUsername() );
+
+        assertEquals( "usernamea", simple.getUser().getUsername() );
         assertEquals( user.getUid(), simple.getUser().getUid() );
-        // assertEquals( uuid, simple.getUser().getUserCredentials().getUuid()
-        // );
+        assertEquals( uuid, simple.getUser().getUuid() );
     }
 
     private void verifyJsonSource( String jsonSource )

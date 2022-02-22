@@ -450,7 +450,6 @@ class DataApprovalServiceTest extends IntegrationTestBase
         userB = createUser( 'B' );
         userService.addUser( userA );
         userService.addUser( userB );
-        userService.addUserCredentials( userA.getUserCredentials() );
     }
 
     @Override

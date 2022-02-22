@@ -813,6 +813,8 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
     void testImportDataValuesInvalidAttributeOptionComboDates()
         throws Exception
     {
+        clearSecurityContext();
+
         categoryOptionA.setStartDate( peB.getStartDate() );
         categoryOptionA.setEndDate( peB.getEndDate() );
         categoryService.updateCategoryOption( categoryOptionA );
@@ -834,6 +836,8 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
     void testImportDataValuesInvalidAttributeOptionComboOrgUnit()
         throws Exception
     {
+        clearSecurityContext();
+
         categoryOptionA.setOrganisationUnits( Sets.newHashSet( ouA, ouB ) );
         categoryService.updateCategoryOption( categoryOptionA );
         in = new ClassPathResource( "datavalueset/dataValueSetH.xml" ).getInputStream();
@@ -934,8 +938,9 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
 
     @Test
     void testImportDataValuesWithDataSetAllowsPeriods()
-        throws Exception
     {
+        clearSecurityContext();
+
         Date thisMonth = DateUtils.truncate( new Date(), Calendar.MONTH );
         dsA.setExpiryDays( 62 );
         dsA.setOpenFuturePeriods( 2 );
@@ -981,6 +986,9 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
     void testImportValueDataSetWriteFail()
         throws IOException
     {
+        clearSecurityContext();
+
+        List<User> allUsers = userService.getAllUsers();
         enableDataSharing( user, dsA, AccessStringHelper.READ );
         dataSetService.updateDataSet( dsB );
         in = new ClassPathResource( "datavalueset/dataValueSetA.xml" ).getInputStream();
@@ -1000,6 +1008,8 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
     void testImportValueDefaultCatComboOk()
         throws IOException
     {
+        clearSecurityContext();
+
         enableDataSharing( user, dsA, AccessStringHelper.DATA_READ_WRITE );
         dataSetService.updateDataSet( dsA );
         in = new ClassPathResource( "datavalueset/dataValueSetA.xml" ).getInputStream();

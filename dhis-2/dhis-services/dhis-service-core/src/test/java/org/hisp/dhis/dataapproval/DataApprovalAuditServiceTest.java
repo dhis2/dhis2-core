@@ -61,7 +61,6 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
-import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupAccessService;
 import org.hisp.dhis.user.UserGroupService;
@@ -205,16 +204,14 @@ class DataApprovalAuditServiceTest extends TransactionalIntegrationTest
         User user = mockCurrentUserService.getCurrentUser();
         user.setFirstName( "Test" );
         user.setSurname( userName );
-        UserCredentials credentials = user.getUserCredentials();
-        credentials.setUsername( userName );
-        for ( UserAuthorityGroup role : credentials.getUserAuthorityGroups() )
+        user.setUsername( userName );
+        for ( UserAuthorityGroup role : user.getUserAuthorityGroups() )
         {
             // Give the role an
             role.setName( CodeGenerator.generateUid() );
             // arbitrary name
             userService.addUserAuthorityGroup( role );
         }
-        userService.addUserCredentials( credentials );
         userService.addUser( user );
         return mockCurrentUserService;
     }
@@ -309,8 +306,8 @@ class DataApprovalAuditServiceTest extends TransactionalIntegrationTest
         categoryService.updateCategoryOptionGroupSet( optionGroupSetB );
         categoryService.updateCategoryOptionGroup( optionGroupA );
         categoryService.updateCategoryOptionGroup( optionGroupB );
-        userCService.getCurrentUser().getUserCredentials().getCatDimensionConstraints().add( categoryA );
-        userDService.getCurrentUser().getUserCredentials().getCogsDimensionConstraints().add( optionGroupSetB );
+        userCService.getCurrentUser().getCatDimensionConstraints().add( categoryA );
+        userDService.getCurrentUser().getCogsDimensionConstraints().add( optionGroupSetB );
         dateA = getDate( 2017, 1, 1 );
         dateB = getDate( 2018, 1, 1 );
         level1 = new DataApprovalLevel( "01", 1, null );

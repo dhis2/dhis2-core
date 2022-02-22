@@ -36,46 +36,40 @@
       "created": "2019-01-28T11:03:39.373",
       "surname": "admin",
       "firstName": "admin",
-      "userCredentials": {
-        "lastUpdated": "2019-01-28T11:04:32.052",
-        "id": "KvMx6c1eoYo",
-        "created": "2019-01-28T11:04:32.052",
-        "name": "admin admin",
-        "lastLogin": "2019-01-28T11:34:56.529",
-        "displayName": "admin admin",
-        "externalAuth": false,
-        "externalAccess": false,
-        "disabled": false,
-        "twoFA": false,
-        "passwordLastUpdated": "2019-01-28T11:04:32.052",
-        "invitation": false,
-        "selfRegistered": false,
-        "favorite": false,
-        "username": "admin",
-        "userInfo": {
-          "id": "M5zQapPyTZI"
-        },
-        "access": {
-          "read": true,
-          "update": true,
-          "externalize": true,
-          "delete": true,
-          "write": true,
-          "manage": true
-        },
-        "favorites": [],
-        "cogsDimensionConstraints": [],
-        "catDimensionConstraints": [],
-        "translations": [],
-        "userGroupAccesses": [],
-        "attributeValues": [],
-        "userRoles": [
-          {
-            "id": "yrB6vc5Ip3r"
-          }
-        ],
-        "userAccesses": []
+      "name": "admin admin",
+      "lastLogin": "2019-01-28T11:34:56.529",
+      "displayName": "admin admin",
+      "externalAuth": false,
+      "externalAccess": false,
+      "disabled": false,
+      "twoFA": false,
+      "passwordLastUpdated": "2019-01-28T11:04:32.052",
+      "invitation": false,
+      "selfRegistered": false,
+      "favorite": false,
+      "username": "admin",
+      "userInfo": {
+        "id": "M5zQapPyTZI"
       },
+      "access": {
+        "read": true,
+        "update": true,
+        "externalize": true,
+        "delete": true,
+        "write": true,
+        "manage": true
+      },
+      "favorites": [],
+      "cogsDimensionConstraints": [],
+      "catDimensionConstraints": [],
+      "translations": [],
+      "userGroupAccesses": [],
+      "userRoles": [
+        {
+          "id": "yrB6vc5Ip3r"
+        }
+      ],
+      "userAccesses": [],
       "teiSearchOrganisationUnits": [],
       "organisationUnits": [
         {

@@ -61,7 +61,6 @@ import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentials;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -285,11 +284,11 @@ public class DefaultCategoryService
 
     @Override
     @Transactional( readOnly = true )
-    public Set<CategoryOption> getCoDimensionConstraints( UserCredentials userCredentials )
+    public Set<CategoryOption> getCoDimensionConstraints( User user )
     {
         Set<CategoryOption> options = null;
 
-        Set<Category> catConstraints = userCredentials.getCatDimensionConstraints();
+        Set<Category> catConstraints = user.getCatDimensionConstraints();
 
         if ( catConstraints != null && !catConstraints.isEmpty() )
         {
@@ -787,11 +786,11 @@ public class DefaultCategoryService
 
     @Override
     @Transactional( readOnly = true )
-    public Set<CategoryOptionGroup> getCogDimensionConstraints( UserCredentials userCredentials )
+    public Set<CategoryOptionGroup> getCogDimensionConstraints( User user )
     {
         Set<CategoryOptionGroup> groups = null;
 
-        Set<CategoryOptionGroupSet> cogsConstraints = userCredentials.getCogsDimensionConstraints();
+        Set<CategoryOptionGroupSet> cogsConstraints = user.getCogsDimensionConstraints();
 
         if ( cogsConstraints != null && !cogsConstraints.isEmpty() )
         {

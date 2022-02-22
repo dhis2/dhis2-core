@@ -37,7 +37,6 @@ import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,9 +47,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 class SecurityServiceTest extends DhisSpringTest
 {
 
-    private UserCredentials credentials;
+    private User user;
 
-    private UserCredentials otherCredentials;
+    private User otherUser;
 
     @Autowired
     private UserService userService;
@@ -67,23 +66,20 @@ class SecurityServiceTest extends DhisSpringTest
     @Override
     public void setUpTest()
     {
-        credentials = new UserCredentials();
-        credentials.setUsername( "johndoe" );
-        credentials.setPassword( "" );
-        credentials.setAutoFields();
+        user = new User();
+        user.setUsername( "johndoe" );
+        user.setPassword( "" );
+        user.setAutoFields();
         User userA = createUser( 'A' );
         userA.setEmail( "validA@email.com" );
-        userA.setUserCredentials( credentials );
-        credentials.setUserInfo( userA );
-        userService.addUserCredentials( credentials );
-        otherCredentials = new UserCredentials();
-        otherCredentials.setUsername( "janesmith" );
-        otherCredentials.setPassword( "" );
+
+        userService.addUser( user );
+        otherUser = new User();
+        otherUser.setUsername( "janesmith" );
+        otherUser.setPassword( "" );
         User userB = createUser( 'B' );
         userB.setEmail( "validB@email.com" );
-        userB.setUserCredentials( otherCredentials );
-        otherCredentials.setUserInfo( userB );
-        userService.addUserCredentials( otherCredentials );
+        userService.addUser( otherUser );
     }
 
     @Test
@@ -129,18 +125,18 @@ class SecurityServiceTest extends DhisSpringTest
     @Test
     void testRestoreRecoverPassword()
     {
-        String encodedTokens = securityService.generateAndPersistTokens( credentials,
+        String encodedTokens = securityService.generateAndPersistTokens( user,
             RestoreOptions.RECOVER_PASSWORD_OPTION );
         assertNotNull( encodedTokens );
-        assertNotNull( credentials.getRestoreToken() );
-        assertNotNull( credentials.getIdToken() );
-        assertNotNull( credentials.getRestoreExpiry() );
+        assertNotNull( user.getRestoreToken() );
+        assertNotNull( user.getIdToken() );
+        assertNotNull( user.getRestoreExpiry() );
         String[] idAndHashedToken = securityService.decodeEncodedTokens( encodedTokens );
         String idToken = idAndHashedToken[0];
         String restoreToken = idAndHashedToken[1];
-        UserCredentials credentials = userService.getUserCredentialsByIdToken( idToken );
+        User credentials = userService.getUserByIdToken( idToken );
         assertNotNull( credentials );
-        assertEquals( credentials, this.credentials );
+        assertEquals( credentials, this.user );
         RestoreOptions restoreOptions = securityService.getRestoreOptions( restoreToken );
         assertEquals( RestoreOptions.RECOVER_PASSWORD_OPTION, restoreOptions );
         assertEquals( RestoreType.RECOVER_PASSWORD, restoreOptions.getRestoreType() );
@@ -149,14 +145,14 @@ class SecurityServiceTest extends DhisSpringTest
         // verifyToken()
         //
         assertNotNull(
-            securityService.verifyRestoreToken( otherCredentials, restoreToken, RestoreType.RECOVER_PASSWORD ) );
+            securityService.verifyRestoreToken( otherUser, restoreToken, RestoreType.RECOVER_PASSWORD ) );
         assertNotNull( securityService.verifyRestoreToken( credentials, "wrongToken", RestoreType.RECOVER_PASSWORD ) );
         assertNotNull( securityService.verifyRestoreToken( credentials, restoreToken, RestoreType.INVITE ) );
         assertNull( securityService.verifyRestoreToken( credentials, restoreToken, RestoreType.RECOVER_PASSWORD ) );
         //
         // canRestoreNow()
         //
-        assertFalse( securityService.canRestore( otherCredentials, restoreToken, RestoreType.RECOVER_PASSWORD ) );
+        assertFalse( securityService.canRestore( otherUser, restoreToken, RestoreType.RECOVER_PASSWORD ) );
         assertFalse( securityService.canRestore( credentials, "wrongToken", RestoreType.RECOVER_PASSWORD ) );
         assertFalse( securityService.canRestore( credentials, restoreToken, RestoreType.INVITE ) );
         assertTrue( securityService.canRestore( credentials, restoreToken, RestoreType.RECOVER_PASSWORD ) );
@@ -164,7 +160,7 @@ class SecurityServiceTest extends DhisSpringTest
         // restore()
         //
         String password = "NewPassword1";
-        assertFalse( securityService.restore( otherCredentials, restoreToken, password, RestoreType.INVITE ) );
+        assertFalse( securityService.restore( otherUser, restoreToken, password, RestoreType.INVITE ) );
         assertFalse( securityService.restore( credentials, "wrongToken", password, RestoreType.INVITE ) );
         assertFalse( securityService.restore( credentials, restoreToken, password, RestoreType.INVITE ) );
         assertTrue( securityService.restore( credentials, restoreToken, password, RestoreType.RECOVER_PASSWORD ) );
@@ -177,12 +173,12 @@ class SecurityServiceTest extends DhisSpringTest
     @Test
     void testRestoreInvite()
     {
-        String encodedTokens = securityService.generateAndPersistTokens( credentials,
+        String encodedTokens = securityService.generateAndPersistTokens( user,
             RestoreOptions.INVITE_WITH_DEFINED_USERNAME );
         assertNotNull( encodedTokens );
-        assertNotNull( credentials.getRestoreToken() );
-        assertNotNull( credentials.getIdToken() );
-        assertNotNull( credentials.getRestoreExpiry() );
+        assertNotNull( user.getRestoreToken() );
+        assertNotNull( user.getIdToken() );
+        assertNotNull( user.getRestoreExpiry() );
         String[] idAndHashedToken = securityService.decodeEncodedTokens( encodedTokens );
         String idToken = idAndHashedToken[0];
         String restoreToken = idAndHashedToken[1];
@@ -190,43 +186,43 @@ class SecurityServiceTest extends DhisSpringTest
         assertEquals( RestoreOptions.INVITE_WITH_DEFINED_USERNAME, restoreOptions );
         assertEquals( RestoreType.INVITE, restoreOptions.getRestoreType() );
         assertFalse( restoreOptions.isUsernameChoice() );
-        UserCredentials credentials = userService.getUserCredentialsByIdToken( idToken );
+        User credentials = userService.getUserByIdToken( idToken );
         assertNotNull( credentials );
-        assertEquals( credentials, this.credentials );
+        assertEquals( credentials, this.user );
         //
         // verifyToken()
         //
-        assertNotNull( securityService.verifyRestoreToken( otherCredentials, restoreToken, RestoreType.INVITE ) );
-        assertNotNull( securityService.verifyRestoreToken( this.credentials, "wrongToken", RestoreType.INVITE ) );
+        assertNotNull( securityService.verifyRestoreToken( otherUser, restoreToken, RestoreType.INVITE ) );
+        assertNotNull( securityService.verifyRestoreToken( this.user, "wrongToken", RestoreType.INVITE ) );
         assertNotNull(
-            securityService.verifyRestoreToken( this.credentials, restoreToken, RestoreType.RECOVER_PASSWORD ) );
-        assertNull( securityService.verifyRestoreToken( this.credentials, restoreToken, RestoreType.INVITE ) );
+            securityService.verifyRestoreToken( this.user, restoreToken, RestoreType.RECOVER_PASSWORD ) );
+        assertNull( securityService.verifyRestoreToken( this.user, restoreToken, RestoreType.INVITE ) );
         //
         // canRestoreNow()
         //
-        assertFalse( securityService.canRestore( otherCredentials, restoreToken, RestoreType.INVITE ) );
-        assertFalse( securityService.canRestore( this.credentials, "wrongToken", RestoreType.INVITE ) );
-        assertFalse( securityService.canRestore( this.credentials, restoreToken, RestoreType.RECOVER_PASSWORD ) );
-        assertTrue( securityService.canRestore( this.credentials, restoreToken, RestoreType.INVITE ) );
+        assertFalse( securityService.canRestore( otherUser, restoreToken, RestoreType.INVITE ) );
+        assertFalse( securityService.canRestore( this.user, "wrongToken", RestoreType.INVITE ) );
+        assertFalse( securityService.canRestore( this.user, restoreToken, RestoreType.RECOVER_PASSWORD ) );
+        assertTrue( securityService.canRestore( this.user, restoreToken, RestoreType.INVITE ) );
         //
         // restore()
         //
         String password = "NewPassword1";
-        assertFalse( securityService.restore( otherCredentials, restoreToken, password, RestoreType.INVITE ) );
-        assertFalse( securityService.restore( this.credentials, "wrongToken", password, RestoreType.INVITE ) );
+        assertFalse( securityService.restore( otherUser, restoreToken, password, RestoreType.INVITE ) );
+        assertFalse( securityService.restore( this.user, "wrongToken", password, RestoreType.INVITE ) );
         assertFalse(
-            securityService.restore( this.credentials, restoreToken, password, RestoreType.RECOVER_PASSWORD ) );
-        assertTrue( securityService.restore( this.credentials, restoreToken, password, RestoreType.INVITE ) );
+            securityService.restore( this.user, restoreToken, password, RestoreType.RECOVER_PASSWORD ) );
+        assertTrue( securityService.restore( this.user, restoreToken, password, RestoreType.INVITE ) );
         //
         // check password
         //
-        assertTrue( passwordManager.matches( password, this.credentials.getPassword() ) );
+        assertTrue( passwordManager.matches( password, this.user.getPassword() ) );
     }
 
     @Test
     void testRestoreInviteWithUsernameChoice()
     {
-        String encodedTokens = securityService.generateAndPersistTokens( credentials,
+        String encodedTokens = securityService.generateAndPersistTokens( user,
             RestoreOptions.INVITE_WITH_USERNAME_CHOICE );
         String[] idAndHashedToken = securityService.decodeEncodedTokens( encodedTokens );
         String restoreToken = idAndHashedToken[1];

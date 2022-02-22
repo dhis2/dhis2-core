@@ -209,7 +209,7 @@ public class DataSourceConfig
             try
             {
                 Objects.requireNonNull( query );
-                return this.formatter.format( query );
+                return this.formatter.format( query ) + "\n";
             }
             catch ( Exception e )
             {

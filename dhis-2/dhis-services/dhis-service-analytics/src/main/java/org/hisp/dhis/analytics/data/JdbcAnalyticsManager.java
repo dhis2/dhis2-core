@@ -184,7 +184,7 @@ public class JdbcAnalyticsManager
 
             if ( params.analyzeOnly() )
             {
-                executionPlanStore.addExecutionPlan( params.getAnalyzeOrderId(), sql );
+                executionPlanStore.addExecutionPlan( params.getExplainOrderId(), sql );
                 return new AsyncResult<>( Maps.newHashMap() );
             }
 

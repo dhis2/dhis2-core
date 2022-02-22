@@ -39,11 +39,18 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 
+import java.util.List;
+import java.util.Set;
+
+import javax.ws.rs.PUT;
+
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonResponse;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonError;
 import org.hisp.dhis.webapi.json.domain.JsonErrorReport;
@@ -81,9 +88,11 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
     void testGetObject()
     {
         String id = run( SomeUserId::new );
-        JsonUser userById = GET( "/users/{id}", id ).content( HttpStatus.OK ).as( JsonUser.class );
+        JsonUser userById = GET( "/users/{id}", id )
+            .content( HttpStatus.OK ).as( JsonUser.class );
+
+        assertTrue( userById.exists() );
         assertEquals( id, userById.getId() );
-        assertTrue( userById.getUserCredentials().exists() );
     }
 
     @Test
@@ -99,7 +108,9 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
     @Test
     void testPartialUpdateObject()
     {
+        List<User> allUsers = userService.getAllUsers();
         String id = run( SomeUserId::new );
+
         assertStatus( HttpStatus.OK, PATCH( "/users/" + id + "?importReportMode=ERRORS",
             "[{'op': 'add', 'path': '/surname', 'value': 'Peter'}]" ) );
         assertEquals( "Peter", GET( "/users/{id}", id ).content().as( JsonUser.class ).getSurname() );
@@ -255,33 +266,44 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
     @Test
     void testUpdateObjectProperty()
     {
-        String peter = "{'name': 'Peter', 'firstName':'Peter', 'surname':'Pan', 'userCredentials':{'username':'peter47'}}";
+        String peter = "{'name': 'Peter', 'firstName':'Peter', 'surname':'Pan', 'username':'peter47'}";
         String peterUserId = assertStatus( HttpStatus.CREATED, POST( "/users", peter ) );
         JsonResponse roles = GET( "/userRoles?fields=id" ).content();
         String roleId = roles.getArray( "userRoles" ).getObject( 0 ).getString( "id" ).string();
         assertStatus( HttpStatus.NO_CONTENT, POST( "/userRoles/" + roleId + "/users/" + peterUserId ) );
         JsonUser oldPeter = GET( "/users/{id}", peterUserId ).content().as( JsonUser.class );
         assertEquals( "Peter", oldPeter.getFirstName() );
-        assertEquals( 1, oldPeter.getUserCredentials().getArray( "userRoles" ).size() );
-        assertStatus( HttpStatus.NO_CONTENT, PATCH( "/users/" + peterUserId + "/firstName",
-            Body( "{'firstName': 'Fry'}" ), ContentType( MediaType.APPLICATION_JSON ) ) );
+        assertEquals( 1, oldPeter.getArray( "userRoles" ).size() );
+
+        List<User> allUsers2 = userService.getAllUsers();
+
+        Set<UserAuthorityGroup> g1 = allUsers2.get( 0 ).getUserAuthorityGroups();
+        Set<UserAuthorityGroup> g2 = allUsers2.get( 1 ).getUserAuthorityGroups();
+
+        assertStatus( HttpStatus.NO_CONTENT,
+            PATCH( "/users/" + peterUserId + "/firstName",
+                Body( "{'firstName': 'Fry'}" ), ContentType( MediaType.APPLICATION_JSON ) ) );
+
+        List<User> allUsers3 = userService.getAllUsers();
+        Set<UserAuthorityGroup> g3 = allUsers3.get( 0 ).getUserAuthorityGroups();
+        Set<UserAuthorityGroup> g4 = allUsers3.get( 1 ).getUserAuthorityGroups();
         JsonUser newPeter = GET( "/users/{id}", peterUserId ).content().as( JsonUser.class );
         assertEquals( "Fry", newPeter.getFirstName() );
         // are user roles still there?
-        assertEquals( 1, newPeter.getUserCredentials().getArray( "userRoles" ).size() );
+        assertEquals( 1, newPeter.getArray( "userRoles" ).size() );
     }
 
     @Test
     void testUpdateObject()
     {
-        String peter = "{'name': 'Peter', 'firstName':'Peter', 'surname':'Pan', 'userCredentials':{'username':'peter47'}}";
+        String peter = "{'name': 'Peter', 'firstName':'Peter', 'surname':'Pan', 'username':'peter47'}";
         String peterUserId = assertStatus( HttpStatus.CREATED, POST( "/users", peter ) );
         JsonResponse roles = GET( "/userRoles?fields=id" ).content();
         String roleId = roles.getArray( "userRoles" ).getObject( 0 ).getString( "id" ).string();
         assertStatus( HttpStatus.NO_CONTENT, POST( "/userRoles/" + roleId + "/users/" + peterUserId ) );
         JsonUser oldPeter = GET( "/users/{id}", peterUserId ).content().as( JsonUser.class );
         assertEquals( "Peter", oldPeter.getFirstName() );
-        assertEquals( 1, oldPeter.getUserCredentials().getArray( "userRoles" ).size() );
+        assertEquals( 1, oldPeter.getArray( "userRoles" ).size() );
         assertStatus( HttpStatus.OK,
             PUT( "/users/" + peterUserId,
                 Body( oldPeter.getString( "firstName" ).node().replaceWith( "\"Fry\"" ).getDeclaration() ),
@@ -289,7 +311,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
         JsonUser newPeter = GET( "/users/{id}", peterUserId ).content().as( JsonUser.class );
         assertEquals( "Fry", newPeter.getFirstName() );
         // are user roles still there?
-        assertEquals( 1, newPeter.getUserCredentials().getArray( "userRoles" ).size() );
+        assertEquals( 1, newPeter.getArray( "userRoles" ).size() );
     }
 
     @Test
@@ -404,19 +426,6 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    void testPutJsonObject()
-    {
-        // first the updated entity needs to be created
-        String ouId = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits/", "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}" ) );
-        assertWebMessage( "OK", 200, "OK", null,
-            PUT( "/organisationUnits/" + ouId, "{'name':'New name', 'shortName':'OU1', 'openingDate': '2020-01-01'}" )
-                .content( HttpStatus.OK ) );
-        assertEquals( "New name",
-            GET( "/organisationUnits/{id}", ouId ).content().as( JsonIdentifiableObject.class ).getName() );
-    }
-
-    @Test
     void testPutJsonObject_NoSuchObject()
     {
         assertWebMessage( "Not Found", 404, "ERROR", "OrganisationUnit with id xyz could not be found.",
@@ -458,9 +467,9 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
         switchToSuperuser();
         JsonUser user = GET( "/users/{id}", userId ).content().as( JsonUser.class );
         assertStatus( HttpStatus.OK, PUT( "/users/{id}", userId,
-            Body( user.getUserCredentials().node().addMember( "accountExpiry", "null" ).toString() ) ) );
+            Body( user.node().addMember( "accountExpiry", "null" ).toString() ) ) );
         assertNull(
-            GET( "/users/{id}", userId ).content().as( JsonUser.class ).getUserCredentials().getAccountExpiry() );
+            GET( "/users/{id}", userId ).content().as( JsonUser.class ).getAccountExpiry() );
     }
 
     @Test
@@ -471,7 +480,20 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
         JsonUser user = GET( "/users/{id}", userId ).content().as( JsonUser.class );
         assertStatus( HttpStatus.OK, PUT( "/users/{id}", userId, Body( user.toString() ) ) );
         assertNull(
-            GET( "/users/{id}", userId ).content().as( JsonUser.class ).getUserCredentials().getAccountExpiry() );
+            GET( "/users/{id}", userId ).content().as( JsonUser.class ).getAccountExpiry() );
+    }
+
+    @Test
+    void testPutJsonObject()
+    {
+        // first the updated entity needs to be created
+        String ouId = assertStatus( HttpStatus.CREATED,
+            POST( "/organisationUnits/", "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}" ) );
+        assertWebMessage( "OK", 200, "OK", null,
+            PUT( "/organisationUnits/" + ouId, "{'name':'New name', 'shortName':'OU1', 'openingDate': '2020-01-01'}" )
+                .content( HttpStatus.OK ) );
+        assertEquals( "New name",
+            GET( "/organisationUnits/{id}", ouId ).content().as( JsonIdentifiableObject.class ).getName() );
     }
 
     @Test
@@ -480,7 +502,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
         String userId = switchToNewUser( "someUser" ).getUid();
         switchToSuperuser();
         JsonUser user = GET( "/users/{id}", userId ).content().as( JsonUser.class );
-        String body = user.getUserCredentials().node().addMember( "accountExpiry", "\"NaN\"" ).toString();
+        String body = user.node().addMember( "accountExpiry", "\"NaN\"" ).toString();
         assertEquals( "Invalid date format 'NaN', only ISO format or UNIX Epoch timestamp is supported.",
             PUT( "/users/{id}", userId, Body( body ) ).error().getMessage() );
     }
@@ -531,7 +553,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
         // first create an object which has a collection
         String groupId = assertStatus( HttpStatus.CREATED,
             POST( "/userGroups/", "{'name':'testers', 'users':[{'id':'" + userId + "'}]}" ) );
-        String peter = "{'name': 'Peter', 'firstName':'Peter', 'surname':'Pan', 'userCredentials':{'username':'peter47'}}";
+        String peter = "{'name': 'Peter', 'firstName':'Peter', 'surname':'Pan', 'username':'peter47'}";
         String peterUserId = assertStatus( HttpStatus.CREATED, POST( "/users", peter ) );
 
         JsonWebMessage message = PUT( "/userGroups/" + groupId + "/users",

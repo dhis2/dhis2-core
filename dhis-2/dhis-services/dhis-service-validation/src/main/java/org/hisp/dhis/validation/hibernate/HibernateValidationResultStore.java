@@ -342,7 +342,7 @@ public class HibernateValidationResultStore
         // Restrict by the user's category dimension constraints, if any
         // ---------------------------------------------------------------------
 
-        Set<Category> categories = user.getUserCredentials().getCatDimensionConstraints();
+        Set<Category> categories = user.getCatDimensionConstraints();
 
         if ( !isEmpty( categories ) )
         {
@@ -361,7 +361,7 @@ public class HibernateValidationResultStore
         // Restrict by the user's cat option group dimension constraints, if any
         // ---------------------------------------------------------------------
 
-        Set<CategoryOptionGroupSet> cogsets = user.getUserCredentials().getCogsDimensionConstraints();
+        Set<CategoryOptionGroupSet> cogsets = user.getCogsDimensionConstraints();
 
         if ( !isEmpty( cogsets ) )
         {

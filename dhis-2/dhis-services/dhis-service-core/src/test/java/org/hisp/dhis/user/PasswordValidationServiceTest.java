@@ -68,9 +68,9 @@ class PasswordValidationServiceTest
     {
         encoder = mock( PasswordEncoder.class );
         UserService userService = mock( UserService.class );
-        UserCredentials credentials = new UserCredentials();
+        User credentials = new User();
         credentials.setPreviousPasswords( asList( "$kyWalker1", "$kyWalker2", "$kyWalker3" ) );
-        when( userService.getUserCredentialsByUsername( anyString() ) ).thenReturn( credentials );
+        when( userService.getUserByUsername( anyString() ) ).thenReturn( credentials );
         CurrentUserService currentUserService = mock( CurrentUserService.class );
         when( currentUserService.getCurrentUsername() ).thenReturn( "Luke" );
         SystemSettingManager systemSettings = mock( SystemSettingManager.class );

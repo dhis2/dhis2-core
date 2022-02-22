@@ -49,7 +49,6 @@ import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentials;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -279,8 +278,7 @@ public class DefaultDatastoreService
         {
             return false;
         }
-        UserCredentials credentials = currentUser.getUserCredentials();
-        return credentials.isSuper() || !authorities.isEmpty() && credentials.hasAnyAuthority( authorities );
+        return currentUser.isSuper() || !authorities.isEmpty() && currentUser.hasAnyAuthority( authorities );
     }
 
     private void validateEntry( DatastoreEntry entry )

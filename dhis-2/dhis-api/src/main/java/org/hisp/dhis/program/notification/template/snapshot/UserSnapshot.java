@@ -36,7 +36,7 @@ public class UserSnapshot extends IdentifiableObjectSnapshot
 {
     private String name;
 
-    private UserCredentialsSnapshot userCredentials;
+    private String username;
 
     private String email;
 

@@ -240,6 +240,11 @@ public class EventDataQueryRequest
                 .coordinatesOnly( criteria.isCoordinatesOnly() )
                 .coordinateOuFallback( criteria.isCoordinateOuFallback() );
 
+            if ( criteria.getDimension() == null )
+            {
+                criteria.setDimension( new HashSet<>() );
+            }
+
             if ( criteria.isRequestTypeQuery() )
             {
                 /*
@@ -314,6 +319,11 @@ public class EventDataQueryRequest
                 .userOrgUnit( criteria.getUserOrgUnit() )
                 .coordinateField( criteria.getCoordinateField() )
                 .sortOrder( criteria.getSortOrder() );
+
+            if ( criteria.getDimension() == null )
+            {
+                criteria.setDimension( new HashSet<>() );
+            }
 
             if ( criteria.isRequestTypeQuery() )
             {

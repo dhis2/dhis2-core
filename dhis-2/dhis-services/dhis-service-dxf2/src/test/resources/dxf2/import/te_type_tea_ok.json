@@ -555,36 +555,68 @@
       "teiSearchOrganisationUnits": [],
       "translations": [],
       "userAccesses": [],
-      "userCredentials": {
-        "attributeValues": [],
         "catDimensionConstraints": [],
         "cogsDimensionConstraints": [],
         "disabled": false,
-        "displayName": "Admin WHO",
-        "externalAccess": false,
         "externalAuth": false,
-        "favorite": false,
-        "favorites": [],
-        "id": "MMRO6oP1HQg",
         "invitation": false,
         "lastLogin": "2020-04-23T09:17:46.912",
-        "name": "Admin WHO",
         "passwordLastUpdated": "2019-10-16T12:06:30.668",
         "selfRegistered": false,
-        "translations": [],
         "twoFA": false,
-        "userAccesses": [],
         "userGroupAccesses": [],
-        "userInfo": {
-          "id": "vUeLeQMSwhN"
-        },
         "userRoles": [
           {
-            "id": "yrB6vc5Ip3r"
+            "id": "rKLtmQLRMU8"
           }
         ],
         "username": "who"
-      }
     }
-  ]
+  ],
+  "userRoles": [
+    {
+      "authorities": [
+        "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS",
+        "ALL",
+        "F_USERGROUP_MANAGING_RELATIONSHIPS_ADD",
+        "F_TRACKED_ENTITY_INSTANCE_DELETE",
+        "F_USER_GROUPS_READ_ONLY_ADD_MEMBERS",
+        "F_MAP_PUBLIC_ADD",
+        "F_USER_ADD_WITHIN_MANAGED_GROUP",
+        "F_TRACKED_ENTITY_INSTANCE_SEARCH",
+        "F_PROGRAM_ENROLLMENT",
+        "F_SQLVIEW_EXTERNAL",
+        "F_GIS_ADMIN",
+        "F_REPLICATE_USER",
+        "F_INSERT_CUSTOM_JS_CSS",
+        "F_DASHBOARD_PUBLIC_ADD",
+        "F_METADATA_IMPORT",
+        "F_VISUALIZATION_PUBLIC_ADD",
+        "F_EVENT_VISUALIZATION_PUBLIC_ADD",
+        "F_EVENT_VISUALIZATION_EXTERNAL",
+        "F_VIEW_UNAPPROVED_DATA",
+        "F_VISUALIZATION_EXTERNAL",
+        "F_USERGROUP_MANAGING_RELATIONSHIPS_VIEW",
+        "F_METADATA_EXPORT",
+        "F_PROGRAM_UNENROLLMENT",
+        "F_APPROVE_DATA",
+        "F_ACCEPT_DATA_LOWER_LEVELS",
+        "F_TRACKED_ENTITY_INSTANCE_ADD",
+        "F_USERGROUP_PUBLIC_ADD",
+        "F_OAUTH2_CLIENT_MANAGE",
+        "F_TRACKED_ENTITY_DATAVALUE_ADD",
+        "F_PROGRAM_DASHBOARD_CONFIG_ADMIN",
+        "F_MAP_EXTERNAL",
+        "F_APPROVE_DATA_LOWER_LEVELS",
+        "F_TRACKED_ENTITY_DATAVALUE_DELETE"
+      ],
+      "id": "yrB6vc5Ip3r",
+      "lastUpdated": "2016-02-17T06:14:12.260+0000",
+      "name": "SuperuserX",
+      "userGroupAccesses": [ ],
+      "dataSets": [ ],
+      "programs": [ ],
+      "created": "2016-02-17T06:14:12.260+0000",
+      "publicAccess": "--------"
+    }]
 }

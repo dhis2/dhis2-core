@@ -46,7 +46,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementStore;
 import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.UserInfo;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -91,7 +91,7 @@ class AttributeValueServiceTest extends TransactionalIntegrationTest
 
     private Attribute attribute3;
 
-    private UserInfo currentUserInfo;
+    private User currentUserInfo;
 
     @Override
     protected void setUpTest()
@@ -99,7 +99,7 @@ class AttributeValueServiceTest extends TransactionalIntegrationTest
         userService = _userService;
         categoryService = _categoryService;
         createAndInjectAdminUser();
-        currentUserInfo = currentUserService.getCurrentUserInfo();
+        currentUserInfo = currentUserService.getCurrentUser();
         attribute1 = new Attribute( "attribute 1", ValueType.TEXT );
         attribute1.setDataElementAttribute( true );
         attribute2 = new Attribute( "attribute 2", ValueType.TEXT );

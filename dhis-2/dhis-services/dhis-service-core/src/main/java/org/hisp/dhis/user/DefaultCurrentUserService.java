@@ -32,11 +32,15 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.HashSet;
 import java.util.Set;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.spring.AbstractSpringSecurityCurrentUserService;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -49,15 +53,10 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Torgeir Lorange Ostby
  */
 @Service( "org.hisp.dhis.user.CurrentUserService" )
+@Slf4j
 public class DefaultCurrentUserService
     extends AbstractSpringSecurityCurrentUserService
 {
-    /**
-     * Cache for user IDs. Key is username. Disabled during test phase. Take
-     * care not to cache user info which might change during runtime.
-     */
-    private final Cache<Long> usernameIdCache;
-
     /**
      * Cache contains Set of UserGroup UID for each user. Key is username. This
      * will be used for ACL check in
@@ -78,7 +77,6 @@ public class DefaultCurrentUserService
         checkNotNull( userStore );
 
         this.userStore = userStore;
-        this.usernameIdCache = cacheProvider.createUserIdCache();
         this.currentUserGroupInfoCache = cacheProvider.createCurrentUserGroupInfoCache();
     }
 
@@ -92,117 +90,34 @@ public class DefaultCurrentUserService
     {
         String username = getCurrentUsername();
 
-        if ( username == null )
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if ( authentication == null || !authentication.isAuthenticated() || authentication.getPrincipal() == null )
         {
             return null;
         }
-
-        Long userId = usernameIdCache.get( username, this::getUserId );
-
-        if ( userId == null )
-        {
-            return null;
-        }
-
-        User user = userStore.getUser( userId );
-
-        if ( user == null )
-        {
-            UserCredentials credentials = userStore.getUserCredentialsByUsername( username );
-
-            user = userStore.getUser( credentials.getId() );
-
-            if ( user == null )
-            {
-                throw new RuntimeException( "Could not retrieve current user!" );
-            }
-        }
-
-        if ( user.getUserCredentials() == null )
-        {
-            throw new RuntimeException( "Could not retrieve current user credentials!" );
-        }
-
-        // TODO: this is pretty ugly way to retrieve auths
-        user.getUserCredentials().getAllAuthorities();
-        return user;
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public User getCurrentUserInTransaction()
-    {
-        String username = getCurrentUsername();
 
         if ( username == null )
         {
-            return null;
+            throw new IllegalStateException( "No current user" );
         }
 
-        User user = null;
-
-        Long userId = usernameIdCache.get( username, this::getUserId );
-
-        if ( userId != null )
-        {
-            user = userStore.getUser( userId );
-        }
-
+        User user = userStore.getUserByUsername( username );
         if ( user == null )
         {
-            UserCredentials credentials = userStore.getUserCredentialsByUsername( username );
-
-            // Happens when user is anonymous aka. not logged in yet.
-            if ( credentials == null )
-            {
-                return null;
-            }
-
-            user = userStore.getUser( credentials.getId() );
-
-            if ( user == null )
-            {
-                throw new RuntimeException( "Could not retrieve current user!" );
-            }
+            log.debug( "User is NULL, this should only happen at startup!" );
+            return null;
         }
 
-        if ( user.getUserCredentials() == null )
-        {
-            throw new RuntimeException( "Could not retrieve current user credentials!" );
-        }
-
-        user.getUserCredentials().getAllAuthorities();
-
+        user.getAllAuthorities();
         return user;
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public UserInfo getCurrentUserInfo()
-    {
-        String currentUsername = getCurrentUsername();
-
-        if ( currentUsername == null )
-        {
-            return null;
-        }
-
-        Long userId = usernameIdCache.get( currentUsername, this::getUserId );
-
-        if ( userId == null )
-        {
-            return null;
-        }
-
-        return new UserInfo( userId, currentUsername, getCurrentUserAuthorities() );
     }
 
     @Override
     public Long getUserId( String username )
     {
-        UserCredentials credentials = userStore.getUserCredentialsByUsername( username );
+        User user = userStore.getUserByUsername( username );
 
-        return credentials != null ? credentials.getId() : null;
+        return user != null ? user.getId() : null;
     }
 
     @Override
@@ -229,34 +144,27 @@ public class DefaultCurrentUserService
     {
         User user = getCurrentUser();
 
-        return user != null && user.getUserCredentials().isAuthorized( auth );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public UserCredentials getCurrentUserCredentials()
-    {
-        return userStore.getUserCredentialsByUsername( getCurrentUsername() );
+        return user != null && user.isAuthorized( auth );
     }
 
     @Override
     @Transactional( readOnly = true )
     public CurrentUserGroupInfo getCurrentUserGroupsInfo()
     {
-        UserInfo currentUserInfo = getCurrentUserInfo();
+        User currentUser = getCurrentUser();
 
-        if ( currentUserInfo == null )
+        if ( currentUser == null )
         {
             return null;
         }
 
         return currentUserGroupInfoCache
-            .get( currentUserInfo.getUsername(), this::getCurrentUserGroupsInfo );
+            .get( currentUser.getUsername(), this::getCurrentUserGroupsInfo );
     }
 
     @Override
     @Transactional( readOnly = true )
-    public CurrentUserGroupInfo getCurrentUserGroupsInfo( UserInfo userInfo )
+    public CurrentUserGroupInfo getCurrentUserGroupsInfo( User userInfo )
     {
         if ( userInfo == null )
         {
@@ -287,13 +195,12 @@ public class DefaultCurrentUserService
             return null;
         }
 
-        Long userId = usernameIdCache.get( username, this::getUserId );
-
-        if ( userId == null )
+        User currentUser = getCurrentUser();
+        if ( currentUser == null )
         {
+            log.warn( "User is null, this should only happen at startup!" );
             return null;
         }
-
-        return userStore.getCurrentUserGroupInfo( getCurrentUserInfo().getId() );
+        return userStore.getCurrentUserGroupInfo( currentUser.getId() );
     }
 }

@@ -130,11 +130,14 @@ class DataValueSetExportAccessControlTest extends TransactionalIntegrationTest
 
     private OrganisationUnit ouA;
 
+    private User adminUser;
+
     @Override
     public void setUpTest()
     {
         userService = _userService;
-        createAndInjectAdminUser();
+
+        adminUser = createAndInjectAdminUser();
         // Metadata
         PeriodType ptA = periodService.getPeriodTypeByName( MonthlyPeriodType.NAME );
         deA = createDataElement( 'A' );
@@ -228,13 +231,15 @@ class DataValueSetExportAccessControlTest extends TransactionalIntegrationTest
     void testExportAttributeOptionComboAccessSuperUser()
         throws IOException
     {
-        // User
-        User user = createUser( 'A', Lists.newArrayList( "ALL" ) );
-        user.setOrganisationUnits( Sets.newHashSet( ouA ) );
-        setCurrentUser( user );
-        // Sharing
-        enableDataSharing( user, coA, DATA_READ );
-        enableDataSharing( user, coB, DATA_READ );
+        // // User
+        //
+        User adminUser = createUser( 'A', Lists.newArrayList( "ALL" ) );
+        adminUser.setOrganisationUnits( Sets.newHashSet( ouA ) );
+        setCurrentUser( adminUser );
+        // // Sharing
+
+        enableDataSharing( adminUser, coA, DATA_READ );
+        enableDataSharing( adminUser, coB, DATA_READ );
         idObjectManager.update( coA );
         idObjectManager.update( coB );
         // Test

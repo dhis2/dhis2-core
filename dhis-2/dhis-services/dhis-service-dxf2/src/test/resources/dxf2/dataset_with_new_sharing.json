@@ -343,12 +343,7 @@
         }
       ],
       "dataViewOrganisationUnits": [ ],
-      "userCredentials": {
-        "id": "m3ww4DWJtMf",
         "catDimensionConstraints": [ ],
-        "userInfo": {
-          "id": "T12jeH7KPzk"
-        },
         "disabled": false,
         "username": "admin",
         "created": "2016-03-08T07:26:52.033+0000",
@@ -362,8 +357,7 @@
         ],
         "invitation": false,
         "externalAuth": false,
-        "lastLogin": "2016-03-08T07:26:51.942+0000"
-      },
+        "lastLogin": "2016-03-08T07:26:51.942+0000",
       "surname": "admin",
       "attributeValues": [ ],
       "id": "T12jeH7KPzk",
@@ -377,11 +371,6 @@
           "id": "x3gVvpbVgqy"
         }
       ],
-      "userCredentials": {
-        "id": "L0EL1hDF26a",
-        "userInfo": {
-          "id": "bKGX66nV2lI"
-        },
         "disabled": false,
         "username": "userA",
         "selfRegistered": false,
@@ -391,8 +380,7 @@
           }
         ],
         "invitation": false,
-        "externalAuth": false
-      },
+        "externalAuth": false,
       "surname": "userA",
       "id": "bKGX66nV2lI",
       "firstName": "userA"

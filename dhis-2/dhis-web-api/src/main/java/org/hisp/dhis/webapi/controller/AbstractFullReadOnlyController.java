@@ -234,8 +234,13 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
             rootNode.addChild( NodeUtils.createPager( pager ) );
         }
 
-        rootNode.addChild( fieldFilterService.toCollectionNode( getEntityClass(),
-            new FieldFilterParams( entities, fields, Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) ) ) );
+        FieldFilterParams defaults1 = new FieldFilterParams( entities, fields,
+            Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
+
+        CollectionNode defaults = fieldFilterService.toCollectionNode( getEntityClass(),
+            defaults1 );
+
+        rootNode.addChild( defaults );
 
         cachePrivate( response );
 

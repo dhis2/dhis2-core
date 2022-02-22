@@ -12,10 +12,6 @@
       "created": "2019-01-28T11:03:39.373",
       "surname": "admin",
       "firstName": "admin",
-      "userCredentials": {
-        "lastUpdated": "2019-01-28T11:04:32.052",
-        "id": "KvMx6c1eoYo",
-        "created": "2019-01-28T11:04:32.052",
         "name": "admin admin",
         "lastLogin": "2019-01-28T11:34:56.529",
         "displayName": "admin admin",
@@ -28,9 +24,6 @@
         "selfRegistered": false,
         "favorite": false,
         "username": "admin",
-        "userInfo": {
-          "id": "M5zQapPyTZI"
-        },
         "access": {
           "read": true,
           "update": true,
@@ -50,8 +43,7 @@
             "id": "yrB6vc5Ip3r"
           }
         ],
-        "userAccesses": []
-      },
+        "userAccesses": [],
       "teiSearchOrganisationUnits": [],
       "organisationUnits": [
         {

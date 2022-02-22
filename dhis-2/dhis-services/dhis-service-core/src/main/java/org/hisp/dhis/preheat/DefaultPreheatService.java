@@ -77,7 +77,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityProgramIndicatorDimension;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
-import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.util.SharingUtils;
 import org.springframework.context.annotation.Scope;
@@ -249,23 +248,6 @@ public class DefaultPreheatService implements PreheatService
             {
                 uniqueCollectionMap.put( klass, new ArrayList<>( objects ) );
             }
-        }
-
-        if ( uniqueCollectionMap.containsKey( User.class ) )
-        {
-            List<IdentifiableObject> userCredentials = new ArrayList<>();
-
-            for ( IdentifiableObject identifiableObject : uniqueCollectionMap.get( User.class ) )
-            {
-                User user = (User) identifiableObject;
-
-                if ( user.getUserCredentials() != null )
-                {
-                    userCredentials.add( user.getUserCredentials() );
-                }
-            }
-
-            uniqueCollectionMap.put( UserCredentials.class, userCredentials );
         }
 
         // assign an uid to objects without an UID, if they don't have UID but
@@ -789,22 +771,6 @@ public class DefaultPreheatService implements PreheatService
     @SuppressWarnings( "unchecked" )
     private void collectScanTargets( Map<Class<?>, List<?>> targets )
     {
-        if ( targets.containsKey( User.class ) )
-        {
-            List<User> users = (List<User>) targets.get( User.class );
-            List<UserCredentials> userCredentials = new ArrayList<>();
-
-            for ( User user : users )
-            {
-                if ( user.getUserCredentials() != null )
-                {
-                    userCredentials.add( user.getUserCredentials() );
-                }
-            }
-
-            targets.put( UserCredentials.class, userCredentials );
-        }
-
         for ( Map.Entry<Class<?>, List<?>> entry : new HashMap<>( targets ).entrySet() )
         {
             Class<?> klass = entry.getKey();
@@ -864,7 +830,8 @@ public class DefaultPreheatService implements PreheatService
         {
             Schema schema = schemaService.getDynamicSchema( objectClass );
             List<IdentifiableObject> identifiableObjects = objects.get( objectClass );
-            uniqueMap.put( objectClass, handleUniqueProperties( schema, identifier, identifiableObjects ) );
+            Map<String, Map<Object, String>> value = handleUniqueProperties( schema, identifier, identifiableObjects );
+            uniqueMap.put( objectClass, value );
         }
 
         return uniqueMap;
@@ -1044,8 +1011,7 @@ public class DefaultPreheatService implements PreheatService
 
     private boolean skipConnect( Class<?> klass )
     {
-        return klass != null
-            && (UserCredentials.class.isAssignableFrom( klass ) || EmbeddedObject.class.isAssignableFrom( klass ));
+        return klass != null && EmbeddedObject.class.isAssignableFrom( klass );
     }
 
     private boolean isOnlyUID( Class<?> klass )

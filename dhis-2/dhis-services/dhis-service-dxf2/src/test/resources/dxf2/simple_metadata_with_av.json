@@ -364,17 +364,11 @@
         }
       ],
       "lastUpdated": "2016-02-17T06:14:12.250+0000",
-      "userCredentials": {
-        "id": "m3ww4DWJtMf",
         "cogsDimensionConstraints": [ ],
         "catDimensionConstraints": [ ],
         "invitation": false,
         "username": "admin",
         "selfRegistered": false,
-        "userInfo": {
-          "id": "ueKaFVdR8Fz"
-        },
-        "created": "2016-02-17T06:14:12.362+0000",
         "disabled": false,
         "passwordLastUpdated": "2016-02-17T06:14:12.274+0000",
         "externalAuth": false,
@@ -384,7 +378,6 @@
           }
         ],
         "lastLogin": "2016-02-17T06:14:12.274+0000"
-      }
     }
   ],
   "optionSets": [

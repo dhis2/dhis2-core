@@ -367,12 +367,12 @@ public class DefaultAppManager
     @Override
     public boolean isAccessible( App app, User user )
     {
-        if ( app == null || app.getShortName() == null || user == null || user.getUserCredentials() == null )
+        if ( app == null || app.getShortName() == null || user == null )
         {
             return false;
         }
 
-        Set<String> auths = user.getUserCredentials().getAllAuthorities();
+        Set<String> auths = user.getAllAuthorities();
 
         return auths.contains( "ALL" ) ||
             auths.contains( WEB_MAINTENANCE_APPMANAGER_AUTHORITY ) ||

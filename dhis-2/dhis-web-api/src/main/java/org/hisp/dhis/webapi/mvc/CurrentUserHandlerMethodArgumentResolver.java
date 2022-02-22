@@ -32,8 +32,6 @@ import lombok.AllArgsConstructor;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentials;
-import org.hisp.dhis.user.UserInfo;
 import org.hisp.dhis.webapi.controller.exception.NotAuthenticatedException;
 import org.springframework.core.MethodParameter;
 import org.springframework.stereotype.Component;
@@ -60,9 +58,7 @@ public class CurrentUserHandlerMethodArgumentResolver implements HandlerMethodAr
         Class<?> type = parameter.getParameterType();
         return parameter.getParameterAnnotation( CurrentUser.class ) != null
             && (type == String.class
-                || User.class.isAssignableFrom( type )
-                || UserInfo.class.isAssignableFrom( type )
-                || UserCredentials.class.isAssignableFrom( type ));
+                || User.class.isAssignableFrom( type ));
     }
 
     @Override
@@ -84,14 +80,6 @@ public class CurrentUserHandlerMethodArgumentResolver implements HandlerMethodAr
         if ( User.class.isAssignableFrom( type ) )
         {
             return user;
-        }
-        if ( UserCredentials.class.isAssignableFrom( type ) )
-        {
-            return user == null ? null : user.getUserCredentials();
-        }
-        if ( UserInfo.class.isAssignableFrom( type ) )
-        {
-            return UserInfo.fromUser( user );
         }
         throw new UnsupportedOperationException( "Not yet supported @CurrentUser type: " + type );
     }

@@ -441,6 +441,7 @@ public class DefaultDataQueryService
                         if ( isoPeriodHolder.hasDateField() )
                         {
                             period.setDescription( isoPeriodHolder.getIsoPeriod() );
+                            period.setDateField( isoPeriodHolder.getDateField() );
                         }
 
                         dimensionalKeywords.addKeyword( isoPeriodHolder.getIsoPeriod(),

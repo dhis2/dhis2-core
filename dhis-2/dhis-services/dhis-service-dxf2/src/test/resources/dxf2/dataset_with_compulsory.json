@@ -74,17 +74,11 @@
       "id": "HEh4ijSTjeV",
       "teiSearchOrganisationUnits": [ ],
       "lastUpdated": "2016-03-09T09:41:06.953+0000",
-      "userCredentials": {
-        "id": "m3ww4DWJtMf",
         "externalAuth": false,
-        "created": "2016-03-09T09:41:07.157+0000",
         "passwordLastUpdated": "2016-03-09T09:41:07.022+0000",
         "selfRegistered": false,
         "disabled": false,
         "username": "admin",
-        "userInfo": {
-          "id": "HEh4ijSTjeV"
-        },
         "cogsDimensionConstraints": [ ],
         "lastLogin": "2016-03-09T09:41:07.011+0000",
         "userRoles": [
@@ -93,8 +87,7 @@
           }
         ],
         "catDimensionConstraints": [ ],
-        "invitation": false
-      },
+        "invitation": false,
       "attributeValues": [ ],
       "dataViewOrganisationUnits": [ ],
       "organisationUnits": [

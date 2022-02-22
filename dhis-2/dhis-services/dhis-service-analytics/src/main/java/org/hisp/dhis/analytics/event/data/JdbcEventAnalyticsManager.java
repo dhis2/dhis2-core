@@ -135,7 +135,7 @@ public class JdbcEventAnalyticsManager
 
         if ( params.analyzeOnly() )
         {
-            executionPlanStore.addExecutionPlan( params.getAnalyzeOrderId(), sql );
+            executionPlanStore.addExecutionPlan( params.getExplainOrderId(), sql );
         }
         else
         {
@@ -241,7 +241,7 @@ public class JdbcEventAnalyticsManager
 
             if ( params.analyzeOnly() )
             {
-                executionPlanStore.addExecutionPlan( params.getAnalyzeOrderId(), sql );
+                executionPlanStore.addExecutionPlan( params.getExplainOrderId(), sql );
             }
             else
             {

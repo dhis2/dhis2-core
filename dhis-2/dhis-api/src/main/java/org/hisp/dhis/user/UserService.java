@@ -127,7 +127,7 @@ public interface UserService
      * @param usernames the usernames of the collection of Users to retrieve.
      * @return the User.
      */
-    List<UserCredentials> getUserCredentialsByUsernames( Collection<String> usernames );
+    List<User> getUsersByUsernames( Collection<String> usernames );
 
     /**
      * Returns a List of all Users.
@@ -157,11 +157,11 @@ public interface UserService
     /**
      * Checks if the given user represents the last user with ALL authority.
      *
-     * @param userCredentials the user.
+     * @param user the user.
      * @return true if the given user represents the last user with ALL
      *         authority.
      */
-    boolean isLastSuperUser( UserCredentials userCredentials );
+    boolean isLastSuperUser( User user );
 
     /**
      * Checks if the given user role represents the last role with ALL
@@ -224,104 +224,50 @@ public interface UserService
 
     boolean canAddOrUpdateUser( Collection<String> userGroups, User currentUser );
 
-    // -------------------------------------------------------------------------
-    // UserCredentials
-    // -------------------------------------------------------------------------
-
     /**
-     * Adds a UserCredentials.
-     *
-     * @param userCredentials the UserCredentials to add.
-     * @return the User which the UserCredentials is associated with.
-     */
-    long addUserCredentials( UserCredentials userCredentials );
-
-    /**
-     * Updates a UserCredentials.
-     *
-     * @param userCredentials the UserCredentials to update.
-     */
-    void updateUserCredentials( UserCredentials userCredentials );
-
-    /**
-     * Retrieves the UserCredentials associated with the User with the given id
-     * token.
+     * Retrieves the User associated with the User with the given id token.
      *
      * @param token the id token of the User.
-     * @return the UserCredentials.
+     * @return the User.
      */
-    public UserCredentials getUserCredentialsByIdToken( String token );
+    User getUserByIdToken( String token );
+
+    User getUserWithEagerFetchAuthorities( String username );
 
     /**
-     * Retrieves the UserCredentials associated with the User with the given
-     * name.
-     *
-     * @param username the name of the User.
-     * @return the UserCredentials.
-     */
-    UserCredentials getUserCredentialsByUsername( String username );
-
-    UserCredentials getUserCredentialsWithEagerFetchAuthorities( String username );
-
-    /**
-     * Retrieves the UserCredentials associated with the User with the given
-     * OpenID.
+     * Retrieves the User associated with the User with the given OpenID.
      *
      * @param openId the openId of the User.
-     * @return the UserCredentials or null if there is no match
+     * @return the User or null if there is no match
      */
-    UserCredentials getUserCredentialsByOpenId( String openId );
+    User getUserByOpenId( String openId );
 
     /**
-     * Retrieves the UserCredentials associated with the User with the given
-     * LDAP ID.
+     * Retrieves the User associated with the User with the given LDAP ID.
      *
      * @param ldapId the ldapId of the User.
-     * @return the UserCredentials.
+     * @return the User.
      */
-    UserCredentials getUserCredentialsByLdapId( String ldapId );
-
-    /**
-     * Retrieves all UserCredentials.
-     *
-     * @return a List of UserCredentials.
-     */
-    List<UserCredentials> getAllUserCredentials();
+    User getUserByLdapId( String ldapId );
 
     /**
      * Encodes and sets the password of the User. Due to business logic required
      * on password updates the password for a user should only be changed using
-     * this method or {@link #encodeAndSetPassword(UserCredentials, String)
-     * encodeAndSetPassword} and not directly on the User or UserCredentials
-     * object.
+     * this method or {@link #encodeAndSetPassword(User, String)
+     * encodeAndSetPassword} and not directly on the User or User object.
      * <p>
      * Note that the changes made to the User object are not persisted.
      *
-     * @param user the User.
+     * @param user the User
      * @param rawPassword the raw password.
      */
     void encodeAndSetPassword( User user, String rawPassword );
 
     /**
-     * Encodes and sets the password of the UserCredentials. Due to business
-     * logic required on password updates the password for a user should only be
-     * changed using this method or {@link #encodeAndSetPassword(User, String)
-     * encodeAndSetPassword} and not directly on the User or UserCredentials
-     * object.
-     * <p>
-     * Note that the changes made to the UserCredentials object are not
-     * persisted.
+     * Updates the last login date of User with the given username with the
+     * current date.
      *
-     * @param userCredentials the UserCredentials.
-     * @param rawPassword the raw password.
-     */
-    void encodeAndSetPassword( UserCredentials userCredentials, String rawPassword );
-
-    /**
-     * Updates the last login date of UserCredentials with the given username
-     * with the current date.
-     *
-     * @param username the username of the UserCredentials.
+     * @param username the username of the User.
      */
     void setLastLogin( String username );
 
@@ -329,7 +275,7 @@ public interface UserService
 
     int getActiveUsersCount( Date since );
 
-    boolean credentialsNonExpired( UserCredentials credentials );
+    boolean userNonExpired( User user );
 
     // -------------------------------------------------------------------------
     // UserAuthorityGroup
@@ -430,11 +376,9 @@ public interface UserService
     List<ErrorReport> validateUser( User user, User currentUser );
 
     /**
-     * Returns list of active users whose credentials are expiring with in few
-     * days.
+     * Returns list of active users who are expiring with in few days.
      *
-     * @return list of active users whose credentials are expiring with in few
-     *         days.
+     * @return list of active users who are expiring with in few days.
      */
     List<User> getExpiringUsers();
 
@@ -451,22 +395,22 @@ public interface UserService
      * Expire a user's active sessions retrieved from the Spring security's
      * org.springframework.security.core.session.SessionRegistry
      *
-     * @param credentials the user credentials
+     * @param user the user
      */
-    void expireActiveSessions( UserCredentials credentials );
+    void expireActiveSessions( User user );
 
     /**
      * Whether or not the provided account is expired right now.
      *
-     * @param credentials the user credentials
+     * @param user the user
      * @return true, if the provided account is already expired, otherwise false
      */
-    boolean isAccountExpired( UserCredentials credentials );
+    boolean isAccountExpired( User user );
 
     /**
-     * Sets {@link UserCredentials#setDisabled(boolean)} to {@code true} for all
-     * users where the {@link UserCredentials#getLastLogin()} is before or equal
-     * to the provided pivot {@link Date}.
+     * Sets {@link User#setDisabled(boolean)} to {@code true} for all users
+     * where the {@link User#getLastLogin()} is before or equal to the provided
+     * pivot {@link Date}.
      *
      * @param inactiveSince the most recent point in time that is considered
      *        inactive together with accounts only active further in the past.#
@@ -475,9 +419,8 @@ public interface UserService
     int disableUsersInactiveSince( Date inactiveSince );
 
     /**
-     * Selects all not disabled users where the
-     * {@link UserCredentials#getLastLogin()} is within the given time-frame and
-     * which have an email address.
+     * Selects all not disabled users where the {@link User#getLastLogin()} is
+     * within the given time-frame and which have an email address.
      *
      * @param from start of the selected time-frame (inclusive)
      * @param to end of the selected time-frame (exclusive)
@@ -495,5 +438,5 @@ public interface UserService
      * Given an Authorities's name, retrieves a list of users that has that
      * authority.
      */
-    List<UserCredentials> getUsersWithAuthority( String authority );
+    List<User> getUsersWithAuthority( String authority );
 }

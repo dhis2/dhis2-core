@@ -167,6 +167,7 @@ class DataSetServiceTest extends DhisTest
         User user = mockCurrentUserService.getCurrentUser();
         user.setFirstName( "John" );
         user.setSurname( "Doe" );
+
         userService.addUser( mockCurrentUserService.getCurrentUser() );
     }
 

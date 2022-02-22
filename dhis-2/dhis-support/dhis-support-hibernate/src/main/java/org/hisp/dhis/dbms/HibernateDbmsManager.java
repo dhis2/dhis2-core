@@ -319,7 +319,6 @@ public class HibernateDbmsManager
         emptyTable( "usergroup" );
 
         emptyTable( "previouspasswords" );
-        emptyTable( "users" );
         emptyTable( "usersetting" );
         emptyTable( "fileresource" );
         emptyTable( "trackedentitycomment" );

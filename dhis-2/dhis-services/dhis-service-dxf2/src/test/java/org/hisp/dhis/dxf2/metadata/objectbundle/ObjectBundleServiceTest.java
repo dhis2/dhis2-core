@@ -437,9 +437,9 @@ class ObjectBundleServiceTest extends TransactionalIntegrationTest
         assertEquals( 1, dataSet.getSources().size() );
         assertEquals( 2, dataSet.getDataSetElements().size() );
         assertEquals( PeriodType.getPeriodTypeByName( "Monthly" ), dataSet.getPeriodType() );
-        assertNotNull( user.getUserCredentials() );
-        assertEquals( "admin", user.getUserCredentials().getUsername() );
-        assertFalse( user.getUserCredentials().getUserAuthorityGroups().isEmpty() );
+        assertNotNull( user );
+        assertEquals( "admin", user.getUsername() );
+        assertFalse( user.getUserAuthorityGroups().isEmpty() );
         assertFalse( user.getOrganisationUnits().isEmpty() );
         assertEquals( "PdWlltZnVZe", user.getOrganisationUnit().getUid() );
     }
