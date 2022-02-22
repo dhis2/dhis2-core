@@ -42,7 +42,6 @@ import org.hisp.dhis.tracker.TrackerNtiApiTest;
 import org.hisp.dhis.tracker.importer.databuilder.EventDataBuilder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -53,7 +52,6 @@ import java.io.File;
 import java.util.stream.Stream;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
 
@@ -92,11 +90,9 @@ public class EventsTests
             .body( "objectReports[0].errorReports", empty() );
 
         eventBody.getAsJsonArray( "events" ).forEach( event -> {
-                String eventId = event.getAsJsonObject().get( "event" ).getAsString();
-                ApiResponse response = trackerActions.get( "/events/" + eventId );
-                response.validate().statusCode( 200 );
-
-                assertThat( response.getBody(), matchesJSON( event ) );
+                trackerActions.getEvent( event.getAsJsonObject().get( "event" ).getAsString() )
+                    .validate().statusCode( 200 )
+                    .body( "", matchesJSON( event ) );
             }
         );
 
