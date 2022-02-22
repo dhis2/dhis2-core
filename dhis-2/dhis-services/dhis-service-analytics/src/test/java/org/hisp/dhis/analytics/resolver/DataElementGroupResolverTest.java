@@ -31,9 +31,9 @@ import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
 import static org.hisp.dhis.DhisConvenienceTest.createDataElementGroup;
 import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
-import static org.wildfly.common.Assert.assertTrue;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DimensionItemType;

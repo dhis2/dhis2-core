@@ -67,7 +67,6 @@ import org.hisp.dhis.util.SharingUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.api.client.util.Lists;
 import com.google.common.base.Defaults;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.internal.Primitives;
@@ -1173,7 +1172,7 @@ public class DefaultIdentifiableObjectManager
         Attribute attribute, List<String> values )
     {
         IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( type );
-        return store != null ? store.getAllByAttributeAndValues( attribute, values ) : Lists.newArrayList();
+        return store != null ? store.getAllByAttributeAndValues( attribute, values ) : Collections.emptyList();
     }
 
     @Override
