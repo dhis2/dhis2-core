@@ -203,27 +203,7 @@ public class PreCheckDataRelationsValidationHook
             return;
         }
 
-        CategoryOptionCombo aoc = resolveAttributeOptionCombo( reporter, event, program );
-
-        // We should have an AOC by this point. Exit if we do not. The logic of
-        // AOC, COs, CC is complex and there is potential for
-        // missing one of the many cases. Better wrongly invalidate an event
-        // than persisting an invalid event as we
-        // previously did.
-        if ( !validateAttributeOptionComboFound( reporter, event, program, aoc ) )
-            return;
-        if ( !validateAttributeOptionComboMatchesCategoryOptions( reporter, event, program, aoc ) )
-            return;
-
-        // TODO resolving and "caching" the AOC id should move into the preheat
-        // as validations should not access the DB
-        // We "cache" the AOC id for the duration of the import (as the cache is
-        // tied to the context) so the subsequent
-        // EventCategoryOptValidationHook can use the AOC id for validation.
-        // That is necessary if the AOC id is not
-        // provided in the payload and the program cc is non default.
-        reporter.getValidationContext()
-            .cacheEventCategoryOptionCombo( event.getUid(), aoc );
+        resolveAttributeOptionCombo( reporter, event, program );
     }
 
     private boolean validateAttributeOptionComboExists( ValidationErrorReporter reporter, Event event )
@@ -377,7 +357,7 @@ public class PreCheckDataRelationsValidationHook
         return true;
     }
 
-    private CategoryOptionCombo resolveAttributeOptionCombo( ValidationErrorReporter reporter, Event event,
+    private void resolveAttributeOptionCombo( ValidationErrorReporter reporter, Event event,
         Program program )
     {
 
@@ -386,6 +366,8 @@ public class PreCheckDataRelationsValidationHook
         if ( hasNoAttributeOptionComboSet( event ) && program.getCategoryCombo().isDefault() )
         {
             aoc = preheat.getDefault( CategoryOptionCombo.class );
+            if ( !validateAttributeOptionComboMatchesCategoryOptions( reporter, event, program, aoc ) )
+                return;
         }
         else if ( hasNoAttributeOptionComboSet( event ) && hasAttributeCategoryOptionsSet( event ) )
         {
@@ -416,8 +398,26 @@ public class PreCheckDataRelationsValidationHook
             // stick to the given AOC in the payload instead of
             // preheat.getDefault( CategoryOptionCombo.class )
             aoc = preheat.getCategoryOptionCombo( event.getAttributeOptionCombo() );
+            if ( !validateAttributeOptionComboMatchesCategoryOptions( reporter, event, program, aoc ) )
+                return;
         }
-        return aoc;
+        // We should have an AOC by this point. Exit if we do not. The logic of
+        // AOC, COs, CC is complex and there is potential for
+        // missing one of the many cases. Better wrongly invalidate an event
+        // than persisting an invalid event as we
+        // previously did.
+        if ( !validateAttributeOptionComboFound( reporter, event, program, aoc ) )
+            return;
+
+        // TODO resolving and "caching" the AOC id should move into the preheat
+        // as validations should not access the DB
+        // We "cache" the AOC id for the duration of the import (as the cache is
+        // tied to the context) so the subsequent
+        // EventCategoryOptValidationHook can use the AOC id for validation.
+        // That is necessary if the AOC id is not
+        // provided in the payload and the program cc is non default.
+        reporter.getValidationContext()
+            .cacheEventCategoryOptionCombo( event.getUid(), aoc );
     }
 
     private boolean hasAttributeCategoryOptionsSet( Event event )
