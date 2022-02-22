@@ -38,6 +38,7 @@ import java.util.Date;
 import java.util.List;
 
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -58,7 +59,7 @@ class TrackerReportUtilsTest
         final Instant now = Instant.now();
         List<String> args = TrackerReportUtils.buildArgumentList( bundle, Arrays.asList( now ) );
         assertThat( args.size(), is( 1 ) );
-        assertThat( args.get( 0 ), is( DateFormat.getInstance().format( Date.from( now ) ) ) );
+        assertThat( args.get( 0 ), is( DateUtils.getIso8601NoTz( DateUtils.fromInstant( now ) ) ) );
     }
 
     @Test
