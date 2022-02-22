@@ -123,8 +123,8 @@ public abstract class TimeFieldSqlRenderer
                 .append( getMediumDateString( columnWithDateRange.getDateRange().getStartDate() ) )
                 .append( "' and " )
                 .append( columnWithDateRange.getColumn() )
-                .append( " <= '" )
-                .append( getMediumDateString( columnWithDateRange.getDateRange().getEndDate() ) )
+                .append( " < '" )
+                .append( getMediumDateString( columnWithDateRange.getDateRange().getEndDatePlusOneDay() ) )
                 .append( "' " )
                 .toString() )
             .collect( Collectors.joining( " and " ) );
