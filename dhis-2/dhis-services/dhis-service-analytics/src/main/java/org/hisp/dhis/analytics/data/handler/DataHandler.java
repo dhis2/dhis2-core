@@ -226,7 +226,7 @@ public class DataHandler
     {
         if ( params.analyzeOnly() )
         {
-            String key = params.getAnalyzeOrderId();
+            String key = params.getExplainOrderId();
 
             List<ExecutionPlan> plans = executionPlanStore.getExecutionPlans( key );
 

@@ -85,7 +85,7 @@ public class AnalyticsController
     // Resources
     // -------------------------------------------------------------------------
 
-    @PreAuthorize( "hasRole('F_PERFORM_MAINTENANCE')" )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_ANALYTICS_EXPLAIN')" )
     @GetMapping( value = RESOURCE_PATH + EXPLAIN_PATH, produces = { APPLICATION_JSON_VALUE, "application/javascript" } )
     public @ResponseBody Grid getExplainJson( // JSON
         AggregateAnalyticsQueryCriteria criteria,

@@ -489,7 +489,7 @@ public class DataQueryParams
      */
     protected transient boolean skipDataDimensionValidation = false;
 
-    protected String analyzeOrderId;
+    protected String explainOrderId;
 
     // Constructors
     // -------------------------------------------------------------------------
@@ -589,19 +589,19 @@ public class DataQueryParams
         params.dataApprovalLevels = new HashMap<>( this.dataApprovalLevels );
         params.skipDataDimensionValidation = this.skipDataDimensionValidation;
         params.userOrgUnitType = this.userOrgUnitType;
-        params.analyzeOrderId = this.analyzeOrderId;
+        params.explainOrderId = this.explainOrderId;
 
         return params;
     }
 
-    public String getAnalyzeOrderId()
+    public String getExplainOrderId()
     {
-        return analyzeOrderId;
+        return explainOrderId;
     }
 
     public boolean analyzeOnly()
     {
-        return analyzeOrderId != null;
+        return explainOrderId != null;
     }
 
     /**
@@ -3321,7 +3321,7 @@ public class DataQueryParams
 
         public Builder withAnalyzeOrderId()
         {
-            this.params.analyzeOrderId = UUID.randomUUID().toString();
+            this.params.explainOrderId = UUID.randomUUID().toString();
             return this;
         }
 
