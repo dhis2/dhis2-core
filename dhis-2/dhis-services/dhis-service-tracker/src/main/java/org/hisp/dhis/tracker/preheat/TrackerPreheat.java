@@ -55,6 +55,7 @@ import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.relationship.Relationship;
@@ -133,6 +134,45 @@ public class TrackerPreheat
      */
     @Getter
     private Map<String, PeriodType> periodTypeMap = new HashMap<>();
+
+    /**
+     * Internal map of
+     */
+    private Map<String, String> cachedEventAOCProgramCC = new HashMap<>();
+
+    public void putCachedEventAOCProgramCC( Program program, String categoryOptions, CategoryOptionCombo aoc )
+    {
+        String key = categoryOptions + program.getCategoryCombo().getUid();
+        cachedEventAOCProgramCC.put( key, getIdentifiers().getCategoryOptionComboIdScheme().getIdentifier( aoc ) );
+    }
+
+    public void putCachedEventAOCProgramCC( String cacheKey, String value )
+    {
+        // TODO move logic of calculating the cacheKey inside of this
+        cachedEventAOCProgramCC.put( cacheKey, value );
+    }
+
+    public Optional<String> getCachedEventAOCProgramCC( Program program, String categoryOptions )
+    {
+        // TODO extract method to generate key as its duplicated in put and get
+        String key = categoryOptions + program.getCategoryCombo().getUid();
+        String cached = cachedEventAOCProgramCC.get( key );
+        if ( cached == null )
+        {
+            return Optional.empty();
+        }
+        return Optional.of( cached );
+    }
+
+    public Optional<String> getCachedEventAOCProgramCC( String cacheKey )
+    {
+        String cached = cachedEventAOCProgramCC.get( cacheKey );
+        if ( cached == null )
+        {
+            return Optional.empty();
+        }
+        return Optional.of( cached );
+    }
 
     /**
      * Internal map of all preheated tracked entities, mainly used for
