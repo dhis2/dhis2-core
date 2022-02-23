@@ -78,16 +78,21 @@ public class MissingCategoryOptionComboSupplier extends AbstractPreheatSupplier
 
         // TODO question: will the aoc.categoryOptions be non-lazy? If not how
         // to force that
+        // TODO should we adapt the service so we can fetch AOCs at once? So for
+        // all (category combo, category options)
         for ( Event e : events )
         {
             Program p = preheat.get( Program.class, e.getProgram() );
             CategoryOptionCombo aoc = categoryService
                 .getCategoryOptionCombo( p.getCategoryCombo(), getCategoryOptions( preheat, e ) );
 
-            preheat.put( params.getIdentifiers().getCategoryOptionComboIdScheme(), aoc );
+            // TODO should we cache that we did not find the AOC as well?
+            if ( aoc != null )
+            {
+                preheat.putCachedEventAOCProgramCC( p, e.getAttributeCategoryOptions(), aoc );
+            }
 
-            // TODO this should move to a pre-processor I guess.
-            e.setAttributeOptionCombo( params.getIdentifiers().getCategoryOptionComboIdScheme().getIdentifier( aoc ) );
+            preheat.put( params.getIdentifiers().getCategoryOptionComboIdScheme(), aoc );
         }
     }
 
