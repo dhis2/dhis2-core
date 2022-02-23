@@ -51,7 +51,8 @@ public class TrackerPreheatConfig
         PeriodTypeSupplier.class,
         UniqueAttributesSupplier.class,
         UserSupplier.class,
-        FileResourceSupplier.class );
+        FileResourceSupplier.class,
+        MissingCategoryOptionComboSupplier.class );
 
     @Bean( "preheatOrder" )
     public List<String> getPreheatOrder()
