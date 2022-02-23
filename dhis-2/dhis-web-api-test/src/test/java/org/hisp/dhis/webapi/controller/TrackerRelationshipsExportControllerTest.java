@@ -208,7 +208,7 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
 
         RelationshipType rType = relationshipType( RelationshipEntity.PROGRAM_INSTANCE,
             RelationshipEntity.TRACKED_ENTITY_INSTANCE );
-        Relationship r = relationship( rType, programInstance, tei );
+        relationship( rType, programInstance, tei );
 
         // the query parameters are processed in order tei, enrollment, event
         // the first query parameter (unless another param found relationships)
@@ -298,11 +298,6 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
     private JsonObject assertFirstRelationship( JsonObject body, Relationship r )
     {
         return assertNthRelationship( body, r, 0 );
-    }
-
-    private JsonObject assertSecondRelationship( JsonObject body, Relationship r )
-    {
-        return assertNthRelationship( body, r, 1 );
     }
 
     private JsonObject assertNthRelationship( JsonObject body, Relationship r, int n )

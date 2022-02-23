@@ -438,14 +438,14 @@ public class DefaultDataApprovalService
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional
     public DataApproval getDataApproval( DataApproval dataApproval )
     {
         return dataApproval == null ? null : dataApprovalStore.getDataApproval( dataApproval );
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional
     public boolean isApproved( DataApprovalWorkflow workflow, Period period,
         OrganisationUnit organisationUnit, CategoryOptionCombo attributeOptionCombo )
     {
