@@ -73,7 +73,7 @@ public class InputUtils
      * @param skipFallback whether to skip fallback to default option combo if
      *        attribute option combo is not found.
      * @return the attribute option combo identified from the given input, or
-     *         null. if the input was invalid.
+     *         null if the input was invalid.
      */
     public CategoryOptionCombo getAttributeOptionCombo( String cc, String cp, boolean skipFallback )
     {
@@ -92,7 +92,7 @@ public class InputUtils
      * @param skipFallback whether to skip fallback to default option combo if
      *        attribute option combo is not found.
      * @return the attribute option combo identified from the given input, or
-     *         null. if the input was invalid.
+     *         null if the input was invalid.
      */
     public CategoryOptionCombo getAttributeOptionCombo( String cc, Set<String> options, boolean skipFallback )
     {
@@ -243,7 +243,7 @@ public class InputUtils
      *
      * @param currentUser the user attempting to force data input
      * @param force request to force data input
-     * @return true if authorized and requested for it, otherwise false
+     * @return true if authorized and requested for it, otherwise false.
      */
     public boolean canForceDataInput( User currentUser, boolean force )
     {
