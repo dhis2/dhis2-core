@@ -34,7 +34,6 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.util.Strings;
-import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -139,11 +138,7 @@ public class EventProgramPreProcessor
         for ( Event e : events )
         {
             Program p = preheat.get( Program.class, e.getProgram() );
-
-            CategoryCombo categoryCombo = p.getCategoryCombo();
-            String cacheKey = e.getAttributeCategoryOptions() + categoryCombo.getUid();
-            Optional<String> cachedAOCId = preheat.getCachedEventAOCProgramCC( cacheKey );
-
+            Optional<String> cachedAOCId = preheat.getCachedEventAOCProgramCC( p, e.getAttributeCategoryOptions() );
             if ( cachedAOCId.isPresent() )
             {
                 CategoryOptionCombo aoc = preheat.getCategoryOptionCombo( cachedAOCId.get() );
