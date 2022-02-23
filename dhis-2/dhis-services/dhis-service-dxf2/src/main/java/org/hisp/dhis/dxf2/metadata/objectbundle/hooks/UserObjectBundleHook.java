@@ -270,8 +270,6 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
             handleNoAccessRoles( user, bundle, userAuthorityGroups );
 
             sessionFactory.getCurrentSession().update( user );
-
-            log.info( "waf" );
         }
     }
 
