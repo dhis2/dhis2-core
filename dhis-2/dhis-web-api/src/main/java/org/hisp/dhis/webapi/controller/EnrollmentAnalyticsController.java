@@ -93,7 +93,7 @@ public class EnrollmentAnalyticsController
     @NotNull
     private DimensionMapperService dimensionMapperService;
 
-    @PreAuthorize( "hasRole('F_PERFORM_ANALYTICS_EXPLAIN')" )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_ANALYTICS_EXPLAIN')" )
     @GetMapping( value = "/query/{program}/explain", produces = { APPLICATION_JSON_VALUE, "application/javascript" } )
     public @ResponseBody Grid getExplainQueryJson( // JSON, JSONP
         @PathVariable String program,
@@ -109,7 +109,7 @@ public class EnrollmentAnalyticsController
 
         if ( params.analyzeOnly() )
         {
-            String key = params.getAnalyzeOrderId();
+            String key = params.getExplainOrderId();
             grid.maybeAddPerformanceMetrics( executionPlanStore.getExecutionPlans( key ) );
         }
 

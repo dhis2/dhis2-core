@@ -34,7 +34,6 @@ import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ITEMS;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_HIERARCHY;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_NAME_HIERARCHY;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.PAGER;
-import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
@@ -147,12 +146,12 @@ public abstract class AbstractAnalyticsService
             }
             else if ( hasNonDefaultRepeatableProgramStageOffset( item ) )
             {
-                String name = item.getProgramStage().getUid() + "[" + item.getProgramStageOffset() + "]." +
-                    item.getItem().getUid();
 
                 String column = item.getItem().getDisplayProperty( params.getDisplayProperty() );
 
                 RepeatableStageParams repeatableStageParams = item.getRepeatableStageParams();
+
+                String name = repeatableStageParams.getDimension();
 
                 grid.addHeader( new GridHeader( name, column,
                     repeatableStageParams.simpleStageValueExpected() ? item.getValueType() : ValueType.REFERENCE,
@@ -162,6 +161,7 @@ public abstract class AbstractAnalyticsService
             else
             {
                 final String uid = getItemUid( item );
+
                 final String column = item.getItem().getDisplayProperty( params.getDisplayProperty() );
 
                 grid.addHeader( new GridHeader( uid, column, item.getValueType(),
@@ -222,10 +222,11 @@ public abstract class AbstractAnalyticsService
     {
         String uid = item.getItem().getUid();
 
-        if ( item.getItem().getDimensionItemType() == DATA_ELEMENT && item.getProgramStage() != null )
+        if ( item.hasProgramStage() )
         {
             uid = joinWith( ".", item.getProgramStage().getUid(), uid );
         }
+
         return uid;
     }
 
@@ -318,7 +319,7 @@ public abstract class AbstractAnalyticsService
                     .getOptionSetObject()
                     .getOptions()
                     .stream()
-                    .filter( opt -> grid.getRows().stream().anyMatch( r -> {
+                    .filter( opt -> opt != null && grid.getRows().stream().anyMatch( r -> {
                         Object o = r.get( columnIndex );
                         if ( o instanceof String )
                         {
@@ -457,17 +458,19 @@ public abstract class AbstractAnalyticsService
 
         for ( QueryItem item : params.getItems() )
         {
+            final String itemUid = getItemUid( item );
+
             if ( item.hasOptionSet() )
             {
-                dimensionItems.put( item.getItemId(), getDimensionItemUidList( params, item, itemOptions ) );
+                dimensionItems.put( itemUid, getDimensionItemUidList( params, item, itemOptions ) );
             }
             else if ( item.hasLegendSet() )
             {
-                dimensionItems.put( item.getItemId(), item.getLegendSetFilterItemsOrAll() );
+                dimensionItems.put( itemUid, item.getLegendSetFilterItemsOrAll() );
             }
             else
             {
-                dimensionItems.put( item.getItemId(), Lists.newArrayList() );
+                dimensionItems.put( itemUid, Lists.newArrayList() );
             }
         }
 
@@ -539,6 +542,6 @@ public abstract class AbstractAnalyticsService
     private boolean hasNonDefaultRepeatableProgramStageOffset( QueryItem item )
     {
         return item != null && item.getProgramStage() != null && item.getRepeatableStageParams() != null
-            && (item.getRepeatableStageParams().getStartIndex() != 0 || item.getRepeatableStageParams().getCount() > 1);
+            && !item.getRepeatableStageParams().isDefaultObject();
     }
 }

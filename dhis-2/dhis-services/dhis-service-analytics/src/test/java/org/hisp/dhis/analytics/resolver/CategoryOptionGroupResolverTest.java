@@ -31,9 +31,9 @@ import static org.hisp.dhis.DhisConvenienceTest.createCategoryOptionCombo;
 import static org.hisp.dhis.DhisConvenienceTest.createCategoryOptionGroup;
 import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
-import static org.wildfly.common.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;

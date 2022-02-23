@@ -51,6 +51,10 @@ public class RepeatableStageParams
     // related to execution date
     private Date endDate;
 
+    private boolean defaultObject = true;
+
+    private String dimension;
+
     /**
      * to string
      *

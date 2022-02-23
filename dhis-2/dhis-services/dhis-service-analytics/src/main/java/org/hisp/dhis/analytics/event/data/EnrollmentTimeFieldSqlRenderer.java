@@ -35,6 +35,7 @@ import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
+import static org.hisp.dhis.util.DateUtils.plusOneDay;
 
 import java.text.SimpleDateFormat;
 import java.util.Collection;
@@ -163,8 +164,8 @@ class EnrollmentTimeFieldSqlRenderer extends TimeFieldSqlRenderer
     private String toSqlCondition( Period period, TimeField timeField )
     {
         String timeCol = quoteAlias( timeField.getField() );
-        return "( " + timeCol + " >= '" + getMediumDateString( period.getStartDate() ) + "' and " + timeCol + " <= '"
-            + getMediumDateString( period.getEndDate() ) + "') ";
+        return "( " + timeCol + " >= '" + getMediumDateString( period.getStartDate() ) + "' and " + timeCol + " < '"
+            + getMediumDateString( plusOneDay( period.getEndDate() ) ) + "') ";
     }
 
 }

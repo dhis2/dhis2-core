@@ -127,7 +127,7 @@ public class JdbcEnrollmentAnalyticsManager
 
         if ( params.analyzeOnly() )
         {
-            executionPlanStore.addExecutionPlan( params.getAnalyzeOrderId(), sql );
+            executionPlanStore.addExecutionPlan( params.getExplainOrderId(), sql );
         }
         else
         {
@@ -178,7 +178,7 @@ public class JdbcEnrollmentAnalyticsManager
 
             if ( params.analyzeOnly() )
             {
-                executionPlanStore.addExecutionPlan( params.getAnalyzeOrderId(), sql );
+                executionPlanStore.addExecutionPlan( params.getExplainOrderId(), sql );
             }
             else
             {
