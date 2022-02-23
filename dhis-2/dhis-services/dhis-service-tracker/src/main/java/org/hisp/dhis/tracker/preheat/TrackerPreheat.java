@@ -151,6 +151,8 @@ public class TrackerPreheat
 
     private String attributeOptionComboCacheKey( String categoryOptions, Program program )
     {
+        // TODO category combo has no idScheme specified in the import params.
+        // Correct?
         return categoryOptions + program.getCategoryCombo().getUid();
     }
 
