@@ -759,9 +759,9 @@
                                     </bannedImports>
                                 </RestrictImports>
                                 <RestrictImports>
-                                    <reason>Use only JUnit 5 Assertions</reason>
+                                    <reason>Do not use this util. Use com.google.common instead</reason>
                                     <bannedImports>
-                                        <bannedImport>org.wildfly.common.Assert.**</bannedImport>
+                                        <bannedImport>com.google.api.client.util.**</bannedImport>
                                     </bannedImports>
                                 </RestrictImports>
                             </rules>
@@ -2121,6 +2121,10 @@
                     <exclusion>
                         <groupId>io.netty</groupId>
                         <artifactId>netty-transport-native-kqueue</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.wildfly.common</groupId>
+                        <artifactId>wildfly-common</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
