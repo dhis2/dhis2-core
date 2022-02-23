@@ -52,7 +52,6 @@ import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
-import org.hisp.dhis.user.UserCredWrapperDto;
 import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Component;
 
@@ -136,27 +135,6 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
 
         bundle.putExtras( user, "preUpdateUser", user );
 
-        UserCredWrapperDto userCredentialsRaw = user.getUserCredentialsRaw();
-        if ( userCredentialsRaw != null )
-        {
-            bundle.putExtras( user, "userCredWrapper", userCredentialsRaw );
-            // copyProperties( userCredentialsRaw, user, "userCredentials",
-            // "uuid", "id", "uid", "access", "sharing",
-            // "created", "lastUpdated", "lastUpdatedBy", "code", "userInfo",
-            // "publicAccess", "name", "secret",
-            // "firstName", "lastName", "surname", "email", "phoneNumber",
-            // "introduction", "passwordLastUpdated",
-            // "gender", "birthday", "nationality", "employer", "education",
-            // "interests", "languages",
-            // "welcomeMessage", "lastCheckedInterpretations", "groups",
-            // "whatsApp", "facebookMessenger",
-            // "skype", "telegram", "twitter", "avatar",
-            // "dataViewMaxOrganisationUnitLevel", "apps",
-            // "user" );
-            //
-            // user.setUserAuthorityGroups( userCredentialsRaw.getUserRoles() );
-        }
-
         if ( persisted.getAvatar() != null
             && (user.getAvatar() == null || !persisted.getAvatar().getUid().equals( user.getAvatar().getUid() )) )
         {
@@ -177,39 +155,9 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
     {
         final User preUpdateUser = (User) bundle.getExtras( persistedUser, "preUpdateUser" );
 
-        final UserCredWrapperDto userCredWrapperDto = (UserCredWrapperDto) bundle.getExtras( persistedUser,
-            "userCredWrapper" );
-
-        boolean hasChanged = false;
         if ( !StringUtils.isEmpty( preUpdateUser.getPassword() ) )
         {
             userService.encodeAndSetPassword( persistedUser, preUpdateUser.getPassword() );
-            hasChanged = true;
-        }
-
-        // if ( userCredWrapperDto != null )
-        // {
-        // copyProperties( userCredWrapperDto, persistedUser, "userCredentials",
-        // "uuid", "id", "uid", "access", "sharing",
-        // "created", "lastUpdated", "lastUpdatedBy", "code", "userInfo",
-        // "publicAccess", "name", "secret",
-        // "firstName", "lastName", "surname", "email", "phoneNumber",
-        // "introduction", "passwordLastUpdated",
-        // "gender", "birthday", "nationality", "employer", "education",
-        // "interests", "languages",
-        // "welcomeMessage", "lastCheckedInterpretations", "groups", "whatsApp",
-        // "facebookMessenger",
-        // "skype", "telegram", "twitter", "avatar",
-        // "dataViewMaxOrganisationUnitLevel", "apps",
-        // "user" );
-        //
-        // persistedUser.setUserAuthorityGroups(
-        // userCredWrapperDto.getUserRoles() );
-        // hasChanged = true;
-        // }
-
-        if ( hasChanged )
-        {
             sessionFactory.getCurrentSession().update( persistedUser );
         }
 

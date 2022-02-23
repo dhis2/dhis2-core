@@ -63,7 +63,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -74,7 +73,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  */
 @Slf4j
 @JacksonXmlRootElement( localName = "user", namespace = DxfNamespaces.DXF_2_0 )
-@JsonPropertyOrder( { "username", "userCredentials" } )
 public class User
     extends BaseIdentifiableObject implements MetadataObject, UserDetails
 {
@@ -235,7 +233,7 @@ public class User
 
     // Backward comp. field, will be removed when front-end has converted to new
     // User model
-    private UserCredWrapperDto userCredentials;
+    private transient UserCredWrapperDto userCredentials;
 
     /**
      * Organisation units for data input and data capture operations. TODO move
@@ -659,6 +657,7 @@ public class User
         this.cogsDimensionConstraints = cogsDimensionConstraints;
     }
 
+    @JsonIgnore
     public List<String> getPreviousPasswords()
     {
         return previousPasswords;
@@ -1471,7 +1470,7 @@ public class User
     public UserCredWrapperDto getUserCredentials()
     {
         UserCredWrapperDto userCredWrapperDto = new UserCredWrapperDto();
-        copyProperties( this, userCredWrapperDto, "userCredentials" );
+        copyProperties( this, userCredWrapperDto, "userCredentials","password" );
         userCredWrapperDto.setUserRoles( this.getUserAuthorityGroups() );
         return userCredWrapperDto;
     }
@@ -1486,31 +1485,5 @@ public class User
     protected void setUserCredentials( UserCredWrapperDto user )
     {
         this.userCredentials = user;
-        // if ( user != null )
-        // {
-        // if ( user.getUsername() == null && this.getUsername() != null )
-        // {
-        // user.setUsername( this.getUsername() );
-        // }
-        //
-        // if ( user.getPassword() == null && this.getPassword() != null )
-        // {
-        // user.setPassword( this.getPassword() );
-        // } // add inverse
-        //
-        // copyProperties( user, this, "userCredentials", "uuid", "id", "uid",
-        // "access", "sharing",
-        // "created", "lastUpdated", "lastUpdatedBy", "code", "userInfo",
-        // "publicAccess", "name", "secret",
-        // "firstName", "lastName", "surname", "email", "phoneNumber",
-        // "introduction", "passwordLastUpdated",
-        // "gender", "birthday", "nationality", "employer", "education",
-        // "interests", "languages",
-        // "welcomeMessage", "lastCheckedInterpretations", "groups", "whatsApp",
-        // "facebookMessenger",
-        // "skype", "telegram", "twitter", "avatar",
-        // "dataViewMaxOrganisationUnitLevel", "apps",
-        // "user" );
-        // }
     }
 }
