@@ -34,6 +34,8 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.util.Strings;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.TrackerIdentifier;
@@ -107,7 +109,7 @@ public class EventProgramPreProcessor
                 }
             }
         }
-        // setAttributeOptionCombo(bundle);
+        setAttributeOptionCombo( bundle );
     }
 
     private void setAttributeOptionCombo( TrackerBundle bundle )
@@ -136,10 +138,17 @@ public class EventProgramPreProcessor
 
         for ( Event e : events )
         {
-            // TODO how to get the aoc? using category combo and category
-            // options?
-            // CategoryOptionCombo aoc = preheat.getCategoryOptionCombo();
-            // e.setAttributeOptionCombo(identifier.getIdentifier(aoc));
+            Program p = preheat.get( Program.class, e.getProgram() );
+
+            CategoryCombo categoryCombo = p.getCategoryCombo();
+            String cacheKey = e.getAttributeCategoryOptions() + categoryCombo.getUid();
+            Optional<String> cachedAOCId = preheat.getCachedEventAOCProgramCC( cacheKey );
+
+            if ( cachedAOCId.isPresent() )
+            {
+                CategoryOptionCombo aoc = preheat.getCategoryOptionCombo( cachedAOCId.get() );
+                e.setAttributeOptionCombo( identifier.getIdentifier( aoc ) );
+            }
         }
     }
 }
