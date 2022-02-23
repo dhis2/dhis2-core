@@ -185,16 +185,32 @@ public class DataValidator
      * @return the {@link CategoryOptionCombo}.
      * @throws IllegalQueryException if the validation fails.
      */
-    public CategoryOptionCombo getAndValidateAttributeOptionCombo( String cc, String cp )
+    public CategoryOptionCombo getAndValidateAttributeOptionCombo( String cc, Set<String> options )
     {
-        final CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( cc, cp, false );
+        final CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( cc, options, false );
 
         if ( attributeOptionCombo == null )
         {
-            throw new IllegalQueryException( new ErrorMessage( ErrorCode.E1104, String.format( "%s %s", cc, cp ) ) );
+            throw new IllegalQueryException( new ErrorMessage(
+                ErrorCode.E1104, String.format( "%s %s", cc, options ) ) );
         }
 
         return attributeOptionCombo;
+    }
+
+    /**
+     * Retrieves and verifies a category (attribute) option combo.
+     *
+     * @param cc the category combo identifier.
+     * @param cp the category option string.
+     * @return the {@link CategoryOptionCombo}.
+     * @throws IllegalQueryException if the validation fails.
+     */
+    public CategoryOptionCombo getAndValidateAttributeOptionCombo( String cc, String cp )
+    {
+        Set<String> options = TextUtils.splitToSet( cp, TextUtils.SEMICOLON );
+
+        return getAndValidateAttributeOptionCombo( cc, options );
     }
 
     /**

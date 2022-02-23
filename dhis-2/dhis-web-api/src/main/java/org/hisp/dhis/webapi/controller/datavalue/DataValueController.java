@@ -216,6 +216,8 @@ public class DataValueController
     {
         String value = dataValue.getValue();
 
+        DataValueCategoryDto attribute = dataValue.getAttribute();
+
         boolean strictPeriods = systemSettingManager
             .getBoolSetting( SettingKey.DATA_IMPORT_STRICT_PERIODS );
 
@@ -240,7 +242,8 @@ public class DataValueController
         CategoryOptionCombo categoryOptionCombo = dataValueValidation.getAndValidateCategoryOptionCombo(
             dataValue.getCategoryOptionCombo(), requireCategoryOptionCombo );
 
-        CategoryOptionCombo attributeOptionCombo = dataValueValidation.getAndValidateAttributeOptionCombo( cc, cp );
+        CategoryOptionCombo attributeOptionCombo = dataValueValidation.getAndValidateAttributeOptionCombo(
+            attribute.getCombo(), attribute.getOptions() );
 
         Period period = dataValueValidation.getAndValidatePeriod( dataValue.getPeriod() );
 
