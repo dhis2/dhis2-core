@@ -58,6 +58,9 @@ public class MissingCategoryOptionComboSupplier extends AbstractPreheatSupplier
     @Override
     public void preheatAdd( TrackerImportParams params, TrackerPreheat preheat )
     {
+        // TODO do I need to replicate what we do in EventProgramPreProcessor?
+        // for an event payload that has no program but only a program stage
+
         // get pairs of event program category combo and non-empty category
         // options
         List<Event> events = params.getEvents().stream()
@@ -82,6 +85,9 @@ public class MissingCategoryOptionComboSupplier extends AbstractPreheatSupplier
                 .getCategoryOptionCombo( p.getCategoryCombo(), getCategoryOptions( preheat, e ) );
 
             preheat.put( params.getIdentifiers().getCategoryOptionComboIdScheme(), aoc );
+
+            // TODO this should move to a pre-processor I guess.
+            e.setAttributeOptionCombo( params.getIdentifiers().getCategoryOptionComboIdScheme().getIdentifier( aoc ) );
         }
     }
 
