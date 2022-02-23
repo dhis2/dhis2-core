@@ -11,8 +11,7 @@ CREATE TABLE IF NOT EXISTS trackerdataview
     CONSTRAINT fk_trackerdataview_trackedentitytypeid    FOREIGN KEY (trackedentitytypeid)       REFERENCES trackedentitytype (trackedentitytypeid),
     CONSTRAINT fk_trackerdataview_programid              FOREIGN KEY (programid)                 REFERENCES program (programid),
     CONSTRAINT fk_trackerdataview_programstageid         FOREIGN KEY (programstageid)            REFERENCES programstage (programstageid)
-
-    );
+);
 
 -- trackerdataviewitem table
 CREATE TABLE IF NOT EXISTS trackerdataviewitem
@@ -27,11 +26,11 @@ CREATE TABLE IF NOT EXISTS trackerdataviewitem
     CONSTRAINT trackerdataviewid                                 FOREIGN KEY (trackerdataviewid)         REFERENCES trackerdataview (trackerdataviewid),
     CONSTRAINT fk_trackerdataviewitem_trackedentityattributeid   FOREIGN KEY (trackedentityattributeid)  REFERENCES trackedentityattribute (trackedentityattributeid),
     CONSTRAINT fk_trackerdataviewitem_dataelementid              FOREIGN KEY (dataelementid)             REFERENCES dataelement (dataelementid)
-    );
+);
 
 
 alter table relationshipconstraint
-    add column if not exists trackerdataviewid type bigint;
+    add column if not exists trackerdataviewid bigint;
 
 alter table relationshipconstraint
     add constraint fk_relationshipconstraint_trackerdataviewid
