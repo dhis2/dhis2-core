@@ -32,12 +32,14 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.util.Strings;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.springframework.stereotype.Component;
 
 /**
@@ -104,6 +106,40 @@ public class EventProgramPreProcessor
                     }
                 }
             }
+        }
+        // setAttributeOptionCombo(bundle);
+    }
+
+    private void setAttributeOptionCombo( TrackerBundle bundle )
+    {
+
+        // TODO we could set event.attributeOptionCombo and
+        // event.categoryOptions for any event.program.categoryCombo
+        // this should simplify code down the line, as it can expect these
+        // fields to be populated for valid events
+
+        TrackerPreheat preheat = bundle.getPreheat();
+        TrackerIdentifier identifier = bundle.getPreheat().getIdentifiers().getCategoryOptionComboIdScheme();
+
+        List<Event> events = bundle.getEvents().stream()
+            .filter( e -> {
+                Program p = preheat.get( Program.class, e.getProgram() );
+                if ( p != null && !p.getCategoryCombo().isDefault() )
+                {
+                    return true;
+                }
+                return false;
+            } )
+            .filter( e -> StringUtils.isBlank( e.getAttributeOptionCombo() )
+                && !StringUtils.isBlank( e.getAttributeCategoryOptions() ) )
+            .collect( Collectors.toList() );
+
+        for ( Event e : events )
+        {
+            // TODO how to get the aoc? using category combo and category
+            // options?
+            // CategoryOptionCombo aoc = preheat.getCategoryOptionCombo();
+            // e.setAttributeOptionCombo(identifier.getIdentifier(aoc));
         }
     }
 }
