@@ -68,6 +68,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.webdomain.DataValueFollowUpRequest;
 import org.hisp.dhis.webapi.webdomain.datavalue.DataValueCategoryDto;
 import org.springframework.stereotype.Component;
@@ -185,14 +186,17 @@ public class DataValidator
      * @return the {@link CategoryOptionCombo}.
      * @throws IllegalQueryException if the validation fails.
      */
-    public CategoryOptionCombo getAndValidateAttributeOptionCombo( String cc, Set<String> options )
+    public CategoryOptionCombo getAndValidateAttributeOptionCombo( DataValueCategoryDto attribute )
     {
-        final CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( cc, options, false );
+        attribute = ObjectUtils.firstNonNull( attribute, new DataValueCategoryDto() );
+
+        final CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo(
+            attribute.getCombo(), attribute.getOptions(), false );
 
         if ( attributeOptionCombo == null )
         {
-            throw new IllegalQueryException( new ErrorMessage(
-                ErrorCode.E1104, String.format( "%s %s", cc, options ) ) );
+            throw new IllegalQueryException( new ErrorMessage( ErrorCode.E1104,
+                String.format( "%s %s", attribute.getCombo(), attribute.getOptions() ) ) );
         }
 
         return attributeOptionCombo;
@@ -210,7 +214,9 @@ public class DataValidator
     {
         Set<String> options = TextUtils.splitToSet( cp, TextUtils.SEMICOLON );
 
-        return getAndValidateAttributeOptionCombo( cc, options );
+        DataValueCategoryDto attribute = new DataValueCategoryDto( cc, options );
+
+        return getAndValidateAttributeOptionCombo( attribute );
     }
 
     /**

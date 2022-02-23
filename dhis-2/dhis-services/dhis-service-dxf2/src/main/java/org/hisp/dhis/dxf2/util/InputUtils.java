@@ -155,14 +155,14 @@ public class InputUtils
      * case of invalid input.
      *
      * @param categoryCombo the category combo.
-     * @param opts list of category option uid.
+     * @param options list of category option identifiers.
      * @return the attribute option combo identified from the given input, or
      *         null if the input was invalid.
      */
-    public CategoryOptionCombo getAttributeOptionCombo( CategoryCombo categoryCombo, Set<String> opts,
+    public CategoryOptionCombo getAttributeOptionCombo( CategoryCombo categoryCombo, Set<String> options,
         IdScheme idScheme )
     {
-        return getAttributeOptionCombo( categoryCombo, opts, null, idScheme );
+        return getAttributeOptionCombo( categoryCombo, options, null, idScheme );
     }
 
     /**
@@ -171,13 +171,13 @@ public class InputUtils
      * case of invalid input.
      *
      * @param categoryCombo the category combo.
-     * @param opts list of category option uid.
+     * @param options list of category option identifiers.
      * @param attributeOptionCombo the explicit attribute option combo
      *        identifier.
      * @return the attribute option combo identified from the given input, or
      *         null if the input was invalid.
      */
-    public CategoryOptionCombo getAttributeOptionCombo( CategoryCombo categoryCombo, Set<String> opts,
+    public CategoryOptionCombo getAttributeOptionCombo( CategoryCombo categoryCombo, Set<String> options,
         String attributeOptionCombo, IdScheme idScheme )
     {
         if ( categoryCombo == null )
@@ -191,11 +191,11 @@ public class InputUtils
 
         CategoryOptionCombo attrOptCombo = null;
 
-        if ( opts != null )
+        if ( options != null )
         {
             Set<CategoryOption> categoryOptions = new HashSet<>();
 
-            for ( String uid : opts )
+            for ( String uid : options )
             {
                 CategoryOption categoryOption = idObjectManager.getObject( CategoryOption.class, idScheme, uid );
 

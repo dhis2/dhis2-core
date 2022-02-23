@@ -242,8 +242,7 @@ public class DataValueController
         CategoryOptionCombo categoryOptionCombo = dataValueValidation.getAndValidateCategoryOptionCombo(
             dataValue.getCategoryOptionCombo(), requireCategoryOptionCombo );
 
-        CategoryOptionCombo attributeOptionCombo = dataValueValidation.getAndValidateAttributeOptionCombo(
-            attribute.getCombo(), attribute.getOptions() );
+        CategoryOptionCombo attributeOptionCombo = dataValueValidation.getAndValidateAttributeOptionCombo( attribute );
 
         Period period = dataValueValidation.getAndValidatePeriod( dataValue.getPeriod() );
 
