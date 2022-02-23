@@ -181,8 +181,7 @@ public class DataValidator
     /**
      * Retrieves and verifies a category (attribute) option combo.
      *
-     * @param cc the category combo identifier.
-     * @param options the set of category option identifiers.
+     * @param attribute the {@link DataValueCategoryDto}.
      * @return the {@link CategoryOptionCombo}.
      * @throws IllegalQueryException if the validation fails.
      */
