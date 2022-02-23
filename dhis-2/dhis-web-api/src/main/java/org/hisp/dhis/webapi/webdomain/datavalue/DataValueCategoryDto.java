@@ -38,7 +38,7 @@ import lombok.experimental.Accessors;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * @author viet@dhis2.org
+ * @author Lars Helge Overland
  */
 @Getter
 @Setter
