@@ -136,37 +136,28 @@ public class TrackerPreheat
     private Map<String, PeriodType> periodTypeMap = new HashMap<>();
 
     /**
-     * Internal map of
+     * Internal map of category combo + category options (key) to category
+     * option combo (value).
+     *
+     * Category option combo value will be in the idScheme defined by the user
+     * on import.
      */
     private Map<String, String> cachedEventAOCProgramCC = new HashMap<>();
 
     public void putCachedEventAOCProgramCC( Program program, String categoryOptions, CategoryOptionCombo aoc )
     {
-        String key = categoryOptions + program.getCategoryCombo().getUid();
-        cachedEventAOCProgramCC.put( key, getIdentifiers().getCategoryOptionComboIdScheme().getIdentifier( aoc ) );
+        cachedEventAOCProgramCC.put( attributeOptionComboCacheKey( categoryOptions, program ),
+            getIdentifiers().getCategoryOptionComboIdScheme().getIdentifier( aoc ) );
     }
 
-    public void putCachedEventAOCProgramCC( String cacheKey, String value )
+    private String attributeOptionComboCacheKey( String categoryOptions, Program program )
     {
-        // TODO move logic of calculating the cacheKey inside of this
-        cachedEventAOCProgramCC.put( cacheKey, value );
+        return categoryOptions + program.getCategoryCombo().getUid();
     }
 
     public Optional<String> getCachedEventAOCProgramCC( Program program, String categoryOptions )
     {
-        // TODO extract method to generate key as its duplicated in put and get
-        String key = categoryOptions + program.getCategoryCombo().getUid();
-        String cached = cachedEventAOCProgramCC.get( key );
-        if ( cached == null )
-        {
-            return Optional.empty();
-        }
-        return Optional.of( cached );
-    }
-
-    public Optional<String> getCachedEventAOCProgramCC( String cacheKey )
-    {
-        String cached = cachedEventAOCProgramCC.get( cacheKey );
+        String cached = cachedEventAOCProgramCC.get( attributeOptionComboCacheKey( categoryOptions, program ) );
         if ( cached == null )
         {
             return Optional.empty();
