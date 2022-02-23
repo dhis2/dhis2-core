@@ -17,7 +17,7 @@
     <module>dhis-web-dataentry</module>
     <module>dhis-web-approval</module>
     <module>dhis-web-portal</module>
-<!--    <module>dhis-web-apps</module>-->
+    <module>dhis-web-apps</module>
   </modules>
 
   <profiles>
