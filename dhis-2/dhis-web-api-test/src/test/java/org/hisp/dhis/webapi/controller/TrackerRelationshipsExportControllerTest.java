@@ -112,8 +112,17 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
     @Test
     void getRelationshipsMissingParam()
     {
-        assertEquals( "Missing required parameter 'tei', 'enrollment' or 'event'.",
+        assertEquals( "Missing required parameter 'trackedEntity', 'enrollment' or 'event'.",
             GET( "/tracker/relationships" )
+                .error( HttpStatus.BAD_REQUEST )
+                .getMessage() );
+    }
+
+    @Test
+    void getRelationshipsBadRequestWithMultipleParams()
+    {
+        assertEquals( "Only one of parameters 'trackedEntity', 'enrollment' or 'event' is allowed.",
+            GET( "/tracker/relationships?trackedEntity=Hq3Kc6HK4OZ&enrollment=Hq3Kc6HK4OZ&event=Hq3Kc6HK4OZ" )
                 .error( HttpStatus.BAD_REQUEST )
                 .getMessage() );
     }
@@ -182,6 +191,23 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
             RelationshipEntity.TRACKED_ENTITY_INSTANCE );
         Relationship r = relationship( rType, programInstance, tei );
 
+        JsonObject relationship = GET( "/tracker/relationships?trackedEntity=" + tei.getUid() )
+            .content( HttpStatus.OK );
+
+        JsonObject jsonRelationship = assertFirstRelationship( relationship, r );
+        assertEnrollment( jsonRelationship.getObject( "from" ), programInstance );
+        assertTrackedEntity( jsonRelationship.getObject( "to" ), tei );
+    }
+
+    @Test
+    void getRelationshipsByTei()
+    {
+        TrackedEntityInstance tei = trackedEntityInstance();
+        ProgramInstance programInstance = programInstance( tei );
+        RelationshipType rType = relationshipType( RelationshipEntity.PROGRAM_INSTANCE,
+            RelationshipEntity.TRACKED_ENTITY_INSTANCE );
+        Relationship r = relationship( rType, programInstance, tei );
+
         JsonObject relationship = GET( "/tracker/relationships?tei=" + tei.getUid() )
             .content( HttpStatus.OK );
 
@@ -195,26 +221,7 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
     {
 
         assertEquals( "No trackedEntity 'Hq3Kc6HK4OZ' found.",
-            GET( "/tracker/relationships?tei=Hq3Kc6HK4OZ" )
-                .error( HttpStatus.NOT_FOUND )
-                .getMessage() );
-    }
-
-    @Test
-    void getRelationshipsByMultipleParams()
-    {
-        TrackedEntityInstance tei = trackedEntityInstance();
-        ProgramInstance programInstance = programInstance( tei );
-
-        RelationshipType rType = relationshipType( RelationshipEntity.PROGRAM_INSTANCE,
-            RelationshipEntity.TRACKED_ENTITY_INSTANCE );
-        Relationship r = relationship( rType, programInstance, tei );
-
-        // the query parameters are processed in order tei, enrollment, event
-        // the first query parameter (unless another param found relationships)
-        // to find no relationships causes response NOT_FOUND
-        assertEquals( "No trackedEntity 'Hq3Kc6HK4OZ' found.",
-            GET( "/tracker/relationships?tei=Hq3Kc6HK4OZ&enrollment=" + programInstance.getUid() )
+            GET( "/tracker/relationships?trackedEntity=Hq3Kc6HK4OZ" )
                 .error( HttpStatus.NOT_FOUND )
                 .getMessage() );
     }
@@ -298,11 +305,6 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
     private JsonObject assertFirstRelationship( JsonObject body, Relationship r )
     {
         return assertNthRelationship( body, r, 0 );
-    }
-
-    private JsonObject assertSecondRelationship( JsonObject body, Relationship r )
-    {
-        return assertNthRelationship( body, r, 1 );
     }
 
     private JsonObject assertNthRelationship( JsonObject body, Relationship r, int n )
