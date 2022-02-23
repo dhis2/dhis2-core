@@ -1470,7 +1470,7 @@ public class User
     public UserCredWrapperDto getUserCredentials()
     {
         UserCredWrapperDto userCredWrapperDto = new UserCredWrapperDto();
-        copyProperties( this, userCredWrapperDto, "userCredentials","password" );
+        copyProperties( this, userCredWrapperDto, "userCredentials", "password" );
         userCredWrapperDto.setUserRoles( this.getUserAuthorityGroups() );
         return userCredWrapperDto;
     }
