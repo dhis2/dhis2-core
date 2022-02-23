@@ -262,9 +262,9 @@ public class EventController
                 conflict( "Illegal attribute option combo identifier: " + attributeCc + " " + attributeCos ) );
         }
 
-        Set<String> eventIds = TextUtils.splitToArray( event, TextUtils.SEMICOLON );
+        Set<String> eventIds = TextUtils.splitToSet( event, TextUtils.SEMICOLON );
 
-        Set<String> assignedUserIds = TextUtils.splitToArray( assignedUser, TextUtils.SEMICOLON );
+        Set<String> assignedUserIds = TextUtils.splitToSet( assignedUser, TextUtils.SEMICOLON );
 
         lastUpdatedStartDate = lastUpdatedStartDate != null ? lastUpdatedStartDate : lastUpdated;
 
@@ -336,9 +336,9 @@ public class EventController
                 conflict( "Illegal attribute option combo identifier: " + attributeCc + " " + attributeCos ) );
         }
 
-        Set<String> eventIds = TextUtils.splitToArray( event, TextUtils.SEMICOLON );
+        Set<String> eventIds = TextUtils.splitToSet( event, TextUtils.SEMICOLON );
 
-        Set<String> assignedUserIds = TextUtils.splitToArray( assignedUser, TextUtils.SEMICOLON );
+        Set<String> assignedUserIds = TextUtils.splitToSet( assignedUser, TextUtils.SEMICOLON );
 
         lastUpdatedStartDate = lastUpdatedStartDate != null ? lastUpdatedStartDate : lastUpdated;
 
@@ -409,9 +409,9 @@ public class EventController
                 conflict( "Illegal attribute option combo identifier: " + attributeCc + " " + attributeCos ) );
         }
 
-        Set<String> eventIds = TextUtils.splitToArray( event, TextUtils.SEMICOLON );
+        Set<String> eventIds = TextUtils.splitToSet( event, TextUtils.SEMICOLON );
 
-        Set<String> assignedUserIds = TextUtils.splitToArray( assignedUser, TextUtils.SEMICOLON );
+        Set<String> assignedUserIds = TextUtils.splitToSet( assignedUser, TextUtils.SEMICOLON );
 
         lastUpdatedStartDate = lastUpdatedStartDate != null ? lastUpdatedStartDate : lastUpdated;
 
@@ -483,9 +483,9 @@ public class EventController
                 conflict( "Illegal attribute option combo identifier: " + attributeCc + " " + attributeCos ) );
         }
 
-        Set<String> eventIds = TextUtils.splitToArray( event, TextUtils.SEMICOLON );
+        Set<String> eventIds = TextUtils.splitToSet( event, TextUtils.SEMICOLON );
 
-        Set<String> assignedUserIds = TextUtils.splitToArray( assignedUser, TextUtils.SEMICOLON );
+        Set<String> assignedUserIds = TextUtils.splitToSet( assignedUser, TextUtils.SEMICOLON );
 
         lastUpdatedStartDate = lastUpdatedStartDate != null ? lastUpdatedStartDate : lastUpdated;
 

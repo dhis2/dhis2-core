@@ -72,6 +72,8 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.FileResourceUtils;
 import org.hisp.dhis.webapi.webdomain.DataValueFollowUpRequest;
 import org.hisp.dhis.webapi.webdomain.DataValuesFollowUpRequest;
+import org.hisp.dhis.webapi.webdomain.datavalue.DataValueCategoryDto;
+import org.hisp.dhis.webapi.webdomain.datavalue.DataValueDto;
 import org.jclouds.rest.AuthorizationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -123,7 +125,7 @@ public class DataValueController
     // ---------------------------------------------------------------------
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_DATAVALUE_ADD')" )
-    @PostMapping
+    @PostMapping( consumes = "application/x-www-form-urlencoded" )
     @ResponseStatus( HttpStatus.CREATED )
     public void saveDataValue(
         @RequestParam String de,
@@ -137,11 +139,34 @@ public class DataValueController
         @RequestParam( required = false ) String comment,
         @RequestParam( required = false ) Boolean followUp,
         @RequestParam( required = false ) boolean force,
-        @CurrentUser User currentUser,
-        HttpServletResponse response )
+        @CurrentUser User currentUser, HttpServletResponse response )
         throws WebMessageException
     {
-        saveDataValueInternal( de, co, cc, cp, pe, ou, ds, value, comment, followUp, force, currentUser );
+        DataValueCategoryDto attribute = dataValueValidation.getDataValueCategoryDto( cc, cp );
+
+        DataValueDto dataValue = new DataValueDto()
+            .setDataElement( de )
+            .setCategoryOptionCombo( co )
+            .setAttribute( attribute )
+            .setPeriod( pe )
+            .setOrgUnit( ou )
+            .setDataSet( ds )
+            .setValue( value )
+            .setComment( comment )
+            .setFollowUp( followUp )
+            .setForce( force );
+
+        saveDataValueInternal( dataValue, currentUser );
+    }
+
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_DATAVALUE_ADD')" )
+    @PostMapping( consumes = "application/json" )
+    @ResponseStatus( HttpStatus.CREATED )
+    public void saveDataValueWithBody( @RequestBody DataValueDto dataValue,
+        @CurrentUser User currentUser, HttpServletResponse response )
+        throws WebMessageException
+    {
+        saveDataValueInternal( dataValue, currentUser );
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_DATAVALUE_ADD')" )
@@ -162,10 +187,23 @@ public class DataValueController
         throws WebMessageException,
         IOException
     {
+        DataValueCategoryDto attribute = dataValueValidation.getDataValueCategoryDto( cc, cp );
+
         FileResource fileResource = fileResourceUtils.saveFileResource( file, FileResourceDomain.DATA_VALUE );
 
-        saveDataValueInternal( de, co, cc, cp, pe, ou, ds, fileResource.getUid(), comment, followUp, force,
-            currentUser );
+        DataValueDto dataValue = new DataValueDto()
+            .setDataElement( de )
+            .setCategoryOptionCombo( co )
+            .setAttribute( attribute )
+            .setPeriod( pe )
+            .setOrgUnit( ou )
+            .setDataSet( ds )
+            .setValue( fileResource.getUid() )
+            .setComment( comment )
+            .setFollowUp( followUp )
+            .setForce( force );
+
+        saveDataValueInternal( dataValue, currentUser );
 
         WebMessage webMessage = new WebMessage( Status.OK, HttpStatus.ACCEPTED );
         webMessage.setResponse( new FileResourceWebMessageResponse( fileResource ) );
@@ -173,11 +211,11 @@ public class DataValueController
         return webMessage;
     }
 
-    private void saveDataValueInternal( String de, String co, String cc,
-        String cp, String pe, String ou, String ds, String value,
-        String comment, Boolean followUp, boolean force, User currentUser )
+    private void saveDataValueInternal( DataValueDto dataValue, User currentUser )
         throws WebMessageException
     {
+        String value = dataValue.getValue();
+
         boolean strictPeriods = systemSettingManager
             .getBoolSetting( SettingKey.DATA_IMPORT_STRICT_PERIODS );
 
@@ -197,28 +235,29 @@ public class DataValueController
         // Input validation
         // ---------------------------------------------------------------------
 
-        DataElement dataElement = dataValueValidation.getAndValidateDataElement( de );
+        DataElement dataElement = dataValueValidation.getAndValidateDataElement( dataValue.getDataElement() );
 
-        CategoryOptionCombo categoryOptionCombo = dataValueValidation.getAndValidateCategoryOptionCombo( co,
-            requireCategoryOptionCombo );
+        CategoryOptionCombo categoryOptionCombo = dataValueValidation.getAndValidateCategoryOptionCombo(
+            dataValue.getCategoryOptionCombo(), requireCategoryOptionCombo );
 
         CategoryOptionCombo attributeOptionCombo = dataValueValidation.getAndValidateAttributeOptionCombo( cc, cp );
 
-        Period period = dataValueValidation.getAndValidatePeriod( pe );
+        Period period = dataValueValidation.getAndValidatePeriod( dataValue.getPeriod() );
 
-        OrganisationUnit organisationUnit = dataValueValidation.getAndValidateOrganisationUnit( ou );
+        OrganisationUnit organisationUnit = dataValueValidation
+            .getAndValidateOrganisationUnit( dataValue.getOrgUnit() );
 
         dataValueValidation.validateOrganisationUnitPeriod( organisationUnit, period );
 
-        DataSet dataSet = dataValueValidation.getAndValidateOptionalDataSet( ds, dataElement );
+        DataSet dataSet = dataValueValidation.getAndValidateOptionalDataSet( dataValue.getDataSet(), dataElement );
 
         dataValueValidation.validateInvalidFuturePeriod( period, dataElement );
 
         dataValueValidation.validateAttributeOptionCombo( attributeOptionCombo, period, dataSet, dataElement );
 
-        value = dataValueValidation.validateAndNormalizeDataValue( value, dataElement );
+        value = dataValueValidation.validateAndNormalizeDataValue( dataValue.getValue(), dataElement );
 
-        dataValueValidation.validateComment( comment );
+        dataValueValidation.validateComment( dataValue.getComment() );
 
         dataValueValidation.validateOptionSet( value, dataElement.getOptionSet(), dataElement );
 
@@ -255,7 +294,7 @@ public class DataValueController
         // Locking validation
         // ---------------------------------------------------------------------
 
-        if ( !inputUtils.canForceDataInput( currentUser, force ) )
+        if ( !inputUtils.canForceDataInput( currentUser, dataValue.isForce() ) )
         {
             dataValueValidation.validateDataSetNotLocked( currentUser, dataElement, period, dataSet, organisationUnit,
                 attributeOptionCombo );
@@ -293,15 +332,15 @@ public class DataValueController
             }
 
             DataValue newValue = new DataValue( dataElement, period, organisationUnit, categoryOptionCombo,
-                attributeOptionCombo,
-                StringUtils.trimToNull( value ), storedBy, now, StringUtils.trimToNull( comment ) );
-            newValue.setFollowup( followUp );
+                attributeOptionCombo, StringUtils.trimToNull( value ), storedBy, now,
+                StringUtils.trimToNull( dataValue.getComment() ) );
+            newValue.setFollowup( dataValue.getFollowUp() );
 
             dataValueService.addDataValue( newValue );
         }
         else
         {
-            if ( value == null && comment == null && followUp == null
+            if ( value == null && dataValue.getComment() == null && dataValue.getFollowUp() == null
                 && ValueType.TRUE_ONLY.equals( dataElement.getValueType() ) )
             {
                 dataValueService.deleteDataValue( persistedDataValue );
@@ -344,12 +383,12 @@ public class DataValueController
                 persistedDataValue.setValue( StringUtils.trimToNull( value ) );
             }
 
-            if ( comment != null )
+            if ( dataValue.getComment() != null )
             {
-                persistedDataValue.setComment( StringUtils.trimToNull( comment ) );
+                persistedDataValue.setComment( StringUtils.trimToNull( dataValue.getComment() ) );
             }
 
-            if ( followUp != null )
+            if ( dataValue.getFollowUp() != null )
             {
                 persistedDataValue.toggleFollowUp();
             }

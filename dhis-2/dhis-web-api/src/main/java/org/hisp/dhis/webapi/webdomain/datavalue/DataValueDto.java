@@ -25,91 +25,63 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.datavalue;
+package org.hisp.dhis.webapi.webdomain.datavalue;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.ToString;
-
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.dxf2.datavalueset.DataValueEntry;
+import lombok.experimental.Accessors;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Lars Helge Overland
  */
 @Getter
 @Setter
-@ToString
+@Accessors( chain = true )
 @NoArgsConstructor
-@JacksonXmlRootElement( localName = "dataValue", namespace = DxfNamespaces.DXF_2_0 )
-public final class DataValue implements DataValueEntry
+public class DataValueDto
 {
     @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
     private String dataElement;
 
     @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
     private String period;
 
     @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
     private String orgUnit;
 
     @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
     private String categoryOptionCombo;
 
-    /**
-     * Attribute specified as category option combo.
-     */
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    private String attributeOptionCombo;
-
-    /**
-     * Attribute specified as category combo and category options.
-     */
     @JsonProperty
     @JacksonXmlProperty
-    private DataValueCategory attribute;
+    private DataValueCategoryDto attribute;
 
     @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
+    private String dataSet;
+
+    @JsonProperty
     private String value;
 
     @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    private String storedBy;
-
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    private String created;
-
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    private String lastUpdated;
-
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
     private String comment;
 
     @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    private boolean followup;
+    private Boolean followUp;
 
     @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    private Boolean deleted;
+    private Boolean force;
 
-    @Override
-    public boolean getFollowup()
+    public boolean isFollowUp()
     {
-        return followup;
+        return followUp != null && followUp;
+    }
+
+    public boolean isForce()
+    {
+        return force != null && force;
     }
 }

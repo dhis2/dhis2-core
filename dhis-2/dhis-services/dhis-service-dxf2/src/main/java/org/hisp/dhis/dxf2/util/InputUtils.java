@@ -100,7 +100,7 @@ public class InputUtils
 
     private CategoryOptionCombo getAttributeOptionComboInternal( String cc, String cp, boolean skipFallback )
     {
-        Set<String> opts = TextUtils.splitToArray( cp, TextUtils.SEMICOLON );
+        Set<String> opts = TextUtils.splitToSet( cp, TextUtils.SEMICOLON );
 
         // ---------------------------------------------------------------------
         // Attribute category combo validation
