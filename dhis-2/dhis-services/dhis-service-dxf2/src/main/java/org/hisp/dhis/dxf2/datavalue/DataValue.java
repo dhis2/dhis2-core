@@ -65,19 +65,9 @@ public final class DataValue implements DataValueEntry
     @JacksonXmlProperty( isAttribute = true )
     private String categoryOptionCombo;
 
-    /**
-     * Attribute specified as category option combo.
-     */
     @JsonProperty
     @JacksonXmlProperty( isAttribute = true )
     private String attributeOptionCombo;
-
-    /**
-     * Attribute specified as category combo and category options.
-     */
-    @JsonProperty
-    @JacksonXmlProperty
-    private DataValueCategory attribute;
 
     @JsonProperty
     @JacksonXmlProperty( isAttribute = true )
