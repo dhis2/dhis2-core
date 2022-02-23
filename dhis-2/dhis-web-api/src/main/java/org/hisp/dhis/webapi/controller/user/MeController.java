@@ -36,7 +36,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -76,6 +75,7 @@ import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.PasswordValidationResult;
 import org.hisp.dhis.user.PasswordValidationService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserCredWrapperDto;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
@@ -174,16 +174,21 @@ public class MeController
             user.setAccess( access );
         }
 
-        MeDto meDto = new MeDto( user,
-            userSettingService.getUserSettingsWithFallbackByUserAsMap( user, USER_SETTING_KEYS, true ),
-            programService.getUserPrograms().stream().map( BaseIdentifiableObject::getUid )
-                .collect( Collectors.toList() ),
-            new ArrayList<>( user.getAllAuthorities() ),
-            dataSetService.getUserDataRead( user ).stream().map( BaseIdentifiableObject::getUid )
-                .collect( Collectors.toList() ) );
+        Map<String, Serializable> userSettings = userSettingService.getUserSettingsWithFallbackByUserAsMap(
+            user, USER_SETTING_KEYS, true );
+
+        List<String> programs = programService.getUserPrograms().stream().map( BaseIdentifiableObject::getUid )
+            .collect( Collectors.toList() );
+
+        List<String> dataSets = dataSetService.getUserDataRead( user ).stream().map( BaseIdentifiableObject::getUid )
+            .collect( Collectors.toList() );
+
+        MeDto meDto = new MeDto( user, userSettings, programs, dataSets );
 
         UserCredWrapperDto userCredWrapperDto = new UserCredWrapperDto();
+        userCredWrapperDto.setUserRoles( user.getUserAuthorityGroups() );
         copyProperties( meDto, userCredWrapperDto, "userCredentials" );
+
         meDto.setUserCredentials( userCredWrapperDto );
 
         var params = org.hisp.dhis.fieldfiltering.FieldFilterParams.of( meDto, fields );

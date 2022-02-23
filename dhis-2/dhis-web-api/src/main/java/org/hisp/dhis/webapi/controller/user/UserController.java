@@ -32,6 +32,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importReport;
+import static org.springframework.beans.BeanUtils.copyProperties;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 import static org.springframework.http.MediaType.TEXT_XML_VALUE;
@@ -83,6 +84,7 @@ import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserCredWrapperDto;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserInvitationStatus;
 import org.hisp.dhis.user.UserQueryParams;
@@ -580,6 +582,21 @@ public class UserController
         throws Exception
     {
         User parsed = renderService.fromJson( request.getInputStream(), getEntityClass() );
+
+        UserCredWrapperDto userCredentialsRaw = parsed.getUserCredentialsRaw();
+
+        if ( userCredentialsRaw != null )
+        {
+            copyProperties( userCredentialsRaw, parsed, "userCredentials", "uuid", "id", "uid", "access", "sharing",
+                "created", "lastUpdated", "lastUpdatedBy", "code", "userInfo", "publicAccess", "name", "secret",
+                "firstName", "lastName", "surname", "email", "phoneNumber", "introduction", "passwordLastUpdated",
+                "gender", "birthday", "nationality", "employer", "education", "interests", "languages",
+                "welcomeMessage", "lastCheckedInterpretations", "groups", "whatsApp", "facebookMessenger",
+                "skype", "telegram", "twitter", "avatar",
+                "dataViewMaxOrganisationUnitLevel", "apps",
+                "user" );
+            parsed.setUserAuthorityGroups( userCredentialsRaw.getUserRoles() );
+        }
 
         return importReport( updateUser( pvUid, parsed ) )
             .withPlainResponseBefore( DhisApiVersion.V38 );

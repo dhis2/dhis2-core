@@ -1069,7 +1069,7 @@ class AclServiceTest extends TransactionalIntegrationTest
         userAuthorityGroup.getAuthorities().add( "F_EVENT_VISUALIZATION_PUBLIC_ADD" );
         manager.save( userAuthorityGroup );
         User userB = createUser( 'B' );
-        userB.getUserCredentials().getUserAuthorityGroups().add( userAuthorityGroup );
+        userB.getUserAuthorityGroups().add( userAuthorityGroup );
         manager.save( userB );
         eventVisualization.getSharing().addUserAccess( new UserAccess( userB, AccessStringHelper.FULL ) );
         manager.update( eventVisualization );
@@ -1124,7 +1124,7 @@ class AclServiceTest extends TransactionalIntegrationTest
         userAuthorityGroup.getAuthorities().add( "F_EVENT_VISUALIZATION_PUBLIC_ADD" );
         manager.save( userAuthorityGroup );
         User userB = createUser( 'B' );
-        userB.getUserCredentials().getUserAuthorityGroups().add( userAuthorityGroup );
+        userB.getUserAuthorityGroups().add( userAuthorityGroup );
         manager.save( userB );
         manager.update( eventVisualization );
         assertFalse( aclService.canUpdate( userB, eventVisualization ) );

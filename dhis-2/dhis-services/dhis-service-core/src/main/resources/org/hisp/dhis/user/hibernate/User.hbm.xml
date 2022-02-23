@@ -69,10 +69,10 @@
 
     <many-to-one name="avatar" class="org.hisp.dhis.fileresource.FileResource" column="avatar" foreign-key="fk_user_fileresourceid" />
 
-    <set name="groups" table="usergroupmembers" inverse="true">
+    <set name="groups" table="usergroupmembers" inverse="true" cascade="all">
       <cache usage="read-write" />
-      <key column="userid" />
-      <many-to-many class="org.hisp.dhis.user.UserGroup" column="usergroupid" />
+      <key column="userid" foreign-key="fk_usergroupmembers_userid"/>
+      <many-to-many class="org.hisp.dhis.user.UserGroup" column="usergroupid" foreign-key=""/>
     </set>
 
     <set name="organisationUnits" table="usermembership">

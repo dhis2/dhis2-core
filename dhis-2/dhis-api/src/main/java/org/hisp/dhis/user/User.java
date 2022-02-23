@@ -29,7 +29,6 @@ package org.hisp.dhis.user;
 
 import static org.springframework.beans.BeanUtils.copyProperties;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -41,7 +40,6 @@ import java.util.UUID;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.Category;
@@ -65,6 +63,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -75,6 +74,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  */
 @Slf4j
 @JacksonXmlRootElement( localName = "user", namespace = DxfNamespaces.DXF_2_0 )
+@JsonPropertyOrder( { "username", "userCredentials" } )
 public class User
     extends BaseIdentifiableObject implements MetadataObject, UserDetails
 {
@@ -232,6 +232,10 @@ public class User
     private String twitter;
 
     private FileResource avatar;
+
+    // Backward comp. field, will be removed when front-end has converted to new
+    // User model
+    private UserCredWrapperDto userCredentials;
 
     /**
      * Organisation units for data input and data capture operations. TODO move
@@ -1300,51 +1304,6 @@ public class User
         this.lastCheckedInterpretations = lastCheckedInterpretations;
     }
 
-    @JsonProperty
-    // This is a temporary fix to maintain backwards compatibility with the old
-    // UserCredentials class.
-    public UserCredWrapper getUserCredentials()
-    {
-
-        UserCredWrapper userCredWrapper = new UserCredWrapper();
-        try
-        {
-            BeanUtils.copyProperties( userCredWrapper, this );
-        }
-        catch ( IllegalAccessException | InvocationTargetException e )
-        {
-            log.error( "Error copying properties", e );
-        }
-        return userCredWrapper;
-    }
-
-    // This is a temporary fix to maintain backwards compatibility with the old
-    // UserCredentials class.
-    protected void setUserCredentials( User user )
-    {
-        if ( user != null )
-        {
-            if ( user.getUsername() == null && this.getUsername() != null )
-            {
-                user.setUsername( this.getUsername() );
-            }
-
-            if ( user.getPassword() == null && this.getPassword() != null )
-            {
-                user.setPassword( this.getPassword() );
-            } // add inverse
-
-            copyProperties( user, this, "userCredentials", "uuid", "id", "uid", "access", "sharing",
-                "created", "lastUpdated", "lastUpdatedBy", "code", "userInfo", "publicAccess", "name", "secret",
-                "firstName", "lastName", "surname", "email", "phoneNumber", "introduction", "passwordLastUpdated",
-                "gender", "birthday", "nationality", "employer", "education", "interests", "languages",
-                "welcomeMessage", "lastCheckedInterpretations", "groups", "whatsApp", "facebookMessenger",
-                "skype", "telegram", "twitter", "avatar",
-                "dataViewMaxOrganisationUnitLevel", "apps",
-                "user" );
-        }
-    }
-
     @JsonProperty( "userGroups" )
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
     @JacksonXmlElementWrapper( localName = "userGroups", namespace = DxfNamespaces.DXF_2_0 )
@@ -1506,4 +1465,52 @@ public class User
         return user != null ? user.getUsername() : defaultValue;
     }
 
+    // This is a temporary fix to maintain backwards compatibility with the old
+    // UserCredentials class. This method should not be used in new code!
+    @JsonProperty
+    public UserCredWrapperDto getUserCredentials()
+    {
+        UserCredWrapperDto userCredWrapperDto = new UserCredWrapperDto();
+        copyProperties( this, userCredWrapperDto, "userCredentials" );
+        userCredWrapperDto.setUserRoles( this.getUserAuthorityGroups() );
+        return userCredWrapperDto;
+    }
+
+    public UserCredWrapperDto getUserCredentialsRaw()
+    {
+        return this.userCredentials;
+    }
+
+    // This is a temporary fix to maintain backwards compatibility with the old
+    // UserCredentials class. This method should not be used in new code!
+    protected void setUserCredentials( UserCredWrapperDto user )
+    {
+        this.userCredentials = user;
+        // if ( user != null )
+        // {
+        // if ( user.getUsername() == null && this.getUsername() != null )
+        // {
+        // user.setUsername( this.getUsername() );
+        // }
+        //
+        // if ( user.getPassword() == null && this.getPassword() != null )
+        // {
+        // user.setPassword( this.getPassword() );
+        // } // add inverse
+        //
+        // copyProperties( user, this, "userCredentials", "uuid", "id", "uid",
+        // "access", "sharing",
+        // "created", "lastUpdated", "lastUpdatedBy", "code", "userInfo",
+        // "publicAccess", "name", "secret",
+        // "firstName", "lastName", "surname", "email", "phoneNumber",
+        // "introduction", "passwordLastUpdated",
+        // "gender", "birthday", "nationality", "employer", "education",
+        // "interests", "languages",
+        // "welcomeMessage", "lastCheckedInterpretations", "groups", "whatsApp",
+        // "facebookMessenger",
+        // "skype", "telegram", "twitter", "avatar",
+        // "dataViewMaxOrganisationUnitLevel", "apps",
+        // "user" );
+        // }
+    }
 }

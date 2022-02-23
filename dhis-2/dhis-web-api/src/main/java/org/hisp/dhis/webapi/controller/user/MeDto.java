@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller.user;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -40,6 +41,7 @@ import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
+import org.hisp.dhis.user.UserCredWrapperDto;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.sharing.Sharing;
 
@@ -51,8 +53,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @JsonInclude( JsonInclude.Include.ALWAYS )
 public class MeDto
 {
-    public MeDto( User user, Map<String, Serializable> settings, List<String> programs, List<String> authorities,
-        List<String> dataSets )
+    public MeDto( User user, Map<String, Serializable> settings, List<String> programs, List<String> dataSets )
     {
         this.id = user.getUid();
         this.username = user.getUsername();
@@ -81,9 +82,10 @@ public class MeDto
         this.userRoles = user.getUserAuthorityGroups();
         this.userCredentials = null;
 
+        this.authorities = new ArrayList<>( user.getAllAuthorities() );
+
         this.settings = settings;
         this.programs = programs;
-        this.authorities = authorities;
         this.dataSets = dataSets;
     }
 
@@ -163,9 +165,6 @@ public class MeDto
     private Set<UserAuthorityGroup> userRoles;
 
     @JsonProperty( )
-    private UserCredWrapperDto userCredentials;
-
-    @JsonProperty( )
     private Map<String, Serializable> settings;
 
     @JsonProperty( )
@@ -176,6 +175,9 @@ public class MeDto
 
     @JsonProperty( )
     private List<String> dataSets;
+
+    @JsonProperty( )
+    private UserCredWrapperDto userCredentials;
 
     protected void setUserCredentials( UserCredWrapperDto userCredWrapperDto )
     {

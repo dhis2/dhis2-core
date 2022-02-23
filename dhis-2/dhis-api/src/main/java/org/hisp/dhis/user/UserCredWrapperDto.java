@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.user;
+package org.hisp.dhis.user;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -39,7 +39,6 @@ import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.security.acl.Access;
-import org.hisp.dhis.user.UserAuthorityGroup;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
@@ -80,9 +79,6 @@ public class UserCredWrapperDto
 
     @JsonProperty
     private Date passwordLastUpdated;
-
-    @JsonProperty
-    private Set<UserAuthorityGroup> userAuthorityGroups = new HashSet<>();
 
     @JsonProperty
     private Set<CategoryOptionGroupSet> cogsDimensionConstraints = new HashSet<>();
