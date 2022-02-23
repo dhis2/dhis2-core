@@ -190,7 +190,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.MimeTypeUtils;
 import org.xml.sax.InputSource;
 
-import com.google.api.client.util.Strings;
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.hash.HashCode;

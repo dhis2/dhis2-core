@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
-import static com.google.api.client.util.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.domain.Enrollment;

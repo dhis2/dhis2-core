@@ -45,7 +45,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.springframework.stereotype.Component;
 
-import com.google.api.client.util.Maps;
+import com.google.common.collect.Maps;
 
 @Component
 @RequiredArgsConstructor

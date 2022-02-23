@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
-import static com.google.api.client.util.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.hisp.dhis.tracker.programrule.IssueType.ERROR;
 import static org.hisp.dhis.tracker.programrule.IssueType.WARNING;
