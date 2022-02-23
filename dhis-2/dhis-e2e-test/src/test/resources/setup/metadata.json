@@ -3708,6 +3708,25 @@
       "translations": []
     }
   ],
+  "categoryOptionCombos": [
+    {
+      "lastUpdated": "2019-08-26T14:24:45.065",
+      "created": "2017-06-02T11:03:03.291",
+      "name": "category option A",
+      "id": "igZVvNyxlTM",
+      "ignoreApproval": false,
+      "categoryCombo": {
+        "id": "p0bh43XdKy5"
+      },
+      "translations": [],
+      "attributeValues": [],
+      "categoryOptions": [
+        {
+          "id": "fjvZIRlTBrp"
+        }
+      ]
+    }
+  ],
   "categoryOptions": [
     {
       "created": "2021-06-02T15:43:13.212",
