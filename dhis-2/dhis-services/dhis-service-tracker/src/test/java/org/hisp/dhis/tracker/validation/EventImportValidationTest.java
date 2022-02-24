@@ -327,6 +327,7 @@ class EventImportValidationTest extends AbstractImportValidationTest
             "tracker/validations/events_combo-date-wrong.json" );
         trackerBundleParams.setImportStrategy( TrackerImportStrategy.CREATE );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
+
         assertEquals( 2, trackerImportReport.getValidationReport().getErrors().size() );
         assertThat( trackerImportReport.getValidationReport().getErrors(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1056 ) ) ) );
