@@ -380,7 +380,6 @@ public class EventImportValidationTest
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
 
         assertEquals( 2, trackerImportReport.getValidationReport().getErrorReports().size() );
-
         assertThat( trackerImportReport.getValidationReport().getErrorReports(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1056 ) ) ) );
 
