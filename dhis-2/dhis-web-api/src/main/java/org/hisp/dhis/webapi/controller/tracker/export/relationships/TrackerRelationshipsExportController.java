@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.relationships;
 
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.badRequest;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.webapi.controller.tracker.TrackerControllerSupport.RESOURCE_PATH;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -116,38 +115,15 @@ public class TrackerRelationshipsExportController
         TrackerRelationshipCriteria criteria )
         throws WebMessageException
     {
-
+        String identifier = criteria.getIdentifierParam();
+        String identifierName = criteria.getIdentifierName();
         List<org.hisp.dhis.webapi.controller.tracker.export.relationships.Relationship> relationships = tryGetRelationshipFrom(
-            criteria.getTei(),
-            TrackedEntityInstance.class,
-            () -> notFound( "No trackedEntity '" + criteria.getTei() + "' found." ),
+            identifier,
+            criteria.getIdentifierClass(),
+            () -> notFound( "No " + identifierName + " '" + identifier + "' found." ),
             criteria );
 
-        if ( relationships.isEmpty() )
-        {
-            relationships = tryGetRelationshipFrom(
-                criteria.getEnrollment(),
-                ProgramInstance.class,
-                () -> notFound( "No enrollment '" + criteria.getEnrollment() + "' found." ),
-                criteria );
-        }
-
-        if ( relationships.isEmpty() )
-        {
-            relationships = tryGetRelationshipFrom(
-                criteria.getEvent(),
-                ProgramStageInstance.class,
-                () -> notFound( "No event '" + criteria.getEvent() + "' found." ),
-                criteria );
-        }
-
-        if ( relationships.isEmpty() )
-        {
-            throw new WebMessageException( badRequest( "Missing required parameter 'tei', 'enrollment' or 'event'." ) );
-        }
-
         PagingWrapper<org.hisp.dhis.webapi.controller.tracker.export.relationships.Relationship> relationshipPagingWrapper = new PagingWrapper<>();
-
         if ( criteria.isPagingRequest() )
         {
             relationshipPagingWrapper = relationshipPagingWrapper.withPager(
