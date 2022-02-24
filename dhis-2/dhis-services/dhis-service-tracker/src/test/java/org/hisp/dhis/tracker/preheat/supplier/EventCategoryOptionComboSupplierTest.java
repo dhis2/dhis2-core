@@ -123,7 +123,7 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
 
         supplier.preheatAdd( params, preheat );
 
-        verify( preheat, times( 1 ) ).putCachedEventAOCProgramCC( program.getCategoryCombo(), options, aoc );
+        verify( preheat, times( 1 ) ).putEventAOCFor( program.getCategoryCombo(), options, aoc );
     }
 
     @Test
@@ -158,7 +158,7 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
 
         supplier.preheatAdd( params, preheat );
 
-        verify( preheat, times( 0 ) ).putCachedEventAOCProgramCC( program.getCategoryCombo(), options, aoc );
+        verify( preheat, times( 0 ) ).putEventAOCFor( program.getCategoryCombo(), options, aoc );
     }
 
     @Test
@@ -191,7 +191,7 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
         supplier.preheatAdd( params, preheat );
 
         verifyNoInteractions( categoryService );
-        verify( preheat, times( 0 ) ).putCachedEventAOCProgramCC( program.getCategoryCombo(), options, aoc );
+        verify( preheat, times( 0 ) ).putEventAOCFor( program.getCategoryCombo(), options, aoc );
     }
 
     @Test
@@ -224,7 +224,7 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
 
         supplier.preheatAdd( params, preheat );
 
-        verify( preheat, times( 0 ) ).putCachedEventAOCProgramCC( program.getCategoryCombo(), options, aoc );
+        verify( preheat, times( 0 ) ).putEventAOCFor( program.getCategoryCombo(), options, aoc );
     }
 
     @Test
@@ -255,7 +255,7 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
 
         supplier.preheatAdd( params, preheat );
 
-        verify( preheat, times( 0 ) ).putCachedEventAOCProgramCC( program.getCategoryCombo(), aoc.getCategoryOptions(),
+        verify( preheat, times( 0 ) ).putEventAOCFor( program.getCategoryCombo(), aoc.getCategoryOptions(),
             aoc );
     }
 
@@ -285,7 +285,7 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
 
         supplier.preheatAdd( params, preheat );
 
-        verify( preheat, times( 0 ) ).putCachedEventAOCProgramCC( any(), any(), any() );
+        verify( preheat, times( 0 ) ).putEventAOCFor( any(), any(), any() );
     }
 
     private String concatCategoryOptions( TrackerIdentifier identifier, Set<CategoryOption> options )

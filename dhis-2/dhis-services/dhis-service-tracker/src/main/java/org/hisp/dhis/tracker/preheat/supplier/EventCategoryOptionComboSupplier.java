@@ -97,7 +97,7 @@ public class EventCategoryOptionComboSupplier extends AbstractPreheatSupplier
             {
                 // TODO should we still cache it with the original string in the
                 // payload?
-                preheat.putCachedEventAOCProgramCC( p.getLeft(), p.getRight(), aoc );
+                preheat.putEventAOCFor( p.getLeft(), p.getRight(), aoc );
             }
 
             preheat.put( params.getIdentifiers().getCategoryOptionComboIdScheme(), aoc );

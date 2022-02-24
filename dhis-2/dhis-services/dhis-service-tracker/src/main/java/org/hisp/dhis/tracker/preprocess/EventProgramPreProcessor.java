@@ -27,19 +27,14 @@
  */
 package org.hisp.dhis.tracker.preprocess;
 
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.util.Strings;
-import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.TrackerIdentifier;
@@ -119,59 +114,24 @@ public class EventProgramPreProcessor
     private void setAttributeOptionCombo( TrackerBundle bundle )
     {
 
-        // TODO we could set event.attributeOptionCombo and
-        // event.categoryOptions for any event.program.categoryCombo
-        // this should simplify code down the line, as it can expect these
-        // fields to be populated for valid events
-
         TrackerPreheat preheat = bundle.getPreheat();
         TrackerIdentifier identifier = bundle.getPreheat().getIdentifiers().getCategoryOptionComboIdScheme();
 
         List<Event> events = bundle.getEvents().stream()
-            .filter( e -> {
-                Program p = preheat.get( Program.class, e.getProgram() );
-                if ( p != null && !p.getCategoryCombo().isDefault() )
-                {
-                    return true;
-                }
-                return false;
-            } )
             .filter( e -> StringUtils.isBlank( e.getAttributeOptionCombo() )
                 && !StringUtils.isBlank( e.getAttributeCategoryOptions() ) )
+            .filter( e -> preheat.get( Program.class, e.getProgram() ) != null )
             .collect( Collectors.toList() );
 
         for ( Event e : events )
         {
-            Program p = preheat.get( Program.class, e.getProgram() );
-            Optional<CategoryOptionCombo> aoc = preheat.getEventAOCFor( p.getCategoryCombo(),
-                getCategoryOptions( preheat, e ) );
-            if ( aoc.isPresent() )
+            Program program = preheat.get( Program.class, e.getProgram() );
+            CategoryOptionCombo aoc = preheat.getEventAOCFor( program.getCategoryCombo(),
+                e.getAttributeCategoryOptions() );
+            if ( aoc != null )
             {
-                e.setAttributeOptionCombo( identifier.getIdentifier( aoc.get() ) );
+                e.setAttributeOptionCombo( identifier.getIdentifier( aoc ) );
             }
         }
-    }
-
-    private Set<CategoryOption> getCategoryOptions( TrackerPreheat preheat, Event event )
-    {
-        Set<CategoryOption> categoryOptions = new HashSet<>();
-        Set<String> ids = parseCategoryOptions( event );
-        for ( String id : ids )
-        {
-            categoryOptions.add( preheat.getCategoryOption( id ) );
-        }
-        return categoryOptions;
-    }
-
-    private Set<String> parseCategoryOptions( Event event )
-    {
-        String cos = StringUtils.strip( event.getAttributeCategoryOptions() );
-        if ( StringUtils.isBlank( cos ) )
-        {
-            return Collections.emptySet();
-        }
-
-        return TextUtils
-            .splitToArray( cos, TextUtils.SEMICOLON );
     }
 }

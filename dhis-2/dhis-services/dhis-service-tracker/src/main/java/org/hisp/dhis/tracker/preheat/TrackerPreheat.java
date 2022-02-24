@@ -31,8 +31,10 @@ import static org.hisp.dhis.tracker.preheat.RelationshipPreheatKeySupport.getRel
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -52,6 +54,7 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -144,7 +147,7 @@ public class TrackerPreheat
      */
     private Map<Pair<CategoryCombo, Set<CategoryOption>>, String> eventCOsToAOC = new HashMap<>();
 
-    public void putCachedEventAOCProgramCC( CategoryCombo categoryCombo, Set<CategoryOption> categoryOptions,
+    public void putEventAOCFor( CategoryCombo categoryCombo, Set<CategoryOption> categoryOptions,
         CategoryOptionCombo aoc )
     {
         eventCOsToAOC.put( attributeOptionComboCacheKey( categoryCombo, categoryOptions ),
@@ -164,6 +167,35 @@ public class TrackerPreheat
     {
         return Optional.ofNullable( this.getCategoryOptionCombo(
             eventCOsToAOC.get( attributeOptionComboCacheKey( categoryCombo, categoryOptions ) ) ) );
+    }
+
+    public CategoryOptionCombo getEventAOCFor( CategoryCombo categoryCombo, String categoryOptions )
+    {
+        return this.getCategoryOptionCombo(
+            eventCOsToAOC.get( attributeOptionComboCacheKey( categoryCombo, getCategoryOptions( categoryOptions ) ) ) );
+    }
+
+    private Set<CategoryOption> getCategoryOptions( String categoryOptions )
+    {
+        Set<CategoryOption> result = new HashSet<>();
+        Set<String> ids = parseCategoryOptions( categoryOptions );
+        for ( String id : ids )
+        {
+            result.add( this.getCategoryOption( id ) );
+        }
+        return result;
+    }
+
+    private Set<String> parseCategoryOptions( String categoryOptions )
+    {
+        String cos = StringUtils.strip( categoryOptions );
+        if ( StringUtils.isBlank( cos ) )
+        {
+            return Collections.emptySet();
+        }
+
+        return TextUtils
+            .splitToArray( cos, TextUtils.SEMICOLON );
     }
 
     /**
