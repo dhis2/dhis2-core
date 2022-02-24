@@ -46,6 +46,7 @@ import org.hisp.dhis.webapi.webdomain.GeoFeature;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -79,7 +80,7 @@ public class GeoFeatureController
     // Resources
     // -------------------------------------------------------------------------
 
-    @GetMapping( produces = { ContextUtils.CONTENT_TYPE_JSON, ContextUtils.CONTENT_TYPE_HTML } )
+    @GetMapping
     @ResponseBody
     public ResponseEntity<List<GeoFeature>> getGeoFeaturesJson(
         @RequestParam( required = false ) String ou,
@@ -111,6 +112,7 @@ public class GeoFeatureController
 
         return ResponseEntity.ok()
             .header( HttpHeaders.CACHE_CONTROL, GEOFEATURE_CACHE.getHeaderValue() )
+            .contentType( MediaType.APPLICATION_JSON )
             .body( features );
     }
 

@@ -566,7 +566,12 @@ public class GeoFeatureService
      */
     private boolean validateDimensionalItemObject( Object object, Attribute geoJsonAttribute )
     {
-        return hasGeometryCoordinates( object ) || hasGeoJsonAttributeCoordinates( object, geoJsonAttribute );
+        if ( geoJsonAttribute != null )
+        {
+            return hasGeoJsonAttributeCoordinates( object, geoJsonAttribute );
+        }
+
+        return hasGeometryCoordinates( object );
     }
 
     /**
