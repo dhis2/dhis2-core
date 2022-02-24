@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.StringJoiner;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -141,24 +142,26 @@ public class TrackerPreheat
      * Category option combo value will be in the idScheme defined by the user
      * on import.
      */
-    private Map<String, String> cachedEventAOCProgramCC = new HashMap<>();
+    private Map<Pair<Program, Set<CategoryOption>>, String> cachedEventAOCProgramCC = new HashMap<>();
 
-    public void putCachedEventAOCProgramCC( Program program, String categoryOptions, CategoryOptionCombo aoc )
+    public void putCachedEventAOCProgramCC( Program program, Set<CategoryOption> categoryOptions,
+        CategoryOptionCombo aoc )
     {
-        cachedEventAOCProgramCC.put( attributeOptionComboCacheKey( categoryOptions, program ),
+        cachedEventAOCProgramCC.put( attributeOptionComboCacheKey( program, categoryOptions ),
             getIdentifiers().getCategoryOptionComboIdScheme().getIdentifier( aoc ) );
     }
 
-    private String attributeOptionComboCacheKey( String categoryOptions, Program program )
+    private Pair<Program, Set<CategoryOption>> attributeOptionComboCacheKey( Program program,
+        Set<CategoryOption> categoryOptions )
     {
         // TODO category combo has no idScheme specified in the import params.
         // Correct?
-        return categoryOptions + program.getCategoryCombo().getUid();
+        return Pair.of( program, categoryOptions );
     }
 
-    public Optional<String> getCachedEventAOCProgramCC( Program program, String categoryOptions )
+    public Optional<String> getCachedEventAOCProgramCC( Program program, Set<CategoryOption> categoryOptions )
     {
-        String cached = cachedEventAOCProgramCC.get( attributeOptionComboCacheKey( categoryOptions, program ) );
+        String cached = cachedEventAOCProgramCC.get( attributeOptionComboCacheKey( program, categoryOptions ) );
         if ( cached == null )
         {
             return Optional.empty();

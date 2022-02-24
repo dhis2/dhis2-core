@@ -37,6 +37,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -47,10 +48,20 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.springframework.stereotype.Component;
 
+/**
+ * EventCategoryOptionComboSupplier adds category option combos to the preheat
+ * for events with attributeCategoryOptions but no attributeOptionCombo.
+ *
+ * {@link ClassBasedSupplier} is responsible for category option combos for
+ * which identifiers are present.
+ *
+ * An event for which the category option combo can not be found is invalid.
+ * Validation will thus subsequently invalidate it.
+ */
 @RequiredArgsConstructor
 @Component
 @SupplierDependsOn( ClassBasedSupplier.class )
-public class MissingCategoryOptionComboSupplier extends AbstractPreheatSupplier
+public class EventCategoryOptionComboSupplier extends AbstractPreheatSupplier
 {
     @NonNull
     private final CategoryService categoryService;
@@ -61,46 +72,65 @@ public class MissingCategoryOptionComboSupplier extends AbstractPreheatSupplier
         // TODO do I need to replicate what we do in EventProgramPreProcessor?
         // for an event payload that has no program but only a program stage
 
-        // get events with non-default program category combo and non-empty
-        // category
-        // options
-        List<Event> events = params.getEvents().stream()
-            .filter( e -> {
-                Program p = preheat.get( Program.class, e.getProgram() );
-                if ( p != null && !p.getCategoryCombo().isDefault() )
-                {
-                    return true;
-                }
-                return false;
-            } )
+        List<Pair<Program, Set<CategoryOption>>> events = params.getEvents().stream()
             .filter( e -> StringUtils.isBlank( e.getAttributeOptionCombo() )
                 && !StringUtils.isBlank( e.getAttributeCategoryOptions() ) )
+            .map( e -> {
+                Program p = preheat.get( Program.class, e.getProgram() );
+                return Pair.of( p, parseCategoryOptions( e ) );
+            } )
+            .filter( p -> p.getLeft() != null )
+            .filter( p -> hasExistingCategoryOptions( preheat, p.getRight() ) )
+            .map( p -> Pair.of( p.getLeft(), getCategoryOptions( preheat, p.getRight() ) ) )
             .collect( Collectors.toList() );
 
         // TODO should we adapt the service so we can fetch AOCs at once? So for
         // all (category combo, category options)
-        for ( Event e : events )
+        for ( Pair<Program, Set<CategoryOption>> p : events )
         {
-            Program p = preheat.get( Program.class, e.getProgram() );
             CategoryOptionCombo aoc = categoryService
-                .getCategoryOptionCombo( p.getCategoryCombo(), getCategoryOptions( preheat, e ) );
+                .getCategoryOptionCombo( p.getLeft().getCategoryCombo(), p.getRight() );
 
             // TODO should we cache that we did not find the AOC as well?
             if ( aoc != null )
             {
-                preheat.putCachedEventAOCProgramCC( p, e.getAttributeCategoryOptions(), aoc );
+                // TODO should we still cache it with the original string in the
+                // payload?
+                preheat.putCachedEventAOCProgramCC( p.getLeft(), p.getRight(), aoc );
             }
 
             preheat.put( params.getIdentifiers().getCategoryOptionComboIdScheme(), aoc );
         }
     }
 
+    private boolean hasExistingCategoryOptions( TrackerPreheat preheat, Set<String> ids )
+    {
+        for ( String id : ids )
+        {
+            if ( preheat.getCategoryOption( id ) == null )
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
     private Set<CategoryOption> getCategoryOptions( TrackerPreheat preheat, Event event )
     {
-
         Set<CategoryOption> categoryOptions = new HashSet<>();
-        Set<String> categoryOptionIds = parseCategoryOptions( event );
-        for ( String id : categoryOptionIds )
+        Set<String> ids = parseCategoryOptions( event );
+        for ( String id : ids )
+        {
+            // TODO what if we cannot find the category option
+            categoryOptions.add( preheat.getCategoryOption( id ) );
+        }
+        return categoryOptions;
+    }
+
+    private Set<CategoryOption> getCategoryOptions( TrackerPreheat preheat, Set<String> ids )
+    {
+        Set<CategoryOption> categoryOptions = new HashSet<>();
+        for ( String id : ids )
         {
             categoryOptions.add( preheat.getCategoryOption( id ) );
         }
