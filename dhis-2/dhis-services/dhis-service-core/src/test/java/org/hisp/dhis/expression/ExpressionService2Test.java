@@ -205,13 +205,13 @@ class ExpressionService2Test extends DhisSpringTest
 
     private OrganisationUnitGroup groupB;
 
-    DataSet dataSetA;
+    private DataSet dataSetA;
 
-    DataSet dataSetB;
+    private DataSet dataSetB;
 
-    Program programA;
+    private Program programA;
 
-    Program programB;
+    private Program programB;
 
     private ReportingRate reportingRate;
 
