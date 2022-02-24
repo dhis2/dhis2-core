@@ -75,8 +75,9 @@ public class EventCategoryOptValidationHook
         checkNotNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );
         checkNotNull( event, TrackerImporterAssertErrors.EVENT_CANT_BE_NULL );
 
-        CategoryOptionCombo categoryOptionCombo = reporter.getValidationContext()
-            .getCachedEventCategoryOptionCombo( event.getUid() );
+        // TODO should we also set it to the default AOC?
+        CategoryOptionCombo categoryOptionCombo = reporter.getValidationContext().getBundle().getPreheat()
+            .getCategoryOptionCombo( event.getAttributeOptionCombo() );
         checkNotNull( categoryOptionCombo, TrackerImporterAssertErrors.CATEGORY_OPTION_COMBO_CANT_BE_NULL );
 
         Date eventDate;
