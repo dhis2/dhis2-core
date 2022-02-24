@@ -171,7 +171,8 @@ public class PredictionDataValueFetcher
         this.outputDataElementOperand = outputDataElementOperand;
 
         orgUnitLookup = orgUnits.stream().collect( Collectors.toMap( OrganisationUnit::getPath, Function.identity() ) );
-        dataElementLookup = dataElements.stream().collect( Collectors.toMap( DataElement::getId, Function.identity() ) );
+        dataElementLookup = dataElements.stream()
+            .collect( Collectors.toMap( DataElement::getId, Function.identity() ) );
         dataElementLookup.putAll( dataElementOperands.stream().map( DataElementOperand::getDataElement )
             .distinct().collect( Collectors.toMap( DataElement::getId, Function.identity() ) ) );
         periodLookup = queryPeriods.stream().collect( Collectors.toMap( Period::getId, Function.identity() ) );
