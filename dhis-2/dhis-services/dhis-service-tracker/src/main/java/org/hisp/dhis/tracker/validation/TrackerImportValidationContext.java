@@ -34,7 +34,6 @@ import java.util.Optional;
 
 import lombok.Data;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
@@ -57,8 +56,6 @@ import org.hisp.dhis.tracker.domain.*;
 import org.hisp.dhis.tracker.preheat.ReferenceTrackerEntity;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 
-import com.google.common.base.Preconditions;
-
 // TODO is this class really needed? what is the purpose of this class and why aren't the two caches moved to preheat?
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -67,8 +64,6 @@ import com.google.common.base.Preconditions;
 public class TrackerImportValidationContext
 {
     private Map<String, CategoryOptionCombo> eventCocCacheMap = new HashMap<>();
-
-    private Map<String, String> cachedEventAOCProgramCC = new HashMap<>();
 
     private TrackerBundle bundle;
 
@@ -89,37 +84,9 @@ public class TrackerImportValidationContext
         return bundle.getResolvedStrategyMap().get( dto.getTrackerType() ).get( dto.getUid() );
     }
 
-    public void cacheEventCategoryOptionCombo( String key, CategoryOptionCombo categoryOptionCombo )
-    {
-        Preconditions.checkArgument( !StringUtils.isEmpty( key ),
-            "Event Category Option Combo cache key 'event uid', can't be null or empty" );
-
-        Preconditions.checkNotNull( categoryOptionCombo, "Event Category Option Combo can't be null or empty" );
-
-        if ( !eventCocCacheMap.containsKey( key ) )
-        {
-            eventCocCacheMap.put( key, categoryOptionCombo );
-        }
-    }
-
     public CategoryOptionCombo getCachedEventCategoryOptionCombo( String key )
     {
         return eventCocCacheMap.get( key );
-    }
-
-    public void putCachedEventAOCProgramCC( String cacheKey, String value )
-    {
-        cachedEventAOCProgramCC.put( cacheKey, value );
-    }
-
-    public Optional<String> getCachedEventAOCProgramCC( String cacheKey )
-    {
-        String cached = cachedEventAOCProgramCC.get( cacheKey );
-        if ( cached == null )
-        {
-            return Optional.empty();
-        }
-        return Optional.of( cached );
     }
 
     public OrganisationUnit getOrganisationUnit( String id )

@@ -43,6 +43,7 @@ import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.util.DateUtils;
@@ -75,9 +76,17 @@ public class EventCategoryOptValidationHook
         checkNotNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );
         checkNotNull( event, TrackerImporterAssertErrors.EVENT_CANT_BE_NULL );
 
-        // TODO should we also set it to the default AOC?
-        CategoryOptionCombo categoryOptionCombo = reporter.getValidationContext().getBundle().getPreheat()
-            .getCategoryOptionCombo( event.getAttributeOptionCombo() );
+        TrackerPreheat preheat = reporter.getValidationContext().getBundle().getPreheat();
+        CategoryOptionCombo categoryOptionCombo;
+        if ( program.getCategoryCombo().isDefault() )
+        {
+            categoryOptionCombo = preheat.getDefault( CategoryOptionCombo.class );
+        }
+        else
+        {
+            categoryOptionCombo = preheat
+                .getCategoryOptionCombo( event.getAttributeOptionCombo() );
+        }
         checkNotNull( categoryOptionCombo, TrackerImporterAssertErrors.CATEGORY_OPTION_COMBO_CANT_BE_NULL );
 
         Date eventDate;
