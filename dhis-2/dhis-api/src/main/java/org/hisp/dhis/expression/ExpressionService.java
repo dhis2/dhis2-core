@@ -187,6 +187,26 @@ public interface ExpressionService
     String getExpressionDescription( String expression, ParseType parseType, DataType dataType );
 
     /**
+     * Gets information we need from an expression string.
+     *
+     * @param params the expression parameters.
+     * @return the expression information.
+     */
+    ExpressionInfo getExpressionInfo( ExpressionParams params );
+
+    /**
+     * From expression info, create a "base" expression parameters object with
+     * certain metadata fields supplied that are needed for later evaluation.
+     * <p>
+     * Before evaluation, the caller will need to add to this "base" object
+     * fields such as expression, parseType, dataType, valueMap, etc.
+     *
+     * @param info the expression information.
+     * @return the expression parameters with metadata pre-filled.
+     */
+    ExpressionParams getBaseExpressionParams( ExpressionInfo info );
+
+    /**
      * Returns UIDs of Data Elements and associated Option Combos (if any) found
      * in the Data Element Operands an expression.
      * <p/>
@@ -222,21 +242,6 @@ public interface ExpressionService
      * @return a Set of CategoryOptionCombo uids in the expression string.
      */
     Set<String> getExpressionOptionComboIds( String expression, ParseType parseType );
-
-    /**
-     * Returns all dimensional item objects in the given expression, returning
-     * separately the items to be sampled inside any vector functions. Items are
-     * returned as a map from itemId to object.
-     *
-     * @param expression the expression string.
-     * @param parseType the type of expression to parse.
-     * @param dataType the data type the expression should return.
-     * @param itemMap map to insert the items into.
-     * @param sampleItemMap map to insert the sampled items into.
-     */
-    void getExpressionDimensionalItemMaps( String expression, ParseType parseType, DataType dataType,
-        Map<DimensionalItemId, DimensionalItemObject> itemMap,
-        Map<DimensionalItemId, DimensionalItemObject> sampleItemMap );
 
     /**
      * Returns all dimensional item object ids in the given expression.

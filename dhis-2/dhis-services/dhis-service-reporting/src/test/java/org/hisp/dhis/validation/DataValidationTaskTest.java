@@ -155,7 +155,7 @@ class DataValidationTaskTest
         ValidationRunContext ctx = ValidationRunContext.newBuilder()
             .withOrgUnits( organisationUnits )
             .withItemMap( new HashMap<>() )
-            .withOrgUnitGroupMap( new HashMap<>() )
+            .withBaseExParams( ExpressionParams.builder().build() )
             .withDefaultAttributeCombo( categoryOptionCombo )
             .withPeriodTypeXs( periodTypes )
             .withMaxResults( 500 )
