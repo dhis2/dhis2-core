@@ -127,6 +127,47 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
     }
 
     @Test
+    void shouldPreheatEventAOCIfNotProvidedOnlyIfNotAlreadyFetched()
+    {
+
+        TrackerIdentifierParams identifierParams = TrackerIdentifierParams.builder()
+            .categoryOptionComboIdScheme( TrackerIdentifier.CODE )
+            .categoryOptionIdScheme( TrackerIdentifier.UID )
+            .build();
+
+        Program program = createProgram( 'A' );
+        CategoryCombo categoryCombo = categoryCombo();
+        program.setCategoryCombo( categoryCombo );
+        CategoryOptionCombo aoc = firstCategoryOptionCombo( categoryCombo );
+        Set<CategoryOption> options = aoc.getCategoryOptions();
+
+        Event event = Event.builder()
+            .program( program.getUid() )
+            .attributeCategoryOptions( concatCategoryOptions( identifierParams.getCategoryOptionIdScheme(), options ) )
+            .build();
+        List<Event> events = List.of( event, event );
+        TrackerImportParams params = TrackerImportParams.builder()
+            .identifiers( identifierParams )
+            .events( events )
+            .build();
+
+        when( preheat.get( Program.class, event.getProgram() ) ).thenReturn( program );
+        options.forEach(
+            o -> when( preheat.getCategoryOption( identifierParams.getCategoryOptionIdScheme().getIdentifier( o ) ) )
+                .thenReturn( o ) );
+        when( categoryService.getCategoryOptionCombo( categoryCombo, aoc.getCategoryOptions() ) ).thenReturn( aoc );
+        when( preheat.getEventAOCFor( program.getCategoryCombo(), aoc.getCategoryOptions() ) )
+            .thenReturn( null ) // first event will not have its AOC in the
+                                // preheat
+            .thenReturn( aoc ); // second event should see AOC from preheat
+
+        supplier.preheatAdd( params, preheat );
+
+        verify( categoryService, times( 1 ) ).getCategoryOptionCombo( categoryCombo, aoc.getCategoryOptions() );
+        verify( preheat, times( 1 ) ).putEventAOCFor( program.getCategoryCombo(), options, aoc );
+    }
+
+    @Test
     void shouldNotPreheatEventAOCIfNotProvidedAndAOCNotFound()
     {
 
