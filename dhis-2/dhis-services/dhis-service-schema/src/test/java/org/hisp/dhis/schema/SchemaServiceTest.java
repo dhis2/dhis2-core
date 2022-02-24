@@ -32,6 +32,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.HashSet;
+
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -43,8 +45,6 @@ import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import com.google.api.client.util.Sets;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -100,7 +100,7 @@ class SchemaServiceTest extends DhisSpringTest
     @Test
     void testCanScanJobParameters()
     {
-        JobParameters parameters = new AnalyticsJobParameters( 10, Sets.newHashSet(), Sets.newHashSet(), true );
+        JobParameters parameters = new AnalyticsJobParameters( 10, new HashSet<>(), new HashSet<>(), true );
         Schema schema = schemaService.getDynamicSchema( parameters.getClass() );
 
         assertNotNull( schema );
@@ -112,7 +112,7 @@ class SchemaServiceTest extends DhisSpringTest
     void testCanScanJobConfigurationWithJobParameters()
     {
         JobConfiguration configuration = new JobConfiguration();
-        configuration.setJobParameters( new AnalyticsJobParameters( 10, Sets.newHashSet(), Sets.newHashSet(), true ) );
+        configuration.setJobParameters( new AnalyticsJobParameters( 10, new HashSet<>(), new HashSet<>(), true ) );
 
         Schema schema = schemaService.getDynamicSchema( configuration.getClass() );
         assertNotNull( schema );
