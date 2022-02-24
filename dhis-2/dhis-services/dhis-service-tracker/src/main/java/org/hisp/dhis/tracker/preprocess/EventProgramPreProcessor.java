@@ -27,14 +27,19 @@
  */
 package org.hisp.dhis.tracker.preprocess;
 
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.util.Strings;
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.TrackerIdentifier;
@@ -138,12 +143,36 @@ public class EventProgramPreProcessor
         for ( Event e : events )
         {
             Program p = preheat.get( Program.class, e.getProgram() );
-            Optional<String> cachedAOCId = preheat.getCachedEventAOCProgramCC( p, e.getAttributeCategoryOptions() );
+            Optional<String> cachedAOCId = preheat.getCachedEventAOCProgramCC( p, getCategoryOptions( preheat, e ) );
             if ( cachedAOCId.isPresent() )
             {
                 CategoryOptionCombo aoc = preheat.getCategoryOptionCombo( cachedAOCId.get() );
                 e.setAttributeOptionCombo( identifier.getIdentifier( aoc ) );
             }
         }
+    }
+
+    private Set<CategoryOption> getCategoryOptions( TrackerPreheat preheat, Event event )
+    {
+        Set<CategoryOption> categoryOptions = new HashSet<>();
+        Set<String> ids = parseCategoryOptions( event );
+        for ( String id : ids )
+        {
+            // TODO what if we cannot find the category option
+            categoryOptions.add( preheat.getCategoryOption( id ) );
+        }
+        return categoryOptions;
+    }
+
+    private Set<String> parseCategoryOptions( Event event )
+    {
+        String cos = StringUtils.strip( event.getAttributeCategoryOptions() );
+        if ( StringUtils.isBlank( cos ) )
+        {
+            return Collections.emptySet();
+        }
+
+        return TextUtils
+            .splitToArray( cos, TextUtils.SEMICOLON );
     }
 }
