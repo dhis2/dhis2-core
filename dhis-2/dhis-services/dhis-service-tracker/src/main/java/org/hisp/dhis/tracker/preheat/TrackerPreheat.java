@@ -47,6 +47,7 @@ import lombok.Setter;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -55,7 +56,6 @@ import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.relationship.Relationship;
@@ -142,31 +142,28 @@ public class TrackerPreheat
      * Category option combo value will be in the idScheme defined by the user
      * on import.
      */
-    private Map<Pair<Program, Set<CategoryOption>>, String> cachedEventAOCProgramCC = new HashMap<>();
+    private Map<Pair<CategoryCombo, Set<CategoryOption>>, String> eventCOsToAOC = new HashMap<>();
 
-    public void putCachedEventAOCProgramCC( Program program, Set<CategoryOption> categoryOptions,
+    public void putCachedEventAOCProgramCC( CategoryCombo categoryCombo, Set<CategoryOption> categoryOptions,
         CategoryOptionCombo aoc )
     {
-        cachedEventAOCProgramCC.put( attributeOptionComboCacheKey( program, categoryOptions ),
+        eventCOsToAOC.put( attributeOptionComboCacheKey( categoryCombo, categoryOptions ),
             getIdentifiers().getCategoryOptionComboIdScheme().getIdentifier( aoc ) );
     }
 
-    private Pair<Program, Set<CategoryOption>> attributeOptionComboCacheKey( Program program,
+    private Pair<CategoryCombo, Set<CategoryOption>> attributeOptionComboCacheKey( CategoryCombo categoryCombo,
         Set<CategoryOption> categoryOptions )
     {
         // TODO category combo has no idScheme specified in the import params.
         // Correct?
-        return Pair.of( program, categoryOptions );
+        return Pair.of( categoryCombo, categoryOptions );
     }
 
-    public Optional<String> getCachedEventAOCProgramCC( Program program, Set<CategoryOption> categoryOptions )
+    public Optional<CategoryOptionCombo> getEventAOCFor( CategoryCombo categoryCombo,
+        Set<CategoryOption> categoryOptions )
     {
-        String cached = cachedEventAOCProgramCC.get( attributeOptionComboCacheKey( program, categoryOptions ) );
-        if ( cached == null )
-        {
-            return Optional.empty();
-        }
-        return Optional.of( cached );
+        return Optional.ofNullable( this.getCategoryOptionCombo(
+            eventCOsToAOC.get( attributeOptionComboCacheKey( categoryCombo, categoryOptions ) ) ) );
     }
 
     /**

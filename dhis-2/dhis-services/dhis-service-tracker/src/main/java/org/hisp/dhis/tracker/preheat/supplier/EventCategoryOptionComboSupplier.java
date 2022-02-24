@@ -38,6 +38,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -72,24 +73,24 @@ public class EventCategoryOptionComboSupplier extends AbstractPreheatSupplier
         // TODO do I need to replicate what we do in EventProgramPreProcessor?
         // for an event payload that has no program but only a program stage
 
-        List<Pair<Program, Set<CategoryOption>>> events = params.getEvents().stream()
+        List<Pair<CategoryCombo, Set<CategoryOption>>> events = params.getEvents().stream()
             .filter( e -> StringUtils.isBlank( e.getAttributeOptionCombo() )
                 && !StringUtils.isBlank( e.getAttributeCategoryOptions() ) )
             .map( e -> {
                 Program p = preheat.get( Program.class, e.getProgram() );
-                return Pair.of( p, parseCategoryOptions( e ) );
+                return Pair.of( p, parseCategoryOptionIds( e ) );
             } )
             .filter( p -> p.getLeft() != null )
-            .filter( p -> hasExistingCategoryOptions( preheat, p.getRight() ) )
-            .map( p -> Pair.of( p.getLeft(), getCategoryOptions( preheat, p.getRight() ) ) )
+            .filter( p -> hasOnlyExistingCategoryOptions( preheat, p.getRight() ) )
+            .map( p -> Pair.of( p.getLeft().getCategoryCombo(), toCategoryOptions( preheat, p.getRight() ) ) )
             .collect( Collectors.toList() );
 
         // TODO should we adapt the service so we can fetch AOCs at once? So for
         // all (category combo, category options)
-        for ( Pair<Program, Set<CategoryOption>> p : events )
+        for ( Pair<CategoryCombo, Set<CategoryOption>> p : events )
         {
             CategoryOptionCombo aoc = categoryService
-                .getCategoryOptionCombo( p.getLeft().getCategoryCombo(), p.getRight() );
+                .getCategoryOptionCombo( p.getLeft(), p.getRight() );
 
             // TODO should we cache that we did not find the AOC as well?
             if ( aoc != null )
@@ -103,7 +104,7 @@ public class EventCategoryOptionComboSupplier extends AbstractPreheatSupplier
         }
     }
 
-    private boolean hasExistingCategoryOptions( TrackerPreheat preheat, Set<String> ids )
+    private boolean hasOnlyExistingCategoryOptions( TrackerPreheat preheat, Set<String> ids )
     {
         for ( String id : ids )
         {
@@ -115,19 +116,7 @@ public class EventCategoryOptionComboSupplier extends AbstractPreheatSupplier
         return true;
     }
 
-    private Set<CategoryOption> getCategoryOptions( TrackerPreheat preheat, Event event )
-    {
-        Set<CategoryOption> categoryOptions = new HashSet<>();
-        Set<String> ids = parseCategoryOptions( event );
-        for ( String id : ids )
-        {
-            // TODO what if we cannot find the category option
-            categoryOptions.add( preheat.getCategoryOption( id ) );
-        }
-        return categoryOptions;
-    }
-
-    private Set<CategoryOption> getCategoryOptions( TrackerPreheat preheat, Set<String> ids )
+    private Set<CategoryOption> toCategoryOptions( TrackerPreheat preheat, Set<String> ids )
     {
         Set<CategoryOption> categoryOptions = new HashSet<>();
         for ( String id : ids )
@@ -137,7 +126,7 @@ public class EventCategoryOptionComboSupplier extends AbstractPreheatSupplier
         return categoryOptions;
     }
 
-    private Set<String> parseCategoryOptions( Event event )
+    private Set<String> parseCategoryOptionIds( Event event )
     {
         String cos = StringUtils.strip( event.getAttributeCategoryOptions() );
         if ( StringUtils.isBlank( cos ) )

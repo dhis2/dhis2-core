@@ -143,11 +143,11 @@ public class EventProgramPreProcessor
         for ( Event e : events )
         {
             Program p = preheat.get( Program.class, e.getProgram() );
-            Optional<String> cachedAOCId = preheat.getCachedEventAOCProgramCC( p, getCategoryOptions( preheat, e ) );
-            if ( cachedAOCId.isPresent() )
+            Optional<CategoryOptionCombo> aoc = preheat.getEventAOCFor( p.getCategoryCombo(),
+                getCategoryOptions( preheat, e ) );
+            if ( aoc.isPresent() )
             {
-                CategoryOptionCombo aoc = preheat.getCategoryOptionCombo( cachedAOCId.get() );
-                e.setAttributeOptionCombo( identifier.getIdentifier( aoc ) );
+                e.setAttributeOptionCombo( identifier.getIdentifier( aoc.get() ) );
             }
         }
     }
@@ -158,7 +158,6 @@ public class EventProgramPreProcessor
         Set<String> ids = parseCategoryOptions( event );
         for ( String id : ids )
         {
-            // TODO what if we cannot find the category option
             categoryOptions.add( preheat.getCategoryOption( id ) );
         }
         return categoryOptions;
