@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.StringJoiner;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -150,8 +151,9 @@ public class TrackerPreheat
     public void putEventAOCFor( CategoryCombo categoryCombo, Set<CategoryOption> categoryOptions,
         CategoryOptionCombo aoc )
     {
-        eventCOsToAOC.put( attributeOptionComboCacheKey( categoryCombo, categoryOptions ),
+        this.eventCOsToAOC.put( attributeOptionComboCacheKey( categoryCombo, categoryOptions ),
             getIdentifiers().getCategoryOptionComboIdScheme().getIdentifier( aoc ) );
+        this.put( identifiers.getCategoryOptionComboIdScheme(), aoc );
     }
 
     private Pair<CategoryCombo, Set<CategoryOption>> attributeOptionComboCacheKey( CategoryCombo categoryCombo,
@@ -162,17 +164,15 @@ public class TrackerPreheat
         return Pair.of( categoryCombo, categoryOptions );
     }
 
-    public Optional<CategoryOptionCombo> getEventAOCFor( CategoryCombo categoryCombo,
-        Set<CategoryOption> categoryOptions )
+    public CategoryOptionCombo getEventAOCFor( CategoryCombo categoryCombo, Set<CategoryOption> categoryOptions )
     {
-        return Optional.ofNullable( this.getCategoryOptionCombo(
-            eventCOsToAOC.get( attributeOptionComboCacheKey( categoryCombo, categoryOptions ) ) ) );
+        return this.getCategoryOptionCombo(
+            eventCOsToAOC.get( attributeOptionComboCacheKey( categoryCombo, categoryOptions ) ) );
     }
 
     public CategoryOptionCombo getEventAOCFor( CategoryCombo categoryCombo, String categoryOptions )
     {
-        return this.getCategoryOptionCombo(
-            eventCOsToAOC.get( attributeOptionComboCacheKey( categoryCombo, getCategoryOptions( categoryOptions ) ) ) );
+        return this.getEventAOCFor( categoryCombo, getCategoryOptions( categoryOptions ) );
     }
 
     private Set<CategoryOption> getCategoryOptions( String categoryOptions )
@@ -181,6 +181,12 @@ public class TrackerPreheat
         Set<String> ids = parseCategoryOptions( categoryOptions );
         for ( String id : ids )
         {
+            // TODO this means that category options will have to be initialized
+            // for this to work
+            // this is done by the ClassBasedSupplier
+            // so there is a dependency on order here
+            // think if this is ok; or if I should adapt the cache to simple
+            // strings?
             result.add( this.getCategoryOption( id ) );
         }
         return result;
@@ -194,8 +200,7 @@ public class TrackerPreheat
             return Collections.emptySet();
         }
 
-        return TextUtils
-            .splitToArray( cos, TextUtils.SEMICOLON );
+        return TextUtils.splitToArray( cos, TextUtils.SEMICOLON );
     }
 
     /**

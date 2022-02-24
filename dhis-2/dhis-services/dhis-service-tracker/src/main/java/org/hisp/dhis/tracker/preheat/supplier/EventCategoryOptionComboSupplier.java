@@ -72,7 +72,6 @@ public class EventCategoryOptionComboSupplier extends AbstractPreheatSupplier
     {
         // TODO do I need to replicate what we do in EventProgramPreProcessor?
         // for an event payload that has no program but only a program stage
-
         List<Pair<CategoryCombo, Set<CategoryOption>>> events = params.getEvents().stream()
             .filter( e -> StringUtils.isBlank( e.getAttributeOptionCombo() )
                 && !StringUtils.isBlank( e.getAttributeCategoryOptions() ) )
@@ -89,18 +88,18 @@ public class EventCategoryOptionComboSupplier extends AbstractPreheatSupplier
         // all (category combo, category options)
         for ( Pair<CategoryCombo, Set<CategoryOption>> p : events )
         {
+            if ( preheat.getEventAOCFor( p.getLeft(), p.getRight() ) != null )
+            {
+                continue;
+            }
+
             CategoryOptionCombo aoc = categoryService
                 .getCategoryOptionCombo( p.getLeft(), p.getRight() );
-
             // TODO should we cache that we did not find the AOC as well?
             if ( aoc != null )
             {
-                // TODO should we still cache it with the original string in the
-                // payload?
                 preheat.putEventAOCFor( p.getLeft(), p.getRight(), aoc );
             }
-
-            preheat.put( params.getIdentifiers().getCategoryOptionComboIdScheme(), aoc );
         }
     }
 
@@ -134,7 +133,6 @@ public class EventCategoryOptionComboSupplier extends AbstractPreheatSupplier
             return Collections.emptySet();
         }
 
-        return TextUtils
-            .splitToArray( cos, TextUtils.SEMICOLON );
+        return TextUtils.splitToArray( cos, TextUtils.SEMICOLON );
     }
 }
