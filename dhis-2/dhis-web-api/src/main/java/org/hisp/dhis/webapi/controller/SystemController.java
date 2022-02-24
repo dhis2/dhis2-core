@@ -121,10 +121,10 @@ public class SystemController
     // UID Generator
     // -------------------------------------------------------------------------
 
-    @GetMapping( value = { "/uid", "/id" }, produces = { MediaType.APPLICATION_JSON_VALUE,
-        MediaType.APPLICATION_XML_VALUE } )
+    @GetMapping( value = { "/uid", "/id" } )
     public @ResponseBody CodeList getUid(
-        @RequestParam( required = false, defaultValue = "1" ) Integer limit,
+        @RequestParam( required = false, defaultValue = "1" )
+        Integer limit,
         HttpServletResponse response )
     {
         setNoStore( response );
@@ -133,7 +133,8 @@ public class SystemController
 
     @GetMapping( value = { "/uid", "/id" }, produces = "application/csv" )
     public void getUidCsv(
-        @RequestParam( required = false, defaultValue = "1" ) Integer limit,
+        @RequestParam( required = false, defaultValue = "1" )
+        Integer limit,
         HttpServletResponse response )
         throws IOException
     {
@@ -159,7 +160,8 @@ public class SystemController
     @GetMapping( value = "/uuid", produces = { APPLICATION_JSON_VALUE,
         MediaType.APPLICATION_XML_VALUE } )
     public @ResponseBody CodeList getUuid(
-        @RequestParam( required = false, defaultValue = "1" ) Integer limit,
+        @RequestParam( required = false, defaultValue = "1" )
+        Integer limit,
         HttpServletResponse response )
     {
         CodeList codeList = generateCodeList( Math.min( limit, 10000 ), () -> UUID.randomUUID().toString() );
@@ -180,7 +182,8 @@ public class SystemController
 
     @GetMapping( value = "/tasks/{jobType}", produces = { "*/*", APPLICATION_JSON_VALUE } )
     public ResponseEntity<Map<String, Deque<Notification>>> getTasksExtendedJson(
-        @PathVariable( "jobType" ) String jobType )
+        @PathVariable( "jobType" )
+        String jobType )
     {
         Map<String, Deque<Notification>> notifications = jobType == null
             ? emptyMap()
@@ -190,8 +193,10 @@ public class SystemController
     }
 
     @GetMapping( value = "/tasks/{jobType}/{jobId}", produces = { "*/*", APPLICATION_JSON_VALUE } )
-    public ResponseEntity<Collection<Notification>> getTaskJsonByUid( @PathVariable( "jobType" ) String jobType,
-        @PathVariable( "jobId" ) String jobId )
+    public ResponseEntity<Collection<Notification>> getTaskJsonByUid( @PathVariable( "jobType" )
+    String jobType,
+        @PathVariable( "jobId" )
+        String jobId )
     {
         Collection<Notification> notifications = jobType == null
             ? emptyList()
@@ -205,7 +210,8 @@ public class SystemController
     // -------------------------------------------------------------------------
 
     @GetMapping( value = "/taskSummaries/{jobType}", produces = { "*/*", APPLICATION_JSON_VALUE } )
-    public ResponseEntity<Map<String, Object>> getTaskSummaryExtendedJson( @PathVariable( "jobType" ) String jobType )
+    public ResponseEntity<Map<String, Object>> getTaskSummaryExtendedJson( @PathVariable( "jobType" )
+    String jobType )
     {
         if ( jobType != null )
         {
@@ -220,8 +226,10 @@ public class SystemController
     }
 
     @GetMapping( value = "/taskSummaries/{jobType}/{jobId}", produces = { "*/*", APPLICATION_JSON_VALUE } )
-    public ResponseEntity<Object> getTaskSummaryJson( @PathVariable( "jobType" ) String jobType,
-        @PathVariable( "jobId" ) String jobId )
+    public ResponseEntity<Object> getTaskSummaryJson( @PathVariable( "jobType" )
+    String jobType,
+        @PathVariable( "jobId" )
+        String jobId )
     {
         if ( jobType != null )
         {
