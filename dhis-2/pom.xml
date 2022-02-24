@@ -68,7 +68,7 @@
         <!-- HISP Quick and Staxwax -->
         <dhis-hisp-quick.version>1.4.0</dhis-hisp-quick.version>
         <dhis-hisp-staxwax.version>2.0.0</dhis-hisp-staxwax.version>
-        <dhis-json-tree.version>0.1.0</dhis-json-tree.version>
+        <dhis-json-tree.version>0.2.0</dhis-json-tree.version>
 
         <!-- Security-->
         <spring-security.version>5.6.1</spring-security.version>
@@ -136,7 +136,7 @@
         <antlr.version>4.9.3</antlr.version>
 
         <!-- GIS -->
-        <batik-transcoder.version>1.13</batik-transcoder.version>
+        <batik-transcoder.version>1.14</batik-transcoder.version>
         <batik-codec.version>1.14</batik-codec.version>
         <fop.version>2.5</fop.version>
         <mapstruct.version>1.4.2.Final</mapstruct.version>
@@ -203,7 +203,7 @@
         <mockito.version>4.2.0</mockito.version>
         <powermock.version>2.0.9</powermock.version>
         <hamcrest.version>2.2</hamcrest.version>
-        <hamcrest-date.version>2.0.7</hamcrest-date.version>
+        <hamcrest-date.version>2.0.8</hamcrest-date.version>
         <testcontainers.version>1.16.3</testcontainers.version>
         <objenesis.version>3.2</objenesis.version>
         <jsonassert.version>1.5.0</jsonassert.version>
@@ -759,9 +759,9 @@
                                     </bannedImports>
                                 </RestrictImports>
                                 <RestrictImports>
-                                    <reason>Use only JUnit 5 Assertions</reason>
+                                    <reason>Do not use this util. Use com.google.common instead</reason>
                                     <bannedImports>
-                                        <bannedImport>org.wildfly.common.Assert.**</bannedImport>
+                                        <bannedImport>com.google.api.client.util.**</bannedImport>
                                     </bannedImports>
                                 </RestrictImports>
                             </rules>
@@ -2121,6 +2121,10 @@
                     <exclusion>
                         <groupId>io.netty</groupId>
                         <artifactId>netty-transport-native-kqueue</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.wildfly.common</groupId>
+                        <artifactId>wildfly-common</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>

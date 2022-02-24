@@ -35,6 +35,7 @@ import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -81,7 +82,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 
-import com.google.api.client.util.Lists;
 import com.google.common.collect.Sets;
 
 /**
@@ -321,7 +321,7 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
     @Test
     void testExceptionWhenMandatoryValueMissingMappedEnrollment()
     {
-        List<TrackedEntityAttributeValue> trackedEntityAttributeValues = Lists.newArrayList();
+        List<TrackedEntityAttributeValue> trackedEntityAttributeValues = Collections.emptyList();
         assertThrows( IllegalStateException.class,
             () -> subject.toMappedRuleEnrollment( programInstanceB, trackedEntityAttributeValues ) );
     }
@@ -329,7 +329,7 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
     @Test
     void testMappedEnrollment()
     {
-        RuleEnrollment ruleEnrollment = subject.toMappedRuleEnrollment( programInstance, Lists.newArrayList() );
+        RuleEnrollment ruleEnrollment = subject.toMappedRuleEnrollment( programInstance, Collections.emptyList() );
 
         assertEquals( ruleEnrollment.enrollment(), programInstance.getUid() );
         assertEquals( ruleEnrollment.organisationUnit(), programInstance.getOrganisationUnit().getUid() );

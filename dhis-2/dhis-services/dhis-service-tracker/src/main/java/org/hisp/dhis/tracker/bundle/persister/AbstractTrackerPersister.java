@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.tracker.bundle.persister;
 
-import static com.google.api.client.util.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.ArrayList;
 import java.util.List;
