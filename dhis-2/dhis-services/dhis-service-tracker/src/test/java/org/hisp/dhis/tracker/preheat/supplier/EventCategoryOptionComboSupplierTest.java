@@ -64,7 +64,7 @@ import com.google.common.collect.Sets;
 // it then has to check if AOC and COs match
 
 // TODO what about when AOC is given? In that case I assume it is already
-// fetched from the DB and in the preheat by the classbasedsupplier
+// fetched from the DB and in the preheat by the ClassBasedSupplier
 // validation hook should still check for existence
 // validation
 // * no aoc, no cos => is this event in a program with default cc
@@ -100,7 +100,7 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
             .build();
 
         Program program = createProgram( 'A' );
-        CategoryCombo categoryCombo = categoryComboWithTwoCategories();
+        CategoryCombo categoryCombo = categoryCombo();
         program.setCategoryCombo( categoryCombo );
         CategoryOptionCombo aoc = firstCategoryOptionCombo( categoryCombo );
         Set<CategoryOption> options = aoc.getCategoryOptions();
@@ -123,7 +123,7 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
 
         supplier.preheatAdd( params, preheat );
 
-        verify( preheat, times( 1 ) ).putCachedEventAOCProgramCC( program, options, aoc );
+        verify( preheat, times( 1 ) ).putCachedEventAOCProgramCC( program.getCategoryCombo(), options, aoc );
     }
 
     @Test
@@ -136,7 +136,7 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
             .build();
 
         Program program = createProgram( 'A' );
-        CategoryCombo categoryCombo = categoryComboWithTwoCategories();
+        CategoryCombo categoryCombo = categoryCombo();
         program.setCategoryCombo( categoryCombo );
         CategoryOptionCombo aoc = firstCategoryOptionCombo( categoryCombo );
         Set<CategoryOption> options = aoc.getCategoryOptions();
@@ -158,7 +158,7 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
 
         supplier.preheatAdd( params, preheat );
 
-        verify( preheat, times( 0 ) ).putCachedEventAOCProgramCC( program, options, aoc );
+        verify( preheat, times( 0 ) ).putCachedEventAOCProgramCC( program.getCategoryCombo(), options, aoc );
     }
 
     @Test
@@ -170,7 +170,7 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
             .build();
 
         Program program = createProgram( 'A' );
-        CategoryCombo categoryCombo = categoryComboWithTwoCategories();
+        CategoryCombo categoryCombo = categoryCombo();
         program.setCategoryCombo( categoryCombo );
         CategoryOptionCombo aoc = firstCategoryOptionCombo( categoryCombo );
         Set<CategoryOption> options = aoc.getCategoryOptions();
@@ -191,7 +191,7 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
         supplier.preheatAdd( params, preheat );
 
         verifyNoInteractions( categoryService );
-        verify( preheat, times( 0 ) ).putCachedEventAOCProgramCC( program, options, aoc );
+        verify( preheat, times( 0 ) ).putCachedEventAOCProgramCC( program.getCategoryCombo(), options, aoc );
     }
 
     @Test
@@ -204,7 +204,7 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
             .build();
 
         Program program = createProgram( 'A' );
-        CategoryCombo categoryCombo = categoryComboWithTwoCategories();
+        CategoryCombo categoryCombo = categoryCombo();
         program.setCategoryCombo( categoryCombo );
         CategoryOptionCombo aoc = firstCategoryOptionCombo( categoryCombo );
         Set<CategoryOption> options = aoc.getCategoryOptions();
@@ -224,7 +224,7 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
 
         supplier.preheatAdd( params, preheat );
 
-        verify( preheat, times( 0 ) ).putCachedEventAOCProgramCC( program, options, aoc );
+        verify( preheat, times( 0 ) ).putCachedEventAOCProgramCC( program.getCategoryCombo(), options, aoc );
     }
 
     @Test
@@ -237,7 +237,7 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
             .build();
 
         Program program = createProgram( 'A' );
-        CategoryCombo categoryCombo = categoryComboWithTwoCategories();
+        CategoryCombo categoryCombo = categoryCombo();
         program.setCategoryCombo( categoryCombo );
         CategoryOptionCombo aoc = firstCategoryOptionCombo( categoryCombo );
 
@@ -255,7 +255,8 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
 
         supplier.preheatAdd( params, preheat );
 
-        verify( preheat, times( 0 ) ).putCachedEventAOCProgramCC( program, aoc.getCategoryOptions(), aoc );
+        verify( preheat, times( 0 ) ).putCachedEventAOCProgramCC( program.getCategoryCombo(), aoc.getCategoryOptions(),
+            aoc );
     }
 
     @Test
@@ -268,9 +269,8 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
             .build();
 
         Program program = createProgram( 'A' );
-        CategoryCombo categoryCombo = categoryComboWithTwoCategories();
+        CategoryCombo categoryCombo = categoryCombo();
         program.setCategoryCombo( categoryCombo );
-        CategoryOptionCombo aoc = firstCategoryOptionCombo( categoryCombo );
 
         Event event = Event.builder()
             .program( program.getUid() )
@@ -290,25 +290,12 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
 
     private String concatCategoryOptions( TrackerIdentifier identifier, Set<CategoryOption> options )
     {
-        return String.join( ";", options.stream()
-            .map( co -> identifier.getIdentifier( co ) )
-            .collect( Collectors.toList() ) );
+        return options.stream()
+            .map( identifier::getIdentifier )
+            .collect( Collectors.joining( ";" ) );
     }
 
-    private CategoryCombo categoryCombo( char uniqueIdentifier )
-    {
-        CategoryOption co1 = createCategoryOption( uniqueIdentifier );
-        CategoryOption co2 = createCategoryOption( uniqueIdentifier );
-        Category ca = createCategory( uniqueIdentifier, co1, co2 );
-        CategoryCombo cc = createCategoryCombo( uniqueIdentifier, ca );
-        cc.setDataDimensionType( DataDimensionType.ATTRIBUTE );
-        CategoryOptionCombo aoc1 = createCategoryOptionCombo( cc, co1 );
-        CategoryOptionCombo aoc2 = createCategoryOptionCombo( cc, co2 );
-        cc.setOptionCombos( Sets.newHashSet( aoc1, aoc2 ) );
-        return cc;
-    }
-
-    private CategoryCombo categoryComboWithTwoCategories()
+    private CategoryCombo categoryCombo()
     {
         char uniqueIdentifier = 'A';
         CategoryOption co1 = createCategoryOption( uniqueIdentifier );
