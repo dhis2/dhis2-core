@@ -29,13 +29,15 @@ package org.hisp.dhis.tracker.preheat.supplier;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.DhisConvenienceTest;
@@ -70,14 +72,14 @@ import com.google.common.collect.Sets;
 // * cos => do they exist?
 // * aoc, cos => do they match?
 // I think that is what will be left
-class MissingCategoryOptionComboSupplierTest extends DhisConvenienceTest
+class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
 {
 
     private TrackerPreheat preheat;
 
     private CategoryService categoryService;
 
-    private MissingCategoryOptionComboSupplier supplier;
+    private EventCategoryOptionComboSupplier supplier;
 
     @BeforeEach
     void setUp()
@@ -85,7 +87,7 @@ class MissingCategoryOptionComboSupplierTest extends DhisConvenienceTest
 
         preheat = mock( TrackerPreheat.class );
         categoryService = mock( CategoryService.class );
-        supplier = new MissingCategoryOptionComboSupplier( categoryService );
+        supplier = new EventCategoryOptionComboSupplier( categoryService );
     }
 
     @Test
@@ -101,7 +103,7 @@ class MissingCategoryOptionComboSupplierTest extends DhisConvenienceTest
         CategoryCombo categoryCombo = categoryComboWithTwoCategories();
         program.setCategoryCombo( categoryCombo );
         CategoryOptionCombo aoc = firstCategoryOptionCombo( categoryCombo );
-        List<CategoryOption> options = categoryOptions( aoc );
+        Set<CategoryOption> options = aoc.getCategoryOptions();
 
         Event event = Event.builder()
             .program( program.getUid() )
@@ -121,11 +123,11 @@ class MissingCategoryOptionComboSupplierTest extends DhisConvenienceTest
 
         supplier.preheatAdd( params, preheat );
 
-        verify( preheat, times( 1 ) ).putCachedEventAOCProgramCC( program, event.getAttributeCategoryOptions(), aoc );
+        verify( preheat, times( 1 ) ).putCachedEventAOCProgramCC( program, options, aoc );
     }
 
     @Test
-    void shouldNotPreheatEventAOCIfNotProvidedAndNotFound()
+    void shouldNotPreheatEventAOCIfNotProvidedAndAOCNotFound()
     {
 
         TrackerIdentifierParams identifierParams = TrackerIdentifierParams.builder()
@@ -137,8 +139,7 @@ class MissingCategoryOptionComboSupplierTest extends DhisConvenienceTest
         CategoryCombo categoryCombo = categoryComboWithTwoCategories();
         program.setCategoryCombo( categoryCombo );
         CategoryOptionCombo aoc = firstCategoryOptionCombo( categoryCombo );
-
-        List<CategoryOption> options = categoryOptions( aoc ).subList( 0, 1 );
+        Set<CategoryOption> options = aoc.getCategoryOptions();
 
         Event event = Event.builder()
             .program( program.getUid() )
@@ -154,11 +155,43 @@ class MissingCategoryOptionComboSupplierTest extends DhisConvenienceTest
         options.forEach(
             o -> when( preheat.getCategoryOption( identifierParams.getCategoryOptionIdScheme().getIdentifier( o ) ) )
                 .thenReturn( o ) );
+
+        supplier.preheatAdd( params, preheat );
+
+        verify( preheat, times( 0 ) ).putCachedEventAOCProgramCC( program, options, aoc );
+    }
+
+    @Test
+    void shouldNotPreheatEventAOCIfNotProvidedAndCONotFound()
+    {
+        TrackerIdentifierParams identifierParams = TrackerIdentifierParams.builder()
+            .categoryOptionComboIdScheme( TrackerIdentifier.CODE )
+            .categoryOptionIdScheme( TrackerIdentifier.UID )
+            .build();
+
+        Program program = createProgram( 'A' );
+        CategoryCombo categoryCombo = categoryComboWithTwoCategories();
+        program.setCategoryCombo( categoryCombo );
+        CategoryOptionCombo aoc = firstCategoryOptionCombo( categoryCombo );
+        Set<CategoryOption> options = aoc.getCategoryOptions();
+
+        Event event = Event.builder()
+            .program( program.getUid() )
+            .attributeCategoryOptions( concatCategoryOptions( identifierParams.getCategoryOptionIdScheme(), options ) )
+            .build();
+        List<Event> events = List.of( event );
+        TrackerImportParams params = TrackerImportParams.builder()
+            .identifiers( identifierParams )
+            .events( events )
+            .build();
+
+        when( preheat.get( Program.class, event.getProgram() ) ).thenReturn( program );
         when( categoryService.getCategoryOptionCombo( categoryCombo, aoc.getCategoryOptions() ) ).thenReturn( aoc );
 
         supplier.preheatAdd( params, preheat );
 
-        verify( preheat, times( 0 ) ).putCachedEventAOCProgramCC( program, event.getAttributeCategoryOptions(), aoc );
+        verifyNoInteractions( categoryService );
+        verify( preheat, times( 0 ) ).putCachedEventAOCProgramCC( program, options, aoc );
     }
 
     @Test
@@ -174,7 +207,7 @@ class MissingCategoryOptionComboSupplierTest extends DhisConvenienceTest
         CategoryCombo categoryCombo = categoryComboWithTwoCategories();
         program.setCategoryCombo( categoryCombo );
         CategoryOptionCombo aoc = firstCategoryOptionCombo( categoryCombo );
-        List<CategoryOption> options = categoryOptions( aoc );
+        Set<CategoryOption> options = aoc.getCategoryOptions();
 
         Event event = Event.builder()
             .program( program.getUid() )
@@ -191,7 +224,7 @@ class MissingCategoryOptionComboSupplierTest extends DhisConvenienceTest
 
         supplier.preheatAdd( params, preheat );
 
-        verify( preheat, times( 0 ) ).putCachedEventAOCProgramCC( program, event.getAttributeCategoryOptions(), aoc );
+        verify( preheat, times( 0 ) ).putCachedEventAOCProgramCC( program, options, aoc );
     }
 
     @Test
@@ -222,7 +255,7 @@ class MissingCategoryOptionComboSupplierTest extends DhisConvenienceTest
 
         supplier.preheatAdd( params, preheat );
 
-        verify( preheat, times( 0 ) ).putCachedEventAOCProgramCC( program, event.getAttributeCategoryOptions(), aoc );
+        verify( preheat, times( 0 ) ).putCachedEventAOCProgramCC( program, aoc.getCategoryOptions(), aoc );
     }
 
     @Test
@@ -239,8 +272,6 @@ class MissingCategoryOptionComboSupplierTest extends DhisConvenienceTest
         program.setCategoryCombo( categoryCombo );
         CategoryOptionCombo aoc = firstCategoryOptionCombo( categoryCombo );
 
-        List<CategoryOption> options = categoryOptions( aoc ).subList( 0, 1 );
-
         Event event = Event.builder()
             .program( program.getUid() )
             .build();
@@ -254,24 +285,14 @@ class MissingCategoryOptionComboSupplierTest extends DhisConvenienceTest
 
         supplier.preheatAdd( params, preheat );
 
-        verify( preheat, times( 0 ) ).putCachedEventAOCProgramCC( program, event.getAttributeCategoryOptions(), aoc );
+        verify( preheat, times( 0 ) ).putCachedEventAOCProgramCC( any(), any(), any() );
     }
 
-    private String concatCategoryOptions( TrackerIdentifier identifier, List<CategoryOption> options )
+    private String concatCategoryOptions( TrackerIdentifier identifier, Set<CategoryOption> options )
     {
         return String.join( ";", options.stream()
             .map( co -> identifier.getIdentifier( co ) )
             .collect( Collectors.toList() ) );
-    }
-
-    private List<CategoryOption> categoryOptions( CategoryOptionCombo aoc )
-    {
-        return new ArrayList<>( aoc.getCategoryOptions() );
-    }
-
-    private CategoryCombo categoryCombo()
-    {
-        return categoryCombo( 'A' );
     }
 
     private CategoryCombo categoryCombo( char uniqueIdentifier )
