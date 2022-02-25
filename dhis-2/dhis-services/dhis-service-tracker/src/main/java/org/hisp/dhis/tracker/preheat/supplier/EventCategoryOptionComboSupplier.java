@@ -38,7 +38,6 @@ import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.logging.log4j.util.Strings;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -55,10 +54,10 @@ import org.springframework.stereotype.Component;
 /**
  * EventCategoryOptionComboSupplier adds category option combos to the preheat
  * for events with attributeCategoryOptions but no attributeOptionCombo.
- *
+ * <p>
  * {@link ClassBasedSupplier} is responsible for adding category option combos
  * to the preheat for which identifiers are present in the event.
- *
+ * <p>
  * An event for which the category option combo can not be found is invalid.
  * Validation will thus subsequently invalidate it.
  */
@@ -119,7 +118,7 @@ public class EventCategoryOptionComboSupplier extends AbstractPreheatSupplier
             return program;
         }
 
-        if ( Strings.isBlank( e.getProgramStage() ) )
+        if ( StringUtils.isBlank( e.getProgramStage() ) )
         {
             return null;
         }
