@@ -53,9 +53,11 @@ public class ControlledJobProgress implements JobProgress
 
     private final JobProgress tracker;
 
-    private final boolean cancelOnFailure;
+    private final boolean abortOnFailure;
 
     private final AtomicBoolean cancellationRequested = new AtomicBoolean();
+
+    private final AtomicBoolean abortAfterFailure = new AtomicBoolean();
 
     private final Deque<Process> processes = new ConcurrentLinkedDeque<>();
 
@@ -87,6 +89,10 @@ public class ControlledJobProgress implements JobProgress
     @Override
     public void startingProcess( String description )
     {
+        if ( isCancellationRequested() )
+        {
+            throw new CancellationException();
+        }
         tracker.startingProcess( description );
         incompleteProcess.set( null );
         incompleteStage.set( null );
@@ -107,7 +113,7 @@ public class ControlledJobProgress implements JobProgress
         tracker.failedProcess( error );
         if ( processes.getLast().getStatus() != Status.CANCELLED )
         {
-            possiblyRequestCancellation();
+            automaticAbort();
             getOrAddLastIncompleteProcess().completeExceptionally( error, null );
         }
     }
@@ -115,10 +121,11 @@ public class ControlledJobProgress implements JobProgress
     @Override
     public void failedProcess( Exception cause )
     {
+        cause = cancellationAsAbort( cause );
         tracker.failedProcess( cause );
         if ( processes.getLast().getStatus() != Status.CANCELLED )
         {
-            possiblyRequestCancellation();
+            automaticAbort();
             getOrAddLastIncompleteProcess().completeExceptionally( cause.getMessage(), cause );
         }
     }
@@ -145,15 +152,16 @@ public class ControlledJobProgress implements JobProgress
     public void failedStage( String error )
     {
         tracker.failedStage( error );
-        possiblyRequestCancellation();
+        automaticAbort();
         getOrAddLastIncompleteStage().completeExceptionally( error, null );
     }
 
     @Override
     public void failedStage( Exception cause )
     {
+        cause = cancellationAsAbort( cause );
         tracker.failedStage( cause );
-        possiblyRequestCancellation();
+        automaticAbort();
         getOrAddLastIncompleteStage().completeExceptionally( cause.getMessage(), cause );
     }
 
@@ -175,7 +183,7 @@ public class ControlledJobProgress implements JobProgress
     public void failedWorkItem( String error )
     {
         tracker.failedWorkItem( error );
-        possiblyRequestCancellation();
+        automaticAbort();
         getOrAddLastIncompleteItem().completeExceptionally( error, null );
     }
 
@@ -183,15 +191,19 @@ public class ControlledJobProgress implements JobProgress
     public void failedWorkItem( Exception cause )
     {
         tracker.failedProcess( cause );
-        possiblyRequestCancellation();
+        automaticAbort();
         getOrAddLastIncompleteItem().completeExceptionally( cause.getMessage(), cause );
     }
 
-    private void possiblyRequestCancellation()
+    private void automaticAbort()
     {
-        if ( cancelOnFailure )
+        if ( abortOnFailure
+            // OBS! we only mark abort if we could mark cancellation
+            // if we already cancelled manually we do not abort but cancel
+            && cancellationRequested.compareAndSet( false, true )
+            && abortAfterFailure.compareAndSet( false, true ) )
         {
-            requestCancellation();
+            processes.forEach( Process::abort );
         }
     }
 
@@ -247,5 +259,12 @@ public class ControlledJobProgress implements JobProgress
         items.addLast( item );
         incompleteItem.set( item );
         return item;
+    }
+
+    private Exception cancellationAsAbort( Exception cause )
+    {
+        return cause instanceof CancellationException && abortAfterFailure.get()
+            ? new RuntimeException( "processing aborted: " + cause.getMessage() )
+            : cause;
     }
 }
