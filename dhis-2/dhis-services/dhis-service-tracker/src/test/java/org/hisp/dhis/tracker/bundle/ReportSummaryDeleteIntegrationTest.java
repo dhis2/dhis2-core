@@ -77,7 +77,8 @@ public class ReportSummaryDeleteIntegrationTest extends TrackerTest
             bundleReport.getTypeReportMap().get( TrackerType.EVENT ).getObjectReportMap().size() );
         assertEquals( bundleReport.getTypeReportMap().get( TrackerType.TRACKED_ENTITY ).getStats().getCreated(),
             bundleReport.getTypeReportMap().get( TrackerType.TRACKED_ENTITY ).getObjectReportMap().size() );
-        assertEquals( 4, manager.getAll( ProgramInstance.class ).size() );
+
+        assertEquals( 5, manager.getAll( ProgramInstance.class ).size() );
         assertEquals( 2, bundleReport.getTypeReportMap().get( TrackerType.ENROLLMENT ).getObjectReportMap().size() );
     }
 
@@ -96,14 +97,14 @@ public class ReportSummaryDeleteIntegrationTest extends TrackerTest
 
         // remaining
         assertEquals( 4, manager.getAll( TrackedEntityInstance.class ).size() );
-        assertEquals( 2, manager.getAll( ProgramInstance.class ).size() );
+        assertEquals( 3, manager.getAll( ProgramInstance.class ).size() );
     }
 
     @Test
     public void testEnrollmentDeletion()
         throws IOException
     {
-        assertEquals( 4, manager.getAll( ProgramInstance.class ).size() );
+        assertEquals( 5, manager.getAll( ProgramInstance.class ).size() );
         assertEquals( 2, manager.getAll( ProgramStageInstance.class ).size() );
 
         TrackerImportParams params = fromJson( "tracker/enrollment_basic_data_for_deletion.json" );
@@ -115,8 +116,7 @@ public class ReportSummaryDeleteIntegrationTest extends TrackerTest
         assertDeletedObjects( trackerImportReport.getBundleReport(), 1, TrackerType.ENROLLMENT );
 
         // remaining
-        assertEquals( 3, manager.getAll( ProgramInstance.class ).size() );
-
+        assertEquals( 4, manager.getAll( ProgramInstance.class ).size() );
         // delete associated events as well
         assertEquals( 1, manager.getAll( ProgramStageInstance.class ).size() );
     }
