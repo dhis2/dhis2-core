@@ -50,6 +50,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
@@ -90,6 +91,9 @@ public class DataApprovalStoreIntegrationTest
 
     @Autowired
     private PeriodService periodService;
+
+    @Autowired
+    private PeriodStore periodStore;
 
     @Autowired
     private CategoryService categoryService;
@@ -160,7 +164,7 @@ public class DataApprovalStoreIntegrationTest
         throws Exception
     {
         dataApprovalStore = new HibernateDataApprovalStore( sessionFactory, jdbcTemplate,
-            publisher, cacheProvider, periodService, currentUserService, categoryService,
+            publisher, cacheProvider, periodService, periodStore, currentUserService, categoryService,
             systemSettingManager, new PostgreSQLStatementBuilder(), environment );
 
         dataApprovalStore.init();

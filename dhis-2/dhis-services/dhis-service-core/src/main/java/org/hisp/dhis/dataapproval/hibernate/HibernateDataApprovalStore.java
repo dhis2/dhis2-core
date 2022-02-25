@@ -55,6 +55,7 @@ import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
@@ -91,6 +92,8 @@ public class HibernateDataApprovalStore
 
     private final PeriodService periodService;
 
+    private final PeriodStore periodStore;
+
     private CurrentUserService currentUserService;
 
     private final CategoryService categoryService;
@@ -103,7 +106,7 @@ public class HibernateDataApprovalStore
 
     public HibernateDataApprovalStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CacheProvider cacheProvider, PeriodService periodService,
-        CurrentUserService currentUserService, CategoryService categoryService,
+        PeriodStore periodStore, CurrentUserService currentUserService, CategoryService categoryService,
         SystemSettingManager systemSettingManager,
         StatementBuilder statementBuilder, Environment env )
     {
@@ -111,6 +114,7 @@ public class HibernateDataApprovalStore
 
         checkNotNull( cacheProvider );
         checkNotNull( periodService );
+        checkNotNull( periodStore );
         checkNotNull( currentUserService );
         checkNotNull( categoryService );
         checkNotNull( systemSettingManager );
@@ -119,6 +123,7 @@ public class HibernateDataApprovalStore
 
         this.cacheProvider = cacheProvider;
         this.periodService = periodService;
+        this.periodStore = periodStore;
         this.currentUserService = currentUserService;
         this.categoryService = categoryService;
         this.systemSettingManager = systemSettingManager;
@@ -242,7 +247,12 @@ public class HibernateDataApprovalStore
 
     private boolean dataApprovalExistsInternal( DataApproval dataApproval )
     {
-        Period storedPeriod = periodService.reloadPeriod( dataApproval.getPeriod() );
+        Period storedPeriod = periodStore.reloadPeriod( dataApproval.getPeriod() );
+
+        if ( storedPeriod == null )
+        {
+            return false;
+        }
 
         String sql = "select dataapprovalid " +
             "from dataapproval " +
