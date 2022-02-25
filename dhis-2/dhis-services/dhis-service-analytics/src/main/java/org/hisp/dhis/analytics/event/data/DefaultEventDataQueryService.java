@@ -491,6 +491,39 @@ public class DefaultEventDataQueryService
         return getQueryItem( item, program, type );
     }
 
+    private DimensionalItemObject getValueDimension( String value )
+    {
+        if ( value == null )
+        {
+            return null;
+        }
+
+        DataElement de = dataElementService.getDataElement( value );
+
+        if ( de != null && de.isNumericType() )
+        {
+            return de;
+        }
+
+        TrackedEntityAttribute at = attributeService.getTrackedEntityAttribute( value );
+
+        if ( at != null && at.isNumericType() )
+        {
+            return at;
+        }
+
+        throw new IllegalQueryException( new ErrorMessage( ErrorCode.E7223, value ) );
+    }
+
+    private String getCoordinateFieldOrFail( ValueType valueType, String field, ErrorCode errorCode )
+    {
+        if ( ValueType.COORDINATE != valueType && ValueType.ORGANISATION_UNIT != valueType )
+        {
+            throwIllegalQueryEx( errorCode, field );
+        }
+        return field;
+    }
+
     @Getter
     @RequiredArgsConstructor
     enum SortableItems
@@ -526,38 +559,5 @@ public class DefaultEventDataQueryService
                 .orElse( item );
         }
 
-    }
-
-    private DimensionalItemObject getValueDimension( String value )
-    {
-        if ( value == null )
-        {
-            return null;
-        }
-
-        DataElement de = dataElementService.getDataElement( value );
-
-        if ( de != null && de.isNumericType() )
-        {
-            return de;
-        }
-
-        TrackedEntityAttribute at = attributeService.getTrackedEntityAttribute( value );
-
-        if ( at != null && at.isNumericType() )
-        {
-            return at;
-        }
-
-        throw new IllegalQueryException( new ErrorMessage( ErrorCode.E7223, value ) );
-    }
-
-    private String getCoordinateFieldOrFail( ValueType valueType, String field, ErrorCode errorCode )
-    {
-        if ( ValueType.COORDINATE != valueType && ValueType.ORGANISATION_UNIT != valueType )
-        {
-            throwIllegalQueryEx( errorCode, field );
-        }
-        return field;
     }
 }
