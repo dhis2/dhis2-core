@@ -1,39 +1,49 @@
--- trackerdataview table
-CREATE TABLE IF NOT EXISTS trackerdataview
-(
-    trackerdataviewid                               bigint                          NOT NULL,
-    trackedentitytypeid                             bigint,
-    programid                                       bigint,
-    programstageid                                  bigint,
-
-    -- CONTRAINTS
-    CONSTRAINT trackerdataviewid_pkey PRIMARY KEY (trackerdataviewid),
-    CONSTRAINT fk_trackerdataview_trackedentitytypeid    FOREIGN KEY (trackedentitytypeid)       REFERENCES trackedentitytype (trackedentitytypeid),
-    CONSTRAINT fk_trackerdataview_programid              FOREIGN KEY (programid)                 REFERENCES program (programid),
-    CONSTRAINT fk_trackerdataview_programstageid         FOREIGN KEY (programstageid)            REFERENCES programstage (programstageid)
-);
-
--- trackerdataviewitem table
-CREATE TABLE IF NOT EXISTS trackerdataviewitem
-(
-    trackerdataviewitemid                           bigint             NOT NULL,
-    trackerdataviewid                               bigint             NOT NULL,
-    trackedentityattributeid                        bigint,
-    dataelementid                                   bigint,
-
-    -- CONTRAINTS
-    CONSTRAINT trackerdataviewitemid_pkey PRIMARY KEY (trackerdataviewitemid),
-    CONSTRAINT trackerdataviewid                                 FOREIGN KEY (trackerdataviewid)         REFERENCES trackerdataview (trackerdataviewid),
-    CONSTRAINT fk_trackerdataviewitem_trackedentityattributeid   FOREIGN KEY (trackedentityattributeid)  REFERENCES trackedentityattribute (trackedentityattributeid),
-    CONSTRAINT fk_trackerdataviewitem_dataelementid              FOREIGN KEY (dataelementid)             REFERENCES dataelement (dataelementid)
-);
-
-
-alter table relationshipconstraint
-    add column if not exists trackerdataviewid bigint;
-
-alter table relationshipconstraint
-    add constraint fk_relationshipconstraint_trackerdataviewid
-        foreign key (trackerdataviewid) references trackerdataview(trackerdataviewid);
-
-
+ALTER TABLE relationshipconstraint
+    ADD COLUMN IF NOT EXISTS trackerdataview jsonb;
+UPDATE relationshipconstraint
+SET dataview = R.dataview
+    FROM (
+        SELECT RC.relationshipconstraintid as relationshipconstraintid,
+            json_build_object(
+                'attributes',
+                COALESCE(
+                    json_agg(COALESCE(TETA.uid, PTEA.uid)) FILTER (
+                        WHERE RC.entity IN ('TRACKED_ENTITY_INSTANCE')
+                    ),
+                    json_agg(COALESCE(TETA.uid, PTEA.uid)) FILTER (
+                        WHERE RC.entity IN ('PROGRAM_INSTANCE')
+                    ),
+                    '[]'
+                )::jsonb,
+                'dataelements',
+                COALESCE(
+                    json_agg(COALESCE(PSDE.uid)) FILTER (
+                        WHERE RC.entity = 'PROGRAM_STAGE_INSTANCE'
+                    ),
+                    '[]'
+                )::jsonb
+            ) AS dataview
+        FROM relationshipconstraint RC
+            LEFT JOIN trackedentitytypeattribute TETA ON TETA.trackedentitytypeid = RC.trackedentitytypeid
+            LEFT JOIN program_attributes PTEA ON PTEA.programid = RC.programid
+            LEFT JOIN programstagedataelement PSDE ON PSDE.programstageid IN (
+                SELECT programstageid
+                FROM programstage
+                WHERE (
+                        RC.entity = 'PROGRAM_STAGE_INSTANCE'
+                        AND programid = RC.programid
+                    )
+                    OR programstageid = RC.programstageid
+            )
+            LEFT JOIN trackedentityattribute TEA ON TEA.trackedentityattributeid = TETA.trackedentityattributeid
+            OR TEA.trackedentityattributeid = PTEA.trackedentityattributeid
+            LEFT JOIN dataelement DE ON DE.dataelementid = PSDE.dataelementid
+        WHERE (
+                TETA.displayinlist = TRUE
+                OR PTEA.displayinlist = TRUE
+                OR PSDE.displayinreports = TRUE
+            )
+        GROUP BY relationshipconstraintid
+    ) R
+WHERE relationshipconstraint.dataview IS NULL
+  AND relationshipconstraint.relationshipconstraintid = R.relationshipconstraintid;
