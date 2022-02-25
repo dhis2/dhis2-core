@@ -265,81 +265,6 @@
     "rev": "5ad66ea",
     "id": "44f26b83-d2d2-4e6c-8a0d-2d76870beb2e"
   },
-  "categoryOptions": [
-    {
-      "userAccesses": [],
-      "attributeValues": [],
-      "id": "xYerKDKCefk",
-      "userGroupAccesses": [],
-      "publicAccess": "rwrw----",
-      "lastUpdated": "2019-03-25T13:40:24.783",
-      "startDate": "2019-01-01T00:00:00.000",
-      "organisationUnits": [],
-      "code": "default",
-      "created": "2019-03-25T13:40:24.722",
-      "name": "default",
-      "translations": []
-    },
-    {
-      "userAccesses": [],
-      "attributeValues": [],
-      "id": "LYerKDKCefk",
-      "userGroupAccesses": [],
-      "publicAccess": "rwrw----",
-      "lastUpdated": "2019-03-25T13:40:24.783",
-      "startDate": "2019-12-01T00:00:00.000",
-      "endDate": "2019-01-01T00:00:00.000",
-      "organisationUnits": [],
-      "code": "catopt1",
-      "created": "2019-03-25T13:40:24.722",
-      "name": "catopt1",
-      "translations": []
-    },
-    {
-      "userAccesses": [],
-      "attributeValues": [],
-      "id": "Aj6SFQQBBFU",
-      "userGroupAccesses": [],
-      "publicAccess": "rwrw----",
-      "lastUpdated": "2019-03-25T13:40:24.783",
-      "startDate": "2019-12-01T00:00:00.000",
-      "endDate": "2019-01-01T00:00:00.000",
-      "organisationUnits": [],
-      "code": "nondef1",
-      "created": "2019-03-25T13:40:24.722",
-      "name": "nondef1",
-      "translations": []
-    },
-    {
-      "userAccesses": [],
-      "attributeValues": [],
-      "id": "XXXXKDKCefk",
-      "userGroupAccesses": [],
-      "publicAccess": "--------",
-      "lastUpdated": "2019-03-25T13:40:24.783",
-      "startDate": "2019-12-01T00:00:00.000",
-      "endDate": "2019-12-12T00:00:00.000",
-      "organisationUnits": [],
-      "code": "catopt22",
-      "created": "2019-03-25T13:40:24.722",
-      "name": "catopt22",
-      "translations": []
-    },
-    {
-      "userAccesses": [],
-      "attributeValues": [],
-      "id": "MYerKDKCefk",
-      "userGroupAccesses": [],
-      "publicAccess": "rwrw----",
-      "lastUpdated": "2019-03-25T13:40:24.783",
-      "startDate": "2019-01-01T00:00:00.000",
-      "organisationUnits": [],
-      "code": "catopt2",
-      "created": "2019-03-25T13:40:24.722",
-      "name": "catopt2",
-      "translations": []
-    }
-  ],
   "organisationUnits": [
     {
       "level": 1,
@@ -1904,161 +1829,290 @@
       "name": "PersonYYY"
     }
   ],
-  "categoryOptionCombos": [
+  "categoryOptions": [
     {
-      "id": "HllvX50cXC0",
-      "translations": [],
+      "id": "xYerKDKCefk",
+      "code": "default",
       "name": "default",
       "startDate": "2019-01-01T00:00:00.000",
+      "userAccesses": [],
+      "attributeValues": [],
+      "userGroupAccesses": [],
+      "publicAccess": "rwrw----",
+      "lastUpdated": "2019-03-25T13:40:24.783",
+      "organisationUnits": [],
+      "created": "2019-03-25T13:40:24.722",
+      "translations": []
+    },
+    {
+      "id": "LYerKDKCefk",
+      "code": "catopt1",
+      "name": "catopt1",
+      "startDate": "2019-12-01T00:00:00.000",
+      "endDate": "2019-01-01T00:00:00.000",
+      "userAccesses": [],
+      "attributeValues": [],
+      "userGroupAccesses": [],
+      "publicAccess": "rwrw----",
+      "lastUpdated": "2019-03-25T13:40:24.783",
+      "organisationUnits": [],
+      "created": "2019-03-25T13:40:24.722",
+      "translations": []
+    },
+    {
+      "id": "XXXXKDKCefk",
+      "code": "catopt22",
+      "name": "catopt22",
+      "startDate": "2019-12-01T00:00:00.000",
+      "endDate": "2019-12-12T00:00:00.000",
+      "userAccesses": [],
+      "attributeValues": [],
+      "userGroupAccesses": [],
+      "publicAccess": "--------",
+      "lastUpdated": "2019-03-25T13:40:24.783",
+      "organisationUnits": [],
+      "created": "2019-03-25T13:40:24.722",
+      "translations": []
+    },
+    {
+      "id": "MYerKDKCefk",
+      "code": "catopt2",
+      "name": "catopt2",
+      "startDate": "2019-01-01T00:00:00.000",
+      "userAccesses": [],
+      "attributeValues": [],
+      "userGroupAccesses": [],
+      "publicAccess": "rwrw----",
+      "lastUpdated": "2019-03-25T13:40:24.783",
+      "organisationUnits": [],
+      "created": "2019-03-25T13:40:24.722",
+      "translations": []
+    },
+    {
+      "id": "Aj6SFQQBBFU",
+      "code": "nondef1 cat1",
+      "name": "nondef1 cat1",
+      "startDate": "2019-01-01T00:00:00.000",
+      "endDate": "2019-12-01T00:00:00.000",
+      "userAccesses": [],
+      "attributeValues": [],
+      "userGroupAccesses": [],
+      "publicAccess": "rwrw----",
+      "lastUpdated": "2019-03-25T13:40:24.783",
+      "organisationUnits": [],
+      "created": "2019-03-25T13:40:24.722",
+      "translations": []
+    },
+    {
+      "id": "zRXSQ4AQu7I",
+      "code": "nondef2 cat1",
+      "name": "nondef2 cat1",
+      "startDate": "2019-12-01T00:00:00.000",
+      "endDate": "2019-01-01T00:00:00.000",
+      "userAccesses": [],
+      "attributeValues": [],
+      "userGroupAccesses": [],
+      "publicAccess": "rwrw----",
+      "organisationUnits": [],
+      "created": "2019-03-25T13:40:24.722",
+      "lastUpdated": "2019-03-25T13:40:24.783",
+      "translations": []
+    }
+  ],
+  "categories": [
+    {
+      "id": "GLevLNI9wkl",
+      "name": "default",
+      "shortName": "default",
+      "code": "default",
+      "dataDimensionType": "DISAGGREGATION",
       "categoryOptions": [
         {
           "id": "xYerKDKCefk"
         }
       ],
-      "lastUpdated": "2019-03-25T13:40:24.779",
-      "ignoreApproval": false,
+      "dataDimension": false,
+      "userGroupAccesses": [],
+      "publicAccess": "rw------",
       "attributeValues": [],
-      "categoryCombo": {
-        "id": "bjDvmb4bfuf"
-      },
-      "code": "default",
-      "created": "2019-03-25T13:40:24.775"
+      "userAccesses": [],
+      "translations": [],
+      "created": "2019-03-25T13:40:24.762",
+      "lastUpdated": "2019-03-29T08:54:32.360"
     },
     {
-      "id": "KKKKX50cXC0",
-      "translations": [],
-      "name": "accesstest1",
-      "startDate": "2019-01-01T00:00:00.000",
-      "categoryOptions": [
-        {
-          "id": "XXXXKDKCefk"
-        }
-      ],
-      "lastUpdated": "2019-03-25T13:40:24.779",
-      "ignoreApproval": false,
-      "attributeValues": [],
-      "categoryCombo": {
-        "id": "bjDvmb4bfuf"
-      },
-      "code": "accesstest1",
-      "created": "2019-03-25T13:40:24.775"
-    },
-    {
-      "id": "OOlvX50cXC0",
-      "translations": [],
-      "name": "dateerror",
-      "startDate": "2019-12-01T00:00:00.000",
+      "id": "LC4ZMxxHtBA",
+      "name": "nondef1",
+      "shortName": "nondef1",
+      "code": "nondef1",
+      "dataDimensionType": "ATTRIBUTE",
       "categoryOptions": [
         {
           "id": "Aj6SFQQBBFU"
         }
       ],
-      "lastUpdated": "2019-03-25T13:40:24.779",
-      "ignoreApproval": false,
+      "dataDimension": false,
+      "userGroupAccesses": [],
+      "publicAccess": "rw------",
       "attributeValues": [],
-      "categoryCombo": {
-        "id": "pFpCRzMVAbO"
-      },
-      "code": "dateerror",
-      "created": "2019-03-25T13:40:24.775"
+      "userAccesses": [],
+      "translations": [],
+      "created": "2019-03-25T13:40:24.762",
+      "lastUpdated": "2019-03-29T08:54:32.360"
+    },
+    {
+      "id": "c8eyBWpwcce",
+      "name": "nondef2",
+      "shortName": "nondef2",
+      "code": "nondef2",
+      "dataDimensionType": "ATTRIBUTE",
+      "categoryOptions": [
+        {
+          "id": "zRXSQ4AQu7I"
+        }
+      ],
+      "dataDimension": false,
+      "userGroupAccesses": [],
+      "publicAccess": "rw------",
+      "attributeValues": [],
+      "userAccesses": [],
+      "translations": [],
+      "created": "2019-03-25T13:40:24.762",
+      "lastUpdated": "2019-03-29T08:54:32.360"
     }
   ],
   "categoryCombos": [
     {
+      "id": "bjDvmb4bfuf",
       "code": "default",
-      "created": "2019-03-25T13:40:24.771",
-      "lastUpdated": "2019-03-25T13:40:24.781",
-      "skipTotal": false,
       "name": "default",
-      "translations": [],
+      "dataDimensionType": "DISAGGREGATION",
       "categories": [
         {
           "id": "GLevLNI9wkl"
         }
       ],
-      "dataDimensionType": "DISAGGREGATION",
+      "created": "2019-03-25T13:40:24.771",
+      "lastUpdated": "2019-03-25T13:40:24.781",
+      "skipTotal": false,
+      "translations": [],
       "userAccesses": [],
-      "id": "bjDvmb4bfuf",
       "userGroupAccesses": [],
       "publicAccess": "rw------"
     },
     {
+      "id": "pFpCRzMVAbO",
       "code": "nondef1",
-      "created": "2019-03-25T13:40:24.771",
-      "lastUpdated": "2019-03-25T13:40:24.781",
-      "skipTotal": false,
       "name": "nondef1",
-      "translations": [],
+      "dataDimensionType": "ATTRIBUTE",
       "categories": [
         {
           "id": "LC4ZMxxHtBA"
         }
       ],
-      "dataDimensionType": "ATTRIBUTE",
+      "created": "2019-03-25T13:40:24.771",
+      "lastUpdated": "2019-03-25T13:40:24.781",
+      "skipTotal": false,
+      "translations": [],
       "userAccesses": [],
-      "id": "pFpCRzMVAbO",
       "userGroupAccesses": [],
       "publicAccess": "rw------"
     },
     {
-      "code": "nondef",
+      "id": "XjDvmb4bfuf",
+      "code": "nondef2",
+      "name": "nondef2",
+      "dataDimensionType": "ATTRIBUTE",
+      "categories": [
+        {
+          "id": "c8eyBWpwcce"
+        }
+      ],
       "created": "2019-03-25T13:40:24.771",
       "lastUpdated": "2019-03-25T13:40:24.781",
       "skipTotal": false,
-      "name": "nondef",
       "translations": [],
-      "categoriesdefault": [
-        {
-          "id": "GLevLNI9wkl"
-        }
-      ],
-      "dataDimensionType": "DISAGGREGATION",
       "userAccesses": [],
-      "id": "XjDvmb4bfuf",
       "userGroupAccesses": [],
       "publicAccess": "rw------"
     }
   ],
-  "categories": [
+  "categoryOptionCombos": [
     {
-      "dataDimension": false,
-      "userGroupAccesses": [],
-      "publicAccess": "rw------",
-      "id": "GLevLNI9wkl",
-      "attributeValues": [],
-      "dataDimensionType": "DISAGGREGATION",
-      "userAccesses": [],
-      "translations": [],
-      "name": "default",
-      "shortName": "default",
+      "id": "HllvX50cXC0",
       "code": "default",
-      "created": "2019-03-25T13:40:24.762",
-      "lastUpdated": "2019-03-29T08:54:32.360",
+      "name": "default",
       "categoryOptions": [
         {
           "id": "xYerKDKCefk"
         }
-      ]
+      ],
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "translations": [],
+      "startDate": "2019-01-01T00:00:00.000",
+      "lastUpdated": "2019-03-25T13:40:24.779",
+      "ignoreApproval": false,
+      "attributeValues": [],
+      "created": "2019-03-25T13:40:24.775"
     },
     {
-      "dataDimension": false,
-      "userGroupAccesses": [],
-      "publicAccess": "rw------",
-      "id": "LC4ZMxxHtBA",
-      "attributeValues": [],
-      "dataDimensionType": "ATTRIBUTE",
-      "userAccesses": [],
+      "id": "KKKKX50cXC0",
+      "name": "accesstest1",
+      "code": "accesstest1",
+      "categoryOptions": [
+        {
+          "id": "XXXXKDKCefk"
+        }
+      ],
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
       "translations": [],
-      "name": "nondef1",
-      "shortName": "nondef1",
-      "code": "nondef1",
-      "created": "2019-03-25T13:40:24.762",
-      "lastUpdated": "2019-03-29T08:54:32.360",
+      "startDate": "2019-01-01T00:00:00.000",
+      "lastUpdated": "2019-03-25T13:40:24.779",
+      "ignoreApproval": false,
+      "attributeValues": [],
+      "created": "2019-03-25T13:40:24.775"
+    },
+    {
+      "id": "OOlvX50cXC0",
+      "code": "nondef1 cat1",
+      "name": "nondef1 cat1",
       "categoryOptions": [
         {
           "id": "Aj6SFQQBBFU"
         }
-      ]
+      ],
+      "categoryCombo": {
+        "id": "pFpCRzMVAbO"
+      },
+      "translations": [],
+      "startDate": "2019-12-01T00:00:00.000",
+      "lastUpdated": "2019-03-25T13:40:24.779",
+      "ignoreApproval": false,
+      "attributeValues": [],
+      "created": "2019-03-25T13:40:24.775"
+    },
+    {
+      "id": "wpVV2AvPM89",
+      "code": "nondef2 cat1",
+      "name": "nondef2 cat1",
+      "categoryOptions": [
+        {
+          "id": "zRXSQ4AQu7I"
+        }
+      ],
+      "categoryCombo": {
+        "id": "XjDvmb4bfuf"
+      },
+      "translations": [],
+      "startDate": "2019-12-01T00:00:00.000",
+      "lastUpdated": "2019-03-25T13:40:24.779",
+      "ignoreApproval": false,
+      "attributeValues": [],
+      "created": "2019-03-25T13:40:24.775"
     }
   ],
   "optionSets": [
