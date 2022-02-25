@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.preheat.supplier;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -48,6 +49,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerIdentifierParams;
 import org.hisp.dhis.tracker.TrackerImportParams;
@@ -58,20 +60,6 @@ import org.junit.jupiter.api.Test;
 
 import com.google.common.collect.Sets;
 
-// TODO fetch AOC also with default program if COs are set
-// this is so we can make sure that the validation hook can expect
-// rely on there always being an event.AOC
-// it then has to check if AOC and COs match
-
-// TODO what about when AOC is given? In that case I assume it is already
-// fetched from the DB and in the preheat by the ClassBasedSupplier
-// validation hook should still check for existence
-// validation
-// * no aoc, no cos => is this event in a program with default cc
-// * aoc => does it exist?
-// * cos => do they exist?
-// * aoc, cos => do they match?
-// I think that is what will be left
 class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
 {
 
@@ -116,6 +104,47 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
             .build();
 
         when( preheat.get( Program.class, event.getProgram() ) ).thenReturn( program );
+        options.forEach(
+            o -> when( preheat.getCategoryOption( identifierParams.getCategoryOptionIdScheme().getIdentifier( o ) ) )
+                .thenReturn( o ) );
+        when( categoryService.getCategoryOptionCombo( categoryCombo, aoc.getCategoryOptions() ) ).thenReturn( aoc );
+
+        supplier.preheatAdd( params, preheat );
+
+        verify( preheat, times( 1 ) ).putEventAOCFor( program.getCategoryCombo(), options, aoc );
+    }
+
+    @Test
+    void shouldPreheatEventAOCIfNotProvidedAndEventHasProgramStageButNoProgram()
+    {
+
+        TrackerIdentifierParams identifierParams = TrackerIdentifierParams.builder()
+            .programIdScheme( TrackerIdentifier.CODE )
+            .programStageIdScheme( TrackerIdentifier.CODE )
+            .categoryOptionComboIdScheme( TrackerIdentifier.CODE )
+            .categoryOptionIdScheme( TrackerIdentifier.UID )
+            .build();
+
+        Program program = createProgram( 'A' );
+        program.setCode( "PROGRAMA" );
+        ProgramStage stage = createProgramStage( 'A', program );
+        stage.setCode( "STAGEA" );
+        CategoryCombo categoryCombo = categoryCombo();
+        program.setCategoryCombo( categoryCombo );
+        CategoryOptionCombo aoc = firstCategoryOptionCombo( categoryCombo );
+        Set<CategoryOption> options = aoc.getCategoryOptions();
+
+        Event event = Event.builder()
+            .programStage( stage.getCode() )
+            .attributeCategoryOptions( concatCategoryOptions( identifierParams.getCategoryOptionIdScheme(), options ) )
+            .build();
+        List<Event> events = List.of( event );
+        TrackerImportParams params = TrackerImportParams.builder()
+            .identifiers( identifierParams )
+            .events( events )
+            .build();
+
+        when( preheat.get( ProgramStage.class, event.getProgramStage() ) ).thenReturn( stage );
         options.forEach(
             o -> when( preheat.getCategoryOption( identifierParams.getCategoryOptionIdScheme().getIdentifier( o ) ) )
                 .thenReturn( o ) );
@@ -233,6 +262,106 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
 
         verifyNoInteractions( categoryService );
         verify( preheat, times( 0 ) ).putEventAOCFor( program.getCategoryCombo(), options, aoc );
+    }
+
+    @Test
+    void shouldNotPreheatEventAOCIfEventHasNoProgram()
+    {
+
+        TrackerIdentifierParams identifierParams = TrackerIdentifierParams.builder()
+            .categoryOptionComboIdScheme( TrackerIdentifier.CODE )
+            .categoryOptionIdScheme( TrackerIdentifier.UID )
+            .build();
+
+        CategoryCombo categoryCombo = categoryCombo();
+        CategoryOptionCombo aoc = firstCategoryOptionCombo( categoryCombo );
+        Set<CategoryOption> options = aoc.getCategoryOptions();
+
+        Event event = Event.builder()
+            .attributeCategoryOptions( concatCategoryOptions( identifierParams.getCategoryOptionIdScheme(), options ) )
+            .attributeOptionCombo( identifierParams.getCategoryOptionComboIdScheme().getIdentifier( aoc ) )
+            .build();
+        List<Event> events = List.of( event );
+        TrackerImportParams params = TrackerImportParams.builder()
+            .identifiers( identifierParams )
+            .events( events )
+            .build();
+
+        supplier.preheatAdd( params, preheat );
+
+        verify( preheat, times( 0 ) ).putEventAOCFor( any(), eq( options ), eq( aoc ) );
+    }
+
+    @Test
+    void shouldNotPreheatEventAOCIfEventHasNoProgramAndNoProgramStage()
+    {
+
+        TrackerIdentifierParams identifierParams = TrackerIdentifierParams.builder()
+            .programIdScheme( TrackerIdentifier.CODE )
+            .programStageIdScheme( TrackerIdentifier.CODE )
+            .categoryOptionComboIdScheme( TrackerIdentifier.CODE )
+            .categoryOptionIdScheme( TrackerIdentifier.UID )
+            .build();
+
+        CategoryCombo categoryCombo = categoryCombo();
+        CategoryOptionCombo aoc = firstCategoryOptionCombo( categoryCombo );
+        Set<CategoryOption> options = aoc.getCategoryOptions();
+
+        Event event = Event.builder()
+            .attributeCategoryOptions( concatCategoryOptions( identifierParams.getCategoryOptionIdScheme(), options ) )
+            .build();
+        List<Event> events = List.of( event );
+        TrackerImportParams params = TrackerImportParams.builder()
+            .identifiers( identifierParams )
+            .events( events )
+            .build();
+
+        options.forEach(
+            o -> when( preheat.getCategoryOption( identifierParams.getCategoryOptionIdScheme().getIdentifier( o ) ) )
+                .thenReturn( o ) );
+        when( categoryService.getCategoryOptionCombo( categoryCombo, aoc.getCategoryOptions() ) ).thenReturn( aoc );
+
+        supplier.preheatAdd( params, preheat );
+
+        verify( preheat, times( 0 ) ).putEventAOCFor( any(), eq( options ), eq( aoc ) );
+    }
+
+    @Test
+    void shouldNotPreheatEventAOCIfEventHasNoProgramAndItsProgramStageHasNoProgram()
+    {
+
+        TrackerIdentifierParams identifierParams = TrackerIdentifierParams.builder()
+            .programIdScheme( TrackerIdentifier.CODE )
+            .programStageIdScheme( TrackerIdentifier.CODE )
+            .categoryOptionComboIdScheme( TrackerIdentifier.CODE )
+            .categoryOptionIdScheme( TrackerIdentifier.UID )
+            .build();
+
+        ProgramStage stage = createProgramStage( 'A', (Program) null );
+        stage.setCode( "STAGEA" );
+        CategoryCombo categoryCombo = categoryCombo();
+        CategoryOptionCombo aoc = firstCategoryOptionCombo( categoryCombo );
+        Set<CategoryOption> options = aoc.getCategoryOptions();
+
+        Event event = Event.builder()
+            .programStage( stage.getCode() )
+            .attributeCategoryOptions( concatCategoryOptions( identifierParams.getCategoryOptionIdScheme(), options ) )
+            .build();
+        List<Event> events = List.of( event );
+        TrackerImportParams params = TrackerImportParams.builder()
+            .identifiers( identifierParams )
+            .events( events )
+            .build();
+
+        when( preheat.get( ProgramStage.class, event.getProgramStage() ) ).thenReturn( stage );
+        options.forEach(
+            o -> when( preheat.getCategoryOption( identifierParams.getCategoryOptionIdScheme().getIdentifier( o ) ) )
+                .thenReturn( o ) );
+        when( categoryService.getCategoryOptionCombo( categoryCombo, aoc.getCategoryOptions() ) ).thenReturn( aoc );
+
+        supplier.preheatAdd( params, preheat );
+
+        verify( preheat, times( 0 ) ).putEventAOCFor( any(), eq( options ), eq( aoc ) );
     }
 
     @Test
