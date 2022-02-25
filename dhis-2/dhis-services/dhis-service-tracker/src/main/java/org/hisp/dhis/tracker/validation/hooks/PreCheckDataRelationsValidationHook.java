@@ -176,6 +176,14 @@ public class PreCheckDataRelationsValidationHook
     private void validateEventCategoryOptionCombo( ValidationErrorReporter reporter,
         Event event, Program program )
     {
+        // TODO this is what I think validation will have to do
+        // * no aoc, no cos => is this event in a program with default cc
+        // * aoc, no cos => if the aoc is of a default cc, is this event in a
+        // program with default cc
+        // * aoc => does it exist?
+        // * cos => do they exist?
+        // * resolve aoc (default or set) we should have an aoc by now
+        // * aoc, cos => do they match?
         boolean isValid = validateAttributeOptionComboExists( reporter, event );
         isValid = validateCategoryOptionsExist( reporter, event ) && isValid;
         isValid = validateDefaultProgramCategoryCombo( reporter, event, program ) && isValid;

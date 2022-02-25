@@ -38,12 +38,15 @@ import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.logging.log4j.util.Strings;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.tracker.TrackerIdentifierParams;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
@@ -70,16 +73,11 @@ public class EventCategoryOptionComboSupplier extends AbstractPreheatSupplier
     @Override
     public void preheatAdd( TrackerImportParams params, TrackerPreheat preheat )
     {
-        // TODO I need to replicate what we do in EventProgramPreProcessor
-        // otherwise a valid event with only programStage and only
-        // attributeCategoryOptions is marked as invalid
+
         List<Pair<CategoryCombo, Set<CategoryOption>>> events = params.getEvents().stream()
             .filter( e -> StringUtils.isBlank( e.getAttributeOptionCombo() )
                 && !StringUtils.isBlank( e.getAttributeCategoryOptions() ) )
-            .map( e -> {
-                Program p = preheat.get( Program.class, e.getProgram() );
-                return Pair.of( p, parseCategoryOptionIds( e ) );
-            } )
+            .map( e -> Pair.of( resolveProgram( preheat, params.getIdentifiers(), e ), parseCategoryOptionIds( e ) ) )
             .filter( p -> p.getLeft() != null )
             .filter( p -> hasOnlyExistingCategoryOptions( preheat, p.getRight() ) )
             .map( p -> Pair.of( p.getLeft().getCategoryCombo(), toCategoryOptions( preheat, p.getRight() ) ) )
@@ -104,6 +102,50 @@ public class EventCategoryOptionComboSupplier extends AbstractPreheatSupplier
                 preheat.putEventAOCFor( p.getLeft(), p.getRight(), aoc );
             }
         }
+    }
+
+    /**
+     * Resolve the event program either via the program property in the payload
+     * or via the programStage property in the payload. Property program is not
+     * required but programStage is. Since the preheat phase is before
+     * pre-process and validation we need to be more defensive with null-checks.
+     */
+    private Program resolveProgram( TrackerPreheat preheat, TrackerIdentifierParams identifierParams, Event e )
+    {
+
+        Program program = preheat.get( Program.class, e.getProgram() );
+        if ( program != null )
+        {
+            return program;
+        }
+
+        if ( Strings.isBlank( e.getProgramStage() ) )
+        {
+            return null;
+        }
+        ProgramStage programStage = preheat.get( ProgramStage.class, e.getProgramStage() );
+        if ( programStage == null || programStage.getProgram() == null )
+        {
+            // TODO remove check for programStage.getProgram() == null once
+            // metadata import is fixed
+            // Program stages should always have a program! Due to
+            // how metadata
+            // import is currently implemented
+            // it's possible that users run into the edge case that
+            // a program
+            // stage does not have an associated
+            // program. Tell the user it's an issue with the
+            // metadata and not
+            // the event itself. This should be
+            // fixed in the metadata import. For more see
+            // https://jira.dhis2.org/browse/DHIS2-12123
+            //
+            // PreCheckMandatoryFieldsValidationHook.validateEvent
+            // will create
+            // a validation error for this edge case
+            return null;
+        }
+        return programStage.getProgram();
     }
 
     private boolean hasOnlyExistingCategoryOptions( TrackerPreheat preheat, Set<String> ids )
