@@ -34,6 +34,7 @@ import java.util.List;
 
 import lombok.AllArgsConstructor;
 
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.expression.Expression;
@@ -60,6 +61,7 @@ public class PredictorDeletionHandler extends DeletionHandler
         whenDeleting( PredictorGroup.class, this::deletePredictorGroup );
         whenVetoing( DataElement.class, this::allowDeleteDataElement );
         whenVetoing( CategoryOptionCombo.class, this::allowDeleteCategoryOptionCombo );
+        whenVetoing( CategoryCombo.class, this::allowDeleteCategoryCombo );
     }
 
     private void deleteExpression( Expression expression )
@@ -109,6 +111,15 @@ public class PredictorDeletionHandler extends DeletionHandler
     private DeletionVeto allowDeleteCategoryOptionCombo( CategoryOptionCombo optionCombo )
     {
         return vetoIfExists( "SELECT COUNT(*) FROM predictor where generatoroutputcombo=" + optionCombo.getId() );
+    }
+
+    private DeletionVeto allowDeleteCategoryCombo( CategoryCombo categoryCombo )
+    {
+        return vetoIfExists( "SELECT COUNT(*) FROM predictor p where exists ("
+            + "select 1 from categorycombos_optioncombos co"
+            + " where co.categorycomboid=" + categoryCombo.getId()
+            + " and co.categoryoptioncomboid=p.generatoroutputcombo"
+            + ")" );
     }
 
     private DeletionVeto vetoIfExists( String sql )
