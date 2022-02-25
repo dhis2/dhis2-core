@@ -70,8 +70,9 @@ public class EventCategoryOptionComboSupplier extends AbstractPreheatSupplier
     @Override
     public void preheatAdd( TrackerImportParams params, TrackerPreheat preheat )
     {
-        // TODO do I need to replicate what we do in EventProgramPreProcessor?
-        // for an event payload that has no program but only a program stage
+        // TODO I need to replicate what we do in EventProgramPreProcessor
+        // otherwise a valid event with only programStage and only
+        // attributeCategoryOptions is marked as invalid
         List<Pair<CategoryCombo, Set<CategoryOption>>> events = params.getEvents().stream()
             .filter( e -> StringUtils.isBlank( e.getAttributeOptionCombo() )
                 && !StringUtils.isBlank( e.getAttributeCategoryOptions() ) )
@@ -95,7 +96,9 @@ public class EventCategoryOptionComboSupplier extends AbstractPreheatSupplier
 
             CategoryOptionCombo aoc = categoryService
                 .getCategoryOptionCombo( p.getLeft(), p.getRight() );
-            // TODO should we cache that we did not find the AOC as well?
+            // TODO should we cache that we did not find the AOC as well? Yes,
+            // but implement only once
+            // I decided on how to adapt the DB fetching logic
             if ( aoc != null )
             {
                 preheat.putEventAOCFor( p.getLeft(), p.getRight(), aoc );
