@@ -32,7 +32,7 @@
                      column="programstageid"
                      foreign-key="fk_relationshipconstraint_programstage_programstageid"/>
 
-        <property name="trackerDataView" type="jbTrackerDataView" column="trackerdataview"/>
+        <property name="trackerDataView" type="jbTrackerDataView" column="dataview"/>
 
     </class>
 
