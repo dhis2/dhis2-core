@@ -1,5 +1,5 @@
 ALTER TABLE relationshipconstraint
-    ADD COLUMN IF NOT EXISTS trackerdataview jsonb;
+    ADD COLUMN IF NOT EXISTS dataview jsonb;
 UPDATE relationshipconstraint
 SET dataview = R.dataview
     FROM (
