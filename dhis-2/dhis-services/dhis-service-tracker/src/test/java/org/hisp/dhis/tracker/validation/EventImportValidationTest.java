@@ -201,7 +201,6 @@ public class EventImportValidationTest
             "tracker/validations/events-without-attribute-option-combo.json" );
         trackerBundleParams.setImportStrategy( TrackerImportStrategy.CREATE );
 
-        // TODO fix this test
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
 
         assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
