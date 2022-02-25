@@ -37,8 +37,6 @@ import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
 import static org.hisp.dhis.DhisConvenienceTest.createProgram;
 import static org.hisp.dhis.DhisConvenienceTest.createProgramIndicator;
 import static org.hisp.dhis.analytics.QueryKey.NV;
-import static org.hisp.dhis.analytics.event.data.JdbcEnrollmentAnalyticsManager.CREATED_BY_DISPLAY_NAME_COLUMN;
-import static org.hisp.dhis.analytics.event.data.JdbcEnrollmentAnalyticsManager.LAST_UPDATED_BY_DISPLAY_NAME_COLUMN;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.OPTION_SEP;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
@@ -118,7 +116,7 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
     private final static String TABLE_NAME = "analytics_event";
 
     private final static String DEFAULT_COLUMNS_WITH_REGISTRATION = "psi,ps,executiondate,storedby,"
-        + CREATED_BY_DISPLAY_NAME_COLUMN + "," + LAST_UPDATED_BY_DISPLAY_NAME_COLUMN
+        + "createdbydisplayname" + "," + "lastupdatedbydisplayname"
         + ",lastupdated,enrollmentdate,incidentdate,tei,pi,ST_AsGeoJSON(psigeometry, 6) as geometry,longitude,latitude,ouname,"
         + "oucode,pistatus,psistatus";
 
@@ -149,7 +147,7 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
         verify( jdbcTemplate ).queryForRowSet( sql.capture() );
 
         String expected = "select psi,ps,executiondate,storedby,"
-            + CREATED_BY_DISPLAY_NAME_COLUMN + "," + LAST_UPDATED_BY_DISPLAY_NAME_COLUMN
+            + "createdbydisplayname" + "," + "lastupdatedbydisplayname"
             + ",lastupdated,ST_AsGeoJSON(psigeometry, 6) as geometry,"
             + "longitude,latitude,ouname,oucode,pistatus,psistatus,ax.\"monthly\",ax.\"ou\"  from "
             + getTable( programA.getUid() )
@@ -172,7 +170,7 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
         verify( jdbcTemplate ).queryForRowSet( sql.capture() );
 
         String expected = "select psi,ps,executiondate,storedby,"
-            + CREATED_BY_DISPLAY_NAME_COLUMN + "," + LAST_UPDATED_BY_DISPLAY_NAME_COLUMN
+            + "createdbydisplayname" + "," + "lastupdatedbydisplayname"
             + ",lastupdated,enrollmentdate,"
             + "incidentdate,tei,pi,ST_AsGeoJSON(psigeometry, 6) as geometry,longitude,latitude,ouname,oucode,pistatus,"
             + "psistatus,ax.\"monthly\",ax.\"ou\",\"" + dataElement.getUid() + "_name"

@@ -90,7 +90,6 @@ public class JdbcEnrollmentAnalyticsManager
     extends AbstractJdbcEventAnalyticsManager
     implements EnrollmentAnalyticsManager
 {
-
     private final EnrollmentTimeFieldSqlRenderer timeFieldSqlRenderer;
 
     private static final String ANALYTICS_EVENT = "analytics_event_";
@@ -99,14 +98,8 @@ public class JdbcEnrollmentAnalyticsManager
 
     private static final String LIMIT_1 = "limit 1";
 
-    public static final String CREATED_BY_DISPLAY_NAME_COLUMN = "concat(createdbylastname, ', ', createdbyname, "
-        + "' (', createdbyusername, ')') as createdbydisplayname";
-
-    public static final String LAST_UPDATED_BY_DISPLAY_NAME_COLUMN = "concat(lastupdatedbylastname, ', '"
-        + ", lastupdatedbyname, ' (', lastupdatedbyusername, ')') as lastupdatedbydisplayaname";
-
     private List<String> COLUMNS = Lists.newArrayList( "pi", "tei", "enrollmentdate", "incidentdate",
-        "storedby", CREATED_BY_DISPLAY_NAME_COLUMN, LAST_UPDATED_BY_DISPLAY_NAME_COLUMN, "lastupdated",
+        "storedby", "createdbydisplayname", "lastupdatedbydisplayname", "lastupdated",
         "ST_AsGeoJSON(pigeometry)", "longitude", "latitude",
         "ouname", "oucode", "enrollmentstatus" );
 
@@ -133,7 +126,6 @@ public class JdbcEnrollmentAnalyticsManager
         {
             withExceptionHandling( () -> getEnrollments( params, grid, sql ) );
         }
-
     }
 
     /**
