@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -54,14 +55,17 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @JacksonXmlRootElement( namespace = DxfNamespaces.DXF_2_0 )
 public class TrackerDataView implements Serializable
 {
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Builder.Default
     private List<TrackedEntityAttribute> trackedEntityAttributes = new ArrayList<>();
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Builder.Default
     private List<DataElement> dataElements = new ArrayList<>();
 }
