@@ -25,17 +25,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export;
+package org.hisp.dhis.tracker.domain.mapper;
 
-import org.hisp.dhis.tracker.domain.Attribute;
+import org.hisp.dhis.tracker.domain.Note;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 @Mapper( uses = InstantMapper.class )
-public interface AttributeMapper extends DomainMapper<org.hisp.dhis.dxf2.events.trackedentity.Attribute, Attribute>
+public interface NoteMapper extends DomainMapper<org.hisp.dhis.dxf2.events.event.Note, Note>
 {
-
-    @Mapping( target = "createdAt", source = "created" )
-    @Mapping( target = "updatedAt", source = "lastUpdated" )
-    Attribute from( org.hisp.dhis.dxf2.events.trackedentity.Attribute attribute );
+    @Mapping( target = "storedAt", source = "storedDate" )
+    Note from( org.hisp.dhis.dxf2.events.event.Note note );
 }
