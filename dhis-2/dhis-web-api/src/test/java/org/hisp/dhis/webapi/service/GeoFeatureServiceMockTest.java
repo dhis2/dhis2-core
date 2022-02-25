@@ -125,13 +125,12 @@ public class GeoFeatureServiceMockTest
      * OrganisationUnit has coordinates from geometry property but not GeoJson
      * Attribute.
      * <p>
-     * Expected: the returned GeoFeature should include coordinates from
-     * geometry property.
+     * Expected: only return GeoFeature which has the coordinateField value.
      *
      * @throws IOException
      */
     @Test
-    public void testGeoJsonAttributeFallback()
+    public void testGeoJsonAttributeWithNoValue()
         throws IOException
     {
         OrganisationUnit ouA = createOrgUnitWithCoordinates();
@@ -156,8 +155,7 @@ public class GeoFeatureServiceMockTest
             .organisationUnit( "ou:LEVEL-2;LEVEL-3" )
             .build() );
 
-        assertEquals( 1, features.size() );
-        assertEquals( "[51.17431641,15.53705282]", features.get( 0 ).getCo() );
+        assertEquals( 0, features.size() );
     }
 
     private OrganisationUnit createOrgUnitWithoutCoordinates()
