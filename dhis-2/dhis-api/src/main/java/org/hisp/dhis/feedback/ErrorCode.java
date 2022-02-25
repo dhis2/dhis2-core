@@ -225,6 +225,7 @@ public enum ErrorCode
     E4311( "SQL query contains illegal keywords" ),
     E4312( "Current user is not authorised to read data from SQL view: `{0}`" ),
     E4313( "SQL query contains variable names that are invalid: `{0}`" ),
+    E4314( "List of `{0}` should contain all elements of list  `{1}` when relationship entity is `{2}`." ),
 
     /* Preheat */
     E5000( "Found matching object for reference, but import mode is CREATE. Identifier was {0}, and object was {1}." ),
