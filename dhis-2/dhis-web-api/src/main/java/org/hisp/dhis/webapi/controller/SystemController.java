@@ -47,6 +47,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.fieldfiltering.FieldFilterParams;
+import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.render.RenderService;
@@ -76,6 +78,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.csv.CsvFactory;
 import com.fasterxml.jackson.dataformat.csv.CsvGenerator;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
@@ -114,6 +117,9 @@ public class SystemController
 
     @Autowired
     private StatisticsProvider statisticsProvider;
+
+    @Autowired
+    private FieldFilterService fieldFilterService;
 
     private static final CsvFactory CSV_FACTORY = new CsvMapper().getFactory();
 
@@ -240,7 +246,8 @@ public class SystemController
     // -------------------------------------------------------------------------
 
     @GetMapping( value = "/info", produces = { APPLICATION_JSON_VALUE, "application/javascript" } )
-    public @ResponseBody SystemInfo getSystemInfo(
+    public @ResponseBody ResponseEntity<ObjectNode> getSystemInfo(
+        @RequestParam( defaultValue = "*" ) List<String> fields,
         HttpServletRequest request,
         HttpServletResponse response )
     {
@@ -256,7 +263,10 @@ public class SystemController
 
         setNoStore( response );
 
-        return info;
+        FieldFilterParams<SystemInfo> params = FieldFilterParams.of( info, fields );
+        List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes( params );
+
+        return ResponseEntity.ok( objectNodes.get( 0 ) );
     }
 
     @GetMapping( value = "/objectCounts" )
