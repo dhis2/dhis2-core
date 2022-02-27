@@ -365,7 +365,7 @@ public abstract class AbstractAnalyticsService
 
         params.getItemsAndItemFilters().stream()
             .filter( Objects::nonNull )
-            .forEach( item -> metadataItemMap.put( item.getItemId(),
+            .forEach( item -> metadataItemMap.put( getItemIdMaybeWithProgramStageIdPrefix( item ),
                 new MetadataItem( item.getItem().getDisplayName(), includeDetails ? item.getItem() : null ) ) );
 
         if ( hasPeriodKeywords( periodKeywords ) )
@@ -380,6 +380,21 @@ public abstract class AbstractAnalyticsService
         }
 
         return metadataItemMap;
+    }
+
+    /**
+     * Program Stage id prefix for meta items
+     *
+     * @param item QueryItem.
+     */
+    private String getItemIdMaybeWithProgramStageIdPrefix( QueryItem item )
+    {
+        if ( item.hasProgramStage() )
+        {
+            return item.getProgramStage().getUid() + "." + item.getItemId();
+        }
+
+        return item.getItemId();
     }
 
     /**
