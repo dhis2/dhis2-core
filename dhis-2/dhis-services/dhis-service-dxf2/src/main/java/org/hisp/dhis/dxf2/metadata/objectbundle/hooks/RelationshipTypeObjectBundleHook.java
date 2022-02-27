@@ -31,6 +31,7 @@ import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_INSTANCE;
 import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_STAGE_INSTANCE;
 import static org.hisp.dhis.relationship.RelationshipEntity.TRACKED_ENTITY_INSTANCE;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -191,8 +192,14 @@ public class RelationshipTypeObjectBundleHook
     private void validateTrackedEntityInstance( RelationshipConstraint constraint, Consumer<ErrorReport> addReports,
         TrackerDataView trackerDataView )
     {
-        List<String> trackerDataViewAttributes = trackerDataView.getTrackedEntityAttributes()
-            .stream().filter( Objects::nonNull ).map( BaseIdentifiableObject::getUid ).collect( Collectors.toList() );
+        List<String> trackerDataViewAttributes = new ArrayList<>();
+
+        if ( trackerDataView != null )
+        {
+            trackerDataViewAttributes = trackerDataView.getTrackedEntityAttributes()
+                .stream().filter( Objects::nonNull ).map( BaseIdentifiableObject::getUid )
+                .collect( Collectors.toList() );
+        }
 
         TrackedEntityType trackedEntityType = constraint.getTrackedEntityType();
 
@@ -228,8 +235,14 @@ public class RelationshipTypeObjectBundleHook
     private void validateProgramInstance( RelationshipConstraint constraint, Consumer<ErrorReport> addReports,
         TrackerDataView trackerDataView )
     {
-        List<String> trackerDataViewAttributes = trackerDataView.getTrackedEntityAttributes()
-            .stream().filter( Objects::nonNull ).map( BaseIdentifiableObject::getUid ).collect( Collectors.toList() );
+        List<String> trackerDataViewAttributes = new ArrayList<>();
+
+        if ( trackerDataView != null )
+        {
+            trackerDataViewAttributes = trackerDataView.getTrackedEntityAttributes()
+                .stream().filter( Objects::nonNull ).map( BaseIdentifiableObject::getUid )
+                .collect( Collectors.toList() );
+        }
 
         Program program = constraint.getProgram();
 
@@ -272,8 +285,14 @@ public class RelationshipTypeObjectBundleHook
     private void validateProgramStageInstance( RelationshipConstraint constraint, Consumer<ErrorReport> addReports,
         TrackerDataView trackerDataView )
     {
-        List<String> trackerDataViewDataElements = trackerDataView.getDataElements()
-            .stream().filter( Objects::nonNull ).map( BaseIdentifiableObject::getUid ).collect( Collectors.toList() );
+        List<String> trackerDataViewDataElements = new ArrayList<>();
+
+        if ( trackerDataView != null )
+        {
+            trackerDataViewDataElements = trackerDataView.getDataElements()
+                .stream().filter( Objects::nonNull ).map( BaseIdentifiableObject::getUid )
+                .collect( Collectors.toList() );
+        }
 
         ProgramStage programStage = constraint.getProgramStage();
         Program program = constraint.getProgram();
