@@ -88,7 +88,7 @@ public class DefaultSecurityService
 
     private static final String DEFAULT_APPLICATION_TITLE = "DHIS 2";
 
-    private static final int INVITED_USER_PASSWORD_LENGTH_BYTES = 40;
+    private static final int INVITED_USER_PASSWORD_LENGTH_BYTES = 24;
 
     private static final int RESTORE_TOKEN_LENGTH_BYTES = 32;
 
@@ -253,7 +253,7 @@ public class DefaultSecurityService
         user.setFirstName( StringUtils.isEmpty( user.getFirstName() ) ? TBD_NAME : user.getFirstName() );
         user.setInvitation( true );
 
-        userService.encodeAndSetPassword( user, rawPassword );
+        user.setPassword( rawPassword );
     }
 
     @Override

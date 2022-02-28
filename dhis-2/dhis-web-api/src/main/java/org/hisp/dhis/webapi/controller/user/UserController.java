@@ -325,7 +325,7 @@ public class UserController
         UserCredWrapperDto userCredentialsRaw = user.getUserCredentialsRaw();
         if ( userCredentialsRaw != null )
         {
-            copyProperties( userCredentialsRaw, user, "password" );
+            copyProperties( userCredentialsRaw, user, KEY_PASSWORD );
             if ( userCredentialsRaw.getPassword() != null )
             {
                 user.setPassword( userCredentialsRaw.getPassword() );
@@ -687,9 +687,8 @@ public class UserController
         }
 
         List<String> uids = getUids( parsed.getGroups() );
-        userGroupService.updateUserGroups( parsed, uids, currentUser );
-        log.info( "Updated user groups for user: " + user.getUid() );
 
+        userGroupService.updateUserGroups( user, uids, currentUser );
     }
 
     // -------------------------------------------------------------------------
