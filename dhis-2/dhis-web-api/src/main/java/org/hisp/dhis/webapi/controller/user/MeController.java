@@ -30,7 +30,6 @@ package org.hisp.dhis.webapi.controller.user;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
-import static org.springframework.beans.BeanUtils.copyProperties;
 import static org.springframework.http.CacheControl.noStore;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -185,9 +184,7 @@ public class MeController
 
         MeDto meDto = new MeDto( user, userSettings, programs, dataSets );
 
-        UserCredWrapperDto userCredWrapperDto = new UserCredWrapperDto();
-        userCredWrapperDto.setUserRoles( user.getUserAuthorityGroups() );
-        copyProperties( meDto, userCredWrapperDto, "userCredentials" );
+        UserCredWrapperDto userCredWrapperDto = user.getUserCredentials();
 
         meDto.setUserCredentials( userCredWrapperDto );
 

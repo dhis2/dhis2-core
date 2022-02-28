@@ -56,6 +56,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.commons.collection.CollectionUtils;
@@ -310,11 +311,27 @@ public class UserController
     private WebMessage postObject( User user )
         throws WebMessageException
     {
+        populateUserCredWrapperFields( user );
+
         User currentUser = currentUserService.getCurrentUser();
 
         validateCreateUser( user, currentUser );
 
         return postObject( getObjectReport( createUser( user, currentUser ) ) );
+    }
+
+    private void populateUserCredWrapperFields( User user )
+    {
+        UserCredWrapperDto userCredentialsRaw = user.getUserCredentialsRaw();
+        if ( userCredentialsRaw != null )
+        {
+            copyProperties( userCredentialsRaw, user, "password" );
+            if ( userCredentialsRaw.getPassword() != null )
+            {
+                user.setPassword( userCredentialsRaw.getPassword() );
+            }
+            user.setUserAuthorityGroups( userCredentialsRaw.getUserRoles() );
+        }
     }
 
     @PostMapping( value = INVITE_PATH, consumes = APPLICATION_JSON_VALUE )
@@ -583,20 +600,7 @@ public class UserController
     {
         User parsed = renderService.fromJson( request.getInputStream(), getEntityClass() );
 
-        UserCredWrapperDto userCredentialsRaw = parsed.getUserCredentialsRaw();
-
-        if ( userCredentialsRaw != null )
-        {
-            copyProperties( userCredentialsRaw, parsed, "userCredentials", "uuid", "id", "uid", "access", "sharing",
-                "created", "lastUpdated", "lastUpdatedBy", "code", "userInfo", "publicAccess", "name", "secret",
-                "firstName", "lastName", "surname", "email", "phoneNumber", "introduction", "passwordLastUpdated",
-                "gender", "birthday", "nationality", "employer", "education", "interests", "languages",
-                "welcomeMessage", "lastCheckedInterpretations", "groups", "whatsApp", "facebookMessenger",
-                "skype", "telegram", "twitter", "avatar",
-                "dataViewMaxOrganisationUnitLevel", "apps",
-                "user" );
-            parsed.setUserAuthorityGroups( userCredentialsRaw.getUserRoles() );
-        }
+        populateUserCredWrapperFields( parsed );
 
         return importReport( updateUser( pvUid, parsed ) )
             .withPlainResponseBefore( DhisApiVersion.V38 );
@@ -908,6 +912,7 @@ public class UserController
      *
      * @param uid the unique id of the user to enable or disable
      * @param disable boolean value, true for disable, false for enable
+     *
      * @throws WebMessageException thrown if "current" user is not allowed to
      *         modify the user
      */

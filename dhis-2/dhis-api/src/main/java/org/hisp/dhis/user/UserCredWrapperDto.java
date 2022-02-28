@@ -39,6 +39,7 @@ import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.security.acl.Access;
+import org.hisp.dhis.user.sharing.Sharing;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
@@ -113,8 +114,11 @@ public class UserCredWrapperDto
     @JsonProperty
     private Date accountExpiry;
 
-    @JsonProperty( )
+    @JsonProperty
     private Access access;
+
+    @JsonProperty
+    private Sharing sharing = new Sharing();
 
     @JsonProperty
     private Set<UserAuthorityGroup> userRoles;

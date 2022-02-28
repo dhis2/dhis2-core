@@ -233,7 +233,7 @@ public class User
 
     // Backward comp. field, will be removed when front-end has converted to new
     // User model
-    private transient UserCredWrapperDto userCredentials;
+    private transient UserCredWrapperDto userCredentialsRaw;
 
     /**
      * Organisation units for data input and data capture operations. TODO move
@@ -1477,13 +1477,13 @@ public class User
 
     public UserCredWrapperDto getUserCredentialsRaw()
     {
-        return this.userCredentials;
+        return this.userCredentialsRaw;
     }
 
     // This is a temporary fix to maintain backwards compatibility with the old
     // UserCredentials class. This method should not be used in new code!
     protected void setUserCredentials( UserCredWrapperDto user )
     {
-        this.userCredentials = user;
+        this.userCredentialsRaw = user;
     }
 }
