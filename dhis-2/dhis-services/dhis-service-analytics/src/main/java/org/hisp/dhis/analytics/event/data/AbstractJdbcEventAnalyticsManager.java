@@ -783,6 +783,12 @@ public abstract class AbstractJdbcEventAnalyticsManager
         }
     }
 
+    /**
+     * Return SQL string bnased on Items a its params
+     *
+     * @param params a {@see EventQueryParams}
+     * @param hlp a {@see SqlHelper}
+     */
     protected String getItemsSql( EventQueryParams params, SqlHelper hlp )
     {
         List<String> repeatableStagesSqlList = new ArrayList<>();
