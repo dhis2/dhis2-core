@@ -86,20 +86,6 @@ public class JdbcEnrollmentAnalyticsTableManager
             databaseInfo, jdbcTemplate );
     }
 
-    public static final String STORED_BY_COL_NAME = "storedby";
-
-    private static final String CREATED_BY_COL_USER_NAME = "createdbyusername";
-
-    private static final String CREATED_BY_COL_NAME = "createdbyname";
-
-    private static final String CREATED_BY_COL_LAST_NAME = "createdbylastname";
-
-    private static final String LAST_UPDATED_BY_COL_USER_NAME = "lastupdatedbyusername";
-
-    private static final String LAST_UPDATED_BY_COL_NAME = "lastupdatedbyname";
-
-    private static final String LAST_UPDATED_BY_COL_LAST_NAME = "lastupdatedbylastname";
-
     private static final List<AnalyticsTableColumn> FIXED_COLS = ImmutableList.of(
         new AnalyticsTableColumn( quote( "pi" ), CHARACTER_11, NOT_NULL, "pi.uid" ),
         new AnalyticsTableColumn( quote( "enrollmentdate" ), TIMESTAMP, "pi.enrollmentdate" ),
@@ -114,12 +100,17 @@ public class JdbcEnrollmentAnalyticsTableManager
             "pi.createdbyuserinfo ->> 'firstName' as " + CREATED_BY_COL_NAME ),
         new AnalyticsTableColumn( quote( CREATED_BY_COL_LAST_NAME ), VARCHAR_255,
             "pi.createdbyuserinfo ->> 'surname' as " + CREATED_BY_COL_LAST_NAME ),
+        new AnalyticsTableColumn( quote( CREATED_BY_COL_DISPLAY_LAST_NAME ), VARCHAR_255,
+            getDisplayName( "createdbyuserinfo",
+                "pi", CREATED_BY_COL_DISPLAY_LAST_NAME ) ),
         new AnalyticsTableColumn( quote( LAST_UPDATED_BY_COL_USER_NAME ), VARCHAR_255,
             "pi.lastupdatedbyuserinfo ->> 'username' as " + LAST_UPDATED_BY_COL_USER_NAME ),
         new AnalyticsTableColumn( quote( LAST_UPDATED_BY_COL_NAME ), VARCHAR_255,
             "pi.lastupdatedbyuserinfo ->> 'firstName' as " + LAST_UPDATED_BY_COL_NAME ),
         new AnalyticsTableColumn( quote( LAST_UPDATED_BY_COL_LAST_NAME ), VARCHAR_255,
             "pi.lastupdatedbyuserinfo ->> 'surname' as " + LAST_UPDATED_BY_COL_LAST_NAME ),
+        new AnalyticsTableColumn( quote( LAST_UPDATED_BY_COL_DISPLAY_LAST_NAME ), VARCHAR_255,
+            getDisplayName( "lastupdatedbyuserinfo", "pi", LAST_UPDATED_BY_COL_DISPLAY_LAST_NAME ) ),
         new AnalyticsTableColumn( quote( "enrollmentstatus" ), VARCHAR_50, "pi.status" ),
         new AnalyticsTableColumn( quote( "longitude" ), DOUBLE,
             "CASE WHEN 'POINT' = GeometryType(pi.geometry) THEN ST_X(pi.geometry) ELSE null END" ),
