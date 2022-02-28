@@ -38,11 +38,7 @@ import org.flywaydb.core.api.FlywayException;
 import org.flywaydb.core.api.migration.BaseJavaMigration;
 import org.flywaydb.core.api.migration.Context;
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
-import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.program.ProgramStatus;
-import org.hisp.dhis.programstagefilter.DateFilterPeriod;
-import org.hisp.dhis.programstagefilter.DatePeriodType;
-import org.hisp.dhis.trackedentityfilter.EntityQueryCriteria;
 import org.hisp.dhis.trackedentityfilter.FilterPeriod;
 import org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilter;
 import org.postgresql.util.PGobject;
@@ -102,7 +98,6 @@ public class V2_38_37__Add_entityquerycriteria_column_to_trackedentityinstancefi
                 filter.setFollowup( rs.getBoolean( 3 ) );
                 filter.setEnrollmentCreatedPeriod( rs.getString( 4 ) == null ? null
                     : objectMapper.readValue( rs.getString( 4 ), FilterPeriod.class ) );
-                populateEntityQueryCriteria( filter );
                 existingFiltersMap.add( filter );
             }
         }
@@ -148,36 +143,5 @@ public class V2_38_37__Add_entityquerycriteria_column_to_trackedentityinstancefi
             log.error( e.getMessage() );
             throw e;
         }
-
     }
-
-    private void populateEntityQueryCriteria( TrackedEntityInstanceFilter filter )
-    {
-        if ( filter.getEntityQueryCriteria() == null )
-        {
-            EntityQueryCriteria eqc = new EntityQueryCriteria();
-            filter.setEntityQueryCriteria( eqc );
-        }
-
-        if ( filter.isFollowup() != null )
-        {
-            filter.getEntityQueryCriteria().setFollowUp( filter.isFollowup() );
-        }
-
-        if ( filter.getEnrollmentStatus() != null )
-        {
-            filter.getEntityQueryCriteria().setEnrollmentStatus( filter.getEnrollmentStatus() );
-        }
-
-        if ( filter.getEnrollmentCreatedPeriod() != null )
-        {
-            DateFilterPeriod enrollmentCreated = new DateFilterPeriod();
-            enrollmentCreated.setStartBuffer( filter.getEnrollmentCreatedPeriod().getPeriodFrom() );
-            enrollmentCreated.setEndBuffer( filter.getEnrollmentCreatedPeriod().getPeriodTo() );
-            enrollmentCreated.setType( DatePeriodType.RELATIVE );
-            enrollmentCreated.setPeriod( RelativePeriodEnum.TODAY );
-            filter.getEntityQueryCriteria().setEnrollmentCreatedDate( enrollmentCreated );
-        }
-    }
-
 }
