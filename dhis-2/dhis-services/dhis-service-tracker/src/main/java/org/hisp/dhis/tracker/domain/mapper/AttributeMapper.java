@@ -25,24 +25,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export;
+package org.hisp.dhis.tracker.domain.mapper;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import org.hisp.dhis.tracker.domain.Attribute;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
-public interface DomainMapper<F, T>
+@Mapper( uses = InstantMapper.class )
+public interface AttributeMapper extends DomainMapper<org.hisp.dhis.dxf2.events.trackedentity.Attribute, Attribute>
 {
-    T from( F from );
 
-    default List<T> fromCollection( Collection<F> froms )
-    {
-        return Optional.ofNullable( froms )
-            .orElse( Collections.emptySet() )
-            .stream()
-            .map( this::from )
-            .collect( Collectors.toList() );
-    }
+    @Mapping( target = "createdAt", source = "created" )
+    @Mapping( target = "updatedAt", source = "lastUpdated" )
+    Attribute from( org.hisp.dhis.dxf2.events.trackedentity.Attribute attribute );
 }
