@@ -267,7 +267,6 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
         List<String> filters = Lists.newArrayList( contextService.getParameterValues( "filter" ) );
 
-        rpParameters.put( "paging", "false" );
         WebOptions options = new WebOptions( rpParameters );
         WebMetadata metadata = new WebMetadata();
 
