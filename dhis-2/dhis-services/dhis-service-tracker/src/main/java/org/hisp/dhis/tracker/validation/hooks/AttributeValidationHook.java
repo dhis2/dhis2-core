@@ -41,6 +41,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.TrackerDto;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.UniqueAttributeValue;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
@@ -81,7 +82,7 @@ public abstract class AttributeValidationHook extends AbstractTrackerDtoValidati
         }
         else if ( valueType.equals( ValueType.USERNAME ) )
         {
-            error = context.usernameExists( attr.getValue() ) ? null
+            error = usernameExists( context.getBundle().getPreheat(), attr.getValue() ) ? null
                 : " Value " + attr.getValue() + " is not a valid username value";
         }
         else
@@ -158,6 +159,11 @@ public abstract class AttributeValidationHook extends AbstractTrackerDtoValidati
                 return;
             }
         }
+    }
+
+    private boolean usernameExists( TrackerPreheat preheat, String username )
+    {
+        return preheat.getUsers().containsKey( username );
     }
 
 }
