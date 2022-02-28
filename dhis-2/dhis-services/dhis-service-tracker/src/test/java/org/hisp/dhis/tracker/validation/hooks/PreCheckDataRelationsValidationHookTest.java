@@ -36,7 +36,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -63,8 +62,6 @@ import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.tracker.TrackerIdentifier;
-import org.hisp.dhis.tracker.TrackerIdentifierParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
@@ -287,9 +284,6 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         hook.validateEvent( reporter, event );
 
         assertFalse( reporter.hasErrors() );
-        assertEquals( defaultAOC,
-            reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ),
-            "AOC id should be cached" );
     }
 
     @Test
@@ -448,7 +442,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
-    void eventValidationSucceedsWhenOnlyCOsAreSetAndExist()
+    void eventValidationFailsWhenOnlyCOsAreSetAndExist()
     {
         OrganisationUnit orgUnit = setupOrgUnit();
         Program program = setupProgram( orgUnit );
@@ -457,41 +451,6 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         program.setCategoryCombo( cc );
         CategoryOption co = cc.getCategoryOptions().get( 0 );
         when( preheat.getCategoryOption( co.getUid() ) ).thenReturn( co );
-        CategoryOptionCombo aoc = firstCategoryOptionCombo( cc );
-        // when( categoryService.getCategoryOptionCombo( cc, Sets.newHashSet( co
-        // ) ) ).thenReturn( aoc );
-        when( preheat.getIdentifiers() ).thenReturn(
-            TrackerIdentifierParams.builder()
-                .categoryOptionComboIdScheme( TrackerIdentifier.NAME ).build() );
-
-        Event event = eventBuilder()
-            .attributeOptionCombo( null )
-            .attributeCategoryOptions( co.getUid() )
-            .build();
-
-        hook.validateEvent( reporter, event );
-
-        assertFalse( reporter.hasErrors() );
-        assertEquals( aoc,
-            reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ),
-            "AOC id should be cached" );
-        assertEquals( aoc.getName(), event.getAttributeOptionCombo(), "AOC id should be set by the validation" );
-        verify( preheat, times( 1 ) ).put( TrackerIdentifier.NAME, aoc );
-    }
-
-    @Test
-    void eventValidationFailsWhenOnlyCOsAreSetButAOCCannotBeFound()
-    {
-        OrganisationUnit orgUnit = setupOrgUnit();
-        Program program = setupProgram( orgUnit );
-
-        CategoryCombo cc = categoryCombo();
-        program.setCategoryCombo( cc );
-        CategoryOption co = cc.getCategoryOptions().get( 0 );
-        when( preheat.getCategoryOption( co.getUid() ) ).thenReturn( co );
-
-        // when( categoryService.getCategoryOptionCombo( cc, Sets.newHashSet( co
-        // ) ) ).thenReturn( null );
 
         Event event = eventBuilder()
             .attributeCategoryOptions( co.getUid() )
@@ -503,9 +462,6 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1117 &&
             r.getErrorMessage().contains( program.getCategoryCombo().getUid() ) &&
             r.getErrorMessage().contains( co.getUid() ) ) );
-        assertNull( reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ),
-            "AOC id should not be cached" );
-        verify( preheat, times( 0 ) ).put( any(), (IdentifiableObject) any() );
     }
 
     @Test
@@ -529,10 +485,6 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         hook.validateEvent( reporter, event );
 
         assertFalse( reporter.hasErrors() );
-        assertEquals( defaultAOC,
-            reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ),
-            "AOC id should be cached" );
-        verify( preheat, times( 0 ) ).put( any(), eq( defaultAOC ) );
     }
 
     @Test
@@ -610,9 +562,6 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         hook.validateEvent( reporter, event );
 
         assertFalse( reporter.hasErrors() );
-        assertEquals( aoc,
-            reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ),
-            "AOC id should be cached" );
     }
 
     @Test
@@ -633,9 +582,6 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         hook.validateEvent( reporter, event );
 
         assertFalse( reporter.hasErrors() );
-        assertEquals( defaultAOC,
-            reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ),
-            "AOC id should be cached" );
     }
 
     @Test
@@ -775,9 +721,6 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         hook.validateEvent( reporter, event );
 
         assertFalse( reporter.hasErrors() );
-        assertEquals( defaultAOC,
-            reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ),
-            "AOC id should be cached" );
     }
 
     @Test
@@ -801,9 +744,6 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         hook.validateEvent( reporter, event );
 
         assertFalse( reporter.hasErrors() );
-        assertEquals( aoc,
-            reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ),
-            "AOC id should be cached" );
     }
 
     @Test
