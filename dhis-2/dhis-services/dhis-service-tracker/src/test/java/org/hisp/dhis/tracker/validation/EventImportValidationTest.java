@@ -335,7 +335,22 @@ class EventImportValidationTest extends AbstractImportValidationTest
     }
 
     @Test
-    void testAttributeCategoryOptionAndCODontMatch()
+    void testAttributeCategoryOptionNotInProgramCC()
+        throws IOException
+    {
+        TrackerImportParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/events-aoc-not-in-program-cc.json" );
+        trackerBundleParams.setImportStrategy( TrackerImportStrategy.CREATE );
+
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
+
+        assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
+        assertThat( trackerImportReport.getValidationReport().getErrors(),
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1054 ) ) ) );
+    }
+
+    @Test
+    void testAttributeCategoryOptionAndCODoNotMatch()
         throws IOException
     {
         TrackerImportParams trackerBundleParams = createBundleFromJson(
