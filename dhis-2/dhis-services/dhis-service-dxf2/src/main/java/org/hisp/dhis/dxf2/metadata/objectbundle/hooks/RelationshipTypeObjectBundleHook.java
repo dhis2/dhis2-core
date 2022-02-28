@@ -34,7 +34,6 @@ import static org.hisp.dhis.relationship.RelationshipEntity.TRACKED_ENTITY_INSTA
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -107,7 +106,6 @@ public class RelationshipTypeObjectBundleHook
         TrackedEntityType trackedEntityType = relationshipConstraint.getTrackedEntityType();
         Program program = relationshipConstraint.getProgram();
         ProgramStage programStage = relationshipConstraint.getProgramStage();
-        TrackerDataView trackerDataView = relationshipConstraint.getTrackerDataView();
 
         if ( trackedEntityType != null )
         {
@@ -120,22 +118,12 @@ public class RelationshipTypeObjectBundleHook
         {
             program = programService.getProgram( program.getUid() );
             relationshipConstraint.setProgram( program );
-
-            List<String> trackedEntityAttributes = program.getTrackedEntityAttributes()
-                .stream().filter( Objects::nonNull ).map( BaseIdentifiableObject::getUid )
-                .collect( Collectors.toList() );
-
         }
 
         if ( programStage != null )
         {
             programStage = programStageService.getProgramStage( programStage.getUid() );
             relationshipConstraint.setProgramStage( programStage );
-
-            Set<String> dataElements = programStage.getDataElements()
-                .stream().filter( Objects::nonNull ).map( BaseIdentifiableObject::getUid )
-                .collect( Collectors.toSet() );
-
         }
 
         sessionFactory.getCurrentSession().save( relationshipConstraint );
@@ -218,9 +206,14 @@ public class RelationshipTypeObjectBundleHook
             if ( !trackerDataViewAttributes.isEmpty()
                 && !trackedEntityTypeAttributes.containsAll( trackerDataViewAttributes ) )
             {
+
+                List<String> teaNotPartOfTei = trackerDataViewAttributes.stream()
+                    .filter( t -> !trackedEntityTypeAttributes.contains( t ) )
+                    .collect( Collectors.toList() );
+
                 addReports.accept( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4314,
-                    "TrackedEntityType.TrackedEntityAttributes",
-                    "TrackerDataView.TrackedEntityAttributes", TRACKED_ENTITY_INSTANCE ) );
+                    "TrackedEntityAttributes", String.join( ",", teaNotPartOfTei ),
+                    "TrackedEntityInstance" ) );
             }
         }
 
@@ -268,9 +261,13 @@ public class RelationshipTypeObjectBundleHook
             if ( !trackerDataViewAttributes.isEmpty()
                 && !trackedEntityAttributes.containsAll( trackerDataViewAttributes ) )
             {
+                List<String> teaNotPartOfProgram = trackerDataViewAttributes.stream()
+                    .filter( t -> !trackedEntityAttributes.contains( t ) )
+                    .collect( Collectors.toList() );
+
                 addReports.accept( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4314,
-                    "Program.TrackedEntityAttributes",
-                    "TrackerDataView.TrackedEntityAttributes", PROGRAM_INSTANCE ) );
+                    "TrackedEntityAttributes", String.join( ",", teaNotPartOfProgram ),
+                    "Program" ) );
             }
         }
 
@@ -327,9 +324,13 @@ public class RelationshipTypeObjectBundleHook
 
             if ( !trackerDataViewDataElements.isEmpty() && !dataElements.containsAll( trackerDataViewDataElements ) )
             {
+                List<String> dataElementsNotPartOfProgramStage = trackerDataViewDataElements.stream()
+                    .filter( d -> !dataElements.contains( d ) )
+                    .collect( Collectors.toList() );
+
                 addReports.accept(
-                    new ErrorReport( RelationshipConstraint.class, ErrorCode.E4314, "ProgramStage.DataElements",
-                        "TrackerDataView.DataElements", PROGRAM_STAGE_INSTANCE ) );
+                    new ErrorReport( RelationshipConstraint.class, ErrorCode.E4314, "DataElements",
+                        String.join( ",", dataElementsNotPartOfProgramStage ), "ProgramStage" ) );
             }
         }
     }

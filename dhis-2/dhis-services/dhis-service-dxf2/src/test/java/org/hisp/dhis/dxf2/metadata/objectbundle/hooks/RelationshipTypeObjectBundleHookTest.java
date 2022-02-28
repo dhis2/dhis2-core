@@ -92,7 +92,7 @@ public class RelationshipTypeObjectBundleHookTest extends DhisConvenienceTest
 
     private TrackedEntityAttribute trackedEntityAttribute;
 
-    private TrackedEntityAttribute trackedEntityAttributeB;
+    private TrackedEntityAttribute teaNotPartOfProgram;
 
     private TrackedEntityTypeAttribute trackedEntityTypeAttribute;
 
@@ -108,7 +108,7 @@ public class RelationshipTypeObjectBundleHookTest extends DhisConvenienceTest
         personTrackedEntityType = createTrackedEntityType( 'P' );
 
         trackedEntityAttribute = createTrackedEntityAttribute( 'T', ValueType.TEXT );
-        trackedEntityAttributeB = createTrackedEntityAttribute( 'V', ValueType.TEXT );
+        teaNotPartOfProgram = createTrackedEntityAttribute( 'V', ValueType.TEXT );
         trackedEntityTypeAttribute = new TrackedEntityTypeAttribute();
         trackedEntityTypeAttribute.setTrackedEntityType( personTrackedEntityType );
         trackedEntityTypeAttribute.setTrackedEntityAttribute( trackedEntityAttribute );
@@ -140,7 +140,7 @@ public class RelationshipTypeObjectBundleHookTest extends DhisConvenienceTest
         personConstraintWithMultipleAttribute.setTrackedEntityType( personTrackedEntityType );
         personConstraintWithMultipleAttribute.setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
         personConstraintWithMultipleAttribute.setTrackerDataView( TrackerDataView.builder()
-            .trackedEntityAttributes( Lists.newArrayList( trackedEntityAttribute, trackedEntityAttributeB ) ).build() );
+            .trackedEntityAttributes( Lists.newArrayList( trackedEntityAttribute, teaNotPartOfProgram ) ).build() );
 
         enrollmentConstraint = new RelationshipConstraint();
         enrollmentConstraint.setProgram( program );
@@ -219,5 +219,7 @@ public class RelationshipTypeObjectBundleHookTest extends DhisConvenienceTest
             .collect( Collectors.toList() );
 
         assertTrue( errorCodes.contains( ErrorCode.E4314 ) );
+        assertTrue( errorReportList.get( 0 ).getMessage().contains( teaNotPartOfProgram.getUid() ) );
+
     }
 }
