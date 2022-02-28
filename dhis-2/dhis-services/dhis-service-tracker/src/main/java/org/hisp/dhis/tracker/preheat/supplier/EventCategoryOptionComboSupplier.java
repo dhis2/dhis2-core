@@ -54,10 +54,10 @@ import org.springframework.stereotype.Component;
 /**
  * EventCategoryOptionComboSupplier adds category option combos to the preheat
  * for events with attributeCategoryOptions but no attributeOptionCombo.
- * <p>
+ *
  * {@link ClassBasedSupplier} is responsible for adding category option combos
  * to the preheat for which identifiers are present in the event.
- * <p>
+ *
  * An event for which the category option combo can not be found is invalid.
  * Validation will thus subsequently invalidate it.
  */
