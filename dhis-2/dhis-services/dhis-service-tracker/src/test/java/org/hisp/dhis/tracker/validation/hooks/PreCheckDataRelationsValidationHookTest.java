@@ -50,7 +50,6 @@ import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -79,7 +78,6 @@ import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -109,9 +107,6 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     private static final String ENROLLMENT_ID = "ENROLLMENT_ID";
 
     private PreCheckDataRelationsValidationHook hook;
-
-    @Mock
-    private CategoryService categoryService;
 
     private TrackerImportValidationContext ctx;
 
@@ -463,7 +458,8 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         CategoryOption co = cc.getCategoryOptions().get( 0 );
         when( preheat.getCategoryOption( co.getUid() ) ).thenReturn( co );
         CategoryOptionCombo aoc = firstCategoryOptionCombo( cc );
-        when( categoryService.getCategoryOptionCombo( cc, Sets.newHashSet( co ) ) ).thenReturn( aoc );
+        // when( categoryService.getCategoryOptionCombo( cc, Sets.newHashSet( co
+        // ) ) ).thenReturn( aoc );
         when( preheat.getIdentifiers() ).thenReturn(
             TrackerIdentifierParams.builder()
                 .categoryOptionComboIdScheme( TrackerIdentifier.NAME ).build() );
@@ -494,7 +490,8 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         CategoryOption co = cc.getCategoryOptions().get( 0 );
         when( preheat.getCategoryOption( co.getUid() ) ).thenReturn( co );
 
-        when( categoryService.getCategoryOptionCombo( cc, Sets.newHashSet( co ) ) ).thenReturn( null );
+        // when( categoryService.getCategoryOptionCombo( cc, Sets.newHashSet( co
+        // ) ) ).thenReturn( null );
 
         Event event = eventBuilder()
             .attributeCategoryOptions( co.getUid() )
@@ -577,7 +574,8 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
 
         CategoryOption co = createCategoryOption( 'B' );
         when( preheat.getCategoryOption( co.getUid() ) ).thenReturn( co );
-        when( categoryService.getCategoryOptionCombo( cc, Sets.newHashSet( co ) ) ).thenReturn( null );
+        // when( categoryService.getCategoryOptionCombo( cc, Sets.newHashSet( co
+        // ) ) ).thenReturn( null );
 
         Event event = eventBuilder()
             .attributeCategoryOptions( co.getUid() )
@@ -684,7 +682,6 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             "AOC id should not be cached" );
     }
 
-    @Disabled
     @Test
     void eventValidationFailsWhenOnlyAOCIsSetToAOCNotInProgramCC()
     {
@@ -702,11 +699,9 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         hook.validateEvent( reporter, event );
 
         assertEquals( 1, reporter.getReportList().size() );
-        // assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() ==
-        // TrackerErrorCode.E1054 &&
-        // r.getErrorMessage().contains( aoc.getUid() ) &&
-        // r.getErrorMessage().contains( program.getCategoryCombo().getUid() ) )
-        // );
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1054 &&
+            r.getErrorMessage().contains( aoc.getUid() ) &&
+            r.getErrorMessage().contains( program.getCategoryCombo().getUid() ) ) );
         assertNull( reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ),
             "AOC id should not be cached" );
     }
@@ -733,7 +728,6 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             "AOC id should not be cached" );
     }
 
-    @Disabled
     @Test
     void eventValidationFailsWhenOnlyAOCIsSetToAOCNotInProgramCCAndEventProgramHasDefaultCC()
     {
@@ -751,11 +745,9 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         hook.validateEvent( reporter, event );
 
         assertEquals( 1, reporter.getReportList().size() );
-        // assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() ==
-        // TrackerErrorCode.E1054 &&
-        // r.getErrorMessage().contains( aoc.getUid() ) &&
-        // r.getErrorMessage().contains( program.getCategoryCombo().getUid() ) )
-        // );
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1054 &&
+            r.getErrorMessage().contains( aoc.getUid() ) &&
+            r.getErrorMessage().contains( program.getCategoryCombo().getUid() ) ) );
         assertNull( reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ),
             "AOC id should not be cached" );
     }
@@ -931,7 +923,6 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             "AOC id should not be cached" );
     }
 
-    @Disabled
     @Test
     void eventValidationFailsWhenEventAOCAndEventCOsAreSetAndCOIsNotInProgramCC()
     {
@@ -954,15 +945,13 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         hook.validateEvent( reporter, event );
 
         assertEquals( 1, reporter.getReportList().size() );
-        // assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() ==
-        // TrackerErrorCode.E1053 &&
-        // r.getErrorMessage().contains( eventCO.getUid() ) &&
-        // r.getErrorMessage().contains( aoc.getUid() ) ) );
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1053 &&
+            r.getErrorMessage().contains( eventCO.getUid() ) &&
+            r.getErrorMessage().contains( aoc.getUid() ) ) );
         assertNull( reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ),
             "AOC id should not be cached" );
     }
 
-    @Disabled
     @Test
     void eventValidationFailsWhenEventAOCAndEventCOsAreSetAndInProgramCCButDoNotMatch()
     {
@@ -986,16 +975,14 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         hook.validateEvent( reporter, event );
 
         assertEquals( 1, reporter.getReportList().size() );
-        // assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() ==
-        // TrackerErrorCode.E1053 &&
-        // r.getErrorMessage().contains( co1.getUid() ) &&
-        // r.getErrorMessage().contains( aoc2.getUid() ) ) );
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1053 &&
+            r.getErrorMessage().contains( co1.getUid() ) &&
+            r.getErrorMessage().contains( aoc2.getUid() ) ) );
         assertNull( reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ),
             "AOC id should not be cached" );
         verify( preheat, times( 0 ) ).put( any(), (IdentifiableObject) any() );
     }
 
-    @Disabled
     @Test
     void eventValidationFailsWhenEventAOCAndEventCOsAreSetAndInProgramCCButNotAllCOsInAOCAreGiven()
     {
@@ -1017,10 +1004,9 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         hook.validateEvent( reporter, event );
 
         assertEquals( 1, reporter.getReportList().size() );
-        // assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() ==
-        // TrackerErrorCode.E1053 &&
-        // r.getErrorMessage().contains( co1.getUid() ) &&
-        // r.getErrorMessage().contains( aoc.getUid() ) ) );
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1053 &&
+            r.getErrorMessage().contains( co1.getUid() ) &&
+            r.getErrorMessage().contains( aoc.getUid() ) ) );
         assertNull( reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ),
             "AOC id should not be cached" );
         verify( preheat, times( 0 ) ).put( any(), (IdentifiableObject) any() );
