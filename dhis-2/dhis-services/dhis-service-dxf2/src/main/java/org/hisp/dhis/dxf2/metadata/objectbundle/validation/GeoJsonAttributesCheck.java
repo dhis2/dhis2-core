@@ -28,11 +28,14 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
 
 import static java.util.Collections.emptyList;
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static java.util.Optional.empty;
+import static java.util.Optional.of;
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationUtils.createObjectReport;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -172,72 +175,71 @@ public class GeoJsonAttributesCheck
     private void validateGeoJsonObject( GeoJsonObject geoJsonObject, String attributeId,
         Consumer<ErrorReport> addError )
     {
-        if ( !geoJsonObject.accept( new ValidatingGeoJsonVisitor() ) )
-        {
-            addError.accept( new ErrorReport( Attribute.class, ErrorCode.E6004, attributeId )
-                .setMainId( attributeId )
-                .setErrorProperty( "value" ) );
-        }
+        geoJsonObject.accept( new ValidatingGeoJsonVisitor() )
+            .ifPresent( errorCode -> addError.accept(
+                new ErrorReport( Attribute.class, errorCode, attributeId )
+                    .setMainId( attributeId )
+                    .setErrorProperty( "value" ) ) );
     }
 
     /**
      * Contains validator for each GeoJson Object type.
      */
     class ValidatingGeoJsonVisitor
-        implements GeoJsonObjectVisitor<Boolean>
+        implements GeoJsonObjectVisitor<Optional<ErrorCode>>
     {
         @Override
-        public Boolean visit( GeometryCollection geometryCollection )
+        public Optional<ErrorCode> visit( GeometryCollection geometryCollection )
         {
-            return isNotEmpty( geometryCollection.getGeometries() );
+            return of( ErrorCode.E6005 );
         }
 
         @Override
-        public Boolean visit( FeatureCollection featureCollection )
+        public Optional<ErrorCode> visit( FeatureCollection featureCollection )
         {
-            return isNotEmpty( featureCollection.getFeatures() );
+            return of( ErrorCode.E6005 );
         }
 
         @Override
-        public Boolean visit( Point point )
+        public Optional<ErrorCode> visit( Point point )
         {
-            return point.getCoordinates() != null;
+            return point.getCoordinates() == null ? of( ErrorCode.E6004 ) : empty();
         }
 
         @Override
-        public Boolean visit( Feature feature )
+        public Optional<ErrorCode> visit( Feature feature )
         {
-            return feature.getGeometry() != null && feature.getGeometry().accept( new ValidatingGeoJsonVisitor() );
+            return of( ErrorCode.E6005 );
         }
 
         @Override
-        public Boolean visit( MultiLineString multiLineString )
+        public Optional<ErrorCode> visit( MultiLineString multiLineString )
         {
-            return isNotEmpty( multiLineString.getCoordinates() );
+            return isEmpty( multiLineString.getCoordinates() ) ? of( ErrorCode.E6004 ) : empty();
         }
 
         @Override
-        public Boolean visit( Polygon polygon )
+        public Optional<ErrorCode> visit( Polygon polygon )
         {
-            return isNotEmpty( polygon.getCoordinates() );
+            return isEmpty( polygon.getCoordinates() ) ? of( ErrorCode.E6004 ) : empty();
         }
 
         @Override
-        public Boolean visit( MultiPolygon multiPolygon )
+        public Optional<ErrorCode> visit( MultiPolygon multiPolygon )
         {
-            return isNotEmpty( multiPolygon.getCoordinates() );
+            return isEmpty( multiPolygon.getCoordinates() ) ? of( ErrorCode.E6004 ) : empty();
         }
 
         @Override
-        public Boolean visit( MultiPoint multiPoint )
+        public Optional<ErrorCode> visit( MultiPoint multiPoint )
         {
-            return isNotEmpty( multiPoint.getCoordinates() );
+            return isEmpty( multiPoint.getCoordinates() ) ? of( ErrorCode.E6004 ) : empty();
         }
 
         @Override
-        public Boolean visit( LineString lineString )
+        public Optional<ErrorCode> visit( LineString lineString )
         {
-            return isNotEmpty( lineString.getCoordinates() );
+            return isEmpty( lineString.getCoordinates() ) ? of( ErrorCode.E6004 ) : empty();
         }
     }
 }

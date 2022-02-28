@@ -1,4 +1,9 @@
+
+-- Drop users table
+
 drop table if exists users CASCADE;
+
+-- Add unique indexes on userinfo
 
 create unique index in_userinfo_username
     on userinfo (username);
@@ -12,26 +17,8 @@ create unique index in_userinfo_ldapid
 create unique index in_userinfo_uuid
     on userinfo (uuid);
 
--- Clear all users without usernames, this can happen if there is no mach between the userinfo table and users table, these users will be useless anyway, aka. they would not work in the first place.
+-- Set primitive user properties to false
+-- Required to avoid startup failure for users with no match in userinfo table
 
-DELETE FROM usermembership WHERE userinfoid IN (SELECT userinfoid FROM userinfo where username is NULL);
-DELETE FROM interpretation_comments WHERE interpretationid IN (SELECT interpretationid FROM interpretation WHERE userid IN (SELECT userinfoid FROM userinfo where username is NULL));
-DELETE FROM interpretation WHERE userid IN (SELECT userinfoid FROM userinfo where username is NULL);
-DELETE FROM interpretation_comments WHERE interpretationcommentid IN (SELECT interpretationcommentid FROM interpretationcomment WHERE userid IN (SELECT userinfoid FROM userinfo where username is NULL));
-DELETE FROM interpretationcomment WHERE userid IN (SELECT userinfoid FROM userinfo where username is NULL);
-DELETE FROM userdatavieworgunits WHERE userinfoid IN (SELECT userinfoid FROM userinfo where username is NULL);
-DELETE FROM usergroupmembers WHERE userid IN (SELECT userinfoid FROM userinfo where username is NULL);
-
-DELETE FROM messageconversation_usermessages WHERE usermessageid IN (SELECT usermessage.usermessageid FROM usermessage WHERE userid IN (SELECT userinfoid FROM userinfo where username is NULL));
-DELETE FROM usermessage WHERE userid IN (SELECT userinfoid FROM userinfo where username is NULL);
-
-DELETE FROM visualization_rows WHERE visualizationid IN (SELECT visualization.visualizationid  FROM visualization WHERE userid IN (SELECT userinfoid FROM userinfo where username is NULL));
-DELETE FROM visualization_organisationunits WHERE visualizationid IN (SELECT visualization.visualizationid  FROM visualization WHERE userid IN (SELECT userinfoid FROM userinfo where username is NULL));
-DELETE FROM visualization_filters WHERE visualizationid IN (SELECT visualization.visualizationid  FROM visualization WHERE userid IN (SELECT userinfoid FROM userinfo where username is NULL));
-DELETE FROM visualization_datadimensionitems WHERE visualizationid IN (SELECT visualization.visualizationid  FROM visualization WHERE userid IN (SELECT userinfoid FROM userinfo where username is NULL));
-DELETE FROM visualization_columns WHERE visualizationid IN (SELECT visualization.visualizationid  FROM visualization WHERE userid IN (SELECT userinfoid FROM userinfo where username is NULL));
-DELETE FROM visualization WHERE userid IN (SELECT userinfoid FROM userinfo where username is NULL);
-
-DELETE FROM dashboarditem_users WHERE userid IN (SELECT userinfoid FROM userinfo where username is NULL);
-
-delete from userinfo where username is NULL ;
+update userinfo set twofa = false, externalauth = false, selfregistered = false, invitation = false, disabled = false
+where username is null;

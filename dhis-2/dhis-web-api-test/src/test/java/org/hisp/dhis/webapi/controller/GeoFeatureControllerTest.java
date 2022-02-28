@@ -25,56 +25,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.report;
+package org.hisp.dhis.webapi.controller;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.text.DateFormat;
-import java.time.Instant;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.util.DateUtils;
-import org.junit.jupiter.api.BeforeEach;
+import org.hisp.dhis.jsontree.JsonResponse;
+import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
 
-class TrackerReportUtilsTest
+/**
+ * @author viet@dhis2.org
+ */
+public class GeoFeatureControllerTest extends DhisControllerConvenienceTest
 {
-
-    private TrackerBundle bundle;
-
-    @BeforeEach
-    void setUp()
-    {
-        bundle = TrackerBundle.builder().build();
-    }
-
     @Test
-    void buildArgumentListShouldTurnInstantIntoArgument()
+    public void testGetWithCoordinateField()
     {
-        final Instant now = Instant.now();
-        List<String> args = TrackerReportUtils.buildArgumentList( bundle, Arrays.asList( now ) );
-        assertThat( args.size(), is( 1 ) );
-        assertThat( args.get( 0 ), is( DateUtils.getIso8601NoTz( DateUtils.fromInstant( now ) ) ) );
-    }
+        POST( "/metadata",
+            "{\"organisationUnits\": ["
 
-    @Test
-    void buildArgumentListShouldTurnDateIntoArgument()
-    {
-        final Date now = Date.from( Instant.now() );
-        List<String> args = TrackerReportUtils.buildArgumentList( bundle, Arrays.asList( now ) );
-        assertThat( args.size(), is( 1 ) );
-        assertThat( args.get( 0 ), is( DateFormat.getInstance().format( now ) ) );
-    }
+                + "{\"id\":\"rXnqqH2Pu6N\",\"name\": \"My Unit 1\",\"shortName\": \"OU1\",\"openingDate\": \"2020-01-01\","
+                + "\"attributeValues\": [{\"value\":  \"{\\\"type\\\": \\\"Polygon\\\","
+                + "\\\"coordinates\\\":  [[[100,0],[101,0],[101,1],[100,1],[100,0]]] }\","
+                + "\"attribute\": {\"id\": \"RRH9IFiZZYN\"}}]},"
 
-    @Test
-    void buildArgumentListShouldTurnStringsIntoArguments()
-    {
-        List<String> args = TrackerReportUtils.buildArgumentList( bundle, Arrays.asList( "foo", "faa" ) );
-        assertThat( args, contains( "foo", "faa" ) );
+                + "{\"id\":\"NBfMnCrwlQc\",\"name\": \"My Unit 3\",\"shortName\": \"OU3\",\"openingDate\": \"2020-01-01\"}"
+
+                + "],"
+                + "\"attributes\":[{\"id\":\"RRH9IFiZZYN\",\"valueType\":\"GEOJSON\",\"organisationUnitAttribute\":true,\"name\":\"testgeojson\"}]}" )
+                    .content( HttpStatus.OK );
+
+        JsonResponse response = GET( "/geoFeatures?ou=ou:LEVEL-1&&coordinateField=RRH9IFiZZYN" )
+            .content( HttpStatus.OK );
+        assertEquals( 1, response.size() );
+        assertEquals( "[[[100.0,0.0],[101.0,0.0],[101.0,1.0],[100.0,1.0],[100.0,0.0]]]",
+            response.getObject( 0 ).get( "co" ).node().value().toString() );
     }
 }

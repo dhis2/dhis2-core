@@ -121,8 +121,7 @@ public class SystemController
     // UID Generator
     // -------------------------------------------------------------------------
 
-    @GetMapping( value = { "/uid", "/id" }, produces = { MediaType.APPLICATION_JSON_VALUE,
-        MediaType.APPLICATION_XML_VALUE } )
+    @GetMapping( value = { "/uid", "/id" } )
     public @ResponseBody CodeList getUid(
         @RequestParam( required = false, defaultValue = "1" ) Integer limit,
         HttpServletResponse response )

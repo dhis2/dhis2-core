@@ -69,7 +69,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 public class DefaultDataSetMetadataExportService
     implements DataSetMetadataExportService
 {
-    private static final String FIELDS_DATA_SETS = ":simple,categoryCombo[id]," +
+    private static final String FIELDS_DATA_SETS = ":simple,categoryCombo[id],formType,dataEntryForm[id]," +
         "dataSetElements[dataElement[id],categoryCombo[id]]," +
         "compulsoryDataElementOperands[dataElement[id],categoryOptionCombo[id]]," +
         "dataInputPeriods[period,openingDate,closingDate]," +
