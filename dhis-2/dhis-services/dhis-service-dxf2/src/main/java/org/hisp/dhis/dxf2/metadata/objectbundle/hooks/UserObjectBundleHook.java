@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
+
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
@@ -52,6 +54,8 @@ import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
+import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Component;
 
@@ -63,6 +67,8 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
 {
+    private final UserGroupService userGroupService;
+
     private final UserService userService;
 
     private final FileResourceService fileResourceService;
@@ -218,6 +224,20 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
             handleNoAccessRoles( user, bundle, userAuthorityGroups );
 
             sessionFactory.getCurrentSession().update( user );
+        }
+    }
+
+    @Override
+    public void preDelete( User user, ObjectBundle bundle )
+    {
+        Set<UserGroup> groups = user.getGroups();
+        userGroupService.removeUserFromGroups( user, getUids( groups ) );
+
+        Set<UserAuthorityGroup> userRoles = user.getUserAuthorityGroups();
+        for ( UserAuthorityGroup userRole : userRoles )
+        {
+            userRole.removeUser( user );
+            sessionFactory.getCurrentSession().update( userRole );
         }
     }
 
