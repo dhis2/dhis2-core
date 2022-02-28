@@ -42,6 +42,8 @@ import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.user.sharing.Sharing;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.annotation.Nulls;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 @Data
@@ -122,4 +124,10 @@ public class UserCredWrapperDto
 
     @JsonProperty
     private Set<UserAuthorityGroup> userRoles;
+
+    @JsonSetter( nulls = Nulls.SET )
+    public void setUserRoles( Set<UserAuthorityGroup> userRoles )
+    {
+        this.userRoles = userRoles;
+    }
 }

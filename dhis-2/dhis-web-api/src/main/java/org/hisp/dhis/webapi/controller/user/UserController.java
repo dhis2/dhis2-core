@@ -84,6 +84,7 @@ import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserCredWrapperDto;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserInvitationStatus;
@@ -329,7 +330,12 @@ public class UserController
             {
                 user.setPassword( userCredentialsRaw.getPassword() );
             }
-            user.setUserAuthorityGroups( userCredentialsRaw.getUserRoles() );
+
+            Set<UserAuthorityGroup> userRoles = userCredentialsRaw.getUserRoles();
+            if ( userRoles != null )
+            {
+                user.setUserAuthorityGroups( userRoles );
+            }
         }
     }
 

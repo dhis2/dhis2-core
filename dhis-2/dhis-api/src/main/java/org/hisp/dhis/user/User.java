@@ -1471,7 +1471,11 @@ public class User
     {
         UserCredWrapperDto userCredWrapperDto = new UserCredWrapperDto();
         copyProperties( this, userCredWrapperDto, "userCredentials", "password" );
-        userCredWrapperDto.setUserRoles( this.getUserAuthorityGroups() );
+        Set<UserAuthorityGroup> userAuthorityGroups = this.getUserAuthorityGroups();
+        if ( userAuthorityGroups != null && userAuthorityGroups.size() > 0 )
+        {
+            userCredWrapperDto.setUserRoles( userAuthorityGroups );
+        }
         return userCredWrapperDto;
     }
 
