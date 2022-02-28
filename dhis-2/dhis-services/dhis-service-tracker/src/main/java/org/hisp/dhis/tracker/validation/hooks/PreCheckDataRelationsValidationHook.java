@@ -206,7 +206,16 @@ public class PreCheckDataRelationsValidationHook
             return;
         }
 
-        resolveAttributeOptionCombo( reporter, event, program );
+        CategoryOptionCombo aoc = resolveAttributeOptionCombo( reporter, event, program );
+        // We should have an AOC by this point. Exit if we do not. The logic of
+        // AOC, COs, CC is complex and there is potential for
+        // missing one of the many cases. Better wrongly invalidate an event
+        // than persisting an invalid event as we
+        // previously did.
+        if ( !validateAttributeOptionComboFound( reporter, event, program, aoc ) )
+            return;
+        if ( !validateAttributeOptionComboMatchesCategoryOptions( reporter, event, program, aoc ) )
+            return;
     }
 
     private boolean validateAttributeOptionComboExists( ValidationErrorReporter reporter, Event event )
@@ -360,7 +369,7 @@ public class PreCheckDataRelationsValidationHook
         return true;
     }
 
-    private void resolveAttributeOptionCombo( ValidationErrorReporter reporter, Event event,
+    private CategoryOptionCombo resolveAttributeOptionCombo( ValidationErrorReporter reporter, Event event,
         Program program )
     {
 
@@ -369,8 +378,6 @@ public class PreCheckDataRelationsValidationHook
         if ( hasNoAttributeOptionComboSet( event ) && program.getCategoryCombo().isDefault() )
         {
             aoc = preheat.getDefault( CategoryOptionCombo.class );
-            if ( !validateAttributeOptionComboMatchesCategoryOptions( reporter, event, program, aoc ) )
-                return;
         }
         else
         {
@@ -381,16 +388,8 @@ public class PreCheckDataRelationsValidationHook
             // stick to the given AOC in the payload instead of
             // preheat.getDefault( CategoryOptionCombo.class )
             aoc = preheat.getCategoryOptionCombo( event.getAttributeOptionCombo() );
-            if ( !validateAttributeOptionComboMatchesCategoryOptions( reporter, event, program, aoc ) )
-                return;
         }
-        // We should have an AOC by this point. Exit if we do not. The logic of
-        // AOC, COs, CC is complex and there is potential for
-        // missing one of the many cases. Better wrongly invalidate an event
-        // than persisting an invalid event as we
-        // previously did.
-        if ( !validateAttributeOptionComboFound( reporter, event, program, aoc ) )
-            return;
+        return aoc;
     }
 
     private boolean hasAttributeCategoryOptionsSet( Event event )
