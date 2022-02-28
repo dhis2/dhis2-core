@@ -159,5 +159,4 @@ public abstract class AttributeValidationHook extends AbstractTrackerDtoValidati
             }
         }
     }
-
 }
