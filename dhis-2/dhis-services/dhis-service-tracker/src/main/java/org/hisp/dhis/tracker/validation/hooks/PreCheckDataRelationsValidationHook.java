@@ -82,7 +82,6 @@ import org.springframework.stereotype.Component;
 public class PreCheckDataRelationsValidationHook
     extends AbstractTrackerDtoValidationHook
 {
-
     @Override
     public void validateTrackedEntity( ValidationErrorReporter reporter,
         TrackedEntity trackedEntity )
@@ -195,13 +194,19 @@ public class PreCheckDataRelationsValidationHook
             // default CC rules
             return;
         }
-        CategoryOptionCombo aoc = resolveAttributeOptionCombo( reporter, event, program );
-        // The event is invalid
-        // if we could not resolve the AOC from the preheat or it being the
-        // default one (program with default category combo)
-        if ( !validateAttributeOptionComboFound( reporter, event, program, aoc ) )
+
+        isValid = validateAttributeOptionComboIsInProgramCategoryCombo( reporter, event, program );
+        isValid = validateAttributeCategoryOptionsAreInProgramCategoryCombo( reporter, event ) && isValid;
+        if ( !isValid )
+        {
+            // no need to resolve the AOC id using COs and program CC in case
+            // event.AOC is empty
+            // as we would not find it anyway
+            // no need to cache the AOC id as the payload is invalid
             return;
-        validateAttributeOptionComboMatchesCategoryOptions( reporter, event, program, aoc );
+        }
+
+        resolveAttributeOptionCombo( reporter, event, program );
     }
 
     private boolean validateAttributeOptionComboExists( ValidationErrorReporter reporter, Event event )
@@ -265,6 +270,16 @@ public class PreCheckDataRelationsValidationHook
             .splitToArray( cos, TextUtils.SEMICOLON );
     }
 
+    /**
+     * Validates that the event program has the default category combo if no AOC
+     * or COs are given or if a default AOC is given.
+     *
+     * @param reporter validation error reporter
+     * @param event event to validate
+     * @param program event program from the preheat
+     * @return return true if event program is default with valid aoc and co
+     *         combinations
+     */
     private boolean validateDefaultProgramCategoryCombo( ValidationErrorReporter reporter, Event event,
         Program program )
     {
@@ -293,7 +308,59 @@ public class PreCheckDataRelationsValidationHook
         return !hasNoAttributeOptionComboSet( event );
     }
 
-    private CategoryOptionCombo resolveAttributeOptionCombo( ValidationErrorReporter reporter, Event event,
+    private boolean validateAttributeOptionComboIsInProgramCategoryCombo( ValidationErrorReporter reporter, Event event,
+        Program program )
+    {
+        if ( hasNoAttributeOptionComboSet( event ) )
+        {
+            return true;
+        }
+
+        CategoryOptionCombo aoc = reporter.getValidationContext().getBundle().getPreheat()
+            .getCategoryOptionCombo( event.getAttributeOptionCombo() );
+        if ( !program.getCategoryCombo().equals( aoc.getCategoryCombo() ) )
+        {
+            addError( reporter, TrackerErrorCode.E1054,
+                event.getAttributeOptionCombo(), program.getCategoryCombo() );
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Validates that given AOC and COs match. This ensures that a payload
+     * contains all COs of an AOC and that every CO is in the AOC.
+     *
+     * When called after
+     * {@link #validateAttributeOptionComboIsInProgramCategoryCombo} we also
+     * know that the COs are in the event programs category combo.
+     *
+     * @param reporter validation error reporter
+     * @param event event to validate
+     * @return return true if cos are in event program cc, false otherwise
+     */
+    private boolean validateAttributeCategoryOptionsAreInProgramCategoryCombo( ValidationErrorReporter reporter,
+        Event event )
+    {
+        if ( hasNoAttributeOptionComboSet( event ) || hasNoAttributeCategoryOptionsSet( event ) )
+        {
+            return true;
+        }
+
+        TrackerPreheat preheat = reporter.getValidationContext().getBundle().getPreheat();
+        CategoryOptionCombo aoc = preheat.getCategoryOptionCombo( event.getAttributeOptionCombo() );
+        if ( isNotAOCForCOs( preheat, event, aoc ) )
+        {
+            addError( reporter, TrackerErrorCode.E1053,
+                event.getAttributeCategoryOptions(), event.getAttributeOptionCombo() );
+            return false;
+        }
+
+        return true;
+    }
+
+    private void resolveAttributeOptionCombo( ValidationErrorReporter reporter, Event event,
         Program program )
     {
 
@@ -302,6 +369,8 @@ public class PreCheckDataRelationsValidationHook
         if ( hasNoAttributeOptionComboSet( event ) && program.getCategoryCombo().isDefault() )
         {
             aoc = preheat.getDefault( CategoryOptionCombo.class );
+            if ( !validateAttributeOptionComboMatchesCategoryOptions( reporter, event, program, aoc ) )
+                return;
         }
         else
         {
@@ -312,8 +381,21 @@ public class PreCheckDataRelationsValidationHook
             // stick to the given AOC in the payload instead of
             // preheat.getDefault( CategoryOptionCombo.class )
             aoc = preheat.getCategoryOptionCombo( event.getAttributeOptionCombo() );
+            if ( !validateAttributeOptionComboMatchesCategoryOptions( reporter, event, program, aoc ) )
+                return;
         }
-        return aoc;
+        // We should have an AOC by this point. Exit if we do not. The logic of
+        // AOC, COs, CC is complex and there is potential for
+        // missing one of the many cases. Better wrongly invalidate an event
+        // than persisting an invalid event as we
+        // previously did.
+        if ( !validateAttributeOptionComboFound( reporter, event, program, aoc ) )
+            return;
+    }
+
+    private boolean hasAttributeCategoryOptionsSet( Event event )
+    {
+        return !hasNoAttributeCategoryOptionsSet( event );
     }
 
     private Set<CategoryOption> getCategoryOptions( TrackerPreheat preheat, Event event )
@@ -340,30 +422,22 @@ public class PreCheckDataRelationsValidationHook
         return false;
     }
 
-    /**
-     * Validates that the event attributeOptionCombo is the corresponding
-     * category option combo for the event attributeCategoryOptions.
-     *
-     * The event attributeOptionCombo stems either from the pre-process phase in
-     * which it is definitely valid or from user provided input. In the latter
-     * case, there is potential for an event AOC that does not match the event
-     * COs.
-     *
-     */
-    private void validateAttributeOptionComboMatchesCategoryOptions( ValidationErrorReporter reporter, Event event,
+    private boolean validateAttributeOptionComboMatchesCategoryOptions( ValidationErrorReporter reporter, Event event,
         Program program,
         CategoryOptionCombo aoc )
     {
         if ( hasNoAttributeCategoryOptionsSet( event ) )
         {
-            return;
+            return true;
         }
 
         if ( isNotAOCForCOs( reporter.getValidationContext().getBundle().getPreheat(), event, aoc ) )
         {
             addAOCAndCOCombinationError( event, reporter, program );
+            return false;
         }
 
+        return true;
     }
 
     private void addAOCAndCOCombinationError( Event event, ValidationErrorReporter reporter, Program program )
