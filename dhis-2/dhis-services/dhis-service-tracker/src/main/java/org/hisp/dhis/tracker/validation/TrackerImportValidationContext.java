@@ -34,7 +34,6 @@ import java.util.Optional;
 
 import lombok.Data;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.fileresource.FileResource;
@@ -146,11 +145,6 @@ public class TrackerImportValidationContext
     public boolean programInstanceHasEvents( String programInstanceUid )
     {
         return bundle.getPreheat().getProgramInstanceWithOneOrMoreNonDeletedEvent().contains( programInstanceUid );
-    }
-
-    public boolean programStageHasEvents( String programStageUid, String enrollmentUid )
-    {
-        return bundle.getPreheat().getProgramStageWithEvents().contains( Pair.of( programStageUid, enrollmentUid ) );
     }
 
     public Optional<TrackedEntityComment> getNote( String uid )

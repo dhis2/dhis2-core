@@ -37,6 +37,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
@@ -98,7 +99,8 @@ public class RepeatedEventsValidationHook
 
         if ( strategy == TrackerImportStrategy.CREATE && programStage != null && programInstance != null
             && !programStage.getRepeatable()
-            && context.programStageHasEvents( programStage.getUid(), programInstance.getUid() ) )
+            && programStageHasEvents( context.getBundle().getPreheat(), programStage.getUid(),
+                programInstance.getUid() ) )
         {
             final ValidationErrorReporter reporter = new ValidationErrorReporter( context, event );
             addError( reporter, TrackerErrorCode.E1039, event.getProgramStage() );
@@ -111,4 +113,10 @@ public class RepeatedEventsValidationHook
     {
         return true;
     }
+
+    private boolean programStageHasEvents( TrackerPreheat preheat, String programStageUid, String enrollmentUid )
+    {
+        return preheat.getProgramStageWithEvents().contains( Pair.of( programStageUid, enrollmentUid ) );
+    }
+
 }
