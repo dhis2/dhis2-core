@@ -609,7 +609,7 @@
       },
       "selectEnrollmentDatesInFuture": false,
       "categoryCombo": {
-        "id": "XjDvmb4bfuf"
+        "id": "FLsH8ClLGNB"
       },
       "notificationTemplates": [],
       "displayIncidentDate": true,
@@ -1976,6 +1976,21 @@
       "translations": []
     },
     {
+      "id": "w5izht2FZ1h",
+      "code": "nondef1 cat2",
+      "name": "nondef1 cat2",
+      "startDate": "2019-01-01T00:00:00.000",
+      "endDate": "2019-12-01T00:00:00.000",
+      "userAccesses": [],
+      "attributeValues": [],
+      "userGroupAccesses": [],
+      "publicAccess": "rwrw----",
+      "lastUpdated": "2019-03-25T13:40:24.783",
+      "organisationUnits": [],
+      "created": "2019-03-25T13:40:24.722",
+      "translations": []
+    },
+    {
       "id": "zRXSQ4AQu7I",
       "code": "nondef2 cat1",
       "name": "nondef2 cat1",
@@ -2091,7 +2106,7 @@
       "publicAccess": "rw------"
     },
     {
-      "id": "XjDvmb4bfuf",
+      "id": "FLsH8ClLGNB",
       "code": "nondef2",
       "name": "nondef2",
       "dataDimensionType": "ATTRIBUTE",
@@ -2168,6 +2183,25 @@
       "created": "2019-03-25T13:40:24.775"
     },
     {
+      "id": "x2S2qeADpA9",
+      "code": "nondef1 cat2",
+      "name": "nondef1 cat2",
+      "categoryOptions": [
+        {
+          "id": "w5izht2FZ1h"
+        }
+      ],
+      "categoryCombo": {
+        "id": "pFpCRzMVAbO"
+      },
+      "translations": [],
+      "startDate": "2019-12-01T00:00:00.000",
+      "lastUpdated": "2019-03-25T13:40:24.779",
+      "ignoreApproval": false,
+      "attributeValues": [],
+      "created": "2019-03-25T13:40:24.775"
+    },
+    {
       "id": "wpVV2AvPM89",
       "code": "nondef2 cat1",
       "name": "nondef2 cat1",
@@ -2177,7 +2211,7 @@
         }
       ],
       "categoryCombo": {
-        "id": "XjDvmb4bfuf"
+        "id": "FLsH8ClLGNB"
       },
       "translations": [],
       "startDate": "2019-12-01T00:00:00.000",

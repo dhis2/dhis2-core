@@ -175,14 +175,6 @@ public class PreCheckDataRelationsValidationHook
     private void validateEventCategoryOptionCombo( ValidationErrorReporter reporter,
         Event event, Program program )
     {
-        // TODO this is what I think validation will have to do
-        // * no aoc, no cos => is this event in a program with default cc
-        // * aoc, no cos => if the aoc is of a default cc, is this event in a
-        // program with default cc
-        // * aoc => does it exist?
-        // * cos => do they exist?
-        // * resolve aoc (default or set) we should have an aoc by now
-        // * aoc, cos => do they match?
         boolean isValid = validateAttributeOptionComboExists( reporter, event );
         isValid = validateCategoryOptionsExist( reporter, event ) && isValid;
         isValid = validateDefaultProgramCategoryCombo( reporter, event, program ) && isValid;
@@ -195,14 +187,12 @@ public class PreCheckDataRelationsValidationHook
             return;
         }
 
-        isValid = validateAttributeOptionComboIsInProgramCategoryCombo( reporter, event, program );
-        isValid = validateAttributeCategoryOptionsAreInProgramCategoryCombo( reporter, event ) && isValid;
-        if ( !isValid )
+        if ( !validateAttributeOptionComboIsInProgramCategoryCombo( reporter, event, program ) )
         {
-            // no need to resolve the AOC id using COs and program CC in case
-            // event.AOC is empty
-            // as we would not find it anyway
-            // no need to cache the AOC id as the payload is invalid
+            return;
+        }
+        if ( !validateAttributeCategoryOptionsMatchAttributeOptionCombo( reporter, event ) )
+        {
             return;
         }
 
@@ -343,13 +333,16 @@ public class PreCheckDataRelationsValidationHook
      *
      * When called after
      * {@link #validateAttributeOptionComboIsInProgramCategoryCombo} we also
-     * know that the COs are in the event programs category combo.
+     * know that the COs are in the event programs category combo. We are using
+     * the AOC to ensure the CO matches the event program category combo, since
+     * there is no easy way of knowing that by only looking at the CO and the
+     * program category combo.
      *
      * @param reporter validation error reporter
      * @param event event to validate
-     * @return return true if cos are in event program cc, false otherwise
+     * @return return true if event cos match the event aoc, false otherwise
      */
-    private boolean validateAttributeCategoryOptionsAreInProgramCategoryCombo( ValidationErrorReporter reporter,
+    private boolean validateAttributeCategoryOptionsMatchAttributeOptionCombo( ValidationErrorReporter reporter,
         Event event )
     {
         if ( hasNoAttributeOptionComboSet( event ) || hasNoAttributeCategoryOptionsSet( event ) )
