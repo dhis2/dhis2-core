@@ -215,7 +215,7 @@ public class DefaultResourceBundleManager
     private Locale getLocaleFromName( String name )
     {
         Pattern pattern = Pattern.compile( "^" + GLOBAL_RESOURCE_BUNDLE_NAME
-            + "(?:_([a-z]{2,3})(?:_([A-Z]{2})(?:_(.+))?)?)?" + EXT_RESOURCE_BUNDLE + "$" );
+            + "(?:_([a-z]{2,3})(?:_([A-Za-z]{2,4})(?:_(.+))?)?)?" + EXT_RESOURCE_BUNDLE + "$" );
 
         Matcher matcher = pattern.matcher( name );
 
