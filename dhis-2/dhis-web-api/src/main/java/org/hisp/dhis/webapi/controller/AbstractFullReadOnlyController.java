@@ -260,6 +260,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
         @RequestParam Map<String, String> rpParameters, OrderParams orderParams,
         @CurrentUser User currentUser,
         @RequestParam( defaultValue = "," ) char separator,
+        @RequestParam( defaultValue = "false" ) boolean skipHeader,
         HttpServletResponse response )
         throws IOException
     {
@@ -296,9 +297,8 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
         for ( String field : fields )
         {
             // We just split on ',' here, we do not try and deep dive into
-            // objects using [], if the client
-            // provides id,name,group[id] then the group[id] part is simply
-            // ignored.
+            // objects using [], if the client provides id,name,group[id]
+            // then the group[id] part is simply ignored.
             for ( String splitField : field.split( "," ) )
             {
                 Property property = getSchema().getProperty( splitField );
@@ -314,8 +314,12 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
         }
 
         schema = schemaBuilder.build()
-            .withColumnSeparator( separator )
-            .withHeader();
+            .withColumnSeparator( separator );
+
+        if ( !skipHeader )
+        {
+            schema = schema.withHeader();
+        }
 
         CsvMapper csvMapper = new CsvMapper();
         csvMapper.configure( JsonGenerator.Feature.IGNORE_UNKNOWN, true );
@@ -334,7 +338,6 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
             .collect( toList() );
 
         csvMapper.writer( schema ).writeValue( response.getWriter(), csvObjects );
-
         response.flushBuffer();
     }
 
