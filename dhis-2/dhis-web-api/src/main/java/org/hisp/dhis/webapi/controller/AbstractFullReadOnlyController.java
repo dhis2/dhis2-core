@@ -296,6 +296,10 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
 
         for ( String field : fields )
         {
+            // We just split on ',' here, we do not try and deep dive into
+            // objects using [], if the client
+            // provides id,name,group[id] then the group[id] part is simply
+            // ignored.
             for ( String splitField : field.split( "," ) )
             {
                 Property property = getSchema().getProperty( splitField );
