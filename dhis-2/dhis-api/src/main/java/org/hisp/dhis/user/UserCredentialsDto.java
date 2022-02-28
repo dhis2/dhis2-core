@@ -47,8 +47,8 @@ import com.fasterxml.jackson.annotation.Nulls;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 @Data
-@JacksonXmlRootElement( localName = "userCredWrapperDto", namespace = DxfNamespaces.DXF_2_0 )
-public class UserCredWrapperDto
+@JacksonXmlRootElement( localName = "userCredentialsDto", namespace = DxfNamespaces.DXF_2_0 )
+public class UserCredentialsDto
 {
     @JsonProperty
     private String uid;

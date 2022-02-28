@@ -74,7 +74,7 @@ import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.PasswordValidationResult;
 import org.hisp.dhis.user.PasswordValidationService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredWrapperDto;
+import org.hisp.dhis.user.UserCredentialsDto;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
@@ -184,9 +184,9 @@ public class MeController
 
         MeDto meDto = new MeDto( user, userSettings, programs, dataSets );
 
-        UserCredWrapperDto userCredWrapperDto = user.getUserCredentials();
+        UserCredentialsDto userCredentialsDto = user.getUserCredentials();
 
-        meDto.setUserCredentials( userCredWrapperDto );
+        meDto.setUserCredentials( userCredentialsDto );
 
         var params = org.hisp.dhis.fieldfiltering.FieldFilterParams.of( meDto, fields );
         ObjectNode jsonNodes = fieldFilterService.toObjectNodes( params ).get( 0 );

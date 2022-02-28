@@ -233,7 +233,7 @@ public class User
 
     // Backward comp. field, will be removed when front-end has converted to new
     // User model
-    private transient UserCredWrapperDto userCredentialsRaw;
+    private transient UserCredentialsDto userCredentialsRaw;
 
     /**
      * Organisation units for data input and data capture operations. TODO move
@@ -1467,26 +1467,26 @@ public class User
     // This is a temporary fix to maintain backwards compatibility with the old
     // UserCredentials class. This method should not be used in new code!
     @JsonProperty
-    public UserCredWrapperDto getUserCredentials()
+    public UserCredentialsDto getUserCredentials()
     {
-        UserCredWrapperDto userCredWrapperDto = new UserCredWrapperDto();
-        copyProperties( this, userCredWrapperDto, "userCredentials", "password" );
+        UserCredentialsDto userCredentialsDto = new UserCredentialsDto();
+        copyProperties( this, userCredentialsDto, "userCredentials", "password" );
         Set<UserAuthorityGroup> userRoles = this.getUserAuthorityGroups();
         if ( userRoles != null && !userRoles.isEmpty() )
         {
-            userCredWrapperDto.setUserRoles( userRoles );
+            userCredentialsDto.setUserRoles( userRoles );
         }
-        return userCredWrapperDto;
+        return userCredentialsDto;
     }
 
-    public UserCredWrapperDto getUserCredentialsRaw()
+    public UserCredentialsDto getUserCredentialsRaw()
     {
         return this.userCredentialsRaw;
     }
 
     // This is a temporary fix to maintain backwards compatibility with the old
     // UserCredentials class. This method should not be used in new code!
-    protected void setUserCredentials( UserCredWrapperDto user )
+    protected void setUserCredentials( UserCredentialsDto user )
     {
         this.userCredentialsRaw = user;
     }

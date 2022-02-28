@@ -67,8 +67,6 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
 {
-    private final UserGroupService userGroupService;
-
     private final UserService userService;
 
     private final FileResourceService fileResourceService;
@@ -76,6 +74,8 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
     private final CurrentUserService currentUserService;
 
     private final AclService aclService;
+
+    private final UserGroupService userGroupService;
 
     @Override
     public void validate( User user, ObjectBundle bundle,

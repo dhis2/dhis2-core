@@ -41,7 +41,7 @@ import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
-import org.hisp.dhis.user.UserCredWrapperDto;
+import org.hisp.dhis.user.UserCredentialsDto;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.sharing.Sharing;
 
@@ -177,10 +177,10 @@ public class MeDto
     private List<String> dataSets;
 
     @JsonProperty( )
-    private UserCredWrapperDto userCredentials;
+    private UserCredentialsDto userCredentials;
 
-    protected void setUserCredentials( UserCredWrapperDto userCredWrapperDto )
+    protected void setUserCredentials( UserCredentialsDto userCredentialsDto )
     {
-        this.userCredentials = userCredWrapperDto;
+        this.userCredentials = userCredentialsDto;
     }
 }

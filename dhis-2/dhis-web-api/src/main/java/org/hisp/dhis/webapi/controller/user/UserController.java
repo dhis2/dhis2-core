@@ -85,7 +85,7 @@ import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
-import org.hisp.dhis.user.UserCredWrapperDto;
+import org.hisp.dhis.user.UserCredentialsDto;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserInvitationStatus;
 import org.hisp.dhis.user.UserQueryParams;
@@ -311,7 +311,7 @@ public class UserController
     private WebMessage postObject( User user )
         throws WebMessageException
     {
-        populateUserCredWrapperFields( user );
+        populateUserCredentialsDtoFields( user );
 
         User currentUser = currentUserService.getCurrentUser();
 
@@ -320,9 +320,9 @@ public class UserController
         return postObject( getObjectReport( createUser( user, currentUser ) ) );
     }
 
-    private void populateUserCredWrapperFields( User user )
+    private void populateUserCredentialsDtoFields( User user )
     {
-        UserCredWrapperDto userCredentialsRaw = user.getUserCredentialsRaw();
+        UserCredentialsDto userCredentialsRaw = user.getUserCredentialsRaw();
         if ( userCredentialsRaw != null )
         {
             copyProperties( userCredentialsRaw, user, KEY_PASSWORD );
@@ -605,7 +605,7 @@ public class UserController
     {
         User parsed = renderService.fromJson( request.getInputStream(), getEntityClass() );
 
-        populateUserCredWrapperFields( parsed );
+        populateUserCredentialsDtoFields( parsed );
 
         return importReport( updateUser( pvUid, parsed ) )
             .withPlainResponseBefore( DhisApiVersion.V38 );
