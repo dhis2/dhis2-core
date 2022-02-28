@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,32 +25,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export.relationships;
+package org.hisp.dhis.tracker.domain.mapper;
 
-import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.webapi.controller.tracker.export.AttributeMapper;
-import org.hisp.dhis.webapi.controller.tracker.export.DomainMapper;
-import org.hisp.dhis.webapi.controller.tracker.export.InstantMapper;
-import org.hisp.dhis.webapi.controller.tracker.export.ProgramOwnerMapper;
+import org.hisp.dhis.tracker.domain.DataValue;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper( uses = {
-    RelationshipMapper.class,
-    AttributeMapper.class,
-    EnrollmentMapper.class,
-    ProgramOwnerMapper.class,
-    InstantMapper.class } )
-interface TrackedEntityMapper extends DomainMapper<TrackedEntityInstance, TrackedEntity>
+@Mapper( uses = InstantMapper.class )
+public interface DataValueMapper extends DomainMapper<org.hisp.dhis.dxf2.events.event.DataValue, DataValue>
 {
-    @Mapping( target = "relationships", ignore = true )
-    @Mapping( target = "trackedEntity", source = "trackedEntityInstance" )
     @Mapping( target = "createdAt", source = "created" )
-    @Mapping( target = "createdAtClient", source = "createdAtClient" )
     @Mapping( target = "updatedAt", source = "lastUpdated" )
-    @Mapping( target = "updatedAtClient", source = "lastUpdatedAtClient" )
-    @Mapping( target = "createdBy", source = "createdByUserInfo.username" )
-    @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo.username" )
-    TrackedEntity from( TrackedEntityInstance trackedEntityInstance );
+    DataValue from( org.hisp.dhis.dxf2.events.event.DataValue dataValue );
 }
