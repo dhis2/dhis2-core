@@ -120,7 +120,7 @@ public class EnrollmentAnalyticsManagerTest
 
         String expected = "ax.\"monthly\",ax.\"ou\"  from " + getTable( programA.getUid() )
             +
-            " as ax where enrollmentdate >= '2017-01-01' and enrollmentdate <= '2017-12-31' and (uidlevel0 = 'ouabcdefghA' ) limit 10001";
+            " as ax where enrollmentdate >= '2017-01-01' and enrollmentdate < '2018-01-01' and (uidlevel0 = 'ouabcdefghA' ) limit 10001";
 
         assertSql( sql.getValue(), expected );
 
@@ -243,7 +243,7 @@ public class EnrollmentAnalyticsManagerTest
             + programIndicatorA.getUid()
             + "\"  " + "from analytics_enrollment_" + programA.getUid()
             +
-            " as ax where enrollmentdate >= '2015-01-01' and enrollmentdate <= '2017-04-08' and (uidlevel0 = 'ouabcdefghA' ) limit 101";
+            " as ax where enrollmentdate >= '2015-01-01' and enrollmentdate < '2017-04-09' and (uidlevel0 = 'ouabcdefghA' ) limit 101";
 
         assertSql( sql.getValue(), expected );
     }
@@ -285,7 +285,7 @@ public class EnrollmentAnalyticsManagerTest
             "= " + relationshipTypeA.getId() + " AND pi.uid = ax.pi ))" + " as \"" + programIndicatorA.getUid() + "\"  "
             + "from analytics_enrollment_" + programA.getUid()
             +
-            " as ax where enrollmentdate >= '2015-01-01' and enrollmentdate <= '2017-04-08' and (uidlevel0 = 'ouabcdefghA' ) limit 101";
+            " as ax where enrollmentdate >= '2015-01-01' and enrollmentdate < '2017-04-09' and (uidlevel0 = 'ouabcdefghA' ) limit 101";
 
         assertSql( sql.getValue(), expected );
     }
@@ -357,7 +357,7 @@ public class EnrollmentAnalyticsManagerTest
             + programIndicatorA.getUid()
             + "\"  " + "from analytics_enrollment_" + programA.getUid()
             +
-            " as ax where enrollmentdate >= '2015-01-01' and enrollmentdate <= '2017-04-08' and (uidlevel0 = 'ouabcdefghA' ) limit 101";
+            " as ax where enrollmentdate >= '2015-01-01' and enrollmentdate < '2017-04-09' and (uidlevel0 = 'ouabcdefghA' ) limit 101";
 
         assertSql( sql.getValue(), expected );
     }
