@@ -243,6 +243,7 @@ public enum ErrorCode
     E6002( "Class name {0} is not supported." ),
     E6003( "Could not patch object with id {0}." ),
     E6004( "Attribute `{0}` has invalid GeoJson value." ),
+    E6005( "Attribute `{0}` has unsupported GeoJson value." ),
 
     /* File resource */
     E6100( "Filename not present" ),

@@ -109,20 +109,6 @@ public class JdbcEventAnalyticsTableManager
             databaseInfo, jdbcTemplate );
     }
 
-    private static final String STORED_BY_COL_NAME = "storedby";
-
-    private static final String CREATED_BY_COL_USER_NAME = "createdbyusername";
-
-    private static final String CREATED_BY_COL_NAME = "createdbyname";
-
-    private static final String CREATED_BY_COL_LAST_NAME = "createdbylastname";
-
-    private static final String LAST_UPDATED_BY_COL_USER_NAME = "lastupdatedbyusername";
-
-    private static final String LAST_UPDATED_BY_COL_NAME = "lastupdatedbyname";
-
-    private static final String LAST_UPDATED_BY_COL_LAST_NAME = "lastupdatedbylastname";
-
     private static final List<AnalyticsTableColumn> FIXED_COLS = ImmutableList.of(
         new AnalyticsTableColumn( quote( "psi" ), CHARACTER_11, NOT_NULL, "psi.uid" ),
         new AnalyticsTableColumn( quote( "pi" ), CHARACTER_11, NOT_NULL, "pi.uid" ),
@@ -142,12 +128,16 @@ public class JdbcEventAnalyticsTableManager
             "psi.createdbyuserinfo ->> 'firstName' as " + CREATED_BY_COL_NAME ),
         new AnalyticsTableColumn( quote( CREATED_BY_COL_LAST_NAME ), VARCHAR_255,
             "psi.createdbyuserinfo ->> 'surname' as " + CREATED_BY_COL_LAST_NAME ),
+        new AnalyticsTableColumn( quote( CREATED_BY_COL_DISPLAY_LAST_NAME ), VARCHAR_255,
+            getDisplayName( "createdbyuserinfo", "psi", CREATED_BY_COL_DISPLAY_LAST_NAME ) ),
         new AnalyticsTableColumn( quote( LAST_UPDATED_BY_COL_USER_NAME ), VARCHAR_255,
             "psi.lastupdatedbyuserinfo ->> 'username' as " + LAST_UPDATED_BY_COL_USER_NAME ),
         new AnalyticsTableColumn( quote( LAST_UPDATED_BY_COL_NAME ), VARCHAR_255,
             "psi.lastupdatedbyuserinfo ->> 'firstName' as " + LAST_UPDATED_BY_COL_NAME ),
         new AnalyticsTableColumn( quote( LAST_UPDATED_BY_COL_LAST_NAME ), VARCHAR_255,
             "psi.lastupdatedbyuserinfo ->> 'surname' as " + LAST_UPDATED_BY_COL_LAST_NAME ),
+        new AnalyticsTableColumn( quote( LAST_UPDATED_BY_COL_DISPLAY_LAST_NAME ), VARCHAR_255,
+            getDisplayName( "lastupdatedbyuserinfo", "psi", LAST_UPDATED_BY_COL_DISPLAY_LAST_NAME ) ),
         new AnalyticsTableColumn( quote( "pistatus" ), VARCHAR_50, "pi.status" ),
         new AnalyticsTableColumn( quote( "psistatus" ), VARCHAR_50, "psi.status" ),
         new AnalyticsTableColumn( quote( "psigeometry" ), GEOMETRY, "psi.geometry" )

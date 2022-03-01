@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
+
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
@@ -52,6 +54,8 @@ import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
+import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Component;
 
@@ -70,6 +74,8 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
     private final CurrentUserService currentUserService;
 
     private final AclService aclService;
+
+    private final UserGroupService userGroupService;
 
     @Override
     public void validate( User user, ObjectBundle bundle,
@@ -133,7 +139,7 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
         if ( user == null )
             return;
 
-        bundle.putExtras( user, "uc", user );
+        bundle.putExtras( user, "preUpdateUser", user );
 
         if ( persisted.getAvatar() != null
             && (user.getAvatar() == null || !persisted.getAvatar().getUid().equals( user.getAvatar().getUid() )) )
@@ -153,7 +159,7 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
     @Override
     public void postUpdate( User persistedUser, ObjectBundle bundle )
     {
-        final User preUpdateUser = (User) bundle.getExtras( persistedUser, "uc" );
+        final User preUpdateUser = (User) bundle.getExtras( persistedUser, "preUpdateUser" );
 
         if ( !StringUtils.isEmpty( preUpdateUser.getPassword() ) )
         {
@@ -161,7 +167,7 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
             sessionFactory.getCurrentSession().update( persistedUser );
         }
 
-        bundle.removeExtras( persistedUser, "uc" );
+        bundle.removeExtras( persistedUser, "preUpdateUser" );
     }
 
     @Override
@@ -218,6 +224,20 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
             handleNoAccessRoles( user, bundle, userAuthorityGroups );
 
             sessionFactory.getCurrentSession().update( user );
+        }
+    }
+
+    @Override
+    public void preDelete( User user, ObjectBundle bundle )
+    {
+        Set<UserGroup> groups = user.getGroups();
+        userGroupService.removeUserFromGroups( user, getUids( groups ) );
+
+        Set<UserAuthorityGroup> userRoles = user.getUserAuthorityGroups();
+        for ( UserAuthorityGroup userRole : userRoles )
+        {
+            userRole.removeUser( user );
+            sessionFactory.getCurrentSession().update( userRole );
         }
     }
 

@@ -36,8 +36,6 @@ import static org.hisp.dhis.DhisConvenienceTest.createProgram;
 import static org.hisp.dhis.DhisConvenienceTest.createProgramIndicator;
 import static org.hisp.dhis.DhisConvenienceTest.getDate;
 import static org.hisp.dhis.analytics.QueryKey.NV;
-import static org.hisp.dhis.analytics.event.data.JdbcEnrollmentAnalyticsManager.CREATED_BY_DISPLAY_NAME_COLUMN;
-import static org.hisp.dhis.analytics.event.data.JdbcEnrollmentAnalyticsManager.LAST_UPDATED_BY_DISPLAY_NAME_COLUMN;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.common.DimensionalObject.OPTION_SEP;
@@ -115,7 +113,7 @@ class EnrollmentAnalyticsManagerTest extends
     private ArgumentCaptor<String> sql;
 
     private String DEFAULT_COLUMNS = "pi,tei,enrollmentdate,incidentdate,storedby,"
-        + CREATED_BY_DISPLAY_NAME_COLUMN + "," + LAST_UPDATED_BY_DISPLAY_NAME_COLUMN
+        + "createdbydisplayname" + "," + "lastupdatedbydisplayname"
         + ",lastupdated,ST_AsGeoJSON(pigeometry),longitude,latitude,ouname,oucode,enrollmentstatus";
 
     private final String TABLE_NAME = "analytics_enrollment";

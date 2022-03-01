@@ -25,16 +25,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.user;
+package org.hisp.dhis.tracker.domain.mapper;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.chrono.ChronoZonedDateTime;
+import java.util.Date;
+import java.util.Optional;
 
-public class UserCredWrapper extends User
+import org.hisp.dhis.util.DateUtils;
+import org.mapstruct.Mapper;
+
+@Mapper
+abstract class InstantMapper
 {
-    @JsonIgnore
-    @Override
-    public UserCredWrapper getUserCredentials()
+
+    Instant fromString( String dateAsString )
     {
-        return null;
+        return DateUtils.instantFromDateAsString( dateAsString );
     }
+
+    Instant fromDate( Date date )
+    {
+        if ( date instanceof java.sql.Date )
+        {
+            return fromSqlDate( (java.sql.Date) date );
+        }
+        return DateUtils.instantFromDate( date );
+    }
+
+    Instant fromSqlDate( java.sql.Date date )
+    {
+        return Optional.ofNullable( date )
+            .map( java.sql.Date::toLocalDate )
+            .map( localDate -> localDate.atStartOfDay( ZoneId.systemDefault() ) )
+            .map( ChronoZonedDateTime::toInstant )
+            .orElse( null );
+    }
+
 }
