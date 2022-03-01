@@ -283,7 +283,11 @@ public class DefaultExpressionService
         this.i18nManager = i18nManager;
         this.constantMapCache = cacheProvider.createAllConstantsCache();
 
-        ((FunctionSubExpression) INDICATOR_EXPRESSION_ITEMS.get( SUB_EXPRESSION )).init( cacheProvider );
+        FunctionSubExpression fn = (FunctionSubExpression) INDICATOR_EXPRESSION_ITEMS.get( SUB_EXPRESSION );
+        if ( fn != null )
+        {
+            fn.init( cacheProvider );
+        }
     }
 
     // -------------------------------------------------------------------------
