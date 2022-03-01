@@ -33,6 +33,7 @@ import org.hisp.dhis.webapi.controller.tracker.export.AttributeMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.DomainMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.InstantMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.ProgramOwnerMapper;
+import org.hisp.dhis.webapi.controller.tracker.export.UserMapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -41,7 +42,8 @@ import org.mapstruct.Mapping;
     AttributeMapper.class,
     EnrollmentMapper.class,
     ProgramOwnerMapper.class,
-    InstantMapper.class } )
+    InstantMapper.class,
+    UserMapper.class } )
 interface TrackedEntityMapper extends DomainMapper<TrackedEntityInstance, TrackedEntity>
 {
     @Mapping( target = "relationships", ignore = true )
@@ -50,7 +52,7 @@ interface TrackedEntityMapper extends DomainMapper<TrackedEntityInstance, Tracke
     @Mapping( target = "createdAtClient", source = "createdAtClient" )
     @Mapping( target = "updatedAt", source = "lastUpdated" )
     @Mapping( target = "updatedAtClient", source = "lastUpdatedAtClient" )
-    @Mapping( target = "createdBy", source = "createdByUserInfo.username" )
-    @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo.username" )
+    @Mapping( target = "createdBy", source = "createdByUserInfo" )
+    @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo" )
     TrackedEntity from( TrackedEntityInstance trackedEntityInstance );
 }

@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.tracker.domain;
 
-import java.time.Instant;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -37,36 +35,23 @@ import lombok.NoArgsConstructor;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Enrico Colasante
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class DataValue
+public class UserInfo
 {
     @JsonProperty
-    private Instant createdAt;
+    private String uid;
 
     @JsonProperty
-    private Instant updatedAt;
+    private String username;
 
     @JsonProperty
-    private String storedBy;
+    private String firstName;
 
     @JsonProperty
-    private boolean providedElsewhere;
-
-    @JsonProperty
-    @Builder.Default
-    private String dataElement = "";
-
-    @JsonProperty
-    private String value;
-
-    @JsonProperty
-    private UserInfo createdBy;
-
-    @JsonProperty
-    private UserInfo lastUpdatedBy;
+    private String surname;
 }

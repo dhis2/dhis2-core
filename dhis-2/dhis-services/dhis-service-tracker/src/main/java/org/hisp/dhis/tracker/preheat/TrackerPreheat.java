@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.StringJoiner;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -74,7 +75,7 @@ import org.hisp.dhis.user.User;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.scalified.tree.TreeNode;
 import com.scalified.tree.multinode.ArrayMultiTreeNode;
 
@@ -210,7 +211,7 @@ public class TrackerPreheat
      */
     @Getter
     @Setter
-    private Map<String, User> users = Maps.newHashMap();
+    private Set<User> users = Sets.newHashSet();
 
     /**
      * A list of all unique attribute values that are both present in the
@@ -628,6 +629,22 @@ public class TrackerPreheat
                 orgUnit );
             programOwner.get( teiUid ).put( programUid, tepo );
         }
+    }
+
+    public Optional<User> getUserByUsername( String username )
+    {
+        return this.getUsers()
+            .stream()
+            .filter( u -> Objects.equals( username, u.getUsername() ) )
+            .findAny();
+    }
+
+    public Optional<User> getUserByUid( String uid )
+    {
+        return this.getUsers()
+            .stream()
+            .filter( u -> Objects.equals( uid, u.getUid() ) )
+            .findAny();
     }
 
     @Override

@@ -55,8 +55,8 @@ public class Note
     private Instant storedAt;
 
     @JsonProperty
-    private String storedBy;
+    private String value;
 
     @JsonProperty
-    private String value;
+    private UserInfo createdBy;
 }

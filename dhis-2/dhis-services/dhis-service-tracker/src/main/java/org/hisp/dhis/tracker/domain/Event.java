@@ -124,13 +124,13 @@ public class Event
     private Geometry geometry;
 
     @JsonProperty
-    private String assignedUser;
+    private UserInfo assignedUser;
 
     @JsonProperty
-    private String createdBy;
+    private UserInfo createdBy;
 
     @JsonProperty
-    private String updatedBy;
+    private UserInfo updatedBy;
 
     @JsonProperty
     @Builder.Default

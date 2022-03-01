@@ -31,11 +31,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.tracker.domain.Note;
+import org.hisp.dhis.tracker.domain.UserInfo;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 
@@ -52,7 +51,7 @@ public class NotesConverterService implements TrackerConverterService<Note, Trac
         note.setNote( trackedEntityComment.getUid() );
         note.setValue( trackedEntityComment.getCommentText() );
         note.setStoredAt( DateUtils.instantFromDate( trackedEntityComment.getCreated() ) );
-        note.setStoredBy( trackedEntityComment.getCreator() );
+        note.setCreatedBy( UserInfo.builder().username( trackedEntityComment.getCreator() ).build() );
         return note;
     }
 
@@ -72,8 +71,7 @@ public class NotesConverterService implements TrackerConverterService<Note, Trac
 
         comment.setLastUpdatedBy( preheat.getUser() );
         comment.setLastUpdated( new Date() );
-        comment.setCreator( getValidUsername( note.getStoredBy(), preheat.getUser() ) );
-
+        comment.setCreator( preheat.getUser().getUsername() );
         return comment;
     }
 
@@ -81,21 +79,5 @@ public class NotesConverterService implements TrackerConverterService<Note, Trac
     public List<TrackedEntityComment> from( TrackerPreheat preheat, List<Note> notes )
     {
         return notes.stream().map( n -> from( preheat, n ) ).collect( Collectors.toList() );
-    }
-
-    public static String getValidUsername( String userName, User currentUser )
-    {
-        String validUsername = userName;
-
-        if ( StringUtils.isEmpty( validUsername ) )
-        {
-            validUsername = User.getSafeUsername( currentUser.getUsername() );
-        }
-        else if ( validUsername.length() > User.USERNAME_MAX_LENGTH )
-        {
-            validUsername = User.getSafeUsername( currentUser.getUsername() );
-        }
-
-        return validUsername;
     }
 }

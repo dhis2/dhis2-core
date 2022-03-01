@@ -37,7 +37,8 @@ import org.mapstruct.Mapping;
     AttributeMapper.class,
     EnrollmentMapper.class,
     ProgramOwnerMapper.class,
-    InstantMapper.class } )
+    InstantMapper.class,
+    UserMapper.class } )
 public interface TrackedEntityMapper extends DomainMapper<TrackedEntityInstance, TrackedEntity>
 {
     @Mapping( target = "trackedEntity", source = "trackedEntityInstance" )
@@ -45,7 +46,7 @@ public interface TrackedEntityMapper extends DomainMapper<TrackedEntityInstance,
     @Mapping( target = "createdAtClient", source = "createdAtClient" )
     @Mapping( target = "updatedAt", source = "lastUpdated" )
     @Mapping( target = "updatedAtClient", source = "lastUpdatedAtClient" )
-    @Mapping( target = "createdBy", source = "createdByUserInfo.username" )
-    @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo.username" )
+    @Mapping( target = "createdBy", source = "createdByUserInfo" )
+    @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo" )
     TrackedEntity from( TrackedEntityInstance trackedEntityInstance );
 }

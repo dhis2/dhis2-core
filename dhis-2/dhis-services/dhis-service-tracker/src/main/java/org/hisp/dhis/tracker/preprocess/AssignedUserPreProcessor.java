@@ -25,48 +25,48 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.domain;
+package org.hisp.dhis.tracker.preprocess;
 
-import java.time.Instant;
+import java.util.Objects;
+import java.util.Optional;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.UserInfo;
+import org.hisp.dhis.user.User;
+import org.springframework.stereotype.Component;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * This preprocessor is responsible to fill the assigned user with missing
+ * information.
+ *
+ * @author Enrico Colasante
  */
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class DataValue
+@Component
+public class AssignedUserPreProcessor
+    implements BundlePreProcessor
 {
-    @JsonProperty
-    private Instant createdAt;
+    @Override
+    public void process( TrackerBundle bundle )
+    {
+        for ( Event event : bundle.getEvents() )
+        {
+            UserInfo assignedUser = event.getAssignedUser();
 
-    @JsonProperty
-    private Instant updatedAt;
+            if ( Objects.nonNull( assignedUser ) )
+            {
 
-    @JsonProperty
-    private String storedBy;
-
-    @JsonProperty
-    private boolean providedElsewhere;
-
-    @JsonProperty
-    @Builder.Default
-    private String dataElement = "";
-
-    @JsonProperty
-    private String value;
-
-    @JsonProperty
-    private UserInfo createdBy;
-
-    @JsonProperty
-    private UserInfo lastUpdatedBy;
+                if ( Objects.isNull( assignedUser.getUid() ) && Objects.nonNull( assignedUser.getUsername() ) )
+                {
+                    Optional<User> user = bundle.getPreheat().getUserByUsername( assignedUser.getUsername() );
+                    user.ifPresent( u -> assignedUser.setUid( u.getUid() ) );
+                }
+                else if ( Objects.nonNull( assignedUser.getUid() ) && Objects.isNull( assignedUser.getUsername() ) )
+                {
+                    Optional<User> user = bundle.getPreheat().getUserByUid( assignedUser.getUid() );
+                    user.ifPresent( u -> assignedUser.setUsername( u.getUsername() ) );
+                }
+            }
+        }
+    }
 }

@@ -25,48 +25,14 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.domain;
+package org.hisp.dhis.webapi.controller.tracker.export;
 
-import java.time.Instant;
+import org.hisp.dhis.program.UserInfoSnapshot;
+import org.hisp.dhis.tracker.domain.UserInfo;
+import org.mapstruct.Mapper;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class DataValue
+@Mapper( uses = InstantMapper.class )
+public interface UserMapper extends DomainMapper<UserInfoSnapshot, UserInfo>
 {
-    @JsonProperty
-    private Instant createdAt;
-
-    @JsonProperty
-    private Instant updatedAt;
-
-    @JsonProperty
-    private String storedBy;
-
-    @JsonProperty
-    private boolean providedElsewhere;
-
-    @JsonProperty
-    @Builder.Default
-    private String dataElement = "";
-
-    @JsonProperty
-    private String value;
-
-    @JsonProperty
-    private UserInfo createdBy;
-
-    @JsonProperty
-    private UserInfo lastUpdatedBy;
+    UserInfo from( UserInfoSnapshot userInfo );
 }

@@ -44,8 +44,10 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.UserInfo;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -65,19 +67,23 @@ class UserSupplierTest
     @Mock
     private IdentifiableObjectManager manager;
 
+    @Mock
+    private UserService userService;
+
     private final BeanRandomizer rnd = BeanRandomizer.create( Event.class, "assignedUser" );
 
     @Test
     void verifySupplier()
     {
         final List<Event> events = rnd.objects( Event.class, 5 ).collect( Collectors.toList() );
-        events.forEach( e -> e.setAssignedUser( CodeGenerator.generateUid() ) );
+        events.forEach( e -> e.setAssignedUser( UserInfo.builder().uid( CodeGenerator.generateUid() ).build() ) );
         final List<User> users = rnd.objects( User.class, 5 ).collect( Collectors.toList() );
         final List<String> userIds = events.stream().map( Event::getAssignedUser )
+            .map( UserInfo::getUid )
             .collect( Collectors.toList() );
 
         IntStream.range( 0, 5 )
-            .forEach( i -> users.get( i ).setUid( events.get( i ).getAssignedUser() ) );
+            .forEach( i -> users.get( i ).setUid( events.get( i ).getAssignedUser().getUid() ) );
 
         when( manager.getByUid( eq( User.class ),
             argThat( t -> t.containsAll( userIds ) ) ) ).thenReturn( users );
@@ -91,9 +97,9 @@ class UserSupplierTest
 
         for ( String userUid : userIds )
         {
-            assertThat( preheat.get( User.class, userUid ), is( notNullValue() ) );
+            assertThat( preheat.getUserByUid( userUid ).orElseGet( null ), is( notNullValue() ) );
         }
         // Make sure also User object are cached in the pre-heat
-        assertThat( preheat.getAll( User.class ), hasSize( 5 ) );
+        assertThat( preheat.getUsers(), hasSize( 5 ) );
     }
 }

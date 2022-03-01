@@ -28,18 +28,22 @@
 package org.hisp.dhis.webapi.controller.tracker.export.relationships;
 
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.UserInfo;
 import org.hisp.dhis.webapi.controller.tracker.export.DataValueMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.DomainMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.InstantMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.NoteMapper;
+import org.hisp.dhis.webapi.controller.tracker.export.UserMapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 
 @Mapper( uses = {
     RelationshipMapper.class,
     NoteMapper.class,
     DataValueMapper.class,
-    InstantMapper.class } )
+    InstantMapper.class,
+    UserMapper.class } )
 interface EventMapper extends DomainMapper<org.hisp.dhis.dxf2.events.event.Event, Event>
 {
     @Mapping( target = "relationships", ignore = true )
@@ -50,7 +54,19 @@ interface EventMapper extends DomainMapper<org.hisp.dhis.dxf2.events.event.Event
     @Mapping( target = "updatedAt", source = "lastUpdated" )
     @Mapping( target = "updatedAtClient", source = "lastUpdatedAtClient" )
     @Mapping( target = "completedAt", source = "completedDate" )
-    @Mapping( target = "createdBy", source = "createdByUserInfo.username" )
-    @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo.username" )
+    @Mapping( target = "createdBy", source = "createdByUserInfo" )
+    @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo" )
+    @Mapping( target = "assignedUser", source = ".", qualifiedByName = "toUserInfo" )
     Event from( org.hisp.dhis.dxf2.events.event.Event event );
+
+    @Named( "toUserInfo" )
+    default UserInfo buildUserInfo( org.hisp.dhis.dxf2.events.event.Event event )
+    {
+        return UserInfo.builder()
+            .uid( event.getAssignedUser() )
+            .username( event.getAssignedUserUsername() )
+            .firstName( event.getAssignedUserFirstName() )
+            .surname( event.getAssignedUserSurname() )
+            .build();
+    }
 }

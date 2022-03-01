@@ -34,12 +34,13 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
+import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.UserInfo;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
@@ -50,14 +51,18 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.google.common.collect.Sets;
+
 /**
  * @author Enrico Colasante
  */
 @ExtendWith( MockitoExtension.class )
-class AssignedUserValidationHookTest
+class AssignedUserValidationHookTest extends DhisConvenienceTest
 {
 
-    private static final String USER_ID = "ABCDEF12345";
+    private static final String USER_NAME = "Username";
+
+    private static final String NOT_VALID_USERNAME = "not_valid_username";
 
     private static final String PROGRAM_STAGE = "ProgramStage";
 
@@ -66,18 +71,22 @@ class AssignedUserValidationHookTest
     @Mock
     private TrackerImportValidationContext validationContext;
 
+    private TrackerBundle bundle;
+
+    private static final UserInfo VALID_USER = UserInfo.builder().username( USER_NAME ).build();
+
+    private static final UserInfo INVALID_USER = UserInfo.builder().username( NOT_VALID_USERNAME ).build();
+
     @BeforeEach
     public void setUp()
     {
         hookToTest = new AssignedUserValidationHook();
 
-        TrackerBundle bundle = TrackerBundle.builder().build();
+        bundle = TrackerBundle.builder().build();
         TrackerPreheat preheat = new TrackerPreheat();
-
-        User user = new User();
-        user.setUid( USER_ID );
-        preheat.put( TrackerIdentifier.UID, user );
-
+        User user = createUser( 'A' );
+        user.setUsername( USER_NAME );
+        preheat.setUsers( Sets.newHashSet( user ) );
         bundle.setPreheat( preheat );
 
         when( validationContext.getBundle() ).thenReturn( bundle );
@@ -92,7 +101,7 @@ class AssignedUserValidationHookTest
     {
         // given
         Event event = new Event();
-        event.setAssignedUser( USER_ID );
+        event.setAssignedUser( VALID_USER );
         event.setProgramStage( PROGRAM_STAGE );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
@@ -105,12 +114,12 @@ class AssignedUserValidationHookTest
     }
 
     @Test
-    void testEventWithNotValidUserUid()
+    void testEventWithNotValidUsername()
     {
         // given
         Event event = new Event();
         event.setEvent( CodeGenerator.generateUid() );
-        event.setAssignedUser( "not_valid_uid" );
+        event.setAssignedUser( INVALID_USER );
         event.setProgramStage( PROGRAM_STAGE );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
@@ -128,16 +137,13 @@ class AssignedUserValidationHookTest
         // given
         Event event = new Event();
         event.setEvent( CodeGenerator.generateUid() );
-        event.setAssignedUser( USER_ID );
+        event.setAssignedUser( VALID_USER );
         event.setProgramStage( PROGRAM_STAGE );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
 
         // when
-        TrackerBundle bundle = TrackerBundle.builder().build();
-        bundle.setPreheat( new TrackerPreheat() );
-        when( validationContext.getBundle() ).thenReturn( bundle );
-
+        bundle.getPreheat().setUsers( Sets.newHashSet() );
         this.hookToTest.validateEvent( reporter, event );
 
         // then
@@ -150,7 +156,7 @@ class AssignedUserValidationHookTest
         // given
         Event event = new Event();
         event.setEvent( CodeGenerator.generateUid() );
-        event.setAssignedUser( USER_ID );
+        event.setAssignedUser( VALID_USER );
         event.setProgramStage( PROGRAM_STAGE );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
@@ -176,7 +182,7 @@ class AssignedUserValidationHookTest
         // given
         Event event = new Event();
         event.setEvent( CodeGenerator.generateUid() );
-        event.setAssignedUser( USER_ID );
+        event.setAssignedUser( VALID_USER );
         event.setProgramStage( PROGRAM_STAGE );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );

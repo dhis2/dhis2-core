@@ -32,6 +32,7 @@ import org.hisp.dhis.webapi.controller.tracker.export.AttributeMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.DomainMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.InstantMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.NoteMapper;
+import org.hisp.dhis.webapi.controller.tracker.export.UserMapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -40,7 +41,8 @@ import org.mapstruct.Mapping;
     AttributeMapper.class,
     NoteMapper.class,
     EventMapper.class,
-    InstantMapper.class } )
+    InstantMapper.class,
+    UserMapper.class } )
 interface EnrollmentMapper extends DomainMapper<org.hisp.dhis.dxf2.events.enrollment.Enrollment, Enrollment>
 {
     @Mapping( target = "relationships", ignore = true )
@@ -54,7 +56,7 @@ interface EnrollmentMapper extends DomainMapper<org.hisp.dhis.dxf2.events.enroll
     @Mapping( target = "occurredAt", source = "incidentDate" )
     @Mapping( target = "followUp", source = "followup" )
     @Mapping( target = "completedAt", source = "completedDate" )
-    @Mapping( target = "createdBy", source = "createdByUserInfo.username" )
-    @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo.username" )
+    @Mapping( target = "createdBy", source = "createdByUserInfo" )
+    @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo" )
     Enrollment from( org.hisp.dhis.dxf2.events.enrollment.Enrollment enrollment );
 }

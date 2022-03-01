@@ -31,6 +31,7 @@ import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 import java.time.Instant;
@@ -53,6 +54,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.UserInfo;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
@@ -143,10 +145,12 @@ class EventTrackerConverterServiceTest extends DhisConvenienceTest
         dataElement.setUid( CodeGenerator.generateUid() );
         when( preheat.get( DataElement.class, dataElement.getUid() ) ).thenReturn( dataElement );
 
+        UserInfo userInfo = UserInfo.builder().username( USERNAME ).build();
+
         DataValue dataValue = new DataValue();
         dataValue.setValue( "value" );
-        dataValue.setCreatedBy( USERNAME );
-        dataValue.setLastUpdatedBy( USERNAME );
+        dataValue.setCreatedBy( userInfo );
+        dataValue.setLastUpdatedBy( userInfo );
         dataValue.setCreatedAt( Instant.now() );
         dataValue.setStoredBy( USERNAME );
         dataValue.setUpdatedAt( Instant.now() );
@@ -312,15 +316,15 @@ class EventTrackerConverterServiceTest extends DhisConvenienceTest
         assertEquals( event.getStoredBy(), user.getUsername() );
         event.getDataValues().forEach( e -> {
             assertEquals( DateUtils.fromInstant( e.getCreatedAt() ), psi.getCreated() );
-            assertEquals( e.getLastUpdatedBy(), psi.getLastUpdatedByUserInfo().getUsername() );
-            assertEquals( e.getLastUpdatedBy(), psi.getCreatedByUserInfo().getUsername() );
+            assertEquals( e.getLastUpdatedBy().getUsername(), psi.getLastUpdatedByUserInfo().getUsername() );
+            assertEquals( e.getLastUpdatedBy().getUsername(), psi.getCreatedByUserInfo().getUsername() );
         } );
     }
 
     private void setUpMocks()
     {
         when( preheat.getUser() ).thenReturn( user );
-        when( preheat.getUsers() ).thenReturn( Collections.singletonMap( USERNAME, user ) );
+        lenient().when( preheat.getUsers() ).thenReturn( Collections.singleton( user ) );
         when( preheat.get( ProgramStage.class, programStage.getUid() ) ).thenReturn( programStage );
         when( preheat.get( Program.class, program.getUid() ) ).thenReturn( program );
         when( preheat.get( OrganisationUnit.class, organisationUnit.getUid() ) ).thenReturn( organisationUnit );
@@ -359,12 +363,14 @@ class EventTrackerConverterServiceTest extends DhisConvenienceTest
 
     private DataValue dataValue( String dataElement, String value )
     {
+        UserInfo userInfo = UserInfo.builder().username( USERNAME ).build();
+
         DataValue dataValue = new DataValue();
         dataValue.setDataElement( dataElement );
         dataValue.setValue( value );
         dataValue.setProvidedElsewhere( true );
-        dataValue.setCreatedBy( USERNAME );
-        dataValue.setLastUpdatedBy( USERNAME );
+        dataValue.setCreatedBy( userInfo );
+        dataValue.setLastUpdatedBy( userInfo );
         dataValue.setCreatedAt( Instant.now() );
         dataValue.setStoredBy( USERNAME );
         dataValue.setUpdatedAt( Instant.now() );

@@ -81,9 +81,9 @@ class NotesConverterServiceTest extends DhisConvenienceTest
     void verifyConvertCommentToNoteWithNoStoredByDefined()
     {
         Note note = rnd.nextObject( Note.class );
-        note.setStoredBy( null );
+        note.setCreatedBy( null );
         final TrackedEntityComment comment = notesConverterService.from( preheat, note );
-        assertNoteValuesWithCurrentUser( comment, note );
+        assertNoteValues( comment, note );
     }
 
     @Test
@@ -125,14 +125,6 @@ class NotesConverterServiceTest extends DhisConvenienceTest
         assertThat( comment, is( notNullValue() ) );
         assertThat( comment.getUid(), is( note.getNote() ) );
         assertThat( comment.getCommentText(), is( note.getValue() ) );
-        assertThat( comment.getCreator(), is( note.getStoredBy() ) );
-    }
-
-    private void assertNoteValuesWithCurrentUser( TrackedEntityComment comment, Note note )
-    {
-        assertThat( comment, is( notNullValue() ) );
-        assertThat( comment.getUid(), is( note.getNote() ) );
-        assertThat( comment.getCommentText(), is( note.getValue() ) );
         assertThat( comment.getCreator(), is( CURRENT_USER ) );
     }
 
@@ -141,7 +133,7 @@ class NotesConverterServiceTest extends DhisConvenienceTest
         assertThat( note, is( notNullValue() ) );
         assertThat( note.getNote(), is( comment.getUid() ) );
         assertThat( note.getValue(), is( comment.getCommentText() ) );
-        assertThat( note.getStoredBy(), is( comment.getCreator() ) );
+        assertThat( note.getCreatedBy().getUsername(), is( comment.getCreator() ) );
         assertEquals( note.getStoredAt(), DateUtils.instantFromDate( comment.getCreated() ) );
     }
 }
