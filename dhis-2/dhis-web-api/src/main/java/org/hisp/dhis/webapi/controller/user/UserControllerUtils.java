@@ -30,7 +30,7 @@ package org.hisp.dhis.webapi.controller.user;
 import static org.hisp.dhis.dataapproval.DataApproval.AUTH_ACCEPT_LOWER_LEVELS;
 import static org.hisp.dhis.dataapproval.DataApproval.AUTH_APPROVE;
 import static org.hisp.dhis.dataapproval.DataApproval.AUTH_APPROVE_LOWER_LEVELS;
-import static org.hisp.dhis.user.UserAuthorityGroup.AUTHORITY_ALL;
+import static org.hisp.dhis.user.UserRole.AUTHORITY_ALL;
 
 import java.util.Set;
 

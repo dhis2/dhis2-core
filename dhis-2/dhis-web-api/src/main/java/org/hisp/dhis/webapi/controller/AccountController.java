@@ -69,7 +69,7 @@ import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.PasswordValidationResult;
 import org.hisp.dhis.user.PasswordValidationService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAuthorityGroup;
+import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -413,7 +413,7 @@ public class AccountController
         }
         else
         {
-            UserAuthorityGroup userRole = configurationService.getConfiguration().getSelfRegistrationRole();
+            UserRole userRole = configurationService.getConfiguration().getSelfRegistrationRole();
             OrganisationUnit orgUnit = configurationService.getConfiguration().getSelfRegistrationOrgUnit();
 
             user = new User();
@@ -429,14 +429,14 @@ public class AccountController
             userService.encodeAndSetPassword( user, password );
 
             user.setSelfRegistered( true );
-            user.getUserAuthorityGroups().add( userRole );
+            user.getUserRoles().add( userRole );
 
             userService.addUser( user );
 
             log.info( "Created user with username: " + username );
         }
 
-        Set<GrantedAuthority> authorities = getAuthorities( user.getUserAuthorityGroups() );
+        Set<GrantedAuthority> authorities = getAuthorities( user.getUserRoles() );
 
         authenticate( username, password, authorities, request );
 
@@ -501,7 +501,7 @@ public class AccountController
         userService.encodeAndSetPassword( user, password );
         userService.updateUser( user );
 
-        authenticate( username, password, getAuthorities( user.getUserAuthorityGroups() ), request );
+        authenticate( username, password, getAuthorities( user.getUserRoles() ), request );
 
         result.put( "status", "OK" );
         result.put( "message", "Account was updated." );
@@ -602,11 +602,11 @@ public class AccountController
         session.setAttribute( "SPRING_SECURITY_CONTEXT", SecurityContextHolder.getContext() );
     }
 
-    private Set<GrantedAuthority> getAuthorities( Set<UserAuthorityGroup> userRoles )
+    private Set<GrantedAuthority> getAuthorities( Set<UserRole> userRoles )
     {
         Set<GrantedAuthority> auths = new HashSet<>();
 
-        for ( UserAuthorityGroup userRole : userRoles )
+        for ( UserRole userRole : userRoles )
         {
             auths.addAll( getAuthorities( userRole ) );
         }
@@ -614,7 +614,7 @@ public class AccountController
         return auths;
     }
 
-    private Set<GrantedAuthority> getAuthorities( UserAuthorityGroup userRole )
+    private Set<GrantedAuthority> getAuthorities( UserRole userRole )
     {
         Set<GrantedAuthority> auths = new HashSet<>();
 

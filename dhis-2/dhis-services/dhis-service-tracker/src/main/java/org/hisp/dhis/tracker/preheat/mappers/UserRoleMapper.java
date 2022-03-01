@@ -25,38 +25,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.schema.descriptors;
+package org.hisp.dhis.tracker.preheat.mappers;
 
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
-import org.hisp.dhis.security.Authority;
-import org.hisp.dhis.security.AuthorityType;
 import org.hisp.dhis.user.UserRole;
+import org.mapstruct.BeanMapping;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.factory.Mappers;
 
-import com.google.common.collect.Lists;
-
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public class UserRoleSchemaDescriptor implements SchemaDescriptor
+@Mapper( uses = { DebugMapper.class, UserGroupMapper.class } )
+public interface UserRoleMapper extends PreheatMapper<UserRole>
 {
-    public static final String SINGULAR = "userRole";
+    UserRoleMapper INSTANCE = Mappers.getMapper( UserRoleMapper.class );
 
-    public static final String PLURAL = "userRoles";
-
-    public static final String API_ENDPOINT = "/" + PLURAL;
-
-    @Override
-    public Schema getSchema()
-    {
-        Schema schema = new Schema( UserRole.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setOrder( 100 );
-
-        schema.add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "F_USERROLE_PUBLIC_ADD" ) ) );
-        schema.add( new Authority( AuthorityType.CREATE_PRIVATE, Lists.newArrayList( "F_USERROLE_PRIVATE_ADD" ) ) );
-        schema.add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_USERROLE_DELETE" ) ) );
-
-        return schema;
-    }
+    @BeanMapping( ignoreByDefault = true )
+    @Mapping( target = "id" )
+    @Mapping( target = "uid" )
+    @Mapping( target = "authorities" )
+    UserRole map( UserRole userGroupAccess );
 }

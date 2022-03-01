@@ -169,18 +169,10 @@ public interface WebClient
 
     default HttpResponse PATCH( String url, Object... args )
     {
-        return webRequest( HttpMethod.PATCH, substitutePlaceholders( url, args ), // default
-                                                                                  // mime
-                                                                                  // type
-                                                                                  // is
-                                                                                  // added
-                                                                                  // as
-                                                                                  // first
-                                                                                  // element
-                                                                                  // so
-                                                                                  // that
-                                                                                  // ContentType
-            // in args does override it
+        // Default mime-type is added as first element so that content type in
+        // arguments does not override it
+
+        return webRequest( HttpMethod.PATCH, substitutePlaceholders( url, args ),
             ArrayUtils.insert( 0, requestComponentsIn( args ), ContentType( APPLICATION_JSON_PATCH_UTF8 ) ) );
     }
 

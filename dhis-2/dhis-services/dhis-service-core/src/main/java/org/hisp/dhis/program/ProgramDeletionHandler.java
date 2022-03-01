@@ -44,7 +44,7 @@ import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.user.UserAuthorityGroup;
+import org.hisp.dhis.user.UserRole;
 import org.springframework.stereotype.Component;
 
 /**
@@ -79,7 +79,7 @@ public class ProgramDeletionHandler
     {
         whenDeleting( CategoryCombo.class, this::deleteCategoryCombo );
         whenDeleting( OrganisationUnit.class, this::deleteOrganisationUnit );
-        whenDeleting( UserAuthorityGroup.class, this::deleteUserAuthorityGroup );
+        whenDeleting( UserRole.class, this::deleteUserRole );
         whenVetoing( TrackedEntityType.class, this::allowDeleteTrackedEntityType );
         whenDeleting( TrackedEntityAttribute.class, this::deleteTrackedEntityAttribute );
         whenDeleting( DataEntryForm.class, this::deleteDataEntryForm );
@@ -111,7 +111,7 @@ public class ProgramDeletionHandler
         }
     }
 
-    private void deleteUserAuthorityGroup( UserAuthorityGroup group )
+    private void deleteUserRole( UserRole group )
     {
         Collection<Program> programs = idObjectManager.getAllNoAcl( Program.class );
 

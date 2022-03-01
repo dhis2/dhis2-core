@@ -33,15 +33,15 @@ import org.hisp.dhis.dataset.DataSet;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface UserAuthorityGroupStore
-    extends IdentifiableObjectStore<UserAuthorityGroup>
+public interface UserRoleStore
+    extends IdentifiableObjectStore<UserRole>
 {
     /**
-     * Returns the number of UserAuthorityGroups which are associated with the
-     * given DataSet.
+     * Returns the number of UserRoles which are associated with the given
+     * DataSet.
      *
      * @param dataSet the DataSet.
-     * @return number of UserAuthorityGroups.
+     * @return number of UserRoles.
      */
-    int countDataSetUserAuthorityGroups( DataSet dataSet );
+    int countDataSetUserRoles( DataSet dataSet );
 }

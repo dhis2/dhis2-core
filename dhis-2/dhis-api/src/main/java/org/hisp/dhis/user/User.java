@@ -127,7 +127,7 @@ public class User
     /**
      * Set of user roles.
      */
-    private Set<UserAuthorityGroup> userAuthorityGroups = new HashSet<>();
+    private Set<UserRole> userRoles = new HashSet<>();
 
     /**
      * Category option group set dimensions to constrain data analytics
@@ -278,9 +278,9 @@ public class User
      * Returns a concatenated String of the display names of all user authority
      * groups for this user.
      */
-    public String getUserAuthorityGroupsName()
+    public String getUserRoleNames()
     {
-        return IdentifiableObjectUtils.join( userAuthorityGroups );
+        return IdentifiableObjectUtils.join( userRoles );
     }
 
     /**
@@ -291,7 +291,7 @@ public class User
     {
         Set<String> authorities = new HashSet<>();
 
-        for ( UserAuthorityGroup group : userAuthorityGroups )
+        for ( UserRole group : userRoles )
         {
             authorities.addAll( group.getAuthorities() );
         }
@@ -307,7 +307,7 @@ public class User
      */
     public boolean hasAuthorities()
     {
-        for ( UserAuthorityGroup group : userAuthorityGroups )
+        for ( UserRole group : userRoles )
         {
             if ( group != null && group.getAuthorities() != null && !group.getAuthorities().isEmpty() )
             {
@@ -342,7 +342,7 @@ public class User
 
         final Set<String> auths = getAllAuthorities();
 
-        return auths.contains( UserAuthorityGroup.AUTHORITY_ALL ) || auths.contains( auth );
+        return auths.contains( UserRole.AUTHORITY_ALL ) || auths.contains( auth );
     }
 
     /**
@@ -352,7 +352,7 @@ public class User
      */
     public boolean isSuper()
     {
-        return userAuthorityGroups.stream().anyMatch( UserAuthorityGroup::isSuper );
+        return userRoles.stream().anyMatch( UserRole::isSuper );
     }
 
     /**
@@ -363,10 +363,10 @@ public class User
      * must have the ALL authority.
      *
      * @param group the user authority group.
-     * @param canGrantOwnUserAuthorityGroups indicates whether this users can
-     *        grant its own authority groups to others.
+     * @param canGrantOwnUserRole indicates whether this users can grant its own
+     *        authority groups to others.
      */
-    public boolean canIssueUserRole( UserAuthorityGroup group, boolean canGrantOwnUserAuthorityGroups )
+    public boolean canIssueUserRole( UserRole group, boolean canGrantOwnUserRole )
     {
         if ( group == null )
         {
@@ -375,12 +375,12 @@ public class User
 
         final Set<String> authorities = getAllAuthorities();
 
-        if ( authorities.contains( UserAuthorityGroup.AUTHORITY_ALL ) )
+        if ( authorities.contains( UserRole.AUTHORITY_ALL ) )
         {
             return true;
         }
 
-        if ( !canGrantOwnUserAuthorityGroups && userAuthorityGroups.contains( group ) )
+        if ( !canGrantOwnUserRole && userRoles.contains( group ) )
         {
             return false;
         }
@@ -393,14 +393,14 @@ public class User
      * the given collection.
      *
      * @param groups the collection of user authority groups.
-     * @param canGrantOwnUserAuthorityGroups indicates whether this users can
-     *        grant its own authority groups to others.
+     * @param canGrantOwnUserRole indicates whether this users can grant its own
+     *        authority groups to others.
      */
-    public boolean canIssueUserRoles( Collection<UserAuthorityGroup> groups, boolean canGrantOwnUserAuthorityGroups )
+    public boolean canIssueUserRoles( Collection<UserRole> groups, boolean canGrantOwnUserRole )
     {
-        for ( UserAuthorityGroup group : groups )
+        for ( UserRole group : groups )
         {
-            if ( !canIssueUserRole( group, canGrantOwnUserAuthorityGroups ) )
+            if ( !canIssueUserRole( group, canGrantOwnUserRole ) )
             {
                 return false;
             }
@@ -425,7 +425,7 @@ public class User
 
         final Set<String> authorities = getAllAuthorities();
 
-        if ( authorities.contains( UserAuthorityGroup.AUTHORITY_ALL ) )
+        if ( authorities.contains( UserRole.AUTHORITY_ALL ) )
         {
             return true;
         }
@@ -489,9 +489,9 @@ public class User
     /**
      * Indicates whether this user has user authority groups.
      */
-    public boolean hasUserAuthorityGroups()
+    public boolean hasUserRoles()
     {
-        return userAuthorityGroups != null && !userAuthorityGroups.isEmpty();
+        return userRoles != null && !userRoles.isEmpty();
     }
 
     /**
@@ -619,14 +619,14 @@ public class User
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
     @JacksonXmlElementWrapper( localName = "userRoles", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "userRole", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<UserAuthorityGroup> getUserAuthorityGroups()
+    public Set<UserRole> getUserRoles()
     {
-        return userAuthorityGroups;
+        return userRoles;
     }
 
-    public void setUserAuthorityGroups( Set<UserAuthorityGroup> userAuthorityGroups )
+    public void setUserRoles( Set<UserRole> userRoles )
     {
-        this.userAuthorityGroups = userAuthorityGroups;
+        this.userRoles = userRoles;
     }
 
     @JsonProperty
@@ -1470,11 +1470,11 @@ public class User
     public UserCredentialsDto getUserCredentials()
     {
         UserCredentialsDto userCredentialsDto = new UserCredentialsDto();
-        copyProperties( this, userCredentialsDto, "userCredentials", "password" );
-        Set<UserAuthorityGroup> userRoles = this.getUserAuthorityGroups();
-        if ( userRoles != null && !userRoles.isEmpty() )
+        copyProperties( this, userCredentialsDto, "userCredentials", "password", "userRoles" );
+        Set<UserRole> roles = this.getUserRoles();
+        if ( roles != null && !roles.isEmpty() )
         {
-            userCredentialsDto.setUserRoles( userRoles );
+            userCredentialsDto.setUserRoles( roles );
         }
         return userCredentialsDto;
     }

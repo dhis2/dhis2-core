@@ -218,7 +218,6 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
     @Test
     void getRelationshipsByTrackedEntityNotFound()
     {
-
         assertEquals( "No trackedEntity 'Hq3Kc6HK4OZ' found.",
             GET( "/tracker/relationships?trackedEntity=Hq3Kc6HK4OZ" )
                 .error( HttpStatus.NOT_FOUND )

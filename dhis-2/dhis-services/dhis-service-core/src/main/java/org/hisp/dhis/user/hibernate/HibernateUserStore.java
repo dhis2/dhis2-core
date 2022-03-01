@@ -306,7 +306,7 @@ public class HibernateUserStore
         {
             hql += hlp.whereAnd() + " not exists (" +
                 "select uc2 from User uc2 " +
-                "inner join uc2.userAuthorityGroups ag2 " +
+                "inner join uc2.userRoles ag2 " +
                 "inner join ag2.authorities a " +
                 "where uc2.id = u.id " +
                 "and a not in (:auths) ) ";
@@ -318,7 +318,7 @@ public class HibernateUserStore
         {
             hql += hlp.whereAnd() + " not exists (" +
                 "select uc3 from User uc3 " +
-                "inner join uc3.userAuthorityGroups ag3 " +
+                "inner join uc3.userRoles ag3 " +
                 "where uc3.id = u.id " +
                 "and ag3.id in (:roles) ) ";
         }
@@ -403,7 +403,7 @@ public class HibernateUserStore
         if ( params.isDisjointRoles() && params.getUser() != null )
         {
             Collection<Long> roles = IdentifiableObjectUtils
-                .getIdentifiers( params.getUser().getUserAuthorityGroups() );
+                .getIdentifiers( params.getUser().getUserRoles() );
 
             query.setParameterList( "roles", roles );
         }
@@ -635,7 +635,7 @@ public class HibernateUserStore
     public List<User> getHasAuthority( String authority )
     {
         String hql = "select distinct uc2 from User uc2 " +
-            "inner join uc2.userAuthorityGroups ag2 " +
+            "inner join uc2.userRoles ag2 " +
             "inner join ag2.authorities a " +
             "where :authority in elements(a)";
 
