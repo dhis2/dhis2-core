@@ -58,6 +58,7 @@ import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -101,6 +102,9 @@ class PreCheckExistenceValidationHookTest
     private final static String RELATIONSHIP_UID = "RelationshipId";
 
     @Mock
+    private TrackerPreheat preheat;
+
+    @Mock
     private TrackerBundle bundle;
 
     @Mock
@@ -112,6 +116,7 @@ class PreCheckExistenceValidationHookTest
         validationHook = new PreCheckExistenceValidationHook();
 
         when( ctx.getBundle() ).thenReturn( bundle );
+        when( bundle.getPreheat() ).thenReturn( preheat );
         when( ctx.getStrategy( any( Event.class ) ) ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
         when( ctx.getStrategy( any( Enrollment.class ) ) ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
         when( ctx.getStrategy( any( TrackedEntity.class ) ) ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
@@ -121,7 +126,8 @@ class PreCheckExistenceValidationHookTest
         when( ctx.getProgramInstance( ENROLLMENT_UID ) ).thenReturn( getEnrollment() );
         when( ctx.getProgramStageInstance( SOFT_DELETED_EVENT_UID ) ).thenReturn( getSoftDeletedEvent() );
         when( ctx.getProgramStageInstance( EVENT_UID ) ).thenReturn( getEvent() );
-        when( ctx.getRelationship( getPayloadRelationship() ) ).thenReturn( getRelationship() );
+        when( preheat.getRelationship( bundle.getIdentifier(), getPayloadRelationship() ) )
+            .thenReturn( getRelationship() );
     }
 
     @Test

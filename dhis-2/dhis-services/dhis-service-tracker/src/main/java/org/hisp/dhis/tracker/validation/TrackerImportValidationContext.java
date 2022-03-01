@@ -45,7 +45,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.preheat.ReferenceTrackerEntity;
 
@@ -131,11 +130,6 @@ public class TrackerImportValidationContext
     public ProgramStageInstance getProgramStageInstance( String event )
     {
         return bundle.getPreheat().getEvent( bundle.getIdentifier(), event );
-    }
-
-    public org.hisp.dhis.relationship.Relationship getRelationship( Relationship relationship )
-    {
-        return bundle.getPreheat().getRelationship( bundle.getIdentifier(), relationship );
     }
 
     public FileResource getFileResource( String id )
