@@ -33,7 +33,6 @@ import java.util.Optional;
 
 import lombok.Data;
 
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -86,11 +85,6 @@ public class TrackerImportValidationContext
     public TrackedEntityAttribute getTrackedEntityAttribute( String id )
     {
         return bundle.getPreheat().get( TrackedEntityAttribute.class, id );
-    }
-
-    public DataElement getDataElement( String id )
-    {
-        return bundle.getPreheat().get( DataElement.class, id );
     }
 
     public TrackedEntityType getTrackedEntityType( String id )
