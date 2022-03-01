@@ -48,6 +48,7 @@ import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
@@ -73,7 +74,8 @@ public class EventDataValuesValidationHook
         {
             // event dates (createdAt, updatedAt) are ignored and set by the
             // system
-            DataElement dataElement = context.getDataElement( dataValue.getDataElement() );
+            TrackerPreheat preheat = context.getBundle().getPreheat();
+            DataElement dataElement = preheat.get( DataElement.class, dataValue.getDataElement() );
 
             if ( dataElement == null )
             {
