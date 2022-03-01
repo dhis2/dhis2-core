@@ -67,6 +67,7 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.domain.TrackerDto;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
@@ -184,7 +185,8 @@ public class PreCheckSecurityOwnershipValidationHook
 
         if ( strategy.isDelete() )
         {
-            boolean hasNonDeletedEvents = context.programInstanceHasEvents( enrollment.getEnrollment() );
+            TrackerPreheat preheat = bundle.getPreheat();
+            boolean hasNonDeletedEvents = programInstanceHasEvents( preheat, enrollment.getEnrollment() );
             boolean hasNotCascadeDeleteAuthority = !user
                 .isAuthorized( Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority() );
 
@@ -203,6 +205,11 @@ public class PreCheckSecurityOwnershipValidationHook
 
         checkWriteEnrollmentAccess( reporter, enrollment, program, context,
             ownerOrgUnit );
+    }
+
+    private boolean programInstanceHasEvents( TrackerPreheat preheat, String programInstanceUid )
+    {
+        return preheat.getProgramInstanceWithOneOrMoreNonDeletedEvent().contains( programInstanceUid );
     }
 
     private void checkEnrollmentOrgUnit( ValidationErrorReporter reporter, TrackerImportValidationContext context,
