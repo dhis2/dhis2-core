@@ -42,10 +42,12 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
@@ -137,8 +139,10 @@ public class PreCheckExistenceValidationHook
     public void validateRelationship( ValidationErrorReporter reporter, Relationship relationship )
     {
         TrackerImportValidationContext context = reporter.getValidationContext();
-
-        org.hisp.dhis.relationship.Relationship existingRelationship = context.getRelationship( relationship );
+        TrackerBundle bundle = context.getBundle();
+        TrackerPreheat preheat = bundle.getPreheat();
+        org.hisp.dhis.relationship.Relationship existingRelationship = preheat.getRelationship( bundle.getIdentifier(),
+            relationship );
 
         if ( existingRelationship != null )
         {
