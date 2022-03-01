@@ -45,7 +45,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
-import org.hisp.dhis.tracker.TrackerIdentifierParams;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Relationship;
@@ -154,11 +153,6 @@ public class TrackerImportValidationContext
     public Optional<ReferenceTrackerEntity> getReference( String uid )
     {
         return bundle.getPreheat().getReference( uid );
-    }
-
-    public TrackerIdentifierParams getIdentifiers()
-    {
-        return bundle.getPreheat().getIdentifiers();
     }
 
     public Map<String, List<String>> getProgramWithOrgUnitsMap()
