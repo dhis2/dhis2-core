@@ -25,13 +25,12 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export.relationships;
+package org.hisp.dhis.webapi.controller.tracker.export;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.webapi.controller.tracker.TrackerControllerSupport.RESOURCE_PATH;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -54,6 +53,7 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.tracker.domain.mapper.RelationshipMapper;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
 import org.hisp.dhis.webapi.controller.event.webrequest.tracker.TrackerRelationshipCriteria;
@@ -111,19 +111,19 @@ public class TrackerRelationshipsExportController
     }
 
     @GetMapping
-    PagingWrapper<org.hisp.dhis.webapi.controller.tracker.export.relationships.Relationship> getInstances(
+    PagingWrapper<org.hisp.dhis.tracker.domain.Relationship> getInstances(
         TrackerRelationshipCriteria criteria )
         throws WebMessageException
     {
         String identifier = criteria.getIdentifierParam();
         String identifierName = criteria.getIdentifierName();
-        List<org.hisp.dhis.webapi.controller.tracker.export.relationships.Relationship> relationships = tryGetRelationshipFrom(
+        List<org.hisp.dhis.tracker.domain.Relationship> relationships = tryGetRelationshipFrom(
             identifier,
             criteria.getIdentifierClass(),
             () -> notFound( "No " + identifierName + " '" + identifier + "' found." ),
             criteria );
 
-        PagingWrapper<org.hisp.dhis.webapi.controller.tracker.export.relationships.Relationship> relationshipPagingWrapper = new PagingWrapper<>();
+        PagingWrapper<org.hisp.dhis.tracker.domain.Relationship> relationshipPagingWrapper = new PagingWrapper<>();
         if ( criteria.isPagingRequest() )
         {
             relationshipPagingWrapper = relationshipPagingWrapper.withPager(
@@ -137,7 +137,7 @@ public class TrackerRelationshipsExportController
     }
 
     @GetMapping( "{id}" )
-    public org.hisp.dhis.webapi.controller.tracker.export.relationships.Relationship getRelationship(
+    public org.hisp.dhis.tracker.domain.Relationship getRelationship(
         @PathVariable String id )
         throws WebMessageException
     {
@@ -148,24 +148,26 @@ public class TrackerRelationshipsExportController
     }
 
     @SneakyThrows
-    private List<org.hisp.dhis.webapi.controller.tracker.export.relationships.Relationship> tryGetRelationshipFrom(
+    private List<org.hisp.dhis.tracker.domain.Relationship> tryGetRelationshipFrom(
         String identifier,
         Class<?> type,
         Supplier<WebMessage> notFoundMessageSupplier,
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteria )
     {
-        if ( identifier == null )
+        if ( identifier != null )
         {
-            return Collections.emptyList();
+            Object object = getObjectRetriever( type ).apply( identifier );
+            if ( object != null )
+            {
+                return RELATIONSHIP_MAPPER
+                    .fromCollection( getRelationshipRetriever( type ).apply( object, pagingAndSortingCriteria ) );
+            }
+            else
+            {
+                throw new WebMessageException( notFoundMessageSupplier.get() );
+            }
         }
-        Object object = getObjectRetriever( type ).apply( identifier );
-        if ( object == null )
-        {
-            throw new WebMessageException( notFoundMessageSupplier.get() );
-        }
-
-        return RELATIONSHIP_MAPPER
-            .fromCollection( getRelationshipRetriever( type ).apply( object, pagingAndSortingCriteria ) );
+        return null;
     }
 
     private BiFunction<Object, PagingAndSortingCriteriaAdapter, List<Relationship>> getRelationshipRetriever(
