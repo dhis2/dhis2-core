@@ -40,9 +40,9 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserCredentialsDto;
 import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.sharing.Sharing;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -79,7 +79,7 @@ public class MeDto
         this.access = user.getAccess();
         this.name = user.getName();
         this.email = user.getEmail();
-        this.userRoles = user.getUserAuthorityGroups();
+        this.userRoles = user.getUserRoles();
         this.userCredentials = null;
 
         this.authorities = new ArrayList<>( user.getAllAuthorities() );
@@ -162,7 +162,7 @@ public class MeDto
     private String email;
 
     @JsonProperty
-    private Set<UserAuthorityGroup> userRoles;
+    private Set<UserRole> userRoles;
 
     @JsonProperty( )
     private Map<String, Serializable> settings;

@@ -84,11 +84,11 @@ import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserCredentialsDto;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserInvitationStatus;
 import org.hisp.dhis.user.UserQueryParams;
+import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserSetting;
 import org.hisp.dhis.user.UserSettingKey;
@@ -325,16 +325,16 @@ public class UserController
         UserCredentialsDto userCredentialsRaw = user.getUserCredentialsRaw();
         if ( userCredentialsRaw != null )
         {
-            copyProperties( userCredentialsRaw, user, KEY_PASSWORD );
+            copyProperties( userCredentialsRaw, user, KEY_PASSWORD, "userRoles" );
             if ( userCredentialsRaw.getPassword() != null )
             {
                 user.setPassword( userCredentialsRaw.getPassword() );
             }
 
-            Set<UserAuthorityGroup> userRoles = userCredentialsRaw.getUserRoles();
+            Set<UserRole> userRoles = userCredentialsRaw.getUserRoles();
             if ( userRoles != null )
             {
-                user.setUserAuthorityGroups( userRoles );
+                user.setUserRoles( userRoles );
             }
         }
     }

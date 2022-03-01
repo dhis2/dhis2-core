@@ -6,7 +6,7 @@
   >
 
 <hibernate-mapping>
-  <class name="org.hisp.dhis.user.UserAuthorityGroup" table="userrole">
+  <class name="org.hisp.dhis.user.UserRole" table="userrole">
 
     <cache usage="read-write" />
 

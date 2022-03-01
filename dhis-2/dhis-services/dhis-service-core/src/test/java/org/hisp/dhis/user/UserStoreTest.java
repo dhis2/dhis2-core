@@ -75,11 +75,11 @@ class UserStoreTest extends DhisSpringTest
 
     private OrganisationUnit unit2;
 
-    private UserAuthorityGroup roleA;
+    private UserRole roleA;
 
-    private UserAuthorityGroup roleB;
+    private UserRole roleB;
 
-    private UserAuthorityGroup roleC;
+    private UserRole roleC;
 
     @Override
     public void setUpTest()
@@ -91,9 +91,9 @@ class UserStoreTest extends DhisSpringTest
         organisationUnitService.addOrganisationUnit( unit2 );
 
         super.userService = userService;
-        roleA = createUserAuthorityGroup( 'A' );
-        roleB = createUserAuthorityGroup( 'B' );
-        roleC = createUserAuthorityGroup( 'C' );
+        roleA = createUserRole( 'A' );
+        roleB = createUserRole( 'B' );
+        roleC = createUserRole( 'C' );
         roleA.getAuthorities().add( AUTH_A );
         roleA.getAuthorities().add( AUTH_B );
         roleA.getAuthorities().add( AUTH_C );
@@ -101,9 +101,9 @@ class UserStoreTest extends DhisSpringTest
         roleB.getAuthorities().add( AUTH_A );
         roleB.getAuthorities().add( AUTH_B );
         roleC.getAuthorities().add( AUTH_C );
-        userService.addUserAuthorityGroup( roleA );
-        userService.addUserAuthorityGroup( roleB );
-        userService.addUserAuthorityGroup( roleC );
+        userService.addUserRole( roleA );
+        userService.addUserRole( roleB );
+        userService.addUserRole( roleC );
     }
 
     @Test

@@ -52,7 +52,7 @@ import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAuthorityGroup;
+import org.hisp.dhis.user.UserRole;
 
 import com.google.common.collect.Sets;
 
@@ -539,7 +539,7 @@ public class Preheat
         Class<? extends IdentifiableObject> klass )
     {
         return (klass == User.class
-            || klass == UserAuthorityGroup.class)
+            || klass == UserRole.class)
                 ? PreheatIdentifier.UID
                 : identifier;
     }

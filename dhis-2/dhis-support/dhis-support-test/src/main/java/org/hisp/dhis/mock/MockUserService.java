@@ -41,8 +41,8 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccountExpiryInfo;
-import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserQueryParams;
+import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 
 /**
@@ -119,7 +119,7 @@ public class MockUserService
     }
 
     @Override
-    public boolean isLastSuperRole( UserAuthorityGroup userAuthorityGroup )
+    public boolean isLastSuperRole( UserRole userRole )
     {
         return false;
     }
@@ -255,71 +255,71 @@ public class MockUserService
     }
 
     @Override
-    public long addUserAuthorityGroup( UserAuthorityGroup userAuthorityGroup )
+    public long addUserRole( UserRole userRole )
     {
         return 0;
     }
 
     @Override
-    public void updateUserAuthorityGroup( UserAuthorityGroup userAuthorityGroup )
+    public void updateUserRole( UserRole userRole )
     {
     }
 
     @Override
-    public UserAuthorityGroup getUserAuthorityGroup( long id )
-    {
-        return null;
-    }
-
-    @Override
-    public UserAuthorityGroup getUserAuthorityGroup( String uid )
+    public UserRole getUserRole( long id )
     {
         return null;
     }
 
     @Override
-    public UserAuthorityGroup getUserAuthorityGroupByName( String name )
+    public UserRole getUserRole( String uid )
     {
         return null;
     }
 
     @Override
-    public void deleteUserAuthorityGroup( UserAuthorityGroup userAuthorityGroup )
-    {
-    }
-
-    @Override
-    public List<UserAuthorityGroup> getAllUserAuthorityGroups()
+    public UserRole getUserRoleByName( String name )
     {
         return null;
     }
 
     @Override
-    public List<UserAuthorityGroup> getUserRolesByUid( Collection<String> uids )
+    public void deleteUserRole( UserRole userRole )
+    {
+    }
+
+    @Override
+    public List<UserRole> getAllUserRoles()
     {
         return null;
     }
 
     @Override
-    public List<UserAuthorityGroup> getUserRolesBetween( int first, int max )
+    public List<UserRole> getUserRolesByUid( Collection<String> uids )
     {
         return null;
     }
 
     @Override
-    public List<UserAuthorityGroup> getUserRolesBetweenByName( String name, int first, int max )
+    public List<UserRole> getUserRolesBetween( int first, int max )
     {
         return null;
     }
 
     @Override
-    public int countDataSetUserAuthorityGroups( DataSet dataSet )
+    public List<UserRole> getUserRolesBetweenByName( String name, int first, int max )
+    {
+        return null;
+    }
+
+    @Override
+    public int countDataSetUserRoles( DataSet dataSet )
     {
         return 0;
     }
 
     @Override
-    public void canIssueFilter( Collection<UserAuthorityGroup> userRoles )
+    public void canIssueFilter( Collection<UserRole> userRoles )
     {
     }
 

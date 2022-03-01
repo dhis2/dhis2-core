@@ -97,8 +97,8 @@ import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleGroup;
 import org.hisp.dhis.validation.notification.ValidationNotificationTemplate;
@@ -235,14 +235,14 @@ public class Metadata
     @JsonProperty
     @JacksonXmlElementWrapper( localName = "userRoles", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "userRole", namespace = DxfNamespaces.DXF_2_0 )
-    public List<UserAuthorityGroup> getUserRoles()
+    public List<UserRole> getUserRoles()
     {
-        return getValues( UserAuthorityGroup.class );
+        return getValues( UserRole.class );
     }
 
-    public void setUserRoles( List<UserAuthorityGroup> userRoles )
+    public void setUserRoles( List<UserRole> userRoles )
     {
-        setValues( UserAuthorityGroup.class, userRoles );
+        setValues( UserRole.class, userRoles );
     }
 
     @JsonProperty
