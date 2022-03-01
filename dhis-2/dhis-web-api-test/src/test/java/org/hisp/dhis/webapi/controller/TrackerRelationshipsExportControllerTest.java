@@ -210,9 +210,6 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
             RelationshipEntity.TRACKED_ENTITY_INSTANCE );
         relationship( rType, programInstance, tei );
 
-        // the query parameters are processed in order tei, enrollment, event
-        // the first query parameter (unless another param found relationships)
-        // to find no relationships causes response NOT_FOUND
         assertEquals( "No trackedEntity 'Hq3Kc6HK4OZ' found.",
             GET( "/tracker/relationships?tei=Hq3Kc6HK4OZ&enrollment=" + programInstance.getUid() )
                 .error( HttpStatus.NOT_FOUND )
