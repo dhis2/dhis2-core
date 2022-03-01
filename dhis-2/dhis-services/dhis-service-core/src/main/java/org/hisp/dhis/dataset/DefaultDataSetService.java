@@ -267,7 +267,7 @@ public class DefaultDataSetService
     }
 
     @Override
-    @Transactional
+    @Transactional( readOnly = true )
     public LockStatus getLockStatus( User user, DataSet dataSet, Period period, OrganisationUnit organisationUnit,
         CategoryOptionCombo attributeOptionCombo, Date now )
     {
@@ -285,7 +285,7 @@ public class DefaultDataSetService
     }
 
     @Override
-    @Transactional
+    @Transactional( readOnly = true )
     public LockStatus getLockStatus( User user, DataSet dataSet, Period period, OrganisationUnit organisationUnit,
         CategoryOptionCombo attributeOptionCombo, Date now, boolean useOrgUnitChildren )
     {
@@ -312,7 +312,7 @@ public class DefaultDataSetService
     }
 
     @Override
-    @Transactional
+    @Transactional( readOnly = true )
     public LockStatus getLockStatus( User user, DataElement dataElement, Period period,
         OrganisationUnit organisationUnit,
         CategoryOptionCombo attributeOptionCombo, Date now )
