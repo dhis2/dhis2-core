@@ -200,7 +200,7 @@ public class EventsTests
     }
 
     @Test
-    public void shouldValidateCategoryCombo()
+    public void shouldImportWithCategoryCombo()
     {
         ApiResponse program = programActions.get( "", new QueryParamsBuilder().add( "programType=WITHOUT_REGISTRATION" )
             .add( "filter=categoryCombo.code:!eq:default" )
