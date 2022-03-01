@@ -76,6 +76,7 @@ public abstract class VectorFunction
 
         Object result = visitor.visitExpr( ctx.expr().get( ctx.expr().size() - 1 ) );
 
+        info.setSampleItemIds( info.getItemIds() );
         info.setItemIds( savedItemIds );
 
         return castDouble( result );

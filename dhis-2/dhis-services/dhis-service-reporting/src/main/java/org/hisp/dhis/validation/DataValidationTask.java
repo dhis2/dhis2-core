@@ -497,12 +497,10 @@ public class DataValidationTask
                 values.putAll( nonAocValues );
             }
 
-            Double value = castDouble( expressionService.getExpressionValue( ExpressionParams.builder()
+            Double value = castDouble( expressionService.getExpressionValue( context.getBaseExParams().toBuilder()
                 .expression( expression.getExpression() )
                 .parseType( VALIDATION_RULE_EXPRESSION )
-                .itemMap( context.getItemMap() )
                 .valueMap( values )
-                .orgUnitGroupMap( context.getOrgUnitGroupMap() )
                 .days( period.getDaysInPeriod() )
                 .missingValueStrategy( expression.getMissingValueStrategy() )
                 .orgUnit( orgUnit )
