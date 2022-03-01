@@ -544,15 +544,19 @@ public class DefaultPreheatService implements PreheatService
                     {
                         Collection<IdentifiableObject> reference = ReflectionUtils.invokeMethod( object,
                             p.getGetterMethod() );
-                        reference.forEach( identifiableObject -> addIdentifiers( map, identifiableObject ) );
 
-                        if ( DataElementOperand.class.isAssignableFrom( p.getItemKlass() ) )
+                        if ( reference != null )
                         {
-                            CollectionUtils.nullSafeForEach( reference, identifiableObject -> {
-                                DataElementOperand dataElementOperand = (DataElementOperand) identifiableObject;
-                                addIdentifiers( map, dataElementOperand.getDataElement() );
-                                addIdentifiers( map, dataElementOperand.getCategoryOptionCombo() );
-                            } );
+                            reference.forEach( identifiableObject -> addIdentifiers( map, identifiableObject ) );
+
+                            if ( DataElementOperand.class.isAssignableFrom( p.getItemKlass() ) )
+                            {
+                                CollectionUtils.nullSafeForEach( reference, identifiableObject -> {
+                                    DataElementOperand dataElementOperand = (DataElementOperand) identifiableObject;
+                                    addIdentifiers( map, dataElementOperand.getDataElement() );
+                                    addIdentifiers( map, dataElementOperand.getCategoryOptionCombo() );
+                                } );
+                            }
                         }
                     }
                 } );

@@ -325,7 +325,7 @@ public class UserController
         UserCredentialsDto userCredentialsRaw = user.getUserCredentialsRaw();
         if ( userCredentialsRaw != null )
         {
-            copyProperties( userCredentialsRaw, user, KEY_PASSWORD );
+            copyProperties( userCredentialsRaw, user, KEY_PASSWORD, "userRoles" );
             if ( userCredentialsRaw.getPassword() != null )
             {
                 user.setPassword( userCredentialsRaw.getPassword() );

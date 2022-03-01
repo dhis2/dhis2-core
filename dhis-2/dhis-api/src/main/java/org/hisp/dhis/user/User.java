@@ -1470,11 +1470,11 @@ public class User
     public UserCredentialsDto getUserCredentials()
     {
         UserCredentialsDto userCredentialsDto = new UserCredentialsDto();
-        copyProperties( this, userCredentialsDto, "userCredentials", "password" );
-        Set<UserRole> userRoles = this.getUserRoles();
-        if ( userRoles != null && !userRoles.isEmpty() )
+        copyProperties( this, userCredentialsDto, "userCredentials", "password", "userRoles" );
+        Set<UserRole> roles = this.getUserRoles();
+        if ( roles != null && !roles.isEmpty() )
         {
-            userCredentialsDto.setUserRoles( userRoles );
+            userCredentialsDto.setUserRoles( roles );
         }
         return userCredentialsDto;
     }

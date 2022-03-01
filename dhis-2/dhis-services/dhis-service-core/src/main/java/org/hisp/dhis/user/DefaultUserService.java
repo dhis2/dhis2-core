@@ -694,19 +694,22 @@ public class DefaultUserService
         boolean canGrantOwnUserRoles = systemSettingManager
             .getBoolSetting( SettingKey.CAN_GRANT_OWN_USER_ROLES );
 
-        List<UserRole> roles = userRoleStore.getByUid( user
-            .getUserRoles().stream().map( BaseIdentifiableObject::getUid ).collect( Collectors.toList() ) );
+        Set<UserRole> userRoles = user.getUserRoles();
 
-        roles.forEach( ur -> {
-            if ( !currentUser.canIssueUserRole( ur, canGrantOwnUserRoles ) )
-            {
-                errors.add( new ErrorReport( UserRole.class, ErrorCode.E3003, currentUser.getUsername(),
-                    ur.getName() ) );
-            }
-        } );
+        if ( userRoles != null )
+        {
+            List<UserRole> roles = userRoleStore.getByUid(
+                userRoles.stream().map( BaseIdentifiableObject::getUid ).collect( Collectors.toList() ) );
+            roles.forEach( ur -> {
+                if ( !currentUser.canIssueUserRole( ur, canGrantOwnUserRoles ) )
+                {
+                    errors.add( new ErrorReport( UserRole.class, ErrorCode.E3003, currentUser.getUsername(),
+                        ur.getName() ) );
+                }
+            } );
+        }
 
         // Validate user group
-
         boolean canAdd = currentUser.isAuthorized( UserGroup.AUTH_USER_ADD );
 
         if ( canAdd )
