@@ -1,41 +1,4 @@
 {
-  "categories": [
-    {
-      "code": "TA_CATEGORY_ATTRIBUTE",
-      "created": "2022-01-07T14:55:50.486",
-      "lastUpdated": "2022-01-07T14:55:57.359",
-      "name": "TA Category attribute",
-      "id": "saPUs0jjtP0",
-      "shortName": "TA Category attribute",
-      "dataDimensionType": "ATTRIBUTE",
-      "dataDimension": true,
-      "sharing": {
-        "owner": "M5zQapPyTZI",
-        "userGroups": {},
-        "external": false,
-        "public": "rwrw------",
-        "users": {}
-      },
-      "categoryOptions": [
-        {
-          "id": "fjvZIRlTBrp"
-        }
-      ],
-      "categoryCombos": [
-        {
-          "id": "p0bh43XdKy5"
-        }
-      ],
-      "userGroupAccesses": [],
-      "attributeValues": [],
-      "userAccesses": [],
-      "items": [
-        {
-          "id": "fjvZIRlTBrp"
-        }
-      ]
-    }
-  ],
   "categoryCombos": [
     {
       "id": "p0bh43XdKy5",
@@ -47,7 +10,7 @@
         "owner": "M5zQapPyTZI",
         "userGroups": {},
         "external": false,
-        "public": "rwrw----",
+        "public": "rw------",
         "users": {}
       },
       "translations": [],
@@ -82,6 +45,47 @@
       "categoryOptions": [
         {
           "id": "xYerKDKCefk"
+        }
+      ]
+    }
+  ],
+  "categories": [
+    {
+      "code": "TA_CATEGORY_ATTRIBUTE",
+      "created": "2022-01-07T14:55:50.486",
+      "lastUpdated": "2022-01-07T14:55:57.359",
+      "name": "TA Category attribute",
+      "id": "saPUs0jjtP0",
+      "shortName": "TA Category attribute",
+      "dataDimensionType": "ATTRIBUTE",
+      "dataDimension": true,
+      "sharing": {
+        "owner": "M5zQapPyTZI",
+        "userGroups": {},
+        "external": false,
+        "public": "rw------",
+        "users": {}
+      },
+      "categoryOptions": [
+        {
+          "id": "fjvZIRlTBrp",
+          "name": "category option A",
+          "code": "CATOPT_A"
+        }
+      ],
+      "categoryCombos": [
+        {
+          "id": "p0bh43XdKy5"
+        }
+      ],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": [],
+      "items": [
+        {
+          "id": "fjvZIRlTBrp",
+          "name": "category option A",
+          "code": "CATOPT_A"
         }
       ]
     }
