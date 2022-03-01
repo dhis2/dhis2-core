@@ -161,13 +161,11 @@ public class DataValueController
     @PreAuthorize( "hasRole('ALL') or hasRole('F_DATAVALUE_ADD')" )
     @PostMapping( consumes = "application/json" )
     @ResponseStatus( HttpStatus.CREATED )
-    public WebMessage saveDataValueWithBody( @RequestBody DataValueDto dataValue,
+    public void saveDataValueWithBody( @RequestBody DataValueDto dataValue,
         @CurrentUser User currentUser, HttpServletResponse response )
         throws WebMessageException
     {
         saveDataValueInternal( dataValue, currentUser );
-
-        return new WebMessage( Status.OK, HttpStatus.CREATED );
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_DATAVALUE_ADD')" )
