@@ -53,17 +53,15 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.datavalue.DataValue;
+import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorService;
 import org.hisp.dhis.indicator.IndicatorType;
-import org.hisp.dhis.jdbc.batchhandler.DataValueBatchHandler;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.scheduling.NoopJobProgress;
-import org.hisp.quick.BatchHandler;
-import org.hisp.quick.BatchHandlerFactory;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -91,6 +89,9 @@ class AnalyticsServiceSubExpressionTest
     private PeriodService periodService;
 
     @Autowired
+    private DataValueService dataValueService;
+
+    @Autowired
     private AnalyticsTableGenerator analyticsTableGenerator;
 
     @Autowired
@@ -98,9 +99,6 @@ class AnalyticsServiceSubExpressionTest
 
     @Autowired
     private IndicatorService indicatorService;
-
-    @Autowired
-    private BatchHandlerFactory batchHandlerFactory;
 
     private Period perA;
 
@@ -169,13 +167,10 @@ class AnalyticsServiceSubExpressionTest
         indicatorA.setDenominator( "1" );
         indicatorService.addIndicator( indicatorA );
 
-        BatchHandler<DataValue> handler = batchHandlerFactory.createBatchHandler(
-            DataValueBatchHandler.class ).init();
-        handler.addObject( newDataValue( deA, perA, ouB, cocA, aocA, "1" ) );
-        handler.addObject( newDataValue( deA, perA, ouC, cocB, aocA, "2" ) );
-        handler.addObject( newDataValue( deB, perA, ouB, cocA, aocA, "B" ) );
-        handler.addObject( newDataValue( deB, perA, ouC, cocB, aocA, "C" ) );
-        handler.flush();
+        dataValueService.addDataValue( newDataValue( deA, perA, ouB, cocA, aocA, "1" ) );
+        dataValueService.addDataValue( newDataValue( deA, perA, ouC, cocB, aocA, "2" ) );
+        dataValueService.addDataValue( newDataValue( deB, perA, ouB, cocA, aocA, "B" ) );
+        dataValueService.addDataValue( newDataValue( deB, perA, ouC, cocB, aocA, "C" ) );
 
         // Wait before generating analytics tables
         Thread.sleep( 1000 );
