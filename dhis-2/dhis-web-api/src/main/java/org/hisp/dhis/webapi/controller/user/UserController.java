@@ -32,6 +32,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importReport;
+import static org.springframework.beans.BeanUtils.copyProperties;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 import static org.springframework.http.MediaType.TEXT_XML_VALUE;
@@ -82,6 +83,8 @@ import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserAuthorityGroup;
+import org.hisp.dhis.user.UserCredentialsDto;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserInvitationStatus;
 import org.hisp.dhis.user.UserQueryParams;
@@ -306,11 +309,32 @@ public class UserController
     private WebMessage postObject( User user )
         throws WebMessageException
     {
+        populateUserCredentialsDtoFields( user );
+
         User currentUser = currentUserService.getCurrentUser();
 
         validateCreateUser( user, currentUser );
 
         return postObject( getObjectReport( createUser( user, currentUser ) ) );
+    }
+
+    private void populateUserCredentialsDtoFields( User user )
+    {
+        UserCredentialsDto userCredentialsRaw = user.getUserCredentialsRaw();
+        if ( userCredentialsRaw != null )
+        {
+            copyProperties( userCredentialsRaw, user, KEY_PASSWORD );
+            if ( userCredentialsRaw.getPassword() != null )
+            {
+                user.setPassword( userCredentialsRaw.getPassword() );
+            }
+
+            Set<UserAuthorityGroup> userRoles = userCredentialsRaw.getUserRoles();
+            if ( userRoles != null )
+            {
+                user.setUserAuthorityGroups( userRoles );
+            }
+        }
     }
 
     @PostMapping( value = INVITE_PATH, consumes = APPLICATION_JSON_VALUE )
@@ -579,6 +603,8 @@ public class UserController
     {
         User parsed = renderService.fromJson( request.getInputStream(), getEntityClass() );
 
+        populateUserCredentialsDtoFields( parsed );
+
         return importReport( updateUser( pvUid, parsed ) )
             .withPlainResponseBefore( DhisApiVersion.V38 );
     }
@@ -659,9 +685,8 @@ public class UserController
         }
 
         List<String> uids = getUids( parsed.getGroups() );
-        userGroupService.updateUserGroups( parsed, uids, currentUser );
-        log.info( "Updated user groups for user: " + user.getUid() );
 
+        userGroupService.updateUserGroups( user, uids, currentUser );
     }
 
     // -------------------------------------------------------------------------
@@ -889,6 +914,7 @@ public class UserController
      *
      * @param uid the unique id of the user to enable or disable
      * @param disable boolean value, true for disable, false for enable
+     *
      * @throws WebMessageException thrown if "current" user is not allowed to
      *         modify the user
      */

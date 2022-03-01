@@ -187,7 +187,7 @@ class DeduplicationServiceMergeIntegrationTest extends IntegrationTestBase
     private Sharing getUserSharing( User user, String accessStringHelper )
     {
         UserGroup userGroup = new UserGroup();
-        userGroup.setAutoFields();
+        userGroup.setName( "UserGroupA" );
         user.getGroups().add( userGroup );
         Map<String, org.hisp.dhis.user.sharing.UserAccess> userSharing = new HashMap<>();
         userSharing.put( user.getUid(), new org.hisp.dhis.user.sharing.UserAccess( user, AccessStringHelper.DEFAULT ) );

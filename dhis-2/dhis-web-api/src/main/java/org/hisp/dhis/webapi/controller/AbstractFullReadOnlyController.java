@@ -31,6 +31,7 @@ import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.springframework.http.CacheControl.noCache;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -59,8 +60,10 @@ import org.hisp.dhis.query.Pagination;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.query.QueryService;
+import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -74,13 +77,18 @@ import org.hisp.dhis.webapi.utils.PaginationUtils;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.client.HttpClientErrorException;
 
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.dataformat.csv.CsvMapper;
+import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 
@@ -233,6 +241,92 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
         jsonRoot.setProperty( getSchema().getCollectionName(), objectNodes );
 
         return ResponseEntity.ok( jsonRoot );
+    }
+
+    @GetMapping( produces = "application/csv" )
+    public void getObjectListCsv(
+        @RequestParam Map<String, String> rpParameters, OrderParams orderParams,
+        @CurrentUser User currentUser,
+        @RequestParam( defaultValue = "," ) char separator,
+        @RequestParam( defaultValue = "false" ) boolean skipHeader,
+        HttpServletResponse response )
+        throws IOException
+    {
+        List<Order> orders = orderParams.getOrders( getSchema() );
+        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
+        List<String> filters = Lists.newArrayList( contextService.getParameterValues( "filter" ) );
+
+        WebOptions options = new WebOptions( rpParameters );
+        WebMetadata metadata = new WebMetadata();
+
+        if ( fields.isEmpty() )
+        {
+            fields.addAll( Preset.defaultPreset().getFields() );
+        }
+
+        // only support metadata
+        if ( !getSchema().isMetadata() )
+        {
+            throw new HttpClientErrorException( HttpStatus.NOT_FOUND );
+        }
+
+        if ( !aclService.canRead( currentUser, getEntityClass() ) )
+        {
+            throw new ReadAccessDeniedException(
+                "You don't have the proper permissions to read objects of this type." );
+        }
+
+        List<T> entities = getEntityList( metadata, options, filters, orders );
+
+        CsvSchema schema;
+        CsvSchema.Builder schemaBuilder = CsvSchema.builder();
+        List<Property> properties = new ArrayList<>();
+
+        for ( String field : fields )
+        {
+            // We just split on ',' here, we do not try and deep dive into
+            // objects using [], if the client provides id,name,group[id]
+            // then the group[id] part is simply ignored.
+            for ( String splitField : field.split( "," ) )
+            {
+                Property property = getSchema().getProperty( splitField );
+
+                if ( property == null || !property.isSimple() )
+                {
+                    continue;
+                }
+
+                schemaBuilder.addColumn( property.getName() );
+                properties.add( property );
+            }
+        }
+
+        schema = schemaBuilder.build()
+            .withColumnSeparator( separator );
+
+        if ( !skipHeader )
+        {
+            schema = schema.withHeader();
+        }
+
+        CsvMapper csvMapper = new CsvMapper();
+        csvMapper.configure( JsonGenerator.Feature.IGNORE_UNKNOWN, true );
+
+        List<Map<String, Object>> csvObjects = entities.stream().map( e -> {
+            Map<String, Object> map = new HashMap<>();
+
+            for ( Property property : properties )
+            {
+                Object value = ReflectionUtils.invokeMethod( e, property.getGetterMethod() );
+                map.put( property.getName(), value );
+            }
+
+            return map;
+        } )
+            .collect( toList() );
+
+        csvMapper.writer( schema ).writeValue( response.getWriter(), csvObjects );
+        response.flushBuffer();
     }
 
     @GetMapping( "/{uid}" )

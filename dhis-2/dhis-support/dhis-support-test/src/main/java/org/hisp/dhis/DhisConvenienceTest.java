@@ -2423,15 +2423,15 @@ public abstract class DhisConvenienceTest
     {
         checkUserServiceWasInjected();
 
-        UserAuthorityGroup group = createAuthorityGroup( username, authorities );
-        userService.addUserAuthorityGroup( group );
+        UserAuthorityGroup userRole = createAuthorityGroup( username, authorities );
+        userService.addUserAuthorityGroup( userRole );
 
         boolean present = uid.isPresent();
         User user = present ? createUser( username, uid.get() ) : createUser( username );
         user.setEmail( username + "@dhis2.org" );
         user.setUsername( username );
         user.setOpenId( openIDIdentifier );
-        user.getUserAuthorityGroups().add( group );
+        user.getUserAuthorityGroups().add( userRole );
 
         if ( !Strings.isNullOrEmpty( openIDIdentifier ) )
         {

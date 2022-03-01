@@ -39,6 +39,7 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.domain.mapper.TrackedEntityMapper;
 import org.hisp.dhis.webapi.controller.event.mapper.TrackedEntityCriteriaMapper;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
 import org.hisp.dhis.webapi.controller.event.webrequest.tracker.TrackerTrackedEntityCriteria;

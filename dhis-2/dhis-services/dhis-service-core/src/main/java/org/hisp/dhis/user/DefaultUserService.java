@@ -42,6 +42,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
@@ -81,6 +83,8 @@ import com.google.common.collect.Lists;
 public class DefaultUserService
     implements UserService
 {
+    private Pattern BCRYPT_PATTERN = Pattern.compile( "\\A\\$2(a|y|b)?\\$(\\d\\d)\\$[./0-9A-Za-z]{53}" );
+
     private static final int EXPIRY_THRESHOLD = 14;
 
     // -------------------------------------------------------------------------
@@ -561,9 +565,15 @@ public class DefaultUserService
         }
 
         // Encode and set password
+        Matcher matcher = this.BCRYPT_PATTERN.matcher( rawPassword );
+        if ( matcher.matches() )
+        {
+            throw new IllegalArgumentException( "Raw password look like BCrypt: " + rawPassword );
+        }
 
-        user.setPassword( passwordManager.encode( rawPassword ) );
-        user.getPreviousPasswords().add( passwordManager.encode( rawPassword ) );
+        String encode = passwordManager.encode( rawPassword );
+        user.setPassword( encode );
+        user.getPreviousPasswords().add( encode );
     }
 
     @Override
