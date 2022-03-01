@@ -41,8 +41,10 @@ import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
 import static org.hisp.dhis.common.DimensionItemType.PROGRAM_INDICATOR;
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
+import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.system.util.MathUtils.getRounded;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -62,11 +64,13 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.InQueryFilter;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryRuntimeException;
 import org.hisp.dhis.common.Reference;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jdbc.StatementBuilder;
@@ -777,6 +781,63 @@ public abstract class AbstractJdbcEventAnalyticsManager
         {
             grid.addValue( StringUtils.trimToNull( sqlRowSet.getString( index ) ) );
         }
+    }
+
+    /**
+     * Return SQL string bnased on Items a its params
+     *
+     * @param params a {@see EventQueryParams}
+     * @param hlp a {@see SqlHelper}
+     */
+    protected String getItemsSql( EventQueryParams params, SqlHelper hlp )
+    {
+        List<String> repeatableStagesSqlList = new ArrayList<>();
+
+        StringBuilder sbItemsSql = new StringBuilder();
+
+        params.getItems()
+            .stream()
+            .filter( QueryItem::hasFilter )
+            .forEach( item -> item.getFilters()
+                .forEach( filter -> {
+                    String field = getSelectSql( filter, item, params.getEarliestStartDate(),
+                        params.getLatestEndDate() );
+
+                    if ( IN.equals( filter.getOperator() ) )
+                    {
+                        InQueryFilter inQueryFilter = new InQueryFilter( field,
+                            statementBuilder.encode( filter.getFilter(), false ), item.isText() );
+                        sbItemsSql.append( hlp.whereAnd() )
+                            .append( " " )
+                            .append( inQueryFilter.getSqlFilter() );
+                    }
+                    else if ( item.hasRepeatableStageParams() )
+                    {
+                        repeatableStagesSqlList.add( field + " " + filter.getSqlOperator() + " "
+                            + getSqlFilter( filter, item ) );
+                    }
+                    else
+                    {
+                        sbItemsSql.append( hlp.whereAnd() )
+                            .append( " " )
+                            .append( field )
+                            .append( " " )
+                            .append( filter.getSqlOperator() )
+                            .append( " " )
+                            .append( getSqlFilter( filter, item ) )
+                            .append( " " );
+                    }
+                } ) );
+
+        if ( !repeatableStagesSqlList.isEmpty() )
+        {
+            sbItemsSql.append( hlp.whereAnd() )
+                .append( " (" )
+                .append( String.join( " or ", repeatableStagesSqlList ) )
+                .append( ")" );
+        }
+
+        return sbItemsSql.toString();
     }
 
     /**
