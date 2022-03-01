@@ -43,7 +43,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Relationship;
@@ -122,11 +121,6 @@ public class TrackerImportValidationContext
     public boolean programInstanceHasEvents( String programInstanceUid )
     {
         return bundle.getPreheat().getProgramInstanceWithOneOrMoreNonDeletedEvent().contains( programInstanceUid );
-    }
-
-    public Optional<TrackedEntityComment> getNote( String uid )
-    {
-        return bundle.getPreheat().getNote( uid );
     }
 
     public ProgramStage getProgramStage( String id )

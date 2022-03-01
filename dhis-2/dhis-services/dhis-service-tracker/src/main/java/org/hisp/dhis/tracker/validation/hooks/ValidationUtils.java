@@ -46,6 +46,7 @@ import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Note;
 import org.hisp.dhis.tracker.domain.TrackerDto;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
@@ -95,6 +96,7 @@ public class ValidationUtils
         List<Note> notesToCheck )
     {
         TrackerImportValidationContext context = reporter.getValidationContext();
+        TrackerPreheat preheat = context.getBundle().getPreheat();
 
         final List<Note> notes = new ArrayList<>();
         for ( Note note : notesToCheck )
@@ -103,7 +105,7 @@ public class ValidationUtils
             {
                 // If a note having the same UID already exist in the db, raise
                 // warning, ignore the note and continue
-                if ( isNotEmpty( note.getNote() ) && context.getNote( note.getNote() ).isPresent() )
+                if ( isNotEmpty( note.getNote() ) && preheat.getNote( note.getNote() ).isPresent() )
                 {
                     TrackerWarningReport warning = TrackerWarningReport.builder()
                         .uid( dto.getUid() )
