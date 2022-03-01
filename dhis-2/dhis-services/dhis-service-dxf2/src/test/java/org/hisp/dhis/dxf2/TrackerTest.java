@@ -83,7 +83,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAuthorityGroup;
+import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -410,11 +410,11 @@ public abstract class TrackerTest extends IntegrationTestBase
 
     protected void makeUserSuper( User user )
     {
-        UserAuthorityGroup group = new UserAuthorityGroup();
+        UserRole group = new UserRole();
         group.setName( "Super" );
         group.setUid( "uid4" );
         group
-            .setAuthorities( new HashSet<>( Arrays.asList( "z1", UserAuthorityGroup.AUTHORITY_ALL ) ) );
-        user.setUserAuthorityGroups( Sets.newHashSet( group ) );
+            .setAuthorities( new HashSet<>( Arrays.asList( "z1", UserRole.AUTHORITY_ALL ) ) );
+        user.setUserRoles( Sets.newHashSet( group ) );
     }
 }

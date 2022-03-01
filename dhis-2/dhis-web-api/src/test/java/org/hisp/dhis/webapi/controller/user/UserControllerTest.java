@@ -59,9 +59,9 @@ import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
+import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -216,7 +216,7 @@ class UserControllerTest
         addUserTo( user );
         addUserTo( currentUser );
         // make current user have ALL authority
-        setUpUserAuthority( currentUser, UserAuthorityGroup.AUTHORITY_ALL );
+        setUpUserAuthority( currentUser, UserRole.AUTHORITY_ALL );
         // allow any change
         when( aclService.canUpdate( any(), any() ) ).thenReturn( true );
         when( userService.canAddOrUpdateUser( any(), any() ) ).thenReturn( true );
@@ -268,7 +268,7 @@ class UserControllerTest
     {
         setUpUserExpireScenarios();
         // executing user has no authorities
-        currentUser.setUserAuthorityGroups( emptySet() );
+        currentUser.setUserRoles( emptySet() );
         // changed user does have an authority
         setUpUserAuthority( user, "whatever" );
 
@@ -305,9 +305,9 @@ class UserControllerTest
 
     private void setUpUserAuthority( User user, String authority )
     {
-        UserAuthorityGroup suGroup = new UserAuthorityGroup();
+        UserRole suGroup = new UserRole();
         suGroup.setAuthorities( singleton( authority ) );
-        user.setUserAuthorityGroups( singleton( suGroup ) );
+        user.setUserRoles( singleton( suGroup ) );
     }
 
     private void assertUserUpdatedWithAccountExpiry( Date accountExpiry )

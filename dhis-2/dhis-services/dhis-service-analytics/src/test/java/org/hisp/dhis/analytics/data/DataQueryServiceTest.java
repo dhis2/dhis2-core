@@ -89,7 +89,7 @@ import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAuthorityGroup;
+import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.visualization.Visualization;
 import org.junit.jupiter.api.Disabled;
@@ -298,11 +298,11 @@ class DataQueryServiceTest extends DhisSpringTest
         // ---------------------------------------------------------------------
         // Inject user
         // ---------------------------------------------------------------------
-        UserAuthorityGroup role = createUserAuthorityGroup( 'A', "ALL" );
-        userService.addUserAuthorityGroup( role );
+        UserRole role = createUserRole( 'A', "ALL" );
+        userService.addUserRole( role );
         User user = createUser( 'A' );
         user.addOrganisationUnit( ouA );
-        user.getUserAuthorityGroups().add( role );
+        user.getUserRoles().add( role );
         saveAndInjectUserSecurityContext( user );
     }
 

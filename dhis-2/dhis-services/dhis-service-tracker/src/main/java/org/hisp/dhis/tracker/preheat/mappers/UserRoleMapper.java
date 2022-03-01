@@ -25,42 +25,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.user.hibernate;
+package org.hisp.dhis.tracker.preheat.mappers;
 
-import org.hibernate.SessionFactory;
-import org.hibernate.query.Query;
-import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.UserAuthorityGroup;
-import org.hisp.dhis.user.UserAuthorityGroupStore;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
+import org.hisp.dhis.user.UserRole;
+import org.mapstruct.BeanMapping;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.factory.Mappers;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-@Repository( "org.hisp.dhis.user.UserAuthorityGroupStore" )
-public class HibernateUserAuthorityGroupStore
-    extends HibernateIdentifiableObjectStore<UserAuthorityGroup>
-    implements UserAuthorityGroupStore
+@Mapper( uses = { DebugMapper.class, UserGroupMapper.class } )
+public interface UserRoleMapper extends PreheatMapper<UserRole>
 {
-    public HibernateUserAuthorityGroupStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, UserAuthorityGroup.class, currentUserService, aclService,
-            true );
-    }
+    UserRoleMapper INSTANCE = Mappers.getMapper( UserRoleMapper.class );
 
-    @Override
-    public int countDataSetUserAuthorityGroups( DataSet dataSet )
-    {
-        Query<Long> query = getTypedQuery(
-            "select count(distinct c) from UserAuthorityGroup c where :dataSet in elements(c.dataSets)" );
-        query.setParameter( "dataSet", dataSet );
-
-        return query.getSingleResult().intValue();
-    }
+    @BeanMapping( ignoreByDefault = true )
+    @Mapping( target = "id" )
+    @Mapping( target = "uid" )
+    @Mapping( target = "authorities" )
+    UserRole map( UserRole userGroupAccess );
 }

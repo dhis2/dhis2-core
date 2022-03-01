@@ -25,38 +25,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.system.filter;
+package org.hisp.dhis.user;
 
-import org.hisp.dhis.commons.filter.Filter;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAuthorityGroup;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Lars Helge Overland
  */
-public class UserAuthorityGroupCanIssueFilter
-    implements Filter<UserAuthorityGroup>
+@Component( "org.hisp.dhis.user.UserRoleDeletionHandler" )
+public class UserRoleDeletionHandler
+    extends DeletionHandler
 {
-    private User user;
+    private final UserService userService;
 
-    private boolean canGrantOwnUserAuthorityGroups = false;
-
-    protected UserAuthorityGroupCanIssueFilter()
+    public UserRoleDeletionHandler( UserService userService )
     {
-    }
+        checkNotNull( userService );
 
-    public UserAuthorityGroupCanIssueFilter( User user, boolean canGrantOwnUserAuthorityGroups )
-    {
-        if ( user != null )
-        {
-            this.user = user;
-            this.canGrantOwnUserAuthorityGroups = canGrantOwnUserAuthorityGroups;
-        }
+        this.userService = userService;
     }
 
     @Override
-    public boolean retain( UserAuthorityGroup group )
+    protected void register()
     {
-        return user != null && user.canIssueUserRole( group, canGrantOwnUserAuthorityGroups );
+        whenDeleting( User.class, this::deleteUser );
+    }
+
+    private void deleteUser( User user )
+    {
+        for ( UserRole group : user.getUserRoles() )
+        {
+            group.getMembers().remove( user );
+            userService.updateUserRole( group );
+        }
     }
 }
