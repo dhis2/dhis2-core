@@ -33,7 +33,6 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
 /**
  * @author Lars Helge Overland
@@ -57,7 +56,6 @@ public class DataValueDto
     private String categoryOptionCombo;
 
     @JsonProperty
-    @JacksonXmlProperty
     private DataValueCategoryDto attribute;
 
     @JsonProperty
