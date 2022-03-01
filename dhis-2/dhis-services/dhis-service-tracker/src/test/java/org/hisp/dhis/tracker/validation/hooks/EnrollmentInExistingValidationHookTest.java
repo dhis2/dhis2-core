@@ -52,7 +52,6 @@ import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
-import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -67,9 +66,6 @@ class EnrollmentInExistingValidationHookTest
 {
 
     private EnrollmentInExistingValidationHook hookToTest;
-
-    @Mock
-    private TrackerImportValidationContext validationContext;
 
     @Mock
     Enrollment enrollment;
@@ -105,17 +101,15 @@ class EnrollmentInExistingValidationHookTest
         when( enrollment.getUid() ).thenReturn( enrollmentUid );
         when( enrollment.getTrackerType() ).thenCallRealMethod();
 
-        when( validationContext.getTrackedEntityInstance( trackedEntity ) ).thenReturn( trackedEntityInstance );
+        when( bundle.getTrackedEntityInstance( trackedEntity ) ).thenReturn( trackedEntityInstance );
         when( trackedEntityInstance.getUid() ).thenReturn( trackedEntity );
-
-        when( validationContext.getBundle() ).thenReturn( bundle );
 
         Program program = new Program();
         program.setOnlyEnrollOnce( false );
         program.setUid( programUid );
 
         when( preheat.getProgram( programUid ) ).thenReturn( program );
-        reporter = new ValidationErrorReporter( validationContext );
+        reporter = new ValidationErrorReporter( bundle );
     }
 
     @Test

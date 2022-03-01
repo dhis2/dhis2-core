@@ -60,7 +60,7 @@ public class AssignedUserValidationHook
 
     private Boolean isNotEnabledUserAssignment( ValidationErrorReporter reporter, Event event )
     {
-        Boolean userAssignmentEnabled = reporter.getValidationContext().getBundle().getPreheat()
+        Boolean userAssignmentEnabled = reporter.getBundle().getPreheat()
             .getProgramStage( event.getProgramStage() )
             .isEnableUserAssignment();
 
@@ -70,7 +70,7 @@ public class AssignedUserValidationHook
 
     private boolean assignedUserNotPresentInPreheat( ValidationErrorReporter reporter, Event event )
     {
-        return reporter.getValidationContext().getBundle().getPreheat().get( User.class,
+        return reporter.getBundle().getPreheat().get( User.class,
             event.getAssignedUser() ) == null;
     }
 

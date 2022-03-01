@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.validation;
 
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 
 /**
@@ -34,5 +35,5 @@ import org.hisp.dhis.tracker.report.ValidationErrorReporter;
  */
 public interface TrackerValidationHook
 {
-    void validate( ValidationErrorReporter report, TrackerImportValidationContext bundle );
+    void validate( ValidationErrorReporter report, TrackerBundle bundle );
 }

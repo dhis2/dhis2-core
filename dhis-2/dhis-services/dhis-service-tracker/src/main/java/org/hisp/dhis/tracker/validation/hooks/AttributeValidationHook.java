@@ -46,7 +46,6 @@ import org.hisp.dhis.tracker.preheat.UniqueAttributeValue;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
-import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.tracker.validation.service.attribute.TrackedAttributeValidationService;
 
 /**
@@ -62,7 +61,7 @@ public abstract class AttributeValidationHook extends AbstractTrackerDtoValidati
         this.teAttrService = teAttrService;
     }
 
-    protected void validateAttrValueType( ValidationErrorReporter errorReporter, TrackerDto dto, Attribute attr,
+    protected void validateAttrValueType( ValidationErrorReporter reporter, TrackerDto dto, Attribute attr,
         TrackedEntityAttribute teAttr )
     {
         checkNotNull( attr, ATTRIBUTE_CANT_BE_NULL );
@@ -70,19 +69,17 @@ public abstract class AttributeValidationHook extends AbstractTrackerDtoValidati
 
         ValueType valueType = teAttr.getValueType();
 
-        TrackerImportValidationContext context = errorReporter.getValidationContext();
-
         String error;
 
         if ( valueType.equals( ValueType.ORGANISATION_UNIT ) )
         {
-            error = context.getBundle().getPreheat().getOrganisationUnit( attr.getValue() ) == null
+            error = reporter.getBundle().getPreheat().getOrganisationUnit( attr.getValue() ) == null
                 ? " Value " + attr.getValue() + " is not a valid org unit value"
                 : null;
         }
         else if ( valueType.equals( ValueType.USERNAME ) )
         {
-            error = usernameExists( context.getBundle().getPreheat(), attr.getValue() ) ? null
+            error = usernameExists( reporter.getBundle().getPreheat(), attr.getValue() ) ? null
                 : " Value " + attr.getValue() + " is not a valid username value";
         }
         else
@@ -103,7 +100,7 @@ public abstract class AttributeValidationHook extends AbstractTrackerDtoValidati
 
         if ( error != null )
         {
-            TrackerBundle bundle = context.getBundle();
+            TrackerBundle bundle = reporter.getBundle();
             TrackerErrorReport err = TrackerErrorReport.builder()
                 .uid( dto.getUid() )
                 .trackerType( dto.getTrackerType() )
@@ -111,11 +108,11 @@ public abstract class AttributeValidationHook extends AbstractTrackerDtoValidati
                 .addArg( valueType.toString() )
                 .addArg( error )
                 .build( bundle );
-            errorReporter.addError( err );
+            reporter.addError( err );
         }
     }
 
-    protected void validateAttributeUniqueness( ValidationErrorReporter errorReporter,
+    protected void validateAttributeUniqueness( ValidationErrorReporter reporter,
         TrackerDto dto,
         String value,
         TrackedEntityAttribute trackedEntityAttribute,
@@ -127,8 +124,8 @@ public abstract class AttributeValidationHook extends AbstractTrackerDtoValidati
         if ( Boolean.FALSE.equals( trackedEntityAttribute.isUnique() ) )
             return;
 
-        List<UniqueAttributeValue> uniqueAttributeValues = errorReporter
-            .getValidationContext().getBundle().getPreheat().getUniqueAttributeValues();
+        List<UniqueAttributeValue> uniqueAttributeValues = reporter
+            .getBundle().getPreheat().getUniqueAttributeValues();
 
         for ( UniqueAttributeValue uniqueAttributeValue : uniqueAttributeValues )
         {
@@ -147,7 +144,7 @@ public abstract class AttributeValidationHook extends AbstractTrackerDtoValidati
                 && hasTheSameValue
                 && isNotSameTei )
             {
-                TrackerBundle bundle = errorReporter.getValidationContext().getBundle();
+                TrackerBundle bundle = reporter.getBundle();
                 TrackerErrorReport err = TrackerErrorReport.builder()
                     .uid( dto.getUid() )
                     .trackerType( dto.getTrackerType() )
@@ -155,7 +152,7 @@ public abstract class AttributeValidationHook extends AbstractTrackerDtoValidati
                     .addArg( value )
                     .addArg( trackedEntityAttribute.getUid() )
                     .build( bundle );
-                errorReporter.addError( err );
+                reporter.addError( err );
                 return;
             }
         }

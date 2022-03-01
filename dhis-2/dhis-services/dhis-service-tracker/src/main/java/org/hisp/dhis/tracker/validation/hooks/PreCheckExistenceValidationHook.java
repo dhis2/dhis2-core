@@ -49,7 +49,6 @@ import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
-import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
 
 /**
@@ -62,10 +61,9 @@ public class PreCheckExistenceValidationHook
     @Override
     public void validateTrackedEntity( ValidationErrorReporter reporter, TrackedEntity trackedEntity )
     {
-        TrackerImportValidationContext context = reporter.getValidationContext();
-        TrackerImportStrategy importStrategy = context.getStrategy( trackedEntity );
+        TrackerImportStrategy importStrategy = reporter.getBundle().getStrategy( trackedEntity );
 
-        TrackedEntityInstance existingTe = context
+        TrackedEntityInstance existingTe = reporter.getBundle()
             .getTrackedEntityInstance( trackedEntity.getTrackedEntity() );
 
         // If the tracked entity is soft-deleted no operation is allowed
@@ -88,10 +86,9 @@ public class PreCheckExistenceValidationHook
     @Override
     public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
     {
-        TrackerImportValidationContext context = reporter.getValidationContext();
-        TrackerImportStrategy importStrategy = context.getStrategy( enrollment );
+        TrackerImportStrategy importStrategy = reporter.getBundle().getStrategy( enrollment );
 
-        ProgramInstance existingPi = context.getProgramInstance( enrollment.getEnrollment() );
+        ProgramInstance existingPi = reporter.getBundle().getProgramInstance( enrollment.getEnrollment() );
 
         // If the tracked entity is soft-deleted no operation is allowed
         if ( existingPi != null && existingPi.isDeleted() )
@@ -113,10 +110,9 @@ public class PreCheckExistenceValidationHook
     @Override
     public void validateEvent( ValidationErrorReporter reporter, Event event )
     {
-        TrackerImportValidationContext context = reporter.getValidationContext();
-        TrackerImportStrategy importStrategy = context.getStrategy( event );
+        TrackerImportStrategy importStrategy = reporter.getBundle().getStrategy( event );
 
-        ProgramStageInstance existingPsi = context.getProgramStageInstance( event.getEvent() );
+        ProgramStageInstance existingPsi = reporter.getBundle().getProgramStageInstance( event.getEvent() );
 
         // If the event is soft-deleted no operation is allowed
         if ( existingPsi != null && existingPsi.isDeleted() )
@@ -138,8 +134,7 @@ public class PreCheckExistenceValidationHook
     @Override
     public void validateRelationship( ValidationErrorReporter reporter, Relationship relationship )
     {
-        TrackerImportValidationContext context = reporter.getValidationContext();
-        TrackerBundle bundle = context.getBundle();
+        TrackerBundle bundle = reporter.getBundle();
         TrackerPreheat preheat = bundle.getPreheat();
         org.hisp.dhis.relationship.Relationship existingRelationship = preheat.getRelationship( bundle.getIdentifier(),
             relationship );

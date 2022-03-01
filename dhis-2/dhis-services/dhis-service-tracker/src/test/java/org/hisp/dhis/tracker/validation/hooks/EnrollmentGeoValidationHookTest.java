@@ -42,7 +42,6 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
-import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -67,19 +66,16 @@ class EnrollmentGeoValidationHookTest
     @Mock
     private TrackerPreheat preheat;
 
-    @Mock
-    private TrackerImportValidationContext validationContext;
+    private TrackerBundle bundle;
 
     @BeforeEach
     public void setUp()
     {
         hookToTest = new EnrollmentGeoValidationHook();
 
-        TrackerBundle bundle = TrackerBundle.builder()
+        bundle = TrackerBundle.builder()
             .preheat( preheat )
             .build();
-
-        when( validationContext.getBundle() ).thenReturn( bundle );
 
         Program program = new Program();
         program.setFeatureType( FeatureType.POINT );
@@ -94,7 +90,7 @@ class EnrollmentGeoValidationHookTest
         enrollment.setProgram( PROGRAM );
         enrollment.setGeometry( new GeometryFactory().createPoint() );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         // when
         this.hookToTest.validateEnrollment( reporter, enrollment );
@@ -111,7 +107,7 @@ class EnrollmentGeoValidationHookTest
         enrollment.setProgram( null );
         enrollment.setGeometry( new GeometryFactory().createPoint() );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         assertThrows( NullPointerException.class, () -> this.hookToTest.validateEnrollment( reporter, enrollment ) );
     }
@@ -125,7 +121,7 @@ class EnrollmentGeoValidationHookTest
         enrollment.setProgram( PROGRAM );
         enrollment.setGeometry( new GeometryFactory().createPoint() );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         // when
         Program program = new Program();
@@ -146,7 +142,7 @@ class EnrollmentGeoValidationHookTest
         enrollment.setProgram( PROGRAM );
         enrollment.setGeometry( new GeometryFactory().createPoint() );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         // when
         Program program = new Program();
@@ -168,7 +164,7 @@ class EnrollmentGeoValidationHookTest
         enrollment.setProgram( PROGRAM );
         enrollment.setGeometry( new GeometryFactory().createPoint() );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         // when
         Program program = new Program();

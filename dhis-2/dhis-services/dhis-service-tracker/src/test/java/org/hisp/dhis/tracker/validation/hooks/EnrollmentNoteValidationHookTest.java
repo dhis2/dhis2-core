@@ -49,7 +49,6 @@ import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Note;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
-import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -71,9 +70,7 @@ class EnrollmentNoteValidationHookTest
 
     private TrackerPreheat preheat;
 
-    private TrackerBundle trackerBundle;
-
-    private TrackerImportValidationContext ctx;
+    private TrackerBundle bundle;
 
     @BeforeEach
     public void setUp()
@@ -82,11 +79,9 @@ class EnrollmentNoteValidationHookTest
         enrollment = rnd.nextObject( Enrollment.class );
 
         preheat = mock( TrackerPreheat.class );
-        trackerBundle = mock( TrackerBundle.class );
-        ctx = mock( TrackerImportValidationContext.class );
-        when( ctx.getBundle() ).thenReturn( trackerBundle );
-        when( trackerBundle.getValidationMode() ).thenReturn( ValidationMode.FULL );
-        when( trackerBundle.getPreheat() ).thenReturn( preheat );
+        bundle = mock( TrackerBundle.class );
+        when( bundle.getValidationMode() ).thenReturn( ValidationMode.FULL );
+        when( bundle.getPreheat() ).thenReturn( preheat );
     }
 
     @Test
@@ -97,7 +92,7 @@ class EnrollmentNoteValidationHookTest
 
         when( preheat.getNote( note.getNote() ) ).thenReturn( Optional.of( new TrackedEntityComment() ) );
         enrollment.setNotes( Collections.singletonList( note ) );
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         // When
         this.hook.validateEnrollment( reporter, enrollment );
@@ -116,7 +111,7 @@ class EnrollmentNoteValidationHookTest
         // Given
         final Note note = rnd.nextObject( Note.class );
         note.setValue( null );
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         enrollment.setNotes( Collections.singletonList( note ) );
 
@@ -133,7 +128,7 @@ class EnrollmentNoteValidationHookTest
     {
         // Given
         final List<Note> notes = rnd.objects( Note.class, 5 ).collect( Collectors.toList() );
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         enrollment.setNotes( notes );
 

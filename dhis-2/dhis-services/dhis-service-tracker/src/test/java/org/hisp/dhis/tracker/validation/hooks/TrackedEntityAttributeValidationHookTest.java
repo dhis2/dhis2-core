@@ -54,7 +54,6 @@ import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.util.Constant;
-import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -79,21 +78,19 @@ class TrackedEntityAttributeValidationHookTest
     private TrackerPreheat preheat;
 
     @Mock
-    private TrackerImportValidationContext validationContext;
-
-    @Mock
     private DhisConfigurationProvider dhisConfigurationProvider;
 
     @Mock
     private TrackedEntityAttribute trackedEntityAttribute;
 
+    private TrackerBundle bundle;
+
     @BeforeEach
     public void setUp()
     {
-        TrackerBundle bundle = TrackerBundle.builder()
+        bundle = TrackerBundle.builder()
             .preheat( preheat )
             .build();
-        when( validationContext.getBundle() ).thenReturn( bundle );
         when( dhisConfigurationProvider.getEncryptionStatus() ).thenReturn( EncryptionStatus.OK );
     }
 
@@ -113,7 +110,7 @@ class TrackedEntityAttributeValidationHookTest
             .trackedEntityType( "trackedEntityType" )
             .build();
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
         trackedEntityAttributeValidationHook.validateTrackedEntity( reporter,
             trackedEntity );
 
@@ -150,7 +147,7 @@ class TrackedEntityAttributeValidationHookTest
 
         when( preheat.getTrackedEntityAttribute( anyString() ) ).thenReturn( contextAttribute );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
         trackedEntityAttributeValidationHook.validateTrackedEntity( reporter,
             trackedEntity );
 
@@ -171,7 +168,7 @@ class TrackedEntityAttributeValidationHookTest
 
         when( preheat.getTrackedEntityType( anyString() ) ).thenReturn( new TrackedEntityType() );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
         trackedEntityAttributeValidationHook.validateTrackedEntity( reporter,
             trackedEntity );
 
@@ -205,7 +202,7 @@ class TrackedEntityAttributeValidationHookTest
         when( preheat.getTrackedEntityType( tet ) ).thenReturn( trackedEntityType );
         when( preheat.getTrackedEntityAttribute( tea ) ).thenReturn( trackedEntityAttribute );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
         trackedEntityAttributeValidationHook.validateTrackedEntity( reporter,
             trackedEntity );
 
@@ -218,7 +215,7 @@ class TrackedEntityAttributeValidationHookTest
     @Test
     void shouldFailValueTooLong()
     {
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         when( trackedEntityAttribute.getValueType() ).thenReturn( ValueType.TEXT );
 
@@ -243,7 +240,7 @@ class TrackedEntityAttributeValidationHookTest
     @Test
     void shouldFailDataValueIsValid()
     {
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         when( trackedEntityAttribute.getValueType() ).thenReturn( ValueType.NUMBER );
 
@@ -271,7 +268,7 @@ class TrackedEntityAttributeValidationHookTest
 
         when( preheat.getTrackedEntityAttribute( anyString() ) ).thenReturn( trackedEntityAttribute );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
         TrackedEntity te = TrackedEntity.builder().trackedEntity( CodeGenerator.generateUid() ).build();
         trackedEntityAttributeValidationHook.validateAttributeValue( reporter, te,
             trackedEntityAttribute, "value" );
@@ -297,7 +294,7 @@ class TrackedEntityAttributeValidationHookTest
             .trackedEntityType( "trackedEntityType" )
             .build();
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
         trackedEntityAttributeValidationHook.validateTrackedEntity( reporter,
             trackedEntity );
 
@@ -321,7 +318,7 @@ class TrackedEntityAttributeValidationHookTest
             .trackedEntityType( "trackedEntityType" )
             .build();
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
         trackedEntityAttributeValidationHook.validateTrackedEntity( reporter,
             trackedEntity );
 
@@ -352,7 +349,7 @@ class TrackedEntityAttributeValidationHookTest
             .trackedEntityType( "trackedEntityType" )
             .build();
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
         trackedEntityAttributeValidationHook.validateTrackedEntity( reporter,
             trackedEntity );
 
@@ -385,7 +382,7 @@ class TrackedEntityAttributeValidationHookTest
 
         when( preheat.getTrackedEntityType( anyString() ) ).thenReturn( trackedEntityType );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
         trackedEntityAttributeValidationHook.validateTrackedEntity( reporter,
             trackedEntity );
 

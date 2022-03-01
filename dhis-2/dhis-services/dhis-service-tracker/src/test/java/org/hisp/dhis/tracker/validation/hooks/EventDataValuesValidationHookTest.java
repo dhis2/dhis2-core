@@ -54,7 +54,6 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
-import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -74,22 +73,20 @@ class EventDataValuesValidationHookTest
     @Mock
     TrackerPreheat preheat;
 
-    @Mock
-    private TrackerImportValidationContext context;
-
     private static final String programStageUid = "programStageUid";
 
     private static final String dataElementUid = "dataElement";
+
+    private TrackerBundle bundle;
 
     @BeforeEach
     public void setUp()
     {
         hook = new EventDataValuesValidationHook();
 
-        TrackerBundle bundle = TrackerBundle.builder()
+        bundle = TrackerBundle.builder()
             .preheat( preheat )
             .build();
-        when( context.getBundle() ).thenReturn( bundle );
     }
 
     @Test
@@ -103,7 +100,7 @@ class EventDataValuesValidationHookTest
         ProgramStage programStage = programStage( dataElement );
         when( preheat.getProgramStage( programStageUid ) ).thenReturn( programStage );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( context );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         Event event = Event.builder()
             .programStage( programStage.getUid() )
@@ -126,7 +123,7 @@ class EventDataValuesValidationHookTest
         ProgramStage programStage = programStage( dataElement );
         when( preheat.getProgramStage( programStageUid ) ).thenReturn( programStage );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( context );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         DataValue validDataValue = dataValue();
         validDataValue.setCreatedAt( null );
@@ -151,7 +148,7 @@ class EventDataValuesValidationHookTest
         ProgramStage programStage = programStage( dataElement );
         when( preheat.getProgramStage( programStageUid ) ).thenReturn( programStage );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( context );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         DataValue validDataValue = dataValue();
         validDataValue.setUpdatedAt( null );
@@ -176,7 +173,7 @@ class EventDataValuesValidationHookTest
         ProgramStage programStage = programStage( dataElement );
         when( preheat.getProgramStage( programStageUid ) ).thenReturn( programStage );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( context );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         Event event = Event.builder()
             .programStage( programStage.getUid() )
@@ -211,7 +208,7 @@ class EventDataValuesValidationHookTest
         programStage.setProgramStageDataElements( Set.of( mandatoryStageElement1, mandatoryStageElement2 ) );
         when( preheat.getProgramStage( "PROGRAM_STAGE" ) ).thenReturn( programStage );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( context );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         Event event = Event.builder()
             .programStage( "PROGRAM_STAGE" )
@@ -246,7 +243,7 @@ class EventDataValuesValidationHookTest
         programStage.setProgramStageDataElements( Set.of( mandatoryStageElement1, mandatoryStageElement2 ) );
         when( preheat.getProgramStage( "PROGRAM_STAGE" ) ).thenReturn( programStage );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( context );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         Event event = Event.builder()
             .programStage( "PROGRAM_STAGE" )
@@ -276,7 +273,7 @@ class EventDataValuesValidationHookTest
         ProgramStage programStage = programStage( dataElement, true );
         when( preheat.getProgramStage( programStageUid ) ).thenReturn( programStage );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( context );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         DataValue dataValue = dataValue();
         dataValue.setDataElement( "DE_424050" );
@@ -311,7 +308,7 @@ class EventDataValuesValidationHookTest
         programStage.setProgramStageDataElements( Set.of( mandatoryStageElement1 ) );
         when( preheat.getProgramStage( "PROGRAM_STAGE" ) ).thenReturn( programStage );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( context );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         DataValue notPresentDataValue = dataValue();
         notPresentDataValue.setDataElement( "de_not_present_in_program_stage" );
@@ -344,7 +341,7 @@ class EventDataValuesValidationHookTest
         ProgramStage programStage = programStage( dataElement );
         when( preheat.getProgramStage( programStageUid ) ).thenReturn( programStage );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( context );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         DataValue dataValue = dataValue();
         dataValue.setDataElement( "DE_424050" );
@@ -370,7 +367,7 @@ class EventDataValuesValidationHookTest
         ProgramStage programStage = programStage( dataElement );
         when( preheat.getProgramStage( programStageUid ) ).thenReturn( programStage );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( context );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         Event event = Event.builder()
             .programStage( programStage.getUid() )
@@ -398,7 +395,7 @@ class EventDataValuesValidationHookTest
         ProgramStage programStage = programStage( validDataElement );
         when( preheat.getProgramStage( programStageUid ) ).thenReturn( programStage );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( context );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         Event event = Event.builder()
             .programStage( programStage.getUid() )
@@ -423,7 +420,7 @@ class EventDataValuesValidationHookTest
         ProgramStage programStage = programStage( validDataElement, false );
         when( preheat.getProgramStage( programStageUid ) ).thenReturn( programStage );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( context );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         DataValue validDataValue = dataValue();
         validDataValue.setValue( null );
@@ -449,7 +446,7 @@ class EventDataValuesValidationHookTest
         ProgramStage programStage = programStage( validDataElement, true );
         when( preheat.getProgramStage( programStageUid ) ).thenReturn( programStage );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( context );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         DataValue validDataValue = dataValue();
         validDataValue.setValue( null );
@@ -477,7 +474,7 @@ class EventDataValuesValidationHookTest
         programStage.setValidationStrategy( ValidationStrategy.ON_UPDATE_AND_INSERT );
         when( preheat.getProgramStage( programStageUid ) ).thenReturn( programStage );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( context );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         DataValue validDataValue = dataValue();
         validDataValue.setValue( null );
@@ -505,7 +502,7 @@ class EventDataValuesValidationHookTest
         programStage.setValidationStrategy( ValidationStrategy.ON_UPDATE_AND_INSERT );
         when( preheat.getProgramStage( programStageUid ) ).thenReturn( programStage );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( context );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         DataValue validDataValue = dataValue();
         validDataValue.setValue( null );
@@ -533,7 +530,7 @@ class EventDataValuesValidationHookTest
         programStage.setValidationStrategy( ValidationStrategy.ON_COMPLETE );
         when( preheat.getProgramStage( programStageUid ) ).thenReturn( programStage );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( context );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         DataValue validDataValue = dataValue();
         validDataValue.setValue( null );
@@ -560,7 +557,7 @@ class EventDataValuesValidationHookTest
         programStage.setValidationStrategy( ValidationStrategy.ON_COMPLETE );
         when( preheat.getProgramStage( programStageUid ) ).thenReturn( programStage );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( context );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         DataValue validDataValue = dataValue();
         validDataValue.setValue( null );
@@ -587,7 +584,7 @@ class EventDataValuesValidationHookTest
         ProgramStage programStage = programStage( validDataElement, true );
         when( preheat.getProgramStage( programStageUid ) ).thenReturn( programStage );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( context );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         DataValue validDataValue = dataValue();
         validDataValue.setValue( null );
@@ -613,7 +610,7 @@ class EventDataValuesValidationHookTest
         ProgramStage programStage = programStage( validDataElement, true );
         when( preheat.getProgramStage( programStageUid ) ).thenReturn( programStage );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( context );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         DataValue validDataValue = dataValue();
         validDataValue.setValue( null );
@@ -639,7 +636,7 @@ class EventDataValuesValidationHookTest
         ProgramStage programStage = programStage( validDataElement, false );
         when( preheat.getProgramStage( programStageUid ) ).thenReturn( programStage );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( context );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         DataValue validDataValue = dataValue();
         validDataValue.setValue( null );
@@ -665,7 +662,7 @@ class EventDataValuesValidationHookTest
         ProgramStage programStage = programStage( validDataElement );
         when( preheat.getProgramStage( programStageUid ) ).thenReturn( programStage );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( context );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         FileResource fileResource = new FileResource();
         fileResource.setAssigned( true );
@@ -724,7 +721,7 @@ class EventDataValuesValidationHookTest
         ProgramStage programStage = programStage( dataElement );
         when( preheat.getProgramStage( programStageUid ) ).thenReturn( programStage );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( context );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         Event event = Event.builder()
             .programStage( programStage.getUid() )
@@ -759,7 +756,7 @@ class EventDataValuesValidationHookTest
         ProgramStage programStage = programStage( dataElement );
         when( preheat.getProgramStage( programStageUid ) ).thenReturn( programStage );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( context );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         Event event = Event.builder()
             .programStage( programStage.getUid() )
@@ -785,7 +782,7 @@ class EventDataValuesValidationHookTest
         ProgramStage programStage = programStage( dataElement() );
         when( preheat.getProgramStage( programStageUid ) ).thenReturn( programStage );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( context );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         DataValue validDataValue = dataValue();
         validDataValue.setDataElement( dataElementUid );
