@@ -85,7 +85,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.client.HttpClientErrorException;
 
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -174,7 +173,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     // --------------------------------------------------------------------------
 
     @GetMapping
-    public @ResponseBody ResponseEntity<JsonRoot> getObjectList(
+    public ResponseEntity<JsonRoot> getObjectList(
         @RequestParam Map<String, String> rpParameters, OrderParams orderParams,
         HttpServletResponse response, @CurrentUser User currentUser )
         throws QueryParserException
@@ -355,7 +354,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     }
 
     @GetMapping( "/{uid}" )
-    public @ResponseBody ResponseEntity<ObjectNode> getObject(
+    public ResponseEntity<ObjectNode> getObject(
         @PathVariable( "uid" ) String pvUid,
         @RequestParam Map<String, String> rpParameters,
         @CurrentUser User currentUser,
@@ -384,7 +383,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     }
 
     @GetMapping( "/{uid}/{property}" )
-    public @ResponseBody ResponseEntity<ObjectNode> getObjectProperty(
+    public ResponseEntity<ObjectNode> getObjectProperty(
         @PathVariable( "uid" ) String pvUid, @PathVariable( "property" ) String pvProperty,
         @RequestParam Map<String, String> rpParameters,
         TranslateParams translateParams,
