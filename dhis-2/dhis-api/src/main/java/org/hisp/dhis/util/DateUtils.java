@@ -210,6 +210,19 @@ public class DateUtils
     }
 
     /**
+     * adds 1 day to provided Date and returns it
+     *
+     * @param date
+     * @return day after provided date
+     */
+    public static Date plusOneDay( Date date )
+    {
+        return Date.from( date
+            .toInstant()
+            .plus( 1, ChronoUnit.DAYS ) );
+    }
+
+    /**
      * Formats a Date according to the HTTP specification standard date format.
      *
      * @param date the Date to format.
