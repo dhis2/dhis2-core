@@ -793,14 +793,13 @@ public abstract class AbstractJdbcEventAnalyticsManager
     {
         List<String> repeatableStagesSqlList = new ArrayList<>();
 
-        String sql = "";
+        StringBuilder sbItemsSql = new StringBuilder();
 
-        for ( QueryItem item : params.getItems() )
-        {
-            if ( item.hasFilter() )
-            {
-                for ( QueryFilter filter : item.getFilters() )
-                {
+        params.getItems()
+            .stream()
+            .filter( QueryItem::hasFilter )
+            .forEach( item -> item.getFilters()
+                .forEach( filter -> {
                     String field = getSelectSql( filter, item, params.getEarliestStartDate(),
                         params.getLatestEndDate() );
 
@@ -808,31 +807,37 @@ public abstract class AbstractJdbcEventAnalyticsManager
                     {
                         InQueryFilter inQueryFilter = new InQueryFilter( field,
                             statementBuilder.encode( filter.getFilter(), false ), item.isText() );
-                        sql += hlp.whereAnd() + " " + inQueryFilter.getSqlFilter();
+                        sbItemsSql.append( hlp.whereAnd() )
+                            .append( " " )
+                            .append( inQueryFilter.getSqlFilter() );
+                    }
+                    else if ( item.hasRepeatableStageParams() )
+                    {
+                        repeatableStagesSqlList.add( field + " " + filter.getSqlOperator() + " "
+                            + getSqlFilter( filter, item ) );
                     }
                     else
                     {
-                        if ( item.hasRepeatableStageParams() )
-                        {
-                            repeatableStagesSqlList.add( field + " " + filter.getSqlOperator() + " "
-                                + getSqlFilter( filter, item ) );
-                        }
-                        else
-                        {
-                            sql += hlp.whereAnd() + " " + field + " " + filter.getSqlOperator() + " "
-                                + getSqlFilter( filter, item ) + " ";
-                        }
+                        sbItemsSql.append( hlp.whereAnd() )
+                            .append( " " )
+                            .append( field )
+                            .append( " " )
+                            .append( filter.getSqlOperator() )
+                            .append( " " )
+                            .append( getSqlFilter( filter, item ) )
+                            .append( " " );
                     }
-                }
-            }
-        }
+                } ) );
 
         if ( !repeatableStagesSqlList.isEmpty() )
         {
-            sql += hlp.whereAnd() + " (" + String.join( " or ", repeatableStagesSqlList ) + ")";
+            sbItemsSql.append( hlp.whereAnd() )
+                .append( " (" )
+                .append( String.join( " or ", repeatableStagesSqlList ) )
+                .append( ")" );
         }
 
-        return sql;
+        return sbItemsSql.toString();
     }
 
     /**
