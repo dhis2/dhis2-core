@@ -393,7 +393,7 @@ class EventDataValuesValidationHookTest
         when( preheat.get( DataElement.class, dataElementUid ) ).thenReturn( validDataElement );
 
         DataValue validDataValue = dataValue( "QX4LpiTZmUH" );
-        when( context.getFileResource( validDataValue.getValue() ) ).thenReturn( null );
+        when( preheat.get( FileResource.class, validDataValue.getValue() ) ).thenReturn( null );
 
         ProgramStage programStage = programStage( validDataElement );
         when( context.getProgramStage( programStageUid ) ).thenReturn( programStage );
@@ -670,7 +670,7 @@ class EventDataValuesValidationHookTest
         FileResource fileResource = new FileResource();
         fileResource.setAssigned( true );
         DataValue validDataValue = dataValue( "QX4LpiTZmUH" );
-        when( context.getFileResource( validDataValue.getValue() ) ).thenReturn( fileResource );
+        when( preheat.get( FileResource.class, validDataValue.getValue() ) ).thenReturn( fileResource );
         Event event = Event.builder()
             .programStage( programStage.getUid() )
             .status( EventStatus.SKIPPED )

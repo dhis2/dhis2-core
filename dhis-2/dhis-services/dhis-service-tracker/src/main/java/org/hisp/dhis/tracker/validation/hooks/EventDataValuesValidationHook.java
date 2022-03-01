@@ -190,7 +190,8 @@ public class EventDataValuesValidationHook
             return;
         }
 
-        FileResource fileResource = reporter.getValidationContext().getFileResource( dataValue.getValue() );
+        TrackerPreheat preheat = reporter.getValidationContext().getBundle().getPreheat();
+        FileResource fileResource = preheat.get( FileResource.class, dataValue.getValue() );
 
         reporter.addErrorIfNull( fileResource, event, E1084, dataValue.getValue() );
         reporter.addErrorIf( () -> fileResource != null && fileResource.isAssigned(), event,
