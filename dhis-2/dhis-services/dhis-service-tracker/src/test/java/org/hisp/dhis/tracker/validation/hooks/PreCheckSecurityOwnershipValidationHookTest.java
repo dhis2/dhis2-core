@@ -60,6 +60,7 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
+import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
@@ -68,7 +69,6 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
-import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -99,8 +99,6 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
     private PreCheckSecurityOwnershipValidationHook validatorToTest;
 
     @Mock
-    private TrackerImportValidationContext ctx;
-
     private TrackerBundle bundle;
 
     @Mock
@@ -131,9 +129,8 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
     public void setUp()
     {
         user = createUser( 'A' );
-        bundle = TrackerBundle.builder().user( user ).preheat( preheat ).build();
-
-        when( ctx.getBundle() ).thenReturn( bundle );
+        when( bundle.getUser() ).thenReturn( user );
+        when( bundle.getPreheat() ).thenReturn( preheat );
 
         organisationUnit = createOrganisationUnit( 'A' );
         organisationUnit.setUid( ORG_UNIT_ID );
@@ -162,11 +159,11 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
             .build();
         when( preheat.getOrganisationUnit( ORG_UNIT_ID ) ).thenReturn( organisationUnit );
         when( preheat.getTrackedEntityType( TEI_TYPE_ID ) ).thenReturn( trackedEntityType );
-        when( ctx.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
+        when( bundle.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
         when( organisationUnitService.isInUserSearchHierarchyCached( user, organisationUnit ) )
             .thenReturn( true );
         when( aclService.canDataWrite( user, trackedEntityType ) ).thenReturn( true );
-        reporter = new ValidationErrorReporter( ctx );
+        reporter = new ValidationErrorReporter( bundle );
 
         validatorToTest.validateTrackedEntity( reporter, trackedEntity );
 
@@ -183,12 +180,12 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
             .build();
         when( preheat.getOrganisationUnit( ORG_UNIT_ID ) ).thenReturn( organisationUnit );
         when( preheat.getTrackedEntityType( TEI_TYPE_ID ) ).thenReturn( trackedEntityType );
-        when( ctx.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.DELETE );
-        when( ctx.getTrackedEntityInstance( TEI_ID ) ).thenReturn( getTEIWithNoProgramInstances() );
+        when( bundle.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.DELETE );
+        when( bundle.getTrackedEntityInstance( TEI_ID ) ).thenReturn( getTEIWithNoProgramInstances() );
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
             .thenReturn( true );
         when( aclService.canDataWrite( user, trackedEntityType ) ).thenReturn( true );
-        reporter = new ValidationErrorReporter( ctx );
+        reporter = new ValidationErrorReporter( bundle );
 
         validatorToTest.validateTrackedEntity( reporter, trackedEntity );
 
@@ -205,12 +202,12 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
             .build();
         when( preheat.getOrganisationUnit( ORG_UNIT_ID ) ).thenReturn( organisationUnit );
         when( preheat.getTrackedEntityType( TEI_TYPE_ID ) ).thenReturn( trackedEntityType );
-        when( ctx.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.CREATE );
+        when( bundle.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.CREATE );
         when( preheat.getOrganisationUnit( ORG_UNIT_ID ) ).thenReturn( organisationUnit );
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
             .thenReturn( true );
         when( aclService.canDataWrite( user, trackedEntityType ) ).thenReturn( true );
-        reporter = new ValidationErrorReporter( ctx );
+        reporter = new ValidationErrorReporter( bundle );
 
         validatorToTest.validateTrackedEntity( reporter, trackedEntity );
 
@@ -227,12 +224,12 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
             .build();
         when( preheat.getOrganisationUnit( ORG_UNIT_ID ) ).thenReturn( organisationUnit );
         when( preheat.getTrackedEntityType( TEI_TYPE_ID ) ).thenReturn( trackedEntityType );
-        when( ctx.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
+        when( bundle.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
         when( preheat.getOrganisationUnit( ORG_UNIT_ID ) ).thenReturn( organisationUnit );
         when( organisationUnitService.isInUserSearchHierarchyCached( user, organisationUnit ) )
             .thenReturn( true );
         when( aclService.canDataWrite( user, trackedEntityType ) ).thenReturn( true );
-        reporter = new ValidationErrorReporter( ctx );
+        reporter = new ValidationErrorReporter( bundle );
 
         validatorToTest.validateTrackedEntity( reporter, trackedEntity );
 
@@ -249,13 +246,13 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
             .build();
         when( preheat.getOrganisationUnit( ORG_UNIT_ID ) ).thenReturn( organisationUnit );
         when( preheat.getTrackedEntityType( TEI_TYPE_ID ) ).thenReturn( trackedEntityType );
-        when( ctx.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.DELETE );
-        when( ctx.getTrackedEntityInstance( TEI_ID ) ).thenReturn( getTEIWithNoProgramInstances() );
+        when( bundle.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.DELETE );
+        when( bundle.getTrackedEntityInstance( TEI_ID ) ).thenReturn( getTEIWithNoProgramInstances() );
         when( preheat.getOrganisationUnit( ORG_UNIT_ID ) ).thenReturn( organisationUnit );
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
             .thenReturn( true );
         when( aclService.canDataWrite( user, trackedEntityType ) ).thenReturn( true );
-        reporter = new ValidationErrorReporter( ctx );
+        reporter = new ValidationErrorReporter( bundle );
 
         validatorToTest.validateTrackedEntity( reporter, trackedEntity );
 
@@ -272,12 +269,12 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
             .build();
         when( preheat.getOrganisationUnit( ORG_UNIT_ID ) ).thenReturn( organisationUnit );
         when( preheat.getTrackedEntityType( TEI_TYPE_ID ) ).thenReturn( trackedEntityType );
-        when( ctx.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.DELETE );
-        when( ctx.getTrackedEntityInstance( TEI_ID ) ).thenReturn( getTEIWithDeleteProgramInstances() );
+        when( bundle.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.DELETE );
+        when( bundle.getTrackedEntityInstance( TEI_ID ) ).thenReturn( getTEIWithDeleteProgramInstances() );
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
             .thenReturn( true );
         when( aclService.canDataWrite( user, trackedEntityType ) ).thenReturn( true );
-        reporter = new ValidationErrorReporter( ctx );
+        reporter = new ValidationErrorReporter( bundle );
 
         validatorToTest.validateTrackedEntity( reporter, trackedEntity );
 
@@ -294,13 +291,13 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
             .build();
         when( preheat.getOrganisationUnit( ORG_UNIT_ID ) ).thenReturn( organisationUnit );
         when( preheat.getTrackedEntityType( TEI_TYPE_ID ) ).thenReturn( trackedEntityType );
-        when( ctx.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.DELETE );
-        when( ctx.getTrackedEntityInstance( TEI_ID ) ).thenReturn( getTEIWithProgramInstances() );
+        when( bundle.getUser() ).thenReturn( deleteTeiAuthorisedUser() );
+        when( bundle.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.DELETE );
+        when( bundle.getTrackedEntityInstance( TEI_ID ) ).thenReturn( getTEIWithProgramInstances() );
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
             .thenReturn( true );
         when( aclService.canDataWrite( user, trackedEntityType ) ).thenReturn( true );
-        bundle.setUser( deleteTeiAuthorisedUser() );
-        reporter = new ValidationErrorReporter( ctx );
+        reporter = new ValidationErrorReporter( bundle );
 
         validatorToTest.validateTrackedEntity( reporter, trackedEntity );
 
@@ -317,12 +314,13 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
             .build();
         when( preheat.getOrganisationUnit( ORG_UNIT_ID ) ).thenReturn( organisationUnit );
         when( preheat.getTrackedEntityType( TEI_TYPE_ID ) ).thenReturn( trackedEntityType );
-        when( ctx.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.DELETE );
-        when( ctx.getTrackedEntityInstance( TEI_ID ) ).thenReturn( getTEIWithProgramInstances() );
+        when( bundle.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.DELETE );
+        when( bundle.getIdentifier() ).thenReturn( TrackerIdScheme.UID );
+        when( bundle.getTrackedEntityInstance( TEI_ID ) ).thenReturn( getTEIWithProgramInstances() );
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
             .thenReturn( true );
         when( aclService.canDataWrite( user, trackedEntityType ) ).thenReturn( true );
-        reporter = new ValidationErrorReporter( ctx );
+        reporter = new ValidationErrorReporter( bundle );
 
         validatorToTest.validateTrackedEntity( reporter, trackedEntity );
 
@@ -339,12 +337,13 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
             .build();
         when( preheat.getOrganisationUnit( ORG_UNIT_ID ) ).thenReturn( organisationUnit );
         when( preheat.getTrackedEntityType( TEI_TYPE_ID ) ).thenReturn( trackedEntityType );
-        when( ctx.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.CREATE );
+        when( bundle.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.CREATE );
+        when( bundle.getIdentifier() ).thenReturn( TrackerIdScheme.UID );
         when( preheat.getOrganisationUnit( ORG_UNIT_ID ) ).thenReturn( organisationUnit );
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
             .thenReturn( false );
         when( aclService.canDataWrite( user, trackedEntityType ) ).thenReturn( true );
-        reporter = new ValidationErrorReporter( ctx );
+        reporter = new ValidationErrorReporter( bundle );
 
         validatorToTest.validateTrackedEntity( reporter, trackedEntity );
 
@@ -363,12 +362,13 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
             .build();
         when( preheat.getOrganisationUnit( ORG_UNIT_ID ) ).thenReturn( organisationUnit );
         when( preheat.getTrackedEntityType( TEI_TYPE_ID ) ).thenReturn( trackedEntityType );
-        when( ctx.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
+        when( bundle.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
+        when( bundle.getIdentifier() ).thenReturn( TrackerIdScheme.UID );
         when( preheat.getOrganisationUnit( ORG_UNIT_ID ) ).thenReturn( organisationUnit );
         when( organisationUnitService.isInUserSearchHierarchyCached( user, organisationUnit ) )
             .thenReturn( false );
         when( aclService.canDataWrite( user, trackedEntityType ) ).thenReturn( true );
-        reporter = new ValidationErrorReporter( ctx );
+        reporter = new ValidationErrorReporter( bundle );
 
         validatorToTest.validateTrackedEntity( reporter, trackedEntity );
 
@@ -385,11 +385,12 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
             .build();
         when( preheat.getOrganisationUnit( ORG_UNIT_ID ) ).thenReturn( organisationUnit );
         when( preheat.getTrackedEntityType( TEI_TYPE_ID ) ).thenReturn( trackedEntityType );
-        when( ctx.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
+        when( bundle.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
+        when( bundle.getIdentifier() ).thenReturn( TrackerIdScheme.UID );
         when( organisationUnitService.isInUserSearchHierarchyCached( user, organisationUnit ) )
             .thenReturn( true );
         when( aclService.canDataWrite( user, trackedEntityType ) ).thenReturn( false );
-        reporter = new ValidationErrorReporter( ctx );
+        reporter = new ValidationErrorReporter( bundle );
 
         validatorToTest.validateTrackedEntity( reporter, trackedEntity );
 
@@ -405,23 +406,23 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
             .trackedEntity( TEI_ID )
             .program( PROGRAM_ID )
             .build();
-        when( ctx.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.UPDATE );
+        when( bundle.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.UPDATE );
 
         ProgramInstance programInstance = getEnrollment( enrollment.getEnrollment() );
         programInstance.setOrganisationUnit( null );
 
-        when( ctx.getProgramInstance( enrollment.getEnrollment() ) )
+        when( bundle.getProgramInstance( enrollment.getEnrollment() ) )
             .thenReturn( programInstance );
         when( aclService.canDataWrite( user, program ) ).thenReturn( true );
         when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
-        reporter = new ValidationErrorReporter( ctx );
+        reporter = new ValidationErrorReporter( bundle );
 
         validatorToTest.validateEnrollment( reporter, enrollment );
 
         assertFalse( reporter.hasErrors() );
         verify( organisationUnitService, times( 0 ) ).isInUserHierarchyCached( user, organisationUnit );
 
-        when( ctx.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.DELETE );
+        when( bundle.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.DELETE );
 
         validatorToTest.validateEnrollment( reporter, enrollment );
 
@@ -438,11 +439,11 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
             .trackedEntity( TEI_ID )
             .program( PROGRAM_ID )
             .build();
-        when( ctx.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
+        when( bundle.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
         when( preheat.getProgram( PROGRAM_ID ) ).thenReturn( program );
         when( aclService.canDataWrite( user, program ) ).thenReturn( true );
         when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
-        reporter = new ValidationErrorReporter( ctx );
+        reporter = new ValidationErrorReporter( bundle );
 
         validatorToTest.validateEnrollment( reporter, enrollment );
 
@@ -458,14 +459,14 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
             .trackedEntity( TEI_ID )
             .program( PROGRAM_ID )
             .build();
-        when( ctx.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.CREATE );
+        when( bundle.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.CREATE );
         when( preheat.getProgram( PROGRAM_ID ) ).thenReturn( program );
         when( preheat.getOrganisationUnit( ORG_UNIT_ID ) ).thenReturn( organisationUnit );
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
             .thenReturn( true );
         when( aclService.canDataWrite( user, program ) ).thenReturn( true );
         when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
-        reporter = new ValidationErrorReporter( ctx );
+        reporter = new ValidationErrorReporter( bundle );
 
         validatorToTest.validateEnrollment( reporter, enrollment );
 
@@ -482,14 +483,14 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
             .trackedEntity( TEI_ID )
             .program( PROGRAM_ID )
             .build();
-        when( ctx.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.DELETE );
-        when( ctx.getProgramInstance( enrollment.getEnrollment() ) )
+        when( bundle.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.DELETE );
+        when( bundle.getProgramInstance( enrollment.getEnrollment() ) )
             .thenReturn( getEnrollment( enrollment.getEnrollment() ) );
         when( aclService.canDataWrite( user, program ) ).thenReturn( true );
         when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
             .thenReturn( true );
-        reporter = new ValidationErrorReporter( ctx );
+        reporter = new ValidationErrorReporter( bundle );
 
         validatorToTest.validateEnrollment( reporter, enrollment );
 
@@ -507,13 +508,13 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
             .trackedEntity( TEI_ID )
             .program( PROGRAM_ID )
             .build();
-        when( ctx.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
+        when( bundle.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
         when( preheat.getProgram( PROGRAM_ID ) ).thenReturn( program );
         when( preheat.getOrganisationUnit( ORG_UNIT_ID ) ).thenReturn( organisationUnit );
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
             .thenReturn( true );
         when( aclService.canDataWrite( user, program ) ).thenReturn( true );
-        reporter = new ValidationErrorReporter( ctx );
+        reporter = new ValidationErrorReporter( bundle );
 
         validatorToTest.validateEnrollment( reporter, enrollment );
 
@@ -529,15 +530,15 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
             .trackedEntity( TEI_ID )
             .program( PROGRAM_ID )
             .build();
-        when( ctx.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.DELETE );
+        when( bundle.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.DELETE );
         when( preheat.getProgramInstanceWithOneOrMoreNonDeletedEvent() ).thenReturn( Collections.emptyList() );
-        when( ctx.getProgramInstance( enrollment.getEnrollment() ) )
+        when( bundle.getProgramInstance( enrollment.getEnrollment() ) )
             .thenReturn( getEnrollment( enrollment.getEnrollment() ) );
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
             .thenReturn( true );
         when( aclService.canDataWrite( user, program ) ).thenReturn( true );
         when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
-        reporter = new ValidationErrorReporter( ctx );
+        reporter = new ValidationErrorReporter( bundle );
 
         validatorToTest.validateEnrollment( reporter, enrollment );
 
@@ -553,17 +554,17 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
             .trackedEntity( TEI_ID )
             .program( PROGRAM_ID )
             .build();
-        when( ctx.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.DELETE );
+        when( bundle.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.DELETE );
+        when( bundle.getUser() ).thenReturn( deleteEnrollmentAuthorisedUser() );
         when( preheat.getProgramInstanceWithOneOrMoreNonDeletedEvent() )
             .thenReturn( Collections.singletonList( enrollment.getEnrollment() ) );
-        when( ctx.getProgramInstance( enrollment.getEnrollment() ) )
+        when( bundle.getProgramInstance( enrollment.getEnrollment() ) )
             .thenReturn( getEnrollment( enrollment.getEnrollment() ) );
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
             .thenReturn( true );
         when( aclService.canDataWrite( user, program ) ).thenReturn( true );
         when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
-        bundle.setUser( deleteEnrollmentAuthorisedUser() );
-        reporter = new ValidationErrorReporter( ctx );
+        reporter = new ValidationErrorReporter( bundle );
 
         validatorToTest.validateEnrollment( reporter, enrollment );
 
@@ -579,15 +580,16 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
             .trackedEntity( TEI_ID )
             .program( PROGRAM_ID )
             .build();
-        when( ctx.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.DELETE );
+        when( bundle.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.DELETE );
         when( preheat.getProgramInstanceWithOneOrMoreNonDeletedEvent() ).thenReturn( Collections.emptyList() );
-        when( ctx.getProgramInstance( enrollment.getEnrollment() ) )
+        when( bundle.getProgramInstance( enrollment.getEnrollment() ) )
             .thenReturn( getEnrollment( enrollment.getEnrollment() ) );
+        when( bundle.getIdentifier() ).thenReturn( TrackerIdScheme.UID );
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
             .thenReturn( false );
         when( aclService.canDataWrite( user, program ) ).thenReturn( true );
         when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
-        reporter = new ValidationErrorReporter( ctx );
+        reporter = new ValidationErrorReporter( bundle );
 
         validatorToTest.validateEnrollment( reporter, enrollment );
 
@@ -603,16 +605,17 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
             .trackedEntity( TEI_ID )
             .program( PROGRAM_ID )
             .build();
-        when( ctx.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.DELETE );
+        when( bundle.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.DELETE );
+        when( bundle.getIdentifier() ).thenReturn( TrackerIdScheme.UID );
         when( preheat.getProgramInstanceWithOneOrMoreNonDeletedEvent() )
             .thenReturn( Collections.singletonList( enrollment.getEnrollment() ) );
-        when( ctx.getProgramInstance( enrollment.getEnrollment() ) )
+        when( bundle.getProgramInstance( enrollment.getEnrollment() ) )
             .thenReturn( getEnrollment( enrollment.getEnrollment() ) );
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
             .thenReturn( true );
         when( aclService.canDataWrite( user, program ) ).thenReturn( true );
         when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
-        reporter = new ValidationErrorReporter( ctx );
+        reporter = new ValidationErrorReporter( bundle );
 
         validatorToTest.validateEnrollment( reporter, enrollment );
 
@@ -629,14 +632,15 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
             .trackedEntity( TEI_ID )
             .program( PROGRAM_ID )
             .build();
-        when( ctx.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.DELETE );
-        when( ctx.getProgramInstance( enrollment.getEnrollment() ) )
+        when( bundle.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.DELETE );
+        when( bundle.getIdentifier() ).thenReturn( TrackerIdScheme.UID );
+        when( bundle.getProgramInstance( enrollment.getEnrollment() ) )
             .thenReturn( getEnrollment( enrollment.getEnrollment() ) );
         when( aclService.canDataWrite( user, program ) ).thenReturn( false );
         when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
             .thenReturn( true );
-        reporter = new ValidationErrorReporter( ctx );
+        reporter = new ValidationErrorReporter( bundle );
 
         validatorToTest.validateEnrollment( reporter, enrollment );
 
@@ -653,14 +657,15 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
             .trackedEntity( TEI_ID )
             .program( PROGRAM_ID )
             .build();
-        when( ctx.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.DELETE );
-        when( ctx.getProgramInstance( enrollment.getEnrollment() ) )
+        when( bundle.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.DELETE );
+        when( bundle.getIdentifier() ).thenReturn( TrackerIdScheme.UID );
+        when( bundle.getProgramInstance( enrollment.getEnrollment() ) )
             .thenReturn( getEnrollment( enrollment.getEnrollment() ) );
         when( aclService.canDataWrite( user, program ) ).thenReturn( true );
         when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( false );
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
             .thenReturn( true );
-        reporter = new ValidationErrorReporter( ctx );
+        reporter = new ValidationErrorReporter( bundle );
 
         validatorToTest.validateEnrollment( reporter, enrollment );
 
@@ -677,12 +682,12 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
             .programStage( PS_ID )
             .program( PROGRAM_ID )
             .build();
-        when( ctx.getStrategy( event ) ).thenReturn( TrackerImportStrategy.DELETE );
+        when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.DELETE );
         ProgramInstance programInstance = getEnrollment( enrollmentUid );
         ProgramStageInstance programStageInstance = getEvent();
         programStageInstance.setProgramInstance( programInstance );
-        when( ctx.getProgramStageInstance( event.getEvent() ) ).thenReturn( programStageInstance );
-        when( ctx.getProgramInstance( event.getEnrollment() ) ).thenReturn( programInstance );
+        when( bundle.getProgramStageInstance( event.getEvent() ) ).thenReturn( programStageInstance );
+        when( bundle.getProgramInstance( event.getEnrollment() ) ).thenReturn( programInstance );
         when( preheat.getProgram( PROGRAM_ID ) ).thenReturn( program );
         when( preheat.getOrganisationUnit( ORG_UNIT_ID ) ).thenReturn( organisationUnit );
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
@@ -690,7 +695,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
         when( aclService.canDataRead( user, program ) ).thenReturn( true );
         when( aclService.canDataWrite( user, programStage ) ).thenReturn( true );
-        reporter = new ValidationErrorReporter( ctx );
+        reporter = new ValidationErrorReporter( bundle );
 
         validatorToTest.validateEvent( reporter, event );
 
@@ -708,7 +713,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
             .programStage( PS_ID )
             .program( PROGRAM_ID )
             .build();
-        when( ctx.getStrategy( event ) ).thenReturn( TrackerImportStrategy.CREATE );
+        when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.CREATE );
         when( preheat.getProgramStage( event.getProgramStage() ) ).thenReturn( programStage );
         ProgramInstance programInstance = getEnrollment( enrollmentUid );
         ProgramStageInstance programStageInstance = getEvent();
@@ -719,7 +724,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
             .thenReturn( true );
         when( aclService.canDataWrite( user, program ) ).thenReturn( true );
 
-        reporter = new ValidationErrorReporter( ctx );
+        reporter = new ValidationErrorReporter( bundle );
 
         validatorToTest.validateEvent( reporter, event );
 
@@ -735,9 +740,9 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
             .programStage( PS_ID )
             .program( PROGRAM_ID )
             .build();
-        when( ctx.getStrategy( event ) ).thenReturn( TrackerImportStrategy.CREATE );
+        when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.CREATE );
         when( preheat.getProgramStage( event.getProgramStage() ) ).thenReturn( programStage );
-        when( ctx.getProgramInstance( event.getEnrollment() ) ).thenReturn( getEnrollment( null ) );
+        when( bundle.getProgramInstance( event.getEnrollment() ) ).thenReturn( getEnrollment( null ) );
         when( preheat.getProgram( PROGRAM_ID ) ).thenReturn( program );
         when( preheat.getOrganisationUnit( ORG_UNIT_ID ) ).thenReturn( organisationUnit );
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
@@ -745,7 +750,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
         when( aclService.canDataRead( user, program ) ).thenReturn( true );
         when( aclService.canDataWrite( user, programStage ) ).thenReturn( true );
-        reporter = new ValidationErrorReporter( ctx );
+        reporter = new ValidationErrorReporter( bundle );
 
         validatorToTest.validateEvent( reporter, event );
 
@@ -761,9 +766,9 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
             .programStage( PS_ID )
             .program( PROGRAM_ID )
             .build();
-        when( ctx.getStrategy( event ) ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
+        when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
         when( preheat.getProgramStage( event.getProgramStage() ) ).thenReturn( programStage );
-        when( ctx.getProgramInstance( event.getEnrollment() ) ).thenReturn( getEnrollment( null ) );
+        when( bundle.getProgramInstance( event.getEnrollment() ) ).thenReturn( getEnrollment( null ) );
         when( preheat.getProgram( PROGRAM_ID ) ).thenReturn( program );
         when( preheat.getOrganisationUnit( ORG_UNIT_ID ) ).thenReturn( organisationUnit );
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
@@ -771,7 +776,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
         when( aclService.canDataRead( user, program ) ).thenReturn( true );
         when( aclService.canDataWrite( user, programStage ) ).thenReturn( true );
-        reporter = new ValidationErrorReporter( ctx );
+        reporter = new ValidationErrorReporter( bundle );
 
         validatorToTest.validateEvent( reporter, event );
 
@@ -789,13 +794,13 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
             .program( PROGRAM_ID )
             .status( EventStatus.COMPLETED )
             .build();
-        when( ctx.getStrategy( event ) ).thenReturn( TrackerImportStrategy.UPDATE );
+        when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.UPDATE );
         when( preheat.getProgramStage( event.getProgramStage() ) ).thenReturn( programStage );
         ProgramInstance programInstance = getEnrollment( enrollmentUid );
         ProgramStageInstance programStageInstance = getEvent();
         programStageInstance.setProgramInstance( programInstance );
-        when( ctx.getProgramStageInstance( event.getEvent() ) ).thenReturn( programStageInstance );
-        when( ctx.getProgramInstance( event.getEnrollment() ) ).thenReturn( programInstance );
+        when( bundle.getProgramStageInstance( event.getEvent() ) ).thenReturn( programStageInstance );
+        when( bundle.getProgramInstance( event.getEnrollment() ) ).thenReturn( programInstance );
         when( preheat.getProgram( PROGRAM_ID ) ).thenReturn( program );
         when( preheat.getOrganisationUnit( ORG_UNIT_ID ) ).thenReturn( organisationUnit );
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
@@ -803,7 +808,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
         when( aclService.canDataRead( user, program ) ).thenReturn( true );
         when( aclService.canDataWrite( user, programStage ) ).thenReturn( true );
-        reporter = new ValidationErrorReporter( ctx );
+        reporter = new ValidationErrorReporter( bundle );
 
         validatorToTest.validateEvent( reporter, event );
 
@@ -820,13 +825,14 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
             .programStage( PS_ID )
             .program( PROGRAM_ID )
             .build();
-        when( ctx.getStrategy( event ) ).thenReturn( TrackerImportStrategy.UPDATE );
+        when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.UPDATE );
+        when( bundle.getUser() ).thenReturn( changeCompletedEventAuthorisedUser() );
         when( preheat.getProgramStage( event.getProgramStage() ) ).thenReturn( programStage );
         ProgramInstance programInstance = getEnrollment( enrollmentUid );
         ProgramStageInstance programStageInstance = getEvent();
         programStageInstance.setProgramInstance( programInstance );
-        when( ctx.getProgramStageInstance( event.getEvent() ) ).thenReturn( programStageInstance );
-        when( ctx.getProgramInstance( event.getEnrollment() ) ).thenReturn( programInstance );
+        when( bundle.getProgramStageInstance( event.getEvent() ) ).thenReturn( programStageInstance );
+        when( bundle.getProgramInstance( event.getEnrollment() ) ).thenReturn( programInstance );
         when( preheat.getProgram( PROGRAM_ID ) ).thenReturn( program );
         when( preheat.getOrganisationUnit( ORG_UNIT_ID ) ).thenReturn( organisationUnit );
         when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
@@ -834,8 +840,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         when( aclService.canDataWrite( user, programStage ) ).thenReturn( true );
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
             .thenReturn( true );
-        bundle.setUser( changeCompletedEventAuthorisedUser() );
-        reporter = new ValidationErrorReporter( ctx );
+        reporter = new ValidationErrorReporter( bundle );
 
         validatorToTest.validateEvent( reporter, event );
 
@@ -852,9 +857,10 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
             .programStage( PS_ID )
             .program( PROGRAM_ID )
             .build();
-        when( ctx.getStrategy( event ) ).thenReturn( TrackerImportStrategy.CREATE );
+        when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.CREATE );
+        when( bundle.getIdentifier() ).thenReturn( TrackerIdScheme.UID );
         when( preheat.getProgramStage( event.getProgramStage() ) ).thenReturn( programStage );
-        when( ctx.getProgramInstance( event.getEnrollment() ) ).thenReturn( getEnrollment( null ) );
+        when( bundle.getProgramInstance( event.getEnrollment() ) ).thenReturn( getEnrollment( null ) );
         when( preheat.getProgram( PROGRAM_ID ) ).thenReturn( program );
         when( preheat.getOrganisationUnit( ORG_UNIT_ID ) ).thenReturn( organisationUnit );
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
@@ -862,7 +868,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
         when( aclService.canDataRead( user, program ) ).thenReturn( true );
         when( aclService.canDataWrite( user, programStage ) ).thenReturn( true );
-        reporter = new ValidationErrorReporter( ctx );
+        reporter = new ValidationErrorReporter( bundle );
 
         validatorToTest.validateEvent( reporter, event );
 
@@ -880,9 +886,10 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
             .program( PROGRAM_ID )
             .status( EventStatus.SCHEDULE )
             .build();
-        when( ctx.getStrategy( event ) ).thenReturn( TrackerImportStrategy.CREATE );
+        when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.CREATE );
+        when( bundle.getIdentifier() ).thenReturn( TrackerIdScheme.UID );
         when( preheat.getProgramStage( event.getProgramStage() ) ).thenReturn( programStage );
-        when( ctx.getProgramInstance( event.getEnrollment() ) ).thenReturn( getEnrollment( null ) );
+        when( bundle.getProgramInstance( event.getEnrollment() ) ).thenReturn( getEnrollment( null ) );
         when( preheat.getProgram( PROGRAM_ID ) ).thenReturn( program );
         when( preheat.getOrganisationUnit( ORG_UNIT_ID ) ).thenReturn( organisationUnit );
         when( organisationUnitService.isInUserSearchHierarchyCached( user, organisationUnit ) )
@@ -890,7 +897,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
         when( aclService.canDataRead( user, program ) ).thenReturn( true );
         when( aclService.canDataWrite( user, programStage ) ).thenReturn( true );
-        reporter = new ValidationErrorReporter( ctx );
+        reporter = new ValidationErrorReporter( bundle );
 
         validatorToTest.validateEvent( reporter, event );
 
@@ -908,12 +915,13 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
             .programStage( PS_ID )
             .program( PROGRAM_ID )
             .build();
-        when( ctx.getStrategy( event ) ).thenReturn( TrackerImportStrategy.UPDATE );
+        when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.UPDATE );
+        when( bundle.getIdentifier() ).thenReturn( TrackerIdScheme.UID );
         ProgramInstance programInstance = getEnrollment( enrollmentUid );
         ProgramStageInstance programStageInstance = getEvent();
         programStageInstance.setProgramInstance( programInstance );
-        when( ctx.getProgramStageInstance( event.getEvent() ) ).thenReturn( programStageInstance );
-        when( ctx.getProgramInstance( event.getEnrollment() ) ).thenReturn( programInstance );
+        when( bundle.getProgramStageInstance( event.getEvent() ) ).thenReturn( programStageInstance );
+        when( bundle.getProgramInstance( event.getEnrollment() ) ).thenReturn( programInstance );
         when( preheat.getProgram( PROGRAM_ID ) ).thenReturn( program );
         when( preheat.getOrganisationUnit( ORG_UNIT_ID ) ).thenReturn( organisationUnit );
         when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
@@ -921,7 +929,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         when( aclService.canDataWrite( user, programStage ) ).thenReturn( true );
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
             .thenReturn( true );
-        reporter = new ValidationErrorReporter( ctx );
+        reporter = new ValidationErrorReporter( bundle );
 
         validatorToTest.validateEvent( reporter, event );
 
@@ -941,22 +949,22 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
             .status( EventStatus.COMPLETED )
             .build();
 
-        when( ctx.getStrategy( event ) ).thenReturn( TrackerImportStrategy.UPDATE );
+        when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.UPDATE );
         ProgramInstance programInstance = getEnrollment( enrollmentUid );
 
         ProgramStageInstance programStageInstance = getEvent();
         programStageInstance.setProgramInstance( programInstance );
         programStageInstance.setOrganisationUnit( null );
 
-        when( ctx.getProgramStageInstance( event.getEvent() ) ).thenReturn( programStageInstance );
-        when( ctx.getProgramInstance( event.getEnrollment() ) ).thenReturn( programInstance );
+        when( bundle.getProgramStageInstance( event.getEvent() ) ).thenReturn( programStageInstance );
+        when( bundle.getProgramInstance( event.getEnrollment() ) ).thenReturn( programInstance );
         when( preheat.getProgram( PROGRAM_ID ) ).thenReturn( program );
         when( preheat.getOrganisationUnit( ORG_UNIT_ID ) ).thenReturn( organisationUnit );
         when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
         when( aclService.canDataRead( user, program ) ).thenReturn( true );
         when( aclService.canDataWrite( user, programStage ) ).thenReturn( true );
 
-        reporter = new ValidationErrorReporter( ctx );
+        reporter = new ValidationErrorReporter( bundle );
 
         validatorToTest.validateEvent( reporter, event );
 

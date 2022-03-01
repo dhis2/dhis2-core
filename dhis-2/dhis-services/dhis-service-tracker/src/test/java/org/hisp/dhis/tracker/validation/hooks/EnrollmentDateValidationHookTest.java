@@ -45,7 +45,6 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
-import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -64,19 +63,16 @@ class EnrollmentDateValidationHookTest
     @Mock
     private TrackerPreheat preheat;
 
-    @Mock
-    private TrackerImportValidationContext validationContext;
+    private TrackerBundle bundle;
 
     @BeforeEach
     public void setUp()
     {
         hookToTest = new EnrollmentDateValidationHook();
 
-        TrackerBundle bundle = TrackerBundle.builder()
+        bundle = TrackerBundle.builder()
             .preheat( preheat )
             .build();
-
-        when( validationContext.getBundle() ).thenReturn( bundle );
     }
 
     @Test
@@ -87,7 +83,7 @@ class EnrollmentDateValidationHookTest
         enrollment.setProgram( CodeGenerator.generateUid() );
         enrollment.setOccurredAt( Instant.now() );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         when( preheat.getProgram( enrollment.getProgram() ) ).thenReturn( new Program() );
 
@@ -107,7 +103,7 @@ class EnrollmentDateValidationHookTest
         enrollment.setOccurredAt( dateInTheFuture );
         enrollment.setEnrolledAt( dateInTheFuture );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         when( preheat.getProgram( enrollment.getProgram() ) ).thenReturn( new Program() );
 
@@ -127,7 +123,7 @@ class EnrollmentDateValidationHookTest
         enrollment.setOccurredAt( today );
         enrollment.setEnrolledAt( today );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         when( preheat.getProgram( enrollment.getProgram() ) ).thenReturn( new Program() );
 
@@ -146,7 +142,7 @@ class EnrollmentDateValidationHookTest
         enrollment.setOccurredAt( dateInTheFuture );
         enrollment.setEnrolledAt( dateInTheFuture );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         Program program = new Program();
         program.setSelectEnrollmentDatesInFuture( true );
@@ -167,7 +163,7 @@ class EnrollmentDateValidationHookTest
 
         enrollment.setEnrolledAt( Instant.now() );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         Program program = new Program();
         program.setDisplayIncidentDate( true );

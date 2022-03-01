@@ -49,7 +49,6 @@ import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
-import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
 
 /**
@@ -62,15 +61,13 @@ public class PreCheckMetaValidationHook
     @Override
     public void validateTrackedEntity( ValidationErrorReporter reporter, TrackedEntity tei )
     {
-        TrackerImportValidationContext context = reporter.getValidationContext();
-
-        OrganisationUnit organisationUnit = context.getBundle().getPreheat().getOrganisationUnit( tei.getOrgUnit() );
+        OrganisationUnit organisationUnit = reporter.getBundle().getPreheat().getOrganisationUnit( tei.getOrgUnit() );
         if ( organisationUnit == null )
         {
             reporter.addError( tei, TrackerErrorCode.E1049, tei.getOrgUnit() );
         }
 
-        TrackedEntityType entityType = context.getBundle().getPreheat()
+        TrackedEntityType entityType = reporter.getBundle().getPreheat()
             .getTrackedEntityType( tei.getTrackedEntityType() );
         if ( entityType == null )
         {
@@ -81,39 +78,35 @@ public class PreCheckMetaValidationHook
     @Override
     public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
     {
-        TrackerImportValidationContext context = reporter.getValidationContext();
-
-        OrganisationUnit organisationUnit = context.getBundle().getPreheat()
+        OrganisationUnit organisationUnit = reporter.getBundle().getPreheat()
             .getOrganisationUnit( enrollment.getOrgUnit() );
         reporter.addErrorIfNull( organisationUnit, enrollment, E1070, enrollment.getOrgUnit() );
 
-        Program program = context.getBundle().getPreheat().getProgram( enrollment.getProgram() );
+        Program program = reporter.getBundle().getPreheat().getProgram( enrollment.getProgram() );
         reporter.addErrorIfNull( program, enrollment, E1069, enrollment.getProgram() );
 
-        reporter.addErrorIf( () -> !trackedEntityInstanceExist( context, enrollment.getTrackedEntity() ), enrollment,
+        reporter.addErrorIf( () -> !trackedEntityInstanceExist( reporter.getBundle(), enrollment.getTrackedEntity() ),
+            enrollment,
             E1068, enrollment.getTrackedEntity() );
     }
 
     @Override
     public void validateEvent( ValidationErrorReporter reporter, Event event )
     {
-        TrackerImportValidationContext context = reporter.getValidationContext();
-
-        OrganisationUnit organisationUnit = context.getBundle().getPreheat().getOrganisationUnit( event.getOrgUnit() );
+        OrganisationUnit organisationUnit = reporter.getBundle().getPreheat().getOrganisationUnit( event.getOrgUnit() );
         reporter.addErrorIfNull( organisationUnit, event, E1011, event.getOrgUnit() );
 
-        Program program = context.getBundle().getPreheat().getProgram( event.getProgram() );
+        Program program = reporter.getBundle().getPreheat().getProgram( event.getProgram() );
         reporter.addErrorIfNull( program, event, E1010, event.getProgram() );
 
-        ProgramStage programStage = context.getBundle().getPreheat().getProgramStage( event.getProgramStage() );
+        ProgramStage programStage = reporter.getBundle().getPreheat().getProgramStage( event.getProgramStage() );
         reporter.addErrorIfNull( programStage, event, E1013, event.getProgramStage() );
     }
 
     @Override
     public void validateRelationship( ValidationErrorReporter reporter, Relationship relationship )
     {
-        TrackerImportValidationContext context = reporter.getValidationContext();
-        TrackerPreheat preheat = context.getBundle().getPreheat();
+        TrackerPreheat preheat = reporter.getBundle().getPreheat();
         RelationshipType relationshipType = preheat.get( RelationshipType.class, relationship.getRelationshipType() );
 
         reporter.addErrorIfNull( relationshipType, relationship, E4006, relationship.getRelationshipType() );

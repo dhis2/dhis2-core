@@ -49,7 +49,6 @@ import org.hisp.dhis.tracker.domain.Note;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
-import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -69,9 +68,7 @@ class EventNoteValidationHookTest
 
     private final BeanRandomizer rnd = BeanRandomizer.create();
 
-    private TrackerBundle trackerBundle;
-
-    private TrackerImportValidationContext ctx;
+    private TrackerBundle bundle;
 
     private TrackerPreheat preheat;
 
@@ -81,12 +78,10 @@ class EventNoteValidationHookTest
         this.hook = new EventNoteValidationHook();
         event = rnd.nextObject( Event.class );
 
-        trackerBundle = mock( TrackerBundle.class );
-        ctx = mock( TrackerImportValidationContext.class );
+        bundle = mock( TrackerBundle.class );
         preheat = mock( TrackerPreheat.class );
-        when( ctx.getBundle() ).thenReturn( trackerBundle );
-        when( trackerBundle.getValidationMode() ).thenReturn( ValidationMode.FULL );
-        when( trackerBundle.getPreheat() ).thenReturn( preheat );
+        when( bundle.getValidationMode() ).thenReturn( ValidationMode.FULL );
+        when( bundle.getPreheat() ).thenReturn( preheat );
     }
 
     @Test
@@ -95,7 +90,7 @@ class EventNoteValidationHookTest
         // Given
         final Note note = rnd.nextObject( Note.class );
         when( preheat.getNote( note.getNote() ) ).thenReturn( Optional.of( new TrackedEntityComment() ) );
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         event.setNotes( Collections.singletonList( note ) );
 
@@ -116,7 +111,7 @@ class EventNoteValidationHookTest
         // Given
         final Note note = rnd.nextObject( Note.class );
         note.setValue( null );
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         event.setNotes( Collections.singletonList( note ) );
 
@@ -133,7 +128,7 @@ class EventNoteValidationHookTest
     {
         // Given
         final List<Note> notes = rnd.objects( Note.class, 5 ).collect( Collectors.toList() );
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         event.setNotes( notes );
 

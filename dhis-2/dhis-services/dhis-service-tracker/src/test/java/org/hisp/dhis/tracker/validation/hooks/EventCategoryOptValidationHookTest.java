@@ -53,7 +53,6 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
-import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -73,9 +72,6 @@ class EventCategoryOptValidationHookTest extends DhisConvenienceTest
 
     @Mock
     private TrackerPreheat preheat;
-
-    @Mock
-    private TrackerImportValidationContext validationContext;
 
     private static final I18nFormat I18N_FORMAT = new MockI18nFormat();
 
@@ -145,12 +141,11 @@ class EventCategoryOptValidationHookTest extends DhisConvenienceTest
             .preheat( preheat )
             .build();
 
-        when( validationContext.getBundle() ).thenReturn( bundle );
         when( preheat.getProgram( program.getUid() ) )
             .thenReturn( program );
         when( i18nManager.getI18nFormat() ).thenReturn( I18N_FORMAT );
 
-        reporter = new ValidationErrorReporter( validationContext );
+        reporter = new ValidationErrorReporter( bundle );
     }
 
     @Test

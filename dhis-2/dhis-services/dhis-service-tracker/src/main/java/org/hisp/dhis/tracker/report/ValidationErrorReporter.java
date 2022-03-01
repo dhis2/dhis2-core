@@ -38,8 +38,8 @@ import lombok.Data;
 
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.ValidationMode;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.TrackerDto;
-import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.tracker.validation.ValidationFailFastException;
 
 /**
@@ -59,7 +59,7 @@ public class ValidationErrorReporter
 
     private final boolean isFailFast;
 
-    private final TrackerImportValidationContext validationContext;
+    private final TrackerBundle bundle;
 
     /*
      * A map that keep tracks of all the invalid Tracker objects encountered
@@ -77,16 +77,16 @@ public class ValidationErrorReporter
         this.warningsReportList = new ArrayList<>();
         this.reportList = new ArrayList<>();
         this.isFailFast = false;
-        this.validationContext = null;
+        this.bundle = null;
         this.invalidDTOs = new HashMap<>();
     }
 
-    public ValidationErrorReporter( TrackerImportValidationContext context )
+    public ValidationErrorReporter( TrackerBundle bundle )
     {
-        this.validationContext = context;
         this.reportList = new ArrayList<>();
         this.warningsReportList = new ArrayList<>();
-        this.isFailFast = validationContext.getBundle().getValidationMode() == ValidationMode.FAIL_FAST;
+        this.isFailFast = bundle.getValidationMode() == ValidationMode.FAIL_FAST;
+        this.bundle = bundle;
         this.invalidDTOs = new HashMap<>();
     }
 
@@ -117,7 +117,7 @@ public class ValidationErrorReporter
             .trackerType( dto.getTrackerType() )
             .errorCode( code )
             .addArgs( args )
-            .build( getValidationContext().getBundle() );
+            .build( bundle );
         addError( error );
     }
 
@@ -159,7 +159,7 @@ public class ValidationErrorReporter
             .trackerType( dto.getTrackerType() )
             .warningCode( code )
             .addArgs( args )
-            .build( getValidationContext().getBundle() );
+            .build( bundle );
         addWarning( warn );
     }
 
