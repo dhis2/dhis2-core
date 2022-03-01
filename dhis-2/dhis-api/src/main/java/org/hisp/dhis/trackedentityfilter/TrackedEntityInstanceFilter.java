@@ -214,6 +214,11 @@ public class TrackedEntityInstanceFilter
 
     public void setEnrollmentCreatedPeriod( FilterPeriod enrollmentCreatedPeriod )
     {
+        if ( enrollmentCreatedPeriod == null )
+        {
+            return;
+        }
+
         if ( this.entityQueryCriteria == null )
         {
             this.entityQueryCriteria = new EntityQueryCriteria();
