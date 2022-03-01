@@ -25,28 +25,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export;
+package org.hisp.dhis.user;
 
-import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import static com.google.common.base.Preconditions.checkNotNull;
 
-@Mapper( uses = {
-    RelationshipMapper.class,
-    AttributeMapper.class,
-    EnrollmentMapper.class,
-    ProgramOwnerMapper.class,
-    InstantMapper.class,
-    UserMapper.class } )
-public interface TrackedEntityMapper extends DomainMapper<TrackedEntityInstance, TrackedEntity>
+import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.springframework.stereotype.Component;
+
+/**
+ * @author Lars Helge Overland
+ */
+@Component( "org.hisp.dhis.user.UserRoleDeletionHandler" )
+public class UserRoleDeletionHandler
+    extends DeletionHandler
 {
-    @Mapping( target = "trackedEntity", source = "trackedEntityInstance" )
-    @Mapping( target = "createdAt", source = "created" )
-    @Mapping( target = "createdAtClient", source = "createdAtClient" )
-    @Mapping( target = "updatedAt", source = "lastUpdated" )
-    @Mapping( target = "updatedAtClient", source = "lastUpdatedAtClient" )
-    @Mapping( target = "createdBy", source = "createdByUserInfo" )
-    @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo" )
-    TrackedEntity from( TrackedEntityInstance trackedEntityInstance );
+    private final UserService userService;
+
+    public UserRoleDeletionHandler( UserService userService )
+    {
+        checkNotNull( userService );
+
+        this.userService = userService;
+    }
+
+    @Override
+    protected void register()
+    {
+        whenDeleting( User.class, this::deleteUser );
+    }
+
+    private void deleteUser( User user )
+    {
+        for ( UserRole group : user.getUserRoles() )
+        {
+            group.getMembers().remove( user );
+            userService.updateUserRole( group );
+        }
+    }
 }

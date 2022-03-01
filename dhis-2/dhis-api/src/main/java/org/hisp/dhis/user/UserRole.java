@@ -49,7 +49,7 @@ import com.google.common.collect.Sets;
  * @author Nguyen Hong Duc
  */
 @JacksonXmlRootElement( localName = "userRole", namespace = DxfNamespaces.DXF_2_0 )
-public class UserAuthorityGroup
+public class UserRole
     extends BaseIdentifiableObject implements MetadataObject
 {
     public static final String AUTHORITY_ALL = "ALL";
@@ -71,7 +71,7 @@ public class UserAuthorityGroup
     // Constructors
     // -------------------------------------------------------------------------
 
-    public UserAuthorityGroup()
+    public UserRole()
     {
         setAutoFields();
     }
@@ -83,13 +83,13 @@ public class UserAuthorityGroup
     public void addUser( User user )
     {
         members.add( user );
-        user.getUserAuthorityGroups().add( this );
+        user.getUserRoles().add( this );
     }
 
     public void removeUser( User useer )
     {
         members.remove( useer );
-        useer.getUserAuthorityGroups().remove( this );
+        useer.getUserRoles().remove( this );
     }
 
     public boolean isSuper()

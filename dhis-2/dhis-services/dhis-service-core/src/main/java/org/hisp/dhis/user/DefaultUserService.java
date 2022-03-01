@@ -42,6 +42,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
@@ -61,7 +63,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.PasswordManager;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.system.filter.UserAuthorityGroupCanIssueFilter;
+import org.hisp.dhis.system.filter.UserRoleCanIssueFilter;
 import org.hisp.dhis.util.DateUtils;
 import org.joda.time.DateTime;
 import org.springframework.context.annotation.Lazy;
@@ -81,6 +83,8 @@ import com.google.common.collect.Lists;
 public class DefaultUserService
     implements UserService
 {
+    private Pattern BCRYPT_PATTERN = Pattern.compile( "\\A\\$2(a|y|b)?\\$(\\d\\d)\\$[./0-9A-Za-z]{53}" );
+
     private static final int EXPIRY_THRESHOLD = 14;
 
     // -------------------------------------------------------------------------
@@ -91,7 +95,7 @@ public class DefaultUserService
 
     private final UserGroupService userGroupService;
 
-    private final UserAuthorityGroupStore userAuthorityGroupStore;
+    private final UserRoleStore userRoleStore;
 
     private final CurrentUserService currentUserService;
 
@@ -104,21 +108,21 @@ public class DefaultUserService
     private final Cache<String> userDisplayNameCache;
 
     public DefaultUserService( UserStore userStore, UserGroupService userGroupService,
-        UserAuthorityGroupStore userAuthorityGroupStore,
+        UserRoleStore userRoleStore,
         CurrentUserService currentUserService, SystemSettingManager systemSettingManager,
         CacheProvider cacheProvider,
         @Lazy PasswordManager passwordManager, @Lazy SessionRegistry sessionRegistry )
     {
         checkNotNull( userStore );
         checkNotNull( userGroupService );
-        checkNotNull( userAuthorityGroupStore );
+        checkNotNull( userRoleStore );
         checkNotNull( systemSettingManager );
         checkNotNull( passwordManager );
         checkNotNull( sessionRegistry );
 
         this.userStore = userStore;
         this.userGroupService = userGroupService;
-        this.userAuthorityGroupStore = userAuthorityGroupStore;
+        this.userRoleStore = userRoleStore;
         this.currentUserService = currentUserService;
         this.systemSettingManager = systemSettingManager;
         this.passwordManager = passwordManager;
@@ -285,8 +289,8 @@ public class DefaultUserService
 
     private void handleUserQueryParams( UserQueryParams params )
     {
-        boolean canSeeOwnRoles = params.isCanSeeOwnUserAuthorityGroups()
-            || systemSettingManager.getBoolSetting( SettingKey.CAN_GRANT_OWN_USER_AUTHORITY_GROUPS );
+        boolean canSeeOwnRoles = params.isCanSeeOwnRoles()
+            || systemSettingManager.getBoolSetting( SettingKey.CAN_GRANT_OWN_USER_ROLES );
         params.setDisjointRoles( !canSeeOwnRoles );
 
         if ( !params.hasUser() )
@@ -330,7 +334,7 @@ public class DefaultUserService
         }
 
         if ( params.isDisjointRoles()
-            && (params.getUser() == null || !params.getUser().hasUserAuthorityGroups()) )
+            && (params.getUser() == null || !params.getUser().hasUserRoles()) )
         {
             log.warn( "Cannot get users with disjoint roles as user does not have any user roles" );
             return false;
@@ -372,13 +376,13 @@ public class DefaultUserService
 
     @Override
     @Transactional( readOnly = true )
-    public boolean isLastSuperRole( UserAuthorityGroup userAuthorityGroup )
+    public boolean isLastSuperRole( UserRole userRole )
     {
-        Collection<UserAuthorityGroup> groups = userAuthorityGroupStore.getAll();
+        Collection<UserRole> groups = userRoleStore.getAll();
 
-        for ( UserAuthorityGroup group : groups )
+        for ( UserRole group : groups )
         {
-            if ( group.isSuper() && group.getId() != userAuthorityGroup.getId() )
+            if ( group.isSuper() && group.getId() != userRole.getId() )
             {
                 return false;
             }
@@ -434,97 +438,97 @@ public class DefaultUserService
     }
 
     // -------------------------------------------------------------------------
-    // UserAuthorityGroup
+    // UserRole
     // -------------------------------------------------------------------------
 
     @Override
     @Transactional
-    public long addUserAuthorityGroup( UserAuthorityGroup userAuthorityGroup )
+    public long addUserRole( UserRole userRole )
     {
-        userAuthorityGroupStore.save( userAuthorityGroup );
-        return userAuthorityGroup.getId();
+        userRoleStore.save( userRole );
+        return userRole.getId();
     }
 
     @Override
     @Transactional
-    public void updateUserAuthorityGroup( UserAuthorityGroup userAuthorityGroup )
+    public void updateUserRole( UserRole userRole )
     {
-        userAuthorityGroupStore.update( userAuthorityGroup );
+        userRoleStore.update( userRole );
     }
 
     @Override
     @Transactional
-    public void deleteUserAuthorityGroup( UserAuthorityGroup userAuthorityGroup )
+    public void deleteUserRole( UserRole userRole )
     {
-        userAuthorityGroupStore.delete( userAuthorityGroup );
+        userRoleStore.delete( userRole );
     }
 
     @Override
     @Transactional( readOnly = true )
-    public List<UserAuthorityGroup> getAllUserAuthorityGroups()
+    public List<UserRole> getAllUserRoles()
     {
-        return userAuthorityGroupStore.getAll();
+        return userRoleStore.getAll();
     }
 
     @Override
     @Transactional( readOnly = true )
-    public UserAuthorityGroup getUserAuthorityGroup( long id )
+    public UserRole getUserRole( long id )
     {
-        return userAuthorityGroupStore.get( id );
+        return userRoleStore.get( id );
     }
 
     @Override
     @Transactional( readOnly = true )
-    public UserAuthorityGroup getUserAuthorityGroup( String uid )
+    public UserRole getUserRole( String uid )
     {
-        return userAuthorityGroupStore.getByUid( uid );
+        return userRoleStore.getByUid( uid );
     }
 
     @Override
     @Transactional( readOnly = true )
-    public UserAuthorityGroup getUserAuthorityGroupByName( String name )
+    public UserRole getUserRoleByName( String name )
     {
-        return userAuthorityGroupStore.getByName( name );
+        return userRoleStore.getByName( name );
     }
 
     @Override
     @Transactional( readOnly = true )
-    public List<UserAuthorityGroup> getUserRolesByUid( Collection<String> uids )
+    public List<UserRole> getUserRolesByUid( Collection<String> uids )
     {
-        return userAuthorityGroupStore.getByUid( uids );
+        return userRoleStore.getByUid( uids );
     }
 
     @Override
     @Transactional( readOnly = true )
-    public List<UserAuthorityGroup> getUserRolesBetween( int first, int max )
+    public List<UserRole> getUserRolesBetween( int first, int max )
     {
-        return userAuthorityGroupStore.getAllOrderedName( first, max );
+        return userRoleStore.getAllOrderedName( first, max );
     }
 
     @Override
     @Transactional( readOnly = true )
-    public List<UserAuthorityGroup> getUserRolesBetweenByName( String name, int first, int max )
+    public List<UserRole> getUserRolesBetweenByName( String name, int first, int max )
     {
-        return userAuthorityGroupStore.getAllLikeName( name, first, max );
+        return userRoleStore.getAllLikeName( name, first, max );
     }
 
     @Override
     @Transactional( readOnly = true )
-    public int countDataSetUserAuthorityGroups( DataSet dataSet )
+    public int countDataSetUserRoles( DataSet dataSet )
     {
-        return userAuthorityGroupStore.countDataSetUserAuthorityGroups( dataSet );
+        return userRoleStore.countDataSetUserRoles( dataSet );
     }
 
     @Override
     @Transactional( readOnly = true )
-    public void canIssueFilter( Collection<UserAuthorityGroup> userRoles )
+    public void canIssueFilter( Collection<UserRole> userRoles )
     {
         User user = currentUserService.getCurrentUser();
 
-        boolean canGrantOwnUserAuthorityGroups = systemSettingManager
-            .getBoolSetting( SettingKey.CAN_GRANT_OWN_USER_AUTHORITY_GROUPS );
+        boolean canGrantOwnUserRoles = systemSettingManager
+            .getBoolSetting( SettingKey.CAN_GRANT_OWN_USER_ROLES );
 
-        FilterUtils.filter( userRoles, new UserAuthorityGroupCanIssueFilter( user, canGrantOwnUserAuthorityGroups ) );
+        FilterUtils.filter( userRoles, new UserRoleCanIssueFilter( user, canGrantOwnUserRoles ) );
     }
 
     @Override
@@ -561,9 +565,15 @@ public class DefaultUserService
         }
 
         // Encode and set password
+        Matcher matcher = this.BCRYPT_PATTERN.matcher( rawPassword );
+        if ( matcher.matches() )
+        {
+            throw new IllegalArgumentException( "Raw password look like BCrypt: " + rawPassword );
+        }
 
-        user.setPassword( passwordManager.encode( rawPassword ) );
-        user.getPreviousPasswords().add( passwordManager.encode( rawPassword ) );
+        String encode = passwordManager.encode( rawPassword );
+        user.setPassword( encode );
+        user.getPreviousPasswords().add( encode );
     }
 
     @Override
@@ -681,22 +691,25 @@ public class DefaultUserService
 
         // Validate user role
 
-        boolean canGrantOwnUserAuthorityGroups = systemSettingManager
-            .getBoolSetting( SettingKey.CAN_GRANT_OWN_USER_AUTHORITY_GROUPS );
+        boolean canGrantOwnUserRoles = systemSettingManager
+            .getBoolSetting( SettingKey.CAN_GRANT_OWN_USER_ROLES );
 
-        List<UserAuthorityGroup> roles = userAuthorityGroupStore.getByUid( user
-            .getUserAuthorityGroups().stream().map( BaseIdentifiableObject::getUid ).collect( Collectors.toList() ) );
+        Set<UserRole> userRoles = user.getUserRoles();
 
-        roles.forEach( ur -> {
-            if ( !currentUser.canIssueUserRole( ur, canGrantOwnUserAuthorityGroups ) )
-            {
-                errors.add( new ErrorReport( UserAuthorityGroup.class, ErrorCode.E3003, currentUser.getUsername(),
-                    ur.getName() ) );
-            }
-        } );
+        if ( userRoles != null )
+        {
+            List<UserRole> roles = userRoleStore.getByUid(
+                userRoles.stream().map( BaseIdentifiableObject::getUid ).collect( Collectors.toList() ) );
+            roles.forEach( ur -> {
+                if ( !currentUser.canIssueUserRole( ur, canGrantOwnUserRoles ) )
+                {
+                    errors.add( new ErrorReport( UserRole.class, ErrorCode.E3003, currentUser.getUsername(),
+                        ur.getName() ) );
+                }
+            } );
+        }
 
         // Validate user group
-
         boolean canAdd = currentUser.isAuthorized( UserGroup.AUTH_USER_ADD );
 
         if ( canAdd )

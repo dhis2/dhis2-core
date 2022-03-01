@@ -76,8 +76,8 @@ import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramIndicatorDimension;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.util.SharingUtils;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
@@ -223,15 +223,15 @@ public class DefaultPreheatService implements PreheatService
                 }
             }
 
-            if ( uidMap.containsKey( UserAuthorityGroup.class )
-                && !uidMap.get( UserAuthorityGroup.class ).isEmpty() )
+            if ( uidMap.containsKey( UserRole.class )
+                && !uidMap.get( UserRole.class ).isEmpty() )
             {
                 List<List<String>> identifiers = Lists
-                    .partition( Lists.newArrayList( uidMap.get( UserAuthorityGroup.class ) ), 20000 );
+                    .partition( Lists.newArrayList( uidMap.get( UserRole.class ) ), 20000 );
 
                 for ( List<String> ids : identifiers )
                 {
-                    Query query = Query.from( schemaService.getDynamicSchema( UserAuthorityGroup.class ) );
+                    Query query = Query.from( schemaService.getDynamicSchema( UserRole.class ) );
                     query.setUser( preheat.getUser() );
                     query.add( Restrictions.in( "id", ids ) );
                     List<? extends IdentifiableObject> objects = queryService.query( query );
@@ -544,15 +544,19 @@ public class DefaultPreheatService implements PreheatService
                     {
                         Collection<IdentifiableObject> reference = ReflectionUtils.invokeMethod( object,
                             p.getGetterMethod() );
-                        reference.forEach( identifiableObject -> addIdentifiers( map, identifiableObject ) );
 
-                        if ( DataElementOperand.class.isAssignableFrom( p.getItemKlass() ) )
+                        if ( reference != null )
                         {
-                            CollectionUtils.nullSafeForEach( reference, identifiableObject -> {
-                                DataElementOperand dataElementOperand = (DataElementOperand) identifiableObject;
-                                addIdentifiers( map, dataElementOperand.getDataElement() );
-                                addIdentifiers( map, dataElementOperand.getCategoryOptionCombo() );
-                            } );
+                            reference.forEach( identifiableObject -> addIdentifiers( map, identifiableObject ) );
+
+                            if ( DataElementOperand.class.isAssignableFrom( p.getItemKlass() ) )
+                            {
+                                CollectionUtils.nullSafeForEach( reference, identifiableObject -> {
+                                    DataElementOperand dataElementOperand = (DataElementOperand) identifiableObject;
+                                    addIdentifiers( map, dataElementOperand.getDataElement() );
+                                    addIdentifiers( map, dataElementOperand.getCategoryOptionCombo() );
+                                } );
+                            }
                         }
                     }
                 } );

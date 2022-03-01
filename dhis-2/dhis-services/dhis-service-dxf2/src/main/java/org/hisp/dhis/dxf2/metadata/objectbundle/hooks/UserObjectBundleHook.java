@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
+
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
@@ -51,7 +53,9 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAuthorityGroup;
+import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.UserGroupService;
+import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Component;
 
@@ -70,6 +74,8 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
     private final CurrentUserService currentUserService;
 
     private final AclService aclService;
+
+    private final UserGroupService userGroupService;
 
     @Override
     public void validate( User user, ObjectBundle bundle,
@@ -133,7 +139,7 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
         if ( user == null )
             return;
 
-        bundle.putExtras( user, "uc", user );
+        bundle.putExtras( user, "preUpdateUser", user );
 
         if ( persisted.getAvatar() != null
             && (user.getAvatar() == null || !persisted.getAvatar().getUid().equals( user.getAvatar().getUid() )) )
@@ -153,7 +159,7 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
     @Override
     public void postUpdate( User persistedUser, ObjectBundle bundle )
     {
-        final User preUpdateUser = (User) bundle.getExtras( persistedUser, "uc" );
+        final User preUpdateUser = (User) bundle.getExtras( persistedUser, "preUpdateUser" );
 
         if ( !StringUtils.isEmpty( preUpdateUser.getPassword() ) )
         {
@@ -161,7 +167,7 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
             sessionFactory.getCurrentSession().update( persistedUser );
         }
 
-        bundle.removeExtras( persistedUser, "uc" );
+        bundle.removeExtras( persistedUser, "preUpdateUser" );
     }
 
     @Override
@@ -189,8 +195,8 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
                 continue;
             }
 
-            Set<UserAuthorityGroup> userAuthorityGroups = (Set<UserAuthorityGroup>) userReferenceMap.get( "userRoles" );
-            user.setUserAuthorityGroups( Objects.requireNonNullElseGet( userAuthorityGroups, HashSet::new ) );
+            Set<UserRole> userRoles = (Set<UserRole>) userReferenceMap.get( "userRoles" );
+            user.setUserRoles( Objects.requireNonNullElseGet( userRoles, HashSet::new ) );
 
             Set<OrganisationUnit> organisationUnits = (Set<OrganisationUnit>) userReferenceMap
                 .get( "organisationUnits" );
@@ -215,9 +221,23 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
 
             preheatService.connectReferences( user, bundle.getPreheat(), bundle.getPreheatIdentifier() );
 
-            handleNoAccessRoles( user, bundle, userAuthorityGroups );
+            handleNoAccessRoles( user, bundle, userRoles );
 
             sessionFactory.getCurrentSession().update( user );
+        }
+    }
+
+    @Override
+    public void preDelete( User user, ObjectBundle bundle )
+    {
+        Set<UserGroup> groups = user.getGroups();
+        userGroupService.removeUserFromGroups( user, getUids( groups ) );
+
+        Set<UserRole> userRoles = user.getUserRoles();
+        for ( UserRole userRole : userRoles )
+        {
+            userRole.removeUser( user );
+            sessionFactory.getCurrentSession().update( userRole );
         }
     }
 
@@ -229,23 +249,23 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
      * @param user the updating User.
      * @param bundle the ObjectBundle.
      */
-    private void handleNoAccessRoles( User user, ObjectBundle bundle, Set<UserAuthorityGroup> userAuthorityGroups )
+    private void handleNoAccessRoles( User user, ObjectBundle bundle, Set<UserRole> userRoles )
     {
-        Set<UserAuthorityGroup> roles = user
-            .getUserAuthorityGroups();
+        Set<UserRole> roles = user
+            .getUserRoles();
         Set<String> currentRoles = roles.stream().map( BaseIdentifiableObject::getUid )
             .collect( Collectors.toSet() );
 
-        if ( userAuthorityGroups != null )
+        if ( userRoles != null )
         {
-            userAuthorityGroups.stream()
+            userRoles.stream()
                 .filter( role -> !currentRoles.contains( role.getUid() ) )
                 .forEach( role -> {
-                    UserAuthorityGroup persistedRole = bundle.getPreheat().get( PreheatIdentifier.UID, role );
+                    UserRole persistedRole = bundle.getPreheat().get( PreheatIdentifier.UID, role );
 
                     if ( persistedRole == null )
                     {
-                        persistedRole = manager.getNoAcl( UserAuthorityGroup.class, role.getUid() );
+                        persistedRole = manager.getNoAcl( UserRole.class, role.getUid() );
                     }
 
                     if ( !aclService.canRead( bundle.getUser(), persistedRole ) )

@@ -42,15 +42,13 @@ import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 import java.util.List;
 import java.util.Set;
 
-import javax.ws.rs.PUT;
-
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAuthorityGroup;
+import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonError;
 import org.hisp.dhis.webapi.json.domain.JsonErrorReport;
@@ -277,16 +275,16 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
 
         List<User> allUsers2 = userService.getAllUsers();
 
-        Set<UserAuthorityGroup> g1 = allUsers2.get( 0 ).getUserAuthorityGroups();
-        Set<UserAuthorityGroup> g2 = allUsers2.get( 1 ).getUserAuthorityGroups();
+        Set<UserRole> g1 = allUsers2.get( 0 ).getUserRoles();
+        Set<UserRole> g2 = allUsers2.get( 1 ).getUserRoles();
 
         assertStatus( HttpStatus.NO_CONTENT,
             PATCH( "/users/" + peterUserId + "/firstName",
                 Body( "{'firstName': 'Fry'}" ), ContentType( MediaType.APPLICATION_JSON ) ) );
 
         List<User> allUsers3 = userService.getAllUsers();
-        Set<UserAuthorityGroup> g3 = allUsers3.get( 0 ).getUserAuthorityGroups();
-        Set<UserAuthorityGroup> g4 = allUsers3.get( 1 ).getUserAuthorityGroups();
+        Set<UserRole> g3 = allUsers3.get( 0 ).getUserRoles();
+        Set<UserRole> g4 = allUsers3.get( 1 ).getUserRoles();
         JsonUser newPeter = GET( "/users/{id}", peterUserId ).content().as( JsonUser.class );
         assertEquals( "Fry", newPeter.getFirstName() );
         // are user roles still there?

@@ -25,20 +25,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export.relationships;
+package org.hisp.dhis.tracker.domain.mapper;
 
-import org.hisp.dhis.webapi.controller.tracker.export.DomainMapper;
-import org.hisp.dhis.webapi.controller.tracker.export.InstantMapper;
+import org.hisp.dhis.tracker.domain.Note;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper( uses = {
-    RelationshipItemMapper.class,
-    InstantMapper.class } )
-interface RelationshipMapper
-    extends DomainMapper<org.hisp.dhis.dxf2.events.trackedentity.Relationship, Relationship>
+@Mapper( uses = { InstantMapper.class, UserMapper.class } )
+public interface NoteMapper extends DomainMapper<org.hisp.dhis.dxf2.events.event.Note, Note>
 {
-    @Mapping( target = "createdAt", source = "created" )
-    @Mapping( target = "updatedAt", source = "lastUpdated" )
-    Relationship from( org.hisp.dhis.dxf2.events.trackedentity.Relationship relationship );
+    @Mapping( target = "storedAt", source = "storedDate" )
+    @Mapping( target = "createdBy", source = "lastUpdatedBy" )
+    Note from( org.hisp.dhis.dxf2.events.event.Note note );
 }

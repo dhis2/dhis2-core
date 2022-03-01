@@ -284,7 +284,7 @@ public class PreCheckDataRelationsValidationHook
         }
 
         return TextUtils
-            .splitToArray( cos, TextUtils.SEMICOLON );
+            .splitToSet( cos, TextUtils.SEMICOLON );
     }
 
     /**

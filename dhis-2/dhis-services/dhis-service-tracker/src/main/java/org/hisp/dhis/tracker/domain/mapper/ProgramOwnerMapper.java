@@ -25,23 +25,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.user;
+package org.hisp.dhis.tracker.domain.mapper;
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.tracker.domain.ProgramOwner;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public interface UserAuthorityGroupStore
-    extends IdentifiableObjectStore<UserAuthorityGroup>
+@Mapper
+public interface ProgramOwnerMapper
+    extends DomainMapper<org.hisp.dhis.dxf2.events.trackedentity.ProgramOwner, ProgramOwner>
 {
-    /**
-     * Returns the number of UserAuthorityGroups which are associated with the
-     * given DataSet.
-     *
-     * @param dataSet the DataSet.
-     * @return number of UserAuthorityGroups.
-     */
-    int countDataSetUserAuthorityGroups( DataSet dataSet );
+    @Mapping( target = "orgUnit", source = "ownerOrgUnit" )
+    @Mapping( target = "trackedEntity", source = "trackedEntityInstance" )
+    ProgramOwner from( org.hisp.dhis.dxf2.events.trackedentity.ProgramOwner programOwner );
 }

@@ -25,32 +25,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export.relationships;
+package org.hisp.dhis.system.filter;
 
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-
-import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
+import org.hisp.dhis.commons.filter.Filter;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserRole;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Lars Helge Overland
  */
-@Getter
-@Builder
-@EqualsAndHashCode
-class RelationshipItem
+public class UserRoleCanIssueFilter
+    implements Filter<UserRole>
 {
-    @JsonProperty
-    private TrackedEntity trackedEntity;
+    private User user;
 
-    @JsonProperty
-    private Enrollment enrollment;
+    private boolean canGrantOwnUserRoles = false;
 
-    @JsonProperty
-    private Event event;
+    protected UserRoleCanIssueFilter()
+    {
+    }
+
+    public UserRoleCanIssueFilter( User user, boolean canGrantOwnUserRoles )
+    {
+        if ( user != null )
+        {
+            this.user = user;
+            this.canGrantOwnUserRoles = canGrantOwnUserRoles;
+        }
+    }
+
+    @Override
+    public boolean retain( UserRole group )
+    {
+        return user != null && user.canIssueUserRole( group, canGrantOwnUserRoles );
+    }
 }

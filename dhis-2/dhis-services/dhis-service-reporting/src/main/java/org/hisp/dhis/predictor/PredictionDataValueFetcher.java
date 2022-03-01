@@ -171,8 +171,8 @@ public class PredictionDataValueFetcher
 
         orgUnitLookup = orgUnits.stream().collect( Collectors.toMap( OrganisationUnit::getPath, ou -> ou ) );
         dataElementLookup = dataElements.stream().collect( Collectors.toMap( DataElement::getId, de -> de ) );
-        dataElementLookup.putAll( dataElementOperands.stream().collect(
-            Collectors.toMap( d -> d.getDataElement().getId(), DataElementOperand::getDataElement ) ) );
+        dataElementLookup.putAll( dataElementOperands.stream().map( DataElementOperand::getDataElement )
+            .distinct().collect( Collectors.toMap( DataElement::getId, d -> d ) ) );
         periodLookup = queryPeriods.stream().collect( Collectors.toMap( Period::getId, p -> p ) );
         cocLookup = new CachingMap<>();
 

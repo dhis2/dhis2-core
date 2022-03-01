@@ -25,21 +25,61 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export;
+package org.hisp.dhis.webapi.webdomain.datavalue;
 
-import org.hisp.dhis.tracker.domain.RelationshipItem;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * RelationshipItemMapper maps each side of the relationship to its UID.
+ * @author Lars Helge Overland
  */
-@Mapper
-public interface RelationshipItemMapper
-    extends DomainMapper<org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem, RelationshipItem>
+@Getter
+@Setter
+@Accessors( chain = true )
+@NoArgsConstructor
+public class DataValueDto
 {
-    @Mapping( target = "trackedEntity", source = "trackedEntityInstance.trackedEntityInstance" )
-    @Mapping( target = "enrollment", source = "enrollment.enrollment" )
-    @Mapping( target = "event", source = "event.event" )
-    RelationshipItem from( org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem relationshipItem );
+    @JsonProperty
+    private String dataElement;
+
+    @JsonProperty
+    private String period;
+
+    @JsonProperty
+    private String orgUnit;
+
+    @JsonProperty
+    private String categoryOptionCombo;
+
+    @JsonProperty
+    private DataValueCategoryDto attribute;
+
+    @JsonProperty
+    private String dataSet;
+
+    @JsonProperty
+    private String value;
+
+    @JsonProperty
+    private String comment;
+
+    @JsonProperty
+    private Boolean followUp;
+
+    @JsonProperty
+    private Boolean force;
+
+    public boolean isFollowUp()
+    {
+        return followUp != null && followUp;
+    }
+
+    public boolean isForce()
+    {
+        return force != null && force;
+    }
 }

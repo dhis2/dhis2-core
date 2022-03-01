@@ -36,7 +36,6 @@ import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
-import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
 
@@ -55,7 +54,6 @@ import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.InQueryFilter;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
@@ -90,7 +88,6 @@ public class JdbcEnrollmentAnalyticsManager
     extends AbstractJdbcEventAnalyticsManager
     implements EnrollmentAnalyticsManager
 {
-
     private final EnrollmentTimeFieldSqlRenderer timeFieldSqlRenderer;
 
     private static final String ANALYTICS_EVENT = "analytics_event_";
@@ -99,14 +96,8 @@ public class JdbcEnrollmentAnalyticsManager
 
     private static final String LIMIT_1 = "limit 1";
 
-    public static final String CREATED_BY_DISPLAY_NAME_COLUMN = "concat(createdbylastname, ', ', createdbyname, "
-        + "' (', createdbyusername, ')') as createdbydisplayname";
-
-    public static final String LAST_UPDATED_BY_DISPLAY_NAME_COLUMN = "concat(lastupdatedbylastname, ', '"
-        + ", lastupdatedbyname, ' (', lastupdatedbyusername, ')') as lastupdatedbydisplayaname";
-
     private List<String> COLUMNS = Lists.newArrayList( "pi", "tei", "enrollmentdate", "incidentdate",
-        "storedby", CREATED_BY_DISPLAY_NAME_COLUMN, LAST_UPDATED_BY_DISPLAY_NAME_COLUMN, "lastupdated",
+        "storedby", "createdbydisplayname", "lastupdatedbydisplayname", "lastupdated",
         "ST_AsGeoJSON(pigeometry)", "longitude", "latitude",
         "ouname", "oucode", "enrollmentstatus" );
 
@@ -133,7 +124,6 @@ public class JdbcEnrollmentAnalyticsManager
         {
             withExceptionHandling( () -> getEnrollments( params, grid, sql ) );
         }
-
     }
 
     /**
@@ -286,30 +276,7 @@ public class JdbcEnrollmentAnalyticsManager
         // Query items and filters
         // ---------------------------------------------------------------------
 
-        for ( QueryItem item : params.getItems() )
-        {
-            if ( item.hasFilter() )
-            {
-                for ( QueryFilter filter : item.getFilters() )
-                {
-                    String field = getSelectSql( filter, item, params.getEarliestStartDate(),
-                        params.getLatestEndDate() );
-
-                    if ( IN.equals( filter.getOperator() ) )
-                    {
-                        InQueryFilter inQueryFilter = new InQueryFilter( field,
-                            statementBuilder.encode( filter.getFilter(), false ), item.isText() );
-                        sql += hlp.whereAnd() + " " + inQueryFilter.getSqlFilter();
-                    }
-                    else
-                    {
-                        sql += "and " + field + " " + filter.getSqlOperator() + " "
-                            + getSqlFilter( filter, item ) + " ";
-                    }
-
-                }
-            }
-        }
+        sql += getItemsSql( params, hlp );
 
         for ( QueryItem item : params.getItemFilters() )
         {

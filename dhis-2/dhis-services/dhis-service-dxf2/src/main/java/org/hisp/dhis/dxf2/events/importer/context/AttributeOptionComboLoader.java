@@ -127,7 +127,7 @@ public class AttributeOptionComboLoader
     public CategoryOptionCombo getAttributeOptionCombo( CategoryCombo categoryCombo, String categoryOptions,
         String attributeOptionCombo, IdScheme idScheme )
     {
-        final Set<String> opts = TextUtils.splitToArray( categoryOptions, TextUtils.SEMICOLON );
+        final Set<String> opts = TextUtils.splitToSet( categoryOptions, TextUtils.SEMICOLON );
 
         return getAttributeOptionCombo( categoryCombo, opts, attributeOptionCombo, idScheme );
     }

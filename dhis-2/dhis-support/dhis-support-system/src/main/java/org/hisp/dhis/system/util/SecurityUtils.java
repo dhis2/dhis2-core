@@ -32,7 +32,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAuthorityGroup;
+import org.hisp.dhis.user.UserRole;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
@@ -42,7 +42,7 @@ public class SecurityUtils
     {
         Set<GrantedAuthority> authorities = new HashSet<>();
 
-        for ( UserAuthorityGroup group : user.getUserAuthorityGroups() )
+        for ( UserRole group : user.getUserRoles() )
         {
             for ( String authority : group.getAuthorities() )
             {

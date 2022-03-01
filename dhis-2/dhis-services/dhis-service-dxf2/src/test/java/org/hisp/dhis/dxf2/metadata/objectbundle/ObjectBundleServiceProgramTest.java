@@ -53,7 +53,7 @@ import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAuthorityGroup;
+import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.validation.ValidationRule;
@@ -114,7 +114,7 @@ class ObjectBundleServiceProgramTest extends TransactionalIntegrationTest
         List<DataSet> dataSets = manager.getAll( DataSet.class );
         List<OrganisationUnit> organisationUnits = manager.getAll( OrganisationUnit.class );
         List<DataElement> dataElements = manager.getAll( DataElement.class );
-        List<UserAuthorityGroup> userRoles = manager.getAll( UserAuthorityGroup.class );
+        List<UserRole> userRoles = manager.getAll( UserRole.class );
         List<User> users = manager.getAll( User.class );
         List<ValidationRule> validationRules = manager.getAll( ValidationRule.class );
         List<Program> programs = manager.getAll( Program.class );
@@ -150,7 +150,7 @@ class ObjectBundleServiceProgramTest extends TransactionalIntegrationTest
         List<DataSet> dataSets = manager.getAll( DataSet.class );
         List<OrganisationUnit> organisationUnits = manager.getAll( OrganisationUnit.class );
         List<DataElement> dataElements = manager.getAll( DataElement.class );
-        List<UserAuthorityGroup> userRoles = manager.getAll( UserAuthorityGroup.class );
+        List<UserRole> userRoles = manager.getAll( UserRole.class );
         List<User> users = manager.getAll( User.class );
         List<ValidationRule> validationRules = manager.getAll( ValidationRule.class );
         List<Program> programs = manager.getAll( Program.class );
@@ -189,7 +189,7 @@ class ObjectBundleServiceProgramTest extends TransactionalIntegrationTest
         objectBundleService.commit( bundle );
         List<OrganisationUnit> organisationUnits = manager.getAll( OrganisationUnit.class );
         List<DataElement> dataElements = manager.getAll( DataElement.class );
-        List<UserAuthorityGroup> userRoles = manager.getAll( UserAuthorityGroup.class );
+        List<UserRole> userRoles = manager.getAll( UserRole.class );
         List<User> users = manager.getAll( User.class );
         List<Program> programs = manager.getAll( Program.class );
         List<ProgramStage> programStages = manager.getAll( ProgramStage.class );

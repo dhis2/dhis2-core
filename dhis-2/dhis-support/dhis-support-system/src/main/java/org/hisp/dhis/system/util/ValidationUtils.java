@@ -88,6 +88,8 @@ public class ValidationUtils
 
     public static final String NOT_VALID_VALUE_TYPE_OPTION_CLASS = "not_valid_value_type_option_class";
 
+    public static final int MAX_PASSWORD_LENGTH = 35;
+
     private static Set<String> BOOL_FALSE_VARIANTS = Sets.newHashSet( "false", "False", "FALSE", "f", "F", "0" );
 
     private static Set<String> BOOL_TRUE_VARIANTS = Sets.newHashSet( "true", "True", "TRUE", "t", "T", "1" );
@@ -246,7 +248,7 @@ public class ValidationUtils
      */
     public static boolean passwordIsValid( String password )
     {
-        if ( password == null || password.trim().length() < 8 || password.trim().length() > 35 )
+        if ( password == null || password.trim().length() < 8 || password.trim().length() > MAX_PASSWORD_LENGTH )
         {
             return false;
         }

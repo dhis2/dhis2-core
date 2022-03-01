@@ -25,42 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export;
+package org.hisp.dhis.webapi.webdomain.datavalue;
 
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.chrono.ChronoZonedDateTime;
-import java.util.Date;
-import java.util.Optional;
+import java.util.Set;
 
-import org.hisp.dhis.util.DateUtils;
-import org.mapstruct.Mapper;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 
-@Mapper
-public interface InstantMapper
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+/**
+ * @author Lars Helge Overland
+ */
+@Getter
+@Setter
+@Accessors( chain = true )
+@NoArgsConstructor
+@AllArgsConstructor
+public class DataValueCategoryDto
 {
+    @JsonProperty
+    private String combo;
 
-    default Instant fromString( String dateAsString )
-    {
-        return DateUtils.instantFromDateAsString( dateAsString );
-    }
-
-    default Instant fromDate( Date date )
-    {
-        if ( date instanceof java.sql.Date )
-        {
-            return fromSqlDate( (java.sql.Date) date );
-        }
-        return DateUtils.instantFromDate( date );
-    }
-
-    default Instant fromSqlDate( java.sql.Date date )
-    {
-        return Optional.ofNullable( date )
-            .map( java.sql.Date::toLocalDate )
-            .map( localDate -> localDate.atStartOfDay( ZoneId.systemDefault() ) )
-            .map( ChronoZonedDateTime::toInstant )
-            .orElse( null );
-    }
-
+    @JsonProperty
+    private Set<String> options;
 }

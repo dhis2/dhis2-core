@@ -115,7 +115,7 @@ public class EventCriteria extends PagingAndSortingCriteriaAdapter
 
         if ( assignedUser != null && !assignedUser.isEmpty() )
         {
-            assignedUsers = TextUtils.splitToArray( assignedUser, TextUtils.SEMICOLON ).stream()
+            assignedUsers = TextUtils.splitToSet( assignedUser, TextUtils.SEMICOLON ).stream()
                 .filter( CodeGenerator::isValidUid ).collect( Collectors.toSet() );
         }
 
@@ -124,7 +124,7 @@ public class EventCriteria extends PagingAndSortingCriteriaAdapter
 
     public Set<String> getEvents()
     {
-        return CollectionUtils.emptyIfNull( TextUtils.splitToArray( event, TextUtils.SEMICOLON ) )
+        return CollectionUtils.emptyIfNull( TextUtils.splitToSet( event, TextUtils.SEMICOLON ) )
             .stream()
             .filter( CodeGenerator::isValidUid )
             .collect( Collectors.toSet() );

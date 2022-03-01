@@ -25,42 +25,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.user.hibernate;
+package org.hisp.dhis.webapi.controller;
 
-import org.hibernate.SessionFactory;
-import org.hibernate.query.Query;
-import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.UserAuthorityGroup;
-import org.hisp.dhis.user.UserAuthorityGroupStore;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import org.hisp.dhis.jsontree.JsonResponse;
+import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author viet@dhis2.org
  */
-@Repository( "org.hisp.dhis.user.UserAuthorityGroupStore" )
-public class HibernateUserAuthorityGroupStore
-    extends HibernateIdentifiableObjectStore<UserAuthorityGroup>
-    implements UserAuthorityGroupStore
+public class GeoFeatureControllerTest extends DhisControllerConvenienceTest
 {
-    public HibernateUserAuthorityGroupStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
+    @Test
+    public void testGetWithCoordinateField()
     {
-        super( sessionFactory, jdbcTemplate, publisher, UserAuthorityGroup.class, currentUserService, aclService,
-            true );
-    }
+        POST( "/metadata",
+            "{\"organisationUnits\": ["
 
-    @Override
-    public int countDataSetUserAuthorityGroups( DataSet dataSet )
-    {
-        Query<Long> query = getTypedQuery(
-            "select count(distinct c) from UserAuthorityGroup c where :dataSet in elements(c.dataSets)" );
-        query.setParameter( "dataSet", dataSet );
+                + "{\"id\":\"rXnqqH2Pu6N\",\"name\": \"My Unit 1\",\"shortName\": \"OU1\",\"openingDate\": \"2020-01-01\","
+                + "\"attributeValues\": [{\"value\":  \"{\\\"type\\\": \\\"Polygon\\\","
+                + "\\\"coordinates\\\":  [[[100,0],[101,0],[101,1],[100,1],[100,0]]] }\","
+                + "\"attribute\": {\"id\": \"RRH9IFiZZYN\"}}]},"
 
-        return query.getSingleResult().intValue();
+                + "{\"id\":\"NBfMnCrwlQc\",\"name\": \"My Unit 3\",\"shortName\": \"OU3\",\"openingDate\": \"2020-01-01\"}"
+
+                + "],"
+                + "\"attributes\":[{\"id\":\"RRH9IFiZZYN\",\"valueType\":\"GEOJSON\",\"organisationUnitAttribute\":true,\"name\":\"testgeojson\"}]}" )
+                    .content( HttpStatus.OK );
+
+        JsonResponse response = GET( "/geoFeatures?ou=ou:LEVEL-1&&coordinateField=RRH9IFiZZYN" )
+            .content( HttpStatus.OK );
+        assertEquals( 1, response.size() );
+        assertEquals( "[[[100.0,0.0],[101.0,0.0],[101.0,1.0],[100.0,1.0],[100.0,0.0]]]",
+            response.getObject( 0 ).get( "co" ).node().value().toString() );
     }
 }

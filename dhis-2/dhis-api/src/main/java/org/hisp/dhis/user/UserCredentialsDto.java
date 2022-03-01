@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.user;
+package org.hisp.dhis.user;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -39,14 +39,16 @@ import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.security.acl.Access;
-import org.hisp.dhis.user.UserAuthorityGroup;
+import org.hisp.dhis.user.sharing.Sharing;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.annotation.Nulls;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 @Data
-@JacksonXmlRootElement( localName = "userCredWrapperDto", namespace = DxfNamespaces.DXF_2_0 )
-public class UserCredWrapperDto
+@JacksonXmlRootElement( localName = "userCredentialsDto", namespace = DxfNamespaces.DXF_2_0 )
+public class UserCredentialsDto
 {
     @JsonProperty
     private String uid;
@@ -82,9 +84,6 @@ public class UserCredWrapperDto
     private Date passwordLastUpdated;
 
     @JsonProperty
-    private Set<UserAuthorityGroup> userAuthorityGroups = new HashSet<>();
-
-    @JsonProperty
     private Set<CategoryOptionGroupSet> cogsDimensionConstraints = new HashSet<>();
 
     @JsonProperty
@@ -117,9 +116,18 @@ public class UserCredWrapperDto
     @JsonProperty
     private Date accountExpiry;
 
-    @JsonProperty( )
+    @JsonProperty
     private Access access;
 
     @JsonProperty
-    private Set<UserAuthorityGroup> userRoles;
+    private Sharing sharing = new Sharing();
+
+    @JsonProperty
+    private Set<UserRole> userRoles;
+
+    @JsonSetter( nulls = Nulls.SET )
+    public void setUserRoles( Set<UserRole> userRoles )
+    {
+        this.userRoles = userRoles;
+    }
 }
