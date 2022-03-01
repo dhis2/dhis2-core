@@ -41,6 +41,8 @@ import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.TRACKED_ENTITY_TYPE_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.USER_CANT_BE_NULL;
 
+import java.util.Map;
+
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -57,6 +59,7 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
@@ -171,10 +174,11 @@ public class PreCheckSecurityOwnershipValidationHook
         TrackerImportValidationContext context = reporter.getValidationContext();
         TrackerImportStrategy strategy = context.getStrategy( enrollment );
         TrackerBundle bundle = context.getBundle();
+        TrackerPreheat preheat = bundle.getPreheat();
         User user = bundle.getUser();
         Program program = strategy.isUpdateOrDelete() ? context.getProgramInstance( enrollment.getEnrollment() )
             .getProgram() : context.getProgram( enrollment.getProgram() );
-        OrganisationUnit ownerOrgUnit = context.getOwnerOrganisationUnit( enrollment.getTrackedEntity(),
+        OrganisationUnit ownerOrgUnit = getOwnerOrganisationUnit( preheat, enrollment.getTrackedEntity(),
             enrollment.getProgram() );
 
         checkNotNull( user, USER_CANT_BE_NULL );
@@ -185,7 +189,6 @@ public class PreCheckSecurityOwnershipValidationHook
 
         if ( strategy.isDelete() )
         {
-            TrackerPreheat preheat = bundle.getPreheat();
             boolean hasNonDeletedEvents = programInstanceHasEvents( preheat, enrollment.getEnrollment() );
             boolean hasNotCascadeDeleteAuthority = !user
                 .isAuthorized( Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority() );
@@ -205,6 +208,20 @@ public class PreCheckSecurityOwnershipValidationHook
 
         checkWriteEnrollmentAccess( reporter, enrollment, program, context,
             ownerOrgUnit );
+    }
+
+    private OrganisationUnit getOwnerOrganisationUnit( TrackerPreheat preheat, String teiUid, String programUid )
+    {
+        Map<String, TrackedEntityProgramOwnerOrgUnit> programOwner = preheat.getProgramOwner()
+            .get( teiUid );
+        if ( programOwner == null || programOwner.get( programUid ) == null )
+        {
+            return null;
+        }
+        else
+        {
+            return programOwner.get( programUid ).getOrganisationUnit();
+        }
     }
 
     private boolean programInstanceHasEvents( TrackerPreheat preheat, String programInstanceUid )
@@ -250,6 +267,7 @@ public class PreCheckSecurityOwnershipValidationHook
         TrackerImportValidationContext context = reporter.getValidationContext();
         TrackerImportStrategy strategy = context.getStrategy( event );
         TrackerBundle bundle = context.getBundle();
+        TrackerPreheat preheat = bundle.getPreheat();
         User user = bundle.getUser();
 
         checkNotNull( user, USER_CANT_BE_NULL );
@@ -271,7 +289,7 @@ public class PreCheckSecurityOwnershipValidationHook
 
         CategoryOptionCombo categoryOptionCombo = bundle.getPreheat()
             .getCategoryOptionCombo( event.getAttributeOptionCombo() );
-        OrganisationUnit ownerOrgUnit = context.getOwnerOrganisationUnit( teiUid, program.getUid() );
+        OrganisationUnit ownerOrgUnit = getOwnerOrganisationUnit( preheat, teiUid, program.getUid() );
         // Check acting user is allowed to change existing/write event
         if ( strategy.isUpdateOrDelete() )
         {
