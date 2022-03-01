@@ -41,6 +41,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.Collections;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.CodeGenerator;
@@ -528,7 +530,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
             .program( PROGRAM_ID )
             .build();
         when( ctx.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.DELETE );
-        when( ctx.programInstanceHasEvents( enrollment.getEnrollment() ) ).thenReturn( false );
+        when( preheat.getProgramInstanceWithOneOrMoreNonDeletedEvent() ).thenReturn( Collections.emptyList() );
         when( ctx.getProgramInstance( enrollment.getEnrollment() ) )
             .thenReturn( getEnrollment( enrollment.getEnrollment() ) );
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
@@ -552,7 +554,8 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
             .program( PROGRAM_ID )
             .build();
         when( ctx.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.DELETE );
-        when( ctx.programInstanceHasEvents( enrollment.getEnrollment() ) ).thenReturn( true );
+        when( preheat.getProgramInstanceWithOneOrMoreNonDeletedEvent() )
+            .thenReturn( Collections.singletonList( enrollment.getEnrollment() ) );
         when( ctx.getProgramInstance( enrollment.getEnrollment() ) )
             .thenReturn( getEnrollment( enrollment.getEnrollment() ) );
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
@@ -577,7 +580,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
             .program( PROGRAM_ID )
             .build();
         when( ctx.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.DELETE );
-        when( ctx.programInstanceHasEvents( enrollment.getEnrollment() ) ).thenReturn( false );
+        when( preheat.getProgramInstanceWithOneOrMoreNonDeletedEvent() ).thenReturn( Collections.emptyList() );
         when( ctx.getProgramInstance( enrollment.getEnrollment() ) )
             .thenReturn( getEnrollment( enrollment.getEnrollment() ) );
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
@@ -601,7 +604,8 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
             .program( PROGRAM_ID )
             .build();
         when( ctx.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.DELETE );
-        when( ctx.programInstanceHasEvents( enrollment.getEnrollment() ) ).thenReturn( true );
+        when( preheat.getProgramInstanceWithOneOrMoreNonDeletedEvent() )
+            .thenReturn( Collections.singletonList( enrollment.getEnrollment() ) );
         when( ctx.getProgramInstance( enrollment.getEnrollment() ) )
             .thenReturn( getEnrollment( enrollment.getEnrollment() ) );
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )

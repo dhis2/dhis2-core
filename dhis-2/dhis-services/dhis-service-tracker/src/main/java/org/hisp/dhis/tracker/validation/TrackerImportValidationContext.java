@@ -117,11 +117,6 @@ public class TrackerImportValidationContext
         }
     }
 
-    public boolean programInstanceHasEvents( String programInstanceUid )
-    {
-        return bundle.getPreheat().getProgramInstanceWithOneOrMoreNonDeletedEvent().contains( programInstanceUid );
-    }
-
     public ProgramStage getProgramStage( String id )
     {
         return bundle.getPreheat().get( ProgramStage.class, id );
