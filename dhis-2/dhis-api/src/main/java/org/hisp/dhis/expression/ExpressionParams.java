@@ -61,6 +61,13 @@ import org.hisp.dhis.program.Program;
 @Builder( toBuilder = true )
 public class ExpressionParams
 {
+    /**
+     * Dummy data for sample periods, so in the absence of real sampled data the
+     * parser will still traverse the contents of aggregation functions once for
+     * the purposes of such things as syntax checking and getting an expression
+     * description. The actual date doesn't matter; a date was chosen that is
+     * likely to not be confused with real data.
+     */
     private static final List<Period> SAMPLE_PERIODS = List.of( PeriodType.getPeriodFromIsoString( "19990101" ) );
 
     /**

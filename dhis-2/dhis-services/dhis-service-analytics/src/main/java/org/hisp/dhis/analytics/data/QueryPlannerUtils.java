@@ -127,7 +127,7 @@ public class QueryPlannerUtils
         for ( DimensionalItemObject element : dataElements )
         {
             QueryModifiers queryMods = (element.getQueryMods() != null)
-                ? element.getQueryMods().getQueryModsForAnalyticsGrouping()
+                ? element.getQueryMods().withQueryModsForAnalyticsGrouping()
                 : QueryModifiers.builder().build();
 
             map.putValue( queryMods, element );

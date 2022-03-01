@@ -287,11 +287,14 @@ public class DataElement extends BaseDimensionalItemObject
 
     /**
      * Data type for use in analytics. Both text and date types are recognized
-     * as TEXT. Everything else is recognized as NUMERIC.
+     * as TEXT. Everything else is recognized as NUMERIC. Note that this needs
+     * to be based on the QueryModifiers.valueType if present.
      */
     public DataType getAnalyticsDataType()
     {
-        return (getValueType().isText() || getValueType().isDate())
+        ValueType vType = getValueType();
+
+        return (vType.isText() || vType.isDate())
             ? DataType.TEXT
             : DataType.NUMERIC;
     }
