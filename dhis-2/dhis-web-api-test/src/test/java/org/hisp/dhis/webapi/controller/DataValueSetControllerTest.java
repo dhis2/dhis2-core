@@ -158,8 +158,12 @@ class DataValueSetControllerTest extends DhisControllerConvenienceTest
     {
         String ouId = assertStatus( HttpStatus.CREATED, POST( "/organisationUnits/",
             "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01', 'code':'OU1'}" ) );
-        JsonWebMessage response = GET( "/dataValueSets/?inputOrgUnitIdScheme=code&idScheme=name&orgUnit={ou}", "OU1" )
-            .content( HttpStatus.CONFLICT ).as( JsonWebMessage.class );
+        String dsId = assertStatus( HttpStatus.CREATED,
+            POST( "/dataSets/", "{'name':'My data set', 'periodType':'Monthly'}" ) );
+        JsonWebMessage response = GET(
+            "/dataValueSets/?inputOrgUnitIdScheme=code&idScheme=name&orgUnit={ou}&period=2022-01&dataSet={ds}", "OU1",
+            dsId )
+                .content( HttpStatus.CONFLICT ).as( JsonWebMessage.class );
         assertEquals( String.format( "User is not allowed to view org unit: `%s`", ouId ), response.getMessage() );
     }
 }

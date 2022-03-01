@@ -23,12 +23,12 @@ ${unit.name}#if( $velocityCount < $unitsNo ), #end
 </span></td>
 </tr>
 #end
-#if( $user.userCredentials.userAuthorityGroups && $user.userCredentials.userAuthorityGroups.size() > 0 )
+#if( $user.userCredentials.userRoles && $user.userCredentials.userRoles.size() > 0 )
 <tr>
 <td><label>$i18n.getString( "user_roles" ):</label></td>
 <td><span id="senderUserRoles">
-#set( $rolesNo = $user.userCredentials.userAuthorityGroups.size() )
-#foreach( $role in $user.userCredentials.userAuthorityGroups )
+#set( $rolesNo = $user.userCredentials.userRoles.size() )
+#foreach( $role in $user.userCredentials.userRoles )
 ${role.name}#if( $velocityCount < $rolesNo ), #end
 #end
 </span></td>

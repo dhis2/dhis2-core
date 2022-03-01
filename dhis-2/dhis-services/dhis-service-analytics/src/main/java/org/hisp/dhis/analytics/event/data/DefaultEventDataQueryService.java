@@ -28,11 +28,18 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_CREATED_BY_DISPLAY_NAME;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_ENROLLMENT_DATE;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_EVENT_DATE;
+import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_EVENT_STATUS;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_INCIDENT_DATE;
+import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LAST_UPDATED;
+import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LAST_UPDATED_BY_DISPLAY_NAME;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_ORG_UNIT_CODE;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_ORG_UNIT_NAME;
+import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_PROGRAM_STATUS;
+import static org.hisp.dhis.analytics.event.data.DefaultEventDataQueryService.SortableItems.isSortable;
+import static org.hisp.dhis.analytics.event.data.DefaultEventDataQueryService.SortableItems.translateItemIfNecessary;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
@@ -40,11 +47,15 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionFromParam;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionItemsFromParam;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionalItemIds;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
@@ -85,7 +96,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Lars Helge Overland
@@ -94,14 +104,15 @@ import com.google.common.collect.ImmutableSet;
 public class DefaultEventDataQueryService
     implements EventDataQueryService
 {
+    private static final String COL_NAME_PROGRAM_STATUS = "pistatus";
+
+    private static final String COL_NAME_EVENT_STATUS = "psistatus";
+
     private static final String COL_NAME_EVENTDATE = "executiondate";
 
     private static final String COL_NAME_ENROLLMENTDATE = "enrollmentdate";
 
     private static final String COL_NAME_INCIDENTDATE = "incidentdate";
-
-    private static final ImmutableSet<String> SORTABLE_ITEMS = ImmutableSet.of(
-        ITEM_ENROLLMENT_DATE, ITEM_INCIDENT_DATE, ITEM_EVENT_DATE, ITEM_ORG_UNIT_NAME, ITEM_ORG_UNIT_CODE );
 
     private final ProgramService programService;
 
@@ -473,21 +484,11 @@ public class DefaultEventDataQueryService
 
     private QueryItem getSortItem( String item, Program program, EventOutputType type )
     {
-        QueryItem queryItem;
-
-        if ( SORTABLE_ITEMS.contains( item.toLowerCase() ) )
+        if ( isSortable( item ) )
         {
-            item = ITEM_EVENT_DATE.equalsIgnoreCase( item ) ? COL_NAME_EVENTDATE : item;
-            item = ITEM_ENROLLMENT_DATE.equalsIgnoreCase( item ) ? COL_NAME_ENROLLMENTDATE : item;
-            item = ITEM_INCIDENT_DATE.equalsIgnoreCase( item ) ? COL_NAME_INCIDENTDATE : item;
-            queryItem = new QueryItem( new BaseDimensionalItemObject( item ) );
+            return new QueryItem( new BaseDimensionalItemObject( translateItemIfNecessary( item ) ) );
         }
-        else
-        {
-            queryItem = getQueryItem( item, program, type );
-        }
-
-        return queryItem;
+        return getQueryItem( item, program, type );
     }
 
     private DimensionalItemObject getValueDimension( String value )
@@ -521,5 +522,42 @@ public class DefaultEventDataQueryService
             throwIllegalQueryEx( errorCode, field );
         }
         return field;
+    }
+
+    @Getter
+    @RequiredArgsConstructor
+    enum SortableItems
+    {
+        ENROLLMENT_DATE( ITEM_ENROLLMENT_DATE, COL_NAME_ENROLLMENTDATE ),
+        INCIDENT_DATE( ITEM_INCIDENT_DATE, COL_NAME_INCIDENTDATE ),
+        EVENT_DATE( ITEM_EVENT_DATE, COL_NAME_EVENTDATE ),
+        ORG_UNIT_NAME( ITEM_ORG_UNIT_NAME, null ),
+        ORG_UNIT_CODE( ITEM_ORG_UNIT_CODE, null ),
+        PROGRAM_STATUS( ITEM_PROGRAM_STATUS, COL_NAME_PROGRAM_STATUS ),
+        EVENT_STATUS( ITEM_EVENT_STATUS, COL_NAME_EVENT_STATUS ),
+        CREATED_BY_DISPLAY_NAME( ITEM_CREATED_BY_DISPLAY_NAME, null ),
+        LAST_UPDATED_BY_DISPLAY_NAME( ITEM_LAST_UPDATED_BY_DISPLAY_NAME, null ),
+        LAST_UPDATED( ITEM_LAST_UPDATED, null );
+
+        private final String itemName;
+
+        private final String columnName;
+
+        static boolean isSortable( String itemName )
+        {
+            return Arrays.stream( values() )
+                .map( SortableItems::getItemName )
+                .anyMatch( itemName::equals );
+        }
+
+        static String translateItemIfNecessary( String item )
+        {
+            return Arrays.stream( values() )
+                .filter( sortableItems -> sortableItems.getItemName().equals( item ) )
+                .findFirst()
+                .map( SortableItems::getColumnName )
+                .orElse( item );
+        }
+
     }
 }

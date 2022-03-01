@@ -31,7 +31,7 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaDescriptor;
 import org.hisp.dhis.security.Authority;
 import org.hisp.dhis.security.AuthorityType;
-import org.hisp.dhis.user.UserAuthorityGroup;
+import org.hisp.dhis.user.UserRole;
 
 import com.google.common.collect.Lists;
 
@@ -49,7 +49,7 @@ public class UserRoleSchemaDescriptor implements SchemaDescriptor
     @Override
     public Schema getSchema()
     {
-        Schema schema = new Schema( UserAuthorityGroup.class, SINGULAR, PLURAL );
+        Schema schema = new Schema( UserRole.class, SINGULAR, PLURAL );
         schema.setRelativeApiEndpoint( API_ENDPOINT );
         schema.setOrder( 100 );
 

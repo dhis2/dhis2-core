@@ -25,41 +25,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.user;
+package org.hisp.dhis.tracker.domain.mapper;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import org.hisp.dhis.tracker.domain.RelationshipItem;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
-import org.hisp.dhis.system.deletion.DeletionHandler;
-import org.springframework.stereotype.Component;
-
-/**
- * @author Lars Helge Overland
- */
-@Component( "org.hisp.dhis.user.UserAuthorityGroupDeletionHandler" )
-public class UserAuthorityGroupDeletionHandler
-    extends DeletionHandler
+@Mapper
+public interface RelationshipItemMapper
+    extends DomainMapper<org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem, RelationshipItem>
 {
-    private final UserService userService;
-
-    public UserAuthorityGroupDeletionHandler( UserService userService )
-    {
-        checkNotNull( userService );
-
-        this.userService = userService;
-    }
-
-    @Override
-    protected void register()
-    {
-        whenDeleting( User.class, this::deleteUser );
-    }
-
-    private void deleteUser( User user )
-    {
-        for ( UserAuthorityGroup group : user.getUserAuthorityGroups() )
-        {
-            group.getMembers().remove( user );
-            userService.updateUserAuthorityGroup( group );
-        }
-    }
+    @Mapping( target = "trackedEntity", source = "trackedEntityInstance.trackedEntityInstance" )
+    @Mapping( target = "enrollment", source = "enrollment.enrollment" )
+    @Mapping( target = "event", source = "event.event" )
+    RelationshipItem from( org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem relationshipItem );
 }

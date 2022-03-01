@@ -25,23 +25,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.user;
+package org.hisp.dhis.tracker.preheat.mappers;
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.user.UserRole;
+import org.mapstruct.BeanMapping;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.factory.Mappers;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public interface UserAuthorityGroupStore
-    extends IdentifiableObjectStore<UserAuthorityGroup>
+@Mapper( uses = { DebugMapper.class, UserGroupMapper.class } )
+public interface UserRoleMapper extends PreheatMapper<UserRole>
 {
-    /**
-     * Returns the number of UserAuthorityGroups which are associated with the
-     * given DataSet.
-     *
-     * @param dataSet the DataSet.
-     * @return number of UserAuthorityGroups.
-     */
-    int countDataSetUserAuthorityGroups( DataSet dataSet );
+    UserRoleMapper INSTANCE = Mappers.getMapper( UserRoleMapper.class );
+
+    @BeanMapping( ignoreByDefault = true )
+    @Mapping( target = "id" )
+    @Mapping( target = "uid" )
+    @Mapping( target = "authorities" )
+    UserRole map( UserRole userGroupAccess );
 }

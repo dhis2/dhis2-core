@@ -56,7 +56,7 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAuthorityGroup;
+import org.hisp.dhis.user.UserRole;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -294,10 +294,10 @@ class EventDateValidationHookTest extends DhisConvenienceTest
     private User getEditExpiredUser()
     {
         User user = createUser( 'A' );
-        UserAuthorityGroup userAuthorityGroup = createUserAuthorityGroup( 'A' );
-        userAuthorityGroup.setAuthorities( Sets.newHashSet( Authorities.F_EDIT_EXPIRED.getAuthority() ) );
+        UserRole userRole = createUserRole( 'A' );
+        userRole.setAuthorities( Sets.newHashSet( Authorities.F_EDIT_EXPIRED.getAuthority() ) );
 
-        user.setUserAuthorityGroups( Sets.newHashSet( userAuthorityGroup ) );
+        user.setUserRoles( Sets.newHashSet( userRole ) );
 
         return user;
     }

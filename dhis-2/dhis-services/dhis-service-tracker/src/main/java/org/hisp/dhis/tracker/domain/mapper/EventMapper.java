@@ -25,32 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export.relationships;
+package org.hisp.dhis.tracker.domain.mapper;
 
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-
-import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-@Getter
-@Builder
-@EqualsAndHashCode
-class RelationshipItem
+@Mapper( uses = {
+    RelationshipMapper.class,
+    NoteMapper.class,
+    DataValueMapper.class,
+    InstantMapper.class } )
+public interface EventMapper extends DomainMapper<org.hisp.dhis.dxf2.events.event.Event, Event>
 {
-    @JsonProperty
-    private TrackedEntity trackedEntity;
-
-    @JsonProperty
-    private Enrollment enrollment;
-
-    @JsonProperty
-    private Event event;
+    @Mapping( target = "occurredAt", source = "eventDate" )
+    @Mapping( target = "scheduledAt", source = "dueDate" )
+    @Mapping( target = "createdAt", source = "created" )
+    @Mapping( target = "createdAtClient", source = "createdAtClient" )
+    @Mapping( target = "updatedAt", source = "lastUpdated" )
+    @Mapping( target = "updatedAtClient", source = "lastUpdatedAtClient" )
+    @Mapping( target = "completedAt", source = "completedDate" )
+    @Mapping( target = "createdBy", source = "createdByUserInfo.username" )
+    @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo.username" )
+    Event from( org.hisp.dhis.dxf2.events.event.Event event );
 }

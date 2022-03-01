@@ -25,36 +25,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export.relationships;
+package org.hisp.dhis.tracker.domain.mapper;
 
-import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.webapi.controller.tracker.export.AttributeMapper;
-import org.hisp.dhis.webapi.controller.tracker.export.DomainMapper;
-import org.hisp.dhis.webapi.controller.tracker.export.InstantMapper;
-import org.hisp.dhis.webapi.controller.tracker.export.NoteMapper;
+import org.hisp.dhis.tracker.domain.Note;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper( uses = {
-    RelationshipMapper.class,
-    AttributeMapper.class,
-    NoteMapper.class,
-    EventMapper.class,
-    InstantMapper.class } )
-interface EnrollmentMapper extends DomainMapper<org.hisp.dhis.dxf2.events.enrollment.Enrollment, Enrollment>
+@Mapper( uses = InstantMapper.class )
+public interface NoteMapper extends DomainMapper<org.hisp.dhis.dxf2.events.event.Note, Note>
 {
-    @Mapping( target = "relationships", ignore = true )
-    @Mapping( target = "enrollment", source = "enrollment" )
-    @Mapping( target = "createdAt", source = "created" )
-    @Mapping( target = "createdAtClient", source = "createdAtClient" )
-    @Mapping( target = "updatedAt", source = "lastUpdated" )
-    @Mapping( target = "updatedAtClient", source = "lastUpdatedAtClient" )
-    @Mapping( target = "trackedEntity", source = "trackedEntityInstance" )
-    @Mapping( target = "enrolledAt", source = "enrollmentDate" )
-    @Mapping( target = "occurredAt", source = "incidentDate" )
-    @Mapping( target = "followUp", source = "followup" )
-    @Mapping( target = "completedAt", source = "completedDate" )
-    @Mapping( target = "createdBy", source = "createdByUserInfo.username" )
-    @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo.username" )
-    Enrollment from( org.hisp.dhis.dxf2.events.enrollment.Enrollment enrollment );
+    @Mapping( target = "storedAt", source = "storedDate" )
+    Note from( org.hisp.dhis.dxf2.events.event.Note note );
 }

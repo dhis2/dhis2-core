@@ -25,21 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export;
+package org.hisp.dhis.tracker.domain.mapper;
 
-import org.hisp.dhis.tracker.domain.RelationshipItem;
+import org.hisp.dhis.tracker.domain.Enrollment;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-/**
- * RelationshipItemMapper maps each side of the relationship to its UID.
- */
-@Mapper
-public interface RelationshipItemMapper
-    extends DomainMapper<org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem, RelationshipItem>
+@Mapper( uses = {
+    RelationshipMapper.class,
+    AttributeMapper.class,
+    NoteMapper.class,
+    EventMapper.class,
+    InstantMapper.class } )
+public interface EnrollmentMapper extends DomainMapper<org.hisp.dhis.dxf2.events.enrollment.Enrollment, Enrollment>
 {
-    @Mapping( target = "trackedEntity", source = "trackedEntityInstance.trackedEntityInstance" )
-    @Mapping( target = "enrollment", source = "enrollment.enrollment" )
-    @Mapping( target = "event", source = "event.event" )
-    RelationshipItem from( org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem relationshipItem );
+    @Mapping( target = "enrollment", source = "enrollment" )
+    @Mapping( target = "createdAt", source = "created" )
+    @Mapping( target = "createdAtClient", source = "createdAtClient" )
+    @Mapping( target = "updatedAt", source = "lastUpdated" )
+    @Mapping( target = "updatedAtClient", source = "lastUpdatedAtClient" )
+    @Mapping( target = "trackedEntity", source = "trackedEntityInstance" )
+    @Mapping( target = "enrolledAt", source = "enrollmentDate" )
+    @Mapping( target = "occurredAt", source = "incidentDate" )
+    @Mapping( target = "followUp", source = "followup" )
+    @Mapping( target = "completedAt", source = "completedDate" )
+    @Mapping( target = "createdBy", source = "createdByUserInfo.username" )
+    @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo.username" )
+    Enrollment from( org.hisp.dhis.dxf2.events.enrollment.Enrollment enrollment );
 }

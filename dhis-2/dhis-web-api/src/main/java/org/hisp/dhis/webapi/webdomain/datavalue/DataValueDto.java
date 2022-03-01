@@ -25,24 +25,61 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export;
+package org.hisp.dhis.webapi.webdomain.datavalue;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 
-public interface DomainMapper<F, T>
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+/**
+ * @author Lars Helge Overland
+ */
+@Getter
+@Setter
+@Accessors( chain = true )
+@NoArgsConstructor
+public class DataValueDto
 {
-    T from( F from );
+    @JsonProperty
+    private String dataElement;
 
-    default List<T> fromCollection( Collection<F> froms )
+    @JsonProperty
+    private String period;
+
+    @JsonProperty
+    private String orgUnit;
+
+    @JsonProperty
+    private String categoryOptionCombo;
+
+    @JsonProperty
+    private DataValueCategoryDto attribute;
+
+    @JsonProperty
+    private String dataSet;
+
+    @JsonProperty
+    private String value;
+
+    @JsonProperty
+    private String comment;
+
+    @JsonProperty
+    private Boolean followUp;
+
+    @JsonProperty
+    private Boolean force;
+
+    public boolean isFollowUp()
     {
-        return Optional.ofNullable( froms )
-            .orElse( Collections.emptySet() )
-            .stream()
-            .map( this::from )
-            .collect( Collectors.toList() );
+        return followUp != null && followUp;
+    }
+
+    public boolean isForce()
+    {
+        return force != null && force;
     }
 }

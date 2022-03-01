@@ -25,71 +25,71 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.mapping;
+package org.hisp.dhis.webapi.service;
 
-import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.io.IOException;
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.geotools.geojson.geom.GeometryJSON;
 import org.hisp.dhis.analytics.DataQueryParams;
-import org.hisp.dhis.analytics.DataQueryService;
-import org.hisp.dhis.common.DataQueryRequest;
+import org.hisp.dhis.analytics.data.DefaultDataQueryService;
+import org.hisp.dhis.attribute.Attribute;
+import org.hisp.dhis.attribute.AttributeService;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.organisationunit.DefaultOrganisationUnitGroupService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.random.BeanRandomizer;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.DefaultCurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.junit.jupiter.api.BeforeEach;
+import org.hisp.dhis.webapi.webdomain.GeoFeature;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
- * @author Luciano Fiandesio
+ * @author viet@dhis2.org
  */
+@MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-class GeoFeatureControllerTest
+public class GeoFeatureServiceMockTest
 {
-    private MockMvc mockMvc;
+    @InjectMocks
+    private GeoFeatureService geoFeatureService;
 
     @Mock
-    private DataQueryService dataQueryService;
+    private DefaultDataQueryService dataQueryService;
 
     @Mock
-    private CurrentUserService currentUserService;
+    private DefaultOrganisationUnitGroupService organisationUnitGroupService;
+
+    @Mock
+    private DefaultCurrentUserService currentUserService;
+
+    @Mock
+    private AttributeService attributeService;
 
     private final static String POINT = "{" +
         "\"type\": \"Point\"," +
         "\"coordinates\": [" +
-        "51.17431640625," +
-        "15.537052823106482" +
+        "51.17431641," +
+        "15.53705282" +
         "]" +
         "}";
 
-    @InjectMocks
-    private GeoFeatureController geoFeatureController;
-
-    private final static String ENDPOINT = "/geoFeatures";
-
     private final BeanRandomizer rnd = BeanRandomizer.create( OrganisationUnit.class, "parent", "geometry" );
-
-    @BeforeEach
-    public void setUp()
-    {
-        mockMvc = MockMvcBuilders.standaloneSetup( geoFeatureController ).build();
-    }
 
     @Test
     void verifyGeoFeaturesReturnsOuData()
@@ -105,14 +105,57 @@ class GeoFeatureControllerTest
         DataQueryParams params = DataQueryParams.newBuilder().withOrganisationUnits( getList( ouA, ouB, ouC, ouD ) )
             .build();
 
-        when( dataQueryService.getFromRequest( any( DataQueryRequest.class ) ) ).thenReturn( params );
+        when( dataQueryService.getFromRequest( any() ) ).thenReturn( params );
         when( currentUserService.getCurrentUser() ).thenReturn( user );
+        HttpServletRequest request = mock( HttpServletRequest.class );
+        HttpServletResponse response = mock( HttpServletResponse.class );
 
-        mockMvc.perform( get( ENDPOINT ).accept( ContextUtils.CONTENT_TYPE_JSON )
-            .param( "ou", "ou:LEVEL-2;LEVEL-3" ) )
-            .andExpect( status().isOk() )
-            .andExpect( content().contentType( ContextUtils.CONTENT_TYPE_JSON ) )
-            .andExpect( jsonPath( "$", hasSize( 3 ) ) );
+        List<GeoFeature> features = geoFeatureService.getGeoFeatures( GeoFeatureService.Parameters.builder()
+            .request( request )
+            .response( response )
+            .organisationUnit( "ou:LEVEL-2;LEVEL-3" )
+            .build() );
+
+        assertEquals( 3, features.size() );
+    }
+
+    /**
+     * GET Request has "coordinateField" parameter.
+     * <p>
+     * OrganisationUnit has coordinates from geometry property but not GeoJson
+     * Attribute.
+     * <p>
+     * Expected: only return GeoFeature which has the coordinateField value.
+     *
+     * @throws IOException
+     */
+    @Test
+    public void testGeoJsonAttributeWithNoValue()
+        throws IOException
+    {
+        OrganisationUnit ouA = createOrgUnitWithCoordinates();
+        User user = rnd.nextObject( User.class );
+        DataQueryParams params = DataQueryParams.newBuilder().withOrganisationUnits( getList( ouA ) )
+            .build();
+
+        when( dataQueryService.getFromRequest( any() ) ).thenReturn( params );
+        when( currentUserService.getCurrentUser() ).thenReturn( user );
+        HttpServletRequest request = mock( HttpServletRequest.class );
+        HttpServletResponse response = mock( HttpServletResponse.class );
+
+        Attribute attribute = new Attribute();
+        attribute.setValueType( ValueType.GEOJSON );
+        attribute.setOrganisationUnitAttribute( true );
+        when( attributeService.getAttribute( "GeoJSON_Attribute_ID" ) ).thenReturn( attribute );
+
+        List<GeoFeature> features = geoFeatureService.getGeoFeatures( GeoFeatureService.Parameters.builder()
+            .request( request )
+            .response( response )
+            .coordinateField( "GeoJSON_Attribute_ID" )
+            .organisationUnit( "ou:LEVEL-2;LEVEL-3" )
+            .build() );
+
+        assertEquals( 0, features.size() );
     }
 
     private OrganisationUnit createOrgUnitWithoutCoordinates()

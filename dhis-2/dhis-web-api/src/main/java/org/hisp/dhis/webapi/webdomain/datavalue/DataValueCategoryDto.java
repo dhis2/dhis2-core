@@ -25,19 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export;
+package org.hisp.dhis.webapi.webdomain.datavalue;
 
-import org.hisp.dhis.tracker.domain.Relationship;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import java.util.Set;
 
-@Mapper( uses = {
-    RelationshipItemMapper.class,
-    InstantMapper.class } )
-public interface RelationshipMapper
-    extends DomainMapper<org.hisp.dhis.dxf2.events.trackedentity.Relationship, Relationship>
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+/**
+ * @author Lars Helge Overland
+ */
+@Getter
+@Setter
+@Accessors( chain = true )
+@NoArgsConstructor
+@AllArgsConstructor
+public class DataValueCategoryDto
 {
-    @Mapping( target = "createdAt", source = "created" )
-    @Mapping( target = "updatedAt", source = "lastUpdated" )
-    Relationship from( org.hisp.dhis.dxf2.events.trackedentity.Relationship relationship );
+    @JsonProperty
+    private String combo;
+
+    @JsonProperty
+    private Set<String> options;
 }

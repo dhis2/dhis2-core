@@ -25,20 +25,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export.relationships;
+package org.hisp.dhis.user;
 
-import org.hisp.dhis.webapi.controller.tracker.export.DomainMapper;
-import org.hisp.dhis.webapi.controller.tracker.export.InstantMapper;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import static com.google.common.base.Preconditions.checkNotNull;
 
-@Mapper( uses = {
-    RelationshipItemMapper.class,
-    InstantMapper.class } )
-interface RelationshipMapper
-    extends DomainMapper<org.hisp.dhis.dxf2.events.trackedentity.Relationship, Relationship>
+import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.springframework.stereotype.Component;
+
+/**
+ * @author Lars Helge Overland
+ */
+@Component( "org.hisp.dhis.user.UserRoleDeletionHandler" )
+public class UserRoleDeletionHandler
+    extends DeletionHandler
 {
-    @Mapping( target = "createdAt", source = "created" )
-    @Mapping( target = "updatedAt", source = "lastUpdated" )
-    Relationship from( org.hisp.dhis.dxf2.events.trackedentity.Relationship relationship );
+    private final UserService userService;
+
+    public UserRoleDeletionHandler( UserService userService )
+    {
+        checkNotNull( userService );
+
+        this.userService = userService;
+    }
+
+    @Override
+    protected void register()
+    {
+        whenDeleting( User.class, this::deleteUser );
+    }
+
+    private void deleteUser( User user )
+    {
+        for ( UserRole group : user.getUserRoles() )
+        {
+            group.getMembers().remove( user );
+            userService.updateUserRole( group );
+        }
+    }
 }

@@ -50,8 +50,8 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
@@ -102,7 +102,7 @@ class DeduplicationServiceMergeIntegrationTest extends IntegrationTestBase
     {
         OrganisationUnit ou = createOrganisationUnit( "OU_A" );
         organisationUnitService.addOrganisationUnit( ou );
-        creteUser( new HashSet<>( Collections.singletonList( ou ) ), UserAuthorityGroup.AUTHORITY_ALL );
+        creteUser( new HashSet<>( Collections.singletonList( ou ) ), UserRole.AUTHORITY_ALL );
         TrackedEntityType trackedEntityType = createTrackedEntityType( 'A' );
         trackedEntityTypeService.addTrackedEntityType( trackedEntityType );
         TrackedEntityInstance original = createTrackedEntityInstance( ou );
@@ -187,7 +187,7 @@ class DeduplicationServiceMergeIntegrationTest extends IntegrationTestBase
     private Sharing getUserSharing( User user, String accessStringHelper )
     {
         UserGroup userGroup = new UserGroup();
-        userGroup.setAutoFields();
+        userGroup.setName( "UserGroupA" );
         user.getGroups().add( userGroup );
         Map<String, org.hisp.dhis.user.sharing.UserAccess> userSharing = new HashMap<>();
         userSharing.put( user.getUid(), new org.hisp.dhis.user.sharing.UserAccess( user, AccessStringHelper.DEFAULT ) );

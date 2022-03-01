@@ -25,27 +25,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export;
+package org.hisp.dhis.user;
 
-import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.dataset.DataSet;
 
-@Mapper( uses = {
-    RelationshipMapper.class,
-    AttributeMapper.class,
-    EnrollmentMapper.class,
-    ProgramOwnerMapper.class,
-    InstantMapper.class } )
-public interface TrackedEntityMapper extends DomainMapper<TrackedEntityInstance, TrackedEntity>
+/**
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
+ */
+public interface UserRoleStore
+    extends IdentifiableObjectStore<UserRole>
 {
-    @Mapping( target = "trackedEntity", source = "trackedEntityInstance" )
-    @Mapping( target = "createdAt", source = "created" )
-    @Mapping( target = "createdAtClient", source = "createdAtClient" )
-    @Mapping( target = "updatedAt", source = "lastUpdated" )
-    @Mapping( target = "updatedAtClient", source = "lastUpdatedAtClient" )
-    @Mapping( target = "createdBy", source = "createdByUserInfo.username" )
-    @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo.username" )
-    TrackedEntity from( TrackedEntityInstance trackedEntityInstance );
+    /**
+     * Returns the number of UserRoles which are associated with the given
+     * DataSet.
+     *
+     * @param dataSet the DataSet.
+     * @return number of UserRoles.
+     */
+    int countDataSetUserRoles( DataSet dataSet );
 }

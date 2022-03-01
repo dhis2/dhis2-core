@@ -25,20 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export.relationships;
+package org.hisp.dhis.tracker.domain.mapper;
 
-import org.hisp.dhis.webapi.controller.tracker.export.DomainMapper;
+import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 @Mapper( uses = {
-    TrackedEntityMapper.class,
+    RelationshipMapper.class,
+    AttributeMapper.class,
     EnrollmentMapper.class,
-    EventMapper.class,
-} )
-interface RelationshipItemMapper
-    extends DomainMapper<org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem, RelationshipItem>
+    ProgramOwnerMapper.class,
+    InstantMapper.class } )
+public interface TrackedEntityMapper extends DomainMapper<TrackedEntityInstance, TrackedEntity>
 {
     @Mapping( target = "trackedEntity", source = "trackedEntityInstance" )
-    RelationshipItem from( org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem relationshipItem );
+    @Mapping( target = "createdAt", source = "created" )
+    @Mapping( target = "createdAtClient", source = "createdAtClient" )
+    @Mapping( target = "updatedAt", source = "lastUpdated" )
+    @Mapping( target = "updatedAtClient", source = "lastUpdatedAtClient" )
+    @Mapping( target = "createdBy", source = "createdByUserInfo.username" )
+    @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo.username" )
+    TrackedEntity from( TrackedEntityInstance trackedEntityInstance );
 }

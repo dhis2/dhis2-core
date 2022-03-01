@@ -31,8 +31,6 @@ import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.time.DateUtils.addYears;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LATITUDE;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LONGITUDE;
-import static org.hisp.dhis.analytics.event.data.JdbcEnrollmentAnalyticsManager.CREATED_BY_DISPLAY_NAME_COLUMN;
-import static org.hisp.dhis.analytics.event.data.JdbcEnrollmentAnalyticsManager.LAST_UPDATED_BY_DISPLAY_NAME_COLUMN;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.OU_GEOMETRY_COL_SUFFIX;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.DATE_PERIOD_STRUCT_ALIAS;
@@ -43,7 +41,6 @@ import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
 import static org.hisp.dhis.common.AnalyticsDateFilter.SCHEDULED_DATE;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
-import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.feedback.ErrorCode.E7131;
 import static org.hisp.dhis.feedback.ErrorCode.E7132;
@@ -72,7 +69,6 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
-import org.hisp.dhis.common.InQueryFilter;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
@@ -335,8 +331,8 @@ public class JdbcEventAnalyticsManager
     protected String getSelectClause( EventQueryParams params )
     {
         ImmutableList.Builder<String> cols = new ImmutableList.Builder<String>()
-            .add( "psi", "ps", "executiondate", "storedby", CREATED_BY_DISPLAY_NAME_COLUMN,
-                LAST_UPDATED_BY_DISPLAY_NAME_COLUMN, "lastupdated" );
+            .add( "psi", "ps", "executiondate", "storedby", "createdbydisplayname",
+                "lastupdatedbydisplayname", "lastupdated" );
 
         if ( params.containsScheduledDatePeriod() )
         {
@@ -466,6 +462,7 @@ public class JdbcEventAnalyticsManager
         for ( DimensionalObject dim : dynamicDimensions )
         {
             String col = quoteAlias( dim.getDimensionName() );
+
             sql += hlp.whereAnd() + " " + col + OPEN_IN
                 + getQuotedCommaDelimitedString( getUids( dim.getItems() ) ) + ") ";
         }
@@ -483,29 +480,7 @@ public class JdbcEventAnalyticsManager
         // Query items and filters
         // ---------------------------------------------------------------------
 
-        for ( QueryItem item : params.getItems() )
-        {
-            if ( item.hasFilter() )
-            {
-                for ( QueryFilter filter : item.getFilters() )
-                {
-                    String field = getSelectSql( filter, item, params.getEarliestStartDate(),
-                        params.getLatestEndDate() );
-
-                    if ( IN.equals( filter.getOperator() ) )
-                    {
-                        InQueryFilter inQueryFilter = new InQueryFilter( field,
-                            statementBuilder.encode( filter.getFilter(), false ), item.isText() );
-                        sql += hlp.whereAnd() + " " + inQueryFilter.getSqlFilter();
-                    }
-                    else
-                    {
-                        sql += hlp.whereAnd() + " " + field + " " + filter.getSqlOperator() + " "
-                            + getSqlFilter( filter, item ) + " ";
-                    }
-                }
-            }
-        }
+        sql += getItemsSql( params, hlp );
 
         for ( QueryItem item : params.getItemFilters() )
         {
