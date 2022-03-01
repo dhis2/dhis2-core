@@ -116,7 +116,7 @@ public class IdSchemes
 
     public IdScheme getDataElementGroupIdScheme()
     {
-        return getScheme( dataElementIdScheme );
+        return getScheme( dataElementGroupIdScheme );
     }
 
     public IdSchemes setDataElementGroupIdScheme( String idScheme )
