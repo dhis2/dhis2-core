@@ -28,7 +28,6 @@
 package org.hisp.dhis.tracker.importer.events;
 
 import com.google.gson.JsonObject;
-import io.restassured.RestAssured;
 import joptsimple.internal.Strings;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.UserActions;
@@ -51,10 +50,12 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.File;
-import java.util.List;
+import java.util.Arrays;
 import java.util.stream.Stream;
 
-import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.CoreMatchers.containsStringIgnoringCase;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.hasItem;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -191,24 +192,24 @@ public class EventValidationTests
     }
 
     @Test
-    public void shouldValidateCategoryCombo() {
+    public void shouldValidateCategoryCombo()
+    {
         ApiResponse program = programActions.get( "", new QueryParamsBuilder().add( "programType=WITHOUT_REGISTRATION" )
             .add( "filter=categoryCombo.code:!eq:default" )
             .add( "filter=name:like:TA" )
-            .add( "fields=id,categoryCombo[categories[categoryOptions]]" ));
+            .add( "fields=id,categoryCombo[categories[categoryOptions]]" ) );
 
         String programId = program.extractString( "programs.id[0]" );
-        List<String> category = program.extractList( "programs[0].categoryCombo.categories.categoryOptions.id.flatten()" );
-
-        Assumptions.assumeFalse( Strings.isNullOrEmpty(programId) );
+        Assumptions.assumeFalse( Strings.isNullOrEmpty( programId ) );
 
         JsonObject object = new EventDataBuilder()
             .setProgram( programId )
-            .setAttributeCategoryOptions( category )
+            .setAttributeCategoryOptions( Arrays.asList( "invalid-option" ) )
             .setOu( OU_ID ).array();
 
         trackerActions.postAndGetJobReport( object )
-            .validateSuccessfulImport();
+            .validateErrorReport()
+            .body( "errorCode", hasItem( "E1116" ) );
     }
 
     private void setupData()
