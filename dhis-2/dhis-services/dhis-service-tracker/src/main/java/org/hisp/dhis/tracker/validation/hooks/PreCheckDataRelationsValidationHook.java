@@ -99,7 +99,8 @@ public class PreCheckDataRelationsValidationHook
 
         addErrorIf( () -> !program.isRegistration(), reporter, E1014, program );
 
-        if ( programDoesNotHaveOrgUnit( program, organisationUnit, context.getProgramWithOrgUnitsMap() ) )
+        TrackerPreheat preheat = context.getBundle().getPreheat();
+        if ( programDoesNotHaveOrgUnit( program, organisationUnit, preheat.getProgramWithOrgUnitsMap() ) )
         {
             addError( reporter, E1041, organisationUnit, program );
         }
@@ -166,7 +167,8 @@ public class PreCheckDataRelationsValidationHook
     private void validateProgramHasOrgUnit( ValidationErrorReporter reporter, TrackerImportValidationContext context,
         OrganisationUnit organisationUnit, Program program )
     {
-        if ( programDoesNotHaveOrgUnit( program, organisationUnit, context.getProgramWithOrgUnitsMap() ) )
+        TrackerPreheat preheat = reporter.getValidationContext().getBundle().getPreheat();
+        if ( programDoesNotHaveOrgUnit( program, organisationUnit, preheat.getProgramWithOrgUnitsMap() ) )
         {
             addError( reporter, E1029, organisationUnit, program );
         }

@@ -124,7 +124,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         TrackedEntityType teiType = trackedEntityType( TEI_TYPE_ID );
         when( ctx.getProgram( PROGRAM_UID ) )
             .thenReturn( programWithRegistration( PROGRAM_UID, orgUnit, teiType ) );
-        when( ctx.getProgramWithOrgUnitsMap() )
+        when( preheat.getProgramWithOrgUnitsMap() )
             .thenReturn( Collections.singletonMap( PROGRAM_UID, Collections.singletonList( ORG_UNIT_ID ) ) );
         when( ctx.getTrackedEntityInstance( TEI_ID ) )
             .thenReturn( trackedEntityInstance( TEI_TYPE_ID, teiType, orgUnit ) );
@@ -149,7 +149,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .thenReturn( orgUnit );
         when( ctx.getProgram( PROGRAM_UID ) )
             .thenReturn( programWithoutRegistration( PROGRAM_UID, orgUnit ) );
-        when( ctx.getProgramWithOrgUnitsMap() )
+        when( preheat.getProgramWithOrgUnitsMap() )
             .thenReturn( Collections.singletonMap( PROGRAM_UID, Collections.singletonList( ORG_UNIT_ID ) ) );
 
         Enrollment enrollment = Enrollment.builder()
@@ -173,7 +173,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         OrganisationUnit anotherOrgUnit = organisationUnit( CodeGenerator.generateUid() );
         when( ctx.getProgram( PROGRAM_UID ) )
             .thenReturn( programWithRegistration( PROGRAM_UID, anotherOrgUnit ) );
-        when( ctx.getProgramWithOrgUnitsMap() )
+        when( preheat.getProgramWithOrgUnitsMap() )
             .thenReturn(
                 Collections.singletonMap( PROGRAM_UID, Collections.singletonList( anotherOrgUnit.getUid() ) ) );
 
@@ -197,7 +197,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .thenReturn( orgUnit );
         when( ctx.getProgram( PROGRAM_UID ) )
             .thenReturn( programWithRegistration( PROGRAM_UID, orgUnit, trackedEntityType( TEI_TYPE_ID ) ) );
-        when( ctx.getProgramWithOrgUnitsMap() )
+        when( preheat.getProgramWithOrgUnitsMap() )
             .thenReturn( Collections.singletonMap( PROGRAM_UID, Collections.singletonList( ORG_UNIT_ID ) ) );
         TrackedEntityType anotherTrackedEntityType = trackedEntityType( TEI_ID, 'B' );
         when( ctx.getTrackedEntityInstance( TEI_ID ) )
@@ -224,7 +224,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .thenReturn( orgUnit );
         when( ctx.getProgram( PROGRAM_UID ) )
             .thenReturn( programWithRegistration( PROGRAM_UID, orgUnit, trackedEntityType( TEI_TYPE_ID ) ) );
-        when( ctx.getProgramWithOrgUnitsMap() )
+        when( preheat.getProgramWithOrgUnitsMap() )
             .thenReturn( Collections.singletonMap( PROGRAM_UID, Collections.singletonList( ORG_UNIT_ID ) ) );
         when( ctx.getTrackedEntityInstance( TEI_ID ) ).thenReturn( null );
 
@@ -256,7 +256,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         Program program = programWithRegistration( PROGRAM_UID, orgUnit );
         when( ctx.getProgram( PROGRAM_UID ) )
             .thenReturn( program );
-        when( ctx.getProgramWithOrgUnitsMap() )
+        when( preheat.getProgramWithOrgUnitsMap() )
             .thenReturn( Collections.singletonMap( PROGRAM_UID, Collections.singletonList( ORG_UNIT_ID ) ) );
         when( ctx.getProgramStage( PROGRAM_STAGE_ID ) )
             .thenReturn( programStage( PROGRAM_STAGE_ID, program ) );
@@ -290,7 +290,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         Program program = programWithRegistration( PROGRAM_UID, orgUnit );
         when( ctx.getProgram( PROGRAM_UID ) )
             .thenReturn( program );
-        when( ctx.getProgramWithOrgUnitsMap() )
+        when( preheat.getProgramWithOrgUnitsMap() )
             .thenReturn( Collections.singletonMap( PROGRAM_UID, Collections.singletonList( ORG_UNIT_ID ) ) );
         when( ctx.getProgramStage( PROGRAM_STAGE_ID ) )
             .thenReturn(
@@ -325,7 +325,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         Program program = programWithRegistration( PROGRAM_UID, orgUnit );
         when( ctx.getProgram( PROGRAM_UID ) )
             .thenReturn( program );
-        when( ctx.getProgramWithOrgUnitsMap() )
+        when( preheat.getProgramWithOrgUnitsMap() )
             .thenReturn( Collections.singletonMap( PROGRAM_UID, Collections.singletonList( ORG_UNIT_ID ) ) );
         when( ctx.getProgramStage( PROGRAM_STAGE_ID ) )
             .thenReturn( programStage( PROGRAM_STAGE_ID, program ) );
@@ -360,7 +360,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         Program program = programWithRegistration( PROGRAM_UID, orgUnit );
         when( ctx.getProgram( PROGRAM_UID ) )
             .thenReturn( program );
-        when( ctx.getProgramWithOrgUnitsMap() )
+        when( preheat.getProgramWithOrgUnitsMap() )
             .thenReturn( Collections.singletonMap( PROGRAM_UID, Collections.singletonList( ORG_UNIT_ID ) ) );
         when( ctx.getProgramStage( PROGRAM_STAGE_ID ) )
             .thenReturn( programStage( PROGRAM_STAGE_ID, program ) );
@@ -400,7 +400,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         Program program = programWithRegistration( PROGRAM_UID, anotherOrgUnit );
         when( ctx.getProgram( PROGRAM_UID ) )
             .thenReturn( program );
-        when( ctx.getProgramWithOrgUnitsMap() )
+        when( preheat.getProgramWithOrgUnitsMap() )
             .thenReturn(
                 Collections.singletonMap( PROGRAM_UID, Collections.singletonList( anotherOrgUnit.getUid() ) ) );
         when( ctx.getProgramStage( PROGRAM_STAGE_ID ) )
@@ -1065,7 +1065,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         Program program = programWithRegistration( PROGRAM_UID, orgUnit );
         when( ctx.getProgram( PROGRAM_UID ) )
             .thenReturn( program );
-        when( ctx.getProgramWithOrgUnitsMap() )
+        when( preheat.getProgramWithOrgUnitsMap() )
             .thenReturn( Collections.singletonMap( PROGRAM_UID, Collections.singletonList( ORG_UNIT_ID ) ) );
         when( ctx.getProgramStage( PROGRAM_STAGE_ID ) )
             .thenReturn( programStage( PROGRAM_STAGE_ID, program ) );
