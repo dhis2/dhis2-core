@@ -1,0 +1,1 @@
+alter table mapview add column if not exists orgUnitField varchar(255);
