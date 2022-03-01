@@ -27,14 +27,12 @@
  */
 package org.hisp.dhis.tracker.validation;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 import lombok.Data;
 
-import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -62,8 +60,6 @@ import org.hisp.dhis.tracker.preheat.ReferenceTrackerEntity;
 @Data
 public class TrackerImportValidationContext
 {
-    private Map<String, CategoryOptionCombo> eventCocCacheMap = new HashMap<>();
-
     private TrackerBundle bundle;
 
     public TrackerImportValidationContext( TrackerBundle bundle )
@@ -75,11 +71,6 @@ public class TrackerImportValidationContext
     public TrackerImportStrategy getStrategy( TrackerDto dto )
     {
         return bundle.getResolvedStrategyMap().get( dto.getTrackerType() ).get( dto.getUid() );
-    }
-
-    public CategoryOptionCombo getCachedEventCategoryOptionCombo( String key )
-    {
-        return eventCocCacheMap.get( key );
     }
 
     public OrganisationUnit getOrganisationUnit( String id )
