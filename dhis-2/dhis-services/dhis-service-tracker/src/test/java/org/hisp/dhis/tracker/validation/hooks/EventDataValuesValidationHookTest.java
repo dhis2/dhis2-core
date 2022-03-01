@@ -51,6 +51,7 @@ import org.hisp.dhis.tracker.TrackerIdentifierParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
@@ -76,6 +77,9 @@ public class EventDataValuesValidationHookTest
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Mock
+    TrackerPreheat preheat;
+
+    @Mock
     private TrackerImportValidationContext context;
 
     private static final String programStageUid = "programStageUid";
@@ -87,7 +91,10 @@ public class EventDataValuesValidationHookTest
     {
         hook = new EventDataValuesValidationHook();
 
-        when( context.getBundle() ).thenReturn( TrackerBundle.builder().build() );
+        TrackerBundle bundle = TrackerBundle.builder()
+            .preheat( preheat )
+            .build();
+        when( context.getBundle() ).thenReturn( bundle );
     }
 
     @Test
@@ -96,7 +103,7 @@ public class EventDataValuesValidationHookTest
         setUpIdentifiers();
 
         DataElement dataElement = dataElement();
-        when( context.getDataElement( dataElementUid ) ).thenReturn( dataElement );
+        when( preheat.get( DataElement.class, dataElementUid ) ).thenReturn( dataElement );
 
         ProgramStage programStage = programStage( dataElement );
         when( context.getProgramStage( programStageUid ) ).thenReturn( programStage );
@@ -119,7 +126,7 @@ public class EventDataValuesValidationHookTest
         setUpIdentifiers();
 
         DataElement dataElement = dataElement();
-        when( context.getDataElement( dataElementUid ) ).thenReturn( dataElement );
+        when( preheat.get( DataElement.class, dataElementUid ) ).thenReturn( dataElement );
 
         ProgramStage programStage = programStage( dataElement );
         when( context.getProgramStage( programStageUid ) ).thenReturn( programStage );
@@ -144,7 +151,7 @@ public class EventDataValuesValidationHookTest
         setUpIdentifiers();
 
         DataElement dataElement = dataElement();
-        when( context.getDataElement( dataElementUid ) ).thenReturn( dataElement );
+        when( preheat.get( DataElement.class, dataElementUid ) ).thenReturn( dataElement );
 
         ProgramStage programStage = programStage( dataElement );
         when( context.getProgramStage( programStageUid ) ).thenReturn( programStage );
@@ -169,7 +176,7 @@ public class EventDataValuesValidationHookTest
         setUpIdentifiers();
 
         DataElement dataElement = dataElement();
-        when( context.getDataElement( dataElementUid ) ).thenReturn( null );
+        when( preheat.get( DataElement.class, dataElementUid ) ).thenReturn( null );
 
         ProgramStage programStage = programStage( dataElement );
         when( context.getProgramStage( programStageUid ) ).thenReturn( programStage );
@@ -193,7 +200,7 @@ public class EventDataValuesValidationHookTest
         setUpIdentifiers();
 
         DataElement dataElement = dataElement();
-        when( context.getDataElement( dataElementUid ) ).thenReturn( dataElement );
+        when( preheat.get( DataElement.class, dataElementUid ) ).thenReturn( dataElement );
 
         ProgramStage programStage = new ProgramStage();
         ProgramStageDataElement mandatoryStageElement1 = new ProgramStageDataElement();
@@ -228,7 +235,7 @@ public class EventDataValuesValidationHookTest
         setUpIdentifiers();
 
         DataElement dataElement = dataElement();
-        when( context.getDataElement( dataElementUid ) ).thenReturn( dataElement );
+        when( preheat.get( DataElement.class, dataElementUid ) ).thenReturn( dataElement );
 
         ProgramStage programStage = new ProgramStage();
         ProgramStageDataElement mandatoryStageElement1 = new ProgramStageDataElement();
@@ -269,7 +276,7 @@ public class EventDataValuesValidationHookTest
 
         DataElement dataElement = dataElement();
         dataElement.setCode( "DE_424050" );
-        when( context.getDataElement( dataElement.getCode() ) ).thenReturn( dataElement );
+        when( preheat.get( DataElement.class, dataElement.getCode() ) ).thenReturn( dataElement );
 
         ProgramStage programStage = programStage( dataElement, true );
         when( context.getProgramStage( programStageUid ) ).thenReturn( programStage );
@@ -294,12 +301,11 @@ public class EventDataValuesValidationHookTest
         setUpIdentifiers();
 
         DataElement dataElement = dataElement();
-        when( context.getDataElement( dataElementUid ) ).thenReturn( dataElement );
+        when( preheat.get( DataElement.class, dataElementUid ) ).thenReturn( dataElement );
 
         DataElement notPresentDataElement = dataElement();
         notPresentDataElement.setUid( "de_not_present_in_program_stage" );
-        when( context.getDataElement( "de_not_present_in_program_stage" ) )
-            .thenReturn( notPresentDataElement );
+        when( preheat.get( DataElement.class, "de_not_present_in_program_stage" ) ).thenReturn( notPresentDataElement );
 
         ProgramStage programStage = new ProgramStage();
         ProgramStageDataElement mandatoryStageElement1 = new ProgramStageDataElement();
@@ -338,7 +344,7 @@ public class EventDataValuesValidationHookTest
 
         DataElement dataElement = dataElement();
         dataElement.setCode( "DE_424050" );
-        when( context.getDataElement( dataElement.getCode() ) ).thenReturn( dataElement );
+        when( preheat.get( DataElement.class, dataElement.getCode() ) ).thenReturn( dataElement );
 
         ProgramStage programStage = programStage( dataElement );
         when( context.getProgramStage( programStageUid ) ).thenReturn( programStage );
@@ -364,7 +370,7 @@ public class EventDataValuesValidationHookTest
 
         DataElement dataElement = dataElement();
         DataElement invalidDataElement = dataElement( null );
-        when( context.getDataElement( dataElementUid ) ).thenReturn( invalidDataElement );
+        when( preheat.get( DataElement.class, dataElementUid ) ).thenReturn( invalidDataElement );
 
         ProgramStage programStage = programStage( dataElement );
         when( context.getProgramStage( programStageUid ) ).thenReturn( programStage );
@@ -389,7 +395,7 @@ public class EventDataValuesValidationHookTest
         setUpIdentifiers();
 
         DataElement validDataElement = dataElement( ValueType.FILE_RESOURCE );
-        when( context.getDataElement( dataElementUid ) ).thenReturn( validDataElement );
+        when( preheat.get( DataElement.class, dataElementUid ) ).thenReturn( validDataElement );
 
         DataValue validDataValue = dataValue( "QX4LpiTZmUH" );
         when( context.getFileResource( validDataValue.getValue() ) ).thenReturn( null );
@@ -417,7 +423,7 @@ public class EventDataValuesValidationHookTest
         setUpIdentifiers();
 
         DataElement validDataElement = dataElement( ValueType.FILE_RESOURCE );
-        when( context.getDataElement( dataElementUid ) ).thenReturn( validDataElement );
+        when( preheat.get( DataElement.class, dataElementUid ) ).thenReturn( validDataElement );
 
         ProgramStage programStage = programStage( validDataElement, false );
         when( context.getProgramStage( programStageUid ) ).thenReturn( programStage );
@@ -443,7 +449,7 @@ public class EventDataValuesValidationHookTest
         setUpIdentifiers();
 
         DataElement validDataElement = dataElement( ValueType.FILE_RESOURCE );
-        when( context.getDataElement( dataElementUid ) ).thenReturn( validDataElement );
+        when( preheat.get( DataElement.class, dataElementUid ) ).thenReturn( validDataElement );
 
         ProgramStage programStage = programStage( validDataElement, true );
         when( context.getProgramStage( programStageUid ) ).thenReturn( programStage );
@@ -470,7 +476,7 @@ public class EventDataValuesValidationHookTest
         setUpIdentifiers();
 
         DataElement validDataElement = dataElement();
-        when( context.getDataElement( dataElementUid ) ).thenReturn( validDataElement );
+        when( preheat.get( DataElement.class, dataElementUid ) ).thenReturn( validDataElement );
 
         ProgramStage programStage = programStage( validDataElement, true );
         programStage.setValidationStrategy( ValidationStrategy.ON_UPDATE_AND_INSERT );
@@ -498,7 +504,7 @@ public class EventDataValuesValidationHookTest
         setUpIdentifiers();
 
         DataElement validDataElement = dataElement();
-        when( context.getDataElement( dataElementUid ) ).thenReturn( validDataElement );
+        when( preheat.get( DataElement.class, dataElementUid ) ).thenReturn( validDataElement );
 
         ProgramStage programStage = programStage( validDataElement, true );
         programStage.setValidationStrategy( ValidationStrategy.ON_UPDATE_AND_INSERT );
@@ -526,7 +532,7 @@ public class EventDataValuesValidationHookTest
         setUpIdentifiers();
 
         DataElement validDataElement = dataElement();
-        when( context.getDataElement( dataElementUid ) ).thenReturn( validDataElement );
+        when( preheat.get( DataElement.class, dataElementUid ) ).thenReturn( validDataElement );
 
         ProgramStage programStage = programStage( validDataElement, true );
         programStage.setValidationStrategy( ValidationStrategy.ON_COMPLETE );
@@ -553,7 +559,7 @@ public class EventDataValuesValidationHookTest
         setUpIdentifiers();
 
         DataElement validDataElement = dataElement();
-        when( context.getDataElement( dataElementUid ) ).thenReturn( validDataElement );
+        when( preheat.get( DataElement.class, dataElementUid ) ).thenReturn( validDataElement );
 
         ProgramStage programStage = programStage( validDataElement, true );
         programStage.setValidationStrategy( ValidationStrategy.ON_COMPLETE );
@@ -581,7 +587,7 @@ public class EventDataValuesValidationHookTest
         setUpIdentifiers();
 
         DataElement validDataElement = dataElement();
-        when( context.getDataElement( dataElementUid ) ).thenReturn( validDataElement );
+        when( preheat.get( DataElement.class, dataElementUid ) ).thenReturn( validDataElement );
 
         ProgramStage programStage = programStage( validDataElement, true );
         when( context.getProgramStage( programStageUid ) ).thenReturn( programStage );
@@ -607,7 +613,7 @@ public class EventDataValuesValidationHookTest
         setUpIdentifiers();
 
         DataElement validDataElement = dataElement();
-        when( context.getDataElement( dataElementUid ) ).thenReturn( validDataElement );
+        when( preheat.get( DataElement.class, dataElementUid ) ).thenReturn( validDataElement );
 
         ProgramStage programStage = programStage( validDataElement, true );
         when( context.getProgramStage( programStageUid ) ).thenReturn( programStage );
@@ -633,7 +639,7 @@ public class EventDataValuesValidationHookTest
         setUpIdentifiers();
 
         DataElement validDataElement = dataElement();
-        when( context.getDataElement( dataElementUid ) ).thenReturn( validDataElement );
+        when( preheat.get( DataElement.class, dataElementUid ) ).thenReturn( validDataElement );
 
         ProgramStage programStage = programStage( validDataElement, false );
         when( context.getProgramStage( programStageUid ) ).thenReturn( programStage );
@@ -659,7 +665,7 @@ public class EventDataValuesValidationHookTest
         setUpIdentifiers();
 
         DataElement validDataElement = dataElement( ValueType.FILE_RESOURCE );
-        when( context.getDataElement( dataElementUid ) ).thenReturn( validDataElement );
+        when( preheat.get( DataElement.class, dataElementUid ) ).thenReturn( validDataElement );
 
         ProgramStage programStage = programStage( validDataElement );
         when( context.getProgramStage( programStageUid ) ).thenReturn( programStage );
@@ -718,7 +724,7 @@ public class EventDataValuesValidationHookTest
 
         DataElement dataElement = dataElement();
         dataElement.setOptionSet( optionSet );
-        when( context.getDataElement( dataElementUid ) ).thenReturn( dataElement );
+        when( preheat.get( DataElement.class, dataElementUid ) ).thenReturn( dataElement );
 
         ProgramStage programStage = programStage( dataElement );
         when( context.getProgramStage( programStageUid ) ).thenReturn( programStage );
@@ -753,7 +759,7 @@ public class EventDataValuesValidationHookTest
 
         DataElement dataElement = dataElement();
         dataElement.setOptionSet( optionSet );
-        when( context.getDataElement( dataElementUid ) ).thenReturn( dataElement );
+        when( preheat.get( DataElement.class, dataElementUid ) ).thenReturn( dataElement );
 
         ProgramStage programStage = programStage( dataElement );
         when( context.getProgramStage( programStageUid ) ).thenReturn( programStage );
@@ -779,7 +785,7 @@ public class EventDataValuesValidationHookTest
         setUpIdentifiers();
 
         DataElement invalidDataElement = dataElement( valueType );
-        when( context.getDataElement( dataElementUid ) ).thenReturn( invalidDataElement );
+        when( preheat.get( DataElement.class, dataElementUid ) ).thenReturn( invalidDataElement );
 
         ProgramStage programStage = programStage( dataElement() );
         when( context.getProgramStage( programStageUid ) ).thenReturn( programStage );
