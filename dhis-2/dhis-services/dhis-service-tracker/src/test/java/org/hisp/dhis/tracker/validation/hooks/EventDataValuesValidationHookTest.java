@@ -107,7 +107,7 @@ class EventDataValuesValidationHookTest
             .status( EventStatus.SKIPPED )
             .dataValues( Set.of( dataValue() ) ).build();
 
-        hook.validateEvent( reporter, event );
+        hook.validateEvent( reporter, bundle, event );
 
         assertFalse( reporter.hasErrors() );
     }
@@ -132,7 +132,7 @@ class EventDataValuesValidationHookTest
             .status( EventStatus.SKIPPED )
             .dataValues( Set.of( validDataValue ) ).build();
 
-        hook.validateEvent( reporter, event );
+        hook.validateEvent( reporter, bundle, event );
 
         assertFalse( reporter.hasErrors() );
     }
@@ -157,7 +157,7 @@ class EventDataValuesValidationHookTest
             .status( EventStatus.SKIPPED )
             .dataValues( Set.of( validDataValue ) ).build();
 
-        hook.validateEvent( reporter, event );
+        hook.validateEvent( reporter, bundle, event );
 
         assertFalse( reporter.hasErrors() );
     }
@@ -180,7 +180,7 @@ class EventDataValuesValidationHookTest
             .status( EventStatus.SKIPPED )
             .dataValues( Set.of( dataValue() ) ).build();
 
-        hook.validateEvent( reporter, event );
+        hook.validateEvent( reporter, bundle, event );
 
         assertThat( reporter.getReportList(), hasSize( 1 ) );
         assertEquals( TrackerErrorCode.E1304, reporter.getReportList().get( 0 ).getErrorCode() );
@@ -215,7 +215,7 @@ class EventDataValuesValidationHookTest
             .status( EventStatus.COMPLETED )
             .dataValues( Set.of( dataValue() ) ).build();
 
-        hook.validateEvent( reporter, event );
+        hook.validateEvent( reporter, bundle, event );
 
         assertThat( reporter.getReportList(), hasSize( 1 ) );
         assertEquals( TrackerErrorCode.E1303, reporter.getReportList().get( 0 ).getErrorCode() );
@@ -250,7 +250,7 @@ class EventDataValuesValidationHookTest
             .status( EventStatus.ACTIVE )
             .dataValues( Set.of( dataValue() ) ).build();
 
-        hook.validateEvent( reporter, event );
+        hook.validateEvent( reporter, bundle, event );
 
         assertFalse( reporter.hasErrors() );
     }
@@ -282,7 +282,7 @@ class EventDataValuesValidationHookTest
             .status( EventStatus.COMPLETED )
             .dataValues( Set.of( dataValue ) ).build();
 
-        hook.validateEvent( reporter, event );
+        hook.validateEvent( reporter, bundle, event );
 
         assertFalse( reporter.hasErrors() );
     }
@@ -317,7 +317,7 @@ class EventDataValuesValidationHookTest
             .status( EventStatus.ACTIVE )
             .dataValues( Set.of( dataValue(), notPresentDataValue ) ).build();
 
-        hook.validateEvent( reporter, event );
+        hook.validateEvent( reporter, bundle, event );
 
         assertThat( reporter.getReportList(), hasSize( 1 ) );
         assertEquals( TrackerErrorCode.E1305, reporter.getReportList().get( 0 ).getErrorCode() );
@@ -350,7 +350,7 @@ class EventDataValuesValidationHookTest
             .status( EventStatus.ACTIVE )
             .dataValues( Set.of( dataValue ) ).build();
 
-        hook.validateEvent( reporter, event );
+        hook.validateEvent( reporter, bundle, event );
 
         assertFalse( reporter.hasErrors() );
     }
@@ -375,7 +375,7 @@ class EventDataValuesValidationHookTest
             .dataValues( Set.of( dataValue() ) )
             .build();
 
-        hook.validateEvent( reporter, event );
+        hook.validateEvent( reporter, bundle, event );
 
         assertThat( reporter.getReportList(), hasSize( 1 ) );
         assertEquals( TrackerErrorCode.E1302, reporter.getReportList().get( 0 ).getErrorCode() );
@@ -403,7 +403,7 @@ class EventDataValuesValidationHookTest
             .dataValues( Set.of( validDataValue ) )
             .build();
 
-        hook.validateEvent( reporter, event );
+        hook.validateEvent( reporter, bundle, event );
 
         assertThat( reporter.getReportList(), hasSize( 1 ) );
         assertEquals( TrackerErrorCode.E1084, reporter.getReportList().get( 0 ).getErrorCode() );
@@ -430,7 +430,7 @@ class EventDataValuesValidationHookTest
             .dataValues( Set.of( validDataValue ) )
             .build();
 
-        hook.validateEvent( reporter, event );
+        hook.validateEvent( reporter, bundle, event );
 
         assertFalse( reporter.hasErrors() );
     }
@@ -456,7 +456,7 @@ class EventDataValuesValidationHookTest
             .dataValues( Set.of( validDataValue ) )
             .build();
 
-        hook.validateEvent( reporter, event );
+        hook.validateEvent( reporter, bundle, event );
 
         assertThat( reporter.getReportList(), hasSize( 1 ) );
         assertEquals( TrackerErrorCode.E1076, reporter.getReportList().get( 0 ).getErrorCode() );
@@ -484,7 +484,7 @@ class EventDataValuesValidationHookTest
             .dataValues( Set.of( validDataValue ) )
             .build();
 
-        hook.validateEvent( reporter, event );
+        hook.validateEvent( reporter, bundle, event );
 
         assertThat( reporter.getReportList(), hasSize( 1 ) );
         assertEquals( TrackerErrorCode.E1076, reporter.getReportList().get( 0 ).getErrorCode() );
@@ -512,7 +512,7 @@ class EventDataValuesValidationHookTest
             .dataValues( Set.of( validDataValue ) )
             .build();
 
-        hook.validateEvent( reporter, event );
+        hook.validateEvent( reporter, bundle, event );
 
         assertThat( reporter.getReportList(), hasSize( 1 ) );
         assertEquals( TrackerErrorCode.E1076, reporter.getReportList().get( 0 ).getErrorCode() );
@@ -540,7 +540,7 @@ class EventDataValuesValidationHookTest
             .dataValues( Set.of( validDataValue ) )
             .build();
 
-        hook.validateEvent( reporter, event );
+        hook.validateEvent( reporter, bundle, event );
 
         assertFalse( reporter.hasErrors() );
     }
@@ -567,7 +567,7 @@ class EventDataValuesValidationHookTest
             .dataValues( Set.of( validDataValue ) )
             .build();
 
-        hook.validateEvent( reporter, event );
+        hook.validateEvent( reporter, bundle, event );
 
         assertThat( reporter.getReportList(), hasSize( 1 ) );
         assertEquals( TrackerErrorCode.E1076, reporter.getReportList().get( 0 ).getErrorCode() );
@@ -594,7 +594,7 @@ class EventDataValuesValidationHookTest
             .dataValues( Set.of( validDataValue ) )
             .build();
 
-        hook.validateEvent( reporter, event );
+        hook.validateEvent( reporter, bundle, event );
 
         assertFalse( reporter.hasErrors() );
     }
@@ -620,7 +620,7 @@ class EventDataValuesValidationHookTest
             .dataValues( Set.of( validDataValue ) )
             .build();
 
-        hook.validateEvent( reporter, event );
+        hook.validateEvent( reporter, bundle, event );
 
         assertFalse( reporter.hasErrors() );
     }
@@ -646,7 +646,7 @@ class EventDataValuesValidationHookTest
             .dataValues( Set.of( validDataValue ) )
             .build();
 
-        hook.validateEvent( reporter, event );
+        hook.validateEvent( reporter, bundle, event );
 
         assertFalse( reporter.hasErrors() );
     }
@@ -674,7 +674,7 @@ class EventDataValuesValidationHookTest
             .dataValues( Set.of( validDataValue ) )
             .build();
 
-        hook.validateEvent( reporter, event );
+        hook.validateEvent( reporter, bundle, event );
 
         assertThat( reporter.getReportList(), hasSize( 1 ) );
         assertEquals( TrackerErrorCode.E1009, reporter.getReportList().get( 0 ).getErrorCode() );
@@ -729,7 +729,7 @@ class EventDataValuesValidationHookTest
             .dataValues( Set.of( validDataValue, nullDataValue ) )
             .build();
 
-        hook.validateEvent( reporter, event );
+        hook.validateEvent( reporter, bundle, event );
 
         assertFalse( reporter.hasErrors() );
     }
@@ -764,7 +764,7 @@ class EventDataValuesValidationHookTest
             .dataValues( Set.of( validDataValue ) )
             .build();
 
-        hook.validateEvent( reporter, event );
+        hook.validateEvent( reporter, bundle, event );
 
         assertTrue( reporter.hasErrors() );
         assertThat( reporter.getReportList(), hasSize( 1 ) );
@@ -793,7 +793,7 @@ class EventDataValuesValidationHookTest
             .dataValues( Set.of( validDataValue ) )
             .build();
 
-        hook.validateEvent( reporter, event );
+        hook.validateEvent( reporter, bundle, event );
 
         assertThat( reporter.getReportList(), hasSize( 1 ) );
         assertEquals( TrackerErrorCode.E1302, reporter.getReportList().get( 0 ).getErrorCode() );

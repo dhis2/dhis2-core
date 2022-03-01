@@ -62,7 +62,8 @@ import com.google.common.collect.Lists;
  */
 public class ValidationUtils
 {
-    static void validateGeometry( ValidationErrorReporter reporter, TrackerDto dto, Geometry geometry,
+    static void validateGeometry( ValidationErrorReporter reporter, TrackerBundle bundle, TrackerDto dto,
+        Geometry geometry,
         FeatureType featureType )
     {
         checkNotNull( geometry, GEOMETRY_CANT_BE_NULL );
@@ -73,7 +74,7 @@ public class ValidationUtils
                 .uid( dto.getUid() )
                 .trackerType( dto.getTrackerType() )
                 .errorCode( TrackerErrorCode.E1074 )
-                .build( reporter.getBundle() );
+                .build( bundle );
             reporter.addError( error );
             return;
         }
@@ -87,15 +88,15 @@ public class ValidationUtils
                 .trackerType( dto.getTrackerType() )
                 .errorCode( TrackerErrorCode.E1012 )
                 .addArg( featureType.name() )
-                .build( reporter.getBundle() );
+                .build( bundle );
             reporter.addError( error );
         }
     }
 
-    protected static List<Note> validateNotes( ValidationErrorReporter reporter, TrackerDto dto,
+    protected static List<Note> validateNotes( ValidationErrorReporter reporter, TrackerBundle bundle, TrackerDto dto,
         List<Note> notesToCheck )
     {
-        TrackerPreheat preheat = reporter.getBundle().getPreheat();
+        TrackerPreheat preheat = bundle.getPreheat();
 
         final List<Note> notes = new ArrayList<>();
         for ( Note note : notesToCheck )
@@ -111,7 +112,7 @@ public class ValidationUtils
                         .trackerType( dto.getTrackerType() )
                         .warningCode( TrackerErrorCode.E1119 )
                         .addArg( note.getNote() )
-                        .build( reporter.getBundle() );
+                        .build( bundle );
                     reporter.addWarning( warning );
                 }
                 else
@@ -165,7 +166,7 @@ public class ValidationUtils
         }
     }
 
-    public static void addIssuesToReporter( ValidationErrorReporter reporter, TrackerDto dto,
+    public static void addIssuesToReporter( ValidationErrorReporter reporter, TrackerBundle bundle, TrackerDto dto,
         List<ProgramRuleIssue> programRuleIssues )
     {
         programRuleIssues
@@ -179,7 +180,7 @@ public class ValidationUtils
                     .trackerType( dto.getTrackerType() )
                     .errorCode( issue.getIssueCode() )
                     .addArgs( args.toArray() )
-                    .build( reporter.getBundle() );
+                    .build( bundle );
                 reporter.addError( error );
             } );
 
@@ -195,7 +196,7 @@ public class ValidationUtils
                         .trackerType( dto.getTrackerType() )
                         .warningCode( issue.getIssueCode() )
                         .addArgs( args.toArray() )
-                        .build( reporter.getBundle() );
+                        .build( bundle );
                     reporter.addWarning( warning );
                 } );
     }

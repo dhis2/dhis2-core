@@ -61,7 +61,8 @@ public abstract class AttributeValidationHook extends AbstractTrackerDtoValidati
         this.teAttrService = teAttrService;
     }
 
-    protected void validateAttrValueType( ValidationErrorReporter reporter, TrackerDto dto, Attribute attr,
+    protected void validateAttrValueType( ValidationErrorReporter reporter, TrackerBundle bundle, TrackerDto dto,
+        Attribute attr,
         TrackedEntityAttribute teAttr )
     {
         checkNotNull( attr, ATTRIBUTE_CANT_BE_NULL );
@@ -73,13 +74,13 @@ public abstract class AttributeValidationHook extends AbstractTrackerDtoValidati
 
         if ( valueType.equals( ValueType.ORGANISATION_UNIT ) )
         {
-            error = reporter.getBundle().getPreheat().getOrganisationUnit( attr.getValue() ) == null
+            error = bundle.getPreheat().getOrganisationUnit( attr.getValue() ) == null
                 ? " Value " + attr.getValue() + " is not a valid org unit value"
                 : null;
         }
         else if ( valueType.equals( ValueType.USERNAME ) )
         {
-            error = usernameExists( reporter.getBundle().getPreheat(), attr.getValue() ) ? null
+            error = usernameExists( bundle.getPreheat(), attr.getValue() ) ? null
                 : " Value " + attr.getValue() + " is not a valid username value";
         }
         else
@@ -100,7 +101,6 @@ public abstract class AttributeValidationHook extends AbstractTrackerDtoValidati
 
         if ( error != null )
         {
-            TrackerBundle bundle = reporter.getBundle();
             TrackerErrorReport err = TrackerErrorReport.builder()
                 .uid( dto.getUid() )
                 .trackerType( dto.getTrackerType() )
@@ -113,6 +113,7 @@ public abstract class AttributeValidationHook extends AbstractTrackerDtoValidati
     }
 
     protected void validateAttributeUniqueness( ValidationErrorReporter reporter,
+        TrackerBundle bundle,
         TrackerDto dto,
         String value,
         TrackedEntityAttribute trackedEntityAttribute,
@@ -124,8 +125,7 @@ public abstract class AttributeValidationHook extends AbstractTrackerDtoValidati
         if ( Boolean.FALSE.equals( trackedEntityAttribute.isUnique() ) )
             return;
 
-        List<UniqueAttributeValue> uniqueAttributeValues = reporter
-            .getBundle().getPreheat().getUniqueAttributeValues();
+        List<UniqueAttributeValue> uniqueAttributeValues = bundle.getPreheat().getUniqueAttributeValues();
 
         for ( UniqueAttributeValue uniqueAttributeValue : uniqueAttributeValues )
         {
@@ -144,7 +144,6 @@ public abstract class AttributeValidationHook extends AbstractTrackerDtoValidati
                 && hasTheSameValue
                 && isNotSameTei )
             {
-                TrackerBundle bundle = reporter.getBundle();
                 TrackerErrorReport err = TrackerErrorReport.builder()
                     .uid( dto.getUid() )
                     .trackerType( dto.getTrackerType() )

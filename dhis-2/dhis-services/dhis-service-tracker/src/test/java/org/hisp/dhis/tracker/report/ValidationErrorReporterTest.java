@@ -42,7 +42,7 @@ class ValidationErrorReporterTest
     void hasErrorReportFound()
     {
 
-        ValidationErrorReporter reporter = ValidationErrorReporter.emptyReporter();
+        ValidationErrorReporter reporter = new ValidationErrorReporter();
         TrackerBundle bundle = mock( TrackerBundle.class );
         TrackerErrorReport error = TrackerErrorReport.builder()
             .errorCode( TrackerErrorCode.E1000 )
@@ -57,7 +57,7 @@ class ValidationErrorReporterTest
     void hasErrorReportNotFound()
     {
 
-        ValidationErrorReporter reporter = ValidationErrorReporter.emptyReporter();
+        ValidationErrorReporter reporter = new ValidationErrorReporter();
         TrackerBundle bundle = mock( TrackerBundle.class );
         TrackerErrorReport error = TrackerErrorReport.builder()
             .errorCode( TrackerErrorCode.E1000 )
@@ -72,7 +72,7 @@ class ValidationErrorReporterTest
     void hasWarningReportFound()
     {
 
-        ValidationErrorReporter reporter = ValidationErrorReporter.emptyReporter();
+        ValidationErrorReporter reporter = new ValidationErrorReporter();
         TrackerBundle bundle = mock( TrackerBundle.class );
         TrackerWarningReport warning = TrackerWarningReport.builder()
             .warningCode( TrackerErrorCode.E1000 )
@@ -87,7 +87,7 @@ class ValidationErrorReporterTest
     void hasWarningReportNotFound()
     {
 
-        ValidationErrorReporter reporter = ValidationErrorReporter.emptyReporter();
+        ValidationErrorReporter reporter = new ValidationErrorReporter();
         TrackerBundle bundle = mock( TrackerBundle.class );
         TrackerWarningReport warning = TrackerWarningReport.builder()
             .warningCode( TrackerErrorCode.E1000 )

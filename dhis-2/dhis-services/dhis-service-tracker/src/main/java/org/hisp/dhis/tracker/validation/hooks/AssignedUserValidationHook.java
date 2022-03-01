@@ -33,7 +33,9 @@ import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1120;
 import java.util.Optional;
 
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
@@ -43,24 +45,24 @@ public class AssignedUserValidationHook
     extends AbstractTrackerDtoValidationHook
 {
     @Override
-    public void validateEvent( ValidationErrorReporter reporter, Event event )
+    public void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
     {
         if ( event.getAssignedUser() != null )
         {
-            if ( isNotValidAssignedUserUid( event ) || assignedUserNotPresentInPreheat( reporter, event ) )
+            if ( isNotValidAssignedUserUid( event ) || assignedUserNotPresentInPreheat( bundle.getPreheat(), event ) )
             {
                 reporter.addError( event, E1118, event.getAssignedUser() );
             }
-            if ( isNotEnabledUserAssignment( reporter, event ) )
+            if ( isNotEnabledUserAssignment( bundle.getPreheat(), event ) )
             {
                 reporter.addWarning( event, E1120, event.getProgramStage() );
             }
         }
     }
 
-    private Boolean isNotEnabledUserAssignment( ValidationErrorReporter reporter, Event event )
+    private Boolean isNotEnabledUserAssignment( TrackerPreheat preheat, Event event )
     {
-        Boolean userAssignmentEnabled = reporter.getBundle().getPreheat()
+        Boolean userAssignmentEnabled = preheat
             .getProgramStage( event.getProgramStage() )
             .isEnableUserAssignment();
 
@@ -68,9 +70,9 @@ public class AssignedUserValidationHook
             .orElse( false );
     }
 
-    private boolean assignedUserNotPresentInPreheat( ValidationErrorReporter reporter, Event event )
+    private boolean assignedUserNotPresentInPreheat( TrackerPreheat preheat, Event event )
     {
-        return reporter.getBundle().getPreheat().get( User.class,
+        return preheat.get( User.class,
             event.getAssignedUser() ) == null;
     }
 

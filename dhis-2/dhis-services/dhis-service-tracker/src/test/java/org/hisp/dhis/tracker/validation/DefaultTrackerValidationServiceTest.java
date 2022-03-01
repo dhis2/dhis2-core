@@ -138,7 +138,8 @@ class DefaultTrackerValidationServiceTest
         private BiConsumer<ValidationErrorReporter, Event> validateEvent;
 
         @Override
-        public void validateTrackedEntity( ValidationErrorReporter reporter, TrackedEntity trackedEntity )
+        public void validateTrackedEntity( ValidationErrorReporter reporter, TrackerBundle bundle,
+            TrackedEntity trackedEntity )
         {
             if ( this.validateTrackedEntity != null )
             {
@@ -147,7 +148,7 @@ class DefaultTrackerValidationServiceTest
         }
 
         @Override
-        public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
+        public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
         {
             if ( this.validateEnrollment != null )
             {
@@ -156,7 +157,7 @@ class DefaultTrackerValidationServiceTest
         }
 
         @Override
-        public void validateEvent( ValidationErrorReporter reporter, Event event )
+        public void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
         {
             if ( this.validateEvent != null )
             {

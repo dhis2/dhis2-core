@@ -46,6 +46,7 @@ import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.system.util.ValidationUtils;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
@@ -61,9 +62,9 @@ public class EventDataValuesValidationHook
     extends AbstractTrackerDtoValidationHook
 {
     @Override
-    public void validateEvent( ValidationErrorReporter reporter, Event event )
+    public void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
     {
-        ProgramStage programStage = reporter.getBundle().getPreheat().getProgramStage( event.getProgramStage() );
+        ProgramStage programStage = bundle.getPreheat().getProgramStage( event.getProgramStage() );
 
         checkNotNull( programStage, TrackerImporterAssertErrors.PROGRAM_STAGE_CANT_BE_NULL );
 
@@ -71,7 +72,7 @@ public class EventDataValuesValidationHook
         {
             // event dates (createdAt, updatedAt) are ignored and set by the
             // system
-            TrackerPreheat preheat = reporter.getBundle().getPreheat();
+            TrackerPreheat preheat = bundle.getPreheat();
             DataElement dataElement = preheat.get( DataElement.class, dataValue.getDataElement() );
 
             if ( dataElement == null )
@@ -80,23 +81,23 @@ public class EventDataValuesValidationHook
                 continue;
             }
 
-            validateDataElement( reporter, dataElement, dataValue, programStage, event );
+            validateDataElement( reporter, bundle, dataElement, dataValue, programStage, event );
             if ( dataValue.getValue() != null )
             {
                 validateOptionSet( reporter, event, dataElement, dataValue.getValue() );
             }
         }
 
-        validateMandatoryDataValues( event, reporter );
-        validateDataValueDataElementIsConnectedToProgramStage( reporter, event, programStage );
+        validateMandatoryDataValues( reporter, bundle, event );
+        validateDataValueDataElementIsConnectedToProgramStage( reporter, bundle, event, programStage );
     }
 
-    private void validateMandatoryDataValues( Event event, ValidationErrorReporter reporter )
+    private void validateMandatoryDataValues( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
     {
         if ( StringUtils.isNotEmpty( event.getProgramStage() ) )
         {
-            TrackerPreheat preheat = reporter.getBundle().getPreheat();
-            ProgramStage programStage = reporter.getBundle().getPreheat().getProgramStage( event.getProgramStage() );
+            TrackerPreheat preheat = bundle.getPreheat();
+            ProgramStage programStage = bundle.getPreheat().getProgramStage( event.getProgramStage() );
             final List<String> mandatoryDataElements = programStage.getProgramStageDataElements()
                 .stream()
                 .filter( ProgramStageDataElement::isCompulsory )
@@ -110,7 +111,7 @@ public class EventDataValuesValidationHook
         }
     }
 
-    private void validateDataElement( ValidationErrorReporter reporter, DataElement dataElement,
+    private void validateDataElement( ValidationErrorReporter reporter, TrackerBundle bundle, DataElement dataElement,
         DataValue dataValue, ProgramStage programStage, Event event )
     {
         final String status = ValidationUtils.dataValueIsValid( dataValue.getValue(), dataElement );
@@ -123,7 +124,7 @@ public class EventDataValuesValidationHook
         else
         {
             validateNullDataValues( reporter, dataElement, programStage, dataValue, event );
-            validateFileNotAlreadyAssigned( reporter, event, dataValue, dataElement );
+            validateFileNotAlreadyAssigned( reporter, bundle, event, dataValue, dataElement );
         }
     }
 
@@ -148,10 +149,11 @@ public class EventDataValuesValidationHook
         }
     }
 
-    private void validateDataValueDataElementIsConnectedToProgramStage( ValidationErrorReporter reporter, Event event,
+    private void validateDataValueDataElementIsConnectedToProgramStage( ValidationErrorReporter reporter,
+        TrackerBundle bundle, Event event,
         ProgramStage programStage )
     {
-        TrackerPreheat preheat = reporter.getBundle().getPreheat();
+        TrackerPreheat preheat = bundle.getPreheat();
         final Set<String> dataElements = programStage.getProgramStageDataElements()
             .stream()
             .map( de -> preheat.getIdentifiers().getDataElementIdScheme()
@@ -172,7 +174,8 @@ public class EventDataValuesValidationHook
         }
     }
 
-    private void validateFileNotAlreadyAssigned( ValidationErrorReporter reporter, Event event, DataValue dataValue,
+    private void validateFileNotAlreadyAssigned( ValidationErrorReporter reporter, TrackerBundle bundle, Event event,
+        DataValue dataValue,
         DataElement dataElement )
     {
         if ( dataValue == null || dataValue.getValue() == null )
@@ -186,7 +189,7 @@ public class EventDataValuesValidationHook
             return;
         }
 
-        TrackerPreheat preheat = reporter.getBundle().getPreheat();
+        TrackerPreheat preheat = bundle.getPreheat();
         FileResource fileResource = preheat.get( FileResource.class, dataValue.getValue() );
 
         reporter.addErrorIfNull( fileResource, event, E1084, dataValue.getValue() );

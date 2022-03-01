@@ -74,14 +74,13 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
     }
 
     @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
+    public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
     {
-        TrackerBundle bundle = reporter.getBundle();
         TrackerPreheat preheat = bundle.getPreheat();
         Program program = preheat.getProgram( enrollment.getProgram() );
         checkNotNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );
 
-        TrackedEntityInstance tei = reporter.getBundle().getTrackedEntityInstance( enrollment.getTrackedEntity() );
+        TrackedEntityInstance tei = bundle.getTrackedEntityInstance( enrollment.getTrackedEntity() );
 
         OrganisationUnit orgUnit = preheat
             .getOrganisationUnit( getOrgUnitUidFromTei( bundle, enrollment.getTrackedEntity() ) );
@@ -90,9 +89,9 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
 
         for ( Attribute attribute : enrollment.getAttributes() )
         {
-            validateRequiredProperties( reporter, enrollment, attribute, program );
+            validateRequiredProperties( reporter, bundle, enrollment, attribute, program );
 
-            TrackedEntityAttribute teAttribute = reporter.getBundle().getPreheat()
+            TrackedEntityAttribute teAttribute = bundle.getPreheat()
                 .getTrackedEntityAttribute( attribute.getAttribute() );
 
             if ( attribute.getAttribute() != null && attribute.getValue() != null && teAttribute != null )
@@ -100,11 +99,12 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
 
                 attributeValueMap.put( attribute.getAttribute(), attribute.getValue() );
 
-                validateAttrValueType( reporter, enrollment, attribute, teAttribute );
+                validateAttrValueType( reporter, bundle, enrollment, attribute, teAttribute );
                 validateOptionSet( reporter, enrollment, teAttribute,
                     attribute.getValue() );
 
                 validateAttributeUniqueness( reporter,
+                    bundle,
                     enrollment,
                     attribute.getValue(),
                     teAttribute,
@@ -113,10 +113,11 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
             }
         }
 
-        validateMandatoryAttributes( reporter, program, attributeValueMap, enrollment );
+        validateMandatoryAttributes( reporter, bundle, program, attributeValueMap, enrollment );
     }
 
-    protected void validateRequiredProperties( ValidationErrorReporter reporter, Enrollment enrollment,
+    protected void validateRequiredProperties( ValidationErrorReporter reporter, TrackerBundle bundle,
+        Enrollment enrollment,
         Attribute attribute, Program program )
     {
         reporter.addErrorIfNull( attribute.getAttribute(), enrollment, E1075, attribute );
@@ -134,7 +135,7 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
 
         if ( attribute.getAttribute() != null )
         {
-            TrackedEntityAttribute teAttribute = reporter.getBundle().getPreheat()
+            TrackedEntityAttribute teAttribute = bundle.getPreheat()
                 .getTrackedEntityAttribute( attribute.getAttribute() );
 
             reporter.addErrorIfNull( teAttribute, enrollment, E1006, attribute.getAttribute() );
@@ -142,6 +143,7 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
     }
 
     private void validateMandatoryAttributes( ValidationErrorReporter reporter,
+        TrackerBundle bundle,
         Program program, Map<String, String> enrollmentNonEmptyAttributeUids, Enrollment enrollment )
     {
         // Build a data structures of attributes eligible for mandatory
@@ -152,7 +154,7 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
         // 1 - attributes from enrollment whose value is non-empty
 
         // 2 - attributes uids from existing TEI (if any) from preheat
-        Set<String> teiAttributeUids = buildTeiAttributeUids( reporter, enrollment.getTrackedEntity() );
+        Set<String> teiAttributeUids = buildTeiAttributeUids( bundle.getPreheat(), enrollment.getTrackedEntity() );
 
         // merged uids of eligible attribute to validate
         Set<String> mergedAttributes = Streams
@@ -184,11 +186,9 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
                     attrUid + "=" + attrVal ) );
     }
 
-    private Set<String> buildTeiAttributeUids( ValidationErrorReporter reporter, String trackedEntityInstanceUid )
+    private Set<String> buildTeiAttributeUids( TrackerPreheat preheat, String trackedEntityInstanceUid )
     {
-        return Optional.of( reporter )
-            .map( ValidationErrorReporter::getBundle )
-            .map( TrackerBundle::getPreheat )
+        return Optional.of( preheat )
             .map( trackerPreheat -> trackerPreheat.getTrackedEntity( TrackerIdScheme.UID, trackedEntityInstanceUid ) )
             .map( TrackedEntityInstance::getTrackedEntityAttributeValues )
             .orElse( Collections.emptySet() )

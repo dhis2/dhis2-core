@@ -87,7 +87,7 @@ class EnrollmentDateValidationHookTest
 
         when( preheat.getProgram( enrollment.getProgram() ) ).thenReturn( new Program() );
 
-        this.hookToTest.validateEnrollment( reporter, enrollment );
+        this.hookToTest.validateEnrollment( reporter, bundle, enrollment );
 
         hasTrackerError( reporter, E1025, ENROLLMENT, enrollment.getUid() );
     }
@@ -107,7 +107,7 @@ class EnrollmentDateValidationHookTest
 
         when( preheat.getProgram( enrollment.getProgram() ) ).thenReturn( new Program() );
 
-        this.hookToTest.validateEnrollment( reporter, enrollment );
+        this.hookToTest.validateEnrollment( reporter, bundle, enrollment );
 
         hasTrackerError( reporter, E1020, ENROLLMENT, enrollment.getUid() );
         hasTrackerError( reporter, E1021, ENROLLMENT, enrollment.getUid() );
@@ -127,7 +127,7 @@ class EnrollmentDateValidationHookTest
 
         when( preheat.getProgram( enrollment.getProgram() ) ).thenReturn( new Program() );
 
-        this.hookToTest.validateEnrollment( reporter, enrollment );
+        this.hookToTest.validateEnrollment( reporter, bundle, enrollment );
 
         assertFalse( reporter.hasErrors() );
     }
@@ -149,7 +149,7 @@ class EnrollmentDateValidationHookTest
         program.setSelectIncidentDatesInFuture( true );
         when( preheat.getProgram( enrollment.getProgram() ) ).thenReturn( program );
 
-        this.hookToTest.validateEnrollment( reporter, enrollment );
+        this.hookToTest.validateEnrollment( reporter, bundle, enrollment );
 
         assertFalse( reporter.hasErrors() );
     }
@@ -169,7 +169,7 @@ class EnrollmentDateValidationHookTest
         program.setDisplayIncidentDate( true );
         when( preheat.getProgram( enrollment.getProgram() ) ).thenReturn( program );
 
-        this.hookToTest.validateEnrollment( reporter, enrollment );
+        this.hookToTest.validateEnrollment( reporter, bundle, enrollment );
 
         hasTrackerError( reporter, E1023, ENROLLMENT, enrollment.getUid() );
     }

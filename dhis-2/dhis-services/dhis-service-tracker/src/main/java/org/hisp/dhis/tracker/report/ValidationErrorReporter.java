@@ -34,7 +34,10 @@ import java.util.Map;
 import java.util.function.BooleanSupplier;
 import java.util.function.Predicate;
 
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.ValidationMode;
@@ -48,46 +51,35 @@ import org.hisp.dhis.tracker.validation.ValidationFailFastException;
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Data
+@NoArgsConstructor
+@ToString
+@EqualsAndHashCode
 // TODO: should this be "ValidationReporter" since it does not only report
 // errors ?
 public class ValidationErrorReporter
 {
-    private final List<TrackerErrorReport> reportList;
+    @Getter
+    private final List<TrackerErrorReport> reportList = new ArrayList<>();
 
-    private final List<TrackerWarningReport> warningsReportList;
+    @Getter
+    private final List<TrackerWarningReport> warningsReportList = new ArrayList<>();
 
-    private final boolean isFailFast;
+    @Getter
+    private boolean isFailFast;
 
-    private final TrackerBundle bundle;
+    private TrackerBundle bundle;
 
     /*
      * A map that keep tracks of all the invalid Tracker objects encountered
      * during the validation process
      */
-    private Map<TrackerType, List<String>> invalidDTOs;
-
-    public static ValidationErrorReporter emptyReporter()
-    {
-        return new ValidationErrorReporter();
-    }
-
-    private ValidationErrorReporter()
-    {
-        this.warningsReportList = new ArrayList<>();
-        this.reportList = new ArrayList<>();
-        this.isFailFast = false;
-        this.bundle = null;
-        this.invalidDTOs = new HashMap<>();
-    }
+    @Getter
+    private final Map<TrackerType, List<String>> invalidDTOs = new HashMap<>();
 
     public ValidationErrorReporter( TrackerBundle bundle )
     {
-        this.reportList = new ArrayList<>();
-        this.warningsReportList = new ArrayList<>();
-        this.isFailFast = bundle.getValidationMode() == ValidationMode.FAIL_FAST;
         this.bundle = bundle;
-        this.invalidDTOs = new HashMap<>();
+        this.isFailFast = bundle.getValidationMode() == ValidationMode.FAIL_FAST;
     }
 
     public boolean hasErrors()
