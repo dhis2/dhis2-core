@@ -25,14 +25,14 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export;
+package org.hisp.dhis.tracker.domain.mapper;
 
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.tracker.domain.UserInfo;
 import org.mapstruct.Mapper;
 
-@Mapper( uses = InstantMapper.class )
+@Mapper
 public interface UserMapper extends DomainMapper<UserInfoSnapshot, UserInfo>
 {
-    UserInfo from( UserInfoSnapshot userInfo );
+    UserInfo from( UserInfoSnapshot snapshot );
 }
