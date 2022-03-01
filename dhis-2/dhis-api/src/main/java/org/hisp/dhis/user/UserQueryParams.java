@@ -101,7 +101,7 @@ public class UserQueryParams
      * {@link SettingKey.CAN_GRANT_OWN_USER_AUTHORITY_GROUPS} system setting.
      * Should not be exposed in the API.
      */
-    private boolean canSeeOwnUserAuthorityGroups = false;
+    private boolean canSeeOwnRoles = false;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -333,9 +333,9 @@ public class UserQueryParams
         return this;
     }
 
-    public UserQueryParams setCanSeeOwnUserAuthorityGroups( boolean canSeeOwnUserAuthorityGroups )
+    public UserQueryParams setCanSeeOwnUserRoles( boolean canSeeOwnUserRoles )
     {
-        this.canSeeOwnUserAuthorityGroups = canSeeOwnUserAuthorityGroups;
+        this.canSeeOwnRoles = canSeeOwnUserRoles;
         return this;
     }
 }

@@ -25,23 +25,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.user;
+package org.hisp.dhis.system.filter;
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.commons.filter.Filter;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserRole;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Lars Helge Overland
  */
-public interface UserAuthorityGroupStore
-    extends IdentifiableObjectStore<UserAuthorityGroup>
+public class UserRoleCanIssueFilter
+    implements Filter<UserRole>
 {
-    /**
-     * Returns the number of UserAuthorityGroups which are associated with the
-     * given DataSet.
-     *
-     * @param dataSet the DataSet.
-     * @return number of UserAuthorityGroups.
-     */
-    int countDataSetUserAuthorityGroups( DataSet dataSet );
+    private User user;
+
+    private boolean canGrantOwnUserRoles = false;
+
+    protected UserRoleCanIssueFilter()
+    {
+    }
+
+    public UserRoleCanIssueFilter( User user, boolean canGrantOwnUserRoles )
+    {
+        if ( user != null )
+        {
+            this.user = user;
+            this.canGrantOwnUserRoles = canGrantOwnUserRoles;
+        }
+    }
+
+    @Override
+    public boolean retain( UserRole group )
+    {
+        return user != null && user.canIssueUserRole( group, canGrantOwnUserRoles );
+    }
 }

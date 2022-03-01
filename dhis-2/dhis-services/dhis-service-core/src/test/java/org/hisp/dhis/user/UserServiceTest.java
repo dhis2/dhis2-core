@@ -32,7 +32,7 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toSet;
-import static org.hisp.dhis.setting.SettingKey.CAN_GRANT_OWN_USER_AUTHORITY_GROUPS;
+import static org.hisp.dhis.setting.SettingKey.CAN_GRANT_OWN_USER_ROLES;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -81,11 +81,11 @@ class UserServiceTest extends DhisSpringTest
 
     private OrganisationUnit unitE;
 
-    private UserAuthorityGroup roleA;
+    private UserRole roleA;
 
-    private UserAuthorityGroup roleB;
+    private UserRole roleB;
 
-    private UserAuthorityGroup roleC;
+    private UserRole roleC;
 
     @Override
     public void setUpTest()
@@ -102,9 +102,9 @@ class UserServiceTest extends DhisSpringTest
         organisationUnitService.addOrganisationUnit( unitC );
         organisationUnitService.addOrganisationUnit( unitD );
         organisationUnitService.addOrganisationUnit( unitE );
-        roleA = createUserAuthorityGroup( 'A' );
-        roleB = createUserAuthorityGroup( 'B' );
-        roleC = createUserAuthorityGroup( 'C' );
+        roleA = createUserRole( 'A' );
+        roleB = createUserRole( 'B' );
+        roleC = createUserRole( 'C' );
         roleA.getAuthorities().add( "AuthA" );
         roleA.getAuthorities().add( "AuthB" );
         roleA.getAuthorities().add( "AuthC" );
@@ -112,14 +112,14 @@ class UserServiceTest extends DhisSpringTest
         roleB.getAuthorities().add( "AuthA" );
         roleB.getAuthorities().add( "AuthB" );
         roleC.getAuthorities().add( "AuthC" );
-        userService.addUserAuthorityGroup( roleA );
-        userService.addUserAuthorityGroup( roleB );
-        userService.addUserAuthorityGroup( roleC );
+        userService.addUserRole( roleA );
+        userService.addUserRole( roleB );
+        userService.addUserRole( roleC );
     }
 
     private UserQueryParams getDefaultParams()
     {
-        return new UserQueryParams().setCanSeeOwnUserAuthorityGroups( true );
+        return new UserQueryParams().setCanSeeOwnUserRoles( true );
     }
 
     @Test
@@ -279,7 +279,7 @@ class UserServiceTest extends DhisSpringTest
     @Test
     void testManagedGroups()
     {
-        systemSettingManager.saveSystemSetting( CAN_GRANT_OWN_USER_AUTHORITY_GROUPS, true );
+        systemSettingManager.saveSystemSetting( CAN_GRANT_OWN_USER_ROLES, true );
         // TODO find way to override in parameters
         User userA = addUser( 'A' );
         User userB = addUser( 'B' );
@@ -324,7 +324,7 @@ class UserServiceTest extends DhisSpringTest
     @Test
     void testGetByPhoneNumber()
     {
-        systemSettingManager.saveSystemSetting( CAN_GRANT_OWN_USER_AUTHORITY_GROUPS, true );
+        systemSettingManager.saveSystemSetting( CAN_GRANT_OWN_USER_ROLES, true );
         addUser( 'A', user -> user.setPhoneNumber( "73647271" ) );
         User userB = addUser( 'B', user -> user.setPhoneNumber( "23452134" ) );
         addUser( 'C', user -> user.setPhoneNumber( "14543232" ) );

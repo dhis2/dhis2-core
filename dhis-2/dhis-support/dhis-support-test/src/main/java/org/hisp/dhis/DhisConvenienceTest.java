@@ -163,8 +163,8 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityfilter.EntityQueryCriteria;
 import org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilter;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.utils.Dxf2NamespaceResolver;
@@ -1371,10 +1371,10 @@ public abstract class DhisConvenienceTest
 
         if ( auths != null && !auths.isEmpty() )
         {
-            UserAuthorityGroup role = new UserAuthorityGroup();
+            UserRole role = new UserRole();
             role.setName( "Role_" + CodeGenerator.generateCode( 5 ) );
             auths.stream().forEach( auth -> role.getAuthorities().add( auth ) );
-            user.getUserAuthorityGroups().add( role );
+            user.getUserRoles().add( role );
         }
 
         user.setFirstName( "FirstName" + uniqueCharacter );
@@ -1417,18 +1417,18 @@ public abstract class DhisConvenienceTest
         return userGroup;
     }
 
-    public static UserAuthorityGroup createUserAuthorityGroup( char uniqueCharacter )
+    public static UserRole createUserRole( char uniqueCharacter )
     {
-        return createUserAuthorityGroup( uniqueCharacter, new String[] {} );
+        return createUserRole( uniqueCharacter, new String[] {} );
     }
 
-    public static UserAuthorityGroup createUserAuthorityGroup( char uniqueCharacter, String... auths )
+    public static UserRole createUserRole( char uniqueCharacter, String... auths )
     {
-        UserAuthorityGroup role = new UserAuthorityGroup();
+        UserRole role = new UserRole();
         role.setAutoFields();
 
         role.setUid( BASE_UID + uniqueCharacter );
-        role.setName( "UserAuthorityGroup" + uniqueCharacter );
+        role.setName( "UserRole" + uniqueCharacter );
 
         for ( String auth : auths )
         {
@@ -2353,7 +2353,7 @@ public abstract class DhisConvenienceTest
 
         if ( allAuth )
         {
-            authorities.add( UserAuthorityGroup.AUTHORITY_ALL );
+            authorities.add( UserRole.AUTHORITY_ALL );
         }
 
         if ( auths != null )
@@ -2361,11 +2361,11 @@ public abstract class DhisConvenienceTest
             authorities.addAll( Lists.newArrayList( auths ) );
         }
 
-        UserAuthorityGroup group = new UserAuthorityGroup();
+        UserRole group = new UserRole();
         group.setName( "Superuser" );
         group.getAuthorities().addAll( authorities );
 
-        userService.addUserAuthorityGroup( group );
+        userService.addUserRole( group );
 
         User user = createUser( nextUserName++ );
 
@@ -2384,7 +2384,7 @@ public abstract class DhisConvenienceTest
             user.setCatDimensionConstraints( catDimensionConstraints );
         }
 
-        user.getUserAuthorityGroups().add( group );
+        user.getUserRoles().add( group );
         userService.addUser( user );
         userService.addUser( user );
 
@@ -2424,15 +2424,15 @@ public abstract class DhisConvenienceTest
     {
         checkUserServiceWasInjected();
 
-        UserAuthorityGroup group = createAuthorityGroup( username, authorities );
-        userService.addUserAuthorityGroup( group );
+        UserRole userRole = createAuthorityGroup( username, authorities );
+        userService.addUserRole( userRole );
 
         boolean present = uid.isPresent();
         User user = present ? createUser( username, uid.get() ) : createUser( username );
         user.setEmail( username + "@dhis2.org" );
         user.setUsername( username );
         user.setOpenId( openIDIdentifier );
-        user.getUserAuthorityGroups().add( group );
+        user.getUserRoles().add( userRole );
 
         if ( !Strings.isNullOrEmpty( openIDIdentifier ) )
         {
@@ -2451,7 +2451,7 @@ public abstract class DhisConvenienceTest
     {
         checkUserServiceWasInjected();
 
-        UserAuthorityGroup group = createAuthorityGroup( "Superuser", authorities );
+        UserRole group = createAuthorityGroup( "Superuser", authorities );
         group.setUid( "yrB6vc5Ip3r" );
 
         String username = DEFAULT_USERNAME;
@@ -2463,14 +2463,14 @@ public abstract class DhisConvenienceTest
         user.setName( "Admin" );
         user.setUsername( username );
         user.setPassword( password );
-        user.getUserAuthorityGroups().add( group );
+        user.getUserRoles().add( group );
 
         userService.addUser( user );
 
         userService.encodeAndSetPassword( user, password );
         userService.updateUser( user );
 
-        userService.addUserAuthorityGroup( group );
+        userService.addUserRole( group );
 
         return user;
     }
@@ -2595,9 +2595,9 @@ public abstract class DhisConvenienceTest
         return user;
     }
 
-    private static UserAuthorityGroup createAuthorityGroup( String username, String... authorities )
+    private static UserRole createAuthorityGroup( String username, String... authorities )
     {
-        UserAuthorityGroup group = new UserAuthorityGroup();
+        UserRole group = new UserRole();
         group.setCode( username );
         group.setName( username );
         group.setDescription( username );
@@ -2621,10 +2621,10 @@ public abstract class DhisConvenienceTest
             user -> user.getOrganisationUnits().addAll( asList( units ) ) );
     }
 
-    protected final User addUser( char uniqueCharacter, UserAuthorityGroup... roles )
+    protected final User addUser( char uniqueCharacter, UserRole... roles )
     {
         return addUser( uniqueCharacter,
-            user -> user.getUserAuthorityGroups().addAll( asList( roles ) ) );
+            user -> user.getUserRoles().addAll( asList( roles ) ) );
     }
 
     protected final User addUser( char uniqueCharacter, Consumer<User> consumer )

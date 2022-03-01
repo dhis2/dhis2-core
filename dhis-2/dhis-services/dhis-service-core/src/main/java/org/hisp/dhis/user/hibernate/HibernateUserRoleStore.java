@@ -25,41 +25,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.user;
+package org.hisp.dhis.user.hibernate;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import org.hisp.dhis.system.deletion.DeletionHandler;
-import org.springframework.stereotype.Component;
+import org.hibernate.SessionFactory;
+import org.hibernate.query.Query;
+import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.UserRole;
+import org.hisp.dhis.user.UserRoleStore;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 /**
- * @author Lars Helge Overland
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Component( "org.hisp.dhis.user.UserAuthorityGroupDeletionHandler" )
-public class UserAuthorityGroupDeletionHandler
-    extends DeletionHandler
+@Repository( "org.hisp.dhis.user.UserRoleStore" )
+public class HibernateUserRoleStore
+    extends HibernateIdentifiableObjectStore<UserRole>
+    implements UserRoleStore
 {
-    private final UserService userService;
-
-    public UserAuthorityGroupDeletionHandler( UserService userService )
+    public HibernateUserRoleStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
     {
-        checkNotNull( userService );
-
-        this.userService = userService;
+        super( sessionFactory, jdbcTemplate, publisher, UserRole.class, currentUserService, aclService,
+            true );
     }
 
     @Override
-    protected void register()
+    public int countDataSetUserRoles( DataSet dataSet )
     {
-        whenDeleting( User.class, this::deleteUser );
-    }
+        Query<Long> query = getTypedQuery(
+            "select count(distinct c) from UserRole c where :dataSet in elements(c.dataSets)" );
+        query.setParameter( "dataSet", dataSet );
 
-    private void deleteUser( User user )
-    {
-        for ( UserAuthorityGroup group : user.getUserAuthorityGroups() )
-        {
-            group.getMembers().remove( user );
-            userService.updateUserAuthorityGroup( group );
-        }
+        return query.getSingleResult().intValue();
     }
 }

@@ -27,14 +27,21 @@
  */
 package org.hisp.dhis.user;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.dataset.DataSet;
 
-public class UserCredWrapper extends User
+/**
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
+ */
+public interface UserRoleStore
+    extends IdentifiableObjectStore<UserRole>
 {
-    @JsonIgnore
-    @Override
-    public UserCredWrapper getUserCredentials()
-    {
-        return null;
-    }
+    /**
+     * Returns the number of UserRoles which are associated with the given
+     * DataSet.
+     *
+     * @param dataSet the DataSet.
+     * @return number of UserRoles.
+     */
+    int countDataSetUserRoles( DataSet dataSet );
 }

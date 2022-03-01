@@ -30,6 +30,8 @@ package org.hisp.dhis.aggregate;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import org.hamcrest.Matchers;
+
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.SystemActions;
@@ -114,7 +116,7 @@ public class DataImportTest
         // Validate that job was successful
         systemActions.waitUntilTaskCompleted( "DATAVALUE_IMPORT", taskId )
             .validate()
-            .body( "message", contains( "Process started", "Importing data values", "Import done" ) );
+            .body( "message",  Matchers.containsInAnyOrder( "Process started", "Importing data values", "Import done" ) );
 
         // validate task summaries were created
         ApiResponse taskSummariesResponse = systemActions.waitForTaskSummaries( "DATAVALUE_IMPORT", taskId );

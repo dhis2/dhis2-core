@@ -36,7 +36,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.user.CurrentUserGroupInfo;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAuthorityGroup;
+import org.hisp.dhis.user.UserRole;
 
 /**
  * @author Lars Helge Overland
@@ -62,7 +62,7 @@ public class MockCurrentUserService
     public MockCurrentUserService( boolean superUserFlag, Set<OrganisationUnit> organisationUnits,
         Set<OrganisationUnit> dataViewOrganisationUnits, String... auths )
     {
-        UserAuthorityGroup userRole = new UserAuthorityGroup();
+        UserRole userRole = new UserRole();
         userRole.setName( "USER" );
         userRole.setAutoFields();
         userRole.getAuthorities().addAll( Arrays.asList( auths ) );
@@ -71,7 +71,7 @@ public class MockCurrentUserService
 
         User user = new User();
         user.setUsername( "currentUser" );
-        user.getUserAuthorityGroups().add( userRole );
+        user.getUserRoles().add( userRole );
         user.setFirstName( "Current" );
         user.setSurname( "User" );
         user.setOrganisationUnits( organisationUnits );

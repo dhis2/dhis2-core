@@ -61,7 +61,7 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAuthorityGroup;
+import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.junit.jupiter.api.Test;
@@ -161,7 +161,7 @@ class DataSetServiceTest extends DhisTest
         organisationUnitService.addOrganisationUnit( unitF );
         attributeOptionCombo = categoryService.getDefaultCategoryOptionCombo();
         mockCurrentUserService = new MockCurrentUserService( true, newHashSet( unitA ), newHashSet( unitA ),
-            UserAuthorityGroup.AUTHORITY_ALL );
+            UserRole.AUTHORITY_ALL );
         setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
             mockCurrentUserService, approvalService, approvalStore, levelService );
         User user = mockCurrentUserService.getCurrentUser();

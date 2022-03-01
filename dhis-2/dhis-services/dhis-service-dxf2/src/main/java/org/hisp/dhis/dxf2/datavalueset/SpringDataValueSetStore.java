@@ -212,6 +212,7 @@ public class SpringDataValueSetStore
         String dataElements = getCommaDelimitedString( getIdentifiers( params.getAllDataElements() ) );
         String orgUnits = getCommaDelimitedString( getIdentifiers( params.getOrganisationUnits() ) );
         String orgUnitGroups = getCommaDelimitedString( getIdentifiers( params.getOrganisationUnitGroups() ) );
+        String deGroups = getCommaDelimitedString( getIdentifiers( params.getDataElementGroups() ) );
 
         // ----------------------------------------------------------------------
         // Identifier schemes
@@ -260,7 +261,18 @@ public class SpringDataValueSetStore
             sql += "left join orgunitgroupmembers ougm on (ou.organisationunitid=ougm.organisationunitid) ";
         }
 
-        sql += "where de.dataelementid in (" + dataElements + ") ";
+        sql += "where ";
+
+        if ( !params.hasDataElementGroups() )
+        {
+            sql += "de.dataelementid in (" + dataElements + ") ";
+        }
+        else
+        {
+            sql += "dv.dataelementid in ("
+                + "select distinct degm.dataelementid from dataelementgroupmembers degm "
+                + "where degm.dataelementgroupid in (" + deGroups + ")) ";
+        }
 
         if ( params.isIncludeDescendants() )
         {

@@ -47,7 +47,7 @@ import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAuthorityGroup;
+import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.junit.jupiter.api.Test;
@@ -99,7 +99,7 @@ class ObjectBundleServiceUserTest extends TransactionalIntegrationTest
             "dxf2/users.json" );
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
-        assertEquals( 1, validate.getErrorReportsCountByCode( UserAuthorityGroup.class, ErrorCode.E5003 ) );
+        assertEquals( 1, validate.getErrorReportsCountByCode( UserRole.class, ErrorCode.E5003 ) );
         objectBundleService.commit( bundle );
         List<User> users = manager.getAll( User.class );
         assertEquals( 4, users.size() );
@@ -126,13 +126,13 @@ class ObjectBundleServiceUserTest extends TransactionalIntegrationTest
             "dxf2/users.json" );
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
-        assertEquals( 1, validate.getErrorReportsCountByCode( UserAuthorityGroup.class, ErrorCode.E5003 ) );
+        assertEquals( 1, validate.getErrorReportsCountByCode( UserRole.class, ErrorCode.E5003 ) );
         objectBundleService.commit( bundle );
         params = createBundleParams( ObjectBundleMode.COMMIT, ImportStrategy.UPDATE, AtomicMode.NONE,
             "dxf2/users_update.json" );
         bundle = objectBundleService.create( params );
         validate = objectBundleValidationService.validate( bundle );
-        assertEquals( 1, validate.getErrorReportsCountByCode( UserAuthorityGroup.class, ErrorCode.E5001 ) );
+        assertEquals( 1, validate.getErrorReportsCountByCode( UserRole.class, ErrorCode.E5001 ) );
         objectBundleService.commit( bundle );
         List<User> users = manager.getAll( User.class );
         assertEquals( 4, users.size() );
@@ -153,7 +153,7 @@ class ObjectBundleServiceUserTest extends TransactionalIntegrationTest
             "dxf2/users.json" );
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
-        assertEquals( 1, validate.getErrorReportsCountByCode( UserAuthorityGroup.class, ErrorCode.E5003 ) );
+        assertEquals( 1, validate.getErrorReportsCountByCode( UserRole.class, ErrorCode.E5003 ) );
         objectBundleService.commit( bundle );
         params = createBundleParams( ObjectBundleMode.COMMIT, ImportStrategy.UPDATE, AtomicMode.NONE,
             "dxf2/users_illegal_update.json" );
@@ -224,9 +224,9 @@ class ObjectBundleServiceUserTest extends TransactionalIntegrationTest
         objectBundleService.commit( bundle1 );
         User userB = manager.get( User.class, "MwhEJUnTHkn" );
         User userA = manager.get( User.class, "sPWjoHSY03y" );
-        assertEquals( 2, userA.getUserAuthorityGroups().size() );
-        assertEquals( 2, userB.getUserAuthorityGroups().size() );
-        UserAuthorityGroup userManagerRole = manager.get( UserAuthorityGroup.class, "xJZBzAHI88H" );
+        assertEquals( 2, userA.getUserRoles().size() );
+        assertEquals( 2, userB.getUserRoles().size() );
+        UserRole userManagerRole = manager.get( UserRole.class, "xJZBzAHI88H" );
         assertNotNull( userManagerRole );
         userManagerRole.getSharing().resetUserAccesses();
         userManagerRole.getSharing().addUserAccess( new UserAccess( userB, "rw------" ) );
@@ -241,8 +241,8 @@ class ObjectBundleServiceUserTest extends TransactionalIntegrationTest
             "dxf2/user_userrole_update.json" );
         ObjectBundle bundle2 = objectBundleService.create( params );
         objectBundleService.commit( bundle2 );
-        assertEquals( 2, userA.getUserAuthorityGroups().size() );
-        assertEquals( 2, userB.getUserAuthorityGroups().size() );
+        assertEquals( 2, userA.getUserRoles().size() );
+        assertEquals( 2, userB.getUserRoles().size() );
     }
 
     @Test
@@ -257,9 +257,9 @@ class ObjectBundleServiceUserTest extends TransactionalIntegrationTest
         objectBundleService.commit( bundle );
         User userA = manager.get( User.class, "sPWjoHSY03y" );
         assertNotNull( userA );
-        assertEquals( 1, userA.getUserAuthorityGroups().size() );
+        assertEquals( 1, userA.getUserRoles().size() );
         assertEquals( 1, userA.getDataViewOrganisationUnits().size() );
-        UserAuthorityGroup userManagerRole = manager.get( UserAuthorityGroup.class, "xJZBzAHI88H" );
+        UserRole userManagerRole = manager.get( UserRole.class, "xJZBzAHI88H" );
         assertNotNull( userManagerRole );
     }
 

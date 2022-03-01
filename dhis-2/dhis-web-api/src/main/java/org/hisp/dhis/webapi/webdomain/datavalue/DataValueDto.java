@@ -25,42 +25,61 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.user.hibernate;
+package org.hisp.dhis.webapi.webdomain.datavalue;
 
-import org.hibernate.SessionFactory;
-import org.hibernate.query.Query;
-import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.UserAuthorityGroup;
-import org.hisp.dhis.user.UserAuthorityGroupStore;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Lars Helge Overland
  */
-@Repository( "org.hisp.dhis.user.UserAuthorityGroupStore" )
-public class HibernateUserAuthorityGroupStore
-    extends HibernateIdentifiableObjectStore<UserAuthorityGroup>
-    implements UserAuthorityGroupStore
+@Getter
+@Setter
+@Accessors( chain = true )
+@NoArgsConstructor
+public class DataValueDto
 {
-    public HibernateUserAuthorityGroupStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
+    @JsonProperty
+    private String dataElement;
+
+    @JsonProperty
+    private String period;
+
+    @JsonProperty
+    private String orgUnit;
+
+    @JsonProperty
+    private String categoryOptionCombo;
+
+    @JsonProperty
+    private DataValueCategoryDto attribute;
+
+    @JsonProperty
+    private String dataSet;
+
+    @JsonProperty
+    private String value;
+
+    @JsonProperty
+    private String comment;
+
+    @JsonProperty
+    private Boolean followUp;
+
+    @JsonProperty
+    private Boolean force;
+
+    public boolean isFollowUp()
     {
-        super( sessionFactory, jdbcTemplate, publisher, UserAuthorityGroup.class, currentUserService, aclService,
-            true );
+        return followUp != null && followUp;
     }
 
-    @Override
-    public int countDataSetUserAuthorityGroups( DataSet dataSet )
+    public boolean isForce()
     {
-        Query<Long> query = getTypedQuery(
-            "select count(distinct c) from UserAuthorityGroup c where :dataSet in elements(c.dataSets)" );
-        query.setParameter( "dataSet", dataSet );
-
-        return query.getSingleResult().intValue();
+        return force != null && force;
     }
 }

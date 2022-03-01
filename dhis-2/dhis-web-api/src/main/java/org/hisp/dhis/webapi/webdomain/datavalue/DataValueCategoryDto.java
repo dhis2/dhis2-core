@@ -25,22 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.preheat.mappers;
+package org.hisp.dhis.webapi.webdomain.datavalue;
 
-import org.hisp.dhis.user.UserAuthorityGroup;
-import org.mapstruct.BeanMapping;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.factory.Mappers;
+import java.util.Set;
 
-@Mapper( uses = { DebugMapper.class, UserGroupMapper.class } )
-public interface UserAuthorityGroupMapper extends PreheatMapper<UserAuthorityGroup>
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+/**
+ * @author Lars Helge Overland
+ */
+@Getter
+@Setter
+@Accessors( chain = true )
+@NoArgsConstructor
+@AllArgsConstructor
+public class DataValueCategoryDto
 {
-    UserAuthorityGroupMapper INSTANCE = Mappers.getMapper( UserAuthorityGroupMapper.class );
+    @JsonProperty
+    private String combo;
 
-    @BeanMapping( ignoreByDefault = true )
-    @Mapping( target = "id" )
-    @Mapping( target = "uid" )
-    @Mapping( target = "authorities" )
-    UserAuthorityGroup map( UserAuthorityGroup userGroupAccess );
+    @JsonProperty
+    private Set<String> options;
 }

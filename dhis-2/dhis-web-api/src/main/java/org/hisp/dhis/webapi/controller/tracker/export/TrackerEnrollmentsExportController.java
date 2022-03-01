@@ -94,7 +94,7 @@ public class TrackerEnrollmentsExportController
         }
         else
         {
-            Set<String> enrollmentIds = TextUtils.splitToArray( trackerEnrollmentCriteria.getEnrollment(),
+            Set<String> enrollmentIds = TextUtils.splitToSet( trackerEnrollmentCriteria.getEnrollment(),
                 TextUtils.SEMICOLON );
             enrollmentList = enrollmentIds != null
                 ? enrollmentIds.stream().map( enrollmentService::getEnrollment ).collect( Collectors.toList() )

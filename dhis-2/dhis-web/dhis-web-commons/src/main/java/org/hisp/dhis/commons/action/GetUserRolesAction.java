@@ -33,14 +33,14 @@ import java.util.List;
 
 import org.hisp.dhis.paging.ActionPagingSupport;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAuthorityGroup;
+import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 
 /**
  * @author mortenoh
  */
 public class GetUserRolesAction
-    extends ActionPagingSupport<UserAuthorityGroup>
+    extends ActionPagingSupport<UserRole>
 {
     // -------------------------------------------------------------------------
     // Dependencies
@@ -57,9 +57,9 @@ public class GetUserRolesAction
     // Input & Output
     // -------------------------------------------------------------------------
 
-    private List<UserAuthorityGroup> userRoles;
+    private List<UserRole> userRoles;
 
-    public List<UserAuthorityGroup> getUserRoles()
+    public List<UserRole> getUserRoles()
     {
         return this.userRoles;
     }
@@ -72,9 +72,9 @@ public class GetUserRolesAction
     public String execute()
         throws Exception
     {
-        canReadType( UserAuthorityGroup.class );
+        canReadType( UserRole.class );
 
-        userRoles = new ArrayList<>( userService.getAllUserAuthorityGroups() );
+        userRoles = new ArrayList<>( userService.getAllUserRoles() );
 
         userService.canIssueFilter( userRoles );
 
