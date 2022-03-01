@@ -33,6 +33,7 @@ import static org.springframework.http.CacheControl.noCache;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -46,6 +47,7 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.common.PrimaryKeyObject;
 import org.hisp.dhis.common.UserContext;
 import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.dxf2.common.TranslateParams;
@@ -69,6 +71,7 @@ import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.ReflectionUtils;
@@ -260,6 +263,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
         @RequestParam Map<String, String> rpParameters, OrderParams orderParams,
         @CurrentUser User currentUser,
         @RequestParam( defaultValue = "," ) char separator,
+        @RequestParam( defaultValue = ";" ) String arraySeparator,
         @RequestParam( defaultValue = "false" ) boolean skipHeader,
         HttpServletResponse response )
         throws IOException
@@ -303,18 +307,28 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
             {
                 Property property = getSchema().getProperty( splitField );
 
-                if ( property == null || !property.isSimple() )
+                if ( property == null )
                 {
                     continue;
                 }
 
-                schemaBuilder.addColumn( property.getName() );
-                properties.add( property );
+                if ( property.isSimple() && !property.isCollection() )
+                {
+                    schemaBuilder.addColumn( property.getName() );
+                    properties.add( property );
+                }
+                else if ( (property.isSimple() || property.itemIs( PropertyType.REFERENCE ))
+                    && property.isCollection() )
+                {
+                    schemaBuilder.addArrayColumn( property.getCollectionName() );
+                    properties.add( property );
+                }
             }
         }
 
         schema = schemaBuilder.build()
-            .withColumnSeparator( separator );
+            .withColumnSeparator( separator )
+            .withArrayElementSeparator( arraySeparator );
 
         if ( !skipHeader )
         {
@@ -330,7 +344,18 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
             for ( Property property : properties )
             {
                 Object value = ReflectionUtils.invokeMethod( e, property.getGetterMethod() );
-                map.put( property.getName(), value );
+
+                if ( property.isCollection() && property.itemIs( PropertyType.REFERENCE ) )
+                {
+                    @SuppressWarnings( "unchecked" )
+                    Collection<IdentifiableObject> collection = (Collection<IdentifiableObject>) value;
+                    value = collection.stream().map( PrimaryKeyObject::getUid ).collect( toList() );
+                    map.put( property.getCollectionName(), value );
+                }
+                else
+                {
+                    map.put( property.getName(), value );
+                }
             }
 
             return map;

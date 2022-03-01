@@ -126,7 +126,7 @@ public class MetadataOrgUnitMergeHandler
     public void mergeUsers( OrgUnitMergeRequest request )
     {
         List<User> dataCaptureUsers = userService.getUsers( new UserQueryParams()
-            .setCanSeeOwnUserAuthorityGroups( true )
+            .setCanSeeOwnUserRoles( true )
             .setOrganisationUnits( request.getSources() ) );
 
         dataCaptureUsers.forEach( u -> {
@@ -135,7 +135,7 @@ public class MetadataOrgUnitMergeHandler
         } );
 
         List<User> dataViewUsers = userService.getUsers( new UserQueryParams()
-            .setCanSeeOwnUserAuthorityGroups( true )
+            .setCanSeeOwnUserRoles( true )
             .setDataViewOrganisationUnits( request.getSources() ) );
 
         dataViewUsers.forEach( u -> {
@@ -144,7 +144,7 @@ public class MetadataOrgUnitMergeHandler
         } );
 
         List<User> teiSearchOrgUnits = userService.getUsers( new UserQueryParams()
-            .setCanSeeOwnUserAuthorityGroups( true )
+            .setCanSeeOwnUserRoles( true )
             .setTeiSearchOrganisationUnits( request.getSources() ) );
 
         teiSearchOrgUnits.forEach( u -> {

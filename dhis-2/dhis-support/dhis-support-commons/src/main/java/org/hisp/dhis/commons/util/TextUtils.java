@@ -644,9 +644,9 @@ public class TextUtils
      *
      * @param value the string to be splitted.
      * @param separator for splitting value
-     * @return the list of independent values.
+     * @return the set of values.
      */
-    public static Set<String> splitToArray( String value, String separator )
+    public static Set<String> splitToSet( String value, String separator )
     {
         if ( value == null || value.isEmpty() )
         {

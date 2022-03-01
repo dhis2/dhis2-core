@@ -167,11 +167,11 @@ public interface UserService
      * Checks if the given user role represents the last role with ALL
      * authority.
      *
-     * @param userAuthorityGroup the user role.
+     * @param userRole the user role.
      * @return true if the given user role represents the last role with ALL
      *         authority.
      */
-    boolean isLastSuperRole( UserAuthorityGroup userAuthorityGroup );
+    boolean isLastSuperRole( UserRole userRole );
 
     /**
      * Returns a list of users based on the given query parameters. The default
@@ -278,92 +278,92 @@ public interface UserService
     boolean userNonExpired( User user );
 
     // -------------------------------------------------------------------------
-    // UserAuthorityGroup
+    // UserRole
     // -------------------------------------------------------------------------
 
     /**
-     * Adds a UserAuthorityGroup.
+     * Adds a UserRole.
      *
-     * @param userAuthorityGroup the UserAuthorityGroup.
+     * @param userRole the UserRole.
      * @return the generated identifier.
      */
-    long addUserAuthorityGroup( UserAuthorityGroup userAuthorityGroup );
+    long addUserRole( UserRole userRole );
 
     /**
-     * Updates a UserAuthorityGroup.
+     * Updates a UserRole.
      *
-     * @param userAuthorityGroup the UserAuthorityGroup.
+     * @param userRole the UserRole.
      */
-    void updateUserAuthorityGroup( UserAuthorityGroup userAuthorityGroup );
+    void updateUserRole( UserRole userRole );
 
     /**
-     * Retrieves the UserAuthorityGroup with the given identifier.
+     * Retrieves the UserRole with the given identifier.
      *
-     * @param id the identifier of the UserAuthorityGroup to retrieve.
-     * @return the UserAuthorityGroup.
+     * @param id the identifier of the UserRole to retrieve.
+     * @return the UserRole.
      */
-    UserAuthorityGroup getUserAuthorityGroup( long id );
+    UserRole getUserRole( long id );
 
     /**
-     * Retrieves the UserAuthorityGroup with the given identifier.
+     * Retrieves the UserRole with the given identifier.
      *
-     * @param uid the identifier of the UserAuthorityGroup to retrieve.
-     * @return the UserAuthorityGroup.
+     * @param uid the identifier of the UserRole to retrieve.
+     * @return the UserRole.
      */
-    UserAuthorityGroup getUserAuthorityGroup( String uid );
+    UserRole getUserRole( String uid );
 
     /**
-     * Retrieves the UserAuthorityGroup with the given name.
+     * Retrieves the UserRole with the given name.
      *
-     * @param name the name of the UserAuthorityGroup to retrieve.
-     * @return the UserAuthorityGroup.
+     * @param name the name of the UserRole to retrieve.
+     * @return the UserRole.
      */
-    UserAuthorityGroup getUserAuthorityGroupByName( String name );
+    UserRole getUserRoleByName( String name );
 
     /**
-     * Deletes a UserAuthorityGroup.
+     * Deletes a UserRole.
      *
-     * @param userAuthorityGroup the UserAuthorityGroup to delete.
+     * @param userRole the UserRole to delete.
      */
-    void deleteUserAuthorityGroup( UserAuthorityGroup userAuthorityGroup );
+    void deleteUserRole( UserRole userRole );
 
     /**
-     * Retrieves all UserAuthorityGroups.
+     * Retrieves all UserRole.
      *
-     * @return a List of UserAuthorityGroups.
+     * @return a List of UserRole.
      */
-    List<UserAuthorityGroup> getAllUserAuthorityGroups();
+    List<UserRole> getAllUserRoles();
 
     /**
-     * Retrieves UserAuthorityGroups with the given UIDs.
+     * Retrieves UserRole with the given UIDs.
      *
      * @param uids the UIDs.
-     * @return a List of UserAuthorityGroups.
+     * @return a List of UserRolea.
      */
-    List<UserAuthorityGroup> getUserRolesByUid( Collection<String> uids );
+    List<UserRole> getUserRolesByUid( Collection<String> uids );
 
     /**
-     * Retrieves all UserAuthorityGroups.
+     * Retrieves all UserRole.
      *
-     * @return a List of UserAuthorityGroups.
+     * @return a List of UserRole.
      */
-    List<UserAuthorityGroup> getUserRolesBetween( int first, int max );
+    List<UserRole> getUserRolesBetween( int first, int max );
 
     /**
-     * Retrieves all UserAuthorityGroups.
+     * Retrieves all UserRole.
      *
-     * @return a List of UserAuthorityGroups.
+     * @return a List of UserRoles.
      */
-    List<UserAuthorityGroup> getUserRolesBetweenByName( String name, int first, int max );
+    List<UserRole> getUserRolesBetweenByName( String name, int first, int max );
 
     /**
-     * Returns the number of UserAuthorityGroups which are associated with the
-     * given DataSet.
+     * Returns the number of UserRoles which are associated with the given
+     * DataSet.
      *
      * @param dataSet the DataSet.
-     * @return number of UserAuthorityGroups.
+     * @return number of UserRoles.
      */
-    int countDataSetUserAuthorityGroups( DataSet dataSet );
+    int countDataSetUserRoles( DataSet dataSet );
 
     /**
      * Filters the given collection of user roles based on whether the current
@@ -371,7 +371,7 @@ public interface UserService
      *
      * @param userRoles the collection of user roles.
      */
-    void canIssueFilter( Collection<UserAuthorityGroup> userRoles );
+    void canIssueFilter( Collection<UserRole> userRoles );
 
     List<ErrorReport> validateUser( User user, User currentUser );
 

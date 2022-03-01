@@ -55,7 +55,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -526,14 +525,19 @@ class ExpressionServiceTest extends DhisSpringTest
         {
             return ex.getMessage();
         }
-        Map<DimensionalItemId, DimensionalItemObject> itemMap = new HashMap<>();
-        expressionService.getExpressionDimensionalItemMaps( expr, parseType, dataType, itemMap, itemMap );
-        // System.err.println( itemMap );
-        Object value = expressionService.getExpressionValue( ExpressionParams.builder()
+
+        ExpressionInfo info = expressionService.getExpressionInfo( ExpressionParams.builder()
             .expression( expr )
             .parseType( parseType )
             .dataType( dataType )
-            .itemMap( itemMap )
+            .build() );
+
+        ExpressionParams baseParams = expressionService.getBaseExpressionParams( info );
+
+        Object value = expressionService.getExpressionValue( baseParams.toBuilder()
+            .expression( expr )
+            .parseType( parseType )
+            .dataType( dataType )
             .valueMap( valueMap )
             .orgUnitCountMap( ORG_UNIT_COUNT_MAP )
             .days( DAYS )
@@ -541,7 +545,8 @@ class ExpressionServiceTest extends DhisSpringTest
             .samplePeriods( TEST_SAMPLE_PERIODS )
             .periodValueMap( samples )
             .build() );
-        return result( value, itemMap.values() );
+
+        return result( value, baseParams.getItemMap().values() );
     }
 
     /**
@@ -741,7 +746,7 @@ class ExpressionServiceTest extends DhisSpringTest
      * @param parseType type of expression to parse
      * @return the validation outcome
      */
-    ExpressionValidationOutcome validity( String expr, ParseType parseType )
+    private ExpressionValidationOutcome validity( String expr, ParseType parseType )
     {
         return expressionService.expressionIsValid( expr, parseType );
     }

@@ -32,7 +32,7 @@ import static org.hisp.dhis.dataapproval.DataApproval.AUTH_ACCEPT_LOWER_LEVELS;
 import static org.hisp.dhis.dataapproval.DataApproval.AUTH_APPROVE;
 import static org.hisp.dhis.dataapproval.DataApproval.AUTH_APPROVE_LOWER_LEVELS;
 import static org.hisp.dhis.dataapproval.DataApproval.AUTH_VIEW_UNAPPROVED_DATA;
-import static org.hisp.dhis.user.UserAuthorityGroup.AUTHORITY_ALL;
+import static org.hisp.dhis.user.UserRole.AUTHORITY_ALL;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -71,10 +71,10 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupAccessService;
 import org.hisp.dhis.user.UserGroupService;
+import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.junit.jupiter.api.Test;
@@ -274,11 +274,11 @@ class DataApprovalServiceCategoryOptionGroupTest extends IntegrationTestBase
         user.setFirstName( "Test" );
         user.setSurname( userName );
         user.setUsername( userName );
-        for ( UserAuthorityGroup role : user.getUserAuthorityGroups() )
+        for ( UserRole role : user.getUserRoles() )
         {
             // Arbitrary name
             role.setName( CodeGenerator.generateUid() );
-            userService.addUserAuthorityGroup( role );
+            userService.addUserRole( role );
         }
         userService.addUser( user );
         return mockCurrentUserService;

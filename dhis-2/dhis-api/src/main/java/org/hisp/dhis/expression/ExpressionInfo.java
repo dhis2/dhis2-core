@@ -35,6 +35,8 @@ import lombok.Setter;
 
 import org.hisp.dhis.common.DimensionalItemId;
 
+import com.google.common.collect.Sets;
+
 /**
  * Information parsed from an expression
  * <p>
@@ -68,4 +70,23 @@ public class ExpressionInfo
      * Ids of org unit groups found in orgUnits.groups function.
      */
     private Set<String> orgUnitGroupIds = new HashSet<>();
+
+    /**
+     * Ids of data sets found in orgUnits.dataSet function.
+     */
+    private Set<String> orgUnitDataSetIds = new HashSet<>();
+
+    /**
+     * Ids of programs found in orgUnits.program function.
+     */
+    private Set<String> orgUnitProgramIds = new HashSet<>();
+
+    // -------------------------------------------------------------------------
+    // Logic
+    // -------------------------------------------------------------------------
+
+    public Set<DimensionalItemId> getAllItemIds()
+    {
+        return Sets.union( itemIds, sampleItemIds );
+    }
 }

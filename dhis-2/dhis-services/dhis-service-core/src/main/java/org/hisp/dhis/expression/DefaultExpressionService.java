@@ -61,7 +61,9 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.MIN;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.MIN_DATE;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.N_BRACE;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ORGUNIT_ANCESTOR;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ORGUNIT_DATASET;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ORGUNIT_GROUP;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ORGUNIT_PROGRAM;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.OUG_BRACE;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.PERCENTILE_CONT;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.PERIOD_OFFSET;
@@ -86,6 +88,7 @@ import java.util.stream.Stream;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.antlr.Parser;
 import org.hisp.dhis.antlr.ParserException;
@@ -95,12 +98,16 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.expression.dataitem.DimItemDataElementAndOperand;
 import org.hisp.dhis.expression.dataitem.DimItemIndicator;
 import org.hisp.dhis.expression.dataitem.DimItemProgramAttribute;
@@ -110,8 +117,10 @@ import org.hisp.dhis.expression.dataitem.DimItemReportingRate;
 import org.hisp.dhis.expression.dataitem.ItemDays;
 import org.hisp.dhis.expression.dataitem.ItemOrgUnitGroupCount;
 import org.hisp.dhis.expression.function.FunctionOrgUnitAncestor;
+import org.hisp.dhis.expression.function.FunctionOrgUnitDataSet;
 import org.hisp.dhis.expression.function.FunctionOrgUnitGroup;
 import org.hisp.dhis.expression.function.FunctionSubExpression;
+import org.hisp.dhis.expression.function.FunctionOrgUnitProgram;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.indicator.Indicator;
@@ -136,6 +145,7 @@ import org.hisp.dhis.parser.expression.function.VectorStddevPop;
 import org.hisp.dhis.parser.expression.function.VectorStddevSamp;
 import org.hisp.dhis.parser.expression.function.VectorSum;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -193,7 +203,9 @@ public class DefaultExpressionService
         .<Integer, ExpressionItem> builder()
         .putAll( BASE_EXPRESSION_ITEMS )
         .put( ORGUNIT_ANCESTOR, new FunctionOrgUnitAncestor() )
+        .put( ORGUNIT_DATASET, new FunctionOrgUnitDataSet() )
         .put( ORGUNIT_GROUP, new FunctionOrgUnitGroup() )
+        .put( ORGUNIT_PROGRAM, new FunctionOrgUnitProgram() )
         .build();
 
     private static final ImmutableMap<Integer, ExpressionItem> PREDICTOR_EXPRESSION_ITEMS = ImmutableMap
@@ -499,6 +511,32 @@ public class DefaultExpressionService
     }
 
     @Override
+    public ExpressionInfo getExpressionInfo( ExpressionParams params )
+    {
+        if ( StringUtils.isEmpty( params.getExpression() ) )
+        {
+            return new ExpressionInfo();
+        }
+
+        CommonExpressionVisitor visitor = newVisitor( ITEM_GET_EXPRESSION_INFO, params );
+
+        visit( params.getExpression(), params.getDataType(), visitor, true );
+
+        return visitor.getInfo();
+    }
+
+    @Override
+    public ExpressionParams getBaseExpressionParams( ExpressionInfo info )
+    {
+        return ExpressionParams.builder()
+            .itemMap( dimensionService.getNoAclDataDimensionalItemObjectMap( info.getAllItemIds() ) )
+            .orgUnitGroupMap( getUidMap( OrganisationUnitGroup.class, info.getOrgUnitGroupIds() ) )
+            .dataSetMap( getUidMap( DataSet.class, info.getOrgUnitDataSetIds() ) )
+            .programMap( getUidMap( Program.class, info.getOrgUnitProgramIds() ) )
+            .build();
+    }
+
+    @Override
     public Set<String> getExpressionElementAndOptionComboIds( String expression, ParseType parseType )
     {
         return getExpressionDimensionalItemIds( expression, parseType ).stream()
@@ -537,20 +575,6 @@ public class DefaultExpressionService
         }
 
         return categoryOptionComboIds;
-    }
-
-    @Override
-    public void getExpressionDimensionalItemMaps( String expression, ParseType parseType, DataType dataType,
-        Map<DimensionalItemId, DimensionalItemObject> itemMap,
-        Map<DimensionalItemId, DimensionalItemObject> sampleItemMap )
-    {
-        Set<DimensionalItemId> itemIds = new HashSet<>();
-        Set<DimensionalItemId> sampleItemIds = new HashSet<>();
-
-        getExpressionDimensionalItemIds( expression, parseType, itemIds, sampleItemIds );
-
-        itemMap.putAll( dimensionService.getDataDimensionalItemObjectMap( itemIds ) );
-        sampleItemMap.putAll( dimensionService.getDataDimensionalItemObjectMap( sampleItemIds ) );
     }
 
     @Override
@@ -701,16 +725,11 @@ public class DefaultExpressionService
         sampleItemIds.addAll( info.getSampleItemIds() );
     }
 
-    /**
-     * Gets the information that we need from an expression
-     */
-    private ExpressionInfo getExpressionInfo( ExpressionParams params )
+    private <T extends IdentifiableObject> Map<String, T> getUidMap( Class<T> type, Collection<String> uids )
     {
-        CommonExpressionVisitor visitor = newVisitor( ITEM_GET_EXPRESSION_INFO, params );
+        List<T> objects = idObjectManager.getNoAcl( type, uids );
 
-        visit( params.getExpression(), params.getDataType(), visitor, true );
-
-        return visitor.getInfo();
+        return IdentifiableObjectUtils.getIdMap( objects, IdScheme.UID );
     }
 
     /**
@@ -727,6 +746,7 @@ public class DefaultExpressionService
             .itemMap( PARSE_TYPE_EXPRESSION_ITEMS.get( params.getParseType() ) )
             .itemMethod( itemMethod )
             .params( params )
+            .info( params.getExpressionInfo() )
             .build();
     }
 

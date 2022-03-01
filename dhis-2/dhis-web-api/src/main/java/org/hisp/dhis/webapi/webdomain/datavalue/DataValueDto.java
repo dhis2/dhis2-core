@@ -25,38 +25,61 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.schema.descriptors;
+package org.hisp.dhis.webapi.webdomain.datavalue;
 
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
-import org.hisp.dhis.security.Authority;
-import org.hisp.dhis.security.AuthorityType;
-import org.hisp.dhis.user.UserRole;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 
-import com.google.common.collect.Lists;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Lars Helge Overland
  */
-public class UserRoleSchemaDescriptor implements SchemaDescriptor
+@Getter
+@Setter
+@Accessors( chain = true )
+@NoArgsConstructor
+public class DataValueDto
 {
-    public static final String SINGULAR = "userRole";
+    @JsonProperty
+    private String dataElement;
 
-    public static final String PLURAL = "userRoles";
+    @JsonProperty
+    private String period;
 
-    public static final String API_ENDPOINT = "/" + PLURAL;
+    @JsonProperty
+    private String orgUnit;
 
-    @Override
-    public Schema getSchema()
+    @JsonProperty
+    private String categoryOptionCombo;
+
+    @JsonProperty
+    private DataValueCategoryDto attribute;
+
+    @JsonProperty
+    private String dataSet;
+
+    @JsonProperty
+    private String value;
+
+    @JsonProperty
+    private String comment;
+
+    @JsonProperty
+    private Boolean followUp;
+
+    @JsonProperty
+    private Boolean force;
+
+    public boolean isFollowUp()
     {
-        Schema schema = new Schema( UserRole.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setOrder( 100 );
+        return followUp != null && followUp;
+    }
 
-        schema.add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "F_USERROLE_PUBLIC_ADD" ) ) );
-        schema.add( new Authority( AuthorityType.CREATE_PRIVATE, Lists.newArrayList( "F_USERROLE_PRIVATE_ADD" ) ) );
-        schema.add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_USERROLE_DELETE" ) ) );
-
-        return schema;
+    public boolean isForce()
+    {
+        return force != null && force;
     }
 }

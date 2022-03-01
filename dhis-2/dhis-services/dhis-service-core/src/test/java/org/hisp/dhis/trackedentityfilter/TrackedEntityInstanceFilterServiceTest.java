@@ -131,22 +131,22 @@ class TrackedEntityInstanceFilterServiceTest extends DhisSpringTest
         AttributeValueFilter avf1 = new AttributeValueFilter();
         avf1.setAttribute( attributeA.getUid() );
         avf1.setEq( "abc" );
-        trackedEntityInstanceFilterA.getAttributeValueFilters().add( avf1 );
+        trackedEntityInstanceFilterA.getEntityQueryCriteria().getAttributeValueFilters().add( avf1 );
         assertEquals( 0, trackedEntityInstanceFilterService.validate( trackedEntityInstanceFilterA ).size() );
 
         AttributeValueFilter avf2 = new AttributeValueFilter();
         avf2.setAttribute( attributeB.getUid() );
         avf2.setEq( "abcef" );
-        trackedEntityInstanceFilterA.getAttributeValueFilters().add( avf2 );
+        trackedEntityInstanceFilterA.getEntityQueryCriteria().getAttributeValueFilters().add( avf2 );
 
         List<String> errors = trackedEntityInstanceFilterService.validate( trackedEntityInstanceFilterA );
         assertEquals( 1, errors.size() );
         assertTrue(
             errors.get( 0 ).equals( "No tracked entity attribute found for attribute:" + avf2.getAttribute() ) );
 
-        trackedEntityInstanceFilterA.getAttributeValueFilters().clear();
+        trackedEntityInstanceFilterA.getEntityQueryCriteria().getAttributeValueFilters().clear();
         avf2.setAttribute( "" );
-        trackedEntityInstanceFilterA.getAttributeValueFilters().add( avf2 );
+        trackedEntityInstanceFilterA.getEntityQueryCriteria().getAttributeValueFilters().add( avf2 );
         errors = trackedEntityInstanceFilterService.validate( trackedEntityInstanceFilterA );
         assertEquals( 1, errors.size() );
         assertTrue( errors.get( 0 ).equals( "Attribute Uid is missing in filter" ) );

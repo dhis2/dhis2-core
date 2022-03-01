@@ -123,10 +123,10 @@ public class UserCredentialsDto
     private Sharing sharing = new Sharing();
 
     @JsonProperty
-    private Set<UserAuthorityGroup> userRoles;
+    private Set<UserRole> userRoles;
 
     @JsonSetter( nulls = Nulls.SET )
-    public void setUserRoles( Set<UserAuthorityGroup> userRoles )
+    public void setUserRoles( Set<UserRole> userRoles )
     {
         this.userRoles = userRoles;
     }

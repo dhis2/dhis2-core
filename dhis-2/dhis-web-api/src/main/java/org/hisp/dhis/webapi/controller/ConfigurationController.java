@@ -53,8 +53,8 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -321,7 +321,7 @@ public class ConfigurationController
     }
 
     @GetMapping( "/selfRegistrationRole" )
-    public @ResponseBody UserAuthorityGroup getSelfRegistrationRole( Model model, HttpServletRequest request )
+    public @ResponseBody UserRole getSelfRegistrationRole( Model model, HttpServletRequest request )
     {
         return configurationService.getConfiguration().getSelfRegistrationRole();
     }
@@ -334,7 +334,7 @@ public class ConfigurationController
     {
         uid = trim( uid );
 
-        UserAuthorityGroup userGroup = identifiableObjectManager.get( UserAuthorityGroup.class, uid );
+        UserRole userGroup = identifiableObjectManager.get( UserRole.class, uid );
 
         if ( userGroup == null )
         {

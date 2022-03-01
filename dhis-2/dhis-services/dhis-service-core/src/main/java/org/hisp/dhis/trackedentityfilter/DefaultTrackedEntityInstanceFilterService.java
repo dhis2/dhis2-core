@@ -123,7 +123,14 @@ public class DefaultTrackedEntityInstanceFilterService
             }
         }
 
-        List<AttributeValueFilter> attributeValueFilters = teiFilter.getAttributeValueFilters();
+        EntityQueryCriteria eqc = teiFilter.getEntityQueryCriteria();
+
+        if ( eqc == null )
+        {
+            return errors;
+        }
+
+        List<AttributeValueFilter> attributeValueFilters = eqc.getAttributeValueFilters();
         if ( !CollectionUtils.isEmpty( attributeValueFilters ) )
         {
             attributeValueFilters.forEach( avf -> {
