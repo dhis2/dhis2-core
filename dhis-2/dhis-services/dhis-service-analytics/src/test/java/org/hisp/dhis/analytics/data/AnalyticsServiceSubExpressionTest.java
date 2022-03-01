@@ -197,7 +197,7 @@ class AnalyticsServiceSubExpressionTest
     // Test
     // -------------------------------------------------------------------------
 
-    @Disabled
+    @Disabled( "This test works fine locally on my system but fails on the integration server. //TODO: make it work on the test server" )
     @Test
     void testSubExpressions()
     {
