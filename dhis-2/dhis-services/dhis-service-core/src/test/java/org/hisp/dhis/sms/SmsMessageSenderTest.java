@@ -27,17 +27,46 @@
  */
 package org.hisp.dhis.sms;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anySet;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.isA;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DeliveryChannel;
-import org.hisp.dhis.outboundmessage.*;
-import org.hisp.dhis.sms.config.*;
+import org.hisp.dhis.outboundmessage.OutboundMessage;
+import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
+import org.hisp.dhis.outboundmessage.OutboundMessageBatchStatus;
+import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
+import org.hisp.dhis.outboundmessage.OutboundMessageResponseSummary;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.sms.config.BulkSmsGatewayConfig;
+import org.hisp.dhis.sms.config.BulkSmsHttpGateway;
+import org.hisp.dhis.sms.config.GatewayAdministrationService;
+import org.hisp.dhis.sms.config.SmsGateway;
+import org.hisp.dhis.sms.config.SmsGatewayConfig;
+import org.hisp.dhis.sms.config.SmsMessageSender;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
 import org.hisp.dhis.sms.outbound.OutboundSmsService;
 import org.hisp.dhis.user.User;
@@ -63,6 +92,9 @@ public class SmsMessageSenderTest
     private static final String NO_CONFIG = "No default gateway configured";
 
     private SmsMessageSender smsMessageSender;
+
+    @Mock
+    private SystemSettingManager systemSettingManager;
 
     @Mock
     private UserSettingService userSettingService;
@@ -111,6 +143,8 @@ public class SmsMessageSenderTest
 
     private String footer = "footer";
 
+    private final Integer maxSmsLength = 10000;
+
     @Before
     public void initTest()
     {
@@ -121,8 +155,11 @@ public class SmsMessageSenderTest
 
         smsGateways.add( bulkSmsGateway );
 
+        when( systemSettingManager.getSystemSetting( SettingKey.SMS_MAX_LENGTH, Integer.class ) )
+            .thenReturn( maxSmsLength );
+
         smsMessageSender = new SmsMessageSender( gatewayAdministrationService, smsGateways, userSettingService,
-            outboundSmsService );
+            outboundSmsService, systemSettingManager );
     }
 
     private void mockGateway()
@@ -311,6 +348,37 @@ public class SmsMessageSenderTest
         assertTrue( status.isOk() );
 
         recipientList.forEach( set -> assertTrue( set.size() <= MAX_ALLOWED_RECIPIENTS ) );
+    }
+
+    @Test
+    public void testSendMessageWithSmsLengthGreaterThanDefaultMaxSmsLength()
+    {
+        when( gatewayAdministrationService.getDefaultGateway() ).thenReturn( smsGatewayConfig );
+        mockGateway();
+
+        OutboundMessageResponse status = smsMessageSender.sendMessage( subject,
+            String.join( "", Collections.nCopies( maxSmsLength + 1, "x" ) ),
+            recipientsNormalized );
+
+        assertNull( smsGatewayConfig.getMaxSmsLength() );
+        assertFalse( status.isOk() );
+        assertEquals( GatewayResponse.SMS_TEXT_MESSAGE_TOO_LONG, status.getResponseObject() );
+    }
+
+    @Test
+    public void testSendMessageWithSmsLengthGreaterThanGatewayMaxSmsLength()
+    {
+        smsGatewayConfig.setMaxSmsLength( maxSmsLength.toString() );
+        when( gatewayAdministrationService.getDefaultGateway() ).thenReturn( smsGatewayConfig );
+        mockGateway();
+
+        OutboundMessageResponse status = smsMessageSender.sendMessage( subject,
+            String.join( "", Collections.nCopies( maxSmsLength + 1, "x" ) ),
+            recipientsNormalized );
+
+        assertFalse( status.isOk() );
+        assertEquals( GatewayResponse.SMS_TEXT_MESSAGE_TOO_LONG, status.getResponseObject() );
+        verify( systemSettingManager, times( 0 ) ).getSystemSetting( SettingKey.SMS_MAX_LENGTH, Integer.class );
     }
 
     @Test
