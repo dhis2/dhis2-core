@@ -187,10 +187,11 @@ class AnalyticsServiceSubExpressionTest
         Thread.sleep( 1000 );
 
         // Generate analytics tables
-        AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withSkipTableTypes( Set.of(
-            COMPLETENESS, COMPLETENESS_TARGET, ORG_UNIT_TARGET, EVENT, ENROLLMENT, VALIDATION_RESULT ) ).build();
+        analyticsTableGenerator.generateTables( AnalyticsTableUpdateParams.newBuilder().build(),
+            NoopJobProgress.INSTANCE );
 
-        analyticsTableGenerator.generateTables( params, NoopJobProgress.INSTANCE );
+        // Wait after generating analytics tables
+        Thread.sleep( 1000 );
     }
 
     @Override
