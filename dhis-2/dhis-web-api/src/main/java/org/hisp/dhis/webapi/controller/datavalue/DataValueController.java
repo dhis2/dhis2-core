@@ -78,7 +78,6 @@ import org.jclouds.rest.AuthorizationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -87,14 +86,14 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
  * @author Lars Helge Overland
  */
-@Controller
+@RestController
 @RequestMapping( value = DataValueController.RESOURCE_PATH )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 @RequiredArgsConstructor
@@ -162,16 +161,18 @@ public class DataValueController
     @PreAuthorize( "hasRole('ALL') or hasRole('F_DATAVALUE_ADD')" )
     @PostMapping( consumes = "application/json" )
     @ResponseStatus( HttpStatus.CREATED )
-    public void saveDataValueWithBody( @RequestBody DataValueDto dataValue,
+    public WebMessage saveDataValueWithBody( @RequestBody DataValueDto dataValue,
         @CurrentUser User currentUser, HttpServletResponse response )
         throws WebMessageException
     {
         saveDataValueInternal( dataValue, currentUser );
+
+        return new WebMessage( Status.OK, HttpStatus.CREATED );
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_DATAVALUE_ADD')" )
     @PostMapping( FILE_PATH )
-    public @ResponseBody WebMessage saveFileDataValue(
+    public WebMessage saveFileDataValue(
         @RequestParam String de,
         @RequestParam( required = false ) String co,
         @RequestParam( required = false ) String cc,
@@ -488,7 +489,7 @@ public class DataValueController
     // ---------------------------------------------------------------------
 
     @GetMapping
-    public @ResponseBody List<String> getDataValue(
+    public List<String> getDataValue(
         @RequestParam String de,
         @RequestParam( required = false ) String co,
         @RequestParam( required = false ) String cc,

@@ -102,6 +102,22 @@ class DataValueControllerTest extends AbstractDataValueControllerTest
         assertFollowups( false, true, false );
     }
 
+    @Test
+    public void testAddDataValueWithBody()
+    {
+        String body = String.format( "{" +
+            "'dataElement':'%s'," +
+            "'categoryOptionCombo':'%s'," +
+            "'period':'202201'," +
+            "'orgUnit':'%s'," +
+            "'value':'24'," +
+            "'comment':'OK'}",
+            dataElementId, categoryOptionComboId, orgUnitId );
+
+        HttpResponse response = POST( "/dataValues", body );
+        assertStatus( HttpStatus.CREATED, response );
+    }
+
     private void assertFollowups( boolean... expected )
     {
         List<DataValue> values = dataValueService.getAllDataValues();
@@ -120,6 +136,6 @@ class DataValueControllerTest extends AbstractDataValueControllerTest
     {
         return String.format(
             "{'dataElement':'%s', 'period':'%s', 'orgUnit':'%s', 'categoryOptionCombo':'%s', 'followup':%b}",
-            dataElementId, period, orgUnitId, categoryOptionId, followup );
+            dataElementId, period, orgUnitId, categoryOptionComboId, followup );
     }
 }
