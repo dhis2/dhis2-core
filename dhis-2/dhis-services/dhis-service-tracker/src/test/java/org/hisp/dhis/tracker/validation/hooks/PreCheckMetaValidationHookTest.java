@@ -59,6 +59,7 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.ReferenceTrackerEntity;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -89,6 +90,9 @@ class PreCheckMetaValidationHookTest
     private PreCheckMetaValidationHook validatorToTest;
 
     @Mock
+    private TrackerPreheat preheat;
+
+    @Mock
     private TrackerImportValidationContext ctx;
 
     @BeforeEach
@@ -96,7 +100,9 @@ class PreCheckMetaValidationHookTest
     {
         validatorToTest = new PreCheckMetaValidationHook();
 
-        TrackerBundle bundle = TrackerBundle.builder().build();
+        TrackerBundle bundle = TrackerBundle.builder()
+            .preheat( preheat )
+            .build();
 
         when( ctx.getBundle() ).thenReturn( bundle );
     }
@@ -328,7 +334,7 @@ class PreCheckMetaValidationHookTest
         ValidationErrorReporter reporter = new ValidationErrorReporter( ctx );
 
         // when
-        when( ctx.getRelationShipType( RELATIONSHIP_TYPE_UID ) ).thenReturn( new RelationshipType() );
+        when( preheat.get( RelationshipType.class, RELATIONSHIP_TYPE_UID ) ).thenReturn( new RelationshipType() );
 
         validatorToTest.validateRelationship( reporter, relationship );
 
