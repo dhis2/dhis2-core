@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.tracker.validation;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -155,8 +154,4 @@ public class TrackerImportValidationContext
         return bundle.getPreheat().getReference( uid );
     }
 
-    public Map<String, List<String>> getProgramWithOrgUnitsMap()
-    {
-        return bundle.getPreheat().getProgramWithOrgUnitsMap();
-    }
 }
