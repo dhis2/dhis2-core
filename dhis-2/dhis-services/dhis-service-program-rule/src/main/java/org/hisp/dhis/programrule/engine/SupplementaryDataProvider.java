@@ -42,7 +42,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.UserAuthorityGroup;
+import org.hisp.dhis.user.UserRole;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Maps;
@@ -90,7 +90,7 @@ public class SupplementaryDataProvider
         if ( currentUserService.getCurrentUser() != null )
         {
             supplementaryData.put( USER, currentUserService.getCurrentUser()
-                .getUserAuthorityGroups().stream().map( UserAuthorityGroup::getUid ).collect( Collectors.toList() ) );
+                .getUserRoles().stream().map( UserRole::getUid ).collect( Collectors.toList() ) );
         }
 
         return supplementaryData;

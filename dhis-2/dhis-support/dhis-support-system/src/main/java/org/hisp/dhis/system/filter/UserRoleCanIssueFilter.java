@@ -25,22 +25,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.preheat.mappers;
+package org.hisp.dhis.system.filter;
 
-import org.hisp.dhis.user.UserAuthorityGroup;
-import org.mapstruct.BeanMapping;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.factory.Mappers;
+import org.hisp.dhis.commons.filter.Filter;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserRole;
 
-@Mapper( uses = { DebugMapper.class, UserGroupMapper.class } )
-public interface UserAuthorityGroupMapper extends PreheatMapper<UserAuthorityGroup>
+/**
+ * @author Lars Helge Overland
+ */
+public class UserRoleCanIssueFilter
+    implements Filter<UserRole>
 {
-    UserAuthorityGroupMapper INSTANCE = Mappers.getMapper( UserAuthorityGroupMapper.class );
+    private User user;
 
-    @BeanMapping( ignoreByDefault = true )
-    @Mapping( target = "id" )
-    @Mapping( target = "uid" )
-    @Mapping( target = "authorities" )
-    UserAuthorityGroup map( UserAuthorityGroup userGroupAccess );
+    private boolean canGrantOwnUserRoles = false;
+
+    protected UserRoleCanIssueFilter()
+    {
+    }
+
+    public UserRoleCanIssueFilter( User user, boolean canGrantOwnUserRoles )
+    {
+        if ( user != null )
+        {
+            this.user = user;
+            this.canGrantOwnUserRoles = canGrantOwnUserRoles;
+        }
+    }
+
+    @Override
+    public boolean retain( UserRole group )
+    {
+        return user != null && user.canIssueUserRole( group, canGrantOwnUserRoles );
+    }
 }

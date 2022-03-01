@@ -37,8 +37,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.system.deletion.DeletionVeto;
-import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.UserRole;
 import org.springframework.stereotype.Component;
 
 /**
@@ -68,7 +68,7 @@ public class ConfigurationDeletionHandler
         whenVetoing( OrganisationUnitLevel.class, this::allowDeleteOrganisationUnitLevel );
         whenVetoing( OrganisationUnitGroupSet.class, this::allowDeleteOrganisationUnitGroupSet );
         whenVetoing( OrganisationUnit.class, this::allowDeleteOrganisationUnit );
-        whenVetoing( UserAuthorityGroup.class, this::allowDeleteUserAuthorityGroup );
+        whenVetoing( UserRole.class, this::allowDeleteUserRole );
     }
 
     private DeletionVeto allowDeleteUserGroup( UserGroup userGroup )
@@ -115,10 +115,10 @@ public class ConfigurationDeletionHandler
         return selfRegOrgUnit != null && selfRegOrgUnit.equals( organisationUnit ) ? VETO : ACCEPT;
     }
 
-    private DeletionVeto allowDeleteUserAuthorityGroup( UserAuthorityGroup userAuthorityGroup )
+    private DeletionVeto allowDeleteUserRole( UserRole userRole )
     {
-        UserAuthorityGroup selfRegRole = configService.getConfiguration().getSelfRegistrationRole();
+        UserRole selfRegRole = configService.getConfiguration().getSelfRegistrationRole();
 
-        return selfRegRole != null && selfRegRole.equals( userAuthorityGroup ) ? VETO : ACCEPT;
+        return selfRegRole != null && selfRegRole.equals( userRole ) ? VETO : ACCEPT;
     }
 }
