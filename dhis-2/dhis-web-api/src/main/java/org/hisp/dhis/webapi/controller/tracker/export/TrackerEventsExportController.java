@@ -56,6 +56,7 @@ import org.hisp.dhis.dxf2.events.event.csv.CsvEventService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.node.Preset;
 import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.tracker.domain.mapper.EventMapper;
 import org.hisp.dhis.webapi.controller.event.mapper.RequestToSearchParamsMapper;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
 import org.hisp.dhis.webapi.controller.event.webrequest.tracker.TrackerEventCriteria;

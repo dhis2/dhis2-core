@@ -74,4 +74,39 @@ public class EventDataQueryRequestTest
         assertEquals( eventDataQueryRequest.getDimension(), Set.of( "pe:TODAY:INCIDENT_DATE" ) );
 
     }
+
+    @Test
+    void testEventsQueryMultiOptionsAreCorrectlyParsed()
+    {
+        EventsAnalyticsQueryCriteria criteria = new EventsAnalyticsQueryCriteria();
+        criteria.setEnrollmentDate( "202111,2021;TODAY" );
+        criteria.setEventDate( "LAST_YEAR" );
+        criteria.setDimension( new HashSet<>( Set.of( "pe:LAST_MONTH" ) ) );
+
+        EventDataQueryRequest eventDataQueryRequest = EventDataQueryRequest.builder()
+            .fromCriteria( (EventsAnalyticsQueryCriteria) criteria.withQueryRequestType() )
+            .build();
+
+        assertEquals( eventDataQueryRequest.getDimension(),
+            Set.of(
+                "pe:LAST_MONTH;LAST_YEAR:EVENT_DATE;202111:ENROLLMENT_DATE;2021:ENROLLMENT_DATE;TODAY:ENROLLMENT_DATE" ) );
+
+    }
+
+    @Test
+    void testEnrollmentMultiOptionsAreCorrectlyParsed()
+    {
+        EnrollmentAnalyticsQueryCriteria criteria = new EnrollmentAnalyticsQueryCriteria();
+        criteria.setIncidentDate( "202111,2021;TODAY" );
+        criteria.setEnrollmentDate( "LAST_YEAR" );
+        criteria.setDimension( new HashSet<>( Set.of( "pe:LAST_MONTH" ) ) );
+
+        EventDataQueryRequest eventDataQueryRequest = EventDataQueryRequest.builder()
+            .fromCriteria( (EnrollmentAnalyticsQueryCriteria) criteria.withQueryRequestType() )
+            .build();
+
+        assertEquals( eventDataQueryRequest.getDimension(),
+            Set.of(
+                "pe:LAST_MONTH;LAST_YEAR:ENROLLMENT_DATE;202111:INCIDENT_DATE;2021:INCIDENT_DATE;TODAY:INCIDENT_DATE" ) );
+    }
 }

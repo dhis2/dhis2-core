@@ -34,7 +34,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.Date;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.commons.util.RelationshipUtils;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -112,8 +111,17 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
     @Test
     void getRelationshipsMissingParam()
     {
-        assertEquals( "Missing required parameter 'tei', 'enrollment' or 'event'.",
+        assertEquals( "Missing required parameter 'trackedEntity', 'enrollment' or 'event'.",
             GET( "/tracker/relationships" )
+                .error( HttpStatus.BAD_REQUEST )
+                .getMessage() );
+    }
+
+    @Test
+    void getRelationshipsBadRequestWithMultipleParams()
+    {
+        assertEquals( "Only one of parameters 'trackedEntity', 'enrollment' or 'event' is allowed.",
+            GET( "/tracker/relationships?trackedEntity=Hq3Kc6HK4OZ&enrollment=Hq3Kc6HK4OZ&event=Hq3Kc6HK4OZ" )
                 .error( HttpStatus.BAD_REQUEST )
                 .getMessage() );
     }
@@ -182,6 +190,23 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
             RelationshipEntity.TRACKED_ENTITY_INSTANCE );
         Relationship r = relationship( rType, programInstance, tei );
 
+        JsonObject relationship = GET( "/tracker/relationships?trackedEntity=" + tei.getUid() )
+            .content( HttpStatus.OK );
+
+        JsonObject jsonRelationship = assertFirstRelationship( relationship, r );
+        assertEnrollment( jsonRelationship.getObject( "from" ), programInstance );
+        assertTrackedEntity( jsonRelationship.getObject( "to" ), tei );
+    }
+
+    @Test
+    void getRelationshipsByTei()
+    {
+        TrackedEntityInstance tei = trackedEntityInstance();
+        ProgramInstance programInstance = programInstance( tei );
+        RelationshipType rType = relationshipType( RelationshipEntity.PROGRAM_INSTANCE,
+            RelationshipEntity.TRACKED_ENTITY_INSTANCE );
+        Relationship r = relationship( rType, programInstance, tei );
+
         JsonObject relationship = GET( "/tracker/relationships?tei=" + tei.getUid() )
             .content( HttpStatus.OK );
 
@@ -193,28 +218,8 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
     @Test
     void getRelationshipsByTrackedEntityNotFound()
     {
-
         assertEquals( "No trackedEntity 'Hq3Kc6HK4OZ' found.",
-            GET( "/tracker/relationships?tei=Hq3Kc6HK4OZ" )
-                .error( HttpStatus.NOT_FOUND )
-                .getMessage() );
-    }
-
-    @Test
-    void getRelationshipsByMultipleParams()
-    {
-        TrackedEntityInstance tei = trackedEntityInstance();
-        ProgramInstance programInstance = programInstance( tei );
-
-        RelationshipType rType = relationshipType( RelationshipEntity.PROGRAM_INSTANCE,
-            RelationshipEntity.TRACKED_ENTITY_INSTANCE );
-        Relationship r = relationship( rType, programInstance, tei );
-
-        // the query parameters are processed in order tei, enrollment, event
-        // the first query parameter (unless another param found relationships)
-        // to find no relationships causes response NOT_FOUND
-        assertEquals( "No trackedEntity 'Hq3Kc6HK4OZ' found.",
-            GET( "/tracker/relationships?tei=Hq3Kc6HK4OZ&enrollment=" + programInstance.getUid() )
+            GET( "/tracker/relationships?trackedEntity=Hq3Kc6HK4OZ" )
                 .error( HttpStatus.NOT_FOUND )
                 .getMessage() );
     }
@@ -266,8 +271,9 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
         r.setFrom( rItem1 );
         r.setTo( rItem2 );
         r.setRelationshipType( type );
-        r.setKey( RelationshipUtils.generateRelationshipKey( r ) );
-        r.setInvertedKey( RelationshipUtils.generateRelationshipInvertedKey( r ) );
+        r.setKey( type.getUid() );
+        r.setInvertedKey( type.getUid() );
+        r.setAutoFields();
         manager.save( r );
         return r;
     }
@@ -282,8 +288,9 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
         r.setFrom( rItem1 );
         r.setTo( rItem2 );
         r.setRelationshipType( type );
-        r.setKey( RelationshipUtils.generateRelationshipKey( r ) );
-        r.setInvertedKey( RelationshipUtils.generateRelationshipInvertedKey( r ) );
+        r.setKey( type.getUid() );
+        r.setInvertedKey( type.getUid() );
+        r.setAutoFields();
         manager.save( r );
         return r;
     }
@@ -300,11 +307,6 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
         return assertNthRelationship( body, r, 0 );
     }
 
-    private JsonObject assertSecondRelationship( JsonObject body, Relationship r )
-    {
-        return assertNthRelationship( body, r, 1 );
-    }
-
     private JsonObject assertNthRelationship( JsonObject body, Relationship r, int n )
     {
         assertFalse( body.isEmpty() );
@@ -318,33 +320,16 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
 
     private void assertEvent( JsonObject json, ProgramStageInstance programStageInstance )
     {
-        JsonObject jsonEvent = json.getObject( "event" );
-        assertEquals( programStageInstance.getUid(), jsonEvent.getString( "event" ).string() );
-        assertEquals( programStageInstance.getStatus().toString(), jsonEvent.getString( "status" ).string() );
-        assertEquals( programStageInstance.getProgramStage().getUid(), jsonEvent.getString( "programStage" ).string() );
-        assertEquals( programStageInstance.getProgramInstance().getUid(),
-            jsonEvent.getString( "enrollment" ).string() );
-        assertTrue( jsonEvent.getArray( "relationships" ).isEmpty() );
+        assertEquals( programStageInstance.getUid(), json.getString( "event" ).string() );
     }
 
     private void assertTrackedEntity( JsonObject json, TrackedEntityInstance tei )
     {
-        JsonObject jsonTEI = json.getObject( "trackedEntity" );
-        assertEquals( tei.getUid(), jsonTEI.getString( "trackedEntity" ).string() );
-        assertEquals( tei.getTrackedEntityType().getUid(), jsonTEI.getString( "trackedEntityType" ).string() );
-        assertEquals( tei.getOrganisationUnit().getUid(), jsonTEI.getString( "orgUnit" ).string() );
-        assertTrue( jsonTEI.getArray( "relationships" ).isEmpty() );
+        assertEquals( tei.getUid(), json.getString( "trackedEntity" ).string() );
     }
 
     private void assertEnrollment( JsonObject json, ProgramInstance programInstance )
     {
-        JsonObject jsonEnrollment = json.getObject( "enrollment" );
-        assertEquals( programInstance.getUid(), jsonEnrollment.getString( "enrollment" ).string() );
-        assertEquals( programInstance.getEntityInstance().getUid(),
-            jsonEnrollment.getString( "trackedEntity" ).string() );
-        assertEquals( programInstance.getProgram().getUid(), jsonEnrollment.getString( "program" ).string() );
-        assertEquals( programInstance.getOrganisationUnit().getUid(), jsonEnrollment.getString( "orgUnit" ).string() );
-        assertTrue( jsonEnrollment.getArray( "events" ).isEmpty() );
-        assertTrue( jsonEnrollment.getArray( "relationships" ).isEmpty() );
+        assertEquals( programInstance.getUid(), json.getString( "enrollment" ).string() );
     }
 }

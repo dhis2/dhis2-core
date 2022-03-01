@@ -43,8 +43,6 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.google.api.client.util.ArrayMap;
-
 class ImportStrategyAccumulatorTest
 {
 
@@ -59,21 +57,21 @@ class ImportStrategyAccumulatorTest
     @Test
     void verifyCreationOnly()
     {
-        accumulator.partitionEvents( createEvents( 5 ), ImportStrategy.CREATE, new ArrayMap<>() );
+        accumulator.partitionEvents( createEvents( 5 ), ImportStrategy.CREATE, new HashMap<>() );
         assertAccumulator( 5, 0, 0 );
         reset();
         accumulator.partitionEvents( createEvents( 5 ), ImportStrategy.CREATE,
             createProgramStageInstances( "a", "b" ) );
         assertAccumulator( 5, 0, 0 );
         reset();
-        accumulator.partitionEvents( createEvents( 5 ), ImportStrategy.NEW, new ArrayMap<>() );
+        accumulator.partitionEvents( createEvents( 5 ), ImportStrategy.NEW, new HashMap<>() );
         assertAccumulator( 5, 0, 0 );
     }
 
     @Test
     void verifyCreateAndUpdate()
     {
-        accumulator.partitionEvents( createEvents( 5 ), ImportStrategy.CREATE_AND_UPDATE, new ArrayMap<>() );
+        accumulator.partitionEvents( createEvents( 5 ), ImportStrategy.CREATE_AND_UPDATE, new HashMap<>() );
         assertAccumulator( 5, 0, 0 );
         reset();
         final List<Event> events = createEvents( 5 );
@@ -85,10 +83,10 @@ class ImportStrategyAccumulatorTest
     @Test
     void verifyUpdateOnly()
     {
-        accumulator.partitionEvents( createEvents( 5 ), ImportStrategy.UPDATE, new ArrayMap<>() );
+        accumulator.partitionEvents( createEvents( 5 ), ImportStrategy.UPDATE, new HashMap<>() );
         assertAccumulator( 0, 5, 0 );
         reset();
-        accumulator.partitionEvents( createEvents( 5 ), ImportStrategy.UPDATES, new ArrayMap<>() );
+        accumulator.partitionEvents( createEvents( 5 ), ImportStrategy.UPDATES, new HashMap<>() );
         assertAccumulator( 0, 5, 0 );
     }
 
@@ -128,13 +126,13 @@ class ImportStrategyAccumulatorTest
     @Test
     void verifySync()
     {
-        accumulator.partitionEvents( createEvents( 5 ), ImportStrategy.SYNC, new ArrayMap<>() );
+        accumulator.partitionEvents( createEvents( 5 ), ImportStrategy.SYNC, new HashMap<>() );
         assertAccumulator( 5, 0, 0 );
         reset();
         final List<Event> events1 = createEvents( 3 );
         events1.get( 0 ).setDeleted( true );
         events1.get( 1 ).setDeleted( true );
-        accumulator.partitionEvents( events1, ImportStrategy.SYNC, new ArrayMap<>() );
+        accumulator.partitionEvents( events1, ImportStrategy.SYNC, new HashMap<>() );
         assertAccumulator( 1, 0, 2 );
         reset();
         final List<Event> events2 = createEvents( 10 );

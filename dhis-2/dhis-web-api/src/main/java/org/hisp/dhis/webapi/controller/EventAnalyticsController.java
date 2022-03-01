@@ -102,7 +102,7 @@ public class EventAnalyticsController
     // Aggregate
     // -------------------------------------------------------------------------
 
-    @PreAuthorize( "hasRole('F_PERFORM_ANALYTICS_EXPLAIN')" )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_ANALYTICS_EXPLAIN')" )
     @GetMapping( value = RESOURCE_PATH + "/aggregate/{program}" + EXPLAIN_PATH, produces = { APPLICATION_JSON_VALUE,
         "application/javascript" } )
     public @ResponseBody Grid getExplainAggregateJson( // JSON, JSONP
@@ -122,7 +122,7 @@ public class EventAnalyticsController
 
         if ( params.analyzeOnly() )
         {
-            grid.maybeAddPerformanceMetrics( executionPlanStore.getExecutionPlans( params.getAnalyzeOrderId() ) );
+            grid.maybeAddPerformanceMetrics( executionPlanStore.getExecutionPlans( params.getExplainOrderId() ) );
         }
 
         return grid;
@@ -275,7 +275,7 @@ public class EventAnalyticsController
     // Query
     // -------------------------------------------------------------------------
 
-    @PreAuthorize( "hasRole('F_PERFORM_ANALYTICS_EXPLAIN')" )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_ANALYTICS_EXPLAIN')" )
     @GetMapping( value = RESOURCE_PATH + "/query/{program}" + EXPLAIN_PATH, produces = { APPLICATION_JSON_VALUE,
         "application/javascript" } )
     public @ResponseBody Grid getExplainQueryJson( // JSON, JSONP
@@ -292,7 +292,7 @@ public class EventAnalyticsController
 
         if ( params.analyzeOnly() )
         {
-            grid.maybeAddPerformanceMetrics( executionPlanStore.getExecutionPlans( params.getAnalyzeOrderId() ) );
+            grid.maybeAddPerformanceMetrics( executionPlanStore.getExecutionPlans( params.getExplainOrderId() ) );
         }
 
         return grid;

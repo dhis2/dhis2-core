@@ -25,32 +25,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export.relationships;
+package org.hisp.dhis.user.hibernate;
 
-import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.webapi.controller.tracker.export.AttributeMapper;
-import org.hisp.dhis.webapi.controller.tracker.export.DomainMapper;
-import org.hisp.dhis.webapi.controller.tracker.export.InstantMapper;
-import org.hisp.dhis.webapi.controller.tracker.export.ProgramOwnerMapper;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import org.hibernate.SessionFactory;
+import org.hibernate.query.Query;
+import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.UserRole;
+import org.hisp.dhis.user.UserRoleStore;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
-@Mapper( uses = {
-    RelationshipMapper.class,
-    AttributeMapper.class,
-    EnrollmentMapper.class,
-    ProgramOwnerMapper.class,
-    InstantMapper.class } )
-interface TrackedEntityMapper extends DomainMapper<TrackedEntityInstance, TrackedEntity>
+/**
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
+ */
+@Repository( "org.hisp.dhis.user.UserRoleStore" )
+public class HibernateUserRoleStore
+    extends HibernateIdentifiableObjectStore<UserRole>
+    implements UserRoleStore
 {
-    @Mapping( target = "relationships", ignore = true )
-    @Mapping( target = "trackedEntity", source = "trackedEntityInstance" )
-    @Mapping( target = "createdAt", source = "created" )
-    @Mapping( target = "createdAtClient", source = "createdAtClient" )
-    @Mapping( target = "updatedAt", source = "lastUpdated" )
-    @Mapping( target = "updatedAtClient", source = "lastUpdatedAtClient" )
-    @Mapping( target = "createdBy", source = "createdByUserInfo.username" )
-    @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo.username" )
-    TrackedEntity from( TrackedEntityInstance trackedEntityInstance );
+    public HibernateUserRoleStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
+    {
+        super( sessionFactory, jdbcTemplate, publisher, UserRole.class, currentUserService, aclService,
+            true );
+    }
+
+    @Override
+    public int countDataSetUserRoles( DataSet dataSet )
+    {
+        Query<Long> query = getTypedQuery(
+            "select count(distinct c) from UserRole c where :dataSet in elements(c.dataSets)" );
+        query.setParameter( "dataSet", dataSet );
+
+        return query.getSingleResult().intValue();
+    }
 }

@@ -40,6 +40,7 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
 
 /**
@@ -75,7 +76,7 @@ class TrackerReportUtils
         }
         else if ( Instant.class.isAssignableFrom( argument.getClass() ) )
         {
-            return DateFormat.getInstance().format( Date.from( (Instant) argument ) );
+            return DateUtils.getIso8601NoTz( DateUtils.fromInstant( (Instant) argument ) );
         }
         else if ( Enrollment.class.isAssignableFrom( argument.getClass() ) )
         {

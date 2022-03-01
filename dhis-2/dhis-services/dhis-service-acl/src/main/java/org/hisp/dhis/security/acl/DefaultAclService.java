@@ -687,7 +687,7 @@ public class DefaultAclService implements AclService
 
     private boolean haveAuthority( User user, Collection<String> anyAuthorities )
     {
-        return containsAny( user.getUserCredentials().getAllAuthorities(), anyAuthorities );
+        return containsAny( user.getAllAuthorities(), anyAuthorities );
     }
 
     /**

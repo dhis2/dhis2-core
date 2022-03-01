@@ -25,38 +25,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.system.filter;
+package org.hisp.dhis.tracker.domain.mapper;
 
-import org.hisp.dhis.commons.filter.Filter;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAuthorityGroup;
+import org.hisp.dhis.tracker.domain.Relationship;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
-/**
- * @author Lars Helge Overland
- */
-public class UserAuthorityGroupCanIssueFilter
-    implements Filter<UserAuthorityGroup>
+@Mapper( uses = {
+    RelationshipItemMapper.class,
+    InstantMapper.class } )
+public interface RelationshipMapper
+    extends DomainMapper<org.hisp.dhis.dxf2.events.trackedentity.Relationship, Relationship>
 {
-    private User user;
-
-    private boolean canGrantOwnUserAuthorityGroups = false;
-
-    protected UserAuthorityGroupCanIssueFilter()
-    {
-    }
-
-    public UserAuthorityGroupCanIssueFilter( User user, boolean canGrantOwnUserAuthorityGroups )
-    {
-        if ( user != null )
-        {
-            this.user = user;
-            this.canGrantOwnUserAuthorityGroups = canGrantOwnUserAuthorityGroups;
-        }
-    }
-
-    @Override
-    public boolean retain( UserAuthorityGroup group )
-    {
-        return user != null && user.canIssueUserRole( group, canGrantOwnUserAuthorityGroups );
-    }
+    @Mapping( target = "createdAt", source = "created" )
+    @Mapping( target = "updatedAt", source = "lastUpdated" )
+    Relationship from( org.hisp.dhis.dxf2.events.trackedentity.Relationship relationship );
 }

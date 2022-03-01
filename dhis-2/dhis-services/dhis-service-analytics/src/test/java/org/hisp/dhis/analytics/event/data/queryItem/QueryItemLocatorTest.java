@@ -229,7 +229,7 @@ class QueryItemLocatorTest
         configureDimensionForQueryItem( dataElementA, programStageA );
 
         QueryItem queryItem = subject.getQueryItemFromDimension(
-            programStageUid + "[-1,1]" + PROGRAMSTAGE_SEP + dimension,
+            programStageUid + "[-1~1]" + PROGRAMSTAGE_SEP + dimension,
             programA, EventOutputType.ENROLLMENT );
 
         assertThat( queryItem, is( notNullValue() ) );
@@ -249,7 +249,7 @@ class QueryItemLocatorTest
         configureDimensionForQueryItem( dataElementA, programStageA );
 
         QueryItem queryItem = subject.getQueryItemFromDimension(
-            programStageUid + "[-1,1, 2022-01-01, 2022-01-31]" + PROGRAMSTAGE_SEP + dimension,
+            programStageUid + "[-1~1~ 2022-01-01~ 2022-01-31]" + PROGRAMSTAGE_SEP + dimension,
             programA, EventOutputType.ENROLLMENT );
 
         assertThat( queryItem, is( notNullValue() ) );
@@ -269,7 +269,7 @@ class QueryItemLocatorTest
         configureDimensionForQueryItem( dataElementA, programStageA );
 
         QueryItem queryItem = subject.getQueryItemFromDimension(
-            programStageUid + "[-1,1, LAST_3_MONTHS]" + PROGRAMSTAGE_SEP + dimension,
+            programStageUid + "[1~1~LAST_3_MONTHS]" + PROGRAMSTAGE_SEP + dimension,
             programA, EventOutputType.ENROLLMENT );
 
         assertThat( queryItem, is( notNullValue() ) );
@@ -278,7 +278,7 @@ class QueryItemLocatorTest
         assertThat( queryItem.getProgramStage(), is( programStageA ) );
 
         assertThrows( IllegalQueryException.class, () -> subject.getQueryItemFromDimension(
-            programStageUid + "[-1,1, LAST_A3_MONTHS]" + PROGRAMSTAGE_SEP + dimension,
+            programStageUid + "[-1~1~ LAST_A3_MONTHS]" + PROGRAMSTAGE_SEP + dimension,
             programA, EventOutputType.ENROLLMENT ) );
     }
 
@@ -293,7 +293,7 @@ class QueryItemLocatorTest
         configureDimensionForQueryItem( dataElementA, programStageA );
 
         QueryItem queryItem = subject.getQueryItemFromDimension(
-            programStageUid + "[2022-01-01, 2022-01-31]" + PROGRAMSTAGE_SEP + dimension,
+            programStageUid + "[2022-01-01~ 2022-01-31]" + PROGRAMSTAGE_SEP + dimension,
             programA, EventOutputType.ENROLLMENT );
 
         assertThat( queryItem, is( notNullValue() ) );

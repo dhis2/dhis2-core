@@ -37,6 +37,8 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -240,6 +242,11 @@ public class EventDataQueryRequest
                 .coordinatesOnly( criteria.isCoordinatesOnly() )
                 .coordinateOuFallback( criteria.isCoordinateOuFallback() );
 
+            if ( criteria.getDimension() == null )
+            {
+                criteria.setDimension( new HashSet<>() );
+            }
+
             if ( criteria.isRequestTypeQuery() )
             {
                 /*
@@ -251,14 +258,11 @@ public class EventDataQueryRequest
                  *
                  * returns: TODAY:LAST_UPDATED;LAST_WEEK:INCIDENT_DATE
                  */
-                String customDateFilters = Arrays.stream( AnalyticsDateFilter.values() )
-                    .filter( AnalyticsDateFilter::appliesToEvents )
-                    .filter( analyticsDateFilter -> analyticsDateFilter.getEventExtractor().apply( criteria ) != null )
-                    .map( analyticsDateFilter -> String.join( DIMENSION_NAME_SEP,
-                        withOptionSeparator( analyticsDateFilter.getEventExtractor().apply( criteria ) ),
-                        analyticsDateFilter.getTimeField().name() ) )
-                    .collect( Collectors.joining( OPTION_SEP ) );
-
+                String customDateFilters = getCustomDateFilters(
+                    AnalyticsDateFilter::appliesToEvents,
+                    analyticsDateFilter -> o -> analyticsDateFilter.getEventExtractor()
+                        .apply( (EventsAnalyticsQueryCriteria) o ),
+                    criteria );
                 /*
                  * sets the new time dimensions into the requestBuilder
                  */
@@ -271,6 +275,19 @@ public class EventDataQueryRequest
             {
                 return builder.dimension( criteria.getDimension() );
             }
+        }
+
+        private String getCustomDateFilters( Predicate<AnalyticsDateFilter> appliesTo,
+            Function<AnalyticsDateFilter, Function<Object, String>> function, Object criteria )
+        {
+            return Arrays.stream( AnalyticsDateFilter.values() )
+                .filter( appliesTo )
+                .filter( analyticsDateFilter -> function.apply( analyticsDateFilter ).apply( criteria ) != null )
+                .map( analyticsDateFilter -> String.join( DIMENSION_NAME_SEP,
+                    handleMultiOptions(
+                        function.apply( analyticsDateFilter ).apply( criteria ),
+                        analyticsDateFilter.getTimeField().name() ) ) )
+                .collect( Collectors.joining( OPTION_SEP ) );
         }
 
         private String withOptionSeparator( String options )
@@ -315,6 +332,11 @@ public class EventDataQueryRequest
                 .coordinateField( criteria.getCoordinateField() )
                 .sortOrder( criteria.getSortOrder() );
 
+            if ( criteria.getDimension() == null )
+            {
+                criteria.setDimension( new HashSet<>() );
+            }
+
             if ( criteria.isRequestTypeQuery() )
             {
                 /*
@@ -326,14 +348,11 @@ public class EventDataQueryRequest
                  *
                  * returns: TODAY:LAST_UPDATED;LAST_WEEK:INCIDENT_DATE
                  */
-                String customDateFilters = Arrays.stream( AnalyticsDateFilter.values() )
-                    .filter( AnalyticsDateFilter::appliesToEnrollments )
-                    .filter(
-                        analyticsDateFilter -> analyticsDateFilter.getEnrollmentExtractor().apply( criteria ) != null )
-                    .map( analyticsDateFilter -> String.join( DIMENSION_NAME_SEP,
-                        analyticsDateFilter.getEnrollmentExtractor().apply( criteria ),
-                        analyticsDateFilter.getTimeField().name() ) )
-                    .collect( Collectors.joining( OPTION_SEP ) );
+                String customDateFilters = getCustomDateFilters(
+                    AnalyticsDateFilter::appliesToEnrollments,
+                    analyticsDateFilter -> o -> analyticsDateFilter.getEnrollmentExtractor()
+                        .apply( (EnrollmentAnalyticsQueryCriteria) o ),
+                    criteria );
 
                 return builder.dimension(
                     getDimensionsWithRefactoredPeDimension(
@@ -342,6 +361,14 @@ public class EventDataQueryRequest
             }
             else
                 return builder.dimension( criteria.getDimension() );
+        }
+
+        private String handleMultiOptions( String values, String timeField )
+        {
+            return Arrays.stream( withOptionSeparator( values ).split( OPTION_SEP ) )
+                .map( aValue -> String.join( DIMENSION_NAME_SEP,
+                    aValue, timeField ) )
+                .collect( Collectors.joining( OPTION_SEP ) );
         }
 
         /**

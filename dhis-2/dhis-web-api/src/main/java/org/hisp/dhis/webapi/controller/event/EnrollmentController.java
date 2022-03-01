@@ -144,7 +144,7 @@ public class EnrollmentController
         if ( enrollmentCriteria.getEnrollment() == null )
         {
             ProgramInstanceQueryParams params = enrollmentCriteriaMapper.getFromUrl(
-                TextUtils.splitToArray( enrollmentCriteria.getOu(), TextUtils.SEMICOLON ),
+                TextUtils.splitToSet( enrollmentCriteria.getOu(), TextUtils.SEMICOLON ),
                 enrollmentCriteria.getOuMode(),
                 enrollmentCriteria.getLastUpdated(),
                 enrollmentCriteria.getLastUpdatedDuration(),
@@ -180,7 +180,7 @@ public class EnrollmentController
         }
         else
         {
-            Set<String> enrollmentIds = TextUtils.splitToArray( enrollmentCriteria.getEnrollment(),
+            Set<String> enrollmentIds = TextUtils.splitToSet( enrollmentCriteria.getEnrollment(),
                 TextUtils.SEMICOLON );
             listEnrollments = enrollmentIds != null ? enrollmentIds.stream()
                 .map( enrollmentId -> enrollmentService.getEnrollment( enrollmentId ) ).collect( Collectors.toList() )

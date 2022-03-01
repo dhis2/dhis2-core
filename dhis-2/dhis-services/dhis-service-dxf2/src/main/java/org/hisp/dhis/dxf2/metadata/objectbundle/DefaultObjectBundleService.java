@@ -142,6 +142,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
         dbmsManager.clearSession();
         cacheManager.clearCache();
+
         bundle.setObjectBundleStatus( ObjectBundleStatus.COMMITTED );
 
         return commitReport;

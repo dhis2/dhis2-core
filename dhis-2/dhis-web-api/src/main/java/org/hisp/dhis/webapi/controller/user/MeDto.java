@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller.user;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -39,8 +40,9 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAuthorityGroup;
+import org.hisp.dhis.user.UserCredentialsDto;
 import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.sharing.Sharing;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -51,8 +53,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @JsonInclude( JsonInclude.Include.ALWAYS )
 public class MeDto
 {
-    public MeDto( User user, Map<String, Serializable> settings, List<String> programs, List<String> authorities,
-        List<String> dataSets )
+    public MeDto( User user, Map<String, Serializable> settings, List<String> programs, List<String> dataSets )
     {
         this.id = user.getUid();
         this.username = user.getUsername();
@@ -78,12 +79,13 @@ public class MeDto
         this.access = user.getAccess();
         this.name = user.getName();
         this.email = user.getEmail();
-        this.userRoles = user.getUserAuthorityGroups();
+        this.userRoles = user.getUserRoles();
         this.userCredentials = null;
+
+        this.authorities = new ArrayList<>( user.getAllAuthorities() );
 
         this.settings = settings;
         this.programs = programs;
-        this.authorities = authorities;
         this.dataSets = dataSets;
     }
 
@@ -160,10 +162,7 @@ public class MeDto
     private String email;
 
     @JsonProperty
-    private Set<UserAuthorityGroup> userRoles;
-
-    @JsonProperty( )
-    private UserCredWrapperDto userCredentials;
+    private Set<UserRole> userRoles;
 
     @JsonProperty( )
     private Map<String, Serializable> settings;
@@ -177,8 +176,11 @@ public class MeDto
     @JsonProperty( )
     private List<String> dataSets;
 
-    protected void setUserCredentials( UserCredWrapperDto userCredWrapperDto )
+    @JsonProperty( )
+    private UserCredentialsDto userCredentials;
+
+    protected void setUserCredentials( UserCredentialsDto userCredentialsDto )
     {
-        this.userCredentials = userCredWrapperDto;
+        this.userCredentials = userCredentialsDto;
     }
 }

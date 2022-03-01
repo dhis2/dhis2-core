@@ -44,7 +44,7 @@ import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAuthorityGroup;
+import org.hisp.dhis.user.UserRole;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -131,10 +131,10 @@ class TrackedEntityInstanceAttributesAggregateAclTest extends TrackerTest
 
     protected void setUserAuthorityToNonSuper( User user )
     {
-        UserAuthorityGroup userAuthorityGroup = new UserAuthorityGroup();
-        userAuthorityGroup.setName( "UserAuthorityGroup_" + user.getUsername() );
-        userAuthorityGroup.setUid( CodeGenerator.generateUid() );
-        userAuthorityGroup.setAuthorities( new HashSet<>( Collections.singletonList( "user" ) ) );
-        user.setUserAuthorityGroups( Sets.newHashSet( userAuthorityGroup ) );
+        UserRole userRole = new UserRole();
+        userRole.setName( "UserRole_" + user.getUsername() );
+        userRole.setUid( CodeGenerator.generateUid() );
+        userRole.setAuthorities( new HashSet<>( Collections.singletonList( "user" ) ) );
+        user.setUserRoles( Sets.newHashSet( userRole ) );
     }
 }

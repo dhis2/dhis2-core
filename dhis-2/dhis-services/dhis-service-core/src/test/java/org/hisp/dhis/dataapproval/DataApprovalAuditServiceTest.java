@@ -60,10 +60,10 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupAccessService;
 import org.hisp.dhis.user.UserGroupService;
+import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.junit.jupiter.api.Test;
@@ -205,12 +205,12 @@ class DataApprovalAuditServiceTest extends TransactionalIntegrationTest
         user.setFirstName( "Test" );
         user.setSurname( userName );
         user.setUsername( userName );
-        for ( UserAuthorityGroup role : user.getUserAuthorityGroups() )
+        for ( UserRole role : user.getUserRoles() )
         {
             // Give the role an
             role.setName( CodeGenerator.generateUid() );
             // arbitrary name
-            userService.addUserAuthorityGroup( role );
+            userService.addUserRole( role );
         }
         userService.addUser( user );
         return mockCurrentUserService;
@@ -264,7 +264,7 @@ class DataApprovalAuditServiceTest extends TransactionalIntegrationTest
         sourceB = createOrganisationUnit( 'B', sourceA );
         organisationUnitService.addOrganisationUnit( sourceA );
         organisationUnitService.addOrganisationUnit( sourceB );
-        superUserService = getMockCurrentUserService( "SuperUser", true, sourceA, UserAuthorityGroup.AUTHORITY_ALL );
+        superUserService = getMockCurrentUserService( "SuperUser", true, sourceA, UserRole.AUTHORITY_ALL );
         userAService = getMockCurrentUserService( "UserA", false, sourceA );
         userBService = getMockCurrentUserService( "UserB", false, sourceB );
         userCService = getMockCurrentUserService( "UserC", false, sourceB );

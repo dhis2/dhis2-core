@@ -34,7 +34,7 @@ import java.util.UUID;
 
 import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAuthorityGroup;
+import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 
 import com.google.common.collect.ImmutableSet;
@@ -110,7 +110,7 @@ public class DefaultAdminUserPopulator
         }
 
         // ---------------------------------------------------------------------
-        // Assumes no UserAuthorityGroup called "Superuser" in database
+        // Assumes no UserRole called "Superuser" in database
         // ---------------------------------------------------------------------
 
         String username = "admin";
@@ -124,20 +124,20 @@ public class DefaultAdminUserPopulator
 
         userService.addUser( user );
 
-        UserAuthorityGroup userAuthorityGroup = new UserAuthorityGroup();
-        userAuthorityGroup.setUid( "yrB6vc5Ip3r" );
-        userAuthorityGroup.setCode( "Superuser" );
-        userAuthorityGroup.setName( "Superuser" );
-        userAuthorityGroup.setDescription( "Superuser" );
+        UserRole userRole = new UserRole();
+        userRole.setUid( "yrB6vc5Ip3r" );
+        userRole.setCode( "Superuser" );
+        userRole.setName( "Superuser" );
+        userRole.setDescription( "Superuser" );
 
-        userAuthorityGroup.setAuthorities( ALL_AUTHORITIES );
+        userRole.setAuthorities( ALL_AUTHORITIES );
 
-        userService.addUserAuthorityGroup( userAuthorityGroup );
+        userService.addUserRole( userRole );
 
         user.setUuid( UUID.fromString( "6507f586-f154-4ec1-a25e-d7aa51de5216" ) );
         user.setCode( username );
         user.setUsername( username );
-        user.getUserAuthorityGroups().add( userAuthorityGroup );
+        user.getUserRoles().add( userRole );
 
         userService.encodeAndSetPassword( user, password );
 

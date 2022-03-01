@@ -193,7 +193,7 @@ public class TrackedEntityInstanceCriteria extends PagingAndSortingCriteriaAdapt
 
     public Set<String> getOrgUnits()
     {
-        return ou != null ? TextUtils.splitToArray( ou, TextUtils.SEMICOLON ) : new HashSet<>();
+        return ou != null ? TextUtils.splitToSet( ou, TextUtils.SEMICOLON ) : new HashSet<>();
     }
 
     public Set<String> getAssignedUsers()
@@ -202,7 +202,7 @@ public class TrackedEntityInstanceCriteria extends PagingAndSortingCriteriaAdapt
 
         if ( assignedUser != null && !assignedUser.isEmpty() )
         {
-            assignedUsers = TextUtils.splitToArray( assignedUser, TextUtils.SEMICOLON ).stream()
+            assignedUsers = TextUtils.splitToSet( assignedUser, TextUtils.SEMICOLON ).stream()
                 .filter( CodeGenerator::isValidUid ).collect( Collectors.toSet() );
         }
 
@@ -218,7 +218,7 @@ public class TrackedEntityInstanceCriteria extends PagingAndSortingCriteriaAdapt
     {
         if ( hasTrackedEntityInstance() )
         {
-            return TextUtils.splitToArray( trackedEntityInstance, TextUtils.SEMICOLON );
+            return TextUtils.splitToSet( trackedEntityInstance, TextUtils.SEMICOLON );
         }
         return new HashSet<>();
     }

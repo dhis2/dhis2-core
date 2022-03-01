@@ -25,16 +25,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.user;
+package org.hisp.dhis.system.filter;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.hisp.dhis.commons.filter.Filter;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserRole;
 
-public class UserCredWrapper extends User
+/**
+ * @author Lars Helge Overland
+ */
+public class UserRoleCanIssueFilter
+    implements Filter<UserRole>
 {
-    @JsonIgnore
-    @Override
-    public UserCredWrapper getUserCredentials()
+    private User user;
+
+    private boolean canGrantOwnUserRoles = false;
+
+    protected UserRoleCanIssueFilter()
     {
-        return null;
+    }
+
+    public UserRoleCanIssueFilter( User user, boolean canGrantOwnUserRoles )
+    {
+        if ( user != null )
+        {
+            this.user = user;
+            this.canGrantOwnUserRoles = canGrantOwnUserRoles;
+        }
+    }
+
+    @Override
+    public boolean retain( UserRole group )
+    {
+        return user != null && user.canIssueUserRole( group, canGrantOwnUserRoles );
     }
 }

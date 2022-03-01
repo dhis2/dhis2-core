@@ -208,7 +208,7 @@ public class GeoJsonAttributesCheckTest
     }
 
     @Test
-    public void testInvalidFeature()
+    public void testInvalidGeoJsonType()
     {
         String geoJson = "{\"type\": \"Feature\", \"geometry\": { \"type\": \"Point\"," +
             "\"coordinasstes\": [125.6, 10.1] }, \"properties\": { \"name\": \"Dinagat Islands\" } }";
@@ -222,6 +222,6 @@ public class GeoJsonAttributesCheckTest
                 .emptyList(), ImportStrategy.CREATE_AND_UPDATE,
                 validationContext, objectReport -> objectReportList.add( objectReport ) );
         assertFalse( CollectionUtils.isEmpty( objectReportList ) );
-        assertEquals( ErrorCode.E6004, objectReportList.get( 0 ).getErrorReports().get( 0 ).getErrorCode() );
+        assertEquals( ErrorCode.E6005, objectReportList.get( 0 ).getErrorReports().get( 0 ).getErrorCode() );
     }
 }
