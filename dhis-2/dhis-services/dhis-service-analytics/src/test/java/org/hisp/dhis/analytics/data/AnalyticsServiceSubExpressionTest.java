@@ -27,23 +27,17 @@
  */
 package org.hisp.dhis.analytics.data;
 
-import static org.hisp.dhis.analytics.AnalyticsTableType.COMPLETENESS;
-import static org.hisp.dhis.analytics.AnalyticsTableType.COMPLETENESS_TARGET;
-import static org.hisp.dhis.analytics.AnalyticsTableType.ENROLLMENT;
-import static org.hisp.dhis.analytics.AnalyticsTableType.EVENT;
-import static org.hisp.dhis.analytics.AnalyticsTableType.ORG_UNIT_TARGET;
-import static org.hisp.dhis.analytics.AnalyticsTableType.VALIDATION_RESULT;
 import static org.hisp.dhis.util.DateUtils.parseDate;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.analytics.AnalyticsTableService;
@@ -293,6 +287,7 @@ class AnalyticsServiceSubExpressionTest
 
         DataQueryParams params = DataQueryParams.newBuilder()
             .withIndicators( List.of( indicatorA ) )
+            .withAggregationType( AnalyticsAggregationType.SUM )
             .withOrganisationUnits( List.of( ous ) )
             .withFilterPeriod( perA )
             .withOutputFormat( OutputFormat.ANALYTICS )
