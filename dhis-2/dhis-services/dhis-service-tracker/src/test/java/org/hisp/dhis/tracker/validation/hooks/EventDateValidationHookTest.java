@@ -53,6 +53,7 @@ import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.user.User;
@@ -80,6 +81,9 @@ class EventDateValidationHookTest extends DhisConvenienceTest
     private EventDateValidationHook hookToTest;
 
     @Mock
+    private TrackerPreheat preheat;
+
+    @Mock
     private TrackerImportValidationContext validationContext;
 
     @BeforeEach
@@ -89,14 +93,16 @@ class EventDateValidationHookTest extends DhisConvenienceTest
 
         User user = createUser( 'A' );
 
-        TrackerBundle bundle = TrackerBundle.builder().user( user ).build();
+        TrackerBundle bundle = TrackerBundle.builder()
+            .user( user )
+            .preheat( preheat )
+            .build();
 
         when( validationContext.getBundle() ).thenReturn( bundle );
 
-        when( validationContext.getProgram( PROGRAM_WITH_REGISTRATION_ID ) )
+        when( preheat.getProgram( PROGRAM_WITH_REGISTRATION_ID ) )
             .thenReturn( getProgramWithRegistration() );
-
-        when( validationContext.getProgram( PROGRAM_WITHOUT_REGISTRATION_ID ) )
+        when( preheat.getProgram( PROGRAM_WITHOUT_REGISTRATION_ID ) )
             .thenReturn( getProgramWithoutRegistration() );
     }
 
@@ -109,8 +115,10 @@ class EventDateValidationHookTest extends DhisConvenienceTest
         event.setOccurredAt( now() );
         event.setStatus( EventStatus.ACTIVE );
 
-        TrackerBundle bundle = TrackerBundle.builder().user( getEditExpiredUser() ).build();
-
+        TrackerBundle bundle = TrackerBundle.builder()
+            .user( getEditExpiredUser() )
+            .preheat( preheat )
+            .build();
         when( validationContext.getBundle() ).thenReturn( bundle );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );

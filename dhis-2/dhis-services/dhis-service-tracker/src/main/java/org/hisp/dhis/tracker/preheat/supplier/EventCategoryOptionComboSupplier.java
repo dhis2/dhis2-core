@@ -177,6 +177,6 @@ public class EventCategoryOptionComboSupplier extends AbstractPreheatSupplier
             return Collections.emptySet();
         }
 
-        return TextUtils.splitToArray( cos, TextUtils.SEMICOLON );
+        return TextUtils.splitToSet( cos, TextUtils.SEMICOLON );
     }
 }

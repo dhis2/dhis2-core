@@ -146,7 +146,7 @@ class EventCategoryOptValidationHookTest extends DhisConvenienceTest
             .build();
 
         when( validationContext.getBundle() ).thenReturn( bundle );
-        when( validationContext.getProgram( program.getUid() ) )
+        when( preheat.getProgram( program.getUid() ) )
             .thenReturn( program );
         when( i18nManager.getI18nFormat() ).thenReturn( I18N_FORMAT );
 

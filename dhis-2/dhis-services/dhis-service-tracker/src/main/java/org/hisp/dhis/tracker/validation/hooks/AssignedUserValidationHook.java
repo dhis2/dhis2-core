@@ -58,7 +58,8 @@ public class AssignedUserValidationHook
 
     private Boolean isNotEnabledUserAssignment( ValidationErrorReporter reporter, Event event )
     {
-        Boolean userAssignmentEnabled = reporter.getValidationContext().getProgramStage( event.getProgramStage() )
+        Boolean userAssignmentEnabled = reporter.getValidationContext().getBundle().getPreheat()
+            .getProgramStage( event.getProgramStage() )
             .isEnableUserAssignment();
 
         return !Optional.ofNullable( userAssignmentEnabled )

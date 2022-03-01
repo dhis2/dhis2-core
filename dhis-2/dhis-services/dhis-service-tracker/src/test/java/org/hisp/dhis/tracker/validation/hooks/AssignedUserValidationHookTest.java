@@ -37,6 +37,7 @@ import static org.mockito.Mockito.when;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
@@ -86,6 +87,8 @@ class AssignedUserValidationHookTest extends DhisConvenienceTest
         bundle = TrackerBundle.builder().build();
         TrackerPreheat preheat = new TrackerPreheat();
         org.hisp.dhis.user.User user = createUser( 'A' );
+
+        // TODO since I am using mocks, either make his usage mocks as well or make my changes not use a mock
         user.setUsername( USER_NAME );
         preheat.addUsers( Sets.newHashSet( user ) );
         bundle.setPreheat( preheat );
@@ -93,7 +96,9 @@ class AssignedUserValidationHookTest extends DhisConvenienceTest
         when( validationContext.getBundle() ).thenReturn( bundle );
 
         programStage = new ProgramStage();
+        programStage.setUid(PROGRAM_STAGE);
         programStage.setEnableUserAssignment( true );
+        preheat.put(TrackerIdentifier.UID, programStage);
     }
 
     @Test
@@ -107,7 +112,6 @@ class AssignedUserValidationHookTest extends DhisConvenienceTest
         ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
 
         // when
-        when( validationContext.getProgramStage( PROGRAM_STAGE ) ).thenReturn( programStage );
         this.hookToTest.validateEvent( reporter, event );
 
         // then
@@ -160,7 +164,6 @@ class AssignedUserValidationHookTest extends DhisConvenienceTest
         ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
 
         // when
-        when( validationContext.getProgramStage( PROGRAM_STAGE ) ).thenReturn( programStage );
         this.hookToTest.validateEvent( reporter, event );
 
         // then
@@ -179,9 +182,10 @@ class AssignedUserValidationHookTest extends DhisConvenienceTest
         ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
 
         // when
-        bundle = TrackerBundle.builder().preheat( new TrackerPreheat() ).build();
+        TrackerPreheat preheat = new TrackerPreheat();
+        preheat.put(TrackerIdentifier.UID, programStage);
+        bundle = TrackerBundle.builder().preheat(preheat).build();
         when( validationContext.getBundle() ).thenReturn( bundle );
-        when( validationContext.getProgramStage( PROGRAM_STAGE ) ).thenReturn( programStage );
         this.hookToTest.validateEvent( reporter, event );
 
         // then
@@ -200,9 +204,7 @@ class AssignedUserValidationHookTest extends DhisConvenienceTest
         ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
 
         // when
-        ProgramStage programStage = new ProgramStage();
         programStage.setEnableUserAssignment( false );
-        when( validationContext.getProgramStage( PROGRAM_STAGE ) ).thenReturn( programStage );
 
         this.hookToTest.validateEvent( reporter, event );
 
@@ -226,9 +228,7 @@ class AssignedUserValidationHookTest extends DhisConvenienceTest
         ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
 
         // when
-        ProgramStage programStage = new ProgramStage();
         programStage.setEnableUserAssignment( null );
-        when( validationContext.getProgramStage( PROGRAM_STAGE ) ).thenReturn( programStage );
 
         this.hookToTest.validateEvent( reporter, event );
 

@@ -245,7 +245,7 @@ class PreCheckMandatoryFieldsValidationHookTest
             .build();
         ProgramStage programStage = new ProgramStage();
         programStage.setUid( event.getProgramStage() );
-        when( ctx.getProgramStage( anyString() ) ).thenReturn( programStage );
+        when( preheat.getProgramStage( anyString() ) ).thenReturn( programStage );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( ctx );
         validationHook.validateEvent( reporter, event );

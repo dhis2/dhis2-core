@@ -94,8 +94,9 @@ public class PreCheckDataRelationsValidationHook
     {
         TrackerImportValidationContext context = reporter.getValidationContext();
 
-        Program program = context.getProgram( enrollment.getProgram() );
-        OrganisationUnit organisationUnit = context.getOrganisationUnit( enrollment.getOrgUnit() );
+        Program program = context.getBundle().getPreheat().getProgram( enrollment.getProgram() );
+        OrganisationUnit organisationUnit = context.getBundle().getPreheat()
+            .getOrganisationUnit( enrollment.getOrgUnit() );
 
         reporter.addErrorIf( () -> !program.isRegistration(), enrollment, E1014, program );
 
@@ -124,9 +125,9 @@ public class PreCheckDataRelationsValidationHook
     public void validateEvent( ValidationErrorReporter reporter, Event event )
     {
         TrackerImportValidationContext context = reporter.getValidationContext();
-        ProgramStage programStage = context.getProgramStage( event.getProgramStage() );
-        OrganisationUnit organisationUnit = context.getOrganisationUnit( event.getOrgUnit() );
-        Program program = context.getProgram( event.getProgram() );
+        ProgramStage programStage = context.getBundle().getPreheat().getProgramStage( event.getProgramStage() );
+        OrganisationUnit organisationUnit = context.getBundle().getPreheat().getOrganisationUnit( event.getOrgUnit() );
+        Program program = context.getBundle().getPreheat().getProgram( event.getProgram() );
 
         validateProgramStageInProgram( reporter, event, programStage, program );
         validateRegistrationProgram( reporter, event, context, program );
@@ -421,7 +422,8 @@ public class PreCheckDataRelationsValidationHook
         }
         else
         {
-            final Optional<ReferenceTrackerEntity> reference = context.getReference( event.getEnrollment() );
+            final Optional<ReferenceTrackerEntity> reference = context.getBundle().getPreheat()
+                .getReference( event.getEnrollment() );
             if ( reference.isPresent() )
             {
                 final Optional<Enrollment> enrollment = context.getBundle()
@@ -446,7 +448,8 @@ public class PreCheckDataRelationsValidationHook
         }
         else
         {
-            final Optional<ReferenceTrackerEntity> reference = context.getReference( enrollment.getTrackedEntity() );
+            final Optional<ReferenceTrackerEntity> reference = context.getBundle().getPreheat()
+                .getReference( enrollment.getTrackedEntity() );
             if ( reference.isPresent() )
             {
                 final Optional<TrackedEntity> tei = context.getBundle()

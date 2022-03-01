@@ -63,7 +63,7 @@ public class RepeatedEventsValidationHook
             .filter( e -> !reporter.isInvalid( e ) )
             .filter( e -> !context.getStrategy( e ).isDelete() )
             .filter( e -> {
-                ProgramStage programStage = context.getProgramStage( e.getProgramStage() );
+                ProgramStage programStage = context.getBundle().getPreheat().getProgramStage( e.getProgramStage() );
                 return programStage.getProgram().isRegistration() && !programStage.getRepeatable();
             } )
             .collect( Collectors.groupingBy( e -> Pair.of( e.getProgramStage(), e.getEnrollment() ) ) );
@@ -88,7 +88,7 @@ public class RepeatedEventsValidationHook
         TrackerImportValidationContext context, Event event )
     {
         ProgramInstance programInstance = context.getProgramInstance( event.getEnrollment() );
-        ProgramStage programStage = context.getProgramStage( event.getProgramStage() );
+        ProgramStage programStage = context.getBundle().getPreheat().getProgramStage( event.getProgramStage() );
 
         TrackerImportStrategy strategy = context.getStrategy( event );
 

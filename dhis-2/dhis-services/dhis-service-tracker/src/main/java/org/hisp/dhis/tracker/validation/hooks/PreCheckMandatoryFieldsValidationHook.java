@@ -77,7 +77,7 @@ public class PreCheckMandatoryFieldsValidationHook
 
         // TODO remove if once metadata import is fixed
         TrackerImportValidationContext context = reporter.getValidationContext();
-        ProgramStage programStage = context.getProgramStage( event.getProgramStage() );
+        ProgramStage programStage = context.getBundle().getPreheat().getProgramStage( event.getProgramStage() );
         if ( programStage != null )
         {
             // Program stages should always have a program! Due to how metadata

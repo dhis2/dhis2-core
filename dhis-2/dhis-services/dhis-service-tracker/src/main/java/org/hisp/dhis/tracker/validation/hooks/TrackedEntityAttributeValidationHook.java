@@ -83,13 +83,14 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
     @Override
     public void validateTrackedEntity( ValidationErrorReporter reporter, TrackedEntity trackedEntity )
     {
-        TrackedEntityType trackedEntityType = reporter.getValidationContext()
+        TrackedEntityType trackedEntityType = reporter.getValidationContext().getBundle().getPreheat()
             .getTrackedEntityType( trackedEntity.getTrackedEntityType() );
 
         TrackerImportValidationContext context = reporter.getValidationContext();
 
         TrackedEntityInstance tei = context.getTrackedEntityInstance( trackedEntity.getTrackedEntity() );
-        OrganisationUnit organisationUnit = context.getOrganisationUnit( trackedEntity.getOrgUnit() );
+        OrganisationUnit organisationUnit = context.getBundle().getPreheat()
+            .getOrganisationUnit( trackedEntity.getOrgUnit() );
 
         validateMandatoryAttributes( reporter, trackedEntity, trackedEntityType );
         validateAttributes( reporter, trackedEntity, tei, organisationUnit, trackedEntityType );
@@ -134,7 +135,7 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
 
         for ( Attribute attribute : trackedEntity.getAttributes() )
         {
-            TrackedEntityAttribute tea = reporter.getValidationContext()
+            TrackedEntityAttribute tea = reporter.getValidationContext().getBundle().getPreheat()
                 .getTrackedEntityAttribute( attribute.getAttribute() );
 
             if ( tea == null )
