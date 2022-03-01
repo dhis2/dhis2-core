@@ -31,7 +31,6 @@ import java.util.Optional;
 
 import lombok.Data;
 
-import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
@@ -103,12 +102,6 @@ public class TrackerImportValidationContext
     public ProgramStageInstance getProgramStageInstance( String event )
     {
         return bundle.getPreheat().getEvent( bundle.getIdentifier(), event );
-    }
-
-    // remove
-    public FileResource getFileResource( String id )
-    {
-        return bundle.getPreheat().get( FileResource.class, id );
     }
 
     public Optional<ReferenceTrackerEntity> getReference( String uid )
