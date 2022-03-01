@@ -208,6 +208,8 @@
 
     <property name="eventCoordinateField" />
 
+    <property name="orgUnitField" />
+
     <property name="eventPointColor" />
 
     <property name="eventPointRadius" />
