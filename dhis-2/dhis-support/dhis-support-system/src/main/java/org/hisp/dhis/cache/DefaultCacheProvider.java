@@ -130,7 +130,8 @@ public class DefaultCacheProvider
         completedJobsInfo,
         jobCancelRequested,
         dataIntegritySummaryCache,
-        dataIntegrityDetailsCache
+        dataIntegrityDetailsCache,
+        subExpressionCache
     }
 
     private final Map<String, Cache<?>> allCaches = new ConcurrentHashMap<>();
@@ -616,5 +617,13 @@ public class DefaultCacheProvider
         return registerCache( this.<V> newBuilder()
             .forRegion( Region.dataIntegrityDetailsCache.name() )
             .expireAfterWrite( 1, HOURS ) );
+    }
+
+    @Override
+    public <V> Cache<V> createSubExpressionCache()
+    {
+        return registerCache( this.<V> newBuilder()
+            .forRegion( Region.subExpressionCache.name() )
+            .expireAfterWrite( 5, TimeUnit.MINUTES ) );
     }
 }

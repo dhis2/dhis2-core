@@ -935,7 +935,8 @@ public class AnalyticsUtils
         List<DimensionalItemObject> items )
     {
         return items.stream()
-            .filter( dio -> dio.getDimensionItem() != null && dio.getDimensionItem().equals( dimensionIdentifier ) )
+            .filter( dio -> dio.getDimensionItem() != null &&
+                dio.getDimensionItemWithQueryModsId().equals( dimensionIdentifier ) )
             .collect( Collectors.toList() );
     }
 

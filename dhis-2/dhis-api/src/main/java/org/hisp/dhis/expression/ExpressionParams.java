@@ -59,6 +59,8 @@ import org.hisp.dhis.period.PeriodType;
 @Builder( toBuilder = true )
 public class ExpressionParams
 {
+    private static final List<Period> SAMPLE_PERIODS = List.of( PeriodType.getPeriodFromIsoString( "19990101" ) );
+
     /**
      * The expression to parse
      */
@@ -142,7 +144,7 @@ public class ExpressionParams
     @ToString.Include
     @EqualsAndHashCode.Include
     @Builder.Default
-    private final List<Period> samplePeriods = List.of( PeriodType.getPeriodFromIsoString( "19990101" ) );
+    private final List<Period> samplePeriods = SAMPLE_PERIODS;
 
     /**
      * For predictors, a value map from item to value, for each of the periods

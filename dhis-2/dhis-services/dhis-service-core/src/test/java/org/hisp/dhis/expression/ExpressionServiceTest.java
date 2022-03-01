@@ -61,6 +61,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.commons.beanutils.BeanUtils;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.DataType;
@@ -74,7 +75,6 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.MapMap;
 import org.hisp.dhis.common.QueryModifiers;
@@ -253,7 +253,7 @@ class ExpressionServiceTest extends DhisSpringTest
 
     private static IndicatorType indicatorTypeA;
 
-    private Map<DimensionalItemObject, Object> valueMap;
+    private Map<DimensionalItemObject, Object> defaultValueMap;
 
     private MapMap<Period, DimensionalItemObject, Object> samples;
 
@@ -484,7 +484,7 @@ class ExpressionServiceTest extends DhisSpringTest
         constantB.setUid( "xxxxxxxx025" );
         constantService.saveConstant( constantA );
         constantService.saveConstant( constantB );
-        valueMap = new ImmutableMap.Builder<DimensionalItemObject, Object>().put( dataElementA, 3.0 )
+        defaultValueMap = new ImmutableMap.Builder<DimensionalItemObject, Object>().put( dataElementA, 3.0 )
             .put( dataElementB, 13.0 ).put( dataElementF, "Str" ).put( dataElementG, "2022-01-15" )
             .put( dataElementH, true ).put( dataElementOperandA, 5.0 ).put( dataElementOperandB, 15.0 )
             .put( dataElementOperandC, 7.0 ).put( dataElementOperandD, 17.0 ).put( dataElementOperandE, 9.0 )
@@ -516,7 +516,7 @@ class ExpressionServiceTest extends DhisSpringTest
      * @return result from testing the expression
      */
     private String eval( String expr, ParseType parseType, MissingValueStrategy missingValueStrategy,
-        DataType dataType )
+        DataType dataType, Map<DimensionalItemObject, Object> valueMap )
     {
         try
         {
@@ -528,6 +528,7 @@ class ExpressionServiceTest extends DhisSpringTest
         }
         Map<DimensionalItemId, DimensionalItemObject> itemMap = new HashMap<>();
         expressionService.getExpressionDimensionalItemMaps( expr, parseType, dataType, itemMap, itemMap );
+        // System.err.println( itemMap );
         Object value = expressionService.getExpressionValue( ExpressionParams.builder()
             .expression( expr )
             .parseType( parseType )
@@ -555,7 +556,15 @@ class ExpressionServiceTest extends DhisSpringTest
      */
     private String eval( String expr, MissingValueStrategy missingValueStrategy )
     {
-        return eval( expr, INDICATOR_EXPRESSION, missingValueStrategy, DataType.NUMERIC );
+        return eval( expr, INDICATOR_EXPRESSION, missingValueStrategy, DataType.NUMERIC, defaultValueMap );
+    }
+
+    /**
+     * Evaluates an indicator expression with a valueMap.
+     */
+    private String evalIndicator( String expr, Map<DimensionalItemObject, Object> valueMap )
+    {
+        return eval( expr, INDICATOR_EXPRESSION, NEVER_SKIP, DataType.NUMERIC, valueMap );
     }
 
     /**
@@ -571,7 +580,7 @@ class ExpressionServiceTest extends DhisSpringTest
      */
     private String evalPredictor( String expr, MissingValueStrategy missingValueStrategy )
     {
-        return eval( expr, PREDICTOR_EXPRESSION, missingValueStrategy, DataType.NUMERIC );
+        return eval( expr, PREDICTOR_EXPRESSION, missingValueStrategy, DataType.NUMERIC, defaultValueMap );
     }
 
     /**
@@ -587,7 +596,7 @@ class ExpressionServiceTest extends DhisSpringTest
      */
     private String evalPredictor( String expr, DataType dataType )
     {
-        return eval( expr, PREDICTOR_EXPRESSION, SKIP_IF_ANY_VALUE_MISSING, dataType );
+        return eval( expr, PREDICTOR_EXPRESSION, SKIP_IF_ANY_VALUE_MISSING, dataType, defaultValueMap );
     }
 
     /**
@@ -650,7 +659,7 @@ class ExpressionServiceTest extends DhisSpringTest
         {
             valueString = "Class " + value.getClass().getName() + " " + value.toString();
         }
-        List<String> itemNames = items.stream().map( IdentifiableObject::getName ).sorted()
+        List<String> itemNames = items.stream().map( this::itemNameAndSubexpression ).sorted()
             .collect( Collectors.toList() );
         String itemsString = String.join( " ", itemNames );
         if ( itemsString.length() != 0 )
@@ -658,6 +667,13 @@ class ExpressionServiceTest extends DhisSpringTest
             itemsString = " " + itemsString;
         }
         return valueString + itemsString;
+    }
+
+    private String itemNameAndSubexpression( DimensionalItemObject item )
+    {
+        return item.getName() + ((item.getQueryMods() != null && item.getQueryMods().getSubExpression() != null)
+            ? ":[" + item.getQueryMods().getSubExpression() + "]"
+            : "");
     }
 
     /**
@@ -697,7 +713,7 @@ class ExpressionServiceTest extends DhisSpringTest
      * Gets the organisation unit groups (if any) in an expression
      *
      * @param expr the expression string
-     * @return a string with org unit gruop names (if any)
+     * @return a string with org unit group names (if any)
      */
     private String getOrgUnitGroupIds( String expr )
     {
@@ -739,6 +755,18 @@ class ExpressionServiceTest extends DhisSpringTest
         assertEquals( 1, ids.size() );
 
         return ids.iterator().next();
+    }
+
+    private Object clone( Object object )
+    {
+        try
+        {
+            return BeanUtils.cloneBean( object );
+        }
+        catch ( Exception e )
+        {
+            throw new RuntimeException( e );
+        }
     }
 
     // -------------------------------------------------------------------------
@@ -1087,6 +1115,77 @@ class ExpressionServiceTest extends DhisSpringTest
     }
 
     @Test
+    void testSubExpressions()
+    {
+        DataElement dataElementX = createDataElement( 'X', ValueType.NUMBER, AggregationType.SUM );
+        dataElementX.setUid( "dataElemenX" );
+        dataElementX.setName( "DeX" );
+        dataElementService.addDataElement( dataElementX );
+
+        DataElement dataElementX1 = (DataElement) clone( dataElementX );
+        dataElementX1.setQueryMods( QueryModifiers.builder()
+            .subExpression( " case when value > 99 then 1 else 2 end" )
+            .valueType( ValueType.NUMBER ).build() );
+
+        DataElement dataElementX2 = (DataElement) clone( dataElementX );
+        dataElementX2.setQueryMods( QueryModifiers.builder()
+            .subExpression( " case when value > 0 and value < 3 then value else 3 end" )
+            .valueType( ValueType.NUMBER ).build() );
+
+        DataElement dataElementX3 = (DataElement) clone( dataElementX );
+        dataElementX3.setQueryMods( QueryModifiers.builder()
+            .subExpression( " case when value > 99 then 'a' else 'b' end" )
+            .valueType( ValueType.TEXT ).build() );
+
+        DataElement dataElementY = createDataElement( 'Y', ValueType.TEXT, AggregationType.NONE );
+        dataElementY.setUid( "dataElemenY" );
+        dataElementY.setName( "DeY" );
+        dataElementService.addDataElement( dataElementY );
+
+        DataElement dataElementY1 = (DataElement) clone( dataElementY );
+        dataElementY1.setQueryMods( QueryModifiers.builder()
+            .subExpression( " case when textvalue != 'a' then 1 else 2 end" )
+            .valueType( ValueType.NUMBER ).build() );
+
+        DataElement dataElementY2 = (DataElement) clone( dataElementY );
+        dataElementY2.setQueryMods( QueryModifiers.builder()
+            .subExpression( " case when textvalue != 'a' and textvalue != 'b' then 'c' else 'd' end" )
+            .valueType( ValueType.TEXT ).build() );
+
+        DataElementOperand dataElementOperandX = new DataElementOperand( dataElementX, categoryOptionComboA );
+        dataElementOperandX.setQueryMods( QueryModifiers.builder()
+            .subExpression( " case when value > 99 then 10 else 11 end" )
+            .valueType( ValueType.NUMBER ).build() );
+
+        Map<DimensionalItemObject, Object> valueMap = Map.of(
+            dataElementX1, 2.0,
+            dataElementX2, 3.0,
+            dataElementX3, 5.0,
+            dataElementY1, 7.0,
+            dataElementY2, 9.0,
+            dataElementOperandX, 11.0 );
+
+        assertEquals( "2 DeX:[ case when value > 99 then 1 else 2 end]",
+            evalIndicator( "subExpression(if(#{dataElemenX}>99,1,2))", valueMap ) );
+
+        assertEquals( "3 DeX:[ case when value > 0 and value < 3 then value else 3 end]",
+            evalIndicator( "subExpression(if(#{dataElemenX}>0 && #{dataElemenX}<3,#{dataElemenX},3))", valueMap ) );
+
+        assertEquals( "5 DeX:[ case when value > 99 then 'a' else 'b' end]",
+            evalIndicator( "if( subExpression(if(#{dataElemenX}>99,'a','b')) == 'a', 4, 5)", valueMap ) );
+
+        assertEquals( "7 DeY:[ case when textvalue != 'a' then 1 else 2 end]",
+            evalIndicator( "if( subExpression(if(#{dataElemenY} != 'a', 1, 2)) == 2, 6, 7)", valueMap ) );
+
+        assertEquals( "9 DeY:[ case when textvalue != 'a' and textvalue != 'b' then 'c' else 'd' end]",
+            evalIndicator(
+                "if(subExpression(if(#{dataElemenY}!='a'&&#{dataElemenY}!='b','c','d')) == 'd',8,9)", valueMap ) );
+
+        assertEquals( "11 DeX CocA:[ case when value > 99 then 10 else 11 end]",
+            evalIndicator( "subExpression( if( #{dataElemenX.catOptCombA} > 99, 10, 11 ) )", valueMap ) );
+    }
+
+    @Test
     void testLogicalFunctions()
     {
         // If function is tested elsewhere
@@ -1305,16 +1404,16 @@ class ExpressionServiceTest extends DhisSpringTest
         List<Indicator> indicators = Arrays.asList( indicatorA, indicatorB );
         Map<DimensionalItemId, DimensionalItemObject> itemMap = expressionService
             .getIndicatorDimensionalItemMap( indicators );
-        IndicatorValue value = expressionService.getIndicatorValueObject( indicatorA, singletonList( period ), itemMap,
-            valueMap, null );
+        IndicatorValue value = expressionService.getIndicatorValueObject( indicatorA, singletonList( period ),
+            itemMap, defaultValueMap, null );
         assertEquals( value.getNumeratorValue(), DELTA, 2.5 );
         assertEquals( value.getDenominatorValue(), DELTA, 5.0 );
         assertEquals( value.getFactor(), DELTA, 100.0 );
         assertEquals( value.getMultiplier(), DELTA, 100 );
         assertEquals( value.getDivisor(), DELTA, 1 );
         assertEquals( value.getValue(), DELTA, 50.0 );
-        value = expressionService.getIndicatorValueObject( indicatorB, singletonList( period ), itemMap, valueMap,
-            null );
+        value = expressionService.getIndicatorValueObject( indicatorB, singletonList( period ),
+            itemMap, defaultValueMap, null );
         assertEquals( value.getNumeratorValue(), DELTA, 20.0 );
         assertEquals( value.getDenominatorValue(), DELTA, 5.0 );
         assertEquals( value.getFactor(), DELTA, 36500.0 );

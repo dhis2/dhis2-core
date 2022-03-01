@@ -44,6 +44,11 @@ public interface DimensionalItemObject
     String getDimensionItem();
 
     /**
+     * Gets the dimension item identifier with queryModsId if present.
+     */
+    String getDimensionItemWithQueryModsId();
+
+    /**
      * Gets the dimension item identifier based on the given identifier scheme.
      *
      * @param idScheme the identifier scheme.
@@ -93,4 +98,9 @@ public interface DimensionalItemObject
      * Gets the query modifiers for an indicator expression.
      */
     QueryModifiers getQueryMods();
+
+    /**
+     * Sets the query modifiers for an indicator expression.
+     */
+    void setQueryMods( QueryModifiers queryMods );
 }

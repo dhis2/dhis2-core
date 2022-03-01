@@ -77,6 +77,11 @@ public class ExpressionState
      */
     private int itemValuesFound = 0;
 
+    /**
+     * True if we are currently generating SQL for a subexpression.
+     */
+    private boolean sqlForSubExpression = false;
+
     // -------------------------------------------------------------------------
     // Logic
     // -------------------------------------------------------------------------
