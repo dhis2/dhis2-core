@@ -114,13 +114,13 @@ public class PreCheckSecurityOwnershipValidationHook
         if ( strategy.isCreate() || strategy.isDelete() )
         {
             checkOrgUnitInCaptureScope( reporter, trackedEntity,
-                context.getOrganisationUnit( trackedEntity.getOrgUnit() ) );
+                context.getBundle().getPreheat().getOrganisationUnit( trackedEntity.getOrgUnit() ) );
         }
         // if its to update trackedEntity, search scope has to be checked
         else
         {
             checkOrgUnitInSearchScope( reporter, trackedEntity,
-                context.getOrganisationUnit( trackedEntity.getOrgUnit() ) );
+                context.getBundle().getPreheat().getOrganisationUnit( trackedEntity.getOrgUnit() ) );
         }
 
         if ( strategy.isDelete() )
@@ -141,7 +141,7 @@ public class PreCheckSecurityOwnershipValidationHook
             }
         }
 
-        TrackedEntityType trackedEntityType = context
+        TrackedEntityType trackedEntityType = context.getBundle().getPreheat()
             .getTrackedEntityType( trackedEntity.getTrackedEntityType() );
         checkTeiTypeWriteAccess( reporter, trackedEntity.getUid(), trackedEntityType );
     }
@@ -177,7 +177,7 @@ public class PreCheckSecurityOwnershipValidationHook
         TrackerPreheat preheat = bundle.getPreheat();
         User user = bundle.getUser();
         Program program = strategy.isUpdateOrDelete() ? context.getProgramInstance( enrollment.getEnrollment() )
-            .getProgram() : context.getProgram( enrollment.getProgram() );
+            .getProgram() : context.getBundle().getPreheat().getProgram( enrollment.getProgram() );
         OrganisationUnit ownerOrgUnit = getOwnerOrganisationUnit( preheat, enrollment.getTrackedEntity(),
             enrollment.getProgram() );
 
@@ -249,7 +249,7 @@ public class PreCheckSecurityOwnershipValidationHook
         else
         {
             checkNotNull( enrollment.getOrgUnit(), ORGANISATION_UNIT_CANT_BE_NULL );
-            enrollmentOrgUnit = context.getOrganisationUnit( enrollment.getOrgUnit() );
+            enrollmentOrgUnit = context.getBundle().getPreheat().getOrganisationUnit( enrollment.getOrgUnit() );
         }
 
         // If enrollment is newly created, or going to be deleted, capture scope
@@ -274,9 +274,9 @@ public class PreCheckSecurityOwnershipValidationHook
         checkNotNull( event, EVENT_CANT_BE_NULL );
         checkNotNull( event.getOrgUnit(), ORGANISATION_UNIT_CANT_BE_NULL );
 
-        OrganisationUnit organisationUnit = context.getOrganisationUnit( event.getOrgUnit() );
-        ProgramStage programStage = context.getProgramStage( event.getProgramStage() );
-        Program program = context.getProgram( event.getProgram() );
+        OrganisationUnit organisationUnit = context.getBundle().getPreheat().getOrganisationUnit( event.getOrgUnit() );
+        ProgramStage programStage = context.getBundle().getPreheat().getProgramStage( event.getProgramStage() );
+        Program program = context.getBundle().getPreheat().getProgram( event.getProgram() );
 
         // If event is newly created, or going to be deleted, capture scope
         // has to be checked

@@ -66,7 +66,7 @@ public class EventDataValuesValidationHook
     {
         TrackerImportValidationContext context = reporter.getValidationContext();
 
-        ProgramStage programStage = context.getProgramStage( event.getProgramStage() );
+        ProgramStage programStage = context.getBundle().getPreheat().getProgramStage( event.getProgramStage() );
 
         checkNotNull( programStage, TrackerImporterAssertErrors.PROGRAM_STAGE_CANT_BE_NULL );
 
@@ -100,7 +100,7 @@ public class EventDataValuesValidationHook
         if ( StringUtils.isNotEmpty( event.getProgramStage() ) )
         {
             TrackerPreheat preheat = context.getBundle().getPreheat();
-            ProgramStage programStage = context.getProgramStage( event.getProgramStage() );
+            ProgramStage programStage = context.getBundle().getPreheat().getProgramStage( event.getProgramStage() );
             final List<String> mandatoryDataElements = programStage.getProgramStageDataElements()
                 .stream()
                 .filter( ProgramStageDataElement::isCompulsory )

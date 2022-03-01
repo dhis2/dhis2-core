@@ -60,13 +60,17 @@ import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipKey;
 import org.hisp.dhis.relationship.RelationshipType;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.tracker.TrackerIdScheme;
@@ -697,6 +701,31 @@ public class TrackerPreheat
                 orgUnit );
             programOwner.get( teiUid ).put( programUid, tepo );
         }
+    }
+
+    public OrganisationUnit getOrganisationUnit( String id )
+    {
+        return get( OrganisationUnit.class, id );
+    }
+
+    public ProgramStage getProgramStage( String id )
+    {
+        return get( ProgramStage.class, id );
+    }
+
+    public Program getProgram( String id )
+    {
+        return get( Program.class, id );
+    }
+
+    public TrackedEntityType getTrackedEntityType( String id )
+    {
+        return get( TrackedEntityType.class, id );
+    }
+
+    public TrackedEntityAttribute getTrackedEntityAttribute( String id )
+    {
+        return get( TrackedEntityAttribute.class, id );
     }
 
     @Override

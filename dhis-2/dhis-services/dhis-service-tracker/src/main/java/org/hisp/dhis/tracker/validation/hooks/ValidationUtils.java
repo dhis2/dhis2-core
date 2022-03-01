@@ -203,16 +203,19 @@ public class ValidationUtils
 
     public static boolean trackedEntityInstanceExist( TrackerImportValidationContext context, String teiUid )
     {
-        return context.getTrackedEntityInstance( teiUid ) != null || context.getReference( teiUid ).isPresent();
+        return context.getTrackedEntityInstance( teiUid ) != null
+            || context.getBundle().getPreheat().getReference( teiUid ).isPresent();
     }
 
     public static boolean enrollmentExist( TrackerImportValidationContext context, String enrollmentUid )
     {
-        return context.getProgramInstance( enrollmentUid ) != null || context.getReference( enrollmentUid ).isPresent();
+        return context.getProgramInstance( enrollmentUid ) != null
+            || context.getBundle().getPreheat().getReference( enrollmentUid ).isPresent();
     }
 
     public static boolean eventExist( TrackerImportValidationContext context, String eventUid )
     {
-        return context.getProgramStageInstance( eventUid ) != null || context.getReference( eventUid ).isPresent();
+        return context.getProgramStageInstance( eventUid ) != null
+            || context.getBundle().getPreheat().getReference( eventUid ).isPresent();
     }
 }

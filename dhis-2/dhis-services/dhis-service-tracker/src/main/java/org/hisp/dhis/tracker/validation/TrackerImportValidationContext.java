@@ -27,22 +27,15 @@
  */
 package org.hisp.dhis.tracker.validation;
 
-import java.util.Optional;
-
 import lombok.Data;
 
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.TrackerDto;
-import org.hisp.dhis.tracker.preheat.ReferenceTrackerEntity;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 
 // TODO is this class really needed? what is the purpose of this class and why aren't the two caches moved to preheat?
 /**
@@ -53,10 +46,13 @@ public class TrackerImportValidationContext
 {
     private TrackerBundle bundle;
 
+    public TrackerPreheat preheat;
+
     public TrackerImportValidationContext( TrackerBundle bundle )
     {
         // Create a copy of the bundle
         this.bundle = bundle;
+        this.preheat = bundle.getPreheat();
     }
 
     public TrackerImportStrategy getStrategy( TrackerDto dto )
@@ -64,49 +60,23 @@ public class TrackerImportValidationContext
         return bundle.getResolvedStrategyMap().get( dto.getTrackerType() ).get( dto.getUid() );
     }
 
-    public OrganisationUnit getOrganisationUnit( String id )
-    {
-        return bundle.getPreheat().get( OrganisationUnit.class, id );
-    }
-
     public TrackedEntityInstance getTrackedEntityInstance( String id )
     {
-        return bundle.getPreheat().getTrackedEntity( bundle.getIdentifier(), id );
-    }
-
-    public TrackedEntityAttribute getTrackedEntityAttribute( String id )
-    {
-        return bundle.getPreheat().get( TrackedEntityAttribute.class, id );
-    }
-
-    public TrackedEntityType getTrackedEntityType( String id )
-    {
-        return bundle.getPreheat().get( TrackedEntityType.class, id );
-    }
-
-    public Program getProgram( String id )
-    {
-        return bundle.getPreheat().get( Program.class, id );
+        return getPreheat().getTrackedEntity( bundle.getIdentifier(), id );
     }
 
     public ProgramInstance getProgramInstance( String id )
     {
-        return bundle.getPreheat().getEnrollment( bundle.getIdentifier(), id );
-    }
-
-    public ProgramStage getProgramStage( String id )
-    {
-        return bundle.getPreheat().get( ProgramStage.class, id );
+        return getPreheat().getEnrollment( bundle.getIdentifier(), id );
     }
 
     public ProgramStageInstance getProgramStageInstance( String event )
     {
-        return bundle.getPreheat().getEvent( bundle.getIdentifier(), event );
+        return getPreheat().getEvent( bundle.getIdentifier(), event );
     }
 
-    public Optional<ReferenceTrackerEntity> getReference( String uid )
+    public void setPreheat( TrackerPreheat preheat )
     {
-        return bundle.getPreheat().getReference( uid );
+        this.preheat = preheat;
     }
-
 }
