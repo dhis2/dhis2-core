@@ -171,17 +171,20 @@ class AnalyticsServiceSubExpressionTest
         indicatorService.addIndicatorType( indicatorTypeA );
 
         indicatorA = createIndicator( 'A', indicatorTypeA );
-        indicatorA.setNumerator( "1" );
+        indicatorA.setNumerator( "1" ); // to be overwritten
         indicatorA.setDenominator( "1" );
         indicatorService.addIndicator( indicatorA );
 
-        BatchHandler<DataValue> dataValueBatchHandler = batchHandlerFactory.createBatchHandler(
+        BatchHandler<DataValue> handler = batchHandlerFactory.createBatchHandler(
             DataValueBatchHandler.class ).init();
-        dataValueBatchHandler.addObject( newDataValue( deA, perA, ouB, cocA, aocA, "1" ) );
-        dataValueBatchHandler.addObject( newDataValue( deA, perA, ouC, cocB, aocA, "2" ) );
-        dataValueBatchHandler.addObject( newDataValue( deB, perA, ouB, cocA, aocA, "B" ) );
-        dataValueBatchHandler.addObject( newDataValue( deB, perA, ouC, cocB, aocA, "C" ) );
-        dataValueBatchHandler.flush();
+        handler.addObject( newDataValue( deA, perA, ouB, cocA, aocA, "1" ) );
+        handler.addObject( newDataValue( deA, perA, ouC, cocB, aocA, "2" ) );
+        handler.addObject( newDataValue( deB, perA, ouB, cocA, aocA, "B" ) );
+        handler.addObject( newDataValue( deB, perA, ouC, cocB, aocA, "C" ) );
+        handler.flush();
+
+        // Wait before generating analytics tables
+        Thread.sleep( 1000 );
 
         // Generate analytics tables
         AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withSkipTableTypes( Set.of(
