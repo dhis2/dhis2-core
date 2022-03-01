@@ -51,13 +51,14 @@
         "owner": "M5zQapPyTZI",
         "userGroups": {},
         "external": false,
-        "public": "rwrw----",
+        "public": "rw------",
         "users": {}
       },
       "translations": [],
       "categories": [
         {
           "id": "saPUs0jjtP0",
+          "name": "TA Category attribute",
           "code": "TA_CATEGORY_ATTRIBUTE"
         }
       ]
@@ -101,12 +102,14 @@
         "owner": "M5zQapPyTZI",
         "userGroups": {},
         "external": false,
-        "public": "rwrw----",
+        "public": "rw------",
         "users": {}
       },
       "categoryOptions": [
         {
-          "id": "fjvZIRlTBrp"
+          "id": "fjvZIRlTBrp",
+          "name": "category option A",
+          "code": "CATOPT_A"
         }
       ],
       "categoryCombos": [
@@ -119,7 +122,9 @@
       "userAccesses": [],
       "items": [
         {
-          "id": "fjvZIRlTBrp"
+          "id": "fjvZIRlTBrp",
+          "name": "category option A",
+          "code": "CATOPT_A"
         }
       ]
     },
