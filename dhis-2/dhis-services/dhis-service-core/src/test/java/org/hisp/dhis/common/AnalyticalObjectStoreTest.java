@@ -98,6 +98,9 @@ class AnalyticalObjectStoreTest extends DhisSpringTest
         mvB.getOrganisationUnits().add( ouA );
         mvC.addDataDimensionItem( inA );
         mvC.getOrganisationUnits().add( ouB );
+
+        mvA.setOrgUnitField( "OU_Coordinate_Field" );
+
         mapViewStore.save( mvA );
         mapViewStore.save( mvB );
         mapViewStore.save( mvC );
@@ -132,5 +135,12 @@ class AnalyticalObjectStoreTest extends DhisSpringTest
         assertEquals( MapViewRenderingStrategy.SINGLE, mapView.getRenderingStrategy() );
         assertEquals( UserOrgUnitType.DATA_CAPTURE, mapView.getUserOrgUnitType() );
         assertEquals( "#ddeeff", mapView.getNoDataColor() );
+    }
+
+    @Test
+    void testSaveOrganisationUnitCoordinateField()
+    {
+        MapView mapView = mapViewStore.getByUid( mvA.getUid() );
+        assertEquals( "OU_Coordinate_Field", mapView.getOrgUnitField() );
     }
 }
