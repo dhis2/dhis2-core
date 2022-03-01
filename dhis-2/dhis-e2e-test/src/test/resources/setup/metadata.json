@@ -108,8 +108,8 @@
       "categoryOptions": [
         {
           "id": "fjvZIRlTBrp",
-          "name": "category option A",
-          "code": "CATOPT_A"
+          "name": "TA category option A",
+          "code": "TA_CATOPT_A"
         }
       ],
       "categoryCombos": [
@@ -123,8 +123,8 @@
       "items": [
         {
           "id": "fjvZIRlTBrp",
-          "name": "category option A",
-          "code": "CATOPT_A"
+          "name": "TA category option A",
+          "code": "TA_CATOPT_A"
         }
       ]
     },
@@ -2856,12 +2856,13 @@
   "categoryOptionCombos": [
     {
       "id": "igZVvNyxlTM",
-      "name": "category option A",
+      "name": "TA category option combo A",
+      "code": "TA_CATEGORY_OPTION_COMBO_A",
       "categoryOptions": [
         {
           "id": "fjvZIRlTBrp",
-          "name": "category option A",
-          "code": "CATOPT_A"
+          "name": "TA category option A",
+          "code": "TA_CATOPT_A"
         }
       ],
       "categoryCombo": {
@@ -2886,8 +2887,8 @@
   "categoryOptions": [
     {
       "id": "fjvZIRlTBrp",
-      "name": "category option A",
-      "code": "CATOPT_A",
+      "name": "TA category option A",
+      "code": "TA_CATOPT_A",
       "created": "2021-06-02T15:43:13.212",
       "lastUpdated": "2021-06-02T15:43:13.212",
       "sharing": {
