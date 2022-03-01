@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.tracker.validation;
 
-import java.util.Map;
 import java.util.Optional;
 
 import lombok.Data;
@@ -41,7 +40,6 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
@@ -88,6 +86,7 @@ public class TrackerImportValidationContext
         return bundle.getPreheat().get( TrackedEntityType.class, id );
     }
 
+    // remove
     public RelationshipType getRelationShipType( String id )
     {
         return bundle.getPreheat().get( RelationshipType.class, id );
@@ -103,20 +102,6 @@ public class TrackerImportValidationContext
         return bundle.getPreheat().getEnrollment( bundle.getIdentifier(), id );
     }
 
-    public OrganisationUnit getOwnerOrganisationUnit( String teiUid, String programUid )
-    {
-        Map<String, TrackedEntityProgramOwnerOrgUnit> programOwner = bundle.getPreheat().getProgramOwner()
-            .get( teiUid );
-        if ( programOwner == null || programOwner.get( programUid ) == null )
-        {
-            return null;
-        }
-        else
-        {
-            return programOwner.get( programUid ).getOrganisationUnit();
-        }
-    }
-
     public ProgramStage getProgramStage( String id )
     {
         return bundle.getPreheat().get( ProgramStage.class, id );
@@ -127,6 +112,7 @@ public class TrackerImportValidationContext
         return bundle.getPreheat().getEvent( bundle.getIdentifier(), event );
     }
 
+    // remove
     public FileResource getFileResource( String id )
     {
         return bundle.getPreheat().get( FileResource.class, id );
