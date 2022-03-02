@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.hisp.dhis</groupId>
     <artifactId>dhis</artifactId>
-    <version>2.38-SNAPSHOT</version>
+    <version>2.39-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>DHIS 2</name>
     <url>http://dhis2.org</url>
@@ -138,7 +138,7 @@
         <!-- GIS -->
         <batik-transcoder.version>1.14</batik-transcoder.version>
         <batik-codec.version>1.14</batik-codec.version>
-        <fop.version>2.5</fop.version>
+        <fop.version>2.7</fop.version>
         <mapstruct.version>1.4.2.Final</mapstruct.version>
         <geotools.version>26.2</geotools.version>
         <jts.version>1.16.1</jts.version>
