@@ -36,6 +36,7 @@ import org.hisp.dhis.actions.metadata.ProgramActions;
 import org.hisp.dhis.actions.tracker.importer.TrackerActions;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
+import org.hisp.dhis.helpers.file.JsonFileReader;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 
@@ -116,6 +117,9 @@ public class TrackerNtiApiTest
         return trackerActions.postAndGetJobReport( teiWithEnrollment ).validateSuccessfulImport();
     }
 
+    /*
+    Imports one new TEI with enrollment and event
+     */
     protected TrackerApiResponse importTeiWithEnrollmentAndEvent( String orgUnit, String programId, String programStageId )
         throws Exception
     {
@@ -132,12 +136,15 @@ public class TrackerNtiApiTest
         return response;
     }
 
+    /*
+     Imports new tracked entities, each having an enrollment and event.
+     */
     protected TrackerApiResponse importTeiWithEnrollmentAndEvent()
         throws Exception
     {
-        JsonObject object = new FileReaderUtils()
-            .read( new File( "src/test/resources/tracker/importer/teis/teisWithEnrollmentsAndEvents.json" ) )
-            .replacePropertyValuesWithIds( "event" ).get( JsonObject.class );
+        JsonObject object = new JsonFileReader( new File( "src/test/resources/tracker/importer/teis/teisWithEnrollmentsAndEvents.json" ) )
+            .replaceStringsWithIds( "Kj6vYde4LHh", "Nav6inZRw1u", "MNWZ6hnuhSw", "PuBvJxDB73z", "olfXZzSGacW", "ZwwuwNp6gVd" )
+            .get( JsonObject.class );
 
         return trackerActions.postAndGetJobReport( object )
             .validateSuccessfulImport();

@@ -32,6 +32,7 @@ import org.hamcrest.Matchers;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;
+import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.hisp.dhis.tracker.TrackerNtiApiTest;
@@ -73,9 +74,6 @@ public class ImportStrategyTests
             .readJsonAndGenerateData( new File( fileName ) );
 
         trackerActions.postAndGetJobReport( teiBody ).validateSuccessfulImport();
-
-        teiBody = new FileReaderUtils()
-            .readJsonAndGenerateData( new File( fileName ) );
 
         // act
         ApiResponse response = trackerActions
@@ -153,7 +151,7 @@ public class ImportStrategyTests
     public void shouldDeleteWithOnlyIdInThePayload()
         throws Exception
     {
-        TrackerApiResponse response = super.importTeisWithEnrollmentAndEvent();
+        TrackerApiResponse response = super.importTeiWithEnrollmentAndEvent();
 
         String eventId = response.extractImportedEvents().get( 0 );
         String enrollmentId = response.extractImportedEnrollments().get( 0 );
