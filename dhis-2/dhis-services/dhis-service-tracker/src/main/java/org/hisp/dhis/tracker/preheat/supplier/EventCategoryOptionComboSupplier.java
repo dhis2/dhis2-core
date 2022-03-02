@@ -81,8 +81,6 @@ public class EventCategoryOptionComboSupplier extends AbstractPreheatSupplier
             .map( p -> Pair.of( p.getLeft().getCategoryCombo(), toCategoryOptions( preheat, p.getRight() ) ) )
             .collect( Collectors.toList() );
 
-        // TODO should we adapt the service so we can fetch AOCs at once? So for
-        // all (category combo, category options)
         for ( Pair<CategoryCombo, Set<CategoryOption>> p : events )
         {
             if ( preheat.getEventAOCFor( p.getLeft(), p.getRight() ) != null )
