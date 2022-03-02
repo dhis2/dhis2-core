@@ -169,7 +169,7 @@ public class ConfigurationController
         configurationService.setConfiguration( configuration );
     }
 
-    @GetMapping( "/feedbackRecipients" )
+    @GetMapping( "/systemUpdateNotificationRecipients" )
     public @ResponseBody UserGroup getSystemUpdateNotificationRecipients( Model model, HttpServletRequest request )
     {
         return configurationService.getConfiguration().getSystemUpdateNotificationRecipients();
