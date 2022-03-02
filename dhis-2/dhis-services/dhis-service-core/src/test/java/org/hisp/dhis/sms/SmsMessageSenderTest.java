@@ -75,8 +75,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 
 import com.google.common.collect.Sets;
 
@@ -84,7 +82,6 @@ import com.google.common.collect.Sets;
  * @author Zubair Asghar.
  */
 @ExtendWith( MockitoExtension.class )
-@MockitoSettings( strictness = Strictness.LENIENT )
 class SmsMessageSenderTest
 {
     private static final Integer MAX_ALLOWED_RECIPIENTS = 200;
@@ -146,9 +143,6 @@ class SmsMessageSenderTest
 
         smsGateways.add( bulkSmsGateway );
 
-        when( systemSettingManager.getSystemSetting( SettingKey.SMS_MAX_LENGTH, Integer.class ) )
-            .thenReturn( maxSmsLength );
-
         smsMessageSender = new SmsMessageSender( gatewayAdministrationService, smsGateways, userSettingService,
             outboundSmsService, systemSettingManager );
 
@@ -169,6 +163,10 @@ class SmsMessageSenderTest
     @Test
     void testSendMessageWithGatewayConfig()
     {
+
+        when( systemSettingManager.getSystemSetting( SettingKey.SMS_MAX_LENGTH, Integer.class ) )
+            .thenReturn( maxSmsLength );
+
         // stub for GateAdministrationService
         when( gatewayAdministrationService.getDefaultGateway() ).thenReturn( smsGatewayConfig );
         mockGateway();
@@ -222,6 +220,9 @@ class SmsMessageSenderTest
     @Test
     void testSendMessageWithListOfUsers()
     {
+        when( systemSettingManager.getSystemSetting( SettingKey.SMS_MAX_LENGTH, Integer.class ) )
+            .thenReturn( maxSmsLength );
+
         when( gatewayAdministrationService.getDefaultGateway() ).thenReturn( smsGatewayConfig );
         when( userSettingService.getUserSetting( any(), any() ) ).thenReturn( Boolean.TRUE );
         when( bulkSmsGateway.send( anyString(), anyString(), anySet(), isA( BulkSmsGatewayConfig.class ) ) )
@@ -261,6 +262,9 @@ class SmsMessageSenderTest
     @Test
     void testSendMessageWithSingleRecipient()
     {
+        when( systemSettingManager.getSystemSetting( SettingKey.SMS_MAX_LENGTH, Integer.class ) )
+            .thenReturn( maxSmsLength );
+
         when( bulkSmsGateway.accept( any() ) ).thenReturn( true );
         when( gatewayAdministrationService.getDefaultGateway() ).thenReturn( smsGatewayConfig );
         when( bulkSmsGateway.send( anyString(), anyString(), anySet(), isA( BulkSmsGatewayConfig.class ) ) )
@@ -275,6 +279,10 @@ class SmsMessageSenderTest
     @Test
     void testSendMessageFailed()
     {
+
+        when( systemSettingManager.getSystemSetting( SettingKey.SMS_MAX_LENGTH, Integer.class ) )
+            .thenReturn( maxSmsLength );
+
         // stub for GateAdministrationService
         when( gatewayAdministrationService.getDefaultGateway() ).thenReturn( smsGatewayConfig );
         mockGateway();
@@ -293,6 +301,10 @@ class SmsMessageSenderTest
     @Test
     void testNumberNormalization()
     {
+
+        when( systemSettingManager.getSystemSetting( SettingKey.SMS_MAX_LENGTH, Integer.class ) )
+            .thenReturn( maxSmsLength );
+
         // stub for GateAdministrationService
         when( gatewayAdministrationService.getDefaultGateway() ).thenReturn( smsGatewayConfig );
         mockGateway();
@@ -321,6 +333,9 @@ class SmsMessageSenderTest
     @Test
     void testSendMessageWithMaxRecipients()
     {
+        when( systemSettingManager.getSystemSetting( SettingKey.SMS_MAX_LENGTH, Integer.class ) )
+            .thenReturn( maxSmsLength );
+
         when( gatewayAdministrationService.getDefaultGateway() ).thenReturn( smsGatewayConfig );
         mockGateway();
         List<Set<String>> recipientList = new ArrayList<>();
@@ -345,6 +360,10 @@ class SmsMessageSenderTest
     @Test
     void testSendMessageWithSmsLengthGreaterThanDefaultMaxSmsLength()
     {
+
+        when( systemSettingManager.getSystemSetting( SettingKey.SMS_MAX_LENGTH, Integer.class ) )
+            .thenReturn( maxSmsLength );
+
         when( gatewayAdministrationService.getDefaultGateway() ).thenReturn( smsGatewayConfig );
         mockGateway();
 
