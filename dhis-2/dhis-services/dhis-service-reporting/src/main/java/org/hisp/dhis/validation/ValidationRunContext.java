@@ -44,8 +44,8 @@ import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.MapMapMap;
 import org.hisp.dhis.dataanalysis.ValidationRuleExpressionDetails;
+import org.hisp.dhis.expression.ExpressionParams;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.period.Period;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -75,7 +75,7 @@ public class ValidationRunContext
 
     private Map<DimensionalItemId, DimensionalItemObject> itemMap;
 
-    private Map<String, OrganisationUnitGroup> orgUnitGroupMap;
+    private ExpressionParams baseExParams;
 
     // -------------------------------------------------------------------------
     // Properties to configure analysis
@@ -167,9 +167,9 @@ public class ValidationRunContext
         return itemMap;
     }
 
-    public Map<String, OrganisationUnitGroup> getOrgUnitGroupMap()
+    public ExpressionParams getBaseExParams()
     {
-        return orgUnitGroupMap;
+        return baseExParams;
     }
 
     public boolean isSendNotifications()
@@ -356,7 +356,6 @@ public class ValidationRunContext
         {
             this.context.cogDimensionConstraints = cogDimensionConstraints;
             return this;
-
         }
 
         public Builder withCoDimensionConstraints(
@@ -378,9 +377,9 @@ public class ValidationRunContext
             return this;
         }
 
-        public Builder withOrgUnitGroupMap( Map<String, OrganisationUnitGroup> orgUnitGroupMap )
+        public Builder withBaseExParams( ExpressionParams baseExParams )
         {
-            this.context.orgUnitGroupMap = orgUnitGroupMap;
+            this.context.baseExParams = baseExParams;
             return this;
         }
 

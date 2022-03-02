@@ -25,87 +25,47 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.scheduling.parameters;
+package org.hisp.dhis.trackerdataview;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.scheduling.JobParameters;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
- * @author Henning Håkonsen
+ * @author Zubair Asghar
  */
-@JacksonXmlRootElement( localName = "jobParameters", namespace = DxfNamespaces.DXF_2_0 )
-public class SmsJobParameters
-    implements JobParameters
+
+@Getter
+@Setter
+@ToString
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@JacksonXmlRootElement( namespace = DxfNamespaces.DXF_2_0 )
+public class TrackerDataView implements Serializable
 {
-    private static final long serialVersionUID = -6116489359345047961L;
-
-    private String smsSubject;
-
-    private List<String> recipientsList = new ArrayList<>();
-
-    private String message;
-
-    public SmsJobParameters()
-    {
-    }
-
-    public SmsJobParameters( String smsSubject, String message, List<String> recipientsList )
-    {
-        this.smsSubject = smsSubject;
-        this.recipientsList = recipientsList;
-        this.message = message;
-    }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Builder.Default
+    private List<TrackedEntityAttribute> trackedEntityAttributes = new ArrayList<>();
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getSmsSubject()
-    {
-        return smsSubject;
-    }
-
-    public void setSmsSubject( String smsSubject )
-    {
-        this.smsSubject = smsSubject;
-    }
-
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "recipientsLists", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "recipientsList", namespace = DxfNamespaces.DXF_2_0 )
-    public List<String> getRecipientsList()
-    {
-        return recipientsList;
-    }
-
-    public void setRecipientsList( List<String> recipientsList )
-    {
-        this.recipientsList = recipientsList;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getMessage()
-    {
-        return message;
-    }
-
-    public void setMessage( String message )
-    {
-        this.message = message;
-    }
-
-    @Override
-    public Optional<ErrorReport> validate()
-    {
-        return Optional.empty();
-    }
+    @Builder.Default
+    private List<DataElement> dataElements = new ArrayList<>();
 }

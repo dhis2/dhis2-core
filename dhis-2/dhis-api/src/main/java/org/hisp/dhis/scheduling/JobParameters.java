@@ -30,6 +30,7 @@ package org.hisp.dhis.scheduling;
 import java.io.Serializable;
 import java.util.Optional;
 
+import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.feedback.ErrorReport;
 
 /**
@@ -39,7 +40,7 @@ import org.hisp.dhis.feedback.ErrorReport;
  * @author Henning Håkonsen
  */
 public interface JobParameters
-    extends Serializable
+    extends Serializable, EmbeddedObject
 {
     Optional<ErrorReport> validate();
 }

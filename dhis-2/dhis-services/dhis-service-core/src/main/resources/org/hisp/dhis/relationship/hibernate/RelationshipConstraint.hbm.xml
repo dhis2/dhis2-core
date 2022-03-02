@@ -31,6 +31,9 @@
         <many-to-one name="programStage" class="org.hisp.dhis.program.ProgramStage"
                      column="programstageid"
                      foreign-key="fk_relationshipconstraint_programstage_programstageid"/>
+
+        <property name="trackerDataView" type="jbTrackerDataView" column="dataview"/>
+
     </class>
 
 </hibernate-mapping>

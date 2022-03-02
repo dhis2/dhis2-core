@@ -43,10 +43,12 @@ import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.MapMap;
+import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.program.Program;
 
 /**
  * Parameters to evaluate an expression in {@see ExpressionService}
@@ -104,11 +106,22 @@ public class ExpressionParams
     private final Map<String, Integer> orgUnitCountMap = new HashMap<>();
 
     /**
-     * Map of organisation unit groups to use for testing organisation unit
-     * group membership
+     * Map of organisation unit groups to use in evaluating the expression
      */
     @Builder.Default
     private final Map<String, OrganisationUnitGroup> orgUnitGroupMap = new HashMap<>();
+
+    /**
+     * Map of data sets to use in evaluating the expression
+     */
+    @Builder.Default
+    private Map<String, DataSet> dataSetMap = new HashMap<>();
+
+    /**
+     * Map of programs to use in evaluating the expression
+     */
+    @Builder.Default
+    private Map<String, Program> programMap = new HashMap<>();
 
     /**
      * The number of calendar days to be used in evaluating the expression.
@@ -150,6 +163,15 @@ public class ExpressionParams
      */
     @Builder.Default
     private final MapMap<Period, DimensionalItemObject, Object> periodValueMap = new MapMap<>();
+
+    /**
+     * Initial {@see ExpressionInfo} to be added onto, if any. This allows
+     * successive calls to {@see ExpressionService#getExpressionInfo} to
+     * accumulate the information from multiple expressions into the same
+     * {@see ExpressionInfo} instance.
+     */
+    @Builder.Default
+    private ExpressionInfo expressionInfo = new ExpressionInfo();
 
     // -------------------------------------------------------------------------
     // Logic

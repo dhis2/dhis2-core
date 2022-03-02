@@ -103,12 +103,12 @@
     <param name="clazz">org.hisp.dhis.trackedentityfilter.EventFilter</param>
   </typedef>
 
-  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonListBinaryType" name="jlbAttributeValueFilter">
-    <param name="clazz">org.hisp.dhis.trackedentityfilter.AttributeValueFilter</param>
-  </typedef>
-
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbEventQueryCriteria">
     <param name="clazz">org.hisp.dhis.programstagefilter.EventQueryCriteria</param>
+  </typedef>
+
+  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbEntityQueryCriteria">
+    <param name="clazz">org.hisp.dhis.trackedentityfilter.EntityQueryCriteria</param>
   </typedef>
 
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonListBinaryType" name="jbSeries">
@@ -157,6 +157,10 @@
 
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.ApiKeyAttributeJsonBinaryType" name="jbApiKeyAttributesList">
     <param name="clazz">org.hisp.dhis.security.apikey.ApiTokenAttribute</param>
+  </typedef>
+
+  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbTrackerDataView">
+    <param name="clazz">org.hisp.dhis.trackerdataview.TrackerDataView</param>
   </typedef>
 
 </hibernate-mapping>
