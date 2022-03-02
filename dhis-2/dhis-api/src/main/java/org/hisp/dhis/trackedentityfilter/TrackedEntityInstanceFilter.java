@@ -34,8 +34,11 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ObjectStyle;
+import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.programstagefilter.DateFilterPeriod;
+import org.hisp.dhis.programstagefilter.DatePeriodType;
 import org.hisp.dhis.translation.Translatable;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -76,32 +79,12 @@ public class TrackedEntityInstanceFilter
     private ObjectStyle style;
 
     /**
-     * Property indicating which enrollment status types to filter
-     */
-    private ProgramStatus enrollmentStatus;
-
-    /**
-     * Property indicating whether to filter tracked entity instances whose
-     * enrollments are marked for followup or not
-     */
-    private Boolean followup = false;
-
-    /**
-     * Property to filter tracked entity instances based on enrollment dates
-     */
-    private FilterPeriod enrollmentCreatedPeriod;
-
-    /**
      * Property to filter tracked entity instances based on event dates and
      * statues
      */
     private List<EventFilter> eventFilters = new ArrayList<>();
 
-    /**
-     * Property to filter tracked entity instances based on tracked entity
-     * attribute values
-     */
-    private List<AttributeValueFilter> attributeValueFilters = new ArrayList<>();
+    private EntityQueryCriteria entityQueryCriteria;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -177,36 +160,76 @@ public class TrackedEntityInstanceFilter
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public ProgramStatus getEnrollmentStatus()
     {
-        return enrollmentStatus;
+        if ( this.entityQueryCriteria != null )
+        {
+            return entityQueryCriteria.getEnrollmentStatus();
+        }
+        return null;
     }
 
     public void setEnrollmentStatus( ProgramStatus enrollmentStatus )
     {
-        this.enrollmentStatus = enrollmentStatus;
+        if ( this.entityQueryCriteria == null )
+        {
+            this.entityQueryCriteria = new EntityQueryCriteria();
+        }
+        this.entityQueryCriteria.setEnrollmentStatus( enrollmentStatus );
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Boolean isFollowup()
     {
-        return followup;
+        if ( this.entityQueryCriteria != null )
+        {
+            return entityQueryCriteria.getFollowUp();
+        }
+        return false;
     }
 
     public void setFollowup( Boolean followup )
     {
-        this.followup = followup;
+        if ( this.entityQueryCriteria == null )
+        {
+            this.entityQueryCriteria = new EntityQueryCriteria();
+        }
+        this.entityQueryCriteria.setFollowUp( followup );
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public FilterPeriod getEnrollmentCreatedPeriod()
     {
-        return enrollmentCreatedPeriod;
+        if ( this.entityQueryCriteria != null && this.entityQueryCriteria.getEnrollmentCreatedDate() != null &&
+            this.entityQueryCriteria.getEnrollmentCreatedDate().getType() == DatePeriodType.RELATIVE )
+        {
+            DateFilterPeriod enrollmentCreatedDate = this.entityQueryCriteria.getEnrollmentCreatedDate();
+            FilterPeriod enrollmentCreatedPeriod = new FilterPeriod();
+            enrollmentCreatedPeriod.setPeriodFrom( enrollmentCreatedDate.getStartBuffer() );
+            enrollmentCreatedPeriod.setPeriodTo( enrollmentCreatedDate.getEndBuffer() );
+            return enrollmentCreatedPeriod;
+        }
+        return null;
     }
 
     public void setEnrollmentCreatedPeriod( FilterPeriod enrollmentCreatedPeriod )
     {
-        this.enrollmentCreatedPeriod = enrollmentCreatedPeriod;
+        if ( enrollmentCreatedPeriod == null )
+        {
+            return;
+        }
+
+        if ( this.entityQueryCriteria == null )
+        {
+            this.entityQueryCriteria = new EntityQueryCriteria();
+        }
+
+        DateFilterPeriod enrollmentCreatedDate = new DateFilterPeriod();
+        enrollmentCreatedDate.setStartBuffer( enrollmentCreatedPeriod.getPeriodFrom() );
+        enrollmentCreatedDate.setEndBuffer( enrollmentCreatedPeriod.getPeriodTo() );
+        enrollmentCreatedDate.setType( DatePeriodType.RELATIVE );
+        enrollmentCreatedDate.setPeriod( RelativePeriodEnum.TODAY );
+        this.entityQueryCriteria.setEnrollmentCreatedDate( enrollmentCreatedDate );
     }
 
     @JsonProperty( "eventFilters" )
@@ -222,16 +245,17 @@ public class TrackedEntityInstanceFilter
         this.eventFilters = eventFilters;
     }
 
-    @JsonProperty( "attributeValueFilters" )
-    @JacksonXmlElementWrapper( localName = "attributeValueFilters", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "attributeValueFilters", namespace = DxfNamespaces.DXF_2_0 )
-    public List<AttributeValueFilter> getAttributeValueFilters()
+    @JsonProperty( "entityQueryCriteria" )
+    @JacksonXmlElementWrapper( localName = "entityQueryCriteria", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "entityQueryCriteria", namespace = DxfNamespaces.DXF_2_0 )
+    public EntityQueryCriteria getEntityQueryCriteria()
     {
-        return attributeValueFilters;
+        return entityQueryCriteria;
     }
 
-    public void setAttributeValueFilters( List<AttributeValueFilter> attributeValueFilters )
+    public void setEntityQueryCriteria( EntityQueryCriteria entityQueryCriteria )
     {
-        this.attributeValueFilters = attributeValueFilters;
+        this.entityQueryCriteria = entityQueryCriteria;
     }
+
 }

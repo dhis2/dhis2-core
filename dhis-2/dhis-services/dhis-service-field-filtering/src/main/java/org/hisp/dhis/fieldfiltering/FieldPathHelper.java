@@ -218,6 +218,12 @@ public class FieldPathHelper
                     .stream().filter( Property::isOwner )
                     .forEach( p -> fieldPaths.add( toFieldPath( preset.getPath(), p ) ) );
             }
+            else if ( FieldPreset.PERSISTED.equals( preset.getName() ) )
+            {
+                schema.getProperties()
+                    .stream().filter( Property::isPersisted )
+                    .forEach( p -> fieldPaths.add( toFieldPath( preset.getPath(), p ) ) );
+            }
             else if ( FieldPreset.IDENTIFIABLE.equals( preset.getName() ) )
             {
                 schema.getProperties()

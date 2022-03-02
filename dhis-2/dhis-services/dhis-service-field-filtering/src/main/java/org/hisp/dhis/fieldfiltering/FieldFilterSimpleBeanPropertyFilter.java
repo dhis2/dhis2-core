@@ -34,6 +34,7 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.scheduling.JobParameters;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonStreamContext;
@@ -118,7 +119,8 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
 
         while ( sc != null )
         {
-            if ( sc.getCurrentValue() != null && Map.class.isAssignableFrom( sc.getCurrentValue().getClass() ) )
+            if ( sc.getCurrentValue() != null && (Map.class.isAssignableFrom( sc.getCurrentValue().getClass() )
+                || JobParameters.class.isAssignableFrom( sc.getCurrentValue().getClass() )) )
             {
                 sc = sc.getParent();
                 isInsideMap = true;
@@ -134,7 +136,8 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
             sc = sc.getParent();
         }
 
-        if ( value != null && Map.class.isAssignableFrom( value.getClass() ) )
+        if ( value != null && (Map.class.isAssignableFrom( value.getClass() )
+            || JobParameters.class.isAssignableFrom( value.getClass() )) )
         {
             isInsideMap = true;
         }

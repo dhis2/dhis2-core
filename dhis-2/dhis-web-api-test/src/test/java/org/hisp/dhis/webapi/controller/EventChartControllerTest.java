@@ -78,6 +78,8 @@ class EventChartControllerTest extends DhisControllerConvenienceTest
 
         // Then
         final JsonResponse response = GET( "/eventVisualizations/" + uid ).content();
+
+        @SuppressWarnings( "unchecked" )
         final Map<String, JsonNode> nodeMap = (Map<String, JsonNode>) response.node().value();
 
         assertThat( nodeMap.get( "name" ).toString(), containsString( "Name Test" ) );
@@ -96,6 +98,8 @@ class EventChartControllerTest extends DhisControllerConvenienceTest
 
         // Then
         final JsonResponse response = GET( "/eventCharts/" + uid ).content();
+
+        @SuppressWarnings( "unchecked" )
         final Map<String, JsonNode> nodeMap = (Map<String, JsonNode>) response.node().value();
 
         assertThat( nodeMap.values(), is( empty() ) );

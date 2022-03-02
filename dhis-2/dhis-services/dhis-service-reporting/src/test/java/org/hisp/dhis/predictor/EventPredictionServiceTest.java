@@ -190,40 +190,23 @@ class EventPredictionServiceTest extends IntegrationTestBase
         final String PROGRAM_TRACKED_ENTITY_ATTRIBUTE_DIMENSION_ITEM = PROGRAM_UID + SEPARATOR
             + TRACKED_ENTITY_ATTRIBUTE_UID;
         final String PROGRAM_DATA_ELEMENT_DIMENSION_ITEM = PROGRAM_UID + SEPARATOR + DATA_ELEMENT_X_UID;
-        // A
+
+        // A - ProgramTrackedEntityAttribute
         final String EXPRESSION_A = "sum( A{" + PROGRAM_TRACKED_ENTITY_ATTRIBUTE_DIMENSION_ITEM + "} )";
-        // -
-        // ProgramTrackedEntityAttribute
-        // D
+        // D - ProgramDataElement
         final String EXPRESSION_D = "sum( D{" + PROGRAM_DATA_ELEMENT_DIMENSION_ITEM + "} )";
-        // -
-        // ProgramDataElement
-        // I
+        // I - ProgramIndicators
         final String EXPRESSION_I = "sum( I{" + PROGRAM_INDICATOR_A_UID + "} + I{" + PROGRAM_INDICATOR_B_UID + "} )";
-        // -
-        // ProgramIndicators
-        // E
+        // E - Data element
         final String EXPRESSION_E = "sum( #{" + DATA_ELEMENT_E_UID + "} )";
-        // -
-        // Data
-        // element
-        // T -
+        // T - Two things, event and data element
         final String EXPRESSION_T = EXPRESSION_A + " + " + EXPRESSION_E;
-        // Two
-        // things,
-        // event
-        // and
-        // data
-        // elemeent
-        // Program
+
+        // Program Indicator A expression
         final String EX_INDICATOR_A = "#{" + PROGRAM_DATA_ELEMENT_DIMENSION_ITEM + "} + 4";
-        // Indicator
-        // A
-        // expression
-        // Program
+        // Program Indicator B expression
         final String EX_INDICATOR_B = "V{enrollment_count}";
-        // Indicator B
-        // expression
+
         defaultCombo = categoryService.getDefaultCategoryOptionCombo();
         orgUnitA = createOrganisationUnit( 'A' );
         organisationUnitService.addOrganisationUnit( orgUnitA );

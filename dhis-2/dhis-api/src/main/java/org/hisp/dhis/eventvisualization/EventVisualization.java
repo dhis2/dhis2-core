@@ -839,7 +839,7 @@ public class EventVisualization extends BaseAnalyticalObject
         this.simpleDimensions = simpleDimensions;
     }
 
-    @JsonProperty
+    @JsonProperty( "repetitions" )
     @JacksonXmlElementWrapper( localName = "repetitions", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "repetition", namespace = DxfNamespaces.DXF_2_0 )
     public List<EventRepetition> getEventRepetitions()

@@ -32,6 +32,7 @@ import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackerdataview.TrackerDataView;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -54,6 +55,8 @@ public class RelationshipConstraint
     private Program program;
 
     private ProgramStage programStage;
+
+    private TrackerDataView trackerDataView;
 
     public RelationshipConstraint()
     {
@@ -116,6 +119,18 @@ public class RelationshipConstraint
     public void setProgramStage( ProgramStage programStage )
     {
         this.programStage = programStage;
+    }
+
+    @JsonProperty( )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public TrackerDataView getTrackerDataView()
+    {
+        return trackerDataView;
+    }
+
+    public void setTrackerDataView( TrackerDataView trackerDataView )
+    {
+        this.trackerDataView = trackerDataView;
     }
 
     @Override
