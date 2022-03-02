@@ -83,7 +83,7 @@ public class EventCategoryOptionComboSupplier extends AbstractPreheatSupplier
 
         for ( Pair<CategoryCombo, Set<CategoryOption>> p : events )
         {
-            if ( preheat.getEventAOCFor( p.getLeft(), p.getRight() ) != null )
+            if ( preheat.getCategoryOptionCombo( p.getLeft(), p.getRight() ) != null )
             {
                 continue;
             }
@@ -95,7 +95,7 @@ public class EventCategoryOptionComboSupplier extends AbstractPreheatSupplier
             // I decided on how to adapt the DB fetching logic
             if ( aoc != null )
             {
-                preheat.putEventAOCFor( p.getLeft(), p.getRight(), aoc );
+                preheat.putCategoryOptionCombo( p.getLeft(), p.getRight(), aoc );
             }
         }
     }

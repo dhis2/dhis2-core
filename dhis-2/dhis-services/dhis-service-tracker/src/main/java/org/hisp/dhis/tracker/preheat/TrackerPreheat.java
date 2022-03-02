@@ -149,17 +149,24 @@ public class TrackerPreheat
      * Category option combo value will be in the idScheme defined by the user
      * on import.
      */
-    private Map<Pair<CategoryCombo, Set<CategoryOption>>, String> eventCOsToAOC = new HashMap<>();
+    private final Map<Pair<CategoryCombo, Set<CategoryOption>>, String> cosToCOC = new HashMap<>();
 
-    public void putEventAOCFor( CategoryCombo categoryCombo, Set<CategoryOption> categoryOptions,
-        CategoryOptionCombo aoc )
+    public void putCategoryOptionCombo( CategoryCombo categoryCombo, Set<CategoryOption> categoryOptions,
+        CategoryOptionCombo categoryOptionCombo )
     {
-        this.eventCOsToAOC.put( attributeOptionComboCacheKey( categoryCombo, categoryOptions ),
-            getIdentifiers().getCategoryOptionComboIdScheme().getIdentifier( aoc ) );
-        this.put( identifiers.getCategoryOptionComboIdScheme(), aoc );
+        if ( categoryOptionCombo != null )
+        {
+            this.cosToCOC.put( categoryOptionComboCacheKey( categoryCombo, categoryOptions ),
+                getIdentifiers().getCategoryOptionComboIdScheme().getIdentifier( categoryOptionCombo ) );
+            this.put( identifiers.getCategoryOptionComboIdScheme(), categoryOptionCombo );
+        }
+        else
+        {
+            this.cosToCOC.put( categoryOptionComboCacheKey( categoryCombo, categoryOptions ), null );
+        }
     }
 
-    private Pair<CategoryCombo, Set<CategoryOption>> attributeOptionComboCacheKey( CategoryCombo categoryCombo,
+    private Pair<CategoryCombo, Set<CategoryOption>> categoryOptionComboCacheKey( CategoryCombo categoryCombo,
         Set<CategoryOption> categoryOptions )
     {
         // TODO category combo has no idScheme specified in the import params.
@@ -167,15 +174,21 @@ public class TrackerPreheat
         return Pair.of( categoryCombo, categoryOptions );
     }
 
-    public CategoryOptionCombo getEventAOCFor( CategoryCombo categoryCombo, Set<CategoryOption> categoryOptions )
+    public CategoryOptionCombo getCategoryOptionCombo( CategoryCombo categoryCombo,
+        Set<CategoryOption> categoryOptions )
     {
         return this.getCategoryOptionCombo(
-            eventCOsToAOC.get( attributeOptionComboCacheKey( categoryCombo, categoryOptions ) ) );
+            cosToCOC.get( categoryOptionComboCacheKey( categoryCombo, categoryOptions ) ) );
     }
 
-    public CategoryOptionCombo getEventAOCFor( CategoryCombo categoryCombo, String categoryOptions )
+    public boolean containsCategoryOptionCombo( CategoryCombo categoryCombo, Set<CategoryOption> categoryOptions )
     {
-        return this.getEventAOCFor( categoryCombo, getCategoryOptions( categoryOptions ) );
+        return cosToCOC.containsKey( categoryOptionComboCacheKey( categoryCombo, categoryOptions ) );
+    }
+
+    public CategoryOptionCombo getCategoryOptionCombo( CategoryCombo categoryCombo, String categoryOptions )
+    {
+        return this.getCategoryOptionCombo( categoryCombo, getCategoryOptions( categoryOptions ) );
     }
 
     private Set<CategoryOption> getCategoryOptions( String categoryOptions )

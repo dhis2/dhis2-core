@@ -111,7 +111,7 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
 
         supplier.preheatAdd( params, preheat );
 
-        verify( preheat, times( 1 ) ).putEventAOCFor( program.getCategoryCombo(), options, aoc );
+        verify( preheat, times( 1 ) ).putCategoryOptionCombo( program.getCategoryCombo(), options, aoc );
     }
 
     @Test
@@ -152,7 +152,7 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
 
         supplier.preheatAdd( params, preheat );
 
-        verify( preheat, times( 1 ) ).putEventAOCFor( program.getCategoryCombo(), options, aoc );
+        verify( preheat, times( 1 ) ).putCategoryOptionCombo( program.getCategoryCombo(), options, aoc );
     }
 
     @Test
@@ -185,7 +185,7 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
             o -> when( preheat.getCategoryOption( identifierParams.getCategoryOptionIdScheme().getIdentifier( o ) ) )
                 .thenReturn( o ) );
         when( categoryService.getCategoryOptionCombo( categoryCombo, aoc.getCategoryOptions() ) ).thenReturn( aoc );
-        when( preheat.getEventAOCFor( program.getCategoryCombo(), aoc.getCategoryOptions() ) )
+        when( preheat.getCategoryOptionCombo( program.getCategoryCombo(), aoc.getCategoryOptions() ) )
             .thenReturn( null ) // first event will not have its AOC in the
                                 // preheat
             .thenReturn( aoc ); // second event should see AOC from preheat
@@ -193,7 +193,7 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
         supplier.preheatAdd( params, preheat );
 
         verify( categoryService, times( 1 ) ).getCategoryOptionCombo( categoryCombo, aoc.getCategoryOptions() );
-        verify( preheat, times( 1 ) ).putEventAOCFor( program.getCategoryCombo(), options, aoc );
+        verify( preheat, times( 1 ) ).putCategoryOptionCombo( program.getCategoryCombo(), options, aoc );
     }
 
     @Test
@@ -228,7 +228,7 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
 
         supplier.preheatAdd( params, preheat );
 
-        verify( preheat, times( 0 ) ).putEventAOCFor( program.getCategoryCombo(), options, aoc );
+        verify( preheat, times( 0 ) ).putCategoryOptionCombo( program.getCategoryCombo(), options, aoc );
     }
 
     @Test
@@ -261,7 +261,7 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
         supplier.preheatAdd( params, preheat );
 
         verifyNoInteractions( categoryService );
-        verify( preheat, times( 0 ) ).putEventAOCFor( program.getCategoryCombo(), options, aoc );
+        verify( preheat, times( 0 ) ).putCategoryOptionCombo( program.getCategoryCombo(), options, aoc );
     }
 
     @Test
@@ -289,7 +289,7 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
 
         supplier.preheatAdd( params, preheat );
 
-        verify( preheat, times( 0 ) ).putEventAOCFor( any(), eq( options ), eq( aoc ) );
+        verify( preheat, times( 0 ) ).putCategoryOptionCombo( any(), eq( options ), eq( aoc ) );
     }
 
     @Test
@@ -323,7 +323,7 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
 
         supplier.preheatAdd( params, preheat );
 
-        verify( preheat, times( 0 ) ).putEventAOCFor( any(), eq( options ), eq( aoc ) );
+        verify( preheat, times( 0 ) ).putCategoryOptionCombo( any(), eq( options ), eq( aoc ) );
     }
 
     @Test
@@ -361,7 +361,7 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
 
         supplier.preheatAdd( params, preheat );
 
-        verify( preheat, times( 0 ) ).putEventAOCFor( any(), eq( options ), eq( aoc ) );
+        verify( preheat, times( 0 ) ).putCategoryOptionCombo( any(), eq( options ), eq( aoc ) );
     }
 
     @Test
@@ -394,7 +394,7 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
 
         supplier.preheatAdd( params, preheat );
 
-        verify( preheat, times( 0 ) ).putEventAOCFor( program.getCategoryCombo(), options, aoc );
+        verify( preheat, times( 0 ) ).putCategoryOptionCombo( program.getCategoryCombo(), options, aoc );
     }
 
     @Test
@@ -425,7 +425,7 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
 
         supplier.preheatAdd( params, preheat );
 
-        verify( preheat, times( 0 ) ).putEventAOCFor( program.getCategoryCombo(), aoc.getCategoryOptions(),
+        verify( preheat, times( 0 ) ).putCategoryOptionCombo( program.getCategoryCombo(), aoc.getCategoryOptions(),
             aoc );
     }
 
@@ -455,7 +455,7 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
 
         supplier.preheatAdd( params, preheat );
 
-        verify( preheat, times( 0 ) ).putEventAOCFor( any(), any(), any() );
+        verify( preheat, times( 0 ) ).putCategoryOptionCombo( any(), any(), any() );
     }
 
     private String concatCategoryOptions( TrackerIdentifier identifier, Set<CategoryOption> options )
