@@ -75,8 +75,8 @@ public class PotentialDuplicatesMergeTests
 
         trackerActions.getTrackedEntity( teiA + "?fields=*" )
             .validate().statusCode( 200 )
-            .body( "createdBy", equalTo( "tasuperadmin" ) )
-            .body( "updatedBy", equalTo( admin_username ) )
+            .body( "createdBy.username", equalTo( "tasuperadmin" ) )
+            .body( "updatedBy.username", equalTo( admin_username ) )
             .body( "enrollments.updatedBy", everyItem( equalTo( admin_username ) ) );
     }
 
