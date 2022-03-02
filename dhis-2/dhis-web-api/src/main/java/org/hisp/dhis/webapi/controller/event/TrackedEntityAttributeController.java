@@ -35,6 +35,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.DhisApiVersion;
@@ -99,6 +100,13 @@ public class TrackedEntityAttributeController
         }
 
         return reserve( id, numberToReserve, expiration );
+    }
+
+    @GetMapping( value = "/indexable" )
+    @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+    public @ResponseBody Set<TrackedEntityAttribute> getIndexableAttributes()
+    {
+        return trackedEntityAttributeService.getAllTrigramIndexableTrackedEntityAttributes();
     }
 
     /**
