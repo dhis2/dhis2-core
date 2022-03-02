@@ -31,11 +31,9 @@ import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 import java.time.Instant;
-import java.util.Collections;
 import java.util.Date;
 import java.util.Set;
 
@@ -324,7 +322,6 @@ class EventTrackerConverterServiceTest extends DhisConvenienceTest
     private void setUpMocks()
     {
         when( preheat.getUser() ).thenReturn( user );
-        lenient().when( preheat.getUsers() ).thenReturn( Collections.singleton( user ) );
         when( preheat.get( ProgramStage.class, programStage.getUid() ) ).thenReturn( programStage );
         when( preheat.get( Program.class, program.getUid() ) ).thenReturn( program );
         when( preheat.get( OrganisationUnit.class, organisationUnit.getUid() ) ).thenReturn( organisationUnit );

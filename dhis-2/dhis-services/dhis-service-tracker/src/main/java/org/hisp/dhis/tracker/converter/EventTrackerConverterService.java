@@ -257,7 +257,7 @@ public class EventTrackerConverterService
             programStageInstance.setCompletedBy( preheat.getUsername() );
         }
 
-        if ( programStage.isEnableUserAssignment() &&
+        if ( Boolean.TRUE.equals( programStage.isEnableUserAssignment() ) &&
             event.getAssignedUser() != null
             && !event.getAssignedUser().isEmpty() )
         {

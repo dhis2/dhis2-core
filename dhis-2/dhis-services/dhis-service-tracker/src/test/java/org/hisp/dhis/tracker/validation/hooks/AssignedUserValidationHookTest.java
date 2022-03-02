@@ -88,7 +88,7 @@ class AssignedUserValidationHookTest extends DhisConvenienceTest
         TrackerPreheat preheat = new TrackerPreheat();
         User user = createUser( 'A' );
         user.setUsername( USER_NAME );
-        preheat.setUsers( Sets.newHashSet( user ) );
+        preheat.addUsers( Sets.newHashSet( user ) );
         bundle.setPreheat( preheat );
 
         when( validationContext.getBundle() ).thenReturn( bundle );
@@ -180,7 +180,8 @@ class AssignedUserValidationHookTest extends DhisConvenienceTest
         ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
 
         // when
-        bundle.getPreheat().setUsers( Sets.newHashSet() );
+        bundle = TrackerBundle.builder().preheat( new TrackerPreheat() ).build();
+        when( validationContext.getBundle() ).thenReturn( bundle );
         when( validationContext.getProgramStage( PROGRAM_STAGE ) ).thenReturn( programStage );
         this.hookToTest.validateEvent( reporter, event );
 

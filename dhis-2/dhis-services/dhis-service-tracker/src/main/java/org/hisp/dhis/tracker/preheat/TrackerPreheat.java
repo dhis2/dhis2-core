@@ -75,7 +75,7 @@ import org.hisp.dhis.user.User;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import com.google.common.collect.Maps;
 import com.scalified.tree.TreeNode;
 import com.scalified.tree.multinode.ArrayMultiTreeNode;
 
@@ -205,13 +205,12 @@ public class TrackerPreheat
 
     /**
      * A map of valid users by username that are present in the payload. A user
-     * not available in this cache means, payload's username is invalid. These
-     * users are primarily used to represent the ValueType.USERNAME of tracked
-     * entity attributes, used in validation and persisting TEIs.
+     * not available in this cache means, payload's username or uid is invalid.
+     * These users are primarily used to represent the ValueType.USERNAME of
+     * tracked entity attributes and assignedUser fields in events used in
+     * validation and persistence.
      */
-    @Getter
-    @Setter
-    private Set<User> users = Sets.newHashSet();
+    private Map<String, User> users = Maps.newHashMap();
 
     /**
      * A list of all unique attribute values that are both present in the
@@ -631,17 +630,21 @@ public class TrackerPreheat
         }
     }
 
+    public void addUsers( Set<User> users )
+    {
+        Map<String, User> userMap = users.stream()
+            .collect( Collectors.toMap( User::getUsername, Function.identity() ) );
+        this.users.putAll( userMap );
+    }
+
     public Optional<User> getUserByUsername( String username )
     {
-        return this.getUsers()
-            .stream()
-            .filter( u -> Objects.equals( username, u.getUsername() ) )
-            .findAny();
+        return Optional.ofNullable( this.users.get( username ) );
     }
 
     public Optional<User> getUserByUid( String uid )
     {
-        return this.getUsers()
+        return this.users.values()
             .stream()
             .filter( u -> Objects.equals( uid, u.getUid() ) )
             .findAny();

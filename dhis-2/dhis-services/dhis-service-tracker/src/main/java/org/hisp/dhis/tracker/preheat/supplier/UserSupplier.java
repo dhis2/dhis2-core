@@ -77,7 +77,6 @@ public class UserSupplier extends AbstractPreheatSupplier
             .map( Event::getAssignedUser )
             .filter( Objects::nonNull )
             .map( UserInfo::getUsername )
-            .filter( CodeGenerator::isValidUid )
             .collect( Collectors.toSet() );
 
         List<User> users = userService.getUsersByUsernames( usernames );
@@ -86,7 +85,7 @@ public class UserSupplier extends AbstractPreheatSupplier
         Set<User> validUsersByUid = new HashSet<>(
             DetachUtils.detach( UserMapper.INSTANCE, manager.getByUid( User.class, userUids ) ) );
 
-        preheat.getUsers().addAll( validUsers );
-        preheat.getUsers().addAll( validUsersByUid );
+        preheat.addUsers( validUsers );
+        preheat.addUsers( validUsersByUid );
     }
 }

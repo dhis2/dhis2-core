@@ -79,7 +79,7 @@ public class UsernameValueTypeSupplier extends AbstractPreheatSupplier
 
         List<User> users = userService.getUsersByUsernames( usernames );
 
-        preheat.getUsers().addAll( new HashSet<>( DetachUtils.detach( UserMapper.INSTANCE, users ) ) );
+        preheat.addUsers( new HashSet<>( DetachUtils.detach( UserMapper.INSTANCE, users ) ) );
     }
 
     private void collectResourceIds( List<String> usernameAttributes, List<String> usernames,
