@@ -256,7 +256,7 @@ public class UserController
 
     @Override
     @GetMapping( "/{uid}/{property}" )
-    public @ResponseBody ResponseEntity<ObjectNode> getObjectProperty(
+    public ResponseEntity<ObjectNode> getObjectProperty(
         @PathVariable( "uid" ) String pvUid, @PathVariable( "property" ) String pvProperty,
         @RequestParam Map<String, String> rpParameters,
         TranslateParams translateParams,
