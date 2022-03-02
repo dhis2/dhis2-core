@@ -453,11 +453,13 @@ public class JdbcEventAnalyticsManager
         }
 
         // ---------------------------------------------------------------------
-        // Organisation unit group sets
+        // Organisation unit group sets, categories and category option group
+        // set
         // ---------------------------------------------------------------------
 
         List<DimensionalObject> dynamicDimensions = params.getDimensionsAndFilters(
-            Sets.newHashSet( DimensionType.ORGANISATION_UNIT_GROUP_SET, DimensionType.CATEGORY ) );
+            Sets.newHashSet( DimensionType.ORGANISATION_UNIT_GROUP_SET, DimensionType.CATEGORY,
+                DimensionType.CATEGORY_OPTION_GROUP_SET ) );
 
         for ( DimensionalObject dim : dynamicDimensions )
         {
