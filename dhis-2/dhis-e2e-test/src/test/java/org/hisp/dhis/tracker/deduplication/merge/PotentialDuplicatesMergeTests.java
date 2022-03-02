@@ -77,7 +77,7 @@ public class PotentialDuplicatesMergeTests
             .validate().statusCode( 200 )
             .body( "createdBy.username", equalTo( "tasuperadmin" ) )
             .body( "updatedBy.username", equalTo( admin_username ) )
-            .body( "enrollments.updatedBy", everyItem( equalTo( admin_username ) ) );
+            .body( "enrollments.updatedBy.username", everyItem( equalTo( admin_username ) ) );
     }
 
     @ValueSource( strings = { "enrollments", "relationships", "trackedEntityAttributes" } )

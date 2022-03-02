@@ -73,6 +73,8 @@ class AssignedUserValidationHookTest extends DhisConvenienceTest
 
     private TrackerBundle bundle;
 
+    private ProgramStage programStage;
+
     private static final UserInfo VALID_USER = UserInfo.builder().username( USER_NAME ).build();
 
     private static final UserInfo INVALID_USER = UserInfo.builder().username( NOT_VALID_USERNAME ).build();
@@ -91,9 +93,8 @@ class AssignedUserValidationHookTest extends DhisConvenienceTest
 
         when( validationContext.getBundle() ).thenReturn( bundle );
 
-        ProgramStage programStage = new ProgramStage();
+        programStage = new ProgramStage();
         programStage.setEnableUserAssignment( true );
-        when( validationContext.getProgramStage( PROGRAM_STAGE ) ).thenReturn( programStage );
     }
 
     @Test
@@ -102,6 +103,41 @@ class AssignedUserValidationHookTest extends DhisConvenienceTest
         // given
         Event event = new Event();
         event.setAssignedUser( VALID_USER );
+        event.setProgramStage( PROGRAM_STAGE );
+
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
+
+        // when
+        when( validationContext.getProgramStage( PROGRAM_STAGE ) ).thenReturn( programStage );
+        this.hookToTest.validateEvent( reporter, event );
+
+        // then
+        assertFalse( reporter.hasErrors() );
+    }
+
+    @Test
+    void testAssignedUserIsNull()
+    {
+        // given
+        Event event = new Event();
+        event.setAssignedUser( null );
+        event.setProgramStage( PROGRAM_STAGE );
+
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
+
+        // when
+        this.hookToTest.validateEvent( reporter, event );
+
+        // then
+        assertFalse( reporter.hasErrors() );
+    }
+
+    @Test
+    void testAssignedUserIsEmpty()
+    {
+        // given
+        Event event = new Event();
+        event.setAssignedUser( UserInfo.builder().build() );
         event.setProgramStage( PROGRAM_STAGE );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
@@ -125,6 +161,7 @@ class AssignedUserValidationHookTest extends DhisConvenienceTest
         ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
 
         // when
+        when( validationContext.getProgramStage( PROGRAM_STAGE ) ).thenReturn( programStage );
         this.hookToTest.validateEvent( reporter, event );
 
         // then
@@ -144,6 +181,7 @@ class AssignedUserValidationHookTest extends DhisConvenienceTest
 
         // when
         bundle.getPreheat().setUsers( Sets.newHashSet() );
+        when( validationContext.getProgramStage( PROGRAM_STAGE ) ).thenReturn( programStage );
         this.hookToTest.validateEvent( reporter, event );
 
         // then

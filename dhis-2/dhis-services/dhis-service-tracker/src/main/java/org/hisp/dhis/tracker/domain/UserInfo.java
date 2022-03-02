@@ -32,6 +32,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import org.apache.commons.lang.StringUtils;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -54,4 +56,9 @@ public class UserInfo
 
     @JsonProperty
     private String surname;
+
+    public boolean isEmpty()
+    {
+        return StringUtils.isEmpty( uid ) && StringUtils.isEmpty( username );
+    }
 }

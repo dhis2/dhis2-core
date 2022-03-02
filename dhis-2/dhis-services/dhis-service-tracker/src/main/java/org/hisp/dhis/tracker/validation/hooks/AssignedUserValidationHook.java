@@ -43,7 +43,7 @@ public class AssignedUserValidationHook
     @Override
     public void validateEvent( ValidationErrorReporter reporter, Event event )
     {
-        if ( event.getAssignedUser() != null )
+        if ( event.getAssignedUser() != null && !event.getAssignedUser().isEmpty() )
         {
             if ( assignedUserNotPresentInPreheat( reporter, event ) )
             {
