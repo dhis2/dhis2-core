@@ -41,6 +41,7 @@ import org.junit.jupiter.api.Test;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.Matchers.emptyArray;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 
 /**
@@ -148,9 +149,10 @@ public class OptionSetTests
         // arrange
         String optionId = createOption( createdOptionSet );
 
-        optionActions.optionSetActions.get( createdOptionSet + "/options/" + optionId )
+        optionActions.optionSetActions.get( createdOptionSet + "/gist?fields=options~member(" + optionId + ")" )
             .validate()
-            .statusCode( 200 );
+            .statusCode( 200 )
+            .body( "options", is( true ) );
 
         // act
         optionActions.optionSetActions.delete( createdOptionSet + "/options/" + optionId )
@@ -162,9 +164,10 @@ public class OptionSetTests
             .validate()
             .statusCode( 200 );
 
-        optionActions.optionSetActions.get( createdOptionSet + "/options/" + optionId )
+        optionActions.optionSetActions.get( createdOptionSet + "/gist?fields=options~member(" + optionId + ")" )
             .validate()
-            .statusCode( 404 );
+            .statusCode( 200 )
+            .body( "options", is( false ) );
     }
 
     private String createOptionSet( String... optionIds )
