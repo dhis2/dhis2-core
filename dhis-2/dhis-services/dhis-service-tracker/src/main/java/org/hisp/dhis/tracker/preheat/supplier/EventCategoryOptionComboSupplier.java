@@ -83,20 +83,13 @@ public class EventCategoryOptionComboSupplier extends AbstractPreheatSupplier
 
         for ( Pair<CategoryCombo, Set<CategoryOption>> p : events )
         {
-            if ( preheat.getCategoryOptionCombo( p.getLeft(), p.getRight() ) != null )
+            if ( preheat.containsCategoryOptionCombo( p.getLeft(), p.getRight() ) )
             {
                 continue;
             }
 
-            CategoryOptionCombo aoc = categoryService
-                .getCategoryOptionCombo( p.getLeft(), p.getRight() );
-            // TODO should we cache that we did not find the AOC as well? Yes,
-            // but implement only once
-            // I decided on how to adapt the DB fetching logic
-            if ( aoc != null )
-            {
-                preheat.putCategoryOptionCombo( p.getLeft(), p.getRight(), aoc );
-            }
+            CategoryOptionCombo aoc = categoryService.getCategoryOptionCombo( p.getLeft(), p.getRight() );
+            preheat.putCategoryOptionCombo( p.getLeft(), p.getRight(), aoc );
         }
     }
 
