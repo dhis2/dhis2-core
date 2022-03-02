@@ -34,6 +34,7 @@ import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.hisp.dhis.tracker.TrackerNtiApiTest;
+import org.hisp.dhis.tracker.importer.databuilder.RelationshipDataBuilder;
 import org.hisp.dhis.tracker.importer.databuilder.TeiDataBuilder;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -145,10 +146,12 @@ public class TeiImportTests
     public void shouldImportTeisWithEnrollmentsEventsAndRelationship()
         throws Exception
     {
-        // the file contains 2 teis with 1 enrollment and 1 event each
         JsonObject teiPayload = new FileReaderUtils()
             .readJsonAndGenerateData(
                 new File( "src/test/resources/tracker/importer/teis/teisWithEnrollmentsAndEvents.json" ) );
+
+        JsonObjectBuilder.jsonObject( teiPayload )
+            .addArray( "relationships", new RelationshipDataBuilder().buildTrackedEntityRelationship( "Kj6vYde4LHh", "Nav6inZRw1u", "xLmPUYJX8Ks" ));
 
         // act
         TrackerApiResponse response = trackerActions.postAndGetJobReport( teiPayload );

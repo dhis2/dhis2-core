@@ -43,6 +43,11 @@ public class RelationshipDataBuilder implements TrackerImporterDataBuilder
         this.jsonBuilder = new JsonObjectBuilder();
     }
 
+    public RelationshipDataBuilder setId( String id ) {
+        this.jsonBuilder.addProperty( "relationship", id );
+        return this;
+    }
+
     public RelationshipDataBuilder setRelationshipType( String relationshipType )
     {
         this.jsonBuilder.addProperty( "relationshipType", relationshipType );

@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.importer.relationships;
 import com.google.gson.JsonObject;
 import io.restassured.response.ValidatableResponse;
 import org.hamcrest.Matchers;
+import org.hisp.dhis.actions.IdGenerator;
 import org.hisp.dhis.actions.metadata.MetadataActions;
 import org.hisp.dhis.actions.metadata.RelationshipTypeActions;
 import org.hisp.dhis.actions.tracker.TEIActions;
@@ -43,6 +44,7 @@ import org.hisp.dhis.tracker.TrackerNtiApiTest;
 import org.hisp.dhis.tracker.importer.databuilder.RelationshipDataBuilder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -73,9 +75,9 @@ public class RelationshipsTests
 
     private static List<String> teis;
 
-    private static List<String> events;
-
     private static List<String> enrollments;
+
+    private static List<String> events;
 
     private List<String> createdRelationships = new ArrayList<>();
 
@@ -84,6 +86,38 @@ public class RelationshipsTests
     private TEIActions teiActions;
 
     private MetadataActions metadataActions;
+
+    private static Stream<Arguments> provideRelationshipData()
+    {
+        return Stream.of(
+            /*Arguments.of( "WmNgnmedbQj", "trackedEntity", teis.get( 0 ), "enrollment",  enrollments.get( 1 )), // tei to enrollment*/
+            Arguments.of( "HrS7b5Lis6E", "event", events.get( 0 ), "trackedEntity", teis.get( 0 ) ), // event
+            // to
+            // tei
+            Arguments.of( "HrS7b5Lis6w", "trackedEntity", teis.get( 0 ), "event", events.get( 0 ) ), // tei
+            // to
+            // event
+            Arguments.of( "HrS7b5Lis6P", "event", events.get( 0 ), "event", events.get( 1 ) ), // event
+            // to
+            // event
+            Arguments.of( relationshipType, "trackedEntity", teis.get( 0 ), "trackedEntity",
+                teis.get( 1 ) ) ); // tei to tei
+    }
+
+    private static Stream<Arguments> provideDuplicateRelationshipData()
+    {
+        return Stream.of(
+            Arguments.of( teis.get( 0 ), teis.get( 1 ), teis.get( 1 ), teis.get( 0 ), true, 1,
+                "bi: reversed direction should import 1" ),
+            Arguments
+                .of( teis.get( 0 ), teis.get( 1 ), teis.get( 0 ), teis.get( 1 ), false, 1,
+                    "uni: same direction should import 1" ),
+            Arguments
+                .of( teis.get( 0 ), teis.get( 1 ), teis.get( 0 ), teis.get( 1 ), true, 1,
+                    "bi: same direction should import 1" ),
+            Arguments.of( teis.get( 0 ), teis.get( 1 ), teis.get( 1 ), teis.get( 0 ), false, 2,
+                "uni: reversed direction should import 2" ) );
+    }
 
     @BeforeAll
     public void beforeAll()
@@ -97,23 +131,29 @@ public class RelationshipsTests
 
         metadataActions.importAndValidateMetadata( new File( "src/test/resources/tracker/relationshipTypes.json" ) );
 
-        TrackerApiResponse teisWithEnrollmentAndEvent = importTeiWithEnrollmentAndEvent();
-        teis = teisWithEnrollmentAndEvent.extractImportedTeis();
-        enrollments = teisWithEnrollmentAndEvent.extractImportedEnrollments();
+        TrackerApiResponse importResponse = importTeiWithEnrollmentAndEvent().validateSuccessfulImport();
+        teis = importResponse.extractImportedTeis();
+        enrollments = importResponse.extractImportedEnrollments();
         events = importEvents();
     }
 
     @Test
+    @Disabled("uncomment when DHIS2-12625 is fixed")
     public void shouldNotUpdateRelationship()
     {
         // arrange
-        JsonObject relationship = JsonObjectBuilder.jsonObject( new RelationshipDataBuilder()
-            .buildTrackedEntityRelationship( teis.get( 0 ), teis.get( 1 ), relationshipType ) )
+        String relationshipId = new IdGenerator().generateUniqueId();
+
+        JsonObject relationship = JsonObjectBuilder.jsonObject()
+            .addProperty( "relationship", relationshipId )
+            .addProperty( "relationshipType", relationshipType )
+            .addObject( "from", JsonObjectBuilder.jsonObject().addProperty( "trackedEntity", teis.get( 0 ) ) )
+            .addObject( "to", JsonObjectBuilder.jsonObject().addProperty( "trackedEntity", teis.get( 1 ) ) )
             .wrapIntoArray( "relationships" );
 
         trackerActions.postAndGetJobReport( relationship ).validate().statusCode( 200 );
 
-        JsonObject relationshipBody = trackerActions.get( "/relationships/" + relationshipId ).getBody();
+        JsonObject relationshipBody = trackerActions.getRelationship( relationshipId ).getBody();
 
         JsonObjectBuilder.jsonObject( relationship )
             .addObjectByJsonPath( "relationships[0]", "from",
@@ -123,13 +163,14 @@ public class RelationshipsTests
             .build();
 
         // act
-        TrackerApiResponse response = trackerActions
-            .postAndGetJobReport( relationship, new QueryParamsBuilder().add( "importStrategy=UPDATE" ) );
+        trackerActions
+            .postAndGetJobReport( relationship, new QueryParamsBuilder().add( "importStrategy=UPDATE" ) )
+            .validateErrorReport();
 
-        // assert
-        response.validateErrorReport();
-        assertThat( trackerActions.get( "/relationships/" + relationshipId ).getBody(),
-            matchesJSON( relationshipBody ) );
+        trackerActions.getRelationship( relationshipId )
+            .validate()
+            .body( "", matchesJSON( relationshipBody ) );
+
     }
 
     @ParameterizedTest
@@ -316,20 +357,9 @@ public class RelationshipsTests
 
     }
 
-    Stream<Arguments> shouldImportRelationships()
-    {
-        return Stream.of(
-            Arguments.of( "HrS7b5Lis6E", "event", events.get( 0 ), "trackedEntity", teis.get( 0 ) ),
-            Arguments.of( "HrS7b5Lis6w", "trackedEntity", teis.get( 0 ), "event", events.get( 0 ) ),
-            Arguments.of( "HrS7b5Lis6P", "event", events.get( 0 ), "event", events.get( 1 ) ),
-            Arguments.of( "TV9oB9LT3sh", "trackedEntity", teis.get( 0 ), "trackedEntity",
-                teis.get( 1 ) ),
-            Arguments.of( "WmNgnmedbQj", "trackedEntity", teis.get( 0 ), "enrollment", enrollments.get( 1 ) ) ); // tei to tei
-    }
-
-    @MethodSource()
+    @MethodSource( "provideRelationshipData" )
     @ParameterizedTest( name = "{index} {1} to {3}" )
-    public void shouldImportRelationships( String relType, String fromInstance,
+    public void shouldImportRelationshipsToExistingEntities( String relType, String fromInstance,
         String fromInstanceId, String toInstance, String toInstanceId )
     {
         // arrange
@@ -343,7 +373,7 @@ public class RelationshipsTests
             .validateSuccessfulImport()
             .extractImportedRelationships();
 
-        ApiResponse response = trackerActions.get( "/relationships/" + createdRelationships.get( 0 ) );
+        ApiResponse response = trackerActions.getRelationship(  createdRelationships.get( 0 ) );
 
         validateRelationship( response, relType, fromInstance, fromInstanceId, toInstance, toInstanceId,
             createdRelationships.get( 0 ) );
@@ -356,21 +386,6 @@ public class RelationshipsTests
         entityResponse = getEntityInRelationship( fromInstance, fromInstanceId );
         validateRelationship( entityResponse, relType, fromInstance, fromInstanceId, toInstance, toInstanceId,
             createdRelationships.get( 0 ) );
-    }
-
-    private static Stream<Arguments> provideDuplicateRelationshipData()
-    {
-        return Stream.of(
-            Arguments.of( teis.get( 0 ), teis.get( 1 ), teis.get( 1 ), teis.get( 0 ), true, 1,
-                "bi: reversed direction should import 1" ),
-            Arguments
-                .of( teis.get( 0 ), teis.get( 1 ), teis.get( 0 ), teis.get( 1 ), false, 1,
-                    "uni: same direction should import 1" ),
-            Arguments
-                .of( teis.get( 0 ), teis.get( 1 ), teis.get( 0 ), teis.get( 1 ), true, 1,
-                    "bi: same direction should import 1" ),
-            Arguments.of( teis.get( 0 ), teis.get( 1 ), teis.get( 1 ), teis.get( 0 ), false, 2,
-                "uni: reversed direction should import 2" ) );
     }
 
     @MethodSource( "provideDuplicateRelationshipData" )
@@ -425,7 +440,7 @@ public class RelationshipsTests
         {
         case "trackedEntity":
         {
-            return trackerActions.getTrackedEntity( id + queryParams );
+            return trackerActions.getTrackedEntity( id + queryParams);
         }
 
         case "event":
@@ -434,10 +449,13 @@ public class RelationshipsTests
         }
 
         case "enrollment":
+        {
             return trackerActions.getEnrollment( id + queryParams );
+
+        }
         default:
         {
-            throw new RuntimeException( "Not implemented" );
+            return null;
         }
         }
     }
@@ -449,17 +467,16 @@ public class RelationshipsTests
         String bodyPrefix = "";
         if ( response.getBody().getAsJsonArray( "relationships" ) != null )
         {
-            bodyPrefix = "relationships[0]";
+            bodyPrefix = String.format( "relationships.find { it.relationship == '%s' }", relationshipId );
         }
 
         response.validate()
             .statusCode( 200 )
             .body( bodyPrefix, notNullValue() )
             .rootPath( bodyPrefix )
+            .body( "", notNullValue() )
             .body( "relationshipType", equalTo( relationshipTypeId ) )
-            .body( "relationship", equalTo( relationshipId ) )
-            .body( String.format( "from.%s", fromInstance ),
-                equalTo( fromInstanceId ) )
+            .body( String.format( "from.%s", fromInstance ), equalTo( fromInstanceId ) )
             .body( String.format( "to.%s", toInstance ), equalTo( toInstanceId ) );
     }
 
