@@ -231,7 +231,7 @@ class EventProgramPreProcessorTest
         event.setAttributeCategoryOptions( "123;235" );
         when( preheat.get( Program.class, event.getProgram() ) ).thenReturn( program );
         CategoryOptionCombo categoryOptionCombo = createCategoryOptionCombo( 'A' );
-        when( preheat.getEventAOCFor( categoryCombo, "123;235" ) ).thenReturn( categoryOptionCombo );
+        when( preheat.getCategoryOptionCombo( categoryCombo, "123;235" ) ).thenReturn( categoryOptionCombo );
 
         TrackerBundle bundle = TrackerBundle.builder()
             .events( Collections.singletonList( event ) )

@@ -126,7 +126,7 @@ public class EventProgramPreProcessor
         for ( Event e : events )
         {
             Program program = preheat.get( Program.class, e.getProgram() );
-            CategoryOptionCombo aoc = preheat.getEventAOCFor( program.getCategoryCombo(),
+            CategoryOptionCombo aoc = preheat.getCategoryOptionCombo( program.getCategoryCombo(),
                 e.getAttributeCategoryOptions() );
             if ( aoc != null )
             {

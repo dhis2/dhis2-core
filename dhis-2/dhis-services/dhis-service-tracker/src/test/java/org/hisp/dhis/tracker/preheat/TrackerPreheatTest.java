@@ -62,7 +62,7 @@ import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerIdentifierParams;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -73,7 +73,7 @@ import com.google.common.collect.Sets;
 class TrackerPreheatTest extends DhisConvenienceTest
 {
     @Test
-    public void testAllEmpty()
+    void testAllEmpty()
     {
         TrackerPreheat preheat = new TrackerPreheat();
 
@@ -83,7 +83,7 @@ class TrackerPreheatTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testGetEventAOCForUsingSet()
+    void testPreheatCategoryOptionComboUsingSet()
     {
 
         CategoryCombo categoryCombo = categoryCombo();
@@ -91,23 +91,25 @@ class TrackerPreheatTest extends DhisConvenienceTest
         aoc.setCode( "ABC" );
         Set<CategoryOption> options = aoc.getCategoryOptions();
 
-        TrackerPreheat preheat = new TrackerPreheat();
         TrackerIdentifierParams identifierParams = TrackerIdentifierParams.builder()
             .categoryOptionComboIdScheme( TrackerIdentifier.CODE )
             .build();
+        TrackerPreheat preheat = new TrackerPreheat();
         preheat.setIdentifiers( identifierParams );
 
-        assertNull( preheat.getEventAOCFor( categoryCombo, options ) );
+        assertFalse( preheat.containsCategoryOptionCombo( categoryCombo, options ) );
+        assertNull( preheat.getCategoryOptionCombo( categoryCombo, options ) );
         assertNull( preheat.getCategoryOptionCombo( "ABC" ) );
 
-        preheat.putEventAOCFor( categoryCombo, options, aoc );
+        preheat.putCategoryOptionCombo( categoryCombo, options, aoc );
 
-        assertEquals( aoc, preheat.getEventAOCFor( categoryCombo, options ) );
+        assertTrue( preheat.containsCategoryOptionCombo( categoryCombo, options ) );
+        assertEquals( aoc, preheat.getCategoryOptionCombo( categoryCombo, options ) );
         assertEquals( aoc, preheat.getCategoryOptionCombo( "ABC" ) );
     }
 
     @Test
-    public void testGetEventAOCForUsingStringIfCOsFound()
+    void testPreheatCategoryOptionComboUsingStringIfCOsFound()
     {
 
         CategoryCombo categoryCombo = categoryCombo();
@@ -122,17 +124,19 @@ class TrackerPreheatTest extends DhisConvenienceTest
         options.forEach( o -> preheat.put( identifiers.getCategoryOptionIdScheme(), o ) );
 
         String optionsString = concatCategoryOptions( identifiers.getCategoryOptionComboIdScheme(), options );
-        assertNull( preheat.getEventAOCFor( categoryCombo, optionsString ) );
+        assertFalse( preheat.containsCategoryOptionCombo( categoryCombo, options ) );
+        assertNull( preheat.getCategoryOptionCombo( categoryCombo, optionsString ) );
         assertNull( preheat.getCategoryOptionCombo( aoc.getUid() ) );
 
-        preheat.putEventAOCFor( categoryCombo, options, aoc );
+        preheat.putCategoryOptionCombo( categoryCombo, options, aoc );
 
-        assertEquals( aoc, preheat.getEventAOCFor( categoryCombo, optionsString ) );
+        assertTrue( preheat.containsCategoryOptionCombo( categoryCombo, options ) );
+        assertEquals( aoc, preheat.getCategoryOptionCombo( categoryCombo, optionsString ) );
         assertEquals( aoc, preheat.getCategoryOptionCombo( aoc.getUid() ) );
     }
 
     @Test
-    public void testGetEventAOCForUsingStringIfCOsNotFound()
+    void testPreheatCategoryOptionComboUsingStringIfCOsNotFound()
     {
 
         CategoryCombo categoryCombo = categoryCombo();
@@ -144,17 +148,39 @@ class TrackerPreheatTest extends DhisConvenienceTest
         preheat.setIdentifiers( identifiers );
 
         String optionsString = concatCategoryOptions( identifiers.getCategoryOptionComboIdScheme(), options );
-        assertNull( preheat.getEventAOCFor( categoryCombo, optionsString ) );
+        assertFalse( preheat.containsCategoryOptionCombo( categoryCombo, options ) );
+        assertNull( preheat.getCategoryOptionCombo( categoryCombo, optionsString ) );
         assertNull( preheat.getCategoryOptionCombo( aoc.getUid() ) );
 
-        preheat.putEventAOCFor( categoryCombo, options, aoc );
+        preheat.putCategoryOptionCombo( categoryCombo, options, aoc );
 
-        assertNull( preheat.getEventAOCFor( categoryCombo, optionsString ) );
+        assertTrue( preheat.containsCategoryOptionCombo( categoryCombo, options ) );
+        assertNull( preheat.getCategoryOptionCombo( categoryCombo, optionsString ) );
         assertEquals( aoc, preheat.getCategoryOptionCombo( aoc.getUid() ) );
     }
 
     @Test
-    public void testPutAndGetByUid()
+    void testPreheatCategoryOptionCombosAllowNullValues()
+    {
+
+        CategoryCombo categoryCombo = categoryCombo();
+        CategoryOptionCombo aoc = firstCategoryOptionCombo( categoryCombo );
+        Set<CategoryOption> options = aoc.getCategoryOptions();
+
+        TrackerPreheat preheat = new TrackerPreheat();
+        TrackerIdentifierParams identifiers = new TrackerIdentifierParams();
+        preheat.setIdentifiers( identifiers );
+
+        preheat.putCategoryOptionCombo( categoryCombo, options, null );
+
+        assertTrue( preheat.containsCategoryOptionCombo( categoryCombo, options ) );
+        String optionsString = concatCategoryOptions( identifiers.getCategoryOptionComboIdScheme(), options );
+        assertNull( preheat.getCategoryOptionCombo( categoryCombo, optionsString ) );
+        assertNull( preheat.getCategoryOptionCombo( aoc.getUid() ) );
+    }
+
+    @Test
+    void testPutAndGetByUid()
     {
         TrackerPreheat preheat = new TrackerPreheat();
 
@@ -173,7 +199,7 @@ class TrackerPreheatTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testPutAndGetByCode()
+    void testPutAndGetByCode()
     {
         TrackerPreheat preheat = new TrackerPreheat();
 
@@ -191,7 +217,7 @@ class TrackerPreheatTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testPutAndGetByName()
+    void testPutAndGetByName()
     {
         TrackerPreheat preheat = new TrackerPreheat();
 
@@ -209,7 +235,7 @@ class TrackerPreheatTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testPutAndGetByAttribute()
+    void testPutAndGetByAttribute()
     {
         TrackerPreheat preheat = new TrackerPreheat();
         Attribute attribute = new Attribute();
@@ -230,7 +256,7 @@ class TrackerPreheatTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testPutUid()
+    void testPutUid()
     {
         TrackerPreheat preheat = new TrackerPreheat();
 
@@ -254,7 +280,7 @@ class TrackerPreheatTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testPutCode()
+    void testPutCode()
     {
         TrackerPreheat preheat = new TrackerPreheat();
 
@@ -281,7 +307,7 @@ class TrackerPreheatTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testPutCollectionUid()
+    void testPutCollectionUid()
     {
         TrackerPreheat preheat = new TrackerPreheat();
 
@@ -303,7 +329,7 @@ class TrackerPreheatTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testReferenceInvalidation()
+    void testReferenceInvalidation()
     {
         TrackerPreheat preheat = new TrackerPreheat();
 
