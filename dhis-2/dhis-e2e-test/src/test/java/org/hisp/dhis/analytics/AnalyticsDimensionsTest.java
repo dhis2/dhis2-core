@@ -28,8 +28,8 @@
 
 package org.hisp.dhis.analytics;
 
-import com.google.common.collect.Ordering;
 import org.hamcrest.CoreMatchers;
+import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.Constants;
@@ -126,19 +126,6 @@ public class AnalyticsDimensionsTest
             .body( "dimensions.id", everyItem( CustomMatchers.startsWithOneOf( trackerProgram.getProgramStages() ) ) );
     }
 
-    @ValueSource( strings = {
-        "DATA_ELEMENT", "PROGRAM_INDICATOR", "PROGRAM_ATTRIBUTE"
-    } )
-    @ParameterizedTest
-    public void shouldFilterByDimensionType( String dimensionType )
-    {
-        analyticsEnrollmentsActions.query().getDimensionsByDimensionType( trackerProgram.getUid(), dimensionType )
-            .validate()
-            .body( "dimensions", notNullValue() )
-            .body( "dimensions", hasSize( greaterThanOrEqualTo( 1 ) ) )
-            .body( "dimensions.dimensionType", everyItem( equalTo( dimensionType ) ) );
-    }
-
     @Test
     public void shouldOnlyReturnProgramTrackedEntityAttributes()
     {
@@ -230,5 +217,44 @@ public class AnalyticsDimensionsTest
         validate.accept( analyticsEventActions.query()
             .getDimensions( programStage, new QueryParamsBuilder().add( "filter", "dimensionType:like:CATEGORY" ) ) );
 
+    }
+
+    Stream<Arguments> shouldFilter()
+    {
+        return Stream.of(
+            Arguments.of( "uid", "eq", "ISTEJWQz7tr", equalTo( "ISTEJWQz7tr" ) ),
+            Arguments.of( "uid", "ieq", "isteJWQz7tr", containsString( "ISTEJWQz7tr" ) ),
+            Arguments.of( "id", "ne", "ISTEJWQz7tr", not( equalTo( "ISTEJWQz7tr" ) ) ),
+            Arguments.of( "code", "like", "TA", containsString( "TA" ) ),
+            Arguments.of( "valueType", "like", "TEXT", oneOf( "TEXT", "LONG_TEXT" ) ),
+            Arguments.of( "id", "startsWith", trackerProgram.getProgramStages().get( 0 ),
+                startsWith( trackerProgram.getProgramStages().get( 0 ) ) ),
+            Arguments.of( "id", "endsWith", "BuZ5LGNfGET", endsWith( "BuZ5LGNfGET" ) ),
+            Arguments.of( "id", "!startsWith", trackerProgram.getProgramStages().get( 0 ),
+                not( startsWith( trackerProgram.getProgramStages().get( 0 ) ) ) ),
+            Arguments.of( "dimensionType", "eq", "DATA_ELEMENT", equalTo( "DATA_ELEMENT" ) ),
+            Arguments.of( "dimensionType", "eq", "PROGRAM_INDICATOR", equalTo( "PROGRAM_INDICATOR" ) ),
+            Arguments.of( "dimensionType", "eq", "PROGRAM_ATTRIBUTE", equalTo( "PROGRAM_ATTRIBUTE" ) )
+
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource
+    public void shouldFilter( String property, String operator, String value, Matcher matcher )
+    {
+        Consumer<ApiResponse> validate = response -> {
+            response.validate().statusCode( 200 )
+                .body( "dimensions", hasSize( greaterThanOrEqualTo( 1 ) ) )
+                .body( "dimensions." + property, everyItem( matcher ) );
+        };
+
+        validate.accept( analyticsEnrollmentsActions.query()
+            .getDimensions( trackerProgram.getUid(),
+                new QueryParamsBuilder().add( String.format( "filter=%s:%s:%s", property, operator, value ) ) ) );
+
+        validate.accept( analyticsEventActions.query()
+            .getDimensions( trackerProgram.getProgramStages().get( 0 ),
+                new QueryParamsBuilder().add( String.format( "filter=%s:%s:%s", property, operator, value ) ) ) );
     }
 }
