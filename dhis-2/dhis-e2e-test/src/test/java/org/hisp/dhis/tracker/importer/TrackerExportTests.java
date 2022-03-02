@@ -54,9 +54,11 @@ import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.startsWith;
 
@@ -219,5 +221,18 @@ public class TrackerExportTests
             .statusCode( 200 )
             .body( String.format( "instances.findAll { it.trackedEntity == '%s' }.size()", teiId ), is( 1 ) )
             .body( "instances.attributes.flatten().findAll { it.attribute == 'kZeSYCgaHTk' }.value", everyItem( is( "Bravo" ) ) );
+    }
+
+    @Test
+    public void shouldReturnRelationshipsByTei()
+    {
+        trackerActions.get( "/relationships?trackedEntity=" + teiId )
+            .validateStatus( 200 )
+            .validate()
+            .body( "instances", hasSize( greaterThanOrEqualTo( 1 ) ) )
+            .rootPath( "instances[0]" )
+            .body( "relationship", equalTo( relationshipId ) )
+            .body( "from.trackedEntity", equalTo( teiId ) )
+            .body( "to.trackedEntity", notNullValue() );
     }
 }
