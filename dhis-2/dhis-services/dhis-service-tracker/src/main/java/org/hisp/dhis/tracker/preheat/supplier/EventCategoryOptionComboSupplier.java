@@ -45,7 +45,6 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.tracker.TrackerIdentifierParams;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
@@ -76,7 +75,7 @@ public class EventCategoryOptionComboSupplier extends AbstractPreheatSupplier
         List<Pair<CategoryCombo, Set<CategoryOption>>> events = params.getEvents().stream()
             .filter( e -> StringUtils.isBlank( e.getAttributeOptionCombo() )
                 && !StringUtils.isBlank( e.getAttributeCategoryOptions() ) )
-            .map( e -> Pair.of( resolveProgram( preheat, params.getIdentifiers(), e ), parseCategoryOptionIds( e ) ) )
+            .map( e -> Pair.of( resolveProgram( preheat, e ), parseCategoryOptionIds( e ) ) )
             .filter( p -> p.getLeft() != null )
             .filter( p -> hasOnlyExistingCategoryOptions( preheat, p.getRight() ) )
             .map( p -> Pair.of( p.getLeft().getCategoryCombo(), toCategoryOptions( preheat, p.getRight() ) ) )
@@ -109,7 +108,7 @@ public class EventCategoryOptionComboSupplier extends AbstractPreheatSupplier
      * required but programStage is. Since the preheat phase is before
      * pre-process and validation we need to be more defensive with null-checks.
      */
-    private Program resolveProgram( TrackerPreheat preheat, TrackerIdentifierParams identifierParams, Event e )
+    private Program resolveProgram( TrackerPreheat preheat, Event e )
     {
 
         Program program = preheat.get( Program.class, e.getProgram() );
