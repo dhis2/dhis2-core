@@ -107,7 +107,10 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
         options.forEach(
             o -> when( preheat.getCategoryOption( identifierParams.getCategoryOptionIdScheme().getIdentifier( o ) ) )
                 .thenReturn( o ) );
-        when( categoryService.getCategoryOptionCombo( categoryCombo, aoc.getCategoryOptions() ) ).thenReturn( aoc );
+        when( preheat.containsCategoryOptionCombo( program.getCategoryCombo(), aoc.getCategoryOptions() ) )
+            .thenReturn( false );
+        when( categoryService.getCategoryOptionCombo( categoryCombo, aoc.getCategoryOptions() ) )
+            .thenReturn( aoc );
 
         supplier.preheatAdd( params, preheat );
 
@@ -148,7 +151,10 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
         options.forEach(
             o -> when( preheat.getCategoryOption( identifierParams.getCategoryOptionIdScheme().getIdentifier( o ) ) )
                 .thenReturn( o ) );
-        when( categoryService.getCategoryOptionCombo( categoryCombo, aoc.getCategoryOptions() ) ).thenReturn( aoc );
+        when( preheat.containsCategoryOptionCombo( program.getCategoryCombo(), aoc.getCategoryOptions() ) )
+            .thenReturn( false );
+        when( categoryService.getCategoryOptionCombo( program.getCategoryCombo(), aoc.getCategoryOptions() ) )
+            .thenReturn( aoc );
 
         supplier.preheatAdd( params, preheat );
 
@@ -184,11 +190,12 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
         options.forEach(
             o -> when( preheat.getCategoryOption( identifierParams.getCategoryOptionIdScheme().getIdentifier( o ) ) )
                 .thenReturn( o ) );
-        when( categoryService.getCategoryOptionCombo( categoryCombo, aoc.getCategoryOptions() ) ).thenReturn( aoc );
-        when( preheat.getCategoryOptionCombo( program.getCategoryCombo(), aoc.getCategoryOptions() ) )
-            .thenReturn( null ) // first event will not have its AOC in the
-                                // preheat
-            .thenReturn( aoc ); // second event should see AOC from preheat
+        when( preheat.containsCategoryOptionCombo( program.getCategoryCombo(), aoc.getCategoryOptions() ) )
+            .thenReturn( false ) // first event will not have its AOC in the
+                                 // preheat
+            .thenReturn( true ); // second event should see AOC from preheat
+        when( categoryService.getCategoryOptionCombo( program.getCategoryCombo(), aoc.getCategoryOptions() ) )
+            .thenReturn( aoc );
 
         supplier.preheatAdd( params, preheat );
 
@@ -197,7 +204,7 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
     }
 
     @Test
-    void shouldNotPreheatEventAOCIfNotProvidedAndAOCNotFound()
+    void shouldPreheatEventAOCEvenIfNotFound()
     {
 
         TrackerIdentifierParams identifierParams = TrackerIdentifierParams.builder()
@@ -215,7 +222,7 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
             .program( program.getUid() )
             .attributeCategoryOptions( concatCategoryOptions( identifierParams.getCategoryOptionIdScheme(), options ) )
             .build();
-        List<Event> events = List.of( event );
+        List<Event> events = List.of( event, event );
         TrackerImportParams params = TrackerImportParams.builder()
             .identifiers( identifierParams )
             .events( events )
@@ -225,10 +232,17 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
         options.forEach(
             o -> when( preheat.getCategoryOption( identifierParams.getCategoryOptionIdScheme().getIdentifier( o ) ) )
                 .thenReturn( o ) );
+        when( preheat.containsCategoryOptionCombo( program.getCategoryCombo(), aoc.getCategoryOptions() ) )
+            .thenReturn( false ) // first event will not have the result of
+                                 // fetching the AOC stored
+            .thenReturn( true ); // second event will have it
+        when( categoryService.getCategoryOptionCombo( categoryCombo, aoc.getCategoryOptions() ) )
+            .thenReturn( null ); // AOC cannot be found
 
         supplier.preheatAdd( params, preheat );
 
-        verify( preheat, times( 0 ) ).putCategoryOptionCombo( program.getCategoryCombo(), options, aoc );
+        verify( categoryService, times( 1 ) ).getCategoryOptionCombo( categoryCombo, aoc.getCategoryOptions() );
+        verify( preheat, times( 1 ) ).putCategoryOptionCombo( program.getCategoryCombo(), options, null );
     }
 
     @Test
@@ -256,7 +270,8 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
             .build();
 
         when( preheat.get( Program.class, event.getProgram() ) ).thenReturn( program );
-        when( categoryService.getCategoryOptionCombo( categoryCombo, aoc.getCategoryOptions() ) ).thenReturn( aoc );
+        when( categoryService.getCategoryOptionCombo( categoryCombo, aoc.getCategoryOptions() ) )
+            .thenReturn( aoc );
 
         supplier.preheatAdd( params, preheat );
 
@@ -289,6 +304,7 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
 
         supplier.preheatAdd( params, preheat );
 
+        verifyNoInteractions( categoryService );
         verify( preheat, times( 0 ) ).putCategoryOptionCombo( any(), eq( options ), eq( aoc ) );
     }
 
@@ -319,10 +335,10 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
         options.forEach(
             o -> when( preheat.getCategoryOption( identifierParams.getCategoryOptionIdScheme().getIdentifier( o ) ) )
                 .thenReturn( o ) );
-        when( categoryService.getCategoryOptionCombo( categoryCombo, aoc.getCategoryOptions() ) ).thenReturn( aoc );
 
         supplier.preheatAdd( params, preheat );
 
+        verifyNoInteractions( categoryService );
         verify( preheat, times( 0 ) ).putCategoryOptionCombo( any(), eq( options ), eq( aoc ) );
     }
 
@@ -357,10 +373,10 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
         options.forEach(
             o -> when( preheat.getCategoryOption( identifierParams.getCategoryOptionIdScheme().getIdentifier( o ) ) )
                 .thenReturn( o ) );
-        when( categoryService.getCategoryOptionCombo( categoryCombo, aoc.getCategoryOptions() ) ).thenReturn( aoc );
 
         supplier.preheatAdd( params, preheat );
 
+        verifyNoInteractions( categoryService );
         verify( preheat, times( 0 ) ).putCategoryOptionCombo( any(), eq( options ), eq( aoc ) );
     }
 
@@ -394,6 +410,7 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
 
         supplier.preheatAdd( params, preheat );
 
+        verifyNoInteractions( categoryService );
         verify( preheat, times( 0 ) ).putCategoryOptionCombo( program.getCategoryCombo(), options, aoc );
     }
 
@@ -425,6 +442,7 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
 
         supplier.preheatAdd( params, preheat );
 
+        verifyNoInteractions( categoryService );
         verify( preheat, times( 0 ) ).putCategoryOptionCombo( program.getCategoryCombo(), aoc.getCategoryOptions(),
             aoc );
     }
@@ -455,6 +473,7 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
 
         supplier.preheatAdd( params, preheat );
 
+        verifyNoInteractions( categoryService );
         verify( preheat, times( 0 ) ).putCategoryOptionCombo( any(), any(), any() );
     }
 
