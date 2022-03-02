@@ -114,19 +114,19 @@ public abstract class SmsGateway
         }
         catch ( HttpClientErrorException ex )
         {
-            log.error( "Sms request Client error", ex );
+            log.error( "Sms request client error", ex );
 
             statusCode = ex.getStatusCode();
         }
         catch ( HttpServerErrorException ex )
         {
-            log.error( "Sms request Server error", ex );
+            log.error( "Sms request server error", ex );
 
             statusCode = ex.getStatusCode();
         }
         catch ( Exception ex )
         {
-            log.error( "Sms request Error", ex );
+            log.error( "Sms request error", ex );
 
             statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
         }

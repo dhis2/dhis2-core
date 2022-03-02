@@ -79,8 +79,6 @@ import com.google.common.collect.Sets;
 public class SmsMessageSender
     implements MessageSender
 {
-    private static final String SMS_TEXT_MESSAGE_TOO_LONG = "Sms text message is too long";
-
     private static final String NO_CONFIG = "No default gateway configured";
 
     private static final String BATCH_ABORTED = "Aborted sending message batch";
@@ -114,6 +112,7 @@ public class SmsMessageSender
         Preconditions.checkNotNull( outboundSmsService );
         Preconditions.checkNotNull( userSettingService );
         Preconditions.checkState( !smsGateways.isEmpty() );
+        Preconditions.checkNotNull( systemSettingManager );
 
         this.gatewayAdminService = gatewayAdminService;
         this.smsGateways = smsGateways;
@@ -275,7 +274,7 @@ public class SmsMessageSender
                     .orElseGet(
                         () -> systemSettingManager.getSystemSetting( SettingKey.SMS_MAX_LENGTH, Integer.class ) ) )
                 {
-                    return new OutboundMessageResponse( SMS_TEXT_MESSAGE_TOO_LONG,
+                    return new OutboundMessageResponse( GatewayResponse.SMS_TEXT_MESSAGE_TOO_LONG.getResponseMessage(),
                         GatewayResponse.SMS_TEXT_MESSAGE_TOO_LONG, false );
                 }
 
