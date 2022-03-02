@@ -66,50 +66,21 @@ import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
 public class RelationshipsTests
     extends TrackerNtiApiTest
 {
-    private static final String relationshipType = "xLmPUYJX8Ks";
+    private static final String relationshipType = "TV9oB9LT3sh";
 
     private static List<String> teis;
 
     private static List<String> events;
 
+    private static List<String> enrollments;
+
     private List<String> createdRelationships = new ArrayList<>();
 
-    private RestApiActions relationshipTypeActions;
+    private RelationshipTypeActions relationshipTypeActions;
 
     private TEIActions teiActions;
 
     private MetadataActions metadataActions;
-
-    private static Stream<Arguments> provideRelationshipData()
-    {
-        return Stream.of(
-            Arguments.arguments( "HrS7b5Lis6E", "event", events.get( 0 ), "trackedEntity", teis.get( 0 ) ), // event
-            // to
-            // tei
-            Arguments.arguments( "HrS7b5Lis6w", "trackedEntity", teis.get( 0 ), "event", events.get( 0 ) ), // tei
-            // to
-            // event
-            Arguments.arguments( "HrS7b5Lis6P", "event", events.get( 0 ), "event", events.get( 1 ) ), // event
-            // to
-            // event
-            Arguments.arguments( "xLmPUYJX8Ks", "trackedEntity", teis.get( 0 ), "trackedEntity",
-                teis.get( 1 ) ) ); // tei to tei
-    }
-
-    private static Stream<Arguments> provideDuplicateRelationshipData()
-    {
-        return Stream.of(
-            Arguments.of( teis.get( 0 ), teis.get( 1 ), teis.get( 1 ), teis.get( 0 ), true, 1,
-                "bi: reversed direction should import 1" ),
-            Arguments
-                .of( teis.get( 0 ), teis.get( 1 ), teis.get( 0 ), teis.get( 1 ), false, 1,
-                    "uni: same direction should import 1" ),
-            Arguments
-                .of( teis.get( 0 ), teis.get( 1 ), teis.get( 0 ), teis.get( 1 ), true, 1,
-                    "bi: same direction should import 1" ),
-            Arguments.of( teis.get( 0 ), teis.get( 1 ), teis.get( 1 ), teis.get( 0 ), false, 2,
-                "uni: reversed direction should import 2" ) );
-    }
 
     @BeforeAll
     public void beforeAll()
@@ -117,13 +88,15 @@ public class RelationshipsTests
     {
         teiActions = new TEIActions();
         metadataActions = new MetadataActions();
-        relationshipTypeActions = new RestApiActions( "/relationshipTypes" );
+        relationshipTypeActions = new RelationshipTypeActions();
 
         loginActions.loginAsSuperUser();
 
         metadataActions.importAndValidateMetadata( new File( "src/test/resources/tracker/relationshipTypes.json" ) );
 
-        teis = importTeis();
+        TrackerApiResponse teisWithEnrollmentAndEvent = importTeiWithEnrollmentAndEvent();
+        teis = teisWithEnrollmentAndEvent.extractImportedTeis();
+        enrollments = teisWithEnrollmentAndEvent.extractImportedEnrollments();
         events = importEvents();
     }
 
@@ -131,13 +104,8 @@ public class RelationshipsTests
     public void shouldNotUpdateRelationship()
     {
         // arrange
-        String relationshipId = new IdGenerator().generateUniqueId();
-
-        JsonObject relationship = JsonObjectBuilder.jsonObject()
-            .addProperty( "relationship", relationshipId )
-            .addProperty( "relationshipType", relationshipType )
-            .addObject( "from", JsonObjectBuilder.jsonObject().addProperty( "trackedEntity", teis.get( 0 ) ) )
-            .addObject( "to", JsonObjectBuilder.jsonObject().addProperty( "trackedEntity", teis.get( 1 ) ) )
+        JsonObject relationship = JsonObjectBuilder.jsonObject( new RelationshipDataBuilder()
+            .buildTrackedEntityRelationship( teis.get( 0 ), teis.get( 1 ), relationshipType ) )
             .wrapIntoArray( "relationships" );
 
         trackerActions.postAndGetJobReport( relationship ).validate().statusCode( 200 );
@@ -345,9 +313,20 @@ public class RelationshipsTests
 
     }
 
-    @MethodSource( "provideRelationshipData" )
+    Stream<Arguments> shouldImportRelationships()
+    {
+        return Stream.of(
+            Arguments.of( "HrS7b5Lis6E", "event", events.get( 0 ), "trackedEntity", teis.get( 0 ) ),
+            Arguments.of( "HrS7b5Lis6w", "trackedEntity", teis.get( 0 ), "event", events.get( 0 ) ),
+            Arguments.of( "HrS7b5Lis6P", "event", events.get( 0 ), "event", events.get( 1 ) ),
+            Arguments.of( "TV9oB9LT3sh", "trackedEntity", teis.get( 0 ), "trackedEntity",
+                teis.get( 1 ) ),
+            Arguments.of( "WmNgnmedbQj", "trackedEntity", teis.get( 0 ), "enrollment", enrollments.get( 1 ) ) ); // tei to tei
+    }
+
+    @MethodSource()
     @ParameterizedTest( name = "{index} {1} to {3}" )
-    public void shouldImportRelationshipsToExistingEntities( String relType, String fromInstance,
+    public void shouldImportRelationships( String relType, String fromInstance,
         String fromInstanceId, String toInstance, String toInstanceId )
     {
         // arrange
@@ -374,6 +353,21 @@ public class RelationshipsTests
         entityResponse = getEntityInRelationship( fromInstance, fromInstanceId );
         validateRelationship( entityResponse, relType, fromInstance, fromInstanceId, toInstance, toInstanceId,
             createdRelationships.get( 0 ) );
+    }
+
+    private static Stream<Arguments> provideDuplicateRelationshipData()
+    {
+        return Stream.of(
+            Arguments.of( teis.get( 0 ), teis.get( 1 ), teis.get( 1 ), teis.get( 0 ), true, 1,
+                "bi: reversed direction should import 1" ),
+            Arguments
+                .of( teis.get( 0 ), teis.get( 1 ), teis.get( 0 ), teis.get( 1 ), false, 1,
+                    "uni: same direction should import 1" ),
+            Arguments
+                .of( teis.get( 0 ), teis.get( 1 ), teis.get( 0 ), teis.get( 1 ), true, 1,
+                    "bi: same direction should import 1" ),
+            Arguments.of( teis.get( 0 ), teis.get( 1 ), teis.get( 1 ), teis.get( 0 ), false, 2,
+                "uni: reversed direction should import 2" ) );
     }
 
     @MethodSource( "provideDuplicateRelationshipData" )
@@ -423,21 +417,24 @@ public class RelationshipsTests
 
     private ApiResponse getEntityInRelationship( String toOrFromInstance, String id )
     {
+        String queryParams = "?fields=relationships";
         switch ( toOrFromInstance )
         {
         case "trackedEntity":
         {
-            return trackerActions.getTrackedEntity( id + "?fields=relationships" );
+            return trackerActions.getTrackedEntity( id + queryParams );
         }
 
         case "event":
         {
-            return trackerActions.get( "/events/" + id, new QueryParamsBuilder().add( "fields=relationships" ) );
+            return trackerActions.getEvent( id + queryParams );
         }
 
+        case "enrollment":
+            return trackerActions.getEnrollment( id + queryParams );
         default:
         {
-            return null;
+            throw new RuntimeException( "Not implemented" );
         }
         }
     }
