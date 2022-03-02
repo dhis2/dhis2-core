@@ -44,6 +44,8 @@ public class IdSchemes
 
     private IdScheme dataElementIdScheme;
 
+    private IdScheme dataElementGroupIdScheme;
+
     private IdScheme categoryOptionComboIdScheme;
 
     private IdScheme categoryOptionIdScheme;
@@ -107,6 +109,17 @@ public class IdSchemes
     public IdSchemes setDataElementIdScheme( String idScheme )
     {
         this.dataElementIdScheme = IdScheme.from( idScheme );
+        return this;
+    }
+
+    public IdScheme getDataElementGroupIdScheme()
+    {
+        return getScheme( dataElementGroupIdScheme );
+    }
+
+    public IdSchemes setDataElementGroupIdScheme( String idScheme )
+    {
+        this.dataElementGroupIdScheme = IdScheme.from( idScheme );
         return this;
     }
 
