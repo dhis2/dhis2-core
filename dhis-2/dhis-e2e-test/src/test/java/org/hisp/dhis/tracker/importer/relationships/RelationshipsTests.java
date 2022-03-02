@@ -28,10 +28,10 @@
 package org.hisp.dhis.tracker.importer.relationships;
 
 import com.google.gson.JsonObject;
+import io.restassured.response.ValidatableResponse;
 import org.hamcrest.Matchers;
-import org.hisp.dhis.actions.IdGenerator;
-import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.metadata.MetadataActions;
+import org.hisp.dhis.actions.metadata.RelationshipTypeActions;
 import org.hisp.dhis.actions.tracker.TEIActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;
@@ -54,10 +54,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
 
 /**
