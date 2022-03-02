@@ -34,6 +34,7 @@ import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.hisp.dhis.tracker.TrackerNtiApiTest;
+import org.hisp.dhis.tracker.importer.databuilder.TeiDataBuilder;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -59,10 +60,10 @@ public class TeiImportTests
     public void shouldImportTei()
     {
         // arrange
-        JsonObject trackedEntities = new JsonObjectBuilder()
-            .addProperty( "trackedEntityType", "Q9GufDoplCL" )
-            .addProperty( "orgUnit", Constants.ORG_UNIT_IDS[0] )
-            .wrapIntoArray( "trackedEntities" );
+        JsonObject trackedEntities = new TeiDataBuilder()
+            .setTeiType(  Constants.TRACKED_ENTITY_TYPE )
+            .setOu( Constants.ORG_UNIT_IDS[0] )
+            .array();
 
         // act
         TrackerApiResponse response = trackerActions.postAndGetJobReport( trackedEntities );
