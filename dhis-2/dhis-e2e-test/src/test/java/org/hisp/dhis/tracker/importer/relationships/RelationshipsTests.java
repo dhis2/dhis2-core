@@ -28,7 +28,6 @@
 package org.hisp.dhis.tracker.importer.relationships;
 
 import com.google.gson.JsonObject;
-import io.restassured.response.ValidatableResponse;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.actions.IdGenerator;
 import org.hisp.dhis.actions.metadata.MetadataActions;
@@ -131,7 +130,7 @@ public class RelationshipsTests
 
         metadataActions.importAndValidateMetadata( new File( "src/test/resources/tracker/relationshipTypes.json" ) );
 
-        TrackerApiResponse importResponse = importTeiWithEnrollmentAndEvent().validateSuccessfulImport();
+        TrackerApiResponse importResponse = importTeisWithEnrollmentAndEvent().validateSuccessfulImport();
         teis = importResponse.extractImportedTeis();
         enrollments = importResponse.extractImportedEnrollments();
         events = importEvents();

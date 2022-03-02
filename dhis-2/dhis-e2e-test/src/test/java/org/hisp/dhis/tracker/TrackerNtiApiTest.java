@@ -35,8 +35,10 @@ import org.hisp.dhis.actions.MaintenanceActions;
 import org.hisp.dhis.actions.metadata.ProgramActions;
 import org.hisp.dhis.actions.tracker.importer.TrackerActions;
 import org.hisp.dhis.dto.TrackerApiResponse;
+import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.hisp.dhis.helpers.file.JsonFileReader;
+import org.hisp.dhis.tracker.importer.databuilder.RelationshipDataBuilder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 
@@ -120,7 +122,7 @@ public class TrackerNtiApiTest
     /*
     Imports one new TEI with enrollment and event
      */
-    protected TrackerApiResponse importTeiWithEnrollmentAndEvent( String orgUnit, String programId, String programStageId )
+    protected TrackerApiResponse importTeisWithEnrollmentAndEvent( String orgUnit, String programId, String programStageId )
         throws Exception
     {
         JsonObject teiWithEnrollment = new FileReaderUtils()
@@ -139,7 +141,7 @@ public class TrackerNtiApiTest
     /*
      Imports new tracked entities, each having an enrollment and event.
      */
-    protected TrackerApiResponse importTeiWithEnrollmentAndEvent()
+    protected TrackerApiResponse importTeisWithEnrollmentAndEvent()
         throws Exception
     {
         JsonObject object = new JsonFileReader( new File( "src/test/resources/tracker/importer/teis/teisWithEnrollmentsAndEvents.json" ) )
@@ -148,6 +150,16 @@ public class TrackerNtiApiTest
 
         return trackerActions.postAndGetJobReport( object )
             .validateSuccessfulImport();
+    }
+
+    protected TrackerApiResponse importRelationshipBetweenTeis( String teiA, String teiB ) {
+        JsonObject payload = new RelationshipDataBuilder()
+            .setFromTrackedEntity( teiA )
+            .setToTrackedEntity( teiB )
+            .setRelationshipType( "xLmPUYJX8Ks" )
+            .array();
+
+        return trackerActions.postAndGetJobReport( payload ).validateSuccessfulImport();
     }
 
     @AfterEach

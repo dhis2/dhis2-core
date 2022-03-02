@@ -151,7 +151,7 @@ public class ImportStrategyTests
     public void shouldDeleteWithOnlyIdInThePayload()
         throws Exception
     {
-        TrackerApiResponse response = super.importTeiWithEnrollmentAndEvent();
+        TrackerApiResponse response = super.importTeisWithEnrollmentAndEvent();
 
         String eventId = response.extractImportedEvents().get( 0 );
         String enrollmentId = response.extractImportedEnrollments().get( 0 );
