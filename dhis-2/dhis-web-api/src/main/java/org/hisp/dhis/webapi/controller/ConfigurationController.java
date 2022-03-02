@@ -158,6 +158,24 @@ public class ConfigurationController
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_SYSTEM_SETTING')" )
+    @DeleteMapping( "/feedbackRecipients" )
+    @ResponseStatus( HttpStatus.NO_CONTENT )
+    public void removeFeedbackRecipients()
+    {
+        Configuration configuration = configurationService.getConfiguration();
+
+        configuration.setFeedbackRecipients( null );
+
+        configurationService.setConfiguration( configuration );
+    }
+
+    @GetMapping( "/feedbackRecipients" )
+    public @ResponseBody UserGroup getSystemUpdateNotificationRecipients( Model model, HttpServletRequest request )
+    {
+        return configurationService.getConfiguration().getSystemUpdateNotificationRecipients();
+    }
+
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_SYSTEM_SETTING')" )
     @PostMapping( "/systemUpdateNotificationRecipients" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void setSystemUpdateNotificationRecipients( @RequestBody String uid )
@@ -180,13 +198,13 @@ public class ConfigurationController
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_SYSTEM_SETTING')" )
-    @DeleteMapping( "/feedbackRecipients" )
+    @DeleteMapping( "/systemUpdateNotificationRecipients" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void removeFeedbackRecipients()
+    public void removeSystemUpdateNotificationRecipients()
     {
         Configuration configuration = configurationService.getConfiguration();
 
-        configuration.setFeedbackRecipients( null );
+        configuration.setSystemUpdateNotificationRecipients( null );
 
         configurationService.setConfiguration( configuration );
     }
