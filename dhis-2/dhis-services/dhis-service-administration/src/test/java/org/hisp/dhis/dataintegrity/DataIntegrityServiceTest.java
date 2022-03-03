@@ -165,7 +165,7 @@ public class DataIntegrityServiceTest
 
     private DefaultDataIntegrityService subject;
 
-    private BeanRandomizer rnd;
+    private BeanRandomizer rnd = new BeanRandomizer();
 
     private DataElementGroup elementGroupA;
 
