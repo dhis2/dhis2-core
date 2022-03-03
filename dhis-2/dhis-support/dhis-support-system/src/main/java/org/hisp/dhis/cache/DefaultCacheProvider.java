@@ -27,21 +27,22 @@
  */
 package org.hisp.dhis.cache;
 
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static java.util.concurrent.TimeUnit.MINUTES;
-import static org.hisp.dhis.commons.util.SystemUtils.isTestRun;
-
-import java.time.Duration;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
-
 import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
+
+import java.time.Duration;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
+
+import static java.util.concurrent.TimeUnit.HOURS;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.MINUTES;
+import static org.hisp.dhis.commons.util.SystemUtils.isTestRun;
 
 /**
  * The {@link DefaultCacheProvider} has the specific configuration for each of
@@ -118,7 +119,9 @@ public class DefaultCacheProvider
         programStageWebHookNotificationTemplateCache,
         pgmOrgUnitAssocCache,
         catOptOrgUnitAssocCache,
-        apiTokensCache
+        apiTokensCache,
+        dataIntegritySummaryCache,
+        dataIntegrityDetailsCache
     }
 
     private final Map<String, Cache<?>> allCaches = new ConcurrentHashMap<>();
@@ -504,11 +507,27 @@ public class DefaultCacheProvider
     @Override
     public <V> Cache<V> createApiKeyCache()
     {
-        return registerCache( this.<V> newBuilder()
+        return registerCache( this.<V>newBuilder()
             .forRegion( Region.apiTokensCache.name() )
             .expireAfterWrite( 1, TimeUnit.HOURS )
             .withInitialCapacity( (int) getActualSize( SIZE_1K ) )
             .forceInMemory()
             .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_10K ) ) ) );
+    }
+
+    @Override
+    public <V> Cache<V> createDataIntegritySummaryCache()
+    {
+        return registerCache( this.<V>newBuilder()
+            .forRegion( Region.dataIntegritySummaryCache.name() )
+            .expireAfterWrite( 1, HOURS ) );
+    }
+
+    @Override
+    public <V> Cache<V> createDataIntegrityDetailsCache()
+    {
+        return registerCache( this.<V>newBuilder()
+            .forRegion( Region.dataIntegrityDetailsCache.name() )
+            .expireAfterWrite( 1, HOURS ) );
     }
 }
