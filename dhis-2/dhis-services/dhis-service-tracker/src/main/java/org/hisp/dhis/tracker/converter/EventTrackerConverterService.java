@@ -55,9 +55,8 @@ import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.domain.UserInfo;
+import org.hisp.dhis.tracker.domain.User;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 
@@ -141,7 +140,7 @@ public class EventTrackerConverterService
                 value.setValue( dataValue.getValue() );
                 value.setProvidedElsewhere( dataValue.getProvidedElsewhere() );
                 value.setStoredBy( dataValue.getStoredBy() );
-                value.setLastUpdatedBy( Optional.ofNullable( dataValue.getLastUpdatedByUserInfo() )
+                value.setUpdatedBy( Optional.ofNullable( dataValue.getLastUpdatedByUserInfo() )
                     .map( this::convertUserInfo ).orElse( null ) );
                 value.setCreatedBy( Optional.ofNullable( dataValue.getCreatedByUserInfo() )
                     .map( this::convertUserInfo ).orElse( null ) );
@@ -261,7 +260,8 @@ public class EventTrackerConverterService
             event.getAssignedUser() != null
             && !event.getAssignedUser().isEmpty() )
         {
-            Optional<User> assignedUser = preheat.getUserByUsername( event.getAssignedUser().getUsername() );
+            Optional<org.hisp.dhis.user.User> assignedUser = preheat
+                .getUserByUsername( event.getAssignedUser().getUsername() );
             assignedUser.ifPresent( programStageInstance::setAssignedUser );
         }
 
@@ -314,9 +314,9 @@ public class EventTrackerConverterService
         return null;
     }
 
-    private UserInfo convertUserInfo( UserInfoSnapshot userInfoSnapshot )
+    private User convertUserInfo( UserInfoSnapshot userInfoSnapshot )
     {
-        return UserInfo.builder()
+        return User.builder()
             .uid( userInfoSnapshot.getUid() )
             .username( userInfoSnapshot.getUsername() )
             .firstName( userInfoSnapshot.getFirstName() )

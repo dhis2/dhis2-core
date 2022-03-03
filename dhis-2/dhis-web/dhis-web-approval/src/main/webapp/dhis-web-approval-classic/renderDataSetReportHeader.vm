@@ -2,7 +2,7 @@
 <input type="hidden" id="currentDataSetId" value="${selectedDataSet.uid}">
 <input type="hidden" id="currentPeriodId" value="${selectedPeriod.isoDate}">
 <input type="hidden" id="currentSelectedUnitOnly" value="${selectedUnitOnly}">
-<div id="userInfo" class="page"></div>
+<div id="user" class="page"></div>
 
 <h3>$encoder.htmlEncode( $selectedOrgunit.name ) - $format.formatPeriod( $selectedPeriod )</h3>
 

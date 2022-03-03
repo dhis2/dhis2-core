@@ -44,9 +44,8 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.domain.UserInfo;
+import org.hisp.dhis.tracker.domain.User;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -73,7 +72,7 @@ class UserSupplierTest
 
     private final BeanRandomizer rnd = BeanRandomizer.create( Event.class, "assignedUser" );
 
-    private List<User> users;
+    private List<org.hisp.dhis.user.User> users;
 
     private List<Event> events;
 
@@ -82,11 +81,11 @@ class UserSupplierTest
     {
         events = rnd.objects( Event.class, 5 ).collect( Collectors.toList() );
         events.forEach( e -> e.setAssignedUser(
-            UserInfo.builder()
+            User.builder()
                 .uid( CodeGenerator.generateUid() )
                 .username( RandomStringUtils.random( 10 ) )
                 .build() ) );
-        users = rnd.objects( User.class, 5 ).collect( Collectors.toList() );
+        users = rnd.objects( org.hisp.dhis.user.User.class, 5 ).collect( Collectors.toList() );
 
         IntStream.range( 0, 5 )
             .forEach( i -> users.get( i ).setUid( events.get( i ).getAssignedUser().getUid() ) );
@@ -98,10 +97,10 @@ class UserSupplierTest
     void verifyUserSupplierByUid()
     {
         final List<String> userIds = events.stream().map( Event::getAssignedUser )
-            .map( UserInfo::getUid )
+            .map( User::getUid )
             .collect( Collectors.toList() );
 
-        when( manager.getByUid( eq( User.class ),
+        when( manager.getByUid( eq( org.hisp.dhis.user.User.class ),
             argThat( t -> t.containsAll( userIds ) ) ) ).thenReturn( users );
 
         final TrackerImportParams params = TrackerImportParams.builder()
@@ -121,7 +120,7 @@ class UserSupplierTest
     void verifyUserSupplierByUsername()
     {
         final List<String> usernames = events.stream().map( Event::getAssignedUser )
-            .map( UserInfo::getUsername )
+            .map( User::getUsername )
             .collect( Collectors.toList() );
 
         when( userService.getUsersByUsernames( argThat( t -> t.containsAll( usernames ) ) ) ).thenReturn( users );

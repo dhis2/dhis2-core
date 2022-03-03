@@ -81,9 +81,9 @@ class NotesConverterServiceTest extends DhisConvenienceTest
     void verifyConvertCommentToNoteWithNoStoredByDefined()
     {
         Note note = rnd.nextObject( Note.class );
-        note.setCreatedBy( null );
+        note.setStoredBy( null );
         final TrackedEntityComment comment = notesConverterService.from( preheat, note );
-        assertNoteValues( comment, note );
+        assertNoteValuesWithCurrentUser( comment, note );
     }
 
     @Test
@@ -125,7 +125,17 @@ class NotesConverterServiceTest extends DhisConvenienceTest
         assertThat( comment, is( notNullValue() ) );
         assertThat( comment.getUid(), is( note.getNote() ) );
         assertThat( comment.getCommentText(), is( note.getValue() ) );
+        assertThat( comment.getCreator(), is( note.getStoredBy() ) );
+        assertThat( comment.getLastUpdatedBy().getUsername(), is( CURRENT_USER ) );
+    }
+
+    private void assertNoteValuesWithCurrentUser( TrackedEntityComment comment, Note note )
+    {
+        assertThat( comment, is( notNullValue() ) );
+        assertThat( comment.getUid(), is( note.getNote() ) );
+        assertThat( comment.getCommentText(), is( note.getValue() ) );
         assertThat( comment.getCreator(), is( CURRENT_USER ) );
+        assertThat( comment.getLastUpdatedBy().getUsername(), is( CURRENT_USER ) );
     }
 
     private void assertCommentValues( Note note, TrackedEntityComment comment )
@@ -133,7 +143,8 @@ class NotesConverterServiceTest extends DhisConvenienceTest
         assertThat( note, is( notNullValue() ) );
         assertThat( note.getNote(), is( comment.getUid() ) );
         assertThat( note.getValue(), is( comment.getCommentText() ) );
-        assertThat( note.getCreatedBy().getUsername(), is( comment.getCreator() ) );
+        assertThat( note.getStoredBy(), is( comment.getCreator() ) );
         assertEquals( note.getStoredAt(), DateUtils.instantFromDate( comment.getCreated() ) );
+        assertThat( comment.getLastUpdatedBy().getUsername(), is( note.getUpdatedBy().getUsername() ) );
     }
 }

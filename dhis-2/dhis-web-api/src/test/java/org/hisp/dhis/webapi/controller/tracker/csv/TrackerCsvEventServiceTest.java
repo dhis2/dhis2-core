@@ -39,7 +39,7 @@ import java.util.List;
 
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.domain.UserInfo;
+import org.hisp.dhis.tracker.domain.User;
 import org.junit.jupiter.api.Test;
 import org.locationtech.jts.io.ParseException;
 
@@ -77,7 +77,7 @@ class TrackerCsvEventServiceTest
         assertNull( events.get( 0 ).getStoredBy() );
         assertNull( events.get( 0 ).getAttributeOptionCombo() );
         assertNull( events.get( 0 ).getAttributeCategoryOptions() );
-        assertEquals( new UserInfo(), events.get( 0 ).getAssignedUser() );
+        assertEquals( new User(), events.get( 0 ).getAssignedUser() );
         assertTrue( events.get( 0 ).getDataValues().isEmpty() );
         assertTrue( events.get( 0 ).getRelationships().isEmpty() );
         assertTrue( events.get( 0 ).getNotes().isEmpty() );

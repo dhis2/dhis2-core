@@ -633,6 +633,7 @@ public class TrackerPreheat
     public void addUsers( Set<User> users )
     {
         Map<String, User> userMap = users.stream()
+            .filter( Objects::nonNull )
             .collect( Collectors.toMap( User::getUsername, Function.identity() ) );
         this.users.putAll( userMap );
     }

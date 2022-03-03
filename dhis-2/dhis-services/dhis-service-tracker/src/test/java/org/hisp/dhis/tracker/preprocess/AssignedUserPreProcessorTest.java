@@ -41,9 +41,8 @@ import org.hamcrest.MatcherAssert;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.domain.UserInfo;
+import org.hisp.dhis.tracker.domain.User;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -107,10 +106,10 @@ class AssignedUserPreProcessorTest extends DhisConvenienceTest
 
     @ParameterizedTest
     @MethodSource( "userInfoProvider" )
-    void testPreprocessorDoNothing( UserInfo userInfo )
+    void testPreprocessorDoNothing( User user )
     {
         Event event = new Event();
-        event.setAssignedUser( userInfo );
+        event.setAssignedUser( user );
         TrackerBundle bundle = TrackerBundle.builder()
             .events( Collections.singletonList( event ) )
             .preheat( preheat )
@@ -122,37 +121,37 @@ class AssignedUserPreProcessorTest extends DhisConvenienceTest
         verify( preheat, times( 0 ) ).getUserByUid( anyString() );
     }
 
-    static Stream<UserInfo> userInfoProvider()
+    static Stream<User> userInfoProvider()
     {
         return Stream.of( userWithUidAndUsername(), userWithNoFields() );
     }
 
-    private static UserInfo userWithOnlyUid()
+    private static User userWithOnlyUid()
     {
 
-        return UserInfo.builder().uid( UID ).build();
+        return User.builder().uid( UID ).build();
     }
 
-    private static UserInfo userWithOnlyUsername()
+    private static User userWithOnlyUsername()
     {
-        return UserInfo.builder().username( USERNAME ).build();
+        return User.builder().username( USERNAME ).build();
     }
 
-    private static UserInfo userWithUidAndUsername()
+    private static User userWithUidAndUsername()
     {
-        return UserInfo.builder().uid( UID ).username( USERNAME ).build();
+        return User.builder().uid( UID ).username( USERNAME ).build();
     }
 
-    private static User completeUser()
+    private static org.hisp.dhis.user.User completeUser()
     {
-        User user = new User();
+        org.hisp.dhis.user.User user = new org.hisp.dhis.user.User();
         user.setUid( UID );
         user.setUsername( USERNAME );
         return user;
     }
 
-    private static UserInfo userWithNoFields()
+    private static User userWithNoFields()
     {
-        return UserInfo.builder().build();
+        return User.builder().build();
     }
 }

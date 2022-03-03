@@ -100,10 +100,10 @@ public class Enrollment
     private String storedBy;
 
     @JsonProperty
-    private UserInfo createdBy;
+    private User createdBy;
 
     @JsonProperty
-    private UserInfo updatedBy;
+    private User updatedBy;
 
     @JsonProperty
     private Geometry geometry;

@@ -764,6 +764,12 @@
                                         <bannedImport>com.google.api.client.util.**</bannedImport>
                                     </bannedImports>
                                 </RestrictImports>
+                                <RestrictImports>
+                                    <reason>Do not use this util. Use com.google.common.lang3 instead</reason>
+                                    <bannedImports>
+                                        <bannedImport>org.apache.commons.lang.**</bannedImport>
+                                    </bannedImports>
+                                </RestrictImports>
                             </rules>
                         </configuration>
                     </execution>

@@ -27,12 +27,12 @@
  */
 package org.hisp.dhis.tracker.domain;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import org.apache.commons.lang.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -43,7 +43,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserInfo
+public class User
 {
     @JsonProperty
     private String uid;
@@ -59,6 +59,6 @@ public class UserInfo
 
     public boolean isEmpty()
     {
-        return StringUtils.isEmpty( uid ) && StringUtils.isEmpty( username );
+        return isBlank( uid ) && isBlank( username );
     }
 }

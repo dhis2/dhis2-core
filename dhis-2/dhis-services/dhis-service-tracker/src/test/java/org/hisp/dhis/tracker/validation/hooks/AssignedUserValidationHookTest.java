@@ -40,11 +40,10 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.domain.UserInfo;
+import org.hisp.dhis.tracker.domain.User;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
-import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -75,9 +74,9 @@ class AssignedUserValidationHookTest extends DhisConvenienceTest
 
     private ProgramStage programStage;
 
-    private static final UserInfo VALID_USER = UserInfo.builder().username( USER_NAME ).build();
+    private static final User VALID_USER = User.builder().username( USER_NAME ).build();
 
-    private static final UserInfo INVALID_USER = UserInfo.builder().username( NOT_VALID_USERNAME ).build();
+    private static final User INVALID_USER = User.builder().username( NOT_VALID_USERNAME ).build();
 
     @BeforeEach
     public void setUp()
@@ -86,7 +85,7 @@ class AssignedUserValidationHookTest extends DhisConvenienceTest
 
         bundle = TrackerBundle.builder().build();
         TrackerPreheat preheat = new TrackerPreheat();
-        User user = createUser( 'A' );
+        org.hisp.dhis.user.User user = createUser( 'A' );
         user.setUsername( USER_NAME );
         preheat.addUsers( Sets.newHashSet( user ) );
         bundle.setPreheat( preheat );
@@ -137,7 +136,7 @@ class AssignedUserValidationHookTest extends DhisConvenienceTest
     {
         // given
         Event event = new Event();
-        event.setAssignedUser( UserInfo.builder().build() );
+        event.setAssignedUser( User.builder().build() );
         event.setProgramStage( PROGRAM_STAGE );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );

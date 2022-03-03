@@ -40,7 +40,7 @@ import org.hisp.dhis.dxf2.events.event.csv.CsvEventService;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.domain.UserInfo;
+import org.hisp.dhis.tracker.domain.User;
 import org.hisp.dhis.util.DateUtils;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
@@ -184,7 +184,7 @@ public class TrackerCsvEventService
                 event.setStoredBy( dataValue.getStoredBy() );
                 event.setAttributeOptionCombo( dataValue.getAttributeOptionCombo() );
                 event.setAttributeCategoryOptions( dataValue.getAttributeCategoryOptions() );
-                event.setAssignedUser( UserInfo.builder().username( dataValue.getAssignedUser() ).build() );
+                event.setAssignedUser( User.builder().username( dataValue.getAssignedUser() ).build() );
 
                 if ( dataValue.getGeometry() != null )
                 {

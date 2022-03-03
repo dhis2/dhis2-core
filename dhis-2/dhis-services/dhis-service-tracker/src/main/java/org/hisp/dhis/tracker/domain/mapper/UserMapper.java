@@ -28,11 +28,11 @@
 package org.hisp.dhis.tracker.domain.mapper;
 
 import org.hisp.dhis.program.UserInfoSnapshot;
-import org.hisp.dhis.tracker.domain.UserInfo;
+import org.hisp.dhis.tracker.domain.User;
 import org.mapstruct.Mapper;
 
 @Mapper
-public interface UserMapper extends DomainMapper<UserInfoSnapshot, UserInfo>
+public interface UserMapper extends DomainMapper<UserInfoSnapshot, User>
 {
-    UserInfo from( UserInfoSnapshot snapshot );
+    User from( UserInfoSnapshot snapshot );
 }

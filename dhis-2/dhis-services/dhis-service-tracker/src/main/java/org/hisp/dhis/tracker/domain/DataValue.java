@@ -65,8 +65,8 @@ public class DataValue
     private String value;
 
     @JsonProperty
-    private UserInfo createdBy;
+    private User createdBy;
 
     @JsonProperty
-    private UserInfo lastUpdatedBy;
+    private User updatedBy;
 }

@@ -85,10 +85,10 @@ public class TrackedEntity
     private String storedBy;
 
     @JsonProperty
-    private UserInfo createdBy;
+    private User createdBy;
 
     @JsonProperty
-    private UserInfo updatedBy;
+    private User updatedBy;
 
     @JsonProperty
     @Builder.Default

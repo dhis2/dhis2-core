@@ -28,7 +28,7 @@
 package org.hisp.dhis.tracker.domain.mapper;
 
 import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.domain.UserInfo;
+import org.hisp.dhis.tracker.domain.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -54,9 +54,9 @@ public interface EventMapper extends DomainMapper<org.hisp.dhis.dxf2.events.even
     Event from( org.hisp.dhis.dxf2.events.event.Event event );
 
     @Named( "toUserInfo" )
-    default UserInfo buildUserInfo( org.hisp.dhis.dxf2.events.event.Event event )
+    default User buildUserInfo( org.hisp.dhis.dxf2.events.event.Event event )
     {
-        return UserInfo.builder()
+        return User.builder()
             .uid( event.getAssignedUser() )
             .username( event.getAssignedUserUsername() )
             .firstName( event.getAssignedUserFirstName() )

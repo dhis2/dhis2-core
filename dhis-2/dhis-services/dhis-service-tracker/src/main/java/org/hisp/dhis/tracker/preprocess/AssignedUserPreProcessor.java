@@ -32,8 +32,7 @@ import java.util.Optional;
 
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.domain.UserInfo;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.tracker.domain.User;
 import org.springframework.stereotype.Component;
 
 /**
@@ -51,21 +50,23 @@ public class AssignedUserPreProcessor
     {
         for ( Event event : bundle.getEvents() )
         {
-            UserInfo assignedUser = event.getAssignedUser();
+            User assignedUser = event.getAssignedUser();
 
-            if ( Objects.nonNull( assignedUser ) )
+            if ( Objects.isNull( assignedUser ) )
             {
+                return;
+            }
 
-                if ( Objects.isNull( assignedUser.getUid() ) && Objects.nonNull( assignedUser.getUsername() ) )
-                {
-                    Optional<User> user = bundle.getPreheat().getUserByUsername( assignedUser.getUsername() );
-                    user.ifPresent( u -> assignedUser.setUid( u.getUid() ) );
-                }
-                else if ( Objects.nonNull( assignedUser.getUid() ) && Objects.isNull( assignedUser.getUsername() ) )
-                {
-                    Optional<User> user = bundle.getPreheat().getUserByUid( assignedUser.getUid() );
-                    user.ifPresent( u -> assignedUser.setUsername( u.getUsername() ) );
-                }
+            if ( Objects.isNull( assignedUser.getUid() ) )
+            {
+                Optional<org.hisp.dhis.user.User> user = bundle.getPreheat()
+                    .getUserByUsername( assignedUser.getUsername() );
+                user.ifPresent( u -> assignedUser.setUid( u.getUid() ) );
+            }
+            if ( Objects.isNull( assignedUser.getUsername() ) )
+            {
+                Optional<org.hisp.dhis.user.User> user = bundle.getPreheat().getUserByUid( assignedUser.getUid() );
+                user.ifPresent( u -> assignedUser.setUsername( u.getUsername() ) );
             }
         }
     }
