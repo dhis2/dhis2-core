@@ -257,6 +257,42 @@
       "autoGenerateEvent": true,
       "publicAccess": "rw------",
       "validationStrategy": "ON_COMPLETE"
+    },
+    {
+      "programStageSections": [],
+      "blockEntryForm": false,
+      "allowGenerateNextVisit": false,
+      "created": "2019-03-29T12:41:32.972",
+      "sortOrder": 3,
+      "openAfterEnrollment": false,
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "translations": [],
+      "enableUserAssignment": false,
+      "program": {
+        "id": "o4dcWCsO6p9"
+      },
+      "generatedByEnrollmentDate": false,
+      "displayGenerateEventBox": true,
+      "id": "A9dLfii5MEu",
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "userGroupAccesses": [],
+      "notificationTemplates": [],
+      "remindCompleted": false,
+      "lastUpdated": "2019-03-29T12:41:33.036",
+      "hideDueDate": false,
+      "name": "some stage T",
+      "repeatable": false,
+      "userAccesses": [],
+      "minDaysFromStart": 0,
+      "attributeValues": [],
+      "preGenerateUID": false,
+      "autoGenerateEvent": true,
+      "publicAccess": "rw------",
+      "validationStrategy": "ON_COMPLETE"
     }
   ],
   "system": {
@@ -594,6 +630,63 @@
       "displayFrontPageList": false
     },
     {
+      "featureType": "NONE",
+      "ignoreOverdueEvents": false,
+      "programSections": [],
+      "created": "2019-03-29T12:41:33.001",
+      "shortName": "Tracker Program T",
+      "incidentDateLabel": "IncidentDate",
+      "translations": [],
+      "style": {
+        "color": "#d32f2f"
+      },
+      "expiryDays": 0,
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "selectEnrollmentDatesInFuture": false,
+      "categoryCombo": {
+        "id": "DYUZwonFF9u"
+      },
+      "notificationTemplates": [],
+      "displayIncidentDate": true,
+      "accessLevel": "OPEN",
+      "userGroupAccesses": [],
+      "id": "o4dcWCsO6p9",
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "completeEventsExpiryDays": 0,
+      "organisationUnits": [
+        {
+          "id": "QfUVllTs6cS"
+        }
+      ],
+      "programStages": [
+        {
+          "id": "A9dLfii5MEu"
+        }
+      ],
+      "onlyEnrollOnce": false,
+      "lastUpdated": "2019-03-29T12:41:33.039",
+      "trackedEntityType": {
+        "id": "bPJ0FMtcnEh"
+      },
+      "name": "Tracker Program Y",
+      "enrollmentDateLabel": "EnrollmentDate",
+      "maxTeiCountToReturn": 0,
+      "attributeValues": [],
+      "userAccesses": [],
+      "useFirstStageDuringRegistration": false,
+      "minAttributesRequiredToSearch": 1,
+      "skipOffline": false,
+      "version": 0,
+      "programType": "WITHOUT_REGISTRATION",
+      "selectIncidentDatesInFuture": false,
+      "publicAccess": "rw------",
+      "displayFrontPageList": false
+    },
+    {
       "ignoreOverdueEvents": false,
       "programSections": [],
       "created": "2019-03-29T12:41:33.001",
@@ -707,7 +800,7 @@
       ]
     }
   ],
-      "users": [
+  "users": [
         {
           "dataViewOrganisationUnits": [
             {
@@ -1890,8 +1983,8 @@
     },
     {
       "id": "Aj6SFQQBBFU",
-      "code": "nondef1 cat1",
-      "name": "nondef1 cat1",
+      "code": "nondef1 opt1",
+      "name": "nondef1 opt1",
       "startDate": "2019-01-01T00:00:00.000",
       "endDate": "2019-12-01T00:00:00.000",
       "userAccesses": [],
@@ -1905,8 +1998,8 @@
     },
     {
       "id": "w5izht2FZ1h",
-      "code": "nondef1 cat2",
-      "name": "nondef1 cat2",
+      "code": "nondef1 opt2",
+      "name": "nondef1 opt2",
       "startDate": "2019-01-01T00:00:00.000",
       "endDate": "2019-12-01T00:00:00.000",
       "userAccesses": [],
@@ -1920,8 +2013,8 @@
     },
     {
       "id": "zRXSQ4AQu7I",
-      "code": "nondef2 cat1",
-      "name": "nondef2 cat1",
+      "code": "nondef2 opt1",
+      "name": "nondef2 opt1",
       "startDate": "2019-12-01T00:00:00.000",
       "endDate": "2019-01-01T00:00:00.000",
       "userAccesses": [],
@@ -2050,6 +2143,27 @@
       "userAccesses": [],
       "userGroupAccesses": [],
       "publicAccess": "rw------"
+    },
+    {
+      "id": "DYUZwonFF9u",
+      "code": "nondef_1_and_2",
+      "name": "nondef_1_and_2",
+      "dataDimensionType": "ATTRIBUTE",
+      "categories": [
+        {
+          "id": "LC4ZMxxHtBA"
+        },
+        {
+          "id": "c8eyBWpwcce"
+        }
+      ],
+      "created": "2019-03-25T13:40:24.771",
+      "lastUpdated": "2019-03-25T13:40:24.781",
+      "skipTotal": false,
+      "translations": [],
+      "userAccesses": [],
+      "userGroupAccesses": [],
+      "publicAccess": "rw------"
     }
   ],
   "categoryOptionCombos": [
@@ -2140,6 +2254,50 @@
       ],
       "categoryCombo": {
         "id": "FLsH8ClLGNB"
+      },
+      "translations": [],
+      "startDate": "2019-12-01T00:00:00.000",
+      "lastUpdated": "2019-03-25T13:40:24.779",
+      "ignoreApproval": false,
+      "attributeValues": [],
+      "created": "2019-03-25T13:40:24.775"
+    },
+    {
+      "id": "sNTzTZVzx29",
+      "code": "nondef_1_and_2_coc1",
+      "name": "nondef_1_and_2_coc1",
+      "categoryOptions": [
+        {
+          "id": "Aj6SFQQBBFU"
+        },
+        {
+          "id": "zRXSQ4AQu7I"
+        }
+      ],
+      "categoryCombo": {
+        "id": "DYUZwonFF9u"
+      },
+      "translations": [],
+      "startDate": "2019-12-01T00:00:00.000",
+      "lastUpdated": "2019-03-25T13:40:24.779",
+      "ignoreApproval": false,
+      "attributeValues": [],
+      "created": "2019-03-25T13:40:24.775"
+    },
+    {
+      "id": "bl2PvD1TsEC",
+      "code": "nondef_1_and_2_coc2",
+      "name": "nondef_1_and_2_coc2",
+      "categoryOptions": [
+        {
+          "id": "w5izht2FZ1h"
+        },
+        {
+          "id": "zRXSQ4AQu7I"
+        }
+      ],
+      "categoryCombo": {
+        "id": "DYUZwonFF9u"
       },
       "translations": [],
       "startDate": "2019-12-01T00:00:00.000",

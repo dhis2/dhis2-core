@@ -305,6 +305,21 @@ class EventImportValidationTest extends AbstractImportValidationTest
     }
 
     @Test
+    void testCategoryOptionComboNotFoundGivenSubsetOfCategoryOptions()
+        throws IOException
+    {
+        TrackerImportParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/events_cant-find-aoc-with-subset-of-cos.json" );
+        trackerBundleParams.setImportStrategy( TrackerImportStrategy.CREATE );
+
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
+
+        assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
+        assertThat( trackerImportReport.getValidationReport().getErrors(),
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1117 ) ) ) );
+    }
+
+    @Test
     void testCOFoundButAOCNotFound()
         throws IOException
     {
