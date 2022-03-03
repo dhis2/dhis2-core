@@ -38,6 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -132,6 +133,31 @@ class TrackerPreheatTest extends DhisConvenienceTest
         assertTrue( preheat.containsCategoryOptionCombo( categoryCombo, options ) );
         assertEquals( aoc, preheat.getCategoryOptionCombo( categoryCombo, optionsString ) );
         assertEquals( aoc, preheat.getCategoryOptionCombo( aoc.getUid() ) );
+    }
+
+    @Test
+    void testPreheatCategoryOptionComboUsingStringIfCOsFoundIsOrderIndependent()
+    {
+
+        CategoryCombo categoryCombo = categoryCombo();
+        CategoryOptionCombo aoc = firstCategoryOptionCombo( categoryCombo );
+        Set<CategoryOption> options = aoc.getCategoryOptions();
+        assertEquals( 2, aoc.getCategoryOptions().size() );
+        Iterator<CategoryOption> it = aoc.getCategoryOptions().iterator();
+        CategoryOption option1 = it.next();
+        CategoryOption option2 = it.next();
+
+        TrackerPreheat preheat = new TrackerPreheat();
+        TrackerIdentifierParams identifiers = new TrackerIdentifierParams();
+        preheat.setIdentifiers( identifiers );
+
+        // category options are added to the preheat by ClassBasedSupplier
+        options.forEach( o -> preheat.put( identifiers.getCategoryOptionIdScheme(), o ) );
+
+        preheat.putCategoryOptionCombo( categoryCombo, options, aoc );
+
+        assertEquals( aoc, preheat.getCategoryOptionCombo( categoryCombo, option1.getUid() + ";" + option2.getUid() ) );
+        assertEquals( aoc, preheat.getCategoryOptionCombo( categoryCombo, option2.getUid() + ";" + option1.getUid() ) );
     }
 
     @Test
