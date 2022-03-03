@@ -28,6 +28,7 @@
 package org.hisp.dhis.dxf2.events.trackedentity;
 
 import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
+import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsValid;
 import static org.hisp.dhis.trackedentity.TrackedEntityAttributeService.TEA_VALUE_MAX_LENGTH;
 
 import java.io.IOException;
@@ -1444,6 +1445,24 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
                     importConflicts.add( new ImportConflict( "Attribute.value",
                         String.format( "File resource with uid '%s' has already been assigned to a different object",
                             attribute.getValue() ) ) );
+                }
+
+                if ( daoEntityAttribute.getValueType().isFile() && checkAssigned( attribute, fileValues ) )
+                {
+                    importConflicts.addConflict( "Attribute.value",
+                        String.format( "File resource with uid '%s' has already been assigned to a different object",
+                            attribute.getValue() ) );
+                }
+
+                if ( daoEntityAttribute.getValueType().isDate() )
+                {
+                    String result = dataValueIsValid( attribute.getValue(), attribute.getValueType() );
+                    if ( null != result )
+                    {
+                        importConflicts.addConflict( "Attribute.value",
+                            String.format( "Value '%s' of attribute '%s' is not valid for value type Date",
+                                attribute.getValue(), daoEntityAttribute.getUid() ) );
+                    }
                 }
             }
         }
