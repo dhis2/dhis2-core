@@ -34,7 +34,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -149,16 +148,25 @@ public class TrackerPreheat
      * Category option combo value will be in the idScheme defined by the user
      * on import.
      */
-    private final Map<Pair<CategoryCombo, Set<CategoryOption>>, String> cosToCOC = new HashMap<>();
+    private final Map<Pair<String, Set<String>>, String> cosToCOC = new HashMap<>();
 
+    /**
+     * Store mapping of category combo + category options identifiers(key) to
+     * category option combo identifiers (value).
+     *
+     * Category options, category option combo identifiers will be in the
+     * idScheme defined by the user on import. Note: different idSchemes for
+     * category combos are not supported.
+     */
     public void putCategoryOptionCombo( CategoryCombo categoryCombo, Set<CategoryOption> categoryOptions,
         CategoryOptionCombo categoryOptionCombo )
     {
         if ( categoryOptionCombo != null )
         {
+            TrackerIdentifier optionComboIdScheme = getIdentifiers().getCategoryOptionComboIdScheme();
             this.cosToCOC.put( categoryOptionComboCacheKey( categoryCombo, categoryOptions ),
-                getIdentifiers().getCategoryOptionComboIdScheme().getIdentifier( categoryOptionCombo ) );
-            this.put( identifiers.getCategoryOptionComboIdScheme(), categoryOptionCombo );
+                optionComboIdScheme.getIdentifier( categoryOptionCombo ) );
+            this.put( optionComboIdScheme, categoryOptionCombo );
         }
         else
         {
@@ -166,10 +174,19 @@ public class TrackerPreheat
         }
     }
 
-    private Pair<CategoryCombo, Set<CategoryOption>> categoryOptionComboCacheKey( CategoryCombo categoryCombo,
+    private Pair<String, Set<String>> categoryOptionComboCacheKey( CategoryCombo categoryCombo,
         Set<CategoryOption> categoryOptions )
     {
-        return Pair.of( categoryCombo, categoryOptions );
+        Set<String> coIds = categoryOptions.stream()
+            .map( getIdentifiers().getCategoryOptionIdScheme()::getIdentifier )
+            .collect( Collectors.toSet() );
+        return Pair.of( categoryCombo.getUid(), coIds );
+    }
+
+    private Pair<String, Set<String>> categoryOptionComboCacheKey( CategoryCombo categoryCombo,
+        String categoryOptions )
+    {
+        return Pair.of( categoryCombo.getUid(), parseCategoryOptions( categoryOptions ) );
     }
 
     public CategoryOptionCombo getCategoryOptionCombo( CategoryCombo categoryCombo,
@@ -186,24 +203,8 @@ public class TrackerPreheat
 
     public CategoryOptionCombo getCategoryOptionCombo( CategoryCombo categoryCombo, String categoryOptions )
     {
-        return this.getCategoryOptionCombo( categoryCombo, getCategoryOptions( categoryOptions ) );
-    }
-
-    private Set<CategoryOption> getCategoryOptions( String categoryOptions )
-    {
-        Set<CategoryOption> result = new HashSet<>();
-        Set<String> ids = parseCategoryOptions( categoryOptions );
-        for ( String id : ids )
-        {
-            // TODO this means that category options will have to be initialized
-            // for this to work
-            // this is done by the ClassBasedSupplier
-            // so there is a dependency on order here
-            // think if this is ok; or if I should adapt the cache to simple
-            // strings?
-            result.add( this.getCategoryOption( id ) );
-        }
-        return result;
+        return this.getCategoryOptionCombo(
+            this.cosToCOC.get( categoryOptionComboCacheKey( categoryCombo, categoryOptions ) ) );
     }
 
     private Set<String> parseCategoryOptions( String categoryOptions )

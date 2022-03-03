@@ -120,9 +120,6 @@ class TrackerPreheatTest extends DhisConvenienceTest
         TrackerIdentifierParams identifiers = new TrackerIdentifierParams();
         preheat.setIdentifiers( identifiers );
 
-        // category options are added to the preheat by ClassBasedSupplier
-        options.forEach( o -> preheat.put( identifiers.getCategoryOptionIdScheme(), o ) );
-
         String optionsString = concatCategoryOptions( identifiers.getCategoryOptionComboIdScheme(), options );
         assertFalse( preheat.containsCategoryOptionCombo( categoryCombo, options ) );
         assertNull( preheat.getCategoryOptionCombo( categoryCombo, optionsString ) );
@@ -151,37 +148,10 @@ class TrackerPreheatTest extends DhisConvenienceTest
         TrackerIdentifierParams identifiers = new TrackerIdentifierParams();
         preheat.setIdentifiers( identifiers );
 
-        // category options are added to the preheat by ClassBasedSupplier
-        options.forEach( o -> preheat.put( identifiers.getCategoryOptionIdScheme(), o ) );
-
         preheat.putCategoryOptionCombo( categoryCombo, options, aoc );
 
         assertEquals( aoc, preheat.getCategoryOptionCombo( categoryCombo, option1.getUid() + ";" + option2.getUid() ) );
         assertEquals( aoc, preheat.getCategoryOptionCombo( categoryCombo, option2.getUid() + ";" + option1.getUid() ) );
-    }
-
-    @Test
-    void testPreheatCategoryOptionComboUsingStringIfCOsNotFound()
-    {
-
-        CategoryCombo categoryCombo = categoryCombo();
-        CategoryOptionCombo aoc = firstCategoryOptionCombo( categoryCombo );
-        Set<CategoryOption> options = aoc.getCategoryOptions();
-
-        TrackerPreheat preheat = new TrackerPreheat();
-        TrackerIdentifierParams identifiers = new TrackerIdentifierParams();
-        preheat.setIdentifiers( identifiers );
-
-        String optionsString = concatCategoryOptions( identifiers.getCategoryOptionComboIdScheme(), options );
-        assertFalse( preheat.containsCategoryOptionCombo( categoryCombo, options ) );
-        assertNull( preheat.getCategoryOptionCombo( categoryCombo, optionsString ) );
-        assertNull( preheat.getCategoryOptionCombo( aoc.getUid() ) );
-
-        preheat.putCategoryOptionCombo( categoryCombo, options, aoc );
-
-        assertTrue( preheat.containsCategoryOptionCombo( categoryCombo, options ) );
-        assertNull( preheat.getCategoryOptionCombo( categoryCombo, optionsString ) );
-        assertEquals( aoc, preheat.getCategoryOptionCombo( aoc.getUid() ) );
     }
 
     @Test
