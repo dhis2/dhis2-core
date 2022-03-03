@@ -185,9 +185,8 @@ public class TrackerPreheat
 
     /**
      * Check if a category option combo for given category combo and category
-     * options. For the category option combo to exist it has to be stored
-     * before using {@see putCategoryOptionCombo} Returns true if null and a
-     * non-null category option combo have been stored.
+     * options has been stored using {@link #putCategoryOptionCombo}. Returns
+     * true if null and a non-null category option combo have been stored.
      *
      * @param categoryCombo category combo
      * @param categoryOptions category options
@@ -199,6 +198,15 @@ public class TrackerPreheat
         return this.cosToCOC.containsKey( categoryOptionComboCacheKey( categoryCombo, categoryOptions ) );
     }
 
+    /**
+     * Get the category option combo for given category combo and category
+     * options. For the category option combo to exist it has to be stored
+     * before using {@link #putCategoryOptionCombo}.
+     *
+     * @param categoryCombo category combo
+     * @param categoryOptions semi-colon separated list of category options
+     * @return category option combo identifier
+     */
     public CategoryOptionCombo getCategoryOptionCombo( CategoryCombo categoryCombo,
         Set<CategoryOption> categoryOptions )
     {
@@ -210,10 +218,10 @@ public class TrackerPreheat
      * Get the identifier of a category option combo for given category combo
      * and semi-colon separated list of category options. For the category
      * option combo to exist it has to be stored before using
-     * {@see putCategoryOptionCombo}
+     * {@link #putCategoryOptionCombo}.
      *
      * Category option identifiers needs to match the idScheme used when storing
-     * the category option combo using {@see putCategoryOptionCombo}. Category
+     * the category option combo using {@link #putCategoryOptionCombo}. Category
      * option combo identifiers will be in the idScheme defined by the user on
      * import.
      *
