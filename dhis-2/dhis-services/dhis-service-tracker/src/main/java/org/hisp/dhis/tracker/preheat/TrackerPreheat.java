@@ -166,8 +166,6 @@ public class TrackerPreheat
     private Pair<CategoryCombo, Set<CategoryOption>> categoryOptionComboCacheKey( CategoryCombo categoryCombo,
         Set<CategoryOption> categoryOptions )
     {
-        // TODO category combo has no idScheme specified in the import params.
-        // Correct?
         return Pair.of( categoryCombo, categoryOptions );
     }
 
