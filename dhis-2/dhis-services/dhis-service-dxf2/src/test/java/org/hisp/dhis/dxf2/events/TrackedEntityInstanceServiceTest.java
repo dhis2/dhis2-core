@@ -52,6 +52,7 @@ import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.Objects;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
@@ -498,6 +499,61 @@ class TrackedEntityInstanceServiceTest extends TransactionalIntegrationTest
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         // assertEquals( "NAME", personService.getTrackedEntityInstance(
         // importSummary.getReference() ).getName() );
+    }
+
+    @Test
+    void testInvalidAttributeDate()
+    {
+        TrackedEntityAttribute trackedEntityAttribute = createTrackedEntityAttribute( 'D' );
+        trackedEntityAttribute.setValueType( ValueType.DATE );
+        manager.save( trackedEntityAttribute );
+        manager.flush();
+
+        TrackedEntityInstance trackedEntityInstance = new TrackedEntityInstance();
+        trackedEntityInstance.setTrackedEntityInstance( CodeGenerator.generateUid() );
+        trackedEntityInstance.setTrackedEntityType( trackedEntityType.getUid() );
+
+        Attribute attribute = new Attribute();
+        attribute.setAttribute( trackedEntityAttribute.getUid() );
+        attribute.setValue( "0000-01-01" );
+
+        trackedEntityInstance.setAttributes( List.of( attribute ) );
+
+        trackedEntityInstance.setOrgUnit( organisationUnitA.getUid() );
+        ImportSummary importSummary = trackedEntityInstanceService.addTrackedEntityInstance( trackedEntityInstance,
+            null );
+
+        assertTrue( importSummary.isStatus( ImportStatus.ERROR ) );
+        assertEquals( 1, importSummary.getConflictCount() );
+        assertEquals(
+            String.format( "Value '%s' is not a valid date for attribute %s",
+                attribute.getValue(), attribute.getAttribute() ),
+            importSummary.getConflicts().iterator().next().getValue() );
+    }
+
+    @Test
+    void testValidAttributeDate()
+    {
+        TrackedEntityAttribute trackedEntityAttribute = createTrackedEntityAttribute( 'D' );
+        trackedEntityAttribute.setValueType( ValueType.DATE );
+        manager.save( trackedEntityAttribute );
+        manager.flush();
+
+        TrackedEntityInstance trackedEntityInstance = new TrackedEntityInstance();
+        trackedEntityInstance.setTrackedEntityInstance( CodeGenerator.generateUid() );
+        trackedEntityInstance.setTrackedEntityType( trackedEntityType.getUid() );
+
+        Attribute attribute = new Attribute();
+        attribute.setAttribute( trackedEntityAttribute.getUid() );
+        attribute.setValue( "2000-01-01" );
+
+        trackedEntityInstance.setAttributes( List.of( attribute ) );
+
+        trackedEntityInstance.setOrgUnit( organisationUnitA.getUid() );
+        ImportSummary importSummary = trackedEntityInstanceService.addTrackedEntityInstance( trackedEntityInstance,
+            null );
+
+        assertTrue( importSummary.isStatus( ImportStatus.SUCCESS ) );
     }
 
     @Test

@@ -94,6 +94,8 @@ public abstract class AbstractCalendar implements Calendar
 
     protected static final String DEFAULT_ISO8601_DATE_FORMAT = "yyyy-MM-dd";
 
+    protected static final int MIN_YEAR = 1975;
+
     protected String dateFormat = DEFAULT_ISO8601_DATE_FORMAT;
 
     @Override
@@ -275,6 +277,11 @@ public abstract class AbstractCalendar implements Calendar
         }
 
         if ( dateTime.getDay() < 1 || dateTime.getDay() > daysInMonth( dateTime.getYear(), dateTime.getMonth() ) )
+        {
+            return false;
+        }
+
+        if ( dateTime.getYear() < MIN_YEAR )
         {
             return false;
         }
