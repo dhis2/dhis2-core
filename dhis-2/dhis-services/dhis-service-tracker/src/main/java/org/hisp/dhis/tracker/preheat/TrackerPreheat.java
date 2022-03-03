@@ -180,10 +180,9 @@ public class TrackerPreheat
         return Pair.of( categoryCombo.getUid(), coIds );
     }
 
-    private Pair<String, Set<String>> categoryOptionComboCacheKey( CategoryCombo categoryCombo,
-        String categoryOptions )
+    public boolean containsCategoryOptionCombo( CategoryCombo categoryCombo, Set<CategoryOption> categoryOptions )
     {
-        return Pair.of( categoryCombo.getUid(), parseCategoryOptions( categoryOptions ) );
+        return this.cosToCOC.containsKey( categoryOptionComboCacheKey( categoryCombo, categoryOptions ) );
     }
 
     public CategoryOptionCombo getCategoryOptionCombo( CategoryCombo categoryCombo,
@@ -193,15 +192,16 @@ public class TrackerPreheat
             cosToCOC.get( categoryOptionComboCacheKey( categoryCombo, categoryOptions ) ) );
     }
 
-    public boolean containsCategoryOptionCombo( CategoryCombo categoryCombo, Set<CategoryOption> categoryOptions )
-    {
-        return cosToCOC.containsKey( categoryOptionComboCacheKey( categoryCombo, categoryOptions ) );
-    }
-
     public CategoryOptionCombo getCategoryOptionCombo( CategoryCombo categoryCombo, String categoryOptions )
     {
         return this.getCategoryOptionCombo(
             this.cosToCOC.get( categoryOptionComboCacheKey( categoryCombo, categoryOptions ) ) );
+    }
+
+    private Pair<String, Set<String>> categoryOptionComboCacheKey( CategoryCombo categoryCombo,
+        String categoryOptions )
+    {
+        return Pair.of( categoryCombo.getUid(), parseCategoryOptions( categoryOptions ) );
     }
 
     private Set<String> parseCategoryOptions( String categoryOptions )
