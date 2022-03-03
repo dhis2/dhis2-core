@@ -512,7 +512,7 @@ class TrackedEntityInstanceServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void testInvalidDate()
+    void testInvalidAttributeDate()
     {
         TrackedEntityAttribute trackedEntityAttribute = createTrackedEntityAttribute( 'D' );
         trackedEntityAttribute.setValueType( ValueType.DATE );
@@ -539,6 +539,31 @@ class TrackedEntityInstanceServiceTest extends TransactionalIntegrationTest
             String.format( "Value '%s' of attribute '%s' is not valid for value type Date",
                 attribute.getValue(), attribute.getAttribute() ),
             importSummary.getConflicts().iterator().next().getValue() );
+    }
+
+    @Test
+    void testValidAttributeDate()
+    {
+        TrackedEntityAttribute trackedEntityAttribute = createTrackedEntityAttribute( 'D' );
+        trackedEntityAttribute.setValueType( ValueType.DATE );
+        manager.save( trackedEntityAttribute );
+        manager.flush();
+
+        TrackedEntityInstance trackedEntityInstance = new TrackedEntityInstance();
+        trackedEntityInstance.setTrackedEntityInstance( CodeGenerator.generateUid() );
+        trackedEntityInstance.setTrackedEntityType( trackedEntityType.getUid() );
+
+        Attribute attribute = new Attribute();
+        attribute.setAttribute( trackedEntityAttribute.getUid() );
+        attribute.setValue( "2000-01-01" );
+
+        trackedEntityInstance.setAttributes( List.of( attribute ) );
+
+        trackedEntityInstance.setOrgUnit( organisationUnitA.getUid() );
+        ImportSummary importSummary = trackedEntityInstanceService.addTrackedEntityInstance( trackedEntityInstance,
+            null );
+
+        assertTrue( importSummary.isStatus( ImportStatus.SUCCESS ) );
     }
 
     @Test
