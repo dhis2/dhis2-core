@@ -27,41 +27,30 @@
  */
 package org.hisp.dhis.dataintegrity;
 
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
-
-import org.hisp.dhis.scheduling.JobProgress;
-
 /**
- * @author Fredrik Fjeld (old API)
- * @author Jan Bernitt (new API)
+ * Database support for running data integrity checks.
+ * <p>
+ * Mainly this supports the YAML based checks that have SQL in the YAML.
+ *
+ * @author Jan Bernitt
  */
-public interface DataIntegrityService
+public interface DataIntegrityStore
 {
-    /*
-     * Old API
+    /**
+     * Runs a query for a {@link DataIntegritySummary}
+     *
+     * @param check the check the SQL belongs to
+     * @param sql the native SQL to run from a YAML declaration
+     * @return the mapped summary
      */
+    DataIntegritySummary querySummary( DataIntegrityCheck check, String sql );
 
     /**
-     * @deprecated Replaced by {@link #getSummaries(Set, long)} and
-     *             {@link #getDetails(Set, long)}, kept for backwards
-     *             compatibility until new UI exists
+     * Runs a query for a {@link DataIntegrityDetails}.
+     *
+     * @param check the check the SQL belongs to
+     * @param sql the native SQL to run from a YAML declaration
+     * @return the mapped details
      */
-    @Deprecated( since = "2.38", forRemoval = true )
-    FlattenedDataIntegrityReport getReport( Set<String> checks, JobProgress progress );
-
-    /*
-     * New generic API
-     */
-
-    Collection<DataIntegrityCheck> getDataIntegrityChecks();
-
-    Map<String, DataIntegritySummary> getSummaries( Set<String> checks, long timeout );
-
-    Map<String, DataIntegrityDetails> getDetails( Set<String> checks, long timeout );
-
-    void runSummaryChecks( Set<String> checks, JobProgress progress );
-
-    void runDetailsChecks( Set<String> checks, JobProgress progress );
+    DataIntegrityDetails queryDetails( DataIntegrityCheck check, String sql );
 }

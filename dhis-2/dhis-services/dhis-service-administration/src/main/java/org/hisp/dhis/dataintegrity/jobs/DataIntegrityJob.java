@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.dataintegrity.jobs;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import java.util.Set;
+
+import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
@@ -35,7 +37,10 @@ import org.hisp.dhis.dataintegrity.DataIntegrityService;
 import org.hisp.dhis.dataintegrity.FlattenedDataIntegrityReport;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.scheduling.parameters.DataIntegrityJobParameters;
+import org.hisp.dhis.scheduling.parameters.DataIntegrityJobParameters.DataIntegrityReportType;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.springframework.stereotype.Component;
@@ -44,24 +49,12 @@ import org.springframework.stereotype.Component;
  * @author Halvdan Hoem Grelland <halvdanhg@gmail.com>
  */
 @Component( "dataIntegrityJob" )
+@AllArgsConstructor
 public class DataIntegrityJob implements Job
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
     private final DataIntegrityService dataIntegrityService;
 
     private final Notifier notifier;
-
-    public DataIntegrityJob( DataIntegrityService dataIntegrityService, Notifier notifier )
-    {
-        checkNotNull( dataIntegrityService );
-        checkNotNull( notifier );
-
-        this.dataIntegrityService = dataIntegrityService;
-        this.notifier = notifier;
-    }
 
     @Override
     public JobType getJobType()
@@ -69,29 +62,43 @@ public class DataIntegrityJob implements Job
         return JobType.DATA_INTEGRITY;
     }
 
-    // -------------------------------------------------------------------------
-    // Implementation
-    // -------------------------------------------------------------------------
-
     @Override
-    public void execute( JobConfiguration jobConfiguration )
+    public void execute( JobConfiguration config, JobProgress progress )
+    {
+        DataIntegrityJobParameters parameters = (DataIntegrityJobParameters) config.getJobParameters();
+        Set<String> checks = parameters == null
+            ? Set.of()
+            : parameters.getChecks();
+
+        DataIntegrityReportType type = parameters == null ? null : parameters.getType();
+        if ( type == null || type == DataIntegrityReportType.REPORT )
+        {
+            runReport( config, progress, checks );
+        }
+        else if ( type == DataIntegrityReportType.SUMMARY )
+        {
+            dataIntegrityService.runSummaryChecks( checks, progress );
+        }
+        else
+        {
+            dataIntegrityService.runDetailsChecks( checks, progress );
+        }
+    }
+
+    private void runReport( JobConfiguration config, JobProgress progress, Set<String> checks )
     {
         Timer timer = new SystemTimer().start();
-
         notifier.notify(
-            jobConfiguration, NotificationLevel.INFO,
+            config, NotificationLevel.INFO,
             "Starting data integrity job", false );
 
-        FlattenedDataIntegrityReport report = dataIntegrityService.getFlattenedDataIntegrityReport();
+        FlattenedDataIntegrityReport report = dataIntegrityService.getReport( checks, progress );
 
         timer.stop();
 
-        if ( jobConfiguration != null )
-        {
-            notifier.notify(
-                jobConfiguration, NotificationLevel.INFO,
-                "Data integrity checks completed in " + timer.toString() + ".", true )
-                .addJobSummary( jobConfiguration, report, FlattenedDataIntegrityReport.class );
-        }
+        notifier.notify(
+            config, NotificationLevel.INFO,
+            "Data integrity checks completed in " + timer + ".", true )
+            .addJobSummary( config, report, FlattenedDataIntegrityReport.class );
     }
 }

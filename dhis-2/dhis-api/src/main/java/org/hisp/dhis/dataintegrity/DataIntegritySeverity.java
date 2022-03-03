@@ -27,41 +27,31 @@
  */
 package org.hisp.dhis.dataintegrity;
 
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
-
-import org.hisp.dhis.scheduling.JobProgress;
-
 /**
- * @author Fredrik Fjeld (old API)
- * @author Jan Bernitt (new API)
+ * The severity of issues found by a {@link DataIntegrityCheck}.
+ *
+ * @author Jan Bernitt
  */
-public interface DataIntegrityService
+public enum DataIntegritySeverity
 {
-    /*
-     * Old API
+    /**
+     * Indicates that this is for information only.
      */
+    INFO,
+    /**
+     * A warning indicates that this may be a problem, but not necessarily an
+     * error. It is however recommended triaging these issues.
+     */
+    WARNING,
+    /**
+     * An error which should be fixed, but which may not necessarily lead to the
+     * system not functioning.
+     */
+    SEVERE,
 
     /**
-     * @deprecated Replaced by {@link #getSummaries(Set, long)} and
-     *             {@link #getDetails(Set, long)}, kept for backwards
-     *             compatibility until new UI exists
+     * An error which must be fixed, and which may lead to end-user error or
+     * system crashes.
      */
-    @Deprecated( since = "2.38", forRemoval = true )
-    FlattenedDataIntegrityReport getReport( Set<String> checks, JobProgress progress );
-
-    /*
-     * New generic API
-     */
-
-    Collection<DataIntegrityCheck> getDataIntegrityChecks();
-
-    Map<String, DataIntegritySummary> getSummaries( Set<String> checks, long timeout );
-
-    Map<String, DataIntegrityDetails> getDetails( Set<String> checks, long timeout );
-
-    void runSummaryChecks( Set<String> checks, JobProgress progress );
-
-    void runDetailsChecks( Set<String> checks, JobProgress progress );
+    CRITICAL
 }

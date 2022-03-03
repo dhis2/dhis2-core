@@ -25,43 +25,51 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataintegrity;
+package org.hisp.dhis.scheduling.parameters;
 
-import java.util.Collection;
-import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
-import org.hisp.dhis.scheduling.JobProgress;
+import lombok.Getter;
+import lombok.Setter;
+
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.scheduling.JobParameters;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
- * @author Fredrik Fjeld (old API)
- * @author Jan Bernitt (new API)
+ * @author Jan Bernitt
  */
-public interface DataIntegrityService
+@Getter
+@Setter
+@JacksonXmlRootElement( localName = "jobParameters", namespace = DxfNamespaces.DXF_2_0 )
+public class DataIntegrityJobParameters implements JobParameters
 {
-    /*
-     * Old API
-     */
+    public enum DataIntegrityReportType
+    {
+        REPORT,
+        SUMMARY,
+        DETAILS
+    }
 
-    /**
-     * @deprecated Replaced by {@link #getSummaries(Set, long)} and
-     *             {@link #getDetails(Set, long)}, kept for backwards
-     *             compatibility until new UI exists
-     */
-    @Deprecated( since = "2.38", forRemoval = true )
-    FlattenedDataIntegrityReport getReport( Set<String> checks, JobProgress progress );
+    private static final long serialVersionUID = 1073997854310838296L;
 
-    /*
-     * New generic API
-     */
+    @JsonProperty( required = false )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    private Set<String> checks;
 
-    Collection<DataIntegrityCheck> getDataIntegrityChecks();
+    @JsonProperty( required = false )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    private DataIntegrityReportType type;
 
-    Map<String, DataIntegritySummary> getSummaries( Set<String> checks, long timeout );
+    @Override
+    public Optional<ErrorReport> validate()
+    {
+        return Optional.empty();
+    }
 
-    Map<String, DataIntegrityDetails> getDetails( Set<String> checks, long timeout );
-
-    void runSummaryChecks( Set<String> checks, JobProgress progress );
-
-    void runDetailsChecks( Set<String> checks, JobProgress progress );
 }
