@@ -512,8 +512,6 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
 
         CategoryOption co = createCategoryOption( 'B' );
         when( preheat.getCategoryOption( co.getUid() ) ).thenReturn( co );
-        // when( categoryService.getCategoryOptionCombo( cc, Sets.newHashSet( co
-        // ) ) ).thenReturn( null );
 
         Event event = eventBuilder()
             .attributeCategoryOptions( co.getUid() )
