@@ -34,7 +34,6 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.util.Strings;
-import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.TrackerIdentifier;
@@ -115,8 +114,6 @@ public class EventProgramPreProcessor
     {
 
         TrackerPreheat preheat = bundle.getPreheat();
-        TrackerIdentifier identifier = bundle.getPreheat().getIdentifiers().getCategoryOptionComboIdScheme();
-
         List<Event> events = bundle.getEvents().stream()
             .filter( e -> StringUtils.isBlank( e.getAttributeOptionCombo() )
                 && !StringUtils.isBlank( e.getAttributeCategoryOptions() ) )
@@ -126,12 +123,9 @@ public class EventProgramPreProcessor
         for ( Event e : events )
         {
             Program program = preheat.get( Program.class, e.getProgram() );
-            CategoryOptionCombo aoc = preheat.getCategoryOptionCombo( program.getCategoryCombo(),
+            String aoc = preheat.getCategoryOptionComboIdentifier( program.getCategoryCombo(),
                 e.getAttributeCategoryOptions() );
-            if ( aoc != null )
-            {
-                e.setAttributeOptionCombo( identifier.getIdentifier( aoc ) );
-            }
+            e.setAttributeOptionCombo( aoc );
         }
     }
 }
