@@ -27,22 +27,22 @@
  */
 package org.hisp.dhis.scheduling;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import java.util.List;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.scheduling.parameters.MockJobParameters;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Henning Håkonsen
  */
-class JobConfigurationServiceTest extends DhisSpringTest
+public class JobConfigurationServiceTest extends DhisSpringTest
 {
 
     private static final String CRON_EVERY_MIN = "0 * * ? * *";
@@ -65,7 +65,7 @@ class JobConfigurationServiceTest extends DhisSpringTest
     }
 
     @Test
-    void testGetJobTypeInfo()
+    public void testGetJobTypeInfo()
     {
         List<JobTypeInfo> jobTypes = jobConfigurationService.getJobTypeInfo();
         assertNotNull( jobTypes );
@@ -77,10 +77,10 @@ class JobConfigurationServiceTest extends DhisSpringTest
     }
 
     @Test
-    void testGetJob()
+    public void testGetJob()
     {
         List<JobConfiguration> jobConfigurationList = jobConfigurationService.getAllJobConfigurations();
-        assertEquals( 2, jobConfigurationList.size(), "The number of job configurations does not match" );
+        assertEquals( "The number of job configurations does not match", 2, jobConfigurationList.size() );
         assertEquals( JobType.MOCK, jobConfigurationService.getJobConfigurationByUid( jobA.getUid() ).getJobType() );
         MockJobParameters jobParameters = (MockJobParameters) jobConfigurationService
             .getJobConfigurationByUid( jobA.getUid() ).getJobParameters();
@@ -92,7 +92,7 @@ class JobConfigurationServiceTest extends DhisSpringTest
     }
 
     @Test
-    void testUpdateJob()
+    public void testUpdateJob()
     {
         JobConfiguration test = jobConfigurationService.getJobConfigurationByUid( jobA.getUid() );
         test.setName( "testUpdate" );
@@ -101,7 +101,7 @@ class JobConfigurationServiceTest extends DhisSpringTest
     }
 
     @Test
-    void testDeleteJob()
+    public void testDeleteJob()
     {
         jobConfigurationService.deleteJobConfiguration( jobA );
         assertNull( jobConfigurationService.getJobConfigurationByUid( jobA.getUid() ) );

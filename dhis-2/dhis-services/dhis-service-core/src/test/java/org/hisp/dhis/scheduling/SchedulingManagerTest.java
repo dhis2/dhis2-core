@@ -60,8 +60,8 @@ import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
 import org.hisp.dhis.scheduling.parameters.ContinuousAnalyticsJobParameters;
 import org.hisp.dhis.system.notification.Notifier;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.scheduling.TaskScheduler;
@@ -75,13 +75,13 @@ import org.springframework.util.concurrent.SuccessCallback;
  * Since most test setups run with a mock {@link SchedulingManager}
  * implementation this test focuses on testing the
  * {@link DefaultSchedulingManager} implementation.
- *
+ * <p>
  * This does not run any actual {@link Job} but checks that the ceremony around
  * running them works.
  *
  * @author Jan Bernitt
  */
-class SchedulingManagerTest
+public class SchedulingManagerTest
 {
 
     private final TaskScheduler taskScheduler = mock( TaskScheduler.class );
@@ -94,8 +94,8 @@ class SchedulingManagerTest
 
     private DefaultSchedulingManager schedulingManager;
 
-    @BeforeEach
-    void setUp()
+    @Before
+    public void setUp()
     {
         when( applicationContext.getBeansOfType( any() ) ).thenReturn( Collections.singletonMap( "test", job ) );
 
@@ -110,7 +110,7 @@ class SchedulingManagerTest
     }
 
     @Test
-    void testScheduleRunCronJob()
+    public void testScheduleRunCronJob()
     {
         JobConfiguration configuration = createCronJonConfiguration();
         when( job.getJobType() ).thenReturn( configuration.getJobType() );
@@ -122,7 +122,7 @@ class SchedulingManagerTest
     }
 
     @Test
-    void testScheduleRunFixedDelayJob()
+    public void testScheduleRunFixedDelayJob()
     {
         JobConfiguration configuration = createFixedDelayJobConfiguration();
         when( job.getJobType() ).thenReturn( configuration.getJobType() );
@@ -136,7 +136,7 @@ class SchedulingManagerTest
     }
 
     @Test
-    void testScheduleRunWithStartTimeJob()
+    public void testScheduleRunWithStartTimeJob()
     {
         JobConfiguration configuration = createStartTimeJobConfiguration();
         when( job.getJobType() ).thenReturn( configuration.getJobType() );
