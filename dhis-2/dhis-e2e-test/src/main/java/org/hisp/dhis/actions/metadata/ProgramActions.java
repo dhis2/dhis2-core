@@ -128,12 +128,15 @@ public class ProgramActions
      */
     public String createProgramStage( String programId, String programStageName )
     {
-        ApiResponse response = programStageActions
-            .post( new JsonObjectBuilder().addProperty( "name", programStageName ).
-                addObject( "program" , new JsonObjectBuilder().addProperty( "id", programId ))
-                .addProperty( "publicAccess", "rwrw----" ).build() );
-        response.validate().statusCode( Matchers.is( Matchers.oneOf( 201, 200 ) ) );
+        JsonObject programStage = new JsonObjectBuilder()
+            .addProperty( "name", programStageName )
+            .addProperty( "code", programStageName )
+            .addObject( "program", new JsonObjectBuilder().addProperty( "id", programId ) )
+            .addProperty( "publicAccess", "rwrw----" ).build();
 
+        ApiResponse response = programStageActions.post( programStage );
+
+        response.validate().statusCode( Matchers.is( Matchers.oneOf( 201, 200 ) ) );
         return response.extractUid();
     }
 
@@ -193,6 +196,7 @@ public class ProgramActions
         JsonObject object = JsonObjectBuilder.jsonObject()
             .addProperty( "name", "AutoTest program " + random )
             .addProperty( "shortName", "AutoTest program " + random )
+            .addProperty( "code", "TA_PROGRAM_" + random )
             .addUserGroupAccess()
             .addProperty( "publicAccess", "rwrw----" )
             .build();
