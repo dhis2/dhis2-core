@@ -90,7 +90,7 @@ public class JobConfigurationControllerTest extends DhisControllerConvenienceTes
             "{'name':'test','jobType':'DATA_INTEGRITY','cronExpression':'0 0 12 ? * MON-FRI'}" ) );
 
         JsonObject parameters = assertJobConfigurationExists( jobId, "DATA_INTEGRITY" );
-        assertFalse( parameters.exists() );
+        assertTrue( parameters.exists() );
     }
 
     @Test
