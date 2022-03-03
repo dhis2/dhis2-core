@@ -39,6 +39,7 @@ import static org.hisp.dhis.common.QueryOperator.LE;
 import static org.hisp.dhis.common.QueryOperator.LIKE;
 import static org.hisp.dhis.common.QueryOperator.LT;
 import static org.hisp.dhis.common.QueryOperator.NE;
+import static org.hisp.dhis.common.QueryOperator.NEQ;
 import static org.hisp.dhis.common.QueryOperator.NIEQ;
 import static org.hisp.dhis.common.QueryOperator.NILIKE;
 import static org.hisp.dhis.common.QueryOperator.NLIKE;
@@ -64,6 +65,7 @@ public class QueryFilter
         .<QueryOperator, Function<Boolean, String>> builder()
         .put( EQ, isValueNull -> isValueNull ? "is" : "=" )
         .put( NE, isValueNull -> isValueNull ? "is not" : "!=" )
+        .put( NEQ, isValueNull -> isValueNull ? "is not" : "!=" )
         .put( IEQ, isValueNull -> isValueNull ? "is" : "=" )
         .put( NIEQ, isValueNull -> isValueNull ? "is not" : "=" )
         .put( GT, unused -> ">" )
