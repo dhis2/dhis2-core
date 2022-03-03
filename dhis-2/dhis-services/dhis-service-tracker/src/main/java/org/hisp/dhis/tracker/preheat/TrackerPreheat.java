@@ -183,6 +183,17 @@ public class TrackerPreheat
         return Pair.of( categoryCombo.getUid(), coIds );
     }
 
+    /**
+     * Check if a category option combo for given category combo and category
+     * options. For the category option combo to exist it has to be stored
+     * before using {@see putCategoryOptionCombo} Returns true if null and a
+     * non-null category option combo have been stored.
+     *
+     * @param categoryCombo category combo
+     * @param categoryOptions category options
+     * @return true if category option combo has been stored given both
+     *         arguments
+     */
     public boolean containsCategoryOptionCombo( CategoryCombo categoryCombo, Set<CategoryOption> categoryOptions )
     {
         return this.cosToCOC.containsKey( categoryOptionComboCacheKey( categoryCombo, categoryOptions ) );
@@ -195,10 +206,30 @@ public class TrackerPreheat
             cosToCOC.get( categoryOptionComboCacheKey( categoryCombo, categoryOptions ) ) );
     }
 
-    public CategoryOptionCombo getCategoryOptionCombo( CategoryCombo categoryCombo, String categoryOptions )
+    /**
+     * Get the identifier of a category option combo for given category combo
+     * and semi-colon separated list of category options. For the category
+     * option combo to exist it has to be stored before using
+     * {@see putCategoryOptionCombo}
+     *
+     * Category option identifiers needs to match the idScheme used when storing
+     * the category option combo using {@see putCategoryOptionCombo}. Category
+     * option combo identifiers will be in the idScheme defined by the user on
+     * import.
+     *
+     * @param categoryCombo category combo
+     * @param categoryOptions semi-colon separated list of category options
+     * @return category option combo identifier
+     */
+    public String getCategoryOptionComboIdentifier( CategoryCombo categoryCombo, String categoryOptions )
     {
-        return this.getCategoryOptionCombo(
+        CategoryOptionCombo categoryOptionCombo = this.getCategoryOptionCombo(
             this.cosToCOC.get( categoryOptionComboCacheKey( categoryCombo, categoryOptions ) ) );
+        if ( categoryOptionCombo == null )
+        {
+            return null;
+        }
+        return identifiers.getCategoryOptionComboIdScheme().getIdentifier( categoryOptionCombo );
     }
 
     private Pair<String, Set<String>> categoryOptionComboCacheKey( CategoryCombo categoryCombo,
