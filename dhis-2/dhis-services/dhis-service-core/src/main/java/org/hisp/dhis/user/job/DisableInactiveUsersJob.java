@@ -27,23 +27,23 @@
  */
 package org.hisp.dhis.user.job;
 
-import static java.time.ZoneId.systemDefault;
+import lombok.AllArgsConstructor;
+import org.hisp.dhis.email.EmailService;
+import org.hisp.dhis.scheduling.Job;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobProgress;
+import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.scheduling.parameters.DisableInactiveUsersJobParameters;
+import org.hisp.dhis.system.notification.Notifier;
+import org.hisp.dhis.user.UserService;
+import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.Set;
 
-import lombok.AllArgsConstructor;
-
-import org.hisp.dhis.email.EmailService;
-import org.hisp.dhis.scheduling.Job;
-import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobType;
-import org.hisp.dhis.scheduling.parameters.DisableInactiveUsersJobParameters;
-import org.hisp.dhis.system.notification.Notifier;
-import org.hisp.dhis.user.UserService;
-import org.springframework.stereotype.Component;
+import static java.time.ZoneId.systemDefault;
 
 /**
  * @author Jan Bernitt
@@ -64,8 +64,7 @@ public class DisableInactiveUsersJob implements Job
         return JobType.DISABLE_INACTIVE_USERS;
     }
 
-    @Override
-    public void execute( JobConfiguration jobConfiguration )
+    @Override public void execute( JobConfiguration jobConfiguration, JobProgress progress )
     {
         DisableInactiveUsersJobParameters parameters = (DisableInactiveUsersJobParameters) jobConfiguration
             .getJobParameters();

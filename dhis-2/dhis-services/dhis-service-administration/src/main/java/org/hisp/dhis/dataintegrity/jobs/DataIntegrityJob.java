@@ -27,10 +27,7 @@
  */
 package org.hisp.dhis.dataintegrity.jobs;
 
-import java.util.Set;
-
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.dataintegrity.DataIntegrityService;
@@ -44,6 +41,9 @@ import org.hisp.dhis.scheduling.parameters.DataIntegrityJobParameters.DataIntegr
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.springframework.stereotype.Component;
+
+import java.util.Collections;
+import java.util.Set;
 
 /**
  * @author Halvdan Hoem Grelland <halvdanhg@gmail.com>
@@ -67,7 +67,7 @@ public class DataIntegrityJob implements Job
     {
         DataIntegrityJobParameters parameters = (DataIntegrityJobParameters) config.getJobParameters();
         Set<String> checks = parameters == null
-            ? Set.of()
+            ? Collections.emptySet()
             : parameters.getChecks();
 
         DataIntegrityReportType type = parameters == null ? null : parameters.getType();

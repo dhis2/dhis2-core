@@ -27,19 +27,17 @@
  */
 package org.hisp.dhis.dataintegrity;
 
-import java.nio.file.Path;
-import java.util.List;
-import java.util.function.Consumer;
-import java.util.function.Function;
-
-import lombok.extern.slf4j.Slf4j;
-
-import org.springframework.core.io.ClassPathResource;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.ClassPathResource;
+
+import java.io.File;
+import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * Reads {@link DataIntegrityCheck}s from YAML files.
@@ -108,7 +106,7 @@ class DataIntegrityYamlReader
         {
             try
             {
-                String path = Path.of( listFile ).resolve( ".." )
+                String path = new File( listFile ).toPath().resolve( ".." )
                     .resolve( "data-integrity-checks" ).resolve( checkFile ).toString();
                 CheckYamlFile e = yaml.readValue( new ClassPathResource( path ).getInputStream(),
                     CheckYamlFile.class );

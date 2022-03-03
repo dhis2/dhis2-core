@@ -82,6 +82,13 @@ public interface Cache<V>
     Stream<V> getAll();
 
     /**
+     * Should only be used with caution in cases where the set of keys is known to be a small set.
+     *
+     * @return an unmodifiable set of all keys set
+     */
+    Iterable<String> keys();
+
+    /**
      * Associates the {@code value} with the {@code key} in this cache. If the
      * cache previously contained a value associated with the {@code key}, the
      * old value is replaced by the new {@code value}. Prefer
@@ -108,17 +115,26 @@ public interface Cache<V>
     void put( String key, V value, long ttlInSeconds );
 
     /**
-     * Discards any cached value for the {@code key}. The behavior of this
-     * operation is undefined for an entry that is being loaded and is otherwise
-     * not present.
+     * Associates the {@code value} with the {@code key} in this cache if and only of the cache does not already contain
+     * a value for the key.
+     *
+     * @param key   the key for the value
+     * @param value value to be mapped to the key
+     * @return true, if the value was put, false otherwise
+     * @throws IllegalArgumentException if the specified value is null
+     */
+    boolean putIfAbsent( String key, V value );
+
+    /**
+     * Discards any cached value for the {@code key}. The behavior of this operation is undefined for an entry that is
+     * being loaded and is otherwise not present.
      *
      * @param key the key whose mapping is to be removed from the cache
      */
     void invalidate( String key );
 
     /**
-     * Discards all entries in this cache instance. If a shared cache is used,
-     * this method does not clear anything.
+     * Discards all entries in this cache instance.
      */
     void invalidateAll();
 

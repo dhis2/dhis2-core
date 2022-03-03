@@ -27,17 +27,14 @@
  */
 package org.hisp.dhis.analytics.table.scheduling;
 
-import static org.hisp.dhis.util.DateUtils.getLongDateString;
-
-import java.util.Date;
-
+import com.google.common.base.Preconditions;
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.ContinuousAnalyticsJobParameters;
 import org.hisp.dhis.setting.SettingKey;
@@ -45,7 +42,9 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Component;
 
-import com.google.common.base.Preconditions;
+import java.util.Date;
+
+import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
 /**
  * Job for continuous update of analytics tables. Performs analytics table
@@ -85,8 +84,7 @@ public class ContinuousAnalyticsTableJob implements Job
         return JobType.CONTINUOUS_ANALYTICS_TABLE;
     }
 
-    @Override
-    public void execute( JobConfiguration jobConfiguration )
+    @Override public void execute( JobConfiguration jobConfiguration, JobProgress progress )
     {
         ContinuousAnalyticsJobParameters parameters = (ContinuousAnalyticsJobParameters) jobConfiguration
             .getJobParameters();

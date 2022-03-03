@@ -27,18 +27,14 @@
  */
 package org.hisp.dhis.user.job;
 
-import static java.lang.String.format;
-
-import java.util.List;
-
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -46,6 +42,10 @@ import org.hisp.dhis.user.UserAccountExpiryInfo;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
+
+import static java.lang.String.format;
 
 /**
  * Sends an email alert to all users that are soon to expire due to an account
@@ -84,8 +84,7 @@ public class AccountExpiryAlertJob implements Job
         return null;
     }
 
-    @Override
-    public void execute( JobConfiguration jobConfiguration )
+    @Override public void execute( JobConfiguration jobConfiguration, JobProgress progress )
     {
         if ( systemSettingManager.getSystemSetting( SettingKey.ACCOUNT_EXPIRY_ALERT, Boolean.class ) == Boolean.FALSE )
         {

@@ -29,6 +29,7 @@ package org.hisp.dhis.leader.election;
 
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.springframework.stereotype.Component;
 
@@ -57,8 +58,7 @@ public class LeaderElectionJob implements Job
         return JobType.LEADER_ELECTION;
     }
 
-    @Override
-    public void execute( JobConfiguration jobConfiguration )
+    @Override public void execute( JobConfiguration jobConfiguration, JobProgress progress )
     {
         leaderManager.electLeader();
     }

@@ -42,6 +42,7 @@ import java.util.concurrent.TimeUnit;
 import static java.util.concurrent.TimeUnit.HOURS;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.MINUTES;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.hisp.dhis.commons.util.SystemUtils.isTestRun;
 
 /**
@@ -120,6 +121,9 @@ public class DefaultCacheProvider
         pgmOrgUnitAssocCache,
         catOptOrgUnitAssocCache,
         apiTokensCache,
+        runningJobsInfo,
+        completedJobsInfo,
+        jobCancelRequested,
         dataIntegritySummaryCache,
         dataIntegrityDetailsCache
     }
@@ -513,6 +517,30 @@ public class DefaultCacheProvider
             .withInitialCapacity( (int) getActualSize( SIZE_1K ) )
             .forceInMemory()
             .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_10K ) ) ) );
+    }
+
+    @Override
+    public <V> Cache<V> createRunningJobsInfoCache()
+    {
+        return registerCache( this.<V>newBuilder()
+            .forRegion( Region.runningJobsInfo.name() )
+            .expireAfterWrite( 60, SECONDS ) );
+    }
+
+    @Override
+    public <V> Cache<V> createCompletedJobsInfoCache()
+    {
+        return registerCache( this.<V>newBuilder()
+            .forRegion( Region.completedJobsInfo.name() )
+            .expireAfterWrite( 60, SECONDS ) );
+    }
+
+    @Override
+    public <V> Cache<V> createJobCancelRequestedCache()
+    {
+        return registerCache( this.<V>newBuilder()
+            .forRegion( Region.jobCancelRequested.name() )
+            .expireAfterWrite( 60, SECONDS ) );
     }
 
     @Override

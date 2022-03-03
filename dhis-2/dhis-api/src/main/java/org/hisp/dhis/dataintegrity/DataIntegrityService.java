@@ -27,11 +27,11 @@
  */
 package org.hisp.dhis.dataintegrity;
 
+import org.hisp.dhis.scheduling.JobProgress;
+
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
-
-import org.hisp.dhis.scheduling.JobProgress;
 
 /**
  * @author Fredrik Fjeld (old API)
@@ -48,7 +48,6 @@ public interface DataIntegrityService
      *             {@link #getDetails(Set, long)}, kept for backwards
      *             compatibility until new UI exists
      */
-    @Deprecated( since = "2.38", forRemoval = true )
     FlattenedDataIntegrityReport getReport( Set<String> checks, JobProgress progress );
 
     /*

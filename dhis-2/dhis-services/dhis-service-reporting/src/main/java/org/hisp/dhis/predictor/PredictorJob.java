@@ -27,13 +27,14 @@
  */
 package org.hisp.dhis.predictor;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.PredictorJobParameters;
 import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Henning Håkonsen
@@ -56,8 +57,7 @@ public class PredictorJob implements Job
         return JobType.PREDICTOR;
     }
 
-    @Override
-    public void execute( JobConfiguration jobConfiguration )
+    @Override public void execute( JobConfiguration jobConfiguration, JobProgress progress )
     {
         PredictorJobParameters predictorJobParameters = (PredictorJobParameters) jobConfiguration.getJobParameters();
 

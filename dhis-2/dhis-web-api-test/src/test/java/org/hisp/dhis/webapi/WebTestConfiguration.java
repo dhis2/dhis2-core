@@ -27,15 +27,9 @@
  */
 package org.hisp.dhis.webapi;
 
-import java.beans.PropertyVetoException;
-import java.sql.SQLException;
-import java.util.Date;
-
-import javax.sql.DataSource;
-import javax.transaction.Transactional;
-
+import com.google.common.collect.ImmutableMap;
 import lombok.extern.slf4j.Slf4j;
-
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.config.DataSourceConfig;
@@ -64,6 +58,7 @@ import org.hisp.dhis.scheduling.JobService;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.security.SystemAuthoritiesProvider;
 import org.hisp.dhis.startup.DefaultAdminUserPopulator;
+import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.webapi.mvc.ContentNegotiationConfig;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -85,7 +80,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 
-import com.google.common.collect.ImmutableMap;
+import javax.sql.DataSource;
+import javax.transaction.Transactional;
+import java.beans.PropertyVetoException;
+import java.sql.SQLException;
+import java.util.Date;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com
@@ -225,9 +224,10 @@ public class WebTestConfiguration
     @Primary
     public SchedulingManager synchronousSchedulingManager( JobService jobService,
         JobConfigurationService jobConfigurationService,
-        MessageService messageService, LeaderManager leaderManager )
+        MessageService messageService, Notifier notifier, LeaderManager leaderManager, CacheProvider cacheProvider )
     {
-        return new TestSchedulingManager( jobService, jobConfigurationService, messageService, leaderManager );
+        return new TestSchedulingManager( jobService, jobConfigurationService, messageService, notifier,
+            leaderManager, cacheProvider );
     }
 
     public static class TestSchedulingManager extends AbstractSchedulingManager
@@ -235,9 +235,9 @@ public class WebTestConfiguration
         private boolean enabled = true;
 
         public TestSchedulingManager( JobService jobService, JobConfigurationService jobConfigurationService,
-            MessageService messageService, LeaderManager leaderManager )
+            MessageService messageService, Notifier notifier, LeaderManager leaderManager, CacheProvider cacheProvider )
         {
-            super( jobService, jobConfigurationService, messageService, leaderManager );
+            super( jobService, jobConfigurationService, messageService, leaderManager, notifier, cacheProvider );
         }
 
         @Override

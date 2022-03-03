@@ -27,14 +27,14 @@
  */
 package org.hisp.dhis.datastatistics;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Yrjan A. F. Fraschetti
@@ -62,8 +62,7 @@ public class DataStatisticsJob implements Job
         return JobType.DATA_STATISTICS;
     }
 
-    @Override
-    public void execute( JobConfiguration jobConfiguration )
+    @Override public void execute( JobConfiguration jobConfiguration, JobProgress progress )
     {
         long id = dataStatisticsService.saveDataStatisticsSnapshot();
 

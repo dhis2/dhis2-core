@@ -27,21 +27,20 @@
  */
 package org.hisp.dhis.dataintegrity;
 
-import static java.util.stream.Collectors.toUnmodifiableList;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import org.hisp.dhis.common.IdentifiableObject;
 
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
-import org.hisp.dhis.common.IdentifiableObject;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import static java.util.Collections.emptyList;
 
 /**
  * The result data of a {@link DataIntegrityCheck#getRunDetailsCheck()} run.
@@ -100,14 +99,14 @@ public class DataIntegrityDetails implements Serializable
             Collection<? extends IdentifiableObject> refs )
         {
             return new DataIntegrityIssue( obj.getUid(), issueName( obj ), comment,
-                refs == null || refs.isEmpty() ? List.of() : toRefsList( refs.stream() ) );
+                refs == null || refs.isEmpty() ? emptyList() : toRefsList( refs.stream() ) );
         }
 
         public static List<String> toRefsList( Stream<? extends IdentifiableObject> refs )
         {
             return refs.map( DataIntegrityIssue::issueName )
                 .sorted()
-                .collect( toUnmodifiableList() );
+                .collect( Collectors.toList() );
         }
 
         public static String issueName( IdentifiableObject object )

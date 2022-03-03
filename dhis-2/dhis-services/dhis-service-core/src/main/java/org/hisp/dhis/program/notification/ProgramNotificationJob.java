@@ -27,18 +27,19 @@
  */
 package org.hisp.dhis.program.notification;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.Calendar;
-
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.Clock;
 import org.springframework.stereotype.Component;
+
+import java.util.Calendar;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -75,8 +76,7 @@ public class ProgramNotificationJob implements Job
         return JobType.PROGRAM_NOTIFICATIONS;
     }
 
-    @Override
-    public void execute( JobConfiguration jobConfiguration )
+    @Override public void execute( JobConfiguration jobConfiguration, JobProgress progress )
     {
         final Clock clock = new Clock().startClock();
 

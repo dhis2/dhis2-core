@@ -27,13 +27,7 @@
  */
 package org.hisp.dhis.dataintegrity.hibernate;
 
-import static java.util.stream.Collectors.toUnmodifiableList;
-
-import java.util.Date;
-import java.util.List;
-
 import lombok.AllArgsConstructor;
-
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.dataintegrity.DataIntegrityCheck;
 import org.hisp.dhis.dataintegrity.DataIntegrityDetails;
@@ -42,6 +36,11 @@ import org.hisp.dhis.dataintegrity.DataIntegrityStore;
 import org.hisp.dhis.dataintegrity.DataIntegritySummary;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * As we want each check to be its own transaction the @{@link Transactional}
@@ -75,7 +74,7 @@ public class HibernateDataIntegrityStore implements DataIntegrityStore
         return new DataIntegrityDetails( check, new Date(), null, rows.stream()
             .map( row -> new DataIntegrityIssue(
                 getIndex( row, 0 ), getIndex( row, 1 ), getIndex( row, 2 ), getRefs( row, 3 ) ) )
-            .collect( toUnmodifiableList() ) );
+            .collect( Collectors.toList() ) );
     }
 
     private static String getIndex( Object[] row, int index )
@@ -85,7 +84,7 @@ public class HibernateDataIntegrityStore implements DataIntegrityStore
 
     private static List<String> getRefs( Object[] row, int index )
     {
-        return row.length <= index ? null : List.of( (String[]) row[index] );
+        return row.length <= index ? null : Arrays.asList( (String[]) row[index] );
     }
 
     private static Double parsePercentage( Object value )

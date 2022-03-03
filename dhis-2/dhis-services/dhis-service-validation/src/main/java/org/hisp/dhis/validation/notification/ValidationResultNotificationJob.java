@@ -27,17 +27,18 @@
  */
 package org.hisp.dhis.validation.notification;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.Clock;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Stian Sandvold
@@ -73,8 +74,7 @@ public class ValidationResultNotificationJob implements Job
         return JobType.VALIDATION_RESULTS_NOTIFICATION;
     }
 
-    @Override
-    public void execute( JobConfiguration jobConfiguration )
+    @Override public void execute( JobConfiguration jobConfiguration, JobProgress progress )
     {
         final Clock clock = new Clock().startClock();
 

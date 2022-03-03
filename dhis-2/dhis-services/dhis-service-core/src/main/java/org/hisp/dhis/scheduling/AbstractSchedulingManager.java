@@ -27,28 +27,8 @@
  */
 package org.hisp.dhis.scheduling;
 
-import static java.util.Collections.emptyList;
-import static java.util.Collections.unmodifiableCollection;
-import static java.util.Collections.unmodifiableSet;
-import static org.hisp.dhis.scheduling.JobStatus.COMPLETED;
-import static org.hisp.dhis.scheduling.JobStatus.DISABLED;
-import static org.hisp.dhis.scheduling.JobStatus.RUNNING;
-
-import java.util.Collection;
-import java.util.Date;
-import java.util.Deque;
-import java.util.EnumSet;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-
-import javax.annotation.PostConstruct;
-
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.commons.util.DebugUtils;
@@ -58,6 +38,25 @@ import org.hisp.dhis.scheduling.JobProgress.Process;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.Clock;
 import org.slf4j.MDC;
+
+import javax.annotation.PostConstruct;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Deque;
+import java.util.EnumSet;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+
+import static java.util.Collections.emptyList;
+import static java.util.Collections.unmodifiableCollection;
+import static java.util.Collections.unmodifiableSet;
+import static org.hisp.dhis.scheduling.JobStatus.COMPLETED;
+import static org.hisp.dhis.scheduling.JobStatus.DISABLED;
+import static org.hisp.dhis.scheduling.JobStatus.RUNNING;
 
 /**
  * Base for synchronous or asynchronous {@link SchedulingManager} implementation
@@ -137,7 +136,7 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
             String key = localInfo.getKey().name();
             Optional<Deque<Process>> remoteInfo = completedRemotely.getIfPresent( key );
             Date now = new Date();
-            if ( remoteInfo.isEmpty() || Process.startedTime( remoteInfo.get(), now )
+            if ( !remoteInfo.isPresent() || Process.startedTime( remoteInfo.get(), now )
                 .before( Process.startedTime( localInfo.getValue().getProcesses(), now ) ) )
             {
                 completedRemotely.put( key, localInfo.getValue().getProcesses() );
@@ -186,8 +185,8 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
         {
             return unmodifiableCollection( local.getProcesses() );
         }
-        var remoteInfo = runningRemotely.getIfPresent( type.name() );
-        return remoteInfo.isEmpty() ? emptyList() : unmodifiableCollection( remoteInfo.get() );
+        Optional<Deque<Process>> remoteInfo = runningRemotely.getIfPresent( type.name() );
+        return remoteInfo.map( Collections::unmodifiableCollection ).orElse( emptyList() );
     }
 
     @Override
@@ -197,16 +196,16 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
         Collection<Process> localInfo = local == null
             ? emptyList()
             : unmodifiableCollection( local.getProcesses() );
-        var remoteInfo = completedRemotely.getIfPresent( type.name() );
-        if ( remoteInfo.isEmpty() )
+        Optional<Deque<Process>> remoteInfo = completedRemotely.getIfPresent( type.name() );
+        if ( !remoteInfo.isPresent() )
         {
             return localInfo;
         }
         Date now = new Date();
         return localInfo.isEmpty()
             || Process.startedTime( remoteInfo.get(), now ).after( Process.startedTime( localInfo, now ) )
-                ? unmodifiableCollection( remoteInfo.get() )
-                : localInfo;
+            ? unmodifiableCollection( remoteInfo.get() )
+            : localInfo;
     }
 
     @Override

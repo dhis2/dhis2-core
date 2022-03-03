@@ -27,10 +27,15 @@
  */
 package org.hisp.dhis.cache;
 
-import static java.lang.Integer.parseInt;
-import static java.lang.Math.max;
-import static java.lang.System.currentTimeMillis;
-import static java.util.Collections.unmodifiableSet;
+import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Hibernate;
+import org.hisp.dhis.cache.CacheInfo.CacheBurdenInfo;
+import org.hisp.dhis.cache.CacheInfo.CacheCapInfo;
+import org.hisp.dhis.cache.CacheInfo.CacheGroupInfo;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Deque;
@@ -48,16 +53,10 @@ import java.util.function.LongConsumer;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 
-import lombok.extern.slf4j.Slf4j;
-
-import org.hibernate.Hibernate;
-import org.hisp.dhis.cache.CacheInfo.CacheBurdenInfo;
-import org.hisp.dhis.cache.CacheInfo.CacheCapInfo;
-import org.hisp.dhis.cache.CacheInfo.CacheGroupInfo;
-import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import static java.lang.Integer.parseInt;
+import static java.lang.Math.max;
+import static java.lang.System.currentTimeMillis;
+import static java.util.Collections.unmodifiableSet;
 
 /**
  * The {@link CappedLocalCache} is a multi-region cache that tries to estimate
@@ -214,6 +213,12 @@ public class CappedLocalCache
         }
 
         @Override
+        public Iterable<String> keys()
+        {
+            return entries.keySet();
+        }
+
+        @Override
         public void put( String key, V value )
         {
             put( key, value, defaultTtlInSeconds );
@@ -229,6 +234,20 @@ public class CappedLocalCache
             long sizeDelta = entrySize - (oldEntry == null ? 0L : oldEntry.size);
             totalRegionSize.addAndGet( sizeDelta );
             sizeDeltaListener.accept( sizeDelta );
+        }
+
+        @Override
+        public boolean putIfAbsent( String key, V value )
+        {
+            long entrySize = emptyEntrySize + sizeof.sizeof( key ) + sizeof.sizeof( value );
+            long now = currentTimeMillis();
+            CacheEntry<V> newEntry = new CacheEntry<>( region, key, value, now, now + (defaultTtlInSeconds * 1000L),
+                entrySize );
+            CacheEntry<V> oldEntry = entries.putIfAbsent( key, newEntry );
+            long sizeDelta = entrySize - (oldEntry == null ? 0L : oldEntry.size);
+            totalRegionSize.addAndGet( sizeDelta );
+            sizeDeltaListener.accept( sizeDelta );
+            return oldEntry != newEntry;
         }
 
         @Override

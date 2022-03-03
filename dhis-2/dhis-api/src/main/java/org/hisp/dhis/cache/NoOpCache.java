@@ -27,21 +27,23 @@
  */
 package org.hisp.dhis.cache;
 
-import static org.springframework.util.Assert.hasText;
-
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
+import static java.util.Collections.emptySet;
+import static org.springframework.util.Assert.hasText;
+
 /**
- * A No operation implementation of {@link Cache}. The implementation will not
- * cache anything and can be used during system testing when caching has to be
- * disabled.
+ * A No operation implementation of {@link Cache}. The implementation will not cache anything and can be used during
+ * system testing when caching has to be disabled.
  *
  * @author Ameen Mohamed
  */
 public class NoOpCache<V> implements Cache<V>
 {
+    private static final String VALUE_CANNOT_BE_NULL = "Value cannot be null";
+
     private final V defaultValue;
 
     public NoOpCache( CacheBuilder<V> cacheBuilder )
@@ -88,11 +90,17 @@ public class NoOpCache<V> implements Cache<V>
     }
 
     @Override
+    public Iterable<String> keys()
+    {
+        return emptySet();
+    }
+
+    @Override
     public void put( String key, V value )
     {
         if ( null == value )
         {
-            throw new IllegalArgumentException( "Value cannot be null" );
+            throw new IllegalArgumentException( VALUE_CANNOT_BE_NULL );
         }
         // No operation
     }
@@ -100,8 +108,19 @@ public class NoOpCache<V> implements Cache<V>
     @Override
     public void put( String key, V value, long ttlInSeconds )
     {
-        hasText( key, "Value cannot be null" );
+        hasText( key, VALUE_CANNOT_BE_NULL );
         // No operation
+    }
+
+    @Override
+    public boolean putIfAbsent( String key, V value )
+    {
+        if ( null == value )
+        {
+            throw new IllegalArgumentException( VALUE_CANNOT_BE_NULL );
+        }
+        // No operation
+        return false;
     }
 
     @Override

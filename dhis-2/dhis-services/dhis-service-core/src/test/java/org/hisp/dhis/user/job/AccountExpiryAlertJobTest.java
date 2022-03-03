@@ -27,6 +27,21 @@
  */
 package org.hisp.dhis.user.job;
 
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.message.MessageSender;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.NoopJobProgress;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.user.UserAccountExpiryInfo;
+import org.hisp.dhis.user.UserService;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+
+import java.sql.Date;
+
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -35,20 +50,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
-import java.sql.Date;
-
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.message.MessageSender;
-import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.user.UserAccountExpiryInfo;
-import org.hisp.dhis.user.UserService;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
 
 /**
  * Tests the {@link AccountExpiryAlertJob} using mocks to only test the logic of
@@ -80,7 +81,7 @@ public class AccountExpiryAlertJobTest
     {
         when( settingManager.getSystemSetting( SettingKey.ACCOUNT_EXPIRY_ALERT, Boolean.class ) ).thenReturn( false );
 
-        job.execute( new JobConfiguration() );
+        job.execute( new JobConfiguration(), NoopJobProgress.INSTANCE );
 
         verify( userService, never() ).getExpiringUserAccounts( anyInt() );
     }
@@ -92,7 +93,7 @@ public class AccountExpiryAlertJobTest
             .thenReturn( singletonList( new UserAccountExpiryInfo( "username", "email@example.com",
                 Date.valueOf( "2021-08-23" ) ) ) );
 
-        job.execute( new JobConfiguration() );
+        job.execute( new JobConfiguration(), NoopJobProgress.INSTANCE );
 
         ArgumentCaptor<String> subject = ArgumentCaptor.forClass( String.class );
         ArgumentCaptor<String> text = ArgumentCaptor.forClass( String.class );

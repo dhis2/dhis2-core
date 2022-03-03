@@ -27,9 +27,8 @@
  */
 package org.hisp.dhis.dataintegrity;
 
-import static java.util.stream.Collectors.toMap;
-import static java.util.stream.Collectors.toUnmodifiableList;
-import static java.util.stream.Collectors.toUnmodifiableMap;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import org.hisp.dhis.dataintegrity.DataIntegrityDetails.DataIntegrityIssue;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -38,19 +37,16 @@ import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import org.hisp.dhis.dataintegrity.DataIntegrityDetails.DataIntegrityIssue;
-import org.hisp.dhis.webmessage.WebMessageResponse;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 
 /**
- * Flattened, easily serializable object derivable from the more complex
- * DataIntegrityReport. Use an instance of this object to serialize and deliver
- * a DataIntegrityReport.
+ * Flattened, easily serializable object derivable from the more complex DataIntegrityReport. Use an instance of this
+ * object to serialize and deliver a DataIntegrityReport.
  *
  * @author Halvdan Hoem Grelland <halvdanhg@gmail.com>
  */
-public class FlattenedDataIntegrityReport implements WebMessageResponse
+public class FlattenedDataIntegrityReport
 {
     @JsonProperty
     private final List<String> dataElementsWithoutDataSet;
@@ -234,8 +230,8 @@ public class FlattenedDataIntegrityReport implements WebMessageResponse
         return details == null
             ? null
             : details.getIssues().stream()
-                .map( DataIntegrityIssue::getName )
-                .collect( toUnmodifiableList() );
+            .map( DataIntegrityIssue::getName )
+            .collect( toList() );
     }
 
     private List<List<String>> groupedListOfDisplayNameOrUid( DataIntegrityDetails details )
@@ -243,17 +239,17 @@ public class FlattenedDataIntegrityReport implements WebMessageResponse
         return details == null
             ? null
             : details.getIssues().stream()
-                .map( DataIntegrityIssue::getRefs )
-                .collect( toUnmodifiableList() );
+            .map( DataIntegrityIssue::getRefs )
+            .collect( toList() );
     }
 
     private static Map<String, String> mapOfCommentByDisplayNameOrUid( DataIntegrityDetails details )
     {
         return details == null
             ? null
-            : details.getIssues().stream().collect( toUnmodifiableMap(
-                DataIntegrityIssue::getName,
-                DataIntegrityIssue::getComment ) );
+            : details.getIssues().stream().collect( toMap(
+            DataIntegrityIssue::getName,
+            DataIntegrityIssue::getComment ) );
     }
 
     private static SortedMap<String, List<String>> mapOfRefsByDisplayNameOrUid(

@@ -27,24 +27,26 @@
  */
 package org.hisp.dhis.cache;
 
-import static java.lang.System.currentTimeMillis;
-import static java.util.concurrent.TimeUnit.SECONDS;
-import static org.springframework.util.Assert.hasText;
+import org.cache2k.Cache2kBuilder;
 
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-import org.cache2k.Cache2kBuilder;
+import static java.lang.System.currentTimeMillis;
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.springframework.util.Assert.hasText;
 
 /**
- * Local cache implementation of {@link Cache}. This implementation is backed by
- * Caffeine library which uses an in memory Map implementation.
+ * Local cache implementation of {@link Cache}. This implementation is backed by Caffeine library which uses an in
+ * memory Map implementation.
  *
  * @author Ameen Mohamed
  */
 public class LocalCache<V> implements Cache<V>
 {
+    private static final String VALUE_CANNOT_BE_NULL = "Value cannot be null";
+
     private org.cache2k.Cache<String, V> cache2kInstance;
 
     private V defaultValue;
@@ -129,11 +131,17 @@ public class LocalCache<V> implements Cache<V>
     }
 
     @Override
+    public Iterable<String> keys()
+    {
+        return cache2kInstance.keys();
+    }
+
+    @Override
     public void put( String key, V value )
     {
         if ( null == value )
         {
-            throw new IllegalArgumentException( "Value cannot be null" );
+            throw new IllegalArgumentException( VALUE_CANNOT_BE_NULL );
         }
         cache2kInstance.put( key, value );
     }
@@ -141,9 +149,19 @@ public class LocalCache<V> implements Cache<V>
     @Override
     public void put( String key, V value, long ttlInSeconds )
     {
-        hasText( key, "Value cannot be null" );
+        hasText( key, VALUE_CANNOT_BE_NULL );
         cache2kInstance.invoke( key,
             e -> e.setValue( value ).setExpiryTime( currentTimeMillis() + SECONDS.toMillis( ttlInSeconds ) ) );
+    }
+
+    @Override
+    public boolean putIfAbsent( String key, V value )
+    {
+        if ( null == value )
+        {
+            throw new IllegalArgumentException( VALUE_CANNOT_BE_NULL );
+        }
+        return cache2kInstance.putIfAbsent( key, value );
     }
 
     @Override

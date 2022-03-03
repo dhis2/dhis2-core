@@ -27,6 +27,14 @@
  */
 package org.hisp.dhis.fileresource;
 
+import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.commons.util.DebugUtils;
+import org.hisp.dhis.scheduling.Job;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobProgress;
+import org.hisp.dhis.scheduling.JobType;
+import org.springframework.stereotype.Component;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -34,14 +42,6 @@ import java.nio.file.Files;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-
-import lombok.extern.slf4j.Slf4j;
-
-import org.hisp.dhis.commons.util.DebugUtils;
-import org.hisp.dhis.scheduling.Job;
-import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobType;
-import org.springframework.stereotype.Component;
 
 /**
  * Job will fetch all the image FileResources with flag hasMultiple set to
@@ -75,8 +75,7 @@ public class ImageResizingJob implements Job
         return JobType.IMAGE_PROCESSING;
     }
 
-    @Override
-    public void execute( JobConfiguration jobConfiguration )
+    @Override public void execute( JobConfiguration jobConfiguration, JobProgress progress )
     {
         List<FileResource> fileResources = fileResourceService.getAllUnProcessedImagesFiles();
 

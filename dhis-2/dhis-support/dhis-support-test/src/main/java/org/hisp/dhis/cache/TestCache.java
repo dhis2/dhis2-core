@@ -33,6 +33,8 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
+import static java.util.Collections.unmodifiableSet;
+
 /**
  * @author Luciano Fiandesio
  */
@@ -72,6 +74,12 @@ public class TestCache<V> implements Cache<V>
     }
 
     @Override
+    public Iterable<String> keys()
+    {
+        return unmodifiableSet( mapCache.keySet() );
+    }
+
+    @Override
     public void put( String key, V value )
     {
         mapCache.put( key, value );
@@ -82,6 +90,12 @@ public class TestCache<V> implements Cache<V>
     {
         // Ignoring ttl for this testing cache
         mapCache.put( key, value );
+    }
+
+    @Override
+    public boolean putIfAbsent( String key, V value )
+    {
+        return mapCache.putIfAbsent( key, value ) != value;
     }
 
     @Override
