@@ -39,6 +39,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -52,6 +53,7 @@ import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.Objects;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
@@ -588,6 +590,36 @@ public class TrackedEntityInstanceServiceTest
 
         boolean existsDeleted = teiDaoService.trackedEntityInstanceExistsIncludingDeleted( maleA.getUid() );
         assertTrue( existsDeleted );
+    }
+
+    @Test
+    public void testInvalidDate()
+    {
+        TrackedEntityAttribute trackedEntityAttribute = createTrackedEntityAttribute( 'D' );
+        trackedEntityAttribute.setValueType( ValueType.DATE );
+        manager.save( trackedEntityAttribute );
+        manager.flush();
+
+        TrackedEntityInstance trackedEntityInstance = new TrackedEntityInstance();
+        trackedEntityInstance.setTrackedEntityInstance( CodeGenerator.generateUid() );
+        trackedEntityInstance.setTrackedEntityType( trackedEntityType.getUid() );
+
+        Attribute attribute = new Attribute();
+        attribute.setAttribute( trackedEntityAttribute.getUid() );
+        attribute.setValue( "0000-01-01" );
+
+        trackedEntityInstance.setAttributes( Collections.singletonList( attribute ) );
+
+        trackedEntityInstance.setOrgUnit( organisationUnitA.getUid() );
+        ImportSummary importSummary = trackedEntityInstanceService.addTrackedEntityInstance( trackedEntityInstance,
+            null );
+
+        assertTrue( importSummary.isStatus( ImportStatus.ERROR ) );
+        assertEquals( 1, importSummary.getConflictCount() );
+        assertEquals(
+            String.format( "Value '%s' of attribute '%s' is not valid for value type Date",
+                attribute.getValue(), attribute.getAttribute() ),
+            importSummary.getConflicts().iterator().next().getValue() );
     }
 
     @Test
