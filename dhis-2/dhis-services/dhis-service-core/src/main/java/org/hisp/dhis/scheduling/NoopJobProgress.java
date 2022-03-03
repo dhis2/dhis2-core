@@ -27,30 +27,80 @@
  */
 package org.hisp.dhis.scheduling;
 
-import java.util.EnumMap;
-import java.util.Map;
-
-import lombok.AllArgsConstructor;
-
-import org.springframework.context.ApplicationContext;
-import org.springframework.stereotype.Service;
-
 /**
+ * The {@link NoopJobProgress} can be used as a {@link JobProgress} instance
+ * when no actual flow control and tracking is wanted. For example in test
+ * context or in manual runs of operations that would generally support the
+ * tracking though the {@link JobProgress} abstraction.
+ *
  * @author Jan Bernitt
  */
-@Service
-@AllArgsConstructor
-public class DefaultJobService implements JobService
+public class NoopJobProgress implements JobProgress
 {
-    private final ApplicationContext applicationContext;
+    public static final JobProgress INSTANCE = new NoopJobProgress();
 
-    private final Map<JobType, Job> jobsByType = new EnumMap<>( JobType.class );
+    private NoopJobProgress()
+    {
+        // hide
+    }
 
     @Override
-    public Job getJob( JobType type )
+    public boolean isCancellationRequested()
     {
-        return jobsByType.computeIfAbsent( type,
-            key -> applicationContext.getBeansOfType( Job.class ).values().stream()
-                .filter( job -> job.getJobType() == type ).findFirst().orElse( null ) );
+        return false;
+    }
+
+    @Override
+    public void startingProcess( String description )
+    {
+        // as the name said we do nothing
+    }
+
+    @Override
+    public void completedProcess( String summary )
+    {
+        // as the name said we do nothing
+    }
+
+    @Override
+    public void failedProcess( String error )
+    {
+        // as the name said we do nothing
+    }
+
+    @Override
+    public void startingStage( String description, int workItems )
+    {
+        // as the name said we do nothing
+    }
+
+    @Override
+    public void completedStage( String summary )
+    {
+        // as the name said we do nothing
+    }
+
+    @Override
+    public void failedStage( String error )
+    {
+        // as the name said we do nothing
+    }
+
+    @Override
+    public void startingWorkItem( String description )
+    {
+        // as the name said we do nothing
+    }
+
+    @Override
+    public void completedWorkItem( String summary )
+    {
+        // as the name said we do nothing
+    }
+
+    @Override
+    public void failedWorkItem( String error )
+    {
+        // as the name said we do nothing
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,9 +42,11 @@ import java.util.function.Function;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.AsyncTaskExecutor;
 import org.hisp.dhis.leader.election.LeaderManager;
 import org.hisp.dhis.message.MessageService;
+import org.hisp.dhis.system.notification.Notifier;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.support.CronTrigger;
@@ -54,9 +56,8 @@ import org.springframework.stereotype.Service;
  * A {@link SchedulingManager} that runs {@link #schedule(JobConfiguration)} and
  * {@link #executeNow(JobConfiguration)} asynchronously.
  *
- * Whether or not a job can run is solely determined by
- * {@link #isRunning(JobType)} which makes sure only one asynchronous task can
- * run at a time.
+ * Whether a job can run is solely determined by {@link #isRunning(JobType)}
+ * which makes sure only one asynchronous task can run at a time.
  *
  * The {@link DefaultSchedulingManager} manages its private state with the sole
  * goal of being able to cancel asynchronously running tasks.
@@ -79,11 +80,11 @@ public class DefaultSchedulingManager extends AbstractSchedulingManager
     private final AsyncTaskExecutor taskExecutor;
 
     public DefaultSchedulingManager( JobService jobService, JobConfigurationService jobConfigurationService,
-        MessageService messageService,
+        MessageService messageService, Notifier notifier,
         LeaderManager leaderManager, @Qualifier( "taskScheduler" ) TaskScheduler jobScheduler,
-        AsyncTaskExecutor taskExecutor )
+        AsyncTaskExecutor taskExecutor, CacheProvider cacheProvider )
     {
-        super( jobService, jobConfigurationService, messageService, leaderManager );
+        super( jobService, jobConfigurationService, messageService, leaderManager, notifier, cacheProvider );
         checkNotNull( jobConfigurationService );
         checkNotNull( messageService );
         checkNotNull( leaderManager );
@@ -93,6 +94,8 @@ public class DefaultSchedulingManager extends AbstractSchedulingManager
 
         this.jobScheduler = jobScheduler;
         this.taskExecutor = taskExecutor;
+
+        jobScheduler.scheduleWithFixedDelay( this::clusterHeartbeat, Duration.ofSeconds( 30 ) );
     }
 
     @Override
@@ -158,7 +161,7 @@ public class DefaultSchedulingManager extends AbstractSchedulingManager
     public void stop( JobConfiguration configuration )
     {
         JobType type = configuration.getJobType();
-        if ( type != null && isRunning( type ) )
+        if ( type != null && isRunningLocally( type ) )
         {
             stoppedSuccessful( type );
         }
@@ -199,7 +202,7 @@ public class DefaultSchedulingManager extends AbstractSchedulingManager
                 return;
             }
             scheduled.remove( type, cancelable );
-            if ( type == null || isRunning( type ) && !stoppedSuccessful( type ) )
+            if ( type == null || isRunningLocally( type ) && !stoppedSuccessful( type ) || isRunningRemotely( type ) )
             {
                 return;
             }
