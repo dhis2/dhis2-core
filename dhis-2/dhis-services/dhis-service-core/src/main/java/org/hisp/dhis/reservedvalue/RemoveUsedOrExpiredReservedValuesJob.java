@@ -28,6 +28,7 @@
 package org.hisp.dhis.reservedvalue;
 
 import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobProgress;
@@ -49,7 +50,8 @@ public class RemoveUsedOrExpiredReservedValuesJob implements Job
         return JobType.REMOVE_USED_OR_EXPIRED_RESERVED_VALUES;
     }
 
-    @Override public void execute( JobConfiguration jobConfiguration, JobProgress progress )
+    @Override
+    public void execute( JobConfiguration jobConfiguration, JobProgress progress )
     {
         reservedValueService.removeUsedOrExpiredReservations();
     }

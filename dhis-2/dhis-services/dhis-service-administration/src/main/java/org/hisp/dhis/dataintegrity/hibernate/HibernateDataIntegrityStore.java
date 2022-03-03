@@ -27,7 +27,13 @@
  */
 package org.hisp.dhis.dataintegrity.hibernate;
 
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import lombok.AllArgsConstructor;
+
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.dataintegrity.DataIntegrityCheck;
 import org.hisp.dhis.dataintegrity.DataIntegrityDetails;
@@ -36,11 +42,6 @@ import org.hisp.dhis.dataintegrity.DataIntegrityStore;
 import org.hisp.dhis.dataintegrity.DataIntegritySummary;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * As we want each check to be its own transaction the @{@link Transactional}

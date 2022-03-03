@@ -27,7 +27,10 @@
  */
 package org.hisp.dhis.scheduling;
 
-import com.google.common.collect.ImmutableMap;
+import static java.util.Collections.singletonMap;
+
+import java.util.Map;
+
 import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
 import org.hisp.dhis.scheduling.parameters.ContinuousAnalyticsJobParameters;
 import org.hisp.dhis.scheduling.parameters.DataIntegrityJobParameters;
@@ -42,9 +45,7 @@ import org.hisp.dhis.scheduling.parameters.PushAnalysisJobParameters;
 import org.hisp.dhis.scheduling.parameters.SmsJobParameters;
 import org.hisp.dhis.scheduling.parameters.TrackerProgramsDataSynchronizationJobParameters;
 
-import java.util.Map;
-
-import static java.util.Collections.singletonMap;
+import com.google.common.collect.ImmutableMap;
 
 /**
  * Enum describing the different jobs in the system. Each job has a key, class,
@@ -66,7 +67,7 @@ public enum JobType
         "skipTableTypes", "/api/analytics/tableTypes", "skipPrograms", "/api/programs" ) ),
     CONTINUOUS_ANALYTICS_TABLE( true, SchedulingType.FIXED_DELAY,
         ContinuousAnalyticsJobParameters.class, ImmutableMap.of(
-        "skipTableTypes", "/api/analytics/tableTypes" ) ),
+            "skipTableTypes", "/api/analytics/tableTypes" ) ),
     DATA_SYNC( true, SchedulingType.CRON, DataSynchronizationJobParameters.class, null ),
     TRACKER_PROGRAMS_DATA_SYNC( true, SchedulingType.CRON,
         TrackerProgramsDataSynchronizationJobParameters.class, null ),

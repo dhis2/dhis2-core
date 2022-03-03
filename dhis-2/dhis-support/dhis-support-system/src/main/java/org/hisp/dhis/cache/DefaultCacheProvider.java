@@ -27,23 +27,23 @@
  */
 package org.hisp.dhis.cache;
 
-import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
-import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.context.event.EventListener;
-import org.springframework.core.env.Environment;
-import org.springframework.stereotype.Component;
+import static java.util.concurrent.TimeUnit.HOURS;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.MINUTES;
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.hisp.dhis.commons.util.SystemUtils.isTestRun;
 
 import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
-import static java.util.concurrent.TimeUnit.HOURS;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static java.util.concurrent.TimeUnit.MINUTES;
-import static java.util.concurrent.TimeUnit.SECONDS;
-import static org.hisp.dhis.commons.util.SystemUtils.isTestRun;
+import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.springframework.context.event.EventListener;
+import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Component;
 
 /**
  * The {@link DefaultCacheProvider} has the specific configuration for each of
@@ -511,7 +511,7 @@ public class DefaultCacheProvider
     @Override
     public <V> Cache<V> createApiKeyCache()
     {
-        return registerCache( this.<V>newBuilder()
+        return registerCache( this.<V> newBuilder()
             .forRegion( Region.apiTokensCache.name() )
             .expireAfterWrite( 1, TimeUnit.HOURS )
             .withInitialCapacity( (int) getActualSize( SIZE_1K ) )
@@ -522,7 +522,7 @@ public class DefaultCacheProvider
     @Override
     public <V> Cache<V> createRunningJobsInfoCache()
     {
-        return registerCache( this.<V>newBuilder()
+        return registerCache( this.<V> newBuilder()
             .forRegion( Region.runningJobsInfo.name() )
             .expireAfterWrite( 60, SECONDS ) );
     }
@@ -530,7 +530,7 @@ public class DefaultCacheProvider
     @Override
     public <V> Cache<V> createCompletedJobsInfoCache()
     {
-        return registerCache( this.<V>newBuilder()
+        return registerCache( this.<V> newBuilder()
             .forRegion( Region.completedJobsInfo.name() )
             .expireAfterWrite( 60, SECONDS ) );
     }
@@ -538,7 +538,7 @@ public class DefaultCacheProvider
     @Override
     public <V> Cache<V> createJobCancelRequestedCache()
     {
-        return registerCache( this.<V>newBuilder()
+        return registerCache( this.<V> newBuilder()
             .forRegion( Region.jobCancelRequested.name() )
             .expireAfterWrite( 60, SECONDS ) );
     }
@@ -546,7 +546,7 @@ public class DefaultCacheProvider
     @Override
     public <V> Cache<V> createDataIntegritySummaryCache()
     {
-        return registerCache( this.<V>newBuilder()
+        return registerCache( this.<V> newBuilder()
             .forRegion( Region.dataIntegritySummaryCache.name() )
             .expireAfterWrite( 1, HOURS ) );
     }
@@ -554,7 +554,7 @@ public class DefaultCacheProvider
     @Override
     public <V> Cache<V> createDataIntegrityDetailsCache()
     {
-        return registerCache( this.<V>newBuilder()
+        return registerCache( this.<V> newBuilder()
             .forRegion( Region.dataIntegrityDetailsCache.name() )
             .expireAfterWrite( 1, HOURS ) );
     }

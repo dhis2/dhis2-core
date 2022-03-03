@@ -27,19 +27,19 @@
  */
 package org.hisp.dhis.cache;
 
-import org.cache2k.Cache2kBuilder;
+import static java.lang.System.currentTimeMillis;
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.springframework.util.Assert.hasText;
 
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-import static java.lang.System.currentTimeMillis;
-import static java.util.concurrent.TimeUnit.SECONDS;
-import static org.springframework.util.Assert.hasText;
+import org.cache2k.Cache2kBuilder;
 
 /**
- * Local cache implementation of {@link Cache}. This implementation is backed by Caffeine library which uses an in
- * memory Map implementation.
+ * Local cache implementation of {@link Cache}. This implementation is backed by
+ * Caffeine library which uses an in memory Map implementation.
  *
  * @author Ameen Mohamed
  */

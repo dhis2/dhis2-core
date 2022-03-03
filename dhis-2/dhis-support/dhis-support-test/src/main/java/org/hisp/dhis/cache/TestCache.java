@@ -27,13 +27,13 @@
  */
 package org.hisp.dhis.cache;
 
+import static java.util.Collections.unmodifiableSet;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
-
-import static java.util.Collections.unmodifiableSet;
 
 /**
  * @author Luciano Fiandesio

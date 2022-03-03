@@ -27,16 +27,17 @@
  */
 package org.hisp.dhis.cache;
 
+import static java.util.Collections.emptySet;
+import static org.springframework.util.Assert.hasText;
+
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-import static java.util.Collections.emptySet;
-import static org.springframework.util.Assert.hasText;
-
 /**
- * A No operation implementation of {@link Cache}. The implementation will not cache anything and can be used during
- * system testing when caching has to be disabled.
+ * A No operation implementation of {@link Cache}. The implementation will not
+ * cache anything and can be used during system testing when caching has to be
+ * disabled.
  *
  * @author Ameen Mohamed
  */

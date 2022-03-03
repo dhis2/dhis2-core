@@ -58,7 +58,8 @@ public class LeaderRenewalJob implements Job
         return JobType.LEADER_RENEWAL;
     }
 
-    @Override public void execute( JobConfiguration jobConfiguration, JobProgress progress )
+    @Override
+    public void execute( JobConfiguration jobConfiguration, JobProgress progress )
     {
         leaderManager.renewLeader();
     }

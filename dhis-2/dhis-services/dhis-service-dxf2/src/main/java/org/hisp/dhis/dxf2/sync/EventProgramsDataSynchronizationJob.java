@@ -27,7 +27,12 @@
  */
 package org.hisp.dhis.dxf2.sync;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.Optional;
+
 import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.dxf2.synch.SynchronizationManager;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.message.MessageService;
@@ -37,10 +42,6 @@ import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.EventProgramsDataSynchronizationJobParameters;
 import org.hisp.dhis.system.notification.Notifier;
 import org.springframework.stereotype.Component;
-
-import java.util.Optional;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author David Katuscak <katuscak.d@gmail.com>
@@ -76,7 +77,8 @@ public class EventProgramsDataSynchronizationJob extends SynchronizationJob
         return JobType.EVENT_PROGRAMS_DATA_SYNC;
     }
 
-    @Override public void execute( JobConfiguration jobConfiguration, JobProgress progress )
+    @Override
+    public void execute( JobConfiguration jobConfiguration, JobProgress progress )
     {
         try
         {

@@ -27,6 +27,11 @@
  */
 package org.hisp.dhis.dataset.notifications;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.scheduling.JobType.DATA_SET_NOTIFICATION;
+
+import java.util.Date;
+
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
@@ -36,11 +41,6 @@ import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.Clock;
 import org.springframework.stereotype.Component;
-
-import java.util.Date;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.scheduling.JobType.DATA_SET_NOTIFICATION;
 
 /**
  * Created by zubair@dhis2.org on 21.07.17.
@@ -76,7 +76,8 @@ public class DataSetNotificationJob implements Job
         return DATA_SET_NOTIFICATION;
     }
 
-    @Override public void execute( JobConfiguration jobConfiguration, JobProgress progress )
+    @Override
+    public void execute( JobConfiguration jobConfiguration, JobProgress progress )
     {
         final Clock clock = new Clock().startClock();
 

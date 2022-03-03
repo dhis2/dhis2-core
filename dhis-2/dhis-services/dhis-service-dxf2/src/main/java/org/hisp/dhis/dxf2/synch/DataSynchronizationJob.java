@@ -27,6 +27,10 @@
  */
 package org.hisp.dhis.dxf2.synch;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.Optional;
+
 import org.hisp.dhis.dxf2.sync.CompleteDataSetRegistrationSynchronization;
 import org.hisp.dhis.dxf2.sync.DataValueSynchronization;
 import org.hisp.dhis.dxf2.sync.SynchronizationJob;
@@ -37,10 +41,6 @@ import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.DataSynchronizationJobParameters;
 import org.hisp.dhis.system.notification.Notifier;
 import org.springframework.stereotype.Component;
-
-import java.util.Optional;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
@@ -82,7 +82,8 @@ public class DataSynchronizationJob extends SynchronizationJob
         return JobType.DATA_SYNC;
     }
 
-    @Override public void execute( JobConfiguration jobConfiguration, JobProgress progress )
+    @Override
+    public void execute( JobConfiguration jobConfiguration, JobProgress progress )
     {
         DataSynchronizationJobParameters jobParameters = (DataSynchronizationJobParameters) jobConfiguration
             .getJobParameters();

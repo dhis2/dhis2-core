@@ -27,6 +27,41 @@
  */
 package org.hisp.dhis.dataintegrity;
 
+import static com.google.common.collect.Lists.newArrayList;
+import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
+import static org.hisp.dhis.DhisConvenienceTest.createDataElementGroup;
+import static org.hisp.dhis.DhisConvenienceTest.createDataSet;
+import static org.hisp.dhis.DhisConvenienceTest.createIndicator;
+import static org.hisp.dhis.DhisConvenienceTest.createIndicatorGroup;
+import static org.hisp.dhis.DhisConvenienceTest.createIndicatorType;
+import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
+import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnitGroup;
+import static org.hisp.dhis.DhisConvenienceTest.createProgram;
+import static org.hisp.dhis.DhisConvenienceTest.createProgramRule;
+import static org.hisp.dhis.DhisConvenienceTest.createProgramRuleAction;
+import static org.hisp.dhis.DhisConvenienceTest.createProgramRuleVariable;
+import static org.hisp.dhis.dataintegrity.DataIntegrityDetails.DataIntegrityIssue.issueName;
+import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.clearInvocations;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
 import org.hisp.dhis.antlr.ParserException;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.category.CategoryService;
@@ -68,41 +103,6 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-
-import static com.google.common.collect.Lists.newArrayList;
-import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
-import static org.hisp.dhis.DhisConvenienceTest.createDataElementGroup;
-import static org.hisp.dhis.DhisConvenienceTest.createDataSet;
-import static org.hisp.dhis.DhisConvenienceTest.createIndicator;
-import static org.hisp.dhis.DhisConvenienceTest.createIndicatorGroup;
-import static org.hisp.dhis.DhisConvenienceTest.createIndicatorType;
-import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
-import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnitGroup;
-import static org.hisp.dhis.DhisConvenienceTest.createProgram;
-import static org.hisp.dhis.DhisConvenienceTest.createProgramRule;
-import static org.hisp.dhis.DhisConvenienceTest.createProgramRuleAction;
-import static org.hisp.dhis.DhisConvenienceTest.createProgramRuleVariable;
-import static org.hisp.dhis.dataintegrity.DataIntegrityDetails.DataIntegrityIssue.issueName;
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.clearInvocations;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
 
 /**
  * @author Lars Helge Overland

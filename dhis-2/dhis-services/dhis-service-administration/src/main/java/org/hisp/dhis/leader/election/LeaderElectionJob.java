@@ -58,7 +58,8 @@ public class LeaderElectionJob implements Job
         return JobType.LEADER_ELECTION;
     }
 
-    @Override public void execute( JobConfiguration jobConfiguration, JobProgress progress )
+    @Override
+    public void execute( JobConfiguration jobConfiguration, JobProgress progress )
     {
         leaderManager.electLeader();
     }

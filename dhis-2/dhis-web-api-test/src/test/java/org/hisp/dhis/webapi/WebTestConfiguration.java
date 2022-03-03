@@ -27,8 +27,15 @@
  */
 package org.hisp.dhis.webapi;
 
-import com.google.common.collect.ImmutableMap;
+import java.beans.PropertyVetoException;
+import java.sql.SQLException;
+import java.util.Date;
+
+import javax.sql.DataSource;
+import javax.transaction.Transactional;
+
 import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.commons.util.DebugUtils;
@@ -80,11 +87,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 
-import javax.sql.DataSource;
-import javax.transaction.Transactional;
-import java.beans.PropertyVetoException;
-import java.sql.SQLException;
-import java.util.Date;
+import com.google.common.collect.ImmutableMap;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com

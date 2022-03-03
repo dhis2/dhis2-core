@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.scheduling;
 
-import org.hisp.dhis.scheduling.JobProgress.Process;
-
 import java.util.Collection;
 import java.util.Date;
+
+import org.hisp.dhis.scheduling.JobProgress.Process;
 
 /**
  * {@link Job}s are tasks that are supposed to run asynchronously.
@@ -123,8 +123,9 @@ public interface SchedulingManager
     Collection<JobType> getRunningTypes();
 
     /**
-     * @return a set of job types for which a job has finished running. Each type will contain the most recent completed
-     * run. Newer runs replace older ones.
+     * @return a set of job types for which a job has finished running. Each
+     *         type will contain the most recent completed run. Newer runs
+     *         replace older ones.
      */
     Collection<JobType> getCompletedTypes();
 

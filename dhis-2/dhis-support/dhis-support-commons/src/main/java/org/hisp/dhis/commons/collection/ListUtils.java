@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.commons.collection;
 
-import org.apache.commons.lang3.StringUtils;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -37,6 +35,8 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Utility methods for list operations.
@@ -170,7 +170,7 @@ public class ListUtils
     /**
      * Returns the duplicates in the given list.
      *
-     * @param <T>  type.
+     * @param <T> type.
      * @param list the list.
      * @return a set of duplicates from the given list.
      */

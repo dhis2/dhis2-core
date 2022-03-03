@@ -27,11 +27,11 @@
  */
 package org.hisp.dhis.dataintegrity;
 
-import org.hisp.dhis.scheduling.JobProgress;
-
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+
+import org.hisp.dhis.scheduling.JobProgress;
 
 /**
  * @author Fredrik Fjeld (old API)

@@ -27,15 +27,10 @@
  */
 package org.hisp.dhis.cache;
 
-import lombok.extern.slf4j.Slf4j;
-import org.hibernate.Hibernate;
-import org.hisp.dhis.cache.CacheInfo.CacheBurdenInfo;
-import org.hisp.dhis.cache.CacheInfo.CacheCapInfo;
-import org.hisp.dhis.cache.CacheInfo.CacheGroupInfo;
-import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import static java.lang.Integer.parseInt;
+import static java.lang.Math.max;
+import static java.lang.System.currentTimeMillis;
+import static java.util.Collections.unmodifiableSet;
 
 import java.util.ArrayList;
 import java.util.Deque;
@@ -53,10 +48,16 @@ import java.util.function.LongConsumer;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 
-import static java.lang.Integer.parseInt;
-import static java.lang.Math.max;
-import static java.lang.System.currentTimeMillis;
-import static java.util.Collections.unmodifiableSet;
+import lombok.extern.slf4j.Slf4j;
+
+import org.hibernate.Hibernate;
+import org.hisp.dhis.cache.CacheInfo.CacheBurdenInfo;
+import org.hisp.dhis.cache.CacheInfo.CacheCapInfo;
+import org.hisp.dhis.cache.CacheInfo.CacheGroupInfo;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * The {@link CappedLocalCache} is a multi-region cache that tries to estimate

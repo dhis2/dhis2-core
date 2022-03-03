@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.cache;
 
-import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
-
 import java.time.Duration;
+
+import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
 
 /**
  * The {@link CacheProvider} has a factory method for each {@link Cache} use

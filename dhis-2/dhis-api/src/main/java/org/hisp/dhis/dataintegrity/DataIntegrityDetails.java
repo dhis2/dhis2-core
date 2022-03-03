@@ -27,11 +27,7 @@
  */
 package org.hisp.dhis.dataintegrity;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonUnwrapped;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import org.hisp.dhis.common.IdentifiableObject;
+import static java.util.Collections.emptyList;
 
 import java.io.Serializable;
 import java.util.Collection;
@@ -40,7 +36,13 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static java.util.Collections.emptyList;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+import org.hisp.dhis.common.IdentifiableObject;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
 
 /**
  * The result data of a {@link DataIntegrityCheck#getRunDetailsCheck()} run.

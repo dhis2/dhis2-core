@@ -27,8 +27,10 @@
  */
 package org.hisp.dhis.cache;
 
-import org.springframework.data.redis.core.BoundValueOperations;
-import org.springframework.data.redis.core.RedisTemplate;
+import static java.util.Collections.emptySet;
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static java.util.stream.Collectors.toSet;
+import static org.springframework.util.Assert.hasText;
 
 import java.util.List;
 import java.util.Optional;
@@ -36,14 +38,12 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-import static java.util.Collections.emptySet;
-import static java.util.concurrent.TimeUnit.SECONDS;
-import static java.util.stream.Collectors.toSet;
-import static org.springframework.util.Assert.hasText;
+import org.springframework.data.redis.core.BoundValueOperations;
+import org.springframework.data.redis.core.RedisTemplate;
 
 /**
- * A redis backed implementation of {@link Cache}. This implementation uses a shared redis cache server for any number
- * of instances.
+ * A redis backed implementation of {@link Cache}. This implementation uses a
+ * shared redis cache server for any number of instances.
  *
  * @author Ameen Mohamed
  */

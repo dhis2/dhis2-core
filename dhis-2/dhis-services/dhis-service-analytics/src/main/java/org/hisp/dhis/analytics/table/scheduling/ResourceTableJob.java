@@ -27,14 +27,14 @@
  */
 package org.hisp.dhis.analytics.table.scheduling;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.springframework.stereotype.Component;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
@@ -61,7 +61,8 @@ public class ResourceTableJob implements Job
         return JobType.RESOURCE_TABLE;
     }
 
-    @Override public void execute( JobConfiguration jobConfiguration, JobProgress progress )
+    @Override
+    public void execute( JobConfiguration jobConfiguration, JobProgress progress )
     {
         analyticsTableGenerator.generateResourceTables( jobConfiguration );
     }

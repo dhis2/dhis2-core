@@ -27,6 +27,10 @@
  */
 package org.hisp.dhis.sms.job;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.HashSet;
+
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.scheduling.Job;
@@ -40,10 +44,6 @@ import org.hisp.dhis.sms.outbound.OutboundSmsStatus;
 import org.hisp.dhis.system.notification.Notifier;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-
-import java.util.HashSet;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 @Component( "sendSmsJob" )
 public class SendSmsJob implements Job
@@ -76,7 +76,8 @@ public class SendSmsJob implements Job
         return JobType.SMS_SEND;
     }
 
-    @Override public void execute( JobConfiguration jobConfiguration, JobProgress progress )
+    @Override
+    public void execute( JobConfiguration jobConfiguration, JobProgress progress )
     {
         SmsJobParameters parameters = (SmsJobParameters) jobConfiguration.getJobParameters();
         OutboundSms sms = new OutboundSms();

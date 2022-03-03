@@ -27,6 +27,12 @@
  */
 package org.hisp.dhis.sms.scheduling;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
+
+import java.util.Date;
+import java.util.List;
+
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.message.MessageSender;
@@ -41,12 +47,6 @@ import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.Clock;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-
-import java.util.Date;
-import java.util.List;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
 
 @Component( "sendScheduledMessageJob" )
 public class SendScheduledMessageJob implements Job
@@ -79,7 +79,8 @@ public class SendScheduledMessageJob implements Job
         return JobType.SEND_SCHEDULED_MESSAGE;
     }
 
-    @Override public void execute( JobConfiguration jobConfiguration, JobProgress progress )
+    @Override
+    public void execute( JobConfiguration jobConfiguration, JobProgress progress )
     {
         Clock clock = new Clock().startClock();
 

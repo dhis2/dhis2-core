@@ -27,19 +27,13 @@
  */
 package org.hisp.dhis.scheduling;
 
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.CacheProvider;
-import org.hisp.dhis.commons.util.DebugUtils;
-import org.hisp.dhis.leader.election.LeaderManager;
-import org.hisp.dhis.message.MessageService;
-import org.hisp.dhis.scheduling.JobProgress.Process;
-import org.hisp.dhis.system.notification.Notifier;
-import org.hisp.dhis.system.util.Clock;
-import org.slf4j.MDC;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.unmodifiableCollection;
+import static java.util.Collections.unmodifiableSet;
+import static org.hisp.dhis.scheduling.JobStatus.COMPLETED;
+import static org.hisp.dhis.scheduling.JobStatus.DISABLED;
+import static org.hisp.dhis.scheduling.JobStatus.RUNNING;
 
-import javax.annotation.PostConstruct;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -51,12 +45,20 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static java.util.Collections.emptyList;
-import static java.util.Collections.unmodifiableCollection;
-import static java.util.Collections.unmodifiableSet;
-import static org.hisp.dhis.scheduling.JobStatus.COMPLETED;
-import static org.hisp.dhis.scheduling.JobStatus.DISABLED;
-import static org.hisp.dhis.scheduling.JobStatus.RUNNING;
+import javax.annotation.PostConstruct;
+
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.commons.util.DebugUtils;
+import org.hisp.dhis.leader.election.LeaderManager;
+import org.hisp.dhis.message.MessageService;
+import org.hisp.dhis.scheduling.JobProgress.Process;
+import org.hisp.dhis.system.notification.Notifier;
+import org.hisp.dhis.system.util.Clock;
+import org.slf4j.MDC;
 
 /**
  * Base for synchronous or asynchronous {@link SchedulingManager} implementation
@@ -204,8 +206,8 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
         Date now = new Date();
         return localInfo.isEmpty()
             || Process.startedTime( remoteInfo.get(), now ).after( Process.startedTime( localInfo, now ) )
-            ? unmodifiableCollection( remoteInfo.get() )
-            : localInfo;
+                ? unmodifiableCollection( remoteInfo.get() )
+                : localInfo;
     }
 
     @Override
