@@ -1456,7 +1456,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
 
                 if ( daoEntityAttribute.getValueType().isDate() )
                 {
-                    String result = dataValueIsValid( attribute.getValue(), attribute.getValueType() );
+                    String result = dataValueIsValid( attribute.getValue(), daoEntityAttribute.getValueType() );
                     if ( null != result )
                     {
                         importConflicts.addConflict( "Attribute.value",
