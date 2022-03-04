@@ -17,11 +17,11 @@
     </tr>
     <tr>
         <td><label for="firstName">$i18n.getString( "first_name" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
-        <td><input type="text" id="firstName" name="firstName" value="$!encoder.htmlEncode( $!userCredentials.user.firstName )"></td>
+        <td><input type="text" id="firstName" name="firstName" value="$!encoder.htmlEncode( $!userCredentials.userInfo.firstName )"></td>
     </tr>
     <tr>
         <td><label for="surname">$i18n.getString( "last_name" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
-        <td><input type="text" id="surname" name="surname" value="$!encoder.htmlEncode( $!userCredentials.user.surname )"></td>
+        <td><input type="text" id="surname" name="surname" value="$!encoder.htmlEncode( $!userCredentials.userInfo.surname )"></td>
     </tr>
     #if( !$userCredentials.externalAuth )
 	<tr>
@@ -39,11 +39,11 @@
 	#end
 	<tr>
 		<td><label for="email">$i18n.getString( "email" )</label></td>
-		<td><input type="text" id="email" name="email" value="$!encoder.htmlEncode( $!userCredentials.user.email )"></td>
+		<td><input type="text" id="email" name="email" value="$!encoder.htmlEncode( $!userCredentials.userInfo.email )"></td>
 	</tr>
     <tr>
         <td><label for="phoneNumber">$i18n.getString( "phone_number" )</label></td>
-        <td><input type="text" id="phoneNumber" name="phoneNumber" value="$!encoder.htmlEncode( $!userCredentials.user.phoneNumber )"></td>
+        <td><input type="text" id="phoneNumber" name="phoneNumber" value="$!encoder.htmlEncode( $!userCredentials.userInfo.phoneNumber )"></td>
     </tr>
 	<tr>
 		<td></td>
