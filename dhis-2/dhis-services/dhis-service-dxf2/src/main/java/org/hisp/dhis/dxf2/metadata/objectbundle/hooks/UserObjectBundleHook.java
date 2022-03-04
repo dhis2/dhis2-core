@@ -40,6 +40,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
+
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.adapter.BaseIdentifiableObject_;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -57,6 +58,7 @@ import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
+
 import org.springframework.stereotype.Component;
 
 /**
@@ -67,6 +69,9 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
 {
+
+    public static final String USERNAME = "username";
+
     private final UserService userService;
 
     private final FileResourceService fileResourceService;
@@ -84,8 +89,34 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
         if ( bundle.getImportMode().isCreate() && !ValidationUtils.usernameIsValid( user.getUsername() ) )
         {
             addReports.accept(
-                new ErrorReport( User.class, ErrorCode.E4049, "username", user.getUsername() )
-                    .setErrorProperty( "username" ) );
+                new ErrorReport( User.class, ErrorCode.E4049, USERNAME, user.getUsername() )
+                    .setErrorProperty( USERNAME ) );
+        }
+
+        boolean usernameExists = userService.getUserByUsername( user.getUsername() ) != null;
+
+        if ( (bundle.getImportMode().isCreate() && usernameExists) )
+        {
+            addReports.accept(
+                new ErrorReport( User.class, ErrorCode.E4054, USERNAME, user.getUsername() )
+                    .setErrorProperty( USERNAME ) );
+        }
+
+        User existingUser = userService.getUser( user.getUid() );
+
+        if ( bundle.getImportMode().isUpdate() &&
+            !user.getUsername().equals( existingUser.getUsername() ) )
+        {
+            addReports.accept(
+                new ErrorReport( User.class, ErrorCode.E4056, USERNAME, user.getUsername() )
+                    .setErrorProperty( USERNAME ) );
+        }
+
+        if ( user.getUserRoles() == null || user.getUserRoles().isEmpty() )
+        {
+            addReports.accept(
+                new ErrorReport( User.class, ErrorCode.E4055, USERNAME, user.getUsername() )
+                    .setErrorProperty( USERNAME ) );
         }
 
         if ( user.getWhatsApp() != null && !ValidationUtils.validateWhatsapp( user.getWhatsApp() ) )
@@ -242,11 +273,10 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
     }
 
     /**
-     * If currentUser doesn't have read access to a UserRole and it is included
-     * in the payload, then that UserRole should not be removed from updating
-     * User.
+     * If currentUser doesn't have read access to a UserRole and it is included in the payload, then that UserRole
+     * should not be removed from updating User.
      *
-     * @param user the updating User.
+     * @param user   the updating User.
      * @param bundle the ObjectBundle.
      */
     private void handleNoAccessRoles( User user, ObjectBundle bundle, Set<UserRole> userRoles )
