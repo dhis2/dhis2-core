@@ -42,6 +42,9 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.oneOf;
+
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
@@ -136,7 +139,7 @@ public class ProgramActions
 
         ApiResponse response = programStageActions.post( programStage );
 
-        response.validate().statusCode( Matchers.is( Matchers.oneOf( 201, 200 ) ) );
+        response.validate().statusCode( is( oneOf( 201, 200 ) ) );
         return response.extractUid();
     }
 

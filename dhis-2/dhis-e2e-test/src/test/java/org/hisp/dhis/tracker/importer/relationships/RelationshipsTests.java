@@ -56,11 +56,12 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.everyItem;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
 
@@ -89,7 +90,7 @@ public class RelationshipsTests
     private static Stream<Arguments> provideRelationshipData()
     {
         return Stream.of(
-            /*Arguments.of( "WmNgnmedbQj", "trackedEntity", teis.get( 0 ), "enrollment",  enrollments.get( 1 )), // tei to enrollment*/
+            /*Arguments.of( "WmNgnmedbQj", "trackedEntity", teis.get( 0 ), "enrollment",  enrollments.get( 1 )), // tei to enrollment todo: uncomment when DHIS2-12625 is fixed */
             Arguments.of( "HrS7b5Lis6E", "event", events.get( 0 ), "trackedEntity", teis.get( 0 ) ), // event
             // to
             // tei
@@ -137,39 +138,37 @@ public class RelationshipsTests
     }
 
     @Test
-    @Disabled("uncomment when DHIS2-12625 is fixed")
+    @Disabled( "uncomment when DHIS2-12625 is fixed" )
     public void shouldNotUpdateRelationship()
     {
         // arrange
         String relationshipId = new IdGenerator().generateUniqueId();
 
-        JsonObject relationship = JsonObjectBuilder.jsonObject()
-            .addProperty( "relationship", relationshipId )
-            .addProperty( "relationshipType", relationshipType )
-            .addObject( "from", JsonObjectBuilder.jsonObject().addProperty( "trackedEntity", teis.get( 0 ) ) )
-            .addObject( "to", JsonObjectBuilder.jsonObject().addProperty( "trackedEntity", teis.get( 1 ) ) )
+        JsonObject originalRelationship = new RelationshipDataBuilder()
+            .setRelationshipId( relationshipId )
+            .setRelationshipType( relationshipType )
+            .setToEntity( "trackedEntity", teis.get( 1 ) )
+            .setFromEntity( "trackedEntity", teis.get( 0 ) )
+            .array();
+        
+        trackerActions.postAndGetJobReport( originalRelationship ).validateSuccessfulImport();
+
+        JsonObject updatedRelationship = trackerActions.getRelationship( relationshipId ).getBody();
+
+        updatedRelationship = JsonObjectBuilder.jsonObject( updatedRelationship )
+            .addObject( "from", JsonObjectBuilder.jsonObject().addProperty( "trackedEntity", teis.get( 1 ) ) )
+            .addObject( "to", JsonObjectBuilder.jsonObject().addProperty( "trackedEntity", teis.get( 0 ) ) )
             .wrapIntoArray( "relationships" );
-
-        trackerActions.postAndGetJobReport( relationship ).validate().statusCode( 200 );
-
-        JsonObject relationshipBody = trackerActions.getRelationship( relationshipId ).getBody();
-
-        JsonObjectBuilder.jsonObject( relationship )
-            .addObjectByJsonPath( "relationships[0]", "from",
-                JsonObjectBuilder.jsonObject().addProperty( "trackedEntity", teis.get( 1 ) ).build() )
-            .addObjectByJsonPath( "relationships[0]", "to",
-                JsonObjectBuilder.jsonObject().addProperty( "trackedEntity", teis.get( 0 ) ).build() )
-            .build();
 
         // act
         trackerActions
-            .postAndGetJobReport( relationship, new QueryParamsBuilder().add( "importStrategy=UPDATE" ) )
-            .validateErrorReport();
+            .postAndGetJobReport( updatedRelationship, new QueryParamsBuilder().addAll( "importStrategy=UPDATE" ) )
+            .validateErrorReport()
+            .body( "message", hasItem( containsString( "already exists" ) ) );
 
         trackerActions.getRelationship( relationshipId )
             .validate()
-            .body( "", matchesJSON( relationshipBody ) );
-
+            .body( "", matchesJSON( originalRelationship.getAsJsonArray( "relationships" ).get( 0 ) ) );
     }
 
     @ParameterizedTest
@@ -372,7 +371,7 @@ public class RelationshipsTests
             .validateSuccessfulImport()
             .extractImportedRelationships();
 
-        ApiResponse response = trackerActions.getRelationship(  createdRelationships.get( 0 ) );
+        ApiResponse response = trackerActions.getRelationship( createdRelationships.get( 0 ) );
 
         validateRelationship( response, relType, fromInstance, fromInstanceId, toInstance, toInstanceId,
             createdRelationships.get( 0 ) );
@@ -439,7 +438,7 @@ public class RelationshipsTests
         {
         case "trackedEntity":
         {
-            return trackerActions.getTrackedEntity( id + queryParams);
+            return trackerActions.getTrackedEntity( id + queryParams );
         }
 
         case "event":
