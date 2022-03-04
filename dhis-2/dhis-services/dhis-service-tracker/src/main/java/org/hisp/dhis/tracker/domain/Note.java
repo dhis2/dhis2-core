@@ -58,7 +58,7 @@ public class Note
     private String value;
 
     @JsonProperty
-    private User updatedBy;
+    private User createdBy;
 
     @JsonProperty
     private String storedBy;

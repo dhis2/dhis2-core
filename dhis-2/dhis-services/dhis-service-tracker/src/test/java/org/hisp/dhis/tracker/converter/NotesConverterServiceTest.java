@@ -83,7 +83,7 @@ class NotesConverterServiceTest extends DhisConvenienceTest
         Note note = rnd.nextObject( Note.class );
         note.setStoredBy( null );
         final TrackedEntityComment comment = notesConverterService.from( preheat, note );
-        assertNoteValuesWithCurrentUser( comment, note );
+        assertNoteValues( comment, note );
     }
 
     @Test
@@ -129,15 +129,6 @@ class NotesConverterServiceTest extends DhisConvenienceTest
         assertThat( comment.getLastUpdatedBy().getUsername(), is( CURRENT_USER ) );
     }
 
-    private void assertNoteValuesWithCurrentUser( TrackedEntityComment comment, Note note )
-    {
-        assertThat( comment, is( notNullValue() ) );
-        assertThat( comment.getUid(), is( note.getNote() ) );
-        assertThat( comment.getCommentText(), is( note.getValue() ) );
-        assertThat( comment.getCreator(), is( CURRENT_USER ) );
-        assertThat( comment.getLastUpdatedBy().getUsername(), is( CURRENT_USER ) );
-    }
-
     private void assertCommentValues( Note note, TrackedEntityComment comment )
     {
         assertThat( note, is( notNullValue() ) );
@@ -145,6 +136,6 @@ class NotesConverterServiceTest extends DhisConvenienceTest
         assertThat( note.getValue(), is( comment.getCommentText() ) );
         assertThat( note.getStoredBy(), is( comment.getCreator() ) );
         assertEquals( note.getStoredAt(), DateUtils.instantFromDate( comment.getCreated() ) );
-        assertThat( comment.getLastUpdatedBy().getUsername(), is( note.getUpdatedBy().getUsername() ) );
+        assertThat( comment.getLastUpdatedBy().getUsername(), is( note.getCreatedBy().getUsername() ) );
     }
 }

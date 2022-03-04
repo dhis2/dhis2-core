@@ -31,7 +31,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.tracker.domain.Note;
 import org.hisp.dhis.tracker.domain.User;
@@ -52,7 +51,7 @@ public class NotesConverterService implements TrackerConverterService<Note, Trac
         note.setNote( trackedEntityComment.getUid() );
         note.setValue( trackedEntityComment.getCommentText() );
         note.setStoredAt( DateUtils.instantFromDate( trackedEntityComment.getCreated() ) );
-        note.setUpdatedBy( User.builder()
+        note.setCreatedBy( User.builder()
             .username( trackedEntityComment.getLastUpdatedBy().getUsername() )
             .uid( trackedEntityComment.getLastUpdatedBy().getUid() )
             .firstName( trackedEntityComment.getLastUpdatedBy().getFirstName() )
@@ -79,8 +78,7 @@ public class NotesConverterService implements TrackerConverterService<Note, Trac
         comment.setLastUpdatedBy( preheat.getUser() );
         comment.setCreated( new Date() );
         comment.setLastUpdated( new Date() );
-        comment.setCreator(
-            StringUtils.isBlank( note.getStoredBy() ) ? preheat.getUser().getUsername() : note.getStoredBy() );
+        comment.setCreator( note.getStoredBy() );
         return comment;
     }
 
