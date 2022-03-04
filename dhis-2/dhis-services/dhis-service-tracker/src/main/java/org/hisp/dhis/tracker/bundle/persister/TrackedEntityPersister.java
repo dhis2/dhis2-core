@@ -28,7 +28,6 @@
 package org.hisp.dhis.tracker.bundle.persister;
 
 import java.util.Collections;
-import java.util.Date;
 
 import javax.validation.constraints.NotNull;
 
@@ -91,11 +90,7 @@ public class TrackedEntityPersister extends AbstractTrackerPersister<TrackedEnti
     @Override
     protected TrackedEntityInstance convert( TrackerBundle bundle, TrackedEntity trackerDto )
     {
-        Date now = new Date();
-        TrackedEntityInstance tei = teConverter.from( bundle.getPreheat(), trackerDto );
-        tei.setLastUpdated( now );
-        tei.setLastUpdatedBy( bundle.getUser() );
-        return tei;
+        return teConverter.from( bundle.getPreheat(), trackerDto );
     }
 
     @Override

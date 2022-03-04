@@ -81,7 +81,7 @@ public abstract class AttributeValidationHook extends AbstractTrackerDtoValidati
         }
         else if ( valueType.equals( ValueType.USERNAME ) )
         {
-            error = context.usernameExists( attr.getValue() ) ? null
+            error = context.getBundle().getPreheat().getUserByUsername( attr.getValue() ).isPresent() ? null
                 : " Value " + attr.getValue() + " is not a valid username value";
         }
         else

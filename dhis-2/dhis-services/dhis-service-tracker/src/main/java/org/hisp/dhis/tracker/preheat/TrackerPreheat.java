@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.StringJoiner;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -204,12 +205,11 @@ public class TrackerPreheat
 
     /**
      * A map of valid users by username that are present in the payload. A user
-     * not available in this cache means, payload's username is invalid. These
-     * users are primarily used to represent the ValueType.USERNAME of tracked
-     * entity attributes, used in validation and persisting TEIs.
+     * not available in this cache means, payload's username or uid is invalid.
+     * These users are primarily used to represent the ValueType.USERNAME of
+     * tracked entity attributes and assignedUser fields in events used in
+     * validation and persistence.
      */
-    @Getter
-    @Setter
     private Map<String, User> users = Maps.newHashMap();
 
     /**
@@ -628,6 +628,27 @@ public class TrackerPreheat
                 orgUnit );
             programOwner.get( teiUid ).put( programUid, tepo );
         }
+    }
+
+    public void addUsers( Set<User> users )
+    {
+        Map<String, User> userMap = users.stream()
+            .filter( Objects::nonNull )
+            .collect( Collectors.toMap( User::getUsername, Function.identity() ) );
+        this.users.putAll( userMap );
+    }
+
+    public Optional<User> getUserByUsername( String username )
+    {
+        return Optional.ofNullable( this.users.get( username ) );
+    }
+
+    public Optional<User> getUserByUid( String uid )
+    {
+        return this.users.values()
+            .stream()
+            .filter( u -> Objects.equals( uid, u.getUid() ) )
+            .findAny();
     }
 
     @Override
