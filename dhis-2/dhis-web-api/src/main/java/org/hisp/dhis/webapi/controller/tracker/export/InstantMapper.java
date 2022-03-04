@@ -25,24 +25,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.domain.mapper;
+package org.hisp.dhis.webapi.controller.tracker.export;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.chrono.ChronoZonedDateTime;
+import java.util.Date;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
-public interface DomainMapper<FROM, TO>
+import org.hisp.dhis.util.DateUtils;
+import org.mapstruct.Mapper;
+
+@Mapper
+abstract class InstantMapper
 {
-    TO from( FROM from );
 
-    default List<TO> fromCollection( Collection<FROM> froms )
+    Instant fromString( String dateAsString )
     {
-        return Optional.ofNullable( froms )
-            .orElse( Collections.emptySet() )
-            .stream()
-            .map( this::from )
-            .collect( Collectors.toList() );
+        return DateUtils.instantFromDateAsString( dateAsString );
     }
+
+    Instant fromDate( Date date )
+    {
+        if ( date instanceof java.sql.Date )
+        {
+            return fromSqlDate( (java.sql.Date) date );
+        }
+        return DateUtils.instantFromDate( date );
+    }
+
+    Instant fromSqlDate( java.sql.Date date )
+    {
+        return Optional.ofNullable( date )
+            .map( java.sql.Date::toLocalDate )
+            .map( localDate -> localDate.atStartOfDay( ZoneId.systemDefault() ) )
+            .map( ChronoZonedDateTime::toInstant )
+            .orElse( null );
+    }
+
 }
