@@ -288,6 +288,29 @@ class TrackerAccessManagerTest extends TransactionalIntegrationTest
     }
 
     @Test
+    void checkAccessPermissionForEnrollmentWhenOrgUnitIsNull()
+    {
+        programA.setPublicAccess( AccessStringHelper.FULL );
+        programA.setProgramType( ProgramType.WITHOUT_REGISTRATION );
+        manager.update( programA );
+        trackedEntityType.setPublicAccess( AccessStringHelper.FULL );
+        manager.update( trackedEntityType );
+        User user = createUser( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+        user.setTeiSearchOrganisationUnits( Sets.newHashSet( organisationUnitA, organisationUnitB ) );
+        TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() );
+        ProgramInstance pi = tei.getProgramInstances().iterator().next();
+        pi.setOrganisationUnit( null );
+        // Can create enrollment
+        assertNoErrors( trackerAccessManager.canCreate( user, pi, false ) );
+        // Can update enrollment
+        assertNoErrors( trackerAccessManager.canUpdate( user, pi, false ) );
+        // Cannot delete enrollment
+        assertNoErrors( trackerAccessManager.canDelete( user, pi, false ) );
+        // Can read enrollment
+        assertNoErrors( trackerAccessManager.canRead( user, pi, false ) );
+    }
+
+    @Test
     void checkAccessPermissionForEnrollmentInOpenProgram()
     {
         programA.setPublicAccess( AccessStringHelper.FULL );

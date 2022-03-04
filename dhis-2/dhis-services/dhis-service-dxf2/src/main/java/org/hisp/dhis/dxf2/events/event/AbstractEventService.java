@@ -614,6 +614,8 @@ public abstract class AbstractEventService implements EventService
             event.setAssignedUser( programStageInstance.getAssignedUser().getUid() );
             event.setAssignedUserUsername( programStageInstance.getAssignedUser().getUsername() );
             event.setAssignedUserDisplayName( programStageInstance.getAssignedUser().getName() );
+            event.setAssignedUserFirstName( programStageInstance.getAssignedUser().getFirstName() );
+            event.setAssignedUserSurname( programStageInstance.getAssignedUser().getSurname() );
         }
 
         User user = currentUserService.getCurrentUser();

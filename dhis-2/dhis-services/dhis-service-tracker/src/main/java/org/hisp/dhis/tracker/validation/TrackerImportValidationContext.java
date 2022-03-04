@@ -200,11 +200,6 @@ public class TrackerImportValidationContext
         return bundle.getPreheat().getRelationship( bundle.getIdentifier(), relationship );
     }
 
-    public boolean usernameExists( String username )
-    {
-        return bundle.getPreheat().getUsers().containsKey( username );
-    }
-
     public FileResource getFileResource( String id )
     {
         return bundle.getPreheat().get( FileResource.class, id );

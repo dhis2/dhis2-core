@@ -60,7 +60,8 @@ public class EventDataBuilder implements TrackerImporterDataBuilder
     }
 
     public EventDataBuilder setAssignedUser( String assignedUserId ) {
-        this.builder.addProperty( "assignedUser", assignedUserId );
+        JsonObject assignedUser = new JsonObjectBuilder().addProperty( "uid", assignedUserId ).build();
+        this.builder.addObject( "assignedUser", assignedUser );
 
         return this;
     }

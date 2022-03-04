@@ -25,63 +25,49 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.tracker.preprocess;
 
-import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.apache.commons.lang3.StringUtils.replaceOnce;
+import java.util.Objects;
+import java.util.Optional;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.User;
+import org.springframework.stereotype.Component;
 
 /**
- * @author Lars Helge Overland
+ * This preprocessor is responsible to fill the assigned user with missing
+ * information.
+ *
+ * @author Enrico Colasante
  */
-@Getter
-@RequiredArgsConstructor
-public enum QueryOperator
+@Component
+public class AssignedUserPreProcessor
+    implements BundlePreProcessor
 {
-    EQ( "=", true ),
-    GT( ">" ),
-    GE( ">=" ),
-    LT( "<" ),
-    LE( "<=" ),
-    LIKE( "like" ),
-    IN( "in", true ),
-    SW( "sw" ),
-    EW( "ew" ),
-    // Analytics specifics
-    IEQ( "==", true ),
-    @Deprecated // Prefer NEQ instead
-    NE( "!=", true ),
-    NEQ( "!=", true ),
-    NIEQ( "!==", true ),
-    NLIKE( "not like" ),
-    ILIKE( "ilike" ),
-    NILIKE( "not ilike" );
-
-    private final String value;
-
-    private final boolean nullAllowed;
-
-    QueryOperator( String value )
+    @Override
+    public void process( TrackerBundle bundle )
     {
-        this.value = value;
-        this.nullAllowed = false;
-    }
-
-    public static QueryOperator fromString( String string )
-    {
-        if ( string == null || string.isEmpty() )
+        for ( Event event : bundle.getEvents() )
         {
-            return null;
-        }
+            User assignedUser = event.getAssignedUser();
 
-        if ( string.trim().startsWith( "!" ) )
-        {
-            return valueOf( "N" + replaceOnce( string, "!", EMPTY ).toUpperCase() );
-        }
+            if ( Objects.isNull( assignedUser ) )
+            {
+                return;
+            }
 
-        return valueOf( string.toUpperCase() );
+            if ( Objects.isNull( assignedUser.getUid() ) )
+            {
+                Optional<org.hisp.dhis.user.User> user = bundle.getPreheat()
+                    .getUserByUsername( assignedUser.getUsername() );
+                user.ifPresent( u -> assignedUser.setUid( u.getUid() ) );
+            }
+            if ( Objects.isNull( assignedUser.getUsername() ) )
+            {
+                Optional<org.hisp.dhis.user.User> user = bundle.getPreheat().getUserByUid( assignedUser.getUid() );
+                user.ifPresent( u -> assignedUser.setUsername( u.getUsername() ) );
+            }
+        }
     }
-
 }

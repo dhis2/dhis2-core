@@ -61,24 +61,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 public abstract class AbstractEventJdbcTableManager
     extends AbstractJdbcTableManager
 {
-    protected static final String STORED_BY_COL_NAME = "storedby";
-
-    protected static final String CREATED_BY_COL_USER_NAME = "createdbyusername";
-
-    protected static final String CREATED_BY_COL_NAME = "createdbyname";
-
-    protected static final String CREATED_BY_COL_LAST_NAME = "createdbylastname";
-
-    protected static final String CREATED_BY_COL_DISPLAY_LAST_NAME = "createdbydisplayname";
-
-    protected static final String LAST_UPDATED_BY_COL_USER_NAME = "lastupdatedbyusername";
-
-    protected static final String LAST_UPDATED_BY_COL_NAME = "lastupdatedbyname";
-
-    protected static final String LAST_UPDATED_BY_COL_LAST_NAME = "lastupdatedbylastname";
-
-    protected static final String LAST_UPDATED_BY_COL_DISPLAY_LAST_NAME = "lastupdatedbydisplayname";
-
     public AbstractEventJdbcTableManager( IdentifiableObjectManager idObjectManager,
         OrganisationUnitService organisationUnitService, CategoryService categoryService,
         SystemSettingManager systemSettingManager, DataApprovalLevelService dataApprovalLevelService,
@@ -96,7 +78,7 @@ public abstract class AbstractEventJdbcTableManager
      * JSON objects living in the 'originColumn'. This method will return the
      * display name respecting these rules:
      *
-     * If (last name, firs tname and username) are populated => Last name, first
+     * If (last name, first name and username) are populated => Last name, first
      * name (username)
      *
      * If (only username is populated) => username

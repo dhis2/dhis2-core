@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller.user;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -63,8 +64,8 @@ public class MeDto
         this.languages = user.getLanguages();
         this.gender = user.getGender();
         this.jobTitle = user.getJobTitle();
-        this.created = user.getCreated().toString();
-        this.lastUpdated = user.getLastUpdated().toString();
+        this.created = user.getCreated();
+        this.lastUpdated = user.getLastUpdated();
         this.dataViewOrganisationUnits = user.getDataViewOrganisationUnits();
         this.favorites = user.getFavorites();
         this.sharing = user.getSharing();
@@ -114,10 +115,10 @@ public class MeDto
     private String jobTitle;
 
     @JsonProperty( )
-    private String created;
+    private Date created;
 
     @JsonProperty( )
-    private String lastUpdated;
+    private Date lastUpdated;
 
     @JsonProperty( )
     private Set<OrganisationUnit> dataViewOrganisationUnits;

@@ -345,7 +345,7 @@ public abstract class AbstractJdbcTableManager
         {
             jdbcTemplate.execute( sql );
         }
-        catch ( Exception ex )
+        catch ( BadSqlGrammarException ex )
         {
             log.warn( ex.getMessage() );
         }
