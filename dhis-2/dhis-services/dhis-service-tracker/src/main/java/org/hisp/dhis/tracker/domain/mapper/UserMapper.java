@@ -25,45 +25,14 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.preheat.mappers;
+package org.hisp.dhis.tracker.domain.mapper;
 
-import java.util.Set;
-
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserGroup;
-import org.mapstruct.BeanMapping;
+import org.hisp.dhis.program.UserInfoSnapshot;
+import org.hisp.dhis.tracker.domain.User;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.Named;
-import org.mapstruct.factory.Mappers;
 
-@Mapper( uses = { DebugMapper.class, OrganisationUnitMapper.class,
-    UserGroupMapper.class } )
-public interface FullUserMapper extends PreheatMapper<User>
+@Mapper
+public interface UserMapper extends DomainMapper<UserInfoSnapshot, User>
 {
-    FullUserMapper INSTANCE = Mappers.getMapper( FullUserMapper.class );
-
-    @BeanMapping( ignoreByDefault = true )
-    @Mapping( target = "id" )
-    @Mapping( target = "uid" )
-    @Mapping( target = "uuid" )
-    @Mapping( target = "code" )
-    @Mapping( target = "username" )
-    @Mapping( target = "userRoles" )
-    @Mapping( target = "firstName" )
-    @Mapping( target = "surname" )
-    @Mapping( target = "organisationUnits", qualifiedByName = "organisationUnits" )
-    @Mapping( target = "teiSearchOrganisationUnits", qualifiedByName = "teiSearchOrganisationUnits" )
-    @Mapping( target = "groups", qualifiedByName = "groups" )
-    User map( User user );
-
-    @Named( "teiSearchOrganisationUnits" )
-    Set<OrganisationUnit> teiSearchOrganisationUnits( Set<OrganisationUnit> organisationUnits );
-
-    @Named( "organisationUnits" )
-    Set<OrganisationUnit> organisationUnits( Set<OrganisationUnit> organisationUnits );
-
-    @Named( "groups" )
-    Set<UserGroup> groups( Set<UserGroup> groups );
+    User from( UserInfoSnapshot snapshot );
 }
