@@ -25,45 +25,49 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.preheat.mappers;
+package org.hisp.dhis.tracker.preprocess;
 
-import java.util.Set;
+import java.util.Objects;
+import java.util.Optional;
 
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserGroup;
-import org.mapstruct.BeanMapping;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.Named;
-import org.mapstruct.factory.Mappers;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.User;
+import org.springframework.stereotype.Component;
 
-@Mapper( uses = { DebugMapper.class, OrganisationUnitMapper.class,
-    UserGroupMapper.class } )
-public interface FullUserMapper extends PreheatMapper<User>
+/**
+ * This preprocessor is responsible to fill the assigned user with missing
+ * information.
+ *
+ * @author Enrico Colasante
+ */
+@Component
+public class AssignedUserPreProcessor
+    implements BundlePreProcessor
 {
-    FullUserMapper INSTANCE = Mappers.getMapper( FullUserMapper.class );
+    @Override
+    public void process( TrackerBundle bundle )
+    {
+        for ( Event event : bundle.getEvents() )
+        {
+            User assignedUser = event.getAssignedUser();
 
-    @BeanMapping( ignoreByDefault = true )
-    @Mapping( target = "id" )
-    @Mapping( target = "uid" )
-    @Mapping( target = "uuid" )
-    @Mapping( target = "code" )
-    @Mapping( target = "username" )
-    @Mapping( target = "userRoles" )
-    @Mapping( target = "firstName" )
-    @Mapping( target = "surname" )
-    @Mapping( target = "organisationUnits", qualifiedByName = "organisationUnits" )
-    @Mapping( target = "teiSearchOrganisationUnits", qualifiedByName = "teiSearchOrganisationUnits" )
-    @Mapping( target = "groups", qualifiedByName = "groups" )
-    User map( User user );
+            if ( Objects.isNull( assignedUser ) )
+            {
+                return;
+            }
 
-    @Named( "teiSearchOrganisationUnits" )
-    Set<OrganisationUnit> teiSearchOrganisationUnits( Set<OrganisationUnit> organisationUnits );
-
-    @Named( "organisationUnits" )
-    Set<OrganisationUnit> organisationUnits( Set<OrganisationUnit> organisationUnits );
-
-    @Named( "groups" )
-    Set<UserGroup> groups( Set<UserGroup> groups );
+            if ( Objects.isNull( assignedUser.getUid() ) )
+            {
+                Optional<org.hisp.dhis.user.User> user = bundle.getPreheat()
+                    .getUserByUsername( assignedUser.getUsername() );
+                user.ifPresent( u -> assignedUser.setUid( u.getUid() ) );
+            }
+            if ( Objects.isNull( assignedUser.getUsername() ) )
+            {
+                Optional<org.hisp.dhis.user.User> user = bundle.getPreheat().getUserByUid( assignedUser.getUid() );
+                user.ifPresent( u -> assignedUser.setUsername( u.getUsername() ) );
+            }
+        }
+    }
 }
