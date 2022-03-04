@@ -93,7 +93,7 @@ public class DatePeriodResourceTable
         // TODO Create a dynamic solution instead of having fixed dates
 
         Date startDate = new Cal( OLDEST_YEAR_PERIOD_SUPPORTED, 1, 1, true ).time();
-        Date endDate = new Cal( NEWEST_YEAR_PERIOD_SUPPORTED, 1, 1, true ).time();
+        Date endDate = new Cal( NEWEST_YEAR_PERIOD_SUPPORTED + 1, 1, 1, true ).time();
 
         List<Period> dailyPeriods = new DailyPeriodType().generatePeriods( startDate, endDate );
 
