@@ -25,50 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.validation.hooks;
+package org.hisp.dhis.webapi.controller.tracker.export.relationships;
 
-import java.util.Optional;
+import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.webapi.controller.tracker.export.AttributeMapper;
+import org.hisp.dhis.webapi.controller.tracker.export.DomainMapper;
+import org.hisp.dhis.webapi.controller.tracker.export.InstantMapper;
+import org.hisp.dhis.webapi.controller.tracker.export.ProgramOwnerMapper;
+import org.hisp.dhis.webapi.controller.tracker.export.UserMapper;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.domain.RelationshipItem;
-
-/**
- * @author Enrico Colasante
- */
-public class RelationshipValidationUtils
+@Mapper( uses = {
+    AttributeMapper.class,
+    EnrollmentMapper.class,
+    ProgramOwnerMapper.class,
+    InstantMapper.class,
+    UserMapper.class } )
+interface TrackedEntityMapper extends DomainMapper<TrackedEntityInstance, TrackedEntity>
 {
-    public static TrackerType relationshipItemValueType( RelationshipItem item )
-    {
-        if ( item.getTrackedEntity() != null && StringUtils.isNotEmpty( item.getTrackedEntity().getTrackedEntity() ) )
-        {
-            return TrackerType.TRACKED_ENTITY;
-        }
-        else if ( item.getEnrollment() != null && StringUtils.isNotEmpty( item.getEnrollment().getEnrollment() ) )
-        {
-            return TrackerType.ENROLLMENT;
-        }
-        else if ( item.getEvent() != null && StringUtils.isNotEmpty( item.getEvent().getEvent() ) )
-        {
-            return TrackerType.EVENT;
-        }
-        return null;
-    }
-
-    public static Optional<String> getUidFromRelationshipItem( RelationshipItem item )
-    {
-        if ( item.getTrackedEntity() != null )
-        {
-            return Optional.of( item.getTrackedEntity().getTrackedEntity() );
-        }
-        else if ( item.getEnrollment() != null )
-        {
-            return Optional.of( item.getEnrollment().getEnrollment() );
-        }
-        else if ( item.getEvent() != null )
-        {
-            return Optional.of( item.getEvent().getEvent() );
-        }
-        return Optional.empty();
-    }
+    @Mapping( target = "relationships", ignore = true )
+    @Mapping( target = "trackedEntity", source = "trackedEntityInstance" )
+    @Mapping( target = "createdAt", source = "created" )
+    @Mapping( target = "createdAtClient", source = "createdAtClient" )
+    @Mapping( target = "updatedAt", source = "lastUpdated" )
+    @Mapping( target = "updatedAtClient", source = "lastUpdatedAtClient" )
+    @Mapping( target = "createdBy", source = "createdByUserInfo" )
+    @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo" )
+    TrackedEntity from( TrackedEntityInstance trackedEntityInstance );
 }

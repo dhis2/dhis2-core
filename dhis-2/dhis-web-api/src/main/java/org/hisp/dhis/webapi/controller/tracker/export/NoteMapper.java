@@ -32,7 +32,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 @Mapper( uses = { InstantMapper.class, UserMapper.class } )
-interface NoteMapper extends DomainMapper<org.hisp.dhis.dxf2.events.event.Note, Note>
+public interface NoteMapper extends DomainMapper<org.hisp.dhis.dxf2.events.event.Note, Note>
 {
     @Mapping( target = "storedAt", source = "storedDate" )
     @Mapping( target = "createdBy", source = "lastUpdatedBy" )

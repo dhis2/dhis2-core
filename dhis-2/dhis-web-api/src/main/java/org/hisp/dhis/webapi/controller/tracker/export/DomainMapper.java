@@ -33,7 +33,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-interface DomainMapper<FROM, TO>
+public interface DomainMapper<FROM, TO>
 {
     TO from( FROM from );
 

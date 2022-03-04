@@ -44,11 +44,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class RelationshipItem
 {
     @JsonProperty
-    private String trackedEntity;
+    private TrackedEntity trackedEntity;
 
     @JsonProperty
-    private String enrollment;
+    private Enrollment enrollment;
 
     @JsonProperty
-    private String event;
+    private Event event;
 }

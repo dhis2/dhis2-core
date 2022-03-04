@@ -32,7 +32,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 @Mapper
-interface ProgramOwnerMapper
+public interface ProgramOwnerMapper
     extends DomainMapper<org.hisp.dhis.dxf2.events.trackedentity.ProgramOwner, ProgramOwner>
 {
     @Mapping( target = "orgUnit", source = "ownerOrgUnit" )

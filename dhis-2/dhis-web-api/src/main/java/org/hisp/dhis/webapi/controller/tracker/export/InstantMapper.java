@@ -37,15 +37,15 @@ import org.hisp.dhis.util.DateUtils;
 import org.mapstruct.Mapper;
 
 @Mapper
-abstract class InstantMapper
+public interface InstantMapper
 {
 
-    Instant fromString( String dateAsString )
+    default Instant fromString( String dateAsString )
     {
         return DateUtils.instantFromDateAsString( dateAsString );
     }
 
-    Instant fromDate( Date date )
+    default Instant fromDate( Date date )
     {
         if ( date instanceof java.sql.Date )
         {
@@ -54,7 +54,7 @@ abstract class InstantMapper
         return DateUtils.instantFromDate( date );
     }
 
-    Instant fromSqlDate( java.sql.Date date )
+    default Instant fromSqlDate( java.sql.Date date )
     {
         return Optional.ofNullable( date )
             .map( java.sql.Date::toLocalDate )
