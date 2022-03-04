@@ -189,7 +189,11 @@ public class EventDataValuesValidationHook
         FileResource fileResource = reporter.getValidationContext().getFileResource( dataValue.getValue() );
 
         reporter.addErrorIfNull( fileResource, event, E1084, dataValue.getValue() );
-        reporter.addErrorIf( () -> fileResource != null && fileResource.isAssigned(), event,
-            E1009, dataValue.getValue() );
+
+        if ( reporter.getValidationContext().getProgramStageInstance( event.getEvent() ) == null )
+        {
+            reporter.addErrorIf( () -> fileResource != null && fileResource.isAssigned(), event,
+                E1009, dataValue.getValue() );
+        }
     }
 }
