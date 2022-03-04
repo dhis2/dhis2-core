@@ -77,7 +77,7 @@ public class EventNotesTests
             .validate().statusCode( 200 )
             .body( "notes", hasSize( 2 ) )
             .body( "notes.storedBy", CoreMatchers.everyItem( equalTo( null ) ) )
-            .body( "notes.createdBy", CoreMatchers.everyItem( equalTo( "taadmin" ) ) );;
+            .body( "notes.createdBy.username", CoreMatchers.everyItem( equalTo( "taadmin" ) ) );;
     }
 
     @Test
