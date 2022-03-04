@@ -142,8 +142,9 @@ public abstract class CalendarPeriodType
 
         Period period = createPeriod( startDate, calendar );
         Period endPeriod = createPeriod( endDate, calendar );
+        Date orEqualsEndDate = addYears( endPeriod.getEndDate(), 1 );
 
-        while ( period.getStartDate().before( addYears( endPeriod.getEndDate(), 1 ) ) )
+        while ( period.getStartDate().before( orEqualsEndDate ) )
         {
             periods.add( period );
             period = getNextPeriod( period, calendar );
