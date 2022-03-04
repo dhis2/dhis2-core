@@ -366,7 +366,7 @@ public class JdbcEventAnalyticsTableManager
             "and psi.executiondate is not null " +
             "and dps.yearly is not null " +
             "and dps.yearly >= " + OLDEST_YEAR_PERIOD_SUPPORTED +
-            "and dps.yearly < " + NEWEST_YEAR_PERIOD_SUPPORTED +
+            "and dps.yearly <= " + NEWEST_YEAR_PERIOD_SUPPORTED +
             "and psi.deleted is false ";
 
         populateTableInternal( partition, getDimensionColumns( program ), fromClause );
@@ -606,7 +606,7 @@ public class JdbcEventAnalyticsTableManager
         }
 
         sql += ") as temp where temp.supportedyear >= " + OLDEST_YEAR_PERIOD_SUPPORTED +
-            " and temp.supportedyear < " + NEWEST_YEAR_PERIOD_SUPPORTED;
+            " and temp.supportedyear <= " + NEWEST_YEAR_PERIOD_SUPPORTED;
 
         return jdbcTemplate.queryForList( sql, Integer.class );
     }
