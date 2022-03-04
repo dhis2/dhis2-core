@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.period;
 
+import static org.apache.commons.lang3.time.DateUtils.addYears;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -141,7 +143,7 @@ public abstract class CalendarPeriodType
         Period period = createPeriod( startDate, calendar );
         Period endPeriod = createPeriod( endDate, calendar );
 
-        while ( period.getStartDate().before( endPeriod.getEndDate() ) )
+        while ( period.getStartDate().before( addYears( endPeriod.getEndDate(), 1 ) ) )
         {
             periods.add( period );
             period = getNextPeriod( period, calendar );
