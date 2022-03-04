@@ -183,7 +183,7 @@ public class EnrollmentsTests
             .body( "updatedAt", notNullValue() )
             .body( "value", notNullValue() )
             .body( "storedBy", CoreMatchers.everyItem( equalTo( null ) ) )
-            .body( "createdBy", CoreMatchers.everyItem( equalTo( "taadmin" ) ) );
+            .body( "createdBy.username", CoreMatchers.everyItem( equalTo( "taadmin" ) ) );
     }
 
     @ValueSource( strings = { "true", "false" } )
