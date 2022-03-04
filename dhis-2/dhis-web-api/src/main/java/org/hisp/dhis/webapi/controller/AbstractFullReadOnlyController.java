@@ -43,6 +43,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.attribute.AttributeService;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -225,7 +226,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
 
         postProcessResponseEntities( entities, options, rpParameters );
 
-        handleLinksAndAccess( entities, fields, false );
+        handleLinksAndAccess( entities, fields, false, currentUser );
         handleAttributeValues( entities, fields );
 
         linkService.generatePagerLinks( pager, getEntityClass() );
@@ -374,7 +375,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
 
         if ( fields.isEmpty() )
         {
-            fields.add( ":all" );
+            fields.add( "*" );
         }
 
         cachePrivate( response );
@@ -451,7 +452,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
 
         entities = (List<T>) queryService.query( query );
 
-        handleLinksAndAccess( entities, fields, true );
+        handleLinksAndAccess( entities, fields, true, currentUser );
         handleAttributeValues( entities, fields );
 
         for ( T entity : entities )
@@ -506,13 +507,21 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
         return fieldsContains( "href", fields );
     }
 
-    private void handleLinksAndAccess( List<T> entityList, List<String> fields, boolean deep )
+    private boolean hasAccess( List<String> fields )
     {
-        boolean generateLinks = hasHref( fields );
+        return fieldsContains( "access", fields );
+    }
 
-        if ( generateLinks )
+    private void handleLinksAndAccess( List<T> entityList, List<String> fields, boolean deep, User currentUser )
+    {
+        if ( hasHref( fields ) )
         {
             linkService.generateLinks( entityList, deep );
+        }
+
+        if ( hasAccess( fields ) && getSchema().isMetadata() )
+        {
+            entityList.forEach( e -> ((BaseIdentifiableObject) e).setAccess( aclService.getAccess( e, currentUser ) ) );
         }
     }
 
