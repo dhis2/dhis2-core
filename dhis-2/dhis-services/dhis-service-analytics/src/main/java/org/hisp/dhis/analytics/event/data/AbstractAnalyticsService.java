@@ -200,14 +200,14 @@ public abstract class AbstractAnalyticsService
         // Paging
         // ---------------------------------------------------------------------
 
-        applyPaging( params, count, grid );
+        maybeApplyPaging( params, count, grid );
 
         maybeApplyHeaders( params, grid );
 
         return grid;
     }
 
-    private static void applyPaging( EventQueryParams params, long count, Grid grid )
+    private static void maybeApplyPaging( EventQueryParams params, long count, Grid grid )
     {
         if ( params.isPaging() )
         {
