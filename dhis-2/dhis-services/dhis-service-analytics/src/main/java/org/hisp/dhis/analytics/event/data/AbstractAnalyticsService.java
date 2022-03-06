@@ -200,6 +200,15 @@ public abstract class AbstractAnalyticsService
         // Paging
         // ---------------------------------------------------------------------
 
+        applyPaging( params, count, grid );
+
+        maybeApplyHeaders( params, grid );
+
+        return grid;
+    }
+
+    private static void applyPaging( EventQueryParams params, long count, Grid grid )
+    {
         if ( params.isPaging() )
         {
             Pager pager = params.isTotalPages()
@@ -209,10 +218,6 @@ public abstract class AbstractAnalyticsService
 
             grid.getMetaData().put( PAGER.getKey(), pager );
         }
-
-        maybeApplyHeaders( params, grid );
-
-        return grid;
     }
 
     private static boolean isLastPage( int page, int pageSize, long count )
