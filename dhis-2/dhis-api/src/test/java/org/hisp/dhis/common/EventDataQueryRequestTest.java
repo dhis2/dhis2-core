@@ -28,7 +28,6 @@
 package org.hisp.dhis.common;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -116,20 +115,6 @@ public class EventDataQueryRequestTest
         assertEquals( eventDataQueryRequest.getDimension(),
             Set.of(
                 "pe:LAST_MONTH;LAST_YEAR:ENROLLMENT_DATE;202111:INCIDENT_DATE;2021:INCIDENT_DATE;TODAY:INCIDENT_DATE" ) );
-    }
-
-    @Test
-    void testTotalPagesShouldReturnFalseWhenCalled()
-    {
-        EnrollmentAnalyticsQueryCriteria criteria = new EnrollmentAnalyticsQueryCriteria();
-
-        criteria.setTotalPages( false );
-
-        EventDataQueryRequest eventDataQueryRequest = EventDataQueryRequest.builder()
-            .fromCriteria( criteria )
-            .build();
-
-        assertFalse( eventDataQueryRequest.isTotalPages() );
     }
 
     @ParameterizedTest
