@@ -69,6 +69,7 @@ import org.hisp.dhis.common.MetadataItem;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.RepeatableStageParams;
+import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -201,7 +202,10 @@ public abstract class AbstractAnalyticsService
 
         if ( params.isPaging() )
         {
-            Pager pager = new Pager( params.getPageWithDefault(), count, params.getPageSizeWithDefault() );
+            Pager pager = params.isTotalPages()
+                ? new Pager( params.getPageWithDefault(), count, params.getPageSizeWithDefault() )
+                : new SlimPager( params.getPageWithDefault(), params.getPageSizeWithDefault(),
+                    isLastPage( params.getPageWithDefault(), params.getPageSizeWithDefault(), count ) );
 
             grid.getMetaData().put( PAGER.getKey(), pager );
         }
@@ -209,6 +213,11 @@ public abstract class AbstractAnalyticsService
         maybeApplyHeaders( params, grid );
 
         return grid;
+    }
+
+    private static boolean isLastPage( int page, int pageSize, long count )
+    {
+        return (long) page * pageSize >= count;
     }
 
     /**

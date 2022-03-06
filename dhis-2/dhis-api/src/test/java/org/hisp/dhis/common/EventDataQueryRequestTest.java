@@ -28,15 +28,23 @@
 package org.hisp.dhis.common;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 public class EventDataQueryRequestTest
 {
+
+    public static boolean[] totalPagesFlags()
+    {
+        return new boolean[] { false, true };
+    }
 
     @Test
     void testDimensionRefactoringOnlyWhenQuery()
@@ -108,5 +116,32 @@ public class EventDataQueryRequestTest
         assertEquals( eventDataQueryRequest.getDimension(),
             Set.of(
                 "pe:LAST_MONTH;LAST_YEAR:ENROLLMENT_DATE;202111:INCIDENT_DATE;2021:INCIDENT_DATE;TODAY:INCIDENT_DATE" ) );
+    }
+
+    @Test
+    void testTotalPagesShouldReturnFalseWhenCalled()
+    {
+        EnrollmentAnalyticsQueryCriteria criteria = new EnrollmentAnalyticsQueryCriteria();
+
+        criteria.setTotalPages( false );
+
+        EventDataQueryRequest eventDataQueryRequest = EventDataQueryRequest.builder()
+            .fromCriteria( criteria )
+            .build();
+
+        assertFalse( eventDataQueryRequest.isTotalPages() );
+    }
+
+    @ParameterizedTest
+    @MethodSource( value = "totalPagesFlags" )
+    void totalPagesShouldBeSameInCriteriaAndRequestWhenCalled( boolean totalPages )
+    {
+        EnrollmentAnalyticsQueryCriteria criteria = new EnrollmentAnalyticsQueryCriteria();
+
+        criteria.setTotalPages( totalPages );
+
+        assertEquals( EventDataQueryRequest.builder()
+            .fromCriteria( criteria )
+            .build().isTotalPages(), totalPages );
     }
 }

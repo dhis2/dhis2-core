@@ -223,7 +223,7 @@ public class JdbcEventAnalyticsManager
     @Override
     public long getEventCount( EventQueryParams params )
     {
-        String sql = "select count(psi) ";
+        String sql = "select count(1) ";
 
         sql += getFromClause( params );
 
