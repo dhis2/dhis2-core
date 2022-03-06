@@ -202,12 +202,11 @@ public class DataDimensionExtractor
         {
             if ( id.hasValidIds() )
             {
-                final BaseDimensionalItemObject dimensionalItemObject = getBaseDimensionalItemObject( atomicObjects,
+                final DimensionalItemObject dimensionalItemObject = getDimensionalItemObject( atomicObjects,
                     id );
 
                 if ( dimensionalItemObject != null )
                 {
-                    dimensionalItemObject.setQueryMods( id.getQueryMods() );
                     itemObjectMap.put( id, dimensionalItemObject );
                 }
             }
@@ -279,7 +278,7 @@ public class DataDimensionExtractor
         return new ProgramDataElementDimensionItem( program, dataElement );
     }
 
-    private BaseDimensionalItemObject getBaseDimensionalItemObject(
+    private DimensionalItemObject getDimensionalItemObject(
         final MapMap<Class<? extends IdentifiableObject>, String, IdentifiableObject> atomicObjects,
         final DimensionalItemId id )
     {
@@ -291,7 +290,7 @@ public class DataDimensionExtractor
             DataElement dataElement = (DataElement) atomicObjects.getValue( DataElement.class, id.getId0() );
             if ( dataElement != null )
             {
-                dimensionalItemObject = cloneIfNeeded( dataElement, id );
+                dimensionalItemObject = withQueryMods( dataElement, id );
             }
             break;
 
@@ -299,7 +298,7 @@ public class DataDimensionExtractor
             final Indicator indicator = (Indicator) atomicObjects.getValue( Indicator.class, id.getId0() );
             if ( indicator != null )
             {
-                dimensionalItemObject = cloneIfNeeded( indicator, id );
+                dimensionalItemObject = withQueryMods( indicator, id );
             }
             break;
 
@@ -313,8 +312,9 @@ public class DataDimensionExtractor
                 (id.getId1() != null) == (categoryOptionCombo != null) &&
                 (id.getId2() != null) == (attributeOptionCombo != null) )
             {
-                dimensionalItemObject = new DataElementOperand( dataElement, categoryOptionCombo,
-                    attributeOptionCombo );
+                dimensionalItemObject = new DataElementOperand( (DataElement) withQueryMods( dataElement, id ),
+                    categoryOptionCombo, attributeOptionCombo );
+                dimensionalItemObject.setQueryMods( id.getQueryMods() );
             }
             break;
 
@@ -350,7 +350,7 @@ public class DataDimensionExtractor
                 .getValue( ProgramIndicator.class, id.getId0() );
             if ( programIndicator != null )
             {
-                dimensionalItemObject = cloneIfNeeded( programIndicator, id );
+                dimensionalItemObject = programIndicator;
             }
             break;
 
@@ -370,20 +370,22 @@ public class DataDimensionExtractor
      * @param id the item id that may have non-default query modifiers.
      * @return the item or its clone.
      */
-    private BaseDimensionalItemObject cloneIfNeeded( final BaseDimensionalItemObject item, final DimensionalItemId id )
+    private BaseDimensionalItemObject withQueryMods( final BaseDimensionalItemObject item, final DimensionalItemId id )
     {
-        if ( id.getQueryMods() != null )
+        if ( id.getQueryMods() == null )
         {
-            try
-            {
-                return (BaseDimensionalItemObject) BeanUtils.cloneBean( item );
-            }
-            catch ( Exception e )
-            {
-                return null;
-            }
+            return item;
         }
 
-        return item;
+        try
+        {
+            BaseDimensionalItemObject clone = (BaseDimensionalItemObject) BeanUtils.cloneBean( item );
+            clone.setQueryMods( id.getQueryMods() );
+            return clone;
+        }
+        catch ( Exception e )
+        {
+            return null;
+        }
     }
 }
