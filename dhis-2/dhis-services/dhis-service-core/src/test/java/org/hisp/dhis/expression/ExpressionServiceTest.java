@@ -1157,10 +1157,13 @@ class ExpressionServiceTest extends DhisSpringTest
             .subExpression( " case when textvalue != 'a' and textvalue != 'b' then 'c' else 'd' end" )
             .valueType( ValueType.TEXT ).build() );
 
-        DataElementOperand dataElementOperandX = new DataElementOperand( dataElementX, categoryOptionComboA );
-        dataElementOperandX.setQueryMods( QueryModifiers.builder()
+        QueryModifiers mods = QueryModifiers.builder()
             .subExpression( " case when value > 99 then 10 else 11 end" )
-            .valueType( ValueType.NUMBER ).build() );
+            .valueType( ValueType.NUMBER ).build();
+        DataElement dataElementX9 = (DataElement) clone( dataElementX );
+        dataElementX9.setQueryMods( mods );
+        DataElementOperand dataElementOperandX = new DataElementOperand( dataElementX9, categoryOptionComboA );
+        dataElementOperandX.setQueryMods( mods );
 
         Map<DimensionalItemObject, Object> valueMap = Map.of(
             dataElementX1, 2.0,

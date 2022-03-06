@@ -28,6 +28,7 @@
 package org.hisp.dhis.dimension;
 
 import static org.apache.commons.lang3.EnumUtils.isValidEnum;
+import static org.apache.commons.lang3.ObjectUtils.allNotNull;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -288,18 +289,12 @@ public class DataDimensionExtractor
         {
         case DATA_ELEMENT:
             DataElement dataElement = (DataElement) atomicObjects.getValue( DataElement.class, id.getId0() );
-            if ( dataElement != null )
-            {
-                dimensionalItemObject = withQueryMods( dataElement, id );
-            }
+            dimensionalItemObject = withQueryMods( dataElement, id );
             break;
 
         case INDICATOR:
             final Indicator indicator = (Indicator) atomicObjects.getValue( Indicator.class, id.getId0() );
-            if ( indicator != null )
-            {
-                dimensionalItemObject = withQueryMods( indicator, id );
-            }
+            dimensionalItemObject = withQueryMods( indicator, id );
             break;
 
         case DATA_ELEMENT_OPERAND:
@@ -329,7 +324,7 @@ public class DataDimensionExtractor
         case PROGRAM_DATA_ELEMENT:
             Program program = (Program) atomicObjects.getValue( Program.class, id.getId0() );
             dataElement = (DataElement) atomicObjects.getValue( DataElement.class, id.getId1() );
-            if ( program != null && dataElement != null )
+            if ( allNotNull( program, dataElement ) )
             {
                 dimensionalItemObject = new ProgramDataElementDimensionItem( program, dataElement );
             }
@@ -339,19 +334,14 @@ public class DataDimensionExtractor
             program = (Program) atomicObjects.getValue( Program.class, id.getId0() );
             final TrackedEntityAttribute attribute = (TrackedEntityAttribute) atomicObjects
                 .getValue( TrackedEntityAttribute.class, id.getId1() );
-            if ( program != null && attribute != null )
+            if ( allNotNull( program, attribute ) )
             {
                 dimensionalItemObject = new ProgramTrackedEntityAttributeDimensionItem( program, attribute );
             }
             break;
 
         case PROGRAM_INDICATOR:
-            final ProgramIndicator programIndicator = (ProgramIndicator) atomicObjects
-                .getValue( ProgramIndicator.class, id.getId0() );
-            if ( programIndicator != null )
-            {
-                dimensionalItemObject = programIndicator;
-            }
+            dimensionalItemObject = (ProgramIndicator) atomicObjects.getValue( ProgramIndicator.class, id.getId0() );
             break;
 
         default:
@@ -372,7 +362,7 @@ public class DataDimensionExtractor
      */
     private BaseDimensionalItemObject withQueryMods( final BaseDimensionalItemObject item, final DimensionalItemId id )
     {
-        if ( id.getQueryMods() == null )
+        if ( item == null || id.getQueryMods() == null )
         {
             return item;
         }
