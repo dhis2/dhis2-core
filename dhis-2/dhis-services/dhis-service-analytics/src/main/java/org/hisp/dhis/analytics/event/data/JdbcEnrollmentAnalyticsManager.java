@@ -449,7 +449,8 @@ public class JdbcEnrollmentAnalyticsManager
                     + getExecutionDateFilter( item.getRepeatableStageParams().getStartDate(),
                         item.getRepeatableStageParams().getEndDate() )
                     + ORDER_BY_EXECUTION_DATE + createOrderTypeAndOffset( item.getProgramStageOffset() )
-                    + getLimit( item.getRepeatableStageParams().getCount() ) + " ) as t1)";
+                    + getLimit( item.getRepeatableStageParams().getCount() ) + " ) as t1) as "
+                    + quote( item.getRepeatableStageParams().getDimension() );
 
             }
 
@@ -462,7 +463,7 @@ public class JdbcEnrollmentAnalyticsManager
                     + getExecutionDateFilter( item.getRepeatableStageParams().getStartDate(),
                         item.getRepeatableStageParams().getEndDate() )
                     + ORDER_BY_EXECUTION_DATE + createOrderTypeAndOffset( item.getProgramStageOffset() )
-                    + " " + LIMIT_1 + " )";
+                    + " " + LIMIT_1 + " ) as " + quote( item.getRepeatableStageParams().getDimension() );
             }
 
             if ( item.getItem().getDimensionItemType() == DATA_ELEMENT && item.getProgramStage() != null )
