@@ -164,9 +164,6 @@ public class EnrollmentTrackerConverterService
             enrollment.setStatus( EnrollmentStatus.ACTIVE );
         }
 
-        programInstance.setEndDate( DateUtils.fromInstant( enrollment.getCompletedAt() ) );
-        programInstance.setCompletedBy( enrollment.getCompletedBy() );
-
         ProgramStatus previousStatus = programInstance.getStatus();
         programInstance.setStatus( enrollment.getStatus().getProgramStatus() );
 
@@ -174,18 +171,12 @@ public class EnrollmentTrackerConverterService
         {
             if ( programInstance.isCompleted() )
             {
-                programInstance
-                    .setEndDate(
-                        enrollment.getCompletedAt() != null ? DateUtils.fromInstant( enrollment.getCompletedAt() )
-                            : new Date() );
-                programInstance.setCompletedBy(
-                    enrollment.getCompletedBy() != null ? enrollment.getCompletedBy() : preheat.getUsername() );
+                programInstance.setEndDate( new Date() );
+                programInstance.setCompletedBy( preheat.getUsername() );
             }
             else if ( programInstance.getStatus().equals( ProgramStatus.CANCELLED ) )
             {
-                programInstance.setEndDate(
-                    enrollment.getCompletedAt() != null ? DateUtils.fromInstant( enrollment.getCompletedAt() )
-                        : new Date() );
+                programInstance.setEndDate( new Date() );
             }
         }
 

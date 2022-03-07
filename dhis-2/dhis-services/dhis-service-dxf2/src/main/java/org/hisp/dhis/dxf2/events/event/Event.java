@@ -124,6 +124,10 @@ public class Event
 
     private String assignedUserDisplayName;
 
+    private String assignedUserFirstName;
+
+    private String assignedUserSurname;
+
     public Event()
     {
         deleted = false;
@@ -541,6 +545,28 @@ public class Event
     public void setAssignedUserDisplayName( String assignedUserDisplayName )
     {
         this.assignedUserDisplayName = assignedUserDisplayName;
+    }
+
+    @JsonIgnore
+    public String getAssignedUserFirstName()
+    {
+        return assignedUserFirstName;
+    }
+
+    public void setAssignedUserFirstName( String assignedUserFirstName )
+    {
+        this.assignedUserFirstName = assignedUserFirstName;
+    }
+
+    @JsonIgnore
+    public String getAssignedUserSurname()
+    {
+        return assignedUserSurname;
+    }
+
+    public void setAssignedUserSurname( String assignedUserSurname )
+    {
+        this.assignedUserSurname = assignedUserSurname;
     }
 
     @JsonIgnore

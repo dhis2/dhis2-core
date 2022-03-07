@@ -464,6 +464,8 @@ public class JdbcEventStore implements EventStore
                     event.setAssignedUser( rowSet.getString( "user_assigned" ) );
                     event.setAssignedUserUsername( rowSet.getString( "user_assigned_username" ) );
                     event.setAssignedUserDisplayName( rowSet.getString( "user_assigned_name" ) );
+                    event.setAssignedUserFirstName( rowSet.getString( "user_assigned_first_name" ) );
+                    event.setAssignedUserSurname( rowSet.getString( "user_assigned_surname" ) );
                 }
 
                 events.add( event );
@@ -996,6 +998,7 @@ public class JdbcEventStore implements EventStore
             + "psi.created as psi_created, psi.createdbyuserinfo as psi_createdbyuserinfo, psi.lastupdated as psi_lastupdated, psi.lastupdatedbyuserinfo as psi_lastupdatedbyuserinfo, "
             + "psi.completeddate as psi_completeddate, psi.deleted as psi_deleted, "
             + "ST_AsText( psi.geometry ) as psi_geometry, au.uid as user_assigned, (au.firstName || ' ' || au.surName) as user_assigned_name,"
+            + "au.firstName as user_assigned_first_name, au.surName as user_assigned_surname, "
             + "au.username as user_assigned_username, cocco.categoryoptionid AS cocco_categoryoptionid, deco.uid AS deco_uid, " );
 
         if ( (params.getCategoryOptionCombo() == null || params.getCategoryOptionCombo().isDefault())

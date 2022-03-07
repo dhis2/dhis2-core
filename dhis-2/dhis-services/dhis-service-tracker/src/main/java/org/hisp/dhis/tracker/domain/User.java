@@ -27,94 +27,38 @@
  */
 package org.hisp.dhis.tracker.domain;
 
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 
-import lombok.*;
-
-import org.hisp.dhis.tracker.TrackerType;
-import org.locationtech.jts.geom.Geometry;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Enrico Colasante
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TrackedEntity
-    implements TrackerDto
+public class User
 {
     @JsonProperty
-    private String trackedEntity;
+    private String uid;
 
     @JsonProperty
-    private String trackedEntityType;
+    private String username;
 
     @JsonProperty
-    private Instant createdAt;
+    private String firstName;
 
     @JsonProperty
-    private Instant createdAtClient;
+    private String surname;
 
-    @JsonProperty
-    private Instant updatedAt;
-
-    @JsonProperty
-    private Instant updatedAtClient;
-
-    @JsonProperty
-    private String orgUnit;
-
-    @JsonProperty
-    private boolean inactive;
-
-    @JsonProperty
-    private boolean deleted;
-
-    @JsonProperty
-    private boolean potentialDuplicate;
-
-    @JsonProperty
-    private Geometry geometry;
-
-    @JsonProperty
-    private String storedBy;
-
-    @JsonProperty
-    private User createdBy;
-
-    @JsonProperty
-    private User updatedBy;
-
-    @JsonProperty
-    @Builder.Default
-    private List<Relationship> relationships = new ArrayList<>();
-
-    @JsonProperty
-    @Builder.Default
-    private List<Attribute> attributes = new ArrayList<>();
-
-    @JsonProperty
-    @Builder.Default
-    private List<Enrollment> enrollments = new ArrayList<>();
-
-    @JsonProperty
-    @Builder.Default
-    private List<ProgramOwner> programOwners = new ArrayList<>();
-
-    @Override
-    public String getUid()
+    public boolean isEmpty()
     {
-        return this.trackedEntity;
-    }
-
-    @Override
-    public TrackerType getTrackerType()
-    {
-        return TrackerType.TRACKED_ENTITY;
+        return isBlank( uid ) && isBlank( username );
     }
 }
