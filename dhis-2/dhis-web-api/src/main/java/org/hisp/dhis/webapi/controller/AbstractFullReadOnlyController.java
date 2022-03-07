@@ -518,11 +518,6 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
         {
             linkService.generateLinks( entityList, deep );
         }
-
-        if ( hasAccess( fields ) && getSchema().isMetadata() )
-        {
-            entityList.forEach( e -> ((BaseIdentifiableObject) e).setAccess( aclService.getAccess( e, currentUser ) ) );
-        }
     }
 
     private void handleAttributeValues( List<T> entityList, List<String> fields )

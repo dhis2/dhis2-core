@@ -32,12 +32,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.fieldfiltering.transformers.IsEmptyFieldTransformer;
 import org.hisp.dhis.fieldfiltering.transformers.IsNotEmptyFieldTransformer;
 import org.hisp.dhis.fieldfiltering.transformers.PluckFieldTransformer;
 import org.hisp.dhis.fieldfiltering.transformers.RenameFieldTransformer;
 import org.hisp.dhis.fieldfiltering.transformers.SizeFieldTransformer;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.security.acl.AclService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.OrderComparator;
 import org.springframework.stereotype.Service;
@@ -65,6 +69,10 @@ public class FieldFilterService
     @Qualifier( "jsonMapper" )
     private final ObjectMapper jsonMapper;
 
+    private final SchemaService schemaService;
+
+    private final AclService aclService;
+
     private static class IgnoreJsonSerializerRefinementAnnotationInspector extends JacksonAnnotationIntrospector
     {
         /**
@@ -83,10 +91,13 @@ public class FieldFilterService
         }
     }
 
-    public FieldFilterService( FieldPathHelper fieldPathHelper, ObjectMapper jsonMapper )
+    public FieldFilterService( FieldPathHelper fieldPathHelper, ObjectMapper jsonMapper, SchemaService schemaService,
+        AclService aclService )
     {
         this.fieldPathHelper = fieldPathHelper;
         this.jsonMapper = configureFieldFilterObjectMapper( jsonMapper );
+        this.schemaService = schemaService;
+        this.aclService = aclService;
     }
 
     public <T> List<ObjectNode> toObjectNodes( List<T> objects, List<String> filters )
@@ -121,6 +132,8 @@ public class FieldFilterService
 
         for ( Object object : params.getObjects() )
         {
+            applyAccess( object, fieldPaths, params.isSkipSharing() );
+
             ObjectNode objectNode = objectMapper.valueToTree( object );
             applyTransformers( objectNode, null, "", fieldTransformers );
 
@@ -129,6 +142,39 @@ public class FieldFilterService
 
         return objectNodes;
     }
+
+    private void applyAccess( Object object, List<FieldPath> fieldPaths, boolean skipSharing )
+    {
+        if ( object == null || skipSharing )
+        {
+            return;
+        }
+
+        Schema schema = schemaService.getDynamicSchema( object.getClass() );
+
+        if ( !schema.isMetadata() )
+        {
+            return;
+        }
+
+        BaseIdentifiableObject identifiableObject = (BaseIdentifiableObject) object;
+
+        fieldPaths.forEach( fp -> {
+            String fullPath = fp.toFullPath();
+
+            if ( fullPath.equals( "access" ) )
+            {
+                identifiableObject.setAccess( aclService.getAccess( identifiableObject, null ) );
+            }
+            else if ( fullPath.endsWith( ".access" ) )
+            {
+                fullPath = fullPath.substring( 0, fullPath.length() - 7 );
+                System.err.println( "get object using schema: " + fullPath );
+            }
+        } );
+    }
+
+
 
     public ObjectNode createObjectNode()
     {
