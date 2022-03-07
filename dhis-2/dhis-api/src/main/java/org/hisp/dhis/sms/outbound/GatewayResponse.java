@@ -47,6 +47,8 @@ public enum GatewayResponse
     NO_RECIPIENT( "no recipient", "No recipient found" ),
     SMS_DISABLED( "sms notifications are disabled", "sms notifications are disabled" ),
     SMPP_SESSION_FAILURE( "Smpp session initialization failure", "Smpp session initialization failure" ),
+    SMS_TEXT_MESSAGE_TOO_LONG( "Sms text message is too long",
+        "Sms text message is longer than the allowed max length for the default or gateway configuration" ),
 
     // -------------------------------------------------------------------------
     // BulkSms response codes

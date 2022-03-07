@@ -76,6 +76,9 @@ public abstract class SmsGatewayConfig
     @JsonView( SmsConfigurationViews.Public.class )
     private String urlTemplate;
 
+    @JsonView( SmsConfigurationViews.Public.class )
+    private String maxSmsLength;
+
     public String getUrlTemplate()
     {
         return urlTemplate;
@@ -144,6 +147,16 @@ public abstract class SmsGatewayConfig
     public void setSendUrlParameters( boolean sendUrlParameters )
     {
         this.sendUrlParameters = sendUrlParameters;
+    }
+
+    public String getMaxSmsLength()
+    {
+        return maxSmsLength;
+    }
+
+    public void setMaxSmsLength( String maxSmsLength )
+    {
+        this.maxSmsLength = maxSmsLength;
     }
 
     @Override
