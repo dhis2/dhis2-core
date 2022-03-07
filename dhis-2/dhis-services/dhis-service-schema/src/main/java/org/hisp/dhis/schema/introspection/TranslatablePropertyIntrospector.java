@@ -56,7 +56,7 @@ public class TranslatablePropertyIntrospector implements PropertyIntrospector
 
         for ( Property property : properties.values() )
         {
-            if ( translatableFields.containsKey( property.getFieldName() ) )
+            if ( property.isPersisted() && translatableFields.containsKey( property.getFieldName() ) )
             {
                 property.setTranslatable( true );
                 property.setTranslationKey( translatableFields.get( property.getFieldName() ) );
