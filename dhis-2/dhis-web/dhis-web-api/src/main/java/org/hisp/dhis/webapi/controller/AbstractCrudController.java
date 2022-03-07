@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller;
 
 import static java.util.Collections.singletonList;
+import org.hisp.dhis.dxf2.metadata.objectbundle.validation.TranslationsCheck;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.validateAndThrowErrors;
 
 import java.io.IOException;
@@ -230,6 +231,9 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     @Autowired
     protected SharingService sharingService;
 
+    @Autowired
+    private TranslationsCheck translationsCheck;
+
     // --------------------------------------------------------------------------
     // GET
     // --------------------------------------------------------------------------
@@ -387,7 +391,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     }
 
     @RequestMapping( value = "/{uid}/translations", method = RequestMethod.PUT )
-    public void replaceTranslations(
+    @ResponseStatus( HttpStatus.NO_CONTENT )
+    public WebMessage replaceTranslations(
         @PathVariable( "uid" ) String pvUid, @RequestParam Map<String, String> rpParameters,
         HttpServletRequest request, HttpServletResponse response )
         throws Exception
@@ -414,25 +419,18 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         HashSet<Translation> translations = new HashSet<>( inputObject.getTranslations() );
 
         persistedObject.setTranslations( translations );
+        List<ObjectReport> objectReports = new ArrayList<>();
+        translationsCheck.run( persistedObject, getEntityClass(), getSchema(), 0,
+            objectReport -> objectReports.add( objectReport ) );
 
-        MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() );
 
-        params.setUser( user )
-            .setImportStrategy( ImportStrategy.UPDATE )
-            .addObject( persistedObject )
-            .setImportMode( ObjectBundleMode.VALIDATE );
-
-        ImportReport importReport = importService.importMetadata( params );
-
-        if ( !CollectionUtils.isEmpty( importReport.getErrorReports() ) )
+        if ( objectReports.size() == 0 )
         {
-            manager.save( persistedObject );
-            response.setStatus( HttpServletResponse.SC_NO_CONTENT );
+            manager.update( persistedObject, user );
+            return null;
         }
 
-        WebMessage webMessage = WebMessageUtils.importReport( importReport );
-        webMessageService.send( webMessage, response, request );
-        return;
+        return WebMessageUtils.objectReport( objectReports.get( 0 ) );
     }
 
     @RequestMapping( value = "/{uid}", method = RequestMethod.PATCH )

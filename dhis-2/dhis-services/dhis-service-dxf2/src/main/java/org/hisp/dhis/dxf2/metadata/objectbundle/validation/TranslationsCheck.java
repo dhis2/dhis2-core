@@ -53,7 +53,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class TranslationsCheck implements ValidationCheck
 {
-    private <T extends IdentifiableObject> void run( IdentifiableObject object, Class<T> klass,
+    public <T extends IdentifiableObject> void run( IdentifiableObject object, Class<T> klass,
         Schema schema, int index, Consumer<ObjectReport> addReports )
     {
         Set<Translation> translations = object.getTranslations();
