@@ -219,11 +219,6 @@ public abstract class AbstractAnalyticsService
         }
     }
 
-    private static boolean isLastPage( int page, int pageSize, long count )
-    {
-        return (long) page * pageSize >= count;
-    }
-
     /**
      * Based on the given item this method returns the correct uid based on
      * internal rules/requirements.
