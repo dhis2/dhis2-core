@@ -231,6 +231,12 @@ public abstract class AbstractJdbcTableManager
     }
 
     @Override
+    public void dropTempTablePartition( AnalyticsTablePartition tablePartition )
+    {
+        dropTableCascade( tablePartition.getTempTableName() );
+    }
+
+    @Override
     public void dropTable( String tableName )
     {
         executeSilently( "drop table if exists " + tableName );

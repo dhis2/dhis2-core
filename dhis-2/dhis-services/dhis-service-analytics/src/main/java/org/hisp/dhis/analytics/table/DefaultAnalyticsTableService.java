@@ -120,8 +120,8 @@ public class DefaultAnalyticsTableService
         progress.runStage( () -> tableManager.preCreateTables( params ) );
         clock.logTime( "Performed pre-create table work " + tableType );
 
-        progress.startingStage( "Dropping temp tables " + tableType, tables.size() );
-        dropTempTables( tables, progress );
+        progress.startingStage( "Dropping temp tables (if any) " + tableType, tables.size() );
+        dropAllTempTables( progress, tables );
         clock.logTime( "Dropped temp tables" );
 
         progress.startingStage( "Creating analytics tables " + tableType, tables.size() );
@@ -166,6 +166,10 @@ public class DefaultAnalyticsTableService
 
         swapTables( params, tables, progress );
 
+        progress.startingStage( "Dropping temp tables used in the process" + tableType, tables.size() );
+        dropAllTempTables( progress, tables );
+        clock.logTime( "All temp tables dropped" );
+
         clock.logTime( "Table update done: " + tableType.getTableName() );
     }
 
@@ -194,11 +198,35 @@ public class DefaultAnalyticsTableService
     // -------------------------------------------------------------------------
 
     /**
+     * Drops all temporary tables, including the ones used as partitions.
+     *
+     * @param progress
+     * @param tables
+     */
+    private void dropAllTempTables( final JobProgress progress, final List<AnalyticsTable> tables )
+    {
+        dropTempTablesPartitions( tables, progress );
+        dropTempTables( tables, progress );
+    }
+
+    /**
      * Drops the given temporary analytics tables.
      */
     private void dropTempTables( List<AnalyticsTable> tables, JobProgress progress )
     {
         progress.runStage( tables, AnalyticsTable::getTableName, tableManager::dropTempTable );
+    }
+
+    /**
+     * Drops the given temporary analytics tables.
+     */
+    private void dropTempTablesPartitions( List<AnalyticsTable> tables, JobProgress progress )
+    {
+        for ( final AnalyticsTable table : tables )
+        {
+            progress.runStage( table.getTablePartitions(), AnalyticsTablePartition::getTableName,
+                tableManager::dropTempTablePartition );
+        }
     }
 
     /**
