@@ -28,7 +28,6 @@
 package org.hisp.dhis.tracker.bundle.persister;
 
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Objects;
 
@@ -141,11 +140,7 @@ public class EnrollmentPersister extends AbstractTrackerPersister<Enrollment, Pr
     @Override
     protected ProgramInstance convert( TrackerBundle bundle, Enrollment enrollment )
     {
-        Date now = new Date();
-        ProgramInstance programInstance = enrollmentConverter.from( bundle.getPreheat(), enrollment );
-        programInstance.setLastUpdated( now );
-        programInstance.setLastUpdatedBy( bundle.getUser() );
-        return programInstance;
+        return enrollmentConverter.from( bundle.getPreheat(), enrollment );
     }
 
     @Override

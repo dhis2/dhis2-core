@@ -55,8 +55,8 @@ import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.User;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 
@@ -140,10 +140,10 @@ public class EventTrackerConverterService
                 value.setValue( dataValue.getValue() );
                 value.setProvidedElsewhere( dataValue.getProvidedElsewhere() );
                 value.setStoredBy( dataValue.getStoredBy() );
-                value.setLastUpdatedBy( Optional.ofNullable( dataValue.getLastUpdatedByUserInfo() )
-                    .map( UserInfoSnapshot::getUsername ).orElse( "" ) );
+                value.setUpdatedBy( Optional.ofNullable( dataValue.getLastUpdatedByUserInfo() )
+                    .map( this::convertUserInfo ).orElse( null ) );
                 value.setCreatedBy( Optional.ofNullable( dataValue.getCreatedByUserInfo() )
-                    .map( UserInfoSnapshot::getUsername ).orElse( "" ) );
+                    .map( this::convertUserInfo ).orElse( null ) );
 
                 event.getDataValues().add( value );
             }
@@ -247,21 +247,22 @@ public class EventTrackerConverterService
         programStageInstance.setGeometry( event.getGeometry() );
 
         EventStatus previousStatus = programStageInstance.getStatus();
-        Date completedDate = DateUtils.fromInstant( event.getCompletedAt() );
 
         programStageInstance.setStatus( event.getStatus() );
 
         if ( !Objects.equal( previousStatus, programStageInstance.getStatus() ) && programStageInstance.isCompleted() )
         {
-            programStageInstance.setCompletedDate( completedDate == null ? new Date() : completedDate );
-            programStageInstance
-                .setCompletedBy( event.getCompletedBy() != null ? event.getCompletedBy() : preheat.getUsername() );
+            programStageInstance.setCompletedDate( new Date() );
+            programStageInstance.setCompletedBy( preheat.getUsername() );
         }
 
-        if ( programStage.isEnableUserAssignment() )
+        if ( Boolean.TRUE.equals( programStage.isEnableUserAssignment() ) &&
+            event.getAssignedUser() != null
+            && !event.getAssignedUser().isEmpty() )
         {
-            User assignedUser = preheat.get( User.class, event.getAssignedUser() );
-            programStageInstance.setAssignedUser( assignedUser );
+            Optional<org.hisp.dhis.user.User> assignedUser = preheat
+                .getUserByUsername( event.getAssignedUser().getUsername() );
+            assignedUser.ifPresent( programStageInstance::setAssignedUser );
         }
 
         if ( program.isRegistration() && programStageInstance.getDueDate() == null &&
@@ -282,11 +283,7 @@ public class EventTrackerConverterService
             DataElement dataElement = preheat.get( DataElement.class, dataValue.getDataElement() );
             eventDataValue.setDataElement( dataElement.getUid() );
             eventDataValue.setLastUpdatedByUserInfo( UserInfoSnapshot.from( preheat.getUser() ) );
-
-            User createdBy = preheat.getUsers().get( dataValue.getCreatedBy() );
-            eventDataValue
-                .setCreatedByUserInfo( Optional.ofNullable( createdBy ).map( u -> UserInfoSnapshot.from( createdBy ) )
-                    .orElseGet( () -> UserInfoSnapshot.from( preheat.getUser() ) ) );
+            eventDataValue.setCreatedByUserInfo( UserInfoSnapshot.from( preheat.getUser() ) );
 
             programStageInstance.getEventDataValues().add( eventDataValue );
         }
@@ -315,5 +312,15 @@ public class EventTrackerConverterService
         // no valid enrollment given and program not single event, just return
         // null
         return null;
+    }
+
+    private User convertUserInfo( UserInfoSnapshot userInfoSnapshot )
+    {
+        return User.builder()
+            .uid( userInfoSnapshot.getUid() )
+            .username( userInfoSnapshot.getUsername() )
+            .firstName( userInfoSnapshot.getFirstName() )
+            .surname( userInfoSnapshot.getSurname() )
+            .build();
     }
 }
