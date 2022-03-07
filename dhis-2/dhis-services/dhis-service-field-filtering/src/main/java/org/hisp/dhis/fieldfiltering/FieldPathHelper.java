@@ -238,7 +238,7 @@ public class FieldPathHelper
             }
         }
 
-        fieldPaths.forEach( fp -> fieldPathMap.put( fp.toFullPath(), fp ) );
+        fieldPaths.forEach( fp -> fieldPathMap.putIfAbsent( fp.toFullPath(), fp ) );
     }
 
     private void applyExclusions( List<FieldPath> exclusions, Map<String, FieldPath> fieldPathMap )

@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.bundle;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.io.IOException;
 import java.time.Instant;
@@ -160,22 +161,26 @@ class OwnershipTest extends TrackerTest
         assertEquals( 2, pis.size() );
         ProgramInstance pi = pis.stream().filter( e -> e.getUid().equals( "TvctPPhpD8u" ) ).findAny().get();
         compareEnrollmentBasicProperties( pi, enrollmentParams.getEnrollments().get( 0 ) );
+        assertNull( pi.getCompletedBy() );
+        assertNull( pi.getEndDate() );
+
         Enrollment updatedEnrollment = enrollmentParams.getEnrollments().get( 0 );
         updatedEnrollment.setStatus( EnrollmentStatus.COMPLETED );
-        updatedEnrollment.setCompletedBy( "admin" );
-        updatedEnrollment.setCompletedAt( Instant.now() );
         updatedEnrollment.setCreatedAtClient( Instant.now() );
         updatedEnrollment.setUpdatedAtClient( Instant.now() );
         updatedEnrollment.setEnrolledAt( Instant.now() );
         updatedEnrollment.setOccurredAt( Instant.now() );
         enrollmentParams.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
         TrackerImportReport updatedReport = trackerImportService.importTracker( enrollmentParams );
+        manager.flush();
         assertNoImportErrors( updatedReport );
         assertEquals( 1, updatedReport.getStats().getUpdated() );
         pis = manager.getAll( ProgramInstance.class );
         assertEquals( 2, pis.size() );
         pi = pis.stream().filter( e -> e.getUid().equals( "TvctPPhpD8u" ) ).findAny().get();
         compareEnrollmentBasicProperties( pi, updatedEnrollment );
+        assertNotNull( pi.getCompletedBy() );
+        assertNotNull( pi.getEndDate() );
     }
 
     @Test
@@ -275,12 +280,10 @@ class OwnershipTest extends TrackerTest
 
     private void compareEnrollmentBasicProperties( ProgramInstance pi, Enrollment enrollment )
     {
-        assertEquals( DateUtils.fromInstant( enrollment.getCompletedAt() ), pi.getEndDate() );
         assertEquals( DateUtils.fromInstant( enrollment.getEnrolledAt() ), pi.getEnrollmentDate() );
         assertEquals( DateUtils.fromInstant( enrollment.getOccurredAt() ), pi.getIncidentDate() );
         assertEquals( DateUtils.fromInstant( enrollment.getCreatedAtClient() ), pi.getCreatedAtClient() );
         assertEquals( DateUtils.fromInstant( enrollment.getUpdatedAtClient() ), pi.getLastUpdatedAtClient() );
-        assertEquals( enrollment.getCompletedBy(), pi.getCompletedBy() );
         assertEquals( enrollment.getStatus().toString(), pi.getStatus().toString() );
     }
 }
