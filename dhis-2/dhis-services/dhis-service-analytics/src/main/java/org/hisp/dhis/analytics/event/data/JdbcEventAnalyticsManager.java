@@ -135,7 +135,7 @@ public class JdbcEventAnalyticsManager
         }
         else
         {
-            withExceptionHandling( () -> getEvents( params, grid, sql, maxLimit ) );
+            withExceptionHandling( () -> getEvents( params, grid, sql ) );
         }
 
         return grid;
