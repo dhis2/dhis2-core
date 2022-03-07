@@ -125,12 +125,12 @@
         <xercesImpl.version>2.12.2</xercesImpl.version>
 
         <!--Reporting -->
-        <jasperreports.version>6.18.1</jasperreports.version>
+        <jasperreports.version>6.19.0</jasperreports.version>
         <jasperreports-fonts.version>6.18.1</jasperreports-fonts.version>
         <jfreechart.version>1.5.3</jfreechart.version>
         <htmlparser.version>2.1</htmlparser.version>
         <htmllexer.version>2.1</htmllexer.version>
-        <poi.version>5.2.0</poi.version>
+        <poi.version>5.2.1</poi.version>
         <itext.version>2.1.7</itext.version>
         <jclouds.version>2.4.0</jclouds.version>
         <antlr.version>4.9.3</antlr.version>
@@ -200,7 +200,7 @@
 
         <!-- Test -->
         <junit.version>5.8.2</junit.version>
-        <mockito.version>4.2.0</mockito.version>
+        <mockito.version>4.3.1</mockito.version>
         <powermock.version>2.0.9</powermock.version>
         <hamcrest.version>2.2</hamcrest.version>
         <hamcrest-date.version>2.0.8</hamcrest-date.version>
@@ -216,7 +216,7 @@
 
         <!-- Maven plugin versions -->
         <maven-surefire-plugin.version>3.0.0-M5</maven-surefire-plugin.version>
-        <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
+        <maven-compiler-plugin.version>3.10.0</maven-compiler-plugin.version>
         <maven-resources-plugin.version>3.2.0</maven-resources-plugin.version>
         <maven-failsafe-plugin.version>3.0.0-M5</maven-failsafe-plugin.version>
         <maven-javadoc-plugin.version>2.10.4</maven-javadoc-plugin.version>
