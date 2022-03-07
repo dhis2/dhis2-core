@@ -125,7 +125,7 @@
         <xercesImpl.version>2.12.2</xercesImpl.version>
 
         <!--Reporting -->
-        <jasperreports.version>6.18.1</jasperreports.version>
+        <jasperreports.version>6.19.0</jasperreports.version>
         <jasperreports-fonts.version>6.18.1</jasperreports-fonts.version>
         <jfreechart.version>1.5.3</jfreechart.version>
         <htmlparser.version>2.1</htmlparser.version>
@@ -207,7 +207,7 @@
         <testcontainers.version>1.16.3</testcontainers.version>
         <objenesis.version>3.2</objenesis.version>
         <jsonassert.version>1.5.0</jsonassert.version>
-        <awaitility.version>4.0.2</awaitility.version>
+        <awaitility.version>4.2.0</awaitility.version>
         <easy-random.version>5.0.0</easy-random.version>
         <tree.version>0.2.5</tree.version>
         <h2.version>1.4.200</h2.version>
