@@ -205,12 +205,12 @@ class BulkPatchSharingControllerTest extends DhisControllerConvenienceTest
     private String createUser( String name, String uid )
     {
         return "{'name': '" + name + "', 'id': '" + uid + "', 'firstName':'" + name + "', 'surname': '" + name
-            + "', 'username':'" + name + "'}";
+            + "', 'username':'" + name + "', 'userRoles': [{'id': 'yrB6vc5Ip3r'}]}";
     }
 
     private String createUser( String name )
     {
         return "{'name': '" + name + "', 'firstName':'" + name + "', 'surname': '" + name
-            + "', 'username':'" + name + "'}";
+            + "', 'username':'" + name + "', 'userRoles': [{'id': 'yrB6vc5Ip3r'}]}";
     }
 }

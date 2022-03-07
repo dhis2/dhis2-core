@@ -102,7 +102,7 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
 
         User existingUser = userService.getUser( user.getUid() );
 
-        if ( bundle.getImportMode().isUpdate() &&
+        if ( bundle.getImportMode().isUpdate() && existingUser != null && user.getUsername() != null &&
             !user.getUsername().equals( existingUser.getUsername() ) )
         {
             addReports.accept(

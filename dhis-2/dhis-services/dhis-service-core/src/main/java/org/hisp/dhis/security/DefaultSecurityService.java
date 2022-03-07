@@ -65,6 +65,7 @@ import org.hisp.dhis.util.ObjectUtils;
 import org.joda.time.DateTime;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
@@ -242,7 +243,7 @@ public class DefaultSecurityService
 
         if ( user.getUsername() == null || user.getUsername().isEmpty() )
         {
-            String username = "invite-" + user.getEmail() + "-" + CodeGenerator.generateUid();
+            String username = "invite-" + user.getEmail() + "-" + CodeGenerator.generateUid().toLowerCase();
 
             user.setUsername( username );
         }
@@ -314,6 +315,7 @@ public class DefaultSecurityService
     }
 
     @Override
+    @Transactional
     public boolean sendRestoreOrInviteMessage( User user, String rootPath,
         RestoreOptions restoreOptions )
     {

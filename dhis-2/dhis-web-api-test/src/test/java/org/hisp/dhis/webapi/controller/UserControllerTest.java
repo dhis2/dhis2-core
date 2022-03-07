@@ -44,6 +44,7 @@ import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.security.RestoreType;
 import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonErrorReport;
 import org.hisp.dhis.webapi.json.domain.JsonImportSummary;
@@ -196,8 +197,9 @@ class UserControllerTest extends DhisControllerConvenienceTest
     void testPostJsonObject()
     {
         assertWebMessage( "Created", 201, "OK", null,
-            POST( "/users/", "{'surname':'S.','firstName':'Harry', 'username':'harrys'}" )
-                .content( HttpStatus.CREATED ) );
+            POST( "/users/",
+                "{'surname':'S.','firstName':'Harry', 'username':'harrys', 'userRoles': [{'id': 'yrB6vc5Ip3r'}]}" )
+                    .content( HttpStatus.CREATED ) );
     }
 
     @Test
@@ -215,9 +217,15 @@ class UserControllerTest extends DhisControllerConvenienceTest
     @Test
     void testPostJsonInvite()
     {
+        UserRole userRole = createUserRole( "inviteRole", "ALL" );
+        userService.addUserRole( userRole );
+        UserRole inviteRole = userService.getUserRoleByName( "inviteRole" );
+        String roleUid = inviteRole.getUid();
+
         assertWebMessage( "Created", 201, "OK", null, POST( "/users/invite",
-            "{'surname':'S.','firstName':'Harry', 'email':'test@example.com', 'username':'harrys'}" )
-                .content( HttpStatus.CREATED ) );
+            "{'surname':'S.','firstName':'Harry', 'email':'test@example.com', 'username':'harrys', 'userRoles': [{'id': '"
+                + roleUid + "'}]}" )
+                    .content( HttpStatus.CREATED ) );
     }
 
     private String extractTokenFromEmailText( String message )
