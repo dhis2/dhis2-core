@@ -766,11 +766,12 @@ public class TrackerPreheat
         return Optional.ofNullable( this.users.get( username ) );
     }
 
-    public Optional<User> getUserByUid( String uid ) {
+    public Optional<User> getUserByUid( String uid )
+    {
         return this.users.values()
-                .stream()
-                .filter(u -> Objects.equals(uid, u.getUid()))
-                .findAny();
+            .stream()
+            .filter( u -> Objects.equals( uid, u.getUid() ) )
+            .findAny();
     }
 
     public OrganisationUnit getOrganisationUnit( String id )

@@ -86,9 +86,9 @@ class AssignedUserValidationHookTest extends DhisConvenienceTest
         bundle.setPreheat( preheat );
 
         programStage = new ProgramStage();
-        programStage.setUid(PROGRAM_STAGE);
+        programStage.setUid( PROGRAM_STAGE );
         programStage.setEnableUserAssignment( true );
-        preheat.put(TrackerIdentifier.UID, programStage);
+        preheat.put( TrackerIdentifier.UID, programStage );
     }
 
     @Test
@@ -99,7 +99,7 @@ class AssignedUserValidationHookTest extends DhisConvenienceTest
         event.setAssignedUser( VALID_USER );
         event.setProgramStage( PROGRAM_STAGE );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle);
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         // when
         this.hookToTest.validateEvent( reporter, event );
@@ -116,7 +116,7 @@ class AssignedUserValidationHookTest extends DhisConvenienceTest
         event.setAssignedUser( null );
         event.setProgramStage( PROGRAM_STAGE );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter(bundle );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         // when
         this.hookToTest.validateEvent( reporter, event );
@@ -171,8 +171,8 @@ class AssignedUserValidationHookTest extends DhisConvenienceTest
 
         // when
         TrackerPreheat preheat = new TrackerPreheat();
-        preheat.put(TrackerIdentifier.UID, programStage);
-        bundle = TrackerBundle.builder().preheat(preheat).build();
+        preheat.put( TrackerIdentifier.UID, programStage );
+        bundle = TrackerBundle.builder().preheat( preheat ).build();
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         this.hookToTest.validateEvent( reporter, event );
