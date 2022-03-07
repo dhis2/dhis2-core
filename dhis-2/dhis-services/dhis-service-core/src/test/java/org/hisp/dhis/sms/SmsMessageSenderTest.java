@@ -175,8 +175,7 @@ public class SmsMessageSenderTest
     public void testSendMessageWithGatewayConfig()
     {
 
-        when( systemSettingManager.getSystemSetting( SettingKey.SMS_MAX_LENGTH, Integer.class ) )
-            .thenReturn( maxSmsLength );
+        when( systemSettingManager.getSystemSetting( SettingKey.SMS_MAX_LENGTH ) ).thenReturn( maxSmsLength );
 
         // stub for GateAdministrationService
         when( gatewayAdministrationService.getDefaultGateway() ).thenReturn( smsGatewayConfig );
@@ -231,8 +230,7 @@ public class SmsMessageSenderTest
     @Test
     public void testSendMessageWithListOfUsers()
     {
-        when( systemSettingManager.getSystemSetting( SettingKey.SMS_MAX_LENGTH, Integer.class ) )
-            .thenReturn( maxSmsLength );
+        when( systemSettingManager.getSystemSetting( SettingKey.SMS_MAX_LENGTH ) ).thenReturn( maxSmsLength );
 
         when( gatewayAdministrationService.getDefaultGateway() ).thenReturn( smsGatewayConfig );
         when( userSettingService.getUserSetting( any(), any() ) ).thenReturn( Boolean.TRUE );
@@ -273,8 +271,7 @@ public class SmsMessageSenderTest
     @Test
     public void testSendMessageWithSingleRecipient()
     {
-        when( systemSettingManager.getSystemSetting( SettingKey.SMS_MAX_LENGTH, Integer.class ) )
-            .thenReturn( maxSmsLength );
+        when( systemSettingManager.getSystemSetting( SettingKey.SMS_MAX_LENGTH ) ).thenReturn( maxSmsLength );
 
         when( bulkSmsGateway.accept( any() ) ).thenReturn( true );
         when( gatewayAdministrationService.getDefaultGateway() ).thenReturn( smsGatewayConfig );
@@ -291,8 +288,7 @@ public class SmsMessageSenderTest
     public void testSendMessageFailed()
     {
 
-        when( systemSettingManager.getSystemSetting( SettingKey.SMS_MAX_LENGTH, Integer.class ) )
-            .thenReturn( maxSmsLength );
+        when( systemSettingManager.getSystemSetting( SettingKey.SMS_MAX_LENGTH ) ).thenReturn( maxSmsLength );
 
         // stub for GateAdministrationService
         when( gatewayAdministrationService.getDefaultGateway() ).thenReturn( smsGatewayConfig );
@@ -313,8 +309,7 @@ public class SmsMessageSenderTest
     public void testNumberNormalization()
     {
 
-        when( systemSettingManager.getSystemSetting( SettingKey.SMS_MAX_LENGTH, Integer.class ) )
-            .thenReturn( maxSmsLength );
+        when( systemSettingManager.getSystemSetting( SettingKey.SMS_MAX_LENGTH ) ).thenReturn( maxSmsLength );
 
         // stub for GateAdministrationService
         when( gatewayAdministrationService.getDefaultGateway() ).thenReturn( smsGatewayConfig );
@@ -344,8 +339,7 @@ public class SmsMessageSenderTest
     @SuppressWarnings( "unchecked" )
     public void testSendMessageWithMaxRecipients()
     {
-        when( systemSettingManager.getSystemSetting( SettingKey.SMS_MAX_LENGTH, Integer.class ) )
-            .thenReturn( maxSmsLength );
+        when( systemSettingManager.getSystemSetting( SettingKey.SMS_MAX_LENGTH ) ).thenReturn( maxSmsLength );
 
         when( gatewayAdministrationService.getDefaultGateway() ).thenReturn( smsGatewayConfig );
         mockGateway();
@@ -372,8 +366,7 @@ public class SmsMessageSenderTest
     public void testSendMessageWithSmsLengthGreaterThanDefaultMaxSmsLength()
     {
 
-        when( systemSettingManager.getSystemSetting( SettingKey.SMS_MAX_LENGTH, Integer.class ) )
-            .thenReturn( maxSmsLength );
+        when( systemSettingManager.getSystemSetting( SettingKey.SMS_MAX_LENGTH ) ).thenReturn( maxSmsLength );
 
         when( gatewayAdministrationService.getDefaultGateway() ).thenReturn( smsGatewayConfig );
         mockGateway();
@@ -400,7 +393,8 @@ public class SmsMessageSenderTest
 
         assertFalse( status.isOk() );
         assertEquals( GatewayResponse.SMS_TEXT_MESSAGE_TOO_LONG, status.getResponseObject() );
-        verify( systemSettingManager, times( 0 ) ).getSystemSetting( SettingKey.SMS_MAX_LENGTH, Integer.class );
+
+        verify( systemSettingManager, times( 0 ) ).getSystemSetting( SettingKey.SMS_MAX_LENGTH );
     }
 
     @Test
