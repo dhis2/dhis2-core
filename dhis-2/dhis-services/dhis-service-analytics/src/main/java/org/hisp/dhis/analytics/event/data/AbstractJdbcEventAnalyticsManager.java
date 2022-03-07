@@ -96,6 +96,8 @@ import com.google.common.collect.Lists;
 @Slf4j
 public abstract class AbstractJdbcEventAnalyticsManager
 {
+    private static final String LIMIT = "limit";
+
     protected static final String COL_COUNT = "count";
 
     protected static final String COL_EXTENT = "extent";
@@ -143,11 +145,11 @@ public abstract class AbstractJdbcEventAnalyticsManager
         if ( params.isPaging() )
         {
             int limit = params.isTotalPages() ? params.getPageSizeWithDefault() : params.getPageSizeWithDefault() + 1;
-            sql += "limit " + limit + " offset " + params.getOffset();
+            sql += LIMIT + " " + limit + " offset " + params.getOffset();
         }
         else if ( maxLimit > 0 )
         {
-            sql += "limit " + (maxLimit + 1);
+            sql += LIMIT + " " + (maxLimit + 1);
         }
 
         return sql;
@@ -370,11 +372,11 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
         if ( params.hasLimit() )
         {
-            sql += "limit " + params.getLimit();
+            sql += LIMIT + " " + params.getLimit();
         }
         else if ( maxLimit > 0 )
         {
-            sql += "limit " + (maxLimit + 1);
+            sql += LIMIT + " " + (maxLimit + 1);
         }
 
         // ---------------------------------------------------------------------

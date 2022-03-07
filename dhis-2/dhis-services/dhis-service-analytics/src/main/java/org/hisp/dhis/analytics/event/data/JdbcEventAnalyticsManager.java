@@ -149,7 +149,7 @@ public class JdbcEventAnalyticsManager
      * @param grid the {@link Grid}.
      * @param sql the SQL statement used to retrieve events.
      */
-    private void getEvents( EventQueryParams params, Grid grid, String sql, int limit )
+    private void getEvents( EventQueryParams params, Grid grid, String sql )
     {
         log.debug( String.format( "Analytics event query SQL: %s", sql ) );
 
