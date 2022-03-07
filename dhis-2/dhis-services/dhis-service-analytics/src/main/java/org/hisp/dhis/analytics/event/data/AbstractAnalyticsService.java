@@ -213,8 +213,7 @@ public abstract class AbstractAnalyticsService
         {
             Pager pager = params.isTotalPages()
                 ? new Pager( params.getPageWithDefault(), count, params.getPageSizeWithDefault() )
-                : new SlimPager( params.getPageWithDefault(), params.getPageSizeWithDefault(),
-                    isLastPage( params.getPageWithDefault(), params.getPageSizeWithDefault(), count ) );
+                : new SlimPager( params.getPageWithDefault(), params.getPageSizeWithDefault(), grid.hasLastDataRow() );
 
             grid.getMetaData().put( PAGER.getKey(), pager );
         }

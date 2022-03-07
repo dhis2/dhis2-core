@@ -135,7 +135,7 @@ public class JdbcEventAnalyticsManager
         }
         else
         {
-            withExceptionHandling( () -> getEvents( params, grid, sql ) );
+            withExceptionHandling( () -> getEvents( params, grid, sql, maxLimit ) );
         }
 
         return grid;
@@ -149,14 +149,25 @@ public class JdbcEventAnalyticsManager
      * @param grid the {@link Grid}.
      * @param sql the SQL statement used to retrieve events.
      */
-    private void getEvents( EventQueryParams params, Grid grid, String sql )
+    private void getEvents( EventQueryParams params, Grid grid, String sql, int limit )
     {
         log.debug( String.format( "Analytics event query SQL: %s", sql ) );
 
         SqlRowSet rowSet = queryForRows( sql );
 
+        int rowsRed = 0;
+
+        grid.setLastDataRow( true );
+
         while ( rowSet.next() )
         {
+            if ( ++rowsRed > params.getPageSize() && !params.isTotalPages() )
+            {
+                grid.setLastDataRow( false );
+
+                continue;
+            }
+
             grid.addRow();
 
             int index = 1;
