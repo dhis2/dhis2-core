@@ -25,63 +25,40 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.tracker.domain;
 
-import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.apache.commons.lang3.StringUtils.replaceOnce;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * @author Lars Helge Overland
+ * @author Enrico Colasante
  */
-@Getter
-@RequiredArgsConstructor
-public enum QueryOperator
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class User
 {
-    EQ( "=", true ),
-    GT( ">" ),
-    GE( ">=" ),
-    LT( "<" ),
-    LE( "<=" ),
-    LIKE( "like" ),
-    IN( "in", true ),
-    SW( "sw" ),
-    EW( "ew" ),
-    // Analytics specifics
-    IEQ( "==", true ),
-    @Deprecated // Prefer NEQ instead
-    NE( "!=", true ),
-    NEQ( "!=", true ),
-    NIEQ( "!==", true ),
-    NLIKE( "not like" ),
-    ILIKE( "ilike" ),
-    NILIKE( "not ilike" );
+    @JsonProperty
+    private String uid;
 
-    private final String value;
+    @JsonProperty
+    private String username;
 
-    private final boolean nullAllowed;
+    @JsonProperty
+    private String firstName;
 
-    QueryOperator( String value )
+    @JsonProperty
+    private String surname;
+
+    public boolean isEmpty()
     {
-        this.value = value;
-        this.nullAllowed = false;
+        return isBlank( uid ) && isBlank( username );
     }
-
-    public static QueryOperator fromString( String string )
-    {
-        if ( string == null || string.isEmpty() )
-        {
-            return null;
-        }
-
-        if ( string.trim().startsWith( "!" ) )
-        {
-            return valueOf( "N" + replaceOnce( string, "!", EMPTY ).toUpperCase() );
-        }
-
-        return valueOf( string.toUpperCase() );
-    }
-
 }

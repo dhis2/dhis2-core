@@ -25,63 +25,14 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.tracker.domain.mapper;
 
-import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.apache.commons.lang3.StringUtils.replaceOnce;
+import org.hisp.dhis.program.UserInfoSnapshot;
+import org.hisp.dhis.tracker.domain.User;
+import org.mapstruct.Mapper;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
-/**
- * @author Lars Helge Overland
- */
-@Getter
-@RequiredArgsConstructor
-public enum QueryOperator
+@Mapper
+public interface UserMapper extends DomainMapper<UserInfoSnapshot, User>
 {
-    EQ( "=", true ),
-    GT( ">" ),
-    GE( ">=" ),
-    LT( "<" ),
-    LE( "<=" ),
-    LIKE( "like" ),
-    IN( "in", true ),
-    SW( "sw" ),
-    EW( "ew" ),
-    // Analytics specifics
-    IEQ( "==", true ),
-    @Deprecated // Prefer NEQ instead
-    NE( "!=", true ),
-    NEQ( "!=", true ),
-    NIEQ( "!==", true ),
-    NLIKE( "not like" ),
-    ILIKE( "ilike" ),
-    NILIKE( "not ilike" );
-
-    private final String value;
-
-    private final boolean nullAllowed;
-
-    QueryOperator( String value )
-    {
-        this.value = value;
-        this.nullAllowed = false;
-    }
-
-    public static QueryOperator fromString( String string )
-    {
-        if ( string == null || string.isEmpty() )
-        {
-            return null;
-        }
-
-        if ( string.trim().startsWith( "!" ) )
-        {
-            return valueOf( "N" + replaceOnce( string, "!", EMPTY ).toUpperCase() );
-        }
-
-        return valueOf( string.toUpperCase() );
-    }
-
+    User from( UserInfoSnapshot snapshot );
 }

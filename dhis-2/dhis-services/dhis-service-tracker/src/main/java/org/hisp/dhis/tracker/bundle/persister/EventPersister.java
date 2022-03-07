@@ -131,11 +131,7 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
     @Override
     protected ProgramStageInstance convert( TrackerBundle bundle, Event event )
     {
-        Date now = new Date();
-        ProgramStageInstance programStageInstance = eventConverter.from( bundle.getPreheat(), event );
-        programStageInstance.setLastUpdated( now );
-        programStageInstance.setLastUpdatedBy( bundle.getUser() );
-        return programStageInstance;
+        return eventConverter.from( bundle.getPreheat(), event );
     }
 
     @Override

@@ -76,7 +76,8 @@ public class EventNotesTests
         trackerActions.getEvent( eventId + "?fields=notes" )
             .validate().statusCode( 200 )
             .body( "notes", hasSize( 2 ) )
-            .body( "notes.storedBy", CoreMatchers.everyItem( equalTo( "taadmin" ) ) );
+            .body( "notes.storedBy", CoreMatchers.everyItem( equalTo( null ) ) )
+            .body( "notes.createdBy.username", CoreMatchers.everyItem( equalTo( "taadmin" ) ) );;
     }
 
     @Test

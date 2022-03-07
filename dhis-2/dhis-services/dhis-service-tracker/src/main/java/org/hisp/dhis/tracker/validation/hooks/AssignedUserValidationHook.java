@@ -32,10 +32,8 @@ import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1120;
 
 import java.util.Optional;
 
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
-import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -45,11 +43,11 @@ public class AssignedUserValidationHook
     @Override
     public void validateEvent( ValidationErrorReporter reporter, Event event )
     {
-        if ( event.getAssignedUser() != null )
+        if ( event.getAssignedUser() != null && !event.getAssignedUser().isEmpty() )
         {
-            if ( isNotValidAssignedUserUid( event ) || assignedUserNotPresentInPreheat( reporter, event ) )
+            if ( assignedUserNotPresentInPreheat( reporter, event ) )
             {
-                reporter.addError( event, E1118, event.getAssignedUser() );
+                reporter.addError( event, E1118, event.getAssignedUser().toString() );
             }
             if ( isNotEnabledUserAssignment( reporter, event ) )
             {
@@ -69,13 +67,9 @@ public class AssignedUserValidationHook
 
     private boolean assignedUserNotPresentInPreheat( ValidationErrorReporter reporter, Event event )
     {
-        return reporter.getValidationContext().getBundle().getPreheat().get( User.class,
-            event.getAssignedUser() ) == null;
-    }
-
-    private boolean isNotValidAssignedUserUid( Event event )
-    {
-        return !CodeGenerator.isValidUid( event.getAssignedUser() );
+        return event.getAssignedUser().getUsername() == null ||
+            reporter.getValidationContext().getBundle().getPreheat()
+                .getUserByUsername( event.getAssignedUser().getUsername() ).isEmpty();
     }
 
     @Override
