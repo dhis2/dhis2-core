@@ -192,7 +192,7 @@ class AnalyticsServiceQueryModifiersTest
             NoopJobProgress.INSTANCE );
 
         // Wait after generating analytics tables
-        Thread.sleep( 8000 );
+        Thread.sleep( 30000 );
     }
 
     @Override
