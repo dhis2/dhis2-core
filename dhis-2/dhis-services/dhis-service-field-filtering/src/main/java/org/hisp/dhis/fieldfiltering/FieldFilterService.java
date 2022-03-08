@@ -174,8 +174,6 @@ public class FieldFilterService
         } );
     }
 
-
-
     public ObjectNode createObjectNode()
     {
         return jsonMapper.createObjectNode();
