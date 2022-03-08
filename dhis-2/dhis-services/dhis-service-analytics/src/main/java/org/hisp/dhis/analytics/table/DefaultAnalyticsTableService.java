@@ -166,10 +166,6 @@ public class DefaultAnalyticsTableService
 
         swapTables( params, tables, progress );
 
-        progress.startingStage( "Dropping temp tables used in the process" + tableType, tables.size() );
-        dropAllTempTables( progress, tables );
-        clock.logTime( "All temp tables dropped" );
-
         clock.logTime( "Table update done: " + tableType.getTableName() );
     }
 
