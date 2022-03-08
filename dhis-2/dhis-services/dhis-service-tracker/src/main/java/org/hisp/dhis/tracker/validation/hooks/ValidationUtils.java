@@ -42,16 +42,17 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ValidationStrategy;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Note;
 import org.hisp.dhis.tracker.domain.TrackerDto;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.TrackerWarningReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
-import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.locationtech.jts.geom.Geometry;
 
 import com.google.common.collect.Lists;
@@ -72,7 +73,7 @@ public class ValidationUtils
                 .uid( dto.getUid() )
                 .trackerType( dto.getTrackerType() )
                 .errorCode( TrackerErrorCode.E1074 )
-                .build( reporter.getValidationContext().getBundle() );
+                .build( reporter.getBundle() );
             reporter.addError( error );
             return;
         }
@@ -86,7 +87,7 @@ public class ValidationUtils
                 .trackerType( dto.getTrackerType() )
                 .errorCode( TrackerErrorCode.E1012 )
                 .addArg( featureType.name() )
-                .build( reporter.getValidationContext().getBundle() );
+                .build( reporter.getBundle() );
             reporter.addError( error );
         }
     }
@@ -94,7 +95,7 @@ public class ValidationUtils
     protected static List<Note> validateNotes( ValidationErrorReporter reporter, TrackerDto dto,
         List<Note> notesToCheck )
     {
-        TrackerImportValidationContext context = reporter.getValidationContext();
+        TrackerPreheat preheat = reporter.getBundle().getPreheat();
 
         final List<Note> notes = new ArrayList<>();
         for ( Note note : notesToCheck )
@@ -103,14 +104,14 @@ public class ValidationUtils
             {
                 // If a note having the same UID already exist in the db, raise
                 // warning, ignore the note and continue
-                if ( isNotEmpty( note.getNote() ) && context.getNote( note.getNote() ).isPresent() )
+                if ( isNotEmpty( note.getNote() ) && preheat.getNote( note.getNote() ).isPresent() )
                 {
                     TrackerWarningReport warning = TrackerWarningReport.builder()
                         .uid( dto.getUid() )
                         .trackerType( dto.getTrackerType() )
                         .warningCode( TrackerErrorCode.E1119 )
                         .addArg( note.getNote() )
-                        .build( reporter.getValidationContext().getBundle() );
+                        .build( reporter.getBundle() );
                     reporter.addWarning( warning );
                 }
                 else
@@ -178,7 +179,7 @@ public class ValidationUtils
                     .trackerType( dto.getTrackerType() )
                     .errorCode( issue.getIssueCode() )
                     .addArgs( args.toArray() )
-                    .build( reporter.getValidationContext().getBundle() );
+                    .build( reporter.getBundle() );
                 reporter.addError( error );
             } );
 
@@ -194,23 +195,26 @@ public class ValidationUtils
                         .trackerType( dto.getTrackerType() )
                         .warningCode( issue.getIssueCode() )
                         .addArgs( args.toArray() )
-                        .build( reporter.getValidationContext().getBundle() );
+                        .build( reporter.getBundle() );
                     reporter.addWarning( warning );
                 } );
     }
 
-    public static boolean trackedEntityInstanceExist( TrackerImportValidationContext context, String teiUid )
+    public static boolean trackedEntityInstanceExist( TrackerBundle bundle, String teiUid )
     {
-        return context.getTrackedEntityInstance( teiUid ) != null || context.getReference( teiUid ).isPresent();
+        return bundle.getTrackedEntityInstance( teiUid ) != null
+            || bundle.getPreheat().getReference( teiUid ).isPresent();
     }
 
-    public static boolean enrollmentExist( TrackerImportValidationContext context, String enrollmentUid )
+    public static boolean enrollmentExist( TrackerBundle bundle, String enrollmentUid )
     {
-        return context.getProgramInstance( enrollmentUid ) != null || context.getReference( enrollmentUid ).isPresent();
+        return bundle.getProgramInstance( enrollmentUid ) != null
+            || bundle.getPreheat().getReference( enrollmentUid ).isPresent();
     }
 
-    public static boolean eventExist( TrackerImportValidationContext context, String eventUid )
+    public static boolean eventExist( TrackerBundle bundle, String eventUid )
     {
-        return context.getProgramStageInstance( eventUid ) != null || context.getReference( eventUid ).isPresent();
+        return bundle.getProgramStageInstance( eventUid ) != null
+            || bundle.getPreheat().getReference( eventUid ).isPresent();
     }
 }
