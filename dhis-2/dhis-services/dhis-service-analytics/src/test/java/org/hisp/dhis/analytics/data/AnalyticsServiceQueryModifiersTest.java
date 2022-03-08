@@ -62,7 +62,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.scheduling.NoopJobProgress;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -209,7 +208,8 @@ class AnalyticsServiceQueryModifiersTest
     // Test
     // -------------------------------------------------------------------------
 
-    @Disabled( "This test works fine locally on my system but fails on the integration server. //TODO: make it work on the test server" )
+    // @Disabled( "This test works fine locally on my system but fails on the
+    // integration server. //TODO: make it work on the test server" )
     @Test
     void queryModifiersTest()
     {
@@ -219,26 +219,26 @@ class AnalyticsServiceQueryModifiersTest
 
         // aggregationType
 
-        testNoAggregationType();
-        testAverageAggregationType();
-        testLastAggregationType();
-        testWithAndWithoutAggregationType();
-        testMultipleAggregationTypes();
-        testGroupedAggregationType();
-        testOperandAggregationType();
+        // testNoAggregationType();
+        // testAverageAggregationType();
+        // testLastAggregationType();
+        // testWithAndWithoutAggregationType();
+        // testMultipleAggregationTypes();
+        // testGroupedAggregationType();
+        // testOperandAggregationType();
 
         // periodOffset
 
-        testSimplePeriodOffset();
-        testInsideAndOutsidePeriodOffset();
-        testOperandPeriodOffset();
-        testGroupedPeriodOffset();
-        testAdditivePeriodOffset();
+        // testSimplePeriodOffset();
+        // testInsideAndOutsidePeriodOffset();
+        // testOperandPeriodOffset();
+        // testGroupedPeriodOffset();
+        // testAdditivePeriodOffset();
 
         // minDate and maxDate
 
-        testMinDate();
-        testMaxDate();
+        // testMinDate();
+        // testMaxDate();
         testMinAndMaxDate();
 
         // subExpression
@@ -521,6 +521,8 @@ class AnalyticsServiceQueryModifiersTest
      */
     private List<String> query( String expression, Period... periods )
     {
+        System.out.println( "\nTest expression: " + expression );
+
         indicatorA.setNumerator( expression );
         indicatorService.updateIndicator( indicatorA );
 

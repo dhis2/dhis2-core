@@ -695,6 +695,8 @@ public class JdbcAnalyticsManager
 
         log.debug( String.format( "Analytics SQL: %s", sql ) );
 
+        System.out.println( "Analytics SQL: " + sql );
+
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 
         int counter = 0;
@@ -720,6 +722,8 @@ public class JdbcAnalyticsManager
             }
 
             key.deleteCharAt( key.length() - 1 );
+
+            System.out.println( "row: " + key + " " + rowSet.getString( VALUE_ID ) );
 
             if ( params.isDataType( TEXT ) )
             {
