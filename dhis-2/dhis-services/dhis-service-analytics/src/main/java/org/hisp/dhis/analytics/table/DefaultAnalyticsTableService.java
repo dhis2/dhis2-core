@@ -216,7 +216,7 @@ public class DefaultAnalyticsTableService
     /**
      * Drops the given temporary analytics tables.
      */
-    private void dropTempTablesPartitions( final List<AnalyticsTable> tables, final JobProgress progress )
+    private void dropTempTablesPartitions( List<AnalyticsTable> tables, JobProgress progress )
     {
         for ( final AnalyticsTable table : tables )
         {
