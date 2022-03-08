@@ -244,7 +244,6 @@ public class EventDataQueryRequest
                 .orgUnitField( criteria.getOrgUnitField() )
                 .coordinatesOnly( criteria.isCoordinatesOnly() )
                 .coordinateOuFallback( criteria.isCoordinateOuFallback() )
-                .coordinateOuFallback( criteria.isCoordinateOuFallback() )
                 .totalPages( criteria.isTotalPages() );
 
             if ( criteria.getDimension() == null )
