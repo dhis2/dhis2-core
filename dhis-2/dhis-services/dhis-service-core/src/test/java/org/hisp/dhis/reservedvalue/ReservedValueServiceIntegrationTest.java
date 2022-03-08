@@ -71,6 +71,8 @@ class ReservedValueServiceIntegrationTest extends TransactionalIntegrationTest
 
     private static TrackedEntityAttribute simpleRandomTextPattern;
 
+    private static TrackedEntityAttribute simpleRandomTextNumericPattern;
+
     private static TrackedEntityAttribute simpleStringPattern;
 
     @BeforeAll
@@ -86,6 +88,7 @@ class ReservedValueServiceIntegrationTest extends TransactionalIntegrationTest
         simpleTextPattern = createTextPattern( tea, "\"FOOBAR\"" );
         simpleSequentialTextPattern = createTextPattern( tea, "\"TEST-\"+SEQUENTIAL(##)" );
         simpleRandomTextPattern = createTextPattern( tea, "\"TEST-\"+RANDOM(XXX)" );
+        simpleRandomTextNumericPattern = createTextPattern( tea, "\"EPI_\"+RANDOM(######)" );
         simpleStringPattern = createTextPattern( tea, "\"TEST-\"+ORG_UNIT_CODE(..)" );
     }
 
@@ -126,6 +129,34 @@ class ReservedValueServiceIntegrationTest extends TransactionalIntegrationTest
         assertEquals( 3, all.stream()
             .filter( ( rv ) -> rv.getValue().indexOf( "TEST-" ) == 0 && rv.getValue().length() == 8 ).count() );
         assertEquals( 3, all.size() );
+    }
+
+    @Test
+    void testReserveReserveRandomValuesWithExistingGenerationAndAlphaNumericPattern()
+        throws Exception
+    {
+        TrackedEntityAttribute tea = createTrackedEntityAttribute( 'A' );
+
+        simpleRandomTextNumericPattern = createTextPattern( tea, "\"EPI_\"+RANDOM(######)" );
+
+        ReservedValue reservedValue = new ReservedValue();
+        reservedValue.setTrackedEntityAttributeId( tea.getId() );
+        reservedValue.setCreated( new Date() );
+        reservedValue.setExpiryDate( new Date() );
+        reservedValue.setOwnerObject( simpleRandomTextNumericPattern.getTextPattern().getOwnerObject().toString() );
+        reservedValue.setOwnerUid( tea.getUid() );
+        reservedValue.setKey( "EPI_RANDOM(######)" );
+        reservedValue.setValue( "EPI_000000" );
+
+        reservedValueStore.save( reservedValue );
+
+        reservedValueService.reserve( simpleRandomTextNumericPattern, 3, new HashMap<>(), future );
+
+        List<ReservedValue> all = reservedValueStore.getAll();
+        assertEquals( 4, all.stream()
+            .filter( ( rv ) -> rv.getValue().indexOf( "EPI_" ) == 0 && rv.getValue().length() == 10 )
+            .count() );
+        assertEquals( 4, all.size() );
     }
 
     @Test
