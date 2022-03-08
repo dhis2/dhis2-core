@@ -326,7 +326,7 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
         assertEquals( programStageInstance.getProgramStage().getUid(), jsonEvent.getString( "programStage" ).string() );
         assertEquals( programStageInstance.getProgramInstance().getUid(),
             jsonEvent.getString( "enrollment" ).string() );
-        assertTrue( jsonEvent.getArray( "relationships" ).isEmpty() );
+        assertFalse( jsonEvent.has( "relationships" ) );
     }
 
     private void assertTrackedEntity( JsonObject json, TrackedEntityInstance tei )
@@ -335,7 +335,7 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
         assertEquals( tei.getUid(), jsonTEI.getString( "trackedEntity" ).string() );
         assertEquals( tei.getTrackedEntityType().getUid(), jsonTEI.getString( "trackedEntityType" ).string() );
         assertEquals( tei.getOrganisationUnit().getUid(), jsonTEI.getString( "orgUnit" ).string() );
-        assertTrue( jsonTEI.getArray( "relationships" ).isEmpty() );
+        assertFalse( jsonTEI.has( "relationships" ) );
     }
 
     private void assertEnrollment( JsonObject json, ProgramInstance programInstance )
@@ -347,6 +347,6 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
         assertEquals( programInstance.getProgram().getUid(), jsonEnrollment.getString( "program" ).string() );
         assertEquals( programInstance.getOrganisationUnit().getUid(), jsonEnrollment.getString( "orgUnit" ).string() );
         assertTrue( jsonEnrollment.getArray( "events" ).isEmpty() );
-        assertTrue( jsonEnrollment.getArray( "relationships" ).isEmpty() );
+        assertFalse( jsonEnrollment.has( "relationships" ) );
     }
 }

@@ -164,16 +164,17 @@ public class RelationshipsValidationHook
                 // Check tracked entity type matches the type specified in the
                 // constraint
                 //
-                getRelationshipTypeUidFromTrackedEntity( reporter.getBundle(), item.getTrackedEntity().getTrackedEntity() )
-                    .ifPresent( type -> {
+                getRelationshipTypeUidFromTrackedEntity( reporter.getBundle(),
+                    item.getTrackedEntity().getTrackedEntity() )
+                        .ifPresent( type -> {
 
-                        if ( !type.equals( constraint.getTrackedEntityType().getUid() ) )
-                        {
-                            reporter.addError( relationship,
-                                TrackerErrorCode.E4014, relSide, constraint.getTrackedEntityType().getUid(), type );
-                        }
+                            if ( !type.equals( constraint.getTrackedEntityType().getUid() ) )
+                            {
+                                reporter.addError( relationship,
+                                    TrackerErrorCode.E4014, relSide, constraint.getTrackedEntityType().getUid(), type );
+                            }
 
-                    } );
+                        } );
             }
         }
         else if ( constraint.getRelationshipEntity().equals( PROGRAM_INSTANCE ) )

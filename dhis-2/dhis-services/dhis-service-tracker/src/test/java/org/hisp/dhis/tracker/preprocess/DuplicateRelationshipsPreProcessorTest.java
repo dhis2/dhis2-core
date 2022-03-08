@@ -34,10 +34,8 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.RelationshipItem;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -227,14 +225,14 @@ class DuplicateRelationshipsPreProcessorTest
     private RelationshipItem trackedEntityRelationshipItem( String trackedEntityUid )
     {
         return RelationshipItem.builder()
-            .trackedEntity( TrackedEntity.builder().trackedEntity( trackedEntityUid ).build() )
+            .trackedEntity( RelationshipItem.TrackedEntity.builder().trackedEntity( trackedEntityUid ).build() )
             .build();
     }
 
     private RelationshipItem enrollmentRelationshipItem( String enrollmentUid )
     {
         return RelationshipItem.builder()
-            .enrollment( Enrollment.builder().enrollment( enrollmentUid ).build() )
+            .enrollment( RelationshipItem.Enrollment.builder().enrollment( enrollmentUid ).build() )
             .build();
     }
 }

@@ -1140,7 +1140,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     private RelationshipItem trackedEntityRelationshipItem( String trackedEntityUid )
     {
         return RelationshipItem.builder()
-            .trackedEntity( TrackedEntity.builder().trackedEntity( trackedEntityUid ).build() )
+            .trackedEntity( RelationshipItem.TrackedEntity.builder().trackedEntity( trackedEntityUid ).build() )
             .build();
     }
 

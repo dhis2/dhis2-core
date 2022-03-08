@@ -59,8 +59,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.RelationshipItem;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
@@ -473,23 +471,23 @@ class RelationshipsValidationHookTest
             .build();
     }
 
-    private TrackedEntity trackedEntity()
+    private RelationshipItem.TrackedEntity trackedEntity()
     {
         return trackedEntity( CodeGenerator.generateUid() );
     }
 
-    private TrackedEntity trackedEntity( String uid )
+    private RelationshipItem.TrackedEntity trackedEntity( String uid )
     {
-        return TrackedEntity.builder().trackedEntity( uid ).build();
+        return RelationshipItem.TrackedEntity.builder().trackedEntity( uid ).build();
     }
 
-    private Enrollment enrollment()
+    private RelationshipItem.Enrollment enrollment()
     {
-        return Enrollment.builder().enrollment( CodeGenerator.generateUid() ).build();
+        return RelationshipItem.Enrollment.builder().enrollment( CodeGenerator.generateUid() ).build();
     }
 
-    private Event event()
+    private RelationshipItem.Event event()
     {
-        return Event.builder().event( CodeGenerator.generateUid() ).build();
+        return RelationshipItem.Event.builder().event( CodeGenerator.generateUid() ).build();
     }
 }

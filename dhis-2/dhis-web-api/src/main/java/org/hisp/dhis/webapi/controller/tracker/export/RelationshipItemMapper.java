@@ -27,59 +27,72 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
-import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.domain.RelationshipItem;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.domain.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 
-@Mapper
+@Mapper( uses = {
+    AttributeMapper.class,
+    DataValueMapper.class,
+    ProgramOwnerMapper.class,
+    NoteMapper.class,
+    InstantMapper.class,
+    UserMapper.class,
+} )
 interface RelationshipItemMapper
     extends DomainMapper<org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem, RelationshipItem>
 {
-    // Only map the identifiers inside the relationships.from/to in
-    // TrackedEntity, Enrollment, Event
-    // Not doing that will cause a StackOverflow as the JSON cannot be built due
-    // to the recursive structure without a base
-    // case
-    @Mapping( target = "trackedEntity", source = "trackedEntityInstance", qualifiedByName = "toTrackedEntity" )
-    @Mapping( target = "enrollment", source = "enrollment", qualifiedByName = "toEnrollment" )
-    @Mapping( target = "event", source = "event", qualifiedByName = "toEvent" )
+    @Mapping( target = "trackedEntity", source = "trackedEntityInstance" )
+    @Mapping( target = "enrollment", source = "enrollment" )
+    @Mapping( target = "event", source = "event" )
     RelationshipItem from( org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem relationshipItem );
 
-    @Named( "toTrackedEntity" )
-    default TrackedEntity trackedEntity(
-        org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance trackedEntityInstance )
+    @Mapping( target = "trackedEntity", source = "trackedEntityInstance" )
+    @Mapping( target = "createdAt", source = "created" )
+    @Mapping( target = "createdAtClient", source = "createdAtClient" )
+    @Mapping( target = "updatedAt", source = "lastUpdated" )
+    @Mapping( target = "updatedAtClient", source = "lastUpdatedAtClient" )
+    @Mapping( target = "createdBy", source = "createdByUserInfo" )
+    @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo" )
+    RelationshipItem.TrackedEntity from( TrackedEntityInstance trackedEntityInstance );
+
+    @Mapping( target = "enrollment", source = "enrollment" )
+    @Mapping( target = "createdAt", source = "created" )
+    @Mapping( target = "createdAtClient", source = "createdAtClient" )
+    @Mapping( target = "updatedAt", source = "lastUpdated" )
+    @Mapping( target = "updatedAtClient", source = "lastUpdatedAtClient" )
+    @Mapping( target = "trackedEntity", source = "trackedEntityInstance" )
+    @Mapping( target = "enrolledAt", source = "enrollmentDate" )
+    @Mapping( target = "occurredAt", source = "incidentDate" )
+    @Mapping( target = "followUp", source = "followup" )
+    @Mapping( target = "completedAt", source = "completedDate" )
+    @Mapping( target = "createdBy", source = "createdByUserInfo" )
+    @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo" )
+    RelationshipItem.Enrollment from( org.hisp.dhis.dxf2.events.enrollment.Enrollment enrollment );
+
+    @Mapping( target = "occurredAt", source = "eventDate" )
+    @Mapping( target = "scheduledAt", source = "dueDate" )
+    @Mapping( target = "createdAt", source = "created" )
+    @Mapping( target = "createdAtClient", source = "createdAtClient" )
+    @Mapping( target = "updatedAt", source = "lastUpdated" )
+    @Mapping( target = "updatedAtClient", source = "lastUpdatedAtClient" )
+    @Mapping( target = "completedAt", source = "completedDate" )
+    @Mapping( target = "createdBy", source = "createdByUserInfo" )
+    @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo" )
+    @Mapping( target = "assignedUser", source = ".", qualifiedByName = "toUserInfo" )
+    RelationshipItem.Event from( org.hisp.dhis.dxf2.events.event.Event event );
+
+    @Named( "toUserInfo" )
+    default User buildUserInfo( org.hisp.dhis.dxf2.events.event.Event event )
     {
-        if ( trackedEntityInstance == null )
-        {
-            return null;
-        }
-        return TrackedEntity.builder().trackedEntity( trackedEntityInstance.getTrackedEntityInstance() ).build();
-
-    }
-
-    @Named( "toEnrollment" )
-    default Enrollment enrollment( org.hisp.dhis.dxf2.events.enrollment.Enrollment enrollment )
-    {
-        if ( enrollment == null )
-        {
-            return null;
-        }
-        return Enrollment.builder().enrollment( enrollment.getEnrollment() ).build();
-
-    }
-
-    @Named( "toEvent" )
-    default Event event( org.hisp.dhis.dxf2.events.event.Event event )
-    {
-        if ( event == null )
-        {
-            return null;
-        }
-        return Event.builder().event( event.getEvent() ).build();
-
+        return User.builder()
+            .uid( event.getAssignedUser() )
+            .username( event.getAssignedUserUsername() )
+            .firstName( event.getAssignedUserFirstName() )
+            .surname( event.getAssignedUserSurname() )
+            .build();
     }
 }

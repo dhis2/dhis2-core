@@ -39,11 +39,8 @@ import java.util.stream.Collectors;
 import org.hisp.dhis.commons.util.RelationshipUtils;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.tracker.TrackerIdScheme;
-import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.RelationshipItem;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
@@ -90,15 +87,15 @@ public class RelationshipTrackerConverterService
     private RelationshipItem convertRelationshipType( org.hisp.dhis.relationship.RelationshipItem from )
     {
         RelationshipItem relationshipItem = new RelationshipItem();
-        Enrollment enrollment = Enrollment.builder()
+        RelationshipItem.Enrollment enrollment = RelationshipItem.Enrollment.builder()
             .enrollment( from.getProgramInstance() != null ? from.getProgramInstance().getUid() : null )
             .build();
         relationshipItem.setEnrollment( enrollment );
-        Event event = Event.builder()
+        RelationshipItem.Event event = RelationshipItem.Event.builder()
             .event( from.getProgramStageInstance() != null ? from.getProgramStageInstance().getUid() : null )
             .build();
         relationshipItem.setEvent( event );
-        TrackedEntity trackedEntity = TrackedEntity.builder()
+        RelationshipItem.TrackedEntity trackedEntity = RelationshipItem.TrackedEntity.builder()
             .trackedEntity( from.getTrackedEntityInstance() != null ? from.getTrackedEntityInstance().getUid() : null )
             .build();
         relationshipItem.setTrackedEntity( trackedEntity );
