@@ -695,8 +695,8 @@ public class JdbcAnalyticsManager
 
         log.debug( String.format( "Analytics SQL: %s", sql ) );
 
-        String hashId = Integer.toHexString( sql.hashCode() );
-        System.out.println( "JdbcAnalytics " + hashId + " SQL: " + sql );
+        String printId = "JdbcAnalytics " + Integer.toHexString( sql.hashCode() );
+        System.out.println( printId + " SQL: " + sql );
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 
@@ -724,8 +724,7 @@ public class JdbcAnalyticsManager
 
             key.deleteCharAt( key.length() - 1 );
 
-            System.out.println( "JdbcAnalytics " + hashId + " row " + counter + ": " + key + " " +
-                rowSet.getString( VALUE_ID ) );
+            System.out.println( printId + " row " + counter + ": " + key + " " + rowSet.getString( VALUE_ID ) );
 
             if ( params.isDataType( TEXT ) )
             {
@@ -741,7 +740,7 @@ public class JdbcAnalyticsManager
             }
         }
 
-        System.out.println( "JdbcAnalytics " + hashId + " " + counter + " rows returned." );
+        System.out.println( printId + " " + counter + " rows returned." );
 
         return map;
     }

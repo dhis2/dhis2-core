@@ -31,6 +31,7 @@ import static org.hisp.dhis.util.DateUtils.parseDate;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
+import java.time.Clock;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -64,6 +65,8 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
  * Tests analytics with {@see QueryModifiers}.
@@ -99,6 +102,10 @@ class AnalyticsServiceQueryModifiersTest
 
     @Autowired
     private IndicatorService indicatorService;
+
+    @Autowired
+    @Qualifier( "readOnlyJdbcTemplate" )
+    private JdbcTemplate jdbcTemplate;
 
     private Period jan;
 
@@ -184,17 +191,26 @@ class AnalyticsServiceQueryModifiersTest
         dataValueService.addDataValue( newDataValue( deB, jan, ouA, cocA, aocA, "A" ) );
         dataValueService.addDataValue( newDataValue( deB, feb, ouA, cocB, aocA, "B" ) );
 
+        System.out.println( "TestQueryMods: " + dataValueService.getAllDataValues().size() + " data values" );
         assertEquals( 5, dataValueService.getAllDataValues().size(), "Number of data values is wrong" );
 
+        System.out.println( "Before pre-analytics sleep: " + Clock.systemDefaultZone().instant() );
         // Wait before generating analytics tables
         Thread.sleep( 5000 );
+        System.out.println( "After pre-analytics sleep: " + Clock.systemDefaultZone().instant() );
 
         // Generate analytics tables
         analyticsTableGenerator.generateTables( AnalyticsTableUpdateParams.newBuilder().build(),
             NoopJobProgress.INSTANCE );
 
         // Wait after generating analytics tables
+        System.out.println( "Before post-analytics sleep: " + Clock.systemDefaultZone().instant() );
         Thread.sleep( 30000 );
+        System.out.println( "After post-analytics sleep: " + Clock.systemDefaultZone().instant() );
+
+        List<Map<String, Object>> resultMap = jdbcTemplate.queryForList( "select * from analytics_2022;" );
+        System.out.println( "TestQueryMods: " + resultMap.size() + " analytics values" );
+        assertEquals( 5, resultMap.size() );
     }
 
     @Override
