@@ -33,6 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.springframework.stereotype.Component;
 
@@ -63,7 +64,7 @@ public class DataStatisticsJob implements Job
     }
 
     @Override
-    public void execute( JobConfiguration jobConfiguration )
+    public void execute( JobConfiguration jobConfiguration, JobProgress progress )
     {
         long id = dataStatisticsService.saveDataStatisticsSnapshot();
 

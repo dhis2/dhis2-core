@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,9 +42,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Henning Håkonsen
  */
-public class JobConfigurationServiceTest
-    extends DhisSpringTest
+public class JobConfigurationServiceTest extends DhisSpringTest
 {
+
     private static final String CRON_EVERY_MIN = "0 * * ? * *";
 
     @Autowired
@@ -60,7 +60,6 @@ public class JobConfigurationServiceTest
     {
         jobA = new JobConfiguration( "jobA", JobType.MOCK, CRON_EVERY_MIN, new MockJobParameters( "test" ) );
         jobB = new JobConfiguration( "jobB", JobType.DATA_INTEGRITY, CRON_EVERY_MIN, null );
-
         jobConfigurationService.addJobConfiguration( jobA );
         jobConfigurationService.addJobConfiguration( jobB );
     }
@@ -69,14 +68,10 @@ public class JobConfigurationServiceTest
     public void testGetJobTypeInfo()
     {
         List<JobTypeInfo> jobTypes = jobConfigurationService.getJobTypeInfo();
-
         assertNotNull( jobTypes );
         assertFalse( jobTypes.isEmpty() );
-
-        JobTypeInfo jobType = jobTypes.stream()
-            .filter( j -> j.getJobType() == JobType.CONTINUOUS_ANALYTICS_TABLE )
+        JobTypeInfo jobType = jobTypes.stream().filter( j -> j.getJobType() == JobType.CONTINUOUS_ANALYTICS_TABLE )
             .findFirst().get();
-
         assertNotNull( jobType );
         assertEquals( JobType.CONTINUOUS_ANALYTICS_TABLE.getSchedulingType(), jobType.getSchedulingType() );
     }
@@ -86,14 +81,11 @@ public class JobConfigurationServiceTest
     {
         List<JobConfiguration> jobConfigurationList = jobConfigurationService.getAllJobConfigurations();
         assertEquals( "The number of job configurations does not match", 2, jobConfigurationList.size() );
-
         assertEquals( JobType.MOCK, jobConfigurationService.getJobConfigurationByUid( jobA.getUid() ).getJobType() );
         MockJobParameters jobParameters = (MockJobParameters) jobConfigurationService
             .getJobConfigurationByUid( jobA.getUid() ).getJobParameters();
-
         assertNotNull( jobParameters );
         assertEquals( "test", jobParameters.getMessage() );
-
         assertEquals( JobType.DATA_INTEGRITY,
             jobConfigurationService.getJobConfigurationByUid( jobB.getUid() ).getJobType() );
         assertNull( jobConfigurationService.getJobConfigurationByUid( jobB.getUid() ).getJobParameters() );
@@ -105,7 +97,6 @@ public class JobConfigurationServiceTest
         JobConfiguration test = jobConfigurationService.getJobConfigurationByUid( jobA.getUid() );
         test.setName( "testUpdate" );
         jobConfigurationService.updateJobConfiguration( test );
-
         assertEquals( "testUpdate", jobConfigurationService.getJobConfigurationByUid( jobA.getUid() ).getName() );
     }
 
@@ -113,7 +104,6 @@ public class JobConfigurationServiceTest
     public void testDeleteJob()
     {
         jobConfigurationService.deleteJobConfiguration( jobA );
-
         assertNull( jobConfigurationService.getJobConfigurationByUid( jobA.getUid() ) );
     }
 }

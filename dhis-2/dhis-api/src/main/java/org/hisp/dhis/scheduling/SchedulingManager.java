@@ -27,7 +27,10 @@
  */
 package org.hisp.dhis.scheduling;
 
+import java.util.Collection;
 import java.util.Date;
+
+import org.hisp.dhis.scheduling.JobProgress.Process;
 
 /**
  * {@link Job}s are tasks that are supposed to run asynchronously.
@@ -57,11 +60,14 @@ import java.util.Date;
  * a specific point in time.</dd>
  * </dl>
  *
- * @author Henning Håkonsen
+ * @see <a href=
+ *      "https://github.com/dhis2/wow-backend/blob/master/docs/job_scheduling.md">Docs</a>
+ *
+ * @author Henning Håkonsen (initial)
+ * @author Jan Bernitt (overhaul and extension)
  */
 public interface SchedulingManager
 {
-
     /**
      * Schedules a job with the given job configuration.
      *
@@ -104,4 +110,34 @@ public interface SchedulingManager
      */
     boolean executeNow( JobConfiguration configuration );
 
+    /**
+     * Request cancellation for job of given type potentially running currently
+     *
+     * @param type job type to cancel
+     */
+    void cancel( JobType type );
+
+    /**
+     * @return a set of job types for which a job is running currently
+     */
+    Collection<JobType> getRunningTypes();
+
+    /**
+     * @return a set of job types for which a job has finished running. Each
+     *         type will contain the most recent completed run. Newer runs
+     *         replace older ones.
+     */
+    Collection<JobType> getCompletedTypes();
+
+    /**
+     * @param type job type for which to return the current running progress
+     * @return the progress of the running job
+     */
+    Collection<Process> getRunningProgress( JobType type );
+
+    /**
+     * @param type job type for which to return completed progress
+     * @return the progress of the completed job
+     */
+    Collection<Process> getCompletedProgress( JobType type );
 }
