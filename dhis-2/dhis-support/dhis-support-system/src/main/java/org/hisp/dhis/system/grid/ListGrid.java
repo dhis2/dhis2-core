@@ -139,6 +139,8 @@ public class ListGrid
      */
     private Map<String, Integer> columnIndexMap = new HashMap<>();
 
+    private boolean lastDataRow;
+
     /**
      * Default constructor.
      */
@@ -1241,6 +1243,18 @@ public class ListGrid
             columns.clear();
             columns.addAll( orderedColumns );
         }
+    }
+
+    @Override
+    public boolean hasLastDataRow()
+    {
+        return lastDataRow;
+    }
+
+    @Override
+    public void setLastDataRow( boolean lastDataRow )
+    {
+        this.lastDataRow = lastDataRow;
     }
 
     /**
