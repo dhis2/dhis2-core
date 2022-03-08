@@ -265,6 +265,30 @@ class CategoryOptionComboStoreTest extends DhisSpringTest
     }
 
     @Test
+    void testGetCategoryOptionComboNotFound()
+    {
+        categoryService.generateOptionCombos( categoryComboA );
+        categoryService.generateOptionCombos( categoryComboB );
+        CategoryOption co = new CategoryOption( "10000" );
+        categoryService.addCategoryOption( co );
+        Set<CategoryOption> options = new HashSet<>();
+        options.add( co );
+
+        assertNull( categoryOptionComboStore.getCategoryOptionCombo( categoryComboA, options ) );
+    }
+
+    @Test
+    void testGetCategoryOptionComboGivenSubsetOfCategoryOptions()
+    {
+        categoryService.generateOptionCombos( categoryComboA );
+        categoryService.generateOptionCombos( categoryComboB );
+        Set<CategoryOption> options = new HashSet<>();
+        options.add( categoryOptionA );
+
+        assertNull( categoryOptionComboStore.getCategoryOptionCombo( categoryComboA, options ) );
+    }
+
+    @Test
     void testGetCategoryOptionComboByOptionGroup()
     {
         categoryService.generateOptionCombos( categoryComboA );
