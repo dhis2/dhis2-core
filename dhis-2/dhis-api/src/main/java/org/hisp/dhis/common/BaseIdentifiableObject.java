@@ -79,19 +79,19 @@ public class BaseIdentifiableObject
     protected long id;
 
     /**
-     * The Unique Identifier for this Object.
+     * The unique identifier for this object.
      */
     @AuditAttribute
     protected String uid;
 
     /**
-     * The unique code for this Object.
+     * The unique code for this object.
      */
     @AuditAttribute
     protected String code;
 
     /**
-     * The name of this Object. Required and unique.
+     * The name of this object. Required and unique.
      */
     protected String name;
 
@@ -171,7 +171,7 @@ public class BaseIdentifiableObject
     protected User lastUpdatedBy;
 
     /**
-     * Jsonb Sharing
+     * Object sharing (JSONB).
      */
     protected Sharing sharing = new Sharing();
 
