@@ -28,11 +28,32 @@
 package org.hisp.dhis.analytics.table;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
-import static org.hisp.dhis.DhisConvenienceTest.*;
-import static org.hisp.dhis.analytics.ColumnDataType.*;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hisp.dhis.DhisConvenienceTest.createCategory;
+import static org.hisp.dhis.DhisConvenienceTest.createCategoryCombo;
+import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
+import static org.hisp.dhis.DhisConvenienceTest.createProgram;
+import static org.hisp.dhis.DhisConvenienceTest.createProgramStage;
+import static org.hisp.dhis.DhisConvenienceTest.createProgramTrackedEntityAttribute;
+import static org.hisp.dhis.DhisConvenienceTest.createTrackedEntityAttribute;
+import static org.hisp.dhis.DhisConvenienceTest.getDate;
+import static org.hisp.dhis.analytics.ColumnDataType.BIGINT;
+import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_11;
+import static org.hisp.dhis.analytics.ColumnDataType.DOUBLE;
+import static org.hisp.dhis.analytics.ColumnDataType.GEOMETRY;
+import static org.hisp.dhis.analytics.ColumnDataType.GEOMETRY_POINT;
+import static org.hisp.dhis.analytics.ColumnDataType.INTEGER;
+import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
+import static org.hisp.dhis.analytics.ColumnDataType.TIMESTAMP;
+import static org.hisp.dhis.resourcetable.ResourceTable.NEWEST_YEAR_PERIOD_SUPPORTED;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -42,7 +63,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.hisp.dhis.analytics.*;
+import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.AnalyticsTable;
+import org.hisp.dhis.analytics.AnalyticsTableColumn;
+import org.hisp.dhis.analytics.AnalyticsTableHookService;
+import org.hisp.dhis.analytics.AnalyticsTablePartition;
+import org.hisp.dhis.analytics.AnalyticsTableType;
+import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
+import org.hisp.dhis.analytics.ColumnNotNullConstraint;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.util.AnalyticsTableAsserter;
 import org.hisp.dhis.category.Category;
@@ -439,7 +467,11 @@ public class JdbcEventAnalyticsTableManagerTest
         when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( Collections.singletonList( programA ) );
         when( organisationUnitService.getFilledOrganisationUnitLevels() ).thenReturn( ouLevels );
         when( jdbcTemplate.queryForList(
-            "select distinct(extract(year from psi.executiondate)) from programstageinstance psi inner join programinstance pi on psi.programinstanceid = pi.programinstanceid where psi.lastupdated <= '2019-08-01T00:00:00' and pi.programid = 0 and psi.executiondate is not null and psi.executiondate > '1000-01-01' and psi.deleted is false ",
+            "select temp.supportedyear from (select distinct extract(year from psi.executiondate) as supportedyear "
+                + "from programstageinstance psi inner join programinstance pi on psi.programinstanceid = pi.programinstanceid "
+                + "where psi.lastupdated <= '2019-08-01T00:00:00' and pi.programid = 0 and psi.executiondate is not null "
+                + "and psi.executiondate > '1000-01-01' and psi.deleted is false ) "
+                + "as temp where temp.supportedyear >= 1975 and temp.supportedyear <= " + NEWEST_YEAR_PERIOD_SUPPORTED,
             Integer.class ) ).thenReturn( Lists.newArrayList( 2018, 2019 ) );
 
         AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withStartTime( START_TIME ).build();
@@ -569,7 +601,11 @@ public class JdbcEventAnalyticsTableManagerTest
         when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( Lists.newArrayList( programA ) );
 
         when( jdbcTemplate.queryForList(
-            "select distinct(extract(year from psi.executiondate)) from programstageinstance psi inner join programinstance pi on psi.programinstanceid = pi.programinstanceid where psi.lastupdated <= '2019-08-01T00:00:00' and pi.programid = 0 and psi.executiondate is not null and psi.executiondate > '1000-01-01' and psi.deleted is false and psi.executiondate >= '2018-01-01'",
+            "select temp.supportedyear from (select distinct extract(year from psi.executiondate) as supportedyear "
+                + "from programstageinstance psi inner join programinstance pi on psi.programinstanceid = pi.programinstanceid "
+                + "where psi.lastupdated <= '2019-08-01T00:00:00' and pi.programid = 0 and psi.executiondate is not null "
+                + "and psi.executiondate > '1000-01-01' and psi.deleted is false and psi.executiondate >= '2018-01-01') "
+                + "as temp where temp.supportedyear >= 1975 and temp.supportedyear <= " + NEWEST_YEAR_PERIOD_SUPPORTED,
             Integer.class ) ).thenReturn( Lists.newArrayList( 2018, 2019 ) );
 
         AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withLastYears( 2 )
@@ -600,7 +636,8 @@ public class JdbcEventAnalyticsTableManagerTest
 
     private String getYearQueryForCurrentYear( Program program, boolean withExecutionDate )
     {
-        String sql = "select distinct(extract(year from psi.executiondate)) from programstageinstance psi inner join "
+        String sql = "select temp.supportedyear from (select distinct extract(year from psi.executiondate) as supportedyear "
+            + "from programstageinstance psi inner join "
             + "programinstance pi on psi.programinstanceid = pi.programinstanceid where psi.lastupdated <= '"
             + "2019-08-01T00:00:00' and pi.programid = " + program.getId()
             + " and psi.executiondate is not null and psi.executiondate > '1000-01-01' and psi.deleted is false ";
@@ -609,6 +646,8 @@ public class JdbcEventAnalyticsTableManagerTest
         {
             sql += "and psi.executiondate >= '2018-01-01'";
         }
+
+        sql += ") as temp where temp.supportedyear >= 1975 and temp.supportedyear <= " + NEWEST_YEAR_PERIOD_SUPPORTED;
 
         return sql;
     }
