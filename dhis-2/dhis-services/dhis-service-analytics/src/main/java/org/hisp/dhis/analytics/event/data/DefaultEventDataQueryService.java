@@ -227,6 +227,7 @@ public class DefaultEventDataQueryService
             .withPage( request.getPage() )
             .withPageSize( request.getPageSize() )
             .withPaging( request.isPaging() )
+            .withTotalPages( request.isTotalPages() )
             .withProgramStatuses( request.getProgramStatus() )
             .withApiVersion( request.getApiVersion() );
 

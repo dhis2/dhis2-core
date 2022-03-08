@@ -536,4 +536,8 @@ public interface Grid
      * @param newColumnsIndexes
      */
     void repositionColumns( final Set<Integer> newColumnsIndexes );
+
+    boolean hasLastDataRow();
+
+    void setLastDataRow( boolean lastDataRow );
 }
