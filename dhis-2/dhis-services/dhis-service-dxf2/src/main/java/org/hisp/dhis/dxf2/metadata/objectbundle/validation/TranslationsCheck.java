@@ -72,7 +72,7 @@ public class TranslationsCheck implements ObjectValidationCheck
         }
     }
 
-    private <T extends IdentifiableObject> void run( IdentifiableObject object, Class<T> klass,
+    public <T extends IdentifiableObject> void run( IdentifiableObject object, Class<T> klass,
         Consumer<ObjectReport> addReports, Schema schema, int index )
     {
         Set<Translation> translations = object.getTranslations();

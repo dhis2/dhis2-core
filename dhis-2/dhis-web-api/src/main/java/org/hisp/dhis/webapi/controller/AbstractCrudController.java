@@ -40,6 +40,7 @@ import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 import static org.springframework.http.MediaType.TEXT_XML_VALUE;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -62,7 +63,7 @@ import org.hisp.dhis.dxf2.metadata.MetadataImportService;
 import org.hisp.dhis.dxf2.metadata.collection.CollectionService;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
+import org.hisp.dhis.dxf2.metadata.objectbundle.validation.TranslationsCheck;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.ObjectReport;
@@ -147,6 +148,9 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     @Autowired
     protected SharingService sharingService;
 
+    @Autowired
+    private TranslationsCheck translationsCheck;
+
     @PutMapping( value = "/{uid}/translations" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     @ResponseBody
@@ -177,23 +181,17 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         HashSet<Translation> translations = new HashSet<>( inputObject.getTranslations() );
 
         persistedObject.setTranslations( translations );
+        List<ObjectReport> objectReports = new ArrayList<>();
+        translationsCheck.run( persistedObject, getEntityClass(), objectReport -> objectReports.add( objectReport ),
+            getSchema(), 0 );
 
-        MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() );
-
-        params.setUser( user )
-            .setImportStrategy( ImportStrategy.UPDATE )
-            .addObject( persistedObject )
-            .setImportMode( ObjectBundleMode.VALIDATE );
-
-        ImportReport importReport = importService.importMetadata( params );
-
-        if ( !importReport.hasErrorReports() )
+        if ( objectReports.size() == 0 )
         {
-            manager.save( persistedObject );
+            manager.update( persistedObject, user );
             return null;
         }
 
-        return objectReport( importReport );
+        return objectReport( objectReports.get( 0 ) );
     }
 
     // --------------------------------------------------------------------------
