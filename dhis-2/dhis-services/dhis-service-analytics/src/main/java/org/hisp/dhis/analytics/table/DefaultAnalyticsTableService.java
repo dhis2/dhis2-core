@@ -208,7 +208,7 @@ public class DefaultAnalyticsTableService
     /**
      * Drops the given temporary analytics tables.
      */
-    private void dropTempTables( List<AnalyticsTable> tables, JobProgress progress )
+    private void dropTempTables( final List<AnalyticsTable> tables, final JobProgress progress )
     {
         progress.runStage( tables, AnalyticsTable::getTableName, tableManager::dropTempTable );
     }
