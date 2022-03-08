@@ -184,6 +184,8 @@ class AnalyticsServiceQueryModifiersTest
         dataValueService.addDataValue( newDataValue( deB, jan, ouA, cocA, aocA, "A" ) );
         dataValueService.addDataValue( newDataValue( deB, feb, ouA, cocB, aocA, "B" ) );
 
+        assertEquals( 5, dataValueService.getAllDataValues().size(), "Number of data values is wrong" );
+
         // Wait before generating analytics tables
         Thread.sleep( 5000 );
 
