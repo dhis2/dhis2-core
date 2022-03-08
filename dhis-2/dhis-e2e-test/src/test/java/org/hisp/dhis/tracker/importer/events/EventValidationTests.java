@@ -28,17 +28,20 @@
 package org.hisp.dhis.tracker.importer.events;
 
 import com.google.gson.JsonObject;
+import joptsimple.internal.Strings;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.UserActions;
 import org.hisp.dhis.actions.metadata.OrgUnitActions;
 import org.hisp.dhis.actions.metadata.ProgramActions;
 import org.hisp.dhis.actions.tracker.EventActions;
+import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.hisp.dhis.tracker.TrackerNtiApiTest;
 import org.hisp.dhis.tracker.importer.databuilder.EventDataBuilder;
 import org.hisp.dhis.tracker.importer.databuilder.TeiDataBuilder;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -47,9 +50,12 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.stream.Stream;
 
-import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.CoreMatchers.containsStringIgnoringCase;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.hasItem;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -183,6 +189,27 @@ public class EventValidationTests
         TrackerApiResponse response = trackerActions.postAndGetJobReport( jsonObject );
 
         response.validateSuccessfulImport();
+    }
+
+    @Test
+    public void shouldValidateCategoryCombo()
+    {
+        ApiResponse program = programActions.get( "", new QueryParamsBuilder().add( "programType=WITHOUT_REGISTRATION" )
+            .add( "filter=categoryCombo.code:!eq:default" )
+            .add( "filter=name:like:TA" )
+            .add( "fields=id,categoryCombo[categories[categoryOptions]]" ) );
+
+        String programId = program.extractString( "programs.id[0]" );
+        Assumptions.assumeFalse( Strings.isNullOrEmpty( programId ) );
+
+        JsonObject object = new EventDataBuilder()
+            .setProgram( programId )
+            .setAttributeCategoryOptions( Arrays.asList( "invalid-option" ) )
+            .setOu( OU_ID ).array();
+
+        trackerActions.postAndGetJobReport( object )
+            .validateErrorReport()
+            .body( "errorCode", hasItem( "E1116" ) );
     }
 
     private void setupData()

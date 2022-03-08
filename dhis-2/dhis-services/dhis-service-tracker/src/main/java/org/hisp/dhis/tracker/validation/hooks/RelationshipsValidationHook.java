@@ -53,7 +53,6 @@ import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
-import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
 
 /**
@@ -64,11 +63,10 @@ public class RelationshipsValidationHook
     extends AbstractTrackerDtoValidationHook
 {
 
+    @Override
     public void validateRelationship( ValidationErrorReporter reporter, Relationship relationship )
     {
-        TrackerImportValidationContext context = reporter.getValidationContext();
-
-        TrackerBundle bundle = context.getBundle();
+        TrackerBundle bundle = reporter.getBundle();
 
         boolean isValid = validateMandatoryData( reporter, relationship,
             bundle.getPreheat().getAll( RelationshipType.class ) );
@@ -108,9 +106,9 @@ public class RelationshipsValidationHook
         getRelationshipType( bundle.getPreheat().getAll( RelationshipType.class ),
             relationship.getRelationshipType() ).ifPresent( relationshipType -> {
                 validateRelationshipConstraint( reporter, relationship, "from", relationship.getFrom(),
-                    relationshipType.getFromConstraint(), reporter.getValidationContext() );
+                    relationshipType.getFromConstraint() );
                 validateRelationshipConstraint( reporter, relationship, "to", relationship.getTo(),
-                    relationshipType.getToConstraint(), reporter.getValidationContext() );
+                    relationshipType.getToConstraint() );
             } );
     }
 
@@ -144,7 +142,7 @@ public class RelationshipsValidationHook
     private void validateRelationshipConstraint( ValidationErrorReporter reporter, Relationship relationship,
         String relSide,
         RelationshipItem item,
-        RelationshipConstraint constraint, TrackerImportValidationContext ctx )
+        RelationshipConstraint constraint )
     {
         if ( relationshipItemValueType( item ) == null )
         {
@@ -166,15 +164,16 @@ public class RelationshipsValidationHook
                 // Check tracked entity type matches the type specified in the
                 // constraint
                 //
-                getRelationshipTypeUidFromTrackedEntity( ctx, item.getTrackedEntity() ).ifPresent( type -> {
+                getRelationshipTypeUidFromTrackedEntity( reporter.getBundle(), item.getTrackedEntity() )
+                    .ifPresent( type -> {
 
-                    if ( !type.equals( constraint.getTrackedEntityType().getUid() ) )
-                    {
-                        reporter.addError( relationship,
-                            TrackerErrorCode.E4014, relSide, constraint.getTrackedEntityType().getUid(), type );
-                    }
+                        if ( !type.equals( constraint.getTrackedEntityType().getUid() ) )
+                        {
+                            reporter.addError( relationship,
+                                TrackerErrorCode.E4014, relSide, constraint.getTrackedEntityType().getUid(), type );
+                        }
 
-                } );
+                    } );
             }
         }
         else if ( constraint.getRelationshipEntity().equals( PROGRAM_INSTANCE ) )
@@ -215,26 +214,27 @@ public class RelationshipsValidationHook
             trackerType.getName(), s ) );
     }
 
-    private Optional<String> getRelationshipTypeUidFromTrackedEntity( TrackerImportValidationContext ctx, String uid )
+    private Optional<String> getRelationshipTypeUidFromTrackedEntity( TrackerBundle bundle, String uid )
     {
-        return getTrackedEntityTypeFromTrackedEntity( ctx, uid ).map( Optional::of )
-            .orElseGet( () -> getTrackedEntityTypeFromTrackedEntityRef( ctx, uid ) );
+        return getTrackedEntityTypeFromTrackedEntity( bundle, uid ).map( Optional::of )
+            .orElseGet( () -> getTrackedEntityTypeFromTrackedEntityRef( bundle, uid ) );
     }
 
-    private Optional<String> getTrackedEntityTypeFromTrackedEntity( TrackerImportValidationContext ctx, String uid )
+    private Optional<String> getTrackedEntityTypeFromTrackedEntity( TrackerBundle bundle, String uid )
     {
-        final TrackedEntityInstance trackedEntity = ctx.getTrackedEntityInstance( uid );
+        final TrackedEntityInstance trackedEntity = bundle.getTrackedEntityInstance( uid );
 
         return trackedEntity != null ? Optional.of( trackedEntity.getTrackedEntityType().getUid() ) : Optional.empty();
     }
 
-    private Optional<String> getTrackedEntityTypeFromTrackedEntityRef( TrackerImportValidationContext ctx, String uid )
+    private Optional<String> getTrackedEntityTypeFromTrackedEntityRef( TrackerBundle bundle, String uid )
     {
-        final Optional<TrackedEntity> payloadTei = ctx.getBundle().getTrackedEntities().stream()
+        final Optional<TrackedEntity> payloadTei = bundle.getTrackedEntities().stream()
             .filter( t -> t.getTrackedEntity().equals( uid ) ).findFirst();
         return payloadTei.map( TrackedEntity::getTrackedEntityType );
     }
 
+    @Override
     public boolean removeOnError()
     {
         return true;

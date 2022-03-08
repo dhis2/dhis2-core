@@ -34,7 +34,6 @@ import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1056;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1057;
 import static org.hisp.dhis.tracker.validation.hooks.AssertValidationErrorReporter.hasTrackerError;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import java.time.Instant;
@@ -52,8 +51,8 @@ import org.hisp.dhis.mock.MockI18nFormat;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
-import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -72,7 +71,7 @@ class EventCategoryOptValidationHookTest extends DhisConvenienceTest
     private I18nManager i18nManager;
 
     @Mock
-    private TrackerImportValidationContext validationContext;
+    private TrackerPreheat preheat;
 
     private static final I18nFormat I18N_FORMAT = new MockI18nFormat();
 
@@ -139,24 +138,21 @@ class EventCategoryOptValidationHookTest extends DhisConvenienceTest
 
         TrackerBundle bundle = TrackerBundle.builder()
             .user( user )
+            .preheat( preheat )
             .build();
 
-        when( validationContext.getBundle() ).thenReturn( bundle );
-
-        when( validationContext.getProgram( program.getUid() ) )
+        when( preheat.getProgram( program.getUid() ) )
             .thenReturn( program );
+        when( i18nManager.getI18nFormat() ).thenReturn( I18N_FORMAT );
 
-        reporter = new ValidationErrorReporter( validationContext );
+        reporter = new ValidationErrorReporter( bundle );
     }
 
     @Test
     void testDefaultCoc()
     {
-        when( i18nManager.getI18nFormat() )
-            .thenReturn( I18N_FORMAT );
+        when( preheat.getDefault( CategoryOptionCombo.class ) ).thenReturn( defaultCatOptionCombo );
         program.setCategoryCombo( defaultCatCombo );
-        when( validationContext.getCachedEventCategoryOptionCombo( any() ) )
-            .thenReturn( defaultCatOptionCombo );
 
         hook.validateEvent( reporter, event );
 
@@ -166,10 +162,7 @@ class EventCategoryOptValidationHookTest extends DhisConvenienceTest
     @Test
     void testNoCategoryOptionDates()
     {
-        when( i18nManager.getI18nFormat() )
-            .thenReturn( I18N_FORMAT );
-        when( validationContext.getCachedEventCategoryOptionCombo( any() ) )
-            .thenReturn( attOptionCombo );
+        when( preheat.getCategoryOptionCombo( event.getAttributeOptionCombo() ) ).thenReturn( attOptionCombo );
 
         hook.validateEvent( reporter, event );
 
@@ -179,12 +172,9 @@ class EventCategoryOptValidationHookTest extends DhisConvenienceTest
     @Test
     void testBetweenCategoryOptionDates()
     {
-        when( i18nManager.getI18nFormat() )
-            .thenReturn( I18N_FORMAT );
+        when( preheat.getCategoryOptionCombo( event.getAttributeOptionCombo() ) ).thenReturn( attOptionCombo );
         catOption.setStartDate( ONE_YEAR_BEFORE_EVENT );
         catOption.setEndDate( ONE_YEAR_AFTER_EVENT );
-        when( validationContext.getCachedEventCategoryOptionCombo( any() ) )
-            .thenReturn( attOptionCombo );
 
         hook.validateEvent( reporter, event );
 
@@ -194,11 +184,8 @@ class EventCategoryOptValidationHookTest extends DhisConvenienceTest
     @Test
     void testBeforeCategoryOptionStart()
     {
-        when( i18nManager.getI18nFormat() )
-            .thenReturn( I18N_FORMAT );
+        when( preheat.getCategoryOptionCombo( event.getAttributeOptionCombo() ) ).thenReturn( attOptionCombo );
         catOption.setStartDate( ONE_YEAR_AFTER_EVENT );
-        when( validationContext.getCachedEventCategoryOptionCombo( any() ) )
-            .thenReturn( attOptionCombo );
 
         hook.validateEvent( reporter, event );
 
@@ -208,11 +195,8 @@ class EventCategoryOptValidationHookTest extends DhisConvenienceTest
     @Test
     void testAfterCategoryOptionEnd()
     {
-        when( i18nManager.getI18nFormat() )
-            .thenReturn( I18N_FORMAT );
+        when( preheat.getCategoryOptionCombo( event.getAttributeOptionCombo() ) ).thenReturn( attOptionCombo );
         catOption.setEndDate( ONE_YEAR_BEFORE_EVENT );
-        when( validationContext.getCachedEventCategoryOptionCombo( any() ) )
-            .thenReturn( attOptionCombo );
 
         hook.validateEvent( reporter, event );
 
@@ -222,12 +206,9 @@ class EventCategoryOptValidationHookTest extends DhisConvenienceTest
     @Test
     void testBeforeOpenDaysAfterCoEndDate()
     {
-        when( i18nManager.getI18nFormat() )
-            .thenReturn( I18N_FORMAT );
+        when( preheat.getCategoryOptionCombo( event.getAttributeOptionCombo() ) ).thenReturn( attOptionCombo );
         catOption.setEndDate( ONE_YEAR_BEFORE_EVENT );
         program.setOpenDaysAfterCoEndDate( 400 );
-        when( validationContext.getCachedEventCategoryOptionCombo( any() ) )
-            .thenReturn( attOptionCombo );
 
         hook.validateEvent( reporter, event );
 
