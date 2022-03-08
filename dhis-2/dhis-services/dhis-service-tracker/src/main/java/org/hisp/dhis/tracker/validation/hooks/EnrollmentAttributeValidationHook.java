@@ -53,8 +53,8 @@ import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.ReferenceTrackerEntity;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
-import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.tracker.validation.service.attribute.TrackedAttributeValidationService;
 import org.springframework.stereotype.Component;
 
@@ -76,15 +76,15 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
     @Override
     public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
     {
-        TrackerImportValidationContext context = reporter.getValidationContext();
-
-        Program program = context.getProgram( enrollment.getProgram() );
+        TrackerBundle bundle = reporter.getBundle();
+        TrackerPreheat preheat = bundle.getPreheat();
+        Program program = preheat.getProgram( enrollment.getProgram() );
         checkNotNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );
 
-        TrackedEntityInstance tei = context.getTrackedEntityInstance( enrollment.getTrackedEntity() );
+        TrackedEntityInstance tei = reporter.getBundle().getTrackedEntityInstance( enrollment.getTrackedEntity() );
 
-        OrganisationUnit orgUnit = context
-            .getOrganisationUnit( getOrgUnitUidFromTei( context, enrollment.getTrackedEntity() ) );
+        OrganisationUnit orgUnit = preheat
+            .getOrganisationUnit( getOrgUnitUidFromTei( bundle, enrollment.getTrackedEntity() ) );
 
         Map<String, String> attributeValueMap = Maps.newHashMap();
 
@@ -92,7 +92,8 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
         {
             validateRequiredProperties( reporter, enrollment, attribute, program );
 
-            TrackedEntityAttribute teAttribute = context.getTrackedEntityAttribute( attribute.getAttribute() );
+            TrackedEntityAttribute teAttribute = reporter.getBundle().getPreheat()
+                .getTrackedEntityAttribute( attribute.getAttribute() );
 
             if ( attribute.getAttribute() != null && attribute.getValue() != null && teAttribute != null )
             {
@@ -133,7 +134,7 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
 
         if ( attribute.getAttribute() != null )
         {
-            TrackedEntityAttribute teAttribute = reporter.getValidationContext()
+            TrackedEntityAttribute teAttribute = reporter.getBundle().getPreheat()
                 .getTrackedEntityAttribute( attribute.getAttribute() );
 
             reporter.addErrorIfNull( teAttribute, enrollment, E1006, attribute.getAttribute() );
@@ -186,8 +187,7 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
     private Set<String> buildTeiAttributeUids( ValidationErrorReporter reporter, String trackedEntityInstanceUid )
     {
         return Optional.of( reporter )
-            .map( ValidationErrorReporter::getValidationContext )
-            .map( TrackerImportValidationContext::getBundle )
+            .map( ValidationErrorReporter::getBundle )
             .map( TrackerBundle::getPreheat )
             .map( trackerPreheat -> trackerPreheat.getTrackedEntity( TrackerIdScheme.UID, trackedEntityInstanceUid ) )
             .map( TrackedEntityInstance::getTrackedEntityAttributeValues )
@@ -198,14 +198,13 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
             .collect( Collectors.toSet() );
     }
 
-    private String getOrgUnitUidFromTei( TrackerImportValidationContext context, String teiUid )
+    private String getOrgUnitUidFromTei( TrackerBundle bundle, String teiUid )
     {
 
-        final Optional<ReferenceTrackerEntity> reference = context.getReference( teiUid );
+        final Optional<ReferenceTrackerEntity> reference = bundle.getPreheat().getReference( teiUid );
         if ( reference.isPresent() )
         {
-            final Optional<TrackedEntity> tei = context.getBundle()
-                .getTrackedEntity( teiUid );
+            final Optional<TrackedEntity> tei = bundle.getTrackedEntity( teiUid );
             if ( tei.isPresent() )
             {
                 return tei.get().getOrgUnit();

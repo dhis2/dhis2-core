@@ -235,7 +235,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
         {
             OrganisationUnit ou = programInstance.getOrganisationUnit();
 
-            if ( !canAccess( user, program, ou ) )
+            if ( ou != null && !canAccess( user, program, ou ) )
             {
                 errors.add( "User has no read access to organisation unit: " + ou.getUid() );
             }

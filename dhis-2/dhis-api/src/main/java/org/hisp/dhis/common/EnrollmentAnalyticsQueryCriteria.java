@@ -112,4 +112,6 @@ public class EnrollmentAnalyticsQueryCriteria extends RequestTypeAware
     private String coordinateField;
 
     private SortOrder sortOrder;
+
+    private boolean totalPages;
 }

@@ -47,8 +47,8 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
-import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
 
@@ -62,9 +62,9 @@ public class EventDateValidationHook
     @Override
     public void validateEvent( ValidationErrorReporter reporter, Event event )
     {
-        TrackerImportValidationContext context = reporter.getValidationContext();
+        TrackerPreheat preheat = reporter.getBundle().getPreheat();
 
-        Program program = context.getProgram( event.getProgram() );
+        Program program = preheat.getProgram( event.getProgram() );
 
         if ( event.getOccurredAt() == null && occuredAtDateIsMandatory( event, program ) )
         {
@@ -84,8 +84,7 @@ public class EventDateValidationHook
 
     private void validateExpiryDays( ValidationErrorReporter reporter, Event event, Program program )
     {
-        TrackerImportValidationContext context = reporter.getValidationContext();
-        User actingUser = context.getBundle().getUser();
+        User actingUser = reporter.getBundle().getUser();
 
         checkNotNull( actingUser, TrackerImporterAssertErrors.USER_CANT_BE_NULL );
         checkNotNull( event, TrackerImporterAssertErrors.EVENT_CANT_BE_NULL );

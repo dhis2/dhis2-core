@@ -179,6 +179,11 @@ public class EventQueryParams
     private boolean paging;
 
     /**
+     * The total pages flag.
+     */
+    private boolean totalPages;
+
+    /**
      * The value sort order.
      */
     private SortOrder sortOrder;
@@ -321,6 +326,7 @@ public class EventQueryParams
         params.page = this.page;
         params.pageSize = this.pageSize;
         params.paging = this.paging;
+        params.totalPages = this.totalPages;
         params.sortOrder = this.sortOrder;
         params.limit = this.limit;
         params.outputType = this.outputType;
@@ -822,6 +828,11 @@ public class EventQueryParams
     public boolean isPaging()
     {
         return paging || page != null || pageSize != null;
+    }
+
+    public boolean isTotalPages()
+    {
+        return totalPages;
     }
 
     public int getPageWithDefault()
@@ -1329,6 +1340,12 @@ public class EventQueryParams
         public Builder withPaging( boolean paging )
         {
             this.params.paging = paging;
+            return this;
+        }
+
+        public Builder withTotalPages( boolean totalPages )
+        {
+            this.params.totalPages = totalPages;
             return this;
         }
 

@@ -31,6 +31,8 @@ import com.google.gson.JsonObject;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 
 import java.time.Instant;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -60,7 +62,8 @@ public class EventDataBuilder implements TrackerImporterDataBuilder
     }
 
     public EventDataBuilder setAssignedUser( String assignedUserId ) {
-        this.builder.addProperty( "assignedUser", assignedUserId );
+        JsonObject assignedUser = new JsonObjectBuilder().addProperty( "uid", assignedUserId ).build();
+        this.builder.addObject( "assignedUser", assignedUser );
 
         return this;
     }
@@ -68,6 +71,12 @@ public class EventDataBuilder implements TrackerImporterDataBuilder
     public EventDataBuilder setProgram( String program )
     {
         this.builder.addProperty( "program", program );
+
+        return this;
+    }
+
+    public EventDataBuilder setAttributeCategoryOptions( List<String> categoryOptions ) {
+        this.builder.addProperty( "attributeCategoryOptions", String.join( ";", categoryOptions ) );
 
         return this;
     }

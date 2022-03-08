@@ -91,13 +91,13 @@ public class UserAssignmentTests
         if ( !Boolean.parseBoolean( userAssignmentEnabled ) )
         {
             response.validate()
-                .body( "assignedUser", nullValue() );
+                .body( "assignedUser.username", nullValue() );
 
             return;
         }
 
         response.validate()
-            .body( "assignedUser", equalTo( loggedInUser ) );
+            .body( "assignedUser.uid", equalTo( loggedInUser ) );
     }
 
     @Test
@@ -129,7 +129,7 @@ public class UserAssignmentTests
 
         trackerActions.getEvent( eventId )
             .validate()
-            .body( "assignedUser", nullValue() );
+            .body( "assignedUser.username", nullValue() );
 
     }
 

@@ -52,7 +52,6 @@ import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
-import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -67,9 +66,6 @@ class EnrollmentInExistingValidationHookTest
 {
 
     private EnrollmentInExistingValidationHook hookToTest;
-
-    @Mock
-    private TrackerImportValidationContext validationContext;
 
     @Mock
     Enrollment enrollment;
@@ -105,17 +101,15 @@ class EnrollmentInExistingValidationHookTest
         when( enrollment.getUid() ).thenReturn( enrollmentUid );
         when( enrollment.getTrackerType() ).thenCallRealMethod();
 
-        when( validationContext.getTrackedEntityInstance( trackedEntity ) ).thenReturn( trackedEntityInstance );
+        when( bundle.getTrackedEntityInstance( trackedEntity ) ).thenReturn( trackedEntityInstance );
         when( trackedEntityInstance.getUid() ).thenReturn( trackedEntity );
-
-        when( validationContext.getBundle() ).thenReturn( bundle );
 
         Program program = new Program();
         program.setOnlyEnrollOnce( false );
         program.setUid( programUid );
 
-        when( validationContext.getProgram( programUid ) ).thenReturn( program );
-        reporter = new ValidationErrorReporter( validationContext );
+        when( preheat.getProgram( programUid ) ).thenReturn( program );
+        reporter = new ValidationErrorReporter( bundle );
     }
 
     @Test
@@ -124,7 +118,7 @@ class EnrollmentInExistingValidationHookTest
         when( enrollment.getStatus() ).thenReturn( EnrollmentStatus.CANCELLED );
         hookToTest.validateEnrollment( reporter, enrollment );
 
-        verify( validationContext, times( 0 ) ).getProgram( programUid );
+        verify( preheat, times( 0 ) ).getProgram( programUid );
     }
 
     @Test
@@ -140,12 +134,12 @@ class EnrollmentInExistingValidationHookTest
     {
         Program program = new Program();
         program.setOnlyEnrollOnce( false );
-
-        when( validationContext.getProgram( programUid ) ).thenReturn( program );
+        when( preheat.getProgram( programUid ) ).thenReturn( program );
         when( enrollment.getStatus() ).thenReturn( EnrollmentStatus.COMPLETED );
+
         hookToTest.validateEnrollment( reporter, enrollment );
 
-        verify( validationContext.getBundle(), times( 0 ) ).getPreheat();
+        assertFalse( reporter.hasErrors() );
     }
 
     @Test
@@ -154,7 +148,7 @@ class EnrollmentInExistingValidationHookTest
         Program program = new Program();
         program.setOnlyEnrollOnce( true );
 
-        when( validationContext.getProgram( programUid ) ).thenReturn( program );
+        when( preheat.getProgram( programUid ) ).thenReturn( program );
 
         when( enrollment.getTrackedEntity() ).thenReturn( null );
         assertThrows( NullPointerException.class,
@@ -167,7 +161,7 @@ class EnrollmentInExistingValidationHookTest
         Program program = new Program();
         program.setOnlyEnrollOnce( true );
 
-        when( validationContext.getProgram( programUid ) ).thenReturn( program );
+        when( preheat.getProgram( programUid ) ).thenReturn( program );
 
         hookToTest.validateEnrollment( reporter, enrollment );
 
@@ -194,7 +188,7 @@ class EnrollmentInExistingValidationHookTest
         program.setUid( programUid );
         program.setOnlyEnrollOnce( true );
 
-        when( validationContext.getProgram( programUid ) ).thenReturn( program );
+        when( preheat.getProgram( programUid ) ).thenReturn( program );
         setEnrollmentInPayload( EnrollmentStatus.COMPLETED );
 
         hookToTest.validateEnrollment( reporter, enrollment );
@@ -235,7 +229,7 @@ class EnrollmentInExistingValidationHookTest
         program.setUid( programUid );
         program.setOnlyEnrollOnce( true );
 
-        when( validationContext.getProgram( programUid ) ).thenReturn( program );
+        when( preheat.getProgram( programUid ) ).thenReturn( program );
         setTeiInDb( ProgramStatus.COMPLETED );
 
         hookToTest.validateEnrollment( reporter, enrollment );
@@ -262,7 +256,7 @@ class EnrollmentInExistingValidationHookTest
         program.setUid( programUid );
         program.setOnlyEnrollOnce( true );
 
-        when( validationContext.getProgram( programUid ) ).thenReturn( program );
+        when( preheat.getProgram( programUid ) ).thenReturn( program );
         setEnrollmentInPayload( EnrollmentStatus.COMPLETED );
         setTeiInDb();
 
@@ -280,7 +274,7 @@ class EnrollmentInExistingValidationHookTest
         program.setUid( programUid );
         program.setOnlyEnrollOnce( false );
 
-        when( validationContext.getProgram( programUid ) ).thenReturn( program );
+        when( preheat.getProgram( programUid ) ).thenReturn( program );
         setEnrollmentInPayload( EnrollmentStatus.COMPLETED );
         setTeiInDb();
 
