@@ -617,7 +617,7 @@ public abstract class AbstractJdbcTableManager
 
         final String[] sqlSteps = {
             " drop table if exists " + mainTableName + " cascade",
-            " alter table " + tempTableName + " rename to " + mainTableName
+            " alter table if exists " + tempTableName + " rename to " + mainTableName
         };
 
         final String sql = String.join( ";", sqlSteps ) + ";";
@@ -684,7 +684,7 @@ public abstract class AbstractJdbcTableManager
         if ( partition != null && getPartitionColumn() != null )
         {
             String createTableAsPartitionOfSql = "create table if not exists " + partition.getTableName()
-                + " partition of " + table.getTableName() + " for values in " + "(" + partition.getYear() + ")";
+                + " partition of " + table.getTempTableName() + " for values in " + "(" + partition.getYear() + ")";
 
             log.debug( "Creating table: '{}', columns: {}", partition.getTableName(),
                 table.getDimensionColumns().size() );
