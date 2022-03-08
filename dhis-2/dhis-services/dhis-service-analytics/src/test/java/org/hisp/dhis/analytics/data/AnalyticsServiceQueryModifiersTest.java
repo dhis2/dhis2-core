@@ -219,7 +219,7 @@ class AnalyticsServiceQueryModifiersTest
 
         // aggregationType
 
-         testNoAggregationType();
+        testNoAggregationType();
         // testAverageAggregationType();
         // testLastAggregationType();
         // testWithAndWithoutAggregationType();
@@ -521,7 +521,7 @@ class AnalyticsServiceQueryModifiersTest
      */
     private List<String> query( String expression, Period... periods )
     {
-        System.out.println( "\nTest expression: " + expression );
+        System.out.println( "\nQueryModifiers test: " + expression );
 
         indicatorA.setNumerator( expression );
         indicatorService.updateIndicator( indicatorA );
