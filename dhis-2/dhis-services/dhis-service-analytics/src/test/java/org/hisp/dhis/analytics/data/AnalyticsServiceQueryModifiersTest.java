@@ -219,7 +219,7 @@ class AnalyticsServiceQueryModifiersTest
 
         // aggregationType
 
-        // testNoAggregationType();
+         testNoAggregationType();
         // testAverageAggregationType();
         // testLastAggregationType();
         // testWithAndWithoutAggregationType();
