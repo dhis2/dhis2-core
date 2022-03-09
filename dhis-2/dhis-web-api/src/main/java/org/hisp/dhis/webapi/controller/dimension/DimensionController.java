@@ -48,6 +48,7 @@ import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.commons.jackson.domain.JsonRoot;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -66,6 +67,7 @@ import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -73,6 +75,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * @author Lars Helge Overland
@@ -188,10 +192,10 @@ public class DimensionController
     }
 
     @GetMapping( "/constraints" )
-    public @ResponseBody RootNode getDimensionConstraints(
-        @RequestParam( value = "links", defaultValue = "true", required = false ) Boolean links )
+    public @ResponseBody ResponseEntity<JsonRoot> getDimensionConstraints(
+        @RequestParam( value = "links", defaultValue = "true", required = false ) Boolean links,
+        @RequestParam( defaultValue = "*" ) List<String> fields )
     {
-        List<String> fields = newArrayList( contextService.getParameterValues( "fields" ) );
         List<DimensionalObject> dimensionConstraints = dimensionService.getDimensionConstraints();
 
         if ( links )
@@ -199,17 +203,16 @@ public class DimensionController
             linkService.generateLinks( dimensionConstraints, false );
         }
 
-        RootNode rootNode = NodeUtils.createMetadata();
-        rootNode.addChild( deprecatedFieldFilterService.toCollectionNode( getEntityClass(),
-            new FieldFilterParams( dimensionConstraints, fields ) ) );
+        List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes( dimensionConstraints, fields );
 
-        return rootNode;
+        return ResponseEntity.ok( new JsonRoot( "dimensions", objectNodes ) );
     }
 
     @GetMapping( "/recommendations" )
-    public @ResponseBody RootNode getRecommendedDimensions( @RequestParam Set<String> dimension )
+    public ResponseEntity<JsonRoot> getRecommendedDimensions(
+        @RequestParam Set<String> dimension,
+        @RequestParam( defaultValue = "id,displayName" ) List<String> fields )
     {
-        List<String> fields = newArrayList( contextService.getParameterValues( "fields" ) );
         DataQueryRequest request = DataQueryRequest.newBuilder().dimension( dimension ).build();
 
         if ( fields.isEmpty() )
@@ -218,13 +221,9 @@ public class DimensionController
         }
 
         List<DimensionalObject> dimensions = analyticsDimensionService.getRecommendedDimensions( request );
+        List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes( dimensions, fields );
 
-        RootNode rootNode = NodeUtils.createMetadata();
-        rootNode.addChild(
-            deprecatedFieldFilterService.toCollectionNode( getEntityClass(),
-                new FieldFilterParams( dimensions, fields ) ) );
-
-        return rootNode;
+        return ResponseEntity.ok( new JsonRoot( "dimensions", objectNodes ) );
     }
 
     @GetMapping( "/dataSet/{uid}" )
