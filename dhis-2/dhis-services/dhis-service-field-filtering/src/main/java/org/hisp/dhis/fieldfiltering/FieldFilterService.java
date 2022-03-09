@@ -42,6 +42,7 @@ import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.OrderComparator;
 import org.springframework.stereotype.Service;
@@ -73,6 +74,8 @@ public class FieldFilterService
 
     private final AclService aclService;
 
+    private final CurrentUserService currentUserService;
+
     private static class IgnoreJsonSerializerRefinementAnnotationInspector extends JacksonAnnotationIntrospector
     {
         /**
@@ -92,12 +95,13 @@ public class FieldFilterService
     }
 
     public FieldFilterService( FieldPathHelper fieldPathHelper, ObjectMapper jsonMapper, SchemaService schemaService,
-        AclService aclService )
+        AclService aclService, CurrentUserService currentUserService )
     {
         this.fieldPathHelper = fieldPathHelper;
         this.jsonMapper = configureFieldFilterObjectMapper( jsonMapper );
         this.schemaService = schemaService;
         this.aclService = aclService;
+        this.currentUserService = currentUserService;
     }
 
     public <T> List<ObjectNode> toObjectNodes( List<T> objects, List<String> filters )
@@ -113,6 +117,11 @@ public class FieldFilterService
         if ( params.getObjects().isEmpty() )
         {
             return objectNodes;
+        }
+
+        if ( params.getUser() == null )
+        {
+            params.setUser( currentUserService.getCurrentUser() );
         }
 
         List<FieldPath> fieldPaths = FieldFilterParser.parse( params.getFilters() );
@@ -132,7 +141,7 @@ public class FieldFilterService
 
         for ( Object object : params.getObjects() )
         {
-            applyAccess( object, fieldPaths, params.isSkipSharing() );
+            applyAccess( object, fieldPaths, params );
 
             ObjectNode objectNode = objectMapper.valueToTree( object );
             applyTransformers( objectNode, null, "", fieldTransformers );
@@ -143,9 +152,9 @@ public class FieldFilterService
         return objectNodes;
     }
 
-    private void applyAccess( Object object, List<FieldPath> fieldPaths, boolean skipSharing )
+    private void applyAccess( Object object, List<FieldPath> fieldPaths, FieldFilterParams<?> params )
     {
-        if ( object == null || skipSharing )
+        if ( object == null || params.isSkipSharing() )
         {
             return;
         }
@@ -164,12 +173,14 @@ public class FieldFilterService
 
             if ( fullPath.equals( "access" ) )
             {
-                identifiableObject.setAccess( aclService.getAccess( identifiableObject, null ) );
+                identifiableObject.setAccess( aclService.getAccess( identifiableObject, params.getUser() ) );
             }
             else if ( fullPath.endsWith( ".access" ) )
             {
-                fullPath = fullPath.substring( 0, fullPath.length() - 7 );
-                System.err.println( "get object using schema: " + fullPath );
+                fieldPathHelper.visitFieldPaths( object, List.of( fp ), o -> {
+                    ((BaseIdentifiableObject) o)
+                        .setAccess( aclService.getAccess( ((BaseIdentifiableObject) o), params.getUser() ) );
+                } );
             }
         } );
     }

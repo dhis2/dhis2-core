@@ -34,6 +34,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -44,6 +45,7 @@ import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
@@ -239,6 +241,72 @@ public class FieldPathHelper
         }
 
         fieldPaths.forEach( fp -> fieldPathMap.putIfAbsent( fp.toFullPath(), fp ) );
+    }
+
+    public void visitFieldPaths( Object object, List<FieldPath> fieldPaths, Consumer<Object> objectConsumer )
+    {
+        if ( object == null || fieldPaths.isEmpty() )
+        {
+            return;
+        }
+
+        Schema schema = schemaService.getDynamicSchema( object.getClass() );
+
+        if ( !schema.isMetadata() )
+        {
+            return;
+        }
+
+        fieldPaths.forEach( fp -> visitPath( object, null, schema, fp.getPath(), objectConsumer ) );
+    }
+
+    private void visitPath( Object currentObject, Object parentObject, Schema currentSchema, List<String> paths,
+        Consumer<Object> objectConsumer )
+    {
+        String currentPath = paths.get( paths.size() - 1 );
+        List<String> restPaths = paths.subList( 0, paths.size() - 1 );
+
+        Property property = currentSchema.getProperty( currentPath );
+
+        if ( property == null )
+        {
+            return;
+        }
+
+        if ( restPaths.isEmpty() )
+        {
+            objectConsumer.accept( currentObject );
+            return;
+        }
+
+        if ( !property.isCollection() )
+        {
+            Object object = ReflectionUtils.invokeMethod( currentObject, property.getGetterMethod() );
+
+            if ( object == null )
+            {
+                return;
+            }
+
+            currentSchema = schemaService.getDynamicSchema( currentObject.getClass() );
+            visitPath( object, currentObject, currentSchema, restPaths, objectConsumer );
+        }
+        else
+        {
+            Collection<?> objects = ReflectionUtils.invokeMethod( currentObject, property.getGetterMethod() );
+
+            if ( objects.isEmpty() )
+            {
+                return;
+            }
+
+            currentSchema = schemaService.getDynamicSchema( objects.iterator().next().getClass() );
+
+            for ( Object object : objects )
+            {
+                visitPath( object, currentObject, currentSchema, restPaths, objectConsumer );
+            }
+        }
     }
 
     private void applyExclusions( List<FieldPath> exclusions, Map<String, FieldPath> fieldPathMap )
