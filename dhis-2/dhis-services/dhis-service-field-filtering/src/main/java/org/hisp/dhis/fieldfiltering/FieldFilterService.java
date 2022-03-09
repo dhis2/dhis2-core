@@ -42,7 +42,6 @@ import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.OrderComparator;
 import org.springframework.stereotype.Service;
@@ -74,8 +73,6 @@ public class FieldFilterService
 
     private final AclService aclService;
 
-    private final CurrentUserService currentUserService;
-
     private static class IgnoreJsonSerializerRefinementAnnotationInspector extends JacksonAnnotationIntrospector
     {
         /**
@@ -95,13 +92,12 @@ public class FieldFilterService
     }
 
     public FieldFilterService( FieldPathHelper fieldPathHelper, ObjectMapper jsonMapper, SchemaService schemaService,
-        AclService aclService, CurrentUserService currentUserService )
+        AclService aclService )
     {
         this.fieldPathHelper = fieldPathHelper;
         this.jsonMapper = configureFieldFilterObjectMapper( jsonMapper );
         this.schemaService = schemaService;
         this.aclService = aclService;
-        this.currentUserService = currentUserService;
     }
 
     public <T> List<ObjectNode> toObjectNodes( List<T> objects, List<String> filters )
@@ -117,11 +113,6 @@ public class FieldFilterService
         if ( params.getObjects().isEmpty() )
         {
             return objectNodes;
-        }
-
-        if ( params.getUser() == null )
-        {
-            params.setUser( currentUserService.getCurrentUser() );
         }
 
         List<FieldPath> fieldPaths = FieldFilterParser.parse( params.getFilters() );
