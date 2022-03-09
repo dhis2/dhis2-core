@@ -225,7 +225,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
 
         postProcessResponseEntities( entities, options, rpParameters );
 
-        handleLinksAndAccess( entities, fields, false, currentUser );
+        handleLinksAndAccess( entities, fields, false );
         handleAttributeValues( entities, fields );
 
         linkService.generatePagerLinks( pager, getEntityClass() );
@@ -451,7 +451,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
 
         entities = (List<T>) queryService.query( query );
 
-        handleLinksAndAccess( entities, fields, true, currentUser );
+        handleLinksAndAccess( entities, fields, true );
         handleAttributeValues( entities, fields );
 
         for ( T entity : entities )
