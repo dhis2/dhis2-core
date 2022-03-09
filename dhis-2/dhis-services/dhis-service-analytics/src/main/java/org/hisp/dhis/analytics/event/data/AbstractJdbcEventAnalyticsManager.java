@@ -100,6 +100,8 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
     protected static final String COL_EXTENT = "extent";
 
+    private static final String LIMIT = "limit";
+
     protected static final int COORD_DEC = 6;
 
     protected static final int LAST_VALUE_YEARS_OFFSET = -10;
@@ -142,11 +144,12 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
         if ( params.isPaging() )
         {
-            sql += "limit " + params.getPageSizeWithDefault() + " offset " + params.getOffset();
+            int limit = params.isTotalPages() ? params.getPageSizeWithDefault() : params.getPageSizeWithDefault() + 1;
+            sql += LIMIT + " " + limit + " offset " + params.getOffset();
         }
         else if ( maxLimit > 0 )
         {
-            sql += "limit " + (maxLimit + 1);
+            sql += LIMIT + " " + (maxLimit + 1);
         }
 
         return sql;
@@ -373,11 +376,11 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
         if ( params.hasLimit() )
         {
-            sql += "limit " + params.getLimit();
+            sql += LIMIT + " " + params.getLimit();
         }
         else if ( maxLimit > 0 )
         {
-            sql += "limit " + (maxLimit + 1);
+            sql += LIMIT + " " + (maxLimit + 1);
         }
 
         // ---------------------------------------------------------------------

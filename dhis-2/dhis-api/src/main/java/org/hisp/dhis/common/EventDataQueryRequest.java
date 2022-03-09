@@ -140,6 +140,8 @@ public class EventDataQueryRequest
 
     private boolean paging;
 
+    private boolean totalPages;
+
     /**
      * Copies all properties of this request onto the given request.
      *
@@ -186,6 +188,7 @@ public class EventDataQueryRequest
         queryRequest.page = this.page;
         queryRequest.pageSize = this.pageSize;
         queryRequest.paging = this.paging;
+        queryRequest.totalPages = this.totalPages;
         return request;
     }
 
@@ -240,7 +243,8 @@ public class EventDataQueryRequest
                 .outputIdScheme( criteria.getOutputIdScheme() )
                 .orgUnitField( criteria.getOrgUnitField() )
                 .coordinatesOnly( criteria.isCoordinatesOnly() )
-                .coordinateOuFallback( criteria.isCoordinateOuFallback() );
+                .coordinateOuFallback( criteria.isCoordinateOuFallback() )
+                .totalPages( criteria.isTotalPages() );
 
             if ( criteria.getDimension() == null )
             {
@@ -330,7 +334,8 @@ public class EventDataQueryRequest
                 .relativePeriodDate( criteria.getRelativePeriodDate() )
                 .userOrgUnit( criteria.getUserOrgUnit() )
                 .coordinateField( criteria.getCoordinateField() )
-                .sortOrder( criteria.getSortOrder() );
+                .sortOrder( criteria.getSortOrder() )
+                .totalPages( criteria.isTotalPages() );
 
             if ( criteria.getDimension() == null )
             {
