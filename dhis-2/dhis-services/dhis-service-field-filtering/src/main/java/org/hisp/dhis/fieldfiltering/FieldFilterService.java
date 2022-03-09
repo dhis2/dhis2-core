@@ -44,6 +44,8 @@ import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.OrderComparator;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.JavaType;
@@ -116,6 +118,11 @@ public class FieldFilterService
         }
 
         List<FieldPath> fieldPaths = FieldFilterParser.parse( params.getFilters() );
+
+        if ( params.getUser() == null )
+        {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        }
 
         // In case we get a proxied object in we can't just use o.getClass(), we
         // need to figure out the real class name by using HibernateProxyUtils.
