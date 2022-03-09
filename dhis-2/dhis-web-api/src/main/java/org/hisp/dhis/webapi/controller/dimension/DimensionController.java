@@ -171,7 +171,7 @@ public class DimensionController
         RootNode rootNode = NodeUtils.createMetadata();
 
         CollectionNode collectionNode = rootNode
-            .addChild( fieldFilterService.toCollectionNode( DimensionalItemObject.class,
+            .addChild( deprecatedFieldFilterService.toCollectionNode( DimensionalItemObject.class,
                 new FieldFilterParams( paginatedItems, fields ) ) );
         collectionNode.setName( "items" );
 
@@ -200,7 +200,7 @@ public class DimensionController
         }
 
         RootNode rootNode = NodeUtils.createMetadata();
-        rootNode.addChild( fieldFilterService.toCollectionNode( getEntityClass(),
+        rootNode.addChild( deprecatedFieldFilterService.toCollectionNode( getEntityClass(),
             new FieldFilterParams( dimensionConstraints, fields ) ) );
 
         return rootNode;
@@ -221,7 +221,8 @@ public class DimensionController
 
         RootNode rootNode = NodeUtils.createMetadata();
         rootNode.addChild(
-            fieldFilterService.toCollectionNode( getEntityClass(), new FieldFilterParams( dimensions, fields ) ) );
+            deprecatedFieldFilterService.toCollectionNode( getEntityClass(),
+                new FieldFilterParams( dimensions, fields ) ) );
 
         return rootNode;
     }
@@ -260,7 +261,7 @@ public class DimensionController
         }
 
         RootNode rootNode = NodeUtils.createMetadata();
-        rootNode.addChild( fieldFilterService.toCollectionNode( getEntityClass(),
+        rootNode.addChild( deprecatedFieldFilterService.toCollectionNode( getEntityClass(),
             new FieldFilterParams( metadata.getDimensions(), fields ) ) );
 
         return rootNode;

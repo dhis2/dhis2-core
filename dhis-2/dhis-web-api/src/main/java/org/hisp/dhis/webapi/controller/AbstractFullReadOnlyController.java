@@ -124,10 +124,10 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     protected QueryService queryService;
 
     @Autowired
-    protected FieldFilterService fieldFilterService;
+    protected FieldFilterService deprecatedFieldFilterService;
 
     @Autowired
-    protected org.hisp.dhis.fieldfiltering.FieldFilterService fieldFilterService2;
+    protected org.hisp.dhis.fieldfiltering.FieldFilterService fieldFilterService;
 
     @Autowired
     protected LinkService linkService;
@@ -232,7 +232,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
 
         cachePrivate( response );
 
-        List<ObjectNode> objectNodes = fieldFilterService2.toObjectNodes( entities, fields );
+        List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes( entities, fields );
         JsonRoot jsonRoot = new JsonRoot();
 
         if ( pager != null )
@@ -459,9 +459,9 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
             postProcessResponseEntity( entity, options, parameters );
         }
 
-        List<ObjectNode> objectNodes = fieldFilterService2.toObjectNodes( entities, fields );
+        List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes( entities, fields );
 
-        return objectNodes.isEmpty() ? fieldFilterService2.createObjectNode() : objectNodes.get( 0 );
+        return objectNodes.isEmpty() ? fieldFilterService.createObjectNode() : objectNodes.get( 0 );
     }
 
     @SuppressWarnings( "unchecked" )
