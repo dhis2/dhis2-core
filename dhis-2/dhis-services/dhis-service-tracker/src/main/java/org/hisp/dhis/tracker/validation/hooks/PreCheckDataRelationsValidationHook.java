@@ -130,7 +130,7 @@ public class PreCheckDataRelationsValidationHook
 
         validateProgramStageInProgram( reporter, event, programStage, program );
         validateRegistrationProgram( reporter, event, context, program );
-        validateProgramHasOrgUnit( reporter, context, organisationUnit, program );
+        validateProgramHasOrgUnit( reporter, organisationUnit, program );
         validateEventCategoryOptionCombo( reporter, event, program );
     }
 
@@ -164,7 +164,7 @@ public class PreCheckDataRelationsValidationHook
         }
     }
 
-    private void validateProgramHasOrgUnit( ValidationErrorReporter reporter, TrackerImportValidationContext context,
+    private void validateProgramHasOrgUnit( ValidationErrorReporter reporter,
         OrganisationUnit organisationUnit, Program program )
     {
         TrackerPreheat preheat = reporter.getValidationContext().getBundle().getPreheat();
