@@ -27,10 +27,13 @@
  */
 package org.hisp.dhis.scheduling;
 
+import static java.util.Collections.singletonMap;
+
 import java.util.Map;
 
 import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
 import org.hisp.dhis.scheduling.parameters.ContinuousAnalyticsJobParameters;
+import org.hisp.dhis.scheduling.parameters.DataIntegrityJobParameters;
 import org.hisp.dhis.scheduling.parameters.DataSynchronizationJobParameters;
 import org.hisp.dhis.scheduling.parameters.DisableInactiveUsersJobParameters;
 import org.hisp.dhis.scheduling.parameters.EventProgramsDataSynchronizationJobParameters;
@@ -57,7 +60,8 @@ import com.google.common.collect.ImmutableMap;
 public enum JobType
 {
     DATA_STATISTICS( false ),
-    DATA_INTEGRITY( true ),
+    DATA_INTEGRITY( true, SchedulingType.CRON, DataIntegrityJobParameters.class,
+        singletonMap( "checks", "/api/dataIntegrity" ) ),
     RESOURCE_TABLE( true ),
     ANALYTICS_TABLE( true, SchedulingType.CRON, AnalyticsJobParameters.class, ImmutableMap.of(
         "skipTableTypes", "/api/analytics/tableTypes", "skipPrograms", "/api/programs" ) ),
@@ -137,6 +141,11 @@ public enum JobType
         this.schedulingType = schedulingType;
         this.jobParameters = jobParameters;
         this.relativeApiElements = relativeApiElements;
+    }
+
+    public boolean isUsingNotifications()
+    {
+        return this == RESOURCE_TABLE || this == ANALYTICS_TABLE || this == CONTINUOUS_ANALYTICS_TABLE;
     }
 
     public boolean isCronSchedulingType()

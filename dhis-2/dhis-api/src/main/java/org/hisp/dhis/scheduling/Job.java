@@ -37,15 +37,18 @@ import org.hisp.dhis.feedback.ErrorReport;
  * See {@link SchedulingManager} for more information about the scheduling.
  *
  * @author Henning Håkonsen
+ * @see <a href=
+ *      "https://github.com/dhis2/wow-backend/blob/master/docs/job_scheduling.md">Docs</a>
  */
 public interface Job
 {
     JobType getJobType();
 
-    void execute( JobConfiguration jobConfiguration );
-
     default ErrorReport validate()
     {
         return null;
     }
+
+    void execute( JobConfiguration jobConfiguration, JobProgress progress );
+
 }

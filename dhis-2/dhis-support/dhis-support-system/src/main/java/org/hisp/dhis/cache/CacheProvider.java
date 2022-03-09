@@ -113,4 +113,14 @@ public interface CacheProvider
     <V> Cache<V> createCatOptOrgUnitAssociationCache();
 
     <V> Cache<V> createApiKeyCache();
+
+    <V> Cache<V> createRunningJobsInfoCache();
+
+    <V> Cache<V> createCompletedJobsInfoCache();
+
+    <V> Cache<V> createJobCancelRequestedCache();
+
+    <V> Cache<V> createDataIntegritySummaryCache();
+
+    <V> Cache<V> createDataIntegrityDetailsCache();
 }
