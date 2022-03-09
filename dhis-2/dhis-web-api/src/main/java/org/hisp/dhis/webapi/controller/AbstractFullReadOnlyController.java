@@ -506,12 +506,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
         return fieldsContains( "href", fields );
     }
 
-    private boolean hasAccess( List<String> fields )
-    {
-        return fieldsContains( "access", fields );
-    }
-
-    private void handleLinksAndAccess( List<T> entityList, List<String> fields, boolean deep, User currentUser )
+    private void handleLinksAndAccess( List<T> entityList, List<String> fields, boolean deep )
     {
         if ( hasHref( fields ) )
         {

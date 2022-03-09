@@ -169,6 +169,11 @@ public class FieldFilterService
             else if ( fullPath.endsWith( ".access" ) )
             {
                 fieldPathHelper.visitFieldPaths( object, List.of( fp ), o -> {
+                    if ( !(o instanceof BaseIdentifiableObject) )
+                    {
+                        return;
+                    }
+
                     BaseIdentifiableObject baseIdentifiableObject = (BaseIdentifiableObject) o;
                     baseIdentifiableObject
                         .setAccess( aclService.getAccess( baseIdentifiableObject, params.getUser() ) );
