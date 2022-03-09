@@ -105,20 +105,28 @@ public class PreCheckSecurityOwnershipValidationHook
 
         checkNotNull( user, USER_CANT_BE_NULL );
         checkNotNull( trackedEntity, TRACKED_ENTITY_CANT_BE_NULL );
-        checkNotNull( trackedEntity.getOrgUnit(), ORGANISATION_UNIT_CANT_BE_NULL );
+
+        TrackedEntityType trackedEntityType = strategy.isUpdateOrDelete()
+            ? reporter.getBundle().getTrackedEntityInstance( trackedEntity.getTrackedEntity() ).getTrackedEntityType()
+            : reporter.getBundle().getPreheat()
+                .getTrackedEntityType( trackedEntity.getTrackedEntityType() );
+
+        OrganisationUnit organisationUnit = strategy.isUpdateOrDelete()
+            ? reporter.getBundle().getTrackedEntityInstance( trackedEntity.getTrackedEntity() ).getOrganisationUnit()
+            : reporter.getBundle().getPreheat().getOrganisationUnit( trackedEntity.getOrgUnit() );
 
         // If trackedEntity is newly created, or going to be deleted, capture
         // scope has to be checked
         if ( strategy.isCreate() || strategy.isDelete() )
         {
             checkOrgUnitInCaptureScope( reporter, trackedEntity,
-                reporter.getBundle().getPreheat().getOrganisationUnit( trackedEntity.getOrgUnit() ) );
+                organisationUnit );
         }
         // if its to update trackedEntity, search scope has to be checked
         else
         {
             checkOrgUnitInSearchScope( reporter, trackedEntity,
-                reporter.getBundle().getPreheat().getOrganisationUnit( trackedEntity.getOrgUnit() ) );
+                organisationUnit );
         }
 
         if ( strategy.isDelete() )
@@ -140,8 +148,6 @@ public class PreCheckSecurityOwnershipValidationHook
             }
         }
 
-        TrackedEntityType trackedEntityType = reporter.getBundle().getPreheat()
-            .getTrackedEntityType( trackedEntity.getTrackedEntityType() );
         checkTeiTypeWriteAccess( reporter, trackedEntity.getUid(), trackedEntityType );
     }
 
@@ -270,17 +276,39 @@ public class PreCheckSecurityOwnershipValidationHook
 
         checkNotNull( user, USER_CANT_BE_NULL );
         checkNotNull( event, EVENT_CANT_BE_NULL );
-        checkNotNull( event.getOrgUnit(), ORGANISATION_UNIT_CANT_BE_NULL );
 
-        OrganisationUnit organisationUnit = reporter.getBundle().getPreheat().getOrganisationUnit( event.getOrgUnit() );
+        ProgramStageInstance programStageInstance = reporter.getBundle().getProgramStageInstance( event.getEvent() );
+
         ProgramStage programStage = reporter.getBundle().getPreheat().getProgramStage( event.getProgramStage() );
-        Program program = reporter.getBundle().getPreheat().getProgram( event.getProgram() );
+        Program program = strategy.isUpdateOrDelete() ? programStageInstance.getProgramStage()
+            .getProgram() : reporter.getBundle().getPreheat().getProgram( event.getProgram() );
+
+        OrganisationUnit organisationUnit;
+
+        if ( strategy.isUpdateOrDelete() )
+        {
+            organisationUnit = programStageInstance
+                .getOrganisationUnit();
+        }
+        else
+        {
+            checkNotNull( event.getOrgUnit(), ORGANISATION_UNIT_CANT_BE_NULL );
+            organisationUnit = reporter.getBundle().getPreheat().getOrganisationUnit( event.getOrgUnit() );
+        }
 
         // If event is newly created, or going to be deleted, capture scope
         // has to be checked
         if ( program.isWithoutRegistration() || strategy.isCreate() || strategy.isDelete() )
         {
-            checkOrgUnitInCaptureScope( reporter, event, organisationUnit );
+            if ( organisationUnit == null )
+            {
+                log.warn( "ProgramStageInstance " + event.getEvent()
+                    + " has no organisation unit assigned, so we skip user validation" );
+            }
+            else
+            {
+                checkOrgUnitInCaptureScope( reporter, event, organisationUnit );
+            }
         }
 
         String teiUid = getTeiUidFromEvent( reporter.getBundle(), event, program );
@@ -291,8 +319,6 @@ public class PreCheckSecurityOwnershipValidationHook
         // Check acting user is allowed to change existing/write event
         if ( strategy.isUpdateOrDelete() )
         {
-            ProgramStageInstance programStageInstance = reporter.getBundle()
-                .getProgramStageInstance( event.getEvent() );
             TrackedEntityInstance entityInstance = programStageInstance.getProgramInstance().getEntityInstance();
             validateUpdateAndDeleteEvent( reporter, event, programStageInstance,
                 entityInstance == null ? null : entityInstance.getUid(), ownerOrgUnit );
