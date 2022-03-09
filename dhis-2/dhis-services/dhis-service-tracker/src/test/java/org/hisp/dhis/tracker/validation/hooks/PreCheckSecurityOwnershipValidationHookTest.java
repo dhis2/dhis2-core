@@ -58,6 +58,7 @@ import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.tracker.TrackerIdScheme;
@@ -68,6 +69,7 @@ import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
@@ -812,6 +814,47 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
 
         validatorToTest.validateEvent( reporter, event );
 
+        assertFalse( reporter.hasErrors() );
+    }
+
+    @Test
+    void verifyValidationSuccessForEventUsingUpdateStrategyOutsideCaptureScopeWithBrokenGlass()
+    {
+        String enrollmentUid = CodeGenerator.generateUid();
+        String eventUid = CodeGenerator.generateUid();
+        Event event = Event.builder()
+            .event( eventUid )
+            .enrollment( enrollmentUid )
+            .orgUnit( ORG_UNIT_ID )
+            .programStage( PS_ID )
+            .program( PROGRAM_ID )
+            .status( EventStatus.COMPLETED )
+            .build();
+        when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.UPDATE );
+        when( bundle.getIdentifier() ).thenReturn( TrackerIdScheme.UID );
+        when( preheat.getProgramStage( event.getProgramStage() ) ).thenReturn( programStage );
+        ProgramInstance programInstance = getEnrollment( enrollmentUid );
+        ProgramStageInstance programStageInstance = getEvent();
+        programStageInstance.setProgramInstance( programInstance );
+        when( bundle.getProgramStageInstance( event.getEvent() ) ).thenReturn( programStageInstance );
+        when( bundle.getProgramInstance( event.getEnrollment() ) ).thenReturn( programInstance );
+        when( preheat.getProgram( PROGRAM_ID ) ).thenReturn( program );
+        when( preheat.getOrganisationUnit( ORG_UNIT_ID ) ).thenReturn( organisationUnit );
+        when( preheat.getProgramOwner() )
+            .thenReturn( Collections.singletonMap( TEI_ID, Collections.singletonMap( PROGRAM_ID,
+                new TrackedEntityProgramOwnerOrgUnit( TEI_ID, PROGRAM_ID, organisationUnit ) ) ) );
+        when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
+        when( aclService.canDataRead( user, program ) ).thenReturn( true );
+        when( aclService.canDataWrite( user, programStage ) ).thenReturn( true );
+        reporter = new ValidationErrorReporter( bundle );
+        when( ownershipAccessManager.hasAccess( user, TEI_ID, organisationUnit, program ) ).thenReturn( false );
+        validatorToTest.validateEvent( reporter, event );
+
+        hasTrackerError( reporter, TrackerErrorCode.E1102, TrackerType.EVENT, event.getUid() );
+
+        when( ownershipAccessManager.hasAccess( user, TEI_ID, organisationUnit, program ) ).thenReturn( true );
+        reporter = new ValidationErrorReporter( bundle );
+        validatorToTest.validateEvent( reporter, event );
         assertFalse( reporter.hasErrors() );
     }
 

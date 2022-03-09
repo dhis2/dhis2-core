@@ -330,7 +330,9 @@ public class PreCheckSecurityOwnershipValidationHook
 
         checkEventWriteAccess( reporter, event, programStage, organisationUnit, ownerOrgUnit,
             categoryOptionCombo,
-            teiUid, isCreatableInSearchScope ); // TODO: calculate correct
+            teiUid, isCreatableInSearchScope, reporter.getBundle().getStrategy( event ) ); // TODO:
+                                                                                           // calculate
+                                                                                           // correct
         // isCreatableInSearchScope
         // value
     }
@@ -349,7 +351,7 @@ public class PreCheckSecurityOwnershipValidationHook
         checkEventWriteAccess( reporter, event, programStageInstance.getProgramStage(),
             programStageInstance.getOrganisationUnit(), ownerOrgUnit,
             programStageInstance.getAttributeOptionCombo(),
-            teiUid, programStageInstance.isCreatableInSearchScope() );
+            teiUid, programStageInstance.isCreatableInSearchScope(), strategy );
 
         if ( strategy.isUpdate()
             && EventStatus.COMPLETED == programStageInstance.getStatus()
@@ -510,7 +512,7 @@ public class PreCheckSecurityOwnershipValidationHook
     private void checkEventWriteAccess( ValidationErrorReporter reporter, Event event, ProgramStage programStage,
         OrganisationUnit eventOrgUnit, OrganisationUnit ownerOrgUnit,
         CategoryOptionCombo categoryOptionCombo,
-        String trackedEntity, boolean isCreatableInSearchScope )
+        String trackedEntity, boolean isCreatableInSearchScope, TrackerImportStrategy strategy )
     {
         TrackerBundle bundle = reporter.getBundle();
         User user = bundle.getUser();
@@ -519,8 +521,10 @@ public class PreCheckSecurityOwnershipValidationHook
         checkNotNull( programStage, PROGRAM_STAGE_CANT_BE_NULL );
         checkNotNull( programStage.getProgram(), PROGRAM_CANT_BE_NULL );
 
-        checkEventOrgUnitWriteAccess( reporter, bundle, event, eventOrgUnit, isCreatableInSearchScope, user );
-
+        if ( strategy != TrackerImportStrategy.UPDATE )
+        {
+            checkEventOrgUnitWriteAccess( reporter, bundle, event, eventOrgUnit, isCreatableInSearchScope, user );
+        }
         if ( programStage.getProgram().isWithoutRegistration() )
         {
             checkProgramWriteAccess( reporter, event, user, programStage.getProgram() );
