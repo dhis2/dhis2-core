@@ -204,7 +204,7 @@ public class TrackerPreheat
      * before using {@link #putCategoryOptionCombo}.
      *
      * @param categoryCombo category combo
-     * @param categoryOptions semi-colon separated list of category options
+     * @param categoryOptions category options
      * @return category option combo identifier
      */
     public CategoryOptionCombo getCategoryOptionCombo( CategoryCombo categoryCombo,
