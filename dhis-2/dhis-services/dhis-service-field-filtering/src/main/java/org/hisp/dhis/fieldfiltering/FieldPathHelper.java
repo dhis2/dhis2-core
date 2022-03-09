@@ -268,21 +268,44 @@ public class FieldPathHelper
             return;
         }
 
-        String currentPath = paths.get( paths.size() - 1 );
-        List<String> restPaths = paths.subList( 0, paths.size() - 1 );
+        System.err.println( paths );
+
+        objectConsumer.accept( currentObject );
+
+        String currentPath;
+
+        if ( paths.isEmpty() )
+        {
+            return;
+        }
+
+        if ( paths.size() == 1 )
+        {
+            currentPath = paths.get( 0 );
+        }
+        else
+        {
+            currentPath = paths.get( paths.size() - 1 );
+        }
 
         Schema schema = schemaService.getDynamicSchema( currentObject.getClass() );
         Property property = schema.getProperty( currentPath );
 
         if ( property == null )
         {
+            System.err.println( currentPath + " IS NULL" );
             return;
         }
 
-        if ( restPaths.isEmpty() )
+        List<String> restPaths;
+
+        if ( paths.isEmpty() || paths.size() == 1 )
         {
-            objectConsumer.accept( currentObject );
-            return;
+            restPaths = List.of();
+        }
+        else
+        {
+            restPaths = paths.subList( 0, paths.size() - 1 );
         }
 
         if ( !property.isCollection() )
@@ -294,6 +317,7 @@ public class FieldPathHelper
                 return;
             }
 
+            objectConsumer.accept( object );
             visitPath( object, restPaths, objectConsumer );
         }
         else
@@ -307,6 +331,7 @@ public class FieldPathHelper
 
             for ( Object object : objects )
             {
+                objectConsumer.accept( object );
                 visitPath( object, restPaths, objectConsumer );
             }
         }
