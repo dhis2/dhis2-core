@@ -233,10 +233,8 @@ public class DataSetController
         Collections.sort( categoryCombos );
 
         List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes( categoryCombos, fields );
-        JsonRoot jsonRoot = new JsonRoot();
-        jsonRoot.setProperty( "categoryCombos", objectNodes );
 
-        return ResponseEntity.ok( jsonRoot );
+        return ResponseEntity.ok( new JsonRoot( "categoryCombos", objectNodes ) );
     }
 
     @GetMapping( "/{uid}/dataValueSet" )
