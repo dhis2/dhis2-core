@@ -31,8 +31,8 @@ import static org.hisp.dhis.DhisConvenienceTest.createCategoryCombo;
 import static org.hisp.dhis.DhisConvenienceTest.createCategoryOptionCombo;
 import static org.hisp.dhis.DhisConvenienceTest.createProgram;
 import static org.hisp.dhis.DhisConvenienceTest.createProgramStage;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -50,8 +50,8 @@ import org.hisp.dhis.tracker.TrackerIdentifierParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import com.google.common.collect.Sets;
 
@@ -73,7 +73,7 @@ class EventProgramPreProcessorTest
 
     private EventProgramPreProcessor preprocessor;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         preheat = mock( TrackerPreheat.class );
@@ -82,7 +82,7 @@ class EventProgramPreProcessorTest
     }
 
     @Test
-    public void testTrackerEventIsEnhancedWithProgram()
+    void testTrackerEventIsEnhancedWithProgram()
     {
         TrackerIdentifierParams identifierParams = TrackerIdentifierParams.builder().build();
         when( preheat.getIdentifiers() ).thenReturn( identifierParams );
@@ -99,7 +99,7 @@ class EventProgramPreProcessorTest
     }
 
     @Test
-    public void testProgramEventIsEnhancedWithProgram()
+    void testProgramEventIsEnhancedWithProgram()
     {
         TrackerIdentifierParams identifierParams = TrackerIdentifierParams.builder().build();
         when( preheat.getIdentifiers() ).thenReturn( identifierParams );
@@ -116,7 +116,7 @@ class EventProgramPreProcessorTest
     }
 
     @Test
-    public void testTrackerEventWithProgramAndProgramStageIsNotProcessed()
+    void testTrackerEventWithProgramAndProgramStageIsNotProcessed()
     {
         TrackerIdentifierParams identifierParams = TrackerIdentifierParams.builder().build();
         when( preheat.getIdentifiers() ).thenReturn( identifierParams );
@@ -136,7 +136,7 @@ class EventProgramPreProcessorTest
     }
 
     @Test
-    public void testProgramStageHasNoReferenceToProgram()
+    void testProgramStageHasNoReferenceToProgram()
     {
         ProgramStage programStage = new ProgramStage();
         programStage.setUid( "LGSWs20XFvy" );
@@ -156,7 +156,7 @@ class EventProgramPreProcessorTest
     }
 
     @Test
-    public void testProgramEventIsEnhancedWithProgramStage()
+    void testProgramEventIsEnhancedWithProgramStage()
     {
         TrackerIdentifierParams identifierParams = TrackerIdentifierParams.builder().build();
         when( preheat.getIdentifiers() ).thenReturn( identifierParams );
@@ -176,7 +176,7 @@ class EventProgramPreProcessorTest
     }
 
     @Test
-    public void testTrackerEventIsNotEnhancedWithProgramStage()
+    void testTrackerEventIsNotEnhancedWithProgramStage()
     {
         TrackerIdentifierParams identifierParams = TrackerIdentifierParams.builder().build();
         when( preheat.getIdentifiers() ).thenReturn( identifierParams );
@@ -195,7 +195,7 @@ class EventProgramPreProcessorTest
     }
 
     @Test
-    public void testProgramEventWithProgramAndProgramStageIsNotProcessed()
+    void testProgramEventWithProgramAndProgramStageIsNotProcessed()
     {
         TrackerIdentifierParams identifierParams = TrackerIdentifierParams.builder().build();
         when( preheat.getIdentifiers() ).thenReturn( identifierParams );
