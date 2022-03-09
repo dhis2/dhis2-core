@@ -24,14 +24,13 @@
     },
     {
       "code": "default",
-      "created": "2019-02-05T13:45:02.304",
-      "lastUpdated": "2019-02-05T13:45:02.405",
+      "created": "2019-02-05T13:45:02.317",
+      "lastUpdated": "2019-02-05T13:45:02.335",
       "name": "default",
-      "shortName": "default",
-      "id": "GLevLNI9wkl",
+      "id": "bjDvmb4bfuf",
       "dataDimensionType": "DISAGGREGATION",
       "publicAccess": "rw------",
-      "dataDimension": false,
+      "skipTotal": false,
       "userGroupAccesses": [
         {
           "access": "rwrw----",
@@ -39,12 +38,11 @@
           "id": "OPVIvvXzNTw"
         }
       ],
-      "attributeValues": [],
       "translations": [],
       "userAccesses": [],
-      "categoryOptions": [
+      "categories": [
         {
-          "id": "xYerKDKCefk"
+          "id": "GLevLNI9wkl"
         }
       ]
     }
@@ -90,6 +88,26 @@
           "code": "TA_CATOPT_A"
         }
       ]
+    },
+    {
+      "code": "TA_CATEGORY_ATTRIBUTE_2",
+      "created": "2022-01-07T14:56:33.267",
+      "lastUpdated": "2022-01-07T14:56:33.267",
+      "name": "TA Category attribute 2",
+      "id": "X7EZvFo6ero",
+      "shortName": "TA category attribute 2",
+      "dataDimensionType": "ATTRIBUTE",
+      "dataDimension": true,
+      "sharing": {
+        "owner": "M5zQapPyTZI",
+        "userGroups": {},
+        "external": false,
+        "public": "rw------",
+        "users": {}
+      },
+      "attributeValues": [],
+      "translations": [],
+      "categoryOptions": []
     }
   ],
   "programStages": [
