@@ -382,6 +382,10 @@ public abstract class AbstractJdbcTableManager
         sqlCreate = sqlCreate + columns;
         sqlCreateTemp = sqlCreateTemp + columns;
 
+        System.out.println( "Creating non partitioned table: " + tableName + ", columns: "
+            + table.getDimensionColumns().size() );
+        System.out.println( "Created SQL: " + sqlCreate );
+
         log.debug( "Creating non partitioned analytic table: '{}'", tableName );
 
         log.debug( "Create SQL: '{}'", sqlCreate );
@@ -524,7 +528,8 @@ public abstract class AbstractJdbcTableManager
 
         jdbcTemplate.execute( sql );
 
-        log.info( "{} in: {}", logMessage, timer.stop().toString() );
+        System.out.println( logMessage + " in: " + timer.stop().toString() );
+        // log.info( "{} in: {}", logMessage, timer.stop().toString() );
     }
 
     /**
@@ -621,6 +626,8 @@ public abstract class AbstractJdbcTableManager
 
         final String sql = String.join( ";", sqlSteps ) + ";";
 
+        System.out.println( "Swap table: " + sql );
+
         log.debug( sql );
 
         executeSilently( sql );
@@ -665,6 +672,9 @@ public abstract class AbstractJdbcTableManager
             sqlCreate += " partition by list(\"" + partitionColumn + "\")";
         }
 
+        System.out.println( "Creating table: " + tableName + ", columns: " + table.getDimensionColumns().size() );
+        System.out.println( "Created SQL: " + sqlCreate );
+
         log.debug( "Creating table: '{}', columns: {}", tableName, table.getDimensionColumns().size() );
         log.debug( "Created SQL: '{}'", sqlCreate );
 
@@ -687,6 +697,10 @@ public abstract class AbstractJdbcTableManager
 
             log.debug( "Creating table: '{}', columns: {}", partition.getTableName(),
                 table.getDimensionColumns().size() );
+
+            System.out.println( "Creating partition table: " + partition.getTableName() + ", columns: "
+                + table.getDimensionColumns().size() );
+            System.out.println( "Created SQL: " + createTableAsPartitionOfSql );
 
             jdbcTemplate.execute( createTableAsPartitionOfSql );
         }

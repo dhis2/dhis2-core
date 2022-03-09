@@ -35,6 +35,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.config.Configurator;
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
@@ -187,8 +191,10 @@ class AnalyticsServiceQueryModifiersTest
         dataValueService.addDataValue( newDataValue( deA, jan, ouA, cocA, aocA, "1" ) );
         dataValueService.addDataValue( newDataValue( deA, feb, ouA, cocB, aocA, "2" ) );
         dataValueService.addDataValue( newDataValue( deA, mar, ouA, cocA, aocA, "3" ) );
-//        dataValueService.addDataValue( newDataValue( deB, jan, ouA, cocA, aocA, "A" ) );
-//        dataValueService.addDataValue( newDataValue( deB, feb, ouA, cocB, aocA, "B" ) );
+        // dataValueService.addDataValue( newDataValue( deB, jan, ouA, cocA,
+        // aocA, "A" ) );
+        // dataValueService.addDataValue( newDataValue( deB, feb, ouA, cocB,
+        // aocA, "B" ) );
 
         System.out.println( "TestQueryMods: " + dataValueService.getAllDataValues().size() + " data values" );
         assertEquals( 3, dataValueService.getAllDataValues().size(), "Number of data values is wrong" );
@@ -199,6 +205,13 @@ class AnalyticsServiceQueryModifiersTest
         System.out.println( "After pre-analytics sleep: " + Clock.systemDefaultZone().instant() );
 
         // Configurator.setAllLevels("", Level.ALL);
+        LogManager.getLogger( "org.hisp.dhis.analytics.table.JdbcAnalyticsTableManager" );
+        Configurator.setLevel( "org.hisp.dhis.analytics.table.JdbcAnalyticsTableManager", Level.DEBUG );
+        Configurator.setLevel( "org.hisp.dhis.analytics.table.AbstractJdbcTableManager", Level.DEBUG );
+        Logger l1 = LogManager.getLogger( "org.hisp.dhis.analytics.table.JdbcAnalyticsTableManager" );
+        Logger l2 = LogManager.getLogger( "org.hisp.dhis.analytics.table.AbstractJdbcTableManager" );
+        Level lev1 = l1.getLevel();
+        Level lev2 = l2.getLevel();
 
         // Generate analytics tables
         analyticsTableGenerator.generateTables( AnalyticsTableUpdateParams.newBuilder().build(),
@@ -264,7 +277,7 @@ class AnalyticsServiceQueryModifiersTest
 
         testSimpleSubExpression();
         testMultipleReferenceSubExpression();
-//        testSubExpressionConversionFromTextToNumeric();
+        // testSubExpressionConversionFromTextToNumeric();
         testReferencesInsideAndOutsideOfSubExpression();
         testTwoSubExpressions();
         testOperandSubExpression();
