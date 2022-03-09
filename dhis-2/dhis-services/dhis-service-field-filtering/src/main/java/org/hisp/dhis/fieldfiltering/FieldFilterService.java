@@ -179,12 +179,6 @@ public class FieldFilterService
             {
                 fieldPathHelper.visitFieldPaths( object, List.of( fp ), o -> {
                     BaseIdentifiableObject baseIdentifiableObject = (BaseIdentifiableObject) o;
-
-                    System.err.println( "------------------------------------------------------------------" );
-                    System.err.println( baseIdentifiableObject.getClass() );
-                    System.err.println( baseIdentifiableObject.getName() );
-                    System.err.println( baseIdentifiableObject.getUid() );
-
                     baseIdentifiableObject
                         .setAccess( aclService.getAccess( baseIdentifiableObject, params.getUser() ) );
                 } );

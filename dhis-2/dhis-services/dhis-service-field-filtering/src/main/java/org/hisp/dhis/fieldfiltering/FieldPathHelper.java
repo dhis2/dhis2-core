@@ -268,8 +268,6 @@ public class FieldPathHelper
             return;
         }
 
-        System.err.println( paths );
-
         objectConsumer.accept( currentObject );
 
         String currentPath;
@@ -293,7 +291,6 @@ public class FieldPathHelper
 
         if ( property == null )
         {
-            System.err.println( currentPath + " IS NULL" );
             return;
         }
 
