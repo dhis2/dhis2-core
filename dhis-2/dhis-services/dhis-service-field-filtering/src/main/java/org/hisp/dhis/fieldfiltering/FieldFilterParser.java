@@ -32,7 +32,6 @@ import static org.apache.commons.lang3.StringUtils.isAlphanumeric;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.Stack;
@@ -203,7 +202,8 @@ public class FieldFilterParser
             addFieldPath( tokenBuilder, path, isExclude, isPreset, fieldPathTransformers, fieldPaths );
         }
         // OBS! this is a work-around way to deduplicate the fields paths list
-        return new ArrayList<>( new LinkedHashSet<>( fieldPaths ) );
+        // return new ArrayList<>( new LinkedHashSet<>( fieldPaths ) );
+        return fieldPaths;
     }
 
     private static void addFieldPath( StringBuilder fieldNameBuilder, Stack<String> path,

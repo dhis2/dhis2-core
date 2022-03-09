@@ -34,6 +34,7 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.scheduling.JobParameters;
 
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -92,10 +93,19 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
             return true;
         }
 
+        if ( BaseIdentifiableObject.class.isAssignableFrom( pathValue.getValue().getClass() ) )
+        {
+            BaseIdentifiableObject value = (BaseIdentifiableObject) pathValue.getValue();
+            System.err.println( value.getName() + ": " + value.getUid() );
+        }
+
         for ( FieldPath fieldPath : fieldPaths )
         {
+            System.err.println( fieldPath.toFullPath() );
+
             if ( fieldPath.toFullPath().equals( path ) )
             {
+                System.err.println( "returned true" );
                 return true;
             }
         }
