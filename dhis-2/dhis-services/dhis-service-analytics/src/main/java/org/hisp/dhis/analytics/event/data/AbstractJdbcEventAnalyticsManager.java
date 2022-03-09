@@ -186,7 +186,11 @@ public abstract class AbstractJdbcEventAnalyticsManager
             }
             else if ( item.getItem().getDimensionItemType() == DATA_ELEMENT )
             {
-                if ( item.getProgramStage() != null )
+                if ( item.hasRepeatableStageParams() )
+                {
+                    sql += quote( item.getRepeatableStageParams().getDimension() );
+                }
+                else if ( item.getProgramStage() != null )
                 {
                     sql += quote( item.getProgramStage().getUid() + "." + item.getItem().getUid() );
                 }
