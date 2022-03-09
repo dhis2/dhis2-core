@@ -261,32 +261,23 @@ public class FieldPathHelper
         fieldPaths.forEach( fp -> visitPath( object, fp.getPath(), objectConsumer ) );
     }
 
-    private void visitPath( Object currentObject, List<String> paths, Consumer<Object> objectConsumer )
+    private void visitPath( Object object, List<String> paths, Consumer<Object> objectConsumer )
     {
-        if ( currentObject == null )
+        if ( object == null )
         {
             return;
         }
-
-        objectConsumer.accept( currentObject );
-
-        String currentPath;
 
         if ( paths.isEmpty() )
         {
+            objectConsumer.accept( object );
             return;
         }
 
-        if ( paths.size() == 1 )
-        {
-            currentPath = paths.get( 0 );
-        }
-        else
-        {
-            currentPath = paths.get( paths.size() - 1 );
-        }
+        Schema schema = schemaService.getDynamicSchema( object.getClass() );
+        String currentPath = paths.get( 0 );
+        paths.remove( 0 );
 
-        Schema schema = schemaService.getDynamicSchema( currentObject.getClass() );
         Property property = schema.getProperty( currentPath );
 
         if ( property == null )
@@ -294,43 +285,19 @@ public class FieldPathHelper
             return;
         }
 
-        List<String> restPaths;
-
-        if ( paths.isEmpty() || paths.size() == 1 )
+        if ( property.isCollection() )
         {
-            restPaths = List.of();
+            Collection<?> currentObjects = ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
+
+            for ( Object o : currentObjects )
+            {
+                visitPath( o, paths, objectConsumer );
+            }
         }
         else
         {
-            restPaths = paths.subList( 0, paths.size() - 1 );
-        }
-
-        if ( !property.isCollection() )
-        {
-            Object object = ReflectionUtils.invokeMethod( currentObject, property.getGetterMethod() );
-
-            if ( object == null )
-            {
-                return;
-            }
-
-            objectConsumer.accept( object );
-            visitPath( object, restPaths, objectConsumer );
-        }
-        else
-        {
-            Collection<?> objects = ReflectionUtils.invokeMethod( currentObject, property.getGetterMethod() );
-
-            if ( objects.isEmpty() )
-            {
-                return;
-            }
-
-            for ( Object object : objects )
-            {
-                objectConsumer.accept( object );
-                visitPath( object, restPaths, objectConsumer );
-            }
+            Object currentObject = ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
+            visitPath( currentObject, paths, objectConsumer );
         }
     }
 
