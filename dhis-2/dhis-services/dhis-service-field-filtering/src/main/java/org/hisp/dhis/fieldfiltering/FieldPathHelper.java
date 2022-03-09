@@ -289,7 +289,7 @@ public class FieldPathHelper
                 return;
             }
 
-            currentSchema = schemaService.getDynamicSchema( currentObject.getClass() );
+            currentSchema = schemaService.getDynamicSchema( object.getClass() );
             visitPath( object, currentObject, currentSchema, restPaths, objectConsumer );
         }
         else

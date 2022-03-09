@@ -178,8 +178,15 @@ public class FieldFilterService
             else if ( fullPath.endsWith( ".access" ) )
             {
                 fieldPathHelper.visitFieldPaths( object, List.of( fp ), o -> {
-                    ((BaseIdentifiableObject) o)
-                        .setAccess( aclService.getAccess( ((BaseIdentifiableObject) o), params.getUser() ) );
+                    BaseIdentifiableObject baseIdentifiableObject = (BaseIdentifiableObject) o;
+
+                    System.err.println( "------------------------------------------------------------------" );
+                    System.err.println( baseIdentifiableObject.getClass() );
+                    System.err.println( baseIdentifiableObject.getName() );
+                    System.err.println( baseIdentifiableObject.getUid() );
+
+                    baseIdentifiableObject
+                        .setAccess( aclService.getAccess( baseIdentifiableObject, params.getUser() ) );
                 } );
             }
         } );
