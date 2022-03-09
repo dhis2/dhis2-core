@@ -312,7 +312,7 @@ public class CategoryOptionComboStoreTest
     }
 
     @Test
-    void testGetCategoryOptionComboNotFound()
+    public void testGetCategoryOptionComboNotFound()
     {
         categoryService.generateOptionCombos( categoryComboA );
         categoryService.generateOptionCombos( categoryComboB );
@@ -325,7 +325,7 @@ public class CategoryOptionComboStoreTest
     }
 
     @Test
-    void testGetCategoryOptionComboGivenSubsetOfCategoryOptions()
+    public void testGetCategoryOptionComboGivenSubsetOfCategoryOptions()
     {
         categoryService.generateOptionCombos( categoryComboA );
         categoryService.generateOptionCombos( categoryComboB );
@@ -336,7 +336,7 @@ public class CategoryOptionComboStoreTest
     }
 
     @Test
-    void testGetCategoryOptionComboByOptionGroup()
+    public void testGetCategoryOptionComboByOptionGroup()
     {
         categoryService.generateOptionCombos( categoryComboA );
         categoryService.generateOptionCombos( categoryComboB );
