@@ -275,8 +275,7 @@ public class FieldPathHelper
         }
 
         Schema schema = schemaService.getDynamicSchema( object.getClass() );
-        String currentPath = paths.get( 0 );
-        paths.remove( 0 );
+        String currentPath = paths.remove( 0 );
 
         Property property = schema.getProperty( currentPath );
 
