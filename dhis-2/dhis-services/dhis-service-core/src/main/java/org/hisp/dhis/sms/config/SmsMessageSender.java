@@ -30,7 +30,12 @@ package org.hisp.dhis.sms.config;
 import static org.hisp.dhis.commons.util.TextUtils.LN;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -40,7 +45,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.message.MessageSender;
-import org.hisp.dhis.outboundmessage.*;
+import org.hisp.dhis.outboundmessage.OutboundMessage;
+import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
+import org.hisp.dhis.outboundmessage.OutboundMessageBatchStatus;
+import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
+import org.hisp.dhis.outboundmessage.OutboundMessageResponseSummary;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
 import org.hisp.dhis.sms.outbound.OutboundSms;
 import org.hisp.dhis.sms.outbound.OutboundSmsService;
@@ -82,16 +93,19 @@ public class SmsMessageSender
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private GatewayAdministrationService gatewayAdminService;
+    private final GatewayAdministrationService gatewayAdminService;
 
-    private List<SmsGateway> smsGateways;
+    private final List<SmsGateway> smsGateways;
 
-    private UserSettingService userSettingService;
+    private final UserSettingService userSettingService;
 
-    private OutboundSmsService outboundSmsService;
+    private final OutboundSmsService outboundSmsService;
+
+    private final SystemSettingManager systemSettingManager;
 
     public SmsMessageSender( GatewayAdministrationService gatewayAdminService, List<SmsGateway> smsGateways,
-        UserSettingService userSettingService, OutboundSmsService outboundSmsService )
+        UserSettingService userSettingService, OutboundSmsService outboundSmsService,
+        SystemSettingManager systemSettingManager )
     {
 
         Preconditions.checkNotNull( gatewayAdminService );
@@ -99,11 +113,14 @@ public class SmsMessageSender
         Preconditions.checkNotNull( outboundSmsService );
         Preconditions.checkNotNull( userSettingService );
         Preconditions.checkState( !smsGateways.isEmpty() );
+        Preconditions.checkNotNull( systemSettingManager );
 
         this.gatewayAdminService = gatewayAdminService;
         this.smsGateways = smsGateways;
         this.userSettingService = userSettingService;
         this.outboundSmsService = outboundSmsService;
+        this.systemSettingManager = systemSettingManager;
+
     }
 
     // -------------------------------------------------------------------------
@@ -254,6 +271,16 @@ public class SmsMessageSender
         {
             if ( smsGateway.accept( gatewayConfig ) )
             {
+
+                if ( text.length() > Optional.ofNullable( gatewayConfig.getMaxSmsLength() )
+                    .map( Integer::parseInt )
+                    .orElseGet(
+                        () -> (Integer) systemSettingManager.getSystemSetting( SettingKey.SMS_MAX_LENGTH ) ) )
+                {
+                    return new OutboundMessageResponse( GatewayResponse.SMS_TEXT_MESSAGE_TOO_LONG.getResponseMessage(),
+                        GatewayResponse.SMS_TEXT_MESSAGE_TOO_LONG, false );
+                }
+
                 List<String> temp = new ArrayList<>( recipients );
 
                 List<List<String>> slices = Lists.partition( temp, MAX_RECIPIENTS_ALLOWED );

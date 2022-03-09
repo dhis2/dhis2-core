@@ -35,16 +35,17 @@ import java.util.Map;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.schema.introspection.TranslatablePropertyIntrospector;
 import org.junit.Test;
 
 public class TranslatablePropertyIntrospectorTest extends DhisSpringTest
 {
+    private final TranslatablePropertyIntrospector introspector = new TranslatablePropertyIntrospector();
+
     @Test
     public void testGetTranslatableProperties()
     {
-        TranslatablePropertyIntrospector introspector = new TranslatablePropertyIntrospector();
-
         Property propTranslation = new Property( DataElement.class );
         propTranslation.setName( "translations" );
         propTranslation.setFieldName( "translations" );
@@ -101,5 +102,31 @@ public class TranslatablePropertyIntrospectorTest extends DhisSpringTest
 
         assertFalse( propertyMap.get( "name" ).isTranslatable() );
         assertFalse( propertyMap.get( "code" ).isTranslatable() );
+    }
+
+    @Test
+    public void testNotPersistedProperty()
+    {
+        Property propTranslation = createProperty( ProgramStageSection.class, "translations" );
+        propTranslation.setPersisted( true );
+
+        Property propShortName = createProperty( ProgramStageSection.class, "shortName" );
+        propShortName.setPersisted( false );
+
+        Map<String, Property> propertyMap = new HashMap<>();
+        propertyMap.put( "shortName", propShortName );
+        propertyMap.put( "translations", propTranslation );
+
+        introspector.introspect( ProgramStageSection.class, propertyMap );
+
+        assertFalse( propertyMap.get( "shortName" ).isTranslatable() );
+    }
+
+    private Property createProperty( Class klass, String name )
+    {
+        Property property = new Property( klass );
+        property.setName( name );
+        property.setFieldName( name );
+        return property;
     }
 }
