@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.data;
 
-import static org.hisp.dhis.util.DateUtils.parseDate;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
@@ -198,6 +197,8 @@ class AnalyticsServiceQueryModifiersTest
         // Wait before generating analytics tables
         Thread.sleep( 5000 );
         System.out.println( "After pre-analytics sleep: " + Clock.systemDefaultZone().instant() );
+
+        // Configurator.setAllLevels("", Level.ALL);
 
         // Generate analytics tables
         analyticsTableGenerator.generateTables( AnalyticsTableUpdateParams.newBuilder().build(),
@@ -531,7 +532,7 @@ class AnalyticsServiceQueryModifiersTest
     private DataValue newDataValue( DataElement de, Period pe, OrganisationUnit ou,
         CategoryOptionCombo coc, CategoryOptionCombo aoc, String value )
     {
-        return new DataValue( de, pe, ou, coc, aoc, value, null, parseDate( "2022-01-01" ), null );
+        return new DataValue( de, pe, ou, coc, aoc, value );
     }
 
     /**
