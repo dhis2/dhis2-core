@@ -29,7 +29,7 @@ package org.hisp.dhis.tracker.validation.hooks;
 
 import static org.hisp.dhis.category.CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
 import static org.hisp.dhis.category.CategoryOption.DEFAULT_NAME;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.Mockito.when;
 
