@@ -31,6 +31,7 @@ import static org.hisp.dhis.tracker.preheat.RelationshipPreheatKeySupport.getRel
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
@@ -48,21 +49,27 @@ import lombok.Setter;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipKey;
 import org.hisp.dhis.relationship.RelationshipType;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.tracker.TrackerIdScheme;
@@ -133,6 +140,122 @@ public class TrackerPreheat
      */
     @Getter
     private Map<String, PeriodType> periodTypeMap = new HashMap<>();
+
+    /**
+     * Internal map of category combo + category options (key) to category
+     * option combo (value).
+     *
+     * Category option combo value will be in the idScheme defined by the user
+     * on import.
+     */
+    private final Map<Pair<String, Set<String>>, String> cosToCOC = new HashMap<>();
+
+    /**
+     * Store mapping of category combo + category options identifiers(key) to
+     * category option combo identifiers (value).
+     *
+     * Category options, category option combo identifiers will be in the
+     * idScheme defined by the user on import. Note: different idSchemes for
+     * category combos are not supported.
+     */
+    public void putCategoryOptionCombo( CategoryCombo categoryCombo, Set<CategoryOption> categoryOptions,
+        CategoryOptionCombo categoryOptionCombo )
+    {
+        if ( categoryOptionCombo != null )
+        {
+            TrackerIdentifier optionComboIdScheme = getIdentifiers().getCategoryOptionComboIdScheme();
+            this.cosToCOC.put( categoryOptionComboCacheKey( categoryCombo, categoryOptions ),
+                optionComboIdScheme.getIdentifier( categoryOptionCombo ) );
+            this.put( optionComboIdScheme, categoryOptionCombo );
+        }
+        else
+        {
+            this.cosToCOC.put( categoryOptionComboCacheKey( categoryCombo, categoryOptions ), null );
+        }
+    }
+
+    private Pair<String, Set<String>> categoryOptionComboCacheKey( CategoryCombo categoryCombo,
+        Set<CategoryOption> categoryOptions )
+    {
+        Set<String> coIds = categoryOptions.stream()
+            .map( getIdentifiers().getCategoryOptionIdScheme()::getIdentifier )
+            .collect( Collectors.toSet() );
+        return Pair.of( categoryCombo.getUid(), coIds );
+    }
+
+    /**
+     * Check if a category option combo for given category combo and category
+     * options has been stored using {@link #putCategoryOptionCombo}. Returns
+     * true if null and a non-null category option combo have been stored.
+     *
+     * @param categoryCombo category combo
+     * @param categoryOptions category options
+     * @return true if category option combo has been stored given both
+     *         arguments
+     */
+    public boolean containsCategoryOptionCombo( CategoryCombo categoryCombo, Set<CategoryOption> categoryOptions )
+    {
+        return this.cosToCOC.containsKey( categoryOptionComboCacheKey( categoryCombo, categoryOptions ) );
+    }
+
+    /**
+     * Get the category option combo for given category combo and category
+     * options. For the category option combo to exist it has to be stored
+     * before using {@link #putCategoryOptionCombo}.
+     *
+     * @param categoryCombo category combo
+     * @param categoryOptions semi-colon separated list of category options
+     * @return category option combo identifier
+     */
+    public CategoryOptionCombo getCategoryOptionCombo( CategoryCombo categoryCombo,
+        Set<CategoryOption> categoryOptions )
+    {
+        return this.getCategoryOptionCombo(
+            cosToCOC.get( categoryOptionComboCacheKey( categoryCombo, categoryOptions ) ) );
+    }
+
+    /**
+     * Get the identifier of a category option combo for given category combo
+     * and semi-colon separated list of category options. For the category
+     * option combo to exist it has to be stored before using
+     * {@link #putCategoryOptionCombo}.
+     *
+     * Category option identifiers needs to match the idScheme used when storing
+     * the category option combo using {@link #putCategoryOptionCombo}. Category
+     * option combo identifiers will be in the idScheme defined by the user on
+     * import.
+     *
+     * @param categoryCombo category combo
+     * @param categoryOptions semi-colon separated list of category options
+     * @return category option combo identifier
+     */
+    public String getCategoryOptionComboIdentifier( CategoryCombo categoryCombo, String categoryOptions )
+    {
+        CategoryOptionCombo categoryOptionCombo = this.getCategoryOptionCombo(
+            this.cosToCOC.get( categoryOptionComboCacheKey( categoryCombo, categoryOptions ) ) );
+        if ( categoryOptionCombo == null )
+        {
+            return null;
+        }
+        return identifiers.getCategoryOptionComboIdScheme().getIdentifier( categoryOptionCombo );
+    }
+
+    private Pair<String, Set<String>> categoryOptionComboCacheKey( CategoryCombo categoryCombo,
+        String categoryOptions )
+    {
+        return Pair.of( categoryCombo.getUid(), parseCategoryOptions( categoryOptions ) );
+    }
+
+    private Set<String> parseCategoryOptions( String categoryOptions )
+    {
+        String cos = StringUtils.strip( categoryOptions );
+        if ( StringUtils.isBlank( cos ) )
+        {
+            return Collections.emptySet();
+        }
+
+        return TextUtils.splitToSet( cos, TextUtils.SEMICOLON );
+    }
 
     /**
      * Internal map of all preheated tracked entities, mainly used for
@@ -649,6 +772,31 @@ public class TrackerPreheat
             .stream()
             .filter( u -> Objects.equals( uid, u.getUid() ) )
             .findAny();
+    }
+
+    public OrganisationUnit getOrganisationUnit( String id )
+    {
+        return get( OrganisationUnit.class, id );
+    }
+
+    public ProgramStage getProgramStage( String id )
+    {
+        return get( ProgramStage.class, id );
+    }
+
+    public Program getProgram( String id )
+    {
+        return get( Program.class, id );
+    }
+
+    public TrackedEntityType getTrackedEntityType( String id )
+    {
+        return get( TrackedEntityType.class, id );
+    }
+
+    public TrackedEntityAttribute getTrackedEntityAttribute( String id )
+    {
+        return get( TrackedEntityAttribute.class, id );
     }
 
     @Override
