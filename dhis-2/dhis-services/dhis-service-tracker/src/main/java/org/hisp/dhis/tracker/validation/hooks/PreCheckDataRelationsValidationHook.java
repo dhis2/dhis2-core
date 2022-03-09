@@ -53,18 +53,16 @@ import java.util.Set;
 import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerType;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
@@ -74,7 +72,6 @@ import org.hisp.dhis.tracker.preheat.ReferenceTrackerEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
-import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
 
 /**
@@ -85,8 +82,6 @@ import org.springframework.stereotype.Component;
 public class PreCheckDataRelationsValidationHook
     extends AbstractTrackerDtoValidationHook
 {
-    private final CategoryService categoryService;
-
     @Override
     public void validateTrackedEntity( ValidationErrorReporter reporter,
         TrackedEntity trackedEntity )
@@ -97,21 +92,21 @@ public class PreCheckDataRelationsValidationHook
     @Override
     public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
     {
-        TrackerImportValidationContext context = reporter.getValidationContext();
-
-        Program program = context.getProgram( enrollment.getProgram() );
-        OrganisationUnit organisationUnit = context.getOrganisationUnit( enrollment.getOrgUnit() );
+        Program program = reporter.getBundle().getPreheat().getProgram( enrollment.getProgram() );
+        OrganisationUnit organisationUnit = reporter.getBundle().getPreheat()
+            .getOrganisationUnit( enrollment.getOrgUnit() );
 
         reporter.addErrorIf( () -> !program.isRegistration(), enrollment, E1014, program );
 
-        if ( programDoesNotHaveOrgUnit( program, organisationUnit, context.getProgramWithOrgUnitsMap() ) )
+        TrackerPreheat preheat = reporter.getBundle().getPreheat();
+        if ( programDoesNotHaveOrgUnit( program, organisationUnit, preheat.getProgramWithOrgUnitsMap() ) )
         {
             reporter.addError( enrollment, E1041, organisationUnit, program );
         }
 
         if ( program.getTrackedEntityType() != null
             && !program.getTrackedEntityType().getUid()
-                .equals( getTrackedEntityTypeUidFromEnrollment( context, enrollment ) ) )
+                .equals( getTrackedEntityTypeUidFromEnrollment( reporter.getBundle(), enrollment ) ) )
         {
             reporter.addError( enrollment, E1022, enrollment.getTrackedEntity(), program );
         }
@@ -127,14 +122,13 @@ public class PreCheckDataRelationsValidationHook
     @Override
     public void validateEvent( ValidationErrorReporter reporter, Event event )
     {
-        TrackerImportValidationContext context = reporter.getValidationContext();
-        ProgramStage programStage = context.getProgramStage( event.getProgramStage() );
-        OrganisationUnit organisationUnit = context.getOrganisationUnit( event.getOrgUnit() );
-        Program program = context.getProgram( event.getProgram() );
+        ProgramStage programStage = reporter.getBundle().getPreheat().getProgramStage( event.getProgramStage() );
+        OrganisationUnit organisationUnit = reporter.getBundle().getPreheat().getOrganisationUnit( event.getOrgUnit() );
+        Program program = reporter.getBundle().getPreheat().getProgram( event.getProgram() );
 
         validateProgramStageInProgram( reporter, event, programStage, program );
-        validateRegistrationProgram( reporter, event, context, program );
-        validateProgramHasOrgUnit( reporter, event, context, organisationUnit, program );
+        validateRegistrationProgram( reporter, event, program );
+        validateProgramHasOrgUnit( reporter, event, organisationUnit, program );
         validateEventCategoryOptionCombo( reporter, event, program );
     }
 
@@ -147,8 +141,7 @@ public class PreCheckDataRelationsValidationHook
         }
     }
 
-    private void validateRegistrationProgram( ValidationErrorReporter reporter, Event event,
-        TrackerImportValidationContext context, Program program )
+    private void validateRegistrationProgram( ValidationErrorReporter reporter, Event event, Program program )
     {
         if ( program.isRegistration() )
         {
@@ -158,7 +151,7 @@ public class PreCheckDataRelationsValidationHook
             }
             else
             {
-                String programUid = getEnrollmentProgramUidFromEvent( context, event );
+                String programUid = getEnrollmentProgramUidFromEvent( reporter.getBundle(), event );
 
                 if ( !program.getUid().equals( programUid ) )
                 {
@@ -169,9 +162,10 @@ public class PreCheckDataRelationsValidationHook
     }
 
     private void validateProgramHasOrgUnit( ValidationErrorReporter reporter, Event event,
-        TrackerImportValidationContext context, OrganisationUnit organisationUnit, Program program )
+        OrganisationUnit organisationUnit, Program program )
     {
-        if ( programDoesNotHaveOrgUnit( program, organisationUnit, context.getProgramWithOrgUnitsMap() ) )
+        TrackerPreheat preheat = reporter.getBundle().getPreheat();
+        if ( programDoesNotHaveOrgUnit( program, organisationUnit, preheat.getProgramWithOrgUnitsMap() ) )
         {
             reporter.addError( event, E1029, organisationUnit, program );
         }
@@ -192,38 +186,17 @@ public class PreCheckDataRelationsValidationHook
             return;
         }
 
-        isValid = validateAttributeOptionComboIsInProgramCategoryCombo( reporter, event, program );
-        isValid = validateAttributeCategoryOptionsAreInProgramCategoryCombo( reporter, event ) && isValid;
-        if ( !isValid )
-        {
-            // no need to resolve the AOC id using COs and program CC in case
-            // event.AOC is empty
-            // as we would not find it anyway
-            // no need to cache the AOC id as the payload is invalid
-            return;
-        }
-
         CategoryOptionCombo aoc = resolveAttributeOptionCombo( reporter, event, program );
-
-        // We should have an AOC by this point. Exit if we do not. The logic of
-        // AOC, COs, CC is complex and there is potential for
-        // missing one of the many cases. Better wrongly invalidate an event
-        // than persisting an invalid event as we
-        // previously did.
+        // We should have an AOC by this point. Either the event has no AOC and
+        // no COs and its program has the default
+        // category combo, or we have an event.AOC. If the payload did not
+        // contain an AOC, the preheat and preprocessor should
+        // have found/set it.
         if ( !validateAttributeOptionComboFound( reporter, event, program, aoc ) )
             return;
-        if ( !validateAttributeOptionComboMatchesCategoryOptions( reporter, event, program, aoc ) )
+        if ( !validateAttributeOptionComboIsInProgramCategoryCombo( reporter, event, program ) )
             return;
-
-        // TODO resolving and "caching" the AOC id should move into the preheat
-        // as validations should not access the DB
-        // We "cache" the AOC id for the duration of the import (as the cache is
-        // tied to the context) so the subsequent
-        // EventCategoryOptValidationHook can use the AOC id for validation.
-        // That is necessary if the AOC id is not
-        // provided in the payload and the program cc is non default.
-        reporter.getValidationContext()
-            .cacheEventCategoryOptionCombo( event.getUid(), aoc );
+        validateAttributeOptionComboMatchesCategoryOptions( reporter, event, program, aoc );
     }
 
     private boolean validateAttributeOptionComboExists( ValidationErrorReporter reporter, Event event )
@@ -233,7 +206,7 @@ public class PreCheckDataRelationsValidationHook
             return true;
         }
 
-        CategoryOptionCombo categoryOptionCombo = reporter.getValidationContext().getBundle().getPreheat()
+        CategoryOptionCombo categoryOptionCombo = reporter.getBundle().getPreheat()
             .getCategoryOptionCombo( event.getAttributeOptionCombo() );
         if ( categoryOptionCombo == null )
         {
@@ -257,7 +230,7 @@ public class PreCheckDataRelationsValidationHook
 
         boolean allCOsExist = true;
         Set<String> categoryOptions = parseCategoryOptions( event );
-        TrackerPreheat preheat = reporter.getValidationContext().getBundle().getPreheat();
+        TrackerPreheat preheat = reporter.getBundle().getPreheat();
         for ( String id : categoryOptions )
         {
             if ( preheat.getCategoryOption( id ) == null )
@@ -307,7 +280,7 @@ public class PreCheckDataRelationsValidationHook
             reporter.addError( event, TrackerErrorCode.E1055 );
             return false;
         }
-        CategoryOptionCombo aoc = reporter.getValidationContext().getBundle().getPreheat()
+        CategoryOptionCombo aoc = reporter.getBundle().getPreheat()
             .getCategoryOptionCombo( event.getAttributeOptionCombo() );
         if ( hasAttributeOptionComboSet( event ) &&
             aoc != null && aoc.getCategoryCombo().isDefault() &&
@@ -333,7 +306,7 @@ public class PreCheckDataRelationsValidationHook
             return true;
         }
 
-        CategoryOptionCombo aoc = reporter.getValidationContext().getBundle().getPreheat()
+        CategoryOptionCombo aoc = reporter.getBundle().getPreheat()
             .getCategoryOptionCombo( event.getAttributeOptionCombo() );
         if ( !program.getCategoryCombo().equals( aoc.getCategoryCombo() ) )
         {
@@ -345,67 +318,15 @@ public class PreCheckDataRelationsValidationHook
         return true;
     }
 
-    /**
-     * Validates that given AOC and COs match. This ensures that a payload
-     * contains all COs of an AOC and that every CO is in the AOC.
-     *
-     * When called after
-     * {@link #validateAttributeOptionComboIsInProgramCategoryCombo} we also
-     * know that the COs are in the event programs category combo.
-     *
-     * @param reporter validation error reporter
-     * @param event event to validate
-     * @return return true if cos are in event program cc, false otherwise
-     */
-    private boolean validateAttributeCategoryOptionsAreInProgramCategoryCombo( ValidationErrorReporter reporter,
-        Event event )
-    {
-        if ( hasNoAttributeOptionComboSet( event ) || hasNoAttributeCategoryOptionsSet( event ) )
-        {
-            return true;
-        }
-
-        TrackerPreheat preheat = reporter.getValidationContext().getBundle().getPreheat();
-        CategoryOptionCombo aoc = preheat.getCategoryOptionCombo( event.getAttributeOptionCombo() );
-        if ( isNotAOCForCOs( preheat, event, aoc ) )
-        {
-            reporter.addError( event, TrackerErrorCode.E1053,
-                event.getAttributeCategoryOptions(), event.getAttributeOptionCombo() );
-            return false;
-        }
-
-        return true;
-    }
-
     private CategoryOptionCombo resolveAttributeOptionCombo( ValidationErrorReporter reporter, Event event,
         Program program )
     {
 
-        TrackerPreheat preheat = reporter.getValidationContext().getBundle().getPreheat();
+        TrackerPreheat preheat = reporter.getBundle().getPreheat();
         CategoryOptionCombo aoc;
         if ( hasNoAttributeOptionComboSet( event ) && program.getCategoryCombo().isDefault() )
         {
             aoc = preheat.getDefault( CategoryOptionCombo.class );
-        }
-        else if ( hasNoAttributeOptionComboSet( event ) && hasAttributeCategoryOptionsSet( event ) )
-        {
-            aoc = fetchAttributeOptionCombo( reporter, event, program );
-            if ( aoc != null )
-            {
-                // TODO validation hooks should not need to mutate the payload.
-                // This
-                // should be moved to a pre-processor.
-                event.setAttributeOptionCombo(
-                    reporter.getValidationContext().getIdentifiers().getCategoryOptionComboIdScheme()
-                        .getIdentifier( aoc ) );
-                // TODO validation hooks should not need to populate the
-                // preheat. Move this to the preheat.
-                // We need the AOC in the preheat so we can allow users not to
-                // send it. We need to set it on the
-                // ProgramStageInstance before persisting.
-                TrackerIdentifier identifier = preheat.getIdentifiers().getCategoryOptionComboIdScheme();
-                preheat.put( identifier, aoc );
-            }
         }
         else
         {
@@ -417,33 +338,6 @@ public class PreCheckDataRelationsValidationHook
             // preheat.getDefault( CategoryOptionCombo.class )
             aoc = preheat.getCategoryOptionCombo( event.getAttributeOptionCombo() );
         }
-        return aoc;
-    }
-
-    private boolean hasAttributeCategoryOptionsSet( Event event )
-    {
-        return !hasNoAttributeCategoryOptionsSet( event );
-    }
-
-    private CategoryOptionCombo fetchAttributeOptionCombo( ValidationErrorReporter reporter, Event event,
-        Program program )
-    {
-        CategoryCombo categoryCombo = program.getCategoryCombo();
-        String cacheKey = event.getAttributeCategoryOptions() + categoryCombo.getUid();
-
-        Optional<String> cachedAOCId = reporter.getValidationContext()
-            .getCachedEventAOCProgramCC( cacheKey );
-
-        TrackerPreheat preheat = reporter.getValidationContext().getBundle().getPreheat();
-        if ( cachedAOCId.isPresent() )
-        {
-            return preheat.getCategoryOptionCombo( cachedAOCId.get() );
-        }
-
-        CategoryOptionCombo aoc = categoryService
-            .getCategoryOptionCombo( categoryCombo, getCategoryOptions( preheat, event ) );
-        reporter.getValidationContext().putCachedEventAOCProgramCC( cacheKey,
-            aoc != null ? aoc.getUid() : null );
         return aoc;
     }
 
@@ -471,22 +365,20 @@ public class PreCheckDataRelationsValidationHook
         return false;
     }
 
-    private boolean validateAttributeOptionComboMatchesCategoryOptions( ValidationErrorReporter reporter, Event event,
+    private void validateAttributeOptionComboMatchesCategoryOptions( ValidationErrorReporter reporter, Event event,
         Program program,
         CategoryOptionCombo aoc )
     {
         if ( hasNoAttributeCategoryOptionsSet( event ) )
         {
-            return true;
+            return;
         }
 
-        if ( isNotAOCForCOs( reporter.getValidationContext().getBundle().getPreheat(), event, aoc ) )
+        if ( isNotAOCForCOs( reporter.getBundle().getPreheat(), event, aoc ) )
         {
             addAOCAndCOCombinationError( event, reporter, program );
-            return false;
         }
 
-        return true;
     }
 
     private void addAOCAndCOCombinationError( Event event, ValidationErrorReporter reporter, Program program )
@@ -516,21 +408,21 @@ public class PreCheckDataRelationsValidationHook
             && aoc.getCategoryOptions().size() == categoryOptions.size();
     }
 
-    private String getEnrollmentProgramUidFromEvent( TrackerImportValidationContext context,
+    private String getEnrollmentProgramUidFromEvent( TrackerBundle bundle,
         Event event )
     {
-        ProgramInstance programInstance = context.getProgramInstance( event.getEnrollment() );
+        ProgramInstance programInstance = bundle.getProgramInstance( event.getEnrollment() );
         if ( programInstance != null )
         {
             return programInstance.getProgram().getUid();
         }
         else
         {
-            final Optional<ReferenceTrackerEntity> reference = context.getReference( event.getEnrollment() );
+            final Optional<ReferenceTrackerEntity> reference = bundle.getPreheat()
+                .getReference( event.getEnrollment() );
             if ( reference.isPresent() )
             {
-                final Optional<Enrollment> enrollment = context.getBundle()
-                    .getEnrollment( event.getEnrollment() );
+                final Optional<Enrollment> enrollment = bundle.getEnrollment( event.getEnrollment() );
                 if ( enrollment.isPresent() )
                 {
                     return enrollment.get().getProgram();
@@ -540,10 +432,10 @@ public class PreCheckDataRelationsValidationHook
         return null;
     }
 
-    private String getTrackedEntityTypeUidFromEnrollment( TrackerImportValidationContext context,
+    private String getTrackedEntityTypeUidFromEnrollment( TrackerBundle bundle,
         Enrollment enrollment )
     {
-        final TrackedEntityInstance trackedEntityInstance = context
+        final TrackedEntityInstance trackedEntityInstance = bundle
             .getTrackedEntityInstance( enrollment.getTrackedEntity() );
         if ( trackedEntityInstance != null )
         {
@@ -551,11 +443,11 @@ public class PreCheckDataRelationsValidationHook
         }
         else
         {
-            final Optional<ReferenceTrackerEntity> reference = context.getReference( enrollment.getTrackedEntity() );
+            final Optional<ReferenceTrackerEntity> reference = bundle.getPreheat()
+                .getReference( enrollment.getTrackedEntity() );
             if ( reference.isPresent() )
             {
-                final Optional<TrackedEntity> tei = context.getBundle()
-                    .getTrackedEntity( enrollment.getTrackedEntity() );
+                final Optional<TrackedEntity> tei = bundle.getTrackedEntity( enrollment.getTrackedEntity() );
                 if ( tei.isPresent() )
                 {
                     return tei.get().getTrackedEntityType();
@@ -578,23 +470,22 @@ public class PreCheckDataRelationsValidationHook
         Optional<String> uid = getUidFromRelationshipItem( item );
         TrackerType trackerType = relationshipItemValueType( item );
 
-        TrackerImportValidationContext ctx = reporter.getValidationContext();
-
         if ( TRACKED_ENTITY.equals( trackerType ) )
         {
-            if ( uid.isPresent() && !ValidationUtils.trackedEntityInstanceExist( ctx, uid.get() ) )
+            if ( uid.isPresent() && !ValidationUtils.trackedEntityInstanceExist( reporter.getBundle(), uid.get() ) )
             {
                 reporter.addError( relationship, E4012, trackerType.getName(), uid.get() );
             }
         }
         else if ( ENROLLMENT.equals( trackerType ) )
         {
-            if ( uid.isPresent() && !ValidationUtils.enrollmentExist( ctx, uid.get() ) )
+            if ( uid.isPresent() && !ValidationUtils.enrollmentExist( reporter.getBundle(), uid.get() ) )
             {
                 reporter.addError( relationship, E4012, trackerType.getName(), uid.get() );
             }
         }
-        else if ( EVENT.equals( trackerType ) && uid.isPresent() && !ValidationUtils.eventExist( ctx, uid.get() ) )
+        else if ( EVENT.equals( trackerType ) && uid.isPresent()
+            && !ValidationUtils.eventExist( reporter.getBundle(), uid.get() ) )
         {
             reporter.addError( relationship, E4012, trackerType.getName(), uid.get() );
         }
