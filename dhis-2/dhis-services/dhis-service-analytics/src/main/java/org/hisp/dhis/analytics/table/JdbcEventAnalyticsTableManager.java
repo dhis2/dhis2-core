@@ -37,10 +37,16 @@ import static org.hisp.dhis.analytics.ColumnNotNullConstraint.NOT_NULL;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.getClosingParentheses;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
+import static org.hisp.dhis.resourcetable.ResourceTable.NEWEST_YEAR_PERIOD_SUPPORTED;
+import static org.hisp.dhis.resourcetable.ResourceTable.OLDEST_YEAR_PERIOD_SUPPORTED;
 import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
@@ -330,6 +336,9 @@ public class JdbcEventAnalyticsTableManager
             "and pr.programid=" + program.getId() + " " +
             "and psi.organisationunitid is not null " +
             "and psi.executiondate is not null " +
+            "and dps.yearly is not null " +
+            "and dps.year >= " + OLDEST_YEAR_PERIOD_SUPPORTED + " " +
+            "and dps.year <= " + NEWEST_YEAR_PERIOD_SUPPORTED + " " +
             "and psi.deleted is false ";
 
         populateTableInternal( partition, getDimensionColumns( program ), fromClause );
@@ -533,7 +542,8 @@ public class JdbcEventAnalyticsTableManager
 
     private List<Integer> getDataYears( AnalyticsTableUpdateParams params, Program program )
     {
-        String sql = "select distinct(extract(year from psi.executiondate)) " +
+        String sql = "select temp.supportedyear from " +
+            "(select distinct extract(year from psi.executiondate) as supportedyear " +
             "from programstageinstance psi " +
             "inner join programinstance pi on psi.programinstanceid = pi.programinstanceid " +
             "where psi.lastupdated <= '" + getLongDateString( params.getStartTime() ) + "' " +
@@ -541,11 +551,13 @@ public class JdbcEventAnalyticsTableManager
             "and psi.executiondate is not null " +
             "and psi.executiondate > '1000-01-01' " +
             "and psi.deleted is false ";
-
         if ( params.getFromDate() != null )
         {
             sql += "and psi.executiondate >= '" + DateUtils.getMediumDateString( params.getFromDate() ) + "'";
         }
+
+        sql += ") as temp where temp.supportedyear >= " + OLDEST_YEAR_PERIOD_SUPPORTED +
+            " and temp.supportedyear <= " + NEWEST_YEAR_PERIOD_SUPPORTED;
 
         return jdbcTemplate.queryForList( sql, Integer.class );
     }
