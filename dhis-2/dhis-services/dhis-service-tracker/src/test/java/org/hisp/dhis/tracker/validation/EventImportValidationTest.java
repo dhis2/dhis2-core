@@ -340,7 +340,7 @@ public class EventImportValidationTest
     }
 
     @Test
-    void testCategoryOptionComboNotFoundGivenSubsetOfCategoryOptions()
+    public void testCategoryOptionComboNotFoundGivenSubsetOfCategoryOptions()
         throws IOException
     {
         TrackerImportParams trackerBundleParams = createBundleFromJson(
@@ -355,7 +355,7 @@ public class EventImportValidationTest
     }
 
     @Test
-    void testCOFoundButAOCNotFound()
+    public void testCOFoundButAOCNotFound()
         throws IOException
     {
         TrackerImportParams trackerBundleParams = createBundleFromJson(
