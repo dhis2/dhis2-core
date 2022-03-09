@@ -105,7 +105,7 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
 
             if ( fieldPath.toFullPath().equals( path ) )
             {
-                System.err.println( "returned true" );
+                System.err.println( fieldPath.toFullPath() );
                 return true;
             }
         }

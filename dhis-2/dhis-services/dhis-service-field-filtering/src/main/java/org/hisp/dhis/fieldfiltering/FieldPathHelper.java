@@ -45,6 +45,7 @@ import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.user.sharing.UserAccess;
@@ -331,6 +332,7 @@ public class FieldPathHelper
         return property.is( PropertyType.COMPLEX ) || property.itemIs( PropertyType.COMPLEX )
             || property.isEmbeddedObject()
             || Sharing.class.isAssignableFrom( property.getKlass() )
+            || Access.class.isAssignableFrom( property.getKlass() )
             || UserAccess.class.isAssignableFrom( property.getKlass() )
             || UserGroupAccess.class.isAssignableFrom( property.getKlass() );
     }
