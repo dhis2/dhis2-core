@@ -150,7 +150,7 @@ public class FieldFilterService
             return;
         }
 
-        Schema schema = schemaService.getDynamicSchema( object.getClass() );
+        Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( object ) );
 
         if ( !schema.isMetadata() )
         {
