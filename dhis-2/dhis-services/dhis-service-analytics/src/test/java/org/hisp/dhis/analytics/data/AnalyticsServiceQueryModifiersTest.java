@@ -131,10 +131,10 @@ class AnalyticsServiceQueryModifiersTest
         throws IOException,
         InterruptedException
     {
-        jan = createPeriod( "2022-01" );
-        feb = createPeriod( "2022-02" );
-        mar = createPeriod( "2022-03" );
-        q1 = createPeriod( "2022Q1" );
+        jan = createPeriod( "2021-01" );
+        feb = createPeriod( "2021-02" );
+        mar = createPeriod( "2021-03" );
+        q1 = createPeriod( "2021Q1" );
         periodService.addPeriod( jan );
         periodService.addPeriod( feb );
         periodService.addPeriod( mar );
@@ -209,7 +209,7 @@ class AnalyticsServiceQueryModifiersTest
         Thread.sleep( 30000 );
         System.out.println( "After post-analytics sleep: " + Clock.systemDefaultZone().instant() );
 
-        List<Map<String, Object>> resultMap = jdbcTemplate.queryForList( "select * from analytics_2022;" );
+        List<Map<String, Object>> resultMap = jdbcTemplate.queryForList( "select * from analytics_2021;" );
         System.out.println( "TestQueryMods: " + resultMap.size() + " analytics values" );
         assertEquals( 5, resultMap.size() );
     }
@@ -277,10 +277,10 @@ class AnalyticsServiceQueryModifiersTest
     private void testNoAggregationType()
     {
         expected = List.of(
-            "inabcdefghA-202201-1.0",
-            "inabcdefghA-202202-2.0",
-            "inabcdefghA-202203-3.0",
-            "inabcdefghA-2022Q1-6.0" );
+            "inabcdefghA-202101-1.0",
+            "inabcdefghA-202102-2.0",
+            "inabcdefghA-202103-3.0",
+            "inabcdefghA-2021Q1-6.0" );
 
         result = query( "#{deabcdefghA}", jan, feb, mar, q1 );
 
@@ -290,7 +290,7 @@ class AnalyticsServiceQueryModifiersTest
     private void testAverageAggregationType()
     {
         expected = List.of(
-            "inabcdefghA-2022Q1-2.0" );
+            "inabcdefghA-2021Q1-2.0" );
 
         result = query( "#{deabcdefghA}.aggregationType(AVERAGE)", q1 );
 
@@ -300,7 +300,7 @@ class AnalyticsServiceQueryModifiersTest
     private void testLastAggregationType()
     {
         expected = List.of(
-            "inabcdefghA-2022Q1-3.0" );
+            "inabcdefghA-2021Q1-3.0" );
 
         result = query( "#{deabcdefghA.OptionCombA}.aggregationType(LAST)", q1 );
 
@@ -310,7 +310,7 @@ class AnalyticsServiceQueryModifiersTest
     private void testWithAndWithoutAggregationType()
     {
         expected = List.of(
-            "inabcdefghA-2022Q1-8.0" );
+            "inabcdefghA-2021Q1-8.0" );
 
         result = query( "#{deabcdefghA} + #{deabcdefghA}.aggregationType(AVERAGE)", q1 );
 
@@ -320,7 +320,7 @@ class AnalyticsServiceQueryModifiersTest
     private void testMultipleAggregationTypes()
     {
         expected = List.of(
-            "inabcdefghA-2022Q1-5.0" );
+            "inabcdefghA-2021Q1-5.0" );
 
         result = query( "#{deabcdefghA}.aggregationType(MAX) + #{deabcdefghA}.aggregationType(AVERAGE)", q1 );
 
@@ -330,7 +330,7 @@ class AnalyticsServiceQueryModifiersTest
     private void testGroupedAggregationType()
     {
         expected = List.of(
-            "inabcdefghA-2022Q1-6.0" );
+            "inabcdefghA-2021Q1-6.0" );
 
         result = query( "(2*#{deabcdefghA} + #{deabcdefghA}).aggregationType(AVERAGE)", q1 );
 
@@ -340,7 +340,7 @@ class AnalyticsServiceQueryModifiersTest
     private void testOperandAggregationType()
     {
         expected = List.of(
-            "inabcdefghA-2022Q1-4.0" );
+            "inabcdefghA-2021Q1-4.0" );
 
         result = query( "#{deabcdefghA.OptionCombA}.aggregationType(AVERAGE) + #{deabcdefghA.OptionCombB}", q1 );
 
@@ -354,8 +354,8 @@ class AnalyticsServiceQueryModifiersTest
     private void testSimplePeriodOffset()
     {
         expected = List.of(
-            "inabcdefghA-202202-1.0",
-            "inabcdefghA-202203-2.0" );
+            "inabcdefghA-202102-1.0",
+            "inabcdefghA-202103-2.0" );
 
         result = query( "#{deabcdefghA}.periodOffset(-1)", jan, feb, mar );
 
@@ -365,9 +365,9 @@ class AnalyticsServiceQueryModifiersTest
     private void testInsideAndOutsidePeriodOffset()
     {
         expected = List.of(
-            "inabcdefghA-202201-3.0",
-            "inabcdefghA-202202-5.0",
-            "inabcdefghA-202203-3.0" );
+            "inabcdefghA-202101-3.0",
+            "inabcdefghA-202102-5.0",
+            "inabcdefghA-202103-3.0" );
 
         result = query( "#{deabcdefghA} + #{deabcdefghA}.periodOffset(1)", jan, feb, mar );
 
@@ -377,8 +377,8 @@ class AnalyticsServiceQueryModifiersTest
     private void testGroupedPeriodOffset()
     {
         expected = List.of(
-            "inabcdefghA-202202-2.0",
-            "inabcdefghA-202203-4.0" );
+            "inabcdefghA-202102-2.0",
+            "inabcdefghA-202103-4.0" );
 
         result = query( "(#{deabcdefghA} + #{deabcdefghA}).periodOffset(-1)", jan, feb, mar );
 
@@ -388,8 +388,8 @@ class AnalyticsServiceQueryModifiersTest
     private void testAdditivePeriodOffset()
     {
         expected = List.of(
-            "inabcdefghA-202202-1.0",
-            "inabcdefghA-202203-3.0" );
+            "inabcdefghA-202102-1.0",
+            "inabcdefghA-202103-3.0" );
 
         result = query( "(#{deabcdefghA}.periodOffset(-1) + #{deabcdefghA}).periodOffset(-1)", jan, feb, mar );
 
@@ -399,8 +399,8 @@ class AnalyticsServiceQueryModifiersTest
     private void testOperandPeriodOffset()
     {
         expected = List.of(
-            "inabcdefghA-202201-4.0",
-            "inabcdefghA-202202-1.0" );
+            "inabcdefghA-202101-4.0",
+            "inabcdefghA-202102-1.0" );
 
         result = query( "#{deabcdefghA.OptionCombA}.periodOffset(-1) + 2*#{deabcdefghA.OptionCombB}.periodOffset(1)",
             jan, feb, mar );
@@ -415,10 +415,10 @@ class AnalyticsServiceQueryModifiersTest
     private void testMinDate()
     {
         expected = List.of(
-            "inabcdefghA-202202-2.0",
-            "inabcdefghA-202203-3.0" );
+            "inabcdefghA-202102-2.0",
+            "inabcdefghA-202103-3.0" );
 
-        result = query( "#{deabcdefghA}.minDate(2022-2-1)", jan, feb, mar );
+        result = query( "#{deabcdefghA}.minDate(2021-2-1)", jan, feb, mar );
 
         assertEquals( expected, result );
     }
@@ -426,10 +426,10 @@ class AnalyticsServiceQueryModifiersTest
     private void testMaxDate()
     {
         expected = List.of(
-            "inabcdefghA-202201-1.0",
-            "inabcdefghA-202202-2.0" );
+            "inabcdefghA-202101-1.0",
+            "inabcdefghA-202102-2.0" );
 
-        result = query( "#{deabcdefghA}.maxDate(2022-2-28)", jan, feb, mar );
+        result = query( "#{deabcdefghA}.maxDate(2021-2-28)", jan, feb, mar );
 
         assertEquals( expected, result );
     }
@@ -437,9 +437,9 @@ class AnalyticsServiceQueryModifiersTest
     private void testMinAndMaxDate()
     {
         expected = List.of(
-            "inabcdefghA-202202-2.0" );
+            "inabcdefghA-202102-2.0" );
 
-        result = query( "#{deabcdefghA}.minDate(2022-2-1).maxDate(2022-2-28)", jan, feb, mar );
+        result = query( "#{deabcdefghA}.minDate(2021-2-1).maxDate(2021-2-28)", jan, feb, mar );
 
         assertEquals( expected, result );
     }
@@ -451,10 +451,10 @@ class AnalyticsServiceQueryModifiersTest
     private void testSimpleSubExpression()
     {
         expected = List.of(
-            "inabcdefghA-202201-4.0",
-            "inabcdefghA-202202-5.0",
-            "inabcdefghA-202203-5.0",
-            "inabcdefghA-2022Q1-14.0" );
+            "inabcdefghA-202101-4.0",
+            "inabcdefghA-202102-5.0",
+            "inabcdefghA-202103-5.0",
+            "inabcdefghA-2021Q1-14.0" );
 
         result = query( "subExpression(if(#{deabcdefghA}==1,4,5))", jan, feb, mar, q1 );
 
@@ -464,8 +464,8 @@ class AnalyticsServiceQueryModifiersTest
     private void testMultipleReferenceSubExpression()
     {
         expected = List.of(
-            "inabcdefghA-202201-0.0",
-            "inabcdefghA-202202-2.0" );
+            "inabcdefghA-202101-0.0",
+            "inabcdefghA-202102-2.0" );
 
         result = query( "subExpression(if(#{deabcdefghA}<2,0,#{deabcdefghA}))", jan, feb );
 
@@ -475,8 +475,8 @@ class AnalyticsServiceQueryModifiersTest
     private void testSubExpressionConversionFromTextToNumeric()
     {
         expected = List.of(
-            "inabcdefghA-202201-3.0",
-            "inabcdefghA-202202-4.0" );
+            "inabcdefghA-202101-3.0",
+            "inabcdefghA-202102-4.0" );
 
         result = query( "subExpression(if(#{deabcdefghB}=='A',3,4))", jan, feb );
 
@@ -486,8 +486,8 @@ class AnalyticsServiceQueryModifiersTest
     private void testReferencesInsideAndOutsideOfSubExpression()
     {
         expected = List.of(
-            "inabcdefghA-202201-3.0",
-            "inabcdefghA-202202-8.0" );
+            "inabcdefghA-202101-3.0",
+            "inabcdefghA-202102-8.0" );
 
         result = query( "3 * #{deabcdefghA} + subExpression(if(#{deabcdefghA}<2,0,#{deabcdefghA}))", jan, feb );
 
@@ -497,8 +497,8 @@ class AnalyticsServiceQueryModifiersTest
     private void testTwoSubExpressions()
     {
         expected = List.of(
-            "inabcdefghA-202201-10.0",
-            "inabcdefghA-202202-11.0" );
+            "inabcdefghA-202101-10.0",
+            "inabcdefghA-202102-11.0" );
 
         result = query( "subExpression(if(#{deabcdefghA}==1,3,5)) + subExpression(if(#{deabcdefghA}==2,6,7))",
             jan, feb );
@@ -509,9 +509,9 @@ class AnalyticsServiceQueryModifiersTest
     private void testOperandSubExpression()
     {
         expected = List.of(
-            "inabcdefghA-202201-3.0",
-            "inabcdefghA-202202-2.0",
-            "inabcdefghA-202203-9.0" );
+            "inabcdefghA-202101-3.0",
+            "inabcdefghA-202102-2.0",
+            "inabcdefghA-202103-9.0" );
 
         result = query(
             "subExpression(if(#{deabcdefghA.OptionCombA}>0,#{deabcdefghA.OptionCombA}*3,0)) + #{deabcdefghA.OptionCombB}",
