@@ -258,16 +258,21 @@ public class FieldPathHelper
             return;
         }
 
-        fieldPaths.forEach( fp -> visitPath( object, null, schema, fp.getPath(), objectConsumer ) );
+        fieldPaths.forEach( fp -> visitPath( object, fp.getPath(), objectConsumer ) );
     }
 
-    private void visitPath( Object currentObject, Object parentObject, Schema currentSchema, List<String> paths,
-        Consumer<Object> objectConsumer )
+    private void visitPath( Object currentObject, List<String> paths, Consumer<Object> objectConsumer )
     {
+        if ( currentObject == null )
+        {
+            return;
+        }
+
         String currentPath = paths.get( paths.size() - 1 );
         List<String> restPaths = paths.subList( 0, paths.size() - 1 );
 
-        Property property = currentSchema.getProperty( currentPath );
+        Schema schema = schemaService.getDynamicSchema( currentObject.getClass() );
+        Property property = schema.getProperty( currentPath );
 
         if ( property == null )
         {
@@ -289,8 +294,7 @@ public class FieldPathHelper
                 return;
             }
 
-            currentSchema = schemaService.getDynamicSchema( object.getClass() );
-            visitPath( object, currentObject, currentSchema, restPaths, objectConsumer );
+            visitPath( object, restPaths, objectConsumer );
         }
         else
         {
@@ -301,11 +305,9 @@ public class FieldPathHelper
                 return;
             }
 
-            currentSchema = schemaService.getDynamicSchema( objects.iterator().next().getClass() );
-
             for ( Object object : objects )
             {
-                visitPath( object, currentObject, currentSchema, restPaths, objectConsumer );
+                visitPath( object, restPaths, objectConsumer );
             }
         }
     }
