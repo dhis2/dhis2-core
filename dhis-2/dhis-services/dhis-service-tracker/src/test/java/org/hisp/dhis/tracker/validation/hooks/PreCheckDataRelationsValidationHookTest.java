@@ -30,15 +30,11 @@ package org.hisp.dhis.tracker.validation.hooks;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hisp.dhis.relationship.RelationshipEntity.TRACKED_ENTITY_INSTANCE;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.Collections;
@@ -50,10 +46,8 @@ import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DataDimensionType;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
@@ -64,8 +58,6 @@ import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.tracker.TrackerIdentifier;
-import org.hisp.dhis.tracker.TrackerIdentifierParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
@@ -78,19 +70,15 @@ import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import com.google.common.collect.Sets;
 
 /**
  * @author Enrico Colasante
  */
-public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
+class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
 {
     private static final String PROGRAM_UID = "PROGRAM_UID";
 
@@ -108,33 +96,27 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
 
     private PreCheckDataRelationsValidationHook hook;
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
-    @Mock
-    private CategoryService categoryService;
-
     private TrackerImportValidationContext ctx;
 
     private TrackerBundle bundle;
 
-    @Mock
     private TrackerPreheat preheat;
 
     private ValidationErrorReporter reporter;
 
-    @Before
-    public void setUp()
+    @BeforeEach
+    void setUp()
     {
-        hook = new PreCheckDataRelationsValidationHook( categoryService );
+        hook = new PreCheckDataRelationsValidationHook();
 
+        preheat = mock( TrackerPreheat.class );
         bundle = TrackerBundle.builder().preheat( preheat ).build();
         ctx = new TrackerImportValidationContext( bundle );
         reporter = new ValidationErrorReporter( ctx );
     }
 
     @Test
-    public void verifyValidationSuccessForEnrollment()
+    void verifyValidationSuccessForEnrollment()
     {
         OrganisationUnit orgUnit = organisationUnit( ORG_UNIT_ID );
         when( ctx.getOrganisationUnit( ORG_UNIT_ID ) )
@@ -142,7 +124,7 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         TrackedEntityType teiType = trackedEntityType( TEI_TYPE_ID );
         when( ctx.getProgram( PROGRAM_UID ) )
             .thenReturn( programWithRegistration( PROGRAM_UID, orgUnit, teiType ) );
-        when( ctx.getProgramWithOrgUnitsMap() )
+        when( preheat.getProgramWithOrgUnitsMap() )
             .thenReturn( Collections.singletonMap( PROGRAM_UID, Collections.singletonList( ORG_UNIT_ID ) ) );
         when( ctx.getTrackedEntityInstance( TEI_ID ) )
             .thenReturn( trackedEntityInstance( TEI_TYPE_ID, teiType, orgUnit ) );
@@ -160,14 +142,14 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
-    public void verifyValidationFailsWhenEnrollmentIsNotARegistration()
+    void verifyValidationFailsWhenEnrollmentIsNotARegistration()
     {
         OrganisationUnit orgUnit = organisationUnit( ORG_UNIT_ID );
         when( ctx.getOrganisationUnit( ORG_UNIT_ID ) )
             .thenReturn( orgUnit );
         when( ctx.getProgram( PROGRAM_UID ) )
             .thenReturn( programWithoutRegistration( PROGRAM_UID, orgUnit ) );
-        when( ctx.getProgramWithOrgUnitsMap() )
+        when( preheat.getProgramWithOrgUnitsMap() )
             .thenReturn( Collections.singletonMap( PROGRAM_UID, Collections.singletonList( ORG_UNIT_ID ) ) );
 
         Enrollment enrollment = Enrollment.builder()
@@ -183,7 +165,7 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
-    public void verifyValidationFailsWhenEnrollmentAndProgramOrganisationUnitDontMatch()
+    void verifyValidationFailsWhenEnrollmentAndProgramOrganisationUnitDontMatch()
     {
         OrganisationUnit orgUnit = organisationUnit( ORG_UNIT_ID );
         when( ctx.getOrganisationUnit( ORG_UNIT_ID ) )
@@ -191,7 +173,7 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         OrganisationUnit anotherOrgUnit = organisationUnit( CodeGenerator.generateUid() );
         when( ctx.getProgram( PROGRAM_UID ) )
             .thenReturn( programWithRegistration( PROGRAM_UID, anotherOrgUnit ) );
-        when( ctx.getProgramWithOrgUnitsMap() )
+        when( preheat.getProgramWithOrgUnitsMap() )
             .thenReturn(
                 Collections.singletonMap( PROGRAM_UID, Collections.singletonList( anotherOrgUnit.getUid() ) ) );
 
@@ -208,14 +190,14 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
-    public void verifyValidationFailsWhenEnrollmentAndProgramTeiTypeDontMatch()
+    void verifyValidationFailsWhenEnrollmentAndProgramTeiTypeDontMatch()
     {
         OrganisationUnit orgUnit = organisationUnit( ORG_UNIT_ID );
         when( ctx.getOrganisationUnit( ORG_UNIT_ID ) )
             .thenReturn( orgUnit );
         when( ctx.getProgram( PROGRAM_UID ) )
             .thenReturn( programWithRegistration( PROGRAM_UID, orgUnit, trackedEntityType( TEI_TYPE_ID ) ) );
-        when( ctx.getProgramWithOrgUnitsMap() )
+        when( preheat.getProgramWithOrgUnitsMap() )
             .thenReturn( Collections.singletonMap( PROGRAM_UID, Collections.singletonList( ORG_UNIT_ID ) ) );
         TrackedEntityType anotherTrackedEntityType = trackedEntityType( TEI_ID, 'B' );
         when( ctx.getTrackedEntityInstance( TEI_ID ) )
@@ -235,14 +217,14 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
-    public void verifyValidationFailsWhenEnrollmentAndProgramTeiTypeDontMatchAndTEIIsInPayload()
+    void verifyValidationFailsWhenEnrollmentAndProgramTeiTypeDontMatchAndTEIIsInPayload()
     {
         OrganisationUnit orgUnit = organisationUnit( ORG_UNIT_ID );
         when( ctx.getOrganisationUnit( ORG_UNIT_ID ) )
             .thenReturn( orgUnit );
         when( ctx.getProgram( PROGRAM_UID ) )
             .thenReturn( programWithRegistration( PROGRAM_UID, orgUnit, trackedEntityType( TEI_TYPE_ID ) ) );
-        when( ctx.getProgramWithOrgUnitsMap() )
+        when( preheat.getProgramWithOrgUnitsMap() )
             .thenReturn( Collections.singletonMap( PROGRAM_UID, Collections.singletonList( ORG_UNIT_ID ) ) );
         when( ctx.getTrackedEntityInstance( TEI_ID ) ).thenReturn( null );
 
@@ -266,7 +248,7 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
-    public void eventValidationSucceedsWhenAOCAndCOsAreNotSetAndProgramHasDefaultCC()
+    void eventValidationSucceedsWhenAOCAndCOsAreNotSetAndProgramHasDefaultCC()
     {
         OrganisationUnit orgUnit = organisationUnit( ORG_UNIT_ID );
         when( ctx.getOrganisationUnit( ORG_UNIT_ID ) )
@@ -274,7 +256,7 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         Program program = programWithRegistration( PROGRAM_UID, orgUnit );
         when( ctx.getProgram( PROGRAM_UID ) )
             .thenReturn( program );
-        when( ctx.getProgramWithOrgUnitsMap() )
+        when( preheat.getProgramWithOrgUnitsMap() )
             .thenReturn( Collections.singletonMap( PROGRAM_UID, Collections.singletonList( ORG_UNIT_ID ) ) );
         when( ctx.getProgramStage( PROGRAM_STAGE_ID ) )
             .thenReturn( programStage( PROGRAM_STAGE_ID, program ) );
@@ -297,12 +279,10 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         hook.validateEvent( reporter, event );
 
         assertFalse( reporter.hasErrors() );
-        assertEquals( "AOC id should be cached", defaultAOC,
-            reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ) );
     }
 
     @Test
-    public void eventValidationFailsWhenEventAndProgramStageProgramDontMatch()
+    void eventValidationFailsWhenEventAndProgramStageProgramDontMatch()
     {
         OrganisationUnit orgUnit = organisationUnit( ORG_UNIT_ID );
         when( ctx.getOrganisationUnit( ORG_UNIT_ID ) )
@@ -310,7 +290,7 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         Program program = programWithRegistration( PROGRAM_UID, orgUnit );
         when( ctx.getProgram( PROGRAM_UID ) )
             .thenReturn( program );
-        when( ctx.getProgramWithOrgUnitsMap() )
+        when( preheat.getProgramWithOrgUnitsMap() )
             .thenReturn( Collections.singletonMap( PROGRAM_UID, Collections.singletonList( ORG_UNIT_ID ) ) );
         when( ctx.getProgramStage( PROGRAM_STAGE_ID ) )
             .thenReturn(
@@ -337,7 +317,7 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
-    public void eventValidationFailsWhenProgramIsRegistrationAndEnrollmentIsMissing()
+    void eventValidationFailsWhenProgramIsRegistrationAndEnrollmentIsMissing()
     {
         OrganisationUnit orgUnit = organisationUnit( ORG_UNIT_ID );
         when( ctx.getOrganisationUnit( ORG_UNIT_ID ) )
@@ -345,7 +325,7 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         Program program = programWithRegistration( PROGRAM_UID, orgUnit );
         when( ctx.getProgram( PROGRAM_UID ) )
             .thenReturn( program );
-        when( ctx.getProgramWithOrgUnitsMap() )
+        when( preheat.getProgramWithOrgUnitsMap() )
             .thenReturn( Collections.singletonMap( PROGRAM_UID, Collections.singletonList( ORG_UNIT_ID ) ) );
         when( ctx.getProgramStage( PROGRAM_STAGE_ID ) )
             .thenReturn( programStage( PROGRAM_STAGE_ID, program ) );
@@ -372,7 +352,7 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
-    public void eventValidationFailsWhenEventAndEnrollmentProgramDontMatch()
+    void eventValidationFailsWhenEventAndEnrollmentProgramDontMatch()
     {
         OrganisationUnit orgUnit = organisationUnit( ORG_UNIT_ID );
         when( ctx.getOrganisationUnit( ORG_UNIT_ID ) )
@@ -380,7 +360,7 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         Program program = programWithRegistration( PROGRAM_UID, orgUnit );
         when( ctx.getProgram( PROGRAM_UID ) )
             .thenReturn( program );
-        when( ctx.getProgramWithOrgUnitsMap() )
+        when( preheat.getProgramWithOrgUnitsMap() )
             .thenReturn( Collections.singletonMap( PROGRAM_UID, Collections.singletonList( ORG_UNIT_ID ) ) );
         when( ctx.getProgramStage( PROGRAM_STAGE_ID ) )
             .thenReturn( programStage( PROGRAM_STAGE_ID, program ) );
@@ -411,7 +391,7 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
-    public void eventValidationFailsWhenEventAndProgramOrganisationUnitDontMatch()
+    void eventValidationFailsWhenEventAndProgramOrganisationUnitDontMatch()
     {
         OrganisationUnit orgUnit = organisationUnit( ORG_UNIT_ID );
         when( ctx.getOrganisationUnit( ORG_UNIT_ID ) )
@@ -420,7 +400,7 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         Program program = programWithRegistration( PROGRAM_UID, anotherOrgUnit );
         when( ctx.getProgram( PROGRAM_UID ) )
             .thenReturn( program );
-        when( ctx.getProgramWithOrgUnitsMap() )
+        when( preheat.getProgramWithOrgUnitsMap() )
             .thenReturn(
                 Collections.singletonMap( PROGRAM_UID, Collections.singletonList( anotherOrgUnit.getUid() ) ) );
         when( ctx.getProgramStage( PROGRAM_STAGE_ID ) )
@@ -451,7 +431,7 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
-    public void eventValidationFailsWhenNoAOCAndNoCOsAreSetAndProgramHasNonDefaultCC()
+    void eventValidationFailsWhenNoAOCAndNoCOsAreSetAndProgramHasNonDefaultCC()
     {
         OrganisationUnit orgUnit = setupOrgUnit();
         Program program = setupProgram( orgUnit );
@@ -463,15 +443,11 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         hook.validateEvent( reporter, event );
 
         assertEquals( 1, reporter.getReportList().size() );
-        assertThat(
-            reporter.getReportList().stream().map( TrackerErrorReport::getErrorCode ).collect( Collectors.toList() ),
-            hasItem( TrackerErrorCode.E1055 ) );
-        assertNull( "AOC id should not be cached",
-            reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ) );
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1055 ) );
     }
 
     @Test
-    public void eventValidationSucceedsWhenOnlyCOsAreSetAndExist()
+    void eventValidationFailsWhenOnlyCOsAreSetAndExist()
     {
         OrganisationUnit orgUnit = setupOrgUnit();
         Program program = setupProgram( orgUnit );
@@ -480,38 +456,6 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         program.setCategoryCombo( cc );
         CategoryOption co = cc.getCategoryOptions().get( 0 );
         when( preheat.getCategoryOption( co.getUid() ) ).thenReturn( co );
-        CategoryOptionCombo aoc = firstCategoryOptionCombo( cc );
-        when( categoryService.getCategoryOptionCombo( cc, Sets.newHashSet( co ) ) ).thenReturn( aoc );
-        when( preheat.getIdentifiers() ).thenReturn(
-            TrackerIdentifierParams.builder()
-                .categoryOptionComboIdScheme( TrackerIdentifier.NAME ).build() );
-
-        Event event = eventBuilder()
-            .attributeOptionCombo( null )
-            .attributeCategoryOptions( co.getUid() )
-            .build();
-
-        hook.validateEvent( reporter, event );
-
-        assertFalse( reporter.hasErrors() );
-        assertEquals( "AOC id should be cached", aoc,
-            reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ) );
-        assertEquals( "AOC id should be set by the validation", aoc.getName(), event.getAttributeOptionCombo() );
-        verify( preheat, times( 1 ) ).put( TrackerIdentifier.NAME, aoc );
-    }
-
-    @Test
-    public void eventValidationFailsWhenOnlyCOsAreSetButAOCCannotBeFound()
-    {
-        OrganisationUnit orgUnit = setupOrgUnit();
-        Program program = setupProgram( orgUnit );
-
-        CategoryCombo cc = categoryCombo();
-        program.setCategoryCombo( cc );
-        CategoryOption co = cc.getCategoryOptions().get( 0 );
-        when( preheat.getCategoryOption( co.getUid() ) ).thenReturn( co );
-
-        when( categoryService.getCategoryOptionCombo( cc, Sets.newHashSet( co ) ) ).thenReturn( null );
 
         Event event = eventBuilder()
             .attributeCategoryOptions( co.getUid() )
@@ -520,17 +464,13 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         hook.validateEvent( reporter, event );
 
         assertEquals( 1, reporter.getReportList().size() );
-        assertTrue( reporter.getReportList().stream()
-            .anyMatch( r -> r.getErrorCode() == TrackerErrorCode.E1117 &&
-                r.getErrorMessage().contains( program.getCategoryCombo().getUid() ) &&
-                r.getErrorMessage().contains( co.getUid() ) ) );
-        assertNull( "AOC id should not be cached",
-            reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ) );
-        verify( preheat, times( 0 ) ).put( any(), (IdentifiableObject) any() );
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1117 &&
+            r.getErrorMessage().contains( program.getCategoryCombo().getUid() ) &&
+            r.getErrorMessage().contains( co.getUid() ) ) );
     }
 
     @Test
-    public void eventValidationSucceedsWhenOnlyCOsAreSetAndEventProgramHasDefaultCC()
+    void eventValidationSucceedsWhenOnlyCOsAreSetAndEventProgramHasDefaultCC()
     {
         OrganisationUnit orgUnit = setupOrgUnit();
         Program program = setupProgram( orgUnit );
@@ -550,13 +490,10 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         hook.validateEvent( reporter, event );
 
         assertFalse( reporter.hasErrors() );
-        assertEquals( "AOC id should be cached", defaultAOC,
-            reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ) );
-        verify( preheat, times( 0 ) ).put( any(), eq( defaultAOC ) );
     }
 
     @Test
-    public void eventValidationFailsWhenOnlyCOsAreSetToCONotInCCAndEventProgramHasDefaultCC()
+    void eventValidationFailsWhenOnlyCOsAreSetToCONotInCCAndEventProgramHasDefaultCC()
     {
         OrganisationUnit orgUnit = setupOrgUnit();
         Program program = setupProgram( orgUnit );
@@ -576,17 +513,13 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         hook.validateEvent( reporter, event );
 
         assertEquals( 1, reporter.getReportList().size() );
-        assertTrue( reporter.getReportList().stream()
-            .anyMatch( r -> r.getErrorCode() == TrackerErrorCode.E1117 &&
-                r.getErrorMessage().contains( program.getCategoryCombo().getUid() ) &&
-                r.getErrorMessage().contains( co.getUid() ) ) );
-        assertNull( "AOC id should not be cached",
-            reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ) );
-        verify( preheat, times( 0 ) ).put( any(), (IdentifiableObject) any() );
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1117 &&
+            r.getErrorMessage().contains( program.getCategoryCombo().getUid() ) &&
+            r.getErrorMessage().contains( co.getUid() ) ) );
     }
 
     @Test
-    public void eventValidationFailsWhenOnlyCOsAreSetToCONotInProgramCC()
+    void eventValidationFailsWhenOnlyCOsAreSetToCONotInProgramCC()
     {
         OrganisationUnit orgUnit = setupOrgUnit();
         Program program = setupProgram( orgUnit );
@@ -595,7 +528,6 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
 
         CategoryOption co = createCategoryOption( 'B' );
         when( preheat.getCategoryOption( co.getUid() ) ).thenReturn( co );
-        when( categoryService.getCategoryOptionCombo( cc, Sets.newHashSet( co ) ) ).thenReturn( null );
 
         Event event = eventBuilder()
             .attributeCategoryOptions( co.getUid() )
@@ -604,17 +536,13 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         hook.validateEvent( reporter, event );
 
         assertEquals( 1, reporter.getReportList().size() );
-        assertTrue( reporter.getReportList().stream()
-            .anyMatch( r -> r.getErrorCode() == TrackerErrorCode.E1117 &&
-                r.getErrorMessage().contains( program.getCategoryCombo().getUid() ) &&
-                r.getErrorMessage().contains( co.getUid() ) ) );
-        assertNull( "AOC id should not be cached",
-            reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ) );
-        verify( preheat, times( 0 ) ).put( any(), (IdentifiableObject) any() );
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1117 &&
+            r.getErrorMessage().contains( program.getCategoryCombo().getUid() ) &&
+            r.getErrorMessage().contains( co.getUid() ) ) );
     }
 
     @Test
-    public void eventValidationSucceedsWhenOnlyAOCIsSet()
+    void eventValidationSucceedsWhenOnlyAOCIsSet()
     {
         OrganisationUnit orgUnit = setupOrgUnit();
         Program program = setupProgram( orgUnit );
@@ -631,12 +559,10 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         hook.validateEvent( reporter, event );
 
         assertFalse( reporter.hasErrors() );
-        assertEquals( "AOC id should be cached", aoc,
-            reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ) );
     }
 
     @Test
-    public void eventValidationSucceedsWhenOnlyAOCIsSetAndEventProgramHasDefaultCC()
+    void eventValidationSucceedsWhenOnlyAOCIsSetAndEventProgramHasDefaultCC()
     {
         OrganisationUnit orgUnit = setupOrgUnit();
         Program program = setupProgram( orgUnit );
@@ -653,12 +579,10 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         hook.validateEvent( reporter, event );
 
         assertFalse( reporter.hasErrors() );
-        assertEquals( "AOC id should be cached", defaultAOC,
-            reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ) );
     }
 
     @Test
-    public void eventValidationFailsWhenOnlyAOCIsSetEventProgramHasDefaultCCAndAOCIsNotFound()
+    void eventValidationFailsWhenOnlyAOCIsSetEventProgramHasDefaultCCAndAOCIsNotFound()
     {
         OrganisationUnit orgUnit = setupOrgUnit();
         Program program = setupProgram( orgUnit );
@@ -674,15 +598,11 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         hook.validateEvent( reporter, event );
 
         assertEquals( 1, reporter.getReportList().size() );
-        assertThat(
-            reporter.getReportList().stream().map( TrackerErrorReport::getErrorCode ).collect( Collectors.toList() ),
-            hasItem( TrackerErrorCode.E1115 ) );
-        assertNull( "AOC id should not be cached",
-            reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ) );
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1115 ) );
     }
 
     @Test
-    public void eventValidationFailsWhenOnlyAOCIsSetAndAOCIsNotFound()
+    void eventValidationFailsWhenOnlyAOCIsSetAndAOCIsNotFound()
     {
         OrganisationUnit orgUnit = setupOrgUnit();
         Program program = setupProgram( orgUnit );
@@ -698,15 +618,11 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         hook.validateEvent( reporter, event );
 
         assertEquals( 1, reporter.getReportList().size() );
-        assertThat(
-            reporter.getReportList().stream().map( TrackerErrorReport::getErrorCode ).collect( Collectors.toList() ),
-            hasItem( TrackerErrorCode.E1115 ) );
-        assertNull( "AOC id should not be cached",
-            reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ) );
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1115 ) );
     }
 
     @Test
-    public void eventValidationFailsWhenOnlyAOCIsSetToAOCNotInProgramCC()
+    void eventValidationFailsWhenOnlyAOCIsSetToAOCNotInProgramCC()
     {
         OrganisationUnit orgUnit = setupOrgUnit();
         Program program = setupProgram( orgUnit );
@@ -722,16 +638,13 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         hook.validateEvent( reporter, event );
 
         assertEquals( 1, reporter.getReportList().size() );
-        assertTrue( reporter.getReportList().stream()
-            .anyMatch( r -> r.getErrorCode() == TrackerErrorCode.E1054 &&
-                r.getErrorMessage().contains( aoc.getUid() ) &&
-                r.getErrorMessage().contains( program.getCategoryCombo().getUid() ) ) );
-        assertNull( "AOC id should not be cached",
-            reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ) );
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1054 &&
+            r.getErrorMessage().contains( aoc.getUid() ) &&
+            r.getErrorMessage().contains( program.getCategoryCombo().getUid() ) ) );
     }
 
     @Test
-    public void eventValidationFailsWhenOnlyAOCIsSetToDefaultAOCNotInProgramCC()
+    void eventValidationFailsWhenOnlyAOCIsSetToDefaultAOCNotInProgramCC()
     {
         OrganisationUnit orgUnit = setupOrgUnit();
         Program program = setupProgram( orgUnit );
@@ -747,15 +660,11 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         hook.validateEvent( reporter, event );
 
         assertEquals( 1, reporter.getReportList().size() );
-        assertThat(
-            reporter.getReportList().stream().map( TrackerErrorReport::getErrorCode ).collect( Collectors.toList() ),
-            hasItem( TrackerErrorCode.E1055 ) );
-        assertNull( "AOC id should not be cached",
-            reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ) );
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1055 ) );
     }
 
     @Test
-    public void eventValidationFailsWhenOnlyAOCIsSetToAOCNotInProgramCCAndEventProgramHasDefaultCC()
+    void eventValidationFailsWhenOnlyAOCIsSetToAOCNotInProgramCCAndEventProgramHasDefaultCC()
     {
         OrganisationUnit orgUnit = setupOrgUnit();
         Program program = setupProgram( orgUnit );
@@ -771,16 +680,13 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         hook.validateEvent( reporter, event );
 
         assertEquals( 1, reporter.getReportList().size() );
-        assertTrue( reporter.getReportList().stream()
-            .anyMatch( r -> r.getErrorCode() == TrackerErrorCode.E1054 &&
-                r.getErrorMessage().contains( aoc.getUid() ) &&
-                r.getErrorMessage().contains( program.getCategoryCombo().getUid() ) ) );
-        assertNull( "AOC id should not be cached",
-            reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ) );
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1054 &&
+            r.getErrorMessage().contains( aoc.getUid() ) &&
+            r.getErrorMessage().contains( program.getCategoryCombo().getUid() ) ) );
     }
 
     @Test
-    public void eventValidationSucceedsWhenEventAOCAndEventCOsAreSetAndProgramHasDefaultCC()
+    void eventValidationSucceedsWhenEventAOCAndEventCOsAreSetAndProgramHasDefaultCC()
     {
         OrganisationUnit orgUnit = setupOrgUnit();
         Program program = setupProgram( orgUnit );
@@ -802,12 +708,10 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         hook.validateEvent( reporter, event );
 
         assertFalse( reporter.hasErrors() );
-        assertEquals( "AOC id should be cached", defaultAOC,
-            reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ) );
     }
 
     @Test
-    public void eventValidationSucceedsWhenEventAOCAndEventCOsAreSetAndBothFound()
+    void eventValidationSucceedsWhenEventAOCAndEventCOsAreSetAndBothFound()
     {
         OrganisationUnit orgUnit = setupOrgUnit();
         Program program = setupProgram( orgUnit );
@@ -827,12 +731,10 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         hook.validateEvent( reporter, event );
 
         assertFalse( reporter.hasErrors() );
-        assertEquals( "AOC id should be cached", aoc,
-            reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ) );
     }
 
     @Test
-    public void eventValidationFailsWhenEventAOCAndEventCOsAreSetAndAOCIsNotFound()
+    void eventValidationFailsWhenEventAOCAndEventCOsAreSetAndAOCIsNotFound()
     {
         OrganisationUnit orgUnit = setupOrgUnit();
         Program program = setupProgram( orgUnit );
@@ -853,15 +755,11 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         hook.validateEvent( reporter, event );
 
         assertEquals( 1, reporter.getReportList().size() );
-        assertThat(
-            reporter.getReportList().stream().map( TrackerErrorReport::getErrorCode ).collect( Collectors.toList() ),
-            hasItem( TrackerErrorCode.E1115 ) );
-        assertNull( "AOC id should not be cached",
-            reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ) );
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1115 ) );
     }
 
     @Test
-    public void eventValidationFailsWhenEventAOCAndEventCOsAreSetAndAOCIsSetToDefault()
+    void eventValidationFailsWhenEventAOCAndEventCOsAreSetAndAOCIsSetToDefault()
     {
         OrganisationUnit orgUnit = setupOrgUnit();
         Program program = setupProgram( orgUnit );
@@ -882,15 +780,11 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         hook.validateEvent( reporter, event );
 
         assertEquals( 1, reporter.getReportList().size() );
-        assertThat(
-            reporter.getReportList().stream().map( TrackerErrorReport::getErrorCode ).collect( Collectors.toList() ),
-            hasItem( TrackerErrorCode.E1055 ) );
-        assertNull( "AOC id should not be cached",
-            reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ) );
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1055 ) );
     }
 
     @Test
-    public void eventValidationFailsWhenEventAOCAndEventCOsAreSetAndCOIsNotFound()
+    void eventValidationFailsWhenEventAOCAndEventCOsAreSetAndCOIsNotFound()
     {
         OrganisationUnit orgUnit = setupOrgUnit();
         Program program = setupProgram( orgUnit );
@@ -911,15 +805,11 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         hook.validateEvent( reporter, event );
 
         assertEquals( 1, reporter.getReportList().size() );
-        assertThat(
-            reporter.getReportList().stream().map( TrackerErrorReport::getErrorCode ).collect( Collectors.toList() ),
-            hasItem( TrackerErrorCode.E1116 ) );
-        assertNull( "AOC id should not be cached",
-            reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ) );
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1116 ) );
     }
 
     @Test
-    public void eventValidationFailsAccumulatingAOCAndCOsNotFoundErrors()
+    void eventValidationFailsAccumulatingAOCAndCOsNotFoundErrors()
     {
         OrganisationUnit orgUnit = setupOrgUnit();
         Program program = setupProgram( orgUnit );
@@ -945,21 +835,15 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         hook.validateEvent( reporter, event );
 
         assertEquals( 3, reporter.getReportList().size() );
-        assertThat(
-            reporter.getReportList().stream().map( TrackerErrorReport::getErrorCode ).collect( Collectors.toList() ),
-            hasItem( TrackerErrorCode.E1115 ) );
-        assertTrue( reporter.getReportList().stream()
-            .anyMatch( r -> r.getErrorCode() == TrackerErrorCode.E1116 &&
-                r.getErrorMessage().contains( UNKNOWN_CO_ID1 ) ) );
-        assertTrue( reporter.getReportList().stream()
-            .anyMatch( r -> r.getErrorCode() == TrackerErrorCode.E1116 &&
-                r.getErrorMessage().contains( UNKNOWN_CO_ID2 ) ) );
-        assertNull( "AOC id should not be cached",
-            reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ) );
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1115 ) );
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1116
+            && r.getErrorMessage().contains( UNKNOWN_CO_ID1 ) ) );
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1116
+            && r.getErrorMessage().contains( UNKNOWN_CO_ID2 ) ) );
     }
 
     @Test
-    public void eventValidationFailsWhenEventAOCAndEventCOsAreSetAndCOIsNotInProgramCC()
+    void eventValidationFailsWhenEventAOCAndEventCOsAreSetAndCOIsNotInProgramCC()
     {
         OrganisationUnit orgUnit = setupOrgUnit();
         Program program = setupProgram( orgUnit );
@@ -980,16 +864,13 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         hook.validateEvent( reporter, event );
 
         assertEquals( 1, reporter.getReportList().size() );
-        assertTrue( reporter.getReportList().stream()
-            .anyMatch( r -> r.getErrorCode() == TrackerErrorCode.E1053 &&
-                r.getErrorMessage().contains( eventCO.getUid() ) &&
-                r.getErrorMessage().contains( aoc.getUid() ) ) );
-        assertNull( "AOC id should not be cached",
-            reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ) );
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1117 &&
+            r.getErrorMessage().contains( eventCO.getUid() ) &&
+            r.getErrorMessage().contains( aoc.getUid() ) ) );
     }
 
     @Test
-    public void eventValidationFailsWhenEventAOCAndEventCOsAreSetAndInProgramCCButDoNotMatch()
+    void eventValidationFailsWhenEventAOCAndEventCOsAreSetAndInProgramCCButDoNotMatch()
     {
         OrganisationUnit orgUnit = setupOrgUnit();
         Program program = setupProgram( orgUnit );
@@ -1011,17 +892,13 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         hook.validateEvent( reporter, event );
 
         assertEquals( 1, reporter.getReportList().size() );
-        assertTrue( reporter.getReportList().stream()
-            .anyMatch( r -> r.getErrorCode() == TrackerErrorCode.E1053 &&
-                r.getErrorMessage().contains( co1.getUid() ) &&
-                r.getErrorMessage().contains( aoc2.getUid() ) ) );
-        assertNull( "AOC id should not be cached",
-            reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ) );
-        verify( preheat, times( 0 ) ).put( any(), (IdentifiableObject) any() );
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1117 &&
+            r.getErrorMessage().contains( co1.getUid() ) &&
+            r.getErrorMessage().contains( aoc2.getUid() ) ) );
     }
 
     @Test
-    public void eventValidationFailsWhenEventAOCAndEventCOsAreSetAndInProgramCCButNotAllCOsInAOCAreGiven()
+    void eventValidationFailsWhenEventAOCAndEventCOsAreSetAndInProgramCCButNotAllCOsInAOCAreGiven()
     {
         OrganisationUnit orgUnit = setupOrgUnit();
         Program program = setupProgram( orgUnit );
@@ -1041,17 +918,13 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         hook.validateEvent( reporter, event );
 
         assertEquals( 1, reporter.getReportList().size() );
-        assertTrue( reporter.getReportList().stream()
-            .anyMatch( r -> r.getErrorCode() == TrackerErrorCode.E1053 &&
-                r.getErrorMessage().contains( co1.getUid() ) &&
-                r.getErrorMessage().contains( aoc.getUid() ) ) );
-        assertNull( "AOC id should not be cached",
-            reporter.getValidationContext().getCachedEventCategoryOptionCombo( event.getEvent() ) );
-        verify( preheat, times( 0 ) ).put( any(), (IdentifiableObject) any() );
+        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1117 &&
+            r.getErrorMessage().contains( co1.getUid() ) &&
+            r.getErrorMessage().contains( aoc.getUid() ) ) );
     }
 
     @Test
-    public void verifyValidationFailsWhenLinkedTrackedEntityIsNotFound()
+    void verifyValidationFailsWhenLinkedTrackedEntityIsNotFound()
     {
         RelationshipType relType = createRelTypeConstraint( TRACKED_ENTITY_INSTANCE, TRACKED_ENTITY_INSTANCE );
 
@@ -1081,7 +954,7 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
-    public void verifyValidationSuccessWhenLinkedTrackedEntityIsFound()
+    void verifyValidationSuccessWhenLinkedTrackedEntityIsFound()
     {
 
         TrackedEntityInstance validTrackedEntity = new TrackedEntityInstance();
@@ -1190,7 +1063,7 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         Program program = programWithRegistration( PROGRAM_UID, orgUnit );
         when( ctx.getProgram( PROGRAM_UID ) )
             .thenReturn( program );
-        when( ctx.getProgramWithOrgUnitsMap() )
+        when( preheat.getProgramWithOrgUnitsMap() )
             .thenReturn( Collections.singletonMap( PROGRAM_UID, Collections.singletonList( ORG_UNIT_ID ) ) );
         when( ctx.getProgramStage( PROGRAM_STAGE_ID ) )
             .thenReturn( programStage( PROGRAM_STAGE_ID, program ) );
@@ -1211,14 +1084,14 @@ public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     {
         CategoryOption co = new CategoryOption( CategoryOption.DEFAULT_NAME );
         co.setAutoFields();
-        assertTrue( "tests rely on this CO being the default one", co.isDefault() );
+        assertTrue( co.isDefault(), "tests rely on this CO being the default one" );
         Category ca = createCategory( 'A', co );
         CategoryCombo cc = createCategoryCombo( 'A', ca );
         cc.setName( CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME );
-        assertTrue( "tests rely on this CC being the default one", cc.isDefault() );
+        assertTrue( cc.isDefault(), "tests rely on this CC being the default one" );
         cc.setDataDimensionType( DataDimensionType.ATTRIBUTE );
         CategoryOptionCombo aoc = createCategoryOptionCombo( cc, co );
-        assertTrue( "tests rely on this AOC being the default one", aoc.isDefault() );
+        assertTrue( aoc.isDefault(), "tests rely on this AOC being the default one" );
         cc.setOptionCombos( Sets.newHashSet( aoc ) );
         return cc;
     }

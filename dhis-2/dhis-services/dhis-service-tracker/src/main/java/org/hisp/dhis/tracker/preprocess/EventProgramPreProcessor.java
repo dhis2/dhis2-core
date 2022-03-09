@@ -32,12 +32,14 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.util.Strings;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.springframework.stereotype.Component;
 
 /**
@@ -104,6 +106,26 @@ public class EventProgramPreProcessor
                     }
                 }
             }
+        }
+        setAttributeOptionCombo( bundle );
+    }
+
+    private void setAttributeOptionCombo( TrackerBundle bundle )
+    {
+
+        TrackerPreheat preheat = bundle.getPreheat();
+        List<Event> events = bundle.getEvents().stream()
+            .filter( e -> StringUtils.isBlank( e.getAttributeOptionCombo() )
+                && !StringUtils.isBlank( e.getAttributeCategoryOptions() ) )
+            .filter( e -> preheat.get( Program.class, e.getProgram() ) != null )
+            .collect( Collectors.toList() );
+
+        for ( Event e : events )
+        {
+            Program program = preheat.get( Program.class, e.getProgram() );
+            String aoc = preheat.getCategoryOptionComboIdentifier( program.getCategoryCombo(),
+                e.getAttributeCategoryOptions() );
+            e.setAttributeOptionCombo( aoc );
         }
     }
 }

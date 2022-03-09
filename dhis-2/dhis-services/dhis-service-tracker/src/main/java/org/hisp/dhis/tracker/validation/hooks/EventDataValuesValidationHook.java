@@ -48,6 +48,7 @@ import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
@@ -73,7 +74,8 @@ public class EventDataValuesValidationHook
         {
             // event dates (createdAt, updatedAt) are ignored and set by the
             // system
-            DataElement dataElement = context.getDataElement( dataValue.getDataElement() );
+            TrackerPreheat preheat = context.getBundle().getPreheat();
+            DataElement dataElement = preheat.get( DataElement.class, dataValue.getDataElement() );
 
             if ( dataElement == null )
             {
@@ -97,11 +99,12 @@ public class EventDataValuesValidationHook
     {
         if ( StringUtils.isNotEmpty( event.getProgramStage() ) )
         {
+            TrackerPreheat preheat = context.getBundle().getPreheat();
             ProgramStage programStage = context.getProgramStage( event.getProgramStage() );
             final List<String> mandatoryDataElements = programStage.getProgramStageDataElements()
                 .stream()
                 .filter( ProgramStageDataElement::isCompulsory )
-                .map( de -> context.getIdentifiers().getDataElementIdScheme()
+                .map( de -> preheat.getIdentifiers().getDataElementIdScheme()
                     .getIdentifier( de.getDataElement() ) )
                 .collect( Collectors.toList() );
             List<String> missingDataValue = validateMandatoryDataValue( programStage, event,
@@ -151,9 +154,10 @@ public class EventDataValuesValidationHook
     private void validateDataValueDataElementIsConnectedToProgramStage( ValidationErrorReporter reporter, Event event,
         ProgramStage programStage )
     {
+        TrackerPreheat preheat = reporter.getValidationContext().getBundle().getPreheat();
         final Set<String> dataElements = programStage.getProgramStageDataElements()
             .stream()
-            .map( de -> reporter.getValidationContext().getIdentifiers().getDataElementIdScheme()
+            .map( de -> preheat.getIdentifiers().getDataElementIdScheme()
                 .getIdentifier( de.getDataElement() ) )
             .collect( Collectors.toSet() );
 

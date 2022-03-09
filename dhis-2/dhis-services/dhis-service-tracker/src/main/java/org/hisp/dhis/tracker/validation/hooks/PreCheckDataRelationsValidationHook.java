@@ -53,17 +53,14 @@ import java.util.Set;
 import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
@@ -85,8 +82,6 @@ import org.springframework.stereotype.Component;
 public class PreCheckDataRelationsValidationHook
     extends AbstractTrackerDtoValidationHook
 {
-    private final CategoryService categoryService;
-
     @Override
     public void validateTrackedEntity( ValidationErrorReporter reporter,
         TrackedEntity trackedEntity )
@@ -104,7 +99,8 @@ public class PreCheckDataRelationsValidationHook
 
         addErrorIf( () -> !program.isRegistration(), reporter, E1014, program );
 
-        if ( programDoesNotHaveOrgUnit( program, organisationUnit, context.getProgramWithOrgUnitsMap() ) )
+        TrackerPreheat preheat = context.getBundle().getPreheat();
+        if ( programDoesNotHaveOrgUnit( program, organisationUnit, preheat.getProgramWithOrgUnitsMap() ) )
         {
             addError( reporter, E1041, organisationUnit, program );
         }
@@ -134,7 +130,7 @@ public class PreCheckDataRelationsValidationHook
 
         validateProgramStageInProgram( reporter, event, programStage, program );
         validateRegistrationProgram( reporter, event, context, program );
-        validateProgramHasOrgUnit( reporter, context, organisationUnit, program );
+        validateProgramHasOrgUnit( reporter, organisationUnit, program );
         validateEventCategoryOptionCombo( reporter, event, program );
     }
 
@@ -168,10 +164,11 @@ public class PreCheckDataRelationsValidationHook
         }
     }
 
-    private void validateProgramHasOrgUnit( ValidationErrorReporter reporter, TrackerImportValidationContext context,
+    private void validateProgramHasOrgUnit( ValidationErrorReporter reporter,
         OrganisationUnit organisationUnit, Program program )
     {
-        if ( programDoesNotHaveOrgUnit( program, organisationUnit, context.getProgramWithOrgUnitsMap() ) )
+        TrackerPreheat preheat = reporter.getValidationContext().getBundle().getPreheat();
+        if ( programDoesNotHaveOrgUnit( program, organisationUnit, preheat.getProgramWithOrgUnitsMap() ) )
         {
             addError( reporter, E1029, organisationUnit, program );
         }
@@ -192,38 +189,17 @@ public class PreCheckDataRelationsValidationHook
             return;
         }
 
-        isValid = validateAttributeOptionComboIsInProgramCategoryCombo( reporter, event, program );
-        isValid = validateAttributeCategoryOptionsAreInProgramCategoryCombo( reporter, event ) && isValid;
-        if ( !isValid )
-        {
-            // no need to resolve the AOC id using COs and program CC in case
-            // event.AOC is empty
-            // as we would not find it anyway
-            // no need to cache the AOC id as the payload is invalid
-            return;
-        }
-
         CategoryOptionCombo aoc = resolveAttributeOptionCombo( reporter, event, program );
-
-        // We should have an AOC by this point. Exit if we do not. The logic of
-        // AOC, COs, CC is complex and there is potential for
-        // missing one of the many cases. Better wrongly invalidate an event
-        // than persisting an invalid event as we
-        // previously did.
+        // We should have an AOC by this point. Either the event has no AOC and
+        // no COs and its program has the default
+        // category combo, or we have an event.AOC. If the payload did not
+        // contain an AOC, the preheat and preprocessor should
+        // have found/set it.
         if ( !validateAttributeOptionComboFound( reporter, event, program, aoc ) )
             return;
-        if ( !validateAttributeOptionComboMatchesCategoryOptions( reporter, event, program, aoc ) )
+        if ( !validateAttributeOptionComboIsInProgramCategoryCombo( reporter, event, program ) )
             return;
-
-        // TODO resolving and "caching" the AOC id should move into the preheat
-        // as validations should not access the DB
-        // We "cache" the AOC id for the duration of the import (as the cache is
-        // tied to the context) so the subsequent
-        // EventCategoryOptValidationHook can use the AOC id for validation.
-        // That is necessary if the AOC id is not
-        // provided in the payload and the program cc is non default.
-        reporter.getValidationContext()
-            .cacheEventCategoryOptionCombo( event.getUid(), aoc );
+        validateAttributeOptionComboMatchesCategoryOptions( reporter, event, program, aoc );
     }
 
     private boolean validateAttributeOptionComboExists( ValidationErrorReporter reporter, Event event )
@@ -337,39 +313,8 @@ public class PreCheckDataRelationsValidationHook
             .getCategoryOptionCombo( event.getAttributeOptionCombo() );
         if ( !program.getCategoryCombo().equals( aoc.getCategoryCombo() ) )
         {
-            addError( reporter, TrackerErrorCode.E1054, event.getAttributeOptionCombo(), program.getCategoryCombo() );
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
-     * Validates that given AOC and COs match. This ensures that a payload
-     * contains all COs of an AOC and that every CO is in the AOC.
-     *
-     * When called after
-     * {@link #validateAttributeOptionComboIsInProgramCategoryCombo} we also
-     * know that the COs are in the event programs category combo.
-     *
-     * @param reporter validation error reporter
-     * @param event event to validate
-     * @return return true if cos are in event program cc, false otherwise
-     */
-    private boolean validateAttributeCategoryOptionsAreInProgramCategoryCombo( ValidationErrorReporter reporter,
-        Event event )
-    {
-        if ( hasNoAttributeOptionComboSet( event ) || hasNoAttributeCategoryOptionsSet( event ) )
-        {
-            return true;
-        }
-
-        TrackerPreheat preheat = reporter.getValidationContext().getBundle().getPreheat();
-        CategoryOptionCombo aoc = preheat.getCategoryOptionCombo( event.getAttributeOptionCombo() );
-        if ( isNotAOCForCOs( preheat, event, aoc ) )
-        {
-            addError( reporter, TrackerErrorCode.E1053, event.getAttributeCategoryOptions(),
-                event.getAttributeOptionCombo() );
+            addError( reporter, TrackerErrorCode.E1054,
+                event.getAttributeOptionCombo(), program.getCategoryCombo() );
             return false;
         }
 
@@ -386,26 +331,6 @@ public class PreCheckDataRelationsValidationHook
         {
             aoc = preheat.getDefault( CategoryOptionCombo.class );
         }
-        else if ( hasNoAttributeOptionComboSet( event ) && hasAttributeCategoryOptionsSet( event ) )
-        {
-            aoc = fetchAttributeOptionCombo( reporter, event, program );
-            if ( aoc != null )
-            {
-                // TODO validation hooks should not need to mutate the payload.
-                // This
-                // should be moved to a pre-processor.
-                event.setAttributeOptionCombo(
-                    reporter.getValidationContext().getIdentifiers().getCategoryOptionComboIdScheme()
-                        .getIdentifier( aoc ) );
-                // TODO validation hooks should not need to populate the
-                // preheat. Move this to the preheat.
-                // We need the AOC in the preheat so we can allow users not to
-                // send it. We need to set it on the
-                // ProgramStageInstance before persisting.
-                TrackerIdentifier identifier = preheat.getIdentifiers().getCategoryOptionComboIdScheme();
-                preheat.put( identifier, aoc );
-            }
-        }
         else
         {
             // Note: there is a potential case when there are multiple AOCs in
@@ -416,33 +341,6 @@ public class PreCheckDataRelationsValidationHook
             // preheat.getDefault( CategoryOptionCombo.class )
             aoc = preheat.getCategoryOptionCombo( event.getAttributeOptionCombo() );
         }
-        return aoc;
-    }
-
-    private boolean hasAttributeCategoryOptionsSet( Event event )
-    {
-        return !hasNoAttributeCategoryOptionsSet( event );
-    }
-
-    private CategoryOptionCombo fetchAttributeOptionCombo( ValidationErrorReporter reporter, Event event,
-        Program program )
-    {
-        CategoryCombo categoryCombo = program.getCategoryCombo();
-        String cacheKey = event.getAttributeCategoryOptions() + categoryCombo.getUid();
-
-        Optional<String> cachedAOCId = reporter.getValidationContext()
-            .getCachedEventAOCProgramCC( cacheKey );
-
-        TrackerPreheat preheat = reporter.getValidationContext().getBundle().getPreheat();
-        if ( cachedAOCId.isPresent() )
-        {
-            return preheat.getCategoryOptionCombo( cachedAOCId.get() );
-        }
-
-        CategoryOptionCombo aoc = categoryService
-            .getCategoryOptionCombo( categoryCombo, getCategoryOptions( preheat, event ) );
-        reporter.getValidationContext().putCachedEventAOCProgramCC( cacheKey,
-            aoc != null ? aoc.getUid() : null );
         return aoc;
     }
 
@@ -470,22 +368,20 @@ public class PreCheckDataRelationsValidationHook
         return false;
     }
 
-    private boolean validateAttributeOptionComboMatchesCategoryOptions( ValidationErrorReporter reporter, Event event,
+    private void validateAttributeOptionComboMatchesCategoryOptions( ValidationErrorReporter reporter, Event event,
         Program program,
         CategoryOptionCombo aoc )
     {
         if ( hasNoAttributeCategoryOptionsSet( event ) )
         {
-            return true;
+            return;
         }
 
         if ( isNotAOCForCOs( reporter.getValidationContext().getBundle().getPreheat(), event, aoc ) )
         {
             addAOCAndCOCombinationError( event, reporter, program );
-            return false;
         }
 
-        return true;
     }
 
     private void addAOCAndCOCombinationError( Event event, ValidationErrorReporter reporter, Program program )

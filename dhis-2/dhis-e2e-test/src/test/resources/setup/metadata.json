@@ -1,15 +1,36 @@
 {
-  "categories": [
+  "categoryCombos": [
+    {
+      "code": "TA_CATEGORY_COMBO_ATTRIBUTE",
+      "name": "TA Category combo attribute",
+      "id": "p0bh43XdKy5",
+      "dataDimensionType": "ATTRIBUTE",
+      "skipTotal": false,
+      "sharing": {
+        "owner": "M5zQapPyTZI",
+        "userGroups": {},
+        "external": false,
+        "public": "rw------",
+        "users": {}
+      },
+      "translations": [],
+      "categories": [
+        {
+          "id": "saPUs0jjtP0",
+          "name": "TA Category attribute",
+          "code": "TA_CATEGORY_ATTRIBUTE"
+        }
+      ]
+    },
     {
       "code": "default",
-      "created": "2019-02-05T13:45:02.304",
-      "lastUpdated": "2019-02-05T13:45:02.405",
+      "created": "2019-02-05T13:45:02.317",
+      "lastUpdated": "2019-02-05T13:45:02.335",
       "name": "default",
-      "shortName": "default",
-      "id": "GLevLNI9wkl",
+      "id": "bjDvmb4bfuf",
       "dataDimensionType": "DISAGGREGATION",
       "publicAccess": "rw------",
-      "dataDimension": false,
+      "skipTotal": false,
       "userGroupAccesses": [
         {
           "access": "rwrw----",
@@ -17,14 +38,76 @@
           "id": "OPVIvvXzNTw"
         }
       ],
-      "attributeValues": [],
       "translations": [],
       "userAccesses": [],
-      "categoryOptions": [
+      "categories": [
         {
-          "id": "xYerKDKCefk"
+          "id": "GLevLNI9wkl"
         }
       ]
+    }
+  ],
+  "categories": [
+    {
+      "code": "TA_CATEGORY_ATTRIBUTE",
+      "created": "2022-01-07T14:55:50.486",
+      "lastUpdated": "2022-01-07T14:55:57.359",
+      "name": "TA Category attribute",
+      "id": "saPUs0jjtP0",
+      "shortName": "TA Category attribute",
+      "dataDimensionType": "ATTRIBUTE",
+      "dataDimension": true,
+      "sharing": {
+        "owner": "M5zQapPyTZI",
+        "userGroups": {},
+        "external": false,
+        "public": "rw------",
+        "users": {}
+      },
+      "categoryOptions": [
+        {
+          "id": "fjvZIRlTBrp",
+          "name": "TA category option A",
+          "code": "TA_CATOPT_A"
+        }
+      ],
+      "categoryCombos": [
+        {
+          "id": "p0bh43XdKy5",
+          "name": "TA Category combo attribute",
+          "code": "TA_CATEGORY_COMBO_ATTRIBUTE"
+        }
+      ],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": [],
+      "items": [
+        {
+          "id": "fjvZIRlTBrp",
+          "name": "TA category option A",
+          "code": "TA_CATOPT_A"
+        }
+      ]
+    },
+    {
+      "code": "TA_CATEGORY_ATTRIBUTE_2",
+      "created": "2022-01-07T14:56:33.267",
+      "lastUpdated": "2022-01-07T14:56:33.267",
+      "name": "TA Category attribute 2",
+      "id": "X7EZvFo6ero",
+      "shortName": "TA category attribute 2",
+      "dataDimensionType": "ATTRIBUTE",
+      "dataDimension": true,
+      "sharing": {
+        "owner": "M5zQapPyTZI",
+        "userGroups": {},
+        "external": false,
+        "public": "rw------",
+        "users": {}
+      },
+      "attributeValues": [],
+      "translations": [],
+      "categoryOptions": []
     }
   ],
   "programStages": [
@@ -3645,13 +3728,44 @@
       "translations": []
     }
   ],
+  "categoryOptionCombos": [
+    {
+      "id": "igZVvNyxlTM",
+      "name": "TA category option combo A",
+      "code": "TA_CATEGORY_OPTION_COMBO_A",
+      "categoryOptions": [
+        {
+          "id": "fjvZIRlTBrp",
+          "name": "TA category option A",
+          "code": "TA_CATOPT_A"
+        }
+      ],
+      "categoryCombo": {
+        "id": "p0bh43XdKy5",
+        "name": "TA Category combo attribute",
+        "code": "TA_CATEGORY_COMBO_ATTRIBUTE"
+      },
+      "lastUpdated": "2019-08-26T14:24:45.065",
+      "created": "2017-06-02T11:03:03.291",
+      "ignoreApproval": false,
+      "translations": [],
+      "attributeValues": [],
+      "sharing": {
+        "owner": "GOLswS44mh8",
+        "external": false,
+        "users": {},
+        "userGroups": {},
+        "public": "rw------"
+      }
+    }
+  ],
   "categoryOptions": [
     {
+      "id": "fjvZIRlTBrp",
+      "name": "TA category option A",
+      "code": "TA_CATOPT_A",
       "created": "2021-06-02T15:43:13.212",
       "lastUpdated": "2021-06-02T15:43:13.212",
-      "name": "category option A",
-      "code": "CATOPT_A",
-      "id": "fjvZIRlTBrp",
       "sharing": {
         "owner": "GOLswS44mh8",
         "external": false,
@@ -3677,32 +3791,6 @@
         {
           "id": "YuQRtpLP10I",
           "code": "OU_539"
-        }
-      ]
-    }
-  ],
-  "categoryCombos": [
-    {
-      "code": "default",
-      "created": "2019-02-05T13:45:02.317",
-      "lastUpdated": "2019-02-05T13:45:02.335",
-      "name": "default",
-      "id": "bjDvmb4bfuf",
-      "dataDimensionType": "DISAGGREGATION",
-      "publicAccess": "rw------",
-      "skipTotal": false,
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
-        }
-      ],
-      "translations": [],
-      "userAccesses": [],
-      "categories": [
-        {
-          "id": "GLevLNI9wkl"
         }
       ]
     }
