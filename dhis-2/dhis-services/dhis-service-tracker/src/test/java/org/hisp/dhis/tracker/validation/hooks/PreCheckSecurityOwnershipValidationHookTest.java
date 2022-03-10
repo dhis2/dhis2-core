@@ -805,8 +805,6 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         when( bundle.getProgramInstance( event.getEnrollment() ) ).thenReturn( programInstance );
         when( preheat.getProgram( PROGRAM_ID ) ).thenReturn( program );
         when( preheat.getOrganisationUnit( ORG_UNIT_ID ) ).thenReturn( organisationUnit );
-        when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
-            .thenReturn( true );
         when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
         when( aclService.canDataRead( user, program ) ).thenReturn( true );
         when( aclService.canDataWrite( user, programStage ) ).thenReturn( true );
@@ -881,8 +879,6 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
         when( aclService.canDataRead( user, program ) ).thenReturn( true );
         when( aclService.canDataWrite( user, programStage ) ).thenReturn( true );
-        when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
-            .thenReturn( true );
         reporter = new ValidationErrorReporter( bundle );
 
         validatorToTest.validateEvent( reporter, event );
@@ -970,8 +966,6 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
         when( aclService.canDataRead( user, program ) ).thenReturn( true );
         when( aclService.canDataWrite( user, programStage ) ).thenReturn( true );
-        when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
-            .thenReturn( true );
         reporter = new ValidationErrorReporter( bundle );
 
         validatorToTest.validateEvent( reporter, event );
