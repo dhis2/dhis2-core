@@ -42,6 +42,7 @@ import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.OrderComparator;
 import org.springframework.security.core.Authentication;
@@ -125,6 +126,12 @@ public class FieldFilterService
 
             if ( authentication != null && authentication.isAuthenticated() )
             {
+                Object user = authentication.getPrincipal();
+
+                if ( user instanceof User )
+                {
+                    params.setUser( (User) user );
+                }
             }
         }
 
