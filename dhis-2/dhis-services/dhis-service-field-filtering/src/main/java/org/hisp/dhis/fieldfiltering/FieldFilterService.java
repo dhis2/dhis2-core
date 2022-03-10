@@ -76,8 +76,12 @@ public class FieldFilterService
 
     private final CurrentUserService currentUserService;
 
-    public FieldFilterService( FieldPathHelper fieldPathHelper, ObjectMapper jsonMapper, SchemaService schemaService,
-        AclService aclService, CurrentUserService currentUserService )
+    public FieldFilterService(
+        FieldPathHelper fieldPathHelper,
+        ObjectMapper jsonMapper,
+        SchemaService schemaService,
+        AclService aclService,
+        CurrentUserService currentUserService )
     {
         this.fieldPathHelper = fieldPathHelper;
         this.jsonMapper = configureFieldFilterObjectMapper( jsonMapper );
@@ -178,14 +182,12 @@ public class FieldFilterService
             else if ( fullPath.endsWith( ".access" ) )
             {
                 fieldPathHelper.visitFieldPaths( object, List.of( fp ), o -> {
-                    if ( !(o instanceof BaseIdentifiableObject) )
+                    if ( o instanceof BaseIdentifiableObject )
                     {
-                        return;
+                        BaseIdentifiableObject baseIdentifiableObject = (BaseIdentifiableObject) o;
+                        baseIdentifiableObject
+                            .setAccess( aclService.getAccess( baseIdentifiableObject, params.getUser() ) );
                     }
-
-                    BaseIdentifiableObject baseIdentifiableObject = (BaseIdentifiableObject) o;
-                    baseIdentifiableObject
-                        .setAccess( aclService.getAccess( baseIdentifiableObject, params.getUser() ) );
                 } );
             }
         } );
