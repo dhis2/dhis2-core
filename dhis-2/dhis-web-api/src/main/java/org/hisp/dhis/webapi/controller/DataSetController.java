@@ -61,6 +61,7 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.DisplayDensity;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.commons.jackson.domain.JsonRoot;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.dataentryform.DataEntryFormService;
@@ -76,8 +77,6 @@ import org.hisp.dhis.dxf2.metadata.Metadata;
 import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
 import org.hisp.dhis.dxf2.util.InputUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.fieldfilter.FieldFilterParams;
-import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -108,6 +107,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
@@ -213,9 +213,10 @@ public class DataSetController
     }
 
     @GetMapping( "/{uid}/categoryCombos" )
-    public @ResponseBody RootNode getCategoryCombinations( @PathVariable( "uid" ) String uid,
-        HttpServletRequest request,
-        TranslateParams translateParams, HttpServletResponse response )
+    public ResponseEntity<JsonRoot> getCategoryCombinations(
+        @PathVariable( "uid" ) String uid,
+        @RequestParam( defaultValue = "*" ) List<String> fields,
+        TranslateParams translateParams )
         throws Exception
     {
         setUserContext( translateParams );
@@ -231,13 +232,9 @@ public class DataSetController
 
         Collections.sort( categoryCombos );
 
-        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
+        List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes( categoryCombos, fields );
 
-        RootNode rootNode = NodeUtils.createMetadata();
-        rootNode.addChild( fieldFilterService.toCollectionNode( CategoryCombo.class,
-            new FieldFilterParams( categoryCombos, fields ) ) );
-
-        return rootNode;
+        return ResponseEntity.ok( new JsonRoot( "categoryCombos", objectNodes ) );
     }
 
     @GetMapping( "/{uid}/dataValueSet" )
