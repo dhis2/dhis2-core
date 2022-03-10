@@ -108,10 +108,21 @@ public class FieldFilterService
         }
     }
 
+    public <T> ObjectNode toObjectNode( T object, List<String> filters )
+    {
+        List<ObjectNode> objectNodes = toObjectNodes( FieldFilterParams.of( List.of( object ), filters ) );
+
+        if ( objectNodes.isEmpty() )
+        {
+            return null;
+        }
+
+        return objectNodes.get( 0 );
+    }
+
     public <T> List<ObjectNode> toObjectNodes( List<T> objects, List<String> filters )
     {
-        FieldFilterParams<T> params = FieldFilterParams.of( objects, filters );
-        return toObjectNodes( params );
+        return toObjectNodes( FieldFilterParams.of( objects, filters ) );
     }
 
     public List<ObjectNode> toObjectNodes( FieldFilterParams<?> params )
