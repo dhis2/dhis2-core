@@ -96,6 +96,8 @@ public class PreCheckSecurityOwnershipValidationHook
     @NonNull
     private final OrganisationUnitService organisationUnitService;
 
+    private static final String ORG_UNIT_NO_USER_ASSIGNED = " has no organisation unit assigned, so we skip user validation";
+
     @Override
     public void validateTrackedEntity( ValidationErrorReporter reporter, TrackedEntity trackedEntity )
     {
@@ -247,7 +249,7 @@ public class PreCheckSecurityOwnershipValidationHook
             if ( enrollmentOrgUnit == null )
             {
                 log.warn( "ProgramInstance " + enrollment.getEnrollment()
-                    + " has no organisation unit assigned, so we skip user validation" );
+                    + ORG_UNIT_NO_USER_ASSIGNED );
                 return;
             }
         }
@@ -303,7 +305,7 @@ public class PreCheckSecurityOwnershipValidationHook
             if ( organisationUnit == null )
             {
                 log.warn( "ProgramStageInstance " + event.getEvent()
-                    + " has no organisation unit assigned, so we skip user validation" );
+                    + ORG_UNIT_NO_USER_ASSIGNED );
             }
             else
             {
@@ -581,7 +583,7 @@ public class PreCheckSecurityOwnershipValidationHook
         if ( eventOrgUnit == null )
         {
             log.warn( "ProgramStageInstance " + event.getUid()
-                + " has no organisation unit assigned, so we skip user validation" );
+                + ORG_UNIT_NO_USER_ASSIGNED );
         }
         else if ( isCreatableInSearchScope
             ? !organisationUnitService.isInUserSearchHierarchyCached( user, eventOrgUnit )
