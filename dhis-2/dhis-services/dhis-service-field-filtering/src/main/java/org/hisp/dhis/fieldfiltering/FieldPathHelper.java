@@ -259,10 +259,10 @@ public class FieldPathHelper
             return;
         }
 
-        fieldPaths.forEach( fp -> visitPath( object, new ArrayList<>( fp.getPath() ), objectConsumer ) );
+        fieldPaths.forEach( fp -> visitFieldPath( object, new ArrayList<>( fp.getPath() ), objectConsumer ) );
     }
 
-    private void visitPath( Object object, List<String> paths, Consumer<Object> objectConsumer )
+    private void visitFieldPath( Object object, List<String> paths, Consumer<Object> objectConsumer )
     {
         if ( object == null )
         {
@@ -291,13 +291,13 @@ public class FieldPathHelper
 
             for ( Object o : currentObjects )
             {
-                visitPath( o, new ArrayList<>( paths ), objectConsumer );
+                visitFieldPath( o, new ArrayList<>( paths ), objectConsumer );
             }
         }
         else
         {
             Object currentObject = ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
-            visitPath( currentObject, new ArrayList<>( paths ), objectConsumer );
+            visitFieldPath( currentObject, new ArrayList<>( paths ), objectConsumer );
         }
     }
 
