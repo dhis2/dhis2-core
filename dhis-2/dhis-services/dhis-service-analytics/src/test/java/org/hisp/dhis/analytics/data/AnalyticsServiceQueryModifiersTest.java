@@ -209,7 +209,6 @@ class AnalyticsServiceQueryModifiersTest
     // Test
     // -------------------------------------------------------------------------
 
-    @Disabled( "This test works fine locally on my system but fails on the integration server. //TODO: make it work on the test server" )
     @Test
     void queryModifiersTest()
     {
