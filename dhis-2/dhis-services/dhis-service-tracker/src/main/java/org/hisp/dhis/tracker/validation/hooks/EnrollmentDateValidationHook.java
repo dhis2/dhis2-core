@@ -42,7 +42,6 @@ import java.util.Objects;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
-import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
 
 /**
@@ -55,11 +54,9 @@ public class EnrollmentDateValidationHook
     @Override
     public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
     {
-        TrackerImportValidationContext context = reporter.getValidationContext();
-
         validateMandatoryDates( reporter, enrollment );
 
-        Program program = context.getProgram( enrollment.getProgram() );
+        Program program = reporter.getBundle().getPreheat().getProgram( enrollment.getProgram() );
 
         validateEnrollmentDatesNotInFuture( reporter, program, enrollment );
 

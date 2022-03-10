@@ -188,7 +188,7 @@ class EnrollmentImportValidationTest extends AbstractImportValidationTest
     protected void importProgramStageInstances()
         throws IOException
     {
-        TrackerImportParams params = createBundleFromJson( "tracker/validations/events-data.json" );
+        TrackerImportParams params = createBundleFromJson( "tracker/validations/events-with-registration.json" );
         params.setImportStrategy( TrackerImportStrategy.CREATE );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
         assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );

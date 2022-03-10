@@ -30,8 +30,9 @@ package org.hisp.dhis.common;
 import java.util.Date;
 import java.util.Set;
 
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.EventOutputType;
@@ -43,7 +44,8 @@ import org.hisp.dhis.program.ProgramStatus;
  * This class contains all the criteria that can be used to execute a DHIS2
  * Events analytics query using the EventAnalyticsController
  */
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 public class EventsAnalyticsQueryCriteria extends RequestTypeAware
 {
@@ -318,4 +320,10 @@ public class EventsAnalyticsQueryCriteria extends RequestTypeAware
      * default is true (always paginate).
      */
     private boolean paging = true;
+
+    /**
+     * The paging parameter. When set to false we should not count total pages.
+     * The default is true (always total pages flag activated).
+     */
+    private boolean totalPages = true;
 }
