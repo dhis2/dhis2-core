@@ -32,6 +32,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.fieldfiltering.transformers.IsEmptyFieldTransformer;
 import org.hisp.dhis.fieldfiltering.transformers.IsNotEmptyFieldTransformer;
@@ -43,6 +44,8 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.UserGroupService;
+import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.OrderComparator;
 import org.springframework.stereotype.Service;
@@ -76,18 +79,30 @@ public class FieldFilterService
 
     private final CurrentUserService currentUserService;
 
+    private final UserGroupService userGroupService;
+
+    private final UserService userService;
+
+    private final AttributeService attributeService;
+
     public FieldFilterService(
         FieldPathHelper fieldPathHelper,
         ObjectMapper jsonMapper,
         SchemaService schemaService,
         AclService aclService,
-        CurrentUserService currentUserService )
+        CurrentUserService currentUserService,
+        UserGroupService userGroupService,
+        UserService userService,
+        AttributeService attributeService )
     {
         this.fieldPathHelper = fieldPathHelper;
         this.jsonMapper = configureFieldFilterObjectMapper( jsonMapper );
         this.schemaService = schemaService;
         this.aclService = aclService;
         this.currentUserService = currentUserService;
+        this.userGroupService = userGroupService;
+        this.userService = userService;
+        this.attributeService = attributeService;
     }
 
     private static class IgnoreJsonSerializerRefinementAnnotationInspector extends JacksonAnnotationIntrospector
@@ -157,6 +172,8 @@ public class FieldFilterService
         for ( Object object : params.getObjects() )
         {
             applyAccess( object, fieldPaths, params );
+            applyUserAccessDisplayName( object, fieldPaths, params );
+            applyUserGroupAccessDisplayName( object, fieldPaths, params );
 
             ObjectNode objectNode = objectMapper.valueToTree( object );
             applyTransformers( objectNode, null, "", fieldTransformers );
@@ -198,6 +215,81 @@ public class FieldFilterService
                         BaseIdentifiableObject baseIdentifiableObject = (BaseIdentifiableObject) o;
                         baseIdentifiableObject
                             .setAccess( aclService.getAccess( baseIdentifiableObject, params.getUser() ) );
+                    }
+                } );
+            }
+        } );
+    }
+
+    private void applyUserAccessDisplayName( Object object, List<FieldPath> fieldPaths, FieldFilterParams<?> params )
+    {
+        if ( object == null || params.isSkipSharing() )
+        {
+            return;
+        }
+
+        Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( object ) );
+
+        if ( !schema.isMetadata() )
+        {
+            return;
+        }
+
+        fieldPaths.forEach( fp -> {
+            String fullPath = fp.toFullPath();
+
+            if ( fullPath.equals( "userAccesses.displayName" ) )
+            {
+                ((BaseIdentifiableObject) object).getUserAccesses().forEach( ua -> {
+                    ua.setDisplayName( userService.getDisplayName( ua.getUserUid() ) );
+                } );
+            }
+            else if ( fullPath.endsWith( ".userAccesses.displayName" ) )
+            {
+                fieldPathHelper.visitFieldPaths( object, List.of( fp ), o -> {
+                    if ( o instanceof BaseIdentifiableObject )
+                    {
+                        BaseIdentifiableObject identifiableObject = (BaseIdentifiableObject) o;
+                        identifiableObject.getUserAccesses()
+                            .forEach( ua -> ua.setDisplayName( userService.getDisplayName( ua.getUserUid() ) ) );
+                    }
+                } );
+            }
+        } );
+    }
+
+    private void applyUserGroupAccessDisplayName( Object object, List<FieldPath> fieldPaths,
+        FieldFilterParams<?> params )
+    {
+        if ( object == null || params.isSkipSharing() )
+        {
+            return;
+        }
+
+        Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( object ) );
+
+        if ( !schema.isMetadata() )
+        {
+            return;
+        }
+
+        fieldPaths.forEach( fp -> {
+            String fullPath = fp.toFullPath();
+
+            if ( fullPath.equals( "userGroupAccesses.displayName" ) )
+            {
+                ((BaseIdentifiableObject) object).getUserGroupAccesses()
+                    .forEach( uga -> uga.setDisplayName( userGroupService.getDisplayName( uga.getUserGroupUid() ) ) );
+            }
+            else if ( fullPath.endsWith( ".userGroupAccesses.displayName" ) )
+            {
+                fieldPathHelper.visitFieldPaths( object, List.of( fp ), o -> {
+                    if ( o instanceof BaseIdentifiableObject )
+                    {
+                        BaseIdentifiableObject identifiableObject = (BaseIdentifiableObject) o;
+                        identifiableObject.getUserGroupAccesses()
+                            .forEach(
+                                uga -> uga.setDisplayName( userGroupService.getDisplayName( uga.getUserGroupUid() ) ) );
                     }
                 } );
             }
