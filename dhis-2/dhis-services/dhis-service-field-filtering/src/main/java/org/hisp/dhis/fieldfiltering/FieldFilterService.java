@@ -32,12 +32,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.fieldfiltering.transformers.IsEmptyFieldTransformer;
 import org.hisp.dhis.fieldfiltering.transformers.IsNotEmptyFieldTransformer;
 import org.hisp.dhis.fieldfiltering.transformers.PluckFieldTransformer;
 import org.hisp.dhis.fieldfiltering.transformers.RenameFieldTransformer;
 import org.hisp.dhis.fieldfiltering.transformers.SizeFieldTransformer;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.OrderComparator;
 import org.springframework.stereotype.Service;
@@ -65,6 +70,26 @@ public class FieldFilterService
     @Qualifier( "jsonMapper" )
     private final ObjectMapper jsonMapper;
 
+    private final SchemaService schemaService;
+
+    private final AclService aclService;
+
+    private final CurrentUserService currentUserService;
+
+    public FieldFilterService(
+        FieldPathHelper fieldPathHelper,
+        ObjectMapper jsonMapper,
+        SchemaService schemaService,
+        AclService aclService,
+        CurrentUserService currentUserService )
+    {
+        this.fieldPathHelper = fieldPathHelper;
+        this.jsonMapper = configureFieldFilterObjectMapper( jsonMapper );
+        this.schemaService = schemaService;
+        this.aclService = aclService;
+        this.currentUserService = currentUserService;
+    }
+
     private static class IgnoreJsonSerializerRefinementAnnotationInspector extends JacksonAnnotationIntrospector
     {
         /**
@@ -83,16 +108,21 @@ public class FieldFilterService
         }
     }
 
-    public FieldFilterService( FieldPathHelper fieldPathHelper, ObjectMapper jsonMapper )
+    public <T> ObjectNode toObjectNode( T object, List<String> filters )
     {
-        this.fieldPathHelper = fieldPathHelper;
-        this.jsonMapper = configureFieldFilterObjectMapper( jsonMapper );
+        List<ObjectNode> objectNodes = toObjectNodes( FieldFilterParams.of( List.of( object ), filters ) );
+
+        if ( objectNodes.isEmpty() )
+        {
+            return null;
+        }
+
+        return objectNodes.get( 0 );
     }
 
     public <T> List<ObjectNode> toObjectNodes( List<T> objects, List<String> filters )
     {
-        FieldFilterParams<T> params = FieldFilterParams.of( objects, filters );
-        return toObjectNodes( params );
+        return toObjectNodes( FieldFilterParams.of( objects, filters ) );
     }
 
     public List<ObjectNode> toObjectNodes( FieldFilterParams<?> params )
@@ -105,6 +135,11 @@ public class FieldFilterService
         }
 
         List<FieldPath> fieldPaths = FieldFilterParser.parse( params.getFilters() );
+
+        if ( params.getUser() == null )
+        {
+            params.setUser( currentUserService.getCurrentUser() );
+        }
 
         // In case we get a proxied object in we can't just use o.getClass(), we
         // need to figure out the real class name by using HibernateProxyUtils.
@@ -121,6 +156,8 @@ public class FieldFilterService
 
         for ( Object object : params.getObjects() )
         {
+            applyAccess( object, fieldPaths, params );
+
             ObjectNode objectNode = objectMapper.valueToTree( object );
             applyTransformers( objectNode, null, "", fieldTransformers );
 
@@ -128,6 +165,43 @@ public class FieldFilterService
         }
 
         return objectNodes;
+    }
+
+    private void applyAccess( Object object, List<FieldPath> fieldPaths, FieldFilterParams<?> params )
+    {
+        if ( object == null || params.isSkipSharing() )
+        {
+            return;
+        }
+
+        Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( object ) );
+
+        if ( !schema.isMetadata() )
+        {
+            return;
+        }
+
+        BaseIdentifiableObject identifiableObject = (BaseIdentifiableObject) object;
+
+        fieldPaths.forEach( fp -> {
+            String fullPath = fp.toFullPath();
+
+            if ( fullPath.equals( "access" ) )
+            {
+                identifiableObject.setAccess( aclService.getAccess( identifiableObject, params.getUser() ) );
+            }
+            else if ( fullPath.endsWith( ".access" ) )
+            {
+                fieldPathHelper.visitFieldPaths( object, List.of( fp ), o -> {
+                    if ( o instanceof BaseIdentifiableObject )
+                    {
+                        BaseIdentifiableObject baseIdentifiableObject = (BaseIdentifiableObject) o;
+                        baseIdentifiableObject
+                            .setAccess( aclService.getAccess( baseIdentifiableObject, params.getUser() ) );
+                    }
+                } );
+            }
+        } );
     }
 
     public ObjectNode createObjectNode()

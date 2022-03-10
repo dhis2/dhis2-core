@@ -202,6 +202,7 @@ public class FieldFilterParser
         {
             addFieldPath( tokenBuilder, path, isExclude, isPreset, fieldPathTransformers, fieldPaths );
         }
+
         // OBS! this is a work-around way to deduplicate the fields paths list
         return new ArrayList<>( new LinkedHashSet<>( fieldPaths ) );
     }
