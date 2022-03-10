@@ -338,6 +338,9 @@ public class JdbcAnalyticsTableManager
         }
 
         invokeTimeAndLog( sql, String.format( "Populate %s %s", tableName, valueTypes ) );
+
+        System.out.println( "populateTable " + tableName + ": " + sql );
+        System.out.println( "Rowcount: " + jdbcTemplate.queryForList( "select * from " + tableName ).size() );
     }
 
     /**

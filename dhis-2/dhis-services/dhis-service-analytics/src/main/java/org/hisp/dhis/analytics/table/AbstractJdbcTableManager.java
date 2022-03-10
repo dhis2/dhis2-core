@@ -382,9 +382,9 @@ public abstract class AbstractJdbcTableManager
         sqlCreate = sqlCreate + columns;
         sqlCreateTemp = sqlCreateTemp + columns;
 
-        System.out.println( "Creating non partitioned table: " + tableName + ", columns: "
+        System.out.println( "Creating non partitioned table: " + tableName + ", column count "
             + table.getDimensionColumns().size() );
-        System.out.println( "Created SQL: " + sqlCreate );
+        System.out.println( "Non partitioned table SQL: " + sqlCreate );
 
         log.debug( "Creating non partitioned analytic table: '{}'", tableName );
 
@@ -672,13 +672,13 @@ public abstract class AbstractJdbcTableManager
             sqlCreate += " partition by list(\"" + partitionColumn + "\")";
         }
 
-        System.out.println( "Creating table: " + tableName + ", columns: " + table.getDimensionColumns().size() );
-        System.out.println( "Created SQL: " + sqlCreate );
-
         log.debug( "Creating table: '{}', columns: {}", tableName, table.getDimensionColumns().size() );
         log.debug( "Created SQL: '{}'", sqlCreate );
 
         jdbcTemplate.execute( sqlCreate );
+
+        System.out.println( "Creating table: " + tableName + ", # columns: " + table.getDimensionColumns().size() );
+        System.out.println( "Table SQL: " + sqlCreate );
     }
 
     /**
@@ -698,11 +698,11 @@ public abstract class AbstractJdbcTableManager
             log.debug( "Creating table: '{}', columns: {}", partition.getTableName(),
                 table.getDimensionColumns().size() );
 
+            jdbcTemplate.execute( createTableAsPartitionOfSql );
+
             System.out.println( "Creating partition table: " + partition.getTableName() + ", columns: "
                 + table.getDimensionColumns().size() );
-            System.out.println( "Created SQL: " + createTableAsPartitionOfSql );
-
-            jdbcTemplate.execute( createTableAsPartitionOfSql );
+            System.out.println( "Partition table SQL: " + createTableAsPartitionOfSql );
         }
     }
 
