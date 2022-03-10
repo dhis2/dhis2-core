@@ -36,7 +36,6 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
 import org.hisp.dhis.tracker.programrule.RuleActionImplementer;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
-import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -60,12 +59,10 @@ public class EventRuleValidationHook
     @Override
     public void validateEvent( ValidationErrorReporter reporter, Event event )
     {
-        TrackerImportValidationContext context = reporter.getValidationContext();
-
         List<ProgramRuleIssue> programRuleIssues = validators
             .stream()
             .flatMap(
-                v -> v.validateEvents( context.getBundle() )
+                v -> v.validateEvents( reporter.getBundle() )
                     .getOrDefault( event.getEvent(), Lists.newArrayList() ).stream() )
             .collect( Collectors.toList() );
 
