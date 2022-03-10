@@ -240,22 +240,21 @@ public class FieldFilterService
 
             if ( fullPath.equals( "userAccesses.displayName" ) )
             {
-                ((BaseIdentifiableObject) object).getUserAccesses().forEach( ua -> {
-                    ua.setDisplayName( userService.getDisplayName( ua.getUserUid() ) );
-                } );
+                ((BaseIdentifiableObject) object).getSharing().getUsers().values()
+                    .forEach( ug -> ug.setDisplayName( userService.getDisplayName( ug.getId() ) ) );
             }
             else if ( fullPath.endsWith( ".userAccesses.displayName" ) )
             {
                 fieldPathHelper.visitFieldPaths( object, List.of( fp ), o -> {
                     if ( o instanceof BaseIdentifiableObject )
                     {
-                        BaseIdentifiableObject identifiableObject = (BaseIdentifiableObject) o;
-                        identifiableObject.getUserAccesses()
-                            .forEach( ua -> ua.setDisplayName( userService.getDisplayName( ua.getUserUid() ) ) );
+                        ((BaseIdentifiableObject) o).getSharing().getUsers().values()
+                            .forEach( ug -> ug.setDisplayName( userService.getDisplayName( ug.getId() ) ) );
                     }
                 } );
             }
         } );
+
     }
 
     private void applyUserGroupAccessDisplayName( Object object, List<FieldPath> fieldPaths,
@@ -278,18 +277,16 @@ public class FieldFilterService
 
             if ( fullPath.equals( "userGroupAccesses.displayName" ) )
             {
-                ((BaseIdentifiableObject) object).getUserGroupAccesses()
-                    .forEach( uga -> uga.setDisplayName( userGroupService.getDisplayName( uga.getUserGroupUid() ) ) );
+                ((BaseIdentifiableObject) object).getSharing().getUserGroups().values()
+                    .forEach( uga -> uga.setDisplayName( userGroupService.getDisplayName( uga.getId() ) ) );
             }
             else if ( fullPath.endsWith( ".userGroupAccesses.displayName" ) )
             {
                 fieldPathHelper.visitFieldPaths( object, List.of( fp ), o -> {
                     if ( o instanceof BaseIdentifiableObject )
                     {
-                        BaseIdentifiableObject identifiableObject = (BaseIdentifiableObject) o;
-                        identifiableObject.getUserGroupAccesses()
-                            .forEach(
-                                uga -> uga.setDisplayName( userGroupService.getDisplayName( uga.getUserGroupUid() ) ) );
+                        ((BaseIdentifiableObject) o).getSharing().getUserGroups().values()
+                            .forEach( uga -> uga.setDisplayName( userGroupService.getDisplayName( uga.getId() ) ) );
                     }
                 } );
             }
