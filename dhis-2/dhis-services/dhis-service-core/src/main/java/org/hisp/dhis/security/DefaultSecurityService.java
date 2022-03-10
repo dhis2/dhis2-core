@@ -319,7 +319,9 @@ public class DefaultSecurityService
     public boolean sendRestoreOrInviteMessage( User user, String rootPath,
         RestoreOptions restoreOptions )
     {
-        String encodedTokens = generateAndPersistTokens( user, restoreOptions );
+        User persistedUser = userService.getUser( user.getUid() );
+
+        String encodedTokens = generateAndPersistTokens( persistedUser, restoreOptions );
 
         RestoreType restoreType = restoreOptions.getRestoreType();
 
@@ -334,10 +336,10 @@ public class DefaultSecurityService
         vars.put( "applicationTitle", applicationTitle );
         vars.put( "restorePath", rootPath + RESTORE_PATH + restoreType.getAction() );
         vars.put( "token", encodedTokens );
-        vars.put( "welcomeMessage", user.getWelcomeMessage() );
+        vars.put( "welcomeMessage", persistedUser.getWelcomeMessage() );
 
         I18n i18n = i18nManager.getI18n( ObjectUtils.firstNonNull(
-            (Locale) userSettingService.getUserSetting( UserSettingKey.UI_LOCALE, user ),
+            (Locale) userSettingService.getUserSetting( UserSettingKey.UI_LOCALE, persistedUser ),
             LocaleManager.DEFAULT_LOCALE ) );
 
         vars.put( "i18n", i18n );
@@ -359,7 +361,7 @@ public class DefaultSecurityService
         // -------------------------------------------------------------------------
 
         emailMessageSender
-            .sendMessage( messageSubject, messageBody, null, null, ImmutableSet.of( user ), true );
+            .sendMessage( messageSubject, messageBody, null, null, ImmutableSet.of( persistedUser ), true );
 
         return true;
     }
