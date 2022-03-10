@@ -29,7 +29,10 @@ package org.hisp.dhis.webapi.service;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
@@ -41,6 +44,9 @@ import org.hisp.dhis.dxf2.events.trackedentity.ProgramOwner;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.fieldfiltering.FieldFilterParser;
+import org.hisp.dhis.fieldfiltering.FieldPath;
+import org.hisp.dhis.fieldfiltering.FieldPreset;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -52,8 +58,6 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.springframework.stereotype.Service;
-
-import com.google.common.base.Joiner;
 
 @Service
 @RequiredArgsConstructor
@@ -138,35 +142,41 @@ public class TrackedEntityInstanceSupportService
         return trackedEntityInstance;
     }
 
-    public TrackedEntityInstanceParams getTrackedEntityInstanceParams( List<String> fields )
+    public static TrackedEntityInstanceParams getTrackedEntityInstanceParams( List<String> fields )
     {
-        String joined = Joiner.on( "" ).join( fields );
-
-        if ( joined.contains( "*" ) )
-        {
-            return TrackedEntityInstanceParams.TRUE;
-        }
+        Map<String, FieldPath> paths = FieldFilterParser.parse( new HashSet<>( fields ) )
+            .stream()
+            .filter( p -> p.isRoot() )
+            .collect( Collectors.toMap( FieldPath::getName, Function.identity() ) );
 
         TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
-
-        if ( joined.contains( "relationships" ) )
+        if ( paths.containsKey( FieldPreset.ALL ) )
         {
-            params.setIncludeRelationships( true );
+            FieldPath p = paths.get( FieldPreset.ALL );
+            if ( p.isRoot() && !p.isExclude() )
+            {
+                params = new TrackedEntityInstanceParams( true, true, true, true );
+            }
         }
-
-        if ( joined.contains( "enrollments" ) )
+        if ( paths.containsKey( "relationships" ) )
         {
-            params.setIncludeEnrollments( true );
+            FieldPath p = paths.get( "relationships" );
+            params.setIncludeRelationships( !p.isExclude() );
         }
-
-        if ( joined.contains( "events" ) )
+        if ( paths.containsKey( "enrollments" ) )
         {
-            params.setIncludeEvents( true );
+            FieldPath p = paths.get( "enrollments" );
+            params.setIncludeEnrollments( !p.isExclude() );
         }
-
-        if ( joined.contains( "programOwners" ) )
+        if ( paths.containsKey( "events" ) )
         {
-            params.setIncludeProgramOwners( true );
+            FieldPath p = paths.get( "events" );
+            params.setIncludeEvents( !p.isExclude() );
+        }
+        if ( paths.containsKey( "programOwners" ) )
+        {
+            FieldPath p = paths.get( "programOwners" );
+            params.setIncludeProgramOwners( !p.isExclude() );
         }
 
         return params;

@@ -32,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import org.hisp.dhis.common.CodeGenerator;
@@ -138,20 +139,6 @@ class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenien
     @Test
     void getTrackedEntityById()
     {
-        TrackedEntityInstance tei = trackedEntityInstance();
-        this.switchContextToUser( user );
-
-        JsonObject json = GET( "/tracker/trackedEntities/{id}", tei.getUid() )
-            .content( HttpStatus.OK );
-
-        assertFalse( json.isEmpty() );
-        assertEquals( tei.getUid(), json.getString( "trackedEntity" ).string() );
-        assertTrue( json.getArray( "relationships" ).isEmpty(), "relationships are not returned by default" );
-    }
-
-    @Test
-    void getTrackedEntityByIdDoesNotReturnRelationshipsByDefault()
-    {
         TrackedEntityInstance from = trackedEntityInstance();
         TrackedEntityInstance to = trackedEntityInstance();
         relationship( from, to );
@@ -162,7 +149,55 @@ class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenien
 
         assertFalse( json.isEmpty() );
         assertEquals( from.getUid(), json.getString( "trackedEntity" ).string() );
-        assertTrue( json.getArray( "relationships" ).isEmpty(), "relationships are not returned by default" );
+        assertEquals( from.getTrackedEntityType().getUid(), json.getString( "trackedEntityType" ).string() );
+        assertEquals( from.getOrganisationUnit().getUid(), json.getString( "orgUnit" ).string() );
+        assertHasMember( json, "createdAt" );
+        assertHasMember( json, "createdAtClient" );
+        assertHasMember( json, "updatedAtClient" );
+        assertHasNoMember( json, "relationships" );
+        assertHasNoMember( json, "enrollments" );
+        assertHasNoMember( json, "events" );
+        assertHasNoMember( json, "programOwners" );
+    }
+
+    @Test
+    void getTrackedEntityByIdWithFieldsDoubleStar()
+    {
+        TrackedEntityInstance from = trackedEntityInstance();
+        TrackedEntityInstance to = trackedEntityInstance();
+        relationship( from, to );
+        this.switchContextToUser( user );
+
+        JsonObject json = GET( "/tracker/trackedEntities/{id}?fields=**", from.getUid() )
+            .content( HttpStatus.OK );
+
+        assertFalse( json.isEmpty() );
+        assertEquals( from.getUid(), json.getString( "trackedEntity" ).string() );
+        assertEquals( from.getTrackedEntityType().getUid(), json.getString( "trackedEntityType" ).string() );
+        assertEquals( from.getOrganisationUnit().getUid(), json.getString( "orgUnit" ).string() );
+        assertHasMember( json, "createdAt" );
+        assertHasMember( json, "createdAtClient" );
+        assertHasMember( json, "updatedAtClient" );
+        assertHasNoMember( json, "relationships" );
+        assertHasNoMember( json, "enrollments" );
+        assertHasNoMember( json, "events" );
+        assertHasNoMember( json, "programOwners" );
+    }
+
+    @Test
+    void getTrackedEntityByIdWithFields()
+    {
+        TrackedEntityInstance from = trackedEntityInstance();
+        TrackedEntityInstance to = trackedEntityInstance();
+        relationship( from, to );
+        this.switchContextToUser( user );
+
+        JsonObject json = GET( "/tracker/trackedEntities/{id}?fields=trackedEntity,orgUnit,relationships[relationship]",
+            from.getUid() )
+                .content( HttpStatus.OK );
+
+        assertFalse( json.isEmpty() );
+        assertHasOnlyMembers( json, "trackedEntity", "orgUnit", "relationships" );
     }
 
     @Test
@@ -176,8 +211,6 @@ class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenien
         JsonObject json = GET( "/tracker/trackedEntities/{id}?fields=relationships", from.getUid() )
             .content( HttpStatus.OK );
 
-        assertEquals( from.getUid(), json.getString( "trackedEntity" ).string(),
-            "returned even though `fields` is only set to relationships DHIS2-12660" );
         JsonArray rels = json.getArray( "relationships" );
         assertFalse( rels.isEmpty(), "relationships are returned if `fields` contains relationships" );
         assertEquals( 1, rels.size() );
@@ -198,8 +231,6 @@ class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenien
             .content( HttpStatus.OK );
 
         assertFalse( json.isEmpty() );
-        assertEquals( from.getUid(), json.getString( "trackedEntity" ).string(),
-            "returned even though `fields` is only set to relationships DHIS2-12660" );
         assertTrue( json.getArray( "relationships" ).isEmpty(),
             "user needs access to relationship type to access the relationship" );
     }
@@ -216,8 +247,6 @@ class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenien
             .content( HttpStatus.OK );
 
         assertFalse( json.isEmpty() );
-        assertEquals( from.getUid(), json.getString( "trackedEntity" ).string(),
-            "returned even though `fields` is only set to relationships DHIS2-12660" );
         assertTrue( json.getArray( "relationships" ).isEmpty(),
             "user needs access to from and to items to access the relationship" );
     }
@@ -400,9 +429,37 @@ class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenien
         JsonObject jsonTEI = json.getObject( "trackedEntity" );
         assertFalse( jsonTEI.isEmpty(), "trackedEntity should not be empty" );
         assertEquals( expected.getUid(), jsonTEI.getString( "trackedEntity" ).string(), "trackedEntity UID" );
-        assertFalse( jsonTEI.has( "trackedEntityType" ) );
-        assertFalse( jsonTEI.has( "orgUnit" ) );
-        assertFalse( jsonTEI.has( "relationships" ), "relationships is not returned within relationship items" );
+        assertHasNoMember( json, "trackedEntityType" );
+        assertHasNoMember( json, "orgUnit" );
+        assertHasNoMember( json, "relationships" ); // relationships are not
+                                                    // returned within
+                                                    // relationships
         assertTrue( jsonTEI.getArray( "attributes" ).isEmpty() );
+    }
+
+    private void assertHasNoMember( JsonObject json, String name )
+    {
+        assertFalse( json.has( name ), String.format( "member \"%s\" should NOT be in %s", name, json ) );
+    }
+
+    private void assertHasOnlyMembers( JsonObject json, String... names )
+    {
+        Set<String> actual = new HashSet<>( json.names() );
+        Set<String> expected = Set.of( names );
+        assertEquals( expected.size(), actual.size(), "total number of members" );
+        assertTrue( actual.containsAll( expected ), "members mismatch" );
+    }
+
+    private void assertHasMembers( JsonObject json, String... names )
+    {
+        for ( String name : names )
+        {
+            assertHasMember( json, name );
+        }
+    }
+
+    private void assertHasMember( JsonObject json, String name )
+    {
+        assertTrue( json.has( name ), String.format( "member \"%s\" should be in %s", name, json ) );
     }
 }

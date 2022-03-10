@@ -35,6 +35,7 @@ import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.tracker.TrackerNtiApiTest;
 import org.json.JSONException;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -79,24 +80,22 @@ public class TrackerExportTests
 
     private Stream<Arguments> shouldReturnRequestedFields()
     {
-        return Stream.of( new Arguments[] {
-            Arguments.of( "/trackedEntities/" + teiId,
-                "enrollments.createdAt,relationships[from.trackedEntity,to.trackedEntity]",
-                null ),
-            Arguments.of( "/trackedEntities/" + teiId, "trackedEntity,enrollments", null ),
-            Arguments.of( "/enrollments/" + enrollmentId, "program,status,enrolledAt", null ),
-            Arguments.of( "/enrollments/" + enrollmentId, "**", "enrollment,updatedAt,createdAt,occurredAt,enrolledAt",
-                null ),
+        return Stream.of(
+            Arguments.of( "/trackedEntities/" + teiId, "enrollments[createdAt],relationships[from[trackedEntity],to[trackedEntity]]", "enrollments.createdAt,relationships.from.trackedEntity,relationships.to.trackedEntity"),
+            Arguments.of( "/trackedEntities/" + teiId, "trackedEntity,enrollments", null),
+            Arguments.of( "/enrollments/" + enrollmentId, "program,status,enrolledAt", null),
+                Arguments.of( "/trackedEntities/" + teiId, "**",
+                        "trackedEntity,trackedEntityType,createdAt,updatedAt,orgUnit,inactive,deleted,potentialDuplicate,updatedBy,attributes", null ),
             Arguments.of( "/trackedEntities/" + teiId, "*",
-                "attributes,enrollments[createdAt,events],trackedEntity,orgUnit" ),
-            Arguments.of( "/trackedEntities/" + teiId, "**", "attributes,enrollments[createdAt,events]" ),
+                "trackedEntity,trackedEntityType,createdAt,updatedAt,orgUnit,inactive,deleted,potentialDuplicate,updatedBy,attributes", null ),
             Arguments.of( "/events/" + eventId, "enrollment,createdAt", null ),
             Arguments.of( "/relationships/" + relationshipId, "from,to.trackedEntity[*]", null )
-        } );
+         );
     }
 
+    @DisplayName("Display name of container")
     @MethodSource()
-    @ParameterizedTest
+    @ParameterizedTest(name = "{index} ==> {1}?fields={2} should return fields {3}")
     public void shouldReturnRequestedFields( String endpoint, String fields, String fieldsToValidate )
     {
         ApiResponse response = trackerActions.get( endpoint + "?fields=" + fields );
