@@ -42,10 +42,9 @@ import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.OrderComparator;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.JavaType;
@@ -75,6 +74,18 @@ public class FieldFilterService
 
     private final AclService aclService;
 
+    private final CurrentUserService currentUserService;
+
+    public FieldFilterService( FieldPathHelper fieldPathHelper, ObjectMapper jsonMapper, SchemaService schemaService,
+        AclService aclService, CurrentUserService currentUserService )
+    {
+        this.fieldPathHelper = fieldPathHelper;
+        this.jsonMapper = configureFieldFilterObjectMapper( jsonMapper );
+        this.schemaService = schemaService;
+        this.aclService = aclService;
+        this.currentUserService = currentUserService;
+    }
+
     private static class IgnoreJsonSerializerRefinementAnnotationInspector extends JacksonAnnotationIntrospector
     {
         /**
@@ -91,15 +102,6 @@ public class FieldFilterService
         {
             return baseType;
         }
-    }
-
-    public FieldFilterService( FieldPathHelper fieldPathHelper, ObjectMapper jsonMapper, SchemaService schemaService,
-        AclService aclService )
-    {
-        this.fieldPathHelper = fieldPathHelper;
-        this.jsonMapper = configureFieldFilterObjectMapper( jsonMapper );
-        this.schemaService = schemaService;
-        this.aclService = aclService;
     }
 
     public <T> List<ObjectNode> toObjectNodes( List<T> objects, List<String> filters )
@@ -121,12 +123,7 @@ public class FieldFilterService
 
         if ( params.getUser() == null )
         {
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-            if ( authentication != null && authentication.isAuthenticated() )
-            {
-                Object user = authentication.getPrincipal();
-            }
+            params.setUser( currentUserService.getCurrentUser() );
         }
 
         // In case we get a proxied object in we can't just use o.getClass(), we
