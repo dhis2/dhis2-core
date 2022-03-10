@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 
 import lombok.Data;
 
@@ -143,9 +144,19 @@ public class ValidationErrorReporter
         return !this.reportList.isEmpty();
     }
 
+    public boolean hasErrorReport( Predicate<TrackerErrorReport> test )
+    {
+        return reportList.stream().anyMatch( test );
+    }
+
     public boolean hasWarnings()
     {
         return !this.warningsReportList.isEmpty();
+    }
+
+    public boolean hasWarningReport( Predicate<TrackerWarningReport> test )
+    {
+        return warningsReportList.stream().anyMatch( test );
     }
 
     public static TrackerErrorReport.TrackerErrorReportBuilder newReport( TrackerErrorCode errorCode )

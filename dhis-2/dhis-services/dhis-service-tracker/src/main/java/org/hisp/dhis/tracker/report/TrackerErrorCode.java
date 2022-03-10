@@ -71,7 +71,6 @@ public enum TrackerErrorCode
     E1048( "Object: `{0}`, uid: `{1}`, has an invalid uid format." ),
     E1049( "Could not find OrganisationUnit: `{0}`, linked to Tracked Entity." ),
     E1050( "Event ScheduledAt date is missing." ),
-    E1053( "AttributeCategoryOptions `{0}` do not match the AttributeOptionCombo `{1}`." ),
     E1054( "AttributeOptionCombo `{0}` is not in the event programs category combo `{1}`." ),
     E1055( "Default AttributeOptionCombo is not allowed since program has non-default CategoryCombo." ),
     E1056( "Event date: `{0}`, is before start date: `{1}`, for AttributeOption: `{2}`." ),

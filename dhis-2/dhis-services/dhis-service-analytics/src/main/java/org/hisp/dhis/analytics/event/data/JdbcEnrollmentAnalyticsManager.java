@@ -37,6 +37,7 @@ import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
+import static org.hisp.dhis.util.DateUtils.plusOneDay;
 
 import java.util.List;
 
@@ -215,7 +216,7 @@ public class JdbcEnrollmentAnalyticsManager
             if ( params.hasStartEndDate() )
             {
                 sql += hlp.whereAnd() + " enrollmentdate >= '" + getMediumDateString( params.getStartDate() ) + "' ";
-                sql += "and enrollmentdate <= '" + getMediumDateString( params.getEndDate() ) + "' ";
+                sql += "and enrollmentdate < '" + getMediumDateString( plusOneDay( params.getEndDate() ) ) + "' ";
             }
             else // Periods
             {
