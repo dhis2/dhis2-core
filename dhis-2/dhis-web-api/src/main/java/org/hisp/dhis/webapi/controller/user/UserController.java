@@ -437,14 +437,9 @@ public class UserController
             throw new WebMessageException( conflict( valid ) );
         }
 
-        boolean isInviteUsername = securityService.isInviteUsername( user.getUsername() );
-
-        RestoreOptions restoreOptions = isInviteUsername ? RestoreOptions.INVITE_WITH_USERNAME_CHOICE
-            : RestoreOptions.INVITE_WITH_DEFINED_USERNAME;
-
         if ( !securityService
             .sendRestoreOrInviteMessage( user, ContextUtils.getContextPath( request ),
-                restoreOptions ) )
+                RestoreOptions.INVITE_WITH_DEFINED_USERNAME ) )
         {
             throw new WebMessageException( error( "Failed to send invite message" ) );
         }
@@ -911,10 +906,6 @@ public class UserController
      */
     private ObjectReport inviteUser( User user, User currentUser, HttpServletRequest request )
     {
-        RestoreOptions restoreOptions = user.getUsername() == null || user.getUsername().isEmpty()
-            ? RestoreOptions.INVITE_WITH_USERNAME_CHOICE
-            : RestoreOptions.INVITE_WITH_DEFINED_USERNAME;
-
         securityService.prepareUserForInvite( user );
 
         ImportReport importReport = createUser( user, currentUser );
@@ -926,7 +917,7 @@ public class UserController
         {
             securityService
                 .sendRestoreOrInviteMessage( user, ContextUtils.getContextPath( request ),
-                    restoreOptions );
+                    RestoreOptions.INVITE_WITH_DEFINED_USERNAME );
 
             log.info( String.format( "An invite email was successfully sent to: %s", user.getEmail() ) );
         }
