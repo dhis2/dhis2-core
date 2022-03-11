@@ -241,13 +241,6 @@ public class DefaultSecurityService
     {
         Objects.requireNonNull( user, "User object can't be null" );
 
-        if ( user.getUsername() == null || user.getUsername().isEmpty() )
-        {
-            String username = "invite-" + user.getEmail() + "-" + CodeGenerator.generateUid().toLowerCase();
-
-            user.setUsername( username );
-        }
-
         String rawPassword = CodeGenerator.getRandomSecureToken( INVITED_USER_PASSWORD_LENGTH_BYTES );
 
         user.setSurname( StringUtils.isEmpty( user.getSurname() ) ? TBD_NAME : user.getSurname() );

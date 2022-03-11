@@ -50,12 +50,22 @@
             <input type="text" id="surname" name="surname" autocomplete="off" style="width:11.7em" placeholder="Last">
         </td>
     </tr>
+
+    #if( $accountAction == "invited" )
     <tr>
         <td><label id="label_username" for="username">$i18n.getString( "user_name" )</label></td>
         <td>
-        	<input type="text" id="username" disabled="disabled" value="${username}" autocomplete="off"></td>
+        	<input type="text" id="username" disabled="disabled" value="$username" autocomplete="off"></td>
         <td>
     </tr>
+    #else
+        <tr>
+            <td><label id="label_username" for="username">$i18n.getString( "user_name" )</label></td>
+            <td>
+                <input type="text" id="username" name="username" autocomplete="off"></td>
+            <td>
+        </tr>
+    #end
     <tr>
         <td><label id="label_password" for="password">$i18n.getString( "password" )</label></td>
         <td><input type="password" id="password" name="password"  onfocusout="checkPasswordForUsername()" autocomplete="off" placeholder="$i18n.getString( 'password_hint' )"></td>
@@ -70,7 +80,7 @@
         <td><input type="hidden" id="email" name="email" value="$email">
             <input type="text" id="email" name="email" value="$email" disabled="disabled"></td>
         #else
-        <td><input type="text" id="email" name="email" value="$email" onfocusout="checkPasswordForEmail()"></td>
+        <td><input type="text" id="email" name="email" onfocusout="checkPasswordForEmail()"></td>
         #end
     </tr>
     <tr>

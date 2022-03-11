@@ -243,8 +243,6 @@ public class AccountController
 
         boolean invitedByEmail = (inviteUsername != null && !inviteUsername.isEmpty());
 
-        boolean canChooseUsername = true;
-
         if ( invitedByEmail )
         {
             String[] idAndRestoreToken = securityService.decodeEncodedTokens( inviteToken );
@@ -266,10 +264,6 @@ public class AccountController
                 return badRequest( "Invitation code not valid" );
             }
 
-            RestoreOptions restoreOptions = securityService.getRestoreOptions( restoreToken );
-
-            canChooseUsername = restoreOptions.isUsernameChoice();
-
             if ( !email.equals( user.getEmail() ) )
             {
                 return badRequest( "Email don't match invited email" );
@@ -282,6 +276,13 @@ public class AccountController
             if ( !allowed )
             {
                 return badRequest( "User self registration is not allowed" );
+            }
+
+            User existingUser = userService.getUserByUsername( username );
+
+            if ( existingUser != null )
+            {
+                return badRequest( "Username already exists!" );
             }
         }
 
@@ -298,8 +299,6 @@ public class AccountController
         employer = StringUtils.trimToNull( employer );
         recapResponse = StringUtils.trimToNull( recapResponse );
 
-        CredentialsInfo credentialsInfo = new CredentialsInfo( username, password, email, true );
-
         // ---------------------------------------------------------------------
         // Validate input, return 400 if invalid
         // ---------------------------------------------------------------------
@@ -307,13 +306,6 @@ public class AccountController
         if ( username == null || username.trim().length() > MAX_LENGTH )
         {
             return badRequest( "User name is not specified or invalid" );
-        }
-
-        User usernameAlreadyTakenCredentials = userService.getUserByUsername( username );
-
-        if ( canChooseUsername && usernameAlreadyTakenCredentials != null )
-        {
-            return badRequest( "User name is already taken" );
         }
 
         if ( firstName == null || firstName.trim().length() > MAX_LENGTH )
@@ -331,11 +323,12 @@ public class AccountController
             return badRequest( "Password is not specified" );
         }
 
-        PasswordValidationResult result = passwordValidationService.validate( credentialsInfo );
+        PasswordValidationResult passwordValidationResult = passwordValidationService.validate(
+            new CredentialsInfo( username, password, email, true ) );
 
-        if ( !result.isValid() )
+        if ( !passwordValidationResult.isValid() )
         {
-            return badRequest( result.getErrorMessage() );
+            return badRequest( passwordValidationResult.getErrorMessage() );
         }
 
         if ( email == null || !ValidationUtils.emailIsValid( email ) )
@@ -389,27 +382,14 @@ public class AccountController
                 return badRequest( "Unable to create invited user account" );
             }
 
-            user = new User();
             user.setFirstName( firstName );
             user.setSurname( surname );
-            user.setEmail( email );
             user.setPhoneNumber( phoneNumber );
             user.setEmployer( employer );
 
-            if ( canChooseUsername )
-            {
-                user.setUsername( username );
-            }
-            else
-            {
-                username = user.getUsername();
-            }
-
-            userService.encodeAndSetPassword( user, password );
-
             userService.updateUser( user );
 
-            log.info( "User " + username + " accepted invitation for " + inviteUsername );
+            log.info( "User " + user.getUsername() + " accepted invitation for " + inviteUsername );
         }
         else
         {
