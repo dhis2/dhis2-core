@@ -52,7 +52,7 @@ public abstract class AccessObject
         this.id = id;
     }
 
-    @JsonProperty
+    @JsonProperty( access = JsonProperty.Access.READ_ONLY )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getDisplayName()
     {
