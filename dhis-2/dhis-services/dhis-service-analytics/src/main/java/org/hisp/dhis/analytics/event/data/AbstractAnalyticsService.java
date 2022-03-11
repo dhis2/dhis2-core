@@ -373,8 +373,7 @@ public abstract class AbstractAnalyticsService
 
         params.getItemsAndItemFilters().stream()
             .filter( Objects::nonNull )
-            .forEach( item -> metadataItemMap.put( getItemIdMaybeWithProgramStageIdPrefix( item ),
-                new MetadataItem( item.getItem().getDisplayName(), includeDetails ? item.getItem() : null ) ) );
+            .forEach( item -> addItemIntoMetadata( metadataItemMap, item, includeDetails ) );
 
         if ( hasPeriodKeywords( periodKeywords ) )
         {
@@ -388,6 +387,20 @@ public abstract class AbstractAnalyticsService
         }
 
         return metadataItemMap;
+    }
+
+    private void addItemIntoMetadata( final Map<String, MetadataItem> metadataItemMap, final QueryItem item,
+        final boolean includeDetails )
+    {
+        final MetadataItem metadataItem = new MetadataItem( item.getItem().getDisplayName(),
+            includeDetails ? item.getItem() : null );
+
+        metadataItemMap.put( getItemIdMaybeWithProgramStageIdPrefix( item ), metadataItem );
+
+        // This is done for backward compatibility reason. It should remain here
+        // while the New Event Report is living along with its "classic"
+        // version.
+        metadataItemMap.put( item.getItemId(), metadataItem );
     }
 
     /**
