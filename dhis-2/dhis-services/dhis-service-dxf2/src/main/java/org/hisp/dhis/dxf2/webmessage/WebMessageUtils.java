@@ -255,7 +255,7 @@ public final class WebMessageUtils
 
         if ( webMessage.getStatus() != Status.OK )
         {
-            webMessage.setMessage( "One more more errors occurred, please see full details in import report." );
+            webMessage.setMessage( "One or more errors occurred, please see full details in import report." );
             webMessage.setStatus( Status.WARNING );
             webMessage.setHttpStatus( HttpStatus.CONFLICT );
         }
@@ -275,7 +275,7 @@ public final class WebMessageUtils
         }
         else
         {
-            webMessage.setMessage( "One more more errors occurred, please see full details in import report." );
+            webMessage.setMessage( "One or more errors occurred, please see full details in import report." );
             webMessage.setStatus( Status.ERROR );
             webMessage.setHttpStatus( HttpStatus.CONFLICT );
         }
@@ -312,7 +312,7 @@ public final class WebMessageUtils
         }
         else
         {
-            webMessage.setMessage( "One more more errors occurred, please see full details in import report." );
+            webMessage.setMessage( "One or more errors occurred, please see full details in import report." );
             webMessage.setStatus( Status.WARNING );
             webMessage.setHttpStatus( HttpStatus.CONFLICT );
         }
