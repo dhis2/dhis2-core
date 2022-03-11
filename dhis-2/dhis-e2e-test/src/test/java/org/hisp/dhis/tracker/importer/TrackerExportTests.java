@@ -211,13 +211,13 @@ public class TrackerExportTests
     @Test
     public void shouldReturnRelationshipsByTei()
     {
-        trackerActions.get( "/relationships?trackedEntity=" + teiId )
-            .validateStatus( 200 )
+        trackerActions.getRelationship( "?trackedEntity=" + teiId )
             .validate()
+            .statusCode( 200 )
             .body( "instances", hasSize( greaterThanOrEqualTo( 1 ) ) )
             .rootPath( "instances[0]" )
             .body( "relationship", equalTo( relationshipId ) )
-            .body( "from.trackedEntity", equalTo( teiId ) )
-            .body( "to.trackedEntity", notNullValue() );
+            .body( "from.trackedEntity.trackedEntity", equalTo( teiId ) )
+            .body( "to.trackedEntity.trackedEntity", notNullValue() );
     }
 }
