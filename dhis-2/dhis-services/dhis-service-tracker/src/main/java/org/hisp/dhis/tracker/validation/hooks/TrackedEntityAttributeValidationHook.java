@@ -216,6 +216,10 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
         FileResource fileResource = preheat.get( FileResource.class, attr.getValue() );
 
         reporter.addErrorIfNull( fileResource, te, E1084, attr.getValue() );
-        reporter.addErrorIf( () -> fileResource != null && fileResource.isAssigned(), te, E1009, attr.getValue() );
+
+        if ( reporter.getBundle().getStrategy( te ).isCreate() )
+        {
+            reporter.addErrorIf( () -> fileResource != null && fileResource.isAssigned(), te, E1009, attr.getValue() );
+        }
     }
 }

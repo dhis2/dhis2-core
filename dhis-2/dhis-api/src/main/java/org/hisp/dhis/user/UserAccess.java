@@ -112,7 +112,7 @@ public class UserAccess
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String displayName()
+    public String getDisplayName()
     {
         return displayName;
     }
