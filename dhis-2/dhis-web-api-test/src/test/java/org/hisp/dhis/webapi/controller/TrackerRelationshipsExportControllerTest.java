@@ -320,16 +320,33 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
 
     private void assertEvent( JsonObject json, ProgramStageInstance programStageInstance )
     {
-        assertEquals( programStageInstance.getUid(), json.getString( "event" ).string() );
+        JsonObject jsonEvent = json.getObject( "event" );
+        assertEquals( programStageInstance.getUid(), jsonEvent.getString( "event" ).string() );
+        assertEquals( programStageInstance.getStatus().toString(), jsonEvent.getString( "status" ).string() );
+        assertEquals( programStageInstance.getProgramStage().getUid(), jsonEvent.getString( "programStage" ).string() );
+        assertEquals( programStageInstance.getProgramInstance().getUid(),
+            jsonEvent.getString( "enrollment" ).string() );
+        assertFalse( jsonEvent.has( "relationships" ) );
     }
 
     private void assertTrackedEntity( JsonObject json, TrackedEntityInstance tei )
     {
-        assertEquals( tei.getUid(), json.getString( "trackedEntity" ).string() );
+        JsonObject jsonTEI = json.getObject( "trackedEntity" );
+        assertEquals( tei.getUid(), jsonTEI.getString( "trackedEntity" ).string() );
+        assertEquals( tei.getTrackedEntityType().getUid(), jsonTEI.getString( "trackedEntityType" ).string() );
+        assertEquals( tei.getOrganisationUnit().getUid(), jsonTEI.getString( "orgUnit" ).string() );
+        assertFalse( jsonTEI.has( "relationships" ) );
     }
 
     private void assertEnrollment( JsonObject json, ProgramInstance programInstance )
     {
-        assertEquals( programInstance.getUid(), json.getString( "enrollment" ).string() );
+        JsonObject jsonEnrollment = json.getObject( "enrollment" );
+        assertEquals( programInstance.getUid(), jsonEnrollment.getString( "enrollment" ).string() );
+        assertEquals( programInstance.getEntityInstance().getUid(),
+            jsonEnrollment.getString( "trackedEntity" ).string() );
+        assertEquals( programInstance.getProgram().getUid(), jsonEnrollment.getString( "program" ).string() );
+        assertEquals( programInstance.getOrganisationUnit().getUid(), jsonEnrollment.getString( "orgUnit" ).string() );
+        assertTrue( jsonEnrollment.getArray( "events" ).isEmpty() );
+        assertFalse( jsonEnrollment.has( "relationships" ) );
     }
 }
