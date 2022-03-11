@@ -45,6 +45,7 @@ import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ValidationStrategy;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerIdentifierParams;
@@ -686,6 +687,14 @@ public class EventDataValuesValidationHookTest
 
         assertThat( reporter.getReportList(), hasSize( 1 ) );
         assertEquals( TrackerErrorCode.E1009, reporter.getReportList().get( 0 ).getErrorCode() );
+
+        when( context.getProgramStageInstance( event.getEvent() ) ).thenReturn( new ProgramStageInstance() );
+
+        ValidationErrorReporter updateReporter = new ValidationErrorReporter( context );
+
+        hook.validateEvent( updateReporter, event );
+
+        assertThat( updateReporter.getReportList(), hasSize( 0 ) );
     }
 
     @Test
