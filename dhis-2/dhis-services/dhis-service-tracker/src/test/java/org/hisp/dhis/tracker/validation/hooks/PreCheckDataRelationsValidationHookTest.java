@@ -914,12 +914,8 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
 
         Relationship relationship = Relationship.builder()
             .relationship( CodeGenerator.generateUid() )
-            .from( RelationshipItem.builder()
-                .trackedEntity( "validTrackedEntity" )
-                .build() )
-            .to( RelationshipItem.builder()
-                .trackedEntity( "anotherValidTrackedEntity" )
-                .build() )
+            .from( trackedEntityRelationshipItem( "validTrackedEntity" ) )
+            .to( trackedEntityRelationshipItem( "anotherValidTrackedEntity" ) )
             .relationshipType( relType.getUid() )
             .build();
 
@@ -952,12 +948,8 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
 
         Relationship relationship = Relationship.builder()
             .relationship( CodeGenerator.generateUid() )
-            .from( RelationshipItem.builder()
-                .trackedEntity( "validTrackedEntity" )
-                .build() )
-            .to( RelationshipItem.builder()
-                .trackedEntity( "anotherValidTrackedEntity" )
-                .build() )
+            .from( trackedEntityRelationshipItem( "validTrackedEntity" ) )
+            .to( trackedEntityRelationshipItem( "anotherValidTrackedEntity" ) )
             .relationshipType( relType.getUid() )
             .build();
 
@@ -1143,6 +1135,13 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         relType.setToConstraint( relationshipConstraintTo );
 
         return relType;
+    }
+
+    private RelationshipItem trackedEntityRelationshipItem( String trackedEntityUid )
+    {
+        return RelationshipItem.builder()
+            .trackedEntity( RelationshipItem.TrackedEntity.builder().trackedEntity( trackedEntityUid ).build() )
+            .build();
     }
 
 }
