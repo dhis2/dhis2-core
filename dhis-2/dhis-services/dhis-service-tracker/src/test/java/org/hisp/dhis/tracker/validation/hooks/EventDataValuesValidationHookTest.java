@@ -555,11 +555,11 @@ public class EventDataValuesValidationHookTest
         assertThat( reporter.getReportList(), hasSize( 1 ) );
         assertEquals( TrackerErrorCode.E1009, reporter.getReportList().get( 0 ).getErrorCode() );
 
-        when( context.getProgramStageInstance( event.getEvent() ) ).thenReturn( new ProgramStageInstance() );
+        when( validationContext.getProgramStageInstance( event.getEvent() ) ).thenReturn( new ProgramStageInstance() );
 
-        ValidationErrorReporter updateReporter = new ValidationErrorReporter( context );
+        ValidationErrorReporter updateReporter = new ValidationErrorReporter( validationContext );
 
-        hook.validateEvent( updateReporter, event );
+        hookToTest.validateEvent( updateReporter, event );
 
         assertThat( updateReporter.getReportList(), hasSize( 0 ) );
     }
