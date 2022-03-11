@@ -174,15 +174,16 @@ public class FieldFilterService
 
         for ( Object object : params.getObjects() )
         {
-            apply( object, fieldPaths, params, s -> s.equals( "access" ) || s.endsWith( ".access" ), o -> {
-                if ( o instanceof BaseIdentifiableObject )
-                {
-                    ((BaseIdentifiableObject) o)
-                        .setAccess( aclService.getAccess( ((IdentifiableObject) o), params.getUser() ) );
-                }
-            } );
+            applyFieldPathVisitor( object, fieldPaths, params, s -> s.equals( "access" ) || s.endsWith( ".access" ),
+                o -> {
+                    if ( o instanceof BaseIdentifiableObject )
+                    {
+                        ((BaseIdentifiableObject) o)
+                            .setAccess( aclService.getAccess( ((IdentifiableObject) o), params.getUser() ) );
+                    }
+                } );
 
-            apply( object, fieldPaths, params,
+            applyFieldPathVisitor( object, fieldPaths, params,
                 s -> s.equals( "userAccesses.displayName" ) || s.endsWith( ".userAccesses.displayName" ), o -> {
                     if ( o instanceof BaseIdentifiableObject )
                     {
@@ -191,7 +192,7 @@ public class FieldFilterService
                     }
                 } );
 
-            apply( object, fieldPaths, params,
+            applyFieldPathVisitor( object, fieldPaths, params,
                 s -> s.equals( "userGroupAccesses.displayName" ) || s.endsWith( ".userGroupAccesses.displayName" ),
                 o -> {
                     if ( o instanceof BaseIdentifiableObject )
@@ -210,7 +211,7 @@ public class FieldFilterService
         return objectNodes;
     }
 
-    private void apply( Object object, List<FieldPath> fieldPaths,
+    private void applyFieldPathVisitor( Object object, List<FieldPath> fieldPaths,
         FieldFilterParams<?> params, Predicate<String> filter, Consumer<Object> consumer )
     {
         if ( object == null || params.isSkipSharing() )
