@@ -80,7 +80,7 @@ import com.google.common.collect.ImmutableSet;
 @RequiredArgsConstructor
 public class TrackerIdentifierCollector
 {
-    public final static String ID_WILDCARD = "*";
+    public static final String ID_WILDCARD = "*";
 
     private final ProgramRuleService programRuleService;
 
@@ -205,15 +205,22 @@ public class TrackerIdentifierCollector
 
             if ( relationship.getFrom() != null )
             {
-                addIdentifier( identifiers, TrackedEntity.class, relationship.getFrom().getTrackedEntity() );
-                addIdentifier( identifiers, Enrollment.class, relationship.getFrom().getEnrollment() );
-                addIdentifier( identifiers, Event.class, relationship.getFrom().getEvent() );
+                addIdentifier( identifiers, TrackedEntity.class,
+                    relationship.getFrom().getTrackedEntity() == null ? null
+                        : relationship.getFrom().getTrackedEntity().getTrackedEntity() );
+                addIdentifier( identifiers, Enrollment.class, relationship.getFrom().getEnrollment() == null ? null
+                    : relationship.getFrom().getEnrollment().getEnrollment() );
+                addIdentifier( identifiers, Event.class,
+                    relationship.getFrom().getEvent() == null ? null : relationship.getFrom().getEvent().getEvent() );
             }
             if ( relationship.getTo() != null )
             {
-                addIdentifier( identifiers, TrackedEntity.class, relationship.getTo().getTrackedEntity() );
-                addIdentifier( identifiers, Enrollment.class, relationship.getTo().getEnrollment() );
-                addIdentifier( identifiers, Event.class, relationship.getTo().getEvent() );
+                addIdentifier( identifiers, TrackedEntity.class, relationship.getTo().getTrackedEntity() == null ? null
+                    : relationship.getTo().getTrackedEntity().getTrackedEntity() );
+                addIdentifier( identifiers, Enrollment.class, relationship.getTo().getEnrollment() == null ? null
+                    : relationship.getTo().getEnrollment().getEnrollment() );
+                addIdentifier( identifiers, Event.class,
+                    relationship.getTo().getEvent() == null ? null : relationship.getTo().getEvent().getEvent() );
             }
         } );
     }
@@ -225,11 +232,8 @@ public class TrackerIdentifierCollector
             return;
         }
 
-        if ( !identifiers.containsKey( klass ) )
-        {
-            identifiers.put( klass, new HashSet<>() );
-        }
-
-        identifiers.get( klass ).add( identifier );
+        identifiers
+            .computeIfAbsent( klass, k -> new HashSet<>() )
+            .add( identifier );
     }
 }
