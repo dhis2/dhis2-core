@@ -138,7 +138,6 @@ public class RelationshipsTests
     }
 
     @Test
-    @Disabled( "uncomment when DHIS2-12625 is fixed" )
     public void shouldNotUpdateRelationship()
     {
         // arrange
@@ -157,15 +156,16 @@ public class RelationshipsTests
 
         updatedRelationship = JsonObjectBuilder.jsonObject( updatedRelationship )
             .addObjectByJsonPath( "relationships[0]", "from",
-                relationshipItem( "trackedEntity", teis.get( 1 ) ).build() )
-            .addObjectByJsonPath( "relationships[0]", "to",
                 relationshipItem( "trackedEntity", teis.get( 0 ) ).build() )
+            .addObjectByJsonPath( "relationships[0]", "to",
+                relationshipItem( "trackedEntity", teis.get( 1 ) ).build() )
             .wrapIntoArray( "relationships" );
 
         // act
         trackerActions
-            .postAndGetJobReport( updatedRelationship, new QueryParamsBuilder().addAll( "importStrategy=UPDATE", "async=false" ) )
-            .validateErrorReport()
+            .postAndGetJobReport( updatedRelationship, new QueryParamsBuilder().addAll( "importStrategy=UPDATE" ) )
+            .validateWarningReport()
+            .body( "warningCode", hasItems( "E4015" ) )
             .body( "message", hasItem( containsString( "already exists" ) ) );
 
         trackerActions.getRelationship( relationshipId )
