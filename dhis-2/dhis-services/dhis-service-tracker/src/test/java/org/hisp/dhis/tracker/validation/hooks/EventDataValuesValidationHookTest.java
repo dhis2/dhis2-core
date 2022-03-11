@@ -46,6 +46,7 @@ import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ValidationStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.DataValue;
@@ -553,6 +554,14 @@ public class EventDataValuesValidationHookTest
         // Then
         assertThat( reporter.getReportList(), hasSize( 1 ) );
         assertEquals( TrackerErrorCode.E1009, reporter.getReportList().get( 0 ).getErrorCode() );
+
+        when( validationContext.getProgramStageInstance( event.getEvent() ) ).thenReturn( new ProgramStageInstance() );
+
+        ValidationErrorReporter updateReporter = new ValidationErrorReporter( validationContext );
+
+        hookToTest.validateEvent( updateReporter, event );
+
+        assertThat( updateReporter.getReportList(), hasSize( 0 ) );
     }
 
     @Test

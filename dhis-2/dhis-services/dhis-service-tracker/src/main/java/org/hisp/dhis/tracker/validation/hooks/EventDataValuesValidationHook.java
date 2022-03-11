@@ -115,7 +115,7 @@ public class EventDataValuesValidationHook
         else
         {
             validateNullDataValues( reporter, dataElement, programStage, dataValue, event );
-            validateFileNotAlreadyAssigned( reporter, dataValue, dataElement );
+            validateFileNotAlreadyAssigned( reporter, event, dataValue, dataElement );
         }
     }
 
@@ -159,7 +159,7 @@ public class EventDataValuesValidationHook
         }
     }
 
-    private void validateFileNotAlreadyAssigned( ValidationErrorReporter reporter, DataValue dataValue,
+    private void validateFileNotAlreadyAssigned( ValidationErrorReporter reporter, Event event, DataValue dataValue,
         DataElement dataElement )
     {
         if ( dataValue == null || dataValue.getValue() == null )
@@ -176,6 +176,11 @@ public class EventDataValuesValidationHook
         FileResource fileResource = reporter.getValidationContext().getFileResource( dataValue.getValue() );
 
         addErrorIfNull( fileResource, reporter, E1084, dataValue.getValue() );
-        addErrorIf( () -> fileResource != null && fileResource.isAssigned(), reporter, E1009, dataValue.getValue() );
+
+        if ( reporter.getValidationContext().getProgramStageInstance( event.getEvent() ) == null )
+        {
+            addErrorIf( () -> fileResource != null && fileResource.isAssigned(), reporter, E1009,
+                dataValue.getValue() );
+        }
     }
 }
