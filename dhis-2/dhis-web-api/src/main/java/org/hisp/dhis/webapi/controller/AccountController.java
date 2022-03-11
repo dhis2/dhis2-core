@@ -238,57 +238,7 @@ public class AccountController
         HttpServletRequest request )
         throws IOException
     {
-        User user = null;
-        String restoreToken = null;
-
         boolean invitedByEmail = (inviteUsername != null && !inviteUsername.isEmpty());
-
-        if ( invitedByEmail )
-        {
-            String[] idAndRestoreToken = securityService.decodeEncodedTokens( inviteToken );
-
-            String idToken = idAndRestoreToken[0];
-            restoreToken = idAndRestoreToken[1];
-
-            user = userService.getUserByIdToken( idToken );
-
-            if ( user == null )
-            {
-                return badRequest( "Invitation link not valid" );
-            }
-
-            boolean canRestore = securityService.canRestore( user, restoreToken, RestoreType.INVITE );
-
-            if ( !canRestore )
-            {
-                return badRequest( "Invitation code not valid" );
-            }
-
-            if ( !email.equals( user.getEmail() ) )
-            {
-                return badRequest( "Email don't match invited email" );
-            }
-        }
-        else
-        {
-            boolean allowed = configurationService.getConfiguration().selfRegistrationAllowed();
-
-            if ( !allowed )
-            {
-                return badRequest( "User self registration is not allowed" );
-            }
-
-            User existingUser = userService.getUserByUsername( username );
-
-            if ( existingUser != null )
-            {
-                return badRequest( "Username already exists!" );
-            }
-        }
-
-        // ---------------------------------------------------------------------
-        // Trim input
-        // ---------------------------------------------------------------------
 
         username = StringUtils.trimToNull( username );
         firstName = StringUtils.trimToNull( firstName );
@@ -367,12 +317,32 @@ public class AccountController
             }
         }
 
-        // ---------------------------------------------------------------------
-        // Create and save user, return 201
-        // ---------------------------------------------------------------------
-
         if ( invitedByEmail )
         {
+            String[] idAndRestoreToken = securityService.decodeEncodedTokens( inviteToken );
+
+            String idToken = idAndRestoreToken[0];
+            String restoreToken = idAndRestoreToken[1];
+
+            User user = userService.getUserByIdToken( idToken );
+
+            if ( user == null )
+            {
+                return badRequest( "Invitation link not valid" );
+            }
+
+            boolean canRestore = securityService.canRestore( user, restoreToken, RestoreType.INVITE );
+
+            if ( !canRestore )
+            {
+                return badRequest( "Invitation code not valid" );
+            }
+
+            if ( !email.equals( user.getEmail() ) )
+            {
+                return badRequest( "Email don't match invited email" );
+            }
+
             boolean restored = securityService.restore( user, restoreToken, password, RestoreType.INVITE );
 
             if ( !restored )
@@ -390,13 +360,29 @@ public class AccountController
             userService.updateUser( user );
 
             log.info( "User " + user.getUsername() + " accepted invitation for " + inviteUsername );
+
+            authenticateUser( user, username, password, request );
         }
-        else
+        else // Self registration
         {
+            boolean allowed = configurationService.getConfiguration().selfRegistrationAllowed();
+
+            if ( !allowed )
+            {
+                return badRequest( "User self registration is not allowed" );
+            }
+
+            User existingUser = userService.getUserByUsername( username );
+
+            if ( existingUser != null )
+            {
+                return badRequest( "Username already exists!" );
+            }
+
             UserRole userRole = configurationService.getConfiguration().getSelfRegistrationRole();
             OrganisationUnit orgUnit = configurationService.getConfiguration().getSelfRegistrationOrgUnit();
 
-            user = new User();
+            User user = new User();
             user.setFirstName( firstName );
             user.setSurname( surname );
             user.setEmail( email );
@@ -414,13 +400,17 @@ public class AccountController
             userService.addUser( user );
 
             log.info( "Created user with username: " + username );
+
+            authenticateUser( user, username, password, request );
         }
 
-        Set<GrantedAuthority> authorities = getAuthorities( user.getUserRoles() );
-
-        authenticate( username, password, authorities, request );
-
         return ok( "Account created" );
+    }
+
+    private void authenticateUser( User user, String username, String password, HttpServletRequest request )
+    {
+        Set<GrantedAuthority> authorities = getAuthorities( user.getUserRoles() );
+        authenticate( username, password, authorities, request );
     }
 
     @PostMapping( "/password" )

@@ -64,10 +64,6 @@ import com.google.common.collect.Sets;
  */
 public class ValidationUtils
 {
-    private static final int USERNAME_MAX_LENGTH = 255;
-
-    private static final int USERNAME_MIN_LENGTH = 4;
-
     private static final Pattern USERNAME_PATTERN = Pattern.compile(
         "^(?=.{4,255}$)(?![_.@])(?!.*[_.@]{2})[a-z0-9._@]+(?<![_.@])$" );
 
