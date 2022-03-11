@@ -190,7 +190,10 @@ public class EventDataValuesValidationHook
         FileResource fileResource = preheat.get( FileResource.class, dataValue.getValue() );
 
         reporter.addErrorIfNull( fileResource, event, E1084, dataValue.getValue() );
-        reporter.addErrorIf( () -> fileResource != null && fileResource.isAssigned(), event,
-            E1009, dataValue.getValue() );
+        if ( reporter.getBundle().getStrategy( event ).isCreate() )
+        {
+            reporter.addErrorIf( () -> fileResource != null && fileResource.isAssigned(), event,
+                E1009, dataValue.getValue() );
+        }
     }
 }
