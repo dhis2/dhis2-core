@@ -76,6 +76,7 @@ public class UserGroupAccess
         userGroup.setUid( getId() );
         userGroupAccess.setUserGroup( userGroup );
         userGroupAccess.setUid( getId() );
+        userGroupAccess.setDisplayName( getDisplayName() );
 
         return userGroupAccess;
     }
