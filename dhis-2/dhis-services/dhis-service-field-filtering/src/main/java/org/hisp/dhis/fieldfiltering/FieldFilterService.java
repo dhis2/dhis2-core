@@ -31,9 +31,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.fieldfiltering.transformers.IsEmptyFieldTransformer;
 import org.hisp.dhis.fieldfiltering.transformers.IsNotEmptyFieldTransformer;
 import org.hisp.dhis.fieldfiltering.transformers.PluckFieldTransformer;
@@ -171,9 +174,32 @@ public class FieldFilterService
 
         for ( Object object : params.getObjects() )
         {
-            applyAccess( object, fieldPaths, params );
-            applyUserAccessDisplayName( object, fieldPaths, params );
-            applyUserGroupAccessDisplayName( object, fieldPaths, params );
+            apply( object, fieldPaths, params, s -> s.equals( "access" ) || s.endsWith( ".access" ), o -> {
+                if ( o instanceof BaseIdentifiableObject )
+                {
+                    ((BaseIdentifiableObject) o)
+                        .setAccess( aclService.getAccess( ((IdentifiableObject) o), params.getUser() ) );
+                }
+            } );
+
+            apply( object, fieldPaths, params,
+                s -> s.equals( "userAccesses.displayName" ) || s.endsWith( ".userAccesses.displayName" ), o -> {
+                    if ( o instanceof BaseIdentifiableObject )
+                    {
+                        ((BaseIdentifiableObject) o).getSharing().getUsers().values()
+                            .forEach( ua -> ua.setDisplayName( userService.getDisplayName( ua.getId() ) ) );
+                    }
+                } );
+
+            apply( object, fieldPaths, params,
+                s -> s.equals( "userGroupAccesses.displayName" ) || s.endsWith( ".userGroupAccesses.displayName" ),
+                o -> {
+                    if ( o instanceof BaseIdentifiableObject )
+                    {
+                        ((BaseIdentifiableObject) o).getSharing().getUserGroups().values()
+                            .forEach( uga -> uga.setDisplayName( userGroupService.getDisplayName( uga.getId() ) ) );
+                    }
+                } );
 
             ObjectNode objectNode = objectMapper.valueToTree( object );
             applyTransformers( objectNode, null, "", fieldTransformers );
@@ -184,44 +210,8 @@ public class FieldFilterService
         return objectNodes;
     }
 
-    private void applyAccess( Object object, List<FieldPath> fieldPaths, FieldFilterParams<?> params )
-    {
-        if ( object == null || params.isSkipSharing() )
-        {
-            return;
-        }
-
-        Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( object ) );
-
-        if ( !schema.isMetadata() )
-        {
-            return;
-        }
-
-        BaseIdentifiableObject identifiableObject = (BaseIdentifiableObject) object;
-
-        fieldPaths.forEach( fp -> {
-            String fullPath = fp.toFullPath();
-
-            if ( fullPath.equals( "access" ) )
-            {
-                identifiableObject.setAccess( aclService.getAccess( identifiableObject, params.getUser() ) );
-            }
-            else if ( fullPath.endsWith( ".access" ) )
-            {
-                fieldPathHelper.visitFieldPaths( object, List.of( fp ), o -> {
-                    if ( o instanceof BaseIdentifiableObject )
-                    {
-                        BaseIdentifiableObject baseIdentifiableObject = (BaseIdentifiableObject) o;
-                        baseIdentifiableObject
-                            .setAccess( aclService.getAccess( baseIdentifiableObject, params.getUser() ) );
-                    }
-                } );
-            }
-        } );
-    }
-
-    private void applyUserAccessDisplayName( Object object, List<FieldPath> fieldPaths, FieldFilterParams<?> params )
+    private void apply( Object object, List<FieldPath> fieldPaths,
+        FieldFilterParams<?> params, Predicate<String> filter, Consumer<Object> consumer )
     {
         if ( object == null || params.isSkipSharing() )
         {
@@ -236,59 +226,9 @@ public class FieldFilterService
         }
 
         fieldPaths.forEach( fp -> {
-            String fullPath = fp.toFullPath();
-
-            if ( fullPath.equals( "userAccesses.displayName" ) )
+            if ( filter.test( fp.toFullPath() ) )
             {
-                ((BaseIdentifiableObject) object).getSharing().getUsers().values()
-                    .forEach( ug -> ug.setDisplayName( userService.getDisplayName( ug.getId() ) ) );
-            }
-            else if ( fullPath.endsWith( ".userAccesses.displayName" ) )
-            {
-                fieldPathHelper.visitFieldPaths( object, List.of( fp ), o -> {
-                    if ( o instanceof BaseIdentifiableObject )
-                    {
-                        ((BaseIdentifiableObject) o).getSharing().getUsers().values()
-                            .forEach( ug -> ug.setDisplayName( userService.getDisplayName( ug.getId() ) ) );
-                    }
-                } );
-            }
-        } );
-
-    }
-
-    private void applyUserGroupAccessDisplayName( Object object, List<FieldPath> fieldPaths,
-        FieldFilterParams<?> params )
-    {
-        if ( object == null || params.isSkipSharing() )
-        {
-            return;
-        }
-
-        Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( object ) );
-
-        if ( !schema.isMetadata() )
-        {
-            return;
-        }
-
-        fieldPaths.forEach( fp -> {
-            String fullPath = fp.toFullPath();
-
-            if ( fullPath.equals( "userGroupAccesses.displayName" ) )
-            {
-                ((BaseIdentifiableObject) object).getSharing().getUserGroups().values()
-                    .forEach( uga -> uga.setDisplayName( userGroupService.getDisplayName( uga.getId() ) ) );
-            }
-            else if ( fullPath.endsWith( ".userGroupAccesses.displayName" ) )
-            {
-                fieldPathHelper.visitFieldPaths( object, List.of( fp ), o -> {
-                    if ( o instanceof BaseIdentifiableObject )
-                    {
-                        ((BaseIdentifiableObject) o).getSharing().getUserGroups().values()
-                            .forEach( uga -> uga.setDisplayName( userGroupService.getDisplayName( uga.getId() ) ) );
-                    }
-                } );
+                fieldPathHelper.visitFieldPaths( object, List.of( fp ), consumer );
             }
         } );
     }
