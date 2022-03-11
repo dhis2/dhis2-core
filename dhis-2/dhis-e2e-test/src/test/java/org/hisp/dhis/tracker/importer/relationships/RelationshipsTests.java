@@ -27,20 +27,7 @@
  */
 package org.hisp.dhis.tracker.importer.relationships;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.everyItem;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Stream;
-
+import com.google.gson.JsonObject;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.actions.IdGenerator;
 import org.hisp.dhis.actions.metadata.MetadataActions;
@@ -77,7 +64,6 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
-
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -158,16 +144,16 @@ public class RelationshipsTests
         // arrange
         String relationshipId = new IdGenerator().generateUniqueId();
 
-
         JsonObject originalRelationship = new RelationshipDataBuilder()
             .setRelationshipId( relationshipId )
             .setRelationshipType( relationshipType )
             .setToEntity( "trackedEntity", teis.get( 1 ) )
             .setFromEntity( "trackedEntity", teis.get( 0 ) )
             .array();
-  
 
-        JsonObject updatedRelationship = trackerActions.getRelationship( relationshipId ).getBody();
+        trackerActions.postAndGetJobReport( originalRelationship ).validateSuccessfulImport();
+
+        JsonObject updatedRelationship = trackerActions.getRelationship( relationshipId ).validateStatus( 200 ).getBody();
 
         updatedRelationship = JsonObjectBuilder.jsonObject( updatedRelationship )
             .addObjectByJsonPath( "relationships[0]", "from",
@@ -178,7 +164,7 @@ public class RelationshipsTests
 
         // act
         trackerActions
-            .postAndGetJobReport( updatedRelationship, new QueryParamsBuilder().addAll( "importStrategy=UPDATE" ) )
+            .postAndGetJobReport( updatedRelationship, new QueryParamsBuilder().addAll( "importStrategy=UPDATE", "async=false" ) )
             .validateErrorReport()
             .body( "message", hasItem( containsString( "already exists" ) ) );
 
