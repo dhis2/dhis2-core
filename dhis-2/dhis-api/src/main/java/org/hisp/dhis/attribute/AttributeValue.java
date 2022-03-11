@@ -135,7 +135,7 @@ public class AttributeValue
     }
 
     @JsonProperty
-    @JsonSerialize( using = CustomAttributeSerializer.class )
+    // @JsonSerialize( using = CustomAttributeSerializer.class )
     @Property( value = PropertyType.REFERENCE, required = Property.Value.TRUE )
     public Attribute getAttribute()
     {
