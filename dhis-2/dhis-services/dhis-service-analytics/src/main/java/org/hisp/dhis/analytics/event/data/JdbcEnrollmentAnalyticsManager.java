@@ -41,7 +41,6 @@ import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -50,7 +49,6 @@ import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.ProgramIndicatorSubqueryBuilder;
-import org.hisp.dhis.analytics.util.AnalyticsSqlUtils;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -60,7 +58,6 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryRuntimeException;
-import org.hisp.dhis.common.RepeatableStageParams;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.ExpressionUtils;
@@ -452,13 +449,7 @@ public class JdbcEnrollmentAnalyticsManager
                     + getExecutionDateFilter( item.getRepeatableStageParams().getStartDate(),
                         item.getRepeatableStageParams().getEndDate() )
                     + ORDER_BY_EXECUTION_DATE + createOrderTypeAndOffset( item.getProgramStageOffset() )
-                    + getLimit( item.getRepeatableStageParams().getCount() ) + " ) as t1)" +
-                    Optional.of( item )
-                        .map( QueryItem::getRepeatableStageParams )
-                        .map( RepeatableStageParams::getDimension )
-                        .map( AnalyticsSqlUtils::quote )
-                        .map( _alias -> " as " + _alias )
-                        .orElse( "" );
+                    + getLimit( item.getRepeatableStageParams().getCount() ) + " ) as t1)";
 
             }
 
@@ -471,13 +462,7 @@ public class JdbcEnrollmentAnalyticsManager
                     + getExecutionDateFilter( item.getRepeatableStageParams().getStartDate(),
                         item.getRepeatableStageParams().getEndDate() )
                     + ORDER_BY_EXECUTION_DATE + createOrderTypeAndOffset( item.getProgramStageOffset() )
-                    + " " + LIMIT_1 + " )" +
-                    Optional.of( item )
-                        .map( QueryItem::getRepeatableStageParams )
-                        .map( RepeatableStageParams::getDimension )
-                        .map( AnalyticsSqlUtils::quote )
-                        .map( _alias -> " as " + _alias )
-                        .orElse( "" );
+                    + " " + LIMIT_1 + " )";
             }
 
             if ( item.getItem().getDimensionItemType() == DATA_ELEMENT && item.getProgramStage() != null )

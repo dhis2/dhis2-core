@@ -162,7 +162,7 @@ public class MessageConversationController
         {
             response.setStatus( HttpServletResponse.SC_NOT_FOUND );
 
-            ObjectNode objectNode = fieldFilterService2.createObjectNode()
+            ObjectNode objectNode = fieldFilterService.createObjectNode()
                 .put( "message", "No MessageConversation found with UID: " + uid );
 
             return ResponseEntity.ok( objectNode );

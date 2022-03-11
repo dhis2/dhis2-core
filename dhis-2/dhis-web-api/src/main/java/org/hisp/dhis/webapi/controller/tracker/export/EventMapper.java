@@ -25,17 +25,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.domain.mapper;
+package org.hisp.dhis.webapi.controller.tracker.export;
 
-import org.hisp.dhis.tracker.domain.Attribute;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 
-@Mapper( uses = InstantMapper.class )
-public interface AttributeMapper extends DomainMapper<org.hisp.dhis.dxf2.events.trackedentity.Attribute, Attribute>
+@Mapper( uses = {
+    RelationshipMapper.class,
+    NoteMapper.class,
+    DataValueMapper.class,
+    InstantMapper.class,
+    UserMapper.class } )
+interface EventMapper extends DomainMapper<org.hisp.dhis.dxf2.events.event.Event, Event>
 {
-
+    @Mapping( target = "occurredAt", source = "eventDate" )
+    @Mapping( target = "scheduledAt", source = "dueDate" )
     @Mapping( target = "createdAt", source = "created" )
+    @Mapping( target = "createdAtClient", source = "createdAtClient" )
     @Mapping( target = "updatedAt", source = "lastUpdated" )
-    Attribute from( org.hisp.dhis.dxf2.events.trackedentity.Attribute attribute );
+    @Mapping( target = "updatedAtClient", source = "lastUpdatedAtClient" )
+    @Mapping( target = "completedAt", source = "completedDate" )
+    @Mapping( target = "createdBy", source = "createdByUserInfo" )
+    @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo" )
+    @Mapping( target = "assignedUser", source = ".", qualifiedByName = "toUserInfo" )
+    Event from( org.hisp.dhis.dxf2.events.event.Event event );
+
+    @Named( "toUserInfo" )
+    default User buildUserInfo( org.hisp.dhis.dxf2.events.event.Event event )
+    {
+        return User.builder()
+            .uid( event.getAssignedUser() )
+            .username( event.getAssignedUserUsername() )
+            .firstName( event.getAssignedUserFirstName() )
+            .surname( event.getAssignedUserSurname() )
+            .build();
+    }
 }

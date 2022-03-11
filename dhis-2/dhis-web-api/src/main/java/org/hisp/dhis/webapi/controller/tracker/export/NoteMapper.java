@@ -25,50 +25,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.validation.hooks;
+package org.hisp.dhis.webapi.controller.tracker.export;
 
-import java.util.Optional;
+import org.hisp.dhis.tracker.domain.Note;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.domain.RelationshipItem;
-
-/**
- * @author Enrico Colasante
- */
-public class RelationshipValidationUtils
+@Mapper( uses = { InstantMapper.class, UserMapper.class } )
+public interface NoteMapper extends DomainMapper<org.hisp.dhis.dxf2.events.event.Note, Note>
 {
-    public static TrackerType relationshipItemValueType( RelationshipItem item )
-    {
-        if ( item.getTrackedEntity() != null && StringUtils.isNotEmpty( item.getTrackedEntity().getTrackedEntity() ) )
-        {
-            return TrackerType.TRACKED_ENTITY;
-        }
-        else if ( item.getEnrollment() != null && StringUtils.isNotEmpty( item.getEnrollment().getEnrollment() ) )
-        {
-            return TrackerType.ENROLLMENT;
-        }
-        else if ( item.getEvent() != null && StringUtils.isNotEmpty( item.getEvent().getEvent() ) )
-        {
-            return TrackerType.EVENT;
-        }
-        return null;
-    }
-
-    public static Optional<String> getUidFromRelationshipItem( RelationshipItem item )
-    {
-        if ( item.getTrackedEntity() != null )
-        {
-            return Optional.of( item.getTrackedEntity().getTrackedEntity() );
-        }
-        else if ( item.getEnrollment() != null )
-        {
-            return Optional.of( item.getEnrollment().getEnrollment() );
-        }
-        else if ( item.getEvent() != null )
-        {
-            return Optional.of( item.getEvent().getEvent() );
-        }
-        return Optional.empty();
-    }
+    @Mapping( target = "storedAt", source = "storedDate" )
+    @Mapping( target = "createdBy", source = "lastUpdatedBy" )
+    Note from( org.hisp.dhis.dxf2.events.event.Note note );
 }

@@ -330,7 +330,9 @@ public class PreCheckSecurityOwnershipValidationHook
 
         checkEventWriteAccess( reporter, event, programStage, organisationUnit, ownerOrgUnit,
             categoryOptionCombo,
-            teiUid, isCreatableInSearchScope ); // TODO: calculate correct
+            teiUid, isCreatableInSearchScope ); // TODO:
+                                                // calculate
+                                                // correct
         // isCreatableInSearchScope
         // value
     }
@@ -519,7 +521,10 @@ public class PreCheckSecurityOwnershipValidationHook
         checkNotNull( programStage, PROGRAM_STAGE_CANT_BE_NULL );
         checkNotNull( programStage.getProgram(), PROGRAM_CANT_BE_NULL );
 
-        checkEventOrgUnitWriteAccess( reporter, bundle, event, eventOrgUnit, isCreatableInSearchScope, user );
+        if ( reporter.getBundle().getStrategy( event ) != TrackerImportStrategy.UPDATE )
+        {
+            checkEventOrgUnitWriteAccess( reporter, bundle, event, eventOrgUnit, isCreatableInSearchScope, user );
+        }
 
         if ( programStage.getProgram().isWithoutRegistration() )
         {
