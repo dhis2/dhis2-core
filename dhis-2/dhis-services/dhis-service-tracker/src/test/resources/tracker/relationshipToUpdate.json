@@ -5,10 +5,15 @@
       "relationship": "Nva3Xj2j75W",
       "bidirectional": false,
       "from": {
-        "trackedEntity": "IOR1AXXl24H"
+        "trackedEntity": {
+          "trackedEntity": "IOR1AXXl24H"
+        }
       },
       "to": {
-        "enrollment": "TvctPPhpD8u"
+        "enrollment":
+        {
+          "enrollment": "TvctPPhpD8u"
+        }
       },
       "createdAt": "2019-10-01T12:17:30.163",
       "updatedAt": "2019-10-01T12:17:30.163"

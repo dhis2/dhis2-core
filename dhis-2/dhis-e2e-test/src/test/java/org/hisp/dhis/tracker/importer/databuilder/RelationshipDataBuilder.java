@@ -28,8 +28,9 @@
 
 package org.hisp.dhis.tracker.importer.databuilder;
 
-import com.google.gson.JsonObject;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
+
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -51,9 +52,7 @@ public class RelationshipDataBuilder implements TrackerImporterDataBuilder
 
     public RelationshipDataBuilder setFromEntity( String entityName, String entityId )
     {
-        this.jsonBuilder.addObject( "from", new JsonObjectBuilder()
-            .addProperty( entityName, entityId ) );
-
+        this.jsonBuilder.addObject( "from", relationshipItem(entityName, entityId));
         return this;
     }
 
@@ -64,15 +63,19 @@ public class RelationshipDataBuilder implements TrackerImporterDataBuilder
 
     public RelationshipDataBuilder setToEntity( String entityName, String entityId )
     {
-        this.jsonBuilder.addObject( "to", new JsonObjectBuilder()
-            .addProperty( entityName, entityId ) );
-
+        this.jsonBuilder.addObject( "to", relationshipItem( entityName, entityId ) );
         return this;
     }
 
     public RelationshipDataBuilder setToTrackedEntity( String trackedEntityId )
     {
         return setToEntity( "trackedEntity", trackedEntityId );
+    }
+
+    private JsonObjectBuilder relationshipItem(String type, String identifier) {
+        return JsonObjectBuilder.jsonObject()
+                .addObject(type, JsonObjectBuilder.jsonObject()
+                        .addProperty(type, identifier));
     }
 
     public RelationshipDataBuilder buildUniDirectionalRelationship( String teiA, String teiB )

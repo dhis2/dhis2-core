@@ -25,18 +25,14 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.domain.mapper;
+package org.hisp.dhis.webapi.controller.tracker.export;
 
-import org.hisp.dhis.tracker.domain.RelationshipItem;
+import org.hisp.dhis.program.UserInfoSnapshot;
+import org.hisp.dhis.tracker.domain.User;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 
 @Mapper
-public interface RelationshipItemMapper
-    extends DomainMapper<org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem, RelationshipItem>
+public interface UserMapper extends DomainMapper<UserInfoSnapshot, User>
 {
-    @Mapping( target = "trackedEntity", source = "trackedEntityInstance.trackedEntityInstance" )
-    @Mapping( target = "enrollment", source = "enrollment.enrollment" )
-    @Mapping( target = "event", source = "event.event" )
-    RelationshipItem from( org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem relationshipItem );
+    User from( UserInfoSnapshot snapshot );
 }

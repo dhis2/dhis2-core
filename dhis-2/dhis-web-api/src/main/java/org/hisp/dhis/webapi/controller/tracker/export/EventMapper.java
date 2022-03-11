@@ -25,42 +25,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.domain.mapper;
+package org.hisp.dhis.webapi.controller.tracker.export;
 
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.chrono.ChronoZonedDateTime;
-import java.util.Date;
-import java.util.Optional;
-
-import org.hisp.dhis.util.DateUtils;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.User;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 
-@Mapper
-abstract class InstantMapper
+@Mapper( uses = {
+    RelationshipMapper.class,
+    NoteMapper.class,
+    DataValueMapper.class,
+    InstantMapper.class,
+    UserMapper.class } )
+interface EventMapper extends DomainMapper<org.hisp.dhis.dxf2.events.event.Event, Event>
 {
+    @Mapping( target = "occurredAt", source = "eventDate" )
+    @Mapping( target = "scheduledAt", source = "dueDate" )
+    @Mapping( target = "createdAt", source = "created" )
+    @Mapping( target = "createdAtClient", source = "createdAtClient" )
+    @Mapping( target = "updatedAt", source = "lastUpdated" )
+    @Mapping( target = "updatedAtClient", source = "lastUpdatedAtClient" )
+    @Mapping( target = "completedAt", source = "completedDate" )
+    @Mapping( target = "createdBy", source = "createdByUserInfo" )
+    @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo" )
+    @Mapping( target = "assignedUser", source = ".", qualifiedByName = "toUserInfo" )
+    Event from( org.hisp.dhis.dxf2.events.event.Event event );
 
-    Instant fromString( String dateAsString )
+    @Named( "toUserInfo" )
+    default User buildUserInfo( org.hisp.dhis.dxf2.events.event.Event event )
     {
-        return DateUtils.instantFromDateAsString( dateAsString );
+        return User.builder()
+            .uid( event.getAssignedUser() )
+            .username( event.getAssignedUserUsername() )
+            .firstName( event.getAssignedUserFirstName() )
+            .surname( event.getAssignedUserSurname() )
+            .build();
     }
-
-    Instant fromDate( Date date )
-    {
-        if ( date instanceof java.sql.Date )
-        {
-            return fromSqlDate( (java.sql.Date) date );
-        }
-        return DateUtils.instantFromDate( date );
-    }
-
-    Instant fromSqlDate( java.sql.Date date )
-    {
-        return Optional.ofNullable( date )
-            .map( java.sql.Date::toLocalDate )
-            .map( localDate -> localDate.atStartOfDay( ZoneId.systemDefault() ) )
-            .map( ChronoZonedDateTime::toInstant )
-            .orElse( null );
-    }
-
 }
