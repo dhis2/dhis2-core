@@ -217,7 +217,7 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
 
         reporter.addErrorIfNull( fileResource, te, E1084, attr.getValue() );
 
-        if ( reporter.getValidationContext().getTrackedEntityInstance( te.getTrackedEntity() ) == null )
+        if ( reporter.getBundle().getStrategy( te ).isCreate() )
         {
             reporter.addErrorIf( () -> fileResource != null && fileResource.isAssigned(), te, E1009, attr.getValue() );
         }

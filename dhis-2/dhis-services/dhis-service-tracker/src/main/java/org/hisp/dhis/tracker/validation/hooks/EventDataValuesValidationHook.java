@@ -191,7 +191,7 @@ public class EventDataValuesValidationHook
 
         reporter.addErrorIfNull( fileResource, event, E1084, dataValue.getValue() );
 
-        if ( reporter.getValidationContext().getProgramStageInstance( event.getEvent() ) == null )
+        if ( reporter.getBundle().getStrategy( event ).isCreate() )
         {
             reporter.addErrorIf( () -> fileResource != null && fileResource.isAssigned(), event,
                 E1009, dataValue.getValue() );
