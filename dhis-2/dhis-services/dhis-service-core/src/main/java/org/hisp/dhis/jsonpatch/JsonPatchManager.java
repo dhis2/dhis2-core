@@ -32,6 +32,7 @@ import static org.hisp.dhis.util.JsonUtils.jsonToObject;
 import java.util.Collection;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
@@ -117,7 +118,8 @@ public class JsonPatchManager
                     continue;
                 }
 
-                if ( BaseIdentifiableObject.class.isAssignableFrom( property.getItemKlass() ) )
+                if ( BaseIdentifiableObject.class.isAssignableFrom( property.getItemKlass() )
+                    && !EmbeddedObject.class.isAssignableFrom( property.getItemKlass() ) )
                 {
                     ArrayNode arrayNode = jsonMapper.createArrayNode();
 
