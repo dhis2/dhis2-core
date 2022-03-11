@@ -105,10 +105,11 @@ public class JsonPatchManager
     {
         for ( Property property : schema.getProperties() )
         {
-            Object data = ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
 
             if ( property.isCollection() )
             {
+                Object data = ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
+
                 Collection collection = (Collection) data;
 
                 if ( CollectionUtils.isEmpty( collection ) )
@@ -125,10 +126,10 @@ public class JsonPatchManager
 
                     node.set( property.getCollectionName(), arrayNode );
                 }
-            }
-            else
-            {
-                node.set( property.getCollectionName(), jsonMapper.valueToTree( data ) );
+                else
+                {
+                    node.set( property.getCollectionName(), jsonMapper.valueToTree( data ) );
+                }
             }
         }
     }
