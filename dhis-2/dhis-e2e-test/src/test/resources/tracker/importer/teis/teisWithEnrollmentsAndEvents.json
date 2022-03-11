@@ -61,10 +61,14 @@
         {
           "relationshipType": "xLmPUYJX8Ks",
           "from": {
-            "trackedEntity": "Kj6vYde4LHh"
+            "trackedEntity": {
+              "trackedEntity": "Kj6vYde4LHh"
+            }
           },
           "to": {
-            "trackedEntity": "Nav6inZRw1u"
+            "trackedEntity": {
+              "trackedEntity": "Nav6inZRw1u"
+            }
           }
         }
       ],
