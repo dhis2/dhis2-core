@@ -226,8 +226,6 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
         postProcessResponseEntities( entities, options, rpParameters );
 
         handleLinksAndAccess( entities, fields, false );
-        handleAttributeValues( entities, fields );
-
         linkService.generatePagerLinks( pager, getEntityClass() );
 
         cachePrivate( response );
@@ -452,7 +450,6 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
         entities = (List<T>) queryService.query( query );
 
         handleLinksAndAccess( entities, fields, true );
-        handleAttributeValues( entities, fields );
 
         for ( T entity : entities )
         {
@@ -511,17 +508,6 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
         if ( hasHref( fields ) )
         {
             linkService.generateLinks( entityList, deep );
-        }
-    }
-
-    private void handleAttributeValues( List<T> entityList, List<String> fields )
-    {
-        List<String> hasAttributeValues = fields.stream().filter( field -> field.contains( "attributeValues" ) )
-            .collect( toList() );
-
-        if ( !hasAttributeValues.isEmpty() )
-        {
-            attributeService.generateAttributes( entityList );
         }
     }
 

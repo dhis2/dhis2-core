@@ -204,6 +204,11 @@ public class Attribute
 
     }
 
+    public Attribute( String uid )
+    {
+        this.uid = uid;
+    }
+
     public Attribute( String name, ValueType valueType )
     {
         this.name = name;

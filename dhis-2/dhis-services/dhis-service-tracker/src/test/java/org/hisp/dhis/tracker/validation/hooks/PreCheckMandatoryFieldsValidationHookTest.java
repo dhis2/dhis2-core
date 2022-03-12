@@ -289,10 +289,10 @@ class PreCheckMandatoryFieldsValidationHookTest
             .relationship( CodeGenerator.generateUid() )
             .relationshipType( CodeGenerator.generateUid() )
             .from( RelationshipItem.builder()
-                .trackedEntity( CodeGenerator.generateUid() )
+                .trackedEntity( trackedEntity() )
                 .build() )
             .to( RelationshipItem.builder()
-                .trackedEntity( CodeGenerator.generateUid() )
+                .trackedEntity( trackedEntity() )
                 .build() )
             .build();
 
@@ -309,7 +309,7 @@ class PreCheckMandatoryFieldsValidationHookTest
             .relationship( CodeGenerator.generateUid() )
             .relationshipType( CodeGenerator.generateUid() )
             .to( RelationshipItem.builder()
-                .trackedEntity( CodeGenerator.generateUid() )
+                .trackedEntity( trackedEntity() )
                 .build() )
             .build();
 
@@ -326,7 +326,7 @@ class PreCheckMandatoryFieldsValidationHookTest
             .relationship( CodeGenerator.generateUid() )
             .relationshipType( CodeGenerator.generateUid() )
             .from( RelationshipItem.builder()
-                .trackedEntity( CodeGenerator.generateUid() )
+                .trackedEntity( trackedEntity() )
                 .build() )
             .build();
 
@@ -342,10 +342,10 @@ class PreCheckMandatoryFieldsValidationHookTest
         Relationship relationship = Relationship.builder()
             .relationship( CodeGenerator.generateUid() )
             .from( RelationshipItem.builder()
-                .trackedEntity( CodeGenerator.generateUid() )
+                .trackedEntity( trackedEntity() )
                 .build() )
             .to( RelationshipItem.builder()
-                .trackedEntity( CodeGenerator.generateUid() )
+                .trackedEntity( trackedEntity() )
                 .build() )
             .build();
 
@@ -384,5 +384,10 @@ class PreCheckMandatoryFieldsValidationHookTest
         hasTrackerError( reporter, errorCode, type, uid );
         assertThat( reporter.getReportList().get( 0 ).getErrorMessage(),
             is( "Missing required " + entity + " property: `" + property + "`." ) );
+    }
+
+    private RelationshipItem.TrackedEntity trackedEntity()
+    {
+        return RelationshipItem.TrackedEntity.builder().trackedEntity( CodeGenerator.generateUid() ).build();
     }
 }

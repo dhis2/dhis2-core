@@ -25,24 +25,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.domain.mapper;
+package org.hisp.dhis.webapi.controller.tracker.export;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import org.hisp.dhis.tracker.domain.DataValue;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
-public interface DomainMapper<FROM, TO>
+@Mapper( uses = { InstantMapper.class, UserMapper.class } )
+public interface DataValueMapper extends DomainMapper<org.hisp.dhis.dxf2.events.event.DataValue, DataValue>
 {
-    TO from( FROM from );
-
-    default List<TO> fromCollection( Collection<FROM> froms )
-    {
-        return Optional.ofNullable( froms )
-            .orElse( Collections.emptySet() )
-            .stream()
-            .map( this::from )
-            .collect( Collectors.toList() );
-    }
+    @Mapping( target = "createdAt", source = "created" )
+    @Mapping( target = "updatedAt", source = "lastUpdated" )
+    @Mapping( target = "createdBy", source = "createdByUserInfo" )
+    @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo" )
+    DataValue from( org.hisp.dhis.dxf2.events.event.DataValue dataValue );
 }
