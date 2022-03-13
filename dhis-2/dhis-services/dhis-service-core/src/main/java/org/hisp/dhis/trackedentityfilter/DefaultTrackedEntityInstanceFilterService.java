@@ -31,12 +31,19 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.AssignedUserSelectionMode;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.programstagefilter.DatePeriodType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper;
+import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -62,6 +69,7 @@ public class DefaultTrackedEntityInstanceFilterService
     {
         checkNotNull( trackedEntityInstanceFilterStore );
         checkNotNull( programService );
+        checkNotNull( teaService );
 
         this.trackedEntityInstanceFilterStore = trackedEntityInstanceFilterStore;
         this.programService = programService;
@@ -146,8 +154,39 @@ public class DefaultTrackedEntityInstanceFilterService
                         errors.add( "No tracked entity attribute found for attribute:" + avf.getAttribute() );
                     }
                 }
+
+                if ( avf.getDateFilter() != null && avf.getDateFilter().getType() != null )
+                {
+                    if ( avf.getDateFilter().getType() == DatePeriodType.ABSOLUTE
+                        && avf.getDateFilter().getStartDate() == null && avf.getDateFilter().getEndDate() == null )
+                    {
+                        errors.add( "Start date or end date not specified with ABSOLUTE date period type" );
+                    }
+                }
             } );
         }
+
+        if ( CollectionUtils.isEmpty( eqc.getAssignedUsers() )
+            && eqc.getAssignedUserMode() == AssignedUserSelectionMode.PROVIDED )
+        {
+            errors.add( "Assigned Users cannot be empty with PROVIDED assigned user mode" );
+        }
+
+        if ( StringUtils.isEmpty( eqc.getOrganisationUnit() )
+            && eqc.getOuMode() == OrganisationUnitSelectionMode.SELECTED )
+        {
+            errors.add( "Organisation Unit cannot be empty with SELECTED org unit mode" );
+        }
+
+        if ( !StringUtils.isEmpty( eqc.getOrder() ) )
+        {
+            List<OrderCriteria> orderCriteria = OrderCriteria.fromOrderString( eqc.getOrder() );
+            Map<String, TrackedEntityAttribute> attributes = teaService.getAllTrackedEntityAttributes()
+                .stream().collect( Collectors.toMap( TrackedEntityAttribute::getUid, att -> att ) );
+            errors.addAll(
+                OrderParamsHelper.validateOrderParams( OrderParamsHelper.toOrderParams( orderCriteria ), attributes ) );
+        }
+
         return errors;
     }
 
