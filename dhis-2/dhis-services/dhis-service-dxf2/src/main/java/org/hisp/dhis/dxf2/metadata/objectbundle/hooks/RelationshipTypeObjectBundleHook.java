@@ -199,6 +199,7 @@ public class RelationshipTypeObjectBundleHook
         }
         else
         {
+            trackedEntityType = trackedEntityTypeService.getTrackedEntityType( trackedEntityType.getUid() );
             List<String> trackedEntityTypeAttributes = trackedEntityType.getTrackedEntityAttributes()
                 .stream().filter( Objects::nonNull ).map( BaseIdentifiableObject::getUid )
                 .collect( Collectors.toList() );
@@ -254,6 +255,7 @@ public class RelationshipTypeObjectBundleHook
         }
         else
         {
+            program = programService.getProgram( program.getUid() );
             List<String> trackedEntityAttributes = program.getTrackedEntityAttributes()
                 .stream().filter( Objects::nonNull ).map( BaseIdentifiableObject::getUid )
                 .collect( Collectors.toList() );
@@ -318,6 +320,7 @@ public class RelationshipTypeObjectBundleHook
 
         if ( program == null && programStage != null )
         {
+            programStage = programStageService.getProgramStage( programStage.getUid() );
             List<String> dataElements = programStage.getDataElements()
                 .stream().filter( Objects::nonNull ).map( BaseIdentifiableObject::getUid )
                 .collect( Collectors.toList() );

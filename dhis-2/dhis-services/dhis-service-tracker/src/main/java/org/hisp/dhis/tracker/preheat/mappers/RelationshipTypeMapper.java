@@ -55,5 +55,6 @@ public interface RelationshipTypeMapper extends PreheatMapper<RelationshipType>
     @Mapping( target = "trackedEntityType" )
     @Mapping( target = "program" )
     @Mapping( target = "programStage" )
+    @Mapping( target = "trackerDataView" )
     RelationshipConstraint mapConstraint( RelationshipConstraint constraint );
 }
