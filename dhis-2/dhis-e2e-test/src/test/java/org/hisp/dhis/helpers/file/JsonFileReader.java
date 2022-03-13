@@ -40,6 +40,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import org.hisp.dhis.helpers.JsonParserUtils;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -69,6 +70,24 @@ public class JsonFileReader
     public FileReader replacePropertyValuesWithIds( String propertyName )
     {
         return replacePropertyValuesWith( propertyName, "uniqueid" );
+    }
+
+    /***
+     * Replaces all occurrences of a string with unique generated id
+     * @param strToReplace
+     * @return
+     */
+    public JsonFileReader replaceStringsWithIds( String... strToReplace )
+    {
+        String replacedJson = obj.toString();
+        for ( String s : strToReplace )
+        {
+            replacedJson = replacedJson.replaceAll( s, new IdGenerator().generateUniqueId() );
+        }
+
+        obj = JsonParserUtils.toJsonObject( replacedJson );
+
+        return this;
     }
 
     @Override

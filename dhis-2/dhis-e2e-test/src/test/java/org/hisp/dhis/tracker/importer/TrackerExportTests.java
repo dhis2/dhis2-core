@@ -41,6 +41,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.skyscreamer.jsonassert.JSONAssert;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -68,10 +69,11 @@ public class TrackerExportTests
     {
         loginActions.loginAsSuperUser();
 
-        TrackerApiResponse response = importTeiWithEnrollmentAndEvent();
+        TrackerApiResponse response = trackerActions.postAndGetJobReport(new File( "src/test/resources/tracker/importer/teis/teisWithEnrollmentsAndEvents.json"));
+
         teiId = response.validateSuccessfulImport().extractImportedTeis().get( 0 );
         enrollmentId = response.extractImportedEnrollments().get( 0 );
-        relationshipId = response.extractImportedRelationships().get( 0 );
+        relationshipId = importRelationshipBetweenTeis( teiId, response.extractImportedTeis().get( 1 ) ).extractImportedRelationships().get( 0 );
         eventId = response.extractImportedEvents().get( 0 );
     }
 
@@ -204,5 +206,18 @@ public class TrackerExportTests
             .statusCode( 200 )
             .body( "instances.findAll { it.trackedEntity == 'Kj6vYde4LHh' }.size()", is( 1 ) )
             .body( "instances.attributes.flatten().findAll { it.attribute == 'kZeSYCgaHTk' }.value", everyItem( is( "Bravo" ) ) );
+    }
+
+    @Test
+    public void shouldReturnRelationshipsByTei()
+    {
+        trackerActions.getRelationship( "?trackedEntity=" + teiId )
+            .validate()
+            .statusCode( 200 )
+            .body( "instances", hasSize( greaterThanOrEqualTo( 1 ) ) )
+            .rootPath( "instances[0]" )
+            .body( "relationship", equalTo( relationshipId ) )
+            .body( "from.trackedEntity.trackedEntity", equalTo( teiId ) )
+            .body( "to.trackedEntity.trackedEntity", notNullValue() );
     }
 }

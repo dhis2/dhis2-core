@@ -25,19 +25,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.domain.mapper;
+package org.hisp.dhis.analytics.event.data;
 
-import org.hisp.dhis.tracker.domain.Relationship;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
-@Mapper( uses = {
-    RelationshipItemMapper.class,
-    InstantMapper.class } )
-public interface RelationshipMapper
-    extends DomainMapper<org.hisp.dhis.dxf2.events.trackedentity.Relationship, Relationship>
+import org.apache.commons.lang3.StringUtils;
+
+@Getter
+@AllArgsConstructor( access = AccessLevel.PRIVATE )
+class ColumnAndAlias
 {
-    @Mapping( target = "createdAt", source = "created" )
-    @Mapping( target = "updatedAt", source = "lastUpdated" )
-    Relationship from( org.hisp.dhis.dxf2.events.trackedentity.Relationship relationship );
+
+    private final String column;
+
+    private final String alias;
+
+    static ColumnAndAlias ofColumn( String column )
+    {
+        return ofColumnAndAlias( column, null );
+    }
+
+    static ColumnAndAlias ofColumnAndAlias( String column, String alias )
+    {
+        return new ColumnAndAlias( column, alias );
+    }
+
+    public String asSql()
+    {
+        if ( StringUtils.isNotEmpty( alias ) )
+        {
+            return String.join( " as ", column, alias );
+        }
+        else
+        {
+            return column;
+        }
+    }
 }

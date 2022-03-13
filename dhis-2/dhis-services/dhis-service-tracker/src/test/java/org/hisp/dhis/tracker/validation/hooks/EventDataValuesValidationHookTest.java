@@ -48,6 +48,7 @@ import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ValidationStrategy;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerIdentifierParams;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Event;
@@ -77,6 +78,7 @@ class EventDataValuesValidationHookTest
 
     private static final String dataElementUid = "dataElement";
 
+    @Mock
     private TrackerBundle bundle;
 
     @BeforeEach
@@ -84,9 +86,7 @@ class EventDataValuesValidationHookTest
     {
         hook = new EventDataValuesValidationHook();
 
-        bundle = TrackerBundle.builder()
-            .preheat( preheat )
-            .build();
+        when( bundle.getPreheat() ).thenReturn( preheat );
     }
 
     @Test
@@ -403,6 +403,8 @@ class EventDataValuesValidationHookTest
             .dataValues( Set.of( validDataValue ) )
             .build();
 
+        when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.CREATE );
+
         hook.validateEvent( reporter, event );
 
         assertThat( reporter.getReportList(), hasSize( 1 ) );
@@ -674,10 +676,20 @@ class EventDataValuesValidationHookTest
             .dataValues( Set.of( validDataValue ) )
             .build();
 
+        when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.CREATE );
+
         hook.validateEvent( reporter, event );
 
         assertThat( reporter.getReportList(), hasSize( 1 ) );
         assertEquals( TrackerErrorCode.E1009, reporter.getReportList().get( 0 ).getErrorCode() );
+
+        when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.UPDATE );
+
+        ValidationErrorReporter updateReporter = new ValidationErrorReporter( bundle );
+
+        hook.validateEvent( updateReporter, event );
+
+        assertThat( updateReporter.getReportList(), hasSize( 0 ) );
     }
 
     @Test
