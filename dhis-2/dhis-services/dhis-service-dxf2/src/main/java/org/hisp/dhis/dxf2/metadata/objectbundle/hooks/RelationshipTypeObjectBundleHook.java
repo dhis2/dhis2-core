@@ -40,6 +40,8 @@ import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -49,6 +51,8 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.relationship.RelationshipConstraint;
 import org.hisp.dhis.relationship.RelationshipType;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackerdataview.TrackerDataView;
@@ -63,6 +67,10 @@ public class RelationshipTypeObjectBundleHook
     extends AbstractObjectBundleHook<RelationshipType>
 {
     private final TrackedEntityTypeService trackedEntityTypeService;
+
+    private final TrackedEntityAttributeService trackedEntityAttributeService;
+
+    private final DataElementService dataElementService;
 
     private final ProgramService programService;
 
@@ -106,24 +114,53 @@ public class RelationshipTypeObjectBundleHook
         TrackedEntityType trackedEntityType = relationshipConstraint.getTrackedEntityType();
         Program program = relationshipConstraint.getProgram();
         ProgramStage programStage = relationshipConstraint.getProgramStage();
+        TrackerDataView trackerDataView = relationshipConstraint.getTrackerDataView();
 
         if ( trackedEntityType != null )
         {
             trackedEntityType = trackedEntityTypeService.getTrackedEntityType( trackedEntityType.getUid() );
             relationshipConstraint.setTrackedEntityType( trackedEntityType );
 
+            if ( trackerDataView != null && !trackerDataView.isEmpty() )
+            {
+                List<TrackedEntityAttribute> attributes = trackerDataView.getTrackedEntityAttributes().stream()
+                    .map( a -> trackedEntityAttributeService.getTrackedEntityAttribute( a.getUid() ) )
+                    .collect( Collectors.toList() );
+
+                trackerDataView.setTrackedEntityAttributes( attributes );
+                relationshipConstraint.setTrackerDataView( trackerDataView );
+            }
         }
 
         if ( program != null )
         {
             program = programService.getProgram( program.getUid() );
             relationshipConstraint.setProgram( program );
+
+            if ( trackerDataView != null && !trackerDataView.isEmpty() )
+            {
+                List<TrackedEntityAttribute> attributes = trackerDataView.getTrackedEntityAttributes().stream()
+                    .map( a -> trackedEntityAttributeService.getTrackedEntityAttribute( a.getUid() ) )
+                    .collect( Collectors.toList() );
+
+                trackerDataView.setTrackedEntityAttributes( attributes );
+                relationshipConstraint.setTrackerDataView( trackerDataView );
+            }
         }
 
         if ( programStage != null )
         {
             programStage = programStageService.getProgramStage( programStage.getUid() );
             relationshipConstraint.setProgramStage( programStage );
+
+            if ( trackerDataView != null && !trackerDataView.isEmpty() )
+            {
+                List<DataElement> dataElements = trackerDataView.getDataElements().stream()
+                    .map( a -> dataElementService.getDataElement( a.getUid() ) ).collect( Collectors.toList() );
+
+                trackerDataView.setDataElements( dataElements );
+                relationshipConstraint.setTrackerDataView( trackerDataView );
+            }
         }
 
         sessionFactory.getCurrentSession().save( relationshipConstraint );
