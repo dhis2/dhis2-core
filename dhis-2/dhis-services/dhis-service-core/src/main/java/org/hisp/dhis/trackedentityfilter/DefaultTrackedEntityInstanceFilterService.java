@@ -139,6 +139,54 @@ public class DefaultTrackedEntityInstanceFilterService
             return errors;
         }
 
+        validateAttributeValueFilters( errors, eqc );
+
+        errors.addAll( validateDateFilterPeriod( "EnrollmentCreatedDate", eqc.getEnrollmentCreatedDate() ) );
+        errors.addAll( validateDateFilterPeriod( "EnrollmentIncidentDate", eqc.getEnrollmentIncidentDate() ) );
+        errors.addAll( validateDateFilterPeriod( "EventDate", eqc.getEventDate() ) );
+        errors.addAll( validateDateFilterPeriod( "LastUpdatedDate", eqc.getLastUpdatedDate() ) );
+
+        validateAssignedUsers( errors, eqc );
+
+        validateOrganisationUnits( errors, eqc );
+
+        validateOrderParams( errors, eqc );
+
+        return errors;
+    }
+
+    private void validateOrganisationUnits( List<String> errors, EntityQueryCriteria eqc )
+    {
+        if ( StringUtils.isEmpty( eqc.getOrganisationUnit() )
+            && eqc.getOuMode() == OrganisationUnitSelectionMode.SELECTED )
+        {
+            errors.add( "Organisation Unit cannot be empty with SELECTED org unit mode" );
+        }
+    }
+
+    private void validateOrderParams( List<String> errors, EntityQueryCriteria eqc )
+    {
+        if ( !StringUtils.isEmpty( eqc.getOrder() ) )
+        {
+            List<OrderCriteria> orderCriteria = OrderCriteria.fromOrderString( eqc.getOrder() );
+            Map<String, TrackedEntityAttribute> attributes = teaService.getAllTrackedEntityAttributes()
+                .stream().collect( Collectors.toMap( TrackedEntityAttribute::getUid, att -> att ) );
+            errors.addAll(
+                OrderParamsHelper.validateOrderParams( OrderParamsHelper.toOrderParams( orderCriteria ), attributes ) );
+        }
+    }
+
+    private void validateAssignedUsers( List<String> errors, EntityQueryCriteria eqc )
+    {
+        if ( CollectionUtils.isEmpty( eqc.getAssignedUsers() )
+            && eqc.getAssignedUserMode() == AssignedUserSelectionMode.PROVIDED )
+        {
+            errors.add( "Assigned Users cannot be empty with PROVIDED assigned user mode" );
+        }
+    }
+
+    private void validateAttributeValueFilters( List<String> errors, EntityQueryCriteria eqc )
+    {
         List<AttributeValueFilter> attributeValueFilters = eqc.getAttributeValueFilters();
         if ( !CollectionUtils.isEmpty( attributeValueFilters ) )
         {
@@ -159,34 +207,6 @@ public class DefaultTrackedEntityInstanceFilterService
                 errors.addAll( validateDateFilterPeriod( avf.getAttribute(), avf.getDateFilter() ) );
             } );
         }
-
-        errors.addAll( validateDateFilterPeriod( "EnrollmentCreatedDate", eqc.getEnrollmentCreatedDate() ) );
-        errors.addAll( validateDateFilterPeriod( "EnrollmentIncidentDate", eqc.getEnrollmentIncidentDate() ) );
-        errors.addAll( validateDateFilterPeriod( "EventDate", eqc.getEventDate() ) );
-        errors.addAll( validateDateFilterPeriod( "LastUpdatedDate", eqc.getLastUpdatedDate() ) );
-
-        if ( CollectionUtils.isEmpty( eqc.getAssignedUsers() )
-            && eqc.getAssignedUserMode() == AssignedUserSelectionMode.PROVIDED )
-        {
-            errors.add( "Assigned Users cannot be empty with PROVIDED assigned user mode" );
-        }
-
-        if ( StringUtils.isEmpty( eqc.getOrganisationUnit() )
-            && eqc.getOuMode() == OrganisationUnitSelectionMode.SELECTED )
-        {
-            errors.add( "Organisation Unit cannot be empty with SELECTED org unit mode" );
-        }
-
-        if ( !StringUtils.isEmpty( eqc.getOrder() ) )
-        {
-            List<OrderCriteria> orderCriteria = OrderCriteria.fromOrderString( eqc.getOrder() );
-            Map<String, TrackedEntityAttribute> attributes = teaService.getAllTrackedEntityAttributes()
-                .stream().collect( Collectors.toMap( TrackedEntityAttribute::getUid, att -> att ) );
-            errors.addAll(
-                OrderParamsHelper.validateOrderParams( OrderParamsHelper.toOrderParams( orderCriteria ), attributes ) );
-        }
-
-        return errors;
     }
 
     private List<String> validateDateFilterPeriod( String item, DateFilterPeriod dateFilterPeriod )
