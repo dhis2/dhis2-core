@@ -37,6 +37,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
@@ -64,14 +65,14 @@ public class FileResourceSupplier extends AbstractPreheatSupplier
         List<TrackedEntityAttribute> attributes = preheat.getAll( TrackedEntityAttribute.class );
 
         List<String> fileResourceAttributes = attributes.stream()
-            .filter( at -> at.getValueType().isFile() )
+            .filter( at -> at.getValueType() == ValueType.FILE_RESOURCE )
             .map( BaseIdentifiableObject::getUid )
             .collect( Collectors.toList() );
 
         List<DataElement> dataElements = preheat.getAll( DataElement.class );
 
         List<String> fileResourceDataElements = dataElements.stream()
-            .filter( at -> at.getValueType().isFile() )
+            .filter( at -> at.getValueType() == ValueType.FILE_RESOURCE )
             .map( BaseIdentifiableObject::getUid )
             .collect( Collectors.toList() );
 
