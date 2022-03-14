@@ -32,6 +32,7 @@ import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_STAGE_INSTAN
 import static org.hisp.dhis.relationship.RelationshipEntity.TRACKED_ENTITY_INSTANCE;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -59,9 +60,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackerdataview.TrackerDataView;
 import org.springframework.stereotype.Component;
-
-import com.google.api.client.util.Lists;
-import com.google.api.client.util.Sets;
 
 /**
  * @author Stian Sandvold
@@ -244,7 +242,7 @@ public class RelationshipTypeObjectBundleHook
             trackedEntityType = trackedEntityTypeService.getTrackedEntityType( trackedEntityType.getUid() );
 
             List<TrackedEntityAttribute> trackedEntityAttributes = Optional.ofNullable( trackedEntityType )
-                .map( TrackedEntityType::getTrackedEntityAttributes ).orElse( Lists.newArrayList() );
+                .map( TrackedEntityType::getTrackedEntityAttributes ).orElse( new ArrayList<>() );
 
             List<String> trackedEntityTypeAttributeIds = trackedEntityAttributes.stream()
                 .filter( Objects::nonNull ).map( BaseIdentifiableObject::getUid )
@@ -305,7 +303,7 @@ public class RelationshipTypeObjectBundleHook
 
             List<TrackedEntityAttribute> trackedEntityAttributes = Optional.ofNullable( program )
                 .map( Program::getTrackedEntityAttributes )
-                .orElse( Lists.newArrayList() );
+                .orElse( new ArrayList<>() );
 
             List<String> trackedEntityAttributeIds = trackedEntityAttributes.stream()
                 .filter( Objects::nonNull ).map( BaseIdentifiableObject::getUid )
@@ -374,7 +372,7 @@ public class RelationshipTypeObjectBundleHook
             programStage = programStageService.getProgramStage( programStage.getUid() );
 
             Set<DataElement> dataElements = Optional.ofNullable( programStage ).map( ProgramStage::getDataElements )
-                .orElse( Sets.newHashSet() );
+                .orElse( new HashSet<>() );
 
             List<String> dataElementIds = dataElements.stream()
                 .filter( Objects::nonNull ).map( BaseIdentifiableObject::getUid )
