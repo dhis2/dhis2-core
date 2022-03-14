@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.common;
 
+import static org.hisp.dhis.common.DimensionalObject.QUERY_MODS_ID_SEPARATOR;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -83,6 +85,15 @@ public class BaseDimensionalItemObject
     // -------------------------------------------------------------------------
     // Logic
     // -------------------------------------------------------------------------
+
+    @Override
+    public String getDimensionItemWithQueryModsId()
+    {
+        return getDimensionItem()
+            + ((queryMods != null && queryMods.getQueryModsId() != null)
+                ? QUERY_MODS_ID_SEPARATOR + queryMods.getQueryModsId()
+                : "");
+    }
 
     @Override
     @JsonProperty
@@ -182,6 +193,7 @@ public class BaseDimensionalItemObject
         return queryMods;
     }
 
+    @Override
     public void setQueryMods( QueryModifiers queryMods )
     {
         this.queryMods = queryMods;
