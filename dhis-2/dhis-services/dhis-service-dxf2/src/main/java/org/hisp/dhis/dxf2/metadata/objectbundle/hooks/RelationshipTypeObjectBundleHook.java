@@ -34,6 +34,8 @@ import static org.hisp.dhis.relationship.RelationshipEntity.TRACKED_ENTITY_INSTA
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -57,6 +59,9 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackerdataview.TrackerDataView;
 import org.springframework.stereotype.Component;
+
+import com.google.api.client.util.Lists;
+import com.google.api.client.util.Sets;
 
 /**
  * @author Stian Sandvold
@@ -237,16 +242,20 @@ public class RelationshipTypeObjectBundleHook
         else
         {
             trackedEntityType = trackedEntityTypeService.getTrackedEntityType( trackedEntityType.getUid() );
-            List<String> trackedEntityTypeAttributes = trackedEntityType.getTrackedEntityAttributes()
-                .stream().filter( Objects::nonNull ).map( BaseIdentifiableObject::getUid )
+
+            List<TrackedEntityAttribute> trackedEntityAttributes = Optional.ofNullable( trackedEntityType )
+                .map( TrackedEntityType::getTrackedEntityAttributes ).orElse( Lists.newArrayList() );
+
+            List<String> trackedEntityTypeAttributeIds = trackedEntityAttributes.stream()
+                .filter( Objects::nonNull ).map( BaseIdentifiableObject::getUid )
                 .collect( Collectors.toList() );
 
             if ( !trackerDataViewAttributes.isEmpty()
-                && !trackedEntityTypeAttributes.containsAll( trackerDataViewAttributes ) )
+                && !trackedEntityTypeAttributeIds.containsAll( trackerDataViewAttributes ) )
             {
 
                 List<String> teaNotPartOfTei = trackerDataViewAttributes.stream()
-                    .filter( t -> !trackedEntityTypeAttributes.contains( t ) )
+                    .filter( t -> !trackedEntityTypeAttributeIds.contains( t ) )
                     .collect( Collectors.toList() );
 
                 addReports.accept( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4314,
@@ -293,15 +302,20 @@ public class RelationshipTypeObjectBundleHook
         else
         {
             program = programService.getProgram( program.getUid() );
-            List<String> trackedEntityAttributes = program.getTrackedEntityAttributes()
-                .stream().filter( Objects::nonNull ).map( BaseIdentifiableObject::getUid )
+
+            List<TrackedEntityAttribute> trackedEntityAttributes = Optional.ofNullable( program )
+                .map( Program::getTrackedEntityAttributes )
+                .orElse( Lists.newArrayList() );
+
+            List<String> trackedEntityAttributeIds = trackedEntityAttributes.stream()
+                .filter( Objects::nonNull ).map( BaseIdentifiableObject::getUid )
                 .collect( Collectors.toList() );
 
             if ( !trackerDataViewAttributes.isEmpty()
-                && !trackedEntityAttributes.containsAll( trackerDataViewAttributes ) )
+                && !trackedEntityAttributeIds.containsAll( trackerDataViewAttributes ) )
             {
                 List<String> teaNotPartOfProgram = trackerDataViewAttributes.stream()
-                    .filter( t -> !trackedEntityAttributes.contains( t ) )
+                    .filter( t -> !trackedEntityAttributeIds.contains( t ) )
                     .collect( Collectors.toList() );
 
                 addReports.accept( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4314,
@@ -358,14 +372,18 @@ public class RelationshipTypeObjectBundleHook
         if ( program == null && programStage != null )
         {
             programStage = programStageService.getProgramStage( programStage.getUid() );
-            List<String> dataElements = programStage.getDataElements()
-                .stream().filter( Objects::nonNull ).map( BaseIdentifiableObject::getUid )
+
+            Set<DataElement> dataElements = Optional.ofNullable( programStage ).map( ProgramStage::getDataElements )
+                .orElse( Sets.newHashSet() );
+
+            List<String> dataElementIds = dataElements.stream()
+                .filter( Objects::nonNull ).map( BaseIdentifiableObject::getUid )
                 .collect( Collectors.toList() );
 
-            if ( !trackerDataViewDataElements.isEmpty() && !dataElements.containsAll( trackerDataViewDataElements ) )
+            if ( !trackerDataViewDataElements.isEmpty() && !dataElementIds.containsAll( trackerDataViewDataElements ) )
             {
                 List<String> dataElementsNotPartOfProgramStage = trackerDataViewDataElements.stream()
-                    .filter( d -> !dataElements.contains( d ) )
+                    .filter( d -> !dataElementIds.contains( d ) )
                     .collect( Collectors.toList() );
 
                 addReports.accept(
