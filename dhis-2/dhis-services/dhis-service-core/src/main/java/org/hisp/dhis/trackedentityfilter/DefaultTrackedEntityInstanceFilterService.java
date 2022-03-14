@@ -39,6 +39,7 @@ import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.programstagefilter.DateFilterPeriod;
 import org.hisp.dhis.programstagefilter.DatePeriodType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -155,16 +156,14 @@ public class DefaultTrackedEntityInstanceFilterService
                     }
                 }
 
-                if ( avf.getDateFilter() != null && avf.getDateFilter().getType() != null )
-                {
-                    if ( avf.getDateFilter().getType() == DatePeriodType.ABSOLUTE
-                        && avf.getDateFilter().getStartDate() == null && avf.getDateFilter().getEndDate() == null )
-                    {
-                        errors.add( "Start date or end date not specified with ABSOLUTE date period type" );
-                    }
-                }
+                errors.addAll( validateDateFilterPeriod( avf.getAttribute(), avf.getDateFilter() ) );
             } );
         }
+
+        errors.addAll( validateDateFilterPeriod( "EnrollmentCreatedDate", eqc.getEnrollmentCreatedDate() ) );
+        errors.addAll( validateDateFilterPeriod( "EnrollmentIncidentDate", eqc.getEnrollmentIncidentDate() ) );
+        errors.addAll( validateDateFilterPeriod( "EventDate", eqc.getEventDate() ) );
+        errors.addAll( validateDateFilterPeriod( "LastUpdatedDate", eqc.getLastUpdatedDate() ) );
 
         if ( CollectionUtils.isEmpty( eqc.getAssignedUsers() )
             && eqc.getAssignedUserMode() == AssignedUserSelectionMode.PROVIDED )
@@ -187,6 +186,20 @@ public class DefaultTrackedEntityInstanceFilterService
                 OrderParamsHelper.validateOrderParams( OrderParamsHelper.toOrderParams( orderCriteria ), attributes ) );
         }
 
+        return errors;
+    }
+
+    private List<String> validateDateFilterPeriod( String item, DateFilterPeriod dateFilterPeriod )
+    {
+        List<String> errors = new ArrayList<>();
+        if ( dateFilterPeriod != null && dateFilterPeriod.getType() != null )
+        {
+            if ( dateFilterPeriod.getType() == DatePeriodType.ABSOLUTE
+                && dateFilterPeriod.getStartDate() == null && dateFilterPeriod.getEndDate() == null )
+            {
+                errors.add( "Start date or end date not specified with ABSOLUTE date period type for " + item );
+            }
+        }
         return errors;
     }
 
