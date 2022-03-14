@@ -25,17 +25,40 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.domain.mapper;
+package org.hisp.dhis.tracker.domain;
 
-import org.hisp.dhis.tracker.domain.ProgramOwner;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 
-@Mapper
-public interface ProgramOwnerMapper
-    extends DomainMapper<org.hisp.dhis.dxf2.events.trackedentity.ProgramOwner, ProgramOwner>
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+/**
+ * @author Enrico Colasante
+ */
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class User
 {
-    @Mapping( target = "orgUnit", source = "ownerOrgUnit" )
-    @Mapping( target = "trackedEntity", source = "trackedEntityInstance" )
-    ProgramOwner from( org.hisp.dhis.dxf2.events.trackedentity.ProgramOwner programOwner );
+    @JsonProperty
+    private String uid;
+
+    @JsonProperty
+    private String username;
+
+    @JsonProperty
+    private String firstName;
+
+    @JsonProperty
+    private String surname;
+
+    public boolean isEmpty()
+    {
+        return isBlank( uid ) && isBlank( username );
+    }
 }

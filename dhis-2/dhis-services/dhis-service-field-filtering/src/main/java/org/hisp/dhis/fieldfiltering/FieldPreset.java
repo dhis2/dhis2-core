@@ -46,6 +46,8 @@ public interface FieldPreset
 
     String OWNER = "owner";
 
+    String PERSISTED = "persisted";
+
     String IDENTIFIABLE = "identifiable";
 
     String SIMPLE = "simple";

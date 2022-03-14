@@ -59,7 +59,6 @@ import org.springframework.scheduling.support.SimpleTriggerContext;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeId;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -280,7 +279,6 @@ public class JobConfiguration
 
     @JacksonXmlProperty
     @JsonProperty
-    @JsonTypeId
     public JobType getJobType()
     {
         return jobType;

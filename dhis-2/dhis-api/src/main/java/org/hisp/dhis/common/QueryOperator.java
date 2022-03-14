@@ -51,7 +51,9 @@ public enum QueryOperator
     EW( "ew" ),
     // Analytics specifics
     IEQ( "==", true ),
+    @Deprecated // Prefer NEQ instead
     NE( "!=", true ),
+    NEQ( "!=", true ),
     NIEQ( "!==", true ),
     NLIKE( "not like" ),
     ILIKE( "ilike" ),

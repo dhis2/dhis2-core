@@ -25,18 +25,49 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.domain.mapper;
+package org.hisp.dhis.tracker.preprocess;
 
-import org.hisp.dhis.tracker.domain.RelationshipItem;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import java.util.Objects;
+import java.util.Optional;
 
-@Mapper
-public interface RelationshipItemMapper
-    extends DomainMapper<org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem, RelationshipItem>
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.User;
+import org.springframework.stereotype.Component;
+
+/**
+ * This preprocessor is responsible to fill the assigned user with missing
+ * information.
+ *
+ * @author Enrico Colasante
+ */
+@Component
+public class AssignedUserPreProcessor
+    implements BundlePreProcessor
 {
-    @Mapping( target = "trackedEntity", source = "trackedEntityInstance.trackedEntityInstance" )
-    @Mapping( target = "enrollment", source = "enrollment.enrollment" )
-    @Mapping( target = "event", source = "event.event" )
-    RelationshipItem from( org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem relationshipItem );
+    @Override
+    public void process( TrackerBundle bundle )
+    {
+        for ( Event event : bundle.getEvents() )
+        {
+            User assignedUser = event.getAssignedUser();
+
+            if ( Objects.isNull( assignedUser ) )
+            {
+                return;
+            }
+
+            if ( Objects.isNull( assignedUser.getUid() ) )
+            {
+                Optional<org.hisp.dhis.user.User> user = bundle.getPreheat()
+                    .getUserByUsername( assignedUser.getUsername() );
+                user.ifPresent( u -> assignedUser.setUid( u.getUid() ) );
+            }
+            if ( Objects.isNull( assignedUser.getUsername() ) )
+            {
+                Optional<org.hisp.dhis.user.User> user = bundle.getPreheat().getUserByUid( assignedUser.getUid() );
+                user.ifPresent( u -> assignedUser.setUsername( u.getUsername() ) );
+            }
+        }
+    }
 }

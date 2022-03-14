@@ -164,7 +164,7 @@ public class MeController
         Sets.newHashSet( UserSettingKey.values() ) );
 
     @GetMapping
-    public ResponseEntity<JsonNode> getCurrentUser( @CurrentUser( required = true ) User user,
+    public @ResponseBody ResponseEntity<JsonNode> getCurrentUser( @CurrentUser( required = true ) User user,
         @RequestParam( defaultValue = "*" ) List<String> fields )
     {
         if ( fieldsContains( "access", fields ) )
@@ -208,13 +208,12 @@ public class MeController
     }
 
     @GetMapping( "/dataApprovalWorkflows" )
-    public void getCurrentUserDataApprovalWorkflows( HttpServletResponse response,
+    public ResponseEntity<ObjectNode> getCurrentUserDataApprovalWorkflows( HttpServletResponse response,
         @CurrentUser( required = true ) User user )
         throws Exception
     {
-        RootNode rootNode = userControllerUtils.getUserDataApprovalWorkflows( user );
-
-        nodeService.serialize( rootNode, APPLICATION_JSON_VALUE, response.getOutputStream() );
+        ObjectNode objectNode = userControllerUtils.getUserDataApprovalWorkflows( user );
+        return ResponseEntity.ok( objectNode );
     }
 
     @PutMapping( value = "", consumes = APPLICATION_JSON_VALUE )

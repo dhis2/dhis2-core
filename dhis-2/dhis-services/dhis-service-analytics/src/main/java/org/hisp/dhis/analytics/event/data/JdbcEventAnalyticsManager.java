@@ -155,8 +155,19 @@ public class JdbcEventAnalyticsManager
 
         SqlRowSet rowSet = queryForRows( sql );
 
+        int rowsRed = 0;
+
+        grid.setLastDataRow( true );
+
         while ( rowSet.next() )
         {
+            if ( ++rowsRed > params.getPageSize() && !params.isTotalPages() )
+            {
+                grid.setLastDataRow( false );
+
+                continue;
+            }
+
             grid.addRow();
 
             int index = 1;
@@ -223,7 +234,7 @@ public class JdbcEventAnalyticsManager
     @Override
     public long getEventCount( EventQueryParams params )
     {
-        String sql = "select count(psi) ";
+        String sql = "select count(1) ";
 
         sql += getFromClause( params );
 
@@ -453,11 +464,13 @@ public class JdbcEventAnalyticsManager
         }
 
         // ---------------------------------------------------------------------
-        // Organisation unit group sets
+        // Organisation unit group sets, categories and category option group
+        // set
         // ---------------------------------------------------------------------
 
         List<DimensionalObject> dynamicDimensions = params.getDimensionsAndFilters(
-            Sets.newHashSet( DimensionType.ORGANISATION_UNIT_GROUP_SET, DimensionType.CATEGORY ) );
+            Sets.newHashSet( DimensionType.ORGANISATION_UNIT_GROUP_SET, DimensionType.CATEGORY,
+                DimensionType.CATEGORY_OPTION_GROUP_SET ) );
 
         for ( DimensionalObject dim : dynamicDimensions )
         {

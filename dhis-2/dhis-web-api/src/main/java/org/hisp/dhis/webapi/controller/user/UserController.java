@@ -32,12 +32,15 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importReport;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.validateAndThrowErrors;
 import static org.springframework.beans.BeanUtils.copyProperties;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 import static org.springframework.http.MediaType.TEXT_XML_VALUE;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -71,8 +74,9 @@ import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.hibernate.exception.CreateAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.importexport.ImportStrategy;
-import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.patch.Mutation;
+import org.hisp.dhis.patch.Patch;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Pagination;
 import org.hisp.dhis.query.Query;
@@ -101,9 +105,11 @@ import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -112,6 +118,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
 
 /**
@@ -248,17 +255,14 @@ public class UserController
         List<User> users = Lists.newArrayList();
         Optional<User> user = Optional.ofNullable( userService.getUser( uid ) );
 
-        if ( user.isPresent() )
-        {
-            users.add( user.get() );
-        }
+        user.ifPresent( users::add );
 
         return users;
     }
 
     @Override
     @GetMapping( "/{uid}/{property}" )
-    public @ResponseBody RootNode getObjectProperty(
+    public ResponseEntity<ObjectNode> getObjectProperty(
         @PathVariable( "uid" ) String pvUid, @PathVariable( "property" ) String pvProperty,
         @RequestParam Map<String, String> rpParameters,
         TranslateParams translateParams,
@@ -283,7 +287,7 @@ public class UserController
             throw new CreateAccessDeniedException( "You don't have the proper permissions to access this user." );
         }
 
-        return userControllerUtils.getUserDataApprovalWorkflows( user );
+        return ResponseEntity.ok( userControllerUtils.getUserDataApprovalWorkflows( user ) );
     }
 
     // -------------------------------------------------------------------------
@@ -575,6 +579,69 @@ public class UserController
         throws Exception
     {
         setExpires( uid, null );
+    }
+
+    // -------------------------------------------------------------------------
+    // PATCH
+    //
+
+    @PatchMapping( value = "/{uid}" )
+    @ResponseStatus( value = HttpStatus.NO_CONTENT )
+    public void partialUpdateObject(
+        @PathVariable( "uid" ) String pvUid, @RequestParam Map<String, String> rpParameters,
+        @CurrentUser User currentUser, HttpServletRequest request )
+        throws Exception
+    {
+        WebOptions options = new WebOptions( rpParameters );
+        List<User> entities = getEntity( pvUid, options );
+
+        if ( entities.isEmpty() )
+        {
+            throw new WebMessageException( notFound( getEntityClass(), pvUid ) );
+        }
+
+        User persistedObject = entities.get( 0 );
+
+        if ( !aclService.canUpdate( currentUser, persistedObject ) )
+        {
+            throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
+        }
+
+        Patch patch = diff( request );
+
+        filterUserCredentialsMutations( patch );
+
+        prePatchEntity( persistedObject );
+        patchService.apply( patch, persistedObject );
+        validateAndThrowErrors( () -> schemaValidator.validate( persistedObject ) );
+        manager.update( persistedObject );
+        postPatchEntity( persistedObject );
+    }
+
+    private void filterUserCredentialsMutations( Patch patch )
+    {
+        List<Mutation> mutations = patch.getMutations();
+        List<Mutation> filteredMutations = new ArrayList<>();
+        for ( Mutation mutation : mutations )
+        {
+            Mutation.Operation operation = mutation.getOperation();
+            String path = mutation.getPath();
+            Object value = mutation.getValue();
+
+            if ( path.startsWith( "userCredentials" ) )
+            {
+                path = path.replace( "userCredentials.", "" );
+
+                Mutation filtered = new Mutation( path, value, operation );
+                filteredMutations.add( filtered );
+            }
+            else
+            {
+                filteredMutations.add( mutation );
+            }
+
+            patch.setMutations( filteredMutations );
+        }
     }
 
     // -------------------------------------------------------------------------

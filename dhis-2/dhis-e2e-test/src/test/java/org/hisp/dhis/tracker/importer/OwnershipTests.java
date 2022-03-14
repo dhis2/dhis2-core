@@ -90,9 +90,9 @@ public class OwnershipTests
             .get( protectedProgram, new QueryParamsBuilder().add( "fields=programStages" ) ).validateStatus( 200 )
             .extractString( "programStages.id[0]" );
 
-        teiInCaptureScope = super.importTeiWithEnrollmentAndEvent( captureOu, protectedProgram, protectedProgramStageId )
+        teiInCaptureScope = super.importTeisWithEnrollmentAndEvent( captureOu, protectedProgram, protectedProgramStageId )
             .extractImportedTeis().get( 0 );
-        teiInSearchScope = super.importTeiWithEnrollmentAndEvent( searchOu, protectedProgram, protectedProgramStageId )
+        teiInSearchScope = super.importTeisWithEnrollmentAndEvent( searchOu, protectedProgram, protectedProgramStageId )
             .extractImportedTeis().get( 0 );
 
         enrollment = trackerActions.getTrackedEntity( teiInSearchScope + "?fields=enrollments" )

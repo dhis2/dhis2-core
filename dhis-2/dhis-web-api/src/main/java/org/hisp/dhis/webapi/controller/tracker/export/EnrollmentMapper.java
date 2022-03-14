@@ -25,27 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.domain.mapper;
+package org.hisp.dhis.webapi.controller.tracker.export;
 
-import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.Enrollment;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 @Mapper( uses = {
     RelationshipMapper.class,
+    AttributeMapper.class,
     NoteMapper.class,
-    DataValueMapper.class,
-    InstantMapper.class } )
-public interface EventMapper extends DomainMapper<org.hisp.dhis.dxf2.events.event.Event, Event>
+    EventMapper.class,
+    InstantMapper.class,
+    UserMapper.class } )
+interface EnrollmentMapper extends DomainMapper<org.hisp.dhis.dxf2.events.enrollment.Enrollment, Enrollment>
 {
-    @Mapping( target = "occurredAt", source = "eventDate" )
-    @Mapping( target = "scheduledAt", source = "dueDate" )
+    @Mapping( target = "enrollment", source = "enrollment" )
     @Mapping( target = "createdAt", source = "created" )
     @Mapping( target = "createdAtClient", source = "createdAtClient" )
     @Mapping( target = "updatedAt", source = "lastUpdated" )
     @Mapping( target = "updatedAtClient", source = "lastUpdatedAtClient" )
+    @Mapping( target = "trackedEntity", source = "trackedEntityInstance" )
+    @Mapping( target = "enrolledAt", source = "enrollmentDate" )
+    @Mapping( target = "occurredAt", source = "incidentDate" )
+    @Mapping( target = "followUp", source = "followup" )
     @Mapping( target = "completedAt", source = "completedDate" )
-    @Mapping( target = "createdBy", source = "createdByUserInfo.username" )
-    @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo.username" )
-    Event from( org.hisp.dhis.dxf2.events.event.Event event );
+    @Mapping( target = "createdBy", source = "createdByUserInfo" )
+    @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo" )
+    Enrollment from( org.hisp.dhis.dxf2.events.enrollment.Enrollment enrollment );
 }

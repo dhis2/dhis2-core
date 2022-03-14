@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.domain.mapper;
+package org.hisp.dhis.webapi.controller.tracker.export;
 
 import java.time.Instant;
 import java.time.ZoneId;
@@ -37,15 +37,15 @@ import org.hisp.dhis.util.DateUtils;
 import org.mapstruct.Mapper;
 
 @Mapper
-abstract class InstantMapper
+public interface InstantMapper
 {
 
-    Instant fromString( String dateAsString )
+    default Instant fromString( String dateAsString )
     {
         return DateUtils.instantFromDateAsString( dateAsString );
     }
 
-    Instant fromDate( Date date )
+    default Instant fromDate( Date date )
     {
         if ( date instanceof java.sql.Date )
         {
@@ -54,7 +54,7 @@ abstract class InstantMapper
         return DateUtils.instantFromDate( date );
     }
 
-    Instant fromSqlDate( java.sql.Date date )
+    default Instant fromSqlDate( java.sql.Date date )
     {
         return Optional.ofNullable( date )
             .map( java.sql.Date::toLocalDate )

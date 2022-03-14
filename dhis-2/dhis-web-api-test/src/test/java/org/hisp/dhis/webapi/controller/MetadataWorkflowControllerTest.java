@@ -126,7 +126,7 @@ class MetadataWorkflowControllerTest extends DhisControllerConvenienceTest
     void testMakeAddProposal_ConflictIllegalChange()
     {
         JsonWebMessage message = assertWebMessage( "Conflict", 409, "WARNING",
-            "One more more errors occurred, please see full details in import report.",
+            "One or more errors occurred, please see full details in import report.",
             POST( "/metadata/proposals/", "{" + "'type':'ADD'," + "'target':'ORGANISATION_UNIT',"
                 + "'change':{'name':'hasNoShortName', " + "'openingDate': '2020-01-01'" + "}" + "}" )
                     .content( HttpStatus.CONFLICT ) );
@@ -177,7 +177,7 @@ class MetadataWorkflowControllerTest extends DhisControllerConvenienceTest
     void testMakeUpdateProposal_ConflictIllegalChange()
     {
         JsonWebMessage message = assertWebMessage( "Conflict", 409, "WARNING",
-            "One more more errors occurred, please see full details in import report.",
+            "One or more errors occurred, please see full details in import report.",
             POST( "/metadata/proposals/", "{" + "'type':'UPDATE'," + "'target':'ORGANISATION_UNIT'," + "'targetId': '"
                 + defaultTargetId + "'," + "'change':[{'op':'not-json-patch-op'}]" + "}" )
                     .content( HttpStatus.CONFLICT ) );
@@ -250,7 +250,7 @@ class MetadataWorkflowControllerTest extends DhisControllerConvenienceTest
         String proposalId = postUpdateNameProposal( defaultTargetId, "New name" );
         assertStatus( HttpStatus.OK, DELETE( "/organisationUnits/" + defaultTargetId ) );
         JsonWebMessage message = assertWebMessage( "Conflict", 409, "WARNING",
-            "One more more errors occurred, please see full details in import report.",
+            "One or more errors occurred, please see full details in import report.",
             POST( "/metadata/proposals/" + proposalId ).content( HttpStatus.CONFLICT ) );
         JsonErrorReport error = message.find( JsonErrorReport.class,
             report -> report.getErrorCode() == ErrorCode.E4015 );
@@ -279,7 +279,7 @@ class MetadataWorkflowControllerTest extends DhisControllerConvenienceTest
         String proposalId = postRemoveProposal( defaultTargetId );
         assertStatus( HttpStatus.OK, DELETE( "/organisationUnits/" + defaultTargetId ) );
         JsonWebMessage message = assertWebMessage( "Conflict", 409, "WARNING",
-            "One more more errors occurred, please see full details in import report.",
+            "One or more errors occurred, please see full details in import report.",
             POST( "/metadata/proposals/" + proposalId ).content( HttpStatus.CONFLICT ) );
         JsonErrorReport error = message.find( JsonErrorReport.class,
             report -> report.getErrorCode() == ErrorCode.E4015 );
@@ -318,7 +318,7 @@ class MetadataWorkflowControllerTest extends DhisControllerConvenienceTest
         User guest = switchToNewUser( "guest" );
         String proposalId = postUpdateNameProposal( defaultTargetId, "New name" );
         JsonWebMessage message = assertWebMessage( "Conflict", 409, "WARNING",
-            "One more more errors occurred, please see full details in import report.",
+            "One or more errors occurred, please see full details in import report.",
             POST( "/metadata/proposals/" + proposalId ).content( HttpStatus.CONFLICT ) );
         JsonErrorReport error = message.find( JsonErrorReport.class,
             report -> report.getErrorCode() == ErrorCode.E3001 );

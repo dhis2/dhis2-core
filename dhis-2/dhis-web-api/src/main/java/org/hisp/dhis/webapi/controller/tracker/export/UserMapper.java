@@ -25,24 +25,14 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.domain.mapper;
+package org.hisp.dhis.webapi.controller.tracker.export;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import org.hisp.dhis.program.UserInfoSnapshot;
+import org.hisp.dhis.tracker.domain.User;
+import org.mapstruct.Mapper;
 
-public interface DomainMapper<FROM, TO>
+@Mapper
+public interface UserMapper extends DomainMapper<UserInfoSnapshot, User>
 {
-    TO from( FROM from );
-
-    default List<TO> fromCollection( Collection<FROM> froms )
-    {
-        return Optional.ofNullable( froms )
-            .orElse( Collections.emptySet() )
-            .stream()
-            .map( this::from )
-            .collect( Collectors.toList() );
-    }
+    User from( UserInfoSnapshot snapshot );
 }
