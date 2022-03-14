@@ -74,6 +74,7 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
+import org.hisp.dhis.common.RequestTypeAware;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dataelement.DataElement;
@@ -104,7 +105,9 @@ import com.google.common.base.MoreObjects;
 public class DefaultEventDataQueryService
     implements EventDataQueryService
 {
-    private static final String COL_NAME_PROGRAM_STATUS = "pistatus";
+    private static final String COL_NAME_PROGRAM_STATUS_EVENTS = "pistatus";
+
+    private static final String COL_NAME_PROGRAM_STATUS_ENROLLMENTS = "enrollmentstatus";
 
     private static final String COL_NAME_EVENT_STATUS = "psistatus";
 
@@ -281,7 +284,7 @@ public class DefaultEventDataQueryService
         {
             for ( String sort : request.getAsc() )
             {
-                params.addAscSortItem( getSortItem( sort, pr, request.getOutputType() ) );
+                params.addAscSortItem( getSortItem( sort, pr, request.getOutputType(), request.getEndpointItem() ) );
             }
         }
 
@@ -289,7 +292,7 @@ public class DefaultEventDataQueryService
         {
             for ( String sort : request.getDesc() )
             {
-                params.addDescSortItem( getSortItem( sort, pr, request.getOutputType() ) );
+                params.addDescSortItem( getSortItem( sort, pr, request.getOutputType(), request.getEndpointItem() ) );
             }
         }
     }
@@ -483,11 +486,12 @@ public class DefaultEventDataQueryService
         return queryItem;
     }
 
-    private QueryItem getSortItem( String item, Program program, EventOutputType type )
+    private QueryItem getSortItem( String item, Program program, EventOutputType type,
+        RequestTypeAware.EndpointItem endpointItem )
     {
         if ( isSortable( item ) )
         {
-            return new QueryItem( new BaseDimensionalItemObject( translateItemIfNecessary( item ) ) );
+            return new QueryItem( new BaseDimensionalItemObject( translateItemIfNecessary( item, endpointItem ) ) );
         }
         return getQueryItem( item, program, type );
     }
@@ -532,17 +536,33 @@ public class DefaultEventDataQueryService
         ENROLLMENT_DATE( ITEM_ENROLLMENT_DATE, COL_NAME_ENROLLMENTDATE ),
         INCIDENT_DATE( ITEM_INCIDENT_DATE, COL_NAME_INCIDENTDATE ),
         EVENT_DATE( ITEM_EVENT_DATE, COL_NAME_EVENTDATE ),
-        ORG_UNIT_NAME( ITEM_ORG_UNIT_NAME, null ),
-        ORG_UNIT_CODE( ITEM_ORG_UNIT_CODE, null ),
-        PROGRAM_STATUS( ITEM_PROGRAM_STATUS, COL_NAME_PROGRAM_STATUS ),
+        ORG_UNIT_NAME( ITEM_ORG_UNIT_NAME ),
+        ORG_UNIT_CODE( ITEM_ORG_UNIT_CODE ),
+        PROGRAM_STATUS( ITEM_PROGRAM_STATUS, COL_NAME_PROGRAM_STATUS_EVENTS, COL_NAME_PROGRAM_STATUS_ENROLLMENTS ),
         EVENT_STATUS( ITEM_EVENT_STATUS, COL_NAME_EVENT_STATUS ),
-        CREATED_BY_DISPLAY_NAME( ITEM_CREATED_BY_DISPLAY_NAME, null ),
-        LAST_UPDATED_BY_DISPLAY_NAME( ITEM_LAST_UPDATED_BY_DISPLAY_NAME, null ),
-        LAST_UPDATED( ITEM_LAST_UPDATED, null );
+        CREATED_BY_DISPLAY_NAME( ITEM_CREATED_BY_DISPLAY_NAME ),
+        LAST_UPDATED_BY_DISPLAY_NAME( ITEM_LAST_UPDATED_BY_DISPLAY_NAME ),
+        LAST_UPDATED( ITEM_LAST_UPDATED );
 
         private final String itemName;
 
-        private final String columnName;
+        private final String eventColumnName;
+
+        private final String enrollmentColumnName;
+
+        SortableItems( String itemName )
+        {
+            this.itemName = itemName;
+            this.eventColumnName = null;
+            this.enrollmentColumnName = null;
+        }
+
+        SortableItems( String itemName, String columnName )
+        {
+            this.itemName = itemName;
+            this.eventColumnName = columnName;
+            this.enrollmentColumnName = columnName;
+        }
 
         static boolean isSortable( String itemName )
         {
@@ -551,13 +571,18 @@ public class DefaultEventDataQueryService
                 .anyMatch( itemName::equals );
         }
 
-        static String translateItemIfNecessary( String item )
+        static String translateItemIfNecessary( String item, RequestTypeAware.EndpointItem type )
         {
             return Arrays.stream( values() )
                 .filter( sortableItems -> sortableItems.getItemName().equals( item ) )
                 .findFirst()
-                .map( SortableItems::getColumnName )
+                .map( sortableItems -> sortableItems.getColumnName( type ) )
                 .orElse( item );
+        }
+
+        private String getColumnName( RequestTypeAware.EndpointItem type )
+        {
+            return type == RequestTypeAware.EndpointItem.EVENT ? eventColumnName : enrollmentColumnName;
         }
 
     }

@@ -59,7 +59,7 @@ public class EventDataQueryRequestTest
         assertEquals( eventDataQueryRequest.getDimension(), Set.of( "pe:TODAY" ) );
 
         eventDataQueryRequest = EventDataQueryRequest.builder()
-            .fromCriteria( (EventsAnalyticsQueryCriteria) criteria.withQueryRequestType() )
+            .fromCriteria( (EventsAnalyticsQueryCriteria) criteria.withQueryEndpointAction() )
             .build();
 
         assertEquals( eventDataQueryRequest.getDimension(), Set.of( "pe:TODAY;YESTERDAY:INCIDENT_DATE" ) );
@@ -75,7 +75,7 @@ public class EventDataQueryRequestTest
         assertEquals( eventDataQueryRequest.getDimension(), Collections.emptySet() );
 
         eventDataQueryRequest = EventDataQueryRequest.builder()
-            .fromCriteria( (EventsAnalyticsQueryCriteria) criteria.withQueryRequestType() )
+            .fromCriteria( (EventsAnalyticsQueryCriteria) criteria.withQueryEndpointAction() )
             .build();
 
         assertEquals( eventDataQueryRequest.getDimension(), Set.of( "pe:TODAY:INCIDENT_DATE" ) );
@@ -91,7 +91,7 @@ public class EventDataQueryRequestTest
         criteria.setDimension( new HashSet<>( Set.of( "pe:LAST_MONTH" ) ) );
 
         EventDataQueryRequest eventDataQueryRequest = EventDataQueryRequest.builder()
-            .fromCriteria( (EventsAnalyticsQueryCriteria) criteria.withQueryRequestType() )
+            .fromCriteria( (EventsAnalyticsQueryCriteria) criteria.withQueryEndpointAction() )
             .build();
 
         assertEquals( eventDataQueryRequest.getDimension(),
@@ -109,7 +109,7 @@ public class EventDataQueryRequestTest
         criteria.setDimension( new HashSet<>( Set.of( "pe:LAST_MONTH" ) ) );
 
         EventDataQueryRequest eventDataQueryRequest = EventDataQueryRequest.builder()
-            .fromCriteria( (EnrollmentAnalyticsQueryCriteria) criteria.withQueryRequestType() )
+            .fromCriteria( (EnrollmentAnalyticsQueryCriteria) criteria.withQueryEndpointAction() )
             .build();
 
         assertEquals( eventDataQueryRequest.getDimension(),
