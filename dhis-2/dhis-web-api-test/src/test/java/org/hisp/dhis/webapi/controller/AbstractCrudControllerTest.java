@@ -131,7 +131,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
         JsonArray translations = GET( "/users/{id}/translations", id ).content().getArray( "translations" );
         assertTrue( translations.isEmpty() );
         JsonWebMessage message = assertWebMessage( "Conflict", 409, "WARNING",
-            "One more more errors occurred, please see full details in import report.",
+            "One or more errors occurred, please see full details in import report.",
             PUT( "/users/" + id + "/translations",
                 "{'translations': [{'locale':'sv', 'property':'name', 'value':'namn'}]}" )
                     .content( HttpStatus.CONFLICT ) );
@@ -175,7 +175,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
         assertTrue( translations.isEmpty() );
 
         JsonWebMessage message = assertWebMessage( "Conflict", 409, "WARNING",
-            "One more more errors occurred, please see full details in import report.",
+            "One or more errors occurred, please see full details in import report.",
             PUT( "/dataSets/" + id + "/translations",
                 "{'translations': [{'locale':'sv', 'property':'name', 'value':'namn 1'},{'locale':'sv', 'property':'name', 'value':'namn2'}]}" )
                     .content( HttpStatus.CONFLICT ) );
@@ -202,7 +202,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
             POST( "/dataSets/", "{'name':'My data set', 'periodType':'Monthly'}" ) );
 
         JsonWebMessage message = assertWebMessage( "Conflict", 409, "WARNING",
-            "One more more errors occurred, please see full details in import report.",
+            "One or more errors occurred, please see full details in import report.",
             PUT( "/dataSets/" + id + "/translations",
                 "{'translations': [{'locale':'en', 'property':'name'}]}" )
                     .content( HttpStatus.CONFLICT ) );
@@ -221,7 +221,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
             POST( "/dataSets/", "{'name':'My data set', 'periodType':'Monthly'}" ) );
 
         JsonWebMessage message = assertWebMessage( "Conflict", 409, "WARNING",
-            "One more more errors occurred, please see full details in import report.",
+            "One or more errors occurred, please see full details in import report.",
             PUT( "/dataSets/" + id + "/translations",
                 "{'translations': [{'locale':'en', 'value':'namn 1'}]}" )
                     .content( HttpStatus.CONFLICT ) );
@@ -240,7 +240,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
             POST( "/dataSets/", "{'name':'My data set', 'periodType':'Monthly'}" ) );
 
         JsonWebMessage message = assertWebMessage( "Conflict", 409, "WARNING",
-            "One more more errors occurred, please see full details in import report.",
+            "One or more errors occurred, please see full details in import report.",
             PUT( "/dataSets/" + id + "/translations",
                 "{'translations': [{'property':'name', 'value':'namn 1'}]}" )
                     .content( HttpStatus.CONFLICT ) );
@@ -648,7 +648,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
         JsonWebMessage message = PUT( "/programs/" + programId + "/sharing", sharing ).content( HttpStatus.CONFLICT )
             .as( JsonWebMessage.class );
         assertWebMessage( "Conflict", 409, "ERROR",
-            "One more more errors occurred, please see full details in import report.", message );
+            "One or more errors occurred, please see full details in import report.", message );
         JsonTypeReport response = message.get( "response", JsonTypeReport.class );
         assertEquals( 1, response.getObjectReports().size() );
         assertEquals( ErrorCode.E3015, response.getObjectReports().get( 0 ).getErrorReports().get( 0 ).getErrorCode() );
