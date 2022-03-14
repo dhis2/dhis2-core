@@ -712,7 +712,9 @@ public class JdbcAnalyticsManager
             {
                 String value = dim.isFixed() ? dim.getDimensionName() : rowSet.getString( dim.getDimensionName() );
 
-                key.append( value ).append( DIMENSION_SEP );
+                String queryModsId = params.getQueryModsId( dim );
+
+                key.append( value ).append( queryModsId ).append( DIMENSION_SEP );
             }
 
             key.deleteCharAt( key.length() - 1 );
