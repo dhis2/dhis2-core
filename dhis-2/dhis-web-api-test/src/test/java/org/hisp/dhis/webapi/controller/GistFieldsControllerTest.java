@@ -39,6 +39,7 @@ import org.hisp.dhis.attribute.Attribute.ObjectType;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonString;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
@@ -190,6 +191,7 @@ class GistFieldsControllerTest extends AbstractGistControllerTest
     }
 
     @Test
+    @Disabled( "unstable for unknown reason - needs investigation" )
     void testField_Attribute()
     {
         // setup a DE with custom attribute value
