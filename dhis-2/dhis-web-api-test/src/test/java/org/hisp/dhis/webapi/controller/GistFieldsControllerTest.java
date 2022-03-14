@@ -38,6 +38,7 @@ import static org.junit.Assert.assertTrue;
 import org.hisp.dhis.webapi.json.JsonArray;
 import org.hisp.dhis.webapi.json.JsonObject;
 import org.hisp.dhis.webapi.json.JsonString;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 
@@ -204,6 +205,7 @@ public class GistFieldsControllerTest extends AbstractGistControllerTest
     }
 
     @Test
+    @Ignore( "unstable for unknown reason - needs investigation" )
     public void testField_Attribute()
     {
         // setup a DE with custom attribute value
