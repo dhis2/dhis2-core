@@ -184,7 +184,7 @@ class UserControllerTest extends DhisControllerConvenienceTest
     void testPutProperty_InvalidWhatsapp()
     {
         JsonWebMessage msg = assertWebMessage( "Conflict", 409, "ERROR",
-            "One more more errors occurred, please see full details in import report.",
+            "One or more errors occurred, please see full details in import report.",
             PATCH( "/users/" + peter.getUid() + "?importReportMode=ERRORS",
                 "[{'op': 'add', 'path': '/whatsApp', 'value': 'not-a-phone-no'}]" ).content( HttpStatus.CONFLICT ) );
         JsonErrorReport report = msg.getResponse()
@@ -204,7 +204,7 @@ class UserControllerTest extends DhisControllerConvenienceTest
     void testPostJsonObjectInvalidUsername()
     {
         JsonWebMessage msg = assertWebMessage( "Conflict", 409, "ERROR",
-            "One more more errors occurred, please see full details in import report.",
+            "One or more errors occurred, please see full details in import report.",
             POST( "/users/", "{'surname':'S.','firstName':'Harry','userCredentials':{'username':'Harrys'}}" )
                 .content( HttpStatus.CONFLICT ) );
         JsonErrorReport report = msg.getResponse()
