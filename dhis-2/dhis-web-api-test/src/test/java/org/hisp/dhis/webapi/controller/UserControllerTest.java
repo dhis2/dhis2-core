@@ -194,7 +194,7 @@ public class UserControllerTest extends DhisControllerConvenienceTest
         assertEquals( HttpStatus.CONFLICT, response.status() );
         String content = response.content( MediaType.APPLICATION_XML );
         assertTrue( content.contains(
-            "<message>One more more errors occurred, please see full details in import report.</message>" ) );
+            "<message>One or more errors occurred, please see full details in import report.</message>" ) );
     }
 
     @Test
