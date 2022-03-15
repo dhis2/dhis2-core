@@ -396,7 +396,7 @@ public class DefaultEventAnalyticsService
             EventAnalyticsUtils.addValues( ids, grid, outputGrid );
         }
 
-        return outputGrid.getRows().isEmpty() ? grid : outputGrid;
+        return getGridWithRows( grid, outputGrid );
     }
 
     /**
