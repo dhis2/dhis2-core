@@ -37,6 +37,7 @@ import java.util.Set;
 import lombok.Getter;
 import lombok.Setter;
 
+import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.translation.Translation;
@@ -62,7 +63,7 @@ public class MeDto
         this.languages = user.getLanguages();
         this.gender = user.getGender();
         this.jobTitle = user.getJobTitle();
-        this.avatar = user.getAvatar() != null ? user.getAvatar().toString() : null;
+        this.avatar = user.getAvatar();
         this.created = user.getCreated();
         this.lastUpdated = user.getLastUpdated();
         this.dataViewOrganisationUnits = user.getDataViewOrganisationUnits();
@@ -114,7 +115,7 @@ public class MeDto
     private String jobTitle;
 
     @JsonProperty( )
-    private String avatar;
+    private FileResource avatar;
 
     @JsonProperty( )
     private Date created;
