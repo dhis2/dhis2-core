@@ -48,7 +48,6 @@ import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
-import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.tracker.validation.TrackerValidationHook;
 
 import com.google.common.collect.ImmutableMap;
@@ -136,12 +135,12 @@ public abstract class AbstractTrackerDtoValidationHook
      * Delegating validate method, this delegates validation to the different
      * implementing hooks.
      *
-     * @param context validation context
+     * @param reporter validation error reporter
+     * @param bundle tracker bundle
      */
     @Override
-    public void validate( ValidationErrorReporter reporter, TrackerImportValidationContext context )
+    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle )
     {
-        TrackerBundle bundle = context.getBundle();
         /*
          * Validate the bundle, by passing each Tracker entities collection to
          * the validation hooks. If a validation hook reports errors and has
@@ -149,20 +148,20 @@ public abstract class AbstractTrackerDtoValidationHook
          * removed from the bundle.
          */
 
-        validateTrackerDtos( reporter, context, bundle.getTrackedEntities() );
-        validateTrackerDtos( reporter, context, bundle.getEnrollments() );
-        validateTrackerDtos( reporter, context, bundle.getEvents() );
-        validateTrackerDtos( reporter, context, bundle.getRelationships() );
+        validateTrackerDtos( reporter, bundle, bundle.getTrackedEntities() );
+        validateTrackerDtos( reporter, bundle, bundle.getEnrollments() );
+        validateTrackerDtos( reporter, bundle, bundle.getEvents() );
+        validateTrackerDtos( reporter, bundle, bundle.getRelationships() );
     }
 
-    private void validateTrackerDtos( ValidationErrorReporter reporter, TrackerImportValidationContext context,
+    private void validateTrackerDtos( ValidationErrorReporter reporter, TrackerBundle bundle,
         List<? extends TrackerDto> dtos )
     {
         Iterator<? extends TrackerDto> iter = dtos.iterator();
         while ( iter.hasNext() )
         {
             TrackerDto dto = iter.next();
-            if ( needsToRun( context.getStrategy( dto ) ) )
+            if ( needsToRun( bundle.getStrategy( dto ) ) )
             {
                 validationMap.get( dto.getTrackerType() ).accept( reporter, dto );
                 if ( removeOnError() && didNotPassValidation( reporter, dto.getUid() ) )

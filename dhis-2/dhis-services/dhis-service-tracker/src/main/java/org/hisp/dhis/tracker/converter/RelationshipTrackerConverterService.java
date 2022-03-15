@@ -87,11 +87,18 @@ public class RelationshipTrackerConverterService
     private RelationshipItem convertRelationshipType( org.hisp.dhis.relationship.RelationshipItem from )
     {
         RelationshipItem relationshipItem = new RelationshipItem();
-        relationshipItem.setEnrollment( from.getProgramInstance() != null ? from.getProgramInstance().getUid() : null );
-        relationshipItem
-            .setEvent( from.getProgramStageInstance() != null ? from.getProgramStageInstance().getUid() : null );
-        relationshipItem.setTrackedEntity(
-            from.getTrackedEntityInstance() != null ? from.getTrackedEntityInstance().getUid() : null );
+        RelationshipItem.Enrollment enrollment = RelationshipItem.Enrollment.builder()
+            .enrollment( from.getProgramInstance() != null ? from.getProgramInstance().getUid() : null )
+            .build();
+        relationshipItem.setEnrollment( enrollment );
+        RelationshipItem.Event event = RelationshipItem.Event.builder()
+            .event( from.getProgramStageInstance() != null ? from.getProgramStageInstance().getUid() : null )
+            .build();
+        relationshipItem.setEvent( event );
+        RelationshipItem.TrackedEntity trackedEntity = RelationshipItem.TrackedEntity.builder()
+            .trackedEntity( from.getTrackedEntityInstance() != null ? from.getTrackedEntityInstance().getUid() : null )
+            .build();
+        relationshipItem.setTrackedEntity( trackedEntity );
         return relationshipItem;
     }
 
@@ -144,17 +151,18 @@ public class RelationshipTrackerConverterService
         if ( relationshipType.getFromConstraint().getRelationshipEntity().equals( TRACKED_ENTITY_INSTANCE ) )
         {
             fromItem.setTrackedEntityInstance( preheat.getTrackedEntity( TrackerIdScheme.UID,
-                fromRelationship.getFrom().getTrackedEntity() ) );
+                fromRelationship.getFrom().getTrackedEntity().getTrackedEntity() ) );
         }
         else if ( relationshipType.getFromConstraint().getRelationshipEntity().equals( PROGRAM_INSTANCE ) )
         {
             fromItem.setProgramInstance(
-                preheat.getEnrollment( TrackerIdScheme.UID, fromRelationship.getFrom().getEnrollment() ) );
+                preheat.getEnrollment( TrackerIdScheme.UID,
+                    fromRelationship.getFrom().getEnrollment().getEnrollment() ) );
         }
         else if ( relationshipType.getFromConstraint().getRelationshipEntity().equals( PROGRAM_STAGE_INSTANCE ) )
         {
             fromItem.setProgramStageInstance(
-                preheat.getEvent( TrackerIdScheme.UID, fromRelationship.getFrom().getEvent() ) );
+                preheat.getEvent( TrackerIdScheme.UID, fromRelationship.getFrom().getEvent().getEvent() ) );
         }
 
         // TO
@@ -163,17 +171,18 @@ public class RelationshipTrackerConverterService
         if ( relationshipType.getToConstraint().getRelationshipEntity().equals( TRACKED_ENTITY_INSTANCE ) )
         {
             toItem.setTrackedEntityInstance( preheat.getTrackedEntity( TrackerIdScheme.UID,
-                fromRelationship.getTo().getTrackedEntity() ) );
+                fromRelationship.getTo().getTrackedEntity().getTrackedEntity() ) );
         }
         else if ( relationshipType.getToConstraint().getRelationshipEntity().equals( PROGRAM_INSTANCE ) )
         {
             toItem.setProgramInstance(
-                preheat.getEnrollment( TrackerIdScheme.UID, fromRelationship.getTo().getEnrollment() ) );
+                preheat.getEnrollment( TrackerIdScheme.UID,
+                    fromRelationship.getTo().getEnrollment().getEnrollment() ) );
         }
         else if ( relationshipType.getToConstraint().getRelationshipEntity().equals( PROGRAM_STAGE_INSTANCE ) )
         {
             toItem.setProgramStageInstance(
-                preheat.getEvent( TrackerIdScheme.UID, fromRelationship.getTo().getEvent() ) );
+                preheat.getEvent( TrackerIdScheme.UID, fromRelationship.getTo().getEvent().getEvent() ) );
         }
 
         toRelationship.setFrom( fromItem );

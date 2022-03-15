@@ -815,11 +815,12 @@ public class DefaultEventAnalyticsService
         if ( params.getPartitions().hasAny() || params.isSkipPartitioning() )
         {
             if ( params.isPaging() )
-            {
-                count += eventAnalyticsManager.getEventCount( params );
-            }
+                eventAnalyticsManager.getEvents( params, grid, queryValidator.getMaxLimit() );
 
-            eventAnalyticsManager.getEvents( params, grid, queryValidator.getMaxLimit() );
+            if ( params.isPaging() && params.isTotalPages() )
+            {
+                count = eventAnalyticsManager.getEventCount( params );
+            }
 
             timer.getTime( "Got events " + grid.getHeight() );
         }

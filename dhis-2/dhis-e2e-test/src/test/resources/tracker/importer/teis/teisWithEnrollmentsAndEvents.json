@@ -27,9 +27,7 @@
               "enrollment": "MNWZ6hnuhSw",
               "status": "ACTIVE",
               "occurredAt": "2019-08-01T00:00:00.000",
-              "attributeCategoryOptions": "xYerKDKCefk",
               "deleted": false,
-              "attributeOptionCombo": "HllvX50cXC0",
               "dataValues": [
                 {
                   "updatedAt": "2019-08-19T13:58:37.477",
@@ -63,10 +61,14 @@
         {
           "relationshipType": "xLmPUYJX8Ks",
           "from": {
-            "trackedEntity": "Kj6vYde4LHh"
+            "trackedEntity": {
+              "trackedEntity": "Kj6vYde4LHh"
+            }
           },
           "to": {
-            "trackedEntity": "Nav6inZRw1u"
+            "trackedEntity": {
+              "trackedEntity": "Nav6inZRw1u"
+            }
           }
         }
       ],
@@ -112,9 +114,7 @@
               "enrollment": "PuBvJxDB73z",
               "status": "ACTIVE",
               "occurredAt": "2019-08-07T00:00:00.000",
-              "attributeCategoryOptions": "xYerKDKCefk",
               "deleted": false,
-              "attributeOptionCombo": "HllvX50cXC0",
               "dataValues": [
                 {
                   "updatedAt": "2019-08-19T13:34:47.403",

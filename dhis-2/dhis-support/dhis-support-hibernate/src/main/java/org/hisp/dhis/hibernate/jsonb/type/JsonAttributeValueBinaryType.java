@@ -35,7 +35,9 @@ import java.util.Map;
 import java.util.Set;
 
 import org.hibernate.HibernateException;
+import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -43,7 +45,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class JsonAttributeValueBinaryType
     extends JsonBinaryType
 {
-    public static final ObjectMapper MAPPER = new ObjectMapper();
+    public static final ObjectMapper MAPPER = JacksonObjectMapperConfig.staticJsonMapper();
 
     @Override
     protected JavaType getResultingJavaType( Class<?> returnedClass )
@@ -66,6 +68,7 @@ public class JsonAttributeValueBinaryType
             {
                 if ( attributeValue.getAttribute() != null )
                 {
+                    attributeValue.setAttribute( new Attribute( attributeValue.getAttribute().getUid() ) );
                     attrValueMap.put( attributeValue.getAttribute().getUid(), attributeValue );
                 }
             }

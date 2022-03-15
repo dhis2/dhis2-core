@@ -34,6 +34,7 @@ import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.QUERY_MODS_ID_SEPARATOR;
 import static org.hisp.dhis.dataelement.DataElementOperand.TotalType;
 import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
@@ -305,6 +306,9 @@ public class AnalyticsUtils
      * i.e. {@code deuid-cocuid} to {@code deuid.cocuid}. For
      * {@link TotalType#AOC_ONLY} a {@link ExpressionService#SYMBOL_WILDCARD}
      * symbol will be inserted after the data item.
+     * <p>
+     * Also transfers a queryModsId to the end of the operand identifier, i.e.
+     * {@code deuid_queryModsId-cocuid} to {@code deuid.cocuid_queryModsId}
      *
      * @param valueMap the value map to convert.
      * @param totalType the {@link TotalType}.
@@ -326,6 +330,16 @@ public class AnalyticsUtils
             if ( TotalType.AOC_ONLY == totalType )
             {
                 operands.add( 1, SYMBOL_WILDCARD );
+            }
+
+            // If the DataElement has a queryModsId, move it to end of operand
+
+            List<String> queryModsSplit = Lists.newArrayList( operands.get( 0 ).split( QUERY_MODS_ID_SEPARATOR ) );
+            if ( queryModsSplit.size() > 1 )
+            {
+                operands.set( 0, queryModsSplit.get( 0 ) );
+                int lastOp = operands.size() - 1;
+                operands.set( lastOp, operands.get( lastOp ) + QUERY_MODS_ID_SEPARATOR + queryModsSplit.get( 1 ) );
             }
 
             String operand = StringUtils.join( operands, DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP );
@@ -935,7 +949,8 @@ public class AnalyticsUtils
         List<DimensionalItemObject> items )
     {
         return items.stream()
-            .filter( dio -> dio.getDimensionItem() != null && dio.getDimensionItem().equals( dimensionIdentifier ) )
+            .filter( dio -> dio.getDimensionItem() != null &&
+                dio.getDimensionItemWithQueryModsId().equals( dimensionIdentifier ) )
             .collect( Collectors.toList() );
     }
 

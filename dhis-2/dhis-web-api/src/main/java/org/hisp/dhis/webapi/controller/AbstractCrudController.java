@@ -1071,7 +1071,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         return false;
     }
 
-    private Patch diff( HttpServletRequest request )
+    protected Patch diff( HttpServletRequest request )
         throws IOException,
         WebMessageException
     {
