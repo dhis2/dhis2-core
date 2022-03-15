@@ -203,18 +203,18 @@ public class SystemUpdateService
     {
         Set<User> recipients = getRecipients();
 
-        for ( Map.Entry<Semver, Map<String, String>> entry : patchVersions.entrySet() )
+        for ( Map.Entry<Semver, Map<String, String>> versionEntry : patchVersions.entrySet() )
         {
-            Semver version = entry.getKey();
-            Map<String, String> message = entry.getValue();
+            Semver version = versionEntry.getKey();
+            Map<String, String> message = versionEntry.getValue();
 
-            for ( User recipient : recipients )
+            // Check if message has been sent before using
+            // version.getValue() as extMessageId
+            List<MessageConversation> existingMessages = messageService.getMatchingExtId( version.getValue() );
+
+            if ( existingMessages.isEmpty() )
             {
-                // Check if message has been sent before using
-                // version.getValue() as extMessageId
-                List<MessageConversation> existingMessages = messageService.getMatchingExtId( version.getValue() );
-
-                if ( existingMessages.isEmpty() )
+                for ( User recipient : recipients )
                 {
                     MessageConversationParams params = new MessageConversationParams.Builder()
                         .withRecipients( Set.of( recipient ) )
@@ -234,7 +234,7 @@ public class SystemUpdateService
         Set<User> recipients = messageService.getSystemUpdateNotificationRecipients();
 
         // Fallback to fetching all users with ALL authority for our recipient
-        // list.
+        // list if no explicit recipients group are set.
         return !recipients.isEmpty() ? recipients : getUsersWithAllAuthority();
     }
 
