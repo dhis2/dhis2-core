@@ -64,16 +64,20 @@ public class OrderParamsHelper
         Map<String, TrackedEntityAttribute> attributes )
     {
         List<String> errors = new ArrayList<>();
-        if ( orderParams != null && !orderParams.isEmpty() )
+
+        if ( orderParams == null || orderParams.isEmpty() )
         {
-            for ( OrderParam orderParam : orderParams )
+            return errors;
+        }
+
+        for ( OrderParam orderParam : orderParams )
+        {
+            if ( !isStaticColumn( orderParam.getField() ) && !attributes.containsKey( orderParam.getField() ) )
             {
-                if ( !isStaticColumn( orderParam.getField() ) && !attributes.containsKey( orderParam.getField() ) )
-                {
-                    errors.add( "Invalid order property: " + orderParam.getField() );
-                }
+                errors.add( "Invalid order property: " + orderParam.getField() );
             }
         }
+
         return errors;
     }
 }
