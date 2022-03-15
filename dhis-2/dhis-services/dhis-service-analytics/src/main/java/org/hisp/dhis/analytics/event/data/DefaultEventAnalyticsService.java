@@ -308,6 +308,7 @@ public class DefaultEventAnalyticsService
 
         List<Map<String, EventAnalyticsDimensionalItem>> rowPermutations = EventAnalyticsUtils
             .generateEventDataPermutations( tableRows );
+
         List<Map<String, EventAnalyticsDimensionalItem>> columnPermutations = EventAnalyticsUtils
             .generateEventDataPermutations( tableColumns );
 
