@@ -208,12 +208,13 @@ public class MeController
     }
 
     @GetMapping( "/dataApprovalWorkflows" )
-    public ResponseEntity<ObjectNode> getCurrentUserDataApprovalWorkflows( HttpServletResponse response,
+    public void getCurrentUserDataApprovalWorkflows( HttpServletResponse response,
         @CurrentUser( required = true ) User user )
         throws Exception
     {
-        ObjectNode objectNode = userControllerUtils.getUserDataApprovalWorkflows( user );
-        return ResponseEntity.ok( objectNode );
+        RootNode rootNode = userControllerUtils.getUserDataApprovalWorkflows( user );
+
+        nodeService.serialize( rootNode, APPLICATION_JSON_VALUE, response.getOutputStream() );
     }
 
     @PutMapping( value = "", consumes = APPLICATION_JSON_VALUE )
