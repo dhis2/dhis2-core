@@ -177,13 +177,13 @@ public class SystemController
     // Tasks
     // -------------------------------------------------------------------------
 
-    @GetMapping( value = "/tasks", produces = { "*/*", APPLICATION_JSON_VALUE } )
+    @GetMapping( value = "/tasks", produces = APPLICATION_JSON_VALUE )
     public ResponseEntity<Map<JobType, Map<String, Deque<Notification>>>> getTasksJson()
     {
         return ResponseEntity.ok().cacheControl( noStore() ).body( notifier.getNotifications() );
     }
 
-    @GetMapping( value = "/tasks/{jobType}", produces = { "*/*", APPLICATION_JSON_VALUE } )
+    @GetMapping( value = "/tasks/{jobType}", produces = APPLICATION_JSON_VALUE )
     public ResponseEntity<Map<String, Deque<Notification>>> getTasksExtendedJson(
         @PathVariable( "jobType" ) String jobType )
     {
@@ -194,7 +194,7 @@ public class SystemController
         return ResponseEntity.ok().cacheControl( noStore() ).body( notifications );
     }
 
-    @GetMapping( value = "/tasks/{jobType}/{jobId}", produces = { "*/*", APPLICATION_JSON_VALUE } )
+    @GetMapping( value = "/tasks/{jobType}/{jobId}", produces = APPLICATION_JSON_VALUE )
     public ResponseEntity<Collection<Notification>> getTaskJsonByUid( @PathVariable( "jobType" ) String jobType,
         @PathVariable( "jobId" ) String jobId )
     {
@@ -209,7 +209,7 @@ public class SystemController
     // Tasks summary
     // -------------------------------------------------------------------------
 
-    @GetMapping( value = "/taskSummaries/{jobType}", produces = { "*/*", APPLICATION_JSON_VALUE } )
+    @GetMapping( value = "/taskSummaries/{jobType}", produces = APPLICATION_JSON_VALUE )
     public ResponseEntity<Map<String, Object>> getTaskSummaryExtendedJson( @PathVariable( "jobType" ) String jobType )
     {
         if ( jobType != null )
@@ -224,7 +224,7 @@ public class SystemController
         return ResponseEntity.ok().cacheControl( noStore() ).build();
     }
 
-    @GetMapping( value = "/taskSummaries/{jobType}/{jobId}", produces = { "*/*", APPLICATION_JSON_VALUE } )
+    @GetMapping( value = "/taskSummaries/{jobType}/{jobId}", produces = APPLICATION_JSON_VALUE )
     public ResponseEntity<Object> getTaskSummaryJson( @PathVariable( "jobType" ) String jobType,
         @PathVariable( "jobId" ) String jobId )
     {

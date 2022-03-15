@@ -142,6 +142,8 @@ public class EventDataQueryRequest
 
     private boolean totalPages;
 
+    private RequestTypeAware.EndpointItem endpointItem;
+
     /**
      * Copies all properties of this request onto the given request.
      *
@@ -189,6 +191,7 @@ public class EventDataQueryRequest
         queryRequest.pageSize = this.pageSize;
         queryRequest.paging = this.paging;
         queryRequest.totalPages = this.totalPages;
+        queryRequest.endpointItem = this.endpointItem;
         return request;
     }
 
@@ -244,14 +247,15 @@ public class EventDataQueryRequest
                 .orgUnitField( criteria.getOrgUnitField() )
                 .coordinatesOnly( criteria.isCoordinatesOnly() )
                 .coordinateOuFallback( criteria.isCoordinateOuFallback() )
-                .totalPages( criteria.isTotalPages() );
+                .totalPages( criteria.isTotalPages() )
+                .endpointItem( criteria.getEndpointItem() );
 
             if ( criteria.getDimension() == null )
             {
                 criteria.setDimension( new HashSet<>() );
             }
 
-            if ( criteria.isRequestTypeQuery() )
+            if ( criteria.isQueryEndpoint() )
             {
                 /*
                  * for each AnalyticsDateFilter whose event extractor is set,
@@ -335,14 +339,15 @@ public class EventDataQueryRequest
                 .userOrgUnit( criteria.getUserOrgUnit() )
                 .coordinateField( criteria.getCoordinateField() )
                 .sortOrder( criteria.getSortOrder() )
-                .totalPages( criteria.isTotalPages() );
+                .totalPages( criteria.isTotalPages() )
+                .endpointItem( criteria.getEndpointItem() );
 
             if ( criteria.getDimension() == null )
             {
                 criteria.setDimension( new HashSet<>() );
             }
 
-            if ( criteria.isRequestTypeQuery() )
+            if ( criteria.isQueryEndpoint() )
             {
                 /*
                  * for each AnalyticsDateFilter whose enrollment extractor is
