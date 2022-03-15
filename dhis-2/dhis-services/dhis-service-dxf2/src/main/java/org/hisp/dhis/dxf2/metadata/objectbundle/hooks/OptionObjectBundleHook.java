@@ -63,13 +63,14 @@ public class OptionObjectBundleHook extends AbstractObjectBundleHook<Option>
         // the option here
         // (will be done automatically later and option set may contain raw
         // value already)
-        if ( option.getOptionSet() != null && !bundle.containsObject( option.getOptionSet() ) )
+        if ( option.getOptionSet() != null && bundle.containsObject( option.getOptionSet() ) )
         {
             OptionSet optionSet = bundle.getPreheat().get( bundle.getPreheatIdentifier(), OptionSet.class,
                 option.getOptionSet() );
 
-            if ( optionSet != null )
+            if ( optionSet != null && option.getSortOrder() == null )
             {
+                optionSet.getOptions().remove( option );
                 optionSet.addOption( option );
             }
         }
