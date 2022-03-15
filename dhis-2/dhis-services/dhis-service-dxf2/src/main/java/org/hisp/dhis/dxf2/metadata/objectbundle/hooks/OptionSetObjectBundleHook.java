@@ -37,15 +37,15 @@ import org.springframework.stereotype.Component;
 public class OptionSetObjectBundleHook extends AbstractObjectBundleHook<OptionSet>
 {
     @Override
-    public void postCreate( OptionSet persistedObject, ObjectBundle bundle )
+    public void preCreate( OptionSet optionSet, ObjectBundle bundle )
     {
-        updateOption( persistedObject );
+        updateOption( optionSet );
     }
 
     @Override
-    public void postUpdate( OptionSet persistedObject, ObjectBundle bundle )
+    public void preUpdate( OptionSet optionSet, OptionSet persistedObject, ObjectBundle bundle )
     {
-        updateOption( persistedObject );
+        updateOption( optionSet );
     }
 
     private void updateOption( OptionSet optionSet )
@@ -61,7 +61,5 @@ public class OptionSetObjectBundleHook extends AbstractObjectBundleHook<OptionSe
                 option.setOptionSet( optionSet );
             }
         } );
-
-        sessionFactory.getCurrentSession().refresh( optionSet );
     }
 }
