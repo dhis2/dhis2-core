@@ -70,6 +70,7 @@ import org.hisp.dhis.jsonpatch.BulkJsonPatches;
 import org.hisp.dhis.jsonpatch.BulkPatchManager;
 import org.hisp.dhis.jsonpatch.BulkPatchParameters;
 import org.hisp.dhis.jsonpatch.validator.BulkPatchValidatorFactory;
+import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.SchemaService;
@@ -90,9 +91,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -220,7 +219,7 @@ public class MetadataImportExportController
     }
 
     @GetMapping
-    public ResponseEntity<JsonNode> getMetadata(
+    public ResponseEntity<RootNode> getMetadata(
         @RequestParam( required = false, defaultValue = "false" ) boolean translate,
         @RequestParam( required = false ) String locale,
         @RequestParam( required = false, defaultValue = "false" ) boolean download )
@@ -234,9 +233,9 @@ public class MetadataImportExportController
         MetadataExportParams params = metadataExportService.getParamsFromMap( contextService.getParameterValuesMap() );
         metadataExportService.validate( params );
 
-        ObjectNode rootNode = metadataExportService.getMetadataAsNode( params );
+        RootNode rootNode = metadataExportService.getMetadataAsRootNode( params );
 
-        return MetadataExportControllerUtils.createJsonNodeResponseEntity( rootNode, download );
+        return MetadataExportControllerUtils.createResponseEntity( rootNode, download );
     }
 
     @ResponseBody
