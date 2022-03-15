@@ -296,27 +296,6 @@ public class AccountController
             return badRequest( "Employer is not specified or invalid" );
         }
 
-        if ( !systemSettingManager.selfRegistrationNoRecaptcha() )
-        {
-            if ( recapResponse == null )
-            {
-                return badRequest( "Please verify that you are not a robot" );
-            }
-
-            // ---------------------------------------------------------------------
-            // Check result from API, return 500 if validation failed
-            // ---------------------------------------------------------------------
-
-            RecaptchaResponse recaptchaResponse = securityService
-                .verifyRecaptcha( recapResponse, request.getRemoteAddr() );
-
-            if ( !recaptchaResponse.success() )
-            {
-                log.warn( "Recaptcha validation failed: " + recaptchaResponse.getErrorCodes() );
-                return badRequest( "Recaptcha validation failed: " + recaptchaResponse.getErrorCodes() );
-            }
-        }
-
         if ( invitedByEmail )
         {
             String[] idAndRestoreToken = securityService.decodeEncodedTokens( inviteToken );
@@ -370,6 +349,27 @@ public class AccountController
             if ( !allowed )
             {
                 return badRequest( "User self registration is not allowed" );
+            }
+
+            if ( systemSettingManager.selfRegistrationWithRecaptcha() )
+            {
+                if ( recapResponse == null )
+                {
+                    return badRequest( "Please verify that you are not a robot" );
+                }
+
+                // ---------------------------------------------------------------------
+                // Check result from API, return 500 if validation failed
+                // ---------------------------------------------------------------------
+
+                RecaptchaResponse recaptchaResponse = securityService
+                    .verifyRecaptcha( recapResponse, request.getRemoteAddr() );
+
+                if ( !recaptchaResponse.success() )
+                {
+                    log.warn( "Recaptcha validation failed: " + recaptchaResponse.getErrorCodes() );
+                    return badRequest( "Recaptcha validation failed: " + recaptchaResponse.getErrorCodes() );
+                }
             }
 
             User existingUser = userService.getUserByUsername( username );
