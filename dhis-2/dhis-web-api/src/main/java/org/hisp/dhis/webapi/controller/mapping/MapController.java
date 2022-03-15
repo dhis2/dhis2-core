@@ -41,6 +41,9 @@ import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.attribute.Attribute;
+import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.cache.CacheStrategy;
@@ -122,6 +125,9 @@ public class MapController
 
     @Autowired
     private ContextUtils contextUtils;
+
+    @Autowired
+    private AttributeService attributeService;
 
     // --------------------------------------------------------------------------
     // CRUD
@@ -240,6 +246,15 @@ public class MapController
                 for ( Period period : view.getPeriods() )
                 {
                     period.setName( format.formatPeriod( period ) );
+                }
+            }
+
+            if ( !StringUtils.isEmpty( view.getOrgUnitField() ) )
+            {
+                Attribute attribute = attributeService.getAttribute( view.getOrgUnitField() );
+                if ( attribute != null )
+                {
+                    view.setOrgUnitFieldDisplayName( attribute.getDisplayName() );
                 }
             }
         }

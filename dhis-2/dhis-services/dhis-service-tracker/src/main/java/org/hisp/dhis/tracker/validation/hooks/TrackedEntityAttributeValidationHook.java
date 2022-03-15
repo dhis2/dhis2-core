@@ -57,9 +57,9 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.util.Constant;
-import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.tracker.validation.service.attribute.TrackedAttributeValidationService;
 import org.springframework.stereotype.Component;
 
@@ -82,13 +82,12 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
     @Override
     public void validateTrackedEntity( ValidationErrorReporter reporter, TrackedEntity trackedEntity )
     {
-        TrackedEntityType trackedEntityType = reporter.getValidationContext()
+        TrackedEntityType trackedEntityType = reporter.getBundle().getPreheat()
             .getTrackedEntityType( trackedEntity.getTrackedEntityType() );
 
-        TrackerImportValidationContext context = reporter.getValidationContext();
-
-        TrackedEntityInstance tei = context.getTrackedEntityInstance( trackedEntity.getTrackedEntity() );
-        OrganisationUnit organisationUnit = context.getOrganisationUnit( trackedEntity.getOrgUnit() );
+        TrackedEntityInstance tei = reporter.getBundle().getTrackedEntityInstance( trackedEntity.getTrackedEntity() );
+        OrganisationUnit organisationUnit = reporter.getBundle().getPreheat()
+            .getOrganisationUnit( trackedEntity.getOrgUnit() );
 
         validateMandatoryAttributes( reporter, trackedEntity, trackedEntityType );
         validateAttributes( reporter, trackedEntity, tei, organisationUnit, trackedEntityType );
@@ -133,7 +132,7 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
 
         for ( Attribute attribute : trackedEntity.getAttributes() )
         {
-            TrackedEntityAttribute tea = reporter.getValidationContext()
+            TrackedEntityAttribute tea = reporter.getBundle().getPreheat()
                 .getTrackedEntityAttribute( attribute.getAttribute() );
 
             if ( tea == null )
@@ -213,9 +212,14 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
             return;
         }
 
-        FileResource fileResource = reporter.getValidationContext().getFileResource( attr.getValue() );
+        TrackerPreheat preheat = reporter.getBundle().getPreheat();
+        FileResource fileResource = preheat.get( FileResource.class, attr.getValue() );
 
         reporter.addErrorIfNull( fileResource, te, E1084, attr.getValue() );
-        reporter.addErrorIf( () -> fileResource != null && fileResource.isAssigned(), te, E1009, attr.getValue() );
+
+        if ( reporter.getBundle().getStrategy( te ).isCreate() )
+        {
+            reporter.addErrorIf( () -> fileResource != null && fileResource.isAssigned(), te, E1009, attr.getValue() );
+        }
     }
 }

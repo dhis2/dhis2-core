@@ -114,26 +114,23 @@ public class QueryPlannerUtils
     }
 
     /**
-     * Creates a mapping between minDate/maxDate query modifiers and data
-     * elements for the given data elements.
+     * Creates a mapping between query modifiers and data elements for the given
+     * data elements.
      *
      * @param dataElements list of data elements.
      */
-    public static ListMap<QueryModifiers, DimensionalItemObject> getMinMaxDateDateElementMap(
+    public static ListMap<QueryModifiers, DimensionalItemObject> getQueryModsElementMap(
         List<DimensionalItemObject> dataElements )
     {
         ListMap<QueryModifiers, DimensionalItemObject> map = new ListMap<>();
 
         for ( DimensionalItemObject element : dataElements )
         {
-            QueryModifiers queryMods = element.getQueryMods();
+            QueryModifiers queryMods = (element.getQueryMods() != null)
+                ? element.getQueryMods().withQueryModsForAnalyticsGrouping()
+                : QueryModifiers.builder().build();
 
-            // Get QueryModifiers but only with min and max date, nothing else
-            QueryModifiers minMaxDateModifiers = (queryMods == null)
-                ? QueryModifiers.builder().build()
-                : QueryModifiers.builder().minDate( queryMods.getMinDate() ).maxDate( queryMods.getMaxDate() ).build();
-
-            map.putValue( minMaxDateModifiers, element );
+            map.putValue( queryMods, element );
         }
 
         return map;

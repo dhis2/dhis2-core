@@ -32,7 +32,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
-import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
 
 /**
@@ -45,9 +44,7 @@ public class EventGeoValidationHook
     @Override
     public void validateEvent( ValidationErrorReporter reporter, Event event )
     {
-        TrackerImportValidationContext context = reporter.getValidationContext();
-
-        ProgramStage programStage = context.getProgramStage( event.getProgramStage() );
+        ProgramStage programStage = reporter.getBundle().getPreheat().getProgramStage( event.getProgramStage() );
         checkNotNull( programStage, TrackerImporterAssertErrors.PROGRAM_STAGE_CANT_BE_NULL );
 
         if ( event.getGeometry() != null )

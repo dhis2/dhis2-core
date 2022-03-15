@@ -82,6 +82,8 @@ class DateUtilsTest
         assertFalse( dateIsValid( "2017-04-31" ) );
         assertFalse( dateIsValid( "2017-04-32" ) );
         assertFalse( dateIsValid( "2016-09-31" ) );
+        assertFalse( dateIsValid( "0000-01-01" ) );
+        assertTrue( dateIsValid( "0001-01-01" ) );
         assertTrue( dateIsValid( NepaliCalendar.getInstance(), "2074-04-32" ) );
         assertFalse( dateIsValid( NepaliCalendar.getInstance(), "2074-03-32" ) );
         assertFalse( dateIsValid( NepaliCalendar.getInstance(), "2074-04-33" ) );

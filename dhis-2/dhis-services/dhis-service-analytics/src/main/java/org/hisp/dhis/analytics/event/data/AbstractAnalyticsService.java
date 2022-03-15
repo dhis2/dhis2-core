@@ -69,6 +69,7 @@ import org.hisp.dhis.common.MetadataItem;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.RepeatableStageParams;
+import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -199,16 +200,23 @@ public abstract class AbstractAnalyticsService
         // Paging
         // ---------------------------------------------------------------------
 
-        if ( params.isPaging() )
-        {
-            Pager pager = new Pager( params.getPageWithDefault(), count, params.getPageSizeWithDefault() );
-
-            grid.getMetaData().put( PAGER.getKey(), pager );
-        }
+        maybeApplyPaging( params, count, grid );
 
         maybeApplyHeaders( params, grid );
 
         return grid;
+    }
+
+    private static void maybeApplyPaging( EventQueryParams params, long count, Grid grid )
+    {
+        if ( params.isPaging() )
+        {
+            Pager pager = params.isTotalPages()
+                ? new Pager( params.getPageWithDefault(), count, params.getPageSizeWithDefault() )
+                : new SlimPager( params.getPageWithDefault(), params.getPageSizeWithDefault(), grid.hasLastDataRow() );
+
+            grid.getMetaData().put( PAGER.getKey(), pager );
+        }
     }
 
     /**
@@ -365,8 +373,7 @@ public abstract class AbstractAnalyticsService
 
         params.getItemsAndItemFilters().stream()
             .filter( Objects::nonNull )
-            .forEach( item -> metadataItemMap.put( getItemIdMaybeWithProgramStageIdPrefix( item ),
-                new MetadataItem( item.getItem().getDisplayName(), includeDetails ? item.getItem() : null ) ) );
+            .forEach( item -> addItemIntoMetadata( metadataItemMap, item, includeDetails ) );
 
         if ( hasPeriodKeywords( periodKeywords ) )
         {
@@ -380,6 +387,20 @@ public abstract class AbstractAnalyticsService
         }
 
         return metadataItemMap;
+    }
+
+    private void addItemIntoMetadata( final Map<String, MetadataItem> metadataItemMap, final QueryItem item,
+        final boolean includeDetails )
+    {
+        final MetadataItem metadataItem = new MetadataItem( item.getItem().getDisplayName(),
+            includeDetails ? item.getItem() : null );
+
+        metadataItemMap.put( getItemIdMaybeWithProgramStageIdPrefix( item ), metadataItem );
+
+        // This is done for backward compatibility reason. It should remain here
+        // while the New Event Report is living along with its "classic"
+        // version.
+        metadataItemMap.put( item.getItemId(), metadataItem );
     }
 
     /**

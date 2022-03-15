@@ -47,6 +47,7 @@ import static org.hisp.dhis.system.util.MathUtils.getRounded;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import lombok.extern.slf4j.Slf4j;
@@ -58,6 +59,7 @@ import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.ProgramIndicatorSubqueryBuilder;
+import org.hisp.dhis.analytics.util.AnalyticsSqlUtils;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalObject;
@@ -69,6 +71,7 @@ import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryRuntimeException;
 import org.hisp.dhis.common.Reference;
+import org.hisp.dhis.common.RepeatableStageParams;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -96,6 +99,8 @@ import com.google.common.collect.Lists;
 @Slf4j
 public abstract class AbstractJdbcEventAnalyticsManager
 {
+    private static final String LIMIT = "limit";
+
     protected static final String COL_COUNT = "count";
 
     protected static final String COL_EXTENT = "extent";
@@ -142,11 +147,12 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
         if ( params.isPaging() )
         {
-            sql += "limit " + params.getPageSizeWithDefault() + " offset " + params.getOffset();
+            int limit = params.isTotalPages() ? params.getPageSizeWithDefault() : params.getPageSizeWithDefault() + 1;
+            sql += LIMIT + " " + limit + " offset " + params.getOffset();
         }
         else if ( maxLimit > 0 )
         {
-            sql += "limit " + (maxLimit + 1);
+            sql += LIMIT + " " + (maxLimit + 1);
         }
 
         return sql;
@@ -321,15 +327,35 @@ public abstract class AbstractJdbcEventAnalyticsManager
             }
             else if ( queryItem.getValueType() == ValueType.NUMBER && !isGroupByClause )
             {
-                columns.add( "coalesce(" + getColumn( queryItem ) + ", null) as " + queryItem.getItemName() );
+                ColumnAndAlias columnAndAlias = getColumnAndAlias( queryItem, false, queryItem.getItemName() );
+                columns.add( "coalesce(" + columnAndAlias.getColumn() + ", null) as " + columnAndAlias.getAlias() );
             }
             else
             {
-                columns.add( getColumn( queryItem ) );
+                ColumnAndAlias columnAndAlias = getColumnAndAlias( queryItem, isGroupByClause, "" );
+                columns.add( columnAndAlias.asSql() );
             }
         }
 
         return columns;
+    }
+
+    private ColumnAndAlias getColumnAndAlias( QueryItem queryItem, boolean isGroupByClause, String aliasIfMissing )
+    {
+        String column = getColumn( queryItem );
+        if ( !isGroupByClause )
+        {
+            return ColumnAndAlias.ofColumnAndAlias(
+                column,
+                Optional.of( queryItem )
+                    .filter( QueryItem::hasProgramStage )
+                    .filter( QueryItem::hasRepeatableStageParams )
+                    .map( QueryItem::getRepeatableStageParams )
+                    .map( RepeatableStageParams::getDimension )
+                    .map( AnalyticsSqlUtils::quote )
+                    .orElse( aliasIfMissing ) );
+        }
+        return ColumnAndAlias.ofColumn( column );
     }
 
     public Grid getAggregatedEventData( EventQueryParams params, Grid grid, int maxLimit )
@@ -373,11 +399,11 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
         if ( params.hasLimit() )
         {
-            sql += "limit " + params.getLimit();
+            sql += LIMIT + " " + params.getLimit();
         }
         else if ( maxLimit > 0 )
         {
-            sql += "limit " + (maxLimit + 1);
+            sql += LIMIT + " " + (maxLimit + 1);
         }
 
         // ---------------------------------------------------------------------

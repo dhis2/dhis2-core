@@ -49,6 +49,7 @@ import static org.hisp.dhis.analytics.ColumnDataType.GEOMETRY_POINT;
 import static org.hisp.dhis.analytics.ColumnDataType.INTEGER;
 import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
 import static org.hisp.dhis.analytics.ColumnDataType.TIMESTAMP;
+import static org.hisp.dhis.resourcetable.ResourceTable.NEWEST_YEAR_PERIOD_SUPPORTED;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -468,7 +469,11 @@ class JdbcEventAnalyticsTableManagerTest
         when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( Collections.singletonList( programA ) );
         when( organisationUnitService.getFilledOrganisationUnitLevels() ).thenReturn( ouLevels );
         when( jdbcTemplate.queryForList(
-            "select distinct(extract(year from psi.executiondate)) from programstageinstance psi inner join programinstance pi on psi.programinstanceid = pi.programinstanceid where psi.lastupdated <= '2019-08-01T00:00:00' and pi.programid = 0 and psi.executiondate is not null and psi.executiondate > '1000-01-01' and psi.deleted is false ",
+            "select temp.supportedyear from (select distinct extract(year from psi.executiondate) as supportedyear "
+                + "from programstageinstance psi inner join programinstance pi on psi.programinstanceid = pi.programinstanceid "
+                + "where psi.lastupdated <= '2019-08-01T00:00:00' and pi.programid = 0 and psi.executiondate is not null "
+                + "and psi.executiondate > '1000-01-01' and psi.deleted is false ) "
+                + "as temp where temp.supportedyear >= 1975 and temp.supportedyear <= " + NEWEST_YEAR_PERIOD_SUPPORTED,
             Integer.class ) ).thenReturn( Lists.newArrayList( 2018, 2019 ) );
 
         AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withStartTime( START_TIME ).build();
@@ -600,7 +605,11 @@ class JdbcEventAnalyticsTableManagerTest
         when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( Lists.newArrayList( programA ) );
 
         when( jdbcTemplate.queryForList(
-            "select distinct(extract(year from psi.executiondate)) from programstageinstance psi inner join programinstance pi on psi.programinstanceid = pi.programinstanceid where psi.lastupdated <= '2019-08-01T00:00:00' and pi.programid = 0 and psi.executiondate is not null and psi.executiondate > '1000-01-01' and psi.deleted is false and psi.executiondate >= '2018-01-01'",
+            "select temp.supportedyear from (select distinct extract(year from psi.executiondate) as supportedyear "
+                + "from programstageinstance psi inner join programinstance pi on psi.programinstanceid = pi.programinstanceid "
+                + "where psi.lastupdated <= '2019-08-01T00:00:00' and pi.programid = 0 and psi.executiondate is not null "
+                + "and psi.executiondate > '1000-01-01' and psi.deleted is false and psi.executiondate >= '2018-01-01') "
+                + "as temp where temp.supportedyear >= 1975 and temp.supportedyear <= " + NEWEST_YEAR_PERIOD_SUPPORTED,
             Integer.class ) ).thenReturn( Lists.newArrayList( 2018, 2019 ) );
 
         AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withLastYears( 2 )
@@ -631,7 +640,8 @@ class JdbcEventAnalyticsTableManagerTest
 
     private String getYearQueryForCurrentYear( Program program, boolean withExecutionDate )
     {
-        String sql = "select distinct(extract(year from psi.executiondate)) from programstageinstance psi inner join "
+        String sql = "select temp.supportedyear from (select distinct extract(year from psi.executiondate) as supportedyear "
+            + "from programstageinstance psi inner join "
             + "programinstance pi on psi.programinstanceid = pi.programinstanceid where psi.lastupdated <= '"
             + "2019-08-01T00:00:00' and pi.programid = " + program.getId()
             + " and psi.executiondate is not null and psi.executiondate > '1000-01-01' and psi.deleted is false ";
@@ -640,6 +650,8 @@ class JdbcEventAnalyticsTableManagerTest
         {
             sql += "and psi.executiondate >= '2018-01-01'";
         }
+
+        sql += ") as temp where temp.supportedyear >= 1975 and temp.supportedyear <= " + NEWEST_YEAR_PERIOD_SUPPORTED;
 
         return sql;
     }

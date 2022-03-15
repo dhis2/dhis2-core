@@ -25,22 +25,54 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.domain.mapper;
+package org.hisp.dhis.webapi.controller.tracker.export;
 
-import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.tracker.domain.RelationshipItem;
 import org.hisp.dhis.tracker.domain.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 
 @Mapper( uses = {
-    RelationshipMapper.class,
-    NoteMapper.class,
+    AttributeMapper.class,
     DataValueMapper.class,
+    ProgramOwnerMapper.class,
+    NoteMapper.class,
     InstantMapper.class,
-    UserMapper.class } )
-public interface EventMapper extends DomainMapper<org.hisp.dhis.dxf2.events.event.Event, Event>
+    UserMapper.class,
+} )
+interface RelationshipItemMapper
+    extends DomainMapper<org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem, RelationshipItem>
 {
+    @Mapping( target = "trackedEntity", source = "trackedEntityInstance" )
+    @Mapping( target = "enrollment", source = "enrollment" )
+    @Mapping( target = "event", source = "event" )
+    RelationshipItem from( org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem relationshipItem );
+
+    @Mapping( target = "trackedEntity", source = "trackedEntityInstance" )
+    @Mapping( target = "createdAt", source = "created" )
+    @Mapping( target = "createdAtClient", source = "createdAtClient" )
+    @Mapping( target = "updatedAt", source = "lastUpdated" )
+    @Mapping( target = "updatedAtClient", source = "lastUpdatedAtClient" )
+    @Mapping( target = "createdBy", source = "createdByUserInfo" )
+    @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo" )
+    RelationshipItem.TrackedEntity from( TrackedEntityInstance trackedEntityInstance );
+
+    @Mapping( target = "enrollment", source = "enrollment" )
+    @Mapping( target = "createdAt", source = "created" )
+    @Mapping( target = "createdAtClient", source = "createdAtClient" )
+    @Mapping( target = "updatedAt", source = "lastUpdated" )
+    @Mapping( target = "updatedAtClient", source = "lastUpdatedAtClient" )
+    @Mapping( target = "trackedEntity", source = "trackedEntityInstance" )
+    @Mapping( target = "enrolledAt", source = "enrollmentDate" )
+    @Mapping( target = "occurredAt", source = "incidentDate" )
+    @Mapping( target = "followUp", source = "followup" )
+    @Mapping( target = "completedAt", source = "completedDate" )
+    @Mapping( target = "createdBy", source = "createdByUserInfo" )
+    @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo" )
+    RelationshipItem.Enrollment from( org.hisp.dhis.dxf2.events.enrollment.Enrollment enrollment );
+
     @Mapping( target = "occurredAt", source = "eventDate" )
     @Mapping( target = "scheduledAt", source = "dueDate" )
     @Mapping( target = "createdAt", source = "created" )
@@ -51,7 +83,7 @@ public interface EventMapper extends DomainMapper<org.hisp.dhis.dxf2.events.even
     @Mapping( target = "createdBy", source = "createdByUserInfo" )
     @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo" )
     @Mapping( target = "assignedUser", source = ".", qualifiedByName = "toUserInfo" )
-    Event from( org.hisp.dhis.dxf2.events.event.Event event );
+    RelationshipItem.Event from( org.hisp.dhis.dxf2.events.event.Event event );
 
     @Named( "toUserInfo" )
     default User buildUserInfo( org.hisp.dhis.dxf2.events.event.Event event )

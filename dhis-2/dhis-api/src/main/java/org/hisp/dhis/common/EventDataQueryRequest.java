@@ -140,6 +140,10 @@ public class EventDataQueryRequest
 
     private boolean paging;
 
+    private boolean totalPages;
+
+    private RequestTypeAware.EndpointItem endpointItem;
+
     /**
      * Copies all properties of this request onto the given request.
      *
@@ -186,6 +190,8 @@ public class EventDataQueryRequest
         queryRequest.page = this.page;
         queryRequest.pageSize = this.pageSize;
         queryRequest.paging = this.paging;
+        queryRequest.totalPages = this.totalPages;
+        queryRequest.endpointItem = this.endpointItem;
         return request;
     }
 
@@ -240,14 +246,16 @@ public class EventDataQueryRequest
                 .outputIdScheme( criteria.getOutputIdScheme() )
                 .orgUnitField( criteria.getOrgUnitField() )
                 .coordinatesOnly( criteria.isCoordinatesOnly() )
-                .coordinateOuFallback( criteria.isCoordinateOuFallback() );
+                .coordinateOuFallback( criteria.isCoordinateOuFallback() )
+                .totalPages( criteria.isTotalPages() )
+                .endpointItem( criteria.getEndpointItem() );
 
             if ( criteria.getDimension() == null )
             {
                 criteria.setDimension( new HashSet<>() );
             }
 
-            if ( criteria.isRequestTypeQuery() )
+            if ( criteria.isQueryEndpoint() )
             {
                 /*
                  * for each AnalyticsDateFilter whose event extractor is set,
@@ -330,14 +338,16 @@ public class EventDataQueryRequest
                 .relativePeriodDate( criteria.getRelativePeriodDate() )
                 .userOrgUnit( criteria.getUserOrgUnit() )
                 .coordinateField( criteria.getCoordinateField() )
-                .sortOrder( criteria.getSortOrder() );
+                .sortOrder( criteria.getSortOrder() )
+                .totalPages( criteria.isTotalPages() )
+                .endpointItem( criteria.getEndpointItem() );
 
             if ( criteria.getDimension() == null )
             {
                 criteria.setDimension( new HashSet<>() );
             }
 
-            if ( criteria.isRequestTypeQuery() )
+            if ( criteria.isQueryEndpoint() )
             {
                 /*
                  * for each AnalyticsDateFilter whose enrollment extractor is
@@ -445,6 +455,5 @@ public class EventDataQueryRequest
         {
             return dimension.startsWith( PERIOD_DIM_ID + DIMENSION_NAME_SEP );
         }
-
     }
 }
