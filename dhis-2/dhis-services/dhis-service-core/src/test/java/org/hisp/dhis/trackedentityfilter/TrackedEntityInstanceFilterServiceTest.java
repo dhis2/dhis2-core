@@ -33,6 +33,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 import org.hisp.dhis.DhisSpringTest;
@@ -122,6 +124,10 @@ class TrackedEntityInstanceFilterServiceTest extends DhisSpringTest
         assertEquals( 1, errors.size() );
         assertTrue( errors.get( 0 ).equals(
             "Program is specified but does not exist: " + trackedEntityInstanceFilterA.getProgram().getUid() ) );
+
+        trackedEntityInstanceFilterA.setProgram( programA );
+        errors = trackedEntityInstanceFilterService.validate( trackedEntityInstanceFilterA );
+        assertEquals( 0, errors.size() );
     }
 
     @Test
@@ -133,6 +139,10 @@ class TrackedEntityInstanceFilterServiceTest extends DhisSpringTest
         assertEquals( 1, errors.size() );
         assertTrue( errors.get( 0 ).equals(
             "Assigned Users cannot be empty with PROVIDED assigned user mode" ) );
+
+        trackedEntityInstanceFilterA.getEntityQueryCriteria().setAssignedUsers( Collections.singleton( "useruid" ) );
+        errors = trackedEntityInstanceFilterService.validate( trackedEntityInstanceFilterA );
+        assertEquals( 0, errors.size() );
     }
 
     @Test
@@ -144,6 +154,23 @@ class TrackedEntityInstanceFilterServiceTest extends DhisSpringTest
         assertEquals( 1, errors.size() );
         assertTrue( errors.get( 0 ).equals(
             "Organisation Unit cannot be empty with SELECTED org unit mode" ) );
+
+        trackedEntityInstanceFilterA.getEntityQueryCriteria().setOuMode( OrganisationUnitSelectionMode.CHILDREN );
+        errors = trackedEntityInstanceFilterService.validate( trackedEntityInstanceFilterA );
+        assertEquals( 1, errors.size() );
+        assertTrue( errors.get( 0 ).equals(
+            "Organisation Unit cannot be empty with CHILDREN org unit mode" ) );
+
+        trackedEntityInstanceFilterA.getEntityQueryCriteria().setOuMode( OrganisationUnitSelectionMode.DESCENDANTS );
+        errors = trackedEntityInstanceFilterService.validate( trackedEntityInstanceFilterA );
+        assertEquals( 1, errors.size() );
+        assertTrue( errors.get( 0 ).equals(
+            "Organisation Unit cannot be empty with DESCENDANTS org unit mode" ) );
+
+        trackedEntityInstanceFilterA.getEntityQueryCriteria().setOuMode( OrganisationUnitSelectionMode.SELECTED );
+        trackedEntityInstanceFilterA.getEntityQueryCriteria().setOrganisationUnit( "organisationunituid" );
+        errors = trackedEntityInstanceFilterService.validate( trackedEntityInstanceFilterA );
+        assertEquals( 0, errors.size() );
     }
 
     @Test
@@ -163,6 +190,10 @@ class TrackedEntityInstanceFilterServiceTest extends DhisSpringTest
         TrackedEntityInstanceFilter trackedEntityInstanceFilterA = createTrackedEntityInstanceFilter( 'A', programA );
         DateFilterPeriod incorrectDateFilterPeriod = new DateFilterPeriod();
         incorrectDateFilterPeriod.setType( DatePeriodType.ABSOLUTE );
+
+        DateFilterPeriod correctDateFilterPeriod = new DateFilterPeriod();
+        correctDateFilterPeriod.setType( DatePeriodType.ABSOLUTE );
+        correctDateFilterPeriod.setStartDate( new Date() );
         TrackedEntityAttribute attributeA = createTrackedEntityAttribute( 'A' );
         trackedEntityAttributeService.addTrackedEntityAttribute( attributeA );
 
@@ -174,6 +205,10 @@ class TrackedEntityInstanceFilterServiceTest extends DhisSpringTest
         assertEquals( 1, errors.size() );
         assertTrue( errors.get( 0 ).equals(
             "Start date or end date not specified with ABSOLUTE date period type for " + attributeA.getUid() ) );
+
+        avf1.setDateFilter( correctDateFilterPeriod );
+        errors = trackedEntityInstanceFilterService.validate( trackedEntityInstanceFilterA );
+        assertEquals( 0, errors.size() );
 
         trackedEntityInstanceFilterA.getEntityQueryCriteria().getAttributeValueFilters().clear();
 

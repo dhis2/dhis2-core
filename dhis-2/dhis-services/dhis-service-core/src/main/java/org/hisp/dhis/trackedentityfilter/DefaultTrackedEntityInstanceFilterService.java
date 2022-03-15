@@ -158,9 +158,12 @@ public class DefaultTrackedEntityInstanceFilterService
     private void validateOrganisationUnits( List<String> errors, EntityQueryCriteria eqc )
     {
         if ( StringUtils.isEmpty( eqc.getOrganisationUnit() )
-            && eqc.getOuMode() == OrganisationUnitSelectionMode.SELECTED )
+            && (eqc.getOuMode() == OrganisationUnitSelectionMode.SELECTED
+                || eqc.getOuMode() == OrganisationUnitSelectionMode.DESCENDANTS
+                || eqc.getOuMode() == OrganisationUnitSelectionMode.CHILDREN) )
         {
-            errors.add( "Organisation Unit cannot be empty with SELECTED org unit mode" );
+            errors.add( String.format( "Organisation Unit cannot be empty with %s org unit mode",
+                eqc.getOuMode().toString() ) );
         }
     }
 
