@@ -30,6 +30,7 @@ package org.hisp.dhis.program.notification;
 import java.util.Date;
 
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -42,6 +43,7 @@ import org.hisp.dhis.program.ProgramStageInstance;
  */
 @Getter
 @Setter
+@EqualsAndHashCode( callSuper = false )
 @NoArgsConstructor
 public class ProgramNotificationInstanceParam extends BaseNotificationParam
 {

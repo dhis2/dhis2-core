@@ -28,6 +28,7 @@
 package org.hisp.dhis.program.notification;
 
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -40,6 +41,7 @@ import org.hisp.dhis.program.ProgramStage;
  */
 @Getter
 @Setter
+@EqualsAndHashCode( callSuper = false )
 @NoArgsConstructor
 public class ProgramNotificationTemplateParam extends BaseNotificationParam
 {
