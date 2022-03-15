@@ -52,7 +52,6 @@ import org.hisp.dhis.user.UserStore;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -70,7 +69,7 @@ public class SystemUpdateService
 
     public static final String NEW_VERSION_AVAILABLE_MESSAGE_SUBJECT = "System update available";
 
-    private static final int MAX_NOTIFING_RECIPIENTS = 100;
+    public static final String NEW_VERSION_AVAILABLE_MESSAGE_BODY = "A new patch version %s of DHIS 2 is now available for download from the link below. Patch releases contain bug and security fixes, and upgrading is recommended.";
 
     public static final String FIELD_NAME_VERSION = "version";
 
@@ -206,23 +205,23 @@ public class SystemUpdateService
     {
         Set<User> recipients = getRecipients();
 
-        for ( Map.Entry<Semver, Map<String, String>> entry : patchVersions.entrySet() )
+        for ( Map.Entry<Semver, Map<String, String>> versionEntry : patchVersions.entrySet() )
         {
-            Semver version = entry.getKey();
-            Map<String, String> message = entry.getValue();
+            Semver version = versionEntry.getKey();
+            Map<String, String> message = versionEntry.getValue();
 
-            for ( User recipient : recipients )
+            // Check if message has been sent before using
+            // version.getValue() as extMessageId
+            List<MessageConversation> existingMessages = messageService.getMatchingExtId( version.getValue() );
+
+            if ( existingMessages.isEmpty() )
             {
-                // Check if message has been sent before using
-                // version.getValue() as extMessageId
-                List<MessageConversation> existingMessages = messageService.getMatchingExtId( version.getValue() );
-
-                if ( existingMessages.isEmpty() )
+                for ( User recipient : recipients )
                 {
                     MessageConversationParams params = new MessageConversationParams.Builder()
-                        .withRecipients( ImmutableSet.of( recipient ) )
+                        .withRecipients( Set.of( recipient ) )
                         .withSubject( NEW_VERSION_AVAILABLE_MESSAGE_SUBJECT )
-                        .withText( buildMessageText( message ) )
+                        .withText( buildMessageBody( message ) )
                         .withMessageType( MessageType.SYSTEM )
                         .withExtMessageId( version.getValue() ).build();
 
@@ -237,7 +236,7 @@ public class SystemUpdateService
         Set<User> recipients = messageService.getSystemUpdateNotificationRecipients();
 
         // Fallback to fetching all users with ALL authority for our recipient
-        // list.
+        // list if no explicit recipients group are set.
         return !recipients.isEmpty() ? recipients : getUsersWithAllAuthority();
     }
 
@@ -255,7 +254,7 @@ public class SystemUpdateService
         return recipients;
     }
 
-    private String buildMessageText( Map<String, String> messageValues )
+    private String buildMessageBody( Map<String, String> messageValues )
     {
         String version = messageValues.get( FIELD_NAME_VERSION );
         String releaseDate = messageValues.get( FIELD_NAME_RELEASE_DATE );
@@ -266,7 +265,7 @@ public class SystemUpdateService
                 + "Version: %s%n"
                 + "Release data: %s%n"
                 + "Download URL: %s%n",
-            NEW_VERSION_AVAILABLE_MESSAGE_SUBJECT,
+            String.format( NEW_VERSION_AVAILABLE_MESSAGE_BODY, version ),
             version,
             releaseDate,
             downloadUrl );

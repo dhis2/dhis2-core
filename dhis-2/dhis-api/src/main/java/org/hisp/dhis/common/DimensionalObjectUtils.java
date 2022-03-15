@@ -37,9 +37,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.comparator.ObjectStringValueComparator;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 
 import com.google.common.collect.Lists;
@@ -514,13 +512,7 @@ public class DimensionalObjectUtils
      */
     public static Set<DimensionalItemObject> getDataElements( Collection<DataElementOperand> operands )
     {
-        return operands.stream().map( o -> {
-
-            DataElement dataElement = o.getDataElement();
-            dataElement.setQueryMods( o.getQueryMods() );
-            return dataElement;
-
-        } ).collect( Collectors.toSet() );
+        return operands.stream().map( DataElementOperand::getDataElement ).collect( Collectors.toSet() );
     }
 
     /**
@@ -534,13 +526,7 @@ public class DimensionalObjectUtils
     {
         return operands.stream()
             .filter( o -> o.getCategoryOptionCombo() != null )
-            .map( o -> {
-
-                CategoryOptionCombo coc = o.getCategoryOptionCombo();
-                coc.setQueryMods( o.getQueryMods() );
-                return coc;
-
-            } )
+            .map( DataElementOperand::getCategoryOptionCombo )
             .collect( Collectors.toSet() );
     }
 
@@ -555,13 +541,7 @@ public class DimensionalObjectUtils
     {
         return operands.stream()
             .filter( o -> o.getAttributeOptionCombo() != null )
-            .map( o -> {
-
-                CategoryOptionCombo aoc = o.getAttributeOptionCombo();
-                aoc.setQueryMods( o.getQueryMods() );
-                return aoc;
-
-            } )
+            .map( DataElementOperand::getCategoryOptionCombo )
             .collect( Collectors.toSet() );
     }
 

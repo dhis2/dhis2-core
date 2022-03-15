@@ -51,8 +51,17 @@ public class UserActions
         super( "/users" );
     }
 
-    public String addUser( final String firstName, final String surname, final String username, final String password )
+    public String addUser( final String userName, final String password )
     {
+        return addUserFull( userName, "bravo", userName, password, "ALL" );
+    }
+
+    public String addUserFull( final String firstName, final String surname, final String username, final String password,
+        String... auth )
+    {
+        String roleUid = new UserRoleActions().createWithAuthorities( auth );
+
+
         String id = idGenerator.generateUniqueId();
 
         JsonObject user = new JsonObjectBuilder()
@@ -61,6 +70,7 @@ public class UserActions
             .addProperty( "surname", surname )
             .addProperty( "username", username )
             .addProperty( "password", password )
+            .addArray( "userRoles", new JsonObjectBuilder().addProperty( "id", roleUid ).build() )
             .build();
 
         ApiResponse response = this.post( user );
@@ -177,10 +187,6 @@ public class UserActions
         grantUserAccessToOrgUnit( userId, orgUnitId );
     }
 
-    public String addUser( final String userName, final String password )
-    {
-        return addUser( userName, "bravo", userName, password );
-    }
 
     public void updateUserPassword( String userId, String password )
     {
