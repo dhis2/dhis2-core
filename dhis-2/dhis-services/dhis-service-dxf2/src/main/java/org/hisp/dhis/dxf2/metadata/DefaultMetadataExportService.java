@@ -73,6 +73,11 @@ import org.hisp.dhis.interpretation.Interpretation;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.mapping.MapView;
+import org.hisp.dhis.node.NodeUtils;
+import org.hisp.dhis.node.types.CollectionNode;
+import org.hisp.dhis.node.types.ComplexNode;
+import org.hisp.dhis.node.types.RootNode;
+import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.program.Program;
@@ -119,6 +124,8 @@ public class DefaultMetadataExportService implements MetadataExportService
     private final QueryService queryService;
 
     private final FieldFilterService fieldFilterService;
+
+    private final org.hisp.dhis.fieldfilter.FieldFilterService oldFieldFilterService;
 
     private final CurrentUserService currentUserService;
 
@@ -220,6 +227,40 @@ public class DefaultMetadataExportService implements MetadataExportService
             {
                 String plural = schemaService.getDynamicSchema( klass ).getPlural();
                 rootNode.putArray( plural ).addAll( objectNodes );
+            }
+        }
+
+        return rootNode;
+    }
+
+    @Override
+    public RootNode getMetadataAsRootNode( MetadataExportParams params )
+    {
+        RootNode rootNode = NodeUtils.createMetadata();
+        rootNode.getConfig().setInclusionStrategy( params.getInclusionStrategy() );
+
+        SystemInfo systemInfo = systemService.getSystemInfo();
+
+        ComplexNode system = rootNode.addChild( new ComplexNode( "system" ) );
+        system.addChild( new SimpleNode( "id", systemInfo.getSystemId() ) );
+        system.addChild( new SimpleNode( "rev", systemInfo.getRevision() ) );
+        system.addChild( new SimpleNode( "version", systemInfo.getVersion() ) );
+        system.addChild( new SimpleNode( "date", systemInfo.getServerDate() ) );
+
+        Map<Class<? extends IdentifiableObject>, List<? extends IdentifiableObject>> metadata = getMetadata( params );
+
+        for ( Class<? extends IdentifiableObject> klass : metadata.keySet() )
+        {
+            org.hisp.dhis.fieldfilter.FieldFilterParams fieldFilterParams = new org.hisp.dhis.fieldfilter.FieldFilterParams(
+                metadata.get( klass ),
+                params.getFields( klass ), params.getDefaults(), params.getSkipSharing() );
+            fieldFilterParams.setUser( params.getUser() );
+
+            CollectionNode collectionNode = oldFieldFilterService.toCollectionNode( klass, fieldFilterParams );
+
+            if ( !collectionNode.getChildren().isEmpty() )
+            {
+                rootNode.addChild( collectionNode );
             }
         }
 
