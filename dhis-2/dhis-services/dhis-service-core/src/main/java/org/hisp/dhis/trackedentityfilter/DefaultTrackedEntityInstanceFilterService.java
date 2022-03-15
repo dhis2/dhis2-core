@@ -141,10 +141,7 @@ public class DefaultTrackedEntityInstanceFilterService
 
         validateAttributeValueFilters( errors, eqc );
 
-        errors.addAll( validateDateFilterPeriod( "EnrollmentCreatedDate", eqc.getEnrollmentCreatedDate() ) );
-        errors.addAll( validateDateFilterPeriod( "EnrollmentIncidentDate", eqc.getEnrollmentIncidentDate() ) );
-        errors.addAll( validateDateFilterPeriod( "EventDate", eqc.getEventDate() ) );
-        errors.addAll( validateDateFilterPeriod( "LastUpdatedDate", eqc.getLastUpdatedDate() ) );
+        validateDateFilterPeriods( errors, eqc );
 
         validateAssignedUsers( errors, eqc );
 
@@ -153,6 +150,14 @@ public class DefaultTrackedEntityInstanceFilterService
         validateOrderParams( errors, eqc );
 
         return errors;
+    }
+
+    private void validateDateFilterPeriods( List<String> errors, EntityQueryCriteria eqc )
+    {
+        validateDateFilterPeriod( errors, "EnrollmentCreatedDate", eqc.getEnrollmentCreatedDate() );
+        validateDateFilterPeriod( errors, "EnrollmentIncidentDate", eqc.getEnrollmentIncidentDate() );
+        validateDateFilterPeriod( errors, "EventDate", eqc.getEventDate() );
+        validateDateFilterPeriod( errors, "LastUpdatedDate", eqc.getLastUpdatedDate() );
     }
 
     private void validateOrganisationUnits( List<String> errors, EntityQueryCriteria eqc )
@@ -207,23 +212,23 @@ public class DefaultTrackedEntityInstanceFilterService
                     }
                 }
 
-                errors.addAll( validateDateFilterPeriod( avf.getAttribute(), avf.getDateFilter() ) );
+                validateDateFilterPeriod( errors, avf.getAttribute(), avf.getDateFilter() );
             } );
         }
     }
 
-    private List<String> validateDateFilterPeriod( String item, DateFilterPeriod dateFilterPeriod )
+    private void validateDateFilterPeriod( List<String> errors, String item, DateFilterPeriod dateFilterPeriod )
     {
-        List<String> errors = new ArrayList<>();
-        if ( dateFilterPeriod != null && dateFilterPeriod.getType() != null )
+        if ( dateFilterPeriod == null || dateFilterPeriod.getType() == null )
         {
-            if ( dateFilterPeriod.getType() == DatePeriodType.ABSOLUTE
-                && dateFilterPeriod.getStartDate() == null && dateFilterPeriod.getEndDate() == null )
-            {
-                errors.add( "Start date or end date not specified with ABSOLUTE date period type for " + item );
-            }
+            return;
         }
-        return errors;
+
+        if ( dateFilterPeriod.getType() == DatePeriodType.ABSOLUTE
+            && dateFilterPeriod.getStartDate() == null && dateFilterPeriod.getEndDate() == null )
+        {
+            errors.add( "Start date or end date not specified with ABSOLUTE date period type for " + item );
+        }
     }
 
     @Override

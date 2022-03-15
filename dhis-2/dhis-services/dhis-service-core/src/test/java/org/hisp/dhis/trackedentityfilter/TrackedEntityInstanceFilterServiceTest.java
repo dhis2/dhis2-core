@@ -122,8 +122,8 @@ class TrackedEntityInstanceFilterServiceTest extends DhisSpringTest
         trackedEntityInstanceFilterA.setProgram( createProgram( 'z' ) );
         List<String> errors = trackedEntityInstanceFilterService.validate( trackedEntityInstanceFilterA );
         assertEquals( 1, errors.size() );
-        assertTrue( errors.get( 0 ).equals(
-            "Program is specified but does not exist: " + trackedEntityInstanceFilterA.getProgram().getUid() ) );
+        assertEquals( errors.get( 0 ),
+            "Program is specified but does not exist: " + trackedEntityInstanceFilterA.getProgram().getUid() );
 
         trackedEntityInstanceFilterA.setProgram( programA );
         errors = trackedEntityInstanceFilterService.validate( trackedEntityInstanceFilterA );
@@ -137,8 +137,8 @@ class TrackedEntityInstanceFilterServiceTest extends DhisSpringTest
         trackedEntityInstanceFilterA.getEntityQueryCriteria().setAssignedUserMode( AssignedUserSelectionMode.PROVIDED );
         List<String> errors = trackedEntityInstanceFilterService.validate( trackedEntityInstanceFilterA );
         assertEquals( 1, errors.size() );
-        assertTrue( errors.get( 0 ).equals(
-            "Assigned Users cannot be empty with PROVIDED assigned user mode" ) );
+        assertEquals( errors.get( 0 ),
+            "Assigned Users cannot be empty with PROVIDED assigned user mode" );
 
         trackedEntityInstanceFilterA.getEntityQueryCriteria().setAssignedUsers( Collections.singleton( "useruid" ) );
         errors = trackedEntityInstanceFilterService.validate( trackedEntityInstanceFilterA );
@@ -152,20 +152,20 @@ class TrackedEntityInstanceFilterServiceTest extends DhisSpringTest
         trackedEntityInstanceFilterA.getEntityQueryCriteria().setOuMode( OrganisationUnitSelectionMode.SELECTED );
         List<String> errors = trackedEntityInstanceFilterService.validate( trackedEntityInstanceFilterA );
         assertEquals( 1, errors.size() );
-        assertTrue( errors.get( 0 ).equals(
-            "Organisation Unit cannot be empty with SELECTED org unit mode" ) );
+        assertEquals( errors.get( 0 ),
+            "Organisation Unit cannot be empty with SELECTED org unit mode" );
 
         trackedEntityInstanceFilterA.getEntityQueryCriteria().setOuMode( OrganisationUnitSelectionMode.CHILDREN );
         errors = trackedEntityInstanceFilterService.validate( trackedEntityInstanceFilterA );
         assertEquals( 1, errors.size() );
-        assertTrue( errors.get( 0 ).equals(
-            "Organisation Unit cannot be empty with CHILDREN org unit mode" ) );
+        assertEquals( errors.get( 0 ),
+            "Organisation Unit cannot be empty with CHILDREN org unit mode" );
 
         trackedEntityInstanceFilterA.getEntityQueryCriteria().setOuMode( OrganisationUnitSelectionMode.DESCENDANTS );
         errors = trackedEntityInstanceFilterService.validate( trackedEntityInstanceFilterA );
         assertEquals( 1, errors.size() );
-        assertTrue( errors.get( 0 ).equals(
-            "Organisation Unit cannot be empty with DESCENDANTS org unit mode" ) );
+        assertEquals( errors.get( 0 ),
+            "Organisation Unit cannot be empty with DESCENDANTS org unit mode" );
 
         trackedEntityInstanceFilterA.getEntityQueryCriteria().setOuMode( OrganisationUnitSelectionMode.SELECTED );
         trackedEntityInstanceFilterA.getEntityQueryCriteria().setOrganisationUnit( "organisationunituid" );
@@ -180,8 +180,8 @@ class TrackedEntityInstanceFilterServiceTest extends DhisSpringTest
         trackedEntityInstanceFilterA.getEntityQueryCriteria().setOrder( "aaa:asc,created:desc" );
         List<String> errors = trackedEntityInstanceFilterService.validate( trackedEntityInstanceFilterA );
         assertEquals( 1, errors.size() );
-        assertTrue( errors.get( 0 ).equals(
-            "Invalid order property: aaa" ) );
+        assertEquals( errors.get( 0 ),
+            "Invalid order property: aaa" );
     }
 
     @Test
@@ -203,8 +203,8 @@ class TrackedEntityInstanceFilterServiceTest extends DhisSpringTest
         trackedEntityInstanceFilterA.getEntityQueryCriteria().getAttributeValueFilters().add( avf1 );
         List<String> errors = trackedEntityInstanceFilterService.validate( trackedEntityInstanceFilterA );
         assertEquals( 1, errors.size() );
-        assertTrue( errors.get( 0 ).equals(
-            "Start date or end date not specified with ABSOLUTE date period type for " + attributeA.getUid() ) );
+        assertEquals( errors.get( 0 ),
+            "Start date or end date not specified with ABSOLUTE date period type for " + attributeA.getUid() );
 
         avf1.setDateFilter( correctDateFilterPeriod );
         errors = trackedEntityInstanceFilterService.validate( trackedEntityInstanceFilterA );
@@ -215,29 +215,29 @@ class TrackedEntityInstanceFilterServiceTest extends DhisSpringTest
         trackedEntityInstanceFilterA.getEntityQueryCriteria().setEnrollmentCreatedDate( incorrectDateFilterPeriod );
         errors = trackedEntityInstanceFilterService.validate( trackedEntityInstanceFilterA );
         assertEquals( 1, errors.size() );
-        assertTrue( errors.get( 0 ).equals(
-            "Start date or end date not specified with ABSOLUTE date period type for EnrollmentCreatedDate" ) );
+        assertEquals( errors.get( 0 ),
+            "Start date or end date not specified with ABSOLUTE date period type for EnrollmentCreatedDate" );
         trackedEntityInstanceFilterA.getEntityQueryCriteria().setEnrollmentCreatedDate( null );
 
         trackedEntityInstanceFilterA.getEntityQueryCriteria().setEnrollmentIncidentDate( incorrectDateFilterPeriod );
         errors = trackedEntityInstanceFilterService.validate( trackedEntityInstanceFilterA );
         assertEquals( 1, errors.size() );
-        assertTrue( errors.get( 0 ).equals(
-            "Start date or end date not specified with ABSOLUTE date period type for EnrollmentIncidentDate" ) );
+        assertEquals( errors.get( 0 ),
+            "Start date or end date not specified with ABSOLUTE date period type for EnrollmentIncidentDate" );
         trackedEntityInstanceFilterA.getEntityQueryCriteria().setEnrollmentIncidentDate( null );
 
         trackedEntityInstanceFilterA.getEntityQueryCriteria().setLastUpdatedDate( incorrectDateFilterPeriod );
         errors = trackedEntityInstanceFilterService.validate( trackedEntityInstanceFilterA );
         assertEquals( 1, errors.size() );
-        assertTrue( errors.get( 0 ).equals(
-            "Start date or end date not specified with ABSOLUTE date period type for LastUpdatedDate" ) );
+        assertEquals( errors.get( 0 ),
+            "Start date or end date not specified with ABSOLUTE date period type for LastUpdatedDate" );
         trackedEntityInstanceFilterA.getEntityQueryCriteria().setLastUpdatedDate( null );
 
         trackedEntityInstanceFilterA.getEntityQueryCriteria().setEventDate( incorrectDateFilterPeriod );
         errors = trackedEntityInstanceFilterService.validate( trackedEntityInstanceFilterA );
         assertEquals( 1, errors.size() );
-        assertTrue( errors.get( 0 ).equals(
-            "Start date or end date not specified with ABSOLUTE date period type for EventDate" ) );
+        assertEquals( errors.get( 0 ),
+            "Start date or end date not specified with ABSOLUTE date period type for EventDate" );
         trackedEntityInstanceFilterA.getEntityQueryCriteria().setEventDate( null );
 
     }
@@ -263,15 +263,15 @@ class TrackedEntityInstanceFilterServiceTest extends DhisSpringTest
 
         List<String> errors = trackedEntityInstanceFilterService.validate( trackedEntityInstanceFilterA );
         assertEquals( 1, errors.size() );
-        assertTrue(
-            errors.get( 0 ).equals( "No tracked entity attribute found for attribute:" + avf2.getAttribute() ) );
+        assertEquals(
+            errors.get( 0 ), "No tracked entity attribute found for attribute:" + avf2.getAttribute() );
 
         trackedEntityInstanceFilterA.getEntityQueryCriteria().getAttributeValueFilters().clear();
         avf2.setAttribute( "" );
         trackedEntityInstanceFilterA.getEntityQueryCriteria().getAttributeValueFilters().add( avf2 );
         errors = trackedEntityInstanceFilterService.validate( trackedEntityInstanceFilterA );
         assertEquals( 1, errors.size() );
-        assertTrue( errors.get( 0 ).equals( "Attribute Uid is missing in filter" ) );
+        assertEquals( errors.get( 0 ), "Attribute Uid is missing in filter" );
     }
 
     @Test
