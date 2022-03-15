@@ -392,16 +392,35 @@ public class DefaultEventAnalyticsService
                 fillDisplayList = false;
             }
 
-            if ( !displayObjects.isEmpty() )
-            {
-                rowDimensions.forEach( dimension -> outputGrid
-                    .addValue( displayObjects.get( dimension ).getDisplayProperty( params.getDisplayProperty() ) ) );
-            }
+            addValuesInOutputGrid( rowDimensions, outputGrid, displayObjects, params );
 
             EventAnalyticsUtils.addValues( ids, grid, outputGrid );
         }
 
+        return getGridWithRows( grid, outputGrid );
+    }
+
+    /**
+     * return valid grid. Valid grid is first output output grid with rows or
+     * the basic one
+     */
+    private Grid getGridWithRows( Grid grid, Grid outputGrid )
+    {
         return outputGrid.getRows().isEmpty() ? grid : outputGrid;
+    }
+
+    /**
+     * add values in output grid. Display objects are not empty if columns and
+     * rows are not epmty
+     */
+    private void addValuesInOutputGrid( List<String> rowDimensions, Grid outputGrid,
+        Map<String, EventAnalyticsDimensionalItem> displayObjects, EventQueryParams params )
+    {
+        if ( !displayObjects.isEmpty() )
+        {
+            rowDimensions.forEach( dimension -> outputGrid
+                .addValue( displayObjects.get( dimension ).getDisplayProperty( params.getDisplayProperty() ) ) );
+        }
     }
 
     /**
