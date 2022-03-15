@@ -373,7 +373,9 @@ public class EventExportTests
 
     private String setupUser()
     {
-        String userId = userActions.addUser( userName, password );
+        String userId = userActions.addUserFull( "firstNameA", "lastNameB", userName, password,
+            "NONE" );
+
         userActions.grantUserAccessToOrgUnits( userId, captureOu, searchOu, dataReadOu );
         userActions.addUserToUserGroup( userId, Constants.USER_GROUP_ID );
 
