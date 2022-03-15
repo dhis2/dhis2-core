@@ -289,4 +289,23 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest
         assertNotNull( response.get( "options[0].sortOrder" ) );
         assertNotNull( response.get( "options[1].sortOrder" ) );
     }
+
+    @Test
+    void testImportOptionSetWithNoLinkOptions()
+    {
+        POST( "/metadata", "{\"optionSets\":\n" +
+            "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\": 2,\"valueType\": \"TEXT\"}],\n"
+            +
+            "\"options\":\n" +
+            "    [{\"code\": \"Vaccine freezer\",\"name\": \"Vaccine freezer\",\"sortOrder\": 2,\"id\": \"BQMei56UBl6\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}},\n"
+            +
+            "    {\"code\": \"Icelined refrigerator\",\"name\": \"Icelined refrigerator\",\"sortOrder\": 3,\"id\": \"Uh4HvjK6zg3\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}}]}" )
+                .content( HttpStatus.OK );
+
+        JsonResponse response = GET( "/optionSets/{uid}?fields=options[id,sortOrder]", "RHqFlB1Wm4d" ).content();
+
+        assertEquals( 2, response.getObject( "options" ).size() );
+        assertNotNull( response.get( "options[0].sortOrder" ) );
+        assertNotNull( response.get( "options[1].sortOrder" ) );
+    }
 }
