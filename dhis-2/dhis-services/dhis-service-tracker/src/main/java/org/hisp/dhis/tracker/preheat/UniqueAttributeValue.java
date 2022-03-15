@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.preheat;
 
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -40,6 +41,7 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
  */
 @Getter
 @AllArgsConstructor
+@EqualsAndHashCode
 public class UniqueAttributeValue
 {
 
