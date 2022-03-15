@@ -86,6 +86,8 @@ class UniqueAttributeSupplierTest extends DhisConvenienceTest
 
     private TrackerImportParams params;
 
+    private TrackerPreheat preheat;
+
     private TrackedEntityAttribute uniqueAttribute;
 
     private TrackedEntityInstance tei;
@@ -98,6 +100,7 @@ class UniqueAttributeSupplierTest extends DhisConvenienceTest
     public void setUp()
     {
         params = TrackerImportParams.builder().build();
+        preheat = new TrackerPreheat();
         uniqueAttribute = createTrackedEntityAttribute( 'A', ValueType.TEXT );
         OrganisationUnit orgUnit = createOrganisationUnit( 'A' );
         Program program = createProgram( 'A' );
@@ -114,23 +117,17 @@ class UniqueAttributeSupplierTest extends DhisConvenienceTest
     @Test
     void verifySupplierWhenNoUniqueAttributeIsPresentInTheSystem()
     {
-        // given
-        TrackerPreheat preheat = new TrackerPreheat();
         when( trackedEntityAttributeService.getAllUniqueTrackedEntityAttributes() )
             .thenReturn( Collections.emptyList() );
 
-        // when
         this.supplier.preheatAdd( params, preheat );
 
-        // then
         assertThat( preheat.getUniqueAttributeValues(), hasSize( 0 ) );
     }
 
     @Test
     void verifySupplierWhenTEIAndEnrollmentHaveTheSameUniqueAttribute()
     {
-        // given
-        TrackerPreheat preheat = new TrackerPreheat();
         when( trackedEntityAttributeService.getAllUniqueTrackedEntityAttributes() )
             .thenReturn( Collections.singletonList( uniqueAttribute ) );
         TrackerImportParams importParams = TrackerImportParams.builder()
@@ -138,36 +135,28 @@ class UniqueAttributeSupplierTest extends DhisConvenienceTest
             .enrollments( Collections.singletonList( enrollment( TEI_UID ) ) )
             .build();
 
-        // when
         this.supplier.preheatAdd( importParams, preheat );
 
-        // then
         assertThat( preheat.getUniqueAttributeValues(), hasSize( 0 ) );
     }
 
     @Test
-    void verifySupplierWhenTwoTEIsHaveTheSameUniqueAttribute()
+    void verifySupplierWhenTwoTEIsHaveAttributeWithSameUniqueValue()
     {
-        // given
-        TrackerPreheat preheat = new TrackerPreheat();
         when( trackedEntityAttributeService.getAllUniqueTrackedEntityAttributes() )
             .thenReturn( Collections.singletonList( uniqueAttribute ) );
         TrackerImportParams importParams = TrackerImportParams.builder()
             .trackedEntities( sameUniqueAttributeTrackedEntities() )
             .build();
 
-        // when
         this.supplier.preheatAdd( importParams, preheat );
 
-        // then
         assertThat( preheat.getUniqueAttributeValues(), hasSize( 2 ) );
     }
 
     @Test
-    void verifySupplierWhenTEIAndEnrollmentFromAnotherTEIHaveTheSameUniqueAttribute()
+    void verifySupplierWhenTEIAndEnrollmentFromAnotherTEIHaveAttributeWithSameUniqueValue()
     {
-        // given
-        TrackerPreheat preheat = new TrackerPreheat();
         when( trackedEntityAttributeService.getAllUniqueTrackedEntityAttributes() )
             .thenReturn( Collections.singletonList( uniqueAttribute ) );
         TrackerImportParams importParams = TrackerImportParams.builder()
@@ -175,18 +164,14 @@ class UniqueAttributeSupplierTest extends DhisConvenienceTest
             .enrollments( Collections.singletonList( enrollment( ANOTHER_TEI_UID ) ) )
             .build();
 
-        // when
         this.supplier.preheatAdd( importParams, preheat );
 
-        // then
         assertThat( preheat.getUniqueAttributeValues(), hasSize( 2 ) );
     }
 
     @Test
     void verifySupplierWhenTEIinPayloadAndDBHaveTheSameUniqueAttribute()
     {
-        // given
-        TrackerPreheat preheat = new TrackerPreheat();
         when( trackedEntityAttributeService.getAllUniqueTrackedEntityAttributes() )
             .thenReturn( Collections.singletonList( uniqueAttribute ) );
         Map<TrackedEntityAttribute, List<String>> trackedEntityAttributeListMap = ImmutableMap.of( uniqueAttribute,
@@ -198,18 +183,14 @@ class UniqueAttributeSupplierTest extends DhisConvenienceTest
             .trackedEntities( Collections.singletonList( trackedEntity() ) )
             .build();
 
-        // when
         this.supplier.preheatAdd( importParams, preheat );
 
-        // then
         assertThat( preheat.getUniqueAttributeValues(), hasSize( 1 ) );
     }
 
     @Test
     void verifySupplierWhenTEIinPayloadAndAnotherTEIInDBHaveTheSameUniqueAttribute()
     {
-        // given
-        TrackerPreheat preheat = new TrackerPreheat();
         when( trackedEntityAttributeService.getAllUniqueTrackedEntityAttributes() )
             .thenReturn( Collections.singletonList( uniqueAttribute ) );
         Map<TrackedEntityAttribute, List<String>> trackedEntityAttributeListMap = ImmutableMap.of( uniqueAttribute,
@@ -221,10 +202,8 @@ class UniqueAttributeSupplierTest extends DhisConvenienceTest
             .trackedEntities( Collections.singletonList( anotherTrackedEntity() ) )
             .build();
 
-        // when
         this.supplier.preheatAdd( importParams, preheat );
 
-        // then
         assertThat( preheat.getUniqueAttributeValues(), hasSize( 1 ) );
         assertThat( preheat.getUniqueAttributeValues().get( 0 ).getTeiUid(), is( TEI_UID ) );
     }
