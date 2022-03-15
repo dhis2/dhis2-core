@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics.event.data;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.stream.Collectors.joining;
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.hisp.dhis.analytics.DataQueryParams.NUMERATOR_DENOMINATOR_PROPERTIES_COUNT;
 import static org.hisp.dhis.analytics.SortOrder.ASC;
 import static org.hisp.dhis.analytics.SortOrder.DESC;
@@ -54,7 +55,6 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -114,6 +114,8 @@ public abstract class AbstractJdbcEventAnalyticsManager
     protected static final int COORD_DEC = 6;
 
     protected static final int LAST_VALUE_YEARS_OFFSET = -10;
+
+    private static final String _AND_ = " and ";
 
     protected final JdbcTemplate jdbcTemplate;
 
@@ -827,6 +829,8 @@ public abstract class AbstractJdbcEventAnalyticsManager
      */
     protected String getItemsSql( EventQueryParams params, SqlHelper hlp )
     {
+        // Creates a map grouping queryItems referring to repeatable stages and
+        // those referring to non-repeatable stages
         Map<Boolean, List<QueryItem>> itemsByRepeatableFlag = params.getItems()
             .stream()
             .filter( QueryItem::hasFilter )
@@ -836,15 +840,29 @@ public abstract class AbstractJdbcEventAnalyticsManager
         Collection<String> repeatableSqlConditions = asSqlCollection( itemsByRepeatableFlag.get( true ), params );
         Collection<String> nonRepeatableSqlConditions = asSqlCollection( itemsByRepeatableFlag.get( false ), params );
 
-        return (!repeatableSqlConditions.isEmpty() || !nonRepeatableSqlConditions.isEmpty() ? hlp.whereAnd() + " "
-            : "") +
-            Stream.of(
-                joinSql( repeatableSqlConditions, joining( " or ", "(", ")" ) ),
-                joinSql( nonRepeatableSqlConditions, joining( " and " ) ) )
-                .filter( StringUtils::isNotEmpty )
-                .collect( joining( " and " ) );
+        if ( repeatableSqlConditions.isEmpty() && nonRepeatableSqlConditions.isEmpty() )
+        {
+            return "";
+        }
+
+        String repeatableSql = joinSql( repeatableSqlConditions, joining( " or ", "(", ")" ) );
+        String nonRepeatableSql = joinSql( nonRepeatableSqlConditions, joining( _AND_ ) );
+
+        if ( isNotEmpty( repeatableSql ) && isNotEmpty( nonRepeatableSql ) )
+        {
+            return hlp.whereAnd() + " " + repeatableSql + _AND_ + nonRepeatableSql;
+        }
+        if ( isNotEmpty( repeatableSql ) )
+        {
+            return hlp.whereAnd() + " " + repeatableSql;
+        }
+        return hlp.whereAnd() + " " + nonRepeatableSql;
     }
 
+    /**
+     * joins a collection of conditions using given join function, returns empty
+     * string if collection is empty
+     */
     private String joinSql( Collection<String> conditions, Collector<CharSequence, ?, String> joiner )
     {
         if ( !conditions.isEmpty() )
@@ -854,6 +872,10 @@ public abstract class AbstractJdbcEventAnalyticsManager
         return "";
     }
 
+    /**
+     * Returns a collection of strings, each representing SQL for given
+     * queryItems
+     */
     private Collection<String> asSqlCollection( List<QueryItem> queryItems, EventQueryParams params )
     {
         return emptyIfNull( queryItems )
@@ -862,13 +884,19 @@ public abstract class AbstractJdbcEventAnalyticsManager
             .collect( Collectors.toList() );
     }
 
+    /**
+     * Converts given queryItem into SQL joining its filters using AND
+     */
     private String toSql( QueryItem queryItem, EventQueryParams params )
     {
         return queryItem.getFilters().stream()
             .map( filter -> toSql( queryItem, filter, params ) )
-            .collect( joining( " and " ) );
+            .collect( joining( _AND_ ) );
     }
 
+    /**
+     * Produces SQL for a single filter inside a queryItem
+     */
     private String toSql( QueryItem item, QueryFilter filter, EventQueryParams params )
     {
         String field = getSelectSql( filter, item, params.getEarliestStartDate(),
