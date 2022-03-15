@@ -91,6 +91,10 @@ public interface DimensionalObject
 
     String PROGRAMSTAGE_SEP = ".";
 
+    String VALUE_COLUMN_NAME = "value";
+
+    String TEXTVALUE_COLUMN_NAME = "textvalue";
+
     List<String> STATIC_DIMS = ImmutableList.<String> builder().add(
         LONGITUDE_DIM_ID, LATITUDE_DIM_ID ).build();
 
