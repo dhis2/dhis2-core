@@ -30,8 +30,9 @@ package org.hisp.dhis.program.notification;
 import java.util.Date;
 
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
@@ -39,8 +40,8 @@ import org.hisp.dhis.program.ProgramStageInstance;
 /**
  * @author Zubair Asghar
  */
-
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 public class ProgramNotificationInstanceParam extends BaseNotificationParam
 {

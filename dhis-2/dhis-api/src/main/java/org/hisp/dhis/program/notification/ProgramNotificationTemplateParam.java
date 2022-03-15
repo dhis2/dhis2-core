@@ -28,8 +28,9 @@
 package org.hisp.dhis.program.notification;
 
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -37,8 +38,8 @@ import org.hisp.dhis.program.ProgramStage;
 /**
  * @author Zubair Asghar
  */
-
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 public class ProgramNotificationTemplateParam extends BaseNotificationParam
 {
