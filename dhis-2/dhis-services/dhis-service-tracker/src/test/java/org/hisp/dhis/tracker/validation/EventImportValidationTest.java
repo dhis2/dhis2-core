@@ -488,6 +488,32 @@ class EventImportValidationTest extends AbstractImportValidationTest
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1082 ) ) ) );
     }
 
+    @Test
+    void testEventDeleteOk()
+        throws IOException
+    {
+        TrackerImportParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/events-with-registration.json" );
+        trackerBundleParams.setImportStrategy( TrackerImportStrategy.CREATE );
+
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
+
+        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
+        assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
+
+        manager.flush();
+        manager.clear();
+
+        TrackerImportParams paramsDelete = createBundleFromJson(
+            "tracker/validations/event-data-delete.json" );
+        paramsDelete.setImportStrategy( TrackerImportStrategy.DELETE );
+
+        TrackerImportReport trackerImportReportDelete = trackerImportService.importTracker( paramsDelete );
+        assertEquals( 0, trackerImportReportDelete.getValidationReport().getErrors().size() );
+        assertEquals( TrackerStatus.OK, trackerImportReportDelete.getStatus() );
+        assertEquals( 1, trackerImportReportDelete.getStats().getDeleted() );
+    }
+
     private TrackerImportReport createEvent( String jsonPayload )
         throws IOException
     {
