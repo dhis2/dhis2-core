@@ -119,7 +119,7 @@ public class RuleActionAssignValueImplementer implements RuleActionImplementer
             variable = matcher.group( 0 ).trim();
         }
 
-        log.info( "Assigning: " + variable + " with value: " + value );
+        log.debug( "Assigning: " + variable + " with value: " + value );
 
         if ( !variableMap.containsKey( programInstance.getUid() ) )
         {
