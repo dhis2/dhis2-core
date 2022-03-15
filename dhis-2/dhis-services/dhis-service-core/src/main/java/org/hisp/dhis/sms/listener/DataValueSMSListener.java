@@ -74,6 +74,8 @@ public class DataValueSMSListener
 {
     private static final String DATASET_LOCKED = "Dataset: %s is locked for period: %s";
 
+    private static final String OU_NOT_IN_DATASET = "Organisation unit %s is not assigned to dataSet %s";
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -126,6 +128,15 @@ public class DataValueSMSListener
 
         Period period = getPeriod( smsCommand, date );
         DataSet dataSet = smsCommand.getDataset();
+
+        if ( orgUnit != null && !dataSet.hasOrganisationUnit( orgUnit ) )
+        {
+            sendFeedback( String.format( OU_NOT_IN_DATASET, orgUnit.getUid(), dataSet.getUid() ), sms.getOriginator(),
+                ERROR );
+
+            update( sms, SmsMessageStatus.FAILED, false );
+            return;
+        }
 
         if ( dataSetService.isLocked( null, dataSet, period, orgUnit,
             dataElementCategoryService.getDefaultCategoryOptionCombo(), null ) )
@@ -223,7 +234,8 @@ public class DataValueSMSListener
             storedBy = "[unknown] from [" + sender + "]";
         }
 
-        CategoryOptionCombo optionCombo = dataElementCategoryService.getCategoryOptionCombo( code.getOptionId() );
+        CategoryOptionCombo optionCombo = dataElementCategoryService
+            .getCategoryOptionCombo( code.getOptionId().getId() );
 
         Period period = getPeriod( command, date );
 
@@ -375,7 +387,8 @@ public class DataValueSMSListener
         for ( SMSCode code : command.getCodes() )
         {
 
-            CategoryOptionCombo optionCombo = dataElementCategoryService.getCategoryOptionCombo( code.getOptionId() );
+            CategoryOptionCombo optionCombo = dataElementCategoryService
+                .getCategoryOptionCombo( code.getOptionId().getId() );
 
             period = getPeriod( command, date );
 
@@ -437,7 +450,8 @@ public class DataValueSMSListener
         for ( SMSCode code : command.getCodes() )
         {
 
-            CategoryOptionCombo optionCombo = dataElementCategoryService.getCategoryOptionCombo( code.getOptionId() );
+            CategoryOptionCombo optionCombo = dataElementCategoryService
+                .getCategoryOptionCombo( code.getOptionId().getId() );
 
             period = getPeriod( command, date );
 

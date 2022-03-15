@@ -37,7 +37,7 @@
         rs.ownerObject = :ownerObject
         and rs.ownerUid = :ownerUid
         and rs.key = :key
-        and rs.value in (:values)
+        and LOWER(rs.value) in (:values)
         ]]>
     </sql-query>
 </hibernate-mapping>

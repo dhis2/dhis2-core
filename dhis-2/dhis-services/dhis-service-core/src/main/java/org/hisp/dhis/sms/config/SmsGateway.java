@@ -110,36 +110,28 @@ public abstract class SmsGateway
         {
             response = restTemplate.exchange( urlTemplate, httpMethod, request, klass );
 
-            if ( response != null )
-            {
-                statusCode = response.getStatusCode();
-            }
-            else
-            {
-                log.error( "Server response is null" );
-                statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
-            }
+            statusCode = response.getStatusCode();
         }
         catch ( HttpClientErrorException ex )
         {
-            log.error( "Client error", ex );
+            log.error( "Sms request client error", ex );
 
             statusCode = ex.getStatusCode();
         }
         catch ( HttpServerErrorException ex )
         {
-            log.error( "Server error", ex );
+            log.error( "Sms request server error", ex );
 
             statusCode = ex.getStatusCode();
         }
         catch ( Exception ex )
         {
-            log.error( "Error", ex );
+            log.error( "Sms request error", ex );
 
             statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
         }
 
-        log.info( "Response status code: " + statusCode );
+        log.info( "Sms request status code: " + statusCode );
 
         return statusCode;
     }

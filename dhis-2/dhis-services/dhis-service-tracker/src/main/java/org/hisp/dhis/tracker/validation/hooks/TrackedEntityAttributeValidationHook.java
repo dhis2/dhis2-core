@@ -160,7 +160,7 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
 
             validateAttributeUniqueness( reporter, attribute.getValue(), tea, tei, orgUnit );
 
-            validateFileNotAlreadyAssigned( reporter, attribute, valueMap );
+            validateFileNotAlreadyAssigned( reporter, trackedEntity, attribute, valueMap );
         }
     }
 
@@ -185,7 +185,7 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
         addErrorIf( () -> result != null, reporter, E1085, tea, result );
     }
 
-    protected void validateFileNotAlreadyAssigned( ValidationErrorReporter reporter,
+    protected void validateFileNotAlreadyAssigned( ValidationErrorReporter reporter, TrackedEntity te,
         Attribute attr, Map<String, TrackedEntityAttributeValue> valueMap )
     {
         checkNotNull( attr, ATTRIBUTE_CANT_BE_NULL );
@@ -208,6 +208,10 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
         FileResource fileResource = reporter.getValidationContext().getFileResource( attr.getValue() );
 
         addErrorIfNull( fileResource, reporter, E1084, attr.getValue() );
-        addErrorIf( () -> fileResource != null && fileResource.isAssigned(), reporter, E1009, attr.getValue() );
+
+        if ( reporter.getValidationContext().getTrackedEntityInstance( te.getTrackedEntity() ) == null )
+        {
+            addErrorIf( () -> fileResource != null && fileResource.isAssigned(), reporter, E1009, attr.getValue() );
+        }
     }
 }

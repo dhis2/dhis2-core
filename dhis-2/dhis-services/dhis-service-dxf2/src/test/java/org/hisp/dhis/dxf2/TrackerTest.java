@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,6 +28,7 @@
 package org.hisp.dhis.dxf2;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.fail;
@@ -59,6 +60,7 @@ import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
 import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.mock.MockCurrentUserService;
@@ -102,6 +104,9 @@ public abstract class TrackerTest extends IntegrationTestBase
 
     @Autowired
     private EnrollmentService enrollmentService;
+
+    @Autowired
+    private EventService eventService;
 
     @Autowired
     private TrackedEntityInstanceService trackedEntityInstanceService;
@@ -161,18 +166,11 @@ public abstract class TrackerTest extends IntegrationTestBase
         manager.update( categoryComboA );
 
         ProgramStage programStageA2;
-
-        programStageA1 = createProgramStage( programA, true );
-        programStageA2 = createProgramStage( programA, true );
-
         programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
         programA.setProgramType( ProgramType.WITH_REGISTRATION );
         programA.setCategoryCombo( categoryComboA );
         programA.setUid( CodeGenerator.generateUid() );
         programA.setCode( RandomStringUtils.randomAlphanumeric( 10 ) );
-        programA.setProgramStages(
-            Stream.of( programStageA1, programStageA2 ).collect( Collectors.toCollection( HashSet::new ) ) );
-
         CategoryOptionCombo defaultCategoryOptionCombo = createCategoryOptionCombo( 'A' );
         defaultCategoryOptionCombo.setCategoryCombo( categoryComboA );
         defaultCategoryOptionCombo.setUid( DEF_COC_UID );
@@ -199,7 +197,11 @@ public abstract class TrackerTest extends IntegrationTestBase
             manager.save( relationshipType );
 
         } );
-
+        programStageA1 = createProgramStage( programA, true );
+        programStageA2 = createProgramStage( programA, true );
+        programA.setProgramStages(
+            Stream.of( programStageA1, programStageA2 ).collect( Collectors.toCollection( HashSet::new ) ) );
+        manager.update( programA );
         super.userService = this.userService;
 
         mockCurrentUserService();
@@ -297,6 +299,30 @@ public abstract class TrackerTest extends IntegrationTestBase
         Map<String, Object> enrollmentValues )
     {
         return _persistTrackedEntityInstanceWithEnrollmentAndEvents( 5, enrollmentValues );
+    }
+
+    public Enrollment deleteOneEnrollment(
+        org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance trackedEntityInstance )
+    {
+        List<Enrollment> enrollments = trackedEntityInstance.getEnrollments();
+        assertThat( enrollments.size(), is( not( 0 ) ) );
+
+        Enrollment enrollment = enrollments.get( 0 );
+        ImportSummary importSummary = enrollmentService.deleteEnrollment( enrollment.getEnrollment() );
+        assertThat( importSummary.getConflicts().size(), is( 0 ) );
+        return enrollment;
+
+    }
+
+    public Event deleteOneEvent( Enrollment enrollment )
+    {
+        List<Event> events = enrollment.getEvents();
+        assertThat( events.size(), is( not( 0 ) ) );
+
+        Event event = events.get( 0 );
+        ImportSummary importSummary = eventService.deleteEvent( event.getEvent() );
+        assertThat( importSummary.getConflicts().size(), is( 0 ) );
+        return event;
     }
 
     private TrackedEntityInstance _persistTrackedEntityInstanceWithEnrollmentAndEvents( int eventSize,

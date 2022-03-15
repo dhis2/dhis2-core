@@ -167,6 +167,8 @@ public class DataValueListenerTest extends DhisConvenienceTest
 
     private DataSet dataSet;
 
+    private DataSet dataSetB;
+
     private Period period;
 
     private User user;
@@ -448,6 +450,29 @@ public class DataValueListenerTest extends DhisConvenienceTest
     }
 
     @Test
+    public void testIfOrgUnitNotInDataSet()
+    {
+        when( userService.getUser( anyString() ) ).thenReturn( user );
+        when( smsCommandService.getSMSCommand( anyString(), any() ) ).thenReturn( keyValueCommand );
+        doAnswer( invocation -> {
+            updatedIncomingSms = (IncomingSms) invocation.getArguments()[0];
+            return updatedIncomingSms;
+        } ).when( incomingSmsService ).update( any() );
+
+        keyValueCommand.setSeparator( null );
+        keyValueCommand.setCodeValueSeparator( null );
+        keyValueCommand.setDataset( dataSetB );
+
+        subject.receive( incomingSms );
+
+        assertNotNull( updatedIncomingSms );
+        assertEquals( SmsMessageStatus.FAILED, updatedIncomingSms.getStatus() );
+        assertFalse( updatedIncomingSms.isParsed() );
+        verify( dataSetService, times( 0 ) ).isLocked( any( User.class ), any( DataSet.class ),
+            any( Period.class ), any( OrganisationUnit.class ), any( CategoryOptionCombo.class ), any( Date.class ) );
+    }
+
+    @Test
     public void testDefaultSeparator()
     {
         mockServices();
@@ -490,6 +515,9 @@ public class DataValueListenerTest extends DhisConvenienceTest
         organisationUnitA = createOrganisationUnit( 'O' );
         organisationUnitB = createOrganisationUnit( 'P' );
         dataSet = createDataSet( 'D' );
+        dataSetB = createDataSet( 'B' );
+        dataSet.addOrganisationUnit( organisationUnitA );
+        dataSet.addOrganisationUnit( organisationUnitB );
         period = createPeriod( new Date(), new Date() );
 
         user = createUser( 'U' );
@@ -529,10 +557,12 @@ public class DataValueListenerTest extends DhisConvenienceTest
         smsCode = new SMSCode();
         smsCode.setCode( "de" );
         smsCode.setDataElement( dataElement );
+        smsCode.setOptionId( defaultCategoryOptionCombo );
 
         smsCodeForcompulsory = new SMSCode();
         smsCodeForcompulsory.setCode( "deb" );
         smsCodeForcompulsory.setDataElement( dataElementB );
+        smsCodeForcompulsory.setOptionId( categoryOptionCombo );
         smsCodeForcompulsory.setCompulsory( true );
 
         smsSpecialCharacter = new SMSSpecialCharacter();

@@ -90,11 +90,8 @@ public class DatePeriodResourceTable
 
         List<Object[]> batchArgs = new ArrayList<>();
 
-        Date startDate = new Cal( 1975, 1, 1, true ).time(); // TODO Create a
-                                                             // dynamic solution
-                                                             // instead of
-                                                             // fixing the date
-        Date endDate = new Cal( 2025, 1, 1, true ).time();
+        Date startDate = new Cal( OLDEST_YEAR_PERIOD_SUPPORTED, 1, 1, true ).time();
+        Date endDate = new Cal( NEWEST_YEAR_PERIOD_SUPPORTED + 1, 1, 1, true ).time();
 
         List<Period> dailyPeriods = new DailyPeriodType().generatePeriods( startDate, endDate );
 

@@ -143,11 +143,14 @@ public class TrackedEntityAttributeValueAuditTest extends TrackerTest
                 attributes1, trackedEntityInstances, AuditType.DELETE );
 
         assertEquals( 1, attributeValueAudits.size() );
+        attributeValueAudits.forEach( s -> s.getValue().equals( "2020-02-20" ) );
 
         attributeValueAudits = attributeValueAuditService
             .getTrackedEntityAttributeValueAudits(
                 attributes1, trackedEntityInstances, AuditType.UPDATE );
 
         assertEquals( 1, attributeValueAudits.size() );
+        attributeValueAudits.forEach( s -> s.getValue().equals( "TEXT1" ) );
+
     }
 }
