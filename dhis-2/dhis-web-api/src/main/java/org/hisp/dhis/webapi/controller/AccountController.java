@@ -351,7 +351,7 @@ public class AccountController
                 return badRequest( "User self registration is not allowed" );
             }
 
-            if ( systemSettingManager.selfRegistrationWithRecaptcha() )
+            if ( !systemSettingManager.selfRegistrationNoRecaptcha() )
             {
                 if ( recapResponse == null )
                 {

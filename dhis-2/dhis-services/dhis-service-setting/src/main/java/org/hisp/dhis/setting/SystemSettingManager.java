@@ -232,9 +232,9 @@ public interface SystemSettingManager
     }
 
     @Transactional( readOnly = true )
-    default boolean selfRegistrationWithRecaptcha()
+    default boolean selfRegistrationNoRecaptcha()
     {
-        return !getBoolSetting( SettingKey.SELF_REGISTRATION_NO_RECAPTCHA );
+        return getBoolSetting( SettingKey.SELF_REGISTRATION_NO_RECAPTCHA );
     }
 
     @Transactional( readOnly = true )
