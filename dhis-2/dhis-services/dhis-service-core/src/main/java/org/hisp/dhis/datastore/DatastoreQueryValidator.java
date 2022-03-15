@@ -47,9 +47,19 @@ class DatastoreQueryValidator
     {
         for ( Filter f : query.getFilters() )
         {
-            if ( f.isKeyPath() && f.getOperator().isUnary() )
+            boolean isUnary = f.getOperator().isUnary();
+            if ( f.isKeyPath() && isUnary )
             {
                 throw filterException( f, "key filters cannot be used with unary operators" );
+            }
+            if ( !isUnary && f.getValue().isBlank() )
+            {
+                throw filterException( f, "the operator `" + f.getOperator() + "` requires a value" );
+            }
+            if ( isUnary && !f.getValue().isBlank() )
+            {
+                throw filterException( f,
+                    "the operator `" + f.getOperator() + "` is unary and does not require a value" );
             }
         }
     }
