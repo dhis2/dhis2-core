@@ -227,7 +227,7 @@ public class DefaultEventAnalyticsService
     public Grid getAggregatedEventData( EventQueryParams params, List<String> columns, List<String> rows )
     {
         return AnalyticsUtils.isTableLayout( columns, rows )
-            ? getAggregatedEventDataTableLayout( params, columns, rows )
+            ? getMaybeAggregatedEventDataTableLayout( params, columns, rows )
             : getAggregatedEventData( params );
     }
 
@@ -274,7 +274,8 @@ public class DefaultEventAnalyticsService
      * @param rows the identifiers of the dimensions to use as rows.
      * @return aggregated data as a Grid object.
      */
-    private Grid getAggregatedEventDataTableLayout( EventQueryParams params, List<String> columns, List<String> rows )
+    private Grid getMaybeAggregatedEventDataTableLayout( EventQueryParams params, List<String> columns,
+        List<String> rows )
     {
         params.removeProgramIndicatorItems();
 
@@ -307,6 +308,7 @@ public class DefaultEventAnalyticsService
 
         List<Map<String, EventAnalyticsDimensionalItem>> rowPermutations = EventAnalyticsUtils
             .generateEventDataPermutations( tableRows );
+
         List<Map<String, EventAnalyticsDimensionalItem>> columnPermutations = EventAnalyticsUtils
             .generateEventDataPermutations( tableColumns );
 
@@ -390,13 +392,35 @@ public class DefaultEventAnalyticsService
                 fillDisplayList = false;
             }
 
-            rowDimensions.forEach( dimension -> outputGrid
-                .addValue( displayObjects.get( dimension ).getDisplayProperty( params.getDisplayProperty() ) ) );
+            maybeAddValuesInOutputGrid( rowDimensions, outputGrid, displayObjects, params );
 
             EventAnalyticsUtils.addValues( ids, grid, outputGrid );
         }
 
-        return outputGrid;
+        return getGridWithRows( grid, outputGrid );
+    }
+
+    /**
+     * return valid grid. Valid grid is first output grid with rows or the basic
+     * one
+     */
+    private static Grid getGridWithRows( Grid grid, Grid outputGrid )
+    {
+        return outputGrid.getRows().isEmpty() ? grid : outputGrid;
+    }
+
+    /**
+     * add values in output grid. Display objects are not empty if columns and
+     * rows are not epmty
+     */
+    private static void maybeAddValuesInOutputGrid( List<String> rowDimensions, Grid outputGrid,
+        Map<String, EventAnalyticsDimensionalItem> displayObjects, EventQueryParams params )
+    {
+        if ( !displayObjects.isEmpty() )
+        {
+            rowDimensions.forEach( dimension -> outputGrid
+                .addValue( displayObjects.get( dimension ).getDisplayProperty( params.getDisplayProperty() ) ) );
+        }
     }
 
     /**
