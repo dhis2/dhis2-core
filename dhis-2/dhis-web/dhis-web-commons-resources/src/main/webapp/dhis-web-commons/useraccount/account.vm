@@ -37,8 +37,10 @@
         <td style="width:140px"><label for="code"></label></td>
         <td>
             <input type="hidden" id="inviteUsername" name="inviteUsername" value="$username">
-            <input type="hidden" id="username" name="username" value="$username">
             <input type="hidden" id="inviteToken" name="inviteToken" value="$token">
+            #if( $accountAction == "invited" )
+            <input type="hidden" id="username" name="username" value="$username">
+            #end
         </td>
     </tr>
 	#end
@@ -51,21 +53,24 @@
         </td>
     </tr>
 
-    #if( $accountAction == "invited" )
     <tr>
-        <td><label id="label_username" for="username">$i18n.getString( "user_name" )</label></td>
-        <td>
-        	<input type="text" id="username" disabled="disabled" value="$username" autocomplete="off"></td>
-        <td>
+      <td>
+        <label id="label_username" for="username">$i18n.getString( "user_name" )</label>
+      </td>
+      <td>
+        <input
+            type="text"
+            id="username"
+            name="username"
+            autocomplete="off"
+
+            #if( $accountAction == "invited" )
+            disabled="disabled"
+            value="$username"
+            #end
+            />
+      </td>
     </tr>
-    #else
-        <tr>
-            <td><label id="label_username" for="username">$i18n.getString( "user_name" )</label></td>
-            <td>
-                <input type="text" id="username" name="username" autocomplete="off"></td>
-            <td>
-        </tr>
-    #end
     <tr>
         <td><label id="label_password" for="password">$i18n.getString( "password" )</label></td>
         <td><input type="password" id="password" name="password"  onfocusout="checkPasswordForUsername()" autocomplete="off" placeholder="$i18n.getString( 'password_hint' )"></td>
