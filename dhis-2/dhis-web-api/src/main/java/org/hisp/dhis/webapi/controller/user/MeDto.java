@@ -37,6 +37,7 @@ import java.util.Set;
 import lombok.Getter;
 import lombok.Setter;
 
+import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.translation.Translation;
@@ -46,12 +47,10 @@ import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.sharing.Sharing;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Getter
 @Setter
-@JsonInclude( JsonInclude.Include.ALWAYS )
 public class MeDto
 {
     public MeDto( User user, Map<String, Serializable> settings, List<String> programs, List<String> dataSets )
@@ -64,6 +63,7 @@ public class MeDto
         this.languages = user.getLanguages();
         this.gender = user.getGender();
         this.jobTitle = user.getJobTitle();
+        this.avatar = user.getAvatar();
         this.created = user.getCreated();
         this.lastUpdated = user.getLastUpdated();
         this.dataViewOrganisationUnits = user.getDataViewOrganisationUnits();
@@ -113,6 +113,9 @@ public class MeDto
 
     @JsonProperty( )
     private String jobTitle;
+
+    @JsonProperty( )
+    private FileResource avatar;
 
     @JsonProperty( )
     private Date created;
