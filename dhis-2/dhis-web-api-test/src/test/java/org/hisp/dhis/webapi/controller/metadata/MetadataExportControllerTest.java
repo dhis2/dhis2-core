@@ -27,20 +27,14 @@
  */
 package org.hisp.dhis.webapi.controller.metadata;
 
-import org.hisp.dhis.dxf2.metadata.MetadataExportService;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.UserSettingService;
-import org.hisp.dhis.webapi.service.ContextService;
+import org.hisp.dhis.node.types.RootNode;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
-
-import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * Unit tests for {@link MetadataExportControllerTest}.
@@ -50,32 +44,20 @@ import com.fasterxml.jackson.databind.JsonNode;
 @ExtendWith( MockitoExtension.class )
 class MetadataExportControllerTest
 {
-    @Mock
-    private MetadataExportService metadataExportService;
-
-    @Mock
-    private ContextService contextService;
-
-    @Mock
-    private CurrentUserService currentUserService;
-
-    @Mock
-    private UserSettingService userSettingService;
-
     @InjectMocks
     private MetadataImportExportController controller;
 
     @Test
     void withoutDownload()
     {
-        ResponseEntity<JsonNode> responseEntity = controller.getMetadata( false, null, false );
+        ResponseEntity<RootNode> responseEntity = controller.getMetadata( false, null, false );
         Assertions.assertNull( responseEntity.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ) );
     }
 
     @Test
     void withDownload()
     {
-        ResponseEntity<JsonNode> responseEntity = controller.getMetadata( false, null, true );
+        ResponseEntity<RootNode> responseEntity = controller.getMetadata( false, null, true );
         Assertions.assertNotNull( responseEntity.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ) );
         Assertions.assertEquals( "attachment; filename=metadata",
             responseEntity.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ).get( 0 ) );
