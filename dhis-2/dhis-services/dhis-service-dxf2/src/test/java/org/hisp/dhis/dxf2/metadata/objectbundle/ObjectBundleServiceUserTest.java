@@ -138,9 +138,9 @@ class ObjectBundleServiceUserTest extends TransactionalIntegrationTest
         assertEquals( 4, users.size() );
         User userA = manager.get( User.class, "sPWjoHSY03y" );
         User userB = manager.get( User.class, "MwhEJUnTHkn" );
-        assertEquals( "UserAA", userA.getUsername() );
+        assertEquals( "usera", userA.getUsername() );
         assertEquals( "admin", userA.getCreatedBy().getUsername() );
-        assertEquals( "UserBB", userB.getUsername() );
+        assertEquals( "userb", userB.getUsername() );
         assertEquals( "admin", userB.getCreatedBy().getUsername() );
     }
 

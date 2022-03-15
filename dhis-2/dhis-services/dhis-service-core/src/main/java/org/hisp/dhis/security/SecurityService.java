@@ -157,8 +157,8 @@ public interface SecurityService
     RestoreOptions getRestoreOptions( String token );
 
     /**
-     * Tests whether the given token is valid for the given user name. If true,
-     * it will update the user identified by the given user name with the new
+     * Tests whether the given token is valid for the given username. If true,
+     * it will update the user identified by the given username with the new
      * password. In order to succeed, the given token must match the ones on the
      * user, and the current date must be before the expiry date time of the
      * user.
