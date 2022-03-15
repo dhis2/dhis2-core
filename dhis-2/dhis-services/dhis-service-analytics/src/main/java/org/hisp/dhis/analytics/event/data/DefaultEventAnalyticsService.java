@@ -392,7 +392,7 @@ public class DefaultEventAnalyticsService
                 fillDisplayList = false;
             }
 
-            addValuesInOutputGrid( rowDimensions, outputGrid, displayObjects, params );
+            maybeAddValuesInOutputGrid( rowDimensions, outputGrid, displayObjects, params );
 
             EventAnalyticsUtils.addValues( ids, grid, outputGrid );
         }
@@ -401,8 +401,8 @@ public class DefaultEventAnalyticsService
     }
 
     /**
-     * return valid grid. Valid grid is first output output grid with rows or
-     * the basic one
+     * return valid grid. Valid grid is first output grid with rows or the basic
+     * one
      */
     private static Grid getGridWithRows( Grid grid, Grid outputGrid )
     {
@@ -413,7 +413,7 @@ public class DefaultEventAnalyticsService
      * add values in output grid. Display objects are not empty if columns and
      * rows are not epmty
      */
-    private static void addValuesInOutputGrid( List<String> rowDimensions, Grid outputGrid,
+    private static void maybeAddValuesInOutputGrid( List<String> rowDimensions, Grid outputGrid,
         Map<String, EventAnalyticsDimensionalItem> displayObjects, EventQueryParams params )
     {
         if ( !displayObjects.isEmpty() )
