@@ -75,9 +75,7 @@ public class MatchesJson
     @Override
     public void describeTo( Description description )
     {
-        description.appendText( mismatch );
-        description.appendValue( expectedJSON );
-
+        description.appendValue( mismatch );
     }
 
     @Override

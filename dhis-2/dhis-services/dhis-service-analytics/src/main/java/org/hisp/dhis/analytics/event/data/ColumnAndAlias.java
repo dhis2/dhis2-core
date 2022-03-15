@@ -25,46 +25,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.analytics.event.data;
 
-import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.QUERY;
-
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-public class RequestTypeAware
+import org.apache.commons.lang3.StringUtils;
+
+@Getter
+@AllArgsConstructor( access = AccessLevel.PRIVATE )
+class ColumnAndAlias
 {
-    private EndpointAction endpointAction = EndpointAction.OTHER;
 
-    @Getter
-    private EndpointItem endpointItem;
+    private final String column;
 
-    public RequestTypeAware withQueryEndpointAction()
+    private final String alias;
+
+    static ColumnAndAlias ofColumn( String column )
     {
-        endpointAction = QUERY;
-        return this;
+        return ofColumnAndAlias( column, null );
     }
 
-    public RequestTypeAware withEndpointItem( EndpointItem endpointItem )
+    static ColumnAndAlias ofColumnAndAlias( String column, String alias )
     {
-        this.endpointItem = endpointItem;
-        return this;
+        return new ColumnAndAlias( column, alias );
     }
 
-    public boolean isQueryEndpoint()
+    public String asSql()
     {
-        return QUERY == endpointAction;
+        if ( StringUtils.isNotEmpty( alias ) )
+        {
+            return String.join( " as ", column, alias );
+        }
+        else
+        {
+            return column;
+        }
     }
-
-    enum EndpointAction
-    {
-        QUERY,
-        OTHER
-    }
-
-    public enum EndpointItem
-    {
-        EVENT,
-        ENROLLMENT
-    }
-
 }

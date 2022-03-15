@@ -987,10 +987,9 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
         throws IOException
     {
         clearSecurityContext();
-
-        List<User> allUsers = userService.getAllUsers();
-        enableDataSharing( user, dsA, AccessStringHelper.READ );
-        dataSetService.updateDataSet( dsB );
+        enableDataSharing( user, dsA, AccessStringHelper.DATA_READ );
+        dataSetService.updateDataSet( dsA );
+        injectSecurityContext( user );
         in = new ClassPathResource( "datavalueset/dataValueSetA.xml" ).getInputStream();
         ImportSummary summary = dataValueSetService.importDataValueSetXml( in );
         assertNotNull( summary );
