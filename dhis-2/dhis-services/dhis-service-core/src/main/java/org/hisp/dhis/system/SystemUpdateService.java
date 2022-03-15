@@ -67,7 +67,9 @@ public class SystemUpdateService
 {
     public static final String DHIS_2_ORG_VERSIONS_JSON = "https://releases.dhis2.org/v1/versions/stable.json";
 
-    public static final String NEW_VERSION_AVAILABLE_MESSAGE_SUBJECT = "A new patch version %s of DHIS 2 is now available for download from the link below. Patch releases contain bug and security fixes, and upgrading is recommended.";
+    public static final String NEW_VERSION_AVAILABLE_MESSAGE_SUBJECT = "System update available";
+
+    public static final String NEW_VERSION_AVAILABLE_MESSAGE_BODY = "A new patch version %s of DHIS 2 is now available for download from the link below. Patch releases contain bug and security fixes, and upgrading is recommended.";
 
     public static final String FIELD_NAME_VERSION = "version";
 
@@ -218,8 +220,8 @@ public class SystemUpdateService
                 {
                     MessageConversationParams params = new MessageConversationParams.Builder()
                         .withRecipients( Set.of( recipient ) )
-                        .withSubject( String.format( NEW_VERSION_AVAILABLE_MESSAGE_SUBJECT, version.getValue() ) )
-                        .withText( buildMessageText( message ) )
+                        .withSubject( NEW_VERSION_AVAILABLE_MESSAGE_SUBJECT )
+                        .withText( buildMessageBody( message ) )
                         .withMessageType( MessageType.SYSTEM )
                         .withExtMessageId( version.getValue() ).build();
 
@@ -252,7 +254,7 @@ public class SystemUpdateService
         return recipients;
     }
 
-    private String buildMessageText( Map<String, String> messageValues )
+    private String buildMessageBody( Map<String, String> messageValues )
     {
         String version = messageValues.get( FIELD_NAME_VERSION );
         String releaseDate = messageValues.get( FIELD_NAME_RELEASE_DATE );
@@ -263,7 +265,7 @@ public class SystemUpdateService
                 + "Version: %s%n"
                 + "Release data: %s%n"
                 + "Download URL: %s%n",
-            NEW_VERSION_AVAILABLE_MESSAGE_SUBJECT,
+            String.format( NEW_VERSION_AVAILABLE_MESSAGE_BODY, version ),
             version,
             releaseDate,
             downloadUrl );
