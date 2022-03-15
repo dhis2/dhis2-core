@@ -462,6 +462,7 @@ public class DefaultQueryPlanner
                     .withQueryModsId( queryMods.getQueryModsId() )
                     .withStartDate( getLatest( params.getStartDate(), queryMods.getMinDate() ) )
                     .withEndDate( getEarliest( params.getEndDate(), queryMods.getMaxDate() ) )
+                    .withValueColumn( dataElement.getValueColumn() )
                     .withAggregationType( (queryMods.getAggregationType() != null)
                         ? AnalyticsAggregationType.fromAggregationType( queryMods.getAggregationType() )
                         : params.getAggregationType() )

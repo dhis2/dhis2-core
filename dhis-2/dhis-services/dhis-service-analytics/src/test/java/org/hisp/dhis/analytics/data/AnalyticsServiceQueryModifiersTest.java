@@ -139,7 +139,9 @@ class AnalyticsServiceQueryModifiersTest
         q1 = periodService.reloadPeriod( q1 );
 
         DataElement deA = createDataElement( 'A', ValueType.INTEGER, AggregationType.SUM );
+        DataElement deB = createDataElement( 'B', ValueType.TEXT, AggregationType.NONE );
         dataElementService.addDataElement( deA );
+        dataElementService.addDataElement( deB );
 
         ouA = createOrganisationUnit( 'A' );
         organisationUnitService.addOrganisationUnit( ouA );
@@ -179,6 +181,8 @@ class AnalyticsServiceQueryModifiersTest
         dataValueService.addDataValue( newDataValue( deA, jan, ouA, cocA, aocA, "1" ) );
         dataValueService.addDataValue( newDataValue( deA, feb, ouA, cocB, aocA, "2" ) );
         dataValueService.addDataValue( newDataValue( deA, mar, ouA, cocA, aocA, "3" ) );
+        dataValueService.addDataValue( newDataValue( deB, jan, ouA, cocA, aocA, "A" ) );
+        dataValueService.addDataValue( newDataValue( deB, feb, ouA, cocB, aocA, "B" ) );
 
         // Wait before generating analytics tables
         Thread.sleep( 5000 );
@@ -234,6 +238,15 @@ class AnalyticsServiceQueryModifiersTest
         testMinDate();
         testMaxDate();
         testMinAndMaxDate();
+
+        // subExpression
+
+        testSimpleSubExpression();
+        testMultipleReferenceSubExpression();
+        testSubExpressionConversionFromTextToNumeric();
+        testReferencesInsideAndOutsideOfSubExpression();
+        testTwoSubExpressions();
+        testOperandSubExpression();
     }
 
     // -------------------------------------------------------------------------
@@ -406,6 +419,82 @@ class AnalyticsServiceQueryModifiersTest
             "inabcdefghA-202202-2.0" );
 
         result = query( "#{deabcdefghA}.minDate(2022-2-1).maxDate(2022-2-28)", jan, feb, mar );
+
+        assertEquals( expected, result );
+    }
+
+    // -------------------------------------------------------------------------
+    // subExpression
+    // -------------------------------------------------------------------------
+
+    private void testSimpleSubExpression()
+    {
+        expected = List.of(
+            "inabcdefghA-202201-4.0",
+            "inabcdefghA-202202-5.0",
+            "inabcdefghA-202203-5.0",
+            "inabcdefghA-2022Q1-14.0" );
+
+        result = query( "subExpression(if(#{deabcdefghA}==1,4,5))", jan, feb, mar, q1 );
+
+        assertEquals( expected, result );
+    }
+
+    private void testMultipleReferenceSubExpression()
+    {
+        expected = List.of(
+            "inabcdefghA-202201-0.0",
+            "inabcdefghA-202202-2.0" );
+
+        result = query( "subExpression(if(#{deabcdefghA}<2,0,#{deabcdefghA}))", jan, feb );
+
+        assertEquals( expected, result );
+    }
+
+    private void testSubExpressionConversionFromTextToNumeric()
+    {
+        expected = List.of(
+            "inabcdefghA-202201-3.0",
+            "inabcdefghA-202202-4.0" );
+
+        result = query( "subExpression(if(#{deabcdefghB}=='A',3,4))", jan, feb );
+
+        assertEquals( expected, result );
+    }
+
+    private void testReferencesInsideAndOutsideOfSubExpression()
+    {
+        expected = List.of(
+            "inabcdefghA-202201-3.0",
+            "inabcdefghA-202202-8.0" );
+
+        result = query( "3 * #{deabcdefghA} + subExpression(if(#{deabcdefghA}<2,0,#{deabcdefghA}))", jan, feb );
+
+        assertEquals( expected, result );
+    }
+
+    private void testTwoSubExpressions()
+    {
+        expected = List.of(
+            "inabcdefghA-202201-10.0",
+            "inabcdefghA-202202-11.0" );
+
+        result = query( "subExpression(if(#{deabcdefghA}==1,3,5)) + subExpression(if(#{deabcdefghA}==2,6,7))",
+            jan, feb );
+
+        assertEquals( expected, result );
+    }
+
+    private void testOperandSubExpression()
+    {
+        expected = List.of(
+            "inabcdefghA-202201-3.0",
+            "inabcdefghA-202202-2.0",
+            "inabcdefghA-202203-9.0" );
+
+        result = query(
+            "subExpression(if(#{deabcdefghA.OptionCombA}>0,#{deabcdefghA.OptionCombA}*3,0)) + #{deabcdefghA.OptionCombB}",
+            jan, feb, mar );
 
         assertEquals( expected, result );
     }
