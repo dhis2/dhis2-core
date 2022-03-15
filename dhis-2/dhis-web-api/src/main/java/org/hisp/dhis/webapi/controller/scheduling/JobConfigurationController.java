@@ -95,8 +95,6 @@ public class JobConfigurationController
     {
         JobConfiguration jobConfiguration = jobConfigurationService.getJobConfigurationByUid( uid );
 
-        checkConfigurable( jobConfiguration, HttpStatus.FORBIDDEN, "Job %s is a system job that cannot be executed." );
-
         ObjectReport objectReport = new ObjectReport( JobConfiguration.class, 0 );
 
         boolean success = schedulingManager.executeNow( jobConfiguration );
