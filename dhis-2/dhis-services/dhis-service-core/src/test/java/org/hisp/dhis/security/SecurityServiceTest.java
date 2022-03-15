@@ -220,19 +220,6 @@ class SecurityServiceTest extends DhisSpringTest
     }
 
     @Test
-    void testRestoreInviteWithUsernameChoice()
-    {
-        String encodedTokens = securityService.generateAndPersistTokens( user,
-            RestoreOptions.INVITE_WITH_USERNAME_CHOICE );
-        String[] idAndHashedToken = securityService.decodeEncodedTokens( encodedTokens );
-        String restoreToken = idAndHashedToken[1];
-        RestoreOptions restoreOptions = securityService.getRestoreOptions( restoreToken );
-        assertEquals( RestoreOptions.INVITE_WITH_USERNAME_CHOICE, restoreOptions );
-        assertEquals( RestoreType.INVITE, restoreOptions.getRestoreType() );
-        assertTrue( restoreOptions.isUsernameChoice() );
-    }
-
-    @Test
     void testIsInviteUsername()
     {
         assertTrue( securityService.isInviteUsername( "invite-johndoe@gmail.com-OsTci1JyHRU" ) );

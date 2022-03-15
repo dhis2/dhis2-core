@@ -67,6 +67,9 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
 {
+
+    public static final String USERNAME = "username";
+
     private final UserService userService;
 
     private final FileResourceService fileResourceService;
@@ -84,8 +87,34 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
         if ( bundle.getImportMode().isCreate() && !ValidationUtils.usernameIsValid( user.getUsername() ) )
         {
             addReports.accept(
-                new ErrorReport( User.class, ErrorCode.E4049, "username", user.getUsername() )
-                    .setErrorProperty( "username" ) );
+                new ErrorReport( User.class, ErrorCode.E4049, USERNAME, user.getUsername() )
+                    .setErrorProperty( USERNAME ) );
+        }
+
+        boolean usernameExists = userService.getUserByUsername( user.getUsername() ) != null;
+
+        if ( (bundle.getImportMode().isCreate() && usernameExists) )
+        {
+            addReports.accept(
+                new ErrorReport( User.class, ErrorCode.E4054, USERNAME, user.getUsername() )
+                    .setErrorProperty( USERNAME ) );
+        }
+
+        User existingUser = userService.getUser( user.getUid() );
+
+        if ( bundle.getImportMode().isUpdate() && existingUser != null && user.getUsername() != null &&
+            !user.getUsername().equals( existingUser.getUsername() ) )
+        {
+            addReports.accept(
+                new ErrorReport( User.class, ErrorCode.E4056, USERNAME, user.getUsername() )
+                    .setErrorProperty( USERNAME ) );
+        }
+
+        if ( user.getUserRoles() == null || user.getUserRoles().isEmpty() )
+        {
+            addReports.accept(
+                new ErrorReport( User.class, ErrorCode.E4055, USERNAME, user.getUsername() )
+                    .setErrorProperty( USERNAME ) );
         }
 
         if ( user.getWhatsApp() != null && !ValidationUtils.validateWhatsapp( user.getWhatsApp() ) )

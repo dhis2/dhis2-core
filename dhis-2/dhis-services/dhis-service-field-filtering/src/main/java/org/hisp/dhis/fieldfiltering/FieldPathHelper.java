@@ -254,7 +254,7 @@ public class FieldPathHelper
 
         Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( object ) );
 
-        if ( !schema.isMetadata() )
+        if ( !schema.isIdentifiableObject() )
         {
             return;
         }
