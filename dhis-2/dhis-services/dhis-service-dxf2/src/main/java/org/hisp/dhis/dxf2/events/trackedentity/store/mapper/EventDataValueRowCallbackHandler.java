@@ -94,6 +94,11 @@ public class EventDataValueRowCallbackHandler implements
 
     private UserInfoSnapshot buildUserInfoSnapshot( Map createdByUserInfo )
     {
+        if ( createdByUserInfo == null )
+        {
+            return null;
+        }
+
         UserInfoSnapshot userInfoSnapshot = new UserInfoSnapshot();
         userInfoSnapshot.setUid( (String) createdByUserInfo.get( "uid" ) );
         userInfoSnapshot.setUsername( (String) createdByUserInfo.get( "username" ) );
