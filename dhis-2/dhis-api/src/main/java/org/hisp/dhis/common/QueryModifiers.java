@@ -50,6 +50,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Builder( toBuilder = true )
 public class QueryModifiers
 {
+    private static final QueryModifiers DEFAULT = QueryModifiers.builder().build();
+
     /**
      * Overrides the default aggregation type of this object.
      */
@@ -75,4 +77,40 @@ public class QueryModifiers
      */
     @JsonProperty
     private final Date maxDate;
+
+    // -------------------------------------------------------------------------
+    // Logic
+    // -------------------------------------------------------------------------
+
+    /**
+     * Gets the query modifiers that matter for analytics grouping.
+     */
+    public QueryModifiers withQueryModsForAnalyticsGrouping()
+    {
+        return this.toBuilder().periodOffset( 0 ).build();
+    }
+
+    /**
+     * Gets an Id for these query modifiers that matter for analytics grouping.
+     */
+    public String getQueryModsId()
+    {
+        QueryModifiers analyticsQueryMods = withQueryModsForAnalyticsGrouping();
+
+        return analyticsQueryMods.isDefault()
+            ? null
+            : Integer.toHexString( analyticsQueryMods.hashCode() );
+    }
+
+    // -------------------------------------------------------------------------
+    // Supportive methods
+    // -------------------------------------------------------------------------
+
+    /**
+     * Checks if these query mods have all default values.
+     */
+    private boolean isDefault()
+    {
+        return this.equals( DEFAULT );
+    }
 }

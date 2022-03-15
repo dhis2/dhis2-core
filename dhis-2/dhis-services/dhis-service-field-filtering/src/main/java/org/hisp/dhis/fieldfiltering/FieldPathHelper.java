@@ -34,16 +34,20 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.security.acl.Access;
+import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
@@ -241,6 +245,62 @@ public class FieldPathHelper
         fieldPaths.forEach( fp -> fieldPathMap.putIfAbsent( fp.toFullPath(), fp ) );
     }
 
+    public void visitFieldPaths( Object object, List<FieldPath> fieldPaths, Consumer<Object> objectConsumer )
+    {
+        if ( object == null || fieldPaths.isEmpty() )
+        {
+            return;
+        }
+
+        Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( object ) );
+
+        if ( !schema.isIdentifiableObject() )
+        {
+            return;
+        }
+
+        fieldPaths.forEach( fp -> visitFieldPath( object, new ArrayList<>( fp.getPath() ), objectConsumer ) );
+    }
+
+    private void visitFieldPath( Object object, List<String> paths, Consumer<Object> objectConsumer )
+    {
+        if ( object == null )
+        {
+            return;
+        }
+
+        if ( paths.isEmpty() )
+        {
+            objectConsumer.accept( object );
+            return;
+        }
+
+        Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( object ) );
+        String currentPath = paths.remove( 0 );
+
+        Property property = schema.getProperty( currentPath );
+
+        if ( property == null )
+        {
+            return;
+        }
+
+        if ( property.isCollection() )
+        {
+            Collection<?> currentObjects = ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
+
+            for ( Object o : currentObjects )
+            {
+                visitFieldPath( o, new ArrayList<>( paths ), objectConsumer );
+            }
+        }
+        else
+        {
+            Object currentObject = ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
+            visitFieldPath( currentObject, new ArrayList<>( paths ), objectConsumer );
+        }
+    }
+
     private void applyExclusions( List<FieldPath> exclusions, Map<String, FieldPath> fieldPathMap )
     {
         for ( FieldPath exclusion : exclusions )
@@ -263,6 +323,7 @@ public class FieldPathHelper
         return property.is( PropertyType.COMPLEX ) || property.itemIs( PropertyType.COMPLEX )
             || property.isEmbeddedObject()
             || Sharing.class.isAssignableFrom( property.getKlass() )
+            || Access.class.isAssignableFrom( property.getKlass() )
             || UserAccess.class.isAssignableFrom( property.getKlass() )
             || UserGroupAccess.class.isAssignableFrom( property.getKlass() );
     }

@@ -81,6 +81,8 @@ public interface DimensionalObject
 
     String PERIOD_FREE_RANGE_SEPARATOR = "_";
 
+    String QUERY_MODS_ID_SEPARATOR = "_";
+
     String OPTION_SEP = ";";
 
     String MULTI_CHOICES_OPTION_SEP = ",";

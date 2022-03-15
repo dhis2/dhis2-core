@@ -40,8 +40,8 @@ import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
-import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -64,20 +64,22 @@ class EnrollmentGeoValidationHookTest
     private EnrollmentGeoValidationHook hookToTest;
 
     @Mock
-    private TrackerImportValidationContext validationContext;
+    private TrackerPreheat preheat;
+
+    private TrackerBundle bundle;
 
     @BeforeEach
     public void setUp()
     {
         hookToTest = new EnrollmentGeoValidationHook();
 
-        TrackerBundle bundle = TrackerBundle.builder().build();
-
-        when( validationContext.getBundle() ).thenReturn( bundle );
+        bundle = TrackerBundle.builder()
+            .preheat( preheat )
+            .build();
 
         Program program = new Program();
         program.setFeatureType( FeatureType.POINT );
-        when( validationContext.getProgram( PROGRAM ) ).thenReturn( program );
+        when( preheat.getProgram( PROGRAM ) ).thenReturn( program );
     }
 
     @Test
@@ -88,7 +90,7 @@ class EnrollmentGeoValidationHookTest
         enrollment.setProgram( PROGRAM );
         enrollment.setGeometry( new GeometryFactory().createPoint() );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         // when
         this.hookToTest.validateEnrollment( reporter, enrollment );
@@ -105,7 +107,7 @@ class EnrollmentGeoValidationHookTest
         enrollment.setProgram( null );
         enrollment.setGeometry( new GeometryFactory().createPoint() );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         assertThrows( NullPointerException.class, () -> this.hookToTest.validateEnrollment( reporter, enrollment ) );
     }
@@ -119,11 +121,11 @@ class EnrollmentGeoValidationHookTest
         enrollment.setProgram( PROGRAM );
         enrollment.setGeometry( new GeometryFactory().createPoint() );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         // when
         Program program = new Program();
-        when( validationContext.getProgram( PROGRAM ) ).thenReturn( program );
+        when( preheat.getProgram( PROGRAM ) ).thenReturn( program );
 
         this.hookToTest.validateEnrollment( reporter, enrollment );
 
@@ -140,12 +142,12 @@ class EnrollmentGeoValidationHookTest
         enrollment.setProgram( PROGRAM );
         enrollment.setGeometry( new GeometryFactory().createPoint() );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         // when
         Program program = new Program();
         program.setFeatureType( FeatureType.NONE );
-        when( validationContext.getProgram( PROGRAM ) ).thenReturn( program );
+        when( preheat.getProgram( PROGRAM ) ).thenReturn( program );
 
         this.hookToTest.validateEnrollment( reporter, enrollment );
 
@@ -162,12 +164,12 @@ class EnrollmentGeoValidationHookTest
         enrollment.setProgram( PROGRAM );
         enrollment.setGeometry( new GeometryFactory().createPoint() );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         // when
         Program program = new Program();
         program.setFeatureType( FeatureType.MULTI_POLYGON );
-        when( validationContext.getProgram( PROGRAM ) ).thenReturn( program );
+        when( preheat.getProgram( PROGRAM ) ).thenReturn( program );
 
         this.hookToTest.validateEnrollment( reporter, enrollment );
 

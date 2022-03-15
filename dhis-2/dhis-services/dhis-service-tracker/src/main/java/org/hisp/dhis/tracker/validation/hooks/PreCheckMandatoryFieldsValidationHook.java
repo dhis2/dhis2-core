@@ -40,7 +40,6 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
-import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
 
 /**
@@ -76,8 +75,7 @@ public class PreCheckMandatoryFieldsValidationHook
         reporter.addErrorIf( () -> StringUtils.isEmpty( event.getProgramStage() ), event, E1123, "programStage" );
 
         // TODO remove if once metadata import is fixed
-        TrackerImportValidationContext context = reporter.getValidationContext();
-        ProgramStage programStage = context.getProgramStage( event.getProgramStage() );
+        ProgramStage programStage = reporter.getBundle().getPreheat().getProgramStage( event.getProgramStage() );
         if ( programStage != null )
         {
             // Program stages should always have a program! Due to how metadata

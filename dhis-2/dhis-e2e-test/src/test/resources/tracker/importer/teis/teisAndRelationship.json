@@ -43,10 +43,14 @@
     {
       "relationshipType": "xLmPUYJX8Ks",
       "from": {
-        "trackedEntity": "JjZ2Nwds92v"
+        "trackedEntity": {
+          "trackedEntity": "JjZ2Nwds92v"
+        }
       },
       "to": {
-        "trackedEntity": "JjZ2Nwds93v"
+        "trackedEntity": {
+         "trackedEntity": "JjZ2Nwds93v"
+        }
       }
     }
   ]

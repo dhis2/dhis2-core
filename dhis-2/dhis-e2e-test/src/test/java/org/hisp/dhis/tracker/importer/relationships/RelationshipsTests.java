@@ -27,7 +27,20 @@
  */
 package org.hisp.dhis.tracker.importer.relationships;
 
-import com.google.gson.JsonObject;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.everyItem;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Stream;
+
 import org.hamcrest.Matchers;
 import org.hisp.dhis.actions.IdGenerator;
 import org.hisp.dhis.actions.RestApiActions;
@@ -49,16 +62,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Stream;
-
-import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -136,8 +140,8 @@ public class RelationshipsTests
         JsonObject relationship = JsonObjectBuilder.jsonObject()
             .addProperty( "relationship", relationshipId )
             .addProperty( "relationshipType", relationshipType )
-            .addObject( "from", JsonObjectBuilder.jsonObject().addProperty( "trackedEntity", teis.get( 0 ) ) )
-            .addObject( "to", JsonObjectBuilder.jsonObject().addProperty( "trackedEntity", teis.get( 1 ) ) )
+            .addObject( "from", relationshipItem( "trackedEntity", teis.get( 0 ) ) )
+            .addObject( "to", relationshipItem( "trackedEntity", teis.get( 1 ) ) )
             .wrapIntoArray( "relationships" );
 
         trackerActions.postAndGetJobReport( relationship ).validate().statusCode( 200 );
@@ -146,9 +150,9 @@ public class RelationshipsTests
 
         JsonObjectBuilder.jsonObject( relationship )
             .addObjectByJsonPath( "relationships[0]", "from",
-                JsonObjectBuilder.jsonObject().addProperty( "trackedEntity", teis.get( 1 ) ).build() )
+                relationshipItem( "trackedEntity", teis.get( 1 ) ).build() )
             .addObjectByJsonPath( "relationships[0]", "to",
-                JsonObjectBuilder.jsonObject().addProperty( "trackedEntity", teis.get( 0 ) ).build() )
+                relationshipItem( "trackedEntity", teis.get( 0 ) ).build() )
             .build();
 
         // act
@@ -184,8 +188,8 @@ public class RelationshipsTests
 
         relationshipResponse
             .validate().statusCode( 200 )
-            .body( "from.trackedEntity", notNullValue() )
-            .body( "to.trackedEntity", notNullValue() );
+            .body( "from.trackedEntity.trackedEntity", notNullValue() )
+            .body( "to.trackedEntity.trackedEntity", notNullValue() );
 
         response.extractImportedTeis().forEach( tei -> {
             teiActions.get( tei, new QueryParamsBuilder().add( "fields=relationships" ) )
@@ -291,8 +295,8 @@ public class RelationshipsTests
         String relationship = response.extractImportedRelationships().get( 0 );
 
         JsonObject obj = new JsonObjectBuilder()
-            .addObject( "from", JsonObjectBuilder.jsonObject().addProperty( "trackedEntity", teis.get( 0 ) ) )
-            .addObject( "to", JsonObjectBuilder.jsonObject().addProperty( "trackedEntity", teis.get( 1 ) ) )
+            .addObject( "from", relationshipItem( "trackedEntity", teis.get( 0 ) ) )
+            .addObject( "to", relationshipItem( "trackedEntity", teis.get( 1 ) ) )
             .addProperty( "relationshipType", relationshipType )
             .addProperty( "relationship", relationship )
             .wrapIntoArray( "relationships" );
@@ -320,8 +324,8 @@ public class RelationshipsTests
     {
         JsonObject object = JsonObjectBuilder.jsonObject()
             .addProperty( "relationshipType", relationshipType )
-            .addObject( "from", JsonObjectBuilder.jsonObject().addProperty( "event", events.get( 0 ) ) )
-            .addObject( "to", JsonObjectBuilder.jsonObject().addProperty( "trackedEntity", teis.get( 0 ) ) )
+            .addObject( "from", relationshipItem( "event", events.get( 0 ) ) )
+            .addObject( "to", relationshipItem( "trackedEntity", teis.get( 0 ) ) )
             .wrapIntoArray( "relationships" );
 
         trackerActions.postAndGetJobReport( object )
@@ -334,9 +338,10 @@ public class RelationshipsTests
     {
         JsonObject object = JsonObjectBuilder.jsonObject()
             .addProperty( "relationshipType", "xLmPUYJX8Ks" )
-            .addObject( "from", JsonObjectBuilder.jsonObject().addProperty( "trackedEntity", "invalid-tei" ) )
-            .addObject( "to", JsonObjectBuilder.jsonObject().addProperty( "trackedEntity", "more-invalid" ) )
+            .addObject( "from", relationshipItem("trackedEntity", "invalid-tei"))
+            .addObject( "to", relationshipItem( "trackedEntity", "more-invalid" ) )
             .wrapIntoArray( "relationships" );
+        System.out.println(object.toString());
 
         trackerActions.postAndGetJobReport( object )
             .validateErrorReport()
@@ -353,8 +358,8 @@ public class RelationshipsTests
         // arrange
         JsonObject relationship = JsonObjectBuilder.jsonObject()
             .addProperty( "relationshipType", relType )
-            .addObject( "from", JsonObjectBuilder.jsonObject().addProperty( fromInstance, fromInstanceId ) )
-            .addObject( "to", JsonObjectBuilder.jsonObject().addProperty( toInstance, toInstanceId ) )
+            .addObject( "from", relationshipItem( fromInstance, fromInstanceId ) )
+            .addObject( "to", relationshipItem( toInstance, toInstanceId ) )
             .wrapIntoArray( "relationships" );
 
         createdRelationships = trackerActions.postAndGetJobReport( relationship )
@@ -367,7 +372,6 @@ public class RelationshipsTests
             createdRelationships.get( 0 ) );
 
         ApiResponse entityResponse = getEntityInRelationship( toInstance, toInstanceId );
-
         validateRelationship( entityResponse, relType, fromInstance, fromInstanceId, toInstance, toInstanceId,
             createdRelationships.get( 0 ) );
 
@@ -391,18 +395,14 @@ public class RelationshipsTests
 
         JsonObject relationship1 = JsonObjectBuilder.jsonObject()
             .addProperty( "relationshipType", relationshipTypeId )
-            .addObject( "from", JsonObjectBuilder.jsonObject()
-                .addProperty( "trackedEntity", fromTei1 ) )
-            .addObject( "to", JsonObjectBuilder.jsonObject()
-                .addProperty( "trackedEntity", toTei1 ) )
+            .addObject( "from", relationshipItem("trackedEntity", fromTei1 ) )
+            .addObject( "to", relationshipItem("trackedEntity", toTei1 ) )
             .build();
 
         JsonObject relationship2 = JsonObjectBuilder.jsonObject()
             .addProperty( "relationshipType", relationshipTypeId )
-            .addObject( "from", JsonObjectBuilder.jsonObject()
-                .addProperty( "trackedEntity", fromTei2 ) )
-            .addObject( "to", JsonObjectBuilder.jsonObject()
-                .addProperty( "trackedEntity", toTei2 ) )
+            .addObject( "from", relationshipItem("trackedEntity", fromTei2 ) )
+            .addObject( "to", relationshipItem("trackedEntity", toTei2 ) )
             .build();
 
         JsonObject payload = JsonObjectBuilder.jsonObject()
@@ -458,9 +458,9 @@ public class RelationshipsTests
             .rootPath( bodyPrefix )
             .body( "relationshipType", equalTo( relationshipTypeId ) )
             .body( "relationship", equalTo( relationshipId ) )
-            .body( String.format( "from.%s", fromInstance ),
+            .body( String.format( "from.%s.%s", fromInstance, fromInstance),
                 equalTo( fromInstanceId ) )
-            .body( String.format( "to.%s", toInstance ), equalTo( toInstanceId ) );
+            .body( String.format( "to.%s.%s", toInstance, toInstance ), equalTo( toInstanceId ) );
     }
 
     @AfterEach
@@ -469,6 +469,12 @@ public class RelationshipsTests
         createdRelationships.forEach( rel -> {
             new TestCleanUp().deleteEntity( "relationships", rel );
         } );
+    }
+
+    private JsonObjectBuilder relationshipItem(String type, String identifier) {
+        return JsonObjectBuilder.jsonObject()
+                .addObject(type, JsonObjectBuilder.jsonObject()
+                        .addProperty(type, identifier));
     }
 
 }

@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.interpretation.Interpretation;
@@ -244,5 +245,15 @@ class InterpretationControllerTest extends DhisControllerConvenienceTest
         assertWebMessage( "Conflict", 409, "ERROR",
             "Could not remove like, user had not previously liked interpretation",
             DELETE( "/interpretations/" + uid + "/like" ).content( HttpStatus.CONFLICT ) );
+    }
+
+    @Test
+    void testGetWithAccessObject()
+    {
+        assertWebMessage( "Created", 201, "OK", "Commented created",
+            POST( "/interpretations/" + uid + "/comments", "text/plain:comment" ).content( HttpStatus.CREATED ) );
+        JsonObject comments = GET( "/interpretations/{uid}/comments?fields=access,id", uid ).content( HttpStatus.OK );
+        assertEquals( 1, comments.getArray( "comments" ).size() );
+        assertNotNull( comments.getArray( "comments" ).getObject( 0 ).getString( "access" ) );
     }
 }
