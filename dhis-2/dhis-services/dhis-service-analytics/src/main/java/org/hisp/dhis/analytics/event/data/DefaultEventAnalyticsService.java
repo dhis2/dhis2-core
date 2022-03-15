@@ -227,7 +227,7 @@ public class DefaultEventAnalyticsService
     public Grid getAggregatedEventData( EventQueryParams params, List<String> columns, List<String> rows )
     {
         return AnalyticsUtils.isTableLayout( columns, rows )
-            ? getAggregatedEventDataTableLayout( params, columns, rows )
+            ? getMaybeAggregatedEventDataTableLayout( params, columns, rows )
             : getAggregatedEventData( params );
     }
 
@@ -274,7 +274,8 @@ public class DefaultEventAnalyticsService
      * @param rows the identifiers of the dimensions to use as rows.
      * @return aggregated data as a Grid object.
      */
-    private Grid getAggregatedEventDataTableLayout( EventQueryParams params, List<String> columns, List<String> rows )
+    private Grid getMaybeAggregatedEventDataTableLayout( EventQueryParams params, List<String> columns,
+        List<String> rows )
     {
         params.removeProgramIndicatorItems();
 
@@ -390,13 +391,16 @@ public class DefaultEventAnalyticsService
                 fillDisplayList = false;
             }
 
-            rowDimensions.forEach( dimension -> outputGrid
-                .addValue( displayObjects.get( dimension ).getDisplayProperty( params.getDisplayProperty() ) ) );
+            if ( !displayObjects.isEmpty() )
+            {
+                rowDimensions.forEach( dimension -> outputGrid
+                    .addValue( displayObjects.get( dimension ).getDisplayProperty( params.getDisplayProperty() ) ) );
+            }
 
             EventAnalyticsUtils.addValues( ids, grid, outputGrid );
         }
 
-        return outputGrid;
+        return outputGrid.getRows().isEmpty() ? grid : outputGrid;
     }
 
     /**
