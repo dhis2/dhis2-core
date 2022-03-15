@@ -52,7 +52,6 @@ import org.hisp.dhis.user.UserStore;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -68,9 +67,7 @@ public class SystemUpdateService
 {
     public static final String DHIS_2_ORG_VERSIONS_JSON = "https://releases.dhis2.org/v1/versions/stable.json";
 
-    public static final String NEW_VERSION_AVAILABLE_MESSAGE_SUBJECT = "System update available";
-
-    private static final int MAX_NOTIFING_RECIPIENTS = 100;
+    public static final String NEW_VERSION_AVAILABLE_MESSAGE_SUBJECT = "A new patch version %s of DHIS 2 is now available for download from the link below. Patch releases contain bug and security fixes, and upgrading is recommended.";
 
     public static final String FIELD_NAME_VERSION = "version";
 
@@ -220,8 +217,8 @@ public class SystemUpdateService
                 if ( existingMessages.isEmpty() )
                 {
                     MessageConversationParams params = new MessageConversationParams.Builder()
-                        .withRecipients( ImmutableSet.of( recipient ) )
-                        .withSubject( NEW_VERSION_AVAILABLE_MESSAGE_SUBJECT )
+                        .withRecipients( Set.of( recipient ) )
+                        .withSubject( String.format( NEW_VERSION_AVAILABLE_MESSAGE_SUBJECT, version.getValue() ) )
                         .withText( buildMessageText( message ) )
                         .withMessageType( MessageType.SYSTEM )
                         .withExtMessageId( version.getValue() ).build();
