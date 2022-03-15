@@ -28,6 +28,8 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.stream.Collectors.joining;
+import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 import static org.hisp.dhis.analytics.DataQueryParams.NUMERATOR_DENOMINATOR_PROPERTIES_COUNT;
 import static org.hisp.dhis.analytics.SortOrder.ASC;
 import static org.hisp.dhis.analytics.SortOrder.DESC;
@@ -44,11 +46,14 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_P
 import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.system.util.MathUtils.getRounded;
 
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -821,53 +826,61 @@ public abstract class AbstractJdbcEventAnalyticsManager
      */
     protected String getItemsSql( EventQueryParams params, SqlHelper hlp )
     {
-        List<String> repeatableStagesSqlList = new ArrayList<>();
-
-        StringBuilder sbItemsSql = new StringBuilder();
-
-        params.getItems()
+        Map<Boolean, List<QueryItem>> itemsByRepeatableFlag = params.getItems()
             .stream()
             .filter( QueryItem::hasFilter )
-            .forEach( item -> item.getFilters()
-                .forEach( filter -> {
-                    String field = getSelectSql( filter, item, params.getEarliestStartDate(),
-                        params.getLatestEndDate() );
+            .collect( Collectors.groupingBy(
+                QueryItem::hasRepeatableStageParams ) );
 
-                    if ( IN.equals( filter.getOperator() ) )
-                    {
-                        InQueryFilter inQueryFilter = new InQueryFilter( field,
-                            statementBuilder.encode( filter.getFilter(), false ), item.isText() );
-                        sbItemsSql.append( hlp.whereAnd() )
-                            .append( " " )
-                            .append( inQueryFilter.getSqlFilter() );
-                    }
-                    else if ( item.hasRepeatableStageParams() )
-                    {
-                        repeatableStagesSqlList.add( field + " " + filter.getSqlOperator() + " "
-                            + getSqlFilter( filter, item ) );
-                    }
-                    else
-                    {
-                        sbItemsSql.append( hlp.whereAnd() )
-                            .append( " " )
-                            .append( field )
-                            .append( " " )
-                            .append( filter.getSqlOperator() )
-                            .append( " " )
-                            .append( getSqlFilter( filter, item ) )
-                            .append( " " );
-                    }
-                } ) );
+        Collection<String> repeatableSqlConditions = asSqlCollection( itemsByRepeatableFlag.get( true ), params );
+        Collection<String> nonRepeatableSqlConditions = asSqlCollection( itemsByRepeatableFlag.get( false ), params );
 
-        if ( !repeatableStagesSqlList.isEmpty() )
+        return (!repeatableSqlConditions.isEmpty() || !nonRepeatableSqlConditions.isEmpty() ? hlp.whereAnd()
+            : "") +
+            String.join( " and ",
+                joinSql( repeatableSqlConditions, joining( " or ", "(", ")" ) ),
+                joinSql( nonRepeatableSqlConditions, joining( " and " ) ) );
+    }
+
+    private String joinSql( Collection<String> conditions, Collector<CharSequence, ?, String> joiner )
+    {
+        if ( !conditions.isEmpty() )
         {
-            sbItemsSql.append( hlp.whereAnd() )
-                .append( " (" )
-                .append( String.join( " or ", repeatableStagesSqlList ) )
-                .append( ")" );
+            return conditions.stream().collect( joiner );
         }
+        return "";
+    }
 
-        return sbItemsSql.toString();
+    private Collection<String> asSqlCollection( List<QueryItem> queryItems, EventQueryParams params )
+    {
+        return emptyIfNull( queryItems )
+            .stream()
+            .map( queryItem -> toSql( queryItem, params ) )
+            .collect( Collectors.toList() );
+    }
+
+    private String toSql( QueryItem queryItem, EventQueryParams params )
+    {
+        return queryItem.getFilters().stream()
+            .map( filter -> toSql( queryItem, filter, params ) )
+            .collect( joining( " and " ) );
+    }
+
+    private String toSql( QueryItem item, QueryFilter filter, EventQueryParams params )
+    {
+        String field = getSelectSql( filter, item, params.getEarliestStartDate(),
+            params.getLatestEndDate() );
+
+        if ( IN.equals( filter.getOperator() ) )
+        {
+            InQueryFilter inQueryFilter = new InQueryFilter( field,
+                statementBuilder.encode( filter.getFilter(), false ), item.isText() );
+            return inQueryFilter.getSqlFilter();
+        }
+        else
+        {
+            return field + " " + filter.getSqlOperator() + " " + getSqlFilter( filter, item ) + " ";
+        }
     }
 
     /**
