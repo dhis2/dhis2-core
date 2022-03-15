@@ -82,5 +82,6 @@ public interface ProgramStageMapper extends PreheatMapper<ProgramStage>
     @Mapping( target = "externalAccess" )
     @Mapping( target = "userGroupAccesses" )
     @Mapping( target = "userAccesses" )
+    @Mapping( target = "accessLevel" )
     Program mapProgram( Program p );
 }
