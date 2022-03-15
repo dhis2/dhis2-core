@@ -46,12 +46,10 @@ import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.sharing.Sharing;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Getter
 @Setter
-@JsonInclude( JsonInclude.Include.ALWAYS )
 public class MeDto
 {
     public MeDto( User user, Map<String, Serializable> settings, List<String> programs, List<String> dataSets )
@@ -64,6 +62,7 @@ public class MeDto
         this.languages = user.getLanguages();
         this.gender = user.getGender();
         this.jobTitle = user.getJobTitle();
+        this.avatar = user.getAvatar() != null ? user.getAvatar().toString() : null;
         this.created = user.getCreated();
         this.lastUpdated = user.getLastUpdated();
         this.dataViewOrganisationUnits = user.getDataViewOrganisationUnits();
@@ -113,6 +112,9 @@ public class MeDto
 
     @JsonProperty( )
     private String jobTitle;
+
+    @JsonProperty( )
+    private String avatar;
 
     @JsonProperty( )
     private Date created;
