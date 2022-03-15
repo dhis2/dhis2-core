@@ -54,6 +54,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -835,11 +836,13 @@ public abstract class AbstractJdbcEventAnalyticsManager
         Collection<String> repeatableSqlConditions = asSqlCollection( itemsByRepeatableFlag.get( true ), params );
         Collection<String> nonRepeatableSqlConditions = asSqlCollection( itemsByRepeatableFlag.get( false ), params );
 
-        return (!repeatableSqlConditions.isEmpty() || !nonRepeatableSqlConditions.isEmpty() ? hlp.whereAnd()
+        return (!repeatableSqlConditions.isEmpty() || !nonRepeatableSqlConditions.isEmpty() ? hlp.whereAnd() + " "
             : "") +
-            String.join( " and ",
+            Stream.of(
                 joinSql( repeatableSqlConditions, joining( " or ", "(", ")" ) ),
-                joinSql( nonRepeatableSqlConditions, joining( " and " ) ) );
+                joinSql( nonRepeatableSqlConditions, joining( " and " ) ) )
+                .filter( StringUtils::isNotEmpty )
+                .collect( joining( " and " ) );
     }
 
     private String joinSql( Collection<String> conditions, Collector<CharSequence, ?, String> joiner )
