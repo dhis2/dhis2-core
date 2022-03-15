@@ -58,7 +58,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
  */
 @Getter
 @Setter
-@Builder
+@Builder( toBuilder = true )
 public class CommonExpressionVisitor
     extends AntlrExpressionVisitor
 {

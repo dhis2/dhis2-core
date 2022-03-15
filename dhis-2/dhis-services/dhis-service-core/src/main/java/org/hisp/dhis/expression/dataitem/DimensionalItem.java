@@ -48,7 +48,7 @@ public abstract class DimensionalItem
     implements ExpressionItem
 {
     @Override
-    public final Object getDescription( ExprContext ctx, CommonExpressionVisitor visitor )
+    public Object getDescription( ExprContext ctx, CommonExpressionVisitor visitor )
     {
         DimensionalItemId itemId = getDimensionalItemId( ctx, visitor );
 

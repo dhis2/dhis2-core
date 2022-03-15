@@ -34,6 +34,7 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext
 
 import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
 import org.hisp.dhis.common.DimensionalItemId;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 
 /**
@@ -61,6 +62,25 @@ public class DimItemDataElementAndOperand
             return new DimensionalItemId( DATA_ELEMENT,
                 ctx.uid0.getText(), visitor.getState().getQueryMods() );
         }
+    }
+
+    @Override
+    public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
+    {
+        if ( !visitor.getState().isSqlForSubExpression() )
+        {
+            throw new ParserExceptionWithoutContext(
+                "Not valid to generate DataElement or DataElementOperand SQL here: " + ctx.getText() );
+        }
+
+        DataElement dataElement = visitor.getIdObjectManager().getNoAcl( DataElement.class, ctx.uid0.getText() );
+
+        if ( dataElement == null )
+        {
+            throw new ParserExceptionWithoutContext( "DataElement not found: " + ctx.uid0.getText() );
+        }
+
+        return dataElement.getValueColumn();
     }
 
     // -------------------------------------------------------------------------
