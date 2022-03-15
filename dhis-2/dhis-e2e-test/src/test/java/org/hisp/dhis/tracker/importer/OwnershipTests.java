@@ -90,9 +90,9 @@ public class OwnershipTests
             .get( protectedProgram, new QueryParamsBuilder().add( "fields=programStages" ) ).validateStatus( 200 )
             .extractString( "programStages.id[0]" );
 
-        teiInCaptureScope = super.importTeiWithEnrollmentAndEvent( captureOu, protectedProgram, protectedProgramStageId )
+        teiInCaptureScope = super.importTeisWithEnrollmentAndEvent( captureOu, protectedProgram, protectedProgramStageId )
             .extractImportedTeis().get( 0 );
-        teiInSearchScope = super.importTeiWithEnrollmentAndEvent( searchOu, protectedProgram, protectedProgramStageId )
+        teiInSearchScope = super.importTeisWithEnrollmentAndEvent( searchOu, protectedProgram, protectedProgramStageId )
             .extractImportedTeis().get( 0 );
 
         enrollment = trackerActions.getTrackedEntity( teiInSearchScope + "?fields=enrollments" )
@@ -157,7 +157,10 @@ public class OwnershipTests
     protected String createUserWithAccessToOu()
     {
         String username = (DataGenerator.randomEntityName() + "user").replace(" ",""  ).toLowerCase();
-        String userid = userActions.addUser( username, Constants.USER_PASSWORD );
+
+        String userid = userActions.addUserFull( "firstNameA", "lastNameB", username, Constants.USER_PASSWORD,
+            "NONE" );
+
 
         userActions.grantUserAccessToOrgUnit( userid, captureOu );
         userActions.grantUserSearchAccessToOrgUnit( userid, searchOu );

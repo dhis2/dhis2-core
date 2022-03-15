@@ -35,6 +35,7 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 import org.hisp.dhis.attribute.AttributeService;
+import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.fieldfiltering.transformers.IsEmptyFieldTransformer;
@@ -202,6 +203,16 @@ public class FieldFilterService
                     }
                 } );
 
+            applyFieldPathVisitor( object, fieldPaths, params,
+                s -> s.equals( "attributeValues.attribute" ) || s.endsWith( ".attributeValues.attribute" ),
+                o -> {
+                    if ( o instanceof AttributeValue )
+                    {
+                        ((AttributeValue) o).setAttribute(
+                            attributeService.getAttribute( ((AttributeValue) o).getAttribute().getUid() ) );
+                    }
+                } );
+
             ObjectNode objectNode = objectMapper.valueToTree( object );
             applyTransformers( objectNode, null, "", fieldTransformers );
 
@@ -221,7 +232,7 @@ public class FieldFilterService
 
         Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( object ) );
 
-        if ( !schema.isMetadata() )
+        if ( !schema.isIdentifiableObject() )
         {
             return;
         }

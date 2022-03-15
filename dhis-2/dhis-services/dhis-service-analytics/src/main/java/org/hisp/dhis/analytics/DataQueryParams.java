@@ -42,6 +42,8 @@ import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.QUERY_MODS_ID_SEPARATOR;
+import static org.hisp.dhis.common.DimensionalObject.VALUE_COLUMN_NAME;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
 
@@ -414,6 +416,16 @@ public class DataQueryParams
     protected transient DataType dataType;
 
     /**
+     * The value column (value column name or sub-expression).
+     */
+    protected transient String valueColumn;
+
+    /**
+     * Id of query modifiers affecting data in this query.
+     */
+    protected transient String queryModsId;
+
+    /**
      * The aggregation period type for this query.
      */
     protected transient String periodType;
@@ -491,6 +503,7 @@ public class DataQueryParams
 
     protected String explainOrderId;
 
+    // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
 
@@ -577,6 +590,8 @@ public class DataQueryParams
         params.partitions = new Partitions( this.partitions );
         params.tableName = this.tableName;
         params.dataType = this.dataType;
+        params.valueColumn = this.valueColumn;
+        params.queryModsId = this.queryModsId;
         params.periodType = this.periodType;
         params.dataPeriodType = this.dataPeriodType;
         params.skipPartitioning = this.skipPartitioning;
@@ -882,6 +897,17 @@ public class DataQueryParams
                 DimensionType.ORGANISATION_UNIT_LEVEL, PREFIX_ORG_UNIT_LEVEL + l.getLevel(), l.getName(),
                 Lists.newArrayList() ) )
             .collect( Collectors.toList() );
+    }
+
+    /**
+     * For the data dimension only: returns the query mods id prefixed by the
+     * separator, or an empty string if there is no query mods id.
+     */
+    public String getQueryModsId( DimensionalObject dimension )
+    {
+        return (dimension.getUid().equals( DATA_X_DIM_ID ) && queryModsId != null)
+            ? QUERY_MODS_ID_SEPARATOR + queryModsId
+            : "";
     }
 
     /**
@@ -2327,6 +2353,13 @@ public class DataQueryParams
         return dataType;
     }
 
+    public String getValueColumn()
+    {
+        return (valueColumn != null)
+            ? valueColumn
+            : VALUE_COLUMN_NAME;
+    }
+
     public String getPeriodType()
     {
         return periodType;
@@ -3255,6 +3288,18 @@ public class DataQueryParams
         public Builder withDataType( DataType dataType )
         {
             this.params.dataType = dataType;
+            return this;
+        }
+
+        public Builder withValueColumn( String valueColumn )
+        {
+            this.params.valueColumn = valueColumn;
+            return this;
+        }
+
+        public Builder withQueryModsId( String queryModsId )
+        {
+            this.params.queryModsId = queryModsId;
             return this;
         }
 

@@ -84,7 +84,6 @@ import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -98,7 +97,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
@@ -151,7 +149,7 @@ public class MessageConversationController
     }
 
     @Override
-    public ResponseEntity<ObjectNode> getObject( @PathVariable String uid, Map<String, String> rpParameters,
+    public RootNode getObject( @PathVariable String uid, Map<String, String> rpParameters,
         @CurrentUser User currentUser, HttpServletRequest request,
         HttpServletResponse response )
         throws Exception
@@ -161,11 +159,9 @@ public class MessageConversationController
         if ( messageConversation == null )
         {
             response.setStatus( HttpServletResponse.SC_NOT_FOUND );
-
-            ObjectNode objectNode = fieldFilterService.createObjectNode()
-                .put( "message", "No MessageConversation found with UID: " + uid );
-
-            return ResponseEntity.ok( objectNode );
+            RootNode responseNode = new RootNode( "reply" );
+            responseNode.addChild( new SimpleNode( "message", "No MessageConversation found with UID: " + uid ) );
+            return responseNode;
         }
 
         if ( !canReadMessageConversation( currentUser, messageConversation ) )

@@ -114,7 +114,7 @@ public class DefaultQueryPlanner
             .add( q -> groupByOrgUnitLevel( q ) )
             .add( q -> groupByPeriodType( q ) )
             .add( q -> groupByDataType( q ) )
-            .add( q -> groupByMinMaxDate( q ) )
+            .add( q -> groupByQueryMods( q ) )
             .add( q -> groupByAggregationType( q ) )
             .add( q -> groupByDaysInPeriod( q ) )
             .add( q -> groupByDataPeriodType( q ) )
@@ -439,26 +439,33 @@ public class DefaultQueryPlanner
     }
 
     /**
-     * Groups queries by their minDate/MaxDate query modifiers.
+     * Groups queries by their query modifiers Id.
      *
      * @param params the {@link DataQueryParams}.
      * @return a list of {@link DataQueryParams}.
      */
-    private List<DataQueryParams> groupByMinMaxDate( DataQueryParams params )
+    private List<DataQueryParams> groupByQueryMods( DataQueryParams params )
     {
         List<DataQueryParams> queries = new ArrayList<>();
 
         if ( !params.getDataElements().isEmpty() )
         {
-            ListMap<QueryModifiers, DimensionalItemObject> minMaxDateDateElementMap = QueryPlannerUtils
-                .getMinMaxDateDateElementMap( params.getDataElements() );
+            ListMap<QueryModifiers, DimensionalItemObject> queryModsElementMap = QueryPlannerUtils
+                .getQueryModsElementMap( params.getDataElements() );
 
-            for ( QueryModifiers queryMods : minMaxDateDateElementMap.keySet() )
+            for ( QueryModifiers queryMods : queryModsElementMap.keySet() )
             {
+                DataElement dataElement = (DataElement) queryModsElementMap.get( queryMods ).iterator().next();
+
                 DataQueryParams query = DataQueryParams.newBuilder( params )
-                    .withDataElements( minMaxDateDateElementMap.get( queryMods ) )
+                    .withDataElements( queryModsElementMap.get( queryMods ) )
+                    .withQueryModsId( queryMods.getQueryModsId() )
                     .withStartDate( getLatest( params.getStartDate(), queryMods.getMinDate() ) )
                     .withEndDate( getEarliest( params.getEndDate(), queryMods.getMaxDate() ) )
+                    .withValueColumn( dataElement.getValueColumn() )
+                    .withAggregationType( (queryMods.getAggregationType() != null)
+                        ? AnalyticsAggregationType.fromAggregationType( queryMods.getAggregationType() )
+                        : params.getAggregationType() )
                     .build();
 
                 queries.add( query );

@@ -40,7 +40,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 
 import java.util.List;
-import java.util.Set;
 
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.JsonArray;
@@ -48,7 +47,6 @@ import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonError;
 import org.hisp.dhis.webapi.json.domain.JsonErrorReport;
@@ -131,7 +129,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
         JsonArray translations = GET( "/users/{id}/translations", id ).content().getArray( "translations" );
         assertTrue( translations.isEmpty() );
         JsonWebMessage message = assertWebMessage( "Conflict", 409, "WARNING",
-            "One more more errors occurred, please see full details in import report.",
+            "One or more errors occurred, please see full details in import report.",
             PUT( "/users/" + id + "/translations",
                 "{'translations': [{'locale':'sv', 'property':'name', 'value':'namn'}]}" )
                     .content( HttpStatus.CONFLICT ) );
@@ -175,7 +173,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
         assertTrue( translations.isEmpty() );
 
         JsonWebMessage message = assertWebMessage( "Conflict", 409, "WARNING",
-            "One more more errors occurred, please see full details in import report.",
+            "One or more errors occurred, please see full details in import report.",
             PUT( "/dataSets/" + id + "/translations",
                 "{'translations': [{'locale':'sv', 'property':'name', 'value':'namn 1'},{'locale':'sv', 'property':'name', 'value':'namn2'}]}" )
                     .content( HttpStatus.CONFLICT ) );
@@ -202,7 +200,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
             POST( "/dataSets/", "{'name':'My data set', 'periodType':'Monthly'}" ) );
 
         JsonWebMessage message = assertWebMessage( "Conflict", 409, "WARNING",
-            "One more more errors occurred, please see full details in import report.",
+            "One or more errors occurred, please see full details in import report.",
             PUT( "/dataSets/" + id + "/translations",
                 "{'translations': [{'locale':'en', 'property':'name'}]}" )
                     .content( HttpStatus.CONFLICT ) );
@@ -221,7 +219,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
             POST( "/dataSets/", "{'name':'My data set', 'periodType':'Monthly'}" ) );
 
         JsonWebMessage message = assertWebMessage( "Conflict", 409, "WARNING",
-            "One more more errors occurred, please see full details in import report.",
+            "One or more errors occurred, please see full details in import report.",
             PUT( "/dataSets/" + id + "/translations",
                 "{'translations': [{'locale':'en', 'value':'namn 1'}]}" )
                     .content( HttpStatus.CONFLICT ) );
@@ -240,7 +238,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
             POST( "/dataSets/", "{'name':'My data set', 'periodType':'Monthly'}" ) );
 
         JsonWebMessage message = assertWebMessage( "Conflict", 409, "WARNING",
-            "One more more errors occurred, please see full details in import report.",
+            "One or more errors occurred, please see full details in import report.",
             PUT( "/dataSets/" + id + "/translations",
                 "{'translations': [{'property':'name', 'value':'namn 1'}]}" )
                     .content( HttpStatus.CONFLICT ) );
@@ -264,7 +262,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
     @Test
     void testUpdateObjectProperty()
     {
-        String peter = "{'name': 'Peter', 'firstName':'Peter', 'surname':'Pan', 'username':'peter47'}";
+        String peter = "{'name': 'Peter', 'firstName':'Peter', 'surname':'Pan', 'username':'peter47', 'userRoles': [{'id': 'yrB6vc5Ip3r'}]}";
         String peterUserId = assertStatus( HttpStatus.CREATED, POST( "/users", peter ) );
         JsonResponse roles = GET( "/userRoles?fields=id" ).content();
         String roleId = roles.getArray( "userRoles" ).getObject( 0 ).getString( "id" ).string();
@@ -273,18 +271,10 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
         assertEquals( "Peter", oldPeter.getFirstName() );
         assertEquals( 1, oldPeter.getArray( "userRoles" ).size() );
 
-        List<User> allUsers2 = userService.getAllUsers();
-
-        Set<UserRole> g1 = allUsers2.get( 0 ).getUserRoles();
-        Set<UserRole> g2 = allUsers2.get( 1 ).getUserRoles();
-
         assertStatus( HttpStatus.NO_CONTENT,
             PATCH( "/users/" + peterUserId + "/firstName",
                 Body( "{'firstName': 'Fry'}" ), ContentType( MediaType.APPLICATION_JSON ) ) );
 
-        List<User> allUsers3 = userService.getAllUsers();
-        Set<UserRole> g3 = allUsers3.get( 0 ).getUserRoles();
-        Set<UserRole> g4 = allUsers3.get( 1 ).getUserRoles();
         JsonUser newPeter = GET( "/users/{id}", peterUserId ).content().as( JsonUser.class );
         assertEquals( "Fry", newPeter.getFirstName() );
         // are user roles still there?
@@ -294,7 +284,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
     @Test
     void testUpdateObject()
     {
-        String peter = "{'name': 'Peter', 'firstName':'Peter', 'surname':'Pan', 'username':'peter47'}";
+        String peter = "{'name': 'Peter', 'firstName':'Peter', 'surname':'Pan', 'username':'peter47', 'userRoles': [{'id': 'yrB6vc5Ip3r'}]}";
         String peterUserId = assertStatus( HttpStatus.CREATED, POST( "/users", peter ) );
         JsonResponse roles = GET( "/userRoles?fields=id" ).content();
         String roleId = roles.getArray( "userRoles" ).getObject( 0 ).getString( "id" ).string();
@@ -551,7 +541,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
         // first create an object which has a collection
         String groupId = assertStatus( HttpStatus.CREATED,
             POST( "/userGroups/", "{'name':'testers', 'users':[{'id':'" + userId + "'}]}" ) );
-        String peter = "{'name': 'Peter', 'firstName':'Peter', 'surname':'Pan', 'username':'peter47'}";
+        String peter = "{'name': 'Peter', 'firstName':'Peter', 'surname':'Pan', 'username':'peter47', 'userRoles': [{'id': 'yrB6vc5Ip3r'}]}";
         String peterUserId = assertStatus( HttpStatus.CREATED, POST( "/users", peter ) );
 
         JsonWebMessage message = PUT( "/userGroups/" + groupId + "/users",
@@ -648,7 +638,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
         JsonWebMessage message = PUT( "/programs/" + programId + "/sharing", sharing ).content( HttpStatus.CONFLICT )
             .as( JsonWebMessage.class );
         assertWebMessage( "Conflict", 409, "ERROR",
-            "One more more errors occurred, please see full details in import report.", message );
+            "One or more errors occurred, please see full details in import report.", message );
         JsonTypeReport response = message.get( "response", JsonTypeReport.class );
         assertEquals( 1, response.getObjectReports().size() );
         assertEquals( ErrorCode.E3015, response.getObjectReports().get( 0 ).getErrorReports().get( 0 ).getErrorCode() );

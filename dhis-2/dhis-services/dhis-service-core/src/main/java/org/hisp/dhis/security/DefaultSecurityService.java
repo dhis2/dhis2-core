@@ -37,6 +37,7 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 import lombok.extern.slf4j.Slf4j;
@@ -65,12 +66,12 @@ import org.hisp.dhis.util.ObjectUtils;
 import org.joda.time.DateTime;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Lars Helge Overland
@@ -240,13 +241,6 @@ public class DefaultSecurityService
     {
         Objects.requireNonNull( user, "User object can't be null" );
 
-        if ( user.getUsername() == null || user.getUsername().isEmpty() )
-        {
-            String username = "invite-" + user.getEmail() + "-" + CodeGenerator.generateUid();
-
-            user.setUsername( username );
-        }
-
         String rawPassword = CodeGenerator.getRandomSecureToken( INVITED_USER_PASSWORD_LENGTH_BYTES );
 
         user.setSurname( StringUtils.isEmpty( user.getSurname() ) ? TBD_NAME : user.getSurname() );
@@ -314,10 +308,13 @@ public class DefaultSecurityService
     }
 
     @Override
+    @Transactional
     public boolean sendRestoreOrInviteMessage( User user, String rootPath,
         RestoreOptions restoreOptions )
     {
-        String encodedTokens = generateAndPersistTokens( user, restoreOptions );
+        User persistedUser = userService.getUser( user.getUid() );
+
+        String encodedTokens = generateAndPersistTokens( persistedUser, restoreOptions );
 
         RestoreType restoreType = restoreOptions.getRestoreType();
 
@@ -332,10 +329,10 @@ public class DefaultSecurityService
         vars.put( "applicationTitle", applicationTitle );
         vars.put( "restorePath", rootPath + RESTORE_PATH + restoreType.getAction() );
         vars.put( "token", encodedTokens );
-        vars.put( "welcomeMessage", user.getWelcomeMessage() );
+        vars.put( "welcomeMessage", persistedUser.getWelcomeMessage() );
 
         I18n i18n = i18nManager.getI18n( ObjectUtils.firstNonNull(
-            (Locale) userSettingService.getUserSetting( UserSettingKey.UI_LOCALE, user ),
+            (Locale) userSettingService.getUserSetting( UserSettingKey.UI_LOCALE, persistedUser ),
             LocaleManager.DEFAULT_LOCALE ) );
 
         vars.put( "i18n", i18n );
@@ -357,7 +354,7 @@ public class DefaultSecurityService
         // -------------------------------------------------------------------------
 
         emailMessageSender
-            .sendMessage( messageSubject, messageBody, null, null, ImmutableSet.of( user ), true );
+            .sendMessage( messageSubject, messageBody, null, null, Set.of( persistedUser ), true );
 
         return true;
     }

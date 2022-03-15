@@ -288,7 +288,7 @@ public class JdbcAnalyticsManager
 
         if ( params.isDataType( TEXT ) )
         {
-            sql += "textvalue";
+            sql += params.getValueColumn();
         }
         else // NUMERIC and BOOLEAN
         {
@@ -309,6 +309,8 @@ public class JdbcAnalyticsManager
 
         AnalyticsAggregationType aggType = params.getAggregationType();
 
+        String valueColumn = params.getValueColumn();
+
         if ( aggType.isAggregationType( SUM ) && aggType.isPeriodAggregationType( AVERAGE )
             && aggType.isNumericDataType() )
         {
@@ -316,7 +318,7 @@ public class JdbcAnalyticsManager
         }
         else if ( aggType.isAggregationType( AVERAGE ) && aggType.isNumericDataType() )
         {
-            sql = "avg(value)";
+            sql = "avg(" + valueColumn + ")";
         }
         else if ( aggType.isAggregationType( AVERAGE ) && aggType.isBooleanDataType() )
         {
@@ -324,31 +326,31 @@ public class JdbcAnalyticsManager
         }
         else if ( aggType.isAggregationType( COUNT ) )
         {
-            sql = "count(value)";
+            sql = "count(" + valueColumn + ")";
         }
         else if ( aggType.isAggregationType( STDDEV ) )
         {
-            sql = "stddev(value)";
+            sql = "stddev(" + valueColumn + ")";
         }
         else if ( aggType.isAggregationType( VARIANCE ) )
         {
-            sql = "variance(value)";
+            sql = "variance(" + valueColumn + ")";
         }
         else if ( aggType.isAggregationType( MIN ) )
         {
-            sql = "min(value)";
+            sql = "min(" + valueColumn + ")";
         }
         else if ( aggType.isAggregationType( MAX ) )
         {
-            sql = "max(value)";
+            sql = "max(" + valueColumn + ")";
         }
         else if ( aggType.isAggregationType( NONE ) )
         {
-            sql = "value";
+            sql = valueColumn;
         }
         else // SUM and no value
         {
-            sql = "sum(value)";
+            sql = "sum(" + valueColumn + ")";
         }
 
         return sql;
@@ -712,7 +714,9 @@ public class JdbcAnalyticsManager
             {
                 String value = dim.isFixed() ? dim.getDimensionName() : rowSet.getString( dim.getDimensionName() );
 
-                key.append( value ).append( DIMENSION_SEP );
+                String queryModsId = params.getQueryModsId( dim );
+
+                key.append( value ).append( queryModsId ).append( DIMENSION_SEP );
             }
 
             key.deleteCharAt( key.length() - 1 );

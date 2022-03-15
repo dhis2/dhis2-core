@@ -80,7 +80,7 @@ class SupplementaryDataProviderTest extends DhisConvenienceTest
     void setUp()
     {
         User user = createUser( 'A' );
-        user.setUserRoles( getAuthorityGroups() );
+        user.setUserRoles( getUserRoles() );
         when( currentUserService.getCurrentUser() ).thenReturn( user );
         orgUnitA = createOrganisationUnit( 'A' );
         orgUnitB = createOrganisationUnit( 'B' );
@@ -98,7 +98,7 @@ class SupplementaryDataProviderTest extends DhisConvenienceTest
     {
         Map<String, List<String>> supplementaryData = providerToTest.getSupplementaryData( getProgramRules() );
         assertFalse( supplementaryData.isEmpty() );
-        assertEquals( getAuthorityGroupUids(), supplementaryData.get( "USER" ) );
+        assertEquals( getUserRoleUids(), supplementaryData.get( "USER" ) );
         assertFalse( supplementaryData.get( ORG_UNIT_GROUP_UID ).isEmpty() );
         assertEquals( orgUnitA.getUid(), supplementaryData.get( ORG_UNIT_GROUP_UID ).get( 0 ) );
         assertNull( supplementaryData.get( NOT_NEEDED_ORG_UNIT_GROUP_UID ) );
@@ -111,12 +111,12 @@ class SupplementaryDataProviderTest extends DhisConvenienceTest
         return Lists.newArrayList( programRule );
     }
 
-    private List<String> getAuthorityGroupUids()
+    private List<String> getUserRoleUids()
     {
-        return getAuthorityGroups().stream().map( UserRole::getUid ).collect( Collectors.toList() );
+        return getUserRoles().stream().map( UserRole::getUid ).collect( Collectors.toList() );
     }
 
-    private Set<UserRole> getAuthorityGroups()
+    private Set<UserRole> getUserRoles()
     {
         UserRole groupA = createUserRole( 'A' );
         UserRole groupB = createUserRole( 'B' );
