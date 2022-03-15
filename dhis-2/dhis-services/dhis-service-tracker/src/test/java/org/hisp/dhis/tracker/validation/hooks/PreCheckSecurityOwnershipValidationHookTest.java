@@ -696,6 +696,8 @@ public class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenience
         TrackedEntityInstance trackedEntityInstance = createTrackedEntityInstance( organisationUnit );
         trackedEntityInstance.setUid( TEI_ID );
         trackedEntityInstance.setProgramInstances( Sets.newHashSet() );
+        trackedEntityInstance.setTrackedEntityType( trackedEntityType );
+
         return trackedEntityInstance;
     }
 
@@ -707,6 +709,7 @@ public class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenience
         TrackedEntityInstance trackedEntityInstance = createTrackedEntityInstance( organisationUnit );
         trackedEntityInstance.setUid( TEI_ID );
         trackedEntityInstance.setProgramInstances( Sets.newHashSet( programInstance ) );
+        trackedEntityInstance.setTrackedEntityType( trackedEntityType );
 
         return trackedEntityInstance;
     }
@@ -716,6 +719,7 @@ public class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenience
         TrackedEntityInstance trackedEntityInstance = createTrackedEntityInstance( organisationUnit );
         trackedEntityInstance.setUid( TEI_ID );
         trackedEntityInstance.setProgramInstances( Sets.newHashSet( new ProgramInstance() ) );
+        trackedEntityInstance.setTrackedEntityType( trackedEntityType );
 
         return trackedEntityInstance;
     }

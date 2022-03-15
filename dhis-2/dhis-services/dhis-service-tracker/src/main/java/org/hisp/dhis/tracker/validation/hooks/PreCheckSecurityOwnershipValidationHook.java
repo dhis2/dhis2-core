@@ -77,6 +77,8 @@ public class PreCheckSecurityOwnershipValidationHook
 {
     private final TrackerImportAccessManager trackerImportAccessManager;
 
+    private static final String ORG_UNIT_NO_USER_ASSIGNED = " has no organisation unit assigned, so we skip user validation";
+
     public PreCheckSecurityOwnershipValidationHook( TrackerImportAccessManager trackerImportAccessManager )
     {
         checkNotNull( trackerImportAccessManager );
@@ -94,20 +96,28 @@ public class PreCheckSecurityOwnershipValidationHook
 
         checkNotNull( user, USER_CANT_BE_NULL );
         checkNotNull( trackedEntity, TRACKED_ENTITY_CANT_BE_NULL );
-        checkNotNull( trackedEntity.getOrgUnit(), ORGANISATION_UNIT_CANT_BE_NULL );
+
+        TrackedEntityType trackedEntityType = strategy.isUpdateOrDelete()
+            ? context.getTrackedEntityInstance( trackedEntity.getTrackedEntity() ).getTrackedEntityType()
+            : context
+                .getTrackedEntityType( trackedEntity.getTrackedEntityType() );
+
+        OrganisationUnit organisationUnit = strategy.isUpdateOrDelete()
+            ? context.getTrackedEntityInstance( trackedEntity.getTrackedEntity() ).getOrganisationUnit()
+            : context.getOrganisationUnit( trackedEntity.getOrgUnit() );
 
         // If trackedEntity is newly created, or going to be deleted, capture
         // scope has to be checked
         if ( strategy.isCreate() || strategy.isDelete() )
         {
             trackerImportAccessManager.checkOrgUnitInCaptureScope( reporter,
-                context.getOrganisationUnit( trackedEntity.getOrgUnit() ) );
+                organisationUnit );
         }
         // if its to update trackedEntity, search scope has to be checked
         else
         {
             trackerImportAccessManager.checkOrgUnitInSearchScope( reporter,
-                context.getOrganisationUnit( trackedEntity.getOrgUnit() ) );
+                organisationUnit );
         }
 
         if ( strategy.isDelete() )
@@ -121,8 +131,6 @@ public class PreCheckSecurityOwnershipValidationHook
             }
         }
 
-        TrackedEntityType trackedEntityType = context
-            .getTrackedEntityType( trackedEntity.getTrackedEntityType() );
         trackerImportAccessManager.checkTeiTypeWriteAccess( reporter, trackedEntityType );
     }
 
@@ -176,7 +184,7 @@ public class PreCheckSecurityOwnershipValidationHook
             if ( enrollmentOrgUnit == null )
             {
                 log.warn( "ProgramInstance " + enrollment.getEnrollment()
-                    + " has no organisation unit assigned, so we skip user validation" );
+                    + ORG_UNIT_NO_USER_ASSIGNED );
                 return;
             }
         }
@@ -207,16 +215,39 @@ public class PreCheckSecurityOwnershipValidationHook
         checkNotNull( event, EVENT_CANT_BE_NULL );
         checkNotNull( event.getOrgUnit(), ORGANISATION_UNIT_CANT_BE_NULL );
 
-        OrganisationUnit organisationUnit = context.getOrganisationUnit( event.getOrgUnit() );
+        ProgramStageInstance programStageInstance = context.getProgramStageInstance( event.getEvent() );
+
+        OrganisationUnit organisationUnit;
+
+        if ( strategy.isUpdateOrDelete() )
+        {
+            organisationUnit = programStageInstance
+                .getOrganisationUnit();
+        }
+        else
+        {
+            checkNotNull( event.getOrgUnit(), ORGANISATION_UNIT_CANT_BE_NULL );
+            organisationUnit = context.getOrganisationUnit( event.getOrgUnit() );
+        }
+
         ProgramStage programStage = context.getProgramStage( event.getProgramStage() );
-        Program program = context.getProgram( event.getProgram() );
+        Program program = strategy.isUpdateOrDelete() ? programStage
+            .getProgram() : context.getProgram( event.getProgram() );
 
         // If event is newly created, or going to be deleted, capture scope
         // has to be checked
         if ( program.isWithoutRegistration() || strategy.isCreate() || strategy.isDelete() )
         {
-            trackerImportAccessManager
-                .checkOrgUnitInCaptureScope( reporter, organisationUnit );
+            if ( organisationUnit == null )
+            {
+                log.warn( "ProgramStageInstance " + event.getEvent()
+                    + ORG_UNIT_NO_USER_ASSIGNED );
+            }
+            else
+            {
+                trackerImportAccessManager
+                    .checkOrgUnitInCaptureScope( reporter, organisationUnit );
+            }
         }
 
         String teiUid = getTeiUidFromEvent( context, event, program );
@@ -227,7 +258,6 @@ public class PreCheckSecurityOwnershipValidationHook
         // Check acting user is allowed to change existing/write event
         if ( strategy.isUpdateOrDelete() )
         {
-            ProgramStageInstance programStageInstance = context.getProgramStageInstance( event.getEvent() );
             TrackedEntityInstance entityInstance = programStageInstance.getProgramInstance().getEntityInstance();
             validateUpdateAndDeleteEvent( reporter, event, programStageInstance,
                 entityInstance == null ? null : entityInstance.getUid(), ownerOrgUnit );
