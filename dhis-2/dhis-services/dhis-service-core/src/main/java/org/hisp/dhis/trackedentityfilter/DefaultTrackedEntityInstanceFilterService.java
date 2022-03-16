@@ -31,8 +31,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
@@ -43,8 +41,6 @@ import org.hisp.dhis.programstagefilter.DateFilterPeriod;
 import org.hisp.dhis.programstagefilter.DatePeriodType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper;
-import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -147,8 +143,6 @@ public class DefaultTrackedEntityInstanceFilterService
 
         validateOrganisationUnits( errors, eqc );
 
-        validateOrderParams( errors, eqc );
-
         return errors;
     }
 
@@ -169,18 +163,6 @@ public class DefaultTrackedEntityInstanceFilterService
         {
             errors.add( String.format( "Organisation Unit cannot be empty with %s org unit mode",
                 eqc.getOuMode().toString() ) );
-        }
-    }
-
-    private void validateOrderParams( List<String> errors, EntityQueryCriteria eqc )
-    {
-        if ( !StringUtils.isEmpty( eqc.getOrder() ) )
-        {
-            List<OrderCriteria> orderCriteria = OrderCriteria.fromOrderString( eqc.getOrder() );
-            Map<String, TrackedEntityAttribute> attributes = teaService.getAllTrackedEntityAttributes()
-                .stream().collect( Collectors.toMap( TrackedEntityAttribute::getUid, att -> att ) );
-            errors.addAll(
-                OrderParamsHelper.validateOrderParams( OrderParamsHelper.toOrderParams( orderCriteria ), attributes ) );
         }
     }
 
