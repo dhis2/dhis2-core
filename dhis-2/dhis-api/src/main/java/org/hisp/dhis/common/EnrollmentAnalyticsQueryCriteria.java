@@ -114,4 +114,9 @@ public class EnrollmentAnalyticsQueryCriteria extends RequestTypeAware
     private SortOrder sortOrder;
 
     private boolean totalPages;
+
+    /**
+     * flag to enable enhanced OR conditions on queryItem dimensions/filters
+     */
+    private boolean enhancedConditions;
 }

@@ -181,7 +181,7 @@ class EventDataQueryServiceTest extends DhisSpringTest
         Set<String> filterParams = new HashSet<>();
         filterParams.add( "pe:201401;201402" );
         EventDataQueryRequest request = EventDataQueryRequest.builder().program( prA.getUid() )
-            .dimension( dimensionParams ).filter( filterParams ).coordinateField( coordinateField )
+            .dimension( Set.of( dimensionParams ) ).filter( Set.of( filterParams ) ).coordinateField( coordinateField )
             .fallbackCoordinateField( fallbackCoordinateField ).coordinateOuFallback( true ).build();
         EventQueryParams params = dataQueryService.getFromRequest( request );
         assertEquals( prA, params.getProgram() );
@@ -201,7 +201,7 @@ class EventDataQueryServiceTest extends DhisSpringTest
         dimensionParams.add( "pe:LAST_WEEK;TODAY:LAST_UPDATED;20220101_20220201:INCIDENT_DATE" );
         EventDataQueryRequest request = EventDataQueryRequest.builder()
             .program( prA.getUid() )
-            .dimension( dimensionParams )
+            .dimension( Set.of( dimensionParams ) )
             .build();
         EventQueryParams params = dataQueryService.getFromRequest( request );
         DimensionalObject pe = params.getDimension( "pe" );
@@ -234,7 +234,7 @@ class EventDataQueryServiceTest extends DhisSpringTest
         Set<String> filterParams = new HashSet<>();
         filterParams.add( "pe:201401" );
         EventDataQueryRequest request = EventDataQueryRequest.builder().program( prA.getUid() )
-            .dimension( dimensionParams ).filter( filterParams ).value( deA.getUid() )
+            .dimension( Set.of( dimensionParams ) ).filter( Set.of( filterParams ) ).value( deA.getUid() )
             .aggregationType( AggregationType.AVERAGE ).build();
         EventQueryParams params = dataQueryService.getFromRequest( request );
         assertEquals( prA, params.getProgram() );
@@ -259,7 +259,7 @@ class EventDataQueryServiceTest extends DhisSpringTest
         Set<String> desc = new HashSet<>();
         desc.add( "eventdate" );
         EventDataQueryRequest request = EventDataQueryRequest.builder().program( prA.getUid() )
-            .dimension( dimensionParams ).filter( filterParams ).value( deA.getUid() )
+            .dimension( Set.of( dimensionParams ) ).filter( Set.of( filterParams ) ).value( deA.getUid() )
             .aggregationType( AggregationType.AVERAGE ).desc( desc ).build();
         EventQueryParams params = dataQueryService.getFromRequest( request );
         assertEquals( prA, params.getProgram() );
@@ -283,7 +283,7 @@ class EventDataQueryServiceTest extends DhisSpringTest
         Set<String> desc = new HashSet<>();
         desc.add( "ouname" );
         EventDataQueryRequest request = EventDataQueryRequest.builder().program( prA.getUid() )
-            .dimension( dimensionParams ).filter( filterParams ).value( deA.getUid() )
+            .dimension( Set.of( dimensionParams ) ).filter( Set.of( filterParams ) ).value( deA.getUid() )
             .aggregationType( AggregationType.AVERAGE ).desc( desc ).build();
         EventQueryParams params = dataQueryService.getFromRequest( request );
         assertEquals( prA, params.getProgram() );
@@ -307,7 +307,7 @@ class EventDataQueryServiceTest extends DhisSpringTest
         Set<String> desc = new HashSet<>();
         desc.add( deA.getUid() );
         EventDataQueryRequest request = EventDataQueryRequest.builder().program( prA.getUid() )
-            .dimension( dimensionParams ).filter( filterParams ).value( deA.getUid() )
+            .dimension( Set.of( dimensionParams ) ).filter( Set.of( filterParams ) ).value( deA.getUid() )
             .aggregationType( AggregationType.AVERAGE ).desc( desc ).build();
         EventQueryParams params = dataQueryService.getFromRequest( request );
         assertEquals( prA, params.getProgram() );
@@ -331,7 +331,7 @@ class EventDataQueryServiceTest extends DhisSpringTest
         Set<String> desc = new HashSet<>();
         desc.add( atA.getUid() );
         EventDataQueryRequest request = EventDataQueryRequest.builder().program( prA.getUid() )
-            .dimension( dimensionParams ).filter( filterParams ).value( deA.getUid() )
+            .dimension( Set.of( dimensionParams ) ).filter( Set.of( filterParams ) ).value( deA.getUid() )
             .aggregationType( AggregationType.AVERAGE ).desc( desc ).build();
         EventQueryParams params = dataQueryService.getFromRequest( request );
         assertEquals( prA, params.getProgram() );
@@ -452,7 +452,7 @@ class EventDataQueryServiceTest extends DhisSpringTest
         filterParams.add( "pe:201401;201402" );
         filterParams.add( atA.getUid() + ":LE:5" );
         EventDataQueryRequest request = EventDataQueryRequest.builder().program( prA.getUid() )
-            .dimension( dimensionParams ).filter( filterParams ).build();
+            .dimension( Set.of( dimensionParams ) ).filter( Set.of( filterParams ) ).build();
         EventQueryParams params = dataQueryService.getFromRequest( request );
         assertEquals( prA, params.getProgram() );
         assertEquals( 1, params.getItems().size() );
