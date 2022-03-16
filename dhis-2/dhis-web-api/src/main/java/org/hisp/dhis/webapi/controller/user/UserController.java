@@ -347,7 +347,8 @@ public class UserController
     public WebMessage postJsonInvite( HttpServletRequest request )
         throws Exception
     {
-        return postInvite( request, renderService.fromJson( request.getInputStream(), getEntityClass() ) );
+        User user = renderService.fromJson( request.getInputStream(), getEntityClass() );
+        return postInvite( request, user );
     }
 
     @PostMapping( value = INVITE_PATH, consumes = { APPLICATION_XML_VALUE, TEXT_XML_VALUE } )
@@ -355,12 +356,15 @@ public class UserController
     public WebMessage postXmlInvite( HttpServletRequest request )
         throws Exception
     {
-        return postInvite( request, renderService.fromXml( request.getInputStream(), getEntityClass() ) );
+        User user = renderService.fromXml( request.getInputStream(), getEntityClass() );
+        return postInvite( request, user );
     }
 
     private WebMessage postInvite( HttpServletRequest request, User user )
         throws WebMessageException
     {
+        populateUserCredentialsDtoFields( user );
+
         User currentUser = currentUserService.getCurrentUser();
 
         validateInviteUser( user, currentUser );
@@ -373,7 +377,8 @@ public class UserController
     public void postJsonInvites( HttpServletRequest request )
         throws Exception
     {
-        postInvites( request, renderService.fromJson( request.getInputStream(), Users.class ) );
+        Users users = renderService.fromJson( request.getInputStream(), Users.class );
+        postInvites( request, users );
     }
 
     @PostMapping( value = BULK_INVITE_PATH, consumes = { APPLICATION_XML_VALUE,
@@ -382,13 +387,19 @@ public class UserController
     public void postXmlInvites( HttpServletRequest request )
         throws Exception
     {
-        postInvites( request, renderService.fromXml( request.getInputStream(), Users.class ) );
+        Users users = renderService.fromXml( request.getInputStream(), Users.class );
+        postInvites( request, users );
     }
 
     private void postInvites( HttpServletRequest request, Users users )
         throws WebMessageException
     {
         User currentUser = currentUserService.getCurrentUser();
+
+        for ( User user : users.getUsers() )
+        {
+            populateUserCredentialsDtoFields( user );
+        }
 
         for ( User user : users.getUsers() )
         {
@@ -425,14 +436,9 @@ public class UserController
             throw new WebMessageException( conflict( valid ) );
         }
 
-        boolean isInviteUsername = securityService.isInviteUsername( user.getUsername() );
-
-        RestoreOptions restoreOptions = isInviteUsername ? RestoreOptions.INVITE_WITH_USERNAME_CHOICE
-            : RestoreOptions.INVITE_WITH_DEFINED_USERNAME;
-
         if ( !securityService
             .sendRestoreOrInviteMessage( user, ContextUtils.getContextPath( request ),
-                restoreOptions ) )
+                RestoreOptions.INVITE_WITH_DEFINED_USERNAME ) )
         {
             throw new WebMessageException( error( "Failed to send invite message" ) );
         }
@@ -608,7 +614,7 @@ public class UserController
 
         Patch patch = diff( request );
 
-        filterUserCredentialsMutations( patch );
+        mergeUserCredentialsMutations( patch );
 
         prePatchEntity( persistedObject );
         patchService.apply( patch, persistedObject );
@@ -617,7 +623,10 @@ public class UserController
         postPatchEntity( persistedObject );
     }
 
-    private void filterUserCredentialsMutations( Patch patch )
+    /*
+     * This method is used to merge the user credentials with the user object.
+     */
+    private void mergeUserCredentialsMutations( Patch patch )
     {
         List<Mutation> mutations = patch.getMutations();
         List<Mutation> filteredMutations = new ArrayList<>();
@@ -896,10 +905,6 @@ public class UserController
      */
     private ObjectReport inviteUser( User user, User currentUser, HttpServletRequest request )
     {
-        RestoreOptions restoreOptions = user.getUsername() == null || user.getUsername().isEmpty()
-            ? RestoreOptions.INVITE_WITH_USERNAME_CHOICE
-            : RestoreOptions.INVITE_WITH_DEFINED_USERNAME;
-
         securityService.prepareUserForInvite( user );
 
         ImportReport importReport = createUser( user, currentUser );
@@ -911,7 +916,7 @@ public class UserController
         {
             securityService
                 .sendRestoreOrInviteMessage( user, ContextUtils.getContextPath( request ),
-                    restoreOptions );
+                    RestoreOptions.INVITE_WITH_DEFINED_USERNAME );
 
             log.info( String.format( "An invite email was successfully sent to: %s", user.getEmail() ) );
         }

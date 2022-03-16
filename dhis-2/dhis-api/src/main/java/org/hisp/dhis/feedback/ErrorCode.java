@@ -202,6 +202,9 @@ public enum ErrorCode
     E4047( "DataElement `{0}` is not linked to any ProgramStageDataElement for program rule `{1}`" ),
     E4048( "TrackedEntityAttribute `{0}` is not linked to ProgramTrackedEntityAttribute for program rule `{1}`" ),
     E4049( "Property `{0}` requires a valid username, was given `{1}`." ),
+    E4054( "Property `{0}` already exists, was given `{1}`." ),
+    E4056( "Property `{0}` can not be changed, was given `{1}`." ),
+    E4055( "An user needs to have at least one user role associated with it." ),
     E4050(
         "One of the parameters DataElement, TrackedEntityAttribute or ProgramRuleVariable is required for program rule `{0}`" ),
 
