@@ -679,7 +679,7 @@ public enum ConfigurationKey
     /**
      * API authentication feature. Enable or disable personal access tokens.
      */
-    ENABLE_API_TOKEN_AUTHENTICATION( "enable.api_token.authentication", Constants.OFF, false ),
+    ENABLE_API_TOKEN_AUTHENTICATION( "enable.api_token.authentication", Constants.ON, false ),
 
     /**
      * System update notifications system. Enable or disable the feature.
