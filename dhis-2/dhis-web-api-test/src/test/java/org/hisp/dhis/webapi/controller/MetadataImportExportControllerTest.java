@@ -39,6 +39,7 @@ import org.geojson.GeoJsonObject;
 import org.geojson.Polygon;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonAttributeValue;
 import org.hisp.dhis.webapi.json.domain.JsonErrorReport;
@@ -198,5 +199,113 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest
                 + "\"attributes\":[{\"id\":\"RRH9IFiZZYN\",\"valueType\":\"GEOJSON\",\"organisationUnitAttribute\":true,\"name\":\"testgeojson\"}]}" )
                     .content( HttpStatus.CONFLICT ).as( JsonWebMessage.class );
         assertNotNull( message.find( JsonErrorReport.class, report -> report.getErrorCode() == ErrorCode.E6004 ) );
+    }
+
+    /**
+     * Import OptionSet with two Options, sort orders are 2 and 3.
+     */
+    @Test
+    void testImportOptionSetWithOptions()
+    {
+        POST( "/metadata", "{\"optionSets\":\n" +
+            "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\": 2,\"valueType\": \"TEXT\",\"options\":[{\"id\": \"Uh4HvjK6zg3\"},{\"id\": \"BQMei56UBl6\"}]}],\n"
+            +
+            "\"options\":\n" +
+            "    [{\"code\": \"Vaccine freezer\",\"name\": \"Vaccine freezer\",\"id\": \"BQMei56UBl6\",\"sortOrder\": 2,\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}},\n"
+            +
+            "    {\"code\": \"Icelined refrigerator\",\"name\": \"Icelined refrigerator\",\"id\": \"Uh4HvjK6zg3\",\"sortOrder\": 3,\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}}]}" )
+                .content( HttpStatus.OK );
+
+        JsonResponse response = GET( "/optionSets/{uid}?fields=options[id,sortOrder]", "RHqFlB1Wm4d" ).content();
+
+        assertEquals( 2, response.getObject( "options" ).size() );
+        assertNotNull( response.get( "options[0].sortOrder" ) );
+        assertNotNull( response.get( "options[1].sortOrder" ) );
+    }
+
+    /**
+     * Import OptionSet with two Options, one has sortOrder and the other
+     * doesn't
+     */
+    @Test
+    void testImportOptionSetWithOptionsOneSortOrder()
+    {
+        POST( "/metadata", "{\"optionSets\":\n" +
+            "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\": 2,\"valueType\": \"TEXT\",\"options\":[{\"id\": \"Uh4HvjK6zg3\"},{\"id\": \"BQMei56UBl6\"}]}],\n"
+            +
+            "\"options\":\n" +
+            "    [{\"code\": \"Vaccine freezer\",\"name\": \"Vaccine freezer\",\"id\": \"BQMei56UBl6\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}},\n"
+            +
+            "    {\"code\": \"Icelined refrigerator\",\"name\": \"Icelined refrigerator\",\"id\": \"Uh4HvjK6zg3\",\"sortOrder\": 3,\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}}]}" )
+                .content( HttpStatus.OK );
+
+        JsonResponse response = GET( "/optionSets/{uid}?fields=options[id,sortOrder]", "RHqFlB1Wm4d" ).content();
+
+        assertEquals( 2, response.getObject( "options" ).size() );
+        assertNotNull( response.get( "options[0].sortOrder" ) );
+        assertNotNull( response.get( "options[1].sortOrder" ) );
+    }
+
+    /**
+     * Import OptionSet with two Options, both doesn't have sortOrder
+     */
+    @Test
+    void testImportOptionSetWithOptionsNoSortOrder()
+    {
+        POST( "/metadata", "{\"optionSets\":\n" +
+            "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\": 2,\"valueType\": \"TEXT\",\"options\":[{\"id\": \"Uh4HvjK6zg3\"},{\"id\": \"BQMei56UBl6\"}]}],\n"
+            +
+            "\"options\":\n" +
+            "    [{\"code\": \"Vaccine freezer\",\"name\": \"Vaccine freezer\",\"id\": \"BQMei56UBl6\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}},\n"
+            +
+            "    {\"code\": \"Icelined refrigerator\",\"name\": \"Icelined refrigerator\",\"id\": \"Uh4HvjK6zg3\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}}]}" )
+                .content( HttpStatus.OK );
+
+        JsonResponse response = GET( "/optionSets/{uid}?fields=options[id,sortOrder]", "RHqFlB1Wm4d" ).content();
+
+        assertEquals( 2, response.getObject( "options" ).size() );
+        assertNotNull( response.get( "options[0].sortOrder" ) );
+        assertNotNull( response.get( "options[1].sortOrder" ) );
+    }
+
+    /**
+     * Import OptionSet with two Options, both have same sortOrder
+     */
+    @Test
+    void testImportOptionSetWithOptionsDuplicateSortOrder()
+    {
+        POST( "/metadata", "{\"optionSets\":\n" +
+            "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\": 2,\"valueType\": \"TEXT\",\"options\":[{\"id\": \"Uh4HvjK6zg3\"},{\"id\": \"BQMei56UBl6\"}]}],\n"
+            +
+            "\"options\":\n" +
+            "    [{\"code\": \"Vaccine freezer\",\"name\": \"Vaccine freezer\",\"sortOrder\": 2,\"id\": \"BQMei56UBl6\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}},\n"
+            +
+            "    {\"code\": \"Icelined refrigerator\",\"name\": \"Icelined refrigerator\",\"sortOrder\": 2,\"id\": \"Uh4HvjK6zg3\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}}]}" )
+                .content( HttpStatus.OK );
+
+        JsonResponse response = GET( "/optionSets/{uid}?fields=options[id,sortOrder]", "RHqFlB1Wm4d" ).content();
+
+        assertEquals( 2, response.getObject( "options" ).size() );
+        assertNotNull( response.get( "options[0].sortOrder" ) );
+        assertNotNull( response.get( "options[1].sortOrder" ) );
+    }
+
+    @Test
+    void testImportOptionSetWithNoLinkOptions()
+    {
+        POST( "/metadata", "{\"optionSets\":\n" +
+            "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\": 2,\"valueType\": \"TEXT\"}],\n"
+            +
+            "\"options\":\n" +
+            "    [{\"code\": \"Vaccine freezer\",\"name\": \"Vaccine freezer\",\"sortOrder\": 2,\"id\": \"BQMei56UBl6\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}},\n"
+            +
+            "    {\"code\": \"Icelined refrigerator\",\"name\": \"Icelined refrigerator\",\"sortOrder\": 3,\"id\": \"Uh4HvjK6zg3\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}}]}" )
+                .content( HttpStatus.OK );
+
+        JsonResponse response = GET( "/optionSets/{uid}?fields=options[id,sortOrder]", "RHqFlB1Wm4d" ).content();
+
+        assertEquals( 2, response.getObject( "options" ).size() );
+        assertNotNull( response.get( "options[0].sortOrder" ) );
+        assertNotNull( response.get( "options[1].sortOrder" ) );
     }
 }
