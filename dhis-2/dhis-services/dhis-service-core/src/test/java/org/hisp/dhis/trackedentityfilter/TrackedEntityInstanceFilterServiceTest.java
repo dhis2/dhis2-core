@@ -174,17 +174,6 @@ class TrackedEntityInstanceFilterServiceTest extends DhisSpringTest
     }
 
     @Test
-    void testValidateOrderParamsInTeiFilter()
-    {
-        TrackedEntityInstanceFilter trackedEntityInstanceFilterA = createTrackedEntityInstanceFilter( 'A', programA );
-        trackedEntityInstanceFilterA.getEntityQueryCriteria().setOrder( "aaa:asc,created:desc" );
-        List<String> errors = trackedEntityInstanceFilterService.validate( trackedEntityInstanceFilterA );
-        assertEquals( 1, errors.size() );
-        assertEquals( errors.get( 0 ),
-            "Invalid order property: aaa" );
-    }
-
-    @Test
     void testValidateDateFilterPeriods()
     {
         TrackedEntityInstanceFilter trackedEntityInstanceFilterA = createTrackedEntityInstanceFilter( 'A', programA );
