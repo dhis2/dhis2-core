@@ -164,10 +164,7 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
     private void handleDataValues( Session session, TrackerPreheat preheat, Set<DataValue> payloadDataValues,
         ProgramStageInstance psi )
     {
-        AuditType auditType = null;
-
-        boolean isUpdated = false;
-        boolean isNew = false;
+        String persistedDataValue = "";
 
         Map<String, EventDataValue> dataValueDBMap = psi
             .getEventDataValues()
@@ -178,6 +175,8 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
 
         for ( DataValue dv : payloadDataValues )
         {
+            AuditType auditType = null;
+
             DataElement dateElement = preheat.get( DataElement.class, dv.getDataElement() );
 
             checkNotNull( dateElement,
@@ -188,21 +187,17 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
             if ( eventDataValue == null )
             {
                 eventDataValue = new EventDataValue();
-                isNew = true;
+                auditType = AuditType.CREATE;
             }
 
-            if ( !eventDataValue.getValue().equals( dv.getValue() ) )
-            {
-                isUpdated = true;
-            }
-
+            persistedDataValue = eventDataValue.getValue();
             eventDataValue.setDataElement( dateElement.getUid() );
             eventDataValue.setValue( dv.getValue() );
             eventDataValue.setStoredBy( dv.getStoredBy() );
 
             handleDataValueCreatedUpdatedDates( dv, eventDataValue );
 
-            if ( StringUtils.isEmpty( eventDataValue.getValue() ) )
+            if ( StringUtils.isEmpty( dv.getValue() ) )
             {
                 if ( dateElement.isFileType() )
                 {
@@ -221,11 +216,7 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
 
                 psi.getEventDataValues().add( eventDataValue );
 
-                if ( isNew )
-                {
-                    auditType = AuditType.CREATE;
-                }
-                else if ( isUpdated )
+                if ( !dv.getValue().equals( persistedDataValue ) )
                 {
                     auditType = AuditType.UPDATE;
                 }
