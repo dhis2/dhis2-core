@@ -165,6 +165,8 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
         ProgramStageInstance psi )
     {
         AuditType auditType = null;
+
+        boolean isUpdated = false;
         boolean isNew = false;
 
         Map<String, EventDataValue> dataValueDBMap = psi
@@ -187,6 +189,11 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
             {
                 eventDataValue = new EventDataValue();
                 isNew = true;
+            }
+
+            if ( !eventDataValue.getValue().equals( dv.getValue() ) )
+            {
+                isUpdated = true;
             }
 
             eventDataValue.setDataElement( dateElement.getUid() );
@@ -213,7 +220,15 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
                 }
 
                 psi.getEventDataValues().add( eventDataValue );
-                auditType = isNew ? AuditType.CREATE : AuditType.UPDATE;
+
+                if ( isNew )
+                {
+                    auditType = AuditType.CREATE;
+                }
+                else if ( isUpdated )
+                {
+                    auditType = AuditType.UPDATE;
+                }
             }
 
             logTrackedEntityDataValueHistory( preheat.getUsername(), eventDataValue, dateElement, psi, auditType,
