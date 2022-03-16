@@ -53,6 +53,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -69,6 +71,7 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.EventAnalyticalObject;
 import org.hisp.dhis.common.EventDataQueryRequest;
+import org.hisp.dhis.common.GroupableItem;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryFilter;
@@ -232,7 +235,8 @@ public class DefaultEventDataQueryService
             .withPaging( request.isPaging() )
             .withTotalPages( request.isTotalPages() )
             .withProgramStatuses( request.getProgramStatus() )
-            .withApiVersion( request.getApiVersion() );
+            .withApiVersion( request.getApiVersion() )
+            .withEnhancedConditions( request.isEnhancedConditions() );
 
         if ( analyzeOnly )
         {
@@ -303,22 +307,30 @@ public class DefaultEventDataQueryService
     {
         if ( request.getFilter() != null )
         {
-            for ( String dim : request.getFilter() )
+            for ( Set<String> filterGroup : request.getFilter() )
             {
-                String dimensionId = getDimensionFromParam( dim );
-
-                List<String> items = getDimensionItemsFromParam( dim );
-
-                DimensionalObject dimObj = dataQueryService.getDimension( dimensionId,
-                    items, request.getRelativePeriodDate(), userOrgUnits, format, true, false, idScheme );
-
-                if ( dimObj != null )
+                UUID groupUUID = UUID.randomUUID();
+                for ( String dim : filterGroup )
                 {
-                    params.addFilter( dimObj );
-                }
-                else
-                {
-                    params.addItemFilter( getQueryItem( dim, pr, request.getOutputType() ) );
+                    String dimensionId = getDimensionFromParam( dim );
+
+                    List<String> items = getDimensionItemsFromParam( dim );
+
+                    GroupableItem groupableItem = dataQueryService.getDimension( dimensionId,
+                        items, request.getRelativePeriodDate(), userOrgUnits, format, true, false, idScheme );
+
+                    if ( groupableItem != null )
+                    {
+                        params.addFilter( (DimensionalObject) groupableItem );
+                    }
+                    else
+                    {
+                        groupableItem = getQueryItem( dim, pr, request.getOutputType() );
+                        params.addItemFilter( (QueryItem) groupableItem );
+                    }
+
+                    groupableItem.setGroupUUID( groupUUID );
+
                 }
             }
         }
@@ -330,22 +342,30 @@ public class DefaultEventDataQueryService
     {
         if ( request.getDimension() != null )
         {
-            for ( String dim : request.getDimension() )
+            for ( Set<String> dimensionGroup : request.getDimension() )
             {
-                String dimensionId = getDimensionFromParam( dim );
+                UUID groupUUID = UUID.randomUUID();
 
-                List<String> items = getDimensionItemsFromParam( dim );
-
-                DimensionalObject dimObj = dataQueryService.getDimension( dimensionId,
-                    items, request.getRelativePeriodDate(), userOrgUnits, format, true, false, idScheme );
-
-                if ( dimObj != null )
+                for ( String dim : dimensionGroup )
                 {
-                    params.addDimension( dimObj );
-                }
-                else
-                {
-                    params.addItem( getQueryItem( dim, pr, request.getOutputType() ) );
+                    String dimensionId = getDimensionFromParam( dim );
+
+                    List<String> items = getDimensionItemsFromParam( dim );
+
+                    GroupableItem groupableItem = dataQueryService.getDimension( dimensionId,
+                        items, request.getRelativePeriodDate(), userOrgUnits, format, true, false, idScheme );
+
+                    if ( groupableItem != null )
+                    {
+                        params.addDimension( (DimensionalObject) groupableItem );
+                    }
+                    else
+                    {
+                        groupableItem = getQueryItem( dim, pr, request.getOutputType() );
+                        params.addItem( (QueryItem) groupableItem );
+                    }
+
+                    groupableItem.setGroupUUID( groupUUID );
                 }
             }
         }

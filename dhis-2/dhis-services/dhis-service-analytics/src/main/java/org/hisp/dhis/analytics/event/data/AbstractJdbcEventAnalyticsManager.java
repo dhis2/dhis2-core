@@ -28,7 +28,9 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.mapping;
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.hisp.dhis.analytics.DataQueryParams.NUMERATOR_DENOMINATOR_PROPERTIES_COUNT;
@@ -116,6 +118,10 @@ public abstract class AbstractJdbcEventAnalyticsManager
     protected static final int LAST_VALUE_YEARS_OFFSET = -10;
 
     private static final String _AND_ = " and ";
+
+    private static final Collector<CharSequence, ?, String> AND_JOINER = joining( _AND_ );
+
+    private static final Collector<CharSequence, ?, String> OR_JOINER = joining( " or ", "(", ")" );
 
     protected final JdbcTemplate jdbcTemplate;
 
@@ -829,13 +835,17 @@ public abstract class AbstractJdbcEventAnalyticsManager
      */
     protected String getItemsSql( EventQueryParams params, SqlHelper hlp )
     {
+        if ( params.isEnhancedCondition() )
+        {
+            return getItemsSqlForEnhancedConditions( params, hlp );
+        }
+
         // Creates a map grouping queryItems referring to repeatable stages and
         // those referring to non-repeatable stages
         Map<Boolean, List<QueryItem>> itemsByRepeatableFlag = params.getItems()
             .stream()
             .filter( QueryItem::hasFilter )
-            .collect( Collectors.groupingBy(
-                QueryItem::hasRepeatableStageParams ) );
+            .collect( groupingBy( QueryItem::hasRepeatableStageParams ) );
 
         Collection<String> repeatableSqlConditions = asSqlCollection( itemsByRepeatableFlag.get( true ), params );
         Collection<String> nonRepeatableSqlConditions = asSqlCollection( itemsByRepeatableFlag.get( false ), params );
@@ -845,8 +855,8 @@ public abstract class AbstractJdbcEventAnalyticsManager
             return "";
         }
 
-        String repeatableSql = joinSql( repeatableSqlConditions, joining( " or ", "(", ")" ) );
-        String nonRepeatableSql = joinSql( nonRepeatableSqlConditions, joining( _AND_ ) );
+        String repeatableSql = joinSql( repeatableSqlConditions, OR_JOINER );
+        String nonRepeatableSql = joinSql( nonRepeatableSqlConditions, AND_JOINER );
 
         if ( isNotEmpty( repeatableSql ) && isNotEmpty( nonRepeatableSql ) )
         {
@@ -857,6 +867,22 @@ public abstract class AbstractJdbcEventAnalyticsManager
             return hlp.whereAnd() + " " + repeatableSql;
         }
         return hlp.whereAnd() + " " + nonRepeatableSql;
+    }
+
+    private String getItemsSqlForEnhancedConditions( EventQueryParams params, SqlHelper hlp )
+    {
+
+        Map<UUID, String> sqlConditionByGroup = params.getItems()
+            .stream()
+            .filter( QueryItem::hasFilter )
+            .collect(
+                groupingBy( QueryItem::getGroupUUID, mapping( queryItem -> toSql( queryItem, params ), OR_JOINER ) ) );
+
+        if ( sqlConditionByGroup.values().isEmpty() )
+        {
+            return "";
+        }
+        return hlp.whereAnd() + " " + String.join( _AND_, sqlConditionByGroup.values() );
     }
 
     /**
