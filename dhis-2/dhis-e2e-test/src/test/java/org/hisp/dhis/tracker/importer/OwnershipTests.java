@@ -109,6 +109,24 @@ public class OwnershipTests
         loginActions.loginAsAdmin();
     }
 
+    @Test
+    public void shouldUpdateTrackedEntitiesInSearchScopeWhenGlassIsBroken()
+        throws Exception
+    {
+        String teiId = importTeisWithEnrollmentAndEvent( searchOu, protectedProgram, protectedProgramStage )
+            .extractImportedTeis().get( 0 );
+
+        JsonObject updatePayload = trackerActions.getTrackedEntity( teiId + "?fields=*" )
+            .validateStatus( 200 )
+            .getBodyAsJsonBuilder().wrapIntoArray( "trackedEntities" );
+
+        loginActions.loginAsUser( username, userPassword );
+
+        trackerActions.overrideOwnership( teiId, protectedProgram, "Change in ownership" );
+
+        trackerActions.postAndGetJobReport( updatePayload )
+            .validateSuccessfulImport();
+    }
 
     @Test
     public void shouldNotUpdateTrackedEntitiesOutsideCaptureScopeWhenProgramProtected()
@@ -123,7 +141,11 @@ public class OwnershipTests
 
         loginActions.loginAsUser( username, userPassword );
 
-        trackerActions.overrideOwnership( teiId, protectedProgram, "Change in ownership" );
+        trackerActions.postAndGetJobReport( updatePayload, new QueryParamsBuilder().addAll( "atomicMode=OBJECT" ) )
+            .validateErrorReport()
+            .body( "errorCode", everyItem( equalTo( "E1102" ) ) )
+            .body( "trackerType", hasItems( "ENROLLMENT", "EVENT" ) )
+            .body( "", hasSize( equalTo( 2 ) ) );
 
     }
 
@@ -140,26 +162,7 @@ public class OwnershipTests
 
         loginActions.loginAsUser( username, userPassword );
 
-        trackerActions.postAndGetJobReport( updatePayload, new QueryParamsBuilder().addAll( "atomicMode=OBJECT" ) )
-            .validateSuccessfulImport();
-    }
-
-    @Test
-    public void shouldUpdateTrackedEntitiesInSearchScopeWhenGlassIsBroken()
-        throws Exception
-    {
-        String teiId = importTeisWithEnrollmentAndEvent( searchOu, protectedProgram, protectedProgramStage )
-            .extractImportedTeis().get( 0 );
-
-        JsonObject updatePayload = trackerActions.getTrackedEntity( teiId + "?fields=*" )
-            .validateStatus( 200 )
-            .getBodyAsJsonBuilder().wrapIntoArray( "trackedEntities" );
-
-       loginActions.loginAsUser( username, userPassword );
-
-        trackerActions.overrideOwnership( teiId, protectedProgram, "Change in ownership" );
-
-        trackerActions.postAndGetJobReport( updatePayload, new QueryParamsBuilder().addAll( "async=false" ) )
+        trackerActions.postAndGetJobReport( updatePayload )
             .validateSuccessfulImport();
     }
 
