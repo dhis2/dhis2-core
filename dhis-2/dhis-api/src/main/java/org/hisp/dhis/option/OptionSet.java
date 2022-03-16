@@ -154,6 +154,19 @@ public class OptionSet
         return null;
     }
 
+    public Option getOptionByUid( String uid )
+    {
+        for ( Option option : options )
+        {
+            if ( option != null && option.getUid().equals( uid ) )
+            {
+                return option;
+            }
+        }
+
+        return null;
+    }
+
     public Map<String, String> getOptionCodePropertyMap( IdScheme idScheme )
     {
         return options.stream().collect( Collectors.toMap( Option::getCode, o -> o.getPropertyValue( idScheme ) ) );
