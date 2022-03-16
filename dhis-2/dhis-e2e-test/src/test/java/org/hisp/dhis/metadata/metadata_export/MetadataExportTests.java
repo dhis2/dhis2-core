@@ -70,7 +70,10 @@ public class MetadataExportTests
     @Test
     public void shouldNotExportAllMetadataWithoutAuthority()
     {
-        loginActions.loginAsUser( userWithoutAccessUsername, userWithoutAccessPassword );
+        String username = ("user_tests_" + DataGenerator.randomString()).toLowerCase();
+        userActions.addUserFull( "firstNameA", "lastNameB", username, userWithoutAccessPassword,
+            "NONE" );
+        loginActions.loginAsUser( username, userWithoutAccessPassword );
 
         metadataActions.get().validate()
             .statusCode( 409 )
@@ -82,7 +85,10 @@ public class MetadataExportTests
     @Test
     public void shouldNotExportUserMetadataWithoutAuthority()
     {
-        loginActions.loginAsUser( userWithoutAccessUsername, userWithoutAccessPassword );
+
+        userActions.addUserFull( "firstNameA", "lastNameB", "usernamea", userWithoutAccessPassword,
+            "NONE" );
+        loginActions.loginAsUser( "usernamea", userWithoutAccessPassword );
 
         metadataActions.get( "", new QueryParamsBuilder().add( "users=true" ) )
             .validate()

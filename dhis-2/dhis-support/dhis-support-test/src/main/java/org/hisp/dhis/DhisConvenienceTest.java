@@ -2424,7 +2424,7 @@ public abstract class DhisConvenienceTest
     {
         checkUserServiceWasInjected();
 
-        UserRole userRole = createAuthorityGroup( username, authorities );
+        UserRole userRole = createUserRole( username, authorities );
         userService.addUserRole( userRole );
 
         boolean present = uid.isPresent();
@@ -2451,8 +2451,8 @@ public abstract class DhisConvenienceTest
     {
         checkUserServiceWasInjected();
 
-        UserRole group = createAuthorityGroup( "Superuser", authorities );
-        group.setUid( "yrB6vc5Ip3r" );
+        UserRole role = createUserRole( "Superuser", authorities );
+        role.setUid( "yrB6vc5Ip3r" );
 
         String username = DEFAULT_USERNAME;
         String password = DEFAULT_ADMIN_PASSWORD;
@@ -2463,14 +2463,14 @@ public abstract class DhisConvenienceTest
         user.setName( "Admin" );
         user.setUsername( username );
         user.setPassword( password );
-        user.getUserRoles().add( group );
+        user.getUserRoles().add( role );
 
         userService.addUser( user );
 
         userService.encodeAndSetPassword( user, password );
         userService.updateUser( user );
 
-        userService.addUserRole( group );
+        userService.addUserRole( role );
 
         return user;
     }
@@ -2595,12 +2595,12 @@ public abstract class DhisConvenienceTest
         return user;
     }
 
-    private static UserRole createAuthorityGroup( String username, String... authorities )
+    protected static UserRole createUserRole( String name, String... authorities )
     {
         UserRole group = new UserRole();
-        group.setCode( username );
-        group.setName( username );
-        group.setDescription( username );
+        group.setCode( name );
+        group.setName( name );
+        group.setDescription( name );
         group.setAuthorities( Sets.newHashSet( authorities ) );
         return group;
     }
