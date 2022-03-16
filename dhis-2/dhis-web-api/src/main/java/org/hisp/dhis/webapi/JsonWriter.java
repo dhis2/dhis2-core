@@ -78,7 +78,7 @@ public final class JsonWriter implements AutoCloseable
             {
                 out.write( "," );
             }
-            out.write( "{" );
+            out.write( "\n{" );
             out.write( "\"key\":\"" );
             out.write( entry.getKey() );
             out.write( '"' );
@@ -93,7 +93,7 @@ public final class JsonWriter implements AutoCloseable
             }
             out.write( "}" );
         } );
-        out.write( "]" );
+        out.write( "\n]" );
     }
 
     private static List<String> memberOpening( List<String> members )
