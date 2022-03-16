@@ -27,22 +27,15 @@
  */
 package org.hisp.dhis.actions.tracker.importer;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import org.awaitility.core.ConditionEvaluationListener;
-import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;
-import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 
 import java.io.File;
-import java.time.Instant;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
-import java.util.function.BiFunction;
-import java.util.function.Function;
 import java.util.logging.Logger;
 
 import static org.awaitility.Awaitility.with;
@@ -121,12 +114,12 @@ public class TrackerActions
 
     public TrackerApiResponse getTrackedEntity( String entityId )
     {
-        return getTrackedEntity( entityId, new QueryParamsBuilder());
+        return getTrackedEntity( entityId, new QueryParamsBuilder() );
     }
 
     public TrackerApiResponse getTrackedEntity( String entityId, QueryParamsBuilder queryParamsBuilder )
     {
-        return new TrackerApiResponse( this.get( "/trackedEntities/" + entityId , queryParamsBuilder ));
+        return new TrackerApiResponse( this.get( "/trackedEntities/" + entityId, queryParamsBuilder ) );
     }
 
     public TrackerApiResponse getTrackedEntities( QueryParamsBuilder queryParamsBuilder )
@@ -144,8 +137,25 @@ public class TrackerActions
         return new TrackerApiResponse( this.get( "/events/" + eventId ) );
     }
 
-    public TrackerApiResponse getRelationship( String relationshipId ) {
-        return new TrackerApiResponse( this.get( "/relationships/" + relationshipId) );
+    public TrackerApiResponse getRelationship( String relationshipId )
+    {
+        return new TrackerApiResponse( this.get( "/relationships/" + relationshipId ) );
+    }
+
+    public void overrideOwnership( String tei, String program, String reason )
+    {
+        this.post(
+            String.format( "/ownership/override?trackedEntityInstance=%s&program=%s&reason=%s", tei, program, reason ),
+            new JsonObject() )
+            .validateStatus( 200 );
+    }
+
+    public void transferOwnership( String tei, String program, String ou )
+    {
+        this.update( String
+            .format( "/ownership/transfer?trackedEntityInstance=%s&program=%s&ou=%s", tei, program,
+                ou ), new JsonObject() ).validateStatus( 200 );
+
     }
 
     private void saveCreatedData( ApiResponse response )
