@@ -68,7 +68,8 @@ public class HibernateEventVisualizationStore extends
     private enum EventVisualizationSet
     {
         EVENT_CHART,
-        EVENT_REPORT
+        EVENT_REPORT,
+        EVENT_LINE_LIST
     }
 
     public HibernateEventVisualizationStore( final SessionFactory sessionFactory, final JdbcTemplate jdbcTemplate,
@@ -113,6 +114,12 @@ public class HibernateEventVisualizationStore extends
     public int countChartsCreated( final Date startingAt )
     {
         return countEventVisualizationCreated( startingAt, EventVisualizationSet.EVENT_CHART );
+    }
+
+    @Override
+    public List<EventVisualization> getLineLists( final int first, final int max )
+    {
+        return getEventVisualizations( first, max, EventVisualizationSet.EVENT_LINE_LIST );
     }
 
     private int countEventVisualizationCreated( final Date startingAt,
@@ -182,10 +189,14 @@ public class HibernateEventVisualizationStore extends
             params.addPredicate( root -> builder.and( builder.notEqual( root.get( "type" ), PIVOT_TABLE ),
                 builder.notEqual( root.get( "type" ), LINE_LIST ) ) );
         }
-        else
+        else if ( eventVisualizationSet == EventVisualizationSet.EVENT_REPORT )
         {
             params.addPredicate( root -> builder.or( builder.equal( root.get( "type" ), PIVOT_TABLE ),
                 builder.equal( root.get( "type" ), LINE_LIST ) ) );
+        }
+        else
+        {
+            params.addPredicate( root -> builder.equal( root.get( "type" ), LINE_LIST ) );
         }
     }
 }
