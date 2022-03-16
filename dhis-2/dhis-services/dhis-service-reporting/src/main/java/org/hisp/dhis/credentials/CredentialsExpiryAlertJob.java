@@ -55,7 +55,7 @@ import org.springframework.stereotype.Component;
  * Created by zubair on 29.03.17.
  */
 @Slf4j
-@Component( "credentialsExpiryAlertJob" )
+@Component
 public class CredentialsExpiryAlertJob implements Job
 {
     private static final String SUBJECT = "Password Expiry Alert";
@@ -64,15 +64,11 @@ public class CredentialsExpiryAlertJob implements Job
 
     private static final String KEY_TASK = "credentialsExpiryAlertTask";
 
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+    private final UserService userService;
 
-    private UserService userService;
+    private final MessageSender emailMessageSender;
 
-    private MessageSender emailMessageSender;
-
-    private SystemSettingManager systemSettingManager;
+    private final SystemSettingManager systemSettingManager;
 
     public CredentialsExpiryAlertJob( UserService userService,
         @Qualifier( "emailMessageSender" ) MessageSender emailMessageSender, SystemSettingManager systemSettingManager )
@@ -86,10 +82,6 @@ public class CredentialsExpiryAlertJob implements Job
         this.systemSettingManager = systemSettingManager;
     }
 
-    // -------------------------------------------------------------------------
-    // Implementation
-    // -------------------------------------------------------------------------
-
     @Override
     public JobType getJobType()
     {
@@ -99,22 +91,24 @@ public class CredentialsExpiryAlertJob implements Job
     @Override
     public void execute( JobConfiguration jobConfiguration, JobProgress progress )
     {
-        boolean isExpiryAlertEnabled = systemSettingManager
-            .getBoolSetting( SettingKey.CREDENTIALS_EXPIRY_ALERT );
-
-        if ( !isExpiryAlertEnabled )
+        if ( !systemSettingManager.getBoolSetting( SettingKey.CREDENTIALS_EXPIRY_ALERT ) )
         {
             log.info( String.format( "%s aborted. Expiry alerts are disabled", KEY_TASK ) );
-
             return;
         }
 
         log.info( String.format( "%s has started", KEY_TASK ) );
 
+        progress.startingProcess();
+        sendExpiryAlert( findAndPrepareRecipients( progress ), progress );
+        progress.completedProcess( null );
+    }
+
+    private Map<String, String> findAndPrepareRecipients( JobProgress progress )
+    {
+        progress.startingStage( "finding and preparing email recipients" );
         List<User> users = userService.getExpiringUsers();
-
         Map<String, String> content = new HashMap<>();
-
         for ( User user : users )
         {
             if ( user.getEmail() != null )
@@ -122,10 +116,9 @@ public class CredentialsExpiryAlertJob implements Job
                 content.put( user.getEmail(), createText( user ) );
             }
         }
-
+        progress.completedStage( String.format( "%d recipients", content.size() ) );
         log.info( String.format( "Users added for alert: %d", content.size() ) );
-
-        sendExpiryAlert( content );
+        return content;
     }
 
     @Override
@@ -140,18 +133,18 @@ public class CredentialsExpiryAlertJob implements Job
         return Job.super.validate();
     }
 
-    private void sendExpiryAlert( Map<String, String> content )
+    private void sendExpiryAlert( Map<String, String> content, JobProgress progress )
     {
+        progress.startingStage( "sending expiry alert", content.size() );
         if ( emailMessageSender.isConfigured() )
         {
-            for ( String email : content.keySet() )
-            {
-                emailMessageSender.sendMessage( SUBJECT, content.get( email ), email );
-            }
+            progress.runStage( content.entrySet(), e -> "to: " + e.getKey(),
+                e -> emailMessageSender.sendMessage( SUBJECT, e.getKey(), e.getValue() ) );
         }
         else
         {
             log.error( "Email service is not configured" );
+            progress.failedStage( "Email service is not configured" );
         }
     }
 
