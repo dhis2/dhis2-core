@@ -61,7 +61,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 @RequiredArgsConstructor
 public class TrackerTrackedEntitiesExportController
 {
-    protected final static String TRACKED_ENTITIES = "trackedEntities";
+    protected static final String TRACKED_ENTITIES = "trackedEntities";
 
     private static final String DONT_FILTER_FIELDS = "**";
 
@@ -70,12 +70,15 @@ public class TrackerTrackedEntitiesExportController
     private static final List<String> DEFAULT_FIELDS = List.of( "*", "!relationships", "!enrollments", "!events",
         "!programOwners" );
 
-    private final TrackedEntityCriteriaMapper criteriaMapper;
-
-    private final TrackedEntityInstanceService trackedEntityInstanceService;
-
     private static final TrackedEntityMapper TRACKED_ENTITY_MAPPER = Mappers.getMapper( TrackedEntityMapper.class );
 
+    @NonNull
+    private final TrackedEntityCriteriaMapper criteriaMapper;
+
+    @NonNull
+    private final TrackedEntityInstanceService trackedEntityInstanceService;
+
+    @NonNull
     private final TrackedEntityInstanceSupportService trackedEntityInstanceSupportService;
 
     @NonNull
@@ -90,7 +93,7 @@ public class TrackerTrackedEntitiesExportController
 
         List<TrackedEntity> trackedEntityInstances = TRACKED_ENTITY_MAPPER
             .fromCollection( trackedEntityInstanceService.getTrackedEntityInstances( queryParams,
-                trackedEntityInstanceSupportService.getTrackedEntityInstanceParams( fields ), false, false ) );
+                TrackedEntityInstanceSupportService.getTrackedEntityInstanceParams( fields ), false, false ) );
 
         PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
 
