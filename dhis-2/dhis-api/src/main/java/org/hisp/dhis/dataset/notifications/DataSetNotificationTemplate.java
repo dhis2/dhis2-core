@@ -238,4 +238,14 @@ public class DataSetNotificationTemplate
     {
         this.notifyParentOrganisationUnitOnly = notifyParentOrganisationUnitOnly;
     }
+
+    @Override
+    public void setAutoFields()
+    {
+        super.setAutoFields();
+        if ( sendStrategy == null )
+        {
+            sendStrategy = SendStrategy.SINGLE_NOTIFICATION;
+        }
+    }
 }

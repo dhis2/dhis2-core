@@ -27,28 +27,18 @@
  */
 package org.hisp.dhis.notification;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
 /**
  * Created by zubair on 06.04.17.
  */
-
+@Getter
+@AllArgsConstructor
 public enum SendStrategy
 {
     COLLECTIVE_SUMMARY( "Summary" ),
     SINGLE_NOTIFICATION( "Single" );
 
-    private String description;
-
-    SendStrategy()
-    {
-    }
-
-    SendStrategy( String description )
-    {
-        this.description = description;
-    }
-
-    public String getDescription()
-    {
-        return description;
-    }
+    private final String description;
 }
