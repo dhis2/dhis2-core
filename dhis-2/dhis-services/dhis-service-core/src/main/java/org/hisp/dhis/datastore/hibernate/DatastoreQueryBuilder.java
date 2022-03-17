@@ -103,17 +103,23 @@ public class DatastoreQueryBuilder
     {
         Order order = query.getOrder();
         String dir = order.getDirection().toString().replace( "n", "" );
+        if ( "desc".equals( dir ) )
+        {
+            dir += " nulls last";
+        }
         if ( order.isKeyPath() )
         {
             return "key " + dir;
         }
         if ( order.isValuePath() )
         {
-            return "cast(jbPlainValue as text) " + dir;
+            return order.getDirection().isNumeric()
+                ? "cast(cast(jbPlainValue as text) as double) " + dir
+                : "cast(jbPlainValue as text) " + dir;
         }
         String path = toValueAtPathHQL( order.getPath() );
         return order.getDirection().isNumeric()
-            ? "cast(" + path + " as double) " + dir
+            ? "cast(cast(" + path + " as text) as double) " + dir
             : path + " " + dir;
     }
 
