@@ -40,12 +40,17 @@ import static org.hisp.dhis.DhisConvenienceTest.createProgramIndicator;
 import static org.hisp.dhis.DhisConvenienceTest.getDate;
 import static org.hisp.dhis.analytics.AnalyticsAggregationType.fromAggregationType;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
@@ -61,6 +66,7 @@ import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
@@ -391,5 +397,131 @@ class AbstractJdbcEventAnalyticsManagerTest extends
         assertThat( whereClause,
             containsString(
                 "and ax.\"uidlevel0\" in ('ouabcdefghA','ouabcdefghB','ouabcdefghC')" ) );
+    }
+
+    @Test
+    void testGeItemNoFiltersSql()
+    {
+        EventQueryParams queryParams = new EventQueryParams.Builder()
+            .addItem( buildQueryItemWithGroupAndFilters( "item", UUID.randomUUID(), Collections.emptyList() ) )
+            .build();
+        assertEquals( "", subject.getItemsSql( queryParams, new SqlHelper() ) );
+    }
+
+    @Test
+    void testGetItemSimpleFilterSql()
+    {
+        EventQueryParams queryParams = new EventQueryParams.Builder()
+            .addItem( buildQueryItemWithGroupAndFilters(
+                "item",
+                UUID.randomUUID(),
+                List.of( buildEqQueryFilter( "A" ) ) ) )
+            .build();
+        String result = subject.getItemsSql( queryParams, new SqlHelper() );
+        assertEquals( "where ax.\"item\" = 'A' ", result );
+    }
+
+    @Test
+    void testGetItemTwoConditionsSameGroupSql()
+    {
+        UUID groupUUID = UUID.randomUUID();
+        EventQueryParams queryParams = new EventQueryParams.Builder()
+            .addItem( buildQueryItemWithGroupAndFilters(
+                "item",
+                UUID.randomUUID(),
+                List.of(
+                    buildEqQueryFilter( "A" ),
+                    buildEqQueryFilter( "B" ) ) ) )
+            .build();
+        String result = subject.getItemsSql( queryParams, new SqlHelper() );
+        assertEquals( "where ax.\"item\" = 'A'  and ax.\"item\" = 'B' ", result );
+    }
+
+    @Test
+    void testGetItemSameItemTwoConditionsSqlEnhancedConditions()
+    {
+        EventQueryParams queryParams = new EventQueryParams.Builder()
+            .addItem( buildQueryItemWithGroupAndFilters(
+                "item",
+                UUID.randomUUID(),
+                List.of(
+                    buildEqQueryFilter( "A" ),
+                    buildEqQueryFilter( "B" ) ) ) )
+            .withEnhancedConditions( true )
+            .build();
+
+        String result = subject.getItemsSql( queryParams, new SqlHelper() );
+        assertEquals( "where (ax.\"item\" = 'A'  and ax.\"item\" = 'B' )", result );
+    }
+
+    @Test
+    void testGetItemTwoConditionsSameGroupSqlEnhancedConditions()
+    {
+        UUID groupUUID = UUID.randomUUID();
+        EventQueryParams queryParams = new EventQueryParams.Builder()
+            .addItem( buildQueryItemWithGroupAndFilters(
+                "item1",
+                groupUUID,
+                List.of(
+                    buildEqQueryFilter( "A" ) ) ) )
+            .addItem( buildQueryItemWithGroupAndFilters(
+                "item2",
+                groupUUID,
+                List.of(
+                    buildEqQueryFilter( "B" ) ) ) )
+            .withEnhancedConditions( true )
+            .build();
+
+        String result = subject.getItemsSql( queryParams, new SqlHelper() );
+        assertEquals( "where (ax.\"item1\" = 'A'  or ax.\"item2\" = 'B' )", result );
+    }
+
+    @Test
+    void testGetItemTwoConditionsDifferentGroupsSqlEnhancedConditions()
+    {
+        UUID groupUUID1 = UUID.randomUUID();
+        UUID groupUUID2 = UUID.randomUUID();
+        EventQueryParams queryParams = new EventQueryParams.Builder()
+            .addItem( buildQueryItemWithGroupAndFilters(
+                "item1",
+                groupUUID1,
+                List.of( buildEqQueryFilter( "A" ) ) ) )
+            .addItem( buildQueryItemWithGroupAndFilters(
+                "item2",
+                groupUUID1,
+                List.of( buildEqQueryFilter( "B" ) ) ) )
+            .addItem( buildQueryItemWithGroupAndFilters(
+                "item3",
+                groupUUID2,
+                List.of( buildEqQueryFilter( "C" ) ) ) )
+            .addItem( buildQueryItemWithGroupAndFilters(
+                "item4",
+                groupUUID2,
+                List.of( buildEqQueryFilter( "D" ) ) ) )
+            .withEnhancedConditions( true )
+            .build();
+
+        String result = subject.getItemsSql( queryParams, new SqlHelper() );
+        assertEquals(
+            "where (ax.\"item1\" = 'A'  or ax.\"item2\" = 'B' ) and (ax.\"item3\" = 'C'  or ax.\"item4\" = 'D' )",
+            result );
+    }
+
+    private QueryFilter buildEqQueryFilter( String filter )
+    {
+        return new QueryFilter( QueryOperator.EQ, filter );
+    }
+
+    private QueryItem buildQueryItem( String item )
+    {
+        return new QueryItem( new BaseDimensionalItemObject( item ) );
+    }
+
+    private QueryItem buildQueryItemWithGroupAndFilters( String item, UUID groupUUID, Collection<QueryFilter> filters )
+    {
+        QueryItem queryItem = buildQueryItem( item );
+        queryItem.setGroupUUID( groupUUID );
+        queryItem.setFilters( new ArrayList<>( filters ) );
+        return queryItem;
     }
 }
