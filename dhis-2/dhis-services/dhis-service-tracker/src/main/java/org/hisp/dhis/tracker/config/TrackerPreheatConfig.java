@@ -51,6 +51,7 @@ public class TrackerPreheatConfig
         PeriodTypeSupplier.class,
         UniqueAttributesSupplier.class,
         UserSupplier.class,
+        UsernameValueTypeSupplier.class,
         FileResourceSupplier.class,
         EventCategoryOptionComboSupplier.class );
 
