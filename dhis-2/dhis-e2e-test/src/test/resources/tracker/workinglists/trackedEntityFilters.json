@@ -20,7 +20,7 @@
         "displayColumnOrder": [ "eventDate", "dueDate", "program", "invalid"],
         "assignedUserMode": "ANY",
         "programStage":"a3kGcGDCuk6",
-        "trackedEntityType":"invalid-uid",
+        "trackedEntityType":"Q9GufDoplCL",
         "lastUpdatedDate": {
             "period": "TODAY",
             "startBuffer": -5,
@@ -39,7 +39,7 @@
             "startDate": "2014-05-01T00:00:00.000"
         },
         "trackedEntityInstances": ["a3kGcGDCuk7", "a3kGcGDCuk8"],
-        "order": "createdAt:desc",
+        "order": "createdAt:desc;orgUnit:asc",
         "attributeValueFilters": [
             {
                 "attribute": "dIVt4l5vIOa",

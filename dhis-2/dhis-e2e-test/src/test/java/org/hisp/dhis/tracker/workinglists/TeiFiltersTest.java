@@ -64,29 +64,29 @@ public class TeiFiltersTest
     public void shouldImportTeiWorkingList()
         throws IOException
     {
-        JsonObject object = new JsonFileReader( workingListFile )
+        JsonObject payload = new JsonFileReader( workingListFile )
             .get();
 
-        String uid = workingListActions.post( object )
+        String uid = workingListActions.post( payload )
             .validateStatus( 201 )
             .extractUid();
 
         workingListActions.get( uid )
             .validate()
             .statusCode( 200 )
-            .body( "", matchesJSON( object ) );
+            .body( "", matchesJSON( payload ) );
     }
 
     @Test
     public void shouldValidateAssignedUsersMode()
         throws IOException
     {
-        JsonObject object = new JsonFileReader( workingListFile )
+        JsonObject payload = new JsonFileReader( workingListFile )
             .getAsObjectBuilder()
             .addPropertyByJsonPath( "entityQueryCriteria.assignedUserMode", "PROVIDED" )
             .build();
 
-        workingListActions.post( object )
+        workingListActions.post( payload )
             .validate()
             .statusCode( 409 )
             .body( "message", containsStringIgnoringCase( "Assigned Users cannot be empty with PROVIDED assigned user mode" ) );
@@ -96,12 +96,12 @@ public class TeiFiltersTest
     public void shouldValidateOrgUnitMode()
         throws IOException
     {
-        JsonObject object = new JsonFileReader( workingListFile )
+        JsonObject payload = new JsonFileReader( workingListFile )
             .getAsObjectBuilder()
             .addPropertyByJsonPath( "entityQueryCriteria.ouMode", "SELECTED" )
             .build();
 
-        workingListActions.post( object )
+        workingListActions.post( payload )
             .validate()
             .statusCode( 409 )
             .body( "message", containsStringIgnoringCase( "Organisation Unit cannot be empty with SELECTED org unit mode" ) );
@@ -112,11 +112,11 @@ public class TeiFiltersTest
     public void shouldValidateAttribute()
         throws IOException
     {
-        JsonObject object = new JsonFileReader( workingListFile )
+        JsonObject payload = new JsonFileReader( workingListFile )
             .replaceStringsWithIds( "dIVt4l5vIOa" )
             .get();
 
-        workingListActions.post( object )
+        workingListActions.post( payload )
             .validateStatus( 409 )
             .validate().body( "message", containsStringIgnoringCase( "no tracked entity attribute found" ) );
     }
