@@ -176,9 +176,8 @@ public class DefaultDashboardService
 
         result.setVisualizations( convertFromVisualization( objectManager.getBetweenSorted( Visualization.class, 0,
             getMax( DashboardItemType.VISUALIZATION, maxTypes, count, maxCount ) ) ) );
-        result.setEventVisualizations(
-            convertFromEventVisualization( objectManager.getBetweenSorted( EventVisualization.class, 0,
-                getMax( DashboardItemType.EVENT_VISUALIZATION, maxTypes, count, maxCount ) ) ) );
+        result.setEventVisualizations( convertFromEventVisualization( eventVisualizationStore.getLineLists( 0,
+            getMax( DashboardItemType.EVENT_VISUALIZATION, maxTypes, count, maxCount ) ) ) );
         result.setEventCharts( eventVisualizationStore.getCharts( 0,
             getMax( DashboardItemType.EVENT_CHART, maxTypes, count, maxCount ) ) );
         result.setMaps( objectManager.getBetweenSorted( Map.class, 0,
