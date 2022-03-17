@@ -45,6 +45,7 @@ import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
 import static org.hisp.dhis.common.DimensionItemType.PROGRAM_INDICATOR;
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
 import static org.hisp.dhis.common.QueryOperator.IN;
+import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.ENROLLMENT;
 import static org.hisp.dhis.system.util.MathUtils.getRounded;
 
 import java.util.Collection;
@@ -831,11 +832,13 @@ public abstract class AbstractJdbcEventAnalyticsManager
     {
         // Creates a map grouping queryItems referring to repeatable stages and
         // those referring to non-repeatable stages
+        // Only for enrollments, for events all query items are treated as
+        // non-repeatable
         Map<Boolean, List<QueryItem>> itemsByRepeatableFlag = params.getItems()
             .stream()
             .filter( QueryItem::hasFilter )
             .collect( Collectors.groupingBy(
-                QueryItem::hasRepeatableStageParams ) );
+                queryItem -> queryItem.hasRepeatableStageParams() && params.getEndpointItem() == ENROLLMENT ) );
 
         Collection<String> repeatableSqlConditions = asSqlCollection( itemsByRepeatableFlag.get( true ), params );
         Collection<String> nonRepeatableSqlConditions = asSqlCollection( itemsByRepeatableFlag.get( false ), params );
