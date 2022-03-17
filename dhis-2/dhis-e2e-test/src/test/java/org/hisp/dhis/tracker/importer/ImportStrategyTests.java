@@ -43,6 +43,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.io.File;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
@@ -157,22 +159,15 @@ public class ImportStrategyTests
         String enrollmentId = response.extractImportedEnrollments().get( 0 );
         String teiId = response.extractImportedTeis().get( 0 );
 
-        trackerActions
-            .postAndGetJobReport( new JsonObjectBuilder().addProperty( "enrollment", enrollmentId ).wrapIntoArray( "enrollments" ),
-                new QueryParamsBuilder().add( "importStrategy=DELETE" ) )
-            .validateSuccessfulImport()
-            .validate().body( "stats.deleted", Matchers.equalTo( 1 ) );
+        Consumer<JsonObject> deleteAndValidate = ( payload ) -> {
+            trackerActions.postAndGetJobReport( payload, new QueryParamsBuilder().add( "importStrategy=DELETE" ) )
+                .validateSuccessfulImport()
+                .validate().body( "stats.deleted", Matchers.equalTo( 1 ) );
+        };
 
-        // todo uncomment these validations when DHIS2-12685 is fixed
-        /*
-        trackerActions.postAndGetJobReport( new JsonObjectBuilder().addProperty( "event", eventId ).wrapIntoArray("events"), new QueryParamsBuilder().add( "importStrategy=DELETE" ) )
-            .validateSuccessfulImport()
-            .validate().body( "stats.deleted", Matchers.equalTo( 1 ) );
-
-        trackerActions.postAndGetJobReport( new JsonObjectBuilder().addProperty( "trackedEntity", teiId ).wrapIntoArray("trackedEntities"), new QueryParamsBuilder().add( "importStrategy=DELETE" ) )
-            .validateSuccessfulImport()
-            .validate().body( "stats.deleted", Matchers.equalTo( 1 ) );
-         */
+        deleteAndValidate.accept( new JsonObjectBuilder().addProperty( "event", eventId ).wrapIntoArray( "events" ));
+        deleteAndValidate.accept( new JsonObjectBuilder().addProperty( "enrollment", enrollmentId ).wrapIntoArray( "enrollments" ));
+        deleteAndValidate.accept( new JsonObjectBuilder().addProperty( "trackedEntity", teiId ).wrapIntoArray( "trackedEntities" ));
     }
 }
 
