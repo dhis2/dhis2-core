@@ -149,7 +149,10 @@ public enum JobType
 
     public boolean isUsingNotifications()
     {
-        return this == RESOURCE_TABLE || this == ANALYTICS_TABLE || this == CONTINUOUS_ANALYTICS_TABLE;
+        return this == RESOURCE_TABLE
+            || this == ANALYTICS_TABLE
+            || this == CONTINUOUS_ANALYTICS_TABLE
+            || this == DATA_SET_NOTIFICATION;
     }
 
     public boolean isCronSchedulingType()
