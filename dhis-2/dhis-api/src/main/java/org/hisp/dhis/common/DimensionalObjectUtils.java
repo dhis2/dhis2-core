@@ -541,7 +541,7 @@ public class DimensionalObjectUtils
     {
         return operands.stream()
             .filter( o -> o.getAttributeOptionCombo() != null )
-            .map( DataElementOperand::getCategoryOptionCombo )
+            .map( DataElementOperand::getAttributeOptionCombo )
             .collect( Collectors.toSet() );
     }
 
