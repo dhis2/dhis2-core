@@ -31,6 +31,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.program.ProgramInstance;
@@ -108,5 +111,31 @@ public class TrackerControllerAssertions
             "orgUnit UID" );
         assertTrue( jsonEnrollment.getArray( "events" ).isEmpty(), "events should be empty" );
         assertFalse( jsonEnrollment.has( "relationships" ), "relationships is not returned within relationship items" );
+    }
+
+    public static void assertHasOnlyMembers( JsonObject json, String... names )
+    {
+        Set<String> actual = new HashSet<>( json.names() );
+        Set<String> expected = Set.of( names );
+        assertEquals( expected.size(), actual.size(), "total number of members" );
+        assertTrue( actual.containsAll( expected ), "members mismatch" );
+    }
+
+    public static void assertHasNoMember( JsonObject json, String name )
+    {
+        assertFalse( json.has( name ), String.format( "member \"%s\" should NOT be in %s", name, json ) );
+    }
+
+    public static void assertHasMembers( JsonObject json, String... names )
+    {
+        for ( String name : names )
+        {
+            assertHasMember( json, name );
+        }
+    }
+
+    public static void assertHasMember( JsonObject json, String name )
+    {
+        assertTrue( json.has( name ), String.format( "member \"%s\" should be in %s", name, json ) );
     }
 }

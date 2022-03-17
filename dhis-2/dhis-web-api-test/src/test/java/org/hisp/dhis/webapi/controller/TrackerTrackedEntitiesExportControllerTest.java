@@ -27,12 +27,14 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.webapi.controller.TrackerControllerAssertions.assertHasMember;
+import static org.hisp.dhis.webapi.controller.TrackerControllerAssertions.assertHasNoMember;
+import static org.hisp.dhis.webapi.controller.TrackerControllerAssertions.assertHasOnlyMembers;
 import static org.hisp.dhis.webapi.controller.TrackerControllerAssertions.assertRelationship;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.HashSet;
 import java.util.Set;
 
 import org.hisp.dhis.common.CodeGenerator;
@@ -437,29 +439,4 @@ class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenien
         assertTrue( jsonTEI.getArray( "attributes" ).isEmpty() );
     }
 
-    private void assertHasNoMember( JsonObject json, String name )
-    {
-        assertFalse( json.has( name ), String.format( "member \"%s\" should NOT be in %s", name, json ) );
-    }
-
-    private void assertHasOnlyMembers( JsonObject json, String... names )
-    {
-        Set<String> actual = new HashSet<>( json.names() );
-        Set<String> expected = Set.of( names );
-        assertEquals( expected.size(), actual.size(), "total number of members" );
-        assertTrue( actual.containsAll( expected ), "members mismatch" );
-    }
-
-    private void assertHasMembers( JsonObject json, String... names )
-    {
-        for ( String name : names )
-        {
-            assertHasMember( json, name );
-        }
-    }
-
-    private void assertHasMember( JsonObject json, String name )
-    {
-        assertTrue( json.has( name ), String.format( "member \"%s\" should be in %s", name, json ) );
-    }
 }
