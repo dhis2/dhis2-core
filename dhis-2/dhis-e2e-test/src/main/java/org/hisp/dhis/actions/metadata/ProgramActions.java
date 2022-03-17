@@ -211,6 +211,7 @@ public class ProgramActions
     {
         return new JsonObjectBuilder( buildProgram() )
             .addProperty( "programType", programType )
+            .addProperty( "displayFrontPageList", "true" )
             .addProperty( "publicAccess", "rwrw----" )
             .build();
     }

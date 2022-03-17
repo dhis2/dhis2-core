@@ -35,7 +35,6 @@ import org.hisp.dhis.actions.MaintenanceActions;
 import org.hisp.dhis.actions.metadata.ProgramActions;
 import org.hisp.dhis.actions.tracker.importer.TrackerActions;
 import org.hisp.dhis.dto.TrackerApiResponse;
-import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.hisp.dhis.helpers.file.JsonFileReader;
 import org.hisp.dhis.tracker.importer.databuilder.RelationshipDataBuilder;
@@ -88,13 +87,16 @@ public class TrackerNtiApiTest
         return trackerActions.postAndGetJobReport( teiBody ).validateSuccessfulImport().extractImportedTeis().get( 0 );
     }
 
-    protected List<String> importTeis()
+    protected String importTei( String orgUnit )
+        throws Exception
     {
-        List<String> teis = trackerActions
-            .postAndGetJobReport( new File( "src/test/resources/tracker/importer/teis/teis.json" ) )
-            .validateSuccessfulImport().extractImportedTeis();
+        JsonObject teiBody = new FileReaderUtils()
+            .read( new File( "src/test/resources/tracker/importer/teis/tei.json" ) )
+                .replacePropertyValuesRecursivelyWith( "orgUnit", orgUnit )
+            .get(JsonObject.class);
 
-        return teis;
+
+        return trackerActions.postAndGetJobReport( teiBody ).validateSuccessfulImport().extractImportedTeis().get( 0 );
     }
 
     protected List<String> importEvents()
@@ -114,6 +116,18 @@ public class TrackerNtiApiTest
         JsonObject teiWithEnrollment = new FileReaderUtils()
             .read( new File( "src/test/resources/tracker/importer/teis/teiWithEnrollments.json" ) )
             .replacePropertyValuesRecursivelyWith( "program", programId )
+            .get( JsonObject.class );
+
+        return trackerActions.postAndGetJobReport( teiWithEnrollment ).validateSuccessfulImport();
+    }
+
+    protected TrackerApiResponse importTeiWithEnrollment( String ouId, String programId )
+        throws Exception
+    {
+        JsonObject teiWithEnrollment = new FileReaderUtils()
+            .read( new File( "src/test/resources/tracker/importer/teis/teiWithEnrollments.json" ) )
+            .replacePropertyValuesRecursivelyWith( "program", programId )
+            .replacePropertyValuesRecursivelyWith( "orgUnit", ouId )
             .get( JsonObject.class );
 
         return trackerActions.postAndGetJobReport( teiWithEnrollment ).validateSuccessfulImport();
@@ -144,7 +158,8 @@ public class TrackerNtiApiTest
     protected TrackerApiResponse importTeisWithEnrollmentAndEvent()
         throws Exception
     {
-        JsonObject object = new JsonFileReader( new File( "src/test/resources/tracker/importer/teis/teisWithEnrollmentsAndEvents.json" ) )
+        JsonObject object = new JsonFileReader(
+            new File( "src/test/resources/tracker/importer/teis/teisWithEnrollmentsAndEvents.json" ) )
             .replaceStringsWithIds( "Kj6vYde4LHh", "Nav6inZRw1u", "MNWZ6hnuhSw", "PuBvJxDB73z", "olfXZzSGacW", "ZwwuwNp6gVd" )
             .get( JsonObject.class );
 
@@ -152,7 +167,8 @@ public class TrackerNtiApiTest
             .validateSuccessfulImport();
     }
 
-    protected TrackerApiResponse importRelationshipBetweenTeis( String teiA, String teiB ) {
+    protected TrackerApiResponse importRelationshipBetweenTeis( String teiA, String teiB )
+    {
         JsonObject payload = new RelationshipDataBuilder()
             .setFromTrackedEntity( teiA )
             .setToTrackedEntity( teiB )
