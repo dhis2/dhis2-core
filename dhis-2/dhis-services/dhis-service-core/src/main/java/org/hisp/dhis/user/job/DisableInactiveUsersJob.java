@@ -70,7 +70,7 @@ public class DisableInactiveUsersJob implements Job
     @Override
     public void execute( JobConfiguration jobConfiguration, JobProgress progress )
     {
-        progress.startingStage( "Disable inactive users" );
+        progress.startingProcess( "Disable inactive users" );
         DisableInactiveUsersJobParameters parameters = (DisableInactiveUsersJobParameters) jobConfiguration
             .getJobParameters();
         LocalDate today = LocalDate.now();
