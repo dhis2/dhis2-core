@@ -83,9 +83,9 @@ public class TrackerRelationshipsExportController
 
     private static final String DONT_FILTER_FIELDS = "**";
 
-    private static final String DEFAULT_FIELDS_PARAM = "*,!relationships,!notes";
+    private static final String DEFAULT_FIELDS_PARAM = "*";
 
-    private static final List<String> DEFAULT_FIELDS = List.of( "*", "!relationships", "!notes" );
+    private static final List<String> DEFAULT_FIELDS = List.of( "*" );
 
     private static final org.hisp.dhis.webapi.controller.tracker.export.RelationshipMapper RELATIONSHIP_MAPPER = Mappers
         .getMapper( org.hisp.dhis.webapi.controller.tracker.export.RelationshipMapper.class );
