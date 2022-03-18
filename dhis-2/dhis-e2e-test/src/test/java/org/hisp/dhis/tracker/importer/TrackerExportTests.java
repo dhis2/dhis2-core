@@ -81,7 +81,7 @@ public class TrackerExportTests
     private Stream<Arguments> shouldReturnRequestedFields()
     {
         return Stream.of(
-            Arguments.of( "/trackedEntities/" + teiId, "enrollments[createdAt],relationships[from[trackedEntity],to[trackedEntity]]", "enrollments.createdAt,relationships.from.trackedEntity,relationships.to.trackedEntity"),
+            Arguments.of( "/trackedEntities/" + teiId, "enrollments[createdAt],relationships[from[trackedEntity[trackedEntity]],to[trackedEntity[trackedEntity]]]", "enrollments.createdAt,relationships.from.trackedEntity.trackedEntity,relationships.to.trackedEntity.trackedEntity"),
             Arguments.of( "/trackedEntities/" + teiId, "trackedEntity,enrollments", null),
             Arguments.of( "/enrollments/" + enrollmentId, "program,status,enrolledAt", null),
                 Arguments.of( "/trackedEntities/" + teiId, "**",
@@ -93,9 +93,7 @@ public class TrackerExportTests
          );
     }
 
-    @DisplayName("Display name of container")
-    @MethodSource()
-    @ParameterizedTest(name = "{index} ==> {1}?fields={2} should return fields {3}")
+    @MethodSource
     public void shouldReturnRequestedFields( String endpoint, String fields, String fieldsToValidate )
     {
         ApiResponse response = trackerActions.get( endpoint + "?fields=" + fields );
