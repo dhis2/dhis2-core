@@ -125,9 +125,9 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
     private static final String _OR_ = " or ";
 
-    protected static Collector<CharSequence, ?, String> OR_JOINER = joining( _OR_, "(", ")" );
+    private static final Collector<CharSequence, ?, String> OR_JOINER = joining( _OR_, "(", ")" );
 
-    protected static Collector<CharSequence, ?, String> AND_JOINER = joining( _AND_ );
+    private static final Collector<CharSequence, ?, String> AND_JOINER = joining( _AND_ );
 
     protected final JdbcTemplate jdbcTemplate;
 
