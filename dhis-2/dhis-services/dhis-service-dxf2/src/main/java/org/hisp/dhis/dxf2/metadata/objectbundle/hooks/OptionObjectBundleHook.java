@@ -75,7 +75,12 @@ public class OptionObjectBundleHook
             return;
         }
 
-        final Option option = (Option) object;
+        Option option = (Option) object;
+
+        if ( option.getOptionSet() == null )
+        {
+            return;
+        }
 
         // If OptionSet doesn't contain Option but Option has reference to
         // OptionSet
