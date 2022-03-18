@@ -506,6 +506,32 @@ public class EventImportValidationTest
     }
 
     @Test
+    public void testEventDeleteOk()
+        throws IOException
+    {
+        TrackerImportParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/events-with-registration.json" );
+        trackerBundleParams.setImportStrategy( TrackerImportStrategy.CREATE );
+
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
+
+        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
+        assertEquals( 0, trackerImportReport.getValidationReport().getErrorReports().size() );
+
+        manager.flush();
+        manager.clear();
+
+        TrackerImportParams paramsDelete = createBundleFromJson(
+            "tracker/validations/event-data-delete.json" );
+        paramsDelete.setImportStrategy( TrackerImportStrategy.DELETE );
+
+        TrackerImportReport trackerImportReportDelete = trackerImportService.importTracker( paramsDelete );
+        assertEquals( 0, trackerImportReportDelete.getValidationReport().getErrorReports().size() );
+        assertEquals( TrackerStatus.OK, trackerImportReportDelete.getStatus() );
+        assertEquals( 1, trackerImportReportDelete.getStats().getDeleted() );
+    }
+
+    @Test
     public void testUpdateDeleteEventFails()
     {
         testDeletedEventFails( UPDATE );

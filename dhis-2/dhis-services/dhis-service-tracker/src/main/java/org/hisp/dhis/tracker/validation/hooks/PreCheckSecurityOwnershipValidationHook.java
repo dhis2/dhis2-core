@@ -213,7 +213,6 @@ public class PreCheckSecurityOwnershipValidationHook
 
         checkNotNull( user, USER_CANT_BE_NULL );
         checkNotNull( event, EVENT_CANT_BE_NULL );
-        checkNotNull( event.getOrgUnit(), ORGANISATION_UNIT_CANT_BE_NULL );
 
         ProgramStageInstance programStageInstance = context.getProgramStageInstance( event.getEvent() );
 
@@ -223,6 +222,12 @@ public class PreCheckSecurityOwnershipValidationHook
         {
             organisationUnit = programStageInstance
                 .getOrganisationUnit();
+
+            if ( organisationUnit == null )
+            {
+                log.warn( "ProgramStageInstance " + event.getEvent()
+                    + ORG_UNIT_NO_USER_ASSIGNED );
+            }
         }
         else
         {
@@ -230,20 +235,14 @@ public class PreCheckSecurityOwnershipValidationHook
             organisationUnit = context.getOrganisationUnit( event.getOrgUnit() );
         }
 
-        ProgramStage programStage = context.getProgramStage( event.getProgramStage() );
-        Program program = strategy.isUpdateOrDelete() ? programStage
+        Program program = strategy.isUpdateOrDelete() ? programStageInstance.getProgramStage()
             .getProgram() : context.getProgram( event.getProgram() );
 
         // If event is newly created, or going to be deleted, capture scope
         // has to be checked
         if ( program.isWithoutRegistration() || strategy.isCreate() || strategy.isDelete() )
         {
-            if ( organisationUnit == null )
-            {
-                log.warn( "ProgramStageInstance " + event.getEvent()
-                    + ORG_UNIT_NO_USER_ASSIGNED );
-            }
-            else
+            if ( organisationUnit != null )
             {
                 trackerImportAccessManager
                     .checkOrgUnitInCaptureScope( reporter, organisationUnit );
@@ -264,6 +263,8 @@ public class PreCheckSecurityOwnershipValidationHook
         }
         else
         {
+            ProgramStage programStage = context.getProgramStage( event.getProgramStage() );
+
             validateCreateEvent( reporter, user,
                 categoryOptionCombo,
                 programStage,
