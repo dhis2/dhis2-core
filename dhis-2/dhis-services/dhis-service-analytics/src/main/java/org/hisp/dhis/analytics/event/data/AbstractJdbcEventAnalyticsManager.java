@@ -31,8 +31,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.mapping;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.mapping;
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
-import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.hisp.dhis.analytics.DataQueryParams.NUMERATOR_DENOMINATOR_PROPERTIES_COUNT;
 import static org.hisp.dhis.analytics.SortOrder.ASC;
 import static org.hisp.dhis.analytics.SortOrder.DESC;
@@ -47,6 +48,7 @@ import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
 import static org.hisp.dhis.common.DimensionItemType.PROGRAM_INDICATOR;
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
 import static org.hisp.dhis.common.QueryOperator.IN;
+import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.ENROLLMENT;
 import static org.hisp.dhis.system.util.MathUtils.getRounded;
 
 import java.util.Collection;
@@ -56,8 +58,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collector;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import lombok.Builder;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
@@ -69,6 +73,7 @@ import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.util.AnalyticsSqlUtils;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
@@ -119,9 +124,11 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
     private static final String _AND_ = " and ";
 
-    private static final Collector<CharSequence, ?, String> AND_JOINER = joining( _AND_ );
+    private static final String _OR_ = " or ";
 
-    private static final Collector<CharSequence, ?, String> OR_JOINER = joining( " or ", "(", ")" );
+    private static final Collector<CharSequence, ?, String> OR_JOINER = joining( _OR_, "(", ")" );
+
+    private static final Collector<CharSequence, ?, String> AND_JOINER = joining( _AND_ );
 
     protected final JdbcTemplate jdbcTemplate;
 
@@ -842,31 +849,50 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
         // Creates a map grouping queryItems referring to repeatable stages and
         // those referring to non-repeatable stages
+        // Only for enrollments, for events all query items are treated as
+        // non-repeatable
         Map<Boolean, List<QueryItem>> itemsByRepeatableFlag = params.getItems()
             .stream()
             .filter( QueryItem::hasFilter )
-            .collect( groupingBy( QueryItem::hasRepeatableStageParams ) );
+            .collect( groupingBy(
+                queryItem -> queryItem.hasRepeatableStageParams() && params.getEndpointItem() == ENROLLMENT ) );
 
-        Collection<String> repeatableSqlConditions = asSqlCollection( itemsByRepeatableFlag.get( true ), params );
-        Collection<String> nonRepeatableSqlConditions = asSqlCollection( itemsByRepeatableFlag.get( false ), params );
+        // groups repeatable conditions based on PSID+DEID
+        Map<String, List<String>> repeatableConditionsByIdentifier = asSqlCollection( itemsByRepeatableFlag.get( true ),
+            params )
+                .collect( groupingBy(
+                    IdentifiableSql::getIdentifier,
+                    mapping( IdentifiableSql::getSql, toList() ) ) );
 
-        if ( repeatableSqlConditions.isEmpty() && nonRepeatableSqlConditions.isEmpty() )
+        // joins each group with OR
+        Collection<String> orConditions = repeatableConditionsByIdentifier.values()
+            .stream()
+            .map( sameGroup -> joinSql( sameGroup, OR_JOINER ) )
+            .collect( toList() );
+
+        // non repeatable conditions
+        Collection<String> andConditions = asSqlCollection( itemsByRepeatableFlag.get( false ), params )
+            .map( IdentifiableSql::getSql )
+            .collect( toList() );
+
+        if ( orConditions.isEmpty() && andConditions.isEmpty() )
         {
             return "";
         }
 
-        String repeatableSql = joinSql( repeatableSqlConditions, OR_JOINER );
-        String nonRepeatableSql = joinSql( nonRepeatableSqlConditions, AND_JOINER );
+        return hlp.whereAnd() + " " + joinSql( Stream.concat(
+            orConditions.stream(),
+            andConditions.stream() ), AND_JOINER );
 
-        if ( isNotEmpty( repeatableSql ) && isNotEmpty( nonRepeatableSql ) )
-        {
-            return hlp.whereAnd() + " " + repeatableSql + _AND_ + nonRepeatableSql;
-        }
-        if ( isNotEmpty( repeatableSql ) )
-        {
-            return hlp.whereAnd() + " " + repeatableSql;
-        }
-        return hlp.whereAnd() + " " + nonRepeatableSql;
+    }
+
+    /**
+     * joins a stream of conditions using given join function, returns empty
+     * string if collection is empty
+     */
+    private String joinSql( Stream<String> conditions, Collector<CharSequence, ?, String> joiner )
+    {
+        return joinSql( conditions.collect( toList() ), joiner );
     }
 
     private String getItemsSqlForEnhancedConditions( EventQueryParams params, SqlHelper hlp )
@@ -899,25 +925,52 @@ public abstract class AbstractJdbcEventAnalyticsManager
     }
 
     /**
-     * Returns a collection of strings, each representing SQL for given
-     * queryItems
+     * Returns a collection of IdentifiableSql, each representing SQL for given
+     * queryItems together with its identifier
      */
-    private Collection<String> asSqlCollection( List<QueryItem> queryItems, EventQueryParams params )
+    private Stream<IdentifiableSql> asSqlCollection( List<QueryItem> queryItems, EventQueryParams params )
     {
         return emptyIfNull( queryItems )
             .stream()
-            .map( queryItem -> toSql( queryItem, params ) )
-            .collect( Collectors.toList() );
+            .map( queryItem -> toIdentifiableSql( queryItem, params ) );
     }
 
     /**
-     * Converts given queryItem into SQL joining its filters using AND
+     * Converts given queryItem into IdentifiableSql joining its filters using
+     * AND
      */
-    private String toSql( QueryItem queryItem, EventQueryParams params )
+    private IdentifiableSql toIdentifiableSql( QueryItem queryItem, EventQueryParams params )
     {
-        return queryItem.getFilters().stream()
-            .map( filter -> toSql( queryItem, filter, params ) )
-            .collect( joining( _AND_ ) );
+        return IdentifiableSql.builder()
+            .identifier( getIdentifier( queryItem ) )
+            .sql( queryItem.getFilters().stream()
+                .map( filter -> toSql( queryItem, filter, params ) )
+                .collect( joining( _AND_ ) ) )
+            .build();
+    }
+
+    /**
+     * returns PSID.ITEM_ID of given queryItem
+     */
+    private String getIdentifier( QueryItem queryItem )
+    {
+        String programStageId = Optional.of( queryItem )
+            .map( QueryItem::getProgramStage )
+            .map( BaseIdentifiableObject::getUid )
+            .orElse( "" );
+        return programStageId + queryItem.getItem().getUid();
+    }
+
+    @Getter
+    @Builder
+    /*
+     * Class to hold sql together with its identifier
+     */
+    private static class IdentifiableSql
+    {
+        private final String identifier;
+
+        private final String sql;
     }
 
     /**

@@ -236,7 +236,8 @@ public class DefaultEventDataQueryService
             .withTotalPages( request.isTotalPages() )
             .withProgramStatuses( request.getProgramStatus() )
             .withApiVersion( request.getApiVersion() )
-            .withEnhancedConditions( request.isEnhancedConditions() );
+            .withEnhancedConditions( request.isEnhancedConditions() )
+            .withEndpointItem( request.getEndpointItem() );
 
         if ( analyzeOnly )
         {
