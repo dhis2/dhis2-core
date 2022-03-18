@@ -32,7 +32,6 @@ import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.mapping;
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 import static org.hisp.dhis.analytics.DataQueryParams.NUMERATOR_DENOMINATOR_PROPERTIES_COUNT;
 import static org.hisp.dhis.analytics.SortOrder.ASC;
@@ -943,10 +942,18 @@ public abstract class AbstractJdbcEventAnalyticsManager
     {
         return IdentifiableSql.builder()
             .identifier( getIdentifier( queryItem ) )
-            .sql( queryItem.getFilters().stream()
-                .map( filter -> toSql( queryItem, filter, params ) )
-                .collect( joining( _AND_ ) ) )
+            .sql( toSql( queryItem, params ) )
             .build();
+    }
+
+    /**
+     * Converts given queryItem into sql joining its filters using AND
+     */
+    private String toSql( QueryItem queryItem, EventQueryParams params )
+    {
+        return queryItem.getFilters().stream()
+            .map( filter -> toSql( queryItem, filter, params ) )
+            .collect( joining( _AND_ ) );
     }
 
     /**

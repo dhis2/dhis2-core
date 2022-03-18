@@ -42,6 +42,7 @@ import static org.hisp.dhis.analytics.AnalyticsAggregationType.fromAggregationTy
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -502,9 +503,8 @@ class AbstractJdbcEventAnalyticsManagerTest extends
             .build();
 
         String result = subject.getItemsSql( queryParams, new SqlHelper() );
-        assertEquals(
-            "where (ax.\"item1\" = 'A'  or ax.\"item2\" = 'B' ) and (ax.\"item3\" = 'C'  or ax.\"item4\" = 'D' )",
-            result );
+        assertTrue( result.contains( "(ax.\"item1\" = 'A'  or ax.\"item2\" = 'B' )" ) );
+        assertTrue( result.contains( "(ax.\"item3\" = 'C'  or ax.\"item4\" = 'D' )" ) );
     }
 
     private QueryFilter buildEqQueryFilter( String filter )
