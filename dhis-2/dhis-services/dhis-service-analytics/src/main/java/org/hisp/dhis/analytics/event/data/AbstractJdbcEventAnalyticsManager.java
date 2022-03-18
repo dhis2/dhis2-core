@@ -896,7 +896,6 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
     private String getItemsSqlForEnhancedConditions( EventQueryParams params, SqlHelper hlp )
     {
-
         Map<UUID, String> sqlConditionByGroup = params.getItems()
             .stream()
             .filter( QueryItem::hasFilter )
