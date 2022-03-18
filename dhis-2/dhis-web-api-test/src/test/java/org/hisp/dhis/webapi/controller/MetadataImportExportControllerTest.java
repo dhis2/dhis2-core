@@ -202,7 +202,7 @@ public class MetadataImportExportControllerTest extends DhisControllerConvenienc
      * Import OptionSet with two Options, sort orders are 2 and 3.
      */
     @Test
-    void testImportOptionSetWithOptions()
+    public void testImportOptionSetWithOptions()
     {
         POST( "/metadata", "{\"optionSets\":\n" +
             "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\": 2,\"valueType\": \"TEXT\",\"options\":[{\"id\": \"Uh4HvjK6zg3\"},{\"id\": \"BQMei56UBl6\"}]}],\n"
@@ -225,7 +225,7 @@ public class MetadataImportExportControllerTest extends DhisControllerConvenienc
      * doesn't
      */
     @Test
-    void testImportOptionSetWithOptionsOneSortOrder()
+    public void testImportOptionSetWithOptionsOneSortOrder()
     {
         POST( "/metadata", "{\"optionSets\":\n" +
             "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\": 2,\"valueType\": \"TEXT\",\"options\":[{\"id\": \"Uh4HvjK6zg3\"},{\"id\": \"BQMei56UBl6\"}]}],\n"
@@ -247,7 +247,7 @@ public class MetadataImportExportControllerTest extends DhisControllerConvenienc
      * Import OptionSet with two Options, both doesn't have sortOrder
      */
     @Test
-    void testImportOptionSetWithOptionsNoSortOrder()
+    public void testImportOptionSetWithOptionsNoSortOrder()
     {
         POST( "/metadata", "{\"optionSets\":\n" +
             "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\": 2,\"valueType\": \"TEXT\",\"options\":[{\"id\": \"Uh4HvjK6zg3\"},{\"id\": \"BQMei56UBl6\"}]}],\n"
@@ -269,7 +269,7 @@ public class MetadataImportExportControllerTest extends DhisControllerConvenienc
      * Import OptionSet with two Options, both have same sortOrder
      */
     @Test
-    void testImportOptionSetWithOptionsDuplicateSortOrder()
+    public void testImportOptionSetWithOptionsDuplicateSortOrder()
     {
         POST( "/metadata", "{\"optionSets\":\n" +
             "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\": 2,\"valueType\": \"TEXT\",\"options\":[{\"id\": \"Uh4HvjK6zg3\"},{\"id\": \"BQMei56UBl6\"}]}],\n"
@@ -288,7 +288,7 @@ public class MetadataImportExportControllerTest extends DhisControllerConvenienc
     }
 
     @Test
-    void testImportOptionSetWithNoLinkOptions()
+    public void testImportOptionSetWithNoLinkOptions()
     {
         POST( "/metadata", "{\"optionSets\":\n" +
             "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\": 2,\"valueType\": \"TEXT\"}],\n"
