@@ -32,6 +32,7 @@ import java.util.List;
 
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.datasummary.DataSummary;
+import org.hisp.dhis.scheduling.JobProgress;
 
 /**
  * @author Yrjan A. F. Fraschetti
@@ -58,14 +59,6 @@ public interface DataStatisticsService
     List<AggregatedStatistics> getReports( Date startDate, Date endDate, EventInterval eventInterval );
 
     /**
-     * Returns a DataStatistics instance for the given day.
-     *
-     * @param day the day to generate the DataStatistics instance for.
-     * @return a DataStatistics instance for the given day.
-     */
-    DataStatistics getDataStatisticsSnapshot( Date day );
-
-    /**
      * Saves a DataStatistics instance.
      *
      * @param dataStatistics the DataStatistics instance.
@@ -76,9 +69,10 @@ public interface DataStatisticsService
     /**
      * Gets all information and creates a DataStatistics object and persists it.
      *
+     * @param progress to track processing
      * @return identifier of the persisted DataStatistics object.
      */
-    long saveDataStatisticsSnapshot();
+    long saveDataStatisticsSnapshot( JobProgress progress );
 
     /**
      * Returns top favorites by views

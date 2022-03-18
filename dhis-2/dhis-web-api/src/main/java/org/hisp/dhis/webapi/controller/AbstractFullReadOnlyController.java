@@ -271,7 +271,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
         WebOptions options = new WebOptions( rpParameters );
         WebMetadata metadata = new WebMetadata();
 
-        if ( fields.isEmpty() )
+        if ( fields.isEmpty() || fields.contains( "*" ) || fields.contains( ":all" ) )
         {
             fields.addAll( Preset.defaultPreset().getFields() );
         }

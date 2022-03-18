@@ -34,6 +34,7 @@ import java.util.Calendar;
 import java.util.Date;
 
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -106,7 +107,7 @@ class DataStatisticsServiceTest extends DhisSpringTest
         dse1 = new DataStatisticsEvent( DataStatisticsEventType.VISUALIZATION_VIEW, startDate, "TestUser" );
         dataStatisticsService.addEvent( dse1 );
         dataStatisticsService.addEvent( dse2 );
-        long snapId2 = dataStatisticsService.saveDataStatisticsSnapshot();
+        long snapId2 = dataStatisticsService.saveDataStatisticsSnapshot( NoopJobProgress.INSTANCE );
         assertTrue( snapId2 != 0 );
         assertTrue( snapId1 != snapId2 );
     }

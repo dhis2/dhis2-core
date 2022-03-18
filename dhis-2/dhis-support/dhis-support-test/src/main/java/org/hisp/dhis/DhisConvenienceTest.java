@@ -1349,7 +1349,7 @@ public abstract class DhisConvenienceTest
         eventVisualization.setAutoFields();
         eventVisualization.setProgram( program );
         eventVisualization.setName( "EventVisualization" + uniqueCharacter );
-        eventVisualization.setType( EventVisualizationType.COLUMN );
+        eventVisualization.setType( EventVisualizationType.LINE_LIST );
 
         return eventVisualization;
     }
