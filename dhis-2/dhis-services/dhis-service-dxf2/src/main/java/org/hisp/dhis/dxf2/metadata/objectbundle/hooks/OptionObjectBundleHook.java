@@ -77,19 +77,15 @@ public class OptionObjectBundleHook
 
         final Option option = (Option) object;
 
-        // if the bundle contains also the option set there is no need to add
-        // the option here
-        // (will be done automatically later and option set may contain raw
-        // value already)
-        if ( option.getOptionSet() != null && !bundle.containsObject( option.getOptionSet() ) )
-        {
-            OptionSet optionSet = bundle.getPreheat().get( bundle.getPreheatIdentifier(), OptionSet.class,
-                option.getOptionSet() );
+        // If OptionSet doesn't contain Option but Option has reference to
+        // OptionSet
+        // then we need to update OptionSet.options collection.
+        OptionSet optionSet = bundle.getPreheat().get( bundle.getPreheatIdentifier(), OptionSet.class,
+            option.getOptionSet().getUid() );
 
-            if ( optionSet != null )
-            {
-                optionSet.addOption( option );
-            }
+        if ( optionSet != null && optionSet.getOptionByUid( option.getUid() ) == null )
+        {
+            optionSet.addOption( option );
         }
     }
 
