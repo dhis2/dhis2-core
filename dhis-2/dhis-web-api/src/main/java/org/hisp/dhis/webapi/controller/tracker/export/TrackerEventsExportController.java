@@ -37,7 +37,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.zip.GZIPOutputStream;
 
 import javax.servlet.http.HttpServletRequest;
@@ -151,7 +150,7 @@ public class TrackerEventsExportController
         TrackerEventCriteria eventCriteria,
         HttpServletResponse response,
         @RequestParam( required = false, defaultValue = "false" ) boolean skipHeader,
-        @RequestParam Map<String, String> parameters, HttpServletRequest request )
+        HttpServletRequest request )
         throws IOException
     {
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
