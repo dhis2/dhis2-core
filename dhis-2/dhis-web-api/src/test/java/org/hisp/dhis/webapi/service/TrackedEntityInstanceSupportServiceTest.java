@@ -188,7 +188,7 @@ class TrackedEntityInstanceSupportServiceTest
     {
 
         TrackedEntityInstanceParams params = getTrackedEntityInstanceParams(
-            List.of( "enrollments[events[dataValues[*]]],relationships[from[trackedEntity],to[trackedEntity]]" ) );
+            List.of( "enrollments[events[dataValues[*]]]", "relationships[from[trackedEntity],to[trackedEntity]]" ) );
 
         assertTrue( params.isIncludeRelationships() );
         assertTrue( params.isIncludeEnrollments() );
@@ -201,11 +201,25 @@ class TrackedEntityInstanceSupportServiceTest
     {
 
         TrackedEntityInstanceParams params = getTrackedEntityInstanceParams(
-            List.of( "!enrollments[uid,enrolledAt],relationships[relationship]" ) );
+            List.of( "!enrollments[uid,enrolledAt]", "relationships[relationship]" ) );
 
         assertTrue( params.isIncludeRelationships() );
         assertFalse( params.isIncludeEnrollments() );
         assertFalse( params.isIncludeEvents() );
         assertFalse( params.isIncludeProgramOwners() );
     }
+
+    @Test
+    void getTrackedEntityInstanceParamsOnlyIncludeIfFieldIsRoot()
+    {
+
+        TrackedEntityInstanceParams params = getTrackedEntityInstanceParams(
+            List.of( "enrollments[events,relationships]" ) );
+
+        assertFalse( params.isIncludeRelationships() );
+        assertTrue( params.isIncludeEnrollments() );
+        assertFalse( params.isIncludeEvents() );
+        assertFalse( params.isIncludeProgramOwners() );
+    }
+
 }
