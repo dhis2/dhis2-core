@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.webapi.controller.TrackerControllerAssertions.assertHasMember;
+import static org.hisp.dhis.webapi.controller.TrackerControllerAssertions.assertHasNoMember;
+import static org.hisp.dhis.webapi.controller.TrackerControllerAssertions.assertHasOnlyMembers;
 import static org.hisp.dhis.webapi.controller.TrackerControllerAssertions.assertRelationship;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -117,32 +120,52 @@ class TrackerEventsExportControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    void getEventByIdRelationships()
+    void getEventById()
     {
         TrackedEntityInstance to = trackedEntityInstance();
         ProgramStageInstance from = programStageInstance( programInstance( to ) );
-        Relationship r = relationship( from, to );
+        relationship( from, to );
 
         JsonObject json = GET( "/tracker/events/{id}", from.getUid() )
             .content( HttpStatus.OK );
 
-        assertFalse( json.isEmpty() );
-        JsonArray rels = json.getArray( "relationships" );
-        assertFalse( rels.isEmpty(), "relationships are currently returned by default" );
-        assertEquals( 1, rels.size() );
-        assertRelationship( r, rels.getObject( 0 ) );
-        assertEventWithinRelationship( from, rels.getObject( 0 ).getObject( "from" ) );
-        assertTrackedEntityWithinRelationship( to, rels.getObject( 0 ).getObject( "to" ) );
+        assertDefaultResponse( json, from );
     }
 
     @Test
-    void getEventByIdRelationshipsAreAlwaysReturnedIrrespectiveOfFields()
+    void getEventByIdWithFieldsDoubleStar()
+    {
+        TrackedEntityInstance to = trackedEntityInstance();
+        ProgramStageInstance from = programStageInstance( programInstance( to ) );
+        relationship( from, to );
+
+        JsonObject json = GET( "/tracker/events/{id}?fields=**", from.getUid() )
+            .content( HttpStatus.OK );
+
+        assertDefaultResponse( json, from );
+    }
+
+    @Test
+    void getEventByIdWithFields()
+    {
+        TrackedEntityInstance tei = trackedEntityInstance();
+        ProgramStageInstance event = programStageInstance( programInstance( tei ) );
+
+        JsonObject json = GET( "/tracker/events/{id}?fields=orgUnit,status", event.getUid() )
+            .content( HttpStatus.OK );
+
+        assertFalse( json.isEmpty() );
+        assertHasOnlyMembers( json, "orgUnit", "status" );
+    }
+
+    @Test
+    void getEventByIdWithFieldsRelationships()
     {
         TrackedEntityInstance to = trackedEntityInstance();
         ProgramStageInstance from = programStageInstance( programInstance( to ) );
         Relationship r = relationship( from, to );
 
-        JsonObject json = GET( "/tracker/events/{id}?fields=*,!relationships", from.getUid() )
+        JsonObject json = GET( "/tracker/events/{id}?fields=relationships", from.getUid() )
             .content( HttpStatus.OK );
 
         assertFalse( json.isEmpty() );
@@ -163,11 +186,10 @@ class TrackerEventsExportControllerTest extends DhisControllerConvenienceTest
         relationship( relationshipTypeNotAccessible(), from, to );
         this.switchContextToUser( user );
 
-        JsonObject json = GET( "/tracker/events/{id}", from.getUid() )
+        JsonObject json = GET( "/tracker/events/{id}?fields=relationships", from.getUid() )
             .content( HttpStatus.OK );
 
         assertFalse( json.isEmpty() );
-        assertEquals( from.getUid(), json.getString( "event" ).string(), "event UID" );
         JsonArray relationships = json.getArray( "relationships" );
         assertEquals( 1, relationships.size(),
             "other endpoints return an empty relationships array, this one currently returns [null]" );
@@ -184,11 +206,10 @@ class TrackerEventsExportControllerTest extends DhisControllerConvenienceTest
         relationship( from, to );
         this.switchContextToUser( user );
 
-        JsonObject json = GET( "/tracker/events/{id}", from.getUid() )
+        JsonObject json = GET( "/tracker/events/{id}?fields=relationships", from.getUid() )
             .content( HttpStatus.OK );
 
         assertFalse( json.isEmpty() );
-        assertEquals( from.getUid(), json.getString( "event" ).string(), "event UID" );
         JsonArray relationships = json.getArray( "relationships" );
         assertEquals( 1, relationships.size(),
             "other endpoints return an empty relationships array, this one currently returns [null]" );
@@ -218,11 +239,10 @@ class TrackerEventsExportControllerTest extends DhisControllerConvenienceTest
         relationship( from, to );
         this.switchContextToUser( user );
 
-        JsonObject json = GET( "/tracker/events/{id}", to.getUid() )
+        JsonObject json = GET( "/tracker/events/{id}?fields=relationships", to.getUid() )
             .content( HttpStatus.OK );
 
         assertFalse( json.isEmpty() );
-        assertEquals( to.getUid(), json.getString( "event" ).string(), "event UID" );
         JsonArray relationships = json.getArray( "relationships" );
         assertEquals( 1, relationships.size(),
             "other endpoints return an empty relationships array, this one currently returns [null]" );
@@ -265,6 +285,15 @@ class TrackerEventsExportControllerTest extends DhisControllerConvenienceTest
             event.getArray( "dataValues" ).getObject( 0 ).getString( "createdBy.username" ).string() );
         assertEquals( user.getUsername(),
             event.getArray( "dataValues" ).getObject( 0 ).getString( "updatedBy.username" ).string() );
+    }
+
+    @Test
+    void getEventByIdNotFound()
+    {
+        assertEquals( "Event not found for uid: Hq3Kc6HK4OZ",
+            GET( "/tracker/events/Hq3Kc6HK4OZ" )
+                .error( HttpStatus.NOT_FOUND )
+                .getMessage() );
     }
 
     private TrackedEntityType trackedEntityTypeAccessible()
@@ -461,6 +490,33 @@ class TrackerEventsExportControllerTest extends DhisControllerConvenienceTest
         assertFalse( jsonTEI.has( "orgUnit" ) );
         assertFalse( jsonTEI.has( "relationships" ), "relationships is not returned within relationship items" );
         assertTrue( jsonTEI.getArray( "attributes" ).isEmpty() );
+    }
+
+    private void assertDefaultResponse( JsonObject json, ProgramStageInstance programStageInstance )
+    {
+        // note that some fields are not included in the response because they
+        // are not part of the setup
+        // i.e attributeOptionCombo, ...
+        assertTrue( json.isObject() );
+        assertFalse( json.isEmpty() );
+        assertEquals( programStageInstance.getUid(), json.getString( "event" ).string(), "event UID" );
+        assertEquals( "ACTIVE", json.getString( "status" ).string() );
+        assertEquals( program.getUid(), json.getString( "program" ).string() );
+        assertEquals( programStage.getUid(), json.getString( "programStage" ).string() );
+        assertEquals( programStageInstance.getProgramInstance().getUid(), json.getString( "enrollment" ).string() );
+        assertEquals( orgUnit.getUid(), json.getString( "orgUnit" ).string() );
+        assertEquals( orgUnit.getName(), json.getString( "orgUnitName" ).string() );
+        assertFalse( json.getBoolean( "followup" ).booleanValue() );
+        assertFalse( json.getBoolean( "deleted" ).booleanValue() );
+        assertHasMember( json, "createdAt" );
+        assertHasMember( json, "createdAtClient" );
+        assertHasMember( json, "updatedAt" );
+        assertHasMember( json, "updatedAtClient" );
+        assertHasMember( json, "dataValues" );
+        assertHasMember( json, "notes" );
+        assertHasNoMember( json, "attributeOptionCombo" );
+        assertHasNoMember( json, "attributeCategoryOptions" );
+        assertHasNoMember( json, "relationships" );
     }
 
 }
