@@ -142,18 +142,22 @@ public class TrackedEntityInstanceSupportService
         return trackedEntityInstance;
     }
 
+    /**
+     * Parse the fields query parameter values to determine which resources
+     * should be fetched from the DB. The
+     * {@link org.hisp.dhis.fieldfiltering.FieldFilterService} is used to filter
+     * the response before serializing it into JSON. Since exclusions take
+     * precedences over inclusions in the FieldFilterService do so here as well.
+     * For example "enrollments", "!enrollments" will lead to
+     * {@link TrackedEntityInstanceParams#isIncludeEnrollments()} being false.
+     *
+     * @param fields fields query parameter values
+     * @return tracked entity instance parameters
+     */
     public static TrackedEntityInstanceParams getTrackedEntityInstanceParams( List<String> fields )
     {
         List<FieldPath> fieldPaths = FieldFilterParser.parse( new HashSet<>( fields ) );
-        Map<String, FieldPath> roots = new HashMap<>();
-
-        for ( FieldPath p : fieldPaths )
-        {
-            if ( p.isRoot() && (!roots.containsKey( p.getName() ) || p.isExclude()) )
-            {
-                roots.put( p.getName(), p );
-            }
-        }
+        Map<String, FieldPath> roots = rootFields( fieldPaths );
 
         TrackedEntityInstanceParams params = TrackedEntityInstanceParams.FALSE;
         if ( roots.containsKey( FieldPreset.ALL ) )
@@ -166,8 +170,7 @@ public class TrackedEntityInstanceSupportService
         }
         if ( roots.containsKey( "relationships" ) )
         {
-            FieldPath p = roots.get( "relationships" );
-            params = params.withIncludeRelationships( !p.isExclude() );
+            params = params.withIncludeRelationships( !roots.get( "relationships" ).isExclude() );
         }
         if ( roots.containsKey( "enrollments" ) )
         {
@@ -178,10 +181,31 @@ public class TrackedEntityInstanceSupportService
         }
         if ( roots.containsKey( "programOwners" ) )
         {
-            FieldPath p = roots.get( "programOwners" );
-            params = params.withIncludeProgramOwners( !p.isExclude() );
+            params = params.withIncludeProgramOwners( !roots.get( "programOwners" ).isExclude() );
         }
 
+        params = params.withIncludeEvents( isEventsIncluded( fieldPaths, roots, params ) );
+
+        return params;
+    }
+
+    private static Map<String, FieldPath> rootFields( List<FieldPath> fieldPaths )
+    {
+
+        Map<String, FieldPath> roots = new HashMap<>();
+        for ( FieldPath p : fieldPaths )
+        {
+            if ( p.isRoot() && (!roots.containsKey( p.getName() ) || p.isExclude()) )
+            {
+                roots.put( p.getName(), p );
+            }
+        }
+        return roots;
+    }
+
+    private static boolean isEventsIncluded( List<FieldPath> fieldPaths, Map<String, FieldPath> roots,
+        TrackedEntityInstanceParams params )
+    {
         // events is a field on enrollments, so we have to take the enrollments
         // root and its child field events into account
         FieldPath events = null;
@@ -196,7 +220,7 @@ public class TrackedEntityInstanceSupportService
         {
             if ( events.isExclude() )
             {
-                params = params.withIncludeEvents( false );
+                return false;
             }
             else
             {
@@ -205,15 +229,18 @@ public class TrackedEntityInstanceSupportService
                     FieldPath enrollments = roots.get( "enrollments" );
                     if ( !enrollments.isExclude() )
                     {
-                        params = params.withIncludeEvents( !events.isExclude() );
+                        return !events.isExclude();
                     }
                 }
             }
         }
-
-        return params;
+        return params.isIncludeEvents();
     }
 
+    /**
+     * @param path field path to check
+     * @return true if field is enrollments.events
+     */
     private static boolean isEnrollmentEventsField( FieldPath path )
     {
         return !path.isRoot() && "events".equals( path.getName() ) && path.getPath().get( 0 ).equals( "enrollments" );
