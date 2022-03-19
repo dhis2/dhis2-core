@@ -29,10 +29,10 @@ package org.hisp.dhis.webapi.service;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
@@ -144,39 +144,73 @@ public class TrackedEntityInstanceSupportService
 
     public static TrackedEntityInstanceParams getTrackedEntityInstanceParams( List<String> fields )
     {
-        Map<String, FieldPath> paths = FieldFilterParser.parse( new HashSet<>( fields ) )
-            .stream()
-            .filter( p -> p.isRoot() )
-            .collect( Collectors.toMap( FieldPath::getName, Function.identity() ) );
+        List<FieldPath> fieldPaths = FieldFilterParser.parse( new HashSet<>( fields ) );
+        Map<String, FieldPath> roots = new HashMap<>();
+
+        for ( FieldPath p : fieldPaths )
+        {
+            if ( p.isRoot() && (!roots.containsKey( p.getName() ) || p.isExclude()) )
+            {
+                roots.put( p.getName(), p );
+            }
+        }
 
         TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
-        if ( paths.containsKey( FieldPreset.ALL ) )
+        if ( roots.containsKey( FieldPreset.ALL ) )
         {
-            FieldPath p = paths.get( FieldPreset.ALL );
+            FieldPath p = roots.get( FieldPreset.ALL );
             if ( p.isRoot() && !p.isExclude() )
             {
                 params = new TrackedEntityInstanceParams( true, true, true, true );
             }
         }
-        if ( paths.containsKey( "relationships" ) )
+        if ( roots.containsKey( "relationships" ) )
         {
-            FieldPath p = paths.get( "relationships" );
+            FieldPath p = roots.get( "relationships" );
             params.setIncludeRelationships( !p.isExclude() );
         }
-        if ( paths.containsKey( "enrollments" ) )
+        if ( roots.containsKey( "enrollments" ) )
         {
-            FieldPath p = paths.get( "enrollments" );
+            FieldPath p = roots.get( "enrollments" );
             params.setIncludeEnrollments( !p.isExclude() );
-        }
-        if ( paths.containsKey( "events" ) )
-        {
-            FieldPath p = paths.get( "events" );
+            // events is a child field of enrollments
             params.setIncludeEvents( !p.isExclude() );
         }
-        if ( paths.containsKey( "programOwners" ) )
+        if ( roots.containsKey( "programOwners" ) )
         {
-            FieldPath p = paths.get( "programOwners" );
+            FieldPath p = roots.get( "programOwners" );
             params.setIncludeProgramOwners( !p.isExclude() );
+        }
+
+        // events is a field on enrollments, so we have to take the enrollments
+        // root and child field events into account
+        FieldPath events = null;
+        for ( FieldPath p : fieldPaths )
+        {
+            if ( !p.isRoot() && "events".equals( p.getName() ) && p.getPath().get( 0 ).equals( "enrollments" )
+                && (events == null || p.isExclude()) )
+            {
+                events = p;
+            }
+        }
+
+        if ( events != null )
+        {
+            if ( events.isExclude() )
+            {
+                params.setIncludeEvents( false );
+            }
+            else
+            {
+                if ( roots.containsKey( "enrollments" ) )
+                {
+                    FieldPath enrollments = roots.get( "enrollments" );
+                    if ( !enrollments.isExclude() )
+                    {
+                        params.setIncludeEvents( !events.isExclude() );
+                    }
+                }
+            }
         }
 
         return params;
