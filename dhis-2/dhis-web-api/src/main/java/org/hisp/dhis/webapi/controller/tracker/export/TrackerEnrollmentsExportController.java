@@ -66,7 +66,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 @RequiredArgsConstructor
 public class TrackerEnrollmentsExportController
 {
-    protected final static String ENROLLMENTS = "enrollments";
+    protected static final String ENROLLMENTS = "enrollments";
 
     private static final String DONT_FILTER_FIELDS = "**";
 

@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 
@@ -64,16 +65,30 @@ import org.springframework.stereotype.Service;
 public class TrackedEntityInstanceSupportService
 {
 
+    private static final String FIELD_ENROLLMENTS = "enrollments";
+
+    private static final String FIELD_RELATIONSHIPS = "relationships";
+
+    private static final String FIELD_PROGRAM_OWNERS = "programOwners";
+
+    private static final String FIELD_EVENTS = "events";
+
+    @NonNull
     private final TrackedEntityInstanceService trackedEntityInstanceService;
 
+    @NonNull
     private final CurrentUserService currentUserService;
 
+    @NonNull
     private final ProgramService programService;
 
+    @NonNull
     private final TrackerAccessManager trackerAccessManager;
 
+    @NonNull
     private final org.hisp.dhis.trackedentity.TrackedEntityInstanceService instanceService;
 
+    @NonNull
     private final TrackedEntityTypeService trackedEntityTypeService;
 
     @SneakyThrows
@@ -168,20 +183,20 @@ public class TrackedEntityInstanceSupportService
                 params = TrackedEntityInstanceParams.TRUE;
             }
         }
-        if ( roots.containsKey( "relationships" ) )
+        if ( roots.containsKey( FIELD_RELATIONSHIPS ) )
         {
-            params = params.withIncludeRelationships( !roots.get( "relationships" ).isExclude() );
+            params = params.withIncludeRelationships( !roots.get( FIELD_RELATIONSHIPS ).isExclude() );
         }
-        if ( roots.containsKey( "enrollments" ) )
+        if ( roots.containsKey( FIELD_ENROLLMENTS ) )
         {
-            FieldPath p = roots.get( "enrollments" );
+            FieldPath p = roots.get( FIELD_ENROLLMENTS );
             params = params.withIncludeEnrollments( !p.isExclude() );
             // events is a child field of enrollments
             params = params.withIncludeEvents( !p.isExclude() );
         }
-        if ( roots.containsKey( "programOwners" ) )
+        if ( roots.containsKey( FIELD_PROGRAM_OWNERS ) )
         {
-            params = params.withIncludeProgramOwners( !roots.get( "programOwners" ).isExclude() );
+            params = params.withIncludeProgramOwners( !roots.get( FIELD_PROGRAM_OWNERS ).isExclude() );
         }
 
         params = params.withIncludeEvents( isEventsIncluded( fieldPaths, roots, params ) );
@@ -211,6 +226,7 @@ public class TrackedEntityInstanceSupportService
         FieldPath events = null;
         for ( FieldPath p : fieldPaths )
         {
+            // exclusion takes precedence over inclusion
             if ( isEnrollmentEventsField( p ) && (events == null || p.isExclude()) )
             {
                 events = p;
@@ -224,9 +240,9 @@ public class TrackedEntityInstanceSupportService
             }
             else
             {
-                if ( roots.containsKey( "enrollments" ) )
+                if ( roots.containsKey( FIELD_ENROLLMENTS ) )
                 {
-                    FieldPath enrollments = roots.get( "enrollments" );
+                    FieldPath enrollments = roots.get( FIELD_ENROLLMENTS );
                     if ( !enrollments.isExclude() )
                     {
                         return !events.isExclude();
@@ -243,6 +259,7 @@ public class TrackedEntityInstanceSupportService
      */
     private static boolean isEnrollmentEventsField( FieldPath path )
     {
-        return !path.isRoot() && "events".equals( path.getName() ) && path.getPath().get( 0 ).equals( "enrollments" );
+        return !path.isRoot() && FIELD_EVENTS.equals( path.getName() )
+            && path.getPath().get( 0 ).equals( FIELD_ENROLLMENTS );
     }
 }
