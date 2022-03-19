@@ -183,17 +183,15 @@ public class TrackedEntityInstanceSupportService
         }
 
         // events is a field on enrollments, so we have to take the enrollments
-        // root and child field events into account
+        // root and its child field events into account
         FieldPath events = null;
         for ( FieldPath p : fieldPaths )
         {
-            if ( !p.isRoot() && "events".equals( p.getName() ) && p.getPath().get( 0 ).equals( "enrollments" )
-                && (events == null || p.isExclude()) )
+            if ( isEnrollmentEventsField( p ) && (events == null || p.isExclude()) )
             {
                 events = p;
             }
         }
-
         if ( events != null )
         {
             if ( events.isExclude() )
@@ -216,4 +214,12 @@ public class TrackedEntityInstanceSupportService
         return params;
     }
 
+    private static boolean isEnrollmentEventsField( FieldPath path )
+    {
+        if ( !path.isRoot() && "events".equals( path.getName() ) && path.getPath().get( 0 ).equals( "enrollments" ) )
+        {
+            return true;
+        }
+        return false;
+    }
 }
