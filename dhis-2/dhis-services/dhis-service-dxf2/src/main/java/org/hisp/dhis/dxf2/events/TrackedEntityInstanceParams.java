@@ -30,8 +30,6 @@ package org.hisp.dhis.dxf2.events;
 import lombok.Value;
 import lombok.With;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -60,37 +58,31 @@ public class TrackedEntityInstanceParams
 
     private final boolean dataSynchronizationQuery;
 
-    @JsonProperty
     public boolean isIncludeRelationships()
     {
         return includeRelationships;
     }
 
-    @JsonProperty
     public boolean isIncludeEnrollments()
     {
         return includeEnrollments;
     }
 
-    @JsonProperty
     public boolean isIncludeEvents()
     {
         return includeEvents;
     }
 
-    @JsonProperty
     public boolean isIncludeProgramOwners()
     {
         return includeProgramOwners;
     }
 
-    @JsonProperty
     public boolean isIncludeDeleted()
     {
         return includeDeleted;
     }
 
-    @JsonProperty
     public boolean isDataSynchronizationQuery()
     {
         return dataSynchronizationQuery;
