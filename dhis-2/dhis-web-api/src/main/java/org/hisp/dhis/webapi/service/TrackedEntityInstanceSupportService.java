@@ -155,31 +155,31 @@ public class TrackedEntityInstanceSupportService
             }
         }
 
-        TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
+        TrackedEntityInstanceParams params = TrackedEntityInstanceParams.FALSE;
         if ( roots.containsKey( FieldPreset.ALL ) )
         {
             FieldPath p = roots.get( FieldPreset.ALL );
             if ( p.isRoot() && !p.isExclude() )
             {
-                params = new TrackedEntityInstanceParams( true, true, true, true );
+                params = TrackedEntityInstanceParams.TRUE;
             }
         }
         if ( roots.containsKey( "relationships" ) )
         {
             FieldPath p = roots.get( "relationships" );
-            params.setIncludeRelationships( !p.isExclude() );
+            params = params.withIncludeRelationships( !p.isExclude() );
         }
         if ( roots.containsKey( "enrollments" ) )
         {
             FieldPath p = roots.get( "enrollments" );
-            params.setIncludeEnrollments( !p.isExclude() );
+            params = params.withIncludeEnrollments( !p.isExclude() );
             // events is a child field of enrollments
-            params.setIncludeEvents( !p.isExclude() );
+            params = params.withIncludeEvents( !p.isExclude() );
         }
         if ( roots.containsKey( "programOwners" ) )
         {
             FieldPath p = roots.get( "programOwners" );
-            params.setIncludeProgramOwners( !p.isExclude() );
+            params = params.withIncludeProgramOwners( !p.isExclude() );
         }
 
         // events is a field on enrollments, so we have to take the enrollments
@@ -196,7 +196,7 @@ public class TrackedEntityInstanceSupportService
         {
             if ( events.isExclude() )
             {
-                params.setIncludeEvents( false );
+                params = params.withIncludeEvents( false );
             }
             else
             {
@@ -205,7 +205,7 @@ public class TrackedEntityInstanceSupportService
                     FieldPath enrollments = roots.get( "enrollments" );
                     if ( !enrollments.isExclude() )
                     {
-                        params.setIncludeEvents( !events.isExclude() );
+                        params = params.withIncludeEvents( !events.isExclude() );
                     }
                 }
             }
@@ -216,10 +216,6 @@ public class TrackedEntityInstanceSupportService
 
     private static boolean isEnrollmentEventsField( FieldPath path )
     {
-        if ( !path.isRoot() && "events".equals( path.getName() ) && path.getPath().get( 0 ).equals( "enrollments" ) )
-        {
-            return true;
-        }
-        return false;
+        return !path.isRoot() && "events".equals( path.getName() ) && path.getPath().get( 0 ).equals( "enrollments" );
     }
 }
