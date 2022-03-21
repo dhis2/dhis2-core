@@ -38,7 +38,8 @@ import static org.hisp.dhis.scheduling.JobType.TEI_IMPORT;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 
-import java.awt.*;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
@@ -530,26 +531,26 @@ public class TrackedEntityInstanceController
             return TrackedEntityInstanceParams.TRUE;
         }
 
-        TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
+        TrackedEntityInstanceParams params = TrackedEntityInstanceParams.FALSE;
 
         if ( joined.contains( "relationships" ) )
         {
-            params.setIncludeRelationships( true );
+            params = params.withIncludeRelationships( true );
         }
 
         if ( joined.contains( "enrollments" ) )
         {
-            params.setIncludeEnrollments( true );
+            params = params.withIncludeEnrollments( true );
         }
 
         if ( joined.contains( "events" ) )
         {
-            params.setIncludeEvents( true );
+            params = params.withIncludeEvents( true );
         }
 
         if ( joined.contains( "programOwners" ) )
         {
-            params.setIncludeProgramOwners( true );
+            params = params.withIncludeProgramOwners( true );
         }
 
         return params;
