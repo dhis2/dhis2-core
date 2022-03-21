@@ -27,66 +27,43 @@
  */
 package org.hisp.dhis.dxf2.events;
 
+import lombok.Value;
+import lombok.With;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@With
+@Value
 public class TrackedEntityInstanceParams
 {
-    public static final TrackedEntityInstanceParams TRUE = new TrackedEntityInstanceParams( true, true, true, true );
+    public static final TrackedEntityInstanceParams TRUE = new TrackedEntityInstanceParams( true, true, true, true,
+        false, false );
 
     public static final TrackedEntityInstanceParams FALSE = new TrackedEntityInstanceParams( false, false, false,
-        false );
+        false, false, false );
 
     public static final TrackedEntityInstanceParams DATA_SYNCHRONIZATION = new TrackedEntityInstanceParams( true, true,
         true, true, true, true );
 
-    private boolean includeRelationships;
+    private final boolean includeRelationships;
 
-    private boolean includeEnrollments;
+    private final boolean includeEnrollments;
 
-    private boolean includeEvents;
+    private final boolean includeEvents;
 
-    private boolean includeProgramOwners;
+    private final boolean includeProgramOwners;
 
-    private boolean includeDeleted = false;
+    private final boolean includeDeleted;
 
-    private boolean dataSynchronizationQuery = false;
-
-    public TrackedEntityInstanceParams()
-    {
-    }
-
-    public TrackedEntityInstanceParams( boolean includeRelationships, boolean includeEnrollments, boolean includeEvents,
-        boolean includeProgramOwners )
-    {
-        this.includeRelationships = includeRelationships;
-        this.includeEnrollments = includeEnrollments;
-        this.includeEvents = includeEvents;
-        this.includeProgramOwners = includeProgramOwners;
-    }
-
-    public TrackedEntityInstanceParams( boolean includeRelationships, boolean includeEnrollments, boolean includeEvents,
-        boolean includeProgramOwners, boolean includeDeleted, boolean dataSynchronizationQuery )
-    {
-        this.includeRelationships = includeRelationships;
-        this.includeEnrollments = includeEnrollments;
-        this.includeEvents = includeEvents;
-        this.includeProgramOwners = includeProgramOwners;
-        this.includeDeleted = includeDeleted;
-        this.dataSynchronizationQuery = dataSynchronizationQuery;
-    }
+    private final boolean dataSynchronizationQuery;
 
     @JsonProperty
     public boolean isIncludeRelationships()
     {
         return includeRelationships;
-    }
-
-    public void setIncludeRelationships( boolean includeRelationships )
-    {
-        this.includeRelationships = includeRelationships;
     }
 
     @JsonProperty
@@ -95,20 +72,10 @@ public class TrackedEntityInstanceParams
         return includeEnrollments;
     }
 
-    public void setIncludeEnrollments( boolean includeEnrollments )
-    {
-        this.includeEnrollments = includeEnrollments;
-    }
-
     @JsonProperty
     public boolean isIncludeEvents()
     {
         return includeEvents;
-    }
-
-    public void setIncludeEvents( boolean includeEvents )
-    {
-        this.includeEvents = includeEvents;
     }
 
     @JsonProperty
@@ -117,31 +84,16 @@ public class TrackedEntityInstanceParams
         return includeProgramOwners;
     }
 
-    public void setIncludeProgramOwners( boolean includeProgramOwners )
-    {
-        this.includeProgramOwners = includeProgramOwners;
-    }
-
     @JsonProperty
     public boolean isIncludeDeleted()
     {
         return includeDeleted;
     }
 
-    public void setIncludeDeleted( boolean includeDeleted )
-    {
-        this.includeDeleted = includeDeleted;
-    }
-
     @JsonProperty
     public boolean isDataSynchronizationQuery()
     {
         return dataSynchronizationQuery;
-    }
-
-    public void setDataSynchronizationQuery( boolean dataSynchronizationQuery )
-    {
-        this.dataSynchronizationQuery = dataSynchronizationQuery;
     }
 
     @Override

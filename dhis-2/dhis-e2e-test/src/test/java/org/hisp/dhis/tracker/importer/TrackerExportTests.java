@@ -27,6 +27,25 @@
  */
 package org.hisp.dhis.tracker.importer;
 
+import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.emptyIterable;
+import static org.hamcrest.Matchers.endsWith;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.everyItem;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.startsWith;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Stream;
+
 import org.hamcrest.Matcher;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.dto.ApiResponse;
@@ -40,13 +59,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.skyscreamer.jsonassert.JSONAssert;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Stream;
-
-import static org.hamcrest.Matchers.*;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -77,23 +89,20 @@ public class TrackerExportTests
 
     private Stream<Arguments> shouldReturnRequestedFields()
     {
-        return Stream.of( new Arguments[] {
-            Arguments.of( "/trackedEntities/" + teiId,
-                "enrollments.createdAt,relationships[from.trackedEntity,to.trackedEntity]",
-                null ),
-            Arguments.of( "/trackedEntities/" + teiId, "trackedEntity,enrollments", null ),
-            Arguments.of( "/enrollments/" + enrollmentId, "program,status,enrolledAt", null ),
-            Arguments.of( "/enrollments/" + enrollmentId, "**", "enrollment,updatedAt,createdAt,occurredAt,enrolledAt",
-                null ),
+        return Stream.of(
+            Arguments.of( "/trackedEntities/" + teiId, "enrollments[createdAt],relationships[from[trackedEntity[trackedEntity]],to[trackedEntity[trackedEntity]]]", "enrollments.createdAt,relationships.from.trackedEntity.trackedEntity,relationships.to.trackedEntity.trackedEntity"),
+            Arguments.of( "/trackedEntities/" + teiId, "trackedEntity,enrollments", null),
+            Arguments.of( "/enrollments/" + enrollmentId, "program,status,enrolledAt", null),
+                Arguments.of( "/trackedEntities/" + teiId, "**",
+                        "trackedEntity,trackedEntityType,createdAt,updatedAt,orgUnit,inactive,deleted,potentialDuplicate,updatedBy,attributes", null ),
             Arguments.of( "/trackedEntities/" + teiId, "*",
-                "attributes,enrollments[createdAt,events],trackedEntity,orgUnit" ),
-            Arguments.of( "/trackedEntities/" + teiId, "**", "attributes,enrollments[createdAt,events]" ),
+                "trackedEntity,trackedEntityType,createdAt,updatedAt,orgUnit,inactive,deleted,potentialDuplicate,updatedBy,attributes", null ),
             Arguments.of( "/events/" + eventId, "enrollment,createdAt", null ),
-            Arguments.of( "/relationships/" + relationshipId, "from,to.trackedEntity[*]", null )
-        } );
+            Arguments.of( "/relationships/" + relationshipId, "from,to[trackedEntity[trackedEntity]]", "from,to.trackedEntity.trackedEntity" )
+         );
     }
 
-    @MethodSource()
+    @MethodSource
     @ParameterizedTest
     public void shouldReturnRequestedFields( String endpoint, String fields, String fieldsToValidate )
     {
