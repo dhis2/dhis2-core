@@ -134,35 +134,38 @@ public class DefaultDataStatisticsService
         long diff = now.getTime() - startDate.getTime();
         int days = (int) TimeUnit.DAYS.convert( diff, TimeUnit.MILLISECONDS );
 
+        // when counting fails we use null so the count does not appear in the
+        // stats
+        Integer errorValue = null;
         progress.startingStage( "Counting maps" );
-        Integer savedMaps = progress.runStage( null,
+        Integer savedMaps = progress.runStage( errorValue,
             () -> idObjectManager.getCountByCreated( org.hisp.dhis.mapping.Map.class, startDate ) );
         progress.startingStage( "Counting visualisations" );
-        Integer savedVisualizations = progress.runStage( null,
+        Integer savedVisualizations = progress.runStage( errorValue,
             () -> idObjectManager.getCountByCreated( Visualization.class, startDate ) );
         progress.startingStage( "Counting event reports" );
-        Integer savedEventReports = progress.runStage( null,
+        Integer savedEventReports = progress.runStage( errorValue,
             () -> eventVisualizationStore.countReportsCreated( startDate ) );
         progress.startingStage( "Counting event charts" );
-        Integer savedEventCharts = progress.runStage( null,
+        Integer savedEventCharts = progress.runStage( errorValue,
             () -> eventVisualizationStore.countChartsCreated( startDate ) );
         progress.startingStage( "Counting event visualisations" );
-        Integer savedEventVisualizations = progress.runStage( null,
+        Integer savedEventVisualizations = progress.runStage( errorValue,
             () -> idObjectManager.getCountByCreated( EventVisualization.class, startDate ) );
         progress.startingStage( "Counting dashboards" );
-        Integer savedDashboards = progress.runStage( null,
+        Integer savedDashboards = progress.runStage( errorValue,
             () -> idObjectManager.getCountByCreated( Dashboard.class, startDate ) );
         progress.startingStage( "Counting indicators" );
-        Integer savedIndicators = progress.runStage( null,
+        Integer savedIndicators = progress.runStage( errorValue,
             () -> idObjectManager.getCountByCreated( Indicator.class, startDate ) );
         progress.startingStage( "Counting data values" );
-        Integer savedDataValues = progress.runStage( null,
+        Integer savedDataValues = progress.runStage( errorValue,
             () -> dataValueService.getDataValueCount( days ) );
         progress.startingStage( "Counting active users" );
-        Integer activeUsers = progress.runStage( null,
+        Integer activeUsers = progress.runStage( errorValue,
             () -> userService.getActiveUsersCount( 1 ) );
         progress.startingStage( "Counting users" );
-        Integer users = progress.runStage( null,
+        Integer users = progress.runStage( errorValue,
             () -> idObjectManager.getCount( User.class ) );
         progress.startingStage( "Counting views" );
         Map<DataStatisticsEventType, Double> eventCountMap = progress.runStage( Map.of(),
