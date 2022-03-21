@@ -91,7 +91,7 @@ import com.google.common.collect.ImmutableMap;
 @EnableGlobalMethodSecurity( prePostEnabled = true )
 public class WebMvcConfig extends DelegatingWebMvcConfiguration
 {
-    // Paths where XML should sstil be allowed.
+    // Paths where XML should stil be allowed.
     public static final List<Pattern> XML_PATTERNS = List.of(
         Pattern.compile( "/(\\d\\d/)?relationships(/?$|/.+)" ),
         Pattern.compile( "/(\\d\\d/)?enrollments(/?$|/.+)" ),
