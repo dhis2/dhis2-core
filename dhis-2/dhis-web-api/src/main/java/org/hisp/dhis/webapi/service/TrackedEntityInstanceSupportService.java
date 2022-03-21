@@ -265,23 +265,20 @@ public class TrackedEntityInstanceSupportService
                 events = p;
             }
         }
-        if ( events != null )
+        if ( events == null )
         {
-            if ( events.isExclude() )
-            {
-                return params.withIncludeEvents( false );
-            }
-            else
-            {
-                if ( roots.containsKey( FIELD_ENROLLMENTS ) )
-                {
-                    FieldPath enrollments = roots.get( FIELD_ENROLLMENTS );
-                    if ( !enrollments.isExclude() )
-                    {
-                        return params.withIncludeEvents( !events.isExclude() );
-                    }
-                }
-            }
+            return params;
+        }
+
+        if ( events.isExclude() )
+        {
+            return params.withIncludeEvents( false );
+        }
+        // since exclusion takes precedence if "!enrollments" we do not need to
+        // check the events field value
+        if ( roots.containsKey( FIELD_ENROLLMENTS ) && !roots.get( FIELD_ENROLLMENTS ).isExclude() )
+        {
+            return params.withIncludeEvents( !events.isExclude() );
         }
         return params;
     }
