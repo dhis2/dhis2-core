@@ -282,6 +282,12 @@ public class EventQueryParams
     @Getter
     protected Map<AnalyticsDateFilter, DateRange> dateRangeByDateFilter = new HashMap<>();
 
+    /**
+     * flag to enable enhanced OR conditions
+     */
+    @Getter
+    protected boolean enhancedCondition = false;
+
     @Getter
     protected RequestTypeAware.EndpointItem endpointItem;
 
@@ -353,6 +359,7 @@ public class EventQueryParams
         params.explainOrderId = this.explainOrderId;
         params.dateRangeByDateFilter = this.dateRangeByDateFilter;
         params.skipPartitioning = this.skipPartitioning;
+        params.enhancedCondition = this.enhancedCondition;
         params.endpointItem = this.endpointItem;
         return params;
     }
@@ -1527,6 +1534,12 @@ public class EventQueryParams
         public void withSkipPartitioning( boolean skipPartitioning )
         {
             this.params.skipPartitioning = skipPartitioning;
+        }
+
+        public Builder withEnhancedConditions( boolean enhancedConditions )
+        {
+            this.params.enhancedCondition = enhancedConditions;
+            return this;
         }
 
         public EventQueryParams build()

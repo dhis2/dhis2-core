@@ -53,7 +53,7 @@ import com.google.common.collect.ImmutableSet;
  * @author Lars Helge Overland
  */
 public interface DimensionalObject
-    extends NameableObject
+    extends NameableObject, GroupableItem
 {
     String DATA_X_DIM_ID = "dx"; // in, de, ds, do
 
