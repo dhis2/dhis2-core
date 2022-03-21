@@ -28,7 +28,7 @@
 package org.hisp.dhis.trackedentity.hibernate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static java.util.Comparator.*;
+import static java.util.Comparator.comparing;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
@@ -1287,7 +1287,7 @@ public class HibernateTrackedEntityInstanceStore
         {
             if ( cols.contains( prop[0] ) )
             {
-                orderFields.add( prop[0] + SPACE + prop[1] );
+                orderFields.add( "TEI.trackedentityinstanceid" + " " + prop[1] );
             }
             else
             {
