@@ -69,6 +69,7 @@ import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -91,6 +92,9 @@ class AbstractJdbcEventAnalyticsManagerTest extends
     private ProgramIndicatorService programIndicatorService;
 
     @Mock
+    private SystemSettingManager systemSettingManager;
+
+    @Mock
     private ExecutionPlanStore executionPlanStore;
 
     private JdbcEventAnalyticsManager subject;
@@ -110,7 +114,8 @@ class AbstractJdbcEventAnalyticsManagerTest extends
         DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder = new DefaultProgramIndicatorSubqueryBuilder(
             programIndicatorService );
         subject = new JdbcEventAnalyticsManager( jdbcTemplate, statementBuilder, programIndicatorService,
-            programIndicatorSubqueryBuilder, new EventTimeFieldSqlRenderer( statementBuilder ), executionPlanStore );
+            programIndicatorSubqueryBuilder, new EventTimeFieldSqlRenderer( statementBuilder ), executionPlanStore,
+            systemSettingManager );
 
         // data init
 

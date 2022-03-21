@@ -54,6 +54,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -92,10 +93,13 @@ class AbstractAnalyticsServiceTest
     @Mock
     private EventQueryValidator eventQueryValidator;
 
+    @Mock
+    private SystemSettingManager systemSettingManager;
+
     @BeforeEach
     public void setUp()
     {
-        dummyAnalyticsService = new DummyAnalyticsService( securityManager, eventQueryValidator );
+        dummyAnalyticsService = new DummyAnalyticsService( securityManager, eventQueryValidator, systemSettingManager );
 
         peA = MonthlyPeriodType.getPeriodFromIsoString( "201701" );
         ouA = createOrganisationUnit( 'A' );
@@ -156,9 +160,10 @@ class AbstractAnalyticsServiceTest
 
 class DummyAnalyticsService extends AbstractAnalyticsService
 {
-    public DummyAnalyticsService( AnalyticsSecurityManager securityManager, EventQueryValidator queryValidator )
+    public DummyAnalyticsService( AnalyticsSecurityManager securityManager, EventQueryValidator queryValidator,
+        SystemSettingManager systemSettingManager )
     {
-        super( securityManager, queryValidator );
+        super( securityManager, queryValidator, systemSettingManager );
     }
 
     @Override

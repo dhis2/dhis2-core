@@ -52,6 +52,7 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.junit.jupiter.api.BeforeEach;
@@ -106,12 +107,16 @@ class DefaultEventAnalyticsServiceTest
     @Mock
     private SchemaIdResponseMapper schemaIdResponseMapper;
 
+    @Mock
+    private SystemSettingManager systemSettingManager;
+
     @BeforeEach
     public void setUp()
     {
         defaultEventAnalyticsService = new DefaultEventAnalyticsService( dataElementService,
             trackedEntityAttributeService, eventAnalyticsManager, eventDataQueryService, securityManager, queryPlanner,
-            eventQueryValidator, databaseInfo, analyticsCache, enrollmentAnalyticsManager, schemaIdResponseMapper );
+            eventQueryValidator, databaseInfo, analyticsCache, enrollmentAnalyticsManager, schemaIdResponseMapper,
+            systemSettingManager );
     }
 
     @Test

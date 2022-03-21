@@ -43,6 +43,7 @@ import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.common.ValueType.COORDINATE;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentGraphMap;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentNameGraphMap;
+import static org.hisp.dhis.setting.SettingKey.ANALYTICS_MAX_LIMIT;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -74,6 +75,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.User;
 
 import com.google.common.collect.Lists;
@@ -87,13 +89,18 @@ public abstract class AbstractAnalyticsService
 
     final EventQueryValidator queryValidator;
 
-    public AbstractAnalyticsService( AnalyticsSecurityManager securityManager, EventQueryValidator queryValidator )
+    private final SystemSettingManager systemSettingManager;
+
+    public AbstractAnalyticsService( AnalyticsSecurityManager securityManager, EventQueryValidator queryValidator,
+        SystemSettingManager systemSettingManager )
     {
         checkNotNull( securityManager );
         checkNotNull( queryValidator );
+        checkNotNull( systemSettingManager );
 
         this.securityManager = securityManager;
         this.queryValidator = queryValidator;
+        this.systemSettingManager = systemSettingManager;
     }
 
     protected Grid getGrid( EventQueryParams params )
@@ -207,16 +214,27 @@ public abstract class AbstractAnalyticsService
         return grid;
     }
 
-    private static void maybeApplyPaging( EventQueryParams params, long count, Grid grid )
+    private void maybeApplyPaging( EventQueryParams params, long count, Grid grid )
     {
         if ( params.isPaging() )
         {
             Pager pager = params.isTotalPages()
-                ? new Pager( params.getPageWithDefault(), count, params.getPageSizeWithDefault() )
-                : new SlimPager( params.getPageWithDefault(), params.getPageSizeWithDefault(), grid.hasLastDataRow() );
+                ? new Pager( params.getPageWithDefault(), count, getPageSize( params.getPageSize() ) )
+                : new SlimPager( params.getPageWithDefault(), getPageSize( params.getPageSize() ),
+                    grid.hasLastDataRow() );
 
             grid.getMetaData().put( PAGER.getKey(), pager );
         }
+    }
+
+    private int getPageSize( Integer pageSize )
+    {
+        if ( pageSize != null )
+        {
+            return pageSize;
+        }
+
+        return systemSettingManager.getIntSetting( ANALYTICS_MAX_LIMIT );
     }
 
     /**

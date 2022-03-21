@@ -83,6 +83,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicatorService;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.postgresql.util.PSQLException;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -117,10 +118,11 @@ public class JdbcEventAnalyticsManager
     public JdbcEventAnalyticsManager( JdbcTemplate jdbcTemplate, StatementBuilder statementBuilder,
         ProgramIndicatorService programIndicatorService,
         ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder,
-        EventTimeFieldSqlRenderer timeFieldSqlRenderer, ExecutionPlanStore executionPlanStore )
+        EventTimeFieldSqlRenderer timeFieldSqlRenderer, ExecutionPlanStore executionPlanStore,
+        SystemSettingManager systemSettingManager )
     {
         super( jdbcTemplate, statementBuilder, programIndicatorService, programIndicatorSubqueryBuilder,
-            executionPlanStore );
+            executionPlanStore, systemSettingManager );
         this.timeFieldSqlRenderer = timeFieldSqlRenderer;
     }
 
@@ -161,7 +163,7 @@ public class JdbcEventAnalyticsManager
 
         while ( rowSet.next() )
         {
-            if ( ++rowsRed > params.getPageSize() && !params.isTotalPages() )
+            if ( ++rowsRed > getPageSize( params.getPageSize() ) && !params.isTotalPages() )
             {
                 grid.setLastDataRow( false );
 

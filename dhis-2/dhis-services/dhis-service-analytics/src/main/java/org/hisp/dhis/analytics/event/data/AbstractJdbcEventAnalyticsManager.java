@@ -48,6 +48,7 @@ import static org.hisp.dhis.common.DimensionItemType.PROGRAM_INDICATOR;
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
 import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.ENROLLMENT;
+import static org.hisp.dhis.setting.SettingKey.ANALYTICS_MAX_LIMIT;
 import static org.hisp.dhis.system.util.MathUtils.getRounded;
 
 import java.util.Collection;
@@ -93,6 +94,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.MathUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessResourceFailureException;
@@ -129,6 +131,8 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
     private static final Collector<CharSequence, ?, String> AND_JOINER = joining( _AND_ );
 
+    private final SystemSettingManager systemSettingManager;
+
     protected final JdbcTemplate jdbcTemplate;
 
     protected final StatementBuilder statementBuilder;
@@ -141,19 +145,22 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
     public AbstractJdbcEventAnalyticsManager( @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate,
         StatementBuilder statementBuilder, ProgramIndicatorService programIndicatorService,
-        ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder, ExecutionPlanStore executionPlanStore )
+        ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder, ExecutionPlanStore executionPlanStore,
+        SystemSettingManager systemSettingManager )
     {
         checkNotNull( jdbcTemplate );
         checkNotNull( statementBuilder );
         checkNotNull( programIndicatorService );
         checkNotNull( programIndicatorSubqueryBuilder );
         checkNotNull( executionPlanStore );
+        checkNotNull( systemSettingManager );
 
         this.jdbcTemplate = jdbcTemplate;
         this.statementBuilder = statementBuilder;
         this.programIndicatorService = programIndicatorService;
         this.programIndicatorSubqueryBuilder = programIndicatorSubqueryBuilder;
         this.executionPlanStore = executionPlanStore;
+        this.systemSettingManager = systemSettingManager;
     }
 
     /**
@@ -167,7 +174,8 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
         if ( params.isPaging() )
         {
-            int limit = params.isTotalPages() ? params.getPageSizeWithDefault() : params.getPageSizeWithDefault() + 1;
+            int limit = params.isTotalPages() ? getPageSize( params.getPageSize() )
+                : getPageSize( params.getPageSize() ) + 1;
             sql += LIMIT + " " + limit + " offset " + params.getOffset();
         }
         else if ( maxLimit > 0 )
@@ -764,6 +772,16 @@ public abstract class AbstractJdbcEventAnalyticsManager
         sql += getPagingClause( params, maxLimit );
 
         return sql;
+    }
+
+    protected int getPageSize( Integer pageSize )
+    {
+        if ( pageSize != null )
+        {
+            return pageSize;
+        }
+
+        return systemSettingManager.getIntSetting( ANALYTICS_MAX_LIMIT );
     }
 
     /**
