@@ -174,32 +174,11 @@ public class TrackedEntityInstanceSupportService
         List<FieldPath> fieldPaths = FieldFilterParser.parse( new HashSet<>( fields ) );
         Map<String, FieldPath> roots = rootFields( fieldPaths );
 
-        TrackedEntityInstanceParams params = TrackedEntityInstanceParams.FALSE;
-        if ( roots.containsKey( FieldPreset.ALL ) )
-        {
-            FieldPath p = roots.get( FieldPreset.ALL );
-            if ( p.isRoot() && !p.isExclude() )
-            {
-                params = TrackedEntityInstanceParams.TRUE;
-            }
-        }
-        if ( roots.containsKey( FIELD_RELATIONSHIPS ) )
-        {
-            params = params.withIncludeRelationships( !roots.get( FIELD_RELATIONSHIPS ).isExclude() );
-        }
-        if ( roots.containsKey( FIELD_ENROLLMENTS ) )
-        {
-            FieldPath p = roots.get( FIELD_ENROLLMENTS );
-            params = params.withIncludeEnrollments( !p.isExclude() );
-            // events is a child field of enrollments
-            params = params.withIncludeEvents( !p.isExclude() );
-        }
-        if ( roots.containsKey( FIELD_PROGRAM_OWNERS ) )
-        {
-            params = params.withIncludeProgramOwners( !roots.get( FIELD_PROGRAM_OWNERS ).isExclude() );
-        }
-
-        params = params.withIncludeEvents( isEventsIncluded( fieldPaths, roots, params ) );
+        TrackedEntityInstanceParams params = initUsingAllOrNoFields( roots );
+        params = withFieldRelationships( roots, params );
+        params = withFieldEnrollmentsAndEvents( roots, params );
+        params = withFieldProgramOwners( roots, params );
+        params = withFieldEvents( fieldPaths, roots, params );
 
         return params;
     }
@@ -218,11 +197,65 @@ public class TrackedEntityInstanceSupportService
         return roots;
     }
 
-    private static boolean isEventsIncluded( List<FieldPath> fieldPaths, Map<String, FieldPath> roots,
+    private static TrackedEntityInstanceParams initUsingAllOrNoFields( Map<String, FieldPath> roots )
+    {
+
+        TrackedEntityInstanceParams params = TrackedEntityInstanceParams.FALSE;
+        if ( roots.containsKey( FieldPreset.ALL ) )
+        {
+            FieldPath p = roots.get( FieldPreset.ALL );
+            if ( p.isRoot() && !p.isExclude() )
+            {
+                params = TrackedEntityInstanceParams.TRUE;
+            }
+        }
+        return params;
+    }
+
+    private static TrackedEntityInstanceParams withFieldRelationships( Map<String, FieldPath> roots,
         TrackedEntityInstanceParams params )
     {
-        // events is a field on enrollments, so we have to take the enrollments
-        // root and its child field events into account
+
+        if ( roots.containsKey( FIELD_RELATIONSHIPS ) )
+        {
+            params = params.withIncludeRelationships( !roots.get( FIELD_RELATIONSHIPS ).isExclude() );
+        }
+        return params;
+    }
+
+    private static TrackedEntityInstanceParams withFieldEnrollmentsAndEvents( Map<String, FieldPath> roots,
+        TrackedEntityInstanceParams params )
+    {
+
+        if ( roots.containsKey( FIELD_ENROLLMENTS ) )
+        {
+            FieldPath p = roots.get( FIELD_ENROLLMENTS );
+            params = params.withIncludeEnrollments( !p.isExclude() );
+            // since its enrollments.events initialize it using the enrollments
+            // field value
+            params = params.withIncludeEvents( !p.isExclude() );
+        }
+        return params;
+    }
+
+    private static TrackedEntityInstanceParams withFieldProgramOwners( Map<String, FieldPath> roots,
+        TrackedEntityInstanceParams params )
+    {
+
+        if ( roots.containsKey( FIELD_PROGRAM_OWNERS ) )
+        {
+            params = params.withIncludeProgramOwners( !roots.get( FIELD_PROGRAM_OWNERS ).isExclude() );
+        }
+        return params;
+    }
+
+    private static TrackedEntityInstanceParams withFieldEvents( List<FieldPath> fieldPaths,
+        Map<String, FieldPath> roots,
+        TrackedEntityInstanceParams params )
+    {
+
+        // since its enrollments.events, we have to take the enrollments root
+        // and its child events into account
         FieldPath events = null;
         for ( FieldPath p : fieldPaths )
         {
@@ -236,7 +269,7 @@ public class TrackedEntityInstanceSupportService
         {
             if ( events.isExclude() )
             {
-                return false;
+                return params.withIncludeEvents( false );
             }
             else
             {
@@ -245,12 +278,12 @@ public class TrackedEntityInstanceSupportService
                     FieldPath enrollments = roots.get( FIELD_ENROLLMENTS );
                     if ( !enrollments.isExclude() )
                     {
-                        return !events.isExclude();
+                        return params.withIncludeEvents( !events.isExclude() );
                     }
                 }
             }
         }
-        return params.isIncludeEvents();
+        return params;
     }
 
     /**
