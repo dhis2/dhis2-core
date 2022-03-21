@@ -60,7 +60,7 @@ public class SlimPager extends Pager
      *
      * @return true if this is the last page, false otherwise
      */
-    @JsonProperty
+    @JsonProperty( "isLastPage" )
     @JacksonXmlProperty( namespace = DXF_2_0 )
     public Boolean isLastPage()
     {
