@@ -326,4 +326,9 @@ public class EventsAnalyticsQueryCriteria extends RequestTypeAware
      * The default is true (always total pages flag activated).
      */
     private boolean totalPages = true;
+
+    /**
+     * flag to enable enhanced OR conditions on queryItem dimensions/filters
+     */
+    private boolean enhancedConditions;
 }

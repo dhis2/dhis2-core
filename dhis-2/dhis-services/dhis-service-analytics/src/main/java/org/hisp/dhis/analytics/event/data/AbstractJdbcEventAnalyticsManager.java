@@ -842,6 +842,11 @@ public abstract class AbstractJdbcEventAnalyticsManager
      */
     protected String getItemsSql( EventQueryParams params, SqlHelper hlp )
     {
+        if ( params.isEnhancedCondition() )
+        {
+            return getItemsSqlForEnhancedConditions( params, hlp );
+        }
+
         // Creates a map grouping queryItems referring to repeatable stages and
         // those referring to non-repeatable stages
         // Only for enrollments, for events all query items are treated as
@@ -890,6 +895,21 @@ public abstract class AbstractJdbcEventAnalyticsManager
         return joinSql( conditions.collect( toList() ), joiner );
     }
 
+    private String getItemsSqlForEnhancedConditions( EventQueryParams params, SqlHelper hlp )
+    {
+        Map<UUID, String> sqlConditionByGroup = params.getItems()
+            .stream()
+            .filter( QueryItem::hasFilter )
+            .collect(
+                groupingBy( QueryItem::getGroupUUID, mapping( queryItem -> toSql( queryItem, params ), OR_JOINER ) ) );
+
+        if ( sqlConditionByGroup.values().isEmpty() )
+        {
+            return "";
+        }
+        return hlp.whereAnd() + " " + String.join( _AND_, sqlConditionByGroup.values() );
+    }
+
     /**
      * joins a collection of conditions using given join function, returns empty
      * string if collection is empty
@@ -922,10 +942,18 @@ public abstract class AbstractJdbcEventAnalyticsManager
     {
         return IdentifiableSql.builder()
             .identifier( getIdentifier( queryItem ) )
-            .sql( queryItem.getFilters().stream()
-                .map( filter -> toSql( queryItem, filter, params ) )
-                .collect( joining( _AND_ ) ) )
+            .sql( toSql( queryItem, params ) )
             .build();
+    }
+
+    /**
+     * Converts given queryItem into sql joining its filters using AND
+     */
+    private String toSql( QueryItem queryItem, EventQueryParams params )
+    {
+        return queryItem.getFilters().stream()
+            .map( filter -> toSql( queryItem, filter, params ) )
+            .collect( joining( _AND_ ) );
     }
 
     /**

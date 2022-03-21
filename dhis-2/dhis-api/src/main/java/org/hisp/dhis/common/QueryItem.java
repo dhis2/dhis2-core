@@ -31,7 +31,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.stream.Collectors;
+
+import lombok.Getter;
+import lombok.Setter;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
@@ -50,8 +54,12 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
  *
  * @author Lars Helge Overland
  */
-public class QueryItem
+public class QueryItem implements GroupableItem
 {
+    @Getter
+    @Setter
+    private UUID groupUUID;
+
     private DimensionalItemObject item; // TODO DimensionObject
 
     private LegendSet legendSet;
