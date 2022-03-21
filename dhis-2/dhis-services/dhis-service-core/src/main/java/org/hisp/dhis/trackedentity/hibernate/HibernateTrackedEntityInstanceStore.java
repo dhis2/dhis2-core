@@ -1285,10 +1285,6 @@ public class HibernateTrackedEntityInstanceStore
 
         if ( prop.length == 2 && (prop[1].equals( "desc" ) || prop[1].equals( "asc" )) )
         {
-            if ( prop[0].equals( CREATED_ID ) )
-            {
-                prop[0] = "TEI.trackedentityinstanceid";
-            }
             if ( cols.contains( prop[0] ) )
             {
                 orderFields.add( prop[0] + SPACE + prop[1] );
