@@ -27,9 +27,16 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import java.util.Collections;
-import java.util.List;
+import static java.util.Collections.singletonList;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -52,46 +59,38 @@ public class OptionObjectBundleHookTest
 
     private Preheat preheat = new Preheat();
 
+    /**
+     * OptionSet.options doesn't contain to Option, but Option has reference to
+     * OptionSet.
+     * <p>
+     * Expected: OptionSet.options should contain referenced Option after
+     * preCreate.
+     */
     @Test
     public void preCreate()
     {
         OptionSet optionSet = new OptionSet();
         optionSet.setUid( "jadhjSHdhs" );
+
         Option option = new Option();
         option.setOptionSet( optionSet );
 
-        OptionSet persistedOptionSet = new OptionSet();
-        persistedOptionSet.setUid( "jadhjSHdhs" );
-        preheat.put( PreheatIdentifier.UID, persistedOptionSet );
+        preheat.put( PreheatIdentifier.UID, optionSet );
 
         ObjectBundleParams objectBundleParams = new ObjectBundleParams();
         objectBundleParams.setPreheatIdentifier( PreheatIdentifier.UID );
-        ObjectBundle bundle = new ObjectBundle( objectBundleParams, preheat, Collections.emptyMap() );
+
+        final Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objectMap = new HashMap<>();
+        objectMap.put( OptionSet.class, singletonList( optionSet ) );
+        objectMap.put( Option.class, singletonList( option ) );
+
+        ObjectBundle bundle = new ObjectBundle( objectBundleParams, preheat, objectMap );
         hook.preCreate( option, bundle );
 
-        Assert.assertEquals( 1, persistedOptionSet.getOptions().size() );
-        Assert.assertSame( option, persistedOptionSet.getOptions().get( 0 ) );
-    }
+        optionSet = preheat.get( PreheatIdentifier.UID, OptionSet.class, "jadhjSHdhs" );
 
-    @Test
-    public void preCreateOptionSetAvailable()
-    {
-        OptionSet optionSet = new OptionSet();
-        optionSet.setUid( "jadhjSHdhs" );
-        Option option = new Option();
-        option.setOptionSet( optionSet );
-
-        OptionSet persistedOptionSet = new OptionSet();
-        persistedOptionSet.setUid( "jadhjSHdhs" );
-        preheat.put( PreheatIdentifier.UID, persistedOptionSet );
-
-        ObjectBundleParams objectBundleParams = new ObjectBundleParams();
-        objectBundleParams.setPreheatIdentifier( PreheatIdentifier.UID );
-        ObjectBundle bundle = new ObjectBundle( objectBundleParams, preheat,
-            Collections.singletonMap( OptionSet.class, Collections.singletonList( optionSet ) ) );
-        hook.preCreate( option, bundle );
-
-        Assert.assertEquals( 0, persistedOptionSet.getOptions().size() );
+        assertEquals( 1, optionSet.getOptions().size() );
+        assertSame( option, optionSet.getOptions().get( 0 ) );
     }
 
     @Test
@@ -118,12 +117,12 @@ public class OptionObjectBundleHookTest
         ObjectBundleParams objectBundleParams = new ObjectBundleParams();
         objectBundleParams.setPreheatIdentifier( PreheatIdentifier.UID );
         ObjectBundle bundle = new ObjectBundle( objectBundleParams, preheat,
-            Collections.singletonMap( OptionSet.class, Collections.singletonList( persistedOptionSet ) ) );
+            Collections.singletonMap( OptionSet.class, singletonList( persistedOptionSet ) ) );
 
         List<ErrorReport> errors = hook.validate( option, bundle );
 
         Assert.assertNotNull( errors );
-        Assert.assertEquals( 1, errors.size() );
-        Assert.assertEquals( ErrorCode.E4028, errors.get( 0 ).getErrorCode() );
+        assertEquals( 1, errors.size() );
+        assertEquals( ErrorCode.E4028, errors.get( 0 ).getErrorCode() );
     }
 }
