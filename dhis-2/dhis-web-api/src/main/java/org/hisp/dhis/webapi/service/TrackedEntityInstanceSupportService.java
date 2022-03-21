@@ -29,9 +29,13 @@ package org.hisp.dhis.webapi.service;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
 
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 
@@ -41,6 +45,9 @@ import org.hisp.dhis.dxf2.events.trackedentity.ProgramOwner;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.fieldfiltering.FieldFilterParser;
+import org.hisp.dhis.fieldfiltering.FieldPath;
+import org.hisp.dhis.fieldfiltering.FieldPreset;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -53,23 +60,35 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.springframework.stereotype.Service;
 
-import com.google.common.base.Joiner;
-
 @Service
 @RequiredArgsConstructor
 public class TrackedEntityInstanceSupportService
 {
 
+    private static final String FIELD_ENROLLMENTS = "enrollments";
+
+    private static final String FIELD_RELATIONSHIPS = "relationships";
+
+    private static final String FIELD_PROGRAM_OWNERS = "programOwners";
+
+    private static final String FIELD_EVENTS = "events";
+
+    @NonNull
     private final TrackedEntityInstanceService trackedEntityInstanceService;
 
+    @NonNull
     private final CurrentUserService currentUserService;
 
+    @NonNull
     private final ProgramService programService;
 
+    @NonNull
     private final TrackerAccessManager trackerAccessManager;
 
+    @NonNull
     private final org.hisp.dhis.trackedentity.TrackedEntityInstanceService instanceService;
 
+    @NonNull
     private final TrackedEntityTypeService trackedEntityTypeService;
 
     @SneakyThrows
@@ -138,38 +157,139 @@ public class TrackedEntityInstanceSupportService
         return trackedEntityInstance;
     }
 
-    public TrackedEntityInstanceParams getTrackedEntityInstanceParams( List<String> fields )
+    /**
+     * Parse the fields query parameter values to determine which resources
+     * should be fetched from the DB. The
+     * {@link org.hisp.dhis.fieldfiltering.FieldFilterService} is used to filter
+     * the response before serializing it into JSON. Since exclusions take
+     * precedences over inclusions in the FieldFilterService do so here as well.
+     * For example "enrollments", "!enrollments" will lead to
+     * {@link TrackedEntityInstanceParams#isIncludeEnrollments()} being false.
+     *
+     * @param fields fields query parameter values
+     * @return tracked entity instance parameters
+     */
+    public static TrackedEntityInstanceParams getTrackedEntityInstanceParams( List<String> fields )
     {
-        String joined = Joiner.on( "" ).join( fields );
+        List<FieldPath> fieldPaths = FieldFilterParser.parse( new HashSet<>( fields ) );
+        Map<String, FieldPath> roots = rootFields( fieldPaths );
 
-        if ( joined.contains( "*" ) )
-        {
-            return TrackedEntityInstanceParams.TRUE;
-        }
-
-        TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
-
-        if ( joined.contains( "relationships" ) )
-        {
-            params.setIncludeRelationships( true );
-        }
-
-        if ( joined.contains( "enrollments" ) )
-        {
-            params.setIncludeEnrollments( true );
-        }
-
-        if ( joined.contains( "events" ) )
-        {
-            params.setIncludeEvents( true );
-        }
-
-        if ( joined.contains( "programOwners" ) )
-        {
-            params.setIncludeProgramOwners( true );
-        }
+        TrackedEntityInstanceParams params = initUsingAllOrNoFields( roots );
+        params = withFieldRelationships( roots, params );
+        params = withFieldEnrollmentsAndEvents( roots, params );
+        params = withFieldProgramOwners( roots, params );
+        params = withFieldEvents( fieldPaths, roots, params );
 
         return params;
     }
 
+    private static Map<String, FieldPath> rootFields( List<FieldPath> fieldPaths )
+    {
+
+        Map<String, FieldPath> roots = new HashMap<>();
+        for ( FieldPath p : fieldPaths )
+        {
+            if ( p.isRoot() && (!roots.containsKey( p.getName() ) || p.isExclude()) )
+            {
+                roots.put( p.getName(), p );
+            }
+        }
+        return roots;
+    }
+
+    private static TrackedEntityInstanceParams initUsingAllOrNoFields( Map<String, FieldPath> roots )
+    {
+
+        TrackedEntityInstanceParams params = TrackedEntityInstanceParams.FALSE;
+        if ( roots.containsKey( FieldPreset.ALL ) )
+        {
+            FieldPath p = roots.get( FieldPreset.ALL );
+            if ( p.isRoot() && !p.isExclude() )
+            {
+                params = TrackedEntityInstanceParams.TRUE;
+            }
+        }
+        return params;
+    }
+
+    private static TrackedEntityInstanceParams withFieldRelationships( Map<String, FieldPath> roots,
+        TrackedEntityInstanceParams params )
+    {
+
+        if ( roots.containsKey( FIELD_RELATIONSHIPS ) )
+        {
+            params = params.withIncludeRelationships( !roots.get( FIELD_RELATIONSHIPS ).isExclude() );
+        }
+        return params;
+    }
+
+    private static TrackedEntityInstanceParams withFieldEnrollmentsAndEvents( Map<String, FieldPath> roots,
+        TrackedEntityInstanceParams params )
+    {
+
+        if ( roots.containsKey( FIELD_ENROLLMENTS ) )
+        {
+            FieldPath p = roots.get( FIELD_ENROLLMENTS );
+            params = params.withIncludeEnrollments( !p.isExclude() );
+            // since its enrollments.events initialize it using the enrollments
+            // field value
+            params = params.withIncludeEvents( !p.isExclude() );
+        }
+        return params;
+    }
+
+    private static TrackedEntityInstanceParams withFieldProgramOwners( Map<String, FieldPath> roots,
+        TrackedEntityInstanceParams params )
+    {
+
+        if ( roots.containsKey( FIELD_PROGRAM_OWNERS ) )
+        {
+            params = params.withIncludeProgramOwners( !roots.get( FIELD_PROGRAM_OWNERS ).isExclude() );
+        }
+        return params;
+    }
+
+    private static TrackedEntityInstanceParams withFieldEvents( List<FieldPath> fieldPaths,
+        Map<String, FieldPath> roots,
+        TrackedEntityInstanceParams params )
+    {
+
+        // since its enrollments.events, we have to take the enrollments root
+        // and its child events into account
+        FieldPath events = null;
+        for ( FieldPath p : fieldPaths )
+        {
+            // exclusion takes precedence over inclusion
+            if ( isEnrollmentEventsField( p ) && (events == null || p.isExclude()) )
+            {
+                events = p;
+            }
+        }
+        if ( events == null )
+        {
+            return params;
+        }
+
+        if ( events.isExclude() )
+        {
+            return params.withIncludeEvents( false );
+        }
+        // since exclusion takes precedence if "!enrollments" we do not need to
+        // check the events field value
+        if ( roots.containsKey( FIELD_ENROLLMENTS ) && !roots.get( FIELD_ENROLLMENTS ).isExclude() )
+        {
+            return params.withIncludeEvents( !events.isExclude() );
+        }
+        return params;
+    }
+
+    /**
+     * @param path field path to check
+     * @return true if field is enrollments.events
+     */
+    private static boolean isEnrollmentEventsField( FieldPath path )
+    {
+        return !path.isRoot() && FIELD_EVENTS.equals( path.getName() )
+            && path.getPath().get( 0 ).equals( FIELD_ENROLLMENTS );
+    }
 }
