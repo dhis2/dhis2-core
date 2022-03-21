@@ -1715,6 +1715,10 @@
                         <groupId>jfree</groupId>
                         <artifactId>jfreechart</artifactId>
                     </exclusion>
+                    <exclusion>
+                        <groupId>org.jfree</groupId>
+                        <artifactId>jcommon</artifactId>
+                    </exclusion>
                 </exclusions>
             </dependency>
             <dependency>
@@ -1782,6 +1786,12 @@
                 <groupId>org.apache.poi</groupId>
                 <artifactId>poi-ooxml</artifactId>
                 <version>${poi.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.apache.commons</groupId>
+                        <artifactId>commons-compress</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
 
             <!-- GIS -->
