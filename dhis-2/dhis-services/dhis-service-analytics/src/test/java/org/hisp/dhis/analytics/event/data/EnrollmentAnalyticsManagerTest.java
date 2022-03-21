@@ -197,7 +197,7 @@ class EnrollmentAnalyticsManagerTest extends
 
         if ( valueType == ValueType.NUMBER )
         {
-            subSelect = "coalesce(" + subSelect + ", null) as fWIAEtYVEGk";
+            subSelect = "coalesce(" + subSelect + ", double precision 'NaN') as fWIAEtYVEGk";
         }
         String expected = "ax.\"monthly\",ax.\"ou\"," + subSelect + "  from " + getTable( programA.getUid() )
             + " as ax where ax.\"monthly\" in ('2000Q1') and (uidlevel1 = 'ouabcdefghA' ) " + "and ps = '"
@@ -261,7 +261,8 @@ class EnrollmentAnalyticsManagerTest extends
             + programA.getUid() + ".pi = ax.pi and \"fWIAEtYVEGk\" is not null and ps = '"
             + programStage.getUid() + "' order by executiondate desc limit 1 )";
 
-        String expected = "ax.\"monthly\",ax.\"ou\"," + "coalesce(" + subSelect + ", null) as fWIAEtYVEGk" + "  from "
+        String expected = "ax.\"monthly\",ax.\"ou\"," + "coalesce(" + subSelect
+            + ", double precision 'NaN') as fWIAEtYVEGk" + "  from "
             + getTable( programA.getUid() )
             + " as ax where ax.\"monthly\" in ('2000Q1') and (uidlevel1 = 'ouabcdefghA' ) "
             + "and ps = '" + programStage.getUid() + "' and " + subSelect + " > '10' limit 10001";
