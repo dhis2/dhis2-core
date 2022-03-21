@@ -106,6 +106,7 @@ public class TrackerExportTests
     }
 
     @MethodSource
+    @ParameterizedTest
     public void shouldReturnRequestedFields( String endpoint, String fields, String fieldsToValidate )
     {
         ApiResponse response = trackerActions.get( endpoint + "?fields=" + fields );
