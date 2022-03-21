@@ -263,7 +263,7 @@ public class GetOrganisationUnitTreeAction extends BaseAction
             }
         }
 
-        Collection<?> intersection = org.apache.commons.collections.CollectionUtils.intersection(
+        Collection<?> intersection = org.apache.commons.collections4.CollectionUtils.intersection(
             organisationUnitService.getRootOrganisationUnits(), rootOrganisationUnits );
 
         if ( intersection.size() > 0 )
