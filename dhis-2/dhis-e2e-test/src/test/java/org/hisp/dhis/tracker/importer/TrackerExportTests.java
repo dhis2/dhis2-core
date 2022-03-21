@@ -101,7 +101,7 @@ public class TrackerExportTests
             Arguments.of( "/trackedEntities/" + teiId, "*",
                 "trackedEntity,trackedEntityType,createdAt,updatedAt,orgUnit,inactive,deleted,potentialDuplicate,updatedBy,attributes", null ),
             Arguments.of( "/events/" + eventId, "enrollment,createdAt", null ),
-            Arguments.of( "/relationships/" + relationshipId, "from,to.trackedEntity[*]", null )
+            Arguments.of( "/relationships/" + relationshipId, "from,to[trackedEntity[trackedEntity]]", "from,to.trackedEntity.trackedEntity" )
          );
     }
 
