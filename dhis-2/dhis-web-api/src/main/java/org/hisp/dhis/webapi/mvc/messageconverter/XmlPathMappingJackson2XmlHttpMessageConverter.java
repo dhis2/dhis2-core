@@ -72,7 +72,7 @@ public class XmlPathMappingJackson2XmlHttpMessageConverter extends MappingJackso
         HttpServletRequest request = ContextUtils.getRequest();
         String pathInfo = request.getPathInfo();
 
-        for ( var pathPattern : XML_PATTERNS )
+        for ( var pathPattern : WebMvcConfig.XML_PATTERNS )
         {
             if ( pathPattern.matcher( pathInfo ).matches() )
             {
