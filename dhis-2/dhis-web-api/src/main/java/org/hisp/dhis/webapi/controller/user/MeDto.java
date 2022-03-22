@@ -80,6 +80,17 @@ public class MeDto
         this.access = user.getAccess();
         this.name = user.getName();
         this.email = user.getEmail();
+        this.phoneNumber = user.getPhoneNumber();
+        this.introduction = user.getIntroduction();
+        this.birthday = user.getBirthday();
+        this.nationality = user.getNationality();
+        this.education = user.getNationality();
+        this.interests = user.getInterests();
+        this.whatsApp = user.getWhatsApp();
+        this.facebookMessenger = user.getFacebookMessenger();
+        this.skype = user.getSkype();
+        this.telegram = user.getTelegram();
+        this.twitter = user.getTwitter();
         this.userRoles = user.getUserRoles();
         this.userCredentials = null;
 
@@ -88,6 +99,7 @@ public class MeDto
         this.settings = settings;
         this.programs = programs;
         this.dataSets = dataSets;
+
     }
 
     @JsonProperty( )
@@ -164,6 +176,39 @@ public class MeDto
 
     @JsonProperty( )
     private String email;
+
+    @JsonProperty( )
+    private String phoneNumber;
+
+    @JsonProperty( )
+    private String introduction;
+
+    @JsonProperty( )
+    private Date birthday;
+
+    @JsonProperty( )
+    private String nationality;
+
+    @JsonProperty( )
+    private String education;
+
+    @JsonProperty( )
+    private String interests;
+
+    @JsonProperty( )
+    private String whatsApp;
+
+    @JsonProperty( )
+    private String facebookMessenger;
+
+    @JsonProperty( )
+    private String skype;
+
+    @JsonProperty( )
+    private String telegram;
+
+    @JsonProperty( )
+    private String twitter;
 
     @JsonProperty
     private Set<UserRole> userRoles;
