@@ -231,7 +231,7 @@ public abstract class AbstractHibernateListener
         }
         catch ( Exception ex )
         {
-            log.error( "Couldn't create proxy " + ex );
+            log.debug( "Couldn't create proxy " + DebugUtils.getStackTrace( ex ) );
         }
 
         return null;
