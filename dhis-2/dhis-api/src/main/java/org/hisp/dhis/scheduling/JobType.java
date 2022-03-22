@@ -152,7 +152,8 @@ public enum JobType
         return this == RESOURCE_TABLE
             || this == ANALYTICS_TABLE
             || this == CONTINUOUS_ANALYTICS_TABLE
-            || this == DATA_SET_NOTIFICATION;
+            || this == DATA_SET_NOTIFICATION
+            || this == MONITORING;
     }
 
     public boolean isCronSchedulingType()
