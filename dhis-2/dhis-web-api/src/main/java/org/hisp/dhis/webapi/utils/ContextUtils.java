@@ -195,7 +195,9 @@ public class ContextUtils
 
     public static HttpServletRequest getRequest()
     {
-        return ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+        ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+
+        return attributes != null ? attributes.getRequest() : null;
     }
 
     public static String getContextPath( HttpServletRequest request )

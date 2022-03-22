@@ -27,11 +27,9 @@
  */
 package org.hisp.dhis.webapi.mvc.messageconverter;
 
-import java.util.List;
-import java.util.regex.Pattern;
-
 import javax.servlet.http.HttpServletRequest;
 
+import org.hisp.dhis.webapi.security.config.WebMvcConfig;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.xml.MappingJackson2XmlHttpMessageConverter;
@@ -46,14 +44,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public class XmlPathMappingJackson2XmlHttpMessageConverter extends MappingJackson2XmlHttpMessageConverter
 {
-    private static final List<Pattern> XML_PATTERNS = List.of(
-        Pattern.compile( "/(\\d\\d/)?relationships(/?$|/.+)" ),
-        Pattern.compile( "/(\\d\\d/)?enrollments(/?$|/.+)" ),
-        Pattern.compile( "/(\\d\\d/)?events(/?$|/.+)" ),
-        Pattern.compile( "/(\\d\\d/)?trackedEntityInstances(/?$|/.+)" ),
-        Pattern.compile( "/(\\d\\d/)?dataValueSets(/?$|/.+)" ),
-        Pattern.compile( "/(\\d\\d/)?completeDataSetRegistrations(/?$|/.+)" ) );
-
     public XmlPathMappingJackson2XmlHttpMessageConverter( ObjectMapper objectMapper )
     {
         super( objectMapper );
@@ -65,7 +55,7 @@ public class XmlPathMappingJackson2XmlHttpMessageConverter extends MappingJackso
         HttpServletRequest request = ContextUtils.getRequest();
         String pathInfo = request.getPathInfo();
 
-        for ( var pathPattern : XML_PATTERNS )
+        for ( var pathPattern : WebMvcConfig.XML_PATTERNS )
         {
             if ( pathPattern.matcher( pathInfo ).matches() )
             {
@@ -82,7 +72,7 @@ public class XmlPathMappingJackson2XmlHttpMessageConverter extends MappingJackso
         HttpServletRequest request = ContextUtils.getRequest();
         String pathInfo = request.getPathInfo();
 
-        for ( var pathPattern : XML_PATTERNS )
+        for ( var pathPattern : WebMvcConfig.XML_PATTERNS )
         {
             if ( pathPattern.matcher( pathInfo ).matches() )
             {
