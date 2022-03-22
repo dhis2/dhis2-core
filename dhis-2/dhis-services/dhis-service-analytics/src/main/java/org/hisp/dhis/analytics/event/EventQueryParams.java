@@ -839,7 +839,7 @@ public class EventQueryParams
 
     public boolean isPaging()
     {
-        return paging || page != null || pageSize != null;
+        return paging && (page != null || pageSize != null);
     }
 
     public boolean isTotalPages()
