@@ -136,6 +136,10 @@ public class HibernateTrackedEntityInstanceStore
 
     private static final String GT_EQUAL = " >= ";
 
+    private static final String UID_VALUE_SEPARATOR = ":";
+
+    private static final String UID_VALUE_PAIR_SEPARATOR = ";@//@;";
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -270,11 +274,11 @@ public class HibernateTrackedEntityInstanceStore
     {
         if ( teavString != null )
         {
-            String[] pairs = teavString.split( ";" );
+            String[] pairs = teavString.split( UID_VALUE_PAIR_SEPARATOR );
 
             for ( String pair : pairs )
             {
-                String[] teav = pair.split( ":" );
+                String[] teav = pair.split( UID_VALUE_SEPARATOR, 2 );
 
                 if ( teav.length == 2 )
                 {
@@ -430,8 +434,12 @@ public class HibernateTrackedEntityInstanceStore
             .append( "TEI.ouname AS " + ORG_UNIT_NAME + ", " )
             .append( "TET.uid AS " + TRACKED_ENTITY_ID + ", " )
             .append( "TEI.inactive AS " + INACTIVE_ID )
-            .append( (params.isIncludeDeleted() ? ", TEI.deleted AS " + DELETED : "") )
-            .append( (params.hasAttributes() ? ", string_agg(TEA.uid || ':' || TEAV.value, ';') AS tea_values" : "") );
+            .append( params.isIncludeDeleted() ? ", TEI.deleted AS " + DELETED : "" )
+            .append(
+                params.hasAttributes()
+                    ? ", string_agg(TEA.uid || '" + UID_VALUE_SEPARATOR + "' || TEAV.value, '"
+                        + UID_VALUE_PAIR_SEPARATOR + "') AS tea_values"
+                    : "" );
 
         if ( !isGridQuery )
         {
@@ -820,7 +828,7 @@ public class HibernateTrackedEntityInstanceStore
         orgUnits
             .append( " INNER JOIN organisationunit OU " )
             .append( "ON OU.organisationunitid = " )
-            .append( (params.hasProgram() ? "PO.organisationunitid " : "TEI.organisationunitid ") );
+            .append( params.hasProgram() ? "PO.organisationunitid " : "TEI.organisationunitid " );
 
         if ( !params.hasOrganisationUnits() )
         {
@@ -1175,7 +1183,7 @@ public class HibernateTrackedEntityInstanceStore
             .append( "TEI.ouname, " )
             .append( "TET.uid, " )
             .append( "TEI.inactive " )
-            .append( (params.isIncludeDeleted() ? ", TEI.deleted " : "") );
+            .append( params.isIncludeDeleted() ? ", TEI.deleted " : "" );
 
         if ( !getOrderAttributes( params ).isEmpty() )
         {
