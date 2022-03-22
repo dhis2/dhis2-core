@@ -40,7 +40,6 @@ import org.hisp.dhis.analytics.event.EventQueryPlanner;
 import org.hisp.dhis.analytics.event.EventQueryValidator;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
-import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.util.Timer;
 import org.springframework.stereotype.Service;
@@ -88,10 +87,9 @@ public class DefaultEnrollmentAnalyticsService
     private final EventQueryPlanner queryPlanner;
 
     public DefaultEnrollmentAnalyticsService( EnrollmentAnalyticsManager enrollmentAnalyticsManager,
-        AnalyticsSecurityManager securityManager, EventQueryPlanner queryPlanner, EventQueryValidator queryValidator,
-        SystemSettingManager systemSettingManager )
+        AnalyticsSecurityManager securityManager, EventQueryPlanner queryPlanner, EventQueryValidator queryValidator )
     {
-        super( securityManager, queryValidator, systemSettingManager );
+        super( securityManager, queryValidator );
 
         checkNotNull( enrollmentAnalyticsManager );
         checkNotNull( queryPlanner );

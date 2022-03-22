@@ -70,7 +70,6 @@ import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.relationship.RelationshipConstraint;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -105,9 +104,6 @@ class EnrollmentAnalyticsManagerTest extends
     private ExecutionPlanStore executionPlanStore;
 
     @Mock
-    private SystemSettingManager systemSettingManager;
-
-    @Mock
     private SqlRowSet rowSet;
 
     @Mock
@@ -135,7 +131,7 @@ class EnrollmentAnalyticsManagerTest extends
 
         subject = new JdbcEnrollmentAnalyticsManager( jdbcTemplate, statementBuilder, programIndicatorService,
             programIndicatorSubqueryBuilder, new EnrollmentTimeFieldSqlRenderer( statementBuilder ),
-            executionPlanStore, systemSettingManager );
+            executionPlanStore );
     }
 
     @Test

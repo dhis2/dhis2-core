@@ -122,7 +122,7 @@ public class JdbcEventAnalyticsManager
         SystemSettingManager systemSettingManager )
     {
         super( jdbcTemplate, statementBuilder, programIndicatorService, programIndicatorSubqueryBuilder,
-            executionPlanStore, systemSettingManager );
+            executionPlanStore );
         this.timeFieldSqlRenderer = timeFieldSqlRenderer;
     }
 
@@ -163,7 +163,7 @@ public class JdbcEventAnalyticsManager
 
         while ( rowSet.next() )
         {
-            if ( ++rowsRed > getPageSize( params.getPageSize() ) && !params.isTotalPages() )
+            if ( ++rowsRed > params.getPageSizeWithDefault() && !params.isTotalPages() )
             {
                 grid.setLastDataRow( false );
 
