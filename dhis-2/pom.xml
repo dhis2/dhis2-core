@@ -105,7 +105,7 @@
 
         <!-- Struts -->
         <struts.version>2.5.29</struts.version>
-        <velocity.version>2.3</velocity.version>
+        <velocity.version>1.7</velocity.version>
         <velocity-tools.version>2.0</velocity-tools.version>
 
         <!-- Jackson -->
@@ -177,6 +177,7 @@
         <hibernate-validator.version>6.2.0.Final</hibernate-validator.version>
         <jep.version>2.4.2</jep.version>
         <commons-collections4.version>4.4</commons-collections4.version>
+        <commons-collections.version>3.2.2</commons-collections.version>
         <commons-beanutils.version>1.9.4</commons-beanutils.version>
         <commons-digester3.version>3.2</commons-digester3.version>
         <commons-lang3.version>3.12.0</commons-lang3.version>
@@ -1212,8 +1213,14 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.velocity</groupId>
-                <artifactId>velocity-engine-core</artifactId>
+                <artifactId>velocity</artifactId>
                 <version>${velocity.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>commons-collections</groupId>
+                        <artifactId>commons-collections</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.apache.velocity</groupId>
@@ -1390,6 +1397,11 @@
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-collections4</artifactId>
                 <version>${commons-collections4.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-collections</groupId>
+                <artifactId>commons-collections</artifactId>
+                <version>${commons-collections.version}</version>
             </dependency>
             <dependency>
                 <groupId>commons-beanutils</groupId>
