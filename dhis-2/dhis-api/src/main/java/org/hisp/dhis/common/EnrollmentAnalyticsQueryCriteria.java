@@ -97,11 +97,11 @@ public class EnrollmentAnalyticsQueryCriteria extends RequestTypeAware
 
     private Set<ProgramStatus> programStatus;
 
-    private Integer page;
+    private Integer page = 1;
 
-    private Integer pageSize;
+    private Integer pageSize = 50;
 
-    private boolean paging;
+    private Boolean paging = true;
 
     private DisplayProperty displayProperty;
 
@@ -112,4 +112,11 @@ public class EnrollmentAnalyticsQueryCriteria extends RequestTypeAware
     private String coordinateField;
 
     private SortOrder sortOrder;
+
+    private boolean totalPages;
+
+    /**
+     * flag to enable enhanced OR conditions on queryItem dimensions/filters
+     */
+    private boolean enhancedConditions;
 }

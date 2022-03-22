@@ -30,7 +30,6 @@ package org.hisp.dhis.dataset;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newHashSet;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -62,7 +61,7 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAuthorityGroup;
+import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.junit.jupiter.api.Test;
@@ -162,12 +161,13 @@ class DataSetServiceTest extends DhisTest
         organisationUnitService.addOrganisationUnit( unitF );
         attributeOptionCombo = categoryService.getDefaultCategoryOptionCombo();
         mockCurrentUserService = new MockCurrentUserService( true, newHashSet( unitA ), newHashSet( unitA ),
-            UserAuthorityGroup.AUTHORITY_ALL );
+            UserRole.AUTHORITY_ALL );
         setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
             mockCurrentUserService, approvalService, approvalStore, levelService );
         User user = mockCurrentUserService.getCurrentUser();
         user.setFirstName( "John" );
         user.setSurname( "Doe" );
+
         userService.addUser( mockCurrentUserService.getCurrentUser() );
     }
 
@@ -367,45 +367,57 @@ class DataSetServiceTest extends DhisTest
         // ---------------------------------------------------------------------
         // Expiry days
         // ---------------------------------------------------------------------
-        assertFalse(
-            dataSetService.isLocked( user, dataElementA, period, unitA, attributeOptionCombo, getDate( 2000, 4, 1 ) ) );
-        assertFalse(
-            dataSetService.isLocked( user, dataElementA, period, unitA, attributeOptionCombo, getDate( 2000, 4, 5 ) ) );
-        assertFalse( dataSetService.isLocked( user, dataElementA, period, unitA, attributeOptionCombo,
-            getDate( 2000, 4, 15 ) ) );
-        assertFalse( dataSetService.isLocked( user, dataElementB, period, unitA, attributeOptionCombo,
-            getDate( 2000, 4, 25 ) ) );
-        assertTrue( dataSetService.isLocked( user, dataElementA, period, unitA, attributeOptionCombo,
-            getDate( 2000, 4, 25 ) ) );
+        assertEquals(
+            dataSetService.getLockStatus( user, dataElementA, period, unitA, attributeOptionCombo,
+                getDate( 2000, 4, 1 ) ),
+            LockStatus.OPEN );
+        assertEquals(
+            dataSetService.getLockStatus( user, dataElementA, period, unitA, attributeOptionCombo,
+                getDate( 2000, 4, 5 ) ),
+            LockStatus.OPEN );
+        assertEquals( dataSetService.getLockStatus( user, dataElementA, period, unitA, attributeOptionCombo,
+            getDate( 2000, 4, 15 ) ), LockStatus.OPEN );
+        assertEquals( dataSetService.getLockStatus( user, dataElementB, period, unitA, attributeOptionCombo,
+            getDate( 2000, 4, 25 ) ), LockStatus.OPEN );
+        assertEquals( dataSetService.getLockStatus( user, dataElementA, period, unitA, attributeOptionCombo,
+            getDate( 2000, 4, 25 ) ), LockStatus.LOCKED );
         // ---------------------------------------------------------------------
         // Lock exception
         // ---------------------------------------------------------------------
         LockException lockException = new LockException( period, unitA, dataSetA );
         dataSetService.addLockException( lockException );
-        assertFalse(
-            dataSetService.isLocked( user, dataElementA, period, unitA, attributeOptionCombo, getDate( 2000, 4, 1 ) ) );
-        assertFalse(
-            dataSetService.isLocked( user, dataElementA, period, unitA, attributeOptionCombo, getDate( 2000, 4, 5 ) ) );
-        assertFalse( dataSetService.isLocked( user, dataElementA, period, unitA, attributeOptionCombo,
-            getDate( 2000, 4, 15 ) ) );
-        assertFalse( dataSetService.isLocked( user, dataElementA, period, unitA, attributeOptionCombo,
-            getDate( 2000, 4, 25 ) ) );
-        assertFalse( dataSetService.isLocked( user, dataElementB, period, unitA, attributeOptionCombo,
-            getDate( 2000, 4, 25 ) ) );
+        assertEquals(
+            dataSetService.getLockStatus( user, dataElementA, period, unitA, attributeOptionCombo,
+                getDate( 2000, 4, 1 ) ),
+            LockStatus.OPEN );
+        assertEquals(
+            dataSetService.getLockStatus( user, dataElementA, period, unitA, attributeOptionCombo,
+                getDate( 2000, 4, 5 ) ),
+            LockStatus.OPEN );
+        assertEquals( dataSetService.getLockStatus( user, dataElementA, period, unitA, attributeOptionCombo,
+            getDate( 2000, 4, 15 ) ), LockStatus.OPEN );
+        assertEquals( dataSetService.getLockStatus( user, dataElementA, period, unitA, attributeOptionCombo,
+            getDate( 2000, 4, 25 ) ), LockStatus.OPEN );
+        assertEquals( dataSetService.getLockStatus( user, dataElementB, period, unitA, attributeOptionCombo,
+            getDate( 2000, 4, 25 ) ), LockStatus.OPEN );
         // ---------------------------------------------------------------------
         // Approved
         // ---------------------------------------------------------------------
         approveData( dataSetA, period, unitA );
-        assertTrue(
-            dataSetService.isLocked( user, dataElementA, period, unitA, attributeOptionCombo, getDate( 2000, 4, 1 ) ) );
-        assertTrue(
-            dataSetService.isLocked( user, dataElementA, period, unitA, attributeOptionCombo, getDate( 2000, 4, 5 ) ) );
-        assertTrue( dataSetService.isLocked( user, dataElementA, period, unitA, attributeOptionCombo,
-            getDate( 2000, 4, 15 ) ) );
-        assertTrue( dataSetService.isLocked( user, dataElementA, period, unitA, attributeOptionCombo,
-            getDate( 2000, 4, 25 ) ) );
-        assertFalse( dataSetService.isLocked( user, dataElementB, period, unitA, attributeOptionCombo,
-            getDate( 2000, 4, 25 ) ) );
+        assertEquals(
+            dataSetService.getLockStatus( user, dataElementA, period, unitA, attributeOptionCombo,
+                getDate( 2000, 4, 1 ) ),
+            LockStatus.APPROVED );
+        assertEquals(
+            dataSetService.getLockStatus( user, dataElementA, period, unitA, attributeOptionCombo,
+                getDate( 2000, 4, 5 ) ),
+            LockStatus.APPROVED );
+        assertEquals( dataSetService.getLockStatus( user, dataElementA, period, unitA, attributeOptionCombo,
+            getDate( 2000, 4, 15 ) ), LockStatus.APPROVED );
+        assertEquals( dataSetService.getLockStatus( user, dataElementA, period, unitA, attributeOptionCombo,
+            getDate( 2000, 4, 25 ) ), LockStatus.APPROVED );
+        assertEquals( dataSetService.getLockStatus( user, dataElementB, period, unitA, attributeOptionCombo,
+            getDate( 2000, 4, 25 ) ), LockStatus.OPEN );
     }
 
     @Test
@@ -423,54 +435,72 @@ class DataSetServiceTest extends DhisTest
         // ---------------------------------------------------------------------
         // Expiry days
         // ---------------------------------------------------------------------
-        assertFalse(
-            dataSetService.isLocked( user, dataSetA, period, unitA, attributeOptionCombo, getDate( 2000, 4, 1 ) ) );
-        assertFalse(
-            dataSetService.isLocked( user, dataSetA, period, unitA, attributeOptionCombo, getDate( 2000, 4, 5 ) ) );
-        assertTrue(
-            dataSetService.isLocked( user, dataSetA, period, unitA, attributeOptionCombo, getDate( 2000, 4, 15 ) ) );
-        assertTrue(
-            dataSetService.isLocked( user, dataSetA, period, unitA, attributeOptionCombo, getDate( 2000, 4, 25 ) ) );
-        assertFalse(
-            dataSetService.isLocked( user, dataSetB, period, unitA, attributeOptionCombo, getDate( 2000, 4, 10 ) ) );
+        assertEquals(
+            dataSetService.getLockStatus( user, dataSetA, period, unitA, attributeOptionCombo, getDate( 2000, 4, 1 ) ),
+            LockStatus.OPEN );
+        assertEquals(
+            dataSetService.getLockStatus( user, dataSetA, period, unitA, attributeOptionCombo, getDate( 2000, 4, 5 ) ),
+            LockStatus.OPEN );
+        assertEquals(
+            dataSetService.getLockStatus( user, dataSetA, period, unitA, attributeOptionCombo, getDate( 2000, 4, 15 ) ),
+            LockStatus.LOCKED );
+        assertEquals(
+            dataSetService.getLockStatus( user, dataSetA, period, unitA, attributeOptionCombo, getDate( 2000, 4, 25 ) ),
+            LockStatus.LOCKED );
+        assertEquals(
+            dataSetService.getLockStatus( user, dataSetB, period, unitA, attributeOptionCombo, getDate( 2000, 4, 10 ) ),
+            LockStatus.OPEN );
         // Test Expiry days with user has authority "ALL"
         user = mockCurrentUserService.getCurrentUser();
-        assertFalse(
-            dataSetService.isLocked( user, dataSetB, period, unitA, attributeOptionCombo, getDate( 2000, 4, 25 ) ) );
+        assertEquals(
+            dataSetService.getLockStatus( user, dataSetB, period, unitA, attributeOptionCombo, getDate( 2000, 4, 25 ) ),
+            LockStatus.OPEN );
         // ---------------------------------------------------------------------
         // Lock exception
         // ---------------------------------------------------------------------
         user = currentUserService.getCurrentUser();
         LockException lockException = new LockException( period, unitA, dataSetA );
         dataSetService.addLockException( lockException );
-        assertFalse(
-            dataSetService.isLocked( user, dataSetA, period, unitA, attributeOptionCombo, getDate( 2000, 4, 1 ) ) );
-        assertFalse(
-            dataSetService.isLocked( user, dataSetA, period, unitA, attributeOptionCombo, getDate( 2000, 4, 5 ) ) );
-        assertFalse(
-            dataSetService.isLocked( user, dataSetA, period, unitA, attributeOptionCombo, getDate( 2000, 4, 15 ) ) );
-        assertFalse(
-            dataSetService.isLocked( user, dataSetA, period, unitA, attributeOptionCombo, getDate( 2000, 4, 25 ) ) );
-        assertFalse(
-            dataSetService.isLocked( user, dataSetB, period, unitA, attributeOptionCombo, getDate( 2000, 4, 10 ) ) );
-        assertTrue(
-            dataSetService.isLocked( user, dataSetB, period, unitA, attributeOptionCombo, getDate( 2000, 4, 25 ) ) );
+        assertEquals(
+            dataSetService.getLockStatus( user, dataSetA, period, unitA, attributeOptionCombo, getDate( 2000, 4, 1 ) ),
+            LockStatus.OPEN );
+        assertEquals(
+            dataSetService.getLockStatus( user, dataSetA, period, unitA, attributeOptionCombo, getDate( 2000, 4, 5 ) ),
+            LockStatus.OPEN );
+        assertEquals(
+            dataSetService.getLockStatus( user, dataSetA, period, unitA, attributeOptionCombo, getDate( 2000, 4, 15 ) ),
+            LockStatus.OPEN );
+        assertEquals(
+            dataSetService.getLockStatus( user, dataSetA, period, unitA, attributeOptionCombo, getDate( 2000, 4, 25 ) ),
+            LockStatus.OPEN );
+        assertEquals(
+            dataSetService.getLockStatus( user, dataSetB, period, unitA, attributeOptionCombo, getDate( 2000, 4, 10 ) ),
+            LockStatus.OPEN );
+        assertEquals(
+            dataSetService.getLockStatus( user, dataSetB, period, unitA, attributeOptionCombo, getDate( 2000, 4, 25 ) ),
+            LockStatus.LOCKED );
         // ---------------------------------------------------------------------
         // Approved
         // ---------------------------------------------------------------------
         approveData( dataSetA, period, unitA );
-        assertTrue(
-            dataSetService.isLocked( user, dataSetA, period, unitA, attributeOptionCombo, getDate( 2000, 4, 1 ) ) );
-        assertTrue(
-            dataSetService.isLocked( user, dataSetA, period, unitA, attributeOptionCombo, getDate( 2000, 4, 5 ) ) );
-        assertTrue(
-            dataSetService.isLocked( user, dataSetA, period, unitA, attributeOptionCombo, getDate( 2000, 4, 15 ) ) );
-        assertTrue(
-            dataSetService.isLocked( user, dataSetA, period, unitA, attributeOptionCombo, getDate( 2000, 4, 25 ) ) );
-        assertFalse(
-            dataSetService.isLocked( user, dataSetB, period, unitA, attributeOptionCombo, getDate( 2000, 4, 10 ) ) );
-        assertTrue(
-            dataSetService.isLocked( user, dataSetB, period, unitA, attributeOptionCombo, getDate( 2000, 4, 25 ) ) );
+        assertEquals(
+            dataSetService.getLockStatus( user, dataSetA, period, unitA, attributeOptionCombo, getDate( 2000, 4, 1 ) ),
+            LockStatus.APPROVED );
+        assertEquals(
+            dataSetService.getLockStatus( user, dataSetA, period, unitA, attributeOptionCombo, getDate( 2000, 4, 5 ) ),
+            LockStatus.APPROVED );
+        assertEquals(
+            dataSetService.getLockStatus( user, dataSetA, period, unitA, attributeOptionCombo, getDate( 2000, 4, 15 ) ),
+            LockStatus.APPROVED );
+        assertEquals(
+            dataSetService.getLockStatus( user, dataSetA, period, unitA, attributeOptionCombo, getDate( 2000, 4, 25 ) ),
+            LockStatus.APPROVED );
+        assertEquals(
+            dataSetService.getLockStatus( user, dataSetB, period, unitA, attributeOptionCombo, getDate( 2000, 4, 10 ) ),
+            LockStatus.OPEN );
+        assertEquals(
+            dataSetService.getLockStatus( user, dataSetB, period, unitA, attributeOptionCombo, getDate( 2000, 4, 25 ) ),
+            LockStatus.LOCKED );
     }
 
     @Test

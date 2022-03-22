@@ -56,19 +56,19 @@ public class UserDeletionHandler
     @Override
     protected void register()
     {
-        whenDeleting( UserAuthorityGroup.class, this::deleteUserAuthorityGroup );
+        whenDeleting( UserRole.class, this::deleteUserRole );
         whenDeleting( OrganisationUnit.class, this::deleteOrganisationUnit );
         whenDeleting( UserGroup.class, this::deleteUserGroup );
-        whenVetoing( UserAuthorityGroup.class, this::allowDeleteUserAuthorityGroup );
+        whenVetoing( UserRole.class, this::allowDeleteUserRole );
         whenVetoing( FileResource.class, this::allowDeleteFileResource );
     }
 
-    private void deleteUserAuthorityGroup( UserAuthorityGroup authorityGroup )
+    private void deleteUserRole( UserRole role )
     {
-        for ( UserCredentials credentials : authorityGroup.getMembers() )
+        for ( User user : role.getMembers() )
         {
-            credentials.getUserAuthorityGroups().remove( authorityGroup );
-            idObjectManager.updateNoAcl( credentials );
+            user.getUserRoles().remove( role );
+            idObjectManager.updateNoAcl( user );
         }
     }
 
@@ -90,13 +90,13 @@ public class UserDeletionHandler
         }
     }
 
-    private DeletionVeto allowDeleteUserAuthorityGroup( UserAuthorityGroup authorityGroup )
+    private DeletionVeto allowDeleteUserRole( UserRole userRole )
     {
-        for ( UserCredentials credentials : authorityGroup.getMembers() )
+        for ( User credentials : userRole.getMembers() )
         {
-            for ( UserAuthorityGroup role : credentials.getUserAuthorityGroups() )
+            for ( UserRole role : credentials.getUserRoles() )
             {
-                if ( role.equals( authorityGroup ) )
+                if ( role.equals( userRole ) )
                 {
                     return new DeletionVeto( User.class, credentials.getName() );
                 }

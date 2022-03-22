@@ -91,6 +91,7 @@ class TrackerOwnershipManagerTest extends DhisSpringTest
         organisationUnitService.addOrganisationUnit( organisationUnitB );
         CurrentUserService mockCurrentUserService = new MockCurrentUserService( false, newHashSet( organisationUnitA ),
             newHashSet( organisationUnitA ), "" );
+
         setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
             mockCurrentUserService, trackerOwnershipAccessManager );
         entityInstanceA1 = createTrackedEntityInstance( organisationUnitA );

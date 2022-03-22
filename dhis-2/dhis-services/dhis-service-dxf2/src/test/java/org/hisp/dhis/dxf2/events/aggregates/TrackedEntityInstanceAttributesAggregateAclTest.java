@@ -44,8 +44,7 @@ import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAuthorityGroup;
-import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.user.UserRole;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -92,7 +91,7 @@ class TrackedEntityInstanceAttributesAggregateAclTest extends TrackerTest
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         queryParams.setTrackedEntityType( trackedEntityTypeA );
         queryParams.setIncludeAllAttributes( true );
-        TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
+        TrackedEntityInstanceParams params = TrackedEntityInstanceParams.FALSE;
         final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
             .getTrackedEntityInstances( queryParams, params, false, true );
         assertThat( trackedEntityInstances, hasSize( 0 ) );
@@ -124,7 +123,7 @@ class TrackedEntityInstanceAttributesAggregateAclTest extends TrackerTest
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         queryParams.setTrackedEntityType( trackedEntityType );
         queryParams.setIncludeAllAttributes( true );
-        TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
+        TrackedEntityInstanceParams params = TrackedEntityInstanceParams.FALSE;
         final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
             .getTrackedEntityInstances( queryParams, params, false, true );
         assertThat( trackedEntityInstances, hasSize( 2 ) );
@@ -132,11 +131,10 @@ class TrackedEntityInstanceAttributesAggregateAclTest extends TrackerTest
 
     protected void setUserAuthorityToNonSuper( User user )
     {
-        UserCredentials userCredentials = new UserCredentials();
-        UserAuthorityGroup userAuthorityGroup = new UserAuthorityGroup();
-        userAuthorityGroup.setUid( CodeGenerator.generateUid() );
-        userAuthorityGroup.setAuthorities( new HashSet<>( Collections.singletonList( "user" ) ) );
-        userCredentials.setUserAuthorityGroups( Sets.newHashSet( userAuthorityGroup ) );
-        user.setUserCredentials( userCredentials );
+        UserRole userRole = new UserRole();
+        userRole.setName( "UserRole_" + user.getUsername() );
+        userRole.setUid( CodeGenerator.generateUid() );
+        userRole.setAuthorities( new HashSet<>( Collections.singletonList( "user" ) ) );
+        user.setUserRoles( Sets.newHashSet( userRole ) );
     }
 }

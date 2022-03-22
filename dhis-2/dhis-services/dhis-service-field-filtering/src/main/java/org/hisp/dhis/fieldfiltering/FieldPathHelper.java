@@ -34,17 +34,20 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.security.acl.Access;
+import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
@@ -57,10 +60,6 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class FieldPathHelper
 {
-    public static final String PRESET_ALL = "all";
-
-    public static final String PRESET_OWNER = "owner";
-
     private final SchemaService schemaService;
 
     public void apply( List<FieldPath> fieldPaths, Class<?> rootKlass )
@@ -191,6 +190,14 @@ public class FieldPathHelper
         } );
     }
 
+    /**
+     * Applies field presets. See {@link FieldPreset}.
+     *
+     * @param presets the list of {@link FieldPath}.
+     * @param fieldPathMap mapping of full path and {@link FieldPath} to be
+     *        populated.
+     * @param rootKlass the root class type of the entity.
+     */
     public void applyPresets( List<FieldPath> presets, Map<String, FieldPath> fieldPathMap,
         Class<?> rootKlass )
     {
@@ -204,21 +211,94 @@ public class FieldPathHelper
             {
                 continue;
             }
-
-            if ( PRESET_ALL.equals( preset.getName() ) )
+            if ( FieldPreset.ALL.equals( preset.getName() ) )
             {
                 schema.getProperties()
                     .forEach( p -> fieldPaths.add( toFieldPath( preset.getPath(), p ) ) );
             }
-            else if ( PRESET_OWNER.equals( preset.getName() ) )
+            else if ( FieldPreset.OWNER.equals( preset.getName() ) )
             {
                 schema.getProperties()
                     .stream().filter( Property::isOwner )
                     .forEach( p -> fieldPaths.add( toFieldPath( preset.getPath(), p ) ) );
             }
+            else if ( FieldPreset.PERSISTED.equals( preset.getName() ) )
+            {
+                schema.getProperties()
+                    .stream().filter( Property::isPersisted )
+                    .forEach( p -> fieldPaths.add( toFieldPath( preset.getPath(), p ) ) );
+            }
+            else if ( FieldPreset.IDENTIFIABLE.equals( preset.getName() ) )
+            {
+                schema.getProperties()
+                    .stream().filter( p -> FieldPreset.IDENTIFIABLE_FIELDS.contains( p.getName() ) )
+                    .forEach( p -> fieldPaths.add( toFieldPath( preset.getPath(), p ) ) );
+            }
+            else if ( FieldPreset.SIMPLE.equals( preset.getName() ) )
+            {
+                schema.getProperties()
+                    .stream().filter( p -> p.getPropertyType().isSimple() )
+                    .forEach( p -> fieldPaths.add( toFieldPath( preset.getPath(), p ) ) );
+            }
         }
 
-        fieldPaths.forEach( fp -> fieldPathMap.put( fp.toFullPath(), fp ) );
+        fieldPaths.forEach( fp -> fieldPathMap.putIfAbsent( fp.toFullPath(), fp ) );
+    }
+
+    public void visitFieldPaths( Object object, List<FieldPath> fieldPaths, Consumer<Object> objectConsumer )
+    {
+        if ( object == null || fieldPaths.isEmpty() )
+        {
+            return;
+        }
+
+        Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( object ) );
+
+        if ( !schema.isIdentifiableObject() )
+        {
+            return;
+        }
+
+        fieldPaths.forEach( fp -> visitFieldPath( object, new ArrayList<>( fp.getPath() ), objectConsumer ) );
+    }
+
+    private void visitFieldPath( Object object, List<String> paths, Consumer<Object> objectConsumer )
+    {
+        if ( object == null )
+        {
+            return;
+        }
+
+        if ( paths.isEmpty() )
+        {
+            objectConsumer.accept( object );
+            return;
+        }
+
+        Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( object ) );
+        String currentPath = paths.remove( 0 );
+
+        Property property = schema.getProperty( currentPath );
+
+        if ( property == null )
+        {
+            return;
+        }
+
+        if ( property.isCollection() )
+        {
+            Collection<?> currentObjects = ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
+
+            for ( Object o : currentObjects )
+            {
+                visitFieldPath( o, new ArrayList<>( paths ), objectConsumer );
+            }
+        }
+        else
+        {
+            Object currentObject = ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
+            visitFieldPath( currentObject, new ArrayList<>( paths ), objectConsumer );
+        }
     }
 
     private void applyExclusions( List<FieldPath> exclusions, Map<String, FieldPath> fieldPathMap )
@@ -241,8 +321,9 @@ public class FieldPathHelper
     private boolean isComplex( Property property )
     {
         return property.is( PropertyType.COMPLEX ) || property.itemIs( PropertyType.COMPLEX )
-            || property.isEmbeddedObject() || UserCredentials.class.isAssignableFrom( property.getKlass() )
+            || property.isEmbeddedObject()
             || Sharing.class.isAssignableFrom( property.getKlass() )
+            || Access.class.isAssignableFrom( property.getKlass() )
             || UserAccess.class.isAssignableFrom( property.getKlass() )
             || UserGroupAccess.class.isAssignableFrom( property.getKlass() );
     }

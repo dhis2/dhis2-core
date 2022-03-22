@@ -46,7 +46,7 @@ class MinMaxDataElementControllerTest extends AbstractDataValueControllerTest
         assertWebMessage( "Created", 201, "OK", null,
             POST( "/minMaxDataElements/",
                 "{" + "'source':{'id':'" + orgUnitId + "'}," + "'dataElement':{'id':'" + dataElementId + "'},"
-                    + "'optionCombo':{'id':'" + categoryOptionId + "'}," + "'min':1," + "'max':42" + "}" )
+                    + "'optionCombo':{'id':'" + categoryOptionComboId + "'}," + "'min':1," + "'max':42" + "}" )
                         .content( HttpStatus.CREATED ) );
     }
 
@@ -56,10 +56,10 @@ class MinMaxDataElementControllerTest extends AbstractDataValueControllerTest
         assertStatus( HttpStatus.CREATED,
             POST( "/minMaxDataElements/",
                 "{" + "'source':{'id':'" + orgUnitId + "'}," + "'dataElement':{'id':'" + dataElementId + "'},"
-                    + "'optionCombo':{'id':'" + categoryOptionId + "'}," + "'min':1," + "'max':42" + "}" ) );
+                    + "'optionCombo':{'id':'" + categoryOptionComboId + "'}," + "'min':1," + "'max':42" + "}" ) );
         assertWebMessage( "OK", 200, "OK", "MinMaxDataElement deleted.",
             DELETE( "/minMaxDataElements/", "{" + "'source':{'id':'" + orgUnitId + "'}," + "'dataElement':{'id':'"
-                + dataElementId + "'}," + "'optionCombo':{'id':'" + categoryOptionId + "'}" + "}" )
+                + dataElementId + "'}," + "'optionCombo':{'id':'" + categoryOptionComboId + "'}" + "}" )
                     .content( HttpStatus.OK ) );
     }
 
@@ -68,7 +68,7 @@ class MinMaxDataElementControllerTest extends AbstractDataValueControllerTest
     {
         assertWebMessage( "Not Found", 404, "ERROR", "Can not find MinMaxDataElement.",
             DELETE( "/minMaxDataElements/", "{" + "'source':{'id':'" + orgUnitId + "'}," + "'dataElement':{'id':'"
-                + dataElementId + "'}," + "'optionCombo':{'id':'" + categoryOptionId + "'}" + "}" )
+                + dataElementId + "'}," + "'optionCombo':{'id':'" + categoryOptionComboId + "'}" + "}" )
                     .content( HttpStatus.NOT_FOUND ) );
     }
 }

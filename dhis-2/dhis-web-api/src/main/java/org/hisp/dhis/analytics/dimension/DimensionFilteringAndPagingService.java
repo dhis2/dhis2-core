@@ -67,9 +67,10 @@ public class DimensionFilteringAndPagingService
     private static final Map<String, Comparator<DimensionResponse>> ORDERING_MAP = Map.of(
         "lastUpdated", comparing( DimensionResponse::getLastUpdated, nullsFirst( naturalOrder() ) ),
         "code", comparing( DimensionResponse::getCode, nullsFirst( naturalOrder() ) ),
-        "uid", comparing( DimensionResponse::getId, nullsFirst( naturalOrder() ) ),
+        "uid", comparing( DimensionResponse::getUid, nullsFirst( naturalOrder() ) ),
         "id", comparing( DimensionResponse::getId, nullsFirst( naturalOrder() ) ),
         "name", comparing( DimensionResponse::getName, nullsFirst( naturalOrder() ) ),
+        "dimensionType", comparing( DimensionResponse::getDimensionType, nullsFirst( naturalOrder() ) ),
         "displayName", comparing( DimensionResponse::getDisplayName, nullsFirst( naturalOrder() ) ) );
 
     public AnalyticsDimensionsPagingWrapper<ObjectNode> pageAndFilter(

@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
-import static com.google.api.client.util.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1083;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1100;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1103;
@@ -41,8 +41,11 @@ import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.TRACKED_ENTITY_TYPE_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.USER_CANT_BE_NULL;
 
+import java.util.Map;
+
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -56,6 +59,7 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
@@ -66,10 +70,10 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.domain.TrackerDto;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
-import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
 
@@ -79,6 +83,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class PreCheckSecurityOwnershipValidationHook
     extends AbstractTrackerDtoValidationHook
 {
@@ -91,35 +96,45 @@ public class PreCheckSecurityOwnershipValidationHook
     @NonNull
     private final OrganisationUnitService organisationUnitService;
 
+    private static final String ORG_UNIT_NO_USER_ASSIGNED = " has no organisation unit assigned, so we skip user validation";
+
     @Override
     public void validateTrackedEntity( ValidationErrorReporter reporter, TrackedEntity trackedEntity )
     {
-        TrackerImportValidationContext context = reporter.getValidationContext();
-        TrackerImportStrategy strategy = context.getStrategy( trackedEntity );
-        TrackerBundle bundle = context.getBundle();
+        TrackerImportStrategy strategy = reporter.getBundle().getStrategy( trackedEntity );
+        TrackerBundle bundle = reporter.getBundle();
         User user = bundle.getUser();
 
         checkNotNull( user, USER_CANT_BE_NULL );
         checkNotNull( trackedEntity, TRACKED_ENTITY_CANT_BE_NULL );
-        checkNotNull( trackedEntity.getOrgUnit(), ORGANISATION_UNIT_CANT_BE_NULL );
+
+        TrackedEntityType trackedEntityType = strategy.isUpdateOrDelete()
+            ? reporter.getBundle().getTrackedEntityInstance( trackedEntity.getTrackedEntity() ).getTrackedEntityType()
+            : reporter.getBundle().getPreheat()
+                .getTrackedEntityType( trackedEntity.getTrackedEntityType() );
+
+        OrganisationUnit organisationUnit = strategy.isUpdateOrDelete()
+            ? reporter.getBundle().getTrackedEntityInstance( trackedEntity.getTrackedEntity() ).getOrganisationUnit()
+            : reporter.getBundle().getPreheat().getOrganisationUnit( trackedEntity.getOrgUnit() );
 
         // If trackedEntity is newly created, or going to be deleted, capture
         // scope has to be checked
         if ( strategy.isCreate() || strategy.isDelete() )
         {
             checkOrgUnitInCaptureScope( reporter, trackedEntity,
-                context.getOrganisationUnit( trackedEntity.getOrgUnit() ) );
+                organisationUnit );
         }
         // if its to update trackedEntity, search scope has to be checked
         else
         {
             checkOrgUnitInSearchScope( reporter, trackedEntity,
-                context.getOrganisationUnit( trackedEntity.getOrgUnit() ) );
+                organisationUnit );
         }
 
         if ( strategy.isDelete() )
         {
-            TrackedEntityInstance tei = context.getTrackedEntityInstance( trackedEntity.getTrackedEntity() );
+            TrackedEntityInstance tei = reporter.getBundle()
+                .getTrackedEntityInstance( trackedEntity.getTrackedEntity() );
 
             if ( tei.getProgramInstances().stream().anyMatch( pi -> !pi.isDeleted() )
                 && !user.isAuthorized( Authorities.F_TEI_CASCADE_DELETE.getAuthority() ) )
@@ -135,15 +150,13 @@ public class PreCheckSecurityOwnershipValidationHook
             }
         }
 
-        TrackedEntityType trackedEntityType = context
-            .getTrackedEntityType( trackedEntity.getTrackedEntityType() );
         checkTeiTypeWriteAccess( reporter, trackedEntity.getUid(), trackedEntityType );
     }
 
     private void checkTeiTypeWriteAccess( ValidationErrorReporter reporter, String teUid,
         TrackedEntityType trackedEntityType )
     {
-        TrackerBundle bundle = reporter.getValidationContext().getBundle();
+        TrackerBundle bundle = reporter.getBundle();
         User user = bundle.getUser();
 
         checkNotNull( user, USER_CANT_BE_NULL );
@@ -165,29 +178,26 @@ public class PreCheckSecurityOwnershipValidationHook
     @Override
     public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
     {
-        TrackerImportValidationContext context = reporter.getValidationContext();
-        TrackerImportStrategy strategy = context.getStrategy( enrollment );
-        TrackerBundle bundle = context.getBundle();
+        TrackerImportStrategy strategy = reporter.getBundle().getStrategy( enrollment );
+        TrackerBundle bundle = reporter.getBundle();
+        TrackerPreheat preheat = bundle.getPreheat();
         User user = bundle.getUser();
-        Program program = context.getProgram( enrollment.getProgram() );
-        OrganisationUnit ownerOrgUnit = context.getOwnerOrganisationUnit( enrollment.getTrackedEntity(),
+        Program program = strategy.isUpdateOrDelete()
+            ? reporter.getBundle().getProgramInstance( enrollment.getEnrollment() )
+                .getProgram()
+            : reporter.getBundle().getPreheat().getProgram( enrollment.getProgram() );
+        OrganisationUnit ownerOrgUnit = getOwnerOrganisationUnit( preheat, enrollment.getTrackedEntity(),
             enrollment.getProgram() );
 
         checkNotNull( user, USER_CANT_BE_NULL );
         checkNotNull( enrollment, ENROLLMENT_CANT_BE_NULL );
-        checkNotNull( enrollment.getOrgUnit(), ORGANISATION_UNIT_CANT_BE_NULL );
+        checkNotNull( program, PROGRAM_CANT_BE_NULL );
 
-        // If enrollment is newly created, or going to be deleted, capture scope
-        // has to be checked
-        if ( program.isWithoutRegistration() || strategy.isCreate() || strategy.isDelete() )
-        {
-            checkOrgUnitInCaptureScope( reporter, enrollment,
-                context.getOrganisationUnit( enrollment.getOrgUnit() ) );
-        }
+        checkEnrollmentOrgUnit( reporter, strategy, enrollment, program );
 
         if ( strategy.isDelete() )
         {
-            boolean hasNonDeletedEvents = context.programInstanceHasEvents( enrollment.getEnrollment() );
+            boolean hasNonDeletedEvents = programInstanceHasEvents( preheat, enrollment.getEnrollment() );
             boolean hasNotCascadeDeleteAuthority = !user
                 .isAuthorized( Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority() );
 
@@ -204,48 +214,119 @@ public class PreCheckSecurityOwnershipValidationHook
             }
         }
 
-        checkWriteEnrollmentAccess( reporter, enrollment, program, enrollment.getTrackedEntity(),
-            ownerOrgUnit );
+        checkWriteEnrollmentAccess( reporter, enrollment, program, ownerOrgUnit );
+    }
+
+    private OrganisationUnit getOwnerOrganisationUnit( TrackerPreheat preheat, String teiUid, String programUid )
+    {
+        Map<String, TrackedEntityProgramOwnerOrgUnit> programOwner = preheat.getProgramOwner()
+            .get( teiUid );
+        if ( programOwner == null || programOwner.get( programUid ) == null )
+        {
+            return null;
+        }
+        else
+        {
+            return programOwner.get( programUid ).getOrganisationUnit();
+        }
+    }
+
+    private boolean programInstanceHasEvents( TrackerPreheat preheat, String programInstanceUid )
+    {
+        return preheat.getProgramInstanceWithOneOrMoreNonDeletedEvent().contains( programInstanceUid );
+    }
+
+    private void checkEnrollmentOrgUnit( ValidationErrorReporter reporter,
+        TrackerImportStrategy strategy, Enrollment enrollment, Program program )
+    {
+        OrganisationUnit enrollmentOrgUnit;
+
+        if ( strategy.isUpdateOrDelete() )
+        {
+            enrollmentOrgUnit = reporter.getBundle().getProgramInstance( enrollment.getEnrollment() )
+                .getOrganisationUnit();
+
+            if ( enrollmentOrgUnit == null )
+            {
+                log.warn( "ProgramInstance " + enrollment.getEnrollment()
+                    + ORG_UNIT_NO_USER_ASSIGNED );
+                return;
+            }
+        }
+        else
+        {
+            checkNotNull( enrollment.getOrgUnit(), ORGANISATION_UNIT_CANT_BE_NULL );
+            enrollmentOrgUnit = reporter.getBundle().getPreheat().getOrganisationUnit( enrollment.getOrgUnit() );
+        }
+
+        // If enrollment is newly created, or going to be deleted, capture scope
+        // has to be checked
+        if ( program.isWithoutRegistration() || strategy.isCreate()
+            || strategy.isDelete() )
+        {
+            checkOrgUnitInCaptureScope( reporter, enrollment, enrollmentOrgUnit );
+        }
     }
 
     @Override
     public void validateEvent( ValidationErrorReporter reporter, Event event )
     {
-        TrackerImportValidationContext context = reporter.getValidationContext();
-        TrackerImportStrategy strategy = context.getStrategy( event );
-        TrackerBundle bundle = context.getBundle();
+        TrackerImportStrategy strategy = reporter.getBundle().getStrategy( event );
+        TrackerBundle bundle = reporter.getBundle();
+        TrackerPreheat preheat = bundle.getPreheat();
         User user = bundle.getUser();
 
         checkNotNull( user, USER_CANT_BE_NULL );
         checkNotNull( event, EVENT_CANT_BE_NULL );
-        checkNotNull( event.getOrgUnit(), ORGANISATION_UNIT_CANT_BE_NULL );
 
-        OrganisationUnit organisationUnit = context.getOrganisationUnit( event.getOrgUnit() );
-        ProgramStage programStage = context.getProgramStage( event.getProgramStage() );
-        Program program = context.getProgram( event.getProgram() );
+        ProgramStageInstance programStageInstance = reporter.getBundle().getProgramStageInstance( event.getEvent() );
+
+        ProgramStage programStage = reporter.getBundle().getPreheat().getProgramStage( event.getProgramStage() );
+        Program program = strategy.isUpdateOrDelete() ? programStageInstance.getProgramStage()
+            .getProgram() : reporter.getBundle().getPreheat().getProgram( event.getProgram() );
+
+        OrganisationUnit organisationUnit;
+
+        if ( strategy.isUpdateOrDelete() )
+        {
+            organisationUnit = programStageInstance
+                .getOrganisationUnit();
+        }
+        else
+        {
+            checkNotNull( event.getOrgUnit(), ORGANISATION_UNIT_CANT_BE_NULL );
+            organisationUnit = reporter.getBundle().getPreheat().getOrganisationUnit( event.getOrgUnit() );
+        }
 
         // If event is newly created, or going to be deleted, capture scope
         // has to be checked
         if ( program.isWithoutRegistration() || strategy.isCreate() || strategy.isDelete() )
         {
-            checkOrgUnitInCaptureScope( reporter, event, organisationUnit );
+            if ( organisationUnit == null )
+            {
+                log.warn( "ProgramStageInstance " + event.getEvent()
+                    + ORG_UNIT_NO_USER_ASSIGNED );
+            }
+            else
+            {
+                checkOrgUnitInCaptureScope( reporter, event, organisationUnit );
+            }
         }
 
-        String teiUid = getTeiUidFromEvent( context, event, program );
+        String teiUid = getTeiUidFromEvent( reporter.getBundle(), event, program );
 
-        CategoryOptionCombo categoryOptionCombo = context.getCategoryOptionCombo( event.getAttributeOptionCombo() );
-        OrganisationUnit ownerOrgUnit = context.getOwnerOrganisationUnit( teiUid, program.getUid() );
+        CategoryOptionCombo categoryOptionCombo = bundle.getPreheat()
+            .getCategoryOptionCombo( event.getAttributeOptionCombo() );
+        OrganisationUnit ownerOrgUnit = getOwnerOrganisationUnit( preheat, teiUid, program.getUid() );
         // Check acting user is allowed to change existing/write event
         if ( strategy.isUpdateOrDelete() )
         {
-            ProgramStageInstance programStageInstance = context.getProgramStageInstance( event.getEvent() );
             TrackedEntityInstance entityInstance = programStageInstance.getProgramInstance().getEntityInstance();
             validateUpdateAndDeleteEvent( reporter, event, programStageInstance,
                 entityInstance == null ? null : entityInstance.getUid(), ownerOrgUnit );
         }
         else
         {
-
             validateCreateEvent( reporter, event, user,
                 categoryOptionCombo,
                 programStage,
@@ -277,7 +358,9 @@ public class PreCheckSecurityOwnershipValidationHook
 
         checkEventWriteAccess( reporter, event, programStage, organisationUnit, ownerOrgUnit,
             categoryOptionCombo,
-            teiUid, isCreatableInSearchScope ); // TODO: calculate correct
+            teiUid, isCreatableInSearchScope ); // TODO:
+                                                // calculate
+                                                // correct
         // isCreatableInSearchScope
         // value
     }
@@ -286,8 +369,8 @@ public class PreCheckSecurityOwnershipValidationHook
         ProgramStageInstance programStageInstance,
         String teiUid, OrganisationUnit ownerOrgUnit )
     {
-        TrackerImportStrategy strategy = reporter.getValidationContext().getStrategy( event );
-        User user = reporter.getValidationContext().getBundle().getUser();
+        TrackerImportStrategy strategy = reporter.getBundle().getStrategy( event );
+        User user = reporter.getBundle().getUser();
 
         checkNotNull( user, USER_CANT_BE_NULL );
         checkNotNull( programStageInstance, PROGRAM_INSTANCE_CANT_BE_NULL );
@@ -308,23 +391,23 @@ public class PreCheckSecurityOwnershipValidationHook
                 .trackerType( TrackerType.EVENT )
                 .errorCode( E1083 )
                 .addArg( user )
-                .build( reporter.getValidationContext().getBundle() );
+                .build( reporter.getBundle() );
             reporter.addError( error );
         }
     }
 
-    private String getTeiUidFromEvent( TrackerImportValidationContext context, Event event, Program program )
+    private String getTeiUidFromEvent( TrackerBundle bundle, Event event, Program program )
     {
         if ( program.isWithoutRegistration() )
         {
             return null;
         }
 
-        ProgramInstance programInstance = context.getProgramInstance( event.getEnrollment() );
+        ProgramInstance programInstance = bundle.getProgramInstance( event.getEnrollment() );
 
         if ( programInstance == null )
         {
-            return context.getBundle()
+            return bundle
                 .getEnrollment( event.getEnrollment() )
                 .map( Enrollment::getTrackedEntity )
                 .orElse( null );
@@ -350,7 +433,7 @@ public class PreCheckSecurityOwnershipValidationHook
     private void checkOrgUnitInCaptureScope( ValidationErrorReporter reporter, TrackerDto dto,
         OrganisationUnit orgUnit )
     {
-        TrackerBundle bundle = reporter.getValidationContext().getBundle();
+        TrackerBundle bundle = reporter.getBundle();
         User user = bundle.getUser();
 
         checkNotNull( user, USER_CANT_BE_NULL );
@@ -372,7 +455,7 @@ public class PreCheckSecurityOwnershipValidationHook
     private void checkOrgUnitInSearchScope( ValidationErrorReporter reporter, TrackerDto dto,
         OrganisationUnit orgUnit )
     {
-        TrackerBundle bundle = reporter.getValidationContext().getBundle();
+        TrackerBundle bundle = reporter.getBundle();
         User user = bundle.getUser();
 
         checkNotNull( user, USER_CANT_BE_NULL );
@@ -386,7 +469,7 @@ public class PreCheckSecurityOwnershipValidationHook
                 .errorCode( TrackerErrorCode.E1003 )
                 .addArg( orgUnit )
                 .addArg( user )
-                .build( reporter.getValidationContext().getBundle() );
+                .build( reporter.getBundle() );
             reporter.addError( error );
         }
     }
@@ -411,7 +494,7 @@ public class PreCheckSecurityOwnershipValidationHook
                 .addArg( user )
                 .addArg( program )
                 .addArg( program.getTrackedEntityType() )
-                .build( reporter.getValidationContext().getBundle() );
+                .build( reporter.getBundle() );
             reporter.addError( error );
         }
 
@@ -426,15 +509,15 @@ public class PreCheckSecurityOwnershipValidationHook
                 .addArg( user )
                 .addArg( trackedEntityInstance )
                 .addArg( program )
-                .build( reporter.getValidationContext().getBundle() );
+                .build( reporter.getBundle() );
             reporter.addError( error );
         }
     }
 
     private void checkWriteEnrollmentAccess( ValidationErrorReporter reporter, Enrollment enrollment, Program program,
-        String trackedEntity, OrganisationUnit ownerOrgUnit )
+        OrganisationUnit ownerOrgUnit )
     {
-        TrackerBundle bundle = reporter.getValidationContext().getBundle();
+        TrackerBundle bundle = reporter.getBundle();
         User user = bundle.getUser();
 
         checkNotNull( user, USER_CANT_BE_NULL );
@@ -444,6 +527,10 @@ public class PreCheckSecurityOwnershipValidationHook
 
         if ( program.isRegistration() )
         {
+            String trackedEntity = reporter.getBundle().getStrategy( enrollment ).isDelete()
+                ? reporter.getBundle().getProgramInstance( enrollment.getEnrollment() ).getEntityInstance().getUid()
+                : enrollment.getTrackedEntity();
+
             checkNotNull( program.getTrackedEntityType(), TRACKED_ENTITY_TYPE_CANT_BE_NULL );
             checkTeiTypeAndTeiProgramAccess( reporter, enrollment, user, trackedEntity,
                 ownerOrgUnit, program );
@@ -455,26 +542,16 @@ public class PreCheckSecurityOwnershipValidationHook
         CategoryOptionCombo categoryOptionCombo,
         String trackedEntity, boolean isCreatableInSearchScope )
     {
-        TrackerBundle bundle = reporter.getValidationContext().getBundle();
+        TrackerBundle bundle = reporter.getBundle();
         User user = bundle.getUser();
 
         checkNotNull( user, USER_CANT_BE_NULL );
         checkNotNull( programStage, PROGRAM_STAGE_CANT_BE_NULL );
         checkNotNull( programStage.getProgram(), PROGRAM_CANT_BE_NULL );
-        checkNotNull( eventOrgUnit, ORGANISATION_UNIT_CANT_BE_NULL );
 
-        if ( isCreatableInSearchScope ? !organisationUnitService.isInUserSearchHierarchyCached( user, eventOrgUnit )
-            : !organisationUnitService.isInUserHierarchyCached( user, eventOrgUnit ) )
+        if ( reporter.getBundle().getStrategy( event ) != TrackerImportStrategy.UPDATE )
         {
-
-            TrackerErrorReport error = TrackerErrorReport.builder()
-                .uid( event.getUid() )
-                .trackerType( TrackerType.EVENT )
-                .errorCode( TrackerErrorCode.E1000 )
-                .addArg( user )
-                .addArg( eventOrgUnit )
-                .build( bundle );
-            reporter.addError( error );
+            checkEventOrgUnitWriteAccess( reporter, bundle, event, eventOrgUnit, isCreatableInSearchScope, user );
         }
 
         if ( programStage.getProgram().isWithoutRegistration() )
@@ -500,6 +577,31 @@ public class PreCheckSecurityOwnershipValidationHook
         }
     }
 
+    private void checkEventOrgUnitWriteAccess( ValidationErrorReporter reporter, TrackerBundle bundle, Event event,
+        OrganisationUnit eventOrgUnit,
+        boolean isCreatableInSearchScope, User user )
+    {
+        if ( eventOrgUnit == null )
+        {
+            log.warn( "ProgramStageInstance " + event.getUid()
+                + ORG_UNIT_NO_USER_ASSIGNED );
+        }
+        else if ( isCreatableInSearchScope
+            ? !organisationUnitService.isInUserSearchHierarchyCached( user, eventOrgUnit )
+            : !organisationUnitService.isInUserHierarchyCached( user, eventOrgUnit ) )
+        {
+
+            TrackerErrorReport error = TrackerErrorReport.builder()
+                .uid( event.getUid() )
+                .trackerType( TrackerType.EVENT )
+                .errorCode( TrackerErrorCode.E1000 )
+                .addArg( user )
+                .addArg( eventOrgUnit )
+                .build( bundle );
+            reporter.addError( error );
+        }
+    }
+
     private void checkProgramReadAccess( ValidationErrorReporter reporter, TrackerDto dto,
         User user,
         Program program )
@@ -515,7 +617,7 @@ public class PreCheckSecurityOwnershipValidationHook
                 .errorCode( TrackerErrorCode.E1096 )
                 .addArg( user )
                 .addArg( program )
-                .build( reporter.getValidationContext().getBundle() );
+                .build( reporter.getBundle() );
             reporter.addError( error );
         }
     }
@@ -535,7 +637,7 @@ public class PreCheckSecurityOwnershipValidationHook
                 .errorCode( TrackerErrorCode.E1095 )
                 .addArg( user )
                 .addArg( programStage )
-                .build( reporter.getValidationContext().getBundle() );
+                .build( reporter.getBundle() );
             reporter.addError( error );
         }
     }
@@ -555,7 +657,7 @@ public class PreCheckSecurityOwnershipValidationHook
                 .errorCode( TrackerErrorCode.E1091 )
                 .addArg( user )
                 .addArg( program )
-                .build( reporter.getValidationContext().getBundle() );
+                .build( reporter.getBundle() );
             reporter.addError( error );
         }
     }
@@ -563,7 +665,7 @@ public class PreCheckSecurityOwnershipValidationHook
     public void checkWriteCategoryOptionComboAccess( ValidationErrorReporter reporter, TrackerDto dto,
         CategoryOptionCombo categoryOptionCombo )
     {
-        TrackerBundle bundle = reporter.getValidationContext().getBundle();
+        TrackerBundle bundle = reporter.getBundle();
         User user = bundle.getUser();
 
         checkNotNull( user, USER_CANT_BE_NULL );
@@ -579,7 +681,7 @@ public class PreCheckSecurityOwnershipValidationHook
                     .errorCode( TrackerErrorCode.E1099 )
                     .addArg( user )
                     .addArg( categoryOption )
-                    .build( reporter.getValidationContext().getBundle() );
+                    .build( reporter.getBundle() );
                 reporter.addError( error );
             }
         }

@@ -46,6 +46,8 @@ public enum ErrorCode
     E1105( "Data set not found or not accessible: `{0}`" ),
     E1106( "There are duplicate translation record for property `{0}` and locale `{1}`" ),
     E1107( "Object type `{0}` is not translatable." ),
+    E1108( "Could not add item to collection: {0}" ),
+    E1109( "Could not remove item from collection: {0}" ),
 
     /* Org unit merge */
     E1500( "At least two source orgs unit must be specified" ),
@@ -200,6 +202,9 @@ public enum ErrorCode
     E4047( "DataElement `{0}` is not linked to any ProgramStageDataElement for program rule `{1}`" ),
     E4048( "TrackedEntityAttribute `{0}` is not linked to ProgramTrackedEntityAttribute for program rule `{1}`" ),
     E4049( "Property `{0}` requires a valid username, was given `{1}`." ),
+    E4054( "Property `{0}` already exists, was given `{1}`." ),
+    E4056( "Property `{0}` can not be changed, was given `{1}`." ),
+    E4055( "An user needs to have at least one user role associated with it." ),
     E4050(
         "One of the parameters DataElement, TrackedEntityAttribute or ProgramRuleVariable is required for program rule `{0}`" ),
 
@@ -223,6 +228,7 @@ public enum ErrorCode
     E4311( "SQL query contains illegal keywords" ),
     E4312( "Current user is not authorised to read data from SQL view: `{0}`" ),
     E4313( "SQL query contains variable names that are invalid: `{0}`" ),
+    E4314( "Provided `{0}`: (`{1}`) are not part of the selected `{2}`" ),
 
     /* Preheat */
     E5000( "Found matching object for reference, but import mode is CREATE. Identifier was {0}, and object was {1}." ),
@@ -240,6 +246,8 @@ public enum ErrorCode
         "This property need to be data element of value type date and belong the program stage." ),
     E6002( "Class name {0} is not supported." ),
     E6003( "Could not patch object with id {0}." ),
+    E6004( "Attribute `{0}` has invalid GeoJson value." ),
+    E6005( "Attribute `{0}` has unsupported GeoJson value." ),
 
     /* File resource */
     E6100( "Filename not present" ),
@@ -292,6 +300,7 @@ public enum ErrorCode
     E7131( "Query failed, likely because the query timed out" ),
     E7132( "An indicator expression caused division by zero operation" ),
     E7133( "Query cannot be executed, possibly because of invalid types or invalid operation" ),
+    E7134( "Cannot retrieve total value for data elements with skip total category combination" ),
 
     /* Event analytics */
     E7200( "At least one organisation unit must be specified" ),
@@ -325,6 +334,7 @@ public enum ErrorCode
     E7228( "Fallback coordinate field is invalid: `{0}` " ),
     E7229( "Operator `{0}` does not allow missing value" ),
     E7230( "Header param `{0}` does not exist" ),
+    E7231( "Legacy `{0}` can be updated only through event visualizations" ),
 
     /* Org unit analytics */
     E7300( "At least one organisation unit must be specified" ),

@@ -31,6 +31,7 @@ import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
 import static org.hisp.dhis.DhisConvenienceTest.createDataElementGroup;
 import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
@@ -94,15 +95,9 @@ class DataElementGroupResolverTest
 
         de1 = createDataElement( 'X' );
 
-        de1.setPeriodOffset( 3 );
-
         de2 = createDataElement( 'Y' );
 
-        de2.setPeriodOffset( 2 );
-
         de3 = createDataElement( 'Z' );
-
-        de3.setPeriodOffset( 1 );
 
         DataElementGroup dataElementGroup = createDataElementGroup( 'A' );
 
@@ -124,7 +119,7 @@ class DataElementGroupResolverTest
 
         dimensionalItemId = new DimensionalItemId( DimensionItemType.DATA_ELEMENT_OPERAND,
             DATA_ELEMENT_GROUP_PREFIX + uid1,
-            uid2, uid3, 0, createIndicatorExpression() );
+            uid2, uid3, createIndicatorExpression() );
 
         String expression = createIndicatorExpression();
 
@@ -137,8 +132,7 @@ class DataElementGroupResolverTest
 
         // assert
 
-        assertEquals( expectedResolvedIndicatorExpression( de1.getUid(), de2.getUid(), de3.getUid() ),
-            resolvedExpression );
+        assertResolvedExpressionEquals( resolvedExpression, de1.getUid(), de2.getUid(), de3.getUid() );
     }
 
     @Test
@@ -147,8 +141,7 @@ class DataElementGroupResolverTest
         // arrange
 
         dimensionalItemId = new DimensionalItemId( DimensionItemType.DATA_ELEMENT_OPERAND,
-            DATA_ELEMENT_GROUP_PREFIX + uid1,
-            uid2, uid3, 0 );
+            DATA_ELEMENT_GROUP_PREFIX + uid1, uid2, uid3 );
 
         String expression = createIndicatorExpression();
 
@@ -170,7 +163,7 @@ class DataElementGroupResolverTest
         // arrange
 
         dimensionalItemId = new DimensionalItemId( DimensionItemType.DATA_ELEMENT_OPERAND, uid1,
-            uid2, uid3, 0, createIndicatorExpression() );
+            uid2, uid3, createIndicatorExpression() );
 
         String expression = createIndicatorExpression();
 
@@ -192,7 +185,7 @@ class DataElementGroupResolverTest
         // arrange
 
         dimensionalItemId = new DimensionalItemId( DimensionItemType.DATA_ELEMENT_OPERAND, uid1,
-            uid2, uid3, 0, createIndicatorExpression() );
+            uid2, uid3, createIndicatorExpression() );
 
         String expression = "lsdjflakjdflkajdslfhaglakujdhfg";
 
@@ -213,7 +206,17 @@ class DataElementGroupResolverTest
         return String.format( "#{deGroup:%s.%s.%s}", uid1, uid2, uid3 );
     }
 
-    private String expectedResolvedIndicatorExpression( String de1_uid, String de2_uid, String de3_uid )
+    private void assertResolvedExpressionEquals( String result, String cocUid1, String cocUid2, String cocUid3 )
+    {
+        assertTrue( result.equals( formatExpression( cocUid1, cocUid2, cocUid3 ) )
+            || result.equals( formatExpression( cocUid1, cocUid3, cocUid2 ) )
+            || result.equals( formatExpression( cocUid2, cocUid3, cocUid1 ) )
+            || result.equals( formatExpression( cocUid2, cocUid1, cocUid3 ) )
+            || result.equals( formatExpression( cocUid3, cocUid1, cocUid2 ) )
+            || result.equals( formatExpression( cocUid3, cocUid2, cocUid1 ) ) );
+    }
+
+    private String formatExpression( String de1_uid, String de2_uid, String de3_uid )
     {
         return String.format( "(#{%s.%s.%s}+#{%s.%s.%s}+#{%s.%s.%s})",
             de1_uid, uid2, uid3,

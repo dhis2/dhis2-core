@@ -69,8 +69,7 @@ import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.PasswordValidationResult;
 import org.hisp.dhis.user.PasswordValidationService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAuthorityGroup;
-import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -128,14 +127,14 @@ public class AccountController
 
         handleRecoveryLock( username );
 
-        UserCredentials credentials = userService.getUserCredentialsByUsername( username );
+        User user = userService.getUserByUsername( username );
 
-        if ( credentials == null )
+        if ( user == null )
         {
             return conflict( "User does not exist: " + username );
         }
 
-        String validRestore = securityService.validateRestore( credentials );
+        String validRestore = securityService.validateRestore( user );
 
         if ( validRestore != null )
         {
@@ -143,7 +142,7 @@ public class AccountController
         }
 
         if ( !securityService
-            .sendRestoreOrInviteMessage( credentials, ContextUtils.getContextPath( request ),
+            .sendRestoreOrInviteMessage( user, ContextUtils.getContextPath( request ),
                 RestoreOptions.RECOVER_PASSWORD_OPTION ) )
         {
             return conflict( "Account could not be recovered" );
@@ -177,13 +176,14 @@ public class AccountController
         String[] idAndRestoreToken = securityService.decodeEncodedTokens( token );
         String idToken = idAndRestoreToken[0];
 
-        UserCredentials credentials = userService.getUserCredentialsByIdToken( idToken );
-
-        if ( credentials == null || idAndRestoreToken.length < 2 )
+        User user = userService.getUserByIdToken( idToken );
+        if ( user == null || idAndRestoreToken.length < 2 )
         {
             return conflict( "Account recovery failed" );
         }
+
         String restoreToken = idAndRestoreToken[1];
+
         if ( !systemSettingManager.accountRecoveryEnabled() )
         {
             return conflict( "Account recovery is not enabled" );
@@ -194,26 +194,13 @@ public class AccountController
             return badRequest( "Password is not specified or invalid" );
         }
 
-        if ( password.trim().equals( credentials.getUsername() ) )
+        if ( password.trim().equals( user.getUsername() ) )
         {
             return badRequest( "Password cannot be equal to username" );
         }
 
-        CredentialsInfo credentialsInfo;
-        User user = credentials.getUserInfo();
-
-        // if user is null then something is internally wrong and request should
-        // be terminated.
-        if ( user == null )
-        {
-            return error( String.format( "No user found for username: %s", credentials.getUsername() ) );
-        }
-        else
-        {
-            credentialsInfo = new CredentialsInfo( credentials.getUsername(), password,
-                user.getEmail() != null ? user.getEmail() : "",
-                false );
-        }
+        CredentialsInfo credentialsInfo = new CredentialsInfo( user.getUsername(), password,
+            user.getEmail() != null ? user.getEmail() : "", false );
 
         PasswordValidationResult result = passwordValidationService.validate( credentialsInfo );
 
@@ -222,7 +209,7 @@ public class AccountController
             return badRequest( result.getErrorMessage() );
         }
 
-        boolean restoreSuccess = securityService.restore( credentials, restoreToken, password,
+        boolean restoreSuccess = securityService.restore( user, restoreToken, password,
             RestoreType.RECOVER_PASSWORD );
 
         if ( !restoreSuccess )
@@ -230,7 +217,7 @@ public class AccountController
             return badRequest( "Account could not be restored" );
         }
 
-        log.info( "Account restored for user: " + credentials.getUsername() );
+        log.info( "Account restored for user: " + user.getUsername() );
 
         return ok( "Account restored" );
     }
@@ -251,56 +238,7 @@ public class AccountController
         HttpServletRequest request )
         throws IOException
     {
-        UserCredentials credentials = null;
-        String restoreToken = null;
-
         boolean invitedByEmail = (inviteUsername != null && !inviteUsername.isEmpty());
-
-        boolean canChooseUsername = true;
-
-        if ( invitedByEmail )
-        {
-            String[] idAndRestoreToken = securityService.decodeEncodedTokens( inviteToken );
-
-            String idToken = idAndRestoreToken[0];
-            restoreToken = idAndRestoreToken[1];
-
-            credentials = userService.getUserCredentialsByIdToken( idToken );
-
-            if ( credentials == null )
-            {
-                return badRequest( "Invitation link not valid" );
-            }
-
-            boolean canRestore = securityService.canRestore( credentials, restoreToken, RestoreType.INVITE );
-
-            if ( !canRestore )
-            {
-                return badRequest( "Invitation code not valid" );
-            }
-
-            RestoreOptions restoreOptions = securityService.getRestoreOptions( restoreToken );
-
-            canChooseUsername = restoreOptions.isUsernameChoice();
-
-            if ( !email.equals( credentials.getUserInfo().getEmail() ) )
-            {
-                return badRequest( "Email don't match invited email" );
-            }
-        }
-        else
-        {
-            boolean allowed = configurationService.getConfiguration().selfRegistrationAllowed();
-
-            if ( !allowed )
-            {
-                return badRequest( "User self registration is not allowed" );
-            }
-        }
-
-        // ---------------------------------------------------------------------
-        // Trim input
-        // ---------------------------------------------------------------------
 
         username = StringUtils.trimToNull( username );
         firstName = StringUtils.trimToNull( firstName );
@@ -311,8 +249,6 @@ public class AccountController
         employer = StringUtils.trimToNull( employer );
         recapResponse = StringUtils.trimToNull( recapResponse );
 
-        CredentialsInfo credentialsInfo = new CredentialsInfo( username, password, email, true );
-
         // ---------------------------------------------------------------------
         // Validate input, return 400 if invalid
         // ---------------------------------------------------------------------
@@ -320,13 +256,6 @@ public class AccountController
         if ( username == null || username.trim().length() > MAX_LENGTH )
         {
             return badRequest( "User name is not specified or invalid" );
-        }
-
-        UserCredentials usernameAlreadyTakenCredentials = userService.getUserCredentialsByUsername( username );
-
-        if ( canChooseUsername && usernameAlreadyTakenCredentials != null )
-        {
-            return badRequest( "User name is already taken" );
         }
 
         if ( firstName == null || firstName.trim().length() > MAX_LENGTH )
@@ -344,11 +273,12 @@ public class AccountController
             return badRequest( "Password is not specified" );
         }
 
-        PasswordValidationResult result = passwordValidationService.validate( credentialsInfo );
+        PasswordValidationResult passwordValidationResult = passwordValidationService.validate(
+            new CredentialsInfo( username, password, email, true ) );
 
-        if ( !result.isValid() )
+        if ( !passwordValidationResult.isValid() )
         {
-            return badRequest( result.getErrorMessage() );
+            return badRequest( passwordValidationResult.getErrorMessage() );
         }
 
         if ( email == null || !ValidationUtils.emailIsValid( email ) )
@@ -366,34 +296,33 @@ public class AccountController
             return badRequest( "Employer is not specified or invalid" );
         }
 
-        if ( !systemSettingManager.selfRegistrationNoRecaptcha() )
-        {
-            if ( recapResponse == null )
-            {
-                return badRequest( "Please verify that you are not a robot" );
-            }
-
-            // ---------------------------------------------------------------------
-            // Check result from API, return 500 if validation failed
-            // ---------------------------------------------------------------------
-
-            RecaptchaResponse recaptchaResponse = securityService
-                .verifyRecaptcha( recapResponse, request.getRemoteAddr() );
-
-            if ( !recaptchaResponse.success() )
-            {
-                log.warn( "Recaptcha validation failed: " + recaptchaResponse.getErrorCodes() );
-                return badRequest( "Recaptcha validation failed: " + recaptchaResponse.getErrorCodes() );
-            }
-        }
-
-        // ---------------------------------------------------------------------
-        // Create and save user, return 201
-        // ---------------------------------------------------------------------
-
         if ( invitedByEmail )
         {
-            boolean restored = securityService.restore( credentials, restoreToken, password, RestoreType.INVITE );
+            String[] idAndRestoreToken = securityService.decodeEncodedTokens( inviteToken );
+
+            String idToken = idAndRestoreToken[0];
+            String restoreToken = idAndRestoreToken[1];
+
+            User user = userService.getUserByIdToken( idToken );
+
+            if ( user == null )
+            {
+                return badRequest( "Invitation link not valid" );
+            }
+
+            boolean canRestore = securityService.canRestore( user, restoreToken, RestoreType.INVITE );
+
+            if ( !canRestore )
+            {
+                return badRequest( "Invitation code not valid" );
+            }
+
+            if ( !email.equals( user.getEmail() ) )
+            {
+                return badRequest( "Email don't match invited email" );
+            }
+
+            boolean restored = securityService.restore( user, restoreToken, password, RestoreType.INVITE );
 
             if ( !restored )
             {
@@ -402,32 +331,55 @@ public class AccountController
                 return badRequest( "Unable to create invited user account" );
             }
 
-            User user = credentials.getUserInfo();
             user.setFirstName( firstName );
             user.setSurname( surname );
-            user.setEmail( email );
             user.setPhoneNumber( phoneNumber );
             user.setEmployer( employer );
 
-            if ( canChooseUsername )
-            {
-                credentials.setUsername( username );
-            }
-            else
-            {
-                username = credentials.getUsername();
-            }
-
-            userService.encodeAndSetPassword( credentials, password );
-
             userService.updateUser( user );
-            userService.updateUserCredentials( credentials );
 
-            log.info( "User " + username + " accepted invitation for " + inviteUsername );
+            log.info( "User " + user.getUsername() + " accepted invitation for " + inviteUsername );
+
+            authenticateUser( user, username, password, request );
         }
-        else
+        else // Self registration
         {
-            UserAuthorityGroup userRole = configurationService.getConfiguration().getSelfRegistrationRole();
+            boolean allowed = configurationService.getConfiguration().selfRegistrationAllowed();
+
+            if ( !allowed )
+            {
+                return badRequest( "User self registration is not allowed" );
+            }
+
+            if ( !systemSettingManager.selfRegistrationNoRecaptcha() )
+            {
+                if ( recapResponse == null )
+                {
+                    return badRequest( "Please verify that you are not a robot" );
+                }
+
+                // ---------------------------------------------------------------------
+                // Check result from API, return 500 if validation failed
+                // ---------------------------------------------------------------------
+
+                RecaptchaResponse recaptchaResponse = securityService
+                    .verifyRecaptcha( recapResponse, request.getRemoteAddr() );
+
+                if ( !recaptchaResponse.success() )
+                {
+                    log.warn( "Recaptcha validation failed: " + recaptchaResponse.getErrorCodes() );
+                    return badRequest( "Recaptcha validation failed: " + recaptchaResponse.getErrorCodes() );
+                }
+            }
+
+            User existingUser = userService.getUserByUsername( username );
+
+            if ( existingUser != null )
+            {
+                return badRequest( "Username already exists!" );
+            }
+
+            UserRole userRole = configurationService.getConfiguration().getSelfRegistrationRole();
             OrganisationUnit orgUnit = configurationService.getConfiguration().getSelfRegistrationOrgUnit();
 
             User user = new User();
@@ -438,41 +390,40 @@ public class AccountController
             user.setEmployer( employer );
             user.getOrganisationUnits().add( orgUnit );
             user.getDataViewOrganisationUnits().add( orgUnit );
+            user.setUsername( username );
 
-            credentials = new UserCredentials();
-            credentials.setUsername( username );
-            userService.encodeAndSetPassword( credentials, password );
-            credentials.setSelfRegistered( true );
-            credentials.setUserInfo( user );
-            credentials.getUserAuthorityGroups().add( userRole );
+            userService.encodeAndSetPassword( user, password );
 
-            user.setUserCredentials( credentials );
+            user.setSelfRegistered( true );
+            user.getUserRoles().add( userRole );
 
             userService.addUser( user );
-            userService.addUserCredentials( credentials );
 
             log.info( "Created user with username: " + username );
+
+            authenticateUser( user, username, password, request );
         }
 
-        Set<GrantedAuthority> authorities = getAuthorities( credentials.getUserAuthorityGroups() );
-
-        authenticate( username, password, authorities, request );
-
         return ok( "Account created" );
+    }
+
+    private void authenticateUser( User user, String username, String password, HttpServletRequest request )
+    {
+        Set<GrantedAuthority> authorities = getAuthorities( user.getUserRoles() );
+        authenticate( username, password, authorities, request );
     }
 
     @PostMapping( "/password" )
     public ResponseEntity<Map<String, String>> updatePassword(
         @RequestParam String oldPassword,
         @RequestParam String password,
-        @CurrentUser User currentUser,
+        @CurrentUser User user,
         HttpServletRequest request )
     {
-        String username = currentUser.getUsername();
-        UserCredentials credentials = currentUser.getUserCredentials();
-
         Map<String, String> result = new HashMap<>();
-        if ( credentials == null )
+
+        String username = user.getUsername();
+        if ( username == null )
         {
             result.put( "status", "NON_EXPIRED" );
             result.put( "message", "Username is not valid, redirecting to login." );
@@ -480,10 +431,10 @@ public class AccountController
             return ResponseEntity.badRequest().cacheControl( noStore() ).body( result );
         }
 
-        CredentialsInfo credentialsInfo = new CredentialsInfo( credentials.getUsername(), password,
-            credentials.getUserInfo().getEmail(), false );
+        CredentialsInfo credentialsInfo = new CredentialsInfo( user.getUsername(), password,
+            user.getEmail(), false );
 
-        if ( userService.credentialsNonExpired( credentials ) )
+        if ( userService.userNonExpired( user ) )
         {
             result.put( "status", "NON_EXPIRED" );
             result.put( "message", "Account is not expired, redirecting to login." );
@@ -491,7 +442,7 @@ public class AccountController
             return ResponseEntity.badRequest().cacheControl( noStore() ).body( result );
         }
 
-        if ( !passwordManager.matches( oldPassword, credentials.getPassword() ) )
+        if ( !passwordManager.matches( oldPassword, user.getPassword() ) )
         {
             result.put( "status", "NON_MATCHING_PASSWORD" );
             result.put( "message", "Old password is wrong, please correct and try again." );
@@ -517,10 +468,10 @@ public class AccountController
             return ResponseEntity.badRequest().cacheControl( noStore() ).body( result );
         }
 
-        userService.encodeAndSetPassword( credentials, password );
-        userService.updateUserCredentials( credentials );
+        userService.encodeAndSetPassword( user, password );
+        userService.updateUser( user );
 
-        authenticate( username, password, getAuthorities( credentials.getUserAuthorityGroups() ), request );
+        authenticate( username, password, getAuthorities( user.getUserRoles() ), request );
 
         result.put( "status", "OK" );
         result.put( "message", "Account was updated." );
@@ -560,7 +511,7 @@ public class AccountController
     private Map<String, String> validateUserName( String username )
     {
         boolean isNull = username == null;
-        boolean usernameNotTaken = userService.getUserCredentialsByUsername( username ) == null;
+        boolean usernameNotTaken = userService.getUserByUsername( username ) == null;
         boolean isValidSyntax = ValidationUtils.usernameIsValid( username );
         boolean isValid = !isNull && usernameNotTaken && isValidSyntax;
 
@@ -621,11 +572,11 @@ public class AccountController
         session.setAttribute( "SPRING_SECURITY_CONTEXT", SecurityContextHolder.getContext() );
     }
 
-    private Set<GrantedAuthority> getAuthorities( Set<UserAuthorityGroup> userRoles )
+    private Set<GrantedAuthority> getAuthorities( Set<UserRole> userRoles )
     {
         Set<GrantedAuthority> auths = new HashSet<>();
 
-        for ( UserAuthorityGroup userRole : userRoles )
+        for ( UserRole userRole : userRoles )
         {
             auths.addAll( getAuthorities( userRole ) );
         }
@@ -633,7 +584,7 @@ public class AccountController
         return auths;
     }
 
-    private Set<GrantedAuthority> getAuthorities( UserAuthorityGroup userRole )
+    private Set<GrantedAuthority> getAuthorities( UserRole userRole )
     {
         Set<GrantedAuthority> auths = new HashSet<>();
 

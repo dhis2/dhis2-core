@@ -36,9 +36,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.user.CurrentUserGroupInfo;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAuthorityGroup;
-import org.hisp.dhis.user.UserCredentials;
-import org.hisp.dhis.user.UserInfo;
+import org.hisp.dhis.user.UserRole;
 
 /**
  * @author Lars Helge Overland
@@ -64,25 +62,22 @@ public class MockCurrentUserService
     public MockCurrentUserService( boolean superUserFlag, Set<OrganisationUnit> organisationUnits,
         Set<OrganisationUnit> dataViewOrganisationUnits, String... auths )
     {
-        UserAuthorityGroup userRole = new UserAuthorityGroup();
+        UserRole userRole = new UserRole();
+        userRole.setName( "USER" );
         userRole.setAutoFields();
         userRole.getAuthorities().addAll( Arrays.asList( auths ) );
 
         this.superUserFlag = superUserFlag;
-        UserCredentials credentials = new UserCredentials();
-        credentials.setUsername( "currentUser" );
-        credentials.getUserAuthorityGroups().add( userRole );
-        credentials.setAutoFields();
 
         User user = new User();
+        user.setUsername( "currentUser" );
+        user.getUserRoles().add( userRole );
         user.setFirstName( "Current" );
         user.setSurname( "User" );
         user.setOrganisationUnits( organisationUnits );
         user.setDataViewOrganisationUnits( dataViewOrganisationUnits );
-        user.setUserCredentials( credentials );
         user.setAutoFields();
-        credentials.setUserInfo( user );
-        credentials.setCreatedBy( user );
+        user.setCreatedBy( user );
 
         this.currentUser = user;
     }
@@ -97,19 +92,6 @@ public class MockCurrentUserService
     public User getCurrentUser()
     {
         return currentUser;
-    }
-
-    @Override
-    public User getCurrentUserInTransaction()
-    {
-        return currentUser;
-    }
-
-    @Override
-    public UserInfo getCurrentUserInfo()
-    {
-        return new UserInfo( currentUser.getId(),
-            currentUser.getUsername(), currentUser.getUserCredentials().getAllAuthorities() );
     }
 
     @Override
@@ -136,12 +118,6 @@ public class MockCurrentUserService
     }
 
     @Override
-    public UserCredentials getCurrentUserCredentials()
-    {
-        return currentUser.getUserCredentials();
-    }
-
-    @Override
     public CurrentUserGroupInfo getCurrentUserGroupsInfo()
     {
         return new CurrentUserGroupInfo( currentUser.getUid(),
@@ -154,7 +130,7 @@ public class MockCurrentUserService
     }
 
     @Override
-    public CurrentUserGroupInfo getCurrentUserGroupsInfo( UserInfo userInfo )
+    public CurrentUserGroupInfo getCurrentUserGroupsInfo( User userInfo )
     {
         return getCurrentUserGroupsInfo();
     }

@@ -35,6 +35,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -216,55 +217,72 @@ public class DefaultJobConfigurationService
     {
         List<Property> jobParameters = new ArrayList<>();
 
-        Class<?> clazz = jobType.getJobParameters();
+        Class<?> paramsType = jobType.getJobParameters();
 
-        if ( clazz == null )
+        if ( paramsType == null )
         {
             return jobParameters;
         }
 
-        final Set<String> propertyNames = Stream.of( PropertyUtils.getPropertyDescriptors( clazz ) )
-            .filter( pd -> pd.getReadMethod() != null && pd.getWriteMethod() != null
-                && pd.getReadMethod().getAnnotation( JsonProperty.class ) != null )
-            .map( PropertyDescriptor::getName )
+        final Set<PropertyDescriptor> properties = Stream.of( PropertyUtils.getPropertyDescriptors( paramsType ) )
+            .filter( pd -> pd.getReadMethod() != null && pd.getWriteMethod() != null )
             .collect( Collectors.toSet() );
 
-        for ( Field field : Stream.of( clazz.getDeclaredFields() ).filter( f -> propertyNames.contains( f.getName() ) )
-            .collect( Collectors.toList() ) )
+        for ( Field field : paramsType.getDeclaredFields() )
         {
-            Property property = new Property( Primitives.wrap( field.getType() ), null, null );
-            property.setName( field.getName() );
-            property.setFieldName( TextUtils.getPrettyPropertyName( field.getName() ) );
-
-            try
+            PropertyDescriptor descriptor = properties.stream().filter( pd -> pd.getName().equals( field.getName() ) )
+                .findFirst().orElse( null );
+            if ( isProperty( field, descriptor ) )
             {
-                field.setAccessible( true );
-                property.setDefaultValue( field.get( jobType.getJobParameters().newInstance() ) );
+                jobParameters.add( getProperty( jobType, paramsType, field ) );
             }
-            catch ( IllegalAccessException | InstantiationException e )
-            {
-                log.error(
-                    "Fetching default value for JobParameters properties failed for property: " + field.getName(), e );
-            }
-
-            String relativeApiElements = jobType.getRelativeApiElements() != null
-                ? jobType.getRelativeApiElements().get( field.getName() )
-                : "";
-
-            if ( relativeApiElements != null && !relativeApiElements.equals( "" ) )
-            {
-                property.setRelativeApiEndpoint( relativeApiElements );
-            }
-
-            if ( Collection.class.isAssignableFrom( field.getType() ) )
-            {
-                property = setPropertyIfCollection( property, field, clazz );
-            }
-
-            jobParameters.add( property );
         }
 
         return jobParameters;
+    }
+
+    private boolean isProperty( Field field, PropertyDescriptor descriptor )
+    {
+        return !(descriptor == null || (descriptor.getReadMethod().getAnnotation( JsonProperty.class ) == null
+            && field.getAnnotation( JsonProperty.class ) == null));
+    }
+
+    private static Property getProperty( JobType jobType, Class<?> paramsType, Field field )
+    {
+        Class<?> valueType = field.getType();
+        Property property = new Property( Primitives.wrap( valueType ), null, null );
+        property.setName( field.getName() );
+        property.setFieldName( TextUtils.getPrettyPropertyName( field.getName() ) );
+
+        try
+        {
+            field.setAccessible( true );
+            property.setDefaultValue( field.get( jobType.getJobParameters().newInstance() ) );
+        }
+        catch ( IllegalAccessException | InstantiationException e )
+        {
+            log.error(
+                "Fetching default value for JobParameters properties failed for property: " + field.getName(), e );
+        }
+
+        String relativeApiElements = jobType.getRelativeApiElements() != null
+            ? jobType.getRelativeApiElements().get( field.getName() )
+            : "";
+
+        if ( relativeApiElements != null && !relativeApiElements.equals( "" ) )
+        {
+            property.setRelativeApiEndpoint( relativeApiElements );
+        }
+
+        if ( Collection.class.isAssignableFrom( valueType ) )
+        {
+            return setPropertyIfCollection( property, field, paramsType );
+        }
+        if ( valueType.isEnum() )
+        {
+            property.setConstants( getConstants( valueType ) );
+        }
+        return property;
     }
 
     private static Property setPropertyIfCollection( Property property, Field field, Class<?> klass )
@@ -284,8 +302,18 @@ public class DefaultJobConfigurationService
             property.setNameableObject( NameableObject.class.isAssignableFrom( itemKlass ) );
             property.setEmbeddedObject( EmbeddedObject.class.isAssignableFrom( klass ) );
             property.setAnalyticalObject( AnalyticalObject.class.isAssignableFrom( klass ) );
+            if ( itemKlass.isEnum() )
+            {
+                property.setConstants( getConstants( itemKlass ) );
+            }
         }
-
         return property;
+    }
+
+    private static List<String> getConstants( Class<?> enumType )
+    {
+        return Arrays.stream( enumType.getEnumConstants() )
+            .map( e -> ((Enum<?>) e).name() )
+            .collect( Collectors.toList() );
     }
 }

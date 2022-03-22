@@ -260,36 +260,22 @@
             "teiSearchOrganisationUnits": [],
             "translations": [],
             "userAccesses": [],
-            "userCredentials": {
-                "attributeValues": [],
                 "catDimensionConstraints": [],
                 "cogsDimensionConstraints": [],
                 "disabled": false,
-                "displayName": "Admin WHO",
-                "externalAccess": false,
                 "externalAuth": false,
-                "favorite": false,
-                "favorites": [],
-                "id": "MMRO6oP1HQg",
                 "invitation": false,
                 "lastLogin": "2020-04-23T09:17:46.912",
-                "name": "Admin WHO",
                 "passwordLastUpdated": "2019-10-16T12:06:30.668",
                 "selfRegistered": false,
-                "translations": [],
                 "twoFA": false,
-                "userAccesses": [],
                 "userGroupAccesses": [],
-                "userInfo": {
-                    "id": "vUeLeQMSwhN"
-                },
                 "userRoles": [
                     {
                         "id": "yrB6vc5Ip3r"
                     }
                 ],
                 "username": "who"
-            }
         }
     ]
 }

@@ -33,7 +33,6 @@ import java.nio.charset.StandardCharsets;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentials;
 import org.jboss.aerogear.security.otp.Totp;
 import org.springframework.util.Assert;
 
@@ -55,11 +54,11 @@ public class SecurityUtils
      */
     public static String generateQrUrl( String appName, User user )
     {
-        Assert.notNull( user.getUserCredentials().getSecret(), "User must have a secret" );
+        Assert.notNull( user.getSecret(), "User must have a secret" );
 
         String app = (APP_NAME_PREFIX + StringUtils.stripToEmpty( appName )).replace( " ", "%20" );
         String url = String.format( "otpauth://totp/%s:%s?secret=%s&issuer=%s",
-            app, user.getUsername(), user.getUserCredentials().getSecret(), app );
+            app, user.getUsername(), user.getSecret(), app );
 
         try
         {
@@ -74,15 +73,15 @@ public class SecurityUtils
     /**
      * Verifies that the secret for the given user matches the given code.
      *
-     * @param userCredentials the users credentials.
+     * @param user the users.
      * @param code the code.
      * @return true if the user secret matches the given code, false if not.
      */
-    public static boolean verify( UserCredentials userCredentials, String code )
+    public static boolean verify( User user, String code )
     {
-        Assert.notNull( userCredentials.getSecret(), "User must have a secret" );
+        Assert.notNull( user.getSecret(), "User must have a secret" );
 
-        Totp totp = new Totp( userCredentials.getSecret() );
+        Totp totp = new Totp( user.getSecret() );
         try
         {
             return totp.verify( code );

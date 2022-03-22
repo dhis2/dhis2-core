@@ -97,6 +97,8 @@ class PredictionDataValueFetcherTest
 
     private DataElementOperand dataElementOperandB;
 
+    private DataElementOperand dataElementOperandAB;
+
     private DataElementOperand dataElementOperandX;
 
     private Set<DataElementOperand> dataElementOperands;
@@ -133,6 +135,8 @@ class PredictionDataValueFetcherTest
 
     private DataValue dataValueB;
 
+    private DataValue dataValueAB;
+
     private DataValue dataValueC;
 
     private DataValue dataValueD;
@@ -147,6 +151,8 @@ class PredictionDataValueFetcherTest
 
     private DeflatedDataValue deflatedDataValueB;
 
+    private DeflatedDataValue deflatedDataValueAB;
+
     private DeflatedDataValue deflatedDataValueC;
 
     private DeflatedDataValue deflatedDataValueD;
@@ -160,6 +166,8 @@ class PredictionDataValueFetcherTest
     private FoundDimensionItemValue foundValueA;
 
     private FoundDimensionItemValue foundValueB;
+
+    private FoundDimensionItemValue foundValueAB;
 
     private FoundDimensionItemValue foundValueC;
 
@@ -208,9 +216,11 @@ class PredictionDataValueFetcherTest
 
         dataElementOperandA = new DataElementOperand( dataElementA, cocA );
         dataElementOperandB = new DataElementOperand( dataElementB, cocB );
+        dataElementOperandAB = new DataElementOperand( dataElementA, cocB );
         dataElementOperandX = new DataElementOperand( dataElementX, cocA );
 
-        dataElementOperands = Sets.newHashSet( dataElementOperandA, dataElementOperandB, dataElementOperandX );
+        dataElementOperands = Sets.newHashSet( dataElementOperandA, dataElementOperandB, dataElementOperandAB,
+            dataElementOperandX );
 
         periodA = createPeriod( "202201" );
         periodB = createPeriod( "202202" );
@@ -279,6 +289,8 @@ class PredictionDataValueFetcherTest
         dataValueZ = new DataValue( dataElementX, periodC, orgUnitE, cocA, aocC, "50.0", "Z", null, null, null, false );
         dataValueC = new DataValue( dataElementB, periodB, orgUnitC, cocA, aocC, "18.0", "Y", null, null, null, false );
         dataValueD = new DataValue( dataElementB, periodB, orgUnitC, cocB, aocC, "20.0", "Y", null, null, null, true );
+        dataValueAB = new DataValue( dataElementA, periodA, orgUnitB, cocB, aocC, "60.0", "Y", null, null, null,
+            false );
 
         deflatedDataValueA = new DeflatedDataValue( dataValueA );
         deflatedDataValueB = new DeflatedDataValue( dataValueB );
@@ -287,12 +299,14 @@ class PredictionDataValueFetcherTest
         deflatedDataValueZ = new DeflatedDataValue( dataValueZ );
         deflatedDataValueC = new DeflatedDataValue( dataValueC );
         deflatedDataValueD = new DeflatedDataValue( dataValueD );
+        deflatedDataValueAB = new DeflatedDataValue( dataValueAB );
 
-        foundValueA = new FoundDimensionItemValue( orgUnitB, periodA, aocC, dataElementA, 25.0 );
+        foundValueA = new FoundDimensionItemValue( orgUnitB, periodA, aocC, dataElementA, 85.0 );
         foundValueB = new FoundDimensionItemValue( orgUnitC, periodB, aocC, dataElementB, 18.0 );
         foundValueC = new FoundDimensionItemValue( orgUnitB, periodA, aocC, dataElementOperandA, 10.0 );
         foundValueD = new FoundDimensionItemValue( orgUnitB, periodA, aocD, dataElementOperandX, 30.0 );
         foundValueE = new FoundDimensionItemValue( orgUnitB, periodC, aocC, dataElementOperandX, 50.0 );
+        foundValueAB = new FoundDimensionItemValue( orgUnitB, periodA, aocC, dataElementOperandAB, 75.0 );
 
         fetcher = new PredictionDataValueFetcher( dataValueService, categoryService );
     }
@@ -312,6 +326,7 @@ class PredictionDataValueFetcherTest
         when( dataValueService.getDeflatedDataValues( any( DataExportParams.class ) ) ).thenAnswer( p -> {
             BlockingQueue<DeflatedDataValue> blockingQueue = ((DataExportParams) p.getArgument( 0 )).getBlockingQueue();
             blockingQueue.put( deflatedDataValueA );
+            blockingQueue.put( deflatedDataValueAB );
             blockingQueue.put( deflatedDataValueB );
             blockingQueue.put( deflatedDataValueX );
             blockingQueue.put( deflatedDataValueY );
@@ -328,7 +343,7 @@ class PredictionDataValueFetcherTest
         PredictionData data1 = fetcher.getData();
         assertNotNull( data1 );
         assertEquals( orgUnitB, data1.getOrgUnit() );
-        assertContainsOnly( data1.getValues(), foundValueA, foundValueC, foundValueD, foundValueE );
+        assertContainsOnly( data1.getValues(), foundValueA, foundValueAB, foundValueC, foundValueD, foundValueE );
         assertContainsOnly( data1.getOldPredictions(), dataValueY );
 
         PredictionData data2 = fetcher.getData();

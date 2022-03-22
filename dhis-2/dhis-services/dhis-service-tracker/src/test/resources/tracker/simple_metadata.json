@@ -438,11 +438,8 @@
       "surname": "Asghar",
       "email": "zubair@dhis2.org",
       "firstName": "Zubair",
+      "password": "Test123###...",
       "phoneNumber": "+4740332255",
-      "userCredentials": {
-        "lastUpdated": "2020-05-31T08:57:58.894",
-        "id": "NDigmwuGPsn",
-        "created": "2020-05-31T08:57:58.894",
         "name": "Zubair Asghar",
         "displayName": "Zubair Asghar",
         "externalAuth": false,
@@ -454,9 +451,6 @@
         "selfRegistered": false,
         "favorite": false,
         "username": "testuser",
-        "userInfo": {
-          "id": "lPaILkLkgOM"
-        },
         "access": {
           "read": true,
           "update": true,
@@ -476,8 +470,7 @@
             "id": "yrB6vc5Ip3r"
           }
         ],
-        "userAccesses": []
-      },
+        "userAccesses": [],
       "teiSearchOrganisationUnits": [],
       "organisationUnits": [
         {
@@ -488,21 +481,16 @@
         {
           "id": "h4w96yEMlzO"
         }
-      ],
-      "attributeValues": []
+      ]
     },
     {
       "code": "admin",
       "lastUpdated": "2020-05-31T11:41:22.356",
       "id": "M5zQapPyTZI",
       "created": "2020-05-31T08:55:27.984",
+      "password": "Test123###...",
       "surname": "admin",
       "firstName": "admin",
-      "userCredentials": {
-        "code": "admin",
-        "lastUpdated": "2020-05-31T08:55:28.230",
-        "id": "KvMx6c1eoYo",
-        "created": "2020-05-31T08:55:28.230",
         "name": "admin admin",
         "lastLogin": "2020-05-31T08:55:38.571",
         "displayName": "admin admin",
@@ -515,9 +503,6 @@
         "selfRegistered": false,
         "favorite": false,
         "username": "admin",
-        "userInfo": {
-          "id": "M5zQapPyTZI"
-        },
         "access": {
           "read": true,
           "update": true,
@@ -537,16 +522,14 @@
             "id": "yrB6vc5Ip3r"
           }
         ],
-        "userAccesses": []
-      },
+        "userAccesses": [],
       "teiSearchOrganisationUnits": [],
       "organisationUnits": [
         {
           "id": "h4w96yEMlzO"
         }
       ],
-      "dataViewOrganisationUnits": [],
-      "attributeValues": []
+      "dataViewOrganisationUnits": []
     }
   ],
   "organisationUnits": [

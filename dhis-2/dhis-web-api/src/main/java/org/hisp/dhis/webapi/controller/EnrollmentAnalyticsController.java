@@ -49,6 +49,7 @@ import org.hisp.dhis.common.DimensionsCriteria;
 import org.hisp.dhis.common.EnrollmentAnalyticsQueryCriteria;
 import org.hisp.dhis.common.EventDataQueryRequest;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.RequestTypeAware;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -93,7 +94,7 @@ public class EnrollmentAnalyticsController
     @NotNull
     private DimensionMapperService dimensionMapperService;
 
-    @PreAuthorize( "hasRole('F_PERFORM_MAINTENANCE')" )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_ANALYTICS_EXPLAIN')" )
     @GetMapping( value = "/query/{program}/explain", produces = { APPLICATION_JSON_VALUE, "application/javascript" } )
     public @ResponseBody Grid getExplainQueryJson( // JSON, JSONP
         @PathVariable String program,
@@ -109,7 +110,7 @@ public class EnrollmentAnalyticsController
 
         if ( params.analyzeOnly() )
         {
-            String key = params.getAnalyzeOrderId();
+            String key = params.getExplainOrderId();
             grid.maybeAddPerformanceMetrics( executionPlanStore.getExecutionPlans( key ) );
         }
 
@@ -251,7 +252,8 @@ public class EnrollmentAnalyticsController
         EnrollmentAnalyticsQueryCriteria criteria, DhisApiVersion apiVersion, boolean analyzeOnly )
     {
         EventDataQueryRequest request = EventDataQueryRequest.builder()
-            .fromCriteria( (EnrollmentAnalyticsQueryCriteria) criteria.withQueryRequestType() )
+            .fromCriteria( (EnrollmentAnalyticsQueryCriteria) criteria.withQueryEndpointAction()
+                .withEndpointItem( RequestTypeAware.EndpointItem.ENROLLMENT ) )
             .program( program )
             .apiVersion( apiVersion )
             .build();

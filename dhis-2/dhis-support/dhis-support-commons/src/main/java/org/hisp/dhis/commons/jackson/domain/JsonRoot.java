@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.commons.jackson.domain;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 
 import lombok.Builder;
 
@@ -48,7 +48,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 public class JsonRoot
 {
     @Builder.Default
-    private final Map<String, List<? extends JsonNode>> properties = new TreeMap<>();
+    private final Map<String, Object> properties = new LinkedHashMap<>();
 
     public JsonRoot()
     {
@@ -66,15 +66,15 @@ public class JsonRoot
 
     @JsonAnySetter
     @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public JsonRoot setProperty( String property, List<? extends JsonNode> nodes )
+    public JsonRoot setProperty( String property, Object value )
     {
-        this.properties.put( property, nodes );
+        this.properties.put( property, value );
         return this;
     }
 
     @JsonAnyGetter
     @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Map<String, List<? extends JsonNode>> getProperties()
+    public Map<String, Object> getProperties()
     {
         return this.properties;
     }

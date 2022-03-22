@@ -73,6 +73,86 @@ public abstract class AbstractEventJdbcTableManager
             databaseInfo, jdbcTemplate );
     }
 
+    /**
+     * This method will extract/compose the display name, based on the tracker
+     * JSON objects living in the 'originColumn'. This method will return the
+     * display name respecting these rules:
+     *
+     * If (last name, first name and username) are populated => Last name, first
+     * name (username)
+     *
+     * If (only username is populated) => username
+     *
+     * If (only first name is populated) => first name
+     *
+     * If (only last name is populated) => last name
+     *
+     * If (only last name and first name are populated) => last name, first name
+     *
+     * If (only last name and username are populated) => last name (username)
+     *
+     * If (only first name and username are populated) => first name (username)
+     *
+     * @param originColumn the original column from where the JSON values are
+     *        extracted from
+     * @param tablePrefix the prefix of the tracker table
+     * @param columnAlias the alias of this column in the analytics database
+     * @return the trimmed display name
+     */
+    protected static String getDisplayName( final String originColumn, final String tablePrefix,
+        final String columnAlias )
+    {
+        return ("case"
+            // If all are empty, return null
+            + " when coalesce(trim({prefix}.{column} ->> 'surname'), '') = ''"
+            + " and coalesce(trim({prefix}.{column} ->> 'firstName'), '') = ''"
+            + " and coalesce(trim({prefix}.{column} ->> 'username'), '') = ''"
+            + " then null"
+
+            // If username only, return username
+            + " when coalesce(trim({prefix}.{column} ->> 'surname'), '') = ''"
+            + " and coalesce(trim({prefix}.{column} ->> 'firstName'), '') = ''"
+            + " and coalesce(trim({prefix}.{column} ->> 'username'), '') <> ''"
+            + " then trim({prefix}.{column} ->> 'username')"
+
+            // If firstName only, return firstName
+            + " when coalesce(trim({prefix}.{column} ->> 'surname'), '') = ''"
+            + " and coalesce(trim({prefix}.{column} ->> 'firstName'), '') <> ''"
+            + " and coalesce(trim({prefix}.{column} ->> 'username'), '') = ''"
+            + " then trim({prefix}.{column} ->> 'firstName')"
+
+            // If surname only, return surname
+            + " when coalesce(trim({prefix}.{column} ->> 'surname'), '') <> ''"
+            + " and coalesce(trim({prefix}.{column} ->> 'firstName'), '') = ''"
+            + " and coalesce(trim({prefix}.{column} ->> 'username'), '') = ''"
+            + " then trim({prefix}.{column} ->> 'surname')"
+
+            // If surname and firstName only, return surname + firstName
+            + " when coalesce(trim({prefix}.{column} ->> 'surname'), '') <> ''"
+            + " and coalesce(trim({prefix}.{column} ->> 'firstName'), '') <> ''"
+            + " and coalesce(trim({prefix}.{column} ->> 'username'), '') = ''"
+            + " then concat(trim({prefix}.{column} ->> 'surname'), ', ', trim({prefix}.{column} ->> 'firstName'))"
+
+            // If firstName and username only, return firstName + username
+            + " when coalesce(trim({prefix}.{column} ->> 'surname'), '') = ''"
+            + " and coalesce(trim({prefix}.{column} ->> 'firstName'), '') <> ''"
+            + " and coalesce(trim({prefix}.{column} ->> 'username'), '') <> ''"
+            + " then concat(trim({prefix}.{column} ->> 'firstName'), ' (', trim({prefix}.{column} ->> 'username'), ')')"
+
+            // If surname and username only, return surname + username
+            + " when coalesce(trim({prefix}.{column} ->> 'surname'), '') <> ''"
+            + " and coalesce(trim({prefix}.{column} ->> 'firstName'), '') = ''"
+            + " and coalesce(trim({prefix}.{column} ->> 'username'), '') <> ''"
+            + " then concat(trim({prefix}.{column} ->> 'surname'), ' (', trim({prefix}.{column} ->> 'username'), ')')"
+
+            // If has all columns populated, return surname + firstName +
+            // username
+            + " else concat(trim({prefix}.{column} ->> 'surname'), ', ', trim({prefix}.{column} ->> 'firstName'), ' (', trim({prefix}.{column} ->> 'username'), ')') end"
+            + " as {alias}").replaceAll( "\\{column}", originColumn )
+                .replaceAll( "\\{prefix}", tablePrefix )
+                .replaceAll( "\\{alias}", columnAlias );
+    }
+
     protected final String getNumericClause()
     {
         return " and value " + statementBuilder.getRegexpMatch() + " '" + NUMERIC_LENIENT_REGEXP + "'";

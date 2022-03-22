@@ -62,14 +62,11 @@ import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.user.UserInfo;
 import org.hisp.dhis.util.SharingUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.api.client.util.Lists;
 import com.google.common.base.Defaults;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.internal.Primitives;
@@ -385,14 +382,14 @@ public class DefaultIdentifiableObjectManager
     public <T extends IdentifiableObject> T getByUniqueAttributeValue( Class<T> type, Attribute attribute,
         String value )
     {
-        return getByUniqueAttributeValue( type, attribute, value, currentUserService.getCurrentUserInfo() );
+        return getByUniqueAttributeValue( type, attribute, value, currentUserService.getCurrentUser() );
     }
 
     @SuppressWarnings( "unchecked" )
     @Override
     @Transactional( readOnly = true )
     public <T extends IdentifiableObject> T getByUniqueAttributeValue( Class<T> type, Attribute attribute,
-        String value, UserInfo userInfo )
+        String value, User user )
     {
         IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( type );
 
@@ -401,7 +398,7 @@ public class DefaultIdentifiableObjectManager
             return null;
         }
 
-        return (T) store.getByUniqueAttributeValue( attribute, value, userInfo );
+        return (T) store.getByUniqueAttributeValue( attribute, value, user );
     }
 
     @Override
@@ -1175,7 +1172,7 @@ public class DefaultIdentifiableObjectManager
         Attribute attribute, List<String> values )
     {
         IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( type );
-        return store != null ? store.getAllByAttributeAndValues( attribute, values ) : Lists.newArrayList();
+        return store != null ? store.getAllByAttributeAndValues( attribute, values ) : Collections.emptyList();
     }
 
     @Override
@@ -1264,7 +1261,7 @@ public class DefaultIdentifiableObjectManager
         {
             store = identifiableObjectStoreMap.get( type.getSuperclass() );
 
-            if ( store == null && !UserCredentials.class.isAssignableFrom( type ) )
+            if ( store == null )
             {
                 log.debug( "No IdentifiableObjectStore found for class: '{}'", type );
             }

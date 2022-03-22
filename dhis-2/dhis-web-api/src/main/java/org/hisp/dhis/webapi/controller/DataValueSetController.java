@@ -50,7 +50,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.UncheckedIOException;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -66,6 +66,7 @@ import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.AsyncTaskExecutor;
 import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.dxf2.adx.AdxDataService;
 import org.hisp.dhis.dxf2.adx.AdxException;
 import org.hisp.dhis.dxf2.common.ImportOptions;
@@ -74,6 +75,7 @@ import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
 import org.hisp.dhis.dxf2.datavalueset.tasks.ImportDataValueTask;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.node.Provider;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -147,7 +149,8 @@ public class DataValueSetController
         HttpServletResponse response )
     {
         getDataValueSet( attachment, compression, "xml", response, CONTENT_TYPE_XML,
-            out -> dataValueSetService.exportDataValueSetXml( dataValueSetService.getFromUrl( params ), out ) );
+            () -> dataValueSetService.getFromUrl( params ),
+            ( exportParams, out ) -> dataValueSetService.exportDataValueSetXml( exportParams, out ) );
     }
 
     @GetMapping( produces = CONTENT_TYPE_XML_ADX )
@@ -157,10 +160,11 @@ public class DataValueSetController
         HttpServletResponse response )
     {
         getDataValueSet( attachment, compression, "xml", response, CONTENT_TYPE_XML_ADX,
-            out -> {
+            () -> adxDataService.getFromUrl( params ),
+            ( exportParams, out ) -> {
                 try
                 {
-                    adxDataService.writeDataValueSet( adxDataService.getFromUrl( params ), out );
+                    adxDataService.writeDataValueSet( exportParams, out );
                 }
                 catch ( AdxException ex )
                 {
@@ -177,7 +181,8 @@ public class DataValueSetController
         HttpServletResponse response )
     {
         getDataValueSet( attachment, compression, "json", response, CONTENT_TYPE_JSON,
-            out -> dataValueSetService.exportDataValueSetJson( dataValueSetService.getFromUrl( params ), out ) );
+            () -> dataValueSetService.getFromUrl( params ),
+            ( exportParams, out ) -> dataValueSetService.exportDataValueSetJson( exportParams, out ) );
     }
 
     @GetMapping( produces = CONTENT_TYPE_CSV )
@@ -187,21 +192,26 @@ public class DataValueSetController
         HttpServletResponse response )
     {
         getDataValueSet( attachment, compression, "csv", response, CONTENT_TYPE_CSV,
-            out -> dataValueSetService.exportDataValueSetCsv( dataValueSetService.getFromUrl( params ),
+            () -> dataValueSetService.getFromUrl( params ),
+            ( exportParams, out ) -> dataValueSetService.exportDataValueSetCsv( exportParams,
                 new PrintWriter( out ) ) );
     }
 
     private void getDataValueSet( String attachment,
         String compression, String format, HttpServletResponse response, String contentType,
-        Consumer<OutputStream> writeOutput )
+        Provider<DataExportParams> createParams,
+        BiConsumer<DataExportParams, OutputStream> writeOutput )
     {
+        DataExportParams params = createParams.provide();
+        dataValueSetService.validate( params );
+
         response.setContentType( contentType );
         setNoStore( response );
 
         try (
             OutputStream out = compress( response, attachment, Compression.fromValue( compression ), format ) )
         {
-            writeOutput.accept( out );
+            writeOutput.accept( params, out );
         }
         catch ( IOException ex )
         {

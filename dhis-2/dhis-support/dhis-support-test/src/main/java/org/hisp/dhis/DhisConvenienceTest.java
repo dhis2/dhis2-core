@@ -160,11 +160,11 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.trackedentityfilter.EntityQueryCriteria;
 import org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilter;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAuthorityGroup;
-import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.utils.Dxf2NamespaceResolver;
@@ -191,7 +191,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.MimeTypeUtils;
 import org.xml.sax.InputSource;
 
-import com.google.api.client.util.Strings;
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.hash.HashCode;
@@ -691,6 +691,14 @@ public abstract class DhisConvenienceTest
     public static Attribute createAttribute( char uniqueCharacter )
     {
         Attribute attribute = new Attribute( "Attribute" + uniqueCharacter, ValueType.TEXT );
+        attribute.setAutoFields();
+
+        return attribute;
+    }
+
+    public static Attribute createAttribute( String name, ValueType valueType )
+    {
+        Attribute attribute = new Attribute( name, valueType );
         attribute.setAutoFields();
 
         return attribute;
@@ -1341,7 +1349,7 @@ public abstract class DhisConvenienceTest
         eventVisualization.setAutoFields();
         eventVisualization.setProgram( program );
         eventVisualization.setName( "EventVisualization" + uniqueCharacter );
-        eventVisualization.setType( EventVisualizationType.COLUMN );
+        eventVisualization.setType( EventVisualizationType.LINE_LIST );
 
         return eventVisualization;
     }
@@ -1353,22 +1361,20 @@ public abstract class DhisConvenienceTest
 
     public static User createUser( char uniqueCharacter, List<String> auths )
     {
-        UserCredentials credentials = new UserCredentials();
         User user = new User();
         user.setUid( BASE_USER_UID + uniqueCharacter );
 
-        credentials.setUserInfo( user );
-        credentials.setCreatedBy( user );
-        user.setUserCredentials( credentials );
+        user.setCreatedBy( user );
 
-        credentials.setUsername( ("username" + uniqueCharacter).toLowerCase() );
-        credentials.setPassword( "password" + uniqueCharacter );
+        user.setUsername( ("username" + uniqueCharacter).toLowerCase() );
+        user.setPassword( "password" + uniqueCharacter );
 
         if ( auths != null && !auths.isEmpty() )
         {
-            UserAuthorityGroup role = new UserAuthorityGroup();
+            UserRole role = new UserRole();
+            role.setName( "Role_" + CodeGenerator.generateCode( 5 ) );
             auths.stream().forEach( auth -> role.getAuthorities().add( auth ) );
-            credentials.getUserAuthorityGroups().add( role );
+            user.getUserRoles().add( role );
         }
 
         user.setFirstName( "FirstName" + uniqueCharacter );
@@ -1398,19 +1404,6 @@ public abstract class DhisConvenienceTest
         return mapView;
     }
 
-    public static UserCredentials createUserCredentials( char uniqueCharacter, User user )
-    {
-        UserCredentials credentials = new UserCredentials();
-        credentials.setName( "UserCredentials" + uniqueCharacter );
-        credentials.setUsername( ("username" + uniqueCharacter).toLowerCase() );
-        credentials.setPassword( "Password" + uniqueCharacter );
-        credentials.setUserInfo( user );
-        user.setUserCredentials( credentials );
-        credentials.setUser( user );
-
-        return credentials;
-    }
-
     public static UserGroup createUserGroup( char uniqueCharacter, Set<User> users )
     {
         UserGroup userGroup = new UserGroup();
@@ -1424,18 +1417,18 @@ public abstract class DhisConvenienceTest
         return userGroup;
     }
 
-    public static UserAuthorityGroup createUserAuthorityGroup( char uniqueCharacter )
+    public static UserRole createUserRole( char uniqueCharacter )
     {
-        return createUserAuthorityGroup( uniqueCharacter, new String[] {} );
+        return createUserRole( uniqueCharacter, new String[] {} );
     }
 
-    public static UserAuthorityGroup createUserAuthorityGroup( char uniqueCharacter, String... auths )
+    public static UserRole createUserRole( char uniqueCharacter, String... auths )
     {
-        UserAuthorityGroup role = new UserAuthorityGroup();
+        UserRole role = new UserRole();
         role.setAutoFields();
 
         role.setUid( BASE_UID + uniqueCharacter );
-        role.setName( "UserAuthorityGroup" + uniqueCharacter );
+        role.setName( "UserRole" + uniqueCharacter );
 
         for ( String auth : auths )
         {
@@ -1895,7 +1888,7 @@ public abstract class DhisConvenienceTest
         trackedEntityInstanceFilter.setName( "TrackedEntityType" + uniqueChar );
         trackedEntityInstanceFilter.setDescription( "TrackedEntityType" + uniqueChar + " description" );
         trackedEntityInstanceFilter.setProgram( program );
-
+        trackedEntityInstanceFilter.setEntityQueryCriteria( new EntityQueryCriteria() );
         return trackedEntityInstanceFilter;
     }
 
@@ -2360,7 +2353,7 @@ public abstract class DhisConvenienceTest
 
         if ( allAuth )
         {
-            authorities.add( UserAuthorityGroup.AUTHORITY_ALL );
+            authorities.add( UserRole.AUTHORITY_ALL );
         }
 
         if ( auths != null )
@@ -2368,11 +2361,11 @@ public abstract class DhisConvenienceTest
             authorities.addAll( Lists.newArrayList( auths ) );
         }
 
-        UserAuthorityGroup group = new UserAuthorityGroup();
+        UserRole group = new UserRole();
         group.setName( "Superuser" );
         group.getAuthorities().addAll( authorities );
 
-        userService.addUserAuthorityGroup( group );
+        userService.addUserRole( group );
 
         User user = createUser( nextUserName++ );
 
@@ -2388,13 +2381,12 @@ public abstract class DhisConvenienceTest
 
         if ( catDimensionConstraints != null )
         {
-            user.getUserCredentials().setCatDimensionConstraints( catDimensionConstraints );
+            user.setCatDimensionConstraints( catDimensionConstraints );
         }
 
-        user.getUserCredentials().getUserAuthorityGroups().add( group );
+        user.getUserRoles().add( group );
         userService.addUser( user );
-        user.getUserCredentials().setUserInfo( user );
-        userService.addUserCredentials( user.getUserCredentials() );
+        userService.addUser( user );
 
         injectSecurityContext( user );
 
@@ -2409,7 +2401,6 @@ public abstract class DhisConvenienceTest
     protected void saveAndInjectUserSecurityContext( User user )
     {
         userService.addUser( user );
-        userService.addUserCredentials( user.getUserCredentials() );
 
         injectSecurityContext( user );
     }
@@ -2433,21 +2424,25 @@ public abstract class DhisConvenienceTest
     {
         checkUserServiceWasInjected();
 
-        UserAuthorityGroup group = createAuthorityGroup( username, authorities );
+        UserRole userRole = createUserRole( username, authorities );
+        userService.addUserRole( userRole );
 
-        userService.addUserAuthorityGroup( group );
+        boolean present = uid.isPresent();
+        User user = present ? createUser( username, uid.get() ) : createUser( username );
+        user.setEmail( username + "@dhis2.org" );
+        user.setUsername( username );
+        user.setOpenId( openIDIdentifier );
+        user.getUserRoles().add( userRole );
 
-        User user = uid.isPresent() ? createUser( username, uid.get() ) : createUser( username );
+        if ( !Strings.isNullOrEmpty( openIDIdentifier ) )
+        {
+            user.setOpenId( openIDIdentifier );
+            user.setExternalAuth( true );
+        }
+
+        userService.encodeAndSetPassword( user, DEFAULT_ADMIN_PASSWORD );
 
         userService.addUser( user );
-
-        UserCredentials credentials = createUserCredentials( username, openIDIdentifier, user, group );
-
-        userService.encodeAndSetPassword( credentials, DEFAULT_ADMIN_PASSWORD );
-        userService.addUserCredentials( credentials );
-
-        user.setUserCredentials( credentials );
-        userService.updateUser( user );
 
         return user;
     }
@@ -2456,28 +2451,26 @@ public abstract class DhisConvenienceTest
     {
         checkUserServiceWasInjected();
 
+        UserRole role = createUserRole( "Superuser", authorities );
+        role.setUid( "yrB6vc5Ip3r" );
+
         String username = DEFAULT_USERNAME;
         String password = DEFAULT_ADMIN_PASSWORD;
 
-        UserAuthorityGroup group = createAuthorityGroup( "Superuser", authorities );
-        group.setUid( "yrB6vc5Ip3r" );
-
-        userService.addUserAuthorityGroup( group );
-
         User user = createUser( username );
+        user.setUuid( UUID.fromString( "6507f586-f154-4ec1-a25e-d7aa51de5216" ) );
         user.setUid( "M5zQapPyTZI" );
+        user.setName( "Admin" );
+        user.setUsername( username );
+        user.setPassword( password );
+        user.getUserRoles().add( role );
 
         userService.addUser( user );
 
-        UserCredentials credentials = createUserCredentials( username, null, user, group );
-        credentials.setUid( "KvMx6c1eoYo" );
-        credentials.setUuid( UUID.fromString( "6507f586-f154-4ec1-a25e-d7aa51de5216" ) );
-
-        userService.encodeAndSetPassword( credentials, password );
-        userService.addUserCredentials( credentials );
-
-        user.setUserCredentials( credentials );
+        userService.encodeAndSetPassword( user, password );
         userService.updateUser( user );
+
+        userService.addUserRole( role );
 
         return user;
     }
@@ -2501,17 +2494,18 @@ public abstract class DhisConvenienceTest
             clearSecurityContext();
             return;
         }
-        UserCredentials credentials = user.getUserCredentials();
+
         switchCurrentUserTo(
-            credentials.getUsername(),
-            credentials.getPassword(),
-            credentials.getAllAuthorities()
+            user.getUsername(),
+            user.getPassword(),
+            user.getAllAuthorities()
                 .stream().map( SimpleGrantedAuthority::new ).collect( toList() ) );
     }
 
     protected void clearSecurityContext()
     {
-        if ( SecurityContextHolder.getContext() != null )
+        SecurityContext context = SecurityContextHolder.getContext();
+        if ( context != null )
         {
             SecurityContextHolder.getContext().setAuthentication( null );
         }
@@ -2601,67 +2595,46 @@ public abstract class DhisConvenienceTest
         return user;
     }
 
-    private static UserCredentials createUserCredentials( String username, String openIDIdentifier, User user,
-        UserAuthorityGroup group )
+    protected static UserRole createUserRole( String name, String... authorities )
     {
-        UserCredentials credentials = new UserCredentials();
-        credentials.setCode( username );
-        credentials.setCreatedBy( user );
-        credentials.setUserInfo( user );
-        credentials.setUsername( username.toLowerCase() );
-        credentials.getUserAuthorityGroups().add( group );
-
-        if ( !Strings.isNullOrEmpty( openIDIdentifier ) )
-        {
-            credentials.setOpenId( openIDIdentifier );
-            credentials.setExternalAuth( true );
-        }
-
-        return credentials;
-    }
-
-    private static UserAuthorityGroup createAuthorityGroup( String username, String... authorities )
-    {
-        UserAuthorityGroup group = new UserAuthorityGroup();
-        group.setCode( username );
-        group.setName( username );
-        group.setDescription( username );
+        UserRole group = new UserRole();
+        group.setCode( name );
+        group.setName( name );
+        group.setDescription( name );
         group.setAuthorities( Sets.newHashSet( authorities ) );
         return group;
     }
 
     protected final User addUser( char uniqueCharacter )
     {
-        return addUser( uniqueCharacter, (Consumer<UserCredentials>) null );
+        return addUser( uniqueCharacter, (Consumer<User>) null );
     }
 
-    protected final <T> User addUser( char uniqueCharacter, BiConsumer<UserCredentials, T> setter, T value )
+    protected final <T> User addUser( char uniqueCharacter, BiConsumer<User, T> setter, T value )
     {
-        return addUser( uniqueCharacter, credentials -> setter.accept( credentials, value ) );
+        return addUser( uniqueCharacter, user -> setter.accept( user, value ) );
     }
 
     protected final User addUser( char uniqueCharacter, OrganisationUnit... units )
     {
         return addUser( uniqueCharacter,
-            credentials -> credentials.getUser().getOrganisationUnits().addAll( asList( units ) ) );
+            user -> user.getOrganisationUnits().addAll( asList( units ) ) );
     }
 
-    protected final User addUser( char uniqueCharacter, UserAuthorityGroup... roles )
+    protected final User addUser( char uniqueCharacter, UserRole... roles )
     {
         return addUser( uniqueCharacter,
-            credentials -> credentials.getUserAuthorityGroups().addAll( asList( roles ) ) );
+            user -> user.getUserRoles().addAll( asList( roles ) ) );
     }
 
-    protected final User addUser( char uniqueCharacter, Consumer<UserCredentials> consumer )
+    protected final User addUser( char uniqueCharacter, Consumer<User> consumer )
     {
         User user = createUser( uniqueCharacter );
-        UserCredentials credentials = createUserCredentials( uniqueCharacter, user );
         if ( consumer != null )
         {
-            consumer.accept( credentials );
+            consumer.accept( user );
         }
         userService.addUser( user );
-        userService.addUserCredentials( credentials );
         return user;
     }
 

@@ -115,8 +115,9 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
 
     private final static String TABLE_NAME = "analytics_event";
 
-    private final static String DEFAULT_COLUMNS_WITH_REGISTRATION = "psi,ps,executiondate,storedby,lastupdated,"
-        + "enrollmentdate,incidentdate,tei,pi,ST_AsGeoJSON(psigeometry, 6) as geometry,longitude,latitude,ouname,"
+    private final static String DEFAULT_COLUMNS_WITH_REGISTRATION = "psi,ps,executiondate,storedby,"
+        + "createdbydisplayname" + "," + "lastupdatedbydisplayname"
+        + ",lastupdated,enrollmentdate,incidentdate,tei,pi,ST_AsGeoJSON(psigeometry, 6) as geometry,longitude,latitude,ouname,"
         + "oucode,pistatus,psistatus";
 
     @BeforeEach
@@ -145,7 +146,9 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
 
         verify( jdbcTemplate ).queryForRowSet( sql.capture() );
 
-        String expected = "select psi,ps,executiondate,storedby,lastupdated,ST_AsGeoJSON(psigeometry, 6) as geometry,"
+        String expected = "select psi,ps,executiondate,storedby,"
+            + "createdbydisplayname" + "," + "lastupdatedbydisplayname"
+            + ",lastupdated,ST_AsGeoJSON(psigeometry, 6) as geometry,"
             + "longitude,latitude,ouname,oucode,pistatus,psistatus,ax.\"monthly\",ax.\"ou\"  from "
             + getTable( programA.getUid() )
             + " as ax where ax.\"monthly\" in ('2000Q1') and ax.\"uidlevel1\" in ('ouabcdefghA') and psistatus in ('ACTIVE', 'COMPLETED') limit 101";
@@ -166,9 +169,11 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
 
         verify( jdbcTemplate ).queryForRowSet( sql.capture() );
 
-        String expected = "select psi,ps,executiondate,storedby,lastupdated,enrollmentdate,incidentdate,tei,pi,ST_AsGeoJSON(psigeometry, 6) "
-            + "as geometry,longitude,latitude,ouname,oucode,pistatus,psistatus,ax.\"monthly\",ax.\"ou\",\""
-            + dataElement.getUid() + "_name"
+        String expected = "select psi,ps,executiondate,storedby,"
+            + "createdbydisplayname" + "," + "lastupdatedbydisplayname"
+            + ",lastupdated,enrollmentdate,"
+            + "incidentdate,tei,pi,ST_AsGeoJSON(psigeometry, 6) as geometry,longitude,latitude,ouname,oucode,pistatus,"
+            + "psistatus,ax.\"monthly\",ax.\"ou\",\"" + dataElement.getUid() + "_name"
             + "\"  " + "from " + getTable( programA.getUid() )
             + " as ax where ax.\"monthly\" in ('2000Q1') and ax.\"uidlevel1\" in ('ouabcdefghA')"
             + " and psistatus in ('ACTIVE', 'COMPLETED') limit 101";
@@ -452,9 +457,9 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
 
         final EventQueryParams.Builder eventQueryParamsBuilder = new EventQueryParams.Builder( params )
             .withProgram( program )
-            .addAscSortItem( piA )
-            .addDescSortItem( piB )
-            .addAscSortItem( deA );
+            .addAscSortItem( new QueryItem( piA ) )
+            .addDescSortItem( new QueryItem( piB ) )
+            .addAscSortItem( new QueryItem( deA ) );
 
         final String sql = subject.getEventsOrEnrollmentsSql( eventQueryParamsBuilder.build(), 100 );
 

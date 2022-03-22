@@ -155,20 +155,13 @@
   ],
   "users": [
     {
-      "userCredentials": {
-        "userInfo": {
-          "id": "M5zQapPyTZI"
-        },
         "username": "admin",
         "catDimensionConstraints": [ ],
         "externalAuth": false,
-        "code": "admin",
-        "lastUpdated": "2016-04-07T05:12:03.473+0000",
         "lastLogin": "2016-04-07T05:12:03.379+0000",
         "passwordLastUpdated": "2016-04-07T05:12:03.380+0000",
         "cogsDimensionConstraints": [ ],
         "disabled": false,
-        "created": "2016-04-07T05:12:03.379+0000",
         "invitation": false,
         "selfRegistered": false,
         "userRoles": [
@@ -176,8 +169,6 @@
             "id": "yrB6vc5Ip3r"
           }
         ],
-        "id": "KvMx6c1eoYo"
-      },
       "lastUpdated": "2016-04-07T05:12:03.342+0000",
       "firstName": "admin",
       "organisationUnits": [ ],

@@ -38,7 +38,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -51,18 +50,18 @@ import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.SetMap;
-import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataanalysis.ValidationRuleExpressionDetails;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
+import org.hisp.dhis.expression.Expression;
+import org.hisp.dhis.expression.ExpressionInfo;
+import org.hisp.dhis.expression.ExpressionParams;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
@@ -104,10 +103,6 @@ public class DefaultValidationService
 
     private final CategoryService categoryService;
 
-    private final ConstantService constantService;
-
-    private final IdentifiableObjectManager idObjectManager;
-
     private final ValidationNotificationService notificationService;
 
     private final ValidationRuleService validationRuleService;
@@ -122,7 +117,7 @@ public class DefaultValidationService
 
     public DefaultValidationService( PeriodService periodService, OrganisationUnitService organisationUnitService,
         ExpressionService expressionService, DimensionService dimensionService, DataValueService dataValueService,
-        CategoryService categoryService, ConstantService constantService, IdentifiableObjectManager idObjectManager,
+        CategoryService categoryService,
         ValidationNotificationService notificationService, ValidationRuleService validationRuleService,
         ApplicationContext applicationContext, ValidationResultService validationResultService,
         AnalyticsService analyticsService, CurrentUserService currentUserService )
@@ -133,8 +128,6 @@ public class DefaultValidationService
         checkNotNull( dimensionService );
         checkNotNull( dataValueService );
         checkNotNull( categoryService );
-        checkNotNull( constantService );
-        checkNotNull( idObjectManager );
         checkNotNull( notificationService );
         checkNotNull( validationRuleService );
         checkNotNull( applicationContext );
@@ -148,8 +141,6 @@ public class DefaultValidationService
         this.dimensionService = dimensionService;
         this.dataValueService = dataValueService;
         this.categoryService = categoryService;
-        this.constantService = constantService;
-        this.idObjectManager = idObjectManager;
         this.notificationService = notificationService;
         this.validationRuleService = validationRuleService;
         this.applicationContext = applicationContext;
@@ -324,17 +315,15 @@ public class DefaultValidationService
 
         addPeriodsToContext( periodTypeXMap, parameters.getPeriods() );
 
-        Map<DimensionalItemId, DimensionalItemObject> dimensionItemMap = addRulesToContext( periodTypeXMap,
-            parameters.getValidationRules() );
+        setRulesAndSlidingWindows( periodTypeXMap, parameters.getValidationRules() );
 
-        Map<String, OrganisationUnitGroup> orgUnitGroupMap = getOrgUnitGroupMap( parameters.getValidationRules() );
+        ExpressionParams baseExParams = getExpressionInfo( periodTypeXMap, parameters.getValidationRules() );
 
         removeAnyUnneededPeriodTypes( periodTypeXMap );
 
         ValidationRunContext.Builder builder = ValidationRunContext.newBuilder()
             .withOrgUnits( orgUnits )
             .withPeriodTypeXs( new ArrayList<>( periodTypeXMap.values() ) )
-            .withConstantMap( constantService.getConstantMap() )
             .withInitialResults( validationResultService
                 .getValidationResults( parameterOrgUnit,
                     parameters.isIncludeOrgUnitDescendants(), parameters.getValidationRules(),
@@ -343,17 +332,17 @@ public class DefaultValidationService
             .withPersistResults( parameters.isPersistResults() )
             .withAttributeCombo( parameters.getAttributeOptionCombo() )
             .withDefaultAttributeCombo( categoryService.getDefaultCategoryOptionCombo() )
-            .withItemMap( dimensionItemMap )
-            .withOrgUnitGroupMap( orgUnitGroupMap )
+            .withBaseExParams( baseExParams )
+            .withItemMap( baseExParams.getItemMap() )
             .withMaxResults( parameters.getMaxResults() );
 
         if ( currentUser != null )
         {
             builder
                 .withCoDimensionConstraints(
-                    categoryService.getCoDimensionConstraints( currentUser.getUserCredentials() ) )
+                    categoryService.getCoDimensionConstraints( currentUser ) )
                 .withCogDimensionConstraints(
-                    categoryService.getCogDimensionConstraints( currentUser.getUserCredentials() ) );
+                    categoryService.getCogDimensionConstraints( currentUser ) );
         }
 
         return builder.build();
@@ -398,70 +387,7 @@ public class DefaultValidationService
         }
     }
 
-    /**
-     * Adds validation rules to the context.
-     *
-     * @param periodTypeXMap period type map to extended period types.
-     * @param rules validation rules to add.
-     * @return the map from DimensionalItemId to DimensionalItemObject.
-     */
-    private Map<DimensionalItemId, DimensionalItemObject> addRulesToContext(
-        Map<PeriodType, PeriodTypeExtended> periodTypeXMap,
-        Collection<ValidationRule> rules )
-    {
-        // 1. Find all dimensional object IDs in the expressions of the
-        // validation rules.
-
-        Set<DimensionalItemId> allItemIds = new HashSet<>();
-
-        SetMap<PeriodTypeExtended, DimensionalItemId> periodItemIds = new SetMap<>();
-
-        getItemIdsForRules( allItemIds, periodItemIds, periodTypeXMap, rules );
-
-        // 2. Get the dimensional objects from the IDs. (Get them all at once
-        // for best performance.)
-
-        Map<DimensionalItemId, DimensionalItemObject> dimensionItemMap = dimensionService
-            .getNoAclDataDimensionalItemObjectMap( allItemIds );
-
-        // 3. Save the dimensional objects in the extended period types.
-
-        saveObjectsInPeriodTypeX( periodItemIds, dimensionItemMap );
-
-        return dimensionItemMap;
-    }
-
-    private Map<String, OrganisationUnitGroup> getOrgUnitGroupMap( Collection<ValidationRule> rules )
-    {
-        Set<String> orgUnitGroupIds = new HashSet<>();
-
-        for ( ValidationRule rule : rules )
-        {
-            orgUnitGroupIds.addAll( expressionService.getExpressionOrgUnitGroupIds( rule.getLeftSide().getExpression(),
-                VALIDATION_RULE_EXPRESSION ) );
-
-            orgUnitGroupIds.addAll( expressionService.getExpressionOrgUnitGroupIds( rule.getRightSide().getExpression(),
-                VALIDATION_RULE_EXPRESSION ) );
-        }
-
-        List<OrganisationUnitGroup> orgUnitGroups = idObjectManager.getNoAcl( OrganisationUnitGroup.class,
-            orgUnitGroupIds );
-
-        return orgUnitGroups.stream()
-            .collect( Collectors.toMap( OrganisationUnitGroup::getUid, g -> g ) );
-    }
-
-    /**
-     * Finds all the dimensional object IDs in the validation rules expressions.
-     *
-     * @param allItemIds inserts all IDs here.
-     * @param periodItemIds inserts IDs by period type here.
-     * @param periodTypeXMap map of extended period types by period type.
-     * @param rules validation rules to process.
-     */
-    private void getItemIdsForRules( Set<DimensionalItemId> allItemIds,
-        SetMap<PeriodTypeExtended, DimensionalItemId> periodItemIds,
-        Map<PeriodType, PeriodTypeExtended> periodTypeXMap,
+    private void setRulesAndSlidingWindows( Map<PeriodType, PeriodTypeExtended> periodTypeXMap,
         Collection<ValidationRule> rules )
     {
         for ( ValidationRule rule : rules )
@@ -479,22 +405,67 @@ public class DefaultValidationService
 
             periodX.setSlidingWindows( ruleX.getLeftSlidingWindow() );
             periodX.setSlidingWindows( ruleX.getRightSlidingWindow() );
-
-            Set<DimensionalItemId> leftSideItemIds = expressionService.getExpressionDimensionalItemIds(
-                rule.getLeftSide().getExpression(), VALIDATION_RULE_EXPRESSION );
-
-            Set<DimensionalItemId> rightSideItemIds = expressionService.getExpressionDimensionalItemIds(
-                rule.getRightSide().getExpression(), VALIDATION_RULE_EXPRESSION );
-
-            periodX.getLeftSideItemIds().addAll( leftSideItemIds );
-            periodX.getRightSideItemIds().addAll( rightSideItemIds );
-
-            Set<DimensionalItemId> bothSidesItemIds = Sets.union( leftSideItemIds, rightSideItemIds );
-
-            periodItemIds.putValues( periodX, bothSidesItemIds );
-
-            allItemIds.addAll( bothSidesItemIds );
         }
+    }
+
+    private ExpressionParams getExpressionInfo( Map<PeriodType, PeriodTypeExtended> periodTypeXMap,
+        Collection<ValidationRule> rules )
+    {
+        SetMap<PeriodTypeExtended, DimensionalItemId> periodItemIds = new SetMap<>();
+
+        Set<DimensionalItemId> allItemIds = new HashSet<>();
+
+        ExpressionInfo expressionInfo = new ExpressionInfo();
+
+        for ( ValidationRule rule : rules )
+        {
+            Set<DimensionalItemId> leftItemIds = addToExpressionInfo( expressionInfo, rule.getLeftSide() );
+            Set<DimensionalItemId> rightItemIds = addToExpressionInfo( expressionInfo, rule.getRightSide() );
+
+            processItemIds( leftItemIds, rightItemIds, rule, periodTypeXMap, periodItemIds, allItemIds );
+        }
+
+        expressionInfo.setItemIds( allItemIds );
+
+        ExpressionParams baseExParams = expressionService.getBaseExpressionParams( expressionInfo );
+
+        saveObjectsInPeriodTypeX( periodItemIds, baseExParams.getItemMap() );
+
+        return baseExParams;
+    }
+
+    private Set<DimensionalItemId> addToExpressionInfo( ExpressionInfo exInfo, Expression expr )
+    {
+        exInfo.setItemIds( new HashSet<>() );
+
+        expressionService.getExpressionInfo( ExpressionParams.builder()
+            .expression( expr.getExpression() )
+            .parseType( VALIDATION_RULE_EXPRESSION )
+            .expressionInfo( exInfo )
+            .build() );
+
+        return exInfo.getItemIds();
+    }
+
+    private void processItemIds( Set<DimensionalItemId> leftItemIds, Set<DimensionalItemId> rightItemIds,
+        ValidationRule rule, Map<PeriodType, PeriodTypeExtended> periodTypeXMap,
+        SetMap<PeriodTypeExtended, DimensionalItemId> periodItemIds, Set<DimensionalItemId> allItemIds )
+    {
+        PeriodTypeExtended periodX = periodTypeXMap.get( rule.getPeriodType() );
+
+        if ( periodX == null )
+        {
+            return; // Don't include rule.
+        }
+
+        periodX.getLeftSideItemIds().addAll( leftItemIds );
+        periodX.getRightSideItemIds().addAll( rightItemIds );
+
+        Set<DimensionalItemId> bothSidesItemIds = Sets.union( leftItemIds, rightItemIds );
+
+        periodItemIds.putValues( periodX, bothSidesItemIds );
+
+        allItemIds.addAll( bothSidesItemIds );
     }
 
     /**

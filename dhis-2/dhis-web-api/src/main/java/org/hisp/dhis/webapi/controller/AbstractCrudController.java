@@ -41,6 +41,7 @@ import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 import static org.springframework.http.MediaType.TEXT_XML_VALUE;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -63,7 +64,7 @@ import org.hisp.dhis.dxf2.metadata.MetadataImportService;
 import org.hisp.dhis.dxf2.metadata.collection.CollectionService;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
+import org.hisp.dhis.dxf2.metadata.objectbundle.validation.TranslationsCheck;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.ObjectReport;
@@ -154,6 +155,9 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     @Autowired
     protected BulkPatchManager bulkPatchManager;
 
+    @Autowired
+    private TranslationsCheck translationsCheck;
+
     @PutMapping( value = "/{uid}/translations" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     @ResponseBody
@@ -182,23 +186,17 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         HashSet<Translation> translations = new HashSet<>( inputObject.getTranslations() );
 
         persistedObject.setTranslations( translations );
+        List<ObjectReport> objectReports = new ArrayList<>();
+        translationsCheck.run( persistedObject, getEntityClass(), objectReport -> objectReports.add( objectReport ),
+            getSchema(), 0 );
 
-        MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() );
-
-        params.setUser( currentUser )
-            .setImportStrategy( ImportStrategy.UPDATE )
-            .addObject( persistedObject )
-            .setImportMode( ObjectBundleMode.VALIDATE );
-
-        ImportReport importReport = importService.importMetadata( params );
-
-        if ( !importReport.hasErrorReports() )
+        if ( objectReports.size() == 0 )
         {
-            manager.save( persistedObject );
+            manager.update( persistedObject, currentUser );
             return null;
         }
 
-        return importReport( importReport );
+        return objectReport( objectReports.get( 0 ) );
     }
 
     // --------------------------------------------------------------------------
@@ -284,7 +282,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         Object value = property.getGetterMethod().invoke( object );
         property.getSetterMethod().invoke( persistedObject, value );
 
-        MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() );
+        Map<String, List<String>> parameterValuesMap = contextService.getParameterValuesMap();
+        MetadataImportParams params = importService.getParamsFromMap( parameterValuesMap );
         params.setUser( currentUser )
             .setImportStrategy( ImportStrategy.UPDATE )
             .addObject( persistedObject );
@@ -342,6 +341,9 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
         final JsonPatch patch = jsonMapper.readValue( request.getInputStream(), JsonPatch.class );
         final T patchedObject = jsonPatchManager.apply( patch, persistedObject );
+
+        // we don't allow changing IDs
+        ((BaseIdentifiableObject) patchedObject).setId( persistedObject.getId() );
 
         // we don't allow changing UIDs
         ((BaseIdentifiableObject) patchedObject).setUid( persistedObject.getUid() );
@@ -727,73 +729,81 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     // --------------------------------------------------------------------------
 
     @PostMapping( value = "/{uid}/{property}", consumes = APPLICATION_JSON_VALUE )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void addCollectionItemsJson(
+    @ResponseStatus( HttpStatus.OK )
+    @ResponseBody
+    public WebMessage addCollectionItemsJson(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
         HttpServletRequest request )
         throws Exception
     {
-        addCollectionItems( pvProperty, getEntity( pvUid ).get( 0 ),
+        return addCollectionItems( pvProperty, getEntity( pvUid ).get( 0 ),
             renderService.fromJson( request.getInputStream(), IdentifiableObjects.class ) );
     }
 
     @PostMapping( value = "/{uid}/{property}", consumes = APPLICATION_XML_VALUE )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void addCollectionItemsXml(
+    @ResponseStatus( HttpStatus.OK )
+    @ResponseBody
+    public WebMessage addCollectionItemsXml(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
         HttpServletRequest request )
         throws Exception
     {
-        addCollectionItems( pvProperty, getEntity( pvUid ).get( 0 ),
+        return addCollectionItems( pvProperty, getEntity( pvUid ).get( 0 ),
             renderService.fromXml( request.getInputStream(), IdentifiableObjects.class ) );
     }
 
-    private void addCollectionItems( String pvProperty, T object, IdentifiableObjects items )
+    private WebMessage addCollectionItems( String pvProperty, T object, IdentifiableObjects items )
         throws Exception
     {
         preUpdateItems( object, items );
-        collectionService.delCollectionItems( object, pvProperty, items.getDeletions() );
-        collectionService.addCollectionItems( object, pvProperty, items.getAdditions() );
+        TypeReport deletions = collectionService.delCollectionItems( object, pvProperty, items.getDeletions() );
+        TypeReport additions = collectionService.addCollectionItems( object, pvProperty, items.getAdditions() );
         postUpdateItems( object, items );
+        return typeReport( deletions.mergeAllowEmpty( additions ) );
     }
 
     @PutMapping( value = "/{uid}/{property}", consumes = APPLICATION_JSON_VALUE )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void replaceCollectionItemsJson(
+    @ResponseStatus( HttpStatus.OK )
+    @ResponseBody
+    public WebMessage replaceCollectionItemsJson(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
         HttpServletRequest request )
         throws Exception
     {
-        replaceCollectionItems( pvProperty, getEntity( pvUid ).get( 0 ),
+        return replaceCollectionItems( pvProperty, getEntity( pvUid ).get( 0 ),
             renderService.fromJson( request.getInputStream(), IdentifiableObjects.class ) );
     }
 
     @PutMapping( value = "/{uid}/{property}", consumes = APPLICATION_XML_VALUE )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void replaceCollectionItemsXml(
+    @ResponseStatus( HttpStatus.OK )
+    @ResponseBody
+    public WebMessage replaceCollectionItemsXml(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
         HttpServletRequest request )
         throws Exception
     {
-        replaceCollectionItems( pvProperty, getEntity( pvUid ).get( 0 ),
+        return replaceCollectionItems( pvProperty, getEntity( pvUid ).get( 0 ),
             renderService.fromXml( request.getInputStream(), IdentifiableObjects.class ) );
     }
 
-    private void replaceCollectionItems( String pvProperty, T object, IdentifiableObjects items )
+    private WebMessage replaceCollectionItems( String pvProperty, T object, IdentifiableObjects items )
         throws Exception
     {
         preUpdateItems( object, items );
-        collectionService.replaceCollectionItems( object, pvProperty, items.getIdentifiableObjects() );
+        TypeReport report = collectionService.replaceCollectionItems( object, pvProperty,
+            items.getIdentifiableObjects() );
         postUpdateItems( object, items );
+        return typeReport( report );
     }
 
     @PostMapping( value = "/{uid}/{property}/{itemId}" )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void addCollectionItem(
+    @ResponseStatus( HttpStatus.OK )
+    @ResponseBody
+    public WebMessage addCollectionItem(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
         @PathVariable( "itemId" ) String pvItemId,
@@ -811,45 +821,50 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         items.setAdditions( singletonList( new BaseIdentifiableObject( pvItemId, "", "" ) ) );
 
         preUpdateItems( object, items );
-        collectionService.addCollectionItems( object, pvProperty, items.getIdentifiableObjects() );
+        TypeReport report = collectionService.addCollectionItems( object, pvProperty, items.getIdentifiableObjects() );
         postUpdateItems( object, items );
+        return typeReport( report );
     }
 
     @DeleteMapping( value = "/{uid}/{property}", consumes = APPLICATION_JSON_VALUE )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void deleteCollectionItemsJson(
+    @ResponseStatus( HttpStatus.OK )
+    @ResponseBody
+    public WebMessage deleteCollectionItemsJson(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
         HttpServletRequest request )
         throws Exception
     {
-        deleteCollectionItems( pvProperty, getEntity( pvUid ).get( 0 ),
+        return deleteCollectionItems( pvProperty, getEntity( pvUid ).get( 0 ),
             renderService.fromJson( request.getInputStream(), IdentifiableObjects.class ) );
     }
 
     @DeleteMapping( value = "/{uid}/{property}", consumes = APPLICATION_XML_VALUE )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void deleteCollectionItemsXml(
+    @ResponseStatus( HttpStatus.OK )
+    @ResponseBody
+    public WebMessage deleteCollectionItemsXml(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
         HttpServletRequest request )
         throws Exception
     {
-        deleteCollectionItems( pvProperty, getEntity( pvUid ).get( 0 ),
+        return deleteCollectionItems( pvProperty, getEntity( pvUid ).get( 0 ),
             renderService.fromXml( request.getInputStream(), IdentifiableObjects.class ) );
     }
 
-    private void deleteCollectionItems( String pvProperty, T object, IdentifiableObjects items )
+    private WebMessage deleteCollectionItems( String pvProperty, T object, IdentifiableObjects items )
         throws Exception
     {
         preUpdateItems( object, items );
-        collectionService.delCollectionItems( object, pvProperty, items.getIdentifiableObjects() );
+        TypeReport report = collectionService.delCollectionItems( object, pvProperty, items.getIdentifiableObjects() );
         postUpdateItems( object, items );
+        return typeReport( report );
     }
 
     @DeleteMapping( value = "/{uid}/{property}/{itemId}" )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void deleteCollectionItem(
+    @ResponseStatus( HttpStatus.OK )
+    @ResponseBody
+    public WebMessage deleteCollectionItem(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
         @PathVariable( "itemId" ) String pvItemId,
@@ -864,7 +879,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
         IdentifiableObjects items = new IdentifiableObjects();
         items.setIdentifiableObjects( singletonList( new BaseIdentifiableObject( pvItemId, "", "" ) ) );
-        deleteCollectionItems( pvProperty, objects.get( 0 ), items );
+        return deleteCollectionItems( pvProperty, objects.get( 0 ), items );
     }
 
     @PutMapping( value = "/{uid}/sharing", consumes = APPLICATION_JSON_VALUE )
@@ -1056,7 +1071,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         return false;
     }
 
-    private Patch diff( HttpServletRequest request )
+    protected Patch diff( HttpServletRequest request )
         throws IOException,
         WebMessageException
     {

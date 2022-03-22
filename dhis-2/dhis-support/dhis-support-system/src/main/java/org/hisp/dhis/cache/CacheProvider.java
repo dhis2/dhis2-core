@@ -129,4 +129,10 @@ public interface CacheProvider
     <V> Cache<V> createCompletedJobsInfoCache();
 
     <V> Cache<V> createJobCancelRequestedCache();
+
+    <V> Cache<V> createDataIntegritySummaryCache();
+
+    <V> Cache<V> createDataIntegrityDetailsCache();
+
+    <V> Cache<V> createSubExpressionCache();
 }

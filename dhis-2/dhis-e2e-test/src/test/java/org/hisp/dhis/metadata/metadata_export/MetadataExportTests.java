@@ -39,6 +39,7 @@ import org.hisp.dhis.actions.metadata.MetadataActions;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -82,6 +83,7 @@ public class MetadataExportTests
     @Test
     public void shouldNotExportUserMetadataWithoutAuthority()
     {
+
         loginActions.loginAsUser( userWithoutAccessUsername, userWithoutAccessPassword );
 
         metadataActions.get( "", new QueryParamsBuilder().add( "users=true" ) )

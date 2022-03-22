@@ -43,15 +43,15 @@ import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccountExpiryInfo;
-import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Component;
 
 /**
  * Sends an email alert to all users that are soon to expire due to an account
- * expire date being set in {@link UserCredentials#getAccountExpiry()} that is
- * within the next {@link SettingKey#ACCOUNT_EXPIRES_IN_DAYS} interval.
+ * expire date being set in {@link User#getAccountExpiry()} that is within the
+ * next {@link SettingKey#ACCOUNT_EXPIRES_IN_DAYS} interval.
  *
  * The job only works when enabled via {@link SettingKey#ACCOUNT_EXPIRY_ALERT}.
  *

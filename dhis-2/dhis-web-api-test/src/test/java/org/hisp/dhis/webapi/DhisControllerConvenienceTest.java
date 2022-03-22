@@ -88,8 +88,12 @@ public abstract class DhisControllerConvenienceTest extends DhisMockMvcControlle
     {
         userService = _userService;
         mvc = MockMvcBuilders.webAppContextSetup( webApplicationContext ).build();
+
+        superUser = createAdminUser( "ALL" );
+        switchContextToUser( superUser );
+        currentUser = superUser;
+
         TestUtils.executeStartupRoutines( webApplicationContext );
-        superUser = switchToNewUser( null, "ALL" );
     }
 
     protected final String getSuperuserUid()
@@ -115,7 +119,8 @@ public abstract class DhisControllerConvenienceTest extends DhisMockMvcControlle
             // we need to be an admin to be allowed to create user groups
             switchContextToUser( superUser );
         }
-        currentUser = currentUser == null ? createAdminUser( authorities ) : createUser( username, authorities );
+
+        currentUser = createUser( username, authorities );
         switchContextToUser( currentUser );
         return currentUser;
     }

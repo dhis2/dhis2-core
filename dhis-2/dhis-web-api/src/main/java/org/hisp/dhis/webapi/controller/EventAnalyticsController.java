@@ -52,6 +52,7 @@ import org.hisp.dhis.common.DimensionsCriteria;
 import org.hisp.dhis.common.EventDataQueryRequest;
 import org.hisp.dhis.common.EventsAnalyticsQueryCriteria;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.RequestTypeAware;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -102,7 +103,7 @@ public class EventAnalyticsController
     // Aggregate
     // -------------------------------------------------------------------------
 
-    @PreAuthorize( "hasRole('F_PERFORM_MAINTENANCE')" )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_ANALYTICS_EXPLAIN')" )
     @GetMapping( value = RESOURCE_PATH + "/aggregate/{program}" + EXPLAIN_PATH, produces = { APPLICATION_JSON_VALUE,
         "application/javascript" } )
     public @ResponseBody Grid getExplainAggregateJson( // JSON, JSONP
@@ -122,7 +123,7 @@ public class EventAnalyticsController
 
         if ( params.analyzeOnly() )
         {
-            grid.maybeAddPerformanceMetrics( executionPlanStore.getExecutionPlans( params.getAnalyzeOrderId() ) );
+            grid.maybeAddPerformanceMetrics( executionPlanStore.getExecutionPlans( params.getExplainOrderId() ) );
         }
 
         return grid;
@@ -275,7 +276,7 @@ public class EventAnalyticsController
     // Query
     // -------------------------------------------------------------------------
 
-    @PreAuthorize( "hasRole('F_PERFORM_MAINTENANCE')" )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_ANALYTICS_EXPLAIN')" )
     @GetMapping( value = RESOURCE_PATH + "/query/{program}" + EXPLAIN_PATH, produces = { APPLICATION_JSON_VALUE,
         "application/javascript" } )
     public @ResponseBody Grid getExplainQueryJson( // JSON, JSONP
@@ -292,7 +293,7 @@ public class EventAnalyticsController
 
         if ( params.analyzeOnly() )
         {
-            grid.maybeAddPerformanceMetrics( executionPlanStore.getExecutionPlans( params.getAnalyzeOrderId() ) );
+            grid.maybeAddPerformanceMetrics( executionPlanStore.getExecutionPlans( params.getExplainOrderId() ) );
         }
 
         return grid;
@@ -421,7 +422,8 @@ public class EventAnalyticsController
         DhisApiVersion apiVersion, boolean analyzeOnly )
     {
         EventDataQueryRequest request = EventDataQueryRequest.builder()
-            .fromCriteria( (EventsAnalyticsQueryCriteria) criteria.withQueryRequestType() )
+            .fromCriteria( (EventsAnalyticsQueryCriteria) criteria.withQueryEndpointAction()
+                .withEndpointItem( RequestTypeAware.EndpointItem.EVENT ) )
             .program( program )
             .apiVersion( apiVersion ).build();
 

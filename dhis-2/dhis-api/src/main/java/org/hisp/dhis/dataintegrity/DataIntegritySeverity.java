@@ -44,7 +44,7 @@ public enum DataIntegritySeverity
      */
     WARNING,
     /**
-     * An error which should be fixed, but which may not nessarily lead to the
+     * An error which should be fixed, but which may not necessarily lead to the
      * system not functioning.
      */
     SEVERE,

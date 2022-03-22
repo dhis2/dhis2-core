@@ -32,7 +32,7 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toSet;
-import static org.hisp.dhis.setting.SettingKey.CAN_GRANT_OWN_USER_AUTHORITY_GROUPS;
+import static org.hisp.dhis.setting.SettingKey.CAN_GRANT_OWN_USER_ROLES;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -81,11 +81,11 @@ class UserServiceTest extends DhisSpringTest
 
     private OrganisationUnit unitE;
 
-    private UserAuthorityGroup roleA;
+    private UserRole roleA;
 
-    private UserAuthorityGroup roleB;
+    private UserRole roleB;
 
-    private UserAuthorityGroup roleC;
+    private UserRole roleC;
 
     @Override
     public void setUpTest()
@@ -102,9 +102,9 @@ class UserServiceTest extends DhisSpringTest
         organisationUnitService.addOrganisationUnit( unitC );
         organisationUnitService.addOrganisationUnit( unitD );
         organisationUnitService.addOrganisationUnit( unitE );
-        roleA = createUserAuthorityGroup( 'A' );
-        roleB = createUserAuthorityGroup( 'B' );
-        roleC = createUserAuthorityGroup( 'C' );
+        roleA = createUserRole( 'A' );
+        roleB = createUserRole( 'B' );
+        roleC = createUserRole( 'C' );
         roleA.getAuthorities().add( "AuthA" );
         roleA.getAuthorities().add( "AuthB" );
         roleA.getAuthorities().add( "AuthC" );
@@ -112,14 +112,14 @@ class UserServiceTest extends DhisSpringTest
         roleB.getAuthorities().add( "AuthA" );
         roleB.getAuthorities().add( "AuthB" );
         roleC.getAuthorities().add( "AuthC" );
-        userService.addUserAuthorityGroup( roleA );
-        userService.addUserAuthorityGroup( roleB );
-        userService.addUserAuthorityGroup( roleC );
+        userService.addUserRole( roleA );
+        userService.addUserRole( roleB );
+        userService.addUserRole( roleC );
     }
 
     private UserQueryParams getDefaultParams()
     {
-        return new UserQueryParams().setCanSeeOwnUserAuthorityGroups( true );
+        return new UserQueryParams().setCanSeeOwnUserRoles( true );
     }
 
     @Test
@@ -133,14 +133,16 @@ class UserServiceTest extends DhisSpringTest
     }
 
     @Test
-    void testGetUserCredentialsByUsernames()
+    void testGetUserByUsernames()
     {
-        addUser( 'A' );
-        addUser( 'B' );
-        assertEquals( 2, userService.getUserCredentialsByUsernames( asList( "usernamea", "usernameb" ) ).size() );
+        addUser( 'a' );
+        addUser( 'b' );
+
+        List<User> allUsers = userService.getAllUsers();
+        assertEquals( 2, userService.getUsersByUsernames( asList( "usernamea", "usernameb" ) ).size() );
         assertEquals( 2,
-            userService.getUserCredentialsByUsernames( asList( "usernamea", "usernameb", "usernamex" ) ).size() );
-        assertEquals( 0, userService.getUserCredentialsByUsernames( asList( "usernamec" ) ).size() );
+            userService.getUsersByUsernames( asList( "usernamea", "usernameb", "usernamex" ) ).size() );
+        assertEquals( 0, userService.getUsersByUsernames( List.of( "usernamec" ) ).size() );
     }
 
     @Test
@@ -170,8 +172,8 @@ class UserServiceTest extends DhisSpringTest
     @Test
     void testUserByQuery()
     {
-        User userA = addUser( 'A', credentials -> credentials.getUser().setFirstName( "Chris" ) );
-        User userB = addUser( 'B', credentials -> credentials.getUser().setFirstName( "Chris" ) );
+        User userA = addUser( 'A', user -> user.setFirstName( "Chris" ) );
+        User userB = addUser( 'B', user -> user.setFirstName( "Chris" ) );
         assertContainsOnly( userService.getUsers( getDefaultParams().setQuery( "Chris" ) ), userA, userB );
         assertContainsOnly( userService.getUsers( getDefaultParams().setQuery( "hris SURNAM" ) ), userA, userB );
         assertContainsOnly( userService.getUsers( getDefaultParams().setQuery( "hris SurnameA" ) ), userA );
@@ -277,7 +279,7 @@ class UserServiceTest extends DhisSpringTest
     @Test
     void testManagedGroups()
     {
-        systemSettingManager.saveSystemSetting( CAN_GRANT_OWN_USER_AUTHORITY_GROUPS, true );
+        systemSettingManager.saveSystemSetting( CAN_GRANT_OWN_USER_ROLES, true );
         // TODO find way to override in parameters
         User userA = addUser( 'A' );
         User userB = addUser( 'B' );
@@ -322,10 +324,10 @@ class UserServiceTest extends DhisSpringTest
     @Test
     void testGetByPhoneNumber()
     {
-        systemSettingManager.saveSystemSetting( CAN_GRANT_OWN_USER_AUTHORITY_GROUPS, true );
-        addUser( 'A', credentials -> credentials.getUser().setPhoneNumber( "73647271" ) );
-        User userB = addUser( 'B', credentials -> credentials.getUser().setPhoneNumber( "23452134" ) );
-        addUser( 'C', credentials -> credentials.getUser().setPhoneNumber( "14543232" ) );
+        systemSettingManager.saveSystemSetting( CAN_GRANT_OWN_USER_ROLES, true );
+        addUser( 'A', user -> user.setPhoneNumber( "73647271" ) );
+        User userB = addUser( 'B', user -> user.setPhoneNumber( "23452134" ) );
+        addUser( 'C', user -> user.setPhoneNumber( "14543232" ) );
         List<User> users = userService.getUsersByPhoneNumber( "23452134" );
         assertEquals( 1, users.size() );
         assertEquals( userB, users.get( 0 ) );
@@ -362,22 +364,19 @@ class UserServiceTest extends DhisSpringTest
     @Test
     void testGetOrdered()
     {
-        User userA = addUser( 'A', credentials -> {
-            User user = credentials.getUser();
+        User userA = addUser( 'A', user -> {
             user.setSurname( "Yong" );
             user.setFirstName( "Anne" );
             user.setEmail( "lost@space.com" );
             user.getOrganisationUnits().add( unitA );
         } );
-        User userB = addUser( 'B', credentials -> {
-            User user = credentials.getUser();
+        User userB = addUser( 'B', user -> {
             user.setSurname( "Arden" );
             user.setFirstName( "Jenny" );
             user.setEmail( "Inside@other.com" );
             user.getOrganisationUnits().add( unitA );
         } );
-        User userC = addUser( 'C', credentials -> {
-            User user = credentials.getUser();
+        User userC = addUser( 'C', user -> {
             user.setSurname( "Smith" );
             user.setFirstName( "Igor" );
             user.setEmail( "home@other.com" );
@@ -438,9 +437,9 @@ class UserServiceTest extends DhisSpringTest
     @Test
     void testGetManagedGroupsSelfRegistered()
     {
-        User userA = addUser( 'A', UserCredentials::setSelfRegistered, true );
+        User userA = addUser( 'A', User::setSelfRegistered, true );
         addUser( 'B' );
-        User userC = addUser( 'C', UserCredentials::setSelfRegistered, true );
+        User userC = addUser( 'C', User::setSelfRegistered, true );
         addUser( 'D' );
         UserQueryParams params = getDefaultParams().setSelfRegistered( true );
         assertContainsOnly( userService.getUsers( params ), userA, userC );
@@ -463,9 +462,9 @@ class UserServiceTest extends DhisSpringTest
     void testGetInvitations()
     {
         addUser( 'A' );
-        User userB = addUser( 'B', UserCredentials::setInvitation, true );
+        User userB = addUser( 'B', User::setInvitation, true );
         addUser( 'C' );
-        User userD = addUser( 'D', UserCredentials::setInvitation, true );
+        User userD = addUser( 'D', User::setInvitation, true );
         UserQueryParams params = getDefaultParams().setInvitationStatus( UserInvitationStatus.ALL );
         assertContainsOnly( userService.getUsers( params ), userB, userD );
         assertEquals( 2, userService.getUserCount( params ) );
@@ -478,9 +477,9 @@ class UserServiceTest extends DhisSpringTest
     void testGetExpiringUser()
     {
         User userA = addUser( 'A' );
-        addUser( 'B', UserCredentials::setDisabled, true );
+        addUser( 'B', User::setDisabled, true );
         User userC = addUser( 'C' );
-        addUser( 'D', UserCredentials::setDisabled, true );
+        addUser( 'D', User::setDisabled, true );
         assertContainsOnly( userService.getExpiringUsers(), userA, userC );
     }
 
@@ -492,18 +491,20 @@ class UserServiceTest extends DhisSpringTest
         Date inSixDays = Date.from( now.plusDays( 6 ).toInstant() );
         Date inEightDays = Date.from( now.plusDays( 8 ).toInstant() );
         addUser( 'A' );
-        addUser( 'B', UserCredentials::setAccountExpiry, inFiveDays );
+        addUser( 'B', User::setAccountExpiry, inFiveDays );
         addUser( 'C' );
-        addUser( 'D', UserCredentials::setAccountExpiry, inSixDays );
-        addUser( 'E', UserCredentials::setAccountExpiry, inEightDays );
+        addUser( 'D', User::setAccountExpiry, inSixDays );
+        addUser( 'E', User::setAccountExpiry, inEightDays );
         List<UserAccountExpiryInfo> soonExpiringAccounts = userService.getExpiringUserAccounts( 7 );
-        Set<String> soonExpiringAccountNames = soonExpiringAccounts.stream().map( UserAccountExpiryInfo::getUsername )
-            .collect( toSet() );
+        Set<String> soonExpiringAccountNames = soonExpiringAccounts.stream()
+            .map( UserAccountExpiryInfo::getUsername ).collect( toSet() );
         assertEquals( new HashSet<>( asList( "usernameb", "usernamed" ) ), soonExpiringAccountNames );
+
         soonExpiringAccounts = userService.getExpiringUserAccounts( 9 );
-        soonExpiringAccountNames = soonExpiringAccounts.stream().map( UserAccountExpiryInfo::getUsername )
-            .collect( toSet() );
+        soonExpiringAccountNames = soonExpiringAccounts.stream()
+            .map( UserAccountExpiryInfo::getUsername ).collect( toSet() );
         assertEquals( new HashSet<>( asList( "usernameb", "usernamed", "usernamee" ) ), soonExpiringAccountNames );
+
         for ( UserAccountExpiryInfo expiryInfo : soonExpiringAccounts )
         {
             assertEquals( expiryInfo.getUsername().replace( "username", "email" ), expiryInfo.getEmail() );
@@ -518,12 +519,12 @@ class UserServiceTest extends DhisSpringTest
         Date threeMonthAgo = Date.from( now.minusMonths( 3 ).toInstant() );
         Date fourMonthAgo = Date.from( now.minusMonths( 4 ).toInstant() );
         Date twentyTwoDaysAgo = Date.from( now.minusDays( 22 ).toInstant() );
-        User userA = addUser( 'A', UserCredentials::setLastLogin, threeMonthAgo );
+        User userA = addUser( 'A', User::setLastLogin, threeMonthAgo );
         User userB = addUser( 'B', credentials -> {
             credentials.setDisabled( true );
             credentials.setLastLogin( fourMonthAgo );
         } );
-        addUser( 'C', UserCredentials::setLastLogin, twentyTwoDaysAgo );
+        addUser( 'C', User::setLastLogin, twentyTwoDaysAgo );
         addUser( 'D' );
         // User A gets disabled, B would but already was, C is active, D last
         // login is still null
@@ -546,12 +547,12 @@ class UserServiceTest extends DhisSpringTest
         Date threeMonthAgo = Date.from( now.minusMonths( 3 ).toInstant() );
         Date fourMonthAgo = Date.from( now.minusMonths( 4 ).toInstant() );
         Date twentyTwoDaysAgo = Date.from( now.minusDays( 22 ).toInstant() );
-        addUser( 'A', UserCredentials::setLastLogin, threeMonthAgo );
+        addUser( 'A', User::setLastLogin, threeMonthAgo );
         addUser( 'B', credentials -> {
             credentials.setDisabled( true );
             credentials.setLastLogin( Date.from( now.minusMonths( 4 ).plusDays( 2 ).toInstant() ) );
         } );
-        addUser( 'C', UserCredentials::setLastLogin, twentyTwoDaysAgo );
+        addUser( 'C', User::setLastLogin, twentyTwoDaysAgo );
         addUser( 'D' );
         assertEquals( singleton( "emaila" ),
             userService.findNotifiableUsersWithLastLoginBetween( threeMonthAgo, twoMonthsAgo ) );

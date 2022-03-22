@@ -49,6 +49,7 @@ import static org.hisp.dhis.analytics.ColumnDataType.GEOMETRY_POINT;
 import static org.hisp.dhis.analytics.ColumnDataType.INTEGER;
 import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
 import static org.hisp.dhis.analytics.ColumnDataType.TIMESTAMP;
+import static org.hisp.dhis.resourcetable.ResourceTable.NEWEST_YEAR_PERIOD_SUPPORTED;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -257,7 +258,7 @@ class JdbcEventAnalyticsTableManagerTest
         new AnalyticsTableAsserter.Builder( tables.get( 0 ) )
             .withTableType( AnalyticsTableType.EVENT )
             .withTableName( TABLE_PREFIX + program.getUid().toLowerCase() )
-            .withColumnSize( 44 )
+            .withColumnSize( 52 )
             .withDefaultColumns( subject.getFixedColumns() )
             .addColumns( periodColumns )
             .addColumn( categoryA.getUid(), CHARACTER_11, "acs.", categoryA.getCreated() )
@@ -318,7 +319,7 @@ class JdbcEventAnalyticsTableManagerTest
         new AnalyticsTableAsserter.Builder( tables.get( 0 ) )
             .withTableName( TABLE_PREFIX + program.getUid().toLowerCase() )
             .withTableType( AnalyticsTableType.EVENT )
-            .withColumnSize( 51 )
+            .withColumnSize( 59 )
             .addColumns( periodColumns )
             .addColumn( d1.getUid(), TEXT, toAlias( aliasD1, d1.getUid() ) ) // ValueType.TEXT
             .addColumn( d2.getUid(), DOUBLE, toAlias( aliasD2, d2.getUid() ) ) // ValueType.PERCENTAGE
@@ -374,7 +375,7 @@ class JdbcEventAnalyticsTableManagerTest
         new AnalyticsTableAsserter.Builder( tables.get( 0 ) )
             .withTableName( TABLE_PREFIX + program.getUid().toLowerCase() )
             .withTableType( AnalyticsTableType.EVENT )
-            .withColumnSize( 46 ).addColumns( periodColumns )
+            .withColumnSize( 54 ).addColumns( periodColumns )
             .addColumn( d1.getUid(), TEXT, toAlias( aliasD1, d1.getUid() ) ) // ValueType.TEXT
             .addColumn( tea1.getUid(), TEXT, String.format( aliasTea1, "ou.uid", tea1.getId(), tea1.getUid() ) )
             // Second Geometry column created from the OU column above
@@ -468,7 +469,11 @@ class JdbcEventAnalyticsTableManagerTest
         when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( Collections.singletonList( programA ) );
         when( organisationUnitService.getFilledOrganisationUnitLevels() ).thenReturn( ouLevels );
         when( jdbcTemplate.queryForList(
-            "select distinct(extract(year from psi.executiondate)) from programstageinstance psi inner join programinstance pi on psi.programinstanceid = pi.programinstanceid where psi.lastupdated <= '2019-08-01T00:00:00' and pi.programid = 0 and psi.executiondate is not null and psi.executiondate > '1000-01-01' and psi.deleted is false ",
+            "select temp.supportedyear from (select distinct extract(year from psi.executiondate) as supportedyear "
+                + "from programstageinstance psi inner join programinstance pi on psi.programinstanceid = pi.programinstanceid "
+                + "where psi.lastupdated <= '2019-08-01T00:00:00' and pi.programid = 0 and psi.executiondate is not null "
+                + "and psi.executiondate > '1000-01-01' and psi.deleted is false ) "
+                + "as temp where temp.supportedyear >= 1975 and temp.supportedyear <= " + NEWEST_YEAR_PERIOD_SUPPORTED,
             Integer.class ) ).thenReturn( Lists.newArrayList( 2018, 2019 ) );
 
         AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withStartTime( START_TIME ).build();
@@ -600,7 +605,11 @@ class JdbcEventAnalyticsTableManagerTest
         when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( Lists.newArrayList( programA ) );
 
         when( jdbcTemplate.queryForList(
-            "select distinct(extract(year from psi.executiondate)) from programstageinstance psi inner join programinstance pi on psi.programinstanceid = pi.programinstanceid where psi.lastupdated <= '2019-08-01T00:00:00' and pi.programid = 0 and psi.executiondate is not null and psi.executiondate > '1000-01-01' and psi.deleted is false and psi.executiondate >= '2018-01-01'",
+            "select temp.supportedyear from (select distinct extract(year from psi.executiondate) as supportedyear "
+                + "from programstageinstance psi inner join programinstance pi on psi.programinstanceid = pi.programinstanceid "
+                + "where psi.lastupdated <= '2019-08-01T00:00:00' and pi.programid = 0 and psi.executiondate is not null "
+                + "and psi.executiondate > '1000-01-01' and psi.deleted is false and psi.executiondate >= '2018-01-01') "
+                + "as temp where temp.supportedyear >= 1975 and temp.supportedyear <= " + NEWEST_YEAR_PERIOD_SUPPORTED,
             Integer.class ) ).thenReturn( Lists.newArrayList( 2018, 2019 ) );
 
         AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withLastYears( 2 )
@@ -631,7 +640,8 @@ class JdbcEventAnalyticsTableManagerTest
 
     private String getYearQueryForCurrentYear( Program program, boolean withExecutionDate )
     {
-        String sql = "select distinct(extract(year from psi.executiondate)) from programstageinstance psi inner join "
+        String sql = "select temp.supportedyear from (select distinct extract(year from psi.executiondate) as supportedyear "
+            + "from programstageinstance psi inner join "
             + "programinstance pi on psi.programinstanceid = pi.programinstanceid where psi.lastupdated <= '"
             + "2019-08-01T00:00:00' and pi.programid = " + program.getId()
             + " and psi.executiondate is not null and psi.executiondate > '1000-01-01' and psi.deleted is false ";
@@ -640,6 +650,8 @@ class JdbcEventAnalyticsTableManagerTest
         {
             sql += "and psi.executiondate >= '2018-01-01'";
         }
+
+        sql += ") as temp where temp.supportedyear >= 1975 and temp.supportedyear <= " + NEWEST_YEAR_PERIOD_SUPPORTED;
 
         return sql;
     }

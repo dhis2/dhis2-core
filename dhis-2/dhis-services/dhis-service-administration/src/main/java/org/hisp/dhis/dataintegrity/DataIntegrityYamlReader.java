@@ -147,8 +147,7 @@ class DataIntegrityYamlReader
             .replaceAll( "select '[^']+' as [^,]+,", "select " )
             .replaceAll( "'[^']+' as description", "" )
             .replace( "::varchar", "" )
-            .replace( "|| '%'", "" )
-            .replaceAll( " as [^,]+,", "," ) );
+            .replace( "|| '%'", "" ) );
     }
 
 }

@@ -137,7 +137,7 @@ public class AggregateDataSetSMSListener
             throw new SMSProcessingException( SmsResponse.OU_NOTIN_DATASET.set( ouid, dsid ) );
         }
 
-        if ( dataSetService.isLocked( null, dataSet, period, orgUnit, aoc, null ) )
+        if ( !dataSetService.getLockStatus( null, dataSet, period, orgUnit, aoc, null ).isOpen() )
         {
             throw new SMSProcessingException( SmsResponse.DATASET_LOCKED.set( dsid, per ) );
         }

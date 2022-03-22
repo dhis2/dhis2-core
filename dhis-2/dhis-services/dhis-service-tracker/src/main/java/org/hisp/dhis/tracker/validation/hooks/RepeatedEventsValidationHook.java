@@ -37,9 +37,9 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
-import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
 
 /**
@@ -53,16 +53,14 @@ public class RepeatedEventsValidationHook
     extends AbstractTrackerDtoValidationHook
 {
     @Override
-    public void validate( ValidationErrorReporter reporter, TrackerImportValidationContext context )
+    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle )
     {
-        TrackerBundle bundle = context.getBundle();
-
         Map<Pair<String, String>, List<Event>> eventsByEnrollmentAndNotRepeatableProgramStage = bundle.getEvents()
             .stream()
             .filter( e -> !reporter.isInvalid( e ) )
-            .filter( e -> !context.getStrategy( e ).isDelete() )
+            .filter( e -> !bundle.getStrategy( e ).isDelete() )
             .filter( e -> {
-                ProgramStage programStage = context.getProgramStage( e.getProgramStage() );
+                ProgramStage programStage = bundle.getPreheat().getProgramStage( e.getProgramStage() );
                 return programStage.getProgram().isRegistration() && !programStage.getRepeatable();
             } )
             .collect( Collectors.groupingBy( e -> Pair.of( e.getProgramStage(), e.getEnrollment() ) ) );
@@ -80,20 +78,20 @@ public class RepeatedEventsValidationHook
         }
 
         bundle.getEvents()
-            .forEach( e -> validateNotMultipleEvents( reporter, context, e ) );
+            .forEach( e -> validateNotMultipleEvents( reporter, bundle, e ) );
     }
 
-    private void validateNotMultipleEvents( ValidationErrorReporter reporter,
-        TrackerImportValidationContext context, Event event )
+    private void validateNotMultipleEvents( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
     {
-        ProgramInstance programInstance = context.getProgramInstance( event.getEnrollment() );
-        ProgramStage programStage = context.getProgramStage( event.getProgramStage() );
+        ProgramInstance programInstance = bundle.getProgramInstance( event.getEnrollment() );
+        ProgramStage programStage = bundle.getPreheat().getProgramStage( event.getProgramStage() );
 
-        TrackerImportStrategy strategy = context.getStrategy( event );
+        TrackerImportStrategy strategy = bundle.getStrategy( event );
 
         if ( strategy == TrackerImportStrategy.CREATE && programStage != null && programInstance != null
             && !programStage.getRepeatable()
-            && context.programStageHasEvents( programStage.getUid(), programInstance.getUid() ) )
+            && programStageHasEvents( bundle.getPreheat(), programStage.getUid(),
+                programInstance.getUid() ) )
         {
             reporter.addError( event, TrackerErrorCode.E1039, event.getProgramStage() );
         }
@@ -104,4 +102,10 @@ public class RepeatedEventsValidationHook
     {
         return true;
     }
+
+    private boolean programStageHasEvents( TrackerPreheat preheat, String programStageUid, String enrollmentUid )
+    {
+        return preheat.getProgramStageWithEvents().contains( Pair.of( programStageUid, enrollmentUid ) );
+    }
+
 }

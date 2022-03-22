@@ -100,6 +100,7 @@ class AtomicModeIntegrationTest extends TransactionalIntegrationTest
         assertFalse( validationReport.hasErrorReports() );
         objectBundleService.commit( bundle );
         userA = userService.getUser( "M5zQapPyTZI" );
+        injectSecurityContext( userA );
     }
 
     @Test

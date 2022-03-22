@@ -30,7 +30,7 @@ package org.hisp.dhis.webapi.controller.user;
 import static org.hisp.dhis.dataapproval.DataApproval.AUTH_ACCEPT_LOWER_LEVELS;
 import static org.hisp.dhis.dataapproval.DataApproval.AUTH_APPROVE;
 import static org.hisp.dhis.dataapproval.DataApproval.AUTH_APPROVE_LOWER_LEVELS;
-import static org.hisp.dhis.user.UserAuthorityGroup.AUTHORITY_ALL;
+import static org.hisp.dhis.user.UserRole.AUTHORITY_ALL;
 
 import java.util.Comparator;
 import java.util.Set;
@@ -123,7 +123,7 @@ public class UserControllerUtils
      */
     private CollectionNode getWorkflowLevelNodes( User user, DataApprovalWorkflow workflow )
     {
-        Set<String> authorities = user.getUserCredentials().getAllAuthorities();
+        Set<String> authorities = user.getAllAuthorities();
 
         boolean canApprove = authorities.contains( AUTHORITY_ALL ) || authorities.contains( AUTH_APPROVE );
         boolean canApproveLowerLevels = authorities.contains( AUTHORITY_ALL )

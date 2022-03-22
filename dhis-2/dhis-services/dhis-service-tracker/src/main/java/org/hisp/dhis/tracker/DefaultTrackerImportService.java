@@ -60,6 +60,7 @@ import org.hisp.dhis.tracker.report.TrackerTimingsStats;
 import org.hisp.dhis.tracker.report.TrackerTypeReport;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.validation.TrackerValidationService;
+import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
 
 import com.google.common.collect.ImmutableMap;
@@ -91,7 +92,8 @@ public class DefaultTrackerImportService
     @Override
     public TrackerImportReport importTracker( TrackerImportParams params )
     {
-        params.setUser( trackerUserService.getUser( params.getUserId() ) );
+        User user = trackerUserService.getUser( params.getUserId() );
+        params.setUser( user );
 
         TrackerTimingsStats opsTimer = new TrackerTimingsStats();
 

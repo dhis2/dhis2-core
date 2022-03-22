@@ -81,8 +81,6 @@
           "id": "inVD5SdytkT"
         }
       ],
-      "userCredentials": {
-        "id": "mcHDMwMMdPZ",
         "user": {
           "id": "enHApD3I6Ho"
         },
@@ -90,11 +88,7 @@
         "selfRegistered": false,
         "catDimensionConstraints": [ ],
         "lastLogin": "2016-03-12T06:21:02.226+0000",
-        "created": "2016-03-12T06:21:02.329+0000",
         "passwordLastUpdated": "2016-03-12T06:21:02.226+0000",
-        "userInfo": {
-          "id": "MwhEJUnTHkn"
-        },
         "userRoles": [
           {
             "id": "tHEWGwIMsJk"
@@ -103,8 +97,7 @@
         "username": "admin",
         "invitation": false,
         "disabled": false,
-        "externalAuth": false
-      },
+        "externalAuth": false,
       "teiSearchOrganisationUnits": [ ],
       "id": "MwhEJUnTHkn",
       "attributeValues": [ ]
@@ -127,8 +120,6 @@
           "id": "inVD5SdytkT"
         }
       ],
-      "userCredentials": {
-        "id": "Tp9lYEAOEg0",
         "username": "admin",
         "userRoles": [
           {
@@ -145,12 +136,7 @@
         "selfRegistered": false,
         "catDimensionConstraints": [ ],
         "lastLogin": "2016-03-12T06:20:43.407+0000",
-        "created": "2016-03-12T06:20:43.508+0000",
-        "userInfo": {
-          "id": "sPWjoHSY03y"
-        },
-        "passwordLastUpdated": "2016-03-12T06:20:43.407+0000"
-      },
+        "passwordLastUpdated": "2016-03-12T06:20:43.407+0000",
       "teiSearchOrganisationUnits": [ ]
     }
   ]

@@ -57,6 +57,7 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.PerformanceMetrics;
+import org.hisp.dhis.common.Reference;
 import org.hisp.dhis.common.adapter.JacksonRowDataSerializer;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.system.util.MathUtils;
@@ -120,6 +121,8 @@ public class ListGrid
      */
     private List<List<Object>> grid;
 
+    private List<Reference> refs;
+
     /**
      * Indicating the current row in the grid for writing data.
      */
@@ -135,6 +138,8 @@ public class ListGrid
      * the grid.
      */
     private Map<String, Integer> columnIndexMap = new HashMap<>();
+
+    private boolean lastDataRow;
 
     /**
      * Default constructor.
@@ -477,6 +482,13 @@ public class ListGrid
     public List<List<Object>> getRows()
     {
         return grid;
+    }
+
+    @Override
+    @JsonProperty
+    public List<Reference> getRefs()
+    {
+        return refs;
     }
 
     @Override
@@ -1122,6 +1134,19 @@ public class ListGrid
     }
 
     @Override
+    public Grid addReference( Reference reference )
+    {
+        if ( refs == null )
+        {
+            refs = new ArrayList<>();
+        }
+
+        refs.add( reference );
+
+        return this;
+    }
+
+    @Override
     public Grid addRows( SqlRowSet rs )
     {
         return addRows( rs, -1 );
@@ -1218,6 +1243,18 @@ public class ListGrid
             columns.clear();
             columns.addAll( orderedColumns );
         }
+    }
+
+    @Override
+    public boolean hasLastDataRow()
+    {
+        return lastDataRow;
+    }
+
+    @Override
+    public void setLastDataRow( boolean lastDataRow )
+    {
+        this.lastDataRow = lastDataRow;
     }
 
     /**

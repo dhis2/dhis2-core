@@ -70,7 +70,7 @@ public class GridHeader
 
     private String programStage;
 
-    private Integer stageOffset;
+    private transient RepeatableStageParams repeatableStageParams;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -159,14 +159,14 @@ public class GridHeader
      * @param optionSet option set.
      * @param legendSet legend set.
      * @param programStage program stage.
-     * @param stageOffset offset for repeatable program stage.
+     * @param repeatableStageParams params for repeatable program stage.
      */
     public GridHeader( String name, String column, ValueType valueType, boolean hidden, boolean meta,
-        OptionSet optionSet, LegendSet legendSet, String programStage, Integer stageOffset )
+        OptionSet optionSet, LegendSet legendSet, String programStage, RepeatableStageParams repeatableStageParams )
     {
         this( name, column, valueType, hidden, meta, optionSet, legendSet );
         this.programStage = programStage;
-        this.stageOffset = stageOffset;
+        this.repeatableStageParams = repeatableStageParams;
     }
 
     // -------------------------------------------------------------------------
@@ -264,9 +264,20 @@ public class GridHeader
     }
 
     @JsonProperty
+    public String getRepeatableStageParams()
+    {
+        return repeatableStageParams != null ? repeatableStageParams.toString() : null;
+    }
+
+    @JsonProperty
     public Integer getStageOffset()
     {
-        return stageOffset;
+        if ( repeatableStageParams == null )
+        {
+            return null;
+        }
+
+        return repeatableStageParams.getStartIndex();
     }
 
     // -------------------------------------------------------------------------

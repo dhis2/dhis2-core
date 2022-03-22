@@ -42,7 +42,7 @@ import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -250,9 +250,9 @@ public class TrackedEntityInstanceQueryParams
     private int maxTeiLimit;
 
     /**
-     * Indicates whether to include soft-deleted elements
+     * Indicates whether to include soft-deleted elements. Default to false
      */
-    private boolean includeDeleted;
+    private boolean includeDeleted = false;
 
     /**
      * Indicates whether to include all TEI attributes

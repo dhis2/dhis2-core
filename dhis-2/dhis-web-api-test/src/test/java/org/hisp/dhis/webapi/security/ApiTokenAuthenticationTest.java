@@ -38,7 +38,6 @@ import org.hisp.dhis.security.apikey.ApiTokenService;
 import org.hisp.dhis.security.apikey.ApiTokenStore;
 import org.hisp.dhis.security.apikey.ApiTokenType;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.webapi.DhisControllerWithApiTokenAuthTest;
 import org.hisp.dhis.webapi.json.domain.JsonUser;
 import org.hisp.dhis.webapi.security.config.DhisWebApiWebSecurityConfig;
@@ -191,9 +190,9 @@ class ApiTokenAuthenticationTest extends DhisControllerWithApiTokenAuthTest
     {
         final TokenAndKey tokenAndKey = createNewToken();
         final String key = tokenAndKey.key;
-        UserCredentials userCredentials = adminUser.getUserCredentials();
-        userCredentials.setDisabled( true );
-        userService.updateUserCredentials( userCredentials );
+        User user = adminUser;
+        user.setDisabled( true );
+        userService.updateUser( user );
         assertEquals( "The API token is disabled, locked or 2FA is enabled.",
             GET( URI, ApiTokenHeader( key ) ).error( HttpStatus.UNAUTHORIZED ).getMessage() );
     }

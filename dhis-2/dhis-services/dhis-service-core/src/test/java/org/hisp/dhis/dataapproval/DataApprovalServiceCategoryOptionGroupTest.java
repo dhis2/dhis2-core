@@ -32,7 +32,7 @@ import static org.hisp.dhis.dataapproval.DataApproval.AUTH_ACCEPT_LOWER_LEVELS;
 import static org.hisp.dhis.dataapproval.DataApproval.AUTH_APPROVE;
 import static org.hisp.dhis.dataapproval.DataApproval.AUTH_APPROVE_LOWER_LEVELS;
 import static org.hisp.dhis.dataapproval.DataApproval.AUTH_VIEW_UNAPPROVED_DATA;
-import static org.hisp.dhis.user.UserAuthorityGroup.AUTHORITY_ALL;
+import static org.hisp.dhis.user.UserRole.AUTHORITY_ALL;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -71,11 +71,10 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAuthorityGroup;
-import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupAccessService;
 import org.hisp.dhis.user.UserGroupService;
+import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.junit.jupiter.api.Test;
@@ -274,15 +273,13 @@ class DataApprovalServiceCategoryOptionGroupTest extends IntegrationTestBase
         User user = mockCurrentUserService.getCurrentUser();
         user.setFirstName( "Test" );
         user.setSurname( userName );
-        UserCredentials credentials = user.getUserCredentials();
-        credentials.setUsername( userName );
-        for ( UserAuthorityGroup role : credentials.getUserAuthorityGroups() )
+        user.setUsername( userName );
+        for ( UserRole role : user.getUserRoles() )
         {
             // Arbitrary name
             role.setName( CodeGenerator.generateUid() );
-            userService.addUserAuthorityGroup( role );
+            userService.addUserRole( role );
         }
-        userService.addUserCredentials( credentials );
         userService.addUser( user );
         return mockCurrentUserService;
     }
@@ -329,7 +326,7 @@ class DataApprovalServiceCategoryOptionGroupTest extends IntegrationTestBase
 
     private void constrainByMechanism( CurrentUserService user )
     {
-        user.getCurrentUser().getUserCredentials().getCatDimensionConstraints().add( mechanismCategory );
+        user.getCurrentUser().getCatDimensionConstraints().add( mechanismCategory );
     }
 
     // -------------------------------------------------------------------------

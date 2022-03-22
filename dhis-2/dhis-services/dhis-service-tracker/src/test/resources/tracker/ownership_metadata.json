@@ -446,10 +446,6 @@
       "email": "zubair@dhis2.org",
       "firstName": "Zubair",
       "phoneNumber": "+4740332255",
-      "userCredentials": {
-        "lastUpdated": "2020-05-31T08:57:58.894",
-        "id": "NDigmwuGPsn",
-        "created": "2020-05-31T08:57:58.894",
         "name": "Zubair Asghar",
         "displayName": "Zubair Asghar",
         "externalAuth": false,
@@ -461,9 +457,6 @@
         "selfRegistered": false,
         "favorite": false,
         "username": "testuser",
-        "userInfo": {
-          "id": "lPaILkLkgOM"
-        },
         "access": {
           "read": true,
           "update": true,
@@ -483,8 +476,7 @@
             "id": "yrB6vc5Ip3r"
           }
         ],
-        "userAccesses": []
-      },
+        "userAccesses": [],
       "teiSearchOrganisationUnits": [],
       "organisationUnits": [
         {
@@ -505,11 +497,6 @@
       "created": "2020-05-31T08:55:27.984",
       "surname": "admin",
       "firstName": "admin",
-      "userCredentials": {
-        "code": "admin",
-        "lastUpdated": "2020-05-31T08:55:28.230",
-        "id": "KvMx6c1eoYo",
-        "created": "2020-05-31T08:55:28.230",
         "name": "admin admin",
         "lastLogin": "2020-05-31T08:55:38.571",
         "displayName": "admin admin",
@@ -522,9 +509,6 @@
         "selfRegistered": false,
         "favorite": false,
         "username": "admin",
-        "userInfo": {
-          "id": "M5zQapPyTZI"
-        },
         "access": {
           "read": true,
           "update": true,
@@ -544,8 +528,7 @@
             "id": "yrB6vc5Ip3r"
           }
         ],
-        "userAccesses": []
-      },
+        "userAccesses": [],
       "teiSearchOrganisationUnits": [],
       "organisationUnits": [
         {
@@ -563,10 +546,6 @@
       "email": "user2@dhis2.org",
       "firstName": "level2",
       "phoneNumber": "+474444444",
-      "userCredentials": {
-        "lastUpdated": "2020-05-31T08:57:58.894",
-        "id": "UN7sDmyv94f",
-        "created": "2020-05-31T08:57:58.894",
         "name": "Level2User",
         "displayName": "UserLevel2",
         "externalAuth": false,
@@ -578,9 +557,6 @@
         "selfRegistered": false,
         "favorite": false,
         "username": "level2user",
-        "userInfo": {
-          "id": "Tu9fv8ezgHl"
-        },
         "access": {
           "read": true,
           "update": true,
@@ -600,8 +576,7 @@
             "id": "vymzhFICg4H"
           }
         ],
-        "userAccesses": []
-      },
+        "userAccesses": [],
       "teiSearchOrganisationUnits": [
         {
           "id": "uoNW0E3xXUy"

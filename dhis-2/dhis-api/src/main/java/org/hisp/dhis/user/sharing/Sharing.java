@@ -42,7 +42,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import org.apache.commons.collections.MapUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.user.User;
 
@@ -62,7 +62,7 @@ public class Sharing
     private static final long serialVersionUID = 6977793211734844477L;
 
     /**
-     * Uid of the User who owns the object
+     * UID of the user who owns the object.
      */
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
@@ -77,7 +77,7 @@ public class Sharing
     private boolean external;
 
     /**
-     * Map of UserAccess. Key is User uid
+     * Map of user access. Key is user UID.
      */
     @Setter
     @JsonProperty
@@ -85,7 +85,7 @@ public class Sharing
     private Map<String, UserAccess> users = new HashMap<>();
 
     /**
-     * Map of UserGroupAccess. Key is UserGroup uid
+     * Map of user group access. Key is user group UID.
      */
     @Setter
     @JsonProperty

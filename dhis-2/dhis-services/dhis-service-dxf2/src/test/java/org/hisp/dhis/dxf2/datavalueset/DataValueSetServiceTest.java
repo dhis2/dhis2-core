@@ -813,6 +813,8 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
     void testImportDataValuesInvalidAttributeOptionComboDates()
         throws Exception
     {
+        clearSecurityContext();
+
         categoryOptionA.setStartDate( peB.getStartDate() );
         categoryOptionA.setEndDate( peB.getEndDate() );
         categoryService.updateCategoryOption( categoryOptionA );
@@ -834,6 +836,8 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
     void testImportDataValuesInvalidAttributeOptionComboOrgUnit()
         throws Exception
     {
+        clearSecurityContext();
+
         categoryOptionA.setOrganisationUnits( Sets.newHashSet( ouA, ouB ) );
         categoryService.updateCategoryOption( categoryOptionA );
         in = new ClassPathResource( "datavalueset/dataValueSetH.xml" ).getInputStream();
@@ -934,8 +938,9 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
 
     @Test
     void testImportDataValuesWithDataSetAllowsPeriods()
-        throws Exception
     {
+        clearSecurityContext();
+
         Date thisMonth = DateUtils.truncate( new Date(), Calendar.MONTH );
         dsA.setExpiryDays( 62 );
         dsA.setOpenFuturePeriods( 2 );
@@ -981,8 +986,10 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
     void testImportValueDataSetWriteFail()
         throws IOException
     {
-        enableDataSharing( user, dsA, AccessStringHelper.READ );
-        dataSetService.updateDataSet( dsB );
+        clearSecurityContext();
+        enableDataSharing( user, dsA, AccessStringHelper.DATA_READ );
+        dataSetService.updateDataSet( dsA );
+        injectSecurityContext( user );
         in = new ClassPathResource( "datavalueset/dataValueSetA.xml" ).getInputStream();
         ImportSummary summary = dataValueSetService.importDataValueSetXml( in );
         assertNotNull( summary );
@@ -1000,6 +1007,8 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
     void testImportValueDefaultCatComboOk()
         throws IOException
     {
+        clearSecurityContext();
+
         enableDataSharing( user, dsA, AccessStringHelper.DATA_READ_WRITE );
         dataSetService.updateDataSet( dsA );
         in = new ClassPathResource( "datavalueset/dataValueSetA.xml" ).getInputStream();

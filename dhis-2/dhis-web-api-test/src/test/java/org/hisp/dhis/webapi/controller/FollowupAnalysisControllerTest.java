@@ -79,9 +79,9 @@ class FollowupAnalysisControllerTest extends AbstractDataValueControllerTest
         assertEquals( "Monthly", value.getPeType() );
         assertEquals( LocalDate.of( 2021, 03, 01 ).atStartOfDay(), value.getPeStartDate() );
         assertEquals( LocalDate.of( 2021, 03, 31 ).atStartOfDay(), value.getPeEndDate() );
-        assertEquals( categoryOptionId, value.getCoc() );
+        assertEquals( categoryOptionComboId, value.getCoc() );
         assertEquals( "default", value.getCocName() );
-        assertEquals( categoryOptionId, value.getAoc() );
+        assertEquals( categoryOptionComboId, value.getAoc() );
         assertEquals( "default", value.getAocName() );
         assertEquals( "5", value.getValue() );
         assertEquals( "admin", value.getStoredBy() );

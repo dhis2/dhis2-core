@@ -142,6 +142,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
         dbmsManager.clearSession();
         cacheManager.clearCache();
+
         bundle.setObjectBundleStatus( ObjectBundleStatus.COMMITTED );
 
         return commitReport;
@@ -230,7 +231,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
                 if ( object instanceof User )
                 {
-                    ((User) object).getUserCredentials().setCreatedBy( bundle.getOverrideUser() );
+                    (object).setCreatedBy( bundle.getOverrideUser() );
                 }
             }
 
@@ -311,7 +312,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
                 if ( object instanceof User )
                 {
-                    ((User) object).getUserCredentials().setCreatedBy( bundle.getOverrideUser() );
+                    (object).setCreatedBy( bundle.getOverrideUser() );
                 }
             }
 

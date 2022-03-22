@@ -52,11 +52,10 @@ import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
-import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAuthorityGroup;
-import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.user.UserRole;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -82,7 +81,9 @@ class EventDateValidationHookTest extends DhisConvenienceTest
     private EventDateValidationHook hookToTest;
 
     @Mock
-    private TrackerImportValidationContext validationContext;
+    private TrackerPreheat preheat;
+
+    private TrackerBundle bundle;
 
     @BeforeEach
     public void setUp()
@@ -91,14 +92,14 @@ class EventDateValidationHookTest extends DhisConvenienceTest
 
         User user = createUser( 'A' );
 
-        TrackerBundle bundle = TrackerBundle.builder().user( user ).build();
+        bundle = TrackerBundle.builder()
+            .user( user )
+            .preheat( preheat )
+            .build();
 
-        when( validationContext.getBundle() ).thenReturn( bundle );
-
-        when( validationContext.getProgram( PROGRAM_WITH_REGISTRATION_ID ) )
+        when( preheat.getProgram( PROGRAM_WITH_REGISTRATION_ID ) )
             .thenReturn( getProgramWithRegistration() );
-
-        when( validationContext.getProgram( PROGRAM_WITHOUT_REGISTRATION_ID ) )
+        when( preheat.getProgram( PROGRAM_WITHOUT_REGISTRATION_ID ) )
             .thenReturn( getProgramWithoutRegistration() );
     }
 
@@ -111,11 +112,11 @@ class EventDateValidationHookTest extends DhisConvenienceTest
         event.setOccurredAt( now() );
         event.setStatus( EventStatus.ACTIVE );
 
-        TrackerBundle bundle = TrackerBundle.builder().user( getEditExpiredUser() ).build();
-
-        when( validationContext.getBundle() ).thenReturn( bundle );
-
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
+        TrackerBundle bundle = TrackerBundle.builder()
+            .user( getEditExpiredUser() )
+            .preheat( preheat )
+            .build();
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         // when
         this.hookToTest.validateEvent( reporter, event );
@@ -132,7 +133,7 @@ class EventDateValidationHookTest extends DhisConvenienceTest
         event.setEvent( CodeGenerator.generateUid() );
         event.setProgram( PROGRAM_WITHOUT_REGISTRATION_ID );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         // when
         this.hookToTest.validateEvent( reporter, event );
@@ -150,7 +151,7 @@ class EventDateValidationHookTest extends DhisConvenienceTest
         event.setProgram( PROGRAM_WITH_REGISTRATION_ID );
         event.setStatus( EventStatus.ACTIVE );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         // when
         this.hookToTest.validateEvent( reporter, event );
@@ -168,7 +169,7 @@ class EventDateValidationHookTest extends DhisConvenienceTest
         event.setProgram( PROGRAM_WITH_REGISTRATION_ID );
         event.setStatus( EventStatus.COMPLETED );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         // when
         this.hookToTest.validateEvent( reporter, event );
@@ -187,7 +188,7 @@ class EventDateValidationHookTest extends DhisConvenienceTest
         event.setOccurredAt( Instant.now() );
         event.setStatus( EventStatus.SCHEDULE );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         // when
         this.hookToTest.validateEvent( reporter, event );
@@ -206,7 +207,7 @@ class EventDateValidationHookTest extends DhisConvenienceTest
         event.setOccurredAt( now() );
         event.setStatus( EventStatus.COMPLETED );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         // when
         this.hookToTest.validateEvent( reporter, event );
@@ -226,7 +227,7 @@ class EventDateValidationHookTest extends DhisConvenienceTest
         event.setCompletedAt( sevenDaysAgo() );
         event.setStatus( EventStatus.COMPLETED );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         // when
         this.hookToTest.validateEvent( reporter, event );
@@ -246,7 +247,7 @@ class EventDateValidationHookTest extends DhisConvenienceTest
         event.setScheduledAt( null );
         event.setStatus( EventStatus.SKIPPED );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         // when
         this.hookToTest.validateEvent( reporter, event );
@@ -265,7 +266,7 @@ class EventDateValidationHookTest extends DhisConvenienceTest
         event.setOccurredAt( sevenDaysAgo() );
         event.setStatus( EventStatus.ACTIVE );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         // when
         this.hookToTest.validateEvent( reporter, event );
@@ -296,12 +297,10 @@ class EventDateValidationHookTest extends DhisConvenienceTest
     private User getEditExpiredUser()
     {
         User user = createUser( 'A' );
-        UserCredentials userCredentials = createUserCredentials( 'A', user );
-        UserAuthorityGroup userAuthorityGroup = createUserAuthorityGroup( 'A' );
-        userAuthorityGroup.setAuthorities( Sets.newHashSet( Authorities.F_EDIT_EXPIRED.getAuthority() ) );
+        UserRole userRole = createUserRole( 'A' );
+        userRole.setAuthorities( Sets.newHashSet( Authorities.F_EDIT_EXPIRED.getAuthority() ) );
 
-        userCredentials.setUserAuthorityGroups( Sets.newHashSet( userAuthorityGroup ) );
-        user.setUserCredentials( userCredentials );
+        user.setUserRoles( Sets.newHashSet( userRole ) );
 
         return user;
     }

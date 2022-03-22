@@ -45,6 +45,7 @@ import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.eventvisualization.EventVisualizationStore;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.statistics.StatisticsProvider;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserInvitationStatus;
@@ -123,8 +124,7 @@ public class DefaultDataStatisticsService
         return dataStatisticsStore.getSnapshotsInInterval( eventInterval, startDate, endDate );
     }
 
-    @Override
-    public DataStatistics getDataStatisticsSnapshot( Date day )
+    private DataStatistics getDataStatisticsSnapshot( Date day, JobProgress progress )
     {
         Calendar cal = Calendar.getInstance();
         cal.setTime( day );
@@ -134,21 +134,44 @@ public class DefaultDataStatisticsService
         long diff = now.getTime() - startDate.getTime();
         int days = (int) TimeUnit.DAYS.convert( diff, TimeUnit.MILLISECONDS );
 
-        double savedMaps = idObjectManager.getCountByCreated( org.hisp.dhis.mapping.Map.class, startDate );
-        double savedVisualizations = idObjectManager.getCountByCreated( Visualization.class, startDate );
-        double savedEventReports = eventVisualizationStore.countReportsCreated( startDate );
-        double savedEventCharts = eventVisualizationStore.countChartsCreated( startDate );
-        double savedEventVisualizations = idObjectManager.getCountByCreated( EventVisualization.class, startDate );
-        double savedDashboards = idObjectManager.getCountByCreated( Dashboard.class, startDate );
-        double savedIndicators = idObjectManager.getCountByCreated( Indicator.class, startDate );
-        double savedDataValues = dataValueService.getDataValueCount( days );
-        int activeUsers = userService.getActiveUsersCount( 1 );
-        int users = idObjectManager.getCount( User.class );
+        // when counting fails we use null so the count does not appear in the
+        // stats
+        Integer errorValue = null;
+        progress.startingStage( "Counting maps" );
+        Integer savedMaps = progress.runStage( errorValue,
+            () -> idObjectManager.getCountByCreated( org.hisp.dhis.mapping.Map.class, startDate ) );
+        progress.startingStage( "Counting visualisations" );
+        Integer savedVisualizations = progress.runStage( errorValue,
+            () -> idObjectManager.getCountByCreated( Visualization.class, startDate ) );
+        progress.startingStage( "Counting event reports" );
+        Integer savedEventReports = progress.runStage( errorValue,
+            () -> eventVisualizationStore.countReportsCreated( startDate ) );
+        progress.startingStage( "Counting event charts" );
+        Integer savedEventCharts = progress.runStage( errorValue,
+            () -> eventVisualizationStore.countChartsCreated( startDate ) );
+        progress.startingStage( "Counting event visualisations" );
+        Integer savedEventVisualizations = progress.runStage( errorValue,
+            () -> idObjectManager.getCountByCreated( EventVisualization.class, startDate ) );
+        progress.startingStage( "Counting dashboards" );
+        Integer savedDashboards = progress.runStage( errorValue,
+            () -> idObjectManager.getCountByCreated( Dashboard.class, startDate ) );
+        progress.startingStage( "Counting indicators" );
+        Integer savedIndicators = progress.runStage( errorValue,
+            () -> idObjectManager.getCountByCreated( Indicator.class, startDate ) );
+        progress.startingStage( "Counting data values" );
+        Integer savedDataValues = progress.runStage( errorValue,
+            () -> dataValueService.getDataValueCount( days ) );
+        progress.startingStage( "Counting active users" );
+        Integer activeUsers = progress.runStage( errorValue,
+            () -> userService.getActiveUsersCount( 1 ) );
+        progress.startingStage( "Counting users" );
+        Integer users = progress.runStage( errorValue,
+            () -> idObjectManager.getCount( User.class ) );
+        progress.startingStage( "Counting views" );
+        Map<DataStatisticsEventType, Double> eventCountMap = progress.runStage( Map.of(),
+            () -> dataStatisticsEventStore.getDataStatisticsEventCount( startDate, day ) );
 
-        Map<DataStatisticsEventType, Double> eventCountMap = dataStatisticsEventStore
-            .getDataStatisticsEventCount( startDate, day );
-
-        DataStatistics dataStatistics = new DataStatistics(
+        return new DataStatistics(
             eventCountMap.get( DataStatisticsEventType.MAP_VIEW ),
             eventCountMap.get( DataStatisticsEventType.VISUALIZATION_VIEW ),
             eventCountMap.get( DataStatisticsEventType.EVENT_REPORT_VIEW ),
@@ -158,10 +181,14 @@ public class DefaultDataStatisticsService
             eventCountMap.get( DataStatisticsEventType.PASSIVE_DASHBOARD_VIEW ),
             eventCountMap.get( DataStatisticsEventType.DATA_SET_REPORT_VIEW ),
             eventCountMap.get( DataStatisticsEventType.TOTAL_VIEW ),
-            savedMaps, savedVisualizations, savedEventReports, savedEventCharts, savedEventVisualizations,
-            savedDashboards, savedIndicators, savedDataValues, activeUsers, users );
+            asDouble( savedMaps ), asDouble( savedVisualizations ), asDouble( savedEventReports ),
+            asDouble( savedEventCharts ), asDouble( savedEventVisualizations ), asDouble( savedDashboards ),
+            asDouble( savedIndicators ), asDouble( savedDataValues ), activeUsers, users );
+    }
 
-        return dataStatistics;
+    private Double asDouble( Integer count )
+    {
+        return count == null ? null : count.doubleValue();
     }
 
     @Override
@@ -173,9 +200,9 @@ public class DefaultDataStatisticsService
     }
 
     @Override
-    public long saveDataStatisticsSnapshot()
+    public long saveDataStatisticsSnapshot( JobProgress progress )
     {
-        return saveDataStatistics( getDataStatisticsSnapshot( new Date() ) );
+        return saveDataStatistics( getDataStatisticsSnapshot( new Date(), progress ) );
     }
 
     @Override

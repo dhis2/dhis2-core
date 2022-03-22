@@ -27,8 +27,11 @@
  */
 package org.hisp.dhis.common;
 
+import static org.hisp.dhis.common.DimensionalObject.QUERY_MODS_ID_SEPARATOR;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.legend.LegendSet;
@@ -60,10 +63,9 @@ public class BaseDimensionalItemObject
     protected AggregationType aggregationType;
 
     /**
-     * A value representing a period offset that can be applied to Dimensional
-     * Item Object within a Indicator formula
+     * Query modifiers for this object.
      */
-    protected transient int periodOffset = 0;
+    protected transient QueryModifiers queryMods;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -78,6 +80,29 @@ public class BaseDimensionalItemObject
         this.uid = dimensionItem;
         this.code = dimensionItem;
         this.name = dimensionItem;
+    }
+
+    // -------------------------------------------------------------------------
+    // Logic
+    // -------------------------------------------------------------------------
+
+    @Override
+    public String getDimensionItemWithQueryModsId()
+    {
+        return getDimensionItem()
+            + ((queryMods != null && queryMods.getQueryModsId() != null)
+                ? QUERY_MODS_ID_SEPARATOR + queryMods.getQueryModsId()
+                : "");
+    }
+
+    @Override
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public AggregationType getAggregationType()
+    {
+        return (queryMods != null && queryMods.getAggregationType() != null)
+            ? queryMods.getAggregationType()
+            : aggregationType;
     }
 
     // -------------------------------------------------------------------------
@@ -120,6 +145,11 @@ public class BaseDimensionalItemObject
     // Get and set methods
     // -------------------------------------------------------------------------
 
+    public void setAggregationType( AggregationType aggregationType )
+    {
+        this.aggregationType = aggregationType;
+    }
+
     @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
@@ -158,27 +188,15 @@ public class BaseDimensionalItemObject
     @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public AggregationType getAggregationType()
+    public QueryModifiers getQueryMods()
     {
-        return aggregationType;
-    }
-
-    public void setAggregationType( AggregationType aggregationType )
-    {
-        this.aggregationType = aggregationType;
+        return queryMods;
     }
 
     @Override
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public int getPeriodOffset()
+    public void setQueryMods( QueryModifiers queryMods )
     {
-        return periodOffset;
-    }
-
-    public void setPeriodOffset( int periodOffset )
-    {
-        this.periodOffset = periodOffset;
+        this.queryMods = queryMods;
     }
 
     @Override
@@ -191,14 +209,14 @@ public class BaseDimensionalItemObject
 
         final BaseDimensionalItemObject that = (BaseDimensionalItemObject) o;
 
-        return periodOffset == that.periodOffset;
+        return Objects.equals( this.queryMods, that.queryMods );
     }
 
     @Override
     public int hashCode()
     {
         int result = super.hashCode();
-        result = 31 * result + periodOffset;
+        result = 31 * result + (queryMods != null ? queryMods.hashCode() : 0);
         return result;
     }
 }

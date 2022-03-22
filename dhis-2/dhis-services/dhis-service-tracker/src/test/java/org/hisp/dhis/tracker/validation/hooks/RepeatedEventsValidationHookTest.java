@@ -51,21 +51,17 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
-import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 
 import com.google.common.collect.Lists;
 
 /**
  * @author Enrico Colasante
  */
-@MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
 class RepeatedEventsValidationHookTest extends DhisConvenienceTest
 {
@@ -84,8 +80,6 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
 
     private RepeatedEventsValidationHook validatorToTest;
 
-    private TrackerImportValidationContext ctx;
-
     private TrackerBundle bundle;
 
     @Mock
@@ -98,27 +92,19 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
 
         bundle = TrackerBundle.builder().build();
         bundle.setPreheat( preheat );
-        ctx = new TrackerImportValidationContext( bundle );
-
-        when( preheat.get( ProgramStage.class, NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION ) )
-            .thenReturn( notRepeatebleProgramStageWithRegistration() );
-        when( preheat.get( ProgramStage.class, REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION ) )
-            .thenReturn( repeatebleProgramStageWithRegistration() );
-        when( preheat.get( ProgramStage.class, NOT_REPEATABLE_PROGRAM_STAGE_WITHOUT_REGISTRATION ) )
-            .thenReturn( notRepeatebleProgramStageWithoutRegistration() );
-        when( preheat.get( ProgramStage.class, REPEATABLE_PROGRAM_STAGE_WITHOUT_REGISTRATION ) )
-            .thenReturn( repeatebleProgramStageWithoutRegistration() );
     }
 
     @Test
     void testSingleEventIsPassingValidation()
     {
+        when( preheat.getProgramStage( NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION ) )
+            .thenReturn( notRepeatebleProgramStageWithRegistration() );
         List<Event> events = Lists.newArrayList( notRepeatableEvent( "A" ) );
         bundle.setEvents( events );
         events.forEach( e -> bundle.setStrategy( e, TrackerImportStrategy.CREATE_AND_UPDATE ) );
         ValidationErrorReporter errorReporter = ValidationErrorReporter.emptyReporter();
 
-        validatorToTest.validate( errorReporter, ctx );
+        validatorToTest.validate( errorReporter, bundle );
 
         assertTrue( errorReporter.getReportList().isEmpty() );
     }
@@ -126,6 +112,8 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
     @Test
     void testOneEventInNotRepeatableProgramStageAndOneAlreadyOnDBAreNotPassingValidation()
     {
+        when( preheat.getProgramStage( NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION ) )
+            .thenReturn( notRepeatebleProgramStageWithRegistration() );
         // given
         Event event = notRepeatableEvent( "A" );
         ProgramInstance programInstance = new ProgramInstance();
@@ -138,10 +126,9 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
         when( preheat.getProgramStageWithEvents() )
             .thenReturn( Lists.newArrayList( Pair.of( event.getProgramStage(), event.getEnrollment() ) ) );
         bundle.setEvents( Lists.newArrayList( event ) );
-        ValidationErrorReporter errorReporter = new ValidationErrorReporter(
-            new TrackerImportValidationContext( bundle ) );
+        ValidationErrorReporter errorReporter = new ValidationErrorReporter( bundle );
 
-        validatorToTest.validate( errorReporter, ctx );
+        validatorToTest.validate( errorReporter, bundle );
 
         // then
         assertEquals( 1, errorReporter.getReportList().size() );
@@ -156,13 +143,14 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
     @Test
     void testTwoEventInNotRepeatableProgramStageAreNotPassingValidation()
     {
+        when( preheat.getProgramStage( NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION ) )
+            .thenReturn( notRepeatebleProgramStageWithRegistration() );
         List<Event> events = Lists.newArrayList( notRepeatableEvent( "A" ), notRepeatableEvent( "B" ) );
         bundle.setEvents( events );
         events.forEach( e -> bundle.setStrategy( e, TrackerImportStrategy.CREATE_AND_UPDATE ) );
-        ValidationErrorReporter errorReporter = new ValidationErrorReporter(
-            new TrackerImportValidationContext( bundle ) );
+        ValidationErrorReporter errorReporter = new ValidationErrorReporter( bundle );
 
-        validatorToTest.validate( errorReporter, ctx );
+        validatorToTest.validate( errorReporter, bundle );
 
         assertEquals( 2, errorReporter.getReportList().size() );
         assertThat( errorReporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E1039 ) );
@@ -182,12 +170,14 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
     @Test
     void testTwoEventInRepeatableProgramStageArePassingValidation()
     {
+        when( preheat.getProgramStage( REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION ) )
+            .thenReturn( repeatebleProgramStageWithRegistration() );
         List<Event> events = Lists.newArrayList( repeatableEvent( "A" ), repeatableEvent( "B" ) );
         bundle.setEvents( events );
         events.forEach( e -> bundle.setStrategy( e, TrackerImportStrategy.CREATE_AND_UPDATE ) );
         ValidationErrorReporter errorReporter = ValidationErrorReporter.emptyReporter();
 
-        validatorToTest.validate( errorReporter, ctx );
+        validatorToTest.validate( errorReporter, bundle );
 
         assertTrue( errorReporter.getReportList().isEmpty() );
     }
@@ -195,6 +185,8 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
     @Test
     void testTwoEventsInNotRepeatableProgramStageWhenOneIsInvalidArePassingValidation()
     {
+        when( preheat.getProgramStage( NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION ) )
+            .thenReturn( notRepeatebleProgramStageWithRegistration() );
         Event invalidEvent = notRepeatableEvent( "A" );
         List<Event> events = Lists.newArrayList( invalidEvent, notRepeatableEvent( "B" ) );
         bundle.setEvents( events );
@@ -202,7 +194,7 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
         ValidationErrorReporter errorReporter = ValidationErrorReporter.emptyReporter();
         errorReporter.getInvalidDTOs().put( TrackerType.EVENT, Lists.newArrayList( invalidEvent.getUid() ) );
 
-        validatorToTest.validate( errorReporter, ctx );
+        validatorToTest.validate( errorReporter, bundle );
 
         assertTrue( errorReporter.getReportList().isEmpty() );
     }
@@ -210,6 +202,8 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
     @Test
     void testTwoEventsInNotRepeatableProgramStageButInDifferentEnrollmentsArePassingValidation()
     {
+        when( preheat.getProgramStage( NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION ) )
+            .thenReturn( notRepeatebleProgramStageWithRegistration() );
         Event eventEnrollmentA = notRepeatableEvent( "A" );
         Event eventEnrollmentB = notRepeatableEvent( "B" );
         eventEnrollmentB.setEnrollment( ENROLLMENT_B );
@@ -218,7 +212,7 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
         events.forEach( e -> bundle.setStrategy( e, TrackerImportStrategy.CREATE_AND_UPDATE ) );
         ValidationErrorReporter errorReporter = ValidationErrorReporter.emptyReporter();
 
-        validatorToTest.validate( errorReporter, ctx );
+        validatorToTest.validate( errorReporter, bundle );
 
         assertTrue( errorReporter.getReportList().isEmpty() );
     }
@@ -226,6 +220,8 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
     @Test
     void testTwoProgramEventsInSameProgramStageArePassingValidation()
     {
+        when( preheat.getProgramStage( NOT_REPEATABLE_PROGRAM_STAGE_WITHOUT_REGISTRATION ) )
+            .thenReturn( notRepeatebleProgramStageWithoutRegistration() );
         Event eventProgramA = programEvent( "A" );
         Event eventProgramB = programEvent( "B" );
         List<Event> events = Lists.newArrayList( eventProgramA, eventProgramB );
@@ -233,7 +229,7 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
         events.forEach( e -> bundle.setStrategy( e, TrackerImportStrategy.CREATE_AND_UPDATE ) );
         ValidationErrorReporter errorReporter = ValidationErrorReporter.emptyReporter();
 
-        validatorToTest.validate( errorReporter, ctx );
+        validatorToTest.validate( errorReporter, bundle );
 
         assertTrue( errorReporter.getReportList().isEmpty() );
     }

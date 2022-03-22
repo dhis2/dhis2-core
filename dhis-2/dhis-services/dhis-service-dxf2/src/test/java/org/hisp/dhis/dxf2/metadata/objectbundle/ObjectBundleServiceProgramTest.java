@@ -53,7 +53,7 @@ import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAuthorityGroup;
+import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.validation.ValidationRule;
@@ -114,7 +114,7 @@ class ObjectBundleServiceProgramTest extends TransactionalIntegrationTest
         List<DataSet> dataSets = manager.getAll( DataSet.class );
         List<OrganisationUnit> organisationUnits = manager.getAll( OrganisationUnit.class );
         List<DataElement> dataElements = manager.getAll( DataElement.class );
-        List<UserAuthorityGroup> userRoles = manager.getAll( UserAuthorityGroup.class );
+        List<UserRole> userRoles = manager.getAll( UserRole.class );
         List<User> users = manager.getAll( User.class );
         List<ValidationRule> validationRules = manager.getAll( ValidationRule.class );
         List<Program> programs = manager.getAll( Program.class );
@@ -150,7 +150,7 @@ class ObjectBundleServiceProgramTest extends TransactionalIntegrationTest
         List<DataSet> dataSets = manager.getAll( DataSet.class );
         List<OrganisationUnit> organisationUnits = manager.getAll( OrganisationUnit.class );
         List<DataElement> dataElements = manager.getAll( DataElement.class );
-        List<UserAuthorityGroup> userRoles = manager.getAll( UserAuthorityGroup.class );
+        List<UserRole> userRoles = manager.getAll( UserRole.class );
         List<User> users = manager.getAll( User.class );
         List<ValidationRule> validationRules = manager.getAll( ValidationRule.class );
         List<Program> programs = manager.getAll( Program.class );
@@ -189,7 +189,7 @@ class ObjectBundleServiceProgramTest extends TransactionalIntegrationTest
         objectBundleService.commit( bundle );
         List<OrganisationUnit> organisationUnits = manager.getAll( OrganisationUnit.class );
         List<DataElement> dataElements = manager.getAll( DataElement.class );
-        List<UserAuthorityGroup> userRoles = manager.getAll( UserAuthorityGroup.class );
+        List<UserRole> userRoles = manager.getAll( UserRole.class );
         List<User> users = manager.getAll( User.class );
         List<Program> programs = manager.getAll( Program.class );
         List<ProgramStage> programStages = manager.getAll( ProgramStage.class );
@@ -324,6 +324,9 @@ class ObjectBundleServiceProgramTest extends TransactionalIntegrationTest
             "F_PROGRAMSTAGE_ADD", "F_TRACKED_ENTITY_ADD", "F_TRACKED_ENTITY_UPDATE",
             "F_USER_ADD_WITHIN_MANAGED_GROUP" };
         User testUser = createUser( "A", testAuths );
+
+        injectSecurityContext( testUser );
+
         params = new ObjectBundleParams();
         params.setObjectBundleMode( ObjectBundleMode.COMMIT );
         params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
@@ -355,6 +358,7 @@ class ObjectBundleServiceProgramTest extends TransactionalIntegrationTest
             "F_PROGRAMSTAGE_ADD", "F_TRACKED_ENTITY_ADD", "F_TRACKED_ENTITY_UPDATE",
             "F_USER_ADD_WITHIN_MANAGED_GROUP" };
         User testUser = createUser( "A", testAuths );
+
         TrackedEntityAttribute tea1 = manager.get( TrackedEntityAttribute.class, "cpaMZredRXb" );
         TrackedEntityAttribute tea2 = manager.get( TrackedEntityAttribute.class, "QhEcRpLZwMb" );
         UserAccess userAccess1 = new UserAccess( testUser, "rw------" );

@@ -35,16 +35,16 @@ import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.http.HttpStatus;
 
-abstract class AbstractDataValueControllerTest extends DhisControllerConvenienceTest
+abstract class AbstractDataValueControllerTest
+    extends DhisControllerConvenienceTest
 {
-
     protected String dataElementId;
 
     protected String orgUnitId;
 
     protected String categoryComboId;
 
-    protected String categoryOptionId;
+    protected String categoryOptionComboId;
 
     @BeforeEach
     void setUp()
@@ -52,13 +52,13 @@ abstract class AbstractDataValueControllerTest extends DhisControllerConvenience
         orgUnitId = assertStatus( HttpStatus.CREATED,
             POST( "/organisationUnits/", "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}" ) );
         // add OU to users hierarchy
-        assertStatus( HttpStatus.NO_CONTENT, POST( "/users/{id}/organisationUnits", getCurrentUser().getUid(),
+        assertStatus( HttpStatus.OK, POST( "/users/{id}/organisationUnits", getCurrentUser().getUid(),
             Body( "{'additions':[{'id':'" + orgUnitId + "'}]}" ) ) );
         JsonObject ccDefault = GET(
             "/categoryCombos/gist?fields=id,categoryOptionCombos::ids&pageSize=1&headless=true&filter=name:eq:default" )
                 .content().getObject( 0 );
         categoryComboId = ccDefault.getString( "id" ).string();
-        categoryOptionId = ccDefault.getArray( "categoryOptionCombos" ).getString( 0 ).string();
+        categoryOptionComboId = ccDefault.getArray( "categoryOptionCombos" ).getString( 0 ).string();
         dataElementId = assertStatus( HttpStatus.CREATED,
             POST( "/dataElements/",
                 "{'name':'My data element', 'shortName':'DE1', 'code':'DE1', 'valueType':'INTEGER', "
@@ -82,6 +82,6 @@ abstract class AbstractDataValueControllerTest extends DhisControllerConvenience
     {
         assertStatus( HttpStatus.CREATED,
             POST( "/dataValues?de={de}&pe={pe}&ou={ou}&co={coc}&value={val}&comment={comment}&followUp={followup}",
-                dataElementId, period, orgUnitId, categoryOptionId, value, comment, followup ) );
+                dataElementId, period, orgUnitId, categoryOptionComboId, value, comment, followup ) );
     }
 }

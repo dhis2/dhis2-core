@@ -309,7 +309,7 @@ public class DefaultProgramNotificationService
     public void sendProgramRuleTriggeredEventNotifications( long pnt, ProgramStageInstance programStageInstance )
     {
         MessageBatch messageBatch = createProgramStageInstanceMessageBatch( notificationTemplateService.get( pnt ),
-            Collections.singletonList( programStageInstance ) );
+            Collections.singletonList( programStageInstanceStore.getByUid( programStageInstance.getUid() ) ) );
         sendAll( messageBatch );
     }
 

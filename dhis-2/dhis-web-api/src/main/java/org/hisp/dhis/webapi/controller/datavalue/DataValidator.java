@@ -38,6 +38,7 @@ import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 import org.hisp.dhis.calendar.CalendarService;
 import org.hisp.dhis.category.CategoryOption;
@@ -47,6 +48,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.ValueTypeOptions;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
@@ -66,7 +68,9 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.webdomain.DataValueFollowUpRequest;
+import org.hisp.dhis.webapi.webdomain.datavalue.DataValueCategoryDto;
 import org.springframework.stereotype.Component;
 
 import com.google.common.base.Preconditions;
@@ -131,7 +135,7 @@ public class DataValidator
      * @return the {@link DataElement}.
      * @throws IllegalQueryException if the validation fails.
      */
-    public DataElement getAndValidateDataElement( final String uid )
+    public DataElement getAndValidateDataElement( String uid )
     {
         final DataElement dataElement = idObjectManager.get( DataElement.class, uid );
 
@@ -151,8 +155,7 @@ public class DataValidator
      * @return the {@link CategoryOptionCombo}.
      * @throws IllegalQueryException if the validation fails.
      */
-    public CategoryOptionCombo getAndValidateCategoryOptionCombo( final String uid,
-        final boolean requireCategoryOptionCombo )
+    public CategoryOptionCombo getAndValidateCategoryOptionCombo( String uid, boolean requireCategoryOptionCombo )
     {
         CategoryOptionCombo categoryOptionCombo = categoryService.getCategoryOptionCombo( uid );
 
@@ -178,21 +181,55 @@ public class DataValidator
     /**
      * Retrieves and verifies a category (attribute) option combo.
      *
-     * @param ccUid the category combo identifier.
-     * @param cp the category and option query string.
+     * @param attribute the {@link DataValueCategoryDto}.
      * @return the {@link CategoryOptionCombo}.
      * @throws IllegalQueryException if the validation fails.
      */
-    public CategoryOptionCombo getAndValidateAttributeOptionCombo( final String ccUid, final String cp )
+    public CategoryOptionCombo getAndValidateAttributeOptionCombo( DataValueCategoryDto attribute )
     {
-        final CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( ccUid, cp, false );
+        attribute = ObjectUtils.firstNonNull( attribute, new DataValueCategoryDto() );
+
+        final CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo(
+            attribute.getCombo(), attribute.getOptions(), false );
 
         if ( attributeOptionCombo == null )
         {
-            throw new IllegalQueryException( new ErrorMessage( ErrorCode.E1104, String.format( "%s %s", ccUid, cp ) ) );
+            throw new IllegalQueryException( new ErrorMessage( ErrorCode.E1104,
+                String.format( "%s %s", attribute.getCombo(), attribute.getOptions() ) ) );
         }
 
         return attributeOptionCombo;
+    }
+
+    /**
+     * Retrieves and verifies a category (attribute) option combo.
+     *
+     * @param cc the category combo identifier.
+     * @param cp the category option string.
+     * @return the {@link CategoryOptionCombo}.
+     * @throws IllegalQueryException if the validation fails.
+     */
+    public CategoryOptionCombo getAndValidateAttributeOptionCombo( String cc, String cp )
+    {
+        Set<String> options = TextUtils.splitToSet( cp, TextUtils.SEMICOLON );
+
+        DataValueCategoryDto attribute = new DataValueCategoryDto( cc, options );
+
+        return getAndValidateAttributeOptionCombo( attribute );
+    }
+
+    /**
+     * Retrieves a {@link DataValueCategoryDto} based on the given parameters.
+     *
+     * @param cc the category combo identifier.
+     * @param cp the category option string.
+     * @return a {@link DataValueCategoryDto}.
+     */
+    public DataValueCategoryDto getDataValueCategoryDto( String cc, String cp )
+    {
+        Set<String> options = TextUtils.splitToSet( cp, TextUtils.SEMICOLON );
+
+        return new DataValueCategoryDto( cc, options );
     }
 
     /**
@@ -221,7 +258,7 @@ public class DataValidator
      * @return the {@link OrganisationUnit}.
      * @throws IllegalQueryException if the validation fails.
      */
-    public OrganisationUnit getAndValidateOrganisationUnit( final String uid )
+    public OrganisationUnit getAndValidateOrganisationUnit( String uid )
     {
         final OrganisationUnit organisationUnit = idObjectManager.get( OrganisationUnit.class, uid );
 
@@ -248,7 +285,7 @@ public class DataValidator
      * @return the valid DataSet.
      * @throws IllegalQueryException if the validation fails.
      */
-    public DataSet getAndValidateOptionalDataSet( final String uid, final DataElement dataElement )
+    public DataSet getAndValidateOptionalDataSet( String uid, DataElement dataElement )
     {
         if ( uid == null )
         {
@@ -304,7 +341,7 @@ public class DataValidator
      * @param period the {@link Period} to be checked.
      * @throws IllegalQueryException if the validation fails.
      */
-    public void validateOrganisationUnitPeriod( final OrganisationUnit organisationUnit, final Period period )
+    public void validateOrganisationUnitPeriod( OrganisationUnit organisationUnit, Period period )
     {
         final Date openingDate = organisationUnit.getOpeningDate();
         final Date closedDate = organisationUnit.getClosedDate();
@@ -325,7 +362,7 @@ public class DataValidator
      * @param dataElement the {@link DataElement}.
      * @throws IllegalQueryException if the validation fails.
      */
-    public void validateInvalidFuturePeriod( final Period period, final DataElement dataElement )
+    public void validateInvalidFuturePeriod( Period period, DataElement dataElement )
     {
         final Period latestFuturePeriod = dataElement.getLatestOpenFuturePeriod();
 
@@ -346,8 +383,8 @@ public class DataValidator
      * @param dataElement the {@link DataElement} to be checked.
      * @throws IllegalQueryException if the validation fails.
      */
-    public void validateAttributeOptionCombo( final CategoryOptionCombo attributeOptionCombo,
-        final Period period, final DataSet dataSet, final DataElement dataElement )
+    public void validateAttributeOptionCombo( CategoryOptionCombo attributeOptionCombo,
+        Period period, DataSet dataSet, DataElement dataElement )
     {
         for ( CategoryOption option : attributeOptionCombo.getCategoryOptions() )
         {
@@ -381,12 +418,14 @@ public class DataValidator
      * @param attributeOptionCombo the CategoryOptionCombo.
      * @throws IllegalQueryException if the validation fails.
      */
-    public void validateDataSetNotLocked( final User user, final DataElement dataElement, final Period period,
-        final DataSet dataSet, final OrganisationUnit organisationUnit, final CategoryOptionCombo attributeOptionCombo )
+    public void validateDataSetNotLocked( User user, DataElement dataElement, Period period,
+        DataSet dataSet, OrganisationUnit organisationUnit, CategoryOptionCombo attributeOptionCombo )
     {
         if ( dataSet == null
-            ? dataSetService.isLocked( user, dataElement, period, organisationUnit, attributeOptionCombo, null )
-            : dataSetService.isLocked( user, dataSet, period, organisationUnit, attributeOptionCombo, null ) )
+            ? !dataSetService.getLockStatus( user, dataElement, period, organisationUnit, attributeOptionCombo, null )
+                .isOpen()
+            : !dataSetService.getLockStatus( user, dataSet, period, organisationUnit, attributeOptionCombo,
+                null ).isOpen() )
         {
             throw new IllegalQueryException( new ErrorMessage( ErrorCode.E2017 ) );
         }
@@ -400,7 +439,7 @@ public class DataValidator
      * @param period the {@link Period}.
      * @throws IllegalQueryException if the validation fails.
      */
-    public void validateDataInputPeriodForDataElementAndPeriod( final DataElement dataElement, final DataSet dataSet,
+    public void validateDataInputPeriodForDataElementAndPeriod( DataElement dataElement, DataSet dataSet,
         final Period period )
     {
         if ( !(dataSet == null ? dataElement.isDataInputAllowedForPeriodAndDate( period, new Date() )
@@ -421,7 +460,7 @@ public class DataValidator
      * @return a valid FileResource.
      * @throws WebMessageException if any validation fails.
      */
-    public FileResource validateAndSetAssigned( final String fileResourceUid, ValueType valueType,
+    public FileResource validateAndSetAssigned( String fileResourceUid, ValueType valueType,
         ValueTypeOptions valueTypeOptions )
         throws WebMessageException
     {
@@ -462,7 +501,7 @@ public class DataValidator
      * @param comment the comment to be validated.
      * @throws IllegalQueryException if the validation fails.
      */
-    public void validateComment( final String comment )
+    public void validateComment( String comment )
     {
         final String commentValid = ValidationUtils.commentIsValid( comment );
 
@@ -480,7 +519,7 @@ public class DataValidator
      * @param dataElement the {@link DataElement}.
      * @throws IllegalQueryException if the validation fails.
      */
-    public void validateOptionSet( final String dataValue, final OptionSet optionSet, final DataElement dataElement )
+    public void validateOptionSet( String dataValue, OptionSet optionSet, DataElement dataElement )
     {
         if ( !isNullOrEmpty( dataValue ) && optionSet != null
             && !optionSet.getOptionCodesAsSet().contains( dataValue ) )
@@ -498,7 +537,7 @@ public class DataValidator
      * @return the normalized boolean or the same dataValue provided.
      * @throws IllegalQueryException if the validation fails.
      */
-    public String validateAndNormalizeDataValue( final String dataValue, final DataElement dataElement )
+    public String validateAndNormalizeDataValue( String dataValue, DataElement dataElement )
     {
         final String normalizedBoolean = normalizeBoolean( dataValue, dataElement.getValueType() );
 
@@ -519,7 +558,7 @@ public class DataValidator
      * @param categoryOptionCombo the {@link CategoryOptionCombo}.
      * @throws IllegalQueryException if the validation fails.
      */
-    public void checkCategoryOptionComboAccess( final User user, final CategoryOptionCombo categoryOptionCombo )
+    public void checkCategoryOptionComboAccess( User user, CategoryOptionCombo categoryOptionCombo )
     {
         final List<String> categoryOptionComboErrors = accessManager.canWriteCached( user, categoryOptionCombo );
 
@@ -538,7 +577,7 @@ public class DataValidator
      * @param dataValue the {@link DataValue}.
      * @throws WebMessageException if the validation fails.
      */
-    public void checkDataValueSharing( final User user, final DataValue dataValue )
+    public void checkDataValueSharing( User user, DataValue dataValue )
         throws WebMessageException
     {
         final List<String> errors = accessManager.canRead( user, dataValue );

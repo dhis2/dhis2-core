@@ -27,8 +27,13 @@
  */
 package org.hisp.dhis.analytics.data;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
 import static org.hisp.dhis.common.DimensionalObject.OPTION_SEP;
+import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
+import static org.hisp.dhis.util.DateUtils.getMediumDate;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -38,6 +43,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.analytics.DataQueryParams;
@@ -73,6 +79,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDimension;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
+import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.program.Program;
@@ -82,7 +89,7 @@ import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAuthorityGroup;
+import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.visualization.Visualization;
 import org.junit.jupiter.api.Disabled;
@@ -291,11 +298,11 @@ class DataQueryServiceTest extends DhisSpringTest
         // ---------------------------------------------------------------------
         // Inject user
         // ---------------------------------------------------------------------
-        UserAuthorityGroup role = createUserAuthorityGroup( 'A', "ALL" );
-        userService.addUserAuthorityGroup( role );
+        UserRole role = createUserRole( 'A', "ALL" );
+        userService.addUserRole( role );
         User user = createUser( 'A' );
         user.addOrganisationUnit( ouA );
-        user.getUserCredentials().getUserAuthorityGroups().add( role );
+        user.getUserRoles().add( role );
         saveAndInjectUserSecurityContext( user );
     }
 
@@ -842,5 +849,48 @@ class DataQueryServiceTest extends DhisSpringTest
         String ouParam = ouA.getUid() + ";" + ouB.getUid();
         List<OrganisationUnit> expected = Lists.newArrayList( ouA, ouB );
         assertEquals( expected, dataQueryService.getUserOrgUnits( null, ouParam ) );
+    }
+
+    @Test
+    void testPeriodGetDimension()
+    {
+        DimensionalObject dimension = dataQueryService.getDimension(
+            PERIOD_DIM_ID,
+            List.of( "TODAY:EVENT_DATE",
+                "YESTERDAY:ENROLLMENT_DATE",
+                "20210101:INCIDENT_DATE",
+                "20210101_20210201:LAST_UPDATED",
+                "2021-02-01_2021-03-01:SCHEDULED_DATE" ),
+            null, null, null, true, true, null );
+
+        assertThat( dimension.getItems(), hasSize( 5 ) );
+        assertThat( dimension.getItems().stream()
+            .map( dimensionalItemObject -> (Period) dimensionalItemObject )
+            .map( Period::getDateField )
+            .collect( Collectors.toList() ),
+            containsInAnyOrder( "EVENT_DATE",
+                "ENROLLMENT_DATE",
+                "INCIDENT_DATE",
+                "LAST_UPDATED",
+                "SCHEDULED_DATE" ) );
+
+        assertEquals( getPeriod( dimension, "INCIDENT_DATE" ).getStartDate(), getMediumDate( "2021-01-01" ) );
+        assertEquals( getPeriod( dimension, "INCIDENT_DATE" ).getEndDate(), getMediumDate( "2021-01-01" ) );
+
+        assertEquals( getPeriod( dimension, "LAST_UPDATED" ).getStartDate(), getMediumDate( "2021-01-01" ) );
+        assertEquals( getPeriod( dimension, "LAST_UPDATED" ).getEndDate(), getMediumDate( "2021-02-01" ) );
+
+        assertEquals( getPeriod( dimension, "SCHEDULED_DATE" ).getStartDate(), getMediumDate( "2021-02-01" ) );
+        assertEquals( getPeriod( dimension, "SCHEDULED_DATE" ).getEndDate(), getMediumDate( "2021-03-01" ) );
+
+    }
+
+    private Period getPeriod( DimensionalObject dimension, String dateField )
+    {
+        return dimension.getItems().stream()
+            .map( dimensionalItemObject -> (Period) dimensionalItemObject )
+            .filter( period -> period.getDateField().equals( dateField ) )
+            .findFirst()
+            .orElse( null );
     }
 }

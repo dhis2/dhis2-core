@@ -1,2 +1,7 @@
 checks:
   - categories/categories_no_options.yaml
+  - categories/categories_one_default_category.yaml
+  - categories/categories_one_default_category_option.yaml
+  - categories/categories_one_default_category_combo.yaml
+  - categories/categories_one_default_category_option_combo.yaml
+  - categories/categories_unique_category_combo.yaml

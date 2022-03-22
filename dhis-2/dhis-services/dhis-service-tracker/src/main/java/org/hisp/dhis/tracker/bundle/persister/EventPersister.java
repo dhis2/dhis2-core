@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.tracker.bundle.persister;
 
-import static com.google.api.client.util.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.time.Instant;
 import java.util.Collections;
@@ -131,11 +131,7 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
     @Override
     protected ProgramStageInstance convert( TrackerBundle bundle, Event event )
     {
-        Date now = new Date();
-        ProgramStageInstance programStageInstance = eventConverter.from( bundle.getPreheat(), event );
-        programStageInstance.setLastUpdated( now );
-        programStageInstance.setLastUpdatedBy( bundle.getUser() );
-        return programStageInstance;
+        return eventConverter.from( bundle.getPreheat(), event );
     }
 
     @Override

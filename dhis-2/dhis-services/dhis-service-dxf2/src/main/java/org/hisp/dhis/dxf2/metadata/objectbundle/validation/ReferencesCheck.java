@@ -53,7 +53,6 @@ import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.springframework.stereotype.Component;
 
@@ -149,7 +148,8 @@ public class ReferencesCheck implements ValidationCheck
             // HACK this needs to be redone when the move to using
             // uuid as user identifiers is ready
             boolean isUserReference = User.class.isAssignableFrom( property.getKlass() ) &&
-                ("user".equals( property.getName() ) || "lastUpdatedBy".equals( property.getName() ));
+                ("user".equals( property.getName() ) || "lastUpdatedBy".equals( property.getName() )
+                    || "createdBy".equals( property.getName() ));
 
             if ( !(isUserReference && skipSharing) )
             {
@@ -167,22 +167,25 @@ public class ReferencesCheck implements ValidationCheck
         Collection<IdentifiableObject> refObjects = ReflectionUtils.invokeMethod( object,
             property.getGetterMethod() );
 
-        for ( IdentifiableObject refObject : refObjects )
+        if ( refObjects != null )
         {
-            if ( preheat.isDefault( refObject ) )
-                continue;
-
-            IdentifiableObject ref = preheat.get( identifier, refObject );
-
-            if ( ref == null && refObject != null )
+            for ( IdentifiableObject refObject : refObjects )
             {
-                preheatErrorReports.add( new PreheatErrorReport( identifier, object.getClass(),
-                    ErrorCode.E5002, identifier.getIdentifiersWithName( refObject ),
-                    identifier.getIdentifiersWithName( object ), property.getCollectionName() ) );
-            }
-            else
-            {
-                objects.add( refObject );
+                if ( preheat.isDefault( refObject ) )
+                    continue;
+
+                IdentifiableObject ref = preheat.get( identifier, refObject );
+
+                if ( ref == null && refObject != null )
+                {
+                    preheatErrorReports.add( new PreheatErrorReport( identifier, object.getClass(),
+                        ErrorCode.E5002, identifier.getIdentifiersWithName( refObject ),
+                        identifier.getIdentifiersWithName( object ), property.getCollectionName() ) );
+                }
+                else
+                {
+                    objects.add( refObject );
+                }
             }
         }
 
@@ -235,7 +238,7 @@ public class ReferencesCheck implements ValidationCheck
     private boolean skipCheck( Class<?> klass )
     {
         return klass != null
-            && (UserCredentials.class.isAssignableFrom( klass ) || EmbeddedObject.class.isAssignableFrom( klass )
+            && (EmbeddedObject.class.isAssignableFrom( klass )
                 || Period.class.isAssignableFrom( klass ) || PeriodType.class.isAssignableFrom( klass ));
     }
 

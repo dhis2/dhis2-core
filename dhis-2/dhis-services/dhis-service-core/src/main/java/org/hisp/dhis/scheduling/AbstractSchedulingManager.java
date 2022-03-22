@@ -57,6 +57,7 @@ import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.scheduling.JobProgress.Process;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.Clock;
+import org.slf4j.MDC;
 
 /**
  * Base for synchronous or asynchronous {@link SchedulingManager} implementation
@@ -268,6 +269,10 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
             // in memory effect only: mark running (dirty)
             configuration.setLastExecutedStatus( JobStatus.RUNNING );
 
+            String identifier = configuration.getUid() != null
+                ? "UID:" + configuration.getUid()
+                : "TYPE:" + configuration.getJobType().name();
+            MDC.put( "sessionId", identifier );
             // run the actual job
             jobService.getJob( type ).execute( configuration, progress );
 
@@ -285,6 +290,7 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
             completedLocally.put( type, runningLocally.remove( type ) );
             runningRemotely.invalidate( type.name() );
             whenRunIsDone( configuration, clock );
+            MDC.remove( "sessionId" );
         }
     }
 

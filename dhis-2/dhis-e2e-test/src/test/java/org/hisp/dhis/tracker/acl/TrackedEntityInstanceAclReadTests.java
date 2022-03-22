@@ -36,7 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.apache.commons.collections.ListUtils;
+import org.apache.commons.collections4.ListUtils;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
@@ -119,7 +119,9 @@ public class TrackedEntityInstanceAclReadTests
         new LoginActions().loginAsUser( user.getUsername(), user.getPassword() );
 
         // Get User information from /me
-        Me me = new RestApiActions( "/me" ).get().as( Me.class );
+        ApiResponse apiResponse = new RestApiActions( "/me" ).get();
+        String asString = apiResponse.getAsString();
+        Me me = apiResponse.as( Me.class );
 
         // Add userGroups
         user.setGroups( me.getUserGroups().stream().map( UserGroup::getId ).collect( Collectors.toList() ) );

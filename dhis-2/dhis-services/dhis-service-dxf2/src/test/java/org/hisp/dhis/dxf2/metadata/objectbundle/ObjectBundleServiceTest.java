@@ -72,8 +72,8 @@ import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.validation.ValidationRule;
 import org.junit.jupiter.api.Disabled;
@@ -417,7 +417,7 @@ class ObjectBundleServiceTest extends TransactionalIntegrationTest
         List<OrganisationUnit> organisationUnits = manager.getAll( OrganisationUnit.class );
         List<DataElement> dataElements = manager.getAll( DataElement.class );
         List<DataSet> dataSets = manager.getAll( DataSet.class );
-        List<UserAuthorityGroup> userRoles = manager.getAll( UserAuthorityGroup.class );
+        List<UserRole> userRoles = manager.getAll( UserRole.class );
         List<User> users = manager.getAll( User.class );
         assertFalse( organisationUnits.isEmpty() );
         assertFalse( dataElements.isEmpty() );
@@ -437,9 +437,9 @@ class ObjectBundleServiceTest extends TransactionalIntegrationTest
         assertEquals( 1, dataSet.getSources().size() );
         assertEquals( 2, dataSet.getDataSetElements().size() );
         assertEquals( PeriodType.getPeriodTypeByName( "Monthly" ), dataSet.getPeriodType() );
-        assertNotNull( user.getUserCredentials() );
-        assertEquals( "admin", user.getUserCredentials().getUsername() );
-        assertFalse( user.getUserCredentials().getUserAuthorityGroups().isEmpty() );
+        assertNotNull( user );
+        assertEquals( "admin", user.getUsername() );
+        assertFalse( user.getUserRoles().isEmpty() );
         assertFalse( user.getOrganisationUnits().isEmpty() );
         assertEquals( "PdWlltZnVZe", user.getOrganisationUnit().getUid() );
     }
@@ -459,7 +459,7 @@ class ObjectBundleServiceTest extends TransactionalIntegrationTest
         objectBundleService.commit( bundle );
         List<OrganisationUnit> organisationUnits = manager.getAll( OrganisationUnit.class );
         List<DataElement> dataElements = manager.getAll( DataElement.class );
-        List<UserAuthorityGroup> userRoles = manager.getAll( UserAuthorityGroup.class );
+        List<UserRole> userRoles = manager.getAll( UserRole.class );
         List<User> users = manager.getAll( User.class );
         List<UserGroup> userGroups = manager.getAll( UserGroup.class );
         assertEquals( 1, organisationUnits.size() );
@@ -497,7 +497,7 @@ class ObjectBundleServiceTest extends TransactionalIntegrationTest
         objectBundleService.commit( bundle );
         List<OrganisationUnit> organisationUnits = manager.getAll( OrganisationUnit.class );
         List<DataElement> dataElements = manager.getAll( DataElement.class );
-        List<UserAuthorityGroup> userRoles = manager.getAll( UserAuthorityGroup.class );
+        List<UserRole> userRoles = manager.getAll( UserRole.class );
         List<User> users = manager.getAll( User.class );
         List<UserGroup> userGroups = manager.getAll( UserGroup.class );
         assertEquals( 1, organisationUnits.size() );
@@ -625,7 +625,7 @@ class ObjectBundleServiceTest extends TransactionalIntegrationTest
         List<Section> sections = manager.getAll( Section.class );
         List<OrganisationUnit> organisationUnits = manager.getAll( OrganisationUnit.class );
         List<DataElement> dataElements = manager.getAll( DataElement.class );
-        List<UserAuthorityGroup> userRoles = manager.getAll( UserAuthorityGroup.class );
+        List<UserRole> userRoles = manager.getAll( UserRole.class );
         List<User> users = manager.getAll( User.class );
         assertFalse( organisationUnits.isEmpty() );
         assertFalse( dataElements.isEmpty() );
@@ -662,7 +662,7 @@ class ObjectBundleServiceTest extends TransactionalIntegrationTest
         List<Section> sections = manager.getAll( Section.class );
         List<OrganisationUnit> organisationUnits = manager.getAll( OrganisationUnit.class );
         List<DataElement> dataElements = manager.getAll( DataElement.class );
-        List<UserAuthorityGroup> userRoles = manager.getAll( UserAuthorityGroup.class );
+        List<UserRole> userRoles = manager.getAll( UserRole.class );
         List<User> users = manager.getAll( User.class );
         List<DataElementOperand> dataElementOperands = manager.getAll( DataElementOperand.class );
         List<TrackedEntityType> trackedEntityTypes = manager.getAll( TrackedEntityType.class );
@@ -740,7 +740,7 @@ class ObjectBundleServiceTest extends TransactionalIntegrationTest
         List<Section> sections = manager.getAll( Section.class );
         List<OrganisationUnit> organisationUnits = manager.getAll( OrganisationUnit.class );
         List<DataElement> dataElements = manager.getAll( DataElement.class );
-        List<UserAuthorityGroup> userRoles = manager.getAll( UserAuthorityGroup.class );
+        List<UserRole> userRoles = manager.getAll( UserRole.class );
         List<User> users = manager.getAll( User.class );
         List<DataElementOperand> dataElementOperands = manager.getAll( DataElementOperand.class );
         assertFalse( organisationUnits.isEmpty() );
@@ -779,33 +779,6 @@ class ObjectBundleServiceTest extends TransactionalIntegrationTest
         params.setImportStrategy( ImportStrategy.CREATE );
         params.setObjects( metadata );
         objectBundleService.create( params );
-        /*
-         * ObjectBundleValidationReport validate =
-         * objectBundleValidationService.validate( bundle ); assertTrue(
-         * validate.getErrorReports().isEmpty() );
-         *
-         * objectBundleService.commit( bundle );
-         *
-         * List<DataSet> dataSets = manager.getAll( DataSet.class );
-         * List<OrganisationUnit> organisationUnits = manager.getAll(
-         * OrganisationUnit.class ); List<DataElement> dataElements =
-         * manager.getAll( DataElement.class ); List<UserAuthorityGroup>
-         * userRoles = manager.getAll( UserAuthorityGroup.class ); List<User>
-         * users = manager.getAll( User.class ); List<DataElementOperand>
-         * dataElementOperands = manager.getAll( DataElementOperand.class );
-         *
-         * assertFalse( organisationUnits.isEmpty() ); assertFalse(
-         * dataElements.isEmpty() ); assertFalse( users.isEmpty() );
-         * assertFalse( userRoles.isEmpty() );
-         *
-         * assertEquals( 1, dataSets.size() ); assertEquals( 1,
-         * dataElementOperands.size() );
-         *
-         * DataSet dataSet = dataSets.get( 0 ); assertEquals( "DataSetA",
-         * dataSet.getName() ); assertTrue( dataSet.getSections().isEmpty() );
-         * assertNotNull( dataSet.getUser() ); assertEquals( 1,
-         * dataSet.getCompulsoryDataElementOperands().size() );
-         */
     }
 
     @Test
@@ -850,7 +823,7 @@ class ObjectBundleServiceTest extends TransactionalIntegrationTest
         List<Indicator> indicators = manager.getAll( Indicator.class );
         assertFalse( organisationUnits.isEmpty() );
         assertEquals( 3, dataElements.size() );
-        assertEquals( 1, indicators.size() );
+        assertEquals( 2, indicators.size() );
     }
 
     @Test
@@ -870,7 +843,7 @@ class ObjectBundleServiceTest extends TransactionalIntegrationTest
         List<DataSet> dataSets = manager.getAll( DataSet.class );
         List<OrganisationUnit> organisationUnits = manager.getAll( OrganisationUnit.class );
         List<DataElement> dataElements = manager.getAll( DataElement.class );
-        List<UserAuthorityGroup> userRoles = manager.getAll( UserAuthorityGroup.class );
+        List<UserRole> userRoles = manager.getAll( UserRole.class );
         List<User> users = manager.getAll( User.class );
         List<ValidationRule> validationRules = manager.getAll( ValidationRule.class );
         assertFalse( dataSets.isEmpty() );
@@ -914,7 +887,7 @@ class ObjectBundleServiceTest extends TransactionalIntegrationTest
         List<DataSet> dataSets = manager.getAll( DataSet.class );
         List<OrganisationUnit> organisationUnits = manager.getAll( OrganisationUnit.class );
         List<DataElement> dataElements = manager.getAll( DataElement.class );
-        List<UserAuthorityGroup> userRoles = manager.getAll( UserAuthorityGroup.class );
+        List<UserRole> userRoles = manager.getAll( UserRole.class );
         List<User> users = manager.getAll( User.class );
         List<ValidationRule> validationRules = manager.getAll( ValidationRule.class );
         assertFalse( dataSets.isEmpty() );
@@ -1106,7 +1079,7 @@ class ObjectBundleServiceTest extends TransactionalIntegrationTest
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
         assertFalse( validate.isEmpty() );
-        assertEquals( 1, validate.getErrorReportsCountByCode( UserAuthorityGroup.class, ErrorCode.E5003 ) );
+        assertEquals( 1, validate.getErrorReportsCountByCode( UserRole.class, ErrorCode.E5003 ) );
     }
 
     @Test
@@ -1215,7 +1188,7 @@ class ObjectBundleServiceTest extends TransactionalIntegrationTest
         List<Section> sections = manager.getAll( Section.class );
         List<OrganisationUnit> organisationUnits = manager.getAll( OrganisationUnit.class );
         List<DataElement> dataElements = manager.getAll( DataElement.class );
-        List<UserAuthorityGroup> userRoles = manager.getAll( UserAuthorityGroup.class );
+        List<UserRole> userRoles = manager.getAll( UserRole.class );
         List<User> users = manager.getAll( User.class );
         assertFalse( organisationUnits.isEmpty() );
         assertFalse( dataElements.isEmpty() );

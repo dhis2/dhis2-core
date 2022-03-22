@@ -31,9 +31,10 @@ import static org.hisp.dhis.antlr.AntlrParserUtils.castDouble;
 import static org.hisp.dhis.expression.MissingValueStrategy.SKIP_IF_ALL_VALUES_MISSING;
 import static org.hisp.dhis.expression.MissingValueStrategy.SKIP_IF_ANY_VALUE_MISSING;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
+import static org.hisp.dhis.util.ObjectUtils.firstNonNull;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -41,8 +42,11 @@ import java.util.Set;
 import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.expression.ExpressionInfo;
+import org.hisp.dhis.expression.ExpressionParams;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ExpressionItem;
+import org.hisp.dhis.parser.expression.ExpressionState;
 import org.hisp.dhis.period.Period;
 
 /**
@@ -54,7 +58,7 @@ public abstract class VectorFunction
     implements ExpressionItem
 {
     @Override
-    public Object getItemId( ExprContext ctx, CommonExpressionVisitor visitor )
+    public Object getExpressionInfo( ExprContext ctx, CommonExpressionVisitor visitor )
     {
         // ItemIds in all but last expr (if any) are from current period.
 
@@ -65,12 +69,15 @@ public abstract class VectorFunction
 
         // ItemIds in the last (or only) expr are from sampled periods.
 
-        Set<DimensionalItemId> savedItemIds = visitor.getItemIds();
-        visitor.setItemIds( visitor.getSampleItemIds() );
+        ExpressionInfo info = visitor.getInfo();
+
+        Set<DimensionalItemId> savedItemIds = info.getItemIds();
+        info.setItemIds( info.getSampleItemIds() );
 
         Object result = visitor.visitExpr( ctx.expr().get( ctx.expr().size() - 1 ) );
 
-        visitor.setItemIds( savedItemIds );
+        info.setSampleItemIds( info.getItemIds() );
+        info.setItemIds( savedItemIds );
 
         return castDouble( result );
     }
@@ -108,7 +115,7 @@ public abstract class VectorFunction
      */
     public Object vectorHandleNulls( Object value, CommonExpressionVisitor visitor )
     {
-        return visitor.handleNulls( value, ValueType.NUMBER );
+        return visitor.getState().handleNulls( value, ValueType.NUMBER );
     }
 
     /**
@@ -122,53 +129,69 @@ public abstract class VectorFunction
 
     /**
      * Gets a list of sample values to aggregate.
-     *
-     * @param ctx the sample expression context
-     * @param visitor the tree visitor
-     * @return the list of sample values
-     *
-     *         The missingValueStrategy is handled as follows: for each sample
-     *         expression inside the aggregation function, if there are any
-     *         sample values missing and the strategy is
-     *         SKIP_IF_ANY_VALUE_MISSING, then that sample is skipped. Also if
-     *         all the values are missing and the strategy is
-     *         SKIP_IF_ALL_VALUES_MISSING, then that sample is skipped.
-     *
-     *         Finally, if there were any items in the sample expression, the
-     *         count of items in the main expression is incremented. And if
-     *         there was at least one sample value, the count of item values in
-     *         the main expression is incremented. This means that if the vector
-     *         is empty, it counts as a missing value in the main expression.
+     * <p>
+     * The missingValueStrategy is handled as follows: for each sample
+     * expression inside the aggregation function, if there are any sample
+     * values missing and the strategy is SKIP_IF_ANY_VALUE_MISSING, then that
+     * sample is skipped. Also if all the values are missing and the strategy is
+     * SKIP_IF_ALL_VALUES_MISSING, then that sample is skipped.
+     * <p>
+     * Finally, if there were any items in the sample expression, the count of
+     * items in the main expression is incremented. And if there was at least
+     * one sample value, the count of item values in the main expression is
+     * incremented. This means that if the vector is empty, it counts as a
+     * missing value in the main expression.
      */
     private List<Double> getSampleValues( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        int savedItemsFound = visitor.getItemsFound();
-        int savedItemValuesFound = visitor.getItemValuesFound();
-        Map<DimensionalItemObject, Object> savedItemValueMap = visitor.getItemValueMap();
+        ExpressionState state = visitor.getState();
+
+        int savedItemsFound = state.getItemsFound();
+        int savedItemValuesFound = state.getItemValuesFound();
+
+        List<Double> values = visitSampledPeriods( ctx, visitor );
+
+        if ( state.getItemsFound() > 0 )
+        {
+            savedItemsFound++;
+
+            if ( !values.isEmpty() )
+            {
+                savedItemValuesFound++;
+            }
+        }
+
+        state.setItemsFound( savedItemsFound );
+        state.setItemValuesFound( savedItemValuesFound );
+
+        return values;
+    }
+
+    /**
+     * Visits each of the sample periods and compiles a list of the double
+     * values produced.
+     */
+    private List<Double> visitSampledPeriods( ExprContext ctx, CommonExpressionVisitor visitor )
+    {
+        ExpressionParams params = visitor.getParams();
+        ExpressionState state = visitor.getState();
 
         List<Double> values = new ArrayList<>();
 
-        for ( Period p : visitor.getSamplePeriods() )
+        for ( Period p : params.getSamplePeriods() )
         {
-            visitor.setItemsFound( 0 );
-            visitor.setItemValuesFound( 0 );
+            state.setItemsFound( 0 );
+            state.setItemValuesFound( 0 );
 
-            if ( visitor.getPeriodItemValueMap() != null &&
-                visitor.getPeriodItemValueMap().get( p ) != null )
-            {
-                visitor.setItemValueMap( visitor.getPeriodItemValueMap().get( p ) );
-            }
-            else // No samples found in this period:
-            {
-                visitor.setItemValueMap( new HashMap<>() );
-            }
+            Map<DimensionalItemObject, Object> valueMap = firstNonNull( params.getPeriodValueMap().get( p ),
+                Collections.emptyMap() );
 
-            Double value = castDouble( visitor.visit( ctx ) );
+            Double value = visitWithValueMap( ctx, visitor, valueMap );
 
-            if ( (visitor.getMissingValueStrategy() == SKIP_IF_ANY_VALUE_MISSING
-                && visitor.getItemValuesFound() < visitor.getItemsFound())
-                || (visitor.getMissingValueStrategy() == SKIP_IF_ALL_VALUES_MISSING && visitor.getItemsFound() != 0
-                    && visitor.getItemValuesFound() == 0) )
+            if ( (params.getMissingValueStrategy() == SKIP_IF_ANY_VALUE_MISSING
+                && state.getItemValuesFound() < state.getItemsFound())
+                || (params.getMissingValueStrategy() == SKIP_IF_ALL_VALUES_MISSING && state.getItemsFound() != 0
+                    && state.getItemValuesFound() == 0) )
             {
                 value = null;
             }
@@ -179,20 +202,25 @@ public abstract class VectorFunction
             }
         }
 
-        if ( visitor.getItemsFound() > 0 )
-        {
-            savedItemsFound++;
-
-            if ( !values.isEmpty() )
-            {
-                savedItemValuesFound++;
-            }
-        }
-
-        visitor.setItemsFound( savedItemsFound );
-        visitor.setItemValuesFound( savedItemValuesFound );
-        visitor.setItemValueMap( savedItemValueMap );
-
         return values;
+    }
+
+    /**
+     * Visits a subtree with an explicit valueMap.
+     */
+    private Double visitWithValueMap( ExprContext ctx, CommonExpressionVisitor visitor,
+        Map<DimensionalItemObject, Object> valueMap )
+    {
+        ExpressionParams savedParams = visitor.getParams();
+
+        ExpressionParams params = visitor.getParams().toBuilder().valueMap( valueMap ).build();
+
+        visitor.setParams( params );
+
+        Double value = castDouble( visitor.visit( ctx ) );
+
+        visitor.setParams( savedParams );
+
+        return value;
     }
 }

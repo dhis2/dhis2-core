@@ -1,6 +1,47 @@
 {
   "relationshipTypes": [
     {
+      "code": "TA_TEI_TO_ENROLLMENT",
+      "id": "WmNgnmedbQj",
+      "name": "TA tei to enrollment",
+      "bidirectional": true,
+      "displayName": "TA tei to enrollment",
+      "publicAccess": "rw------",
+      "fromToName": "TA",
+      "externalAccess": false,
+      "displayFromToName": "TA",
+      "favorite": false,
+      "toConstraint": {
+        "relationshipEntity": "PROGRAM_INSTANCE",
+        "program": {
+          "id": "f1AyMswryyQ"
+        }
+      },
+      "sharing": {
+        "owner": "M5zQapPyTZI",
+        "userGroups": {
+          "OPVIvvXzNTw": {
+            "access": "rwrw----",
+            "id": "OPVIvvXzNTw"
+          }
+        },
+        "external": false,
+        "public": "rwrw----",
+        "users": {}
+      },
+      "fromConstraint": {
+        "relationshipEntity": "TRACKED_ENTITY_INSTANCE",
+        "trackedEntityType": {
+          "id": "Q9GufDoplCL"
+        }
+      },
+      "favorites": [],
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": []
+    },
+    {
       "id": "HrS7b5Lis6w",
       "name": "TA tei to event",
       "bidirectional": true,

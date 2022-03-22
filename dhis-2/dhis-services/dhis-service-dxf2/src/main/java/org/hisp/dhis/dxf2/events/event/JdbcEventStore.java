@@ -31,7 +31,7 @@ import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
-import static org.hisp.dhis.commons.util.TextUtils.splitToArray;
+import static org.hisp.dhis.commons.util.TextUtils.splitToSet;
 import static org.hisp.dhis.dxf2.events.event.AbstractEventService.STATIC_EVENT_COLUMNS;
 import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ATTRIBUTE_OPTION_COMBO_ID;
 import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_COMPLETED_BY_ID;
@@ -174,17 +174,16 @@ public class JdbcEventStore implements EventStore
         " psinote.creator                as psinote_storedby," +
         " psinote.uid                    as psinote_uid," +
         " psinote.lastupdated            as psinote_lastupdated," +
-        " usernote.userid                as usernote_id," +
-        " usernote.code                  as usernote_code," +
-        " usernote.uid                   as usernote_uid," +
-        " usernote.username              as usernote_username," +
+        " userinfo.userinfoid            as usernote_id," +
+        " userinfo.code                  as usernote_code," +
+        " userinfo.uid                   as usernote_uid," +
+        " userinfo.username              as usernote_username," +
         " userinfo.firstname             as userinfo_firstname," +
         " userinfo.surname               as userinfo_surname" +
         " from programstageinstancecomments psic" +
         " inner join trackedentitycomment psinote" +
         " on psic.trackedentitycommentid = psinote.trackedentitycommentid" +
-        " left join users usernote on psinote.lastupdatedby = usernote.userid" +
-        " left join userinfo on usernote.userid = userinfo.userinfoid";
+        " left join userinfo on psinote.lastupdatedby = userinfo.userinfoid ";
 
     private static final String PSI_STATUS_EQ = " psi.status = '";
 
@@ -219,7 +218,7 @@ public class JdbcEventStore implements EventStore
         .build();
 
     private static final Map<String, String> COLUMNS_ALIAS_MAP = ImmutableMap.<String, String> builder()
-        .put( ID.getQueryElement().useInSelect(), EVENT_ID )
+        .put( UID.getQueryElement().useInSelect(), EVENT_ID )
         .put( CREATED.getQueryElement().useInSelect(), EVENT_CREATED_ID )
         .put( UPDATED.getQueryElement().useInSelect(), EVENT_LAST_UPDATED_ID )
         .put( STOREDBY.getQueryElement().useInSelect(), EVENT_STORED_BY_ID )
@@ -465,6 +464,8 @@ public class JdbcEventStore implements EventStore
                     event.setAssignedUser( rowSet.getString( "user_assigned" ) );
                     event.setAssignedUserUsername( rowSet.getString( "user_assigned_username" ) );
                     event.setAssignedUserDisplayName( rowSet.getString( "user_assigned_name" ) );
+                    event.setAssignedUserFirstName( rowSet.getString( "user_assigned_first_name" ) );
+                    event.setAssignedUserSurname( rowSet.getString( "user_assigned_surname" ) );
                 }
 
                 events.add( event );
@@ -572,7 +573,7 @@ public class JdbcEventStore implements EventStore
         if ( params.getCategoryOptionCombo() == null && !isSuper( user ) )
         {
             return events.stream().filter( ev -> ev.getAttributeCategoryOptions() != null
-                && splitToArray( ev.getAttributeCategoryOptions(), TextUtils.SEMICOLON ).size() == ev.getOptionSize() )
+                && splitToSet( ev.getAttributeCategoryOptions(), TextUtils.SEMICOLON ).size() == ev.getOptionSize() )
                 .collect( Collectors.toList() );
         }
 
@@ -997,7 +998,8 @@ public class JdbcEventStore implements EventStore
             + "psi.created as psi_created, psi.createdbyuserinfo as psi_createdbyuserinfo, psi.lastupdated as psi_lastupdated, psi.lastupdatedbyuserinfo as psi_lastupdatedbyuserinfo, "
             + "psi.completeddate as psi_completeddate, psi.deleted as psi_deleted, "
             + "ST_AsText( psi.geometry ) as psi_geometry, au.uid as user_assigned, (au.firstName || ' ' || au.surName) as user_assigned_name,"
-            + "auc.username as user_assigned_username, cocco.categoryoptionid AS cocco_categoryoptionid, deco.uid AS deco_uid, " );
+            + "au.firstName as user_assigned_first_name, au.surName as user_assigned_surname, "
+            + "au.username as user_assigned_username, cocco.categoryoptionid AS cocco_categoryoptionid, deco.uid AS deco_uid, " );
 
         if ( (params.getCategoryOptionCombo() == null || params.getCategoryOptionCombo().isDefault())
             && !isSuper( user ) )
@@ -1031,8 +1033,7 @@ public class JdbcEventStore implements EventStore
             + "inner join organisationunit ou on (coalesce(po.organisationunitid, psi.organisationunitid)=ou.organisationunitid) "
             + "left join trackedentityinstance tei on tei.trackedentityinstanceid=pi.trackedentityinstanceid "
             + "left join organisationunit teiou on (tei.organisationunitid=teiou.organisationunitid) "
-            + "left join users auc on (psi.assigneduserid=auc.userid) "
-            + "left join userinfo au on (auc.userid=au.userinfoid) " );
+            + "left join userinfo au on (psi.assigneduserid=au.userinfoid) " );
 
         Set<String> joinedColumns = new HashSet<>();
 
@@ -1274,8 +1275,7 @@ public class JdbcEventStore implements EventStore
             + "inner join categoryoptioncombo coc on coc.categoryoptioncomboid = psi.attributeoptioncomboid "
             + "left join trackedentityprogramowner po on (pi.trackedentityinstanceid=po.trackedentityinstanceid) "
             + "inner join organisationunit ou on (coalesce(po.organisationunitid, psi.organisationunitid)=ou.organisationunitid) "
-            + "left join users auc on (psi.assigneduserid=auc.userid) "
-            + "left join userinfo au on (auc.userid=au.userinfoid) " );
+            + "left join userinfo au on (psi.assigneduserid=au.userinfoid) " );
 
         Set<String> joinedColumns = new HashSet<>();
 
@@ -1504,13 +1504,23 @@ public class JdbcEventStore implements EventStore
         return sqlBuilder.toString();
     }
 
-    private String getEventPagingQuery( EventSearchParams params )
+    private String getEventPagingQuery( final EventSearchParams params )
     {
-        StringBuilder sqlBuilder = new StringBuilder().append( " " );
+        final StringBuilder sqlBuilder = new StringBuilder().append( " " );
+        int pageSize = params.getPageSizeWithDefault();
+
+        // When the clients choose to not show the total of pages.
+        if ( !params.isTotalPages() )
+        {
+            // Get pageSize + 1, so we are able to know if there is another
+            // page available. It adds one additional element into the list,
+            // as consequence. The caller needs to remove the last element.
+            pageSize++;
+        }
 
         if ( !params.isSkipPaging() )
         {
-            sqlBuilder.append( "limit " ).append( params.getPageSizeWithDefault() ).append( " offset " )
+            sqlBuilder.append( "limit " ).append( pageSize ).append( " offset " )
                 .append( params.getOffset() ).append( " " );
         }
 

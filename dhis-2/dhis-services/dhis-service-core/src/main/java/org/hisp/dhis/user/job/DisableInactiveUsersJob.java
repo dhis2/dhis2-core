@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.user.job;
 
+import static java.lang.String.format;
 import static java.time.ZoneId.systemDefault;
 
 import java.time.LocalDate;
@@ -42,11 +43,14 @@ import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.DisableInactiveUsersJobParameters;
-import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Component;
 
 /**
+ * Disables users that have been inactive for too long as well as sending emails
+ * to those users that soon would become inactive on certain days before this
+ * happens.
+ *
  * @author Jan Bernitt
  */
 @AllArgsConstructor
@@ -54,8 +58,6 @@ import org.springframework.stereotype.Component;
 public class DisableInactiveUsersJob implements Job
 {
     private final UserService userService;
-
-    private final Notifier notifier;
 
     private final EmailService emailService;
 
@@ -68,14 +70,17 @@ public class DisableInactiveUsersJob implements Job
     @Override
     public void execute( JobConfiguration jobConfiguration, JobProgress progress )
     {
+        progress.startingProcess( "Disable inactive users" );
         DisableInactiveUsersJobParameters parameters = (DisableInactiveUsersJobParameters) jobConfiguration
             .getJobParameters();
         LocalDate today = LocalDate.now();
         LocalDate since = today.minusMonths( parameters.getInactiveMonths() );
         Date nMonthsAgo = Date.from( since.atStartOfDay( systemDefault() ).toInstant() );
-        int disabledUserCount = userService.disableUsersInactiveSince( nMonthsAgo );
-        notifier.notify( jobConfiguration, String.format( "Disabled %d users with %d months of inactivity",
-            disabledUserCount, parameters.getInactiveMonths() ) );
+
+        progress.startingStage( "Disabling inactive users" );
+        progress.runStage( 0,
+            count -> format( "Disabled %d users with %d months of inactivity", count, parameters.getInactiveMonths() ),
+            () -> userService.disableUsersInactiveSince( nMonthsAgo ) );
 
         Integer reminderDaysBefore = parameters.getReminderDaysBefore();
         if ( reminderDaysBefore == null )
@@ -85,11 +90,13 @@ public class DisableInactiveUsersJob implements Job
         int daysUntilDisable = reminderDaysBefore;
         do
         {
-            sendReminderEmail( since, daysUntilDisable );
+            final int daysUntilDisableInRun = daysUntilDisable;
+            progress.startingStage( format( "Sending reminder for %d days until disable", daysUntilDisableInRun ) );
+            progress.runStage( () -> sendReminderEmail( since, daysUntilDisableInRun ) );
             daysUntilDisable = daysUntilDisable / 2;
         }
         while ( daysUntilDisable > 0 );
-
+        progress.completedProcess( null );
     }
 
     private void sendReminderEmail( LocalDate since, int daysUntilDisable )
@@ -104,7 +111,7 @@ public class DisableInactiveUsersJob implements Job
         {
             emailService.sendEmail(
                 "Your DHIS2 account gets disabled soon",
-                String.format(
+                format(
                     "Your DHIS2 user account was inactive for a while. " +
                         "Login during the next %d days to prevent your account from being disabled.",
                     daysUntilDisable ),

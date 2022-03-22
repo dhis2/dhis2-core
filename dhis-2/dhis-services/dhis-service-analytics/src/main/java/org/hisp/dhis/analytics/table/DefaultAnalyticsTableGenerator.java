@@ -43,6 +43,7 @@ import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.analytics.AnalyticsTableService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
+import org.hisp.dhis.analytics.cache.AnalyticsCache;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.message.MessageService;
@@ -69,6 +70,8 @@ public class DefaultAnalyticsTableGenerator
     private final MessageService messageService;
 
     private final SystemSettingManager systemSettingManager;
+
+    private final AnalyticsCache analyticsCache;
 
     // TODO introduce last successful timestamps per table type
 
@@ -139,6 +142,8 @@ public class DefaultAnalyticsTableGenerator
             systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_RUNTIME,
                 clock.time() );
         }
+
+        analyticsCache.invalidateAll();
     }
 
     @Override

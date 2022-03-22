@@ -39,7 +39,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
 @Mapper( uses = { DebugMapper.class, OrganisationUnitMapper.class, UserGroupAccessMapper.class,
-    UserAccessMapper.class, TrackedEntityTypeMapper.class, ProgramStageMapper.class } )
+    UserAccessMapper.class, CategoryComboMapper.class, TrackedEntityTypeMapper.class, ProgramStageMapper.class } )
 public interface ProgramMapper extends PreheatMapper<Program>
 {
     ProgramMapper INSTANCE = Mappers.getMapper( ProgramMapper.class );
@@ -67,6 +67,7 @@ public interface ProgramMapper extends PreheatMapper<Program>
     @Mapping( target = "expiryDays" )
     @Mapping( target = "expiryPeriodType" )
     @Mapping( target = "completeEventsExpiryDays" )
+    @Mapping( target = "sharing" )
     @Mapping( target = "accessLevel" )
     Program map( Program program );
 

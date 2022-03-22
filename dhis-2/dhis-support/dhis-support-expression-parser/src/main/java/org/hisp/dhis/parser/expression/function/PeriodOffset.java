@@ -27,10 +27,14 @@
  */
 package org.hisp.dhis.parser.expression.function;
 
+import static com.google.common.base.MoreObjects.firstNonNull;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
+import static org.hisp.dhis.system.util.MathUtils.parseInt;
 
+import org.hisp.dhis.common.QueryModifiers;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ExpressionItem;
+import org.hisp.dhis.parser.expression.ExpressionState;
 
 /**
  * Function periodOffset
@@ -43,8 +47,16 @@ public class PeriodOffset
     @Override
     public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        int offset = ctx.period != null ? Integer.valueOf( ctx.period.getText() ) : 0;
+        ExpressionState state = visitor.getState();
 
-        return visitor.visitWithPeriodOffset( ctx.expr( 0 ), offset );
+        int existingPeriodOffset = (state.getQueryMods() == null) ? 0 : state.getQueryMods().getPeriodOffset();
+
+        int parsedPeriodOffset = (ctx.period == null) ? 0 : firstNonNull( parseInt( ctx.period.getText() ), 0 );
+
+        int periodOffset = existingPeriodOffset + parsedPeriodOffset;
+
+        QueryModifiers queryMods = state.getQueryModsBuilder().periodOffset( periodOffset ).build();
+
+        return visitor.visitWithQueryMods( ctx.expr( 0 ), queryMods );
     }
 }

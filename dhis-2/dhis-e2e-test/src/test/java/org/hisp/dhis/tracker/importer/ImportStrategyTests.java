@@ -32,6 +32,7 @@ import org.hamcrest.Matchers;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;
+import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.hisp.dhis.tracker.TrackerNtiApiTest;
@@ -73,9 +74,6 @@ public class ImportStrategyTests
             .readJsonAndGenerateData( new File( fileName ) );
 
         trackerActions.postAndGetJobReport( teiBody ).validateSuccessfulImport();
-
-        teiBody = new FileReaderUtils()
-            .readJsonAndGenerateData( new File( fileName ) );
 
         // act
         ApiResponse response = trackerActions
@@ -148,4 +146,33 @@ public class ImportStrategyTests
         trackerActions.get( "/events/" + eventId1 )
             .validate().statusCode( 404 );
     }
+
+    @Test
+    public void shouldDeleteWithOnlyIdInThePayload()
+        throws Exception
+    {
+        TrackerApiResponse response = super.importTeisWithEnrollmentAndEvent();
+
+        String eventId = response.extractImportedEvents().get( 0 );
+        String enrollmentId = response.extractImportedEnrollments().get( 0 );
+        String teiId = response.extractImportedTeis().get( 0 );
+
+        trackerActions
+            .postAndGetJobReport( new JsonObjectBuilder().addProperty( "enrollment", enrollmentId ).wrapIntoArray( "enrollments" ),
+                new QueryParamsBuilder().add( "importStrategy=DELETE" ) )
+            .validateSuccessfulImport()
+            .validate().body( "stats.deleted", Matchers.equalTo( 1 ) );
+
+        // todo uncomment these validations when DHIS2-12685 is fixed
+        /*
+        trackerActions.postAndGetJobReport( new JsonObjectBuilder().addProperty( "event", eventId ).wrapIntoArray("events"), new QueryParamsBuilder().add( "importStrategy=DELETE" ) )
+            .validateSuccessfulImport()
+            .validate().body( "stats.deleted", Matchers.equalTo( 1 ) );
+
+        trackerActions.postAndGetJobReport( new JsonObjectBuilder().addProperty( "trackedEntity", teiId ).wrapIntoArray("trackedEntities"), new QueryParamsBuilder().add( "importStrategy=DELETE" ) )
+            .validateSuccessfulImport()
+            .validate().body( "stats.deleted", Matchers.equalTo( 1 ) );
+         */
+    }
 }
+

@@ -28,7 +28,14 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.mapping;
+import static java.util.stream.Collectors.toList;
+import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 import static org.hisp.dhis.analytics.DataQueryParams.NUMERATOR_DENOMINATOR_PROPERTIES_COUNT;
+import static org.hisp.dhis.analytics.SortOrder.ASC;
+import static org.hisp.dhis.analytics.SortOrder.DESC;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.OU_GEOMETRY_COL_SUFFIX;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.OU_NAME_COL_SUFFIX;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
@@ -36,12 +43,24 @@ import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.DATE_PERIOD_STRUCT_
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ORG_UNIT_STRUCT_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
+import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
+import static org.hisp.dhis.common.DimensionItemType.PROGRAM_INDICATOR;
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
+import static org.hisp.dhis.common.QueryOperator.IN;
+import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.ENROLLMENT;
 import static org.hisp.dhis.system.util.MathUtils.getRounded;
 
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Collector;
+import java.util.stream.Stream;
 
+import lombok.Builder;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
@@ -51,18 +70,22 @@ import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.ProgramIndicatorSubqueryBuilder;
+import org.hisp.dhis.analytics.util.AnalyticsSqlUtils;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
-import org.hisp.dhis.common.DimensionItemType;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionType;
-import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.InQueryFilter;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryRuntimeException;
+import org.hisp.dhis.common.Reference;
+import org.hisp.dhis.common.RepeatableStageParams;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jdbc.StatementBuilder;
@@ -78,6 +101,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.util.Assert;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 
 /**
@@ -86,6 +111,8 @@ import com.google.common.collect.Lists;
 @Slf4j
 public abstract class AbstractJdbcEventAnalyticsManager
 {
+    private static final String LIMIT = "limit";
+
     protected static final String COL_COUNT = "count";
 
     protected static final String COL_EXTENT = "extent";
@@ -93,6 +120,14 @@ public abstract class AbstractJdbcEventAnalyticsManager
     protected static final int COORD_DEC = 6;
 
     protected static final int LAST_VALUE_YEARS_OFFSET = -10;
+
+    private static final String _AND_ = " and ";
+
+    private static final String _OR_ = " or ";
+
+    private static final Collector<CharSequence, ?, String> OR_JOINER = joining( _OR_, "(", ")" );
+
+    private static final Collector<CharSequence, ?, String> AND_JOINER = joining( _AND_ );
 
     protected final JdbcTemplate jdbcTemplate;
 
@@ -132,11 +167,13 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
         if ( params.isPaging() )
         {
-            sql += "limit " + params.getPageSizeWithDefault() + " offset " + params.getOffset();
+            int limit = params.isTotalPages() ? params.getPageSizeWithDefault()
+                : params.getPageSizeWithDefault() + 1;
+            sql += LIMIT + " " + limit + " offset " + params.getOffset();
         }
         else if ( maxLimit > 0 )
         {
-            sql += "limit " + (maxLimit + 1);
+            sql += LIMIT + " " + (maxLimit + 1);
         }
 
         return sql;
@@ -153,7 +190,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
         if ( params.isSorting() )
         {
-            sql += "order by " + getSortColumns( params, SortOrder.ASC ) + getSortColumns( params, SortOrder.DESC );
+            sql += "order by " + getSortColumns( params, ASC ) + getSortColumns( params, DESC );
 
             sql = TextUtils.removeLastComma( sql ) + " ";
         }
@@ -165,18 +202,33 @@ public abstract class AbstractJdbcEventAnalyticsManager
     {
         String sql = "";
 
-        for ( DimensionalItemObject item : order.equals( SortOrder.ASC ) ? params.getAsc() : params.getDesc() )
+        for ( QueryItem item : order == ASC ? params.getAsc() : params.getDesc() )
         {
-            if ( DimensionItemType.PROGRAM_INDICATOR.equals( item.getDimensionItemType() )
-                || DimensionItemType.DATA_ELEMENT.equals( item.getDimensionItemType() ) )
+            if ( item.getItem().getDimensionItemType() == PROGRAM_INDICATOR )
             {
-                sql += quote( item.getUid() );
+                sql += quote( item.getItem().getUid() );
+            }
+            else if ( item.getItem().getDimensionItemType() == DATA_ELEMENT )
+            {
+                if ( item.hasRepeatableStageParams() )
+                {
+                    sql += quote( item.getRepeatableStageParams().getDimension() );
+                }
+                else if ( item.getProgramStage() != null )
+                {
+                    sql += quote( item.getProgramStage().getUid() + "." + item.getItem().getUid() );
+                }
+                else
+                {
+                    sql += quote( item.getItem().getUid() );
+                }
             }
             else
             {
-                sql += quoteAlias( item.getUid() );
+                sql += quoteAlias( item.getItem().getUid() );
             }
-            sql += order.equals( SortOrder.ASC ) ? " asc," : " desc,";
+
+            sql += order == ASC ? " asc," : " desc,";
         }
 
         return sql;
@@ -295,15 +347,36 @@ public abstract class AbstractJdbcEventAnalyticsManager
             }
             else if ( queryItem.getValueType() == ValueType.NUMBER && !isGroupByClause )
             {
-                columns.add( "coalesce(" + getColumn( queryItem ) + ", 'NaN') as " + queryItem.getItemName() );
+                ColumnAndAlias columnAndAlias = getColumnAndAlias( queryItem, false, queryItem.getItemName() );
+                columns.add( "coalesce(" + columnAndAlias.getColumn() + ", double precision 'NaN') as "
+                    + columnAndAlias.getAlias() );
             }
             else
             {
-                columns.add( getColumn( queryItem ) );
+                ColumnAndAlias columnAndAlias = getColumnAndAlias( queryItem, isGroupByClause, "" );
+                columns.add( columnAndAlias.asSql() );
             }
         }
 
         return columns;
+    }
+
+    private ColumnAndAlias getColumnAndAlias( QueryItem queryItem, boolean isGroupByClause, String aliasIfMissing )
+    {
+        String column = getColumn( queryItem );
+        if ( !isGroupByClause )
+        {
+            return ColumnAndAlias.ofColumnAndAlias(
+                column,
+                Optional.of( queryItem )
+                    .filter( QueryItem::hasProgramStage )
+                    .filter( QueryItem::hasRepeatableStageParams )
+                    .map( QueryItem::getRepeatableStageParams )
+                    .map( RepeatableStageParams::getDimension )
+                    .map( AnalyticsSqlUtils::quote )
+                    .orElse( aliasIfMissing ) );
+        }
+        return ColumnAndAlias.ofColumn( column );
     }
 
     public Grid getAggregatedEventData( EventQueryParams params, Grid grid, int maxLimit )
@@ -347,11 +420,11 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
         if ( params.hasLimit() )
         {
-            sql += "limit " + params.getLimit();
+            sql += LIMIT + " " + params.getLimit();
         }
         else if ( maxLimit > 0 )
         {
-            sql += "limit " + (maxLimit + 1);
+            sql += LIMIT + " " + (maxLimit + 1);
         }
 
         // ---------------------------------------------------------------------
@@ -362,7 +435,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
         {
             if ( params.analyzeOnly() )
             {
-                executionPlanStore.addExecutionPlan( params.getAnalyzeOrderId(), sql );
+                executionPlanStore.addExecutionPlan( params.getExplainOrderId(), sql );
             }
             else
             {
@@ -732,9 +805,198 @@ public abstract class AbstractJdbcEventAnalyticsManager
                 grid.addValue( params.isSkipRounding() ? val : MathUtils.getRounded( val ) );
             }
         }
+        else if ( header.getValueType() == ValueType.REFERENCE )
+        {
+            String json = sqlRowSet.getString( index );
+
+            ObjectMapper mapper = new ObjectMapper();
+
+            try
+            {
+                JsonNode jsonNode = mapper.readTree( json );
+
+                String uid = UUID.randomUUID().toString();
+
+                Reference referenceNode = new Reference( uid, jsonNode );
+
+                grid.addValue( uid );
+
+                grid.addReference( referenceNode );
+            }
+            catch ( Exception e )
+            {
+                grid.addValue( json );
+            }
+        }
         else
         {
-            grid.addValue( sqlRowSet.getString( index ) );
+            grid.addValue( StringUtils.trimToNull( sqlRowSet.getString( index ) ) );
+        }
+    }
+
+    /**
+     * Return SQL string bnased on Items a its params
+     *
+     * @param params a {@see EventQueryParams}
+     * @param hlp a {@see SqlHelper}
+     */
+    protected String getItemsSql( EventQueryParams params, SqlHelper hlp )
+    {
+        if ( params.isEnhancedCondition() )
+        {
+            return getItemsSqlForEnhancedConditions( params, hlp );
+        }
+
+        // Creates a map grouping queryItems referring to repeatable stages and
+        // those referring to non-repeatable stages
+        // Only for enrollments, for events all query items are treated as
+        // non-repeatable
+        Map<Boolean, List<QueryItem>> itemsByRepeatableFlag = params.getItems()
+            .stream()
+            .filter( QueryItem::hasFilter )
+            .collect( groupingBy(
+                queryItem -> queryItem.hasRepeatableStageParams() && params.getEndpointItem() == ENROLLMENT ) );
+
+        // groups repeatable conditions based on PSID+DEID
+        Map<String, List<String>> repeatableConditionsByIdentifier = asSqlCollection( itemsByRepeatableFlag.get( true ),
+            params )
+                .collect( groupingBy(
+                    IdentifiableSql::getIdentifier,
+                    mapping( IdentifiableSql::getSql, toList() ) ) );
+
+        // joins each group with OR
+        Collection<String> orConditions = repeatableConditionsByIdentifier.values()
+            .stream()
+            .map( sameGroup -> joinSql( sameGroup, OR_JOINER ) )
+            .collect( toList() );
+
+        // non repeatable conditions
+        Collection<String> andConditions = asSqlCollection( itemsByRepeatableFlag.get( false ), params )
+            .map( IdentifiableSql::getSql )
+            .collect( toList() );
+
+        if ( orConditions.isEmpty() && andConditions.isEmpty() )
+        {
+            return "";
+        }
+
+        return hlp.whereAnd() + " " + joinSql( Stream.concat(
+            orConditions.stream(),
+            andConditions.stream() ), AND_JOINER );
+
+    }
+
+    /**
+     * joins a stream of conditions using given join function, returns empty
+     * string if collection is empty
+     */
+    private String joinSql( Stream<String> conditions, Collector<CharSequence, ?, String> joiner )
+    {
+        return joinSql( conditions.collect( toList() ), joiner );
+    }
+
+    private String getItemsSqlForEnhancedConditions( EventQueryParams params, SqlHelper hlp )
+    {
+        Map<UUID, String> sqlConditionByGroup = params.getItems()
+            .stream()
+            .filter( QueryItem::hasFilter )
+            .collect(
+                groupingBy( QueryItem::getGroupUUID, mapping( queryItem -> toSql( queryItem, params ), OR_JOINER ) ) );
+
+        if ( sqlConditionByGroup.values().isEmpty() )
+        {
+            return "";
+        }
+        return hlp.whereAnd() + " " + String.join( _AND_, sqlConditionByGroup.values() );
+    }
+
+    /**
+     * joins a collection of conditions using given join function, returns empty
+     * string if collection is empty
+     */
+    private String joinSql( Collection<String> conditions, Collector<CharSequence, ?, String> joiner )
+    {
+        if ( !conditions.isEmpty() )
+        {
+            return conditions.stream().collect( joiner );
+        }
+        return "";
+    }
+
+    /**
+     * Returns a collection of IdentifiableSql, each representing SQL for given
+     * queryItems together with its identifier
+     */
+    private Stream<IdentifiableSql> asSqlCollection( List<QueryItem> queryItems, EventQueryParams params )
+    {
+        return emptyIfNull( queryItems )
+            .stream()
+            .map( queryItem -> toIdentifiableSql( queryItem, params ) );
+    }
+
+    /**
+     * Converts given queryItem into IdentifiableSql joining its filters using
+     * AND
+     */
+    private IdentifiableSql toIdentifiableSql( QueryItem queryItem, EventQueryParams params )
+    {
+        return IdentifiableSql.builder()
+            .identifier( getIdentifier( queryItem ) )
+            .sql( toSql( queryItem, params ) )
+            .build();
+    }
+
+    /**
+     * Converts given queryItem into sql joining its filters using AND
+     */
+    private String toSql( QueryItem queryItem, EventQueryParams params )
+    {
+        return queryItem.getFilters().stream()
+            .map( filter -> toSql( queryItem, filter, params ) )
+            .collect( joining( _AND_ ) );
+    }
+
+    /**
+     * returns PSID.ITEM_ID of given queryItem
+     */
+    private String getIdentifier( QueryItem queryItem )
+    {
+        String programStageId = Optional.of( queryItem )
+            .map( QueryItem::getProgramStage )
+            .map( BaseIdentifiableObject::getUid )
+            .orElse( "" );
+        return programStageId + queryItem.getItem().getUid();
+    }
+
+    @Getter
+    @Builder
+    /*
+     * Class to hold sql together with its identifier
+     */
+    private static class IdentifiableSql
+    {
+        private final String identifier;
+
+        private final String sql;
+    }
+
+    /**
+     * Produces SQL for a single filter inside a queryItem
+     */
+    private String toSql( QueryItem item, QueryFilter filter, EventQueryParams params )
+    {
+        String field = getSelectSql( filter, item, params.getEarliestStartDate(),
+            params.getLatestEndDate() );
+
+        if ( IN.equals( filter.getOperator() ) )
+        {
+            InQueryFilter inQueryFilter = new InQueryFilter( field,
+                statementBuilder.encode( filter.getFilter(), false ), item.isText() );
+            return inQueryFilter.getSqlFilter();
+        }
+        else
+        {
+            return field + " " + filter.getSqlOperator() + " " + getSqlFilter( filter, item ) + " ";
         }
     }
 

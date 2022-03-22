@@ -41,7 +41,7 @@ import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.schema.descriptors.UserRoleSchemaDescriptor;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAuthorityGroup;
+import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
@@ -61,17 +61,17 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @Controller
 @RequestMapping( value = UserRoleSchemaDescriptor.API_ENDPOINT )
 public class UserRoleController
-    extends AbstractCrudController<UserAuthorityGroup>
+    extends AbstractCrudController<UserRole>
 {
     @Autowired
     private UserService userService;
 
     @Override
-    protected List<UserAuthorityGroup> getEntityList( WebMetadata metadata, WebOptions options, List<String> filters,
+    protected List<UserRole> getEntityList( WebMetadata metadata, WebOptions options, List<String> filters,
         List<Order> orders )
         throws QueryParserException
     {
-        List<UserAuthorityGroup> entityList = super.getEntityList( metadata, options, filters, orders );
+        List<UserRole> entityList = super.getEntityList( metadata, options, filters, orders );
 
         if ( options.getOptions().containsKey( "canIssue" )
             && Boolean.parseBoolean( options.getOptions().get( "canIssue" ) ) )
@@ -88,9 +88,9 @@ public class UserRoleController
         @CurrentUser User currentUser, HttpServletResponse response )
         throws WebMessageException
     {
-        UserAuthorityGroup userAuthorityGroup = userService.getUserAuthorityGroup( pvId );
+        UserRole userRole = userService.getUserRole( pvId );
 
-        if ( userAuthorityGroup == null )
+        if ( userRole == null )
         {
             throw new WebMessageException( notFound( "UserRole does not exist: " + pvId ) );
         }
@@ -102,15 +102,15 @@ public class UserRoleController
             throw new WebMessageException( notFound( "User does not exist: " + pvId ) );
         }
 
-        if ( !aclService.canUpdate( currentUser, userAuthorityGroup ) )
+        if ( !aclService.canUpdate( currentUser, userRole ) )
         {
             throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
         }
 
-        if ( !user.getUserCredentials().getUserAuthorityGroups().contains( userAuthorityGroup ) )
+        if ( !user.getUserRoles().contains( userRole ) )
         {
-            user.getUserCredentials().getUserAuthorityGroups().add( userAuthorityGroup );
-            userService.updateUserCredentials( user.getUserCredentials() );
+            user.getUserRoles().add( userRole );
+            userService.updateUser( user );
         }
     }
 
@@ -120,29 +120,29 @@ public class UserRoleController
         @PathVariable( "userId" ) String pvUserId, @CurrentUser User currentUser, HttpServletResponse response )
         throws WebMessageException
     {
-        UserAuthorityGroup userAuthorityGroup = userService.getUserAuthorityGroup( pvId );
+        UserRole userRole = userService.getUserRole( pvId );
 
-        if ( userAuthorityGroup == null )
+        if ( userRole == null )
         {
             throw new WebMessageException( notFound( "UserRole does not exist: " + pvId ) );
         }
 
         User user = userService.getUser( pvUserId );
 
-        if ( user == null || user.getUserCredentials() == null )
+        if ( user == null )
         {
             throw new WebMessageException( notFound( "User does not exist: " + pvId ) );
         }
 
-        if ( !aclService.canUpdate( currentUser, userAuthorityGroup ) )
+        if ( !aclService.canUpdate( currentUser, userRole ) )
         {
             throw new DeleteAccessDeniedException( "You don't have the proper permissions to delete this object." );
         }
 
-        if ( user.getUserCredentials().getUserAuthorityGroups().contains( userAuthorityGroup ) )
+        if ( user.getUserRoles().contains( userRole ) )
         {
-            user.getUserCredentials().getUserAuthorityGroups().remove( userAuthorityGroup );
-            userService.updateUserCredentials( user.getUserCredentials() );
+            user.getUserRoles().remove( userRole );
+            userService.updateUser( user );
         }
     }
 }

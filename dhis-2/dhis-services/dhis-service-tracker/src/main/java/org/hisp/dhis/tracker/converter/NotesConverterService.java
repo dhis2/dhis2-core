@@ -31,12 +31,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.tracker.domain.Note;
+import org.hisp.dhis.tracker.domain.User;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 
@@ -53,6 +51,12 @@ public class NotesConverterService implements TrackerConverterService<Note, Trac
         note.setNote( trackedEntityComment.getUid() );
         note.setValue( trackedEntityComment.getCommentText() );
         note.setStoredAt( DateUtils.instantFromDate( trackedEntityComment.getCreated() ) );
+        note.setCreatedBy( User.builder()
+            .username( trackedEntityComment.getLastUpdatedBy().getUsername() )
+            .uid( trackedEntityComment.getLastUpdatedBy().getUid() )
+            .firstName( trackedEntityComment.getLastUpdatedBy().getFirstName() )
+            .surname( trackedEntityComment.getLastUpdatedBy().getSurname() )
+            .build() );
         note.setStoredBy( trackedEntityComment.getCreator() );
         return note;
     }
@@ -72,9 +76,9 @@ public class NotesConverterService implements TrackerConverterService<Note, Trac
         comment.setCommentText( note.getValue() );
 
         comment.setLastUpdatedBy( preheat.getUser() );
+        comment.setCreated( new Date() );
         comment.setLastUpdated( new Date() );
-        comment.setCreator( getValidUsername( note.getStoredBy(), preheat.getUser() ) );
-
+        comment.setCreator( note.getStoredBy() );
         return comment;
     }
 
@@ -82,21 +86,5 @@ public class NotesConverterService implements TrackerConverterService<Note, Trac
     public List<TrackedEntityComment> from( TrackerPreheat preheat, List<Note> notes )
     {
         return notes.stream().map( n -> from( preheat, n ) ).collect( Collectors.toList() );
-    }
-
-    public static String getValidUsername( String userName, User currentUser )
-    {
-        String validUsername = userName;
-
-        if ( StringUtils.isEmpty( validUsername ) )
-        {
-            validUsername = User.getSafeUsername( currentUser.getUsername() );
-        }
-        else if ( validUsername.length() > UserCredentials.USERNAME_MAX_LENGTH )
-        {
-            validUsername = User.getSafeUsername( currentUser.getUsername() );
-        }
-
-        return validUsername;
     }
 }

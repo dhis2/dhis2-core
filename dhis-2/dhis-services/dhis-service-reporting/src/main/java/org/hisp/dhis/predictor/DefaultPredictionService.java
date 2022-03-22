@@ -32,19 +32,15 @@ import static org.hisp.dhis.common.OrganisationUnitDescendants.DESCENDANTS;
 import static org.hisp.dhis.expression.MissingValueStrategy.NEVER_SKIP;
 import static org.hisp.dhis.expression.ParseType.PREDICTOR_EXPRESSION;
 import static org.hisp.dhis.expression.ParseType.PREDICTOR_SKIP_TEST;
-import static org.hisp.dhis.parser.expression.ParserUtils.DEFAULT_SAMPLE_PERIODS;
 import static org.hisp.dhis.predictor.PredictionFormatter.formatPrediction;
 import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
 
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -62,17 +58,15 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.common.MapMap;
 import org.hisp.dhis.commons.util.DebugUtils;
-import org.hisp.dhis.constant.Constant;
-import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.expression.Expression;
+import org.hisp.dhis.expression.ExpressionInfo;
+import org.hisp.dhis.expression.ExpressionParams;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
@@ -105,8 +99,6 @@ public class DefaultPredictionService
 {
     private final PredictorService predictorService;
 
-    private final ConstantService constantService;
-
     private final ExpressionService expressionService;
 
     private final DataValueService dataValueService;
@@ -114,8 +106,6 @@ public class DefaultPredictionService
     private final CategoryService categoryService;
 
     private final OrganisationUnitService organisationUnitService;
-
-    private final OrganisationUnitGroupService organisationUnitGroupService;
 
     private final PeriodService periodService;
 
@@ -164,7 +154,7 @@ public class DefaultPredictionService
         {
             notifier.notify( jobId, NotificationLevel.INFO, "Making predictions", false );
 
-            predictionSummary = predictInternal( startDate, endDate, predictors, predictorGroups );
+            predictionSummary = predictAll( startDate, endDate, predictors, predictorGroups );
 
             notifier.update( jobId, NotificationLevel.INFO, "Prediction done", true )
                 .addJobSummary( jobId, predictionSummary, PredictionSummary.class );
@@ -182,7 +172,8 @@ public class DefaultPredictionService
         return predictionSummary;
     }
 
-    private PredictionSummary predictInternal( Date startDate, Date endDate, List<String> predictors,
+    @Override
+    public PredictionSummary predictAll( Date startDate, Date endDate, List<String> predictors,
         List<String> predictorGroups )
     {
         List<Predictor> predictorList = new ArrayList<>();
@@ -234,35 +225,15 @@ public class DefaultPredictionService
         DataElement outputDataElement = predictor.getOutput();
         DataType expressionDataType = DataType.fromValueType( outputDataElement.getValueType() );
 
-        Map<DimensionalItemId, DimensionalItemObject> outputPeriodItemMap = new HashMap<>();
-        Map<DimensionalItemId, DimensionalItemObject> sampledItemMap = new HashMap<>();
-        expressionService.getExpressionDimensionalItemMaps( generator.getExpression(),
-            PREDICTOR_EXPRESSION, expressionDataType, outputPeriodItemMap, sampledItemMap );
-        Set<String> orgUnitGroupIds = expressionService.getExpressionOrgUnitGroupIds( generator.getExpression(),
-            PREDICTOR_EXPRESSION );
-        if ( skipTest != null )
-        {
-            expressionService.getExpressionDimensionalItemMaps( skipTest.getExpression(),
-                PREDICTOR_SKIP_TEST, DataType.BOOLEAN, sampledItemMap, sampledItemMap );
-            orgUnitGroupIds.addAll( expressionService.getExpressionOrgUnitGroupIds(
-                skipTest.getExpression(), PREDICTOR_SKIP_TEST ) );
-        }
-        Map<String, OrganisationUnitGroup> orgUnitGroupMap = orgUnitGroupIds.stream()
-            .map( organisationUnitGroupService::getOrganisationUnitGroup )
-            .filter( Objects::nonNull )
-            .collect( Collectors.toMap( OrganisationUnitGroup::getUid, g -> g ) );
-        Map<DimensionalItemId, DimensionalItemObject> itemMap = new HashMap<>( outputPeriodItemMap );
-        itemMap.putAll( sampledItemMap );
-        Set<DimensionalItemObject> outputPeriodItems = new HashSet<>( outputPeriodItemMap.values() );
-        Set<DimensionalItemObject> sampledItems = new HashSet<>( sampledItemMap.values() );
-        Set<DimensionalItemObject> items = new HashSet<>( itemMap.values() );
-        Map<String, Constant> constantMap = constantService.getConstantMap();
+        ExpressionInfo exInfo = new ExpressionInfo();
+        ExpressionParams baseExParams = getBaseExParams( predictor, exInfo );
+
+        Set<DimensionalItemObject> items = new HashSet<>( baseExParams.getItemMap().values() );
         List<Period> outputPeriods = getPeriodsBetweenDates( predictor.getPeriodType(), startDate, endDate );
         Set<Period> existingOutputPeriods = getExistingPeriods( outputPeriods );
         ListMap<Period, Period> samplePeriodsMap = getSamplePeriodsMap( outputPeriods, predictor );
         Set<Period> allSamplePeriods = samplePeriodsMap.uniqueValues();
-        Set<Period> analyticsQueryPeriods = getAnalyticsQueryPeriods( sampledItems, allSamplePeriods,
-            outputPeriodItems, existingOutputPeriods );
+        Set<Period> analyticsQueryPeriods = getAnalyticsQueryPeriods( exInfo, allSamplePeriods, existingOutputPeriods );
         Set<Period> dataValueQueryPeriods = getDataValueQueryPeriods( analyticsQueryPeriods, existingOutputPeriods );
         outputPeriods = periodService.reloadPeriods( outputPeriods );
         CategoryOptionCombo defaultCategoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();
@@ -270,19 +241,16 @@ public class DefaultPredictionService
             ? defaultCategoryOptionCombo
             : predictor.getOutputCombo();
         DataElementOperand outputDataElementOperand = new DataElementOperand( outputDataElement, outputOptionCombo );
-        Date now = new Date();
 
         boolean requireData = generator.getMissingValueStrategy() != NEVER_SKIP && (!items.isEmpty());
-        DimensionalItemObject forwardReference = addOuputToItems( outputDataElementOperand, items );
+        DimensionalItemObject forwardReference = addOutputToItems( outputDataElementOperand, items );
 
         Set<OrganisationUnit> currentUserOrgUnits = new HashSet<>();
-        String storedBy = "system-process";
         User currentUser = currentUserService.getCurrentUser();
 
         if ( currentUser != null )
         {
             currentUserOrgUnits = currentUser.getOrganisationUnits();
-            storedBy = currentUser.getUsername();
         }
 
         PredictionDataConsolidator consolidator = new PredictionDataConsolidator( items,
@@ -317,35 +285,31 @@ public class DefaultPredictionService
                 {
                     List<Period> samplePeriods = new ArrayList<>( samplePeriodsMap.get( c.getOutputPeriod() ) );
 
-                    samplePeriods.removeAll( getSkippedPeriods( allSamplePeriods, itemMap, c.getPeriodValueMap(),
-                        skipTest, constantMap, orgUnitGroupMap, data.getOrgUnit() ) );
+                    samplePeriods.removeAll( getSkippedPeriods( allSamplePeriods, baseExParams, c.getPeriodValueMap(),
+                        skipTest, data.getOrgUnit() ) );
 
-                    if ( requireData && !dataIsPresent( outputPeriodItems, c.getValueMap(), sampledItems,
-                        samplePeriods, c.getPeriodValueMap() ) )
+                    if ( !isEvaluationRequired( requireData, exInfo, samplePeriods, c.getValueMap(),
+                        c.getPeriodValueMap(), baseExParams.getItemMap() ) )
                     {
                         continue;
                     }
 
-                    Object value = expressionService.getExpressionValue( predictor.getGenerator().getExpression(),
-                        PREDICTOR_EXPRESSION, itemMap, c.getValueMap(), constantMap, null, orgUnitGroupMap,
-                        c.getOutputPeriod().getDaysInPeriod(), generator.getMissingValueStrategy(), data.getOrgUnit(),
-                        samplePeriods, c.getPeriodValueMap(), expressionDataType );
+                    Object value = expressionService.getExpressionValue( baseExParams.toBuilder()
+                        .expression( predictor.getGenerator().getExpression() )
+                        .parseType( PREDICTOR_EXPRESSION )
+                        .dataType( expressionDataType )
+                        .valueMap( c.getValueMap() )
+                        .days( c.getOutputPeriod().getDaysInPeriod() )
+                        .missingValueStrategy( generator.getMissingValueStrategy() )
+                        .orgUnit( data.getOrgUnit() )
+                        .samplePeriods( samplePeriods )
+                        .periodValueMap( c.getPeriodValueMap() )
+                        .build() );
 
-                    if ( value != null || generator.getMissingValueStrategy() == NEVER_SKIP )
-                    {
-                        String valueString = formatPrediction( value, outputDataElement );
+                    DataValue prediction = processPrediction( predictor, c, value, currentUser, outputOptionCombo,
+                        data.getOrgUnit() );
 
-                        if ( valueString != null )
-                        {
-                            DataValue prediction = new DataValue( outputDataElement,
-                                c.getOutputPeriod(), data.getOrgUnit(), outputOptionCombo,
-                                c.getAttributeOptionCombo(), valueString, storedBy, now, null );
-
-                            carryPredictionForward( prediction, contexts, forwardReference );
-
-                            predictions.add( prediction );
-                        }
-                    }
+                    rememberPredictedValue( prediction, predictions, contexts, forwardReference );
                 }
 
                 predictionWriter.write( predictions, data.getOldPredictions() );
@@ -359,23 +323,80 @@ public class DefaultPredictionService
     // Supportive Methods
     // -------------------------------------------------------------------------
 
+    private DataValue processPrediction( Predictor predictor, PredictionContext c, Object value, User currentUser,
+        CategoryOptionCombo outputOptionCombo, OrganisationUnit orgUnit )
+    {
+        DataValue prediction = null;
+
+        if ( value != null || predictor.getGenerator().getMissingValueStrategy() == NEVER_SKIP )
+        {
+            String valueString = formatPrediction( value, predictor.getOutput() );
+
+            if ( valueString != null )
+            {
+                String storedBy = currentUser == null ? "system-process" : currentUser.getUsername();
+
+                prediction = new DataValue( predictor.getOutput(),
+                    c.getOutputPeriod(), orgUnit, outputOptionCombo,
+                    c.getAttributeOptionCombo(), valueString, storedBy, new Date(), null );
+            }
+        }
+
+        return prediction;
+    }
+
+    private ExpressionParams getBaseExParams( Predictor predictor, ExpressionInfo expressionInfo )
+    {
+        DataType expressionDataType = DataType.fromValueType( predictor.getOutput().getValueType() );
+
+        ExpressionInfo info = expressionService.getExpressionInfo( ExpressionParams.builder()
+            .expression( predictor.getGenerator().getExpression() )
+            .parseType( PREDICTOR_EXPRESSION )
+            .dataType( expressionDataType )
+            .expressionInfo( expressionInfo )
+            .build() );
+
+        if ( predictor.getSampleSkipTest() != null )
+        {
+            addSampleSkipTestToExInfo( info, predictor.getSampleSkipTest().getExpression() );
+        }
+
+        return expressionService.getBaseExpressionParams( info );
+    }
+
+    private void addSampleSkipTestToExInfo( ExpressionInfo exInfo, String skipTestExpression )
+    {
+        Set<DimensionalItemId> savedItemIds = exInfo.getAllItemIds();
+
+        exInfo.setItemIds( new HashSet<>() );
+
+        expressionService.getExpressionInfo( ExpressionParams.builder()
+            .expression( skipTestExpression )
+            .parseType( PREDICTOR_SKIP_TEST )
+            .expressionInfo( exInfo )
+            .build() );
+
+        exInfo.getSampleItemIds().addAll( exInfo.getItemIds() );
+
+        exInfo.setItemIds( savedItemIds );
+    }
+
     /**
      * Returns any existing periods to be used for querying analytics items (if
      * there are any). Includes sample periods if there are any sample items,
      * and includes output periods if there are any output items.
      */
-    private Set<Period> getAnalyticsQueryPeriods(
-        Set<DimensionalItemObject> sampleItems, Set<Period> allSamplePeriods,
-        Set<DimensionalItemObject> outputPeriodItems, Set<Period> existingOutputPeriods )
+    private Set<Period> getAnalyticsQueryPeriods( ExpressionInfo exInfo, Set<Period> allSamplePeriods,
+        Set<Period> existingOutputPeriods )
     {
         Set<Period> analyticsQueryPeriods = new HashSet<>();
 
-        if ( !sampleItems.isEmpty() )
+        if ( !exInfo.getSampleItemIds().isEmpty() )
         {
             analyticsQueryPeriods.addAll( getExistingPeriods( new ArrayList<>( allSamplePeriods ) ) );
         }
 
-        if ( !outputPeriodItems.isEmpty() )
+        if ( !exInfo.getItemIds().isEmpty() )
         {
             analyticsQueryPeriods.addAll( existingOutputPeriods );
         }
@@ -397,10 +418,8 @@ public class DefaultPredictionService
     /**
      * Finds sample periods that should be skipped based on the skip test.
      */
-    private Set<Period> getSkippedPeriods( Set<Period> allSamplePeriods,
-        Map<DimensionalItemId, DimensionalItemObject> itemMap, MapMap<Period, DimensionalItemObject, Object> aocData,
-        Expression skipTest, Map<String, Constant> constantMap, Map<String, OrganisationUnitGroup> orgUnitGroupMap,
-        OrganisationUnit orgUnit )
+    private Set<Period> getSkippedPeriods( Set<Period> allSamplePeriods, ExpressionParams baseExParams,
+        MapMap<Period, DimensionalItemObject, Object> aocData, Expression skipTest, OrganisationUnit orgUnit )
     {
         Set<Period> skippedPeriods = new HashSet<>();
 
@@ -411,11 +430,15 @@ public class DefaultPredictionService
 
         for ( Period p : allSamplePeriods )
         {
-            if ( aocData.get( p ) != null
-                && Boolean.TRUE == expressionService.getExpressionValue( skipTest.getExpression(),
-                    PREDICTOR_SKIP_TEST, itemMap, aocData.get( p ), constantMap, null, orgUnitGroupMap,
-                    p.getDaysInPeriod(), skipTest.getMissingValueStrategy(), orgUnit,
-                    DEFAULT_SAMPLE_PERIODS, new MapMap<>(), DataType.BOOLEAN ) )
+            if ( aocData.get( p ) != null &&
+                (Boolean) expressionService.getExpressionValue( baseExParams.toBuilder()
+                    .expression( skipTest.getExpression() )
+                    .parseType( PREDICTOR_SKIP_TEST )
+                    .valueMap( aocData.get( p ) )
+                    .days( p.getDaysInPeriod() )
+                    .missingValueStrategy( skipTest.getMissingValueStrategy() )
+                    .orgUnit( orgUnit )
+                    .build() ) )
             {
                 skippedPeriods.add( p );
             }
@@ -532,7 +555,7 @@ public class DefaultPredictionService
      * but would break if the expression assumes a sum of catOptionCombos
      * including the predicted value and other catOptionCombos.
      */
-    private DimensionalItemObject addOuputToItems( DataElementOperand outputDataElementOperand,
+    private DimensionalItemObject addOutputToItems( DataElementOperand outputDataElementOperand,
         Set<DimensionalItemObject> sampleItems )
     {
         DimensionalItemObject forwardReference = null;
@@ -556,12 +579,21 @@ public class DefaultPredictionService
     }
 
     /**
+     * Remember the prediction for writing out.
+     * <p>
      * If the predicted value might be used in a future period prediction,
      * insert it into any future context data.
      */
-    private void carryPredictionForward( DataValue prediction, List<PredictionContext> contexts,
-        DimensionalItemObject forwardReference )
+    private void rememberPredictedValue( DataValue prediction, List<DataValue> predictions,
+        List<PredictionContext> contexts, DimensionalItemObject forwardReference )
     {
+        if ( prediction == null )
+        {
+            return;
+        }
+
+        predictions.add( prediction );
+
         if ( forwardReference == null )
         {
             return;
@@ -582,16 +614,17 @@ public class DefaultPredictionService
     }
 
     /**
-     * Returns true if there is data to be used for a prediction in this period.
+     * Returns true if we are required to evaluate for a prediction. This
+     * happens if data is required for a prediction, or if data is present.
+     * <p>
      * This allows us to save time by evaluating an expression only if there is
      * data. (Expression evaluation can take a non-trivial amount of time.)
      */
-    private boolean dataIsPresent( Set<DimensionalItemObject> outputPeriodItems,
-        Map<DimensionalItemObject, Object> valueMap,
-        Set<DimensionalItemObject> sampledItems, List<Period> samplePeriods,
-        MapMap<Period, DimensionalItemObject, Object> periodValueMap )
+    private boolean isEvaluationRequired( boolean requireData, ExpressionInfo exInfo, List<Period> samplePeriods,
+        Map<DimensionalItemObject, Object> valueMap, MapMap<Period, DimensionalItemObject, Object> periodValueMap,
+        Map<DimensionalItemId, DimensionalItemObject> itemMap )
     {
-        if ( presentIn( outputPeriodItems, valueMap ) )
+        if ( !requireData || presentIn( exInfo.getItemIds(), itemMap, valueMap ) )
         {
             return true;
         }
@@ -600,7 +633,7 @@ public class DefaultPredictionService
         {
             Map<DimensionalItemObject, Object> pValueMap = periodValueMap.get( p );
 
-            if ( pValueMap != null && presentIn( sampledItems, pValueMap ) )
+            if ( pValueMap != null && presentIn( exInfo.getSampleItemIds(), itemMap, pValueMap ) )
             {
                 return true;
             }
@@ -612,8 +645,16 @@ public class DefaultPredictionService
     /**
      * Returns true if any items are present in the value map.
      */
-    private boolean presentIn( Set<DimensionalItemObject> items, Map<DimensionalItemObject, Object> valueMap )
+    private boolean presentIn( Set<DimensionalItemId> items, Map<DimensionalItemId, DimensionalItemObject> itemMap,
+        Map<DimensionalItemObject, Object> valueMap )
     {
-        return !Sets.intersection( items, valueMap.keySet() ).isEmpty();
+        for ( DimensionalItemId item : items )
+        {
+            if ( valueMap.keySet().contains( itemMap.get( item ) ) )
+            {
+                return true;
+            }
+        }
+        return false;
     }
 }

@@ -72,6 +72,7 @@ import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.datavalue.DataValueStore;
 import org.hisp.dhis.expression.Expression;
+import org.hisp.dhis.expression.ExpressionParams;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -84,6 +85,8 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.WeeklyPeriodType;
 import org.hisp.dhis.period.YearlyPeriodType;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.CurrentUserServiceTarget;
@@ -121,6 +124,9 @@ class ValidationServiceTest extends DhisTest
 
     @Autowired
     private DataSetService dataSetService;
+
+    @Autowired
+    private ProgramService programService;
 
     @Autowired
     private DataValueService dataValueService;
@@ -331,6 +337,14 @@ class ValidationServiceTest extends DhisTest
         dataSetWeekly = createDataSet( 'W', ptWeekly );
         dataSetMonthly = createDataSet( 'M', ptMonthly );
         dataSetYearly = createDataSet( 'Y', ptYearly );
+        // OrgUnit hierarchy levels:
+        // 1 - 2 - 3
+        // A
+        // B - C
+        // B - D
+        // B - D - E
+        // B - D - F
+        // G
         sourceA = createOrganisationUnit( 'A' );
         sourceB = createOrganisationUnit( 'B' );
         sourceC = createOrganisationUnit( 'C', sourceB );
@@ -513,7 +527,8 @@ class ValidationServiceTest extends DhisTest
             {
                 String test = result.getLeftsideValue()
                     + result.getValidationRule().getOperator().getMathematicalOperator() + result.getRightsideValue();
-                assertFalse( (Boolean) expressionService.getExpressionValue( test, SIMPLE_TEST ) );
+                assertFalse( (Boolean) expressionService.getExpressionValue( ExpressionParams.builder()
+                    .expression( test ).parseType( SIMPLE_TEST ).build() ) );
             }
         }
     }
@@ -1290,6 +1305,98 @@ class ValidationServiceTest extends DhisTest
         validationRuleService.saveValidationRule( rule );
         Collection<ValidationResult> results = validationService.validationAnalysis( validationService
             .newParamsBuilder( dataSetMonthly, sourceB, periodA ).withIncludeOrgUnitDescendants( true ).build() );
+        Collection<ValidationResult> reference = new HashSet<>();
+        reference.add( new ValidationResult( rule, periodA, sourceB, defaultCombo, 1.0, 30.0, dayInPeriodA ) );
+        reference.add( new ValidationResult( rule, periodA, sourceC, defaultCombo, 3.0, 30.0, dayInPeriodA ) );
+        reference.add( new ValidationResult( rule, periodA, sourceD, defaultCombo, 20.0, 6.0, dayInPeriodA ) );
+        reference.add( new ValidationResult( rule, periodA, sourceE, defaultCombo, 20.0, 8.0, dayInPeriodA ) );
+        reference.add( new ValidationResult( rule, periodA, sourceF, defaultCombo, 20.0, 10.0, dayInPeriodA ) );
+        assertResultsEquals( reference, results );
+    }
+
+    @Test
+    void testValidateOrgUnitDataSet()
+    {
+        useDataValue( dataElementA, periodA, sourceB, "1" );
+        useDataValue( dataElementA, periodA, sourceC, "3" );
+        useDataValue( dataElementA, periodA, sourceD, "5" );
+        useDataValue( dataElementA, periodA, sourceE, "7" );
+        useDataValue( dataElementA, periodA, sourceF, "9" );
+        useDataValue( dataElementB, periodA, sourceB, "2" );
+        useDataValue( dataElementB, periodA, sourceC, "4" );
+        useDataValue( dataElementB, periodA, sourceD, "6" );
+        useDataValue( dataElementB, periodA, sourceE, "8" );
+        useDataValue( dataElementB, periodA, sourceF, "10" );
+
+        DataSet dataSetA = createDataSet( 'A', ptMonthly );
+        DataSet dataSetB = createDataSet( 'B', ptMonthly );
+        DataSet dataSetC = createDataSet( 'C', ptMonthly );
+        dataSetA.addOrganisationUnit( sourceB );
+        dataSetA.addOrganisationUnit( sourceC );
+        dataSetB.addOrganisationUnit( sourceD );
+        dataSetB.addOrganisationUnit( sourceE );
+        dataSetC.addOrganisationUnit( sourceE );
+        dataSetC.addOrganisationUnit( sourceF );
+        dataSetService.addDataSet( dataSetA );
+        dataSetService.addDataSet( dataSetB );
+        dataSetService.addDataSet( dataSetC );
+
+        Expression expressionLeft = new Expression(
+            "if(orgUnit.dataSet( " + dataSetA.getUid() + " ), #{" + dataElementA.getUid() + "}, 20)", "left" );
+        Expression expressionRight = new Expression( "if(orgUnit.dataSet( " + dataSetB.getUid() + " , "
+            + dataSetC.getUid() + " ), #{" + dataElementB.getUid() + "}, 30)", "right" );
+        ValidationRule rule = createValidationRule( "R", equal_to, expressionLeft, expressionRight, ptMonthly );
+        validationRuleService.saveValidationRule( rule );
+
+        Collection<ValidationResult> results = validationService.validationAnalysis( validationService
+            .newParamsBuilder( dataSetMonthly, sourceB, periodA ).withIncludeOrgUnitDescendants( true ).build() );
+
+        Collection<ValidationResult> reference = new HashSet<>();
+        reference.add( new ValidationResult( rule, periodA, sourceB, defaultCombo, 1.0, 30.0, dayInPeriodA ) );
+        reference.add( new ValidationResult( rule, periodA, sourceC, defaultCombo, 3.0, 30.0, dayInPeriodA ) );
+        reference.add( new ValidationResult( rule, periodA, sourceD, defaultCombo, 20.0, 6.0, dayInPeriodA ) );
+        reference.add( new ValidationResult( rule, periodA, sourceE, defaultCombo, 20.0, 8.0, dayInPeriodA ) );
+        reference.add( new ValidationResult( rule, periodA, sourceF, defaultCombo, 20.0, 10.0, dayInPeriodA ) );
+        assertResultsEquals( reference, results );
+    }
+
+    @Test
+    void testValidateOrgUnitProgram()
+    {
+        useDataValue( dataElementA, periodA, sourceB, "1" );
+        useDataValue( dataElementA, periodA, sourceC, "3" );
+        useDataValue( dataElementA, periodA, sourceD, "5" );
+        useDataValue( dataElementA, periodA, sourceE, "7" );
+        useDataValue( dataElementA, periodA, sourceF, "9" );
+        useDataValue( dataElementB, periodA, sourceB, "2" );
+        useDataValue( dataElementB, periodA, sourceC, "4" );
+        useDataValue( dataElementB, periodA, sourceD, "6" );
+        useDataValue( dataElementB, periodA, sourceE, "8" );
+        useDataValue( dataElementB, periodA, sourceF, "10" );
+
+        Program programA = createProgram( 'A' );
+        Program programB = createProgram( 'B' );
+        Program programC = createProgram( 'C' );
+        programA.addOrganisationUnit( sourceB );
+        programA.addOrganisationUnit( sourceC );
+        programB.addOrganisationUnit( sourceD );
+        programB.addOrganisationUnit( sourceE );
+        programC.addOrganisationUnit( sourceE );
+        programC.addOrganisationUnit( sourceF );
+        programService.addProgram( programA );
+        programService.addProgram( programB );
+        programService.addProgram( programC );
+
+        Expression expressionLeft = new Expression(
+            "if(orgUnit.program( " + programA.getUid() + " ), #{" + dataElementA.getUid() + "}, 20)", "left" );
+        Expression expressionRight = new Expression( "if(orgUnit.program( " + programB.getUid() + " , "
+            + programC.getUid() + " ), #{" + dataElementB.getUid() + "}, 30)", "right" );
+        ValidationRule rule = createValidationRule( "R", equal_to, expressionLeft, expressionRight, ptMonthly );
+        validationRuleService.saveValidationRule( rule );
+
+        Collection<ValidationResult> results = validationService.validationAnalysis( validationService
+            .newParamsBuilder( dataSetMonthly, sourceB, periodA ).withIncludeOrgUnitDescendants( true ).build() );
+
         Collection<ValidationResult> reference = new HashSet<>();
         reference.add( new ValidationResult( rule, periodA, sourceB, defaultCombo, 1.0, 30.0, dayInPeriodA ) );
         reference.add( new ValidationResult( rule, periodA, sourceC, defaultCombo, 3.0, 30.0, dayInPeriodA ) );
