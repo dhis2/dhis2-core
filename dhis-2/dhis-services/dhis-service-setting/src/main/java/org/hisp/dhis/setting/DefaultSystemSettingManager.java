@@ -28,6 +28,7 @@
 package org.hisp.dhis.setting;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 import java.io.Serializable;
 import java.util.Collection;
@@ -199,7 +200,7 @@ public class DefaultSystemSettingManager
         SerializableOptional value = settingCache.get( key.getName(),
             k -> getSystemSettingOptional( k, defaultValue ) ).get();
 
-        return value.get();
+        return defaultIfNull( value.get(), defaultValue );
     }
 
     /**
