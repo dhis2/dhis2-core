@@ -44,7 +44,6 @@ import org.hisp.dhis.webapi.controller.event.mapper.TrackedEntityCriteriaMapper;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
 import org.hisp.dhis.webapi.controller.event.webrequest.tracker.TrackerTrackedEntityCriteria;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.service.TrackedEntityInstanceSupportService;
 import org.mapstruct.factory.Mappers;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -79,7 +78,7 @@ public class TrackerTrackedEntitiesExportController
     private final TrackedEntityInstanceService trackedEntityInstanceService;
 
     @NonNull
-    private final TrackedEntityInstanceSupportService trackedEntityInstanceSupportService;
+    private final TrackedEntitiesSupportService trackedEntitiesSupportService;
 
     @NonNull
     private final FieldFilterService fieldFilterService;
@@ -93,7 +92,7 @@ public class TrackerTrackedEntitiesExportController
 
         List<TrackedEntity> trackedEntityInstances = TRACKED_ENTITY_MAPPER
             .fromCollection( trackedEntityInstanceService.getTrackedEntityInstances( queryParams,
-                TrackedEntityInstanceSupportService.getTrackedEntityInstanceParams( fields ), false, false ) );
+                TrackedEntitiesSupportService.getTrackedEntityInstanceParams( fields ), false, false ) );
 
         PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
 
@@ -124,7 +123,7 @@ public class TrackerTrackedEntitiesExportController
         fields = fieldsOrDefault( fields );
 
         TrackedEntity trackedEntity = TRACKED_ENTITY_MAPPER.from(
-            trackedEntityInstanceSupportService.getTrackedEntityInstance( id, program, fields ) );
+            trackedEntitiesSupportService.getTrackedEntityInstance( id, program, fields ) );
         return ResponseEntity.ok( fieldFilterService.toObjectNode( trackedEntity, fields ) );
     }
 
