@@ -83,9 +83,10 @@ public class TrackerRelationshipsExportController
 
     private static final String DONT_FILTER_FIELDS = "**";
 
-    private static final String DEFAULT_FIELDS_PARAM = "*,from[trackedEntity[trackedEntity],enrollment[enrollment],event[event]],to[trackedEntity[trackedEntity],enrollment[enrollment],event[event]]";
+    private static final String DEFAULT_FIELDS_PARAM = "relationship,relationshipType,from[trackedEntity[trackedEntity],enrollment[enrollment],event[event]],to[trackedEntity[trackedEntity],enrollment[enrollment],event[event]]";
 
-    private static final List<String> DEFAULT_FIELDS = List.of( "*", "from[trackedEntity[trackedEntity]",
+    private static final List<String> DEFAULT_FIELDS = List.of( "relationship", "relationshipType",
+        "from[trackedEntity[trackedEntity]",
         "enrollment[enrollment]", "event[event]]", "to[trackedEntity[trackedEntity]", "enrollment[enrollment]",
         "event[event]]" );
 
