@@ -1287,7 +1287,12 @@ public class HibernateTrackedEntityInstanceStore
         {
             if ( cols.contains( prop[0] ) )
             {
-                orderFields.add( "TEI.trackedentityinstanceid" + " " + prop[1] );
+                if ( prop[0].equals( CREATED_ID ) )
+                {
+                    prop[0] = "TEI.trackedentityinstanceid";
+
+                }
+                orderFields.add( prop[0] + " " + prop[1] );
             }
             else
             {
