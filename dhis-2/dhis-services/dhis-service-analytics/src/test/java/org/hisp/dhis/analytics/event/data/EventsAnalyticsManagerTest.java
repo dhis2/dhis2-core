@@ -80,7 +80,6 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.program.ProgramType;
-import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -109,9 +108,6 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
     @Mock
     ExecutionPlanStore executionPlanStore;
 
-    @Mock
-    private SystemSettingManager systemSettingManager;
-
     private JdbcEventAnalyticsManager subject;
 
     @Captor
@@ -134,7 +130,7 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
             programIndicatorService );
 
         subject = new JdbcEventAnalyticsManager( jdbcTemplate, statementBuilder, programIndicatorService,
-            programIndicatorSubqueryBuilder, timeCoordinateSelector, executionPlanStore, systemSettingManager );
+            programIndicatorSubqueryBuilder, timeCoordinateSelector, executionPlanStore );
 
         when( jdbcTemplate.queryForRowSet( anyString() ) ).thenReturn( this.rowSet );
     }
