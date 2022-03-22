@@ -83,9 +83,12 @@ public class TrackerRelationshipsExportController
 
     private static final String DONT_FILTER_FIELDS = "**";
 
-    private static final String DEFAULT_FIELDS_PARAM = "*";
+    private static final String DEFAULT_FIELDS_PARAM = "relationship,relationshipType,from[trackedEntity[trackedEntity],enrollment[enrollment],event[event]],to[trackedEntity[trackedEntity],enrollment[enrollment],event[event]]";
 
-    private static final List<String> DEFAULT_FIELDS = List.of( "*" );
+    private static final List<String> DEFAULT_FIELDS = List.of( "relationship", "relationshipType",
+        "from[trackedEntity[trackedEntity]",
+        "enrollment[enrollment]", "event[event]]", "to[trackedEntity[trackedEntity]", "enrollment[enrollment]",
+        "event[event]]" );
 
     private static final org.hisp.dhis.webapi.controller.tracker.export.RelationshipMapper RELATIONSHIP_MAPPER = Mappers
         .getMapper( org.hisp.dhis.webapi.controller.tracker.export.RelationshipMapper.class );
