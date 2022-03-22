@@ -44,6 +44,12 @@
         <dependency>
             <groupId>org.hisp.dhis</groupId>
             <artifactId>dhis-service-tracker</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.hisp.dhis</groupId>
@@ -132,6 +138,10 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-orm</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct</artifactId>
         </dependency>
 
         <!-- application monitoring -->

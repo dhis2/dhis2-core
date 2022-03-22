@@ -33,6 +33,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.io.IOException;
 
+import lombok.SneakyThrows;
+
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.tracker.AtomicMode;
 import org.hisp.dhis.tracker.FlushMode;
@@ -44,7 +46,6 @@ import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundleMode;
-import org.json.JSONException;
 import org.junit.jupiter.api.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
 import org.skyscreamer.jsonassert.JSONCompareMode;
@@ -64,9 +65,9 @@ class TrackerImportParamsSerdeTest extends TrackerTest
     {
     }
 
+    @SneakyThrows
     @Test
     void testJsonSerialization()
-        throws JSONException
     {
         TrackerIdentifierParams identifierParams = TrackerIdentifierParams.builder().idScheme( TrackerIdentifier.CODE )
             .programIdScheme(
