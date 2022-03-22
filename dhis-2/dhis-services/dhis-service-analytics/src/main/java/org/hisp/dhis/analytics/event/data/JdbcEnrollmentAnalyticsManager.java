@@ -146,7 +146,7 @@ public class JdbcEnrollmentAnalyticsManager
 
         while ( rowSet.next() )
         {
-            if ( ++rowsRed > params.getPageSize() && !params.isTotalPages() )
+            if ( ++rowsRed > params.getPageSizeWithDefault() && !params.isTotalPages() )
             {
                 grid.setLastDataRow( false );
 
