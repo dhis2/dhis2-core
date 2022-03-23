@@ -133,7 +133,8 @@ public class Validator
         @Override
         public String toString()
         {
-            return (chunkNo * chunkSize) + "-" + (((chunkNo + 1) * chunkSize) - 1);
+            int offset = chunkNo * chunkSize;
+            return offset + "-" + (offset + orgUnits.size() - 1);
         }
     }
 }

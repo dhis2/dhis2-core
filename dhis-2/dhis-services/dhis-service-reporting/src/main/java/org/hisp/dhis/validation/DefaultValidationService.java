@@ -72,6 +72,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.validation.notification.ValidationNotificationService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -110,6 +111,7 @@ public class DefaultValidationService implements ValidationService, CurrentUserS
     private CurrentUserService currentUserService;
 
     @Override
+    @Autowired
     public void setCurrentUserService( CurrentUserService currentUserService )
     {
         this.currentUserService = currentUserService;
