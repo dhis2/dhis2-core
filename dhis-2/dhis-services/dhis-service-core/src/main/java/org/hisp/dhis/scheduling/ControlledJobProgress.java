@@ -119,7 +119,7 @@ public class ControlledJobProgress implements JobProgress
         tracker.failedProcess( error );
         if ( processes.getLast().getStatus() != Status.CANCELLED )
         {
-            automaticAbort();
+            automaticAbort( false );
             getOrAddLastIncompleteProcess().completeExceptionally( error, null );
         }
     }
@@ -131,7 +131,7 @@ public class ControlledJobProgress implements JobProgress
         tracker.failedProcess( cause );
         if ( processes.getLast().getStatus() != Status.CANCELLED )
         {
-            automaticAbort();
+            automaticAbort( false );
             Process process = getOrAddLastIncompleteProcess();
             process.completeExceptionally( cause.getMessage(), cause );
             sendErrorNotification( process, cause );
@@ -209,11 +209,17 @@ public class ControlledJobProgress implements JobProgress
 
     private void automaticAbort()
     {
+        automaticAbort( true );
+    }
+
+    private void automaticAbort( boolean abortProcess )
+    {
         if ( abortOnFailure
             // OBS! we only mark abort if we could mark cancellation
             // if we already cancelled manually we do not abort but cancel
             && cancellationRequested.compareAndSet( false, true )
-            && abortAfterFailure.compareAndSet( false, true ) )
+            && abortAfterFailure.compareAndSet( false, true )
+            && abortProcess )
         {
             processes.forEach( Process::abort );
         }
