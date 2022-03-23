@@ -145,14 +145,16 @@ public class DefaultValidationService implements ValidationService, CurrentUserS
 
         if ( context.isPersistResults() )
         {
-            validationResultService.saveValidationResults( context.getValidationResults() );
+            progress.startingStage( "Persisting Results" );
+            progress.runStage( () -> validationResultService.saveValidationResults( context.getValidationResults() ) );
         }
 
         clock.logTime( "Finished validation analysis, " + context.getValidationResults().size() + " results" ).stop();
 
         if ( context.isSendNotifications() )
         {
-            notificationService.sendNotifications( Sets.newHashSet( results ) );
+            progress.startingStage( "Sending notifications" );
+            progress.runStage( () -> notificationService.sendNotifications( Sets.newHashSet( results ) ) );
         }
 
         return results;

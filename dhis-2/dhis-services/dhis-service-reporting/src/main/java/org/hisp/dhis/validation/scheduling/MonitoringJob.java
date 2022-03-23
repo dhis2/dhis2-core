@@ -28,6 +28,7 @@
 package org.hisp.dhis.validation.scheduling;
 
 import static java.util.Arrays.asList;
+import static java.util.stream.Collectors.joining;
 import static org.hisp.dhis.util.DateUtils.getDateAfterAddition;
 
 import java.util.Collection;
@@ -39,6 +40,7 @@ import lombok.AllArgsConstructor;
 
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.collections4.SetUtils;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
@@ -87,12 +89,12 @@ public class MonitoringJob implements Job
         progress.startingProcess( "Data validation" );
         try
         {
-            progress.startingStage( "Preparing analysis parameters" );
             MonitoringJobParameters params = (MonitoringJobParameters) jobConfiguration.getJobParameters();
             List<String> groupUIDs = params.getValidationRuleGroups();
             Collection<ValidationRule> rules = getValidationRules( groupUIDs );
+            progress.startingStage( "Preparing analysis parameters" );
             List<Period> periods = getPeriods( params, rules );
-            progress.completedStage( null );
+            progress.completedStage( rules.stream().map( BaseIdentifiableObject::getName ).collect( joining( ", " ) ) );
 
             ValidationAnalysisParams parameters = validationService
                 .newParamsBuilder( rules, null, periods )
