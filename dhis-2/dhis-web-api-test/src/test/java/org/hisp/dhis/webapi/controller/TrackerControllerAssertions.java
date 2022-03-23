@@ -79,6 +79,7 @@ public class TrackerControllerAssertions
         JsonObject jsonEvent = json.getObject( "event" );
         assertFalse( jsonEvent.isEmpty(), "event should not be empty" );
         assertEquals( expected.getUid(), jsonEvent.getString( "event" ).string(), "event UID" );
+
         assertEquals( expected.getStatus().toString(), jsonEvent.getString( "status" ).string(), "event status" );
         assertEquals( expected.getProgramStage().getUid(), jsonEvent.getString( "programStage" ).string(),
             "event programStage UID" );
@@ -99,6 +100,14 @@ public class TrackerControllerAssertions
         assertFalse( jsonTEI.has( "relationships" ), "relationships is not returned within relationship items" );
     }
 
+    public static void assertHasOnlyUid( String expectedUid, String member, JsonObject json )
+    {
+        JsonObject j = json.getObject( member );
+        assertFalse( j.isEmpty(), member + " should not be empty" );
+        assertHasOnlyMembers( j, member );
+        assertEquals( expectedUid, j.getString( member ).string(), member + " UID" );
+    }
+
     public static void assertEnrollmentWithinRelationship( ProgramInstance expected, JsonObject json )
     {
         JsonObject jsonEnrollment = json.getObject( "enrollment" );
@@ -117,8 +126,9 @@ public class TrackerControllerAssertions
     {
         Set<String> actual = new HashSet<>( json.names() );
         Set<String> expected = Set.of( names );
-        assertEquals( expected.size(), actual.size(), "total number of members" );
-        assertTrue( actual.containsAll( expected ), "members mismatch" );
+        assertEquals( expected.size(), actual.size(), () -> "unexpected total number of members in " + json );
+        assertTrue( actual.containsAll( expected ),
+            () -> "members mismatch between actual: " + actual + ", expected: " + expected );
     }
 
     public static void assertHasNoMember( JsonObject json, String name )
