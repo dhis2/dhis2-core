@@ -99,16 +99,6 @@ class TrackerEnrollmentsExportControllerTest extends DhisControllerConvenienceTe
     }
 
     @Test
-    void getEnrollmentByIdWithFieldsDoubleStar()
-    {
-
-        JsonObject json = GET( "/tracker/enrollments/{id}?fields=**", programInstance.getUid() )
-            .content( HttpStatus.OK );
-
-        assertDefaultResponse( json );
-    }
-
-    @Test
     void getEnrollmentByIdWithFields()
     {
 

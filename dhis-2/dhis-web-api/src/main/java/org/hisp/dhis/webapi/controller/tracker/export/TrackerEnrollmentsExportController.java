@@ -68,11 +68,7 @@ public class TrackerEnrollmentsExportController
 {
     protected static final String ENROLLMENTS = "enrollments";
 
-    private static final String DONT_FILTER_FIELDS = "**";
-
     private static final String DEFAULT_FIELDS_PARAM = "*,!relationships,!events,!attributes";
-
-    private static final List<String> DEFAULT_FIELDS = List.of( "*", "!relationships", "!events", "!attributes" );
 
     private static final EnrollmentMapper ENROLLMENT_MAPPER = Mappers.getMapper( EnrollmentMapper.class );
 
@@ -90,7 +86,6 @@ public class TrackerEnrollmentsExportController
         TrackerEnrollmentCriteria trackerEnrollmentCriteria,
         @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<String> fields )
     {
-        fields = fieldsOrDefault( fields );
         PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
 
         List<org.hisp.dhis.dxf2.events.enrollment.Enrollment> enrollmentList;
@@ -130,7 +125,6 @@ public class TrackerEnrollmentsExportController
         @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<String> fields )
         throws NotFoundException
     {
-        fields = fieldsOrDefault( fields );
 
         Enrollment enrollment = ENROLLMENT_MAPPER.from( enrollmentService.getEnrollment( id ) );
         if ( enrollment == null )
@@ -138,18 +132,5 @@ public class TrackerEnrollmentsExportController
             throw new NotFoundException( "Enrollment", id );
         }
         return ResponseEntity.ok( fieldFilterService.toObjectNode( enrollment, fields ) );
-    }
-
-    /**
-     * Passing in fields=** is the same as not passing in a fields query
-     * parameter. Thus, fallback to the default field param.
-     */
-    private List<String> fieldsOrDefault( List<String> fields )
-    {
-        if ( !fields.contains( DONT_FILTER_FIELDS ) )
-        {
-            return fields;
-        }
-        return DEFAULT_FIELDS;
     }
 }
