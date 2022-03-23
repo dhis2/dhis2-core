@@ -33,16 +33,14 @@ import java.util.Date;
 
 import lombok.AllArgsConstructor;
 
-import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
-import org.hisp.dhis.system.notification.Notifier;
 import org.springframework.stereotype.Component;
 
 /**
- * @author zubair
+ * @author zubair (original)
  * @author Jan Bernitt (job progress tracking)
  */
 @Component
@@ -50,10 +48,6 @@ import org.springframework.stereotype.Component;
 public class DataSetNotificationJob implements Job
 {
     private final DataSetNotificationService dataSetNotificationService;
-
-    private final MessageService messageService;
-
-    private final Notifier notifier;
 
     @Override
     public JobType getJobType()
@@ -64,19 +58,9 @@ public class DataSetNotificationJob implements Job
     @Override
     public void execute( JobConfiguration jobConfiguration, JobProgress progress )
     {
-        progress.startingProcess( "Sending scheduled dataset notifications" );
-        try
-        {
-            dataSetNotificationService.sendScheduledDataSetNotificationsForDay( new Date(), progress );
-            progress.completedProcess( "Sent scheduled dataset notifications" );
-        }
-        catch ( RuntimeException ex )
-        {
-            progress.failedProcess( ex );
-            progress.startingProcess( "Sending system error notification" );
-            messageService.sendSystemErrorNotification( "Scheduled dataset notifications failed", ex );
-            progress.completedProcess( null );
-            throw ex;
-        }
+        progress.startingProcess( "Dataset notification" );
+        progress.startingStage( "Sending scheduled dataset notifications" );
+        progress.endingProcess( progress.runStage(
+            () -> dataSetNotificationService.sendScheduledDataSetNotificationsForDay( new Date(), progress ) ) );
     }
 }
