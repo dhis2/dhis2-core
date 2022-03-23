@@ -711,6 +711,8 @@
                         <ignoredUnusedDeclaredDependencies>
                             <ignoredUnusedDeclaredDependency>org.projectlombok:lombok</ignoredUnusedDeclaredDependency>
                             <ignoredUnusedDeclaredDependency>org.junit.jupiter:junit-jupiter</ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>org.springframework.security:spring-security-core</ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>net.sf.jasperreports:jasperreports</ignoredUnusedDeclaredDependency>
                         </ignoredUnusedDeclaredDependencies>
                         <ignoredUsedUndeclaredDependencies>
                             <ignoredUsedUndeclaredDependency>org.junit.jupiter:junit-jupiter-api</ignoredUsedUndeclaredDependency>

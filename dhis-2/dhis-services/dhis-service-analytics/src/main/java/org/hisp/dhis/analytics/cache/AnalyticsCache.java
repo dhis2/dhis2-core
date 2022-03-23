@@ -28,14 +28,14 @@
 package org.hisp.dhis.analytics.cache;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.apache.commons.logging.LogFactory.getLog;
 
 import java.time.Duration;
 import java.util.Optional;
 import java.util.function.Function;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.SerializationUtils;
-import org.apache.commons.logging.Log;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
@@ -46,11 +46,10 @@ import org.springframework.stereotype.Component;
  * This is a wrapper class responsible for keeping and isolating all cache
  * definitions related to the analytics.
  */
+@Slf4j
 @Component
 public class AnalyticsCache
 {
-    private static final Log log = getLog( AnalyticsCache.class );
-
     private final Cache<Grid> queryCache;
 
     private final AnalyticsCacheSettings analyticsCacheSettings;
