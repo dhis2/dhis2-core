@@ -62,12 +62,7 @@ public class TrackerTrackedEntitiesExportController
 {
     protected static final String TRACKED_ENTITIES = "trackedEntities";
 
-    private static final String DONT_FILTER_FIELDS = "**";
-
     private static final String DEFAULT_FIELDS_PARAM = "*,!relationships,!enrollments,!events,!programOwners";
-
-    private static final List<String> DEFAULT_FIELDS = List.of( "*", "!relationships", "!enrollments", "!events",
-        "!programOwners" );
 
     private static final TrackedEntityMapper TRACKED_ENTITY_MAPPER = Mappers.getMapper( TrackedEntityMapper.class );
 
@@ -87,7 +82,6 @@ public class TrackerTrackedEntitiesExportController
     PagingWrapper<ObjectNode> getInstances( TrackerTrackedEntityCriteria criteria,
         @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<String> fields )
     {
-        fields = fieldsOrDefault( fields );
         TrackedEntityInstanceQueryParams queryParams = criteriaMapper.map( criteria );
 
         List<TrackedEntity> trackedEntityInstances = TRACKED_ENTITY_MAPPER
@@ -120,23 +114,9 @@ public class TrackerTrackedEntitiesExportController
         @RequestParam( required = false ) String program,
         @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<String> fields )
     {
-        fields = fieldsOrDefault( fields );
 
         TrackedEntity trackedEntity = TRACKED_ENTITY_MAPPER.from(
             trackedEntitiesSupportService.getTrackedEntityInstance( id, program, fields ) );
         return ResponseEntity.ok( fieldFilterService.toObjectNode( trackedEntity, fields ) );
-    }
-
-    /**
-     * Passing in fields=** is the same as not passing in a fields query
-     * parameter. Thus, fallback to the default field param.
-     */
-    private List<String> fieldsOrDefault( List<String> fields )
-    {
-        if ( !fields.contains( DONT_FILTER_FIELDS ) )
-        {
-            return fields;
-        }
-        return DEFAULT_FIELDS;
     }
 }
