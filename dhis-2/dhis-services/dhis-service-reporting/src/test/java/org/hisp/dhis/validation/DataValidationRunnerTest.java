@@ -74,7 +74,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Luciano Fiandesio
  */
 @ExtendWith( MockitoExtension.class )
-class DataValidationTaskTest
+class DataValidationRunnerTest
 {
     @Mock
     private ExpressionService expressionService;
@@ -91,9 +91,9 @@ class DataValidationTaskTest
     @Mock
     private AnalyticsService analyticsService;
 
-    private PeriodType MONTHLY = PeriodType.getPeriodTypeFromIsoString( "201901" );
+    private final PeriodType MONTHLY = PeriodType.getPeriodTypeFromIsoString( "201901" );
 
-    private DataValidationTask subject;
+    private DataValidationRunner subject;
 
     private DataElement deA;
 
@@ -112,7 +112,8 @@ class DataValidationTaskTest
     @BeforeEach
     public void setUp()
     {
-        subject = new DataValidationTask( expressionService, dataValueService, categoryService, periodService );
+        subject = new DataValidationRunner( expressionService, dataValueService, categoryService, periodService,
+            analyticsService );
 
         deA = createDataElement( 'A' );
 
@@ -182,8 +183,7 @@ class DataValidationTaskTest
             .expression( "8.4!=-10.0" ).parseType( SIMPLE_TEST ).build() ) )
                 .thenReturn( true );
 
-        subject.init( organisationUnits, ctx, analyticsService );
-        subject.run();
+        subject.run( organisationUnits, ctx );
 
         assertThat( ctx.getValidationResults().size(), is( 0 ) );
     }
@@ -217,8 +217,7 @@ class DataValidationTaskTest
         when( dataValueService.getDeflatedDataValues( any( DataExportParams.class ) ) )
             .thenReturn( deflatedDataValues );
 
-        subject.init( organisationUnits, ctx, analyticsService );
-        subject.run();
+        subject.run( organisationUnits, ctx );
 
         assertThat( ctx.getValidationResults().size(), is( 0 ) );
     }

@@ -77,6 +77,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.validation.Importance;
@@ -195,7 +196,8 @@ public class DataAnalysisController
             .withMaxResults( ValidationService.MAX_INTERACTIVE_ALERTS )
             .build();
 
-        List<ValidationResult> validationResults = validationService.validationAnalysis( params );
+        List<ValidationResult> validationResults = validationService.validationAnalysis( params,
+            NoopJobProgress.INSTANCE );
 
         validationResults.sort( new ValidationResultComparator() );
 
