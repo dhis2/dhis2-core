@@ -83,11 +83,7 @@ public class TrackerEventsExportController
 {
     protected static final String EVENTS = "events";
 
-    private static final String DONT_FILTER_FIELDS = "**";
-
     private static final String DEFAULT_FIELDS_PARAM = "*,!relationships";
-
-    private static final List<String> DEFAULT_FIELDS = List.of( "*", "!relationships" );
 
     private static final EventMapper EVENTS_MAPPER = Mappers.getMapper( EventMapper.class );
 
@@ -115,7 +111,6 @@ public class TrackerEventsExportController
         @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<String> fields )
         throws WebMessageException
     {
-        fields = fieldsOrDefault( fields );
 
         EventSearchParams eventSearchParams = requestToSearchParamsMapper.map( eventCriteria );
 
@@ -227,7 +222,6 @@ public class TrackerEventsExportController
         @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<String> fields )
         throws NotFoundException
     {
-        fields = fieldsOrDefault( fields );
 
         Event event = eventService.getEvent( programStageInstanceService.getProgramStageInstance( uid ) );
         if ( event == null )
@@ -237,18 +231,5 @@ public class TrackerEventsExportController
 
         event.setHref( getUri( uid, request ) );
         return ResponseEntity.ok( fieldFilterService.toObjectNode( EVENTS_MAPPER.from( event ), fields ) );
-    }
-
-    /**
-     * Passing in fields=** is the same as not passing in a fields query
-     * parameter. Thus, fallback to the default field param.
-     */
-    private List<String> fieldsOrDefault( List<String> fields )
-    {
-        if ( !fields.contains( DONT_FILTER_FIELDS ) )
-        {
-            return fields;
-        }
-        return DEFAULT_FIELDS;
     }
 }
