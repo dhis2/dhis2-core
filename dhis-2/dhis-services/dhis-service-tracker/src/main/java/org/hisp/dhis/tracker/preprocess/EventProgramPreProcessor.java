@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.preprocess;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 import java.util.List;
 import java.util.Objects;
@@ -63,7 +64,7 @@ public class EventProgramPreProcessor
         for ( Event event : eventsToPreprocess )
         {
             // Extract program from program stage
-            if ( isBlank( event.getProgramStage() ) )
+            if ( isNotBlank( event.getProgramStage() ) )
             {
                 ProgramStage programStage = bundle.getPreheat().get( ProgramStage.class, event.getProgramStage() );
                 if ( Objects.nonNull( programStage ) )
@@ -93,7 +94,7 @@ public class EventProgramPreProcessor
                 }
             }
             // If it is a program event, extract program stage from program
-            else if ( isBlank( event.getProgram() ) )
+            else if ( isNotBlank( event.getProgram() ) )
             {
                 Program program = bundle.getPreheat().get( Program.class, event.getProgram() );
                 if ( Objects.nonNull( program ) && program.isWithoutRegistration() )
