@@ -764,12 +764,19 @@
                                     <reason>Do not use this util. Use com.google.common instead</reason>
                                     <bannedImports>
                                         <bannedImport>com.google.api.client.util.**</bannedImport>
+                                        <bannedImport>org.apache.logging.log4j.util.**</bannedImport>
                                     </bannedImports>
                                 </RestrictImports>
                                 <RestrictImports>
                                     <reason>Do not use this util. Use com.google.common.lang3 instead</reason>
                                     <bannedImports>
                                         <bannedImport>org.apache.commons.lang.**</bannedImport>
+                                    </bannedImports>
+                                </RestrictImports>
+                                <RestrictImports>
+                                    <reason>Do not use this annotations. Use javax.annotation instead</reason>
+                                    <bannedImports>
+                                        <bannedImport>org.jetbrains.annotations.**</bannedImport>
                                     </bannedImports>
                                 </RestrictImports>
                             </rules>
