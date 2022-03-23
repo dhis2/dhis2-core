@@ -47,7 +47,7 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 public class EventProgramsDataSynchronizationJob extends SynchronizationJob
 {
-    private final DataSynchronizationWithPaging eventSync;
+    private final EventSynchronization eventSync;
 
     private final SynchronizationManager syncManager;
 

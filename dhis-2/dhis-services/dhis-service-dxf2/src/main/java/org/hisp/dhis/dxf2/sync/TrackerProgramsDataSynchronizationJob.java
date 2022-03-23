@@ -47,7 +47,7 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 public class TrackerProgramsDataSynchronizationJob extends SynchronizationJob
 {
-    private final DataSynchronizationWithPaging trackerSync;
+    private final TrackerSynchronization trackerSync;
 
     private final SynchronizationManager syncManager;
 
