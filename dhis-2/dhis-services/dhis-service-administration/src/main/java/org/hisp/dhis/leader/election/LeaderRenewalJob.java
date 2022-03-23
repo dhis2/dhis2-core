@@ -61,6 +61,8 @@ public class LeaderRenewalJob implements Job
     @Override
     public void execute( JobConfiguration jobConfiguration, JobProgress progress )
     {
-        leaderManager.renewLeader();
+        progress.startingProcess( "Elect leader node" );
+        leaderManager.renewLeader( progress );
+        progress.completedProcess( null );
     }
 }

@@ -333,7 +333,7 @@ public interface JobProgress
      * If the work task throws an {@link Exception} the stage is considered
      * failed otherwise it is considered complete when done.
      *
-     * @param summary used when stage completes successful (return value to
+     * @param summary used when stage completes successfully (return value to
      *        summary)
      * @param work work for the entire stage
      * @return true, if completed successful, false if completed exceptionally
@@ -363,7 +363,7 @@ public interface JobProgress
      *
      * @param errorValue the value returned in case the work throws an
      *        {@link Exception}
-     * @param summary used when stage completes successful (return value to
+     * @param summary used when stage completes successfully (return value to
      *        summary)
      * @param work work for the entire stage
      * @return the value returned by work task when successful or the errorValue
