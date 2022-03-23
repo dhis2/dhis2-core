@@ -520,6 +520,9 @@ public class ProgramSqlGeneratorFunctionsTest
 
         String sql = test( "count(#{ProgrmStagA.DataElmentA})" );
         assertThat( sql, is( "count(coalesce(\"DataElmentA\"::numeric,0))" ) );
+
+        String sql2 = test( "count(distinct #{ProgrmStagA.DataElmentA})" );
+        assertThat( sql2, is( "count(distinct coalesce(\"DataElmentA\"::numeric,0))" ) );
     }
 
     @Test
