@@ -135,22 +135,6 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
     }
 
     @Test
-    void getRelationshipsByIdWithFieldsDoubleStar()
-    {
-        TrackedEntityInstance to = trackedEntityInstance();
-        ProgramStageInstance from = programStageInstance( programInstance( to ) );
-        Relationship r = relationship( from, to );
-
-        JsonObject relationship = GET( "/tracker/relationships/{uid}?fields=**", r.getUid() )
-            .content( HttpStatus.OK );
-
-        assertHasOnlyMembers( relationship, "relationship", "relationshipType", "from", "to" );
-        assertRelationship( r, relationship );
-        assertHasOnlyUid( from.getUid(), "event", relationship.getObject( "from" ) );
-        assertHasOnlyUid( to.getUid(), "trackedEntity", relationship.getObject( "to" ) );
-    }
-
-    @Test
     void getRelationshipsByIdWithFieldsAll()
     {
         TrackedEntityInstance to = trackedEntityInstance();
@@ -217,24 +201,6 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
         Relationship r = relationship( from, to );
 
         JsonObject json = GET( "/tracker/relationships?event={uid}", from.getUid() )
-            .content( HttpStatus.OK );
-
-        assertFalse( json.isEmpty() );
-        JsonArray relationships = json.getArray( "instances" );
-        JsonObject jsonRelationship = assertFirstRelationship( r, relationships );
-        assertHasOnlyMembers( jsonRelationship, "relationship", "relationshipType", "from", "to" );
-        assertHasOnlyUid( from.getUid(), "event", jsonRelationship.getObject( "from" ) );
-        assertHasOnlyUid( to.getUid(), "trackedEntity", jsonRelationship.getObject( "to" ) );
-    }
-
-    @Test
-    void getRelationshipsByEventWithFieldsDoubleStar()
-    {
-        TrackedEntityInstance to = trackedEntityInstance();
-        ProgramStageInstance from = programStageInstance( programInstance( to ) );
-        Relationship r = relationship( from, to );
-
-        JsonObject json = GET( "/tracker/relationships?event={uid}&fields=**", from.getUid() )
             .content( HttpStatus.OK );
 
         assertFalse( json.isEmpty() );
