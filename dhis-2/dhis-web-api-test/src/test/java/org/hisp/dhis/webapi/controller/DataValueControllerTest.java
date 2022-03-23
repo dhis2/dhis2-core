@@ -30,14 +30,18 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.webapi.WebClient.Body;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Collections;
 import java.util.List;
 
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.test.web.servlet.MvcResult;
 
 /**
  * Test for the
@@ -116,6 +120,38 @@ class DataValueControllerTest extends AbstractDataValueControllerTest
 
         HttpResponse response = POST( "/dataValues", body );
         assertStatus( HttpStatus.CREATED, response );
+    }
+
+    /**
+     * Check if the dataValueSet endpoint return correct fileName.
+     */
+    @Test
+    void testGetDataValueSetJsonWithAttachment()
+    {
+        String dsId = assertStatus( HttpStatus.CREATED,
+            POST( "/dataSets/",
+                "{'name':'My data set', 'periodType':'Monthly', 'dataSetElements':[{'dataElement':{'id':'"
+                    + dataElementId + "'}}]}" ) );
+
+        String body = String.format( "{" +
+            "'dataElement':'%s'," +
+            "'categoryOptionCombo':'%s'," +
+            "'period':'20220102'," +
+            "'orgUnit':'%s'," +
+            "'value':'24'," +
+            "'comment':'OK'}",
+            dataElementId, categoryOptionComboId, orgUnitId );
+
+        HttpResponse response = POST( "/dataValues", body );
+        assertStatus( HttpStatus.CREATED, response );
+        switchToUserWithOrgUnitDataView( "testUser", orgUnitId );
+        String url = "/dataValueSets?orgUnit=" + orgUnitId + "&startDate=2022-01-01&endDate=2022-01-30&dataSet=" + dsId
+            +
+            "&format=json&compression=zip&attachment=dataValues.json.zip";
+        MvcResult dataValueResponse = webRequestWithMvcResult(
+            buildMockRequest( HttpMethod.GET, url, Collections.emptyList(), null, null ) );
+        assertTrue( dataValueResponse.getResponse().getHeader( "Content-Disposition" )
+            .contains( "dataValues_2022-01-01_2022-01-30.json.zip" ) );
     }
 
     private void assertFollowups( boolean... expected )
