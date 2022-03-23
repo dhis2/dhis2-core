@@ -33,8 +33,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.io.IOException;
 
-import lombok.SneakyThrows;
-
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.tracker.AtomicMode;
 import org.hisp.dhis.tracker.FlushMode;
@@ -65,9 +63,9 @@ class TrackerImportParamsSerdeTest extends TrackerTest
     {
     }
 
-    @SneakyThrows
     @Test
     void testJsonSerialization()
+        throws Exception
     {
         TrackerIdentifierParams identifierParams = TrackerIdentifierParams.builder().idScheme( TrackerIdentifier.CODE )
             .programIdScheme(

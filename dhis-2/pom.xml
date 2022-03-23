@@ -773,6 +773,12 @@
                                         <bannedImport>org.apache.commons.lang.**</bannedImport>
                                     </bannedImports>
                                 </RestrictImports>
+                                <RestrictImports>
+                                    <reason>Do not use this annotations. Use javax.annotation instead</reason>
+                                    <bannedImports>
+                                        <bannedImport>org.jetbrains.annotations.**</bannedImport>
+                                    </bannedImports>
+                                </RestrictImports>
                             </rules>
                         </configuration>
                     </execution>
