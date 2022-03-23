@@ -94,7 +94,6 @@ public class ProgramStageInstanceMapper extends AbstractMapper<Event, ProgramSta
     private ProgramStageInstance mapDataValueIdentifier( ProgramStageInstance psi,
         Map<String, DataElement> dataElementMap )
     {
-
         for ( EventDataValue dv : psi.getEventDataValues() )
         {
             DataElement de = dataElementMap.get( dv.getDataElement() );
