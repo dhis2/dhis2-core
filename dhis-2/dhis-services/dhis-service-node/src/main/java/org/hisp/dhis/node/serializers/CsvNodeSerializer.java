@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -136,9 +136,8 @@ public class CsvNodeSerializer extends AbstractNodeSerializer
 
     @Override
     protected void endWriteRootNode( RootNode rootNode )
-        throws Exception
     {
-
+        // Do nothing
     }
 
     @Override
@@ -157,43 +156,38 @@ public class CsvNodeSerializer extends AbstractNodeSerializer
 
     @Override
     protected void endWriteSimpleNode( SimpleNode simpleNode )
-        throws Exception
     {
-
+        // Do nothing
     }
 
     @Override
     protected void startWriteComplexNode( ComplexNode complexNode )
-        throws Exception
     {
-
+        // Do nothing
     }
 
     @Override
     protected void endWriteComplexNode( ComplexNode complexNode )
-        throws Exception
     {
-
+        // Do nothing
     }
 
     @Override
     protected void startWriteCollectionNode( CollectionNode collectionNode )
-        throws Exception
     {
-
+        // Do nothing
     }
 
     @Override
     protected void endWriteCollectionNode( CollectionNode collectionNode )
-        throws Exception
     {
-
+        // Do nothing
     }
 
     @Override
     protected void dispatcher( Node node )
         throws Exception
     {
-
+        // Do nothing
     }
 }
