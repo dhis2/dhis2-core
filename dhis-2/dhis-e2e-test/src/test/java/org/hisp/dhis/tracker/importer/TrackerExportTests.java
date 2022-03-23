@@ -93,8 +93,6 @@ public class TrackerExportTests
             Arguments.of( "/trackedEntities/" + teiId, "enrollments[createdAt],relationships[from[trackedEntity[trackedEntity]],to[trackedEntity[trackedEntity]]]", "enrollments.createdAt,relationships.from.trackedEntity.trackedEntity,relationships.to.trackedEntity.trackedEntity"),
             Arguments.of( "/trackedEntities/" + teiId, "trackedEntity,enrollments", null),
             Arguments.of( "/enrollments/" + enrollmentId, "program,status,enrolledAt", null),
-                Arguments.of( "/trackedEntities/" + teiId, "**",
-                        "trackedEntity,trackedEntityType,createdAt,updatedAt,orgUnit,inactive,deleted,potentialDuplicate,updatedBy,attributes", null ),
             Arguments.of( "/trackedEntities/" + teiId, "*",
                 "trackedEntity,trackedEntityType,createdAt,updatedAt,orgUnit,inactive,deleted,potentialDuplicate,updatedBy,attributes", null ),
             Arguments.of( "/events/" + eventId, "enrollment,createdAt", null ),

@@ -133,19 +133,6 @@ class TrackerEventsExportControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    void getEventByIdWithFieldsDoubleStar()
-    {
-        TrackedEntityInstance to = trackedEntityInstance();
-        ProgramStageInstance from = programStageInstance( programInstance( to ) );
-        relationship( from, to );
-
-        JsonObject json = GET( "/tracker/events/{id}?fields=**", from.getUid() )
-            .content( HttpStatus.OK );
-
-        assertDefaultResponse( json, from );
-    }
-
-    @Test
     void getEventByIdWithFields()
     {
         TrackedEntityInstance tei = trackedEntityInstance();
