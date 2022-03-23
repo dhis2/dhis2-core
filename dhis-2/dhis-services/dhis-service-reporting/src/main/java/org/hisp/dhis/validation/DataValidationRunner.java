@@ -87,10 +87,8 @@ import com.google.common.collect.Sets;
 @AllArgsConstructor
 public class DataValidationRunner
 {
-    public static final String NAME = "validationTask";
-
     // String that is not an Attribute Option Combo
-    public final static String NON_AOC = "";
+    private static final String NON_AOC = "";
 
     private final ExpressionService expressionService;
 
@@ -174,9 +172,9 @@ public class DataValidationRunner
         private final Period period;
 
         // Data for current period and all rules being evaluated:
-        private final MapMapMap<Long, String, DimensionalItemObject, Object> dataMap = new MapMapMap<>();;
+        private final MapMapMap<Long, String, DimensionalItemObject, Object> dataMap = new MapMapMap<>();
 
-        private final MapMapMap<Long, String, DimensionalItemObject, Object> slidingWindowDataMap = new MapMapMap<>();;
+        private final MapMapMap<Long, String, DimensionalItemObject, Object> slidingWindowDataMap = new MapMapMap<>();
 
         /**
          * Validates one rule / period by seeing which attribute option combos

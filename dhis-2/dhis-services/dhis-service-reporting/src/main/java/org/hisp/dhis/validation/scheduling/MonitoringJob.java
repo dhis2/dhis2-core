@@ -84,7 +84,7 @@ public class MonitoringJob implements Job
     @Transactional
     public void execute( JobConfiguration jobConfiguration, JobProgress progress )
     {
-        progress.startingProcess( "Monitoring data" );
+        progress.startingProcess( "Data validation" );
         try
         {
             progress.startingStage( "Preparing analysis parameters" );
@@ -104,12 +104,12 @@ public class MonitoringJob implements Job
 
             validationService.validationAnalysis( parameters, progress );
 
-            progress.completedProcess( "Monitoring process done" );
+            progress.completedProcess( "Data validation done" );
         }
         catch ( RuntimeException ex )
         {
             progress.failedProcess( ex );
-            messageService.sendSystemErrorNotification( "Monitoring process failed", ex );
+            messageService.sendSystemErrorNotification( "Data validation failed", ex );
             throw ex;
         }
     }
@@ -141,7 +141,7 @@ public class MonitoringJob implements Job
         return rules.stream()
             .map( ValidationRule::getPeriodType )
             .distinct()
-            .map( ( vr ) -> asList( vr.createPeriod(), vr.getPreviousPeriod( vr.createPeriod() ) ) )
+            .map( vr -> asList( vr.createPeriod(), vr.getPreviousPeriod( vr.createPeriod() ) ) )
             .reduce( Lists.newArrayList(), ListUtils::union );
     }
 
