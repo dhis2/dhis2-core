@@ -618,6 +618,7 @@ class EventImportTest extends TransactionalIntegrationTest
         events.stream().forEach( e -> jsonArrayEvents.add( createEventJsonObject( e, dataElement, value ) ) );
         JsonObject jsonEvents = new JsonObject();
         jsonEvents.add( "events", jsonArrayEvents );
+
         return new ByteArrayInputStream( jsonEvents.toString().getBytes() );
     }
 
