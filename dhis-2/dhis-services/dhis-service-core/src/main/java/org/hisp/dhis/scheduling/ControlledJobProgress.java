@@ -119,7 +119,7 @@ public class ControlledJobProgress implements JobProgress
         tracker.failedProcess( error );
         if ( processes.getLast().getStatus() != Status.CANCELLED )
         {
-            automaticAbort( false );
+            automaticAbort( false, error, null );
             getOrAddLastIncompleteProcess().completeExceptionally( error, null );
         }
     }
@@ -131,7 +131,7 @@ public class ControlledJobProgress implements JobProgress
         tracker.failedProcess( cause );
         if ( processes.getLast().getStatus() != Status.CANCELLED )
         {
-            automaticAbort( false );
+            automaticAbort( false, cause.getMessage(), cause );
             Process process = getOrAddLastIncompleteProcess();
             process.completeExceptionally( cause.getMessage(), cause );
             sendErrorNotification( process, cause );
@@ -160,7 +160,7 @@ public class ControlledJobProgress implements JobProgress
     public void failedStage( String error )
     {
         tracker.failedStage( error );
-        automaticAbort();
+        automaticAbort( error, null );
         getOrAddLastIncompleteStage().completeExceptionally( error, null );
     }
 
@@ -169,7 +169,7 @@ public class ControlledJobProgress implements JobProgress
     {
         cause = cancellationAsAbort( cause );
         tracker.failedStage( cause );
-        automaticAbort();
+        automaticAbort( cause.getMessage(), cause );
         Stage stage = getOrAddLastIncompleteStage();
         stage.completeExceptionally( cause.getMessage(), cause );
         sendErrorNotification( stage, cause );
@@ -193,7 +193,7 @@ public class ControlledJobProgress implements JobProgress
     public void failedWorkItem( String error )
     {
         tracker.failedWorkItem( error );
-        automaticAbort();
+        automaticAbort( error, null );
         getOrAddLastIncompleteItem().completeExceptionally( error, null );
     }
 
@@ -201,18 +201,18 @@ public class ControlledJobProgress implements JobProgress
     public void failedWorkItem( Exception cause )
     {
         tracker.failedWorkItem( cause );
-        automaticAbort();
+        automaticAbort( cause.getMessage(), cause );
         Item item = getOrAddLastIncompleteItem();
         item.completeExceptionally( cause.getMessage(), cause );
         sendErrorNotification( item, cause );
     }
 
-    private void automaticAbort()
+    private void automaticAbort( String error, Exception cause )
     {
-        automaticAbort( true );
+        automaticAbort( true, error, cause );
     }
 
-    private void automaticAbort( boolean abortProcess )
+    private void automaticAbort( boolean abortProcess, String error, Exception cause )
     {
         if ( abortOnFailure
             // OBS! we only mark abort if we could mark cancellation
@@ -221,7 +221,12 @@ public class ControlledJobProgress implements JobProgress
             && abortAfterFailure.compareAndSet( false, true )
             && abortProcess )
         {
-            processes.forEach( Process::abort );
+            processes.forEach( process -> {
+                if ( !process.isComplete() )
+                {
+                    process.completeExceptionally( error, cause );
+                }
+            } );
         }
     }
 

@@ -569,11 +569,6 @@ public interface JobProgress
             this.cancelledTime = new Date();
             this.status = Status.CANCELLED;
         }
-
-        public void abort()
-        {
-            completeExceptionally( "aborted after failed stage or item", null );
-        }
     }
 
     @Getter
