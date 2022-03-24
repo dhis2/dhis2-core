@@ -44,7 +44,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.exparity.hamcrest.date.DateMatchers;
 import org.hamcrest.CoreMatchers;
@@ -92,7 +91,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
@@ -616,10 +614,10 @@ class EventImportTest extends TransactionalIntegrationTest
 
     private InputStream createEventsJsonInputStream( List<Event> events, DataElement dataElement, String value )
     {
-        List<JsonObject> objects = events.stream().map( e -> createEventJsonObject( e, dataElement, value ) )
-            .collect( Collectors.toList() );
+        JsonArray jsonArrayEvents = new JsonArray();
+        events.stream().forEach( e -> jsonArrayEvents.add( createEventJsonObject( e, dataElement, value ) ) );
         JsonObject jsonEvents = new JsonObject();
-        jsonEvents.addProperty( "events", new Gson().toJson( objects ) );
+        jsonEvents.add( "events", jsonArrayEvents );
         return new ByteArrayInputStream( jsonEvents.toString().getBytes() );
     }
 
