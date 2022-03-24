@@ -35,7 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.hisp.dhis.IntegrationTestBase;
+import org.hisp.dhis.SingleSetupIntegrationTestBase;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsService;
@@ -71,7 +71,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Jim Grace
  */
 class AnalyticsServiceQueryModifiersTest
-    extends IntegrationTestBase
+    extends SingleSetupIntegrationTestBase
 {
     @Autowired
     private List<AnalyticsTableService> analyticsTableServices;
@@ -205,55 +205,11 @@ class AnalyticsServiceQueryModifiersTest
     }
 
     // -------------------------------------------------------------------------
-    // Test
-    // -------------------------------------------------------------------------
-
-    @Test
-    void queryModifiersTest()
-    {
-        // TODO: refactor IntegrationTestBase and/or BaseSpringTest to provide
-        // @BeforeAll and @AfterAll methods that can be overridden so the
-        // following be individual @Tests while analytics is built only once.
-
-        // aggregationType
-
-        testNoAggregationType();
-        testAverageAggregationType();
-        testLastAggregationType();
-        testWithAndWithoutAggregationType();
-        testMultipleAggregationTypes();
-        testGroupedAggregationType();
-        testOperandAggregationType();
-
-        // periodOffset
-
-        testSimplePeriodOffset();
-        testInsideAndOutsidePeriodOffset();
-        testOperandPeriodOffset();
-        testGroupedPeriodOffset();
-        testAdditivePeriodOffset();
-
-        // minDate and maxDate
-
-        testMinDate();
-        testMaxDate();
-        testMinAndMaxDate();
-
-        // subExpression
-
-        testSimpleSubExpression();
-        testMultipleReferenceSubExpression();
-        testSubExpressionConversionFromTextToNumeric();
-        testReferencesInsideAndOutsideOfSubExpression();
-        testTwoSubExpressions();
-        testOperandSubExpression();
-    }
-
-    // -------------------------------------------------------------------------
     // aggregationType
     // -------------------------------------------------------------------------
 
-    private void testNoAggregationType()
+    @Test
+    void testNoAggregationType()
     {
         expected = List.of(
             "inabcdefghA-202201-1.0",
@@ -266,7 +222,8 @@ class AnalyticsServiceQueryModifiersTest
         assertEquals( expected, result );
     }
 
-    private void testAverageAggregationType()
+    @Test
+    void testAverageAggregationType()
     {
         expected = List.of(
             "inabcdefghA-2022Q1-2.0" );
@@ -276,7 +233,8 @@ class AnalyticsServiceQueryModifiersTest
         assertEquals( expected, result );
     }
 
-    private void testLastAggregationType()
+    @Test
+    void testLastAggregationType()
     {
         expected = List.of(
             "inabcdefghA-2022Q1-3.0" );
@@ -286,7 +244,8 @@ class AnalyticsServiceQueryModifiersTest
         assertEquals( expected, result );
     }
 
-    private void testWithAndWithoutAggregationType()
+    @Test
+    void testWithAndWithoutAggregationType()
     {
         expected = List.of(
             "inabcdefghA-2022Q1-8.0" );
@@ -296,7 +255,8 @@ class AnalyticsServiceQueryModifiersTest
         assertEquals( expected, result );
     }
 
-    private void testMultipleAggregationTypes()
+    @Test
+    void testMultipleAggregationTypes()
     {
         expected = List.of(
             "inabcdefghA-2022Q1-5.0" );
@@ -306,7 +266,8 @@ class AnalyticsServiceQueryModifiersTest
         assertEquals( expected, result );
     }
 
-    private void testGroupedAggregationType()
+    @Test
+    void testGroupedAggregationType()
     {
         expected = List.of(
             "inabcdefghA-2022Q1-6.0" );
@@ -316,7 +277,8 @@ class AnalyticsServiceQueryModifiersTest
         assertEquals( expected, result );
     }
 
-    private void testOperandAggregationType()
+    @Test
+    void testOperandAggregationType()
     {
         expected = List.of(
             "inabcdefghA-2022Q1-4.0" );
@@ -330,7 +292,8 @@ class AnalyticsServiceQueryModifiersTest
     // periodOffset
     // -------------------------------------------------------------------------
 
-    private void testSimplePeriodOffset()
+    @Test
+    void testSimplePeriodOffset()
     {
         expected = List.of(
             "inabcdefghA-202202-1.0",
@@ -341,7 +304,8 @@ class AnalyticsServiceQueryModifiersTest
         assertEquals( expected, result );
     }
 
-    private void testInsideAndOutsidePeriodOffset()
+    @Test
+    void testInsideAndOutsidePeriodOffset()
     {
         expected = List.of(
             "inabcdefghA-202201-3.0",
@@ -353,7 +317,8 @@ class AnalyticsServiceQueryModifiersTest
         assertEquals( expected, result );
     }
 
-    private void testGroupedPeriodOffset()
+    @Test
+    void testGroupedPeriodOffset()
     {
         expected = List.of(
             "inabcdefghA-202202-2.0",
@@ -364,7 +329,8 @@ class AnalyticsServiceQueryModifiersTest
         assertEquals( expected, result );
     }
 
-    private void testAdditivePeriodOffset()
+    @Test
+    void testAdditivePeriodOffset()
     {
         expected = List.of(
             "inabcdefghA-202202-1.0",
@@ -375,7 +341,8 @@ class AnalyticsServiceQueryModifiersTest
         assertEquals( expected, result );
     }
 
-    private void testOperandPeriodOffset()
+    @Test
+    void testOperandPeriodOffset()
     {
         expected = List.of(
             "inabcdefghA-202201-4.0",
@@ -391,7 +358,8 @@ class AnalyticsServiceQueryModifiersTest
     // minDate and maxDate
     // -------------------------------------------------------------------------
 
-    private void testMinDate()
+    @Test
+    void testMinDate()
     {
         expected = List.of(
             "inabcdefghA-202202-2.0",
@@ -402,7 +370,8 @@ class AnalyticsServiceQueryModifiersTest
         assertEquals( expected, result );
     }
 
-    private void testMaxDate()
+    @Test
+    void testMaxDate()
     {
         expected = List.of(
             "inabcdefghA-202201-1.0",
@@ -413,7 +382,8 @@ class AnalyticsServiceQueryModifiersTest
         assertEquals( expected, result );
     }
 
-    private void testMinAndMaxDate()
+    @Test
+    void testMinAndMaxDate()
     {
         expected = List.of(
             "inabcdefghA-202202-2.0" );
@@ -427,7 +397,8 @@ class AnalyticsServiceQueryModifiersTest
     // subExpression
     // -------------------------------------------------------------------------
 
-    private void testSimpleSubExpression()
+    @Test
+    void testSimpleSubExpression()
     {
         expected = List.of(
             "inabcdefghA-202201-4.0",
@@ -440,7 +411,8 @@ class AnalyticsServiceQueryModifiersTest
         assertEquals( expected, result );
     }
 
-    private void testMultipleReferenceSubExpression()
+    @Test
+    void testMultipleReferenceSubExpression()
     {
         expected = List.of(
             "inabcdefghA-202201-0.0",
@@ -451,7 +423,8 @@ class AnalyticsServiceQueryModifiersTest
         assertEquals( expected, result );
     }
 
-    private void testSubExpressionConversionFromTextToNumeric()
+    @Test
+    void testSubExpressionConversionFromTextToNumeric()
     {
         expected = List.of(
             "inabcdefghA-202201-3.0",
@@ -462,7 +435,8 @@ class AnalyticsServiceQueryModifiersTest
         assertEquals( expected, result );
     }
 
-    private void testReferencesInsideAndOutsideOfSubExpression()
+    @Test
+    void testReferencesInsideAndOutsideOfSubExpression()
     {
         expected = List.of(
             "inabcdefghA-202201-3.0",
@@ -473,7 +447,8 @@ class AnalyticsServiceQueryModifiersTest
         assertEquals( expected, result );
     }
 
-    private void testTwoSubExpressions()
+    @Test
+    void testTwoSubExpressions()
     {
         expected = List.of(
             "inabcdefghA-202201-10.0",
@@ -485,7 +460,8 @@ class AnalyticsServiceQueryModifiersTest
         assertEquals( expected, result );
     }
 
-    private void testOperandSubExpression()
+    @Test
+    void testOperandSubExpression()
     {
         expected = List.of(
             "inabcdefghA-202201-3.0",
