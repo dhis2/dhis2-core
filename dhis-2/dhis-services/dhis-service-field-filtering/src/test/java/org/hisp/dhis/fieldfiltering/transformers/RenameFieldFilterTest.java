@@ -44,7 +44,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  */
 class RenameFieldFilterTest
 {
-
     private final ObjectMapper jsonMapper = JacksonObjectMapperConfig.staticJsonMapper();
 
     @Test

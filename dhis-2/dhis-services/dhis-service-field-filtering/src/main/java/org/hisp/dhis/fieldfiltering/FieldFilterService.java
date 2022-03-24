@@ -40,6 +40,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.fieldfiltering.transformers.IsEmptyFieldTransformer;
 import org.hisp.dhis.fieldfiltering.transformers.IsNotEmptyFieldTransformer;
+import org.hisp.dhis.fieldfiltering.transformers.KeyByFieldTransformer;
 import org.hisp.dhis.fieldfiltering.transformers.PluckFieldTransformer;
 import org.hisp.dhis.fieldfiltering.transformers.RenameFieldTransformer;
 import org.hisp.dhis.fieldfiltering.transformers.SizeFieldTransformer;
@@ -344,6 +345,9 @@ public class FieldFilterService
                     break;
                 case "pluck":
                     fieldTransformers.add( new PluckFieldTransformer( fieldPathTransformer ) );
+                    break;
+                case "keyBy":
+                    fieldTransformers.add( new KeyByFieldTransformer( fieldPathTransformer ) );
                     break;
                 default:
                     // invalid transformer
