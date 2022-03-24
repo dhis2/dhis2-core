@@ -44,7 +44,6 @@ import org.hisp.dhis.webapi.controller.event.mapper.TrackedEntityCriteriaMapper;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
 import org.hisp.dhis.webapi.controller.event.webrequest.tracker.TrackerTrackedEntityCriteria;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.service.TrackedEntityInstanceSupportService;
 import org.mapstruct.factory.Mappers;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -63,12 +62,7 @@ public class TrackerTrackedEntitiesExportController
 {
     protected static final String TRACKED_ENTITIES = "trackedEntities";
 
-    private static final String DONT_FILTER_FIELDS = "**";
-
     private static final String DEFAULT_FIELDS_PARAM = "*,!relationships,!enrollments,!events,!programOwners";
-
-    private static final List<String> DEFAULT_FIELDS = List.of( "*", "!relationships", "!enrollments", "!events",
-        "!programOwners" );
 
     private static final TrackedEntityMapper TRACKED_ENTITY_MAPPER = Mappers.getMapper( TrackedEntityMapper.class );
 
@@ -79,7 +73,7 @@ public class TrackerTrackedEntitiesExportController
     private final TrackedEntityInstanceService trackedEntityInstanceService;
 
     @NonNull
-    private final TrackedEntityInstanceSupportService trackedEntityInstanceSupportService;
+    private final TrackedEntitiesSupportService trackedEntitiesSupportService;
 
     @NonNull
     private final FieldFilterService fieldFilterService;
@@ -88,12 +82,11 @@ public class TrackerTrackedEntitiesExportController
     PagingWrapper<ObjectNode> getInstances( TrackerTrackedEntityCriteria criteria,
         @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<String> fields )
     {
-        fields = fieldsOrDefault( fields );
         TrackedEntityInstanceQueryParams queryParams = criteriaMapper.map( criteria );
 
         List<TrackedEntity> trackedEntityInstances = TRACKED_ENTITY_MAPPER
             .fromCollection( trackedEntityInstanceService.getTrackedEntityInstances( queryParams,
-                TrackedEntityInstanceSupportService.getTrackedEntityInstanceParams( fields ), false, false ) );
+                TrackedEntitiesSupportService.getTrackedEntityInstanceParams( fields ), false, false ) );
 
         PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
 
@@ -121,23 +114,9 @@ public class TrackerTrackedEntitiesExportController
         @RequestParam( required = false ) String program,
         @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<String> fields )
     {
-        fields = fieldsOrDefault( fields );
 
         TrackedEntity trackedEntity = TRACKED_ENTITY_MAPPER.from(
-            trackedEntityInstanceSupportService.getTrackedEntityInstance( id, program, fields ) );
+            trackedEntitiesSupportService.getTrackedEntityInstance( id, program, fields ) );
         return ResponseEntity.ok( fieldFilterService.toObjectNode( trackedEntity, fields ) );
-    }
-
-    /**
-     * Passing in fields=** is the same as not passing in a fields query
-     * parameter. Thus, fallback to the default field param.
-     */
-    private List<String> fieldsOrDefault( List<String> fields )
-    {
-        if ( !fields.contains( DONT_FILTER_FIELDS ) )
-        {
-            return fields;
-        }
-        return DEFAULT_FIELDS;
     }
 }

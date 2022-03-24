@@ -48,6 +48,7 @@ import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.UserService;
@@ -147,7 +148,7 @@ class ValidationServiceIntegrationTest extends IntegrationTestBase
         validationRuleService.saveValidationRule( validationRule );
         Collection<ValidationResult> results = validationService.validationAnalysis( validationService
             .newParamsBuilder( Lists.newArrayList( validationRule ), orgUnitA, Lists.newArrayList( periodA ) )
-            .build() );
+            .build(), NoopJobProgress.INSTANCE );
         ValidationResult referenceA = new ValidationResult( validationRule, periodA, orgUnitA, defaultCombo, 20.0, 10.0,
             dayInPeriodA );
         assertEquals( 1, results.size() );

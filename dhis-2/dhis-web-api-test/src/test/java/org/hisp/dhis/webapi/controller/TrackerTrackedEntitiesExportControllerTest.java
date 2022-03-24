@@ -163,30 +163,6 @@ class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenien
     }
 
     @Test
-    void getTrackedEntityByIdWithFieldsDoubleStar()
-    {
-        TrackedEntityInstance from = trackedEntityInstance();
-        TrackedEntityInstance to = trackedEntityInstance();
-        relationship( from, to );
-        this.switchContextToUser( user );
-
-        JsonObject json = GET( "/tracker/trackedEntities/{id}?fields=**", from.getUid() )
-            .content( HttpStatus.OK );
-
-        assertFalse( json.isEmpty() );
-        assertEquals( from.getUid(), json.getString( "trackedEntity" ).string() );
-        assertEquals( from.getTrackedEntityType().getUid(), json.getString( "trackedEntityType" ).string() );
-        assertEquals( from.getOrganisationUnit().getUid(), json.getString( "orgUnit" ).string() );
-        assertHasMember( json, "createdAt" );
-        assertHasMember( json, "createdAtClient" );
-        assertHasMember( json, "updatedAtClient" );
-        assertHasNoMember( json, "relationships" );
-        assertHasNoMember( json, "enrollments" );
-        assertHasNoMember( json, "events" );
-        assertHasNoMember( json, "programOwners" );
-    }
-
-    @Test
     void getTrackedEntityByIdWithFields()
     {
         TrackedEntityInstance from = trackedEntityInstance();
@@ -194,12 +170,14 @@ class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenien
         relationship( from, to );
         this.switchContextToUser( user );
 
-        JsonObject json = GET( "/tracker/trackedEntities/{id}?fields=trackedEntity,orgUnit,relationships[relationship]",
+        JsonObject json = GET(
+            "/tracker/trackedEntities/{id}?fields=trackedEntity,orgUnit,relationships[relationship,relationshipType]",
             from.getUid() )
                 .content( HttpStatus.OK );
 
         assertFalse( json.isEmpty() );
         assertHasOnlyMembers( json, "trackedEntity", "orgUnit", "relationships" );
+        assertHasOnlyMembers( json.getArray( "relationships" ).getObject( 0 ), "relationship", "relationshipType" );
     }
 
     @Test

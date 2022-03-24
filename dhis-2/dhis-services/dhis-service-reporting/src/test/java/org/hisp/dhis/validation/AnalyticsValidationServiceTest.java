@@ -51,7 +51,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsService;
-import org.hisp.dhis.analytics.AnalyticsServiceTarget;
 import org.hisp.dhis.category.CategoryManager;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DimensionalObject;
@@ -66,6 +65,7 @@ import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.ExpressionParams;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.mock.MockAnalyticsService;
+import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
@@ -82,6 +82,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStageService;
+import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -89,6 +90,8 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -102,7 +105,6 @@ import com.google.common.collect.Sets;
 @Slf4j
 class AnalyticsValidationServiceTest extends TransactionalIntegrationTest
 {
-
     @Autowired
     private TrackedEntityInstanceService entityInstanceService;
 
@@ -150,6 +152,9 @@ class AnalyticsValidationServiceTest extends TransactionalIntegrationTest
 
     @Autowired
     private CategoryManager categoryManager;
+
+    @Autowired
+    private DataValidationRunner runner;
 
     private CategoryOptionCombo defaultCombo;
 
@@ -281,15 +286,16 @@ class AnalyticsValidationServiceTest extends TransactionalIntegrationTest
         dateGridMap.put( periodApr.getStartDate(), newGrid( 5, 1, 9, 2 ) );
         MockAnalyticsService mockAnalyticsSerivce = new MockAnalyticsService();
         mockAnalyticsSerivce.setDateGridMap( dateGridMap );
-        setDependency( AnalyticsServiceTarget.class, AnalyticsServiceTarget::setAnalyticsService, mockAnalyticsSerivce,
-            validationService );
+        runner.setAnalyticsService( mockAnalyticsSerivce );
+        CurrentUserService currentUserService = new MockCurrentUserService( Sets.newHashSet( orgUnitA ), null );
+        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
+            currentUserService, validationService );
     }
 
     @Override
     public void tearDownTest()
     {
-        setDependency( AnalyticsServiceTarget.class, AnalyticsServiceTarget::setAnalyticsService, analyticsService,
-            validationService );
+        runner.setAnalyticsService( analyticsService );
     }
 
     // -------------------------------------------------------------------------
@@ -433,7 +439,8 @@ class AnalyticsValidationServiceTest extends TransactionalIntegrationTest
         Date endDate = getDate( testYear, 4, 30 );
         ValidationAnalysisParams params1 = validationService.newParamsBuilder( null, orgUnitA, startDate, endDate )
             .build();
-        Collection<ValidationResult> results = validationService.validationAnalysis( params1 );
+        Collection<ValidationResult> results = validationService.validationAnalysis( params1,
+            NoopJobProgress.INSTANCE );
         assertResultsEquals( reference, results );
         // ---------------------------------------
         // Test validation rule expression details

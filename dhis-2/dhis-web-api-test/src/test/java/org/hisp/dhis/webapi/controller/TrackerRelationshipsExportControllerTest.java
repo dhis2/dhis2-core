@@ -31,6 +31,7 @@ import static org.hisp.dhis.webapi.controller.TrackerControllerAssertions.assert
 import static org.hisp.dhis.webapi.controller.TrackerControllerAssertions.assertEventWithinRelationship;
 import static org.hisp.dhis.webapi.controller.TrackerControllerAssertions.assertFirstRelationship;
 import static org.hisp.dhis.webapi.controller.TrackerControllerAssertions.assertHasOnlyMembers;
+import static org.hisp.dhis.webapi.controller.TrackerControllerAssertions.assertHasOnlyUid;
 import static org.hisp.dhis.webapi.controller.TrackerControllerAssertions.assertNoRelationships;
 import static org.hisp.dhis.webapi.controller.TrackerControllerAssertions.assertRelationship;
 import static org.hisp.dhis.webapi.controller.TrackerControllerAssertions.assertTrackedEntityWithinRelationship;
@@ -124,22 +125,23 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
         ProgramStageInstance from = programStageInstance( programInstance( to ) );
         Relationship r = relationship( from, to );
 
-        JsonObject relationship = GET( "/tracker/relationships/" + r.getUid() )
+        JsonObject relationship = GET( "/tracker/relationships/{uid}", r.getUid() )
             .content( HttpStatus.OK );
 
+        assertHasOnlyMembers( relationship, "relationship", "relationshipType", "from", "to" );
         assertRelationship( r, relationship );
-        assertEventWithinRelationship( from, relationship.getObject( "from" ) );
-        assertTrackedEntityWithinRelationship( to, relationship.getObject( "to" ) );
+        assertHasOnlyUid( from.getUid(), "event", relationship.getObject( "from" ) );
+        assertHasOnlyUid( to.getUid(), "trackedEntity", relationship.getObject( "to" ) );
     }
 
     @Test
-    void getRelationshipsByIdWithFieldsDoubleStar()
+    void getRelationshipsByIdWithFieldsAll()
     {
         TrackedEntityInstance to = trackedEntityInstance();
         ProgramStageInstance from = programStageInstance( programInstance( to ) );
         Relationship r = relationship( from, to );
 
-        JsonObject relationship = GET( "/tracker/relationships/{uid}?fields=**", r.getUid() )
+        JsonObject relationship = GET( "/tracker/relationships/{uid}?fields=*", r.getUid() )
             .content( HttpStatus.OK );
 
         assertRelationship( r, relationship );
@@ -198,31 +200,15 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
         ProgramStageInstance from = programStageInstance( programInstance( to ) );
         Relationship r = relationship( from, to );
 
-        JsonObject json = GET( "/tracker/relationships?event=" + from.getUid() )
+        JsonObject json = GET( "/tracker/relationships?event={uid}", from.getUid() )
             .content( HttpStatus.OK );
 
         assertFalse( json.isEmpty() );
         JsonArray relationships = json.getArray( "instances" );
         JsonObject jsonRelationship = assertFirstRelationship( r, relationships );
-        assertEventWithinRelationship( from, jsonRelationship.getObject( "from" ) );
-        assertTrackedEntityWithinRelationship( to, jsonRelationship.getObject( "to" ) );
-    }
-
-    @Test
-    void getRelationshipsByEventWithFieldsDoubleStar()
-    {
-        TrackedEntityInstance to = trackedEntityInstance();
-        ProgramStageInstance from = programStageInstance( programInstance( to ) );
-        Relationship r = relationship( from, to );
-
-        JsonObject json = GET( "/tracker/relationships?event={uid}&fields=**", from.getUid() )
-            .content( HttpStatus.OK );
-
-        assertFalse( json.isEmpty() );
-        JsonArray relationships = json.getArray( "instances" );
-        JsonObject jsonRelationship = assertFirstRelationship( r, relationships );
-        assertEventWithinRelationship( from, jsonRelationship.getObject( "from" ) );
-        assertTrackedEntityWithinRelationship( to, jsonRelationship.getObject( "to" ) );
+        assertHasOnlyMembers( jsonRelationship, "relationship", "relationshipType", "from", "to" );
+        assertHasOnlyUid( from.getUid(), "event", jsonRelationship.getObject( "from" ) );
+        assertHasOnlyUid( to.getUid(), "trackedEntity", jsonRelationship.getObject( "to" ) );
     }
 
     @Test
@@ -269,6 +255,24 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
         assertFalse( json.isEmpty() );
         JsonArray relationships = json.getArray( "instances" );
         JsonObject jsonRelationship = assertFirstRelationship( r, relationships );
+        assertHasOnlyMembers( jsonRelationship, "relationship", "relationshipType", "from", "to" );
+        assertHasOnlyUid( from.getUid(), "enrollment", jsonRelationship.getObject( "from" ) );
+        assertHasOnlyUid( to.getUid(), "trackedEntity", jsonRelationship.getObject( "to" ) );
+    }
+
+    @Test
+    void getRelationshipsByEnrollmentWithFieldsAll()
+    {
+        TrackedEntityInstance to = trackedEntityInstance();
+        ProgramInstance from = programInstance( to );
+        Relationship r = relationship( from, to );
+
+        JsonObject json = GET( "/tracker/relationships?enrollment={uid}&fields=*", from.getUid() )
+            .content( HttpStatus.OK );
+
+        assertFalse( json.isEmpty() );
+        JsonArray relationships = json.getArray( "instances" );
+        JsonObject jsonRelationship = assertFirstRelationship( r, relationships );
         assertEnrollmentWithinRelationship( from, jsonRelationship.getObject( "from" ) );
         assertTrackedEntityWithinRelationship( to, jsonRelationship.getObject( "to" ) );
     }
@@ -296,8 +300,9 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
         assertFalse( json.isEmpty() );
         JsonArray relationships = json.getArray( "instances" );
         JsonObject jsonRelationship = assertFirstRelationship( r, relationships );
-        assertEnrollmentWithinRelationship( from, jsonRelationship.getObject( "from" ) );
-        assertTrackedEntityWithinRelationship( to, jsonRelationship.getObject( "to" ) );
+        assertHasOnlyMembers( jsonRelationship, "relationship", "relationshipType", "from", "to" );
+        assertHasOnlyUid( from.getUid(), "enrollment", jsonRelationship.getObject( "from" ) );
+        assertHasOnlyUid( to.getUid(), "trackedEntity", jsonRelationship.getObject( "to" ) );
     }
 
     @Test
@@ -313,8 +318,9 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
         assertFalse( json.isEmpty() );
         JsonArray relationships = json.getArray( "instances" );
         JsonObject jsonRelationship = assertFirstRelationship( r, relationships );
-        assertEnrollmentWithinRelationship( from, jsonRelationship.getObject( "from" ) );
-        assertTrackedEntityWithinRelationship( to, jsonRelationship.getObject( "to" ) );
+        assertHasOnlyMembers( jsonRelationship, "relationship", "relationshipType", "from", "to" );
+        assertHasOnlyUid( from.getUid(), "enrollment", jsonRelationship.getObject( "from" ) );
+        assertHasOnlyUid( to.getUid(), "trackedEntity", jsonRelationship.getObject( "to" ) );
     }
 
     @Test
@@ -331,8 +337,9 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
         assertFalse( json.isEmpty() );
         JsonArray relationships = json.getArray( "instances" );
         JsonObject jsonRelationship = assertFirstRelationship( r, relationships );
-        assertTrackedEntityWithinRelationship( from, jsonRelationship.getObject( "from" ) );
-        assertTrackedEntityWithinRelationship( to, jsonRelationship.getObject( "to" ) );
+        assertHasOnlyMembers( jsonRelationship, "relationship", "relationshipType", "from", "to" );
+        assertHasOnlyUid( from.getUid(), "trackedEntity", jsonRelationship.getObject( "from" ) );
+        assertHasOnlyUid( to.getUid(), "trackedEntity", jsonRelationship.getObject( "to" ) );
     }
 
     @Test

@@ -47,21 +47,6 @@
     <module>dhis-service-reporting</module>
   </modules>
 
-  <dependencies>
-
-    <!-- TODO Remove following dependencies once all above services pom.xml's are cleaned up; since this parent has no
-    dependencies -->
-    <!-- DHIS -->
-
-    <dependency>
-      <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-support-test</artifactId>
-    </dependency>
-  </dependencies>
   <properties>
     <rootDir>../</rootDir>
   </properties>

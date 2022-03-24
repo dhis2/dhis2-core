@@ -81,11 +81,7 @@ public class TrackerRelationshipsExportController
 {
     protected static final String RELATIONSHIPS = "relationships";
 
-    private static final String DONT_FILTER_FIELDS = "**";
-
-    private static final String DEFAULT_FIELDS_PARAM = "*";
-
-    private static final List<String> DEFAULT_FIELDS = List.of( "*" );
+    private static final String DEFAULT_FIELDS_PARAM = "relationship,relationshipType,from[trackedEntity[trackedEntity],enrollment[enrollment],event[event]],to[trackedEntity[trackedEntity],enrollment[enrollment],event[event]]";
 
     private static final org.hisp.dhis.webapi.controller.tracker.export.RelationshipMapper RELATIONSHIP_MAPPER = Mappers
         .getMapper( org.hisp.dhis.webapi.controller.tracker.export.RelationshipMapper.class );
@@ -138,7 +134,6 @@ public class TrackerRelationshipsExportController
         @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<String> fields )
         throws WebMessageException
     {
-        fields = fieldsOrDefault( fields );
 
         String identifier = criteria.getIdentifierParam();
         String identifierName = criteria.getIdentifierName();
@@ -168,7 +163,6 @@ public class TrackerRelationshipsExportController
         @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<String> fields )
         throws NotFoundException
     {
-        fields = fieldsOrDefault( fields );
 
         org.hisp.dhis.tracker.domain.Relationship relationship = RELATIONSHIP_MAPPER
             .from( relationshipService.getRelationshipByUid( id ) );
@@ -216,18 +210,5 @@ public class TrackerRelationshipsExportController
         return Optional.ofNullable( type )
             .map( objectRetrievers::get )
             .orElseThrow( () -> new IllegalArgumentException( "Unable to detect object retriever from " + type ) );
-    }
-
-    /**
-     * Passing in fields=** is the same as not passing in a fields query
-     * parameter. Thus, fallback to the default field param.
-     */
-    private List<String> fieldsOrDefault( List<String> fields )
-    {
-        if ( !fields.contains( DONT_FILTER_FIELDS ) )
-        {
-            return fields;
-        }
-        return DEFAULT_FIELDS;
     }
 }

@@ -87,13 +87,13 @@ import org.hisp.dhis.period.WeeklyPeriodType;
 import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserSettingKey;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -480,7 +480,7 @@ class ValidationServiceTest extends DhisTest
      */
     private void assertResultsEmpty( Collection<ValidationResult> results )
     {
-        assertResultsEquals( new HashSet<ValidationResult>(), results );
+        assertResultsEquals( new HashSet<>(), results );
     }
 
     /**
@@ -605,7 +605,7 @@ class ValidationServiceTest extends DhisTest
         ValidationAnalysisParams parameters = validationService
             .newParamsBuilder( null, sourceB, getDate( 2000, 2, 1 ), getDate( 2000, 6, 1 ) )
             .withIncludeOrgUnitDescendants( true ).build();
-        Collection<ValidationResult> results = validationService.validationAnalysis( parameters );
+        Collection<ValidationResult> results = runValidationAnalysis( parameters );
         Collection<ValidationResult> reference = new HashSet<>();
         reference.add( createValidationResult( ruleA, periodA, sourceB, defaultCombo, 3.0, -1.0, dayInPeriodA ) );
         reference.add( createValidationResult( ruleA, periodB, sourceB, defaultCombo, 3.0, -1.0, dayInPeriodB ) );
@@ -651,7 +651,7 @@ class ValidationServiceTest extends DhisTest
         ValidationAnalysisParams params = validationService
             .newParamsBuilder( group, sourceB, getDate( 2000, 2, 1 ), getDate( 2000, 6, 1 ) )
             .withIncludeOrgUnitDescendants( true ).build();
-        Collection<ValidationResult> results = validationService.validationAnalysis( params );
+        Collection<ValidationResult> results = runValidationAnalysis( params );
         Collection<ValidationResult> reference = new HashSet<>();
         reference.add( new ValidationResult( ruleA, periodA, sourceB, defaultCombo, 3.0, -1.0, dayInPeriodA ) );
         reference.add( new ValidationResult( ruleA, periodB, sourceB, defaultCombo, 3.0, -1.0, dayInPeriodB ) );
@@ -699,7 +699,7 @@ class ValidationServiceTest extends DhisTest
         List<Period> periods = periodService.getPeriodsBetweenDates( getDate( 2000, 2, 1 ), getDate( 2000, 6, 1 ) );
         ValidationAnalysisParams params = validationService.newParamsBuilder( validationRules, null, periods )
             .withIncludeOrgUnitDescendants( true ).build();
-        Collection<ValidationResult> results = validationService.validationAnalysis( params );
+        Collection<ValidationResult> results = runValidationAnalysis( params );
         Collection<ValidationResult> reference = new HashSet<>();
         reference.add( new ValidationResult( ruleA, periodA, sourceA, defaultCombo, 3.0, -1.0, dayInPeriodA ) );
         reference.add( new ValidationResult( ruleA, periodB, sourceA, defaultCombo, 3.0, -1.0, dayInPeriodB ) );
@@ -721,8 +721,7 @@ class ValidationServiceTest extends DhisTest
         validationRuleService.saveValidationRule( ruleB );
         validationRuleService.saveValidationRule( ruleC );
         validationRuleService.saveValidationRule( ruleD );
-        Collection<ValidationResult> results = validationService
-            .validationAnalysis( validationService.newParamsBuilder( dataSetMonthly, sourceA, periodA ).build() );
+        Collection<ValidationResult> results = runValidationAnalysis( createParamsMonthlySourceAPeriodA() );
         Collection<ValidationResult> reference = new HashSet<>();
         reference.add( new ValidationResult( ruleA, periodA, sourceA, defaultCombo, 3.0, -1.0, dayInPeriodA ) );
         reference.add( new ValidationResult( ruleB, periodA, sourceA, defaultCombo, -1.0, 4.0, dayInPeriodA ) );
@@ -739,8 +738,7 @@ class ValidationServiceTest extends DhisTest
         useDataValue( dataElementD, periodA, sourceA, "4" );
         validationRuleService.saveValidationRule( ruleA );
         validationRuleService.saveValidationRule( ruleB );
-        Collection<ValidationResult> results = validationService
-            .validationAnalysis( validationService.newParamsBuilder( dataSetMonthly, sourceA, periodA ).build() );
+        Collection<ValidationResult> results = runValidationAnalysis( createParamsMonthlySourceAPeriodA() );
         Collection<ValidationResult> reference = new HashSet<>();
         reference.add( new ValidationResult( ruleB, periodA, sourceA, defaultCombo, -1.0, 4.0, dayInPeriodA ) );
         assertResultsEquals( reference, results );
@@ -753,13 +751,12 @@ class ValidationServiceTest extends DhisTest
         useDataValue( dataElementE, periodY, sourceB, "2222" );
         validationRuleService.saveValidationRule( ruleP );
         validationRuleService.saveValidationRule( ruleQ );
-        Collection<ValidationResult> results = validationService
-            .validationAnalysis( validationService.newParamsBuilder( dataSetMonthly, sourceA, periodA ).build() );
+        Collection<ValidationResult> results = runValidationAnalysis( createParamsMonthlySourceAPeriodA() );
         Collection<ValidationResult> reference = new HashSet<>();
         reference.add( new ValidationResult( ruleP, periodA, sourceA, defaultCombo, 1111.0, 31.0, dayInPeriodA ) );
         assertResultsEquals( reference, results );
-        results = validationService
-            .validationAnalysis( validationService.newParamsBuilder( dataSetYearly, sourceB, periodY ).build() );
+        results = runValidationAnalysis(
+            validationService.newParamsBuilder( dataSetYearly, sourceB, periodY ).build() );
         reference = new HashSet<>();
         reference.add( new ValidationResult( ruleQ, periodY, sourceB, defaultCombo, 2222.0, 366.0, dayInPeriodY ) );
         assertResultsEquals( reference, results );
@@ -769,8 +766,7 @@ class ValidationServiceTest extends DhisTest
     void testValidateMissingValues00()
     {
         validationRuleService.saveValidationRule( ruleG );
-        Collection<ValidationResult> results = validationService
-            .validationAnalysis( validationService.newParamsBuilder( dataSetMonthly, sourceA, periodA ).build() );
+        Collection<ValidationResult> results = runValidationAnalysis( createParamsMonthlySourceAPeriodA() );
         assertResultsEmpty( results );
     }
 
@@ -780,8 +776,7 @@ class ValidationServiceTest extends DhisTest
         useDataValue( dataElementD, periodA, sourceA, "1" );
         validationRuleService.saveValidationRule( ruleG );
         Collection<ValidationResult> reference = new HashSet<>();
-        Collection<ValidationResult> results = validationService
-            .validationAnalysis( validationService.newParamsBuilder( dataSetMonthly, sourceA, periodA ).build() );
+        Collection<ValidationResult> results = runValidationAnalysis( createParamsMonthlySourceAPeriodA() );
         reference.add( new ValidationResult( ruleG, periodA, sourceA, defaultCombo, 0.0, 1.0, dayInPeriodA ) );
         assertResultsEquals( reference, results );
     }
@@ -792,8 +787,7 @@ class ValidationServiceTest extends DhisTest
         useDataValue( dataElementC, periodA, sourceA, "1" );
         validationRuleService.saveValidationRule( ruleG );
         Collection<ValidationResult> reference = new HashSet<>();
-        Collection<ValidationResult> results = validationService
-            .validationAnalysis( validationService.newParamsBuilder( dataSetMonthly, sourceA, periodA ).build() );
+        Collection<ValidationResult> results = runValidationAnalysis( createParamsMonthlySourceAPeriodA() );
         reference.add( new ValidationResult( ruleG, periodA, sourceA, defaultCombo, 1.0, 0.0, dayInPeriodA ) );
         assertResultsEquals( reference, results );
     }
@@ -803,8 +797,7 @@ class ValidationServiceTest extends DhisTest
     {
         useDataValue( dataElementC, periodA, sourceA, "1" );
         useDataValue( dataElementD, periodA, sourceA, "1" );
-        Collection<ValidationResult> results = validationService
-            .validationAnalysis( validationService.newParamsBuilder( dataSetMonthly, sourceA, periodA ).build() );
+        Collection<ValidationResult> results = runValidationAnalysis( createParamsMonthlySourceAPeriodA() );
         assertResultsEmpty( results );
     }
 
@@ -812,8 +805,7 @@ class ValidationServiceTest extends DhisTest
     void testValidateCompulsoryPair00()
     {
         validationRuleService.saveValidationRule( ruleE );
-        Collection<ValidationResult> results = validationService
-            .validationAnalysis( validationService.newParamsBuilder( dataSetMonthly, sourceA, periodA ).build() );
+        Collection<ValidationResult> results = runValidationAnalysis( createParamsMonthlySourceAPeriodA() );
         assertResultsEmpty( results );
     }
 
@@ -822,8 +814,7 @@ class ValidationServiceTest extends DhisTest
     {
         useDataValue( dataElementB, periodA, sourceA, "1" );
         validationRuleService.saveValidationRule( ruleE );
-        Collection<ValidationResult> results = validationService
-            .validationAnalysis( validationService.newParamsBuilder( dataSetMonthly, sourceA, periodA ).build() );
+        Collection<ValidationResult> results = runValidationAnalysis( createParamsMonthlySourceAPeriodA() );
         Collection<ValidationResult> reference = new HashSet<>();
         reference.add( new ValidationResult( ruleE, periodA, sourceA, defaultCombo, 0.0, 1.0, dayInPeriodA ) );
         assertResultsEquals( reference, results );
@@ -834,8 +825,7 @@ class ValidationServiceTest extends DhisTest
     {
         useDataValue( dataElementA, periodA, sourceA, "1" );
         validationRuleService.saveValidationRule( ruleE );
-        Collection<ValidationResult> results = validationService
-            .validationAnalysis( validationService.newParamsBuilder( dataSetMonthly, sourceA, periodA ).build() );
+        Collection<ValidationResult> results = runValidationAnalysis( createParamsMonthlySourceAPeriodA() );
         Collection<ValidationResult> reference = new HashSet<>();
         reference.add( new ValidationResult( ruleE, periodA, sourceA, defaultCombo, 1.0, 0.0, dayInPeriodA ) );
         assertResultsEquals( reference, results );
@@ -847,8 +837,7 @@ class ValidationServiceTest extends DhisTest
         useDataValue( dataElementA, periodA, sourceA, "1" );
         useDataValue( dataElementB, periodA, sourceA, "1" );
         validationRuleService.saveValidationRule( ruleE );
-        Collection<ValidationResult> results = validationService
-            .validationAnalysis( validationService.newParamsBuilder( dataSetMonthly, sourceA, periodA ).build() );
+        Collection<ValidationResult> results = runValidationAnalysis( createParamsMonthlySourceAPeriodA() );
         assertResultsEmpty( results );
     }
 
@@ -858,8 +847,7 @@ class ValidationServiceTest extends DhisTest
         useDataValue( dataElementC, periodA, sourceA, "96" );
         validationRuleService.saveValidationRule( ruleG );
         validationRuleService.saveValidationRule( ruleF );
-        Collection<ValidationResult> results = validationService
-            .validationAnalysis( validationService.newParamsBuilder( dataSetMonthly, sourceA, periodA ).build() );
+        Collection<ValidationResult> results = runValidationAnalysis( createParamsMonthlySourceAPeriodA() );
         Collection<ValidationResult> reference = new HashSet<>();
         reference.add( new ValidationResult( ruleG, periodA, sourceA, defaultCombo, 96.0, 0.0, dayInPeriodA ) );
         assertResultsEquals( reference, results );
@@ -872,8 +860,7 @@ class ValidationServiceTest extends DhisTest
         validationRuleService.saveValidationRule( ruleG );
         useDataValue( dataElementB, periodA, sourceA, "1" );
         validationRuleService.saveValidationRule( ruleF );
-        Collection<ValidationResult> results = validationService
-            .validationAnalysis( validationService.newParamsBuilder( dataSetMonthly, sourceA, periodA ).build() );
+        Collection<ValidationResult> results = runValidationAnalysis( createParamsMonthlySourceAPeriodA() );
         Collection<ValidationResult> reference = new HashSet<>();
         reference.add( new ValidationResult( ruleG, periodA, sourceA, defaultCombo, 97.0, 0.0, dayInPeriodA ) );
         assertResultsEquals( reference, results );
@@ -886,8 +873,7 @@ class ValidationServiceTest extends DhisTest
         validationRuleService.saveValidationRule( ruleG );
         useDataValue( dataElementA, periodA, sourceA, "1" );
         validationRuleService.saveValidationRule( ruleF );
-        Collection<ValidationResult> results = validationService
-            .validationAnalysis( validationService.newParamsBuilder( dataSetMonthly, sourceA, periodA ).build() );
+        Collection<ValidationResult> results = runValidationAnalysis( createParamsMonthlySourceAPeriodA() );
         Collection<ValidationResult> reference = new HashSet<>();
         reference.add( new ValidationResult( ruleG, periodA, sourceA, defaultCombo, 98.0, 0.0, dayInPeriodA ) );
         assertResultsEquals( reference, results );
@@ -901,8 +887,7 @@ class ValidationServiceTest extends DhisTest
         useDataValue( dataElementA, periodA, sourceA, "1" );
         useDataValue( dataElementB, periodA, sourceA, "2" );
         validationRuleService.saveValidationRule( ruleF );
-        Collection<ValidationResult> results = validationService
-            .validationAnalysis( validationService.newParamsBuilder( dataSetMonthly, sourceA, periodA ).build() );
+        Collection<ValidationResult> results = runValidationAnalysis( createParamsMonthlySourceAPeriodA() );
         Collection<ValidationResult> reference = new HashSet<>();
         reference.add( new ValidationResult( ruleF, periodA, sourceA, defaultCombo, 1.0, 2.0, dayInPeriodA ) );
         reference.add( new ValidationResult( ruleG, periodA, sourceA, defaultCombo, 99.0, 0.0, dayInPeriodA ) );
@@ -913,8 +898,7 @@ class ValidationServiceTest extends DhisTest
     void testValidateExclusivePair00()
     {
         validationRuleService.saveValidationRule( ruleF );
-        Collection<ValidationResult> results = validationService
-            .validationAnalysis( validationService.newParamsBuilder( dataSetMonthly, sourceA, periodA ).build() );
+        Collection<ValidationResult> results = runValidationAnalysis( createParamsMonthlySourceAPeriodA() );
         assertResultsEmpty( results );
     }
 
@@ -923,8 +907,7 @@ class ValidationServiceTest extends DhisTest
     {
         useDataValue( dataElementB, periodA, sourceA, "1" );
         validationRuleService.saveValidationRule( ruleF );
-        Collection<ValidationResult> results = validationService
-            .validationAnalysis( validationService.newParamsBuilder( dataSetMonthly, sourceA, periodA ).build() );
+        Collection<ValidationResult> results = runValidationAnalysis( createParamsMonthlySourceAPeriodA() );
         assertResultsEmpty( results );
     }
 
@@ -933,8 +916,7 @@ class ValidationServiceTest extends DhisTest
     {
         useDataValue( dataElementA, periodA, sourceA, "1" );
         validationRuleService.saveValidationRule( ruleF );
-        Collection<ValidationResult> results = validationService
-            .validationAnalysis( validationService.newParamsBuilder( dataSetMonthly, sourceA, periodA ).build() );
+        Collection<ValidationResult> results = runValidationAnalysis( createParamsMonthlySourceAPeriodA() );
         assertResultsEmpty( results );
     }
 
@@ -944,8 +926,7 @@ class ValidationServiceTest extends DhisTest
         useDataValue( dataElementA, periodA, sourceA, "1" );
         useDataValue( dataElementB, periodA, sourceA, "2" );
         validationRuleService.saveValidationRule( ruleF );
-        Collection<ValidationResult> results = validationService
-            .validationAnalysis( validationService.newParamsBuilder( dataSetMonthly, sourceA, periodA ).build() );
+        Collection<ValidationResult> results = runValidationAnalysis( createParamsMonthlySourceAPeriodA() );
         Collection<ValidationResult> reference = new HashSet<>();
         reference.add( new ValidationResult( ruleF, periodA, sourceA, defaultCombo, 1.0, 2.0, dayInPeriodA ) );
         assertResultsEquals( reference, results );
@@ -974,8 +955,7 @@ class ValidationServiceTest extends DhisTest
         ValidationRule validationRuleZ = createValidationRule( "Z", equal_to, expressionV, expressionZ, ptMonthly );
         // deD[all] = deD.optionComboA * 2 + deD.optionComboB
         validationRuleService.saveValidationRule( validationRuleZ );
-        Collection<ValidationResult> results = validationService
-            .validationAnalysis( validationService.newParamsBuilder( dataSetMonthly, sourceA, periodA ).build() );
+        Collection<ValidationResult> results = runValidationAnalysis( createParamsMonthlySourceAPeriodA() );
         Collection<ValidationResult> reference = new HashSet<>();
         reference
             .add( new ValidationResult( validationRuleZ, periodA, sourceA, defaultCombo, 7.0, 10.0, dayInPeriodA ) );
@@ -1013,14 +993,14 @@ class ValidationServiceTest extends DhisTest
         ValidationResult s = new ValidationResult( ruleS, periodA, sourceA, defaultCombo, 12.0, 1000.0, dayInPeriodA );
         ValidationResult t = new ValidationResult( ruleT, periodA, sourceA, defaultCombo, 9.0, 1000.0, dayInPeriodA );
         ValidationResult u = new ValidationResult( ruleU, periodA, sourceA, defaultCombo, 3.0, 1000.0, dayInPeriodA );
-        assertResultsEquals( Lists.newArrayList( r, t, u ), validationService
-            .validationAnalysis( validationService.newParamsBuilder( dataSetA, sourceA, periodA ).build() ) );
-        assertResultsEquals( Lists.newArrayList( r, s, u ), validationService
-            .validationAnalysis( validationService.newParamsBuilder( dataSetB, sourceA, periodA ).build() ) );
-        assertResultsEquals( Lists.newArrayList( r, s, t, u ), validationService
-            .validationAnalysis( validationService.newParamsBuilder( dataSetC, sourceA, periodA ).build() ) );
-        assertResultsEquals( Lists.newArrayList( r, s, t ), validationService
-            .validationAnalysis( validationService.newParamsBuilder( dataSetD, sourceA, periodA ).build() ) );
+        assertResultsEquals( Lists.newArrayList( r, t, u ),
+            runValidationAnalysis( validationService.newParamsBuilder( dataSetA, sourceA, periodA ).build() ) );
+        assertResultsEquals( Lists.newArrayList( r, s, u ),
+            runValidationAnalysis( validationService.newParamsBuilder( dataSetB, sourceA, periodA ).build() ) );
+        assertResultsEquals( Lists.newArrayList( r, s, t, u ),
+            runValidationAnalysis( validationService.newParamsBuilder( dataSetC, sourceA, periodA ).build() ) );
+        assertResultsEquals( Lists.newArrayList( r, s, t ),
+            runValidationAnalysis( validationService.newParamsBuilder( dataSetD, sourceA, periodA ).build() ) );
     }
 
     @Test
@@ -1055,7 +1035,7 @@ class ValidationServiceTest extends DhisTest
         //
         // optionComboAC
         //
-        Collection<ValidationResult> results = validationService.validationAnalysis( validationService
+        Collection<ValidationResult> results = runValidationAnalysis( validationService
             .newParamsBuilder( dataSetMonthly, sourceA, periodA ).withAttributeOptionCombo( optionComboAC ).build() );
         Collection<ValidationResult> reference = new HashSet<>();
         reference.add( new ValidationResult( ruleD, periodA, sourceA, optionComboAC, 7.0, 6.0, dayInPeriodA ) );
@@ -1064,8 +1044,8 @@ class ValidationServiceTest extends DhisTest
         //
         // All optionCombos
         //
-        results = validationService
-            .validationAnalysis( validationService.newParamsBuilder( dataSetMonthly, sourceA, periodA ).build() );
+        results = runValidationAnalysis(
+            createParamsMonthlySourceAPeriodA() );
         reference = new HashSet<>();
         reference.add( new ValidationResult( ruleD, periodA, sourceA, optionComboAC, 7.0, 6.0, dayInPeriodA ) );
         reference.add( new ValidationResult( ruleX, periodA, sourceA, optionComboAC, 7.0, 6.0, dayInPeriodA ) );
@@ -1075,7 +1055,7 @@ class ValidationServiceTest extends DhisTest
         //
         // Default optionCombo
         //
-        results = validationService.validationAnalysis( validationService
+        results = runValidationAnalysis( validationService
             .newParamsBuilder( dataSetMonthly, sourceA, periodA ).withAttributeOptionCombo( optionCombo ).build() );
         assertResultsEmpty( results );
     }
@@ -1092,7 +1072,7 @@ class ValidationServiceTest extends DhisTest
             "#{" + dataElementA.getUid() + "} + #{" + dataElementB.getUid() + "}", "exprRight", NEVER_SKIP );
         ValidationRule rule = createValidationRule( "R", not_equal_to, expressionLeft, expressionRight, ptMonthly );
         validationRuleService.saveValidationRule( rule );
-        Collection<ValidationResult> results = validationService.validationAnalysis( validationService
+        Collection<ValidationResult> results = runValidationAnalysis( validationService
             .newParamsBuilder( Sets.newHashSet( rule ), sourceA, Sets.newHashSet( periodA, periodB, periodC ) )
             .build() );
         Collection<ValidationResult> reference = new HashSet<>();
@@ -1115,7 +1095,7 @@ class ValidationServiceTest extends DhisTest
             SKIP_IF_ALL_VALUES_MISSING );
         ValidationRule rule = createValidationRule( "R", not_equal_to, expressionLeft, expressionRight, ptMonthly );
         validationRuleService.saveValidationRule( rule );
-        Collection<ValidationResult> results = validationService.validationAnalysis( validationService
+        Collection<ValidationResult> results = runValidationAnalysis( validationService
             .newParamsBuilder( Sets.newHashSet( rule ), sourceA, Sets.newHashSet( periodA, periodB, periodC ) )
             .build() );
         Collection<ValidationResult> reference = new HashSet<>();
@@ -1138,7 +1118,7 @@ class ValidationServiceTest extends DhisTest
             SKIP_IF_ANY_VALUE_MISSING );
         ValidationRule rule = createValidationRule( "R", not_equal_to, expressionLeft, expressionRight, ptMonthly );
         validationRuleService.saveValidationRule( rule );
-        Collection<ValidationResult> results = validationService.validationAnalysis( validationService
+        Collection<ValidationResult> results = runValidationAnalysis( validationService
             .newParamsBuilder( Sets.newHashSet( rule ), sourceA, Sets.newHashSet( periodA, periodB, periodC ) )
             .build() );
         Collection<ValidationResult> reference = new HashSet<>();
@@ -1154,8 +1134,7 @@ class ValidationServiceTest extends DhisTest
         Expression expressionRight = new Expression( "if(#{" + dataElementA.getUid() + "}==2,7,8)", "exprRight" );
         ValidationRule rule = createValidationRule( "R", equal_to, expressionLeft, expressionRight, ptMonthly );
         validationRuleService.saveValidationRule( rule );
-        Collection<ValidationResult> results = validationService
-            .validationAnalysis( validationService.newParamsBuilder( dataSetMonthly, sourceA, periodA ).build() );
+        Collection<ValidationResult> results = runValidationAnalysis( createParamsMonthlySourceAPeriodA() );
         Collection<ValidationResult> reference = new HashSet<>();
         reference.add( new ValidationResult( rule, periodA, sourceA, defaultCombo, 5.0, 8.0, dayInPeriodA ) );
         assertResultsEquals( reference, results );
@@ -1169,8 +1148,7 @@ class ValidationServiceTest extends DhisTest
         Expression expressionRight = new Expression( "if(isNull(#{" + dataElementB.getUid() + "}),7,8)", "exprRight" );
         ValidationRule rule = createValidationRule( "R", equal_to, expressionLeft, expressionRight, ptMonthly );
         validationRuleService.saveValidationRule( rule );
-        Collection<ValidationResult> results = validationService
-            .validationAnalysis( validationService.newParamsBuilder( dataSetMonthly, sourceA, periodA ).build() );
+        Collection<ValidationResult> results = runValidationAnalysis( createParamsMonthlySourceAPeriodA() );
         Collection<ValidationResult> reference = new HashSet<>();
         reference.add( new ValidationResult( rule, periodA, sourceA, defaultCombo, 6.0, 7.0, dayInPeriodA ) );
         assertResultsEquals( reference, results );
@@ -1185,8 +1163,7 @@ class ValidationServiceTest extends DhisTest
             "exprRight" );
         ValidationRule rule = createValidationRule( "R", equal_to, expressionLeft, expressionRight, ptMonthly );
         validationRuleService.saveValidationRule( rule );
-        Collection<ValidationResult> results = validationService
-            .validationAnalysis( validationService.newParamsBuilder( dataSetMonthly, sourceA, periodA ).build() );
+        Collection<ValidationResult> results = runValidationAnalysis( createParamsMonthlySourceAPeriodA() );
         Collection<ValidationResult> reference = new HashSet<>();
         reference.add( new ValidationResult( rule, periodA, sourceA, defaultCombo, 5.0, 8.0, dayInPeriodA ) );
         assertResultsEquals( reference, results );
@@ -1202,8 +1179,7 @@ class ValidationServiceTest extends DhisTest
             "firstNonNull( #{" + dataElementB.getUid() + "}, #{" + dataElementA.getUid() + "} )", "exprRight" );
         ValidationRule rule = createValidationRule( "R", not_equal_to, expressionLeft, expressionRight, ptMonthly );
         validationRuleService.saveValidationRule( rule );
-        Collection<ValidationResult> results = validationService
-            .validationAnalysis( validationService.newParamsBuilder( dataSetMonthly, sourceA, periodA ).build() );
+        Collection<ValidationResult> results = runValidationAnalysis( createParamsMonthlySourceAPeriodA() );
         Collection<ValidationResult> reference = new HashSet<>();
         reference.add( new ValidationResult( rule, periodA, sourceA, defaultCombo, 3.0, 3.0, dayInPeriodA ) );
         assertResultsEquals( reference, results );
@@ -1220,8 +1196,7 @@ class ValidationServiceTest extends DhisTest
             "least( #{" + dataElementA.getUid() + "}, #{" + dataElementB.getUid() + "} )", "exprRight" );
         ValidationRule rule = createValidationRule( "R", equal_to, expressionLeft, expressionRight, ptMonthly );
         validationRuleService.saveValidationRule( rule );
-        Collection<ValidationResult> results = validationService
-            .validationAnalysis( validationService.newParamsBuilder( dataSetMonthly, sourceA, periodA ).build() );
+        Collection<ValidationResult> results = runValidationAnalysis( createParamsMonthlySourceAPeriodA() );
         Collection<ValidationResult> reference = new HashSet<>();
         reference.add( new ValidationResult( rule, periodA, sourceA, defaultCombo, 20.0, 10.0, dayInPeriodA ) );
         assertResultsEquals( reference, results );
@@ -1247,8 +1222,7 @@ class ValidationServiceTest extends DhisTest
         Expression expressionRight = new Expression( "1", "exprRight" );
         ValidationRule rule = createValidationRule( "R", equal_to, expressionLeft, expressionRight, ptMonthly );
         validationRuleService.saveValidationRule( rule );
-        Collection<ValidationResult> results = validationService
-            .validationAnalysis( validationService.newParamsBuilder( dataSetMonthly, sourceA, periodA ).build() );
+        Collection<ValidationResult> results = runValidationAnalysis( createParamsMonthlySourceAPeriodA() );
         Collection<ValidationResult> reference = new HashSet<>();
         reference.add( new ValidationResult( rule, periodA, sourceA, defaultCombo, 2.0, 1.0, dayInPeriodA ) );
         assertResultsEquals( reference, results );
@@ -1273,7 +1247,7 @@ class ValidationServiceTest extends DhisTest
             + "), #{" + dataElementB.getUid() + "}, 30)", "right" );
         ValidationRule rule = createValidationRule( "R", equal_to, expressionLeft, expressionRight, ptMonthly );
         validationRuleService.saveValidationRule( rule );
-        Collection<ValidationResult> results = validationService.validationAnalysis( validationService
+        Collection<ValidationResult> results = runValidationAnalysis( validationService
             .newParamsBuilder( dataSetMonthly, sourceB, periodA ).withIncludeOrgUnitDescendants( true ).build() );
         Collection<ValidationResult> reference = new HashSet<>();
         reference.add( new ValidationResult( rule, periodA, sourceB, defaultCombo, 20.0, 30.0, dayInPeriodA ) );
@@ -1303,7 +1277,7 @@ class ValidationServiceTest extends DhisTest
             + orgUnitGroupC.getUid() + " ), #{" + dataElementB.getUid() + "}, 30)", "right" );
         ValidationRule rule = createValidationRule( "R", equal_to, expressionLeft, expressionRight, ptMonthly );
         validationRuleService.saveValidationRule( rule );
-        Collection<ValidationResult> results = validationService.validationAnalysis( validationService
+        Collection<ValidationResult> results = runValidationAnalysis( validationService
             .newParamsBuilder( dataSetMonthly, sourceB, periodA ).withIncludeOrgUnitDescendants( true ).build() );
         Collection<ValidationResult> reference = new HashSet<>();
         reference.add( new ValidationResult( rule, periodA, sourceB, defaultCombo, 1.0, 30.0, dayInPeriodA ) );
@@ -1348,7 +1322,7 @@ class ValidationServiceTest extends DhisTest
         ValidationRule rule = createValidationRule( "R", equal_to, expressionLeft, expressionRight, ptMonthly );
         validationRuleService.saveValidationRule( rule );
 
-        Collection<ValidationResult> results = validationService.validationAnalysis( validationService
+        Collection<ValidationResult> results = runValidationAnalysis( validationService
             .newParamsBuilder( dataSetMonthly, sourceB, periodA ).withIncludeOrgUnitDescendants( true ).build() );
 
         Collection<ValidationResult> reference = new HashSet<>();
@@ -1394,7 +1368,7 @@ class ValidationServiceTest extends DhisTest
         ValidationRule rule = createValidationRule( "R", equal_to, expressionLeft, expressionRight, ptMonthly );
         validationRuleService.saveValidationRule( rule );
 
-        Collection<ValidationResult> results = validationService.validationAnalysis( validationService
+        Collection<ValidationResult> results = runValidationAnalysis( validationService
             .newParamsBuilder( dataSetMonthly, sourceB, periodA ).withIncludeOrgUnitDescendants( true ).build() );
 
         Collection<ValidationResult> reference = new HashSet<>();
@@ -1426,7 +1400,7 @@ class ValidationServiceTest extends DhisTest
         Set<Translation> listObjectTranslation = new HashSet<>( rule.getTranslations() );
         listObjectTranslation.add( new Translation( locale.getLanguage(), "INSTRUCTION", instructionTranslated ) );
         identifiableObjectManager.updateTranslations( rule, listObjectTranslation );
-        Assertions.assertEquals( instructionTranslated, rule.getDisplayInstruction() );
+        assertEquals( instructionTranslated, rule.getDisplayInstruction() );
     }
 
     @Test
@@ -1448,7 +1422,17 @@ class ValidationServiceTest extends DhisTest
         ValidationRuleExpressionDetails details = validationService.getValidationRuleExpressionDetails(
             validationService.newParamsBuilder( Lists.newArrayList( rule ), sourceA, Lists.newArrayList( periodA ) )
                 .withAttributeOptionCombo( optionCombo ).build() );
-        Assertions.assertEquals( leftSideExpected, details.getLeftSide() );
-        Assertions.assertEquals( rightSideExpected, details.getRightSide() );
+        assertEquals( leftSideExpected, details.getLeftSide() );
+        assertEquals( rightSideExpected, details.getRightSide() );
+    }
+
+    private List<ValidationResult> runValidationAnalysis( ValidationAnalysisParams params )
+    {
+        return validationService.validationAnalysis( params, NoopJobProgress.INSTANCE );
+    }
+
+    private ValidationAnalysisParams createParamsMonthlySourceAPeriodA()
+    {
+        return validationService.newParamsBuilder( dataSetMonthly, sourceA, periodA ).build();
     }
 }
