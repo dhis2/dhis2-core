@@ -29,6 +29,7 @@ package org.hisp.dhis.expression;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.Boolean.FALSE;
+import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.antlr.AntlrParserUtils.castBoolean;
 import static org.hisp.dhis.antlr.AntlrParserUtils.castDouble;
 import static org.hisp.dhis.antlr.AntlrParserUtils.castString;
@@ -548,10 +549,11 @@ public class DefaultExpressionService
     @Override
     public Set<DataElement> getExpressionDataElements( String expression, ParseType parseType )
     {
-        return getExpressionDimensionalItemIds( expression, parseType ).stream()
+        List<String> deIds = getExpressionDimensionalItemIds( expression, parseType ).stream()
             .filter( DimensionalItemId::isDataElementOrOperand )
-            .map( i -> idObjectManager.get( DataElement.class, i.getId0() ) )
-            .collect( Collectors.toSet() );
+            .map( DimensionalItemId::getId0 )
+            .collect( toList() );
+        return new HashSet<>( idObjectManager.getByUid( DataElement.class, deIds ) );
     }
 
     @Override
