@@ -34,7 +34,6 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.node.types.RootNode;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -60,8 +59,6 @@ public interface MetadataExportService
      * @return RootNode instance with children containing all exported objects
      */
     ObjectNode getMetadataAsNode( MetadataExportParams params );
-
-    RootNode getMetadataAsRootNode( MetadataExportParams params );
 
     /**
      * Validates the import params. Not currently implemented.
