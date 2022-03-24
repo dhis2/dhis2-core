@@ -29,8 +29,8 @@ package org.hisp.dhis.webapi.controller.tracker.export;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
 
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -39,6 +39,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.trackedentity.ProgramOwner;
@@ -171,7 +172,8 @@ class TrackedEntitiesSupportService
      */
     public static TrackedEntityInstanceParams getTrackedEntityInstanceParams( List<String> fields )
     {
-        List<FieldPath> fieldPaths = FieldFilterParser.parse( new HashSet<>( fields ) );
+        List<FieldPath> fieldPaths = FieldFilterParser
+            .parse( Collections.singleton( StringUtils.join( fields, "," ) ) );
         Map<String, FieldPath> roots = rootFields( fieldPaths );
 
         TrackedEntityInstanceParams params = initUsingAllOrNoFields( roots );

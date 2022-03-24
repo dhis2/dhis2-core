@@ -170,12 +170,14 @@ class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenien
         relationship( from, to );
         this.switchContextToUser( user );
 
-        JsonObject json = GET( "/tracker/trackedEntities/{id}?fields=trackedEntity,orgUnit,relationships[relationship]",
+        JsonObject json = GET(
+            "/tracker/trackedEntities/{id}?fields=trackedEntity,orgUnit,relationships[relationship,relationshipType]",
             from.getUid() )
                 .content( HttpStatus.OK );
 
         assertFalse( json.isEmpty() );
         assertHasOnlyMembers( json, "trackedEntity", "orgUnit", "relationships" );
+        assertHasOnlyMembers( json.getArray( "relationships" ).getObject( 0 ), "relationship", "relationshipType" );
     }
 
     @Test
