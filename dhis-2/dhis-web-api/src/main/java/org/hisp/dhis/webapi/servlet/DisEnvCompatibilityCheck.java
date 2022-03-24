@@ -52,7 +52,7 @@ public class DisEnvCompatibilityCheck implements WebApplicationInitializer
             || javaVersion.startsWith( "9" )
             || javaVersion.startsWith( "10" ) )
         {
-            log.error( "DHIS2 requires Java 11+" );
+            log.error( "DHIS 2 requires Java 11+. Please upgrade your JDK version. Startup process was aborted." );
             System.exit( 1 );
         }
     }
