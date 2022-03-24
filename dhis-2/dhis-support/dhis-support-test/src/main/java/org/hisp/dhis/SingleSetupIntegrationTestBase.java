@@ -66,6 +66,7 @@ public abstract class SingleSetupIntegrationTestBase
         nonTransactionalAfter();
     }
 
+    @Override
     protected boolean emptyDatabaseAfterTest()
     {
         return true;
