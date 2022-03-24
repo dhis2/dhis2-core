@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
-import static org.apache.commons.lang3.StringUtils.trimToEmpty;
-
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -64,10 +62,5 @@ class ColumnAndAlias
         {
             return column;
         }
-    }
-
-    public String getUnquotedAlias()
-    {
-        return trimToEmpty( alias ).replaceAll( "\"", "" );
     }
 }
