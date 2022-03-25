@@ -713,16 +713,27 @@
                             <ignoredUnusedDeclaredDependency>org.junit.jupiter:junit-jupiter</ignoredUnusedDeclaredDependency>
                             <ignoredUnusedDeclaredDependency>org.springframework.security:spring-security-core</ignoredUnusedDeclaredDependency>
                             <ignoredUnusedDeclaredDependency>net.sf.jasperreports:jasperreports</ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>org.mockito:mockito-inline</ignoredUnusedDeclaredDependency>
 
                             <!-- Removing these dependencies from the pom makes some tests fail -->
                             <ignoredUnusedDeclaredDependency>io.netty:netty-all</ignoredUnusedDeclaredDependency>
                             <ignoredUnusedDeclaredDependency>org.hibernate.validator:hibernate-validator</ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>com.cronutils:cron-utils</ignoredUnusedDeclaredDependency>
                             <ignoredUnusedDeclaredDependency>com.h2database:h2</ignoredUnusedDeclaredDependency>
                             <ignoredUnusedDeclaredDependency>org.cache2k:cache2k-core:jar</ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>org.springframework.security:spring-security-aspects</ignoredUnusedDeclaredDependency>
+
+                            <!-- Removing these dependency makes the startup fail -->
+                            <ignoredUnusedDeclaredDependency>org.hibernate:hibernate-ehcache</ignoredUnusedDeclaredDependency>
 
                             <!-- These are some module dependencies that only exist at runtime -->
                             <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-support-hibernate</ignoredUnusedDeclaredDependency>
                             <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-support-db-migration</ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-support-audit</ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-validation</ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-administration</ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-program-rule</ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-core</ignoredUnusedDeclaredDependency>
                         </ignoredUnusedDeclaredDependencies>
                         <ignoredUsedUndeclaredDependencies>
                             <ignoredUsedUndeclaredDependency>org.junit.jupiter:junit-jupiter-api</ignoredUsedUndeclaredDependency>
@@ -731,6 +742,9 @@
                             <ignoredUsedUndeclaredDependency>org.apache.activemq:artemis-commons</ignoredUsedUndeclaredDependency>
                             <ignoredUsedUndeclaredDependency>io.debezium:debezium-core</ignoredUsedUndeclaredDependency>
                             <ignoredUsedUndeclaredDependency>org.apache.kafka:connect-api</ignoredUsedUndeclaredDependency>
+                            <ignoredUsedUndeclaredDependency>javax.transaction:javax.transaction-api</ignoredUsedUndeclaredDependency>
+                            <ignoredUsedUndeclaredDependency>org.springframework.security:spring-security-oauth2-core</ignoredUsedUndeclaredDependency>
+                            <ignoredUsedUndeclaredDependency>com.nimbusds:nimbus-jose-jwt</ignoredUsedUndeclaredDependency>
                         </ignoredUsedUndeclaredDependencies>
                         <ignoredNonTestScopedDependencies>
                             <!-- Setting the scope of this dependency to test makes the build fail-->
@@ -802,6 +816,12 @@
                                     <reason>Do not use this annotations. Use javax.annotation instead</reason>
                                     <bannedImports>
                                         <bannedImport>org.jetbrains.annotations.**</bannedImport>
+                                    </bannedImports>
+                                </RestrictImports>
+                                <RestrictImports>
+                                    <reason>Do not use this json library. Use com.google.gson instead</reason>
+                                    <bannedImports>
+                                        <bannedImport>org.json.simple.**</bannedImport>
                                     </bannedImports>
                                 </RestrictImports>
                             </rules>
@@ -894,11 +914,6 @@
             <dependency>
                 <groupId>org.hisp.dhis</groupId>
                 <artifactId>dhis-service-tracker</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.hisp.dhis</groupId>
-                <artifactId>dhis-service-audit-consumer</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -2116,6 +2131,12 @@
                 <groupId>org.apache.activemq</groupId>
                 <artifactId>artemis-jms-client</artifactId>
                 <version>${artemis.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>jakarta.jms</groupId>
+                        <artifactId>jakarta.jms-api</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.apache.activemq</groupId>
@@ -2290,6 +2311,12 @@
                 <groupId>org.eclipse.jetty</groupId>
                 <artifactId>jetty-server</artifactId>
                 <version>${jetty.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.eclipse.jetty.toolchain</groupId>
+                        <artifactId>jetty-servlet-api</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
 
             <!-- Lombok-->
@@ -2323,6 +2350,10 @@
                         <groupId>jakarta.annotation</groupId>
                         <artifactId>jakarta.annotation-api</artifactId>
                     </exclusion>
+                <exclusion>
+                    <groupId>jakarta.validation</groupId>
+                    <artifactId>jakarta.validation-api</artifactId>
+                </exclusion>
                 </exclusions>
             </dependency>
             <dependency>
