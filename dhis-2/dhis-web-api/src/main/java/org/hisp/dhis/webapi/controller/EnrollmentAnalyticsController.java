@@ -51,6 +51,8 @@ import org.hisp.dhis.common.EventDataQueryRequest;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.RequestTypeAware;
 import org.hisp.dhis.common.cache.CacheStrategy;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -93,6 +95,9 @@ public class EnrollmentAnalyticsController
 
     @NotNull
     private DimensionMapperService dimensionMapperService;
+
+    @NotNull
+    private final SystemSettingManager systemSettingManager;
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_ANALYTICS_EXPLAIN')" )
     @GetMapping( value = "/query/{program}/explain", produces = { APPLICATION_JSON_VALUE, "application/javascript" } )
@@ -251,6 +256,8 @@ public class EnrollmentAnalyticsController
     private EventQueryParams getEventQueryParams( @PathVariable String program,
         EnrollmentAnalyticsQueryCriteria criteria, DhisApiVersion apiVersion, boolean analyzeOnly )
     {
+        checkAndMaybeModifyCriteria( criteria );
+
         EventDataQueryRequest request = EventDataQueryRequest.builder()
             .fromCriteria( (EnrollmentAnalyticsQueryCriteria) criteria.withQueryEndpointAction()
                 .withEndpointItem( RequestTypeAware.EndpointItem.ENROLLMENT ) )
@@ -259,5 +266,15 @@ public class EnrollmentAnalyticsController
             .build();
 
         return eventDataQueryService.getFromRequest( request, analyzeOnly );
+    }
+
+    private void checkAndMaybeModifyCriteria( EnrollmentAnalyticsQueryCriteria criteria )
+    {
+        Integer analyticsMaxLimit = systemSettingManager.getIntSetting( SettingKey.ANALYTICS_MAX_LIMIT );
+
+        if ( criteria.getPageSize() != null && criteria.getPageSize() > analyticsMaxLimit )
+        {
+            criteria.setPageSize( analyticsMaxLimit );
+        }
     }
 }
