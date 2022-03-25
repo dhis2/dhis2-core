@@ -28,6 +28,7 @@
 package org.hisp.dhis.dxf2.events.trackedentity.store;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -115,7 +116,7 @@ public class DefaultTrackedEntityInstanceStore extends AbstractStore implements 
     {
         List<List<Long>> idPartitions = Lists.partition( ids, PARITITION_SIZE );
 
-        Map<String, TrackedEntityInstance> trackedEntityMap = new HashMap<>();
+        Map<String, TrackedEntityInstance> trackedEntityMap = new LinkedHashMap<>();
 
         idPartitions
             .forEach( partition -> trackedEntityMap.putAll( getTrackedEntityInstancesPartitioned( partition, ctx ) ) );
