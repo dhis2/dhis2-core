@@ -142,6 +142,18 @@ public interface JobProgress
         failedProcess( "Process failed: " + (isNotEmpty( message ) ? message : cause.getClass().getSimpleName()) );
     }
 
+    default void endingProcess( boolean success )
+    {
+        if ( success )
+        {
+            completedProcess( null );
+        }
+        else
+        {
+            failedProcess( (String) null );
+        }
+    }
+
     /**
      * Announce start of a new stage.
      *
@@ -494,6 +506,9 @@ public interface JobProgress
 
         @JsonProperty
         public abstract Date getStartedTime();
+
+        @JsonProperty
+        public abstract String getDescription();
 
         @JsonProperty
         public long getDuration()

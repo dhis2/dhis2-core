@@ -27,49 +27,29 @@
  */
 package org.hisp.dhis.dxf2.sync;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.Optional;
-
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.dxf2.synch.SynchronizationManager;
 import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.TrackerProgramsDataSynchronizationJobParameters;
-import org.hisp.dhis.system.notification.Notifier;
 import org.springframework.stereotype.Component;
 
 /**
- * @author David Katuscak <katuscak.d@gmail.com>
+ * @author David Katuscak (original)
+ * @author Jan Bernitt (job progress tracking)
  */
 @Slf4j
-@Component( "trackerProgramsDataSyncJob" )
+@Component
+@AllArgsConstructor
 public class TrackerProgramsDataSynchronizationJob extends SynchronizationJob
 {
-    private final Notifier notifier;
+    private final TrackerSynchronization trackerSync;
 
-    private final MessageService messageService;
-
-    private final DataSynchronizationWithPaging trackerSync;
-
-    private final SynchronizationManager synchronizationManager;
-
-    public TrackerProgramsDataSynchronizationJob( Notifier notifier, MessageService messageService,
-        TrackerSynchronization trackerSync, SynchronizationManager synchronizationManager )
-    {
-        checkNotNull( notifier );
-        checkNotNull( messageService );
-        checkNotNull( trackerSync );
-
-        this.notifier = notifier;
-        this.messageService = messageService;
-        this.trackerSync = trackerSync;
-        this.synchronizationManager = synchronizationManager;
-    }
+    private final SynchronizationManager syncManager;
 
     @Override
     public JobType getJobType()
@@ -80,27 +60,17 @@ public class TrackerProgramsDataSynchronizationJob extends SynchronizationJob
     @Override
     public void execute( JobConfiguration jobConfiguration, JobProgress progress )
     {
-        try
-        {
-            TrackerProgramsDataSynchronizationJobParameters jobParameters = (TrackerProgramsDataSynchronizationJobParameters) jobConfiguration
-                .getJobParameters();
-            trackerSync.synchronizeData( jobParameters.getPageSize() );
-            notifier.notify( jobConfiguration, "Tracker programs data sync successful" );
-        }
-        catch ( Exception e )
-        {
-            log.error( "Tracker programs data sync failed.", e );
-            notifier.notify( jobConfiguration, "Tracker programs data sync failed: " + e.getMessage() );
-            messageService.sendSystemErrorNotification( "Tracker programs data sync failed", e );
-        }
+        TrackerProgramsDataSynchronizationJobParameters params = (TrackerProgramsDataSynchronizationJobParameters) jobConfiguration
+            .getJobParameters();
+        progress.startingProcess( "Tracker program data synchronisation" );
+        progress.startingStage( "Synchronising tracker program data" );
+        progress.endingProcess( progress.runStage( () -> trackerSync.synchronizeData( params.getPageSize() ) ) );
     }
 
     @Override
     public ErrorReport validate()
     {
-        Optional<ErrorReport> errorReport = validateRemoteServerAvailability( synchronizationManager,
-            TrackerProgramsDataSynchronizationJob.class );
-
-        return errorReport.orElse( super.validate() );
+        return validateRemoteServerAvailability( syncManager, TrackerProgramsDataSynchronizationJob.class )
+            .orElse( super.validate() );
     }
 }

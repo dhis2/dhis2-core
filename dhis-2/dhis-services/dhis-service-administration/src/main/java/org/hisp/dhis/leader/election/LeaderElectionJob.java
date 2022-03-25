@@ -38,7 +38,8 @@ import org.springframework.stereotype.Component;
 /**
  * Job that attempts to elect the current instance as the leader of the cluster.
  *
- * @author Ameen Mohamed
+ * @author Ameen Mohamed (original)
+ * @author Jan Bernitt (job progress tracking)
  */
 @Component
 @AllArgsConstructor
@@ -56,7 +57,6 @@ public class LeaderElectionJob implements Job
     public void execute( JobConfiguration jobConfiguration, JobProgress progress )
     {
         progress.startingProcess( "Elect leader node" );
-        leaderManager.electLeader( progress );
-        progress.completedProcess( null );
+        progress.endingProcess( progress.runStage( () -> leaderManager.electLeader( progress ) ) );
     }
 }
