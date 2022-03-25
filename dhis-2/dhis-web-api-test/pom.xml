@@ -388,28 +388,6 @@
       <artifactId>jsonassert</artifactId>
       <scope>test</scope>
     </dependency>
-
-    <!--    <dependency>-->
-    <!--      <groupId>org.springframework.restdocs</groupId>-->
-    <!--      <artifactId>spring-restdocs-core</artifactId>
-    <scope>test</scope>-->
-    <!--    </dependency>-->
-    <!--    <dependency>-->
-    <!--      <groupId>org.jboss.spec.javax.transaction</groupId>-->
-    <!--      <artifactId>jboss-transaction-api_1.2_spec</artifactId>
-    <scope>test</scope>-->
-    <!--    </dependency>-->
-    <!--    <dependency>-->
-    <!--      <groupId>net.minidev</groupId>-->
-    <!--      <artifactId>json-smart</artifactId>
-    <scope>test</scope>-->
-    <!--    </dependency>-->
-    <!--    <dependency>-->
-    <!--      <groupId>com.vaadin.external.google</groupId>-->
-    <!--      <artifactId>android-json</artifactId>
-    <scope>test</scope>-->
-    <!--    </dependency>-->
-
   </dependencies>
 
   <properties>
