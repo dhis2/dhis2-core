@@ -53,13 +53,14 @@ import java.util.Optional;
 import org.hisp.dhis.fileresource.JCloudsFileResourceContentStore;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.webapi.DhisWebSpringTest;
-import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.ResultActions;
+
+import com.google.gson.JsonObject;
 
 /**
  * @author Luciano Fiandesio
@@ -219,9 +220,15 @@ class StaticContentControllerTest extends DhisWebSpringTest
     }
 
     private String buildResponse( String httpStatus, int code, String status, String message )
-        throws Exception
     {
-        return new JSONObject().put( "httpStatus", httpStatus ).put( "httpStatusCode", code ).put( "status", status )
-            .putOpt( "message", message ).toString();
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty( "httpStatus", httpStatus );
+        jsonObject.addProperty( "httpStatusCode", code );
+        jsonObject.addProperty( "status", status );
+        if ( message != null )
+        {
+            jsonObject.addProperty( "message", message );
+        }
+        return jsonObject.toString();
     }
 }
