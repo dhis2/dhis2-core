@@ -126,11 +126,11 @@ public class RelationshipTypeObjectBundleHook
 
             if ( trackerDataView != null && !trackerDataView.isEmpty() )
             {
-                List<TrackedEntityAttribute> attributes = trackerDataView.getTrackedEntityAttributes().stream()
+                List<TrackedEntityAttribute> attributes = trackerDataView.getAttributes().stream()
                     .map( a -> trackedEntityAttributeService.getTrackedEntityAttribute( a.getUid() ) )
                     .collect( Collectors.toList() );
 
-                trackerDataView.setTrackedEntityAttributes( attributes );
+                trackerDataView.setAttributes( attributes );
                 relationshipConstraint.setTrackerDataView( trackerDataView );
             }
         }
@@ -142,11 +142,11 @@ public class RelationshipTypeObjectBundleHook
 
             if ( trackerDataView != null && !trackerDataView.isEmpty() )
             {
-                List<TrackedEntityAttribute> attributes = trackerDataView.getTrackedEntityAttributes().stream()
+                List<TrackedEntityAttribute> attributes = trackerDataView.getAttributes().stream()
                     .map( a -> trackedEntityAttributeService.getTrackedEntityAttribute( a.getUid() ) )
                     .collect( Collectors.toList() );
 
-                trackerDataView.setTrackedEntityAttributes( attributes );
+                trackerDataView.setAttributes( attributes );
                 relationshipConstraint.setTrackerDataView( trackerDataView );
             }
         }
@@ -224,12 +224,24 @@ public class RelationshipTypeObjectBundleHook
 
         if ( trackerDataView != null )
         {
-            trackerDataViewAttributes = trackerDataView.getTrackedEntityAttributes()
+            trackerDataViewAttributes = trackerDataView.getAttributes()
                 .stream().filter( Objects::nonNull ).map( BaseIdentifiableObject::getUid )
                 .collect( Collectors.toList() );
         }
 
         TrackedEntityType trackedEntityType = constraint.getTrackedEntityType();
+
+        if ( constraint.getProgramStage() != null )
+        {
+            addReports.accept( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4023, "programStage",
+                "relationshipEntity", TRACKED_ENTITY_INSTANCE ) );
+        }
+
+        if ( constraint.getProgram() != null )
+        {
+            addReports.accept( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4023, "program",
+                "relationshipEntity", TRACKED_ENTITY_INSTANCE ) );
+        }
 
         // Should be not be null
         if ( trackedEntityType == null )
@@ -277,7 +289,7 @@ public class RelationshipTypeObjectBundleHook
 
         if ( trackerDataView != null )
         {
-            trackerDataViewAttributes = trackerDataView.getTrackedEntityAttributes()
+            trackerDataViewAttributes = trackerDataView.getAttributes()
                 .stream().filter( Objects::nonNull ).map( BaseIdentifiableObject::getUid )
                 .collect( Collectors.toList() );
         }
@@ -288,6 +300,12 @@ public class RelationshipTypeObjectBundleHook
         if ( constraint.getTrackedEntityType() != null )
         {
             addReports.accept( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4023, "trackedEntityType",
+                "relationshipEntity", PROGRAM_INSTANCE ) );
+        }
+
+        if ( constraint.getProgramStage() != null )
+        {
+            addReports.accept( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4023, "programStage",
                 "relationshipEntity", PROGRAM_INSTANCE ) );
         }
 
@@ -352,22 +370,20 @@ public class RelationshipTypeObjectBundleHook
                 "relationshipEntity", PROGRAM_STAGE_INSTANCE ) );
         }
 
-        // Should be null
-        if ( program != null && programStage != null )
+        if ( constraint.getProgram() != null )
         {
-            addReports.accept(
-                new ErrorReport( RelationshipConstraint.class, ErrorCode.E4025, "program", "programStage" ) );
+            addReports.accept( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4023, "program",
+                "relationshipEntity", PROGRAM_STAGE_INSTANCE ) );
         }
 
         // ProgramStage Should not be null
-        if ( program == null && programStage == null )
+        if ( programStage == null )
         {
             addReports
-                .accept( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4026, "program", "programStage",
+                .accept( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4024, "programStage",
                     "relationshipEntity", PROGRAM_STAGE_INSTANCE ) );
         }
-
-        if ( program == null && programStage != null )
+        else
         {
             programStage = programStageService.getProgramStage( programStage.getUid() );
 

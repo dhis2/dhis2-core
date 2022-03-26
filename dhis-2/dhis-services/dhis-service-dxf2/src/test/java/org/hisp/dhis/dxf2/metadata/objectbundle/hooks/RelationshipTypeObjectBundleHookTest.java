@@ -143,25 +143,25 @@ public class RelationshipTypeObjectBundleHookTest extends DhisConvenienceTest
         personConstraint.setTrackedEntityType( personTrackedEntityType );
         personConstraint.setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
         personConstraint.setTrackerDataView(
-            TrackerDataView.builder().trackedEntityAttributes( Lists.newArrayList( trackedEntityAttribute ) ).build() );
+            TrackerDataView.builder().attributes( Lists.newArrayList( trackedEntityAttribute ) ).build() );
 
         personConstraintWithNoAttribute = new RelationshipConstraint();
         personConstraintWithNoAttribute.setTrackedEntityType( personTrackedEntityType );
         personConstraintWithNoAttribute.setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
         personConstraintWithNoAttribute
-            .setTrackerDataView( TrackerDataView.builder().trackedEntityAttributes( Lists.newArrayList() ).build() );
+            .setTrackerDataView( TrackerDataView.builder().attributes( Lists.newArrayList() ).build() );
 
         personConstraintWithMultipleAttribute = new RelationshipConstraint();
         personConstraintWithMultipleAttribute.setTrackedEntityType( personTrackedEntityType );
         personConstraintWithMultipleAttribute.setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
         personConstraintWithMultipleAttribute.setTrackerDataView( TrackerDataView.builder()
-            .trackedEntityAttributes( Lists.newArrayList( trackedEntityAttribute, teaNotPartOfProgram ) ).build() );
+            .attributes( Lists.newArrayList( trackedEntityAttribute, teaNotPartOfProgram ) ).build() );
 
         enrollmentConstraint = new RelationshipConstraint();
         enrollmentConstraint.setProgram( program );
         enrollmentConstraint.setRelationshipEntity( RelationshipEntity.PROGRAM_INSTANCE );
         enrollmentConstraint.setTrackerDataView(
-            TrackerDataView.builder().trackedEntityAttributes( Lists.newArrayList( trackedEntityAttribute ) ).build() );
+            TrackerDataView.builder().attributes( Lists.newArrayList( trackedEntityAttribute ) ).build() );
 
         eventConstraint = new RelationshipConstraint();
         eventConstraint.setProgramStage( programStage );

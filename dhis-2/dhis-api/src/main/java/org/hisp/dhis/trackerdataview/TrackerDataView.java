@@ -62,7 +62,7 @@ public class TrackerDataView implements Serializable
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     @Builder.Default
-    private List<TrackedEntityAttribute> trackedEntityAttributes = new ArrayList<>();
+    private List<TrackedEntityAttribute> attributes = new ArrayList<>();
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
@@ -71,6 +71,6 @@ public class TrackerDataView implements Serializable
 
     public boolean isEmpty()
     {
-        return this.trackedEntityAttributes.isEmpty() && this.dataElements.isEmpty();
+        return this.attributes.isEmpty() && this.dataElements.isEmpty();
     }
 }
