@@ -651,7 +651,7 @@ class ExpressionService2Test extends DhisSpringTest
     }
 
     @Test
-    void testGetExpressionDataElements()
+    void testGetExpressionDataElementIds()
     {
         Set<String> dataElementIds = target.getExpressionDataElementIds( expressionA, INDICATOR_EXPRESSION );
 
