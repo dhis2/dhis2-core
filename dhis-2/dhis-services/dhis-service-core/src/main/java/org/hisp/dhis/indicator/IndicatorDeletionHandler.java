@@ -28,7 +28,7 @@
 package org.hisp.dhis.indicator;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.apache.commons.collections.CollectionUtils.containsAny;
+import static org.apache.commons.collections4.CollectionUtils.containsAny;
 import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
 import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
