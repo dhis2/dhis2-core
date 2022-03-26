@@ -717,9 +717,9 @@ public class AnalyticsUtils
                 // MetaDataItem is put into the map
                 // with all existing information.
                 // DimensionItemKeyword can use the same key and overwrite the
-                // value with the less information.
-                // Preventing to lose the information the key/value should be
-                // included only if absent.
+                // value with the less information (DimensionItemKeyword can
+                // contain only key, uid, code and name ).
+                // The key/value should be included only if absent.
                 dimension.getDimensionItemKeywords().getKeywords()
                     .forEach( b -> map.putIfAbsent( b.getKey(), b.getMetadataItem() ) );
             }
