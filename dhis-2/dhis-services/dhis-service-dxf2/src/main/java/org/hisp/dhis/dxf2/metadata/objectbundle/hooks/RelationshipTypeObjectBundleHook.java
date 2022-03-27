@@ -69,6 +69,12 @@ import org.springframework.stereotype.Component;
 public class RelationshipTypeObjectBundleHook
     extends AbstractObjectBundleHook<RelationshipType>
 {
+    private static final String PROGRAM = "program";
+
+    private static final String PROGRAM_STAGE = "programStage";
+
+    private static final String RELATIONSHIP_ENTITY = "relationshipEntity";
+
     private final TrackedEntityTypeService trackedEntityTypeService;
 
     private final TrackedEntityAttributeService trackedEntityAttributeService;
@@ -233,21 +239,21 @@ public class RelationshipTypeObjectBundleHook
 
         if ( constraint.getProgramStage() != null )
         {
-            addReports.accept( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4023, "programStage",
-                "relationshipEntity", TRACKED_ENTITY_INSTANCE ) );
+            addReports.accept( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4023, PROGRAM_STAGE,
+                RELATIONSHIP_ENTITY, TRACKED_ENTITY_INSTANCE ) );
         }
 
         if ( constraint.getProgram() != null )
         {
-            addReports.accept( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4023, "program",
-                "relationshipEntity", TRACKED_ENTITY_INSTANCE ) );
+            addReports.accept( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4023, PROGRAM,
+                RELATIONSHIP_ENTITY, TRACKED_ENTITY_INSTANCE ) );
         }
 
         // Should be not be null
         if ( trackedEntityType == null )
         {
             addReports.accept( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4024, "trackedEntityType",
-                "relationshipEntity", TRACKED_ENTITY_INSTANCE ) );
+                RELATIONSHIP_ENTITY, TRACKED_ENTITY_INSTANCE ) );
         }
         else
         {
@@ -277,8 +283,8 @@ public class RelationshipTypeObjectBundleHook
         // Should be null
         if ( constraint.getProgramStage() != null )
         {
-            addReports.accept( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4023, "programStage",
-                "relationshipEntity", TRACKED_ENTITY_INSTANCE ) );
+            addReports.accept( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4023, PROGRAM_STAGE,
+                RELATIONSHIP_ENTITY, TRACKED_ENTITY_INSTANCE ) );
         }
     }
 
@@ -300,20 +306,20 @@ public class RelationshipTypeObjectBundleHook
         if ( constraint.getTrackedEntityType() != null )
         {
             addReports.accept( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4023, "trackedEntityType",
-                "relationshipEntity", PROGRAM_INSTANCE ) );
+                RELATIONSHIP_ENTITY, PROGRAM_INSTANCE ) );
         }
 
         if ( constraint.getProgramStage() != null )
         {
-            addReports.accept( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4023, "programStage",
-                "relationshipEntity", PROGRAM_INSTANCE ) );
+            addReports.accept( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4023, PROGRAM_STAGE,
+                RELATIONSHIP_ENTITY, PROGRAM_INSTANCE ) );
         }
 
         // Should be not be null
         if ( constraint.getProgram() == null )
         {
-            addReports.accept( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4024, "program",
-                "relationshipEntity", PROGRAM_INSTANCE ) );
+            addReports.accept( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4024, PROGRAM,
+                RELATIONSHIP_ENTITY, PROGRAM_INSTANCE ) );
         }
         else
         {
@@ -336,15 +342,15 @@ public class RelationshipTypeObjectBundleHook
 
                 addReports.accept( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4314,
                     "TrackedEntityAttributes", String.join( ",", teaNotPartOfProgram ),
-                    "Program" ) );
+                    PROGRAM ) );
             }
         }
 
         // Should be null
         if ( constraint.getProgramStage() != null )
         {
-            addReports.accept( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4023, "programStage",
-                "relationshipEntity", PROGRAM_INSTANCE ) );
+            addReports.accept( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4023, PROGRAM_STAGE,
+                RELATIONSHIP_ENTITY, PROGRAM_INSTANCE ) );
         }
     }
 
@@ -367,21 +373,21 @@ public class RelationshipTypeObjectBundleHook
         if ( constraint.getTrackedEntityType() != null )
         {
             addReports.accept( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4023, "trackedEntityType",
-                "relationshipEntity", PROGRAM_STAGE_INSTANCE ) );
+                RELATIONSHIP_ENTITY, PROGRAM_STAGE_INSTANCE ) );
         }
 
         if ( constraint.getProgram() != null )
         {
-            addReports.accept( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4023, "program",
-                "relationshipEntity", PROGRAM_STAGE_INSTANCE ) );
+            addReports.accept( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4023, PROGRAM,
+                RELATIONSHIP_ENTITY, PROGRAM_STAGE_INSTANCE ) );
         }
 
         // ProgramStage Should not be null
         if ( programStage == null )
         {
             addReports
-                .accept( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4024, "programStage",
-                    "relationshipEntity", PROGRAM_STAGE_INSTANCE ) );
+                .accept( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4024, PROGRAM_STAGE,
+                    RELATIONSHIP_ENTITY, PROGRAM_STAGE_INSTANCE ) );
         }
         else
         {
@@ -402,7 +408,7 @@ public class RelationshipTypeObjectBundleHook
 
                 addReports.accept(
                     new ErrorReport( RelationshipConstraint.class, ErrorCode.E4314, "DataElements",
-                        String.join( ",", dataElementsNotPartOfProgramStage ), "ProgramStage" ) );
+                        String.join( ",", dataElementsNotPartOfProgramStage ), PROGRAM_STAGE ) );
             }
         }
     }
