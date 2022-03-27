@@ -130,7 +130,7 @@ public class RelationshipTypeObjectBundleHook
             trackedEntityType = trackedEntityTypeService.getTrackedEntityType( trackedEntityType.getUid() );
             relationshipConstraint.setTrackedEntityType( trackedEntityType );
 
-            if ( trackerDataView != null && !trackerDataView.isEmpty() )
+            if ( trackerDataView != null && !isEmpty( trackerDataView ) )
             {
                 List<TrackedEntityAttribute> attributes = trackerDataView.getAttributes().stream()
                     .map( a -> trackedEntityAttributeService.getTrackedEntityAttribute( a.getUid() ) )
@@ -146,7 +146,7 @@ public class RelationshipTypeObjectBundleHook
             program = programService.getProgram( program.getUid() );
             relationshipConstraint.setProgram( program );
 
-            if ( trackerDataView != null && !trackerDataView.isEmpty() )
+            if ( trackerDataView != null && !isEmpty( trackerDataView ) )
             {
                 List<TrackedEntityAttribute> attributes = trackerDataView.getAttributes().stream()
                     .map( a -> trackedEntityAttributeService.getTrackedEntityAttribute( a.getUid() ) )
@@ -162,7 +162,7 @@ public class RelationshipTypeObjectBundleHook
             programStage = programStageService.getProgramStage( programStage.getUid() );
             relationshipConstraint.setProgramStage( programStage );
 
-            if ( trackerDataView != null && !trackerDataView.isEmpty() )
+            if ( trackerDataView != null && !isEmpty( trackerDataView ) )
             {
                 List<DataElement> dataElements = trackerDataView.getDataElements().stream()
                     .map( a -> dataElementService.getDataElement( a.getUid() ) ).collect( Collectors.toList() );
@@ -411,5 +411,10 @@ public class RelationshipTypeObjectBundleHook
                         String.join( ",", dataElementsNotPartOfProgramStage ), PROGRAM_STAGE ) );
             }
         }
+    }
+
+    private boolean isEmpty( TrackerDataView trackerDataView )
+    {
+        return trackerDataView.getAttributes().isEmpty() && trackerDataView.getDataElements().isEmpty();
     }
 }
