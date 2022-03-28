@@ -35,7 +35,6 @@ import java.util.Map;
 
 import org.hibernate.HibernateException;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackerdataview.TrackerDataView;
 
