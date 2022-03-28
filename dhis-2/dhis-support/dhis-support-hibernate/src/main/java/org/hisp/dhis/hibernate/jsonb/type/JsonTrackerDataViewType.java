@@ -55,7 +55,7 @@ public class JsonTrackerDataViewType extends SafeJsonBinaryType
         reader = MAPPER.readerFor( new TypeReference<Map<String, List<String>>>()
         {
         } );
-        returnedClass = EventDataValue.class;
+        returnedClass = TrackerDataView.class;
     }
 
     @Override
