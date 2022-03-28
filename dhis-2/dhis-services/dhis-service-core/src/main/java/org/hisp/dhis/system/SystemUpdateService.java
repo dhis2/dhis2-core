@@ -51,12 +51,12 @@ import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserStore;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.vdurmont.semver4j.Semver;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Morten Svanaes
@@ -233,7 +233,6 @@ public class SystemUpdateService
         }
     }
 
-    @Transactional
     private Set<User> getRecipients()
     {
         Set<User> recipients = messageService.getSystemUpdateNotificationRecipients();
