@@ -31,6 +31,7 @@ import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
 import java.util.Date;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.ObjectUtils;
@@ -64,7 +65,8 @@ import com.google.common.base.Preconditions;
  * @author Lars Helge Overland
  */
 @Slf4j
-@Component( "continuousAnalyticsTableJob" )
+@Component
+@AllArgsConstructor
 public class ContinuousAnalyticsTableJob implements Job
 {
     private static final int DEFAULT_HOUR_OF_DAY = 0;
@@ -72,13 +74,6 @@ public class ContinuousAnalyticsTableJob implements Job
     private final AnalyticsTableGenerator analyticsTableGenerator;
 
     private final SystemSettingManager systemSettingManager;
-
-    public ContinuousAnalyticsTableJob( AnalyticsTableGenerator analyticsTableGenerator,
-        SystemSettingManager systemSettingManager )
-    {
-        this.analyticsTableGenerator = analyticsTableGenerator;
-        this.systemSettingManager = systemSettingManager;
-    }
 
     @Override
     public JobType getJobType()

@@ -29,8 +29,7 @@ package org.hisp.dhis.dxf2.synch;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.util.Optional;
-
+import lombok.AllArgsConstructor;
 import org.hisp.dhis.dxf2.sync.CompleteDataSetRegistrationSynchronization;
 import org.hisp.dhis.dxf2.sync.DataValueSynchronization;
 import org.hisp.dhis.dxf2.sync.SynchronizationJob;
@@ -46,35 +45,17 @@ import org.springframework.stereotype.Component;
  * @author Lars Helge Overland
  * @author David Katuscak <katuscak.d@gmail.com>
  */
-@Component( "dataSyncJob" )
+@Component
+@AllArgsConstructor
 public class DataSynchronizationJob extends SynchronizationJob
 {
-    private final SynchronizationManager synchronizationManager;
+    private final SynchronizationManager syncManager;
 
     private final Notifier notifier;
 
-    private final DataValueSynchronization dataValueSynchronization;
+    private final DataValueSynchronization dataValueSync;
 
-    private final CompleteDataSetRegistrationSynchronization completenessSynchronization;
-
-    public DataSynchronizationJob( Notifier notifier, DataValueSynchronization dataValueSynchronization,
-        CompleteDataSetRegistrationSynchronization completenessSynchronization,
-        SynchronizationManager synchronizationManager )
-    {
-        checkNotNull( notifier );
-        checkNotNull( dataValueSynchronization );
-        checkNotNull( completenessSynchronization );
-        checkNotNull( synchronizationManager );
-
-        this.notifier = notifier;
-        this.dataValueSynchronization = dataValueSynchronization;
-        this.completenessSynchronization = completenessSynchronization;
-        this.synchronizationManager = synchronizationManager;
-    }
-
-    // -------------------------------------------------------------------------
-    // Implementation
-    // -------------------------------------------------------------------------
+    private final CompleteDataSetRegistrationSynchronization completenessSync;
 
     @Override
     public JobType getJobType()
@@ -87,10 +68,10 @@ public class DataSynchronizationJob extends SynchronizationJob
     {
         DataSynchronizationJobParameters jobParameters = (DataSynchronizationJobParameters) jobConfiguration
             .getJobParameters();
-        dataValueSynchronization.synchronizeData( jobParameters.getPageSize() );
+        dataValueSync.synchronizeData( jobParameters.getPageSize() );
         notifier.notify( jobConfiguration, "Data value sync successful" );
 
-        completenessSynchronization.synchronizeData();
+        completenessSync.synchronizeData();
         notifier.notify( jobConfiguration, "Complete data set registration sync successful" );
 
         notifier.notify( jobConfiguration, "Data value and Complete data set registration sync successful" );
@@ -99,9 +80,7 @@ public class DataSynchronizationJob extends SynchronizationJob
     @Override
     public ErrorReport validate()
     {
-        Optional<ErrorReport> errorReport = validateRemoteServerAvailability( synchronizationManager,
-            DataSynchronizationJob.class );
-
-        return errorReport.orElse( super.validate() );
+        return validateRemoteServerAvailability( syncManager, DataSynchronizationJob.class )
+            .orElse( super.validate() );
     }
 }

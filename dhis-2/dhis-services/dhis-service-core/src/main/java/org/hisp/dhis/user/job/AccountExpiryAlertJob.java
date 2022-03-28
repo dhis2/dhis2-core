@@ -94,16 +94,16 @@ public class AccountExpiryAlertJob implements Job
             return;
         }
 
-        log.info( format( "%s has started", getJobType().name() ) );
+        progress.startingProcess("Notify expiring account users");
         int inDays = systemSettingManager.getIntSetting( SettingKey.ACCOUNT_EXPIRES_IN_DAYS );
         List<UserAccountExpiryInfo> soonExpiring = userService.getExpiringUserAccounts( inDays );
 
         if ( soonExpiring.isEmpty() )
         {
+            progress.completedProcess( "No expiring users" );
             return;
         }
-        progress.startingProcess();
-        log.info( format( "%d user accounts expire within next %d days", soonExpiring.size(), inDays ) );
+
         progress.startingStage( "Notify user accounts that expire within next " + inDays + " days",
             soonExpiring.size() );
         progress.runStage( soonExpiring.stream(), UserAccountExpiryInfo::getUsername,
