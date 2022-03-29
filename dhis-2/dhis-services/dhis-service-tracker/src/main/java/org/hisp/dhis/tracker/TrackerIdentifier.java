@@ -29,8 +29,9 @@ package org.hisp.dhis.tracker;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -41,9 +42,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @author Stian Sandvold
  */
 
-@Data
+@Getter
+@EqualsAndHashCode
+@ToString
 @Builder
-@NoArgsConstructor
 @AllArgsConstructor( staticName = "of" )
 public class TrackerIdentifier
 {
@@ -55,11 +57,11 @@ public class TrackerIdentifier
 
     @JsonProperty
     @Builder.Default
-    private TrackerIdScheme idScheme = TrackerIdScheme.UID;
+    private final TrackerIdScheme idScheme = TrackerIdScheme.UID;
 
     @JsonProperty
     @Builder.Default
-    private String value = null;
+    private final String value = null;
 
     public <T extends IdentifiableObject> String getIdentifier( T object )
     {
