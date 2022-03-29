@@ -360,6 +360,29 @@ public class TrackedEntityImportValidationTest
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1100 ) ) ) );
     }
 
+    @Test
+    public void testTeDeleteOk()
+        throws IOException
+    {
+        TrackerImportParams params = createBundleFromJson( "tracker/validations/te-data.json" );
+        params.setImportStrategy( TrackerImportStrategy.CREATE );
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
+        assertEquals( 0, trackerImportReport.getValidationReport().getErrorReports().size() );
+        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
+
+        manager.flush();
+        manager.clear();
+
+        TrackerImportParams paramsDelete = createBundleFromJson(
+            "tracker/validations/te-data-delete.json" );
+        paramsDelete.setImportStrategy( TrackerImportStrategy.DELETE );
+
+        TrackerImportReport trackerImportReportDelete = trackerImportService.importTracker( paramsDelete );
+        assertEquals( 0, trackerImportReportDelete.getValidationReport().getErrorReports().size() );
+        assertEquals( TrackerStatus.OK, trackerImportReportDelete.getStatus() );
+        assertEquals( 1, trackerImportReportDelete.getStats().getDeleted() );
+    }
+
     protected void importProgramInstances()
         throws IOException
     {
