@@ -34,6 +34,7 @@ import static org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder
 import static org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder.TrackerImportParamKey.IMPORT_MODE_KEY;
 import static org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder.TrackerImportParamKey.IMPORT_STRATEGY_KEY;
 import static org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder.TrackerImportParamKey.VALIDATION_MODE_KEY;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -135,6 +136,42 @@ class TrackerImportParamsBuilderTest
             TrackerImportParams params = TrackerImportParamsBuilder.build( paramMap );
             assertThat( params.getIdentifiers().getProgramIdScheme().getIdScheme(), is( e ) );
         } );
+    }
+
+    @Test
+    void testProgramIdentifierUsingIdSchemeUidAndValue()
+    {
+        // only ATTRIBUTE is accompanied by a value; invalid idSchemes default
+        // to UID
+        paramMap.put( "programIdScheme", Collections.singletonList( "UID:WSiOAALYocA" ) );
+        TrackerImportParams params = TrackerImportParamsBuilder.build( paramMap );
+
+        assertThat( params.getIdentifiers().getProgramIdScheme().getIdScheme(), is( TrackerIdScheme.UID ) );
+        assertNull( params.getIdentifiers().getProgramIdScheme().getValue() );
+    }
+
+    @Test
+    void testProgramIdentifierUsingIdSchemeCodeAndValue()
+    {
+        // only ATTRIBUTE is accompanied by a value; invalid idSchemes default
+        // to UID
+        paramMap.put( "programIdScheme", Collections.singletonList( "CODE:WSiOAALYocA" ) );
+        TrackerImportParams params = TrackerImportParamsBuilder.build( paramMap );
+
+        assertThat( params.getIdentifiers().getProgramIdScheme().getIdScheme(), is( TrackerIdScheme.UID ) );
+        assertNull( params.getIdentifiers().getProgramIdScheme().getValue() );
+    }
+
+    @Test
+    void testProgramIdentifierUsingIdSchemeNameAndValue()
+    {
+        // only ATTRIBUTE is accompanied by a value; invalid idSchemes default
+        // to UID
+        paramMap.put( "programIdScheme", Collections.singletonList( "NAME:WSiOAALYocA" ) );
+        TrackerImportParams params = TrackerImportParamsBuilder.build( paramMap );
+
+        assertThat( params.getIdentifiers().getProgramIdScheme().getIdScheme(), is( TrackerIdScheme.UID ) );
+        assertNull( params.getIdentifiers().getProgramIdScheme().getValue() );
     }
 
     @Test
