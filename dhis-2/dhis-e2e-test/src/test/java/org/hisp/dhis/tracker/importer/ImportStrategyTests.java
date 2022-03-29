@@ -44,7 +44,6 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import java.io.File;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
@@ -165,9 +164,11 @@ public class ImportStrategyTests
                 .validate().body( "stats.deleted", Matchers.equalTo( 1 ) );
         };
 
-        deleteAndValidate.accept( new JsonObjectBuilder().addProperty( "event", eventId ).wrapIntoArray( "events" ));
-        deleteAndValidate.accept( new JsonObjectBuilder().addProperty( "enrollment", enrollmentId ).wrapIntoArray( "enrollments" ));
-        deleteAndValidate.accept( new JsonObjectBuilder().addProperty( "trackedEntity", teiId ).wrapIntoArray( "trackedEntities" ));
+        deleteAndValidate.accept( new JsonObjectBuilder().addProperty( "event", eventId ).wrapIntoArray( "events" ) );
+        deleteAndValidate
+            .accept( new JsonObjectBuilder().addProperty( "enrollment", enrollmentId ).wrapIntoArray( "enrollments" ) );
+        deleteAndValidate
+            .accept( new JsonObjectBuilder().addProperty( "trackedEntity", teiId ).wrapIntoArray( "trackedEntities" ) );
     }
 }
 
