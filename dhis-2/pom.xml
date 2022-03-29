@@ -707,18 +707,8 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-dependency-plugin</artifactId>
                     <version>${maven-dependency-plugin.version}</version>
-                    <executions>
-                        <execution>
-                            <id>analyze</id>
-                            <goals>
-                                <goal>analyze-only</goal>
-                            </goals>
-                            <configuration>
-                                <failOnWarning>true</failOnWarning>
-                            </configuration>
-                        </execution>
-                    </executions>
                     <configuration>
+                        <failOnWarning>true</failOnWarning>
                         <ignoredUnusedDeclaredDependencies>
                             <ignoredUnusedDeclaredDependency>org.projectlombok:lombok</ignoredUnusedDeclaredDependency>
                             <ignoredUnusedDeclaredDependency>org.junit.jupiter:junit-jupiter</ignoredUnusedDeclaredDependency>
@@ -737,6 +727,9 @@
                             <ignoredUnusedDeclaredDependency>org.skyscreamer:jsonassert</ignoredUnusedDeclaredDependency>
                             <ignoredUnusedDeclaredDependency>commons-fileupload:commons-fileupload</ignoredUnusedDeclaredDependency>
 
+                            <!-- Removing these dependency makes the startup with Jetty fail -->
+                            <ignoredUnusedDeclaredDependency>javax.media:jai_imageio</ignoredUnusedDeclaredDependency>
+
                             <!-- Removing these dependency makes the startup fail -->
                             <ignoredUnusedDeclaredDependency>org.hibernate:hibernate-ehcache</ignoredUnusedDeclaredDependency>
 
@@ -751,10 +744,10 @@
                             <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-administration</ignoredUnusedDeclaredDependency>
                             <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-program-rule</ignoredUnusedDeclaredDependency>
                             <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-core</ignoredUnusedDeclaredDependency>
-                            <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-web-api:jar</ignoredUnusedDeclaredDependency>
-                            <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-dxf2:jar</ignoredUnusedDeclaredDependency>
-                            <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-reporting:jar</ignoredUnusedDeclaredDependency>
-                            <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-analytics:jar</ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-web-api</ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-dxf2</ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-reporting</ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-analytics</ignoredUnusedDeclaredDependency>
                         </ignoredUnusedDeclaredDependencies>
                         <ignoredUsedUndeclaredDependencies>
                             <ignoredUsedUndeclaredDependency>org.junit.jupiter:junit-jupiter-api</ignoredUsedUndeclaredDependency>
