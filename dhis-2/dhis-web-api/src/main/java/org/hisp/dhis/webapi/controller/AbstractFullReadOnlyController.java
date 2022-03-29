@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller;
 
 import static java.util.stream.Collectors.toList;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.springframework.http.CacheControl.noCache;
 
@@ -87,6 +88,8 @@ import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -96,6 +99,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
+import com.fasterxml.jackson.dataformat.csv.CsvWriteException;
 import com.google.common.base.Enums;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
@@ -254,15 +258,22 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
         return rootNode;
     }
 
-    @GetMapping( produces = "application/csv" )
-    public void getObjectListCsv(
+    /**
+     * This is disabled for now and will be enabled after new field filtering is
+     * added.
+     * <p>
+     * Request with csv format will go through
+     * {@link AbstractFullReadOnlyController#getObjectList} instead.
+     */
+    public ResponseEntity<String> getObjectListCsv(
         @RequestParam Map<String, String> rpParameters, OrderParams orderParams,
         @CurrentUser User currentUser,
         @RequestParam( defaultValue = "," ) char separator,
         @RequestParam( defaultValue = ";" ) String arraySeparator,
         @RequestParam( defaultValue = "false" ) boolean skipHeader,
-        HttpServletResponse response )
-        throws IOException
+        HttpServletResponse response, HttpServletRequest request )
+        throws IOException,
+        WebMessageException
     {
         List<Order> orders = orderParams.getOrders( getSchema() );
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
@@ -358,8 +369,21 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
         } )
             .collect( toList() );
 
-        csvMapper.writer( schema ).writeValue( response.getWriter(), csvObjects );
-        response.flushBuffer();
+        String output;
+
+        try
+        {
+            output = csvMapper.writer( schema ).writeValueAsString( csvObjects );
+        }
+        catch ( CsvWriteException ex )
+        {
+            response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+            throw new WebMessageException( conflict(
+                "Invalid property selected. Make sure all properties are either simple or collections of refs / simple.",
+                ex.getMessage() ) );
+        }
+
+        return ResponseEntity.ok( output );
     }
 
     @GetMapping( "/{uid}" )

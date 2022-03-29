@@ -85,7 +85,7 @@ public class MetadataWorkflowController extends AbstractGistReadOnlyController<M
 
     private final MetadataWorkflowService service;
 
-    @GetMapping( value = { "/{uid}/", "/{uid}" }, produces = APPLICATION_JSON_VALUE )
+    @GetMapping( value = "/{uid}", produces = APPLICATION_JSON_VALUE )
     public ResponseEntity<JsonNode> getProposal( @PathVariable( "uid" ) String uid,
         HttpServletRequest request,
         HttpServletResponse response )
@@ -94,14 +94,14 @@ public class MetadataWorkflowController extends AbstractGistReadOnlyController<M
         return getObjectGist( uid, request, response );
     }
 
-    @GetMapping( value = "/", produces = APPLICATION_JSON_VALUE )
+    @GetMapping( value = "", produces = APPLICATION_JSON_VALUE )
     public ResponseEntity<JsonNode> getProposals(
         HttpServletRequest request, HttpServletResponse response )
     {
         return getObjectListGist( request, response );
     }
 
-    @PostMapping( value = "/", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE )
+    @PostMapping( value = "", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE )
     @ResponseBody
     public WebMessage proposeProposal( @RequestBody MetadataProposeParams params )
     {
@@ -120,7 +120,7 @@ public class MetadataWorkflowController extends AbstractGistReadOnlyController<M
         }
     }
 
-    @PutMapping( value = { "/{uid}/", "/{uid}" }, consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE )
+    @PutMapping( value = "/{uid}", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE )
     @ResponseBody
     public WebMessage adjustProposal( @PathVariable( "uid" ) String uid,
         @RequestBody( required = false ) MetadataAdjustParams params )
@@ -142,7 +142,7 @@ public class MetadataWorkflowController extends AbstractGistReadOnlyController<M
         }
     }
 
-    @PostMapping( value = { "/{uid}/", "/{uid}" }, produces = APPLICATION_JSON_VALUE )
+    @PostMapping( value = "/{uid}", produces = APPLICATION_JSON_VALUE )
     @ResponseBody
     public WebMessage acceptProposal( @PathVariable( "uid" ) String uid )
         throws NotFoundException
@@ -163,7 +163,7 @@ public class MetadataWorkflowController extends AbstractGistReadOnlyController<M
         return ok();
     }
 
-    @PatchMapping( value = { "/{uid}/", "/{uid}" }, consumes = MediaType.TEXT_PLAIN_VALUE )
+    @PatchMapping( value = "/{uid}", consumes = MediaType.TEXT_PLAIN_VALUE )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void opposeProposal( @PathVariable( "uid" ) String uid, @RequestBody( required = false ) String reason )
         throws NotFoundException
@@ -171,7 +171,7 @@ public class MetadataWorkflowController extends AbstractGistReadOnlyController<M
         service.oppose( checkProposalExists( uid ), reason );
     }
 
-    @DeleteMapping( value = { "/{uid}/", "/{uid}" }, consumes = MediaType.TEXT_PLAIN_VALUE )
+    @DeleteMapping( value = "/{uid}", consumes = MediaType.TEXT_PLAIN_VALUE )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void rejectProposal( @PathVariable( "uid" ) String uid, @RequestBody( required = false ) String reason )
         throws NotFoundException
