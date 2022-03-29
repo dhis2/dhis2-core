@@ -27,11 +27,10 @@
  */
 package org.hisp.dhis.tracker;
 
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.ToString;
+import lombok.Value;
 
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -41,12 +40,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * @author Stian Sandvold
  */
-
-@Getter
-@EqualsAndHashCode
-@ToString
+@AllArgsConstructor( access = AccessLevel.PRIVATE )
+@Value
 @Builder
-@AllArgsConstructor( staticName = "of" )
 public class TrackerIdentifier
 {
     public final static TrackerIdentifier UID = builder().idScheme( TrackerIdScheme.UID ).build();
@@ -62,6 +58,17 @@ public class TrackerIdentifier
     @JsonProperty
     @Builder.Default
     private final String value = null;
+
+    /**
+     * Creates a TrackerIdentifier of idScheme ATTRIBUTE.
+     *
+     * @param value the attribute value
+     * @return tracker identifier representing an attribute
+     */
+    public static TrackerIdentifier ofAttribute( String value )
+    {
+        return new TrackerIdentifier( TrackerIdScheme.ATTRIBUTE, value );
+    }
 
     public <T extends IdentifiableObject> String getIdentifier( T object )
     {
