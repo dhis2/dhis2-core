@@ -25,40 +25,50 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.schema.descriptors;
+package org.hisp.dhis;
 
-import org.hisp.dhis.programstagefilter.ProgramStageInstanceFilter;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
-import org.hisp.dhis.security.Authority;
-import org.hisp.dhis.security.AuthorityType;
-
-import com.google.common.collect.Lists;
+import org.hisp.dhis.config.IntegrationTestConfig;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 /**
- * @author Ameen Mohamed <ameen@dhis2.org>
+ * Base for integration tests that use a single setup for the class instead of a
+ * setup for each individual test.
  *
+ * @author Jim Grace
  */
-public class ProgramStageInstanceFilterSchemaDescriptor implements SchemaDescriptor
+@ExtendWith( SpringExtension.class )
+@ContextConfiguration( classes = { IntegrationTestConfig.class } )
+@IntegrationTest
+@ActiveProfiles( profiles = { "test-postgres" } )
+@TestInstance( TestInstance.Lifecycle.PER_CLASS )
+public abstract class SingleSetupIntegrationTestBase
+    extends BaseSpringTest
 {
-    public static final String SINGULAR = "eventFilter";
-
-    public static final String PLURAL = "eventFilters";
-
-    public static final String API_ENDPOINT = "/" + PLURAL;
-
-    @Override
-    public Schema getSchema()
+    @BeforeAll
+    public final void before()
+        throws Exception
     {
-        Schema schema = new Schema( ProgramStageInstanceFilter.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setDefaultPrivate( true );
-        schema.setImplicitPrivateAuthority( true );
+        bindSession();
 
-        schema.add( new Authority( AuthorityType.CREATE, Lists.newArrayList( "F_PROGRAMSTAGE_ADD" ) ) );
-        schema.add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_PROGRAMSTAGE_DELETE" ) ) );
-
-        return schema;
+        integrationTestBefore();
     }
 
+    @AfterAll
+    public final void after()
+        throws Exception
+    {
+        nonTransactionalAfter();
+    }
+
+    @Override
+    protected boolean emptyDatabaseAfterTest()
+    {
+        return true;
+    }
 }
