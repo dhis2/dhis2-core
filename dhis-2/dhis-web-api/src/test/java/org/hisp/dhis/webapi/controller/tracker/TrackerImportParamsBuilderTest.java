@@ -138,6 +138,16 @@ class TrackerImportParamsBuilderTest
     }
 
     @Test
+    void testProgramIdentifierUsingIdSchemeAttribute()
+    {
+        paramMap.put( "programIdScheme", Collections.singletonList( "ATTRIBUTE:WSiOAALYocA" ) );
+        TrackerImportParams params = TrackerImportParamsBuilder.build( paramMap );
+
+        assertThat( params.getIdentifiers().getProgramIdScheme().getIdScheme(), is( TrackerIdScheme.ATTRIBUTE ) );
+        assertThat( params.getIdentifiers().getProgramIdScheme().getValue(), is( "WSiOAALYocA" ) );
+    }
+
+    @Test
     void testProgramStageIdentifier()
     {
         Arrays.stream( TrackerIdScheme.values() ).forEach( e -> {
