@@ -25,7 +25,7 @@ jobs:
       - name: Check formatting in web
         run:
           mvn speedy-spotless:check --batch-mode --no-transfer-progress --update-snapshots -q -f ./dhis-2/dhis-web/pom.xml
-  analyze-depencencies:
+  analyze-dependencies:
     runs-on: ubuntu-latest
     if: "!contains(github.event.pull_request.labels.*.name, 'skip-check-dependencies')"
     steps:
@@ -43,9 +43,9 @@ jobs:
   unit-test:
     runs-on: ubuntu-latest
     needs:
-      - analyze-depencencies
+      - analyze-dependencies
       - check-formatting
-    if: needs.analyze-depencencies.result == 'success' || needs.analyze-depencencies.result == 'skipped'
+    if: needs.analyze-dependencies.result == 'success' || needs.analyze-dependencies.result == 'skipped'
     steps:
       - uses: actions/checkout@v3
       - name: Set up JDK 11
@@ -64,9 +64,9 @@ jobs:
   integration-test:
     runs-on: ubuntu-latest
     needs:
-      - analyze-depencencies
+      - analyze-dependencies
       - check-formatting
-    if: needs.analyze-depencencies.result == 'success' || needs.analyze-depencencies.result == 'skipped'
+    if: needs.analyze-dependencies.result == 'success' || needs.analyze-dependencies.result == 'skipped'
     steps:
       - uses: actions/checkout@v3
       - name: Set up JDK 11
@@ -89,9 +89,9 @@ jobs:
   integration-test-analytics:
     runs-on: ubuntu-latest
     needs:
-      - analyze-depencencies
+      - analyze-dependencies
       - check-formatting
-    if: needs.analyze-depencencies.result == 'success' || needs.analyze-depencencies.result == 'skipped'
+    if: needs.analyze-dependencies.result == 'success' || needs.analyze-dependencies.result == 'skipped'
     steps:
       - uses: actions/checkout@v3
       - name: Set up JDK 11
