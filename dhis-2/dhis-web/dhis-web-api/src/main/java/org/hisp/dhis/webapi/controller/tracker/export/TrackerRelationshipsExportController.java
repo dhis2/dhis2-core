@@ -44,6 +44,7 @@ import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.events.relationship.RelationshipService;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
@@ -56,6 +57,7 @@ import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.tracker.domain.mapper.RelationshipMapper;
+import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.mapstruct.factory.Mappers;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -69,6 +71,7 @@ import com.google.common.collect.ImmutableMap;
 @RequestMapping( produces = APPLICATION_JSON_VALUE, value = RESOURCE_PATH + "/"
     + TrackerRelationshipsExportController.RELATIONSHIPS )
 @RequiredArgsConstructor
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class TrackerRelationshipsExportController
 {
     protected final static String RELATIONSHIPS = "relationships";

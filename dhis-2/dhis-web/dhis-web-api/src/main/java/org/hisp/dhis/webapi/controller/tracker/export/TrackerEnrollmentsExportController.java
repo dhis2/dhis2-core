@@ -38,6 +38,7 @@ import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollments;
@@ -48,6 +49,7 @@ import org.hisp.dhis.webapi.controller.event.mapper.EnrollmentCriteriaMapper;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
 import org.hisp.dhis.webapi.controller.event.webrequest.tracker.TrackerEnrollmentCriteria;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
+import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.mapstruct.factory.Mappers;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -57,6 +59,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping( value = RESOURCE_PATH + "/" + TrackerEnrollmentsExportController.ENROLLMENTS )
 @RequiredArgsConstructor
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class TrackerEnrollmentsExportController
 {
     protected final static String ENROLLMENTS = "enrollments";
