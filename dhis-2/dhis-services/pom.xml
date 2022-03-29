@@ -27,6 +27,7 @@
     <module>dhis-service-setting</module>
     <!-- Level 2 -->
     <module>dhis-service-acl</module>
+    <module>dhis-service-audit-consumer</module>
     <!-- Level 4 -->
     <module>dhis-service-node</module>
     <!-- Level 5 -->

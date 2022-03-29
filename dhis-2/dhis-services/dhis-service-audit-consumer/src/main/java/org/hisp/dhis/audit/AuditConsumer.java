@@ -25,44 +25,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis;
-
-import org.hisp.dhis.config.IntegrationTestConfig;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+package org.hisp.dhis.audit;
 
 /**
- * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
+ * @author Luciano Fiandesio
  */
-@ExtendWith( SpringExtension.class )
-@ContextConfiguration( classes = { IntegrationTestConfig.class } )
-@IntegrationTest
-@ActiveProfiles( profiles = { "test-postgres" } )
-public abstract class IntegrationTestBase extends BaseSpringTest
+public interface AuditConsumer
 {
-    @BeforeEach
-    public final void before()
-        throws Exception
-    {
-        bindSession();
-
-        integrationTestBefore();
-    }
-
-    @AfterEach
-    public final void after()
-        throws Exception
-    {
-        nonTransactionalAfter();
-    }
-
-    @Override
-    protected boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
 }

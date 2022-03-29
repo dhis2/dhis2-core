@@ -25,44 +25,49 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis;
+package org.hisp.dhis.audit.consumers;
 
-import org.hisp.dhis.config.IntegrationTestConfig;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import java.util.Objects;
+
+import javax.jms.TextMessage;
+
+import org.hisp.dhis.artemis.Topics;
+import org.hisp.dhis.audit.AbstractAuditConsumer;
+import org.hisp.dhis.audit.AuditService;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.springframework.jms.annotation.JmsListener;
+import org.springframework.stereotype.Component;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
+ * Tracker audit consumer.
+ *
+ * @author Morten Olav Hansen <morten@dhis2.org>
  */
-@ExtendWith( SpringExtension.class )
-@ContextConfiguration( classes = { IntegrationTestConfig.class } )
-@IntegrationTest
-@ActiveProfiles( profiles = { "test-postgres" } )
-public abstract class IntegrationTestBase extends BaseSpringTest
+@Component
+public class TrackerAuditConsumer
+    extends AbstractAuditConsumer
 {
-    @BeforeEach
-    public final void before()
-        throws Exception
+    public TrackerAuditConsumer(
+        AuditService auditService,
+        ObjectMapper objectMapper,
+        DhisConfigurationProvider dhisConfig )
     {
-        bindSession();
+        this.auditService = auditService;
+        this.objectMapper = objectMapper;
 
-        integrationTestBefore();
+        // for legacy reasons we are overriding the default here and using "off"
+        // for tracking logger (we don't have a specific key for tracker logger)
+        this.isAuditLogEnabled = Objects
+            .equals( dhisConfig.getPropertyOrDefault( ConfigurationKey.AUDIT_LOGGER, "off" ), "on" );
+        this.isAuditDatabaseEnabled = dhisConfig.isEnabled( ConfigurationKey.AUDIT_DATABASE );
     }
 
-    @AfterEach
-    public final void after()
-        throws Exception
+    @JmsListener( destination = Topics.TRACKER_TOPIC_NAME )
+    public void consume( TextMessage message )
     {
-        nonTransactionalAfter();
-    }
-
-    @Override
-    protected boolean emptyDatabaseAfterTest()
-    {
-        return true;
+        _consume( message );
     }
 }

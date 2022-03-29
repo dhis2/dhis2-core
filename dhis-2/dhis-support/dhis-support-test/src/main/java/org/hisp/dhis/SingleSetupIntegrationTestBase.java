@@ -28,23 +28,29 @@
 package org.hisp.dhis;
 
 import org.hisp.dhis.config.IntegrationTestConfig;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 /**
- * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
+ * Base for integration tests that use a single setup for the class instead of a
+ * setup for each individual test.
+ *
+ * @author Jim Grace
  */
 @ExtendWith( SpringExtension.class )
 @ContextConfiguration( classes = { IntegrationTestConfig.class } )
 @IntegrationTest
 @ActiveProfiles( profiles = { "test-postgres" } )
-public abstract class IntegrationTestBase extends BaseSpringTest
+@TestInstance( TestInstance.Lifecycle.PER_CLASS )
+public abstract class SingleSetupIntegrationTestBase
+    extends BaseSpringTest
 {
-    @BeforeEach
+    @BeforeAll
     public final void before()
         throws Exception
     {
@@ -53,7 +59,7 @@ public abstract class IntegrationTestBase extends BaseSpringTest
         integrationTestBefore();
     }
 
-    @AfterEach
+    @AfterAll
     public final void after()
         throws Exception
     {
