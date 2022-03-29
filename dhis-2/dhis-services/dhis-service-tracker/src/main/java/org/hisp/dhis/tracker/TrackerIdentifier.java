@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.tracker;
 
-import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Value;
@@ -40,9 +39,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * @author Stian Sandvold
  */
-@AllArgsConstructor( access = AccessLevel.PRIVATE )
 @Value
 @Builder
+@AllArgsConstructor( staticName = "of" )
 public class TrackerIdentifier
 {
     public final static TrackerIdentifier UID = builder().idScheme( TrackerIdScheme.UID ).build();
