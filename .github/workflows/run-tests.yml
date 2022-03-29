@@ -8,24 +8,7 @@ concurrency:
     group: ${{ github.workflow}}-${{ github.ref }}
     cancel-in-progress: true
 jobs:
-  check-formatting:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Set up JDK 11
-        uses: actions/setup-java@v2
-        with:
-          java-version: 11
-          distribution: temurin
-          cache: maven
-
-      - name: Check formatting in core
-        run: mvn speedy-spotless:check --batch-mode --no-transfer-progress --update-snapshots -q -f ./dhis-2/pom.xml
-
-      - name: Check formatting in web
-        run:
-          mvn speedy-spotless:check --batch-mode --no-transfer-progress --update-snapshots -q -f ./dhis-2/dhis-web/pom.xml
-  analyze-dependencies:
+  run-checks:
     runs-on: ubuntu-latest
     if: "!contains(github.event.pull_request.labels.*.name, 'skip-check-dependencies')"
     steps:
@@ -36,16 +19,17 @@ jobs:
           java-version: 11
           distribution: temurin
           cache: maven
-
+      - name: Check formatting in core
+        run: mvn speedy-spotless:check --batch-mode --no-transfer-progress -q -f ./dhis-2/pom.xml
+      - name: Check formatting in web
+        run: mvn speedy-spotless:check --batch-mode --no-transfer-progress -q -f ./dhis-2/dhis-web/pom.xml
       - name: Check maven dependencies
         run: mvn dependency:analyze --threads 2C --batch-mode -no-transfer-progress --update-snapshots -f ./dhis-2/pom.xml
 
   unit-test:
     runs-on: ubuntu-latest
     needs:
-      - analyze-dependencies
-      - check-formatting
-    if: needs.analyze-dependencies.result == 'success' || needs.analyze-dependencies.result == 'skipped'
+      - run-checks
     steps:
       - uses: actions/checkout@v3
       - name: Set up JDK 11
@@ -54,19 +38,15 @@ jobs:
           java-version: 11
           distribution: temurin
           cache: maven
-
       - name: Test core
         run: mvn clean install --threads 2C --batch-mode -no-transfer-progress --update-snapshots -f ./dhis-2/pom.xml -pl -dhis-web-embedded-jetty
-
       - name: Test dhis-web
         run: mvn clean install --threads 2C --batch-mode --no-transfer-progress --update-snapshots -f ./dhis-2/dhis-web/pom.xml
 
   integration-test:
     runs-on: ubuntu-latest
     needs:
-      - analyze-dependencies
-      - check-formatting
-    if: needs.analyze-dependencies.result == 'success' || needs.analyze-dependencies.result == 'skipped'
+      - run-checks
     steps:
       - uses: actions/checkout@v3
       - name: Set up JDK 11
@@ -75,10 +55,8 @@ jobs:
           java-version: 11
           distribution: temurin
           cache: maven
-
       - name: Run integration tests
         run: mvn --threads 2C clean install --batch-mode --no-transfer-progress -Pintegration -DexcludeAnalyticsTests=true -f ./dhis-2/pom.xml -pl -dhis-web-embedded-jetty
-
       - name: Archive surefire reports
         uses: actions/upload-artifact@v2
         with:
@@ -89,9 +67,7 @@ jobs:
   integration-test-analytics:
     runs-on: ubuntu-latest
     needs:
-      - analyze-dependencies
-      - check-formatting
-    if: needs.analyze-dependencies.result == 'success' || needs.analyze-dependencies.result == 'skipped'
+      - run-checks
     steps:
       - uses: actions/checkout@v3
       - name: Set up JDK 11
@@ -100,17 +76,14 @@ jobs:
           java-version: 11
           distribution: temurin
           cache: maven
-
       - name: Build analytics with dependencies
         env:
           MAVEN_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=125
         run: mvn --threads 2C clean install -DskipTests -Dmaven.test.skip=true --batch-mode --no-transfer-progress -f dhis-2/pom.xml -pl=dhis-services/dhis-service-analytics/pom.xml --also-make
-
       - name: Run analytics integration tests
         env:
           MAVEN_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=125
         run: mvn test -Pintegration --batch-mode --no-transfer-progress -f ./dhis-2/dhis-services/dhis-service-analytics/pom.xml
-
       - name: Archive surefire reports
         uses: actions/upload-artifact@v2
         with:
