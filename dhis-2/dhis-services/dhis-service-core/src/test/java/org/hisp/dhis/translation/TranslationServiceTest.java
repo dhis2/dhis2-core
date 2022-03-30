@@ -39,7 +39,6 @@ import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.UserContext;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.RelationshipUtils;
 import org.hisp.dhis.dataelement.DataElement;
@@ -69,6 +68,7 @@ import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserSettingKey;
@@ -88,6 +88,9 @@ class TranslationServiceTest extends DhisSpringTest
     private UserService injectUserService;
 
     @Autowired
+    private CurrentUserService currentUserService;
+
+    @Autowired
     private IdentifiableObjectManager manager;
 
     private User user;
@@ -100,8 +103,7 @@ class TranslationServiceTest extends DhisSpringTest
         this.userService = injectUserService;
         user = createUserAndInjectSecurityContext( true );
         locale = Locale.FRENCH;
-        UserContext.setUser( user );
-        UserContext.setUserSetting( UserSettingKey.DB_LOCALE, locale );
+        currentUserService.setUserSetting( UserSettingKey.DB_LOCALE, locale );
     }
 
     @Test

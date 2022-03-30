@@ -138,7 +138,7 @@ class TrackedEntityCriteriaMapperTest extends DhisWebSpringTest
         userIds = userId1 + ";" + userId2 + ";" + userId3;
         // mock user
         super.userService = this.userService;
-        User user = createUser( "testUser" );
+        User user = createUserWithAuth( "testUser" );
         user.setTeiSearchOrganisationUnits( Sets.newHashSet( organisationUnit ) );
         CurrentUserService currentUserService = new MockCurrentUserService( user );
         ReflectionTestUtils.setField( trackedEntityCriteriaMapper, "currentUserService", currentUserService );
@@ -274,7 +274,7 @@ class TrackedEntityCriteriaMapperTest extends DhisWebSpringTest
     {
         // Force Current User Service to return a User without search org unit
         ReflectionTestUtils.setField( trackedEntityCriteriaMapper, "currentUserService",
-            new MockCurrentUserService( createUser( "testUser2" ) ) );
+            new MockCurrentUserService( createUserWithAuth( "testUser2" ) ) );
         TrackedEntityInstanceCriteria criteria = new TrackedEntityInstanceCriteria();
         criteria.setOu( organisationUnit.getUid() );
         IllegalQueryException e = assertThrows( IllegalQueryException.class,

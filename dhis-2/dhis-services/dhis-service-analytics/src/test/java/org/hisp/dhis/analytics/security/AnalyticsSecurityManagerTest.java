@@ -145,7 +145,7 @@ class AnalyticsSecurityManagerTest extends IntegrationTestBase
         organisationUnitService.addOrganisationUnit( ouD );
         organisationUnitService.addOrganisationUnit( ouE );
         userOrgUnits = Sets.newHashSet( ouB, ouC );
-        User user = createUser( "A", "F_VIEW_EVENT_ANALYTICS" );
+        User user = createUserWithAuth( "A", "F_VIEW_EVENT_ANALYTICS" );
         user.setOrganisationUnits( userOrgUnits );
         user.setDataViewOrganisationUnits( userOrgUnits );
         user.setDataViewMaxOrganisationUnitLevel( 3 );

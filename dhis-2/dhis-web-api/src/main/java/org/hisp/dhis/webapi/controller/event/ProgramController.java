@@ -97,7 +97,7 @@ public class ProgramController
 
         if ( userFilter )
         {
-            List<Program> programs = programService.getUserPrograms();
+            List<Program> programs = programService.getCurrentUserPrograms();
             entityList.retainAll( programs );
             metadata.setPager( null );
         }

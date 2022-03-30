@@ -154,7 +154,7 @@ class EventXmlImportTest extends TransactionalIntegrationTest
             .setOrgUnitSelectionMode( OrganisationUnitSelectionMode.ACCESSIBLE ) );
         assertEquals( 1, events.getEvents().size() );
         // Get by user without access
-        User user = createUser( "A" );
+        User user = createUserWithAuth( "A" );
         userService.addUser( user );
         injectSecurityContext( user );
         events = eventService.getEvents( new EventSearchParams().setProgram( programA )

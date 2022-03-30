@@ -47,4 +47,6 @@ public interface DbmsManager
     boolean tableExists( String tableName );
 
     List<List<Object>> getTableContent( String table );
+
+    void evictObject( Object object );
 }

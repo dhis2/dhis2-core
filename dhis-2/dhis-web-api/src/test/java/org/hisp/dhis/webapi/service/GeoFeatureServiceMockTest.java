@@ -48,7 +48,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.organisationunit.DefaultOrganisationUnitGroupService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.random.BeanRandomizer;
-import org.hisp.dhis.user.DefaultCurrentUserService;
+import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.webdomain.GeoFeature;
 import org.junit.jupiter.api.Test;
@@ -76,7 +76,7 @@ public class GeoFeatureServiceMockTest
     private DefaultOrganisationUnitGroupService organisationUnitGroupService;
 
     @Mock
-    private DefaultCurrentUserService currentUserService;
+    private CurrentUserService currentUserService;
 
     @Mock
     private AttributeService attributeService;

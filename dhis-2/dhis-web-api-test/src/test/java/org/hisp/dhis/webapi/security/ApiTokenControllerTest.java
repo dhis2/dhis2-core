@@ -74,7 +74,7 @@ class ApiTokenControllerTest extends DhisControllerConvenienceTest
     final void setupTest()
     {
         this.renderService = _renderService;
-        userA = createUser( USER_A_USERNAME );
+        userA = createUserWithAuth( USER_A_USERNAME );
     }
 
     @Test

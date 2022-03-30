@@ -178,6 +178,10 @@ public class User
      */
     private boolean disabled;
 
+    private transient boolean isCredentialsNonExpired;
+
+    private transient boolean isAccountNonLocked;
+
     /**
      * The timestamp representing when the user account expires. If not set the
      * account does never expire.
@@ -815,13 +819,23 @@ public class User
     @Override
     public boolean isAccountNonLocked()
     {
-        return false;
+        return isAccountNonLocked;
+    }
+
+    public void setAccountNonLocked( boolean isAccountNonLocked )
+    {
+        this.isAccountNonLocked = isAccountNonLocked;
     }
 
     @Override
     public boolean isCredentialsNonExpired()
     {
-        return false;
+        return isCredentialsNonExpired;
+    }
+
+    public void setCredentialsNonExpired( boolean isCredentialsNonExpired )
+    {
+        this.isCredentialsNonExpired = isCredentialsNonExpired;
     }
 
     @Override
@@ -1487,4 +1501,5 @@ public class User
     {
         this.userCredentialsRaw = user;
     }
+
 }

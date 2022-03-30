@@ -42,7 +42,6 @@ import static org.apache.commons.lang3.StringUtils.split;
 import static org.apache.commons.lang3.StringUtils.substringBetween;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import static org.apache.commons.lang3.StringUtils.wrap;
-import static org.hisp.dhis.common.UserContext.getUserSetting;
 import static org.hisp.dhis.common.ValueType.fromString;
 import static org.hisp.dhis.common.ValueType.getAggregatables;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.DISPLAY_NAME;
@@ -89,6 +88,7 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataitem.query.QueryableDataItem;
 import org.hisp.dhis.feedback.ErrorMessage;
+import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.dataitem.Filter;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
@@ -285,8 +285,8 @@ public class FilteringHelper
     public static void setFilteringParams( final Set<String> filters, final WebOptions options,
         final MapSqlParameterSource paramsMap, final User currentUser )
     {
-        final Locale currentLocale = defaultIfNull( getUserSetting( DB_LOCALE ),
-            getUserSetting( UI_LOCALE ) );
+        final Locale currentLocale = defaultIfNull( CurrentUserService.getUserSetting( DB_LOCALE ),
+            CurrentUserService.getUserSetting( UI_LOCALE ) );
 
         if ( currentLocale != null && isNotBlank( currentLocale.getLanguage() ) )
         {

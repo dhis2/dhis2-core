@@ -303,7 +303,11 @@ class DataQueryServiceTest extends DhisSpringTest
         User user = createUser( 'A' );
         user.addOrganisationUnit( ouA );
         user.getUserRoles().add( role );
+
+        userService.addUser( user );
+
         saveAndInjectUserSecurityContext( user );
+        injectSecurityContext( user );
     }
 
     // -------------------------------------------------------------------------

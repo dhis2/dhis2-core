@@ -219,7 +219,7 @@ public class DataSetController
         TranslateParams translateParams )
         throws Exception
     {
-        setUserContext( translateParams );
+        setTranslationParams( translateParams );
         DataSet dataSet = manager.get( DataSet.class, uid );
 
         if ( dataSet == null )
@@ -248,7 +248,7 @@ public class DataSetController
         throws IOException,
         WebMessageException
     {
-        setUserContext( translateParams );
+        setTranslationParams( translateParams );
         List<DataSet> dataSets = getEntity( uid, NO_WEB_OPTIONS );
 
         if ( dataSets.isEmpty() )
@@ -275,7 +275,7 @@ public class DataSetController
         throws IOException,
         WebMessageException
     {
-        setUserContext( translateParams );
+        setTranslationParams( translateParams );
         List<DataSet> dataSets = getEntity( uid, NO_WEB_OPTIONS );
 
         if ( dataSets.isEmpty() )
@@ -306,7 +306,7 @@ public class DataSetController
         throws IOException,
         WebMessageException
     {
-        setUserContext( translateParams );
+        setTranslationParams( translateParams );
         List<DataSet> dataSets = getEntity( uid, NO_WEB_OPTIONS );
 
         if ( dataSets.isEmpty() )

@@ -106,7 +106,7 @@ class InterpretationServiceTest extends TransactionalIntegrationTest
     {
         userA = createUser( 'A' );
         userB = createUser( 'B' );
-        userC = createUser( "C.D-E_F" );
+        userC = createUserWithAuth( "C.D-E_F" );
         userService.addUser( userA );
         userService.addUser( userB );
         userService.addUser( userC );

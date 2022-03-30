@@ -659,19 +659,6 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     }
 
     @Override
-    public List<T> getAllGeCreated( Date created )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
-
-        JpaQueryParameters<T> param = new JpaQueryParameters<T>()
-            .addPredicates( getSharingPredicates( builder ) )
-            .addPredicate( root -> builder.greaterThanOrEqualTo( root.get( "created" ), created ) )
-            .addOrder( root -> builder.desc( root.get( "created" ) ) );
-
-        return getList( builder, param );
-    }
-
-    @Override
     public List<T> getAllLeCreated( Date created )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
@@ -942,19 +929,6 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
         JpaQueryParameters<T> parameters = new JpaQueryParameters<T>()
             .addPredicates( getDataSharingPredicates( builder, user, AclService.LIKE_WRITE_DATA ) );
-
-        return getList( builder, parameters );
-    }
-
-    @Override
-    public final List<T> getDataReadAll( int first, int max )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
-
-        JpaQueryParameters<T> parameters = new JpaQueryParameters<T>()
-            .addPredicates( getDataSharingPredicates( builder ) )
-            .setFirstResult( first )
-            .setMaxResults( max );
 
         return getList( builder, parameters );
     }

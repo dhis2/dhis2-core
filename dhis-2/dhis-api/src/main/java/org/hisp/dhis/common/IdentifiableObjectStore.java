@@ -277,14 +277,6 @@ public interface IdentifiableObjectStore<T>
     List<T> getByUidNoAcl( Collection<String> uids );
 
     /**
-     * Returns all objects that are equal to or newer than given date.
-     *
-     * @param created Date to compare with.
-     * @return All objects equal or newer than given date.
-     */
-    List<T> getAllGeCreated( Date created );
-
-    /**
      * Returns all objects which are equal to or older than the given date.
      *
      * @param created Date to compare with.
@@ -347,8 +339,6 @@ public interface IdentifiableObjectStore<T>
     List<T> getDataWriteAll();
 
     List<T> getDataWriteAll( User user );
-
-    List<T> getDataReadAll( int first, int max );
 
     /**
      * Remove given UserGroup UID from all sharing records in database

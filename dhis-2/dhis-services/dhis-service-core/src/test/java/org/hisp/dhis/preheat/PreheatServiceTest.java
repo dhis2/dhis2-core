@@ -396,9 +396,9 @@ class PreheatServiceTest extends TransactionalIntegrationTest
     void testUserPreheatCollection()
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = new HashMap<>();
-        User user1 = createUser( "aaa" );
-        User user2 = createUser( "bbb" );
-        User user3 = createUser( "ccc" );
+        User user1 = createUserWithAuth( "aaa" );
+        User user2 = createUserWithAuth( "bbb" );
+        User user3 = createUserWithAuth( "ccc" );
         metadata.put( User.class, new ArrayList<>() );
         metadata.get( User.class ).add( user1 );
         metadata.get( User.class ).add( user2 );
@@ -415,7 +415,7 @@ class PreheatServiceTest extends TransactionalIntegrationTest
     void testDataElementUserByUidPreheat()
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = new HashMap<>();
-        User user1 = createUser( "aaa" );
+        User user1 = createUserWithAuth( "aaa" );
         DataElement dataElement1 = createDataElement( 'A' );
         dataElement1.setUser( user1 );
         DataElement dataElement2 = createDataElement( 'B' );
@@ -441,7 +441,7 @@ class PreheatServiceTest extends TransactionalIntegrationTest
     void testDataElementByCodeUserByUidGetUserByUidPreheat()
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = new HashMap<>();
-        User user1 = createUser( "aaa" );
+        User user1 = createUserWithAuth( "aaa" );
         DataElement dataElement1 = createDataElement( 'A' );
         dataElement1.setUser( user1 );
         DataElement dataElement2 = createDataElement( 'B' );

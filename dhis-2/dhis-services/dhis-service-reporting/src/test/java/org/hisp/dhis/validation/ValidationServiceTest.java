@@ -61,7 +61,6 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.UserContext;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataanalysis.ValidationRuleExpressionDetails;
 import org.hisp.dhis.dataelement.DataElement;
@@ -148,6 +147,9 @@ class ValidationServiceTest extends DhisTest
 
     @Autowired
     private UserService injectUserService;
+
+    @Autowired
+    private CurrentUserService currentUserService;
 
     private DataElement dataElementA;
 
@@ -1411,8 +1413,8 @@ class ValidationServiceTest extends DhisTest
     {
         User user = createUserAndInjectSecurityContext( true );
         Locale locale = Locale.FRENCH;
-        UserContext.setUser( user );
-        UserContext.setUserSetting( UserSettingKey.DB_LOCALE, locale );
+        currentUserService.setUserSetting( UserSettingKey.DB_LOCALE, locale );
+
         useDataValue( dataElementA, periodA, sourceA, "10" );
         useDataValue( dataElementB, periodA, sourceA, "20" );
         Expression expressionLeft = new Expression(

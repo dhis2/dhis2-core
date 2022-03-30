@@ -48,7 +48,6 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PrimaryKeyObject;
-import org.hisp.dhis.common.UserContext;
 import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -401,11 +400,13 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     {
         if ( !"translations".equals( pvProperty ) )
         {
-            setUserContext( currentUser, translateParams );
+            setTranslationParams( translateParams );
         }
         else
         {
-            setUserContext( null, new TranslateParams( false ) );
+            // TODO: #12098 This is a hack to make sure that the translations
+            // are always returned in the correct language ???
+            // setTranslationParams( null, new TranslateParams( false ) );
         }
 
         try
@@ -432,7 +433,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
         }
         finally
         {
-            UserContext.reset();
+            // UserContext.reset();
         }
     }
 
@@ -625,16 +626,12 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     // Helpers
     // --------------------------------------------------------------------------
 
-    protected final void setUserContext( TranslateParams translateParams )
-    {
-        setUserContext( currentUserService.getCurrentUser(), translateParams );
-    }
-
-    protected final void setUserContext( User user, TranslateParams translateParams )
+    protected final void setTranslationParams( TranslateParams translateParams )
     {
         Locale dbLocale = getLocaleWithDefault( translateParams );
-        UserContext.setUser( user );
-        UserContext.setUserSetting( UserSettingKey.DB_LOCALE, dbLocale );
+        // UserContext.setUser( currentUserService.getCurrentUser() );
+        // UserContext.setUserSetting( UserSettingKey.DB_LOCALE, dbLocale );
+        currentUserService.setUserSetting( UserSettingKey.DB_LOCALE, dbLocale );
     }
 
     private Locale getLocaleWithDefault( TranslateParams translateParams )

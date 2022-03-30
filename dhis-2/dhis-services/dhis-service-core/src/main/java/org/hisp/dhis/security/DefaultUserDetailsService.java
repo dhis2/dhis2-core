@@ -31,7 +31,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.hisp.dhis.system.util.SecurityUtils;
+import org.hibernate.Hibernate;
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.ObjectUtils;
@@ -60,13 +61,18 @@ public class DefaultUserDetailsService
 
     private final SecurityService securityService;
 
-    public DefaultUserDetailsService( UserService userService, SecurityService securityService )
+    private final SessionFactory sessionFactory;
+
+    public DefaultUserDetailsService( UserService userService, SecurityService securityService,
+        SessionFactory sessionFactory )
     {
         checkNotNull( userService );
         checkNotNull( securityService );
+        checkNotNull( sessionFactory );
 
         this.userService = userService;
         this.securityService = securityService;
+        this.sessionFactory = sessionFactory;
     }
 
     // -------------------------------------------------------------------------
@@ -93,9 +99,22 @@ public class DefaultUserDetailsService
                 username, enabled, accountNonExpired, credentialsNonExpired, accountNonLocked ) );
         }
 
-        return new org.springframework.security.core.userdetails.User( user.getUsername(),
-            user.getPassword(),
-            enabled, accountNonExpired, credentialsNonExpired, accountNonLocked,
-            SecurityUtils.getGrantedAuthorities( user ) );
+        Hibernate.initialize( user.getOrganisationUnits() );
+        Hibernate.initialize( user.getUserRoles() );
+        Hibernate.initialize( user.getGroups() );
+        Hibernate.initialize( user.getTeiSearchOrganisationUnits() );
+        Hibernate.initialize( user.getDataViewOrganisationUnits() );
+        Hibernate.initialize( user.getCogsDimensionConstraints() );
+        Hibernate.initialize( user.getDimensionConstraints() );
+        Hibernate.initialize( user.getCatDimensionConstraints() );
+        Hibernate.initialize( user.getPreviousPasswords() );
+        Hibernate.initialize( user.getApps() );
+
+        sessionFactory.getCurrentSession().evict( user );
+
+        user.setAccountNonLocked( accountNonLocked );
+        user.setCredentialsNonExpired( credentialsNonExpired );
+
+        return user;
     }
 }

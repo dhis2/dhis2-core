@@ -68,8 +68,8 @@ class DefaultAclStoreTest extends IntegrationTestBase
     {
         // DhisConvenienceTests needs it to be injected/set for createUser
         userService = _userService;
-        user = createUser( "userWithoutUserGroup" );
-        owner = createUser( "owner" );
+        user = createUserWithAuth( "userWithoutUserGroup" );
+        owner = createUserWithAuth( "owner" );
     }
 
     @Test

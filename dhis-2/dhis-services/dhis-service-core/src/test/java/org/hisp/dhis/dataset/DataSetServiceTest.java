@@ -97,7 +97,7 @@ class DataSetServiceTest extends DhisTest
 
     private CategoryOptionCombo attributeOptionCombo;
 
-    private CurrentUserService mockCurrentUserService;
+    private User currentUser;
 
     @Autowired
     private DataSetService dataSetService;
@@ -160,15 +160,16 @@ class DataSetServiceTest extends DhisTest
         organisationUnitService.addOrganisationUnit( unitE );
         organisationUnitService.addOrganisationUnit( unitF );
         attributeOptionCombo = categoryService.getDefaultCategoryOptionCombo();
-        mockCurrentUserService = new MockCurrentUserService( true, newHashSet( unitA ), newHashSet( unitA ),
+        currentUser = MockCurrentUserService.makeUser( true, newHashSet( unitA ), newHashSet( unitA ),
             UserRole.AUTHORITY_ALL );
-        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
-            mockCurrentUserService, approvalService, approvalStore, levelService );
-        User user = mockCurrentUserService.getCurrentUser();
-        user.setFirstName( "John" );
-        user.setSurname( "Doe" );
+        // setDependency( CurrentUserServiceTarget.class,
+        // CurrentUserServiceTarget::setCurrentUserService,
+        // mockCurrentUserService, approvalService, approvalStore, levelService
+        // );
+        currentUser.setFirstName( "John" );
+        currentUser.setSurname( "Doe" );
 
-        userService.addUser( mockCurrentUserService.getCurrentUser() );
+        userService.addUser( currentUser );
     }
 
     @Override
@@ -198,9 +199,8 @@ class DataSetServiceTest extends DhisTest
         dataSet.assignWorkflow( workflow );
         dataSet.addOrganisationUnit( unit );
         dataSetService.updateDataSet( dataSet );
-        User user = mockCurrentUserService.getCurrentUser();
         DataApproval approval = new DataApproval( level, workflow, period, unit, attributeOptionCombo, false,
-            new Date(), user );
+            new Date(), currentUser );
         approvalService.approveData( newArrayList( approval ) );
     }
 
@@ -451,7 +451,7 @@ class DataSetServiceTest extends DhisTest
             dataSetService.getLockStatus( user, dataSetB, period, unitA, attributeOptionCombo, getDate( 2000, 4, 10 ) ),
             LockStatus.OPEN );
         // Test Expiry days with user has authority "ALL"
-        user = mockCurrentUserService.getCurrentUser();
+        user = currentUser;
         assertEquals(
             dataSetService.getLockStatus( user, dataSetB, period, unitA, attributeOptionCombo, getDate( 2000, 4, 25 ) ),
             LockStatus.OPEN );

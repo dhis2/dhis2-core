@@ -49,7 +49,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AsyncTaskExecutor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.UserContext;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.csv.CsvImportClass;
@@ -75,7 +74,6 @@ import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -227,7 +225,7 @@ public class MetadataImportExportController
         if ( translate )
         {
             TranslateParams translateParams = new TranslateParams( true, locale );
-            setUserContext( currentUserService.getCurrentUser(), translateParams );
+            setTranslationParams( translateParams );
         }
 
         MetadataExportParams params = metadataExportService.getParamsFromMap( contextService.getParameterValuesMap() );
@@ -306,11 +304,12 @@ public class MetadataImportExportController
             .setLocation( "/system/tasks/" + GML_IMPORT );
     }
 
-    private void setUserContext( User user, TranslateParams translateParams )
+    private void setTranslationParams( TranslateParams translateParams )
     {
         Locale dbLocale = getLocaleWithDefault( translateParams );
-        UserContext.setUser( user );
-        UserContext.setUserSetting( UserSettingKey.DB_LOCALE, dbLocale );
+        // UserContext.setUser( currentUserService.getCurrentUser() );
+        // UserContext.setUserSetting( UserSettingKey.DB_LOCALE, dbLocale );
+        currentUserService.setUserSetting( UserSettingKey.DB_LOCALE, dbLocale );
     }
 
     private Locale getLocaleWithDefault( TranslateParams translateParams )

@@ -27,9 +27,24 @@
  */
 package org.hisp.dhis.user;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.io.Serializable;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 
+import lombok.extern.slf4j.Slf4j;
+
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * This interface defined methods for getting access to the currently logged in
@@ -39,52 +54,230 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
  * @author Torgeir Lorange Ostby
  * @version $Id: CurrentUserService.java 5708 2008-09-16 14:28:32Z larshelg $
  */
-public interface CurrentUserService
+@Service( "org.hisp.dhis.user.CurrentUserService" )
+@Slf4j
+public class CurrentUserService
 {
     String ID = CurrentUserService.class.getName();
+
+    private final UserStore userStore;
+
+    private final SessionFactory sessionFactory;
+
+    public CurrentUserService( @Lazy UserStore userStore, SessionFactory sessionFactory )
+    {
+        checkNotNull( userStore );
+
+        this.sessionFactory = sessionFactory;
+        this.userStore = userStore;
+    }
 
     /**
      * @return the username of the currently logged in user. If no user is
      *         logged in or the auto access admin is active, null is returned.
      */
-    String getCurrentUsername();
+    public static String getCurrentUsername()
+    {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-    /**
-     * @return the currently logged in user. If no user is logged in or the auto
-     *         access admin is active, null is returned.
-     */
-    User getCurrentUser();
+        if ( authentication == null || !authentication.isAuthenticated() || authentication.getPrincipal() == null )
+        {
+            return null;
+        }
 
-    /**
-     * @return the data capture organisation units of the current user, empty
-     *         set if no current user.
-     */
-    Set<OrganisationUnit> getCurrentUserOrganisationUnits();
+        Object principal = authentication.getPrincipal();
 
-    /**
-     * @return true if the current logged in user has the ALL privileges set,
-     *         false otherwise.
-     */
-    boolean currentUserIsSuper();
+        // Principal being a string implies anonymous authentication
+        // This is the state before the user is authenticated.
+        if ( principal instanceof String )
+        {
+            if ( !"anonymousUser".equals( principal ) )
+            {
+                return null;
+            }
 
-    /**
-     * Indicates whether the current user has been granted the given authority.
-     */
-    boolean currentUserIsAuthorized( String auth );
+            return (String) principal;
+        }
 
-    /**
-     * Return {@link CurrentUserGroupInfo} of current User
-     */
-    CurrentUserGroupInfo getCurrentUserGroupsInfo();
+        if ( principal instanceof UserDetails )
+        {
+            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+            return userDetails.getUsername();
+        }
 
-    /**
-     * Invalidate UserGroupInfo Cache for given username Ignore if username
-     * doesn't exist
-     */
-    void invalidateUserGroupCache( String username );
+        // if ( principal instanceof DhisOidcUser )
+        // {
+        // DhisOidcUser dhisOidcUser = (DhisOidcUser)
+        // authentication.getPrincipal();
+        // return dhisOidcUser.getUser().getUsername();
+        // }
 
-    /**
-     * Get {@link CurrentUserGroupInfo} by given {@link User}
-     */
-    CurrentUserGroupInfo getCurrentUserGroupsInfo( User user );
+        throw new RuntimeException( "Authentication principal is not supported; principal:" + principal );
+    }
+
+    public static User getCurrentUser()
+    {
+        String username = getCurrentUsername();
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if ( authentication == null || !authentication.isAuthenticated() || authentication.getPrincipal() == null )
+        {
+            return null;
+        }
+
+        if ( username == null )
+        {
+            throw new IllegalStateException( "No current user" );
+        }
+
+        if ( username.equals( "anonymousUser" ) )
+        {
+            return null;
+        }
+
+        //
+        // user.getAllAuthorities();
+        // return user;
+
+        Object principal = authentication.getPrincipal();
+        if ( principal instanceof UserDetails )
+        {
+            User principal1 = (User) authentication.getPrincipal();
+            Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
+            Set<String> allAuthorities = principal1.getAllAuthorities();
+            return principal1;
+        }
+        else
+        {
+            throw new RuntimeException( "Authentication principal is not supported; principal:" + principal );
+        }
+
+    }
+
+    @Transactional( readOnly = true )
+    public boolean currentUserIsSuper()
+    {
+        User user = getCurrentUser();
+
+        return user != null && user.isSuper();
+    }
+
+    @Transactional( readOnly = true )
+    public Set<OrganisationUnit> getCurrentUserOrganisationUnits()
+    {
+        User user = getCurrentUser();
+
+        return user != null ? new HashSet<>( user.getOrganisationUnits() ) : new HashSet<>();
+    }
+
+    @Transactional( readOnly = true )
+    public boolean currentUserIsAuthorized( String auth )
+    {
+        User user = getCurrentUser();
+
+        return user != null && user.isAuthorized( auth );
+    }
+
+    @Transactional( readOnly = true )
+    public CurrentUserGroupInfo getCurrentUserGroupsInfo()
+    {
+        User currentUser = getCurrentUser();
+
+        return getCurrentUserGroupsInfo( currentUser );
+        // return currentUserGroupInfoCache
+        // if ( currentUser == null )
+        // {
+        // return null;
+        //
+        // }
+        // .get( currentUser.getUsername(), this::getCurrentUserGroupsInfo );
+    }
+
+    @Transactional( readOnly = true )
+    public CurrentUserGroupInfo getCurrentUserGroupsInfo( User user )
+    {
+        if ( user == null )
+        {
+            return null;
+        }
+
+        // return currentUserGroupInfoCache
+        // .get( userInfo.getUsername(), this::getCurrentUserGroupsInfo );
+        return getCurrentUserGroupsInfo( user.getUsername() );
+    }
+
+    public void invalidateUserGroupCache( String username )
+    {
+        // try
+        // {
+        // currentUserGroupInfoCache.invalidate( username );
+        // }
+        // catch ( NullPointerException exception )
+        // {
+        // // Ignore if key doesn't exist
+        // }
+    }
+
+    private CurrentUserGroupInfo getCurrentUserGroupsInfo( String username )
+    {
+        if ( username == null )
+        {
+            return null;
+        }
+
+        User currentUser = getCurrentUser();
+        if ( currentUser == null )
+        {
+            log.warn( "User is null, this should only happen at startup!" );
+            return null;
+        }
+        return userStore.getCurrentUserGroupInfo( currentUser.getId() );
+    }
+
+    // ???????????????
+    // ???????????????
+    // ???????????????
+    // ???????????????
+    // ???????????????
+    // ???????????????
+
+    public boolean haveUser()
+    {
+        return getCurrentUser() != null;
+    }
+
+    public void setUserSetting( UserSettingKey key, Serializable value )
+    {
+        setUserSettingInternal( key.getName(), value );
+    }
+
+    private void setUserSettingInternal( String key, Serializable value )
+    {
+        // if ( threadUserSettings.get() == null )
+        // {
+        // threadUserSettings.set( new HashMap<>() );
+        // }
+        //
+        // if ( value != null )
+        // {
+        // threadUserSettings.get().put( key, value );
+        // }
+        // else
+        // {
+        // threadUserSettings.get().remove( key );
+        // }
+    }
+
+    static public <T> T getUserSetting( UserSettingKey key )
+    {
+        // return threadUserSettings.get() != null ? (T)
+        // threadUserSettings.get().get( key.getName() ) : null;
+        return null;
+    }
+
+    protected void evictCurrentUser( User user )
+    {
+        sessionFactory.getCurrentSession().evict( user );
+    }
+
 }

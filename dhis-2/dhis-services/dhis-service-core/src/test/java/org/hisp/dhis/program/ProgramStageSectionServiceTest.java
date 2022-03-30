@@ -73,9 +73,9 @@ class ProgramStageSectionServiceTest extends TransactionalIntegrationTest
         ProgramStageSection programStageSection = createProgramStageSection( 'A', 0 );
         programStageSection.setProgramStage( programStage );
         manager.save( programStageSection );
-        User userA = createUser( "A", "F_PROGRAMSTAGE_ADD" );
+        User userA = createUserWithAuth( "A", "F_PROGRAMSTAGE_ADD" );
         Assertions.assertTrue( aclService.canUpdate( userA, programStageSection ) );
-        User userB = createUser( "B" );
+        User userB = createUserWithAuth( "B" );
         Assertions.assertFalse( aclService.canUpdate( userB, programStageSection ) );
     }
 

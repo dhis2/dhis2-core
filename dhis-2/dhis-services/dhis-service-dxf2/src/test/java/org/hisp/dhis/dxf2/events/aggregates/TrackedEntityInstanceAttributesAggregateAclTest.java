@@ -70,7 +70,7 @@ class TrackedEntityInstanceAttributesAggregateAclTest extends TrackerTest
     @Override
     protected void mockCurrentUserService()
     {
-        User user = createUser( "testUser" );
+        User user = createUserWithAuth( "testUser" );
         setUserAuthorityToNonSuper( user );
         currentUserService = new MockCurrentUserService( user );
         ReflectionTestUtils.setField( trackedEntityInstanceAggregate, "currentUserService", currentUserService );

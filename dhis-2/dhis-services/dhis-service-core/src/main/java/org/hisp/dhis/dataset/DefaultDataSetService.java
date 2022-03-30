@@ -170,24 +170,6 @@ public class DefaultDataSetService
 
     @Override
     @Transactional( readOnly = true )
-    public List<DataSet> getAllDataRead()
-    {
-        User user = currentUserService.getCurrentUser();
-
-        return getUserDataRead( user );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public List<DataSet> getAllDataWrite()
-    {
-        User user = currentUserService.getCurrentUser();
-
-        return getUserDataWrite( user );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
     public List<DataSet> getUserDataWrite( User user )
     {
         if ( user == null )

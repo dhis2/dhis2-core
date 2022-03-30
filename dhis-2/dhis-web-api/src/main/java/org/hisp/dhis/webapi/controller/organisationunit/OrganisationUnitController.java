@@ -282,7 +282,7 @@ public class OrganisationUnitController
         HttpServletRequest request, HttpServletResponse response )
         throws Exception
     {
-        setUserContext( translateParams );
+        setTranslationParams( translateParams );
         OrganisationUnit organisationUnit = manager.get( getEntityClass(), uid );
         List<OrganisationUnit> organisationUnits = Lists.newArrayList();
 

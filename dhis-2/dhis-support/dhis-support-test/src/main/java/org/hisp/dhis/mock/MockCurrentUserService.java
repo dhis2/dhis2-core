@@ -28,13 +28,9 @@
 package org.hisp.dhis.mock;
 
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.user.CurrentUserGroupInfo;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserRole;
 
@@ -42,7 +38,7 @@ import org.hisp.dhis.user.UserRole;
  * @author Lars Helge Overland
  */
 public class MockCurrentUserService
-    implements CurrentUserService
+// implements CurrentUserService
 {
     private User currentUser;
 
@@ -82,56 +78,109 @@ public class MockCurrentUserService
         this.currentUser = user;
     }
 
-    @Override
-    public String getCurrentUsername()
+    public static User makeUser( boolean superUserFlag, Set<OrganisationUnit> organisationUnits,
+        Set<OrganisationUnit> dataViewOrganisationUnits, String... auths )
     {
-        return currentUser.getUsername();
+        UserRole userRole = new UserRole();
+        userRole.setName( "USER" );
+        userRole.setAutoFields();
+        userRole.getAuthorities().addAll( Arrays.asList( auths ) );
+
+        // this.superUserFlag = superUserFlag;
+
+        User user = new User();
+        user.setUsername( "currentUser" );
+        user.getUserRoles().add( userRole );
+        user.setFirstName( "Current" );
+        user.setSurname( "User" );
+        user.setOrganisationUnits( organisationUnits );
+        user.setDataViewOrganisationUnits( dataViewOrganisationUnits );
+        user.setAutoFields();
+        user.setCreatedBy( user );
+
+        return user;
+        // this.currentUser = user;
     }
 
-    @Override
-    public User getCurrentUser()
+    public static User makeUser( Set<OrganisationUnit> assignedOrgUnits, Set<OrganisationUnit> dataViewOrgUnits,
+        String... auths )
     {
-        return currentUser;
+        return makeUser( true, assignedOrgUnits, dataViewOrgUnits, auths );
     }
 
-    @Override
-    public Set<OrganisationUnit> getCurrentUserOrganisationUnits()
-    {
-        return currentUser != null ? currentUser.getOrganisationUnits() : new HashSet<>();
-    }
-
-    @Override
-    public boolean currentUserIsSuper()
-    {
-        return superUserFlag;
-    }
-
-    public void setSuperUserFlag( boolean superUserFlag )
-    {
-        this.superUserFlag = superUserFlag;
-    }
-
-    @Override
-    public boolean currentUserIsAuthorized( String auth )
-    {
-        return true;
-    }
-
-    @Override
-    public CurrentUserGroupInfo getCurrentUserGroupsInfo()
-    {
-        return new CurrentUserGroupInfo( currentUser.getUid(),
-            currentUser.getGroups().stream().map( g -> g.getUid() ).collect( Collectors.toSet() ) );
-    }
-
-    @Override
-    public void invalidateUserGroupCache( String username )
-    {
-    }
-
-    @Override
-    public CurrentUserGroupInfo getCurrentUserGroupsInfo( User userInfo )
-    {
-        return getCurrentUserGroupsInfo();
-    }
+    // @Override
+    // public String getCurrentUsername()
+    // {
+    // return currentUser.getUsername();
+    // }
+    //
+    // @Override
+    // public User getCurrentUser()
+    // {
+    // return currentUser;
+    // }
+    //
+    // @Override
+    // public Set<OrganisationUnit> getCurrentUserOrganisationUnits()
+    // {
+    // return currentUser != null ? currentUser.getOrganisationUnits() : new
+    // HashSet<>();
+    // }
+    //
+    // @Override
+    // public boolean currentUserIsSuper()
+    // {
+    // return superUserFlag;
+    // }
+    //
+    // public void setSuperUserFlag( boolean superUserFlag )
+    // {
+    // this.superUserFlag = superUserFlag;
+    // }
+    //
+    // @Override
+    // public boolean currentUserIsAuthorized( String auth )
+    // {
+    // return true;
+    // }
+    //
+    // @Override
+    // public CurrentUserGroupInfo getCurrentUserGroupsInfo()
+    // {
+    // return new CurrentUserGroupInfo( currentUser.getUid(),
+    // currentUser.getGroups().stream().map( g -> g.getUid() ).collect(
+    // Collectors.toSet() ) );
+    // }
+    //
+    // @Override
+    // public void invalidateUserGroupCache( String username )
+    // {
+    // }
+    //
+    // @Override
+    // public CurrentUserGroupInfo getCurrentUserGroupsInfo( User user )
+    // {
+    // return getCurrentUserGroupsInfo();
+    // }
+    //
+    //// ????????????????????????????
+    //// ????????????????????????????
+    //// ????????????????????????????
+    //// ????????????????????????????
+    //// ????????????????????????????
+    // @Override public boolean haveUser()
+    // {
+    // return false;
+    // }
+    //
+    // @Override public void setUserSetting( UserSettingKey key, Serializable
+    // value )
+    // {
+    //
+    // }
+    //
+    // @Override public <T> T getUserSetting( UserSettingKey key )
+    // {
+    // return null;
+    // }
 }

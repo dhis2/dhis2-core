@@ -112,7 +112,7 @@ class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest
     @Override
     protected void mockCurrentUserService()
     {
-        User user = createUser( "testUser" );
+        User user = createUserWithAuth( "testUser" );
         user.addOrganisationUnit( organisationUnitA );
         user.getTeiSearchOrganisationUnits().add( organisationUnitA );
         user.getTeiSearchOrganisationUnits().add( organisationUnitB );

@@ -39,7 +39,6 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSetService;
-import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.DefaultOrganisationUnitService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevelStore;
@@ -88,6 +87,9 @@ class QueryParserTest extends IntegrationTestBase
     @Autowired
     private CacheProvider cacheProvider;
 
+    @Autowired
+    private CurrentUserService currentUserService;
+
     @Override
     public boolean emptyDatabaseAfterTest()
     {
@@ -101,11 +103,14 @@ class QueryParserTest extends IntegrationTestBase
         OrganisationUnit orgUnitA = createOrganisationUnit( 'A' );
         User user = createUser( 'A' );
         user.addOrganisationUnit( orgUnitA );
-        CurrentUserService currentUserService = new MockCurrentUserService( user );
+        // CurrentUserService currentUserService = new MockCurrentUserService(
+        // user );
+        injectSecurityContext( user );
+
         this.organisationUnitService = new DefaultOrganisationUnitService( organisationUnitStore, dataSetService,
             organisationUnitLevelStore, currentUserService, configurationService, userSettingService, cacheProvider );
         organisationUnitService.addOrganisationUnit( orgUnitA );
-        identifiableObjectManager.save( orgUnitA );
+        // identifiableObjectManager.save( orgUnitA );
         queryParser = new DefaultJpaQueryParser( schemaService );
     }
 

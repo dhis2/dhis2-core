@@ -91,7 +91,7 @@ class ApiTokenAuthenticationTest extends DhisControllerWithApiTokenAuthTest
         throws Exception
     {
         super.setup();
-        adminUser = preCreateInjectAdminUser();
+        // adminUser = preCreateInjectAdminUser();//TODO: 12098
     }
 
     private TokenAndKey createNewToken()

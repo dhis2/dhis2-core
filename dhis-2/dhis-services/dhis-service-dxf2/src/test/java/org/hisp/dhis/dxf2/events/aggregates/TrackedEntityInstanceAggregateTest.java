@@ -105,7 +105,7 @@ class TrackedEntityInstanceAggregateTest extends TrackerTest
     @Override
     protected void mockCurrentUserService()
     {
-        User user = createUser( "testUser" );
+        User user = createUserWithAuth( "testUser" );
         user.addOrganisationUnit( organisationUnitA );
         userService.updateUser( user );
         makeUserSuper( user );

@@ -142,7 +142,8 @@ public class DefaultUserService
     @Transactional
     public long addUser( User user )
     {
-        AuditLogUtil.infoWrapper( log, currentUserService.getCurrentUsername(), user, AuditLogUtil.ACTION_CREATE );
+        String currentUsername = currentUserService.getCurrentUsername();
+        AuditLogUtil.infoWrapper( log, currentUsername, user, AuditLogUtil.ACTION_CREATE );
 
         userStore.save( user );
 
@@ -445,6 +446,7 @@ public class DefaultUserService
     @Transactional
     public long addUserRole( UserRole userRole )
     {
+        User currentUser = CurrentUserService.getCurrentUser();
         userRoleStore.save( userRole );
         return userRole.getId();
     }

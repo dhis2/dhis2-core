@@ -48,9 +48,7 @@ import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
@@ -101,7 +99,7 @@ class DataApprovalAuditServiceTest extends TransactionalIntegrationTest
     private CategoryService categoryService;
 
     @Autowired
-    private UserService userService;
+    private UserService _userService;
 
     @Autowired
     protected UserGroupAccessService userGroupAccessService;
@@ -139,15 +137,15 @@ class DataApprovalAuditServiceTest extends TransactionalIntegrationTest
 
     private OrganisationUnit sourceB;
 
-    private CurrentUserService superUserService;
+    private User superUser;
 
-    private CurrentUserService userAService;
+    private User userA;
 
-    private CurrentUserService userBService;
+    private User userB;
 
-    private CurrentUserService userCService;
+    private User userC;
 
-    private CurrentUserService userDService;
+    private User userD;
 
     private User userZ;
 
@@ -196,24 +194,10 @@ class DataApprovalAuditServiceTest extends TransactionalIntegrationTest
     // -------------------------------------------------------------------------
     // Set up/tear down helper methods
     // -------------------------------------------------------------------------
-    private CurrentUserService getMockCurrentUserService( String userName, boolean superUserFlag,
+    private User createUser( String userName, boolean superUserFlag,
         OrganisationUnit orgUnit, String... auths )
     {
-        CurrentUserService mockCurrentUserService = new MockCurrentUserService( superUserFlag,
-            Sets.newHashSet( orgUnit ), Sets.newHashSet( orgUnit ), auths );
-        User user = mockCurrentUserService.getCurrentUser();
-        user.setFirstName( "Test" );
-        user.setSurname( userName );
-        user.setUsername( userName );
-        for ( UserRole role : user.getUserRoles() )
-        {
-            // Give the role an
-            role.setName( CodeGenerator.generateUid() );
-            // arbitrary name
-            userService.addUserRole( role );
-        }
-        userService.addUser( user );
-        return mockCurrentUserService;
+        return mockUser( superUserFlag, userName, newHashSet( orgUnit ), null, auths );
     }
 
     private UserGroup getUserGroup( String userGroupName, Set<User> users )
@@ -252,6 +236,9 @@ class DataApprovalAuditServiceTest extends TransactionalIntegrationTest
     public void setUpTest()
         throws Exception
     {
+        userService = _userService;
+        preCreateInjectAdminUser();
+
         // ---------------------------------------------------------------------
         // Add supporting data
         // ---------------------------------------------------------------------
@@ -264,17 +251,17 @@ class DataApprovalAuditServiceTest extends TransactionalIntegrationTest
         sourceB = createOrganisationUnit( 'B', sourceA );
         organisationUnitService.addOrganisationUnit( sourceA );
         organisationUnitService.addOrganisationUnit( sourceB );
-        superUserService = getMockCurrentUserService( "SuperUser", true, sourceA, UserRole.AUTHORITY_ALL );
-        userAService = getMockCurrentUserService( "UserA", false, sourceA );
-        userBService = getMockCurrentUserService( "UserB", false, sourceB );
-        userCService = getMockCurrentUserService( "UserC", false, sourceB );
-        userDService = getMockCurrentUserService( "UserD", false, sourceB );
+        superUser = createUser( "SuperUser", true, sourceA, UserRole.AUTHORITY_ALL );
+        userA = createUser( "UserA", false, sourceA );
+        userB = createUser( "UserB", false, sourceB );
+        userC = createUser( "UserC", false, sourceB );
+        userD = createUser( "UserD", false, sourceB );
         userZ = createUser( 'Z' );
         userService.addUser( userZ );
-        UserGroup userGroupC = getUserGroup( "UserGroupA", Sets.newHashSet( userCService.getCurrentUser() ) );
-        UserGroup userGroupD = getUserGroup( "UserGroupB", Sets.newHashSet( userDService.getCurrentUser() ) );
-        userCService.getCurrentUser().getGroups().add( userGroupC );
-        userDService.getCurrentUser().getGroups().add( userGroupD );
+        UserGroup userGroupC = getUserGroup( "UserGroupA", Sets.newHashSet( userC ) );
+        UserGroup userGroupD = getUserGroup( "UserGroupB", Sets.newHashSet( userD ) );
+        userC.getGroups().add( userGroupC );
+        userD.getGroups().add( userGroupD );
         optionA = new CategoryOption( "CategoryOptionA" );
         optionB = new CategoryOption( "CategoryOptionB" );
         categoryService.addCategoryOption( optionA );
@@ -306,8 +293,8 @@ class DataApprovalAuditServiceTest extends TransactionalIntegrationTest
         categoryService.updateCategoryOptionGroupSet( optionGroupSetB );
         categoryService.updateCategoryOptionGroup( optionGroupA );
         categoryService.updateCategoryOptionGroup( optionGroupB );
-        userCService.getCurrentUser().getCatDimensionConstraints().add( categoryA );
-        userDService.getCurrentUser().getCogsDimensionConstraints().add( optionGroupSetB );
+        userC.getCatDimensionConstraints().add( categoryA );
+        userD.getCogsDimensionConstraints().add( optionGroupSetB );
         dateA = getDate( 2017, 1, 1 );
         dateB = getDate( 2018, 1, 1 );
         level1 = new DataApprovalLevel( "01", 1, null );
@@ -368,11 +355,13 @@ class DataApprovalAuditServiceTest extends TransactionalIntegrationTest
     // -------------------------------------------------------------------------
     // Test helper methods
     // -------------------------------------------------------------------------
-    private void setMockUserService( CurrentUserService mockUserService )
-    {
-        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService, mockUserService,
-            dataApprovalLevelService, dataApprovalAuditService, dataApprovalAuditStore );
-    }
+    // private void setMockUserService( CurrentUserService mockUserService )
+    // {
+    // setDependency( CurrentUserServiceTarget.class,
+    // CurrentUserServiceTarget::setCurrentUserService, mockUserService,
+    // dataApprovalLevelService, dataApprovalAuditService,
+    // dataApprovalAuditStore );
+    // }
 
     // -------------------------------------------------------------------------
     // DataApprovalAudit
@@ -382,7 +371,8 @@ class DataApprovalAuditServiceTest extends TransactionalIntegrationTest
     {
         DataApprovalAuditQueryParams params = new DataApprovalAuditQueryParams();
         List<DataApprovalAudit> audits;
-        setMockUserService( userAService );
+        // setMockUserService( userA );
+        injectSecurityContext( userA );
         dataApprovalAuditService.deleteDataApprovalAudits( sourceB );
         audits = dataApprovalAuditService.getDataApprovalAudits( params );
         assertEquals( 3, audits.size() );
@@ -397,7 +387,8 @@ class DataApprovalAuditServiceTest extends TransactionalIntegrationTest
         DataApprovalAuditQueryParams params = new DataApprovalAuditQueryParams();
         List<DataApprovalAudit> audits;
         // Superuser can see all audits.
-        setMockUserService( superUserService );
+        // setMockUserService( superUser );
+        injectSecurityContext( superUser );
         audits = dataApprovalAuditStore.getDataApprovalAudits( params );
         assertEquals( 9, audits.size() );
         assertTrue( audits.contains( auditAA1 ) );
@@ -410,7 +401,8 @@ class DataApprovalAuditServiceTest extends TransactionalIntegrationTest
         assertTrue( audits.contains( auditBB3 ) );
         assertTrue( audits.contains( auditBC3 ) );
         // User A can see all options from sourceA or its children.
-        setMockUserService( userAService );
+        injectSecurityContext( userA );
+        // setMockUserService( userA );
         audits = dataApprovalAuditService.getDataApprovalAudits( params );
         assertEquals( 9, audits.size() );
         assertTrue( audits.contains( auditAA1 ) );
@@ -423,7 +415,8 @@ class DataApprovalAuditServiceTest extends TransactionalIntegrationTest
         assertTrue( audits.contains( auditBB3 ) );
         assertTrue( audits.contains( auditBC3 ) );
         // User B can see all options from sourceB.
-        setMockUserService( userBService );
+        // setMockUserService( userB );
+        injectSecurityContext( userB );
         audits = dataApprovalAuditService.getDataApprovalAudits( params );
         assertEquals( 6, audits.size() );
         assertTrue( audits.contains( auditBA2 ) );
@@ -433,12 +426,14 @@ class DataApprovalAuditServiceTest extends TransactionalIntegrationTest
         assertTrue( audits.contains( auditBB3 ) );
         assertTrue( audits.contains( auditBC3 ) );
         // User C can see only level 3, optionA from sourceB.
-        setMockUserService( userCService );
+        // setMockUserService( userC );
+        injectSecurityContext( userC );
         audits = dataApprovalAuditService.getDataApprovalAudits( params );
         assertEquals( 1, audits.size() );
         assertTrue( audits.contains( auditBA3 ) );
         // User D can see only level 3, optionB from sourceB.
-        setMockUserService( userDService );
+        // setMockUserService( userD );
+        injectSecurityContext( userD );
         audits = dataApprovalAuditService.getDataApprovalAudits( params );
         assertEquals( 1, audits.size() );
         assertTrue( audits.contains( auditBB3 ) );

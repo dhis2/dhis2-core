@@ -450,4 +450,11 @@ public class HibernateDbmsManager
             log.debug( "Could not empty relationship tables" );
         }
     }
+
+    @Override
+    public void evictObject( Object object )
+    {
+        sessionFactory.getCurrentSession().evict( object );
+    }
+
 }

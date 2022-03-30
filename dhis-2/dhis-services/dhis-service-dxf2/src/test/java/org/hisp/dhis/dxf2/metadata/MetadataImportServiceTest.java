@@ -204,7 +204,7 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest
     {
         clearSecurityContext();
 
-        User userA = createUser( "A" );
+        User userA = createUserWithAuth( "A" );
         userService.addUser( userA );
         Dashboard dashboard = new Dashboard();
         dashboard.setName( "DashboardA" );
@@ -277,7 +277,7 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest
     void testImportWithSkipSharingIsTrue()
         throws IOException
     {
-        User user = createUser( "A", "ALL" );
+        User user = createUserWithAuth( "A", "ALL" );
         manager.save( user );
 
         injectSecurityContext( user );
@@ -312,7 +312,7 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest
     void testImportWithSkipSharingIsFalse()
         throws IOException
     {
-        User user = createUser( "A", "ALL" );
+        User user = createUserWithAuth( "A", "ALL" );
         manager.save( user );
 
         injectSecurityContext( user );
@@ -345,7 +345,7 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest
     void testImportNewObjectWithSkipTranslationIsTrue()
         throws IOException
     {
-        User user = createUser( "A", "ALL" );
+        User user = createUserWithAuth( "A", "ALL" );
         manager.save( user );
 
         injectSecurityContext( user );
@@ -368,7 +368,7 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest
     void testImportNewObjectWithSkipTranslationIsFalse()
         throws IOException
     {
-        User user = createUser( "A", "ALL" );
+        User user = createUserWithAuth( "A", "ALL" );
         manager.save( user );
 
         injectSecurityContext( user );
@@ -396,7 +396,7 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest
     void testUpdateWithSkipTranslationIsFalse()
         throws IOException
     {
-        User user = createUser( "A", "ALL" );
+        User user = createUserWithAuth( "A", "ALL" );
         manager.save( user );
 
         injectSecurityContext( user );
@@ -434,7 +434,7 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest
     void testUpdateWithSkipTranslationIsTrue()
         throws IOException
     {
-        User user = createUser( "A", "ALL" );
+        User user = createUserWithAuth( "A", "ALL" );
         manager.save( user );
 
         injectSecurityContext( user );
@@ -571,7 +571,7 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest
     void testImportSharingWithMergeModeReplace()
         throws IOException
     {
-        User user = createUser( "A", "ALL" );
+        User user = createUserWithAuth( "A", "ALL" );
         manager.save( user );
 
         injectSecurityContext( user );
@@ -749,7 +749,7 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest
         assertEquals( Status.OK, report.getStatus() );
         UserGroup userGroup = manager.get( UserGroup.class, "OPVIvvXzNTw" );
         assertEquals( userA.getUid(), userGroup.getSharing().getOwner() );
-        User userB = createUser( "B", "ALL" );
+        User userB = createUserWithAuth( "B", "ALL" );
         userService.addUser( userB );
         metadata = renderService.fromMetadata( new ClassPathResource( "dxf2/usergroups_update.json" ).getInputStream(),
             RenderFormat.JSON );
@@ -779,7 +779,7 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest
         assertEquals( Status.OK, report.getStatus() );
         UserGroup userGroup = manager.get( UserGroup.class, "OPVIvvXzNTw" );
         assertEquals( userA.getUid(), userGroup.getCreatedBy().getUid() );
-        User userB = createUser( "B", "ALL" );
+        User userB = createUserWithAuth( "B", "ALL" );
         userB.setUid( "userabcdefB" );
         userService.addUser( userB );
         metadata = renderService.fromMetadata( new ClassPathResource( "dxf2/usergroups_update.json" ).getInputStream(),
@@ -864,7 +864,7 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest
     void testImportProgramWithProgramStageAndSharing()
         throws IOException
     {
-        User user = createUser( "A", "ALL" );
+        User user = createUserWithAuth( "A", "ALL" );
         manager.save( user );
 
         injectSecurityContext( user );

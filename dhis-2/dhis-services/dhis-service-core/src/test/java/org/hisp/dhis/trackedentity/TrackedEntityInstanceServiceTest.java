@@ -35,7 +35,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -47,13 +46,11 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.security.acl.AccessStringHelper;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import com.google.common.collect.Sets;
 
@@ -154,10 +151,14 @@ class TrackedEntityInstanceServiceTest extends DhisSpringTest
         attributeService.addTrackedEntityAttribute( filtF );
         attributeService.addTrackedEntityAttribute( filtG );
         super.userService = this.userService;
-        User user = createUser( "testUser" );
+        User user = createUserWithAuth( "testUser" );
         user.setTeiSearchOrganisationUnits( Sets.newHashSet( organisationUnit ) );
-        CurrentUserService currentUserService = new MockCurrentUserService( user );
-        ReflectionTestUtils.setField( entityInstanceService, "currentUserService", currentUserService );
+        injectSecurityContext( user );
+        // CurrentUserService currentUserService = new MockCurrentUserService(
+        // user );
+
+        // ReflectionTestUtils.setField( entityInstanceService,
+        // "currentUserService", currentUserService );
     }
 
     @Test

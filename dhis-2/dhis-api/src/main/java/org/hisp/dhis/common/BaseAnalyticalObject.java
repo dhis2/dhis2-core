@@ -86,6 +86,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeDimension;
 import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramIndicatorDimension;
 import org.hisp.dhis.translation.Translatable;
+import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.DefaultValue;
 
@@ -1433,7 +1434,7 @@ public abstract class BaseAnalyticalObject
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isSubscribed()
     {
-        User user = UserContext.getUser();
+        User user = CurrentUserService.getCurrentUser();
 
         return (user != null && subscribers != null) && subscribers.contains( user.getUid() );
     }

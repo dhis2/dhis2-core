@@ -120,7 +120,7 @@ public abstract class DhisControllerConvenienceTest extends DhisMockMvcControlle
             switchContextToUser( superUser );
         }
 
-        currentUser = createUser( username, authorities );
+        currentUser = createUserWithAuth( username, authorities );
         switchContextToUser( currentUser );
         return currentUser;
     }

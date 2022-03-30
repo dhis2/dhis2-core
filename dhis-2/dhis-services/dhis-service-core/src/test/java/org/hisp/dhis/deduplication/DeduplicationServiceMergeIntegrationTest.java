@@ -199,7 +199,7 @@ class DeduplicationServiceMergeIntegrationTest extends IntegrationTestBase
 
     private User creteUser( HashSet<OrganisationUnit> ou, String... authorities )
     {
-        User user = createUser( "testUser", authorities );
+        User user = createUserWithAuth( "testUser", authorities );
         user.setOrganisationUnits( ou );
         MockCurrentUserService currentUserService = new MockCurrentUserService( user );
         ReflectionTestUtils.setField( potentialDuplicateStore, "currentUserService", currentUserService );
