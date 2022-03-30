@@ -43,7 +43,9 @@ import org.hisp.dhis.scheduling.JobType;
 @Slf4j
 public class InMemoryNotifier implements Notifier
 {
-    private final NotificationMap notificationMap = new NotificationMap();
+    public static final int MAX_POOL_TYPE_SIZE = 500;
+
+    private final NotificationMap notificationMap = new NotificationMap( MAX_POOL_TYPE_SIZE );
 
     // -------------------------------------------------------------------------
     // Notifier implementation
