@@ -18,6 +18,7 @@ jobs:
         with:
           java-version: 11
           distribution: temurin
+          cache: maven
       - name: Check formatting in core
         run: mvn speedy-spotless:check --batch-mode --no-transfer-progress -q -f ./dhis-2/pom.xml
       - name: Check formatting in web
