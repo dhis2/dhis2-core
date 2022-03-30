@@ -330,7 +330,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
         }
 
         fileResource.setAssigned( isAssign );
-        session.persist( fileResource );
+        session.merge( fileResource );
     }
 
     protected void handleTrackedEntityAttributeValues( Session session, TrackerPreheat preheat,
