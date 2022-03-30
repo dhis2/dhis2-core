@@ -30,7 +30,6 @@ package org.hisp.dhis.tracker.preprocess;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
@@ -144,7 +143,7 @@ public class StrategyPreProcessor
         {
             TrackerImportStrategy importStrategy = bundle.getImportStrategy();
             org.hisp.dhis.relationship.Relationship existingRelationship = bundle.getPreheat()
-                .getRelationship( TrackerIdScheme.UID, relationship );
+                .getRelationship( relationship );
 
             if ( importStrategy.isCreateAndUpdate() )
             {

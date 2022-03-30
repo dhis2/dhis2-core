@@ -38,7 +38,6 @@ import java.util.stream.Collectors;
 
 import org.hisp.dhis.commons.util.RelationshipUtils;
 import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.RelationshipItem;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
@@ -106,7 +105,7 @@ public class RelationshipTrackerConverterService
     public org.hisp.dhis.relationship.Relationship from( TrackerPreheat preheat, Relationship fromRelationship )
     {
         org.hisp.dhis.relationship.Relationship toRelationship = preheat
-            .getRelationship( TrackerIdScheme.UID, fromRelationship );
+            .getRelationship( fromRelationship );
         return from( preheat, fromRelationship, toRelationship );
     }
 

@@ -289,8 +289,7 @@ public class TrackerPreheat
      * existence for updates, and used for object merging.
      */
     @Getter
-    private final Map<TrackerIdScheme, Map<String, Relationship>> relationships = new EnumMap<>(
-        TrackerIdScheme.class );
+    private final Map<String, Relationship> relationships = new HashMap<>();
 
     /**
      * Internal map of all preheated notes (events and enrollments)
@@ -577,14 +576,8 @@ public class TrackerPreheat
         return Optional.ofNullable( notes.getOrDefault( TrackerIdScheme.UID, new HashMap<>() ).get( uid ) );
     }
 
-    public Relationship getRelationship( TrackerIdScheme identifier,
-        org.hisp.dhis.tracker.domain.Relationship relationship )
+    public Relationship getRelationship( org.hisp.dhis.tracker.domain.Relationship relationship )
     {
-        if ( !relationships.containsKey( identifier ) )
-        {
-            return null;
-        }
-
         RelationshipType relationshipType = get( RelationshipType.class, relationship.getRelationshipType() );
 
         if ( Objects.nonNull( relationshipType ) )
@@ -599,7 +592,7 @@ public class TrackerPreheat
             }
             return Stream.of( relationshipKey, inverseKey )
                 .filter( Objects::nonNull )
-                .map( key -> relationships.get( identifier ).get( key.asString() ) )
+                .map( key -> relationships.get( key.asString() ) )
                 .filter( Objects::nonNull )
                 .findFirst()
                 .orElse( null );
@@ -607,27 +600,23 @@ public class TrackerPreheat
         return null;
     }
 
-    public void putRelationships( TrackerIdScheme identifier, List<Relationship> relationships )
+    public void putRelationships( List<Relationship> relationships )
     {
-        relationships.forEach( r -> putRelationship( identifier, r ) );
+        relationships.forEach( r -> putRelationship( r ) );
     }
 
-    public void putRelationship( TrackerIdScheme identifier, Relationship relationship )
+    public void putRelationship( Relationship relationship )
     {
-        if ( !relationships.containsKey( identifier ) )
-        {
-            relationships.put( identifier, new HashMap<>() );
-        }
         if ( Objects.nonNull( relationship ) )
         {
             RelationshipKey relationshipKey = getRelationshipKey( relationship );
 
             if ( relationship.getRelationshipType().isBidirectional() )
             {
-                relationships.get( identifier ).put( relationshipKey.inverseKey().asString(), relationship );
+                relationships.put( relationshipKey.inverseKey().asString(), relationship );
             }
 
-            relationships.get( identifier ).put( relationshipKey.asString(), relationship );
+            relationships.put( relationshipKey.asString(), relationship );
         }
     }
 
