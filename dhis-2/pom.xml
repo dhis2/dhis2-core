@@ -894,7 +894,7 @@
                             <failOnWarning>true</failOnWarning>
                             <skip>${skipTests}</skip>
                         </configuration>
-                        <phase>test-compile</phase>
+                        <phase>process-test-classes</phase>
                     </execution>
                 </executions>
             </plugin>
