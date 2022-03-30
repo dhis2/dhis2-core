@@ -81,13 +81,6 @@ public abstract class AbstractPreheatSupplier implements PreheatSupplier
      */
     public abstract void preheatAdd( TrackerImportParams params, TrackerPreheat preheat );
 
-    protected void addToCache( PreheatCacheService cache, List<? extends IdentifiableObject> objects, int ttl,
-        long capacity )
-    {
-        objects.forEach(
-            rt -> cache.put( HibernateProxyUtils.getRealClass( rt ).getName(), rt.getUid(), rt, ttl, capacity ) );
-    }
-
     protected void addToCache( PreheatCacheService cache, List<? extends IdentifiableObject> objects )
     {
         objects.forEach( rt -> cache.put( HibernateProxyUtils.getRealClass( rt ).getName(), rt.getUid(), rt, CACHE_TTL,
