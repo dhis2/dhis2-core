@@ -347,48 +347,29 @@ public class RelationshipTypeObjectBundleHook
                     "relationshipEntity", PROGRAM_STAGE_INSTANCE ) );
         }
 
-        // program id can be provided only if it is event program
-        if ( program != null && !program.isWithoutRegistration() )
-        {
-            addReports.accept( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4023, PROGRAM,
-                RELATIONSHIP_ENTITY, PROGRAM_STAGE_INSTANCE ) );
-        }
-
         ProgramStage programStage = Optional.ofNullable( program ).map( p -> programService.getProgram( p.getUid() ) )
             .filter( Program::isWithoutRegistration )
             .map( p -> p.getProgramStageByStage( 1 ) )
             .orElse( constraint.getProgramStage() );
 
-        // ProgramStage Should not be null
-        if ( programStage == null )
+        Set<DataElement> dataElements = Optional.ofNullable( programStage )
+            .map( p -> programStageService.getProgramStage( programStage.getUid() ) )
+            .map( ProgramStage::getDataElements )
+            .orElse( new HashSet<>() );
+
+        List<String> dataElementIds = dataElements.stream()
+            .filter( Objects::nonNull ).map( BaseIdentifiableObject::getUid )
+            .collect( Collectors.toList() );
+
+        if ( !trackerDataViewDataElements.isEmpty() && !dataElementIds.containsAll( trackerDataViewDataElements ) )
         {
-            addReports
-                .accept( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4024, PROGRAM_STAGE,
-                    RELATIONSHIP_ENTITY, PROGRAM_STAGE_INSTANCE ) );
-
-        }
-        else
-        {
-            programStage = programStageService.getProgramStage( programStage.getUid() );
-
-            Set<DataElement> dataElements = Optional.ofNullable( programStage ).map( ProgramStage::getDataElements )
-                .orElse( new HashSet<>() );
-
-            List<String> dataElementIds = dataElements.stream()
-                .filter( Objects::nonNull ).map( BaseIdentifiableObject::getUid )
+            List<String> dataElementsNotPartOfProgramStage = trackerDataViewDataElements.stream()
+                .filter( d -> !dataElementIds.contains( d ) )
                 .collect( Collectors.toList() );
 
-            if ( !trackerDataViewDataElements.isEmpty() && !dataElementIds.containsAll( trackerDataViewDataElements ) )
-            {
-                List<String> dataElementsNotPartOfProgramStage = trackerDataViewDataElements.stream()
-                    .filter( d -> !dataElementIds.contains( d ) )
-                    .collect( Collectors.toList() );
-
-                addReports.accept(
-                    new ErrorReport( RelationshipConstraint.class, ErrorCode.E4314, "DataElements",
-                        String.join( ",", dataElementsNotPartOfProgramStage ), PROGRAM_STAGE ) );
-            }
-
+            addReports.accept(
+                new ErrorReport( RelationshipConstraint.class, ErrorCode.E4314, "DataElements",
+                    String.join( ",", dataElementsNotPartOfProgramStage ), PROGRAM_STAGE ) );
         }
     }
 }
