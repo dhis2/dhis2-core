@@ -67,7 +67,7 @@ jobs:
           distribution: temurin
           cache: maven
       - name: Run integration tests
-        run: mvn --threads 2C test --batch-mode --no-transfer-progress -Pintegration -DexcludeAnalyticsTests=true -f ./dhis-2/pom.xml -pl -dhis-web-embedded-jetty
+        run: mvn test --threads 2C --batch-mode --no-transfer-progress -Pintegration -DexcludeAnalyticsTests=true -f ./dhis-2/pom.xml -pl -dhis-web-embedded-jetty
       - name: Archive surefire reports
         uses: actions/upload-artifact@v2
         with:
