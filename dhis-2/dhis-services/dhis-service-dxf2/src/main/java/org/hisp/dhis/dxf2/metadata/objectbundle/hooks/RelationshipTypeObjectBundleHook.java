@@ -344,7 +344,7 @@ public class RelationshipTypeObjectBundleHook
         {
             addReports
                 .accept( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4026, PROGRAM, PROGRAM_STAGE,
-                    "relationshipEntity", PROGRAM_STAGE_INSTANCE ) );
+                    RELATIONSHIP_ENTITY, PROGRAM_STAGE_INSTANCE ) );
         }
 
         ProgramStage programStage = Optional.ofNullable( program ).map( p -> programService.getProgram( p.getUid() ) )
