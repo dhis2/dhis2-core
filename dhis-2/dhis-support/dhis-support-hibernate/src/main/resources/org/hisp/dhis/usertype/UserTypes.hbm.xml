@@ -159,7 +159,7 @@
     <param name="clazz">org.hisp.dhis.security.apikey.ApiTokenAttribute</param>
   </typedef>
 
-  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonTrackerDataViewType" name="jbTrackerDataView">
+  <typedef class="org.hisp.dhis.hibernate.jsonb.type.SafeJsonBinaryType" name="jbTrackerDataView">
     <param name="clazz">org.hisp.dhis.trackerdataview.TrackerDataView</param>
   </typedef>
 

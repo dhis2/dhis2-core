@@ -39,8 +39,6 @@ import lombok.Setter;
 import lombok.ToString;
 
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -62,10 +60,10 @@ public class TrackerDataView implements Serializable
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     @Builder.Default
-    private List<TrackedEntityAttribute> attributes = new ArrayList<>();
+    private List<String> attributes = new ArrayList<>();
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     @Builder.Default
-    private List<DataElement> dataElements = new ArrayList<>();
+    private List<String> dataElements = new ArrayList<>();
 }
