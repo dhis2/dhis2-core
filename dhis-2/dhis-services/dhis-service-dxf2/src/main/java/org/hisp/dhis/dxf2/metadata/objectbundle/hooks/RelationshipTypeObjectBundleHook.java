@@ -391,9 +391,4 @@ public class RelationshipTypeObjectBundleHook
 
         }
     }
-
-    private boolean isEmpty( TrackerDataView trackerDataView )
-    {
-        return trackerDataView.getAttributes().isEmpty() && trackerDataView.getDataElements().isEmpty();
-    }
 }
