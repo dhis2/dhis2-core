@@ -175,12 +175,12 @@ class EventAnalyticsServiceTest extends IntegrationTestBase
             .withOrganisationUnits( Lists.newArrayList( ouA ) ).withStartDate( getDate( 2017, 1, 1 ) )
             .withEndDate( getDate( 2017, 12, 31 ) ).withProgram( programA ).build();
         // The results
-        Map<String, Double> events_2017_keyValue = new HashMap<>();
+        Map<String, Object> events_2017_keyValue = new HashMap<>();
         events_2017_keyValue.put( "ouabcdefghA", 6.0 );
         // When
         Grid aggregatedDataValueGrid = eventAnalyticsService.getAggregatedEventData( events_2017_params );
         // Then
-        AnalyticsTestUtils.assertResultGrid( "events_2017", aggregatedDataValueGrid, events_2017_keyValue );
+        AnalyticsTestUtils.assertResultGrid( events_2017_keyValue, aggregatedDataValueGrid );
     }
 
     @Test
