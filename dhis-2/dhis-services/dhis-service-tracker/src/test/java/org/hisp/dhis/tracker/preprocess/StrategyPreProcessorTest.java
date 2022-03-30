@@ -128,7 +128,7 @@ class StrategyPreProcessorTest extends DhisConvenienceTest
         payloadRelationship.setRelationship( RELATIONSHIP_UID );
         newPayloadRelationship = new org.hisp.dhis.tracker.domain.Relationship();
         newPayloadRelationship.setRelationship( NEW_RELATIONSHIP_UID );
-        Mockito.when( preheat.getTrackedEntity( TrackerIdScheme.UID, TEI_UID ) ).thenReturn( tei );
+        Mockito.when( preheat.getTrackedEntity( TEI_UID ) ).thenReturn( tei );
         Mockito.when( preheat.getEnrollment( TrackerIdScheme.UID, ENROLLMENT_UID ) ).thenReturn( pi );
         Mockito.when( preheat.getEvent( TrackerIdScheme.UID, EVENT_UID ) ).thenReturn( psi );
         Mockito.when( preheat.getRelationship( TrackerIdScheme.UID, payloadRelationship ) ).thenReturn( relationship );

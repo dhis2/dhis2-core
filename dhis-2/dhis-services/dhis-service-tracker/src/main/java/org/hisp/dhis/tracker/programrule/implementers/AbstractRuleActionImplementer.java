@@ -41,7 +41,6 @@ import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleActionAttribute;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.DataValue;
@@ -189,7 +188,7 @@ abstract public class AbstractRuleActionImplementer<T extends RuleAction>
                 e -> {
                     Enrollment enrollment = getEnrollment( bundle, e.getKey() ).get();
                     TrackedEntityInstance tei = bundle.getPreheat()
-                        .getTrackedEntity( TrackerIdScheme.UID, enrollment.getTrackedEntity() );
+                        .getTrackedEntity( enrollment.getTrackedEntity() );
 
                     List<Attribute> payloadTeiAttributes = getTrackedEntity( bundle, enrollment.getTrackedEntity() )
                         .map( te -> te.getAttributes() )

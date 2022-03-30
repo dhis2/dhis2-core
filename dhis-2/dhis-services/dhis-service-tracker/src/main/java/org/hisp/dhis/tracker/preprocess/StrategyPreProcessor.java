@@ -64,7 +64,7 @@ public class StrategyPreProcessor
         {
             TrackerImportStrategy importStrategy = bundle.getImportStrategy();
 
-            TrackedEntityInstance existingTei = bundle.getPreheat().getTrackedEntity( TrackerIdScheme.UID,
+            TrackedEntityInstance existingTei = bundle.getPreheat().getTrackedEntity(
                 tei.getTrackedEntity() );
 
             if ( importStrategy.isCreateAndUpdate() )

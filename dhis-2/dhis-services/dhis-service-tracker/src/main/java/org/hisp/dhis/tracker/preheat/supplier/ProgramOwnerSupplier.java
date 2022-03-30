@@ -61,9 +61,7 @@ public class ProgramOwnerSupplier extends AbstractPreheatSupplier
     @Override
     public void preheatAdd( TrackerImportParams params, TrackerPreheat preheat )
     {
-        final Map<String, TrackedEntityInstance> preheatedTrackedEntities = preheat.getTrackedEntities().getOrDefault(
-            TrackerIdScheme.UID,
-            new HashMap<>() );
+        final Map<String, TrackedEntityInstance> preheatedTrackedEntities = preheat.getTrackedEntities();
         final Map<String, ProgramInstance> preheatedEnrollments = preheat.getEnrollments().getOrDefault(
             TrackerIdScheme.UID,
             new HashMap<>() );

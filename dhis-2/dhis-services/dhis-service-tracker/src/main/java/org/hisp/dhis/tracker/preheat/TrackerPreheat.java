@@ -261,8 +261,7 @@ public class TrackerPreheat
      * confirming existence for updates, and used for object merging.
      */
     @Getter
-    @Setter
-    private Map<TrackerIdScheme, Map<String, TrackedEntityInstance>> trackedEntities = new HashMap<>();
+    private final Map<String, TrackedEntityInstance> trackedEntities = new HashMap<>();
 
     /**
      * Internal map of all preheated tracked entity attributes, mainly used for
@@ -481,20 +480,14 @@ public class TrackerPreheat
         return this;
     }
 
-    public TrackedEntityInstance getTrackedEntity( TrackerIdScheme identifier, String trackedEntity )
+    public TrackedEntityInstance getTrackedEntity( String trackedEntity )
     {
-        if ( !trackedEntities.containsKey( identifier ) )
-        {
-            return null;
-        }
-
-        return trackedEntities.get( identifier ).get( trackedEntity );
+        return trackedEntities.get( trackedEntity );
     }
 
-    public void putTrackedEntities( TrackerIdScheme identifier, List<TrackedEntityInstance> trackedEntityInstances,
-        List<String> allEntities )
+    public void putTrackedEntities( List<TrackedEntityInstance> trackedEntityInstances, List<String> allEntities )
     {
-        putTrackedEntities( identifier, trackedEntityInstances );
+        putTrackedEntities( trackedEntityInstances );
 
         List<String> uidOnDB = trackedEntityInstances.stream()
             .map( BaseIdentifiableObject::getUid )
@@ -507,21 +500,16 @@ public class TrackerPreheat
             .forEach( u -> this.addReference( TrackerType.TRACKED_ENTITY, u ) );
     }
 
-    public void putTrackedEntities( TrackerIdScheme identifier, List<TrackedEntityInstance> trackedEntityInstances )
+    public void putTrackedEntities( List<TrackedEntityInstance> trackedEntityInstances )
     {
 
-        trackedEntityInstances.forEach( te -> putTrackedEntity( identifier, te.getUid(), te ) );
+        trackedEntityInstances.forEach( te -> putTrackedEntity( te.getUid(), te ) );
     }
 
-    private void putTrackedEntity( TrackerIdScheme identifier, String trackedEntity,
+    private void putTrackedEntity( String trackedEntity,
         TrackedEntityInstance trackedEntityInstance )
     {
-        if ( !trackedEntities.containsKey( identifier ) )
-        {
-            trackedEntities.put( identifier, new HashMap<>() );
-        }
-
-        trackedEntities.get( identifier ).put( trackedEntity, trackedEntityInstance );
+        trackedEntities.put( trackedEntity, trackedEntityInstance );
     }
 
     public ProgramInstance getEnrollment( TrackerIdScheme identifier, String enrollment )

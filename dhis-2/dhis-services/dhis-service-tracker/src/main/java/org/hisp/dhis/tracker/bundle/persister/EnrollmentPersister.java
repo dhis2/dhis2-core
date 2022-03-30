@@ -82,7 +82,7 @@ public class EnrollmentPersister extends AbstractTrackerPersister<Enrollment, Pr
         Enrollment enrollment, ProgramInstance programInstance )
     {
         handleTrackedEntityAttributeValues( session, preheat, enrollment.getAttributes(),
-            preheat.getTrackedEntity( TrackerIdScheme.UID, programInstance.getEntityInstance().getUid() ) );
+            preheat.getTrackedEntity( programInstance.getEntityInstance().getUid() ) );
     }
 
     @Override

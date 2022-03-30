@@ -312,7 +312,7 @@ class TrackerPreheatTest extends DhisConvenienceTest
         teiList.add( tei );
         List<String> allEntities = new ArrayList<>();
         allEntities.add( CodeGenerator.generateUid() );
-        preheat.putTrackedEntities( TrackerIdScheme.UID, teiList, allEntities );
+        preheat.putTrackedEntities( teiList, allEntities );
         // Create 2 Enrollments, where TEI is parent
         ProgramInstance programInstance = new ProgramInstance();
         programInstance.setUid( CodeGenerator.generateUid() );

@@ -128,7 +128,7 @@ public class EnrollmentTrackerConverterService
         checkNotNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );
 
         TrackedEntityInstance trackedEntityInstance = preheat
-            .getTrackedEntity( TrackerIdScheme.UID, enrollment.getTrackedEntity() );
+            .getTrackedEntity( enrollment.getTrackedEntity() );
 
         Date now = new Date();
 

@@ -123,7 +123,7 @@ public class DefaultTrackerProgramRuleService
             .from( bundle.getPreheat(), enrollment.getAttributes() );
 
         TrackedEntityInstance trackedEntity = bundle.getPreheat()
-            .getTrackedEntity( bundle.getIdentifier(), enrollment.getTrackedEntity() );
+            .getTrackedEntity( enrollment.getTrackedEntity() );
 
         List<TrackedEntityAttributeValue> payloadAttributeValues = bundle
             .getTrackedEntity( enrollment.getTrackedEntity() )

@@ -250,7 +250,7 @@ public class TrackerBundle
 
     public TrackedEntityInstance getTrackedEntityInstance( String id )
     {
-        return getPreheat().getTrackedEntity( getIdentifier(), id );
+        return getPreheat().getTrackedEntity( id );
     }
 
     public ProgramInstance getProgramInstance( String id )
