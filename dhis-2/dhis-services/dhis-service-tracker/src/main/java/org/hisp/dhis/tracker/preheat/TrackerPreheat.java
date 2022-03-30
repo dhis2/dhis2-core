@@ -102,14 +102,14 @@ public class TrackerPreheat
      * value of each id can be either the metadata object's uid, code, name or
      * attribute value
      */
-    private Map<Class<? extends IdentifiableObject>, Map<String, IdentifiableObject>> map = new HashMap<>();
+    private final Map<Class<? extends IdentifiableObject>, Map<String, IdentifiableObject>> map = new HashMap<>();
 
     /**
      * List of all payload references by tracker type which are not present in
      * the database. This will be used to create the reference tree that
      * represents the hierarchical structure of the references.
      */
-    private ArrayListMultimap<TrackerType, ReferenceTrackerEntity> referenceTrackerEntities = ArrayListMultimap
+    private final ArrayListMultimap<TrackerType, ReferenceTrackerEntity> referenceTrackerEntities = ArrayListMultimap
         .create();
 
     /**
@@ -118,7 +118,7 @@ public class TrackerPreheat
      * root objects (TEI, PS, PSI) which are present in the payload but not
      * stored in the pre-heat object (since they do not exist in the db yet).
      */
-    private TreeNode<String> referenceTree = new ArrayMultiTreeNode<>( "ROOT" );
+    private final TreeNode<String> referenceTree = new ArrayMultiTreeNode<>( "ROOT" );
 
     /**
      * Internal map of all default object (like category option combo, etc).
@@ -131,13 +131,13 @@ public class TrackerPreheat
      * All periods available.
      */
     @Getter
-    private Map<String, Period> periodMap = new HashMap<>();
+    private final Map<String, Period> periodMap = new HashMap<>();
 
     /**
      * All periodTypes available.
      */
     @Getter
-    private Map<String, PeriodType> periodTypeMap = new HashMap<>();
+    private final Map<String, PeriodType> periodTypeMap = new HashMap<>();
 
     /**
      * Internal map of category combo + category options (key) to category
@@ -286,7 +286,7 @@ public class TrackerPreheat
     /**
      * Internal map of all preheated notes (events and enrollments)
      */
-    private Map<String, TrackedEntityComment> notes = new HashMap<>();
+    private final Map<String, TrackedEntityComment> notes = new HashMap<>();
 
     /**
      * Internal map of all preheated tracked entity attributes, mainly used for
@@ -316,7 +316,7 @@ public class TrackerPreheat
     /**
      * A Map of program uid and without registration {@see ProgramInstance}.
      */
-    private Map<String, ProgramInstance> programInstancesWithoutRegistration = new HashMap<>();
+    private final Map<String, ProgramInstance> programInstancesWithoutRegistration = new HashMap<>();
 
     /**
      * A map of valid users by username that are present in the payload. A user
@@ -325,7 +325,7 @@ public class TrackerPreheat
      * tracked entity attributes and assignedUser fields in events used in
      * validation and persistence.
      */
-    private Map<String, User> users = Maps.newHashMap();
+    private final Map<String, User> users = Maps.newHashMap();
 
     /**
      * A list of all unique attribute values that are both present in the
