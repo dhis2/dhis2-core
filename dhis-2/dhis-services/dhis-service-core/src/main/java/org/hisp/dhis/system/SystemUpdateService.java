@@ -51,6 +51,7 @@ import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserStore;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -201,6 +202,7 @@ public class SystemUpdateService
         return versionsAndMessage;
     }
 
+    @Transactional
     public void sendMessageForEachVersion( Map<Semver, Map<String, String>> patchVersions )
     {
         Set<User> recipients = getRecipients();
