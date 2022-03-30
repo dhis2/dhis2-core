@@ -263,13 +263,6 @@ public class TrackerPreheat
     private final Map<String, TrackedEntityInstance> trackedEntities = new HashMap<>();
 
     /**
-     * Internal map of all preheated tracked entity attributes, mainly used for
-     * confirming existence for updates, and used for object merging.
-     */
-    @Getter
-    private final Map<TrackerIdScheme, Map<String, TrackedEntityAttributeValue>> trackedEntityAttributes = new HashMap<>();
-
-    /**
      * Internal map of all preheated enrollments, mainly used for confirming
      * existence for updates, and used for object merging.
      */
@@ -294,6 +287,13 @@ public class TrackerPreheat
      * Internal map of all preheated notes (events and enrollments)
      */
     private Map<String, TrackedEntityComment> notes = new HashMap<>();
+
+    /**
+     * Internal map of all preheated tracked entity attributes, mainly used for
+     * confirming existence for updates, and used for object merging.
+     */
+    @Getter
+    private final Map<TrackerIdScheme, Map<String, TrackedEntityAttributeValue>> trackedEntityAttributes = new HashMap<>();
 
     /**
      * Internal map of all existing TrackedEntityProgramOwner. Used for
@@ -474,9 +474,9 @@ public class TrackerPreheat
         return this;
     }
 
-    public TrackedEntityInstance getTrackedEntity( String trackedEntity )
+    public TrackedEntityInstance getTrackedEntity( String uid )
     {
-        return trackedEntities.get( trackedEntity );
+        return trackedEntities.get( uid );
     }
 
     public void putTrackedEntities( List<TrackedEntityInstance> trackedEntityInstances, List<String> allEntities )
@@ -500,15 +500,14 @@ public class TrackerPreheat
         trackedEntityInstances.forEach( te -> putTrackedEntity( te.getUid(), te ) );
     }
 
-    private void putTrackedEntity( String trackedEntity,
-        TrackedEntityInstance trackedEntityInstance )
+    private void putTrackedEntity( String uid, TrackedEntityInstance trackedEntityInstance )
     {
-        trackedEntities.put( trackedEntity, trackedEntityInstance );
+        trackedEntities.put( uid, trackedEntityInstance );
     }
 
-    public ProgramInstance getEnrollment( String enrollment )
+    public ProgramInstance getEnrollment( String uid )
     {
-        return enrollments.get( enrollment );
+        return enrollments.get( uid );
     }
 
     public void putEnrollments( List<ProgramInstance> programInstances, List<Enrollment> allEntities )
@@ -529,14 +528,14 @@ public class TrackerPreheat
         programInstances.forEach( pi -> putEnrollment( pi.getUid(), pi ) );
     }
 
-    public void putEnrollment( String enrollment, ProgramInstance programInstance )
+    public void putEnrollment( String uid, ProgramInstance programInstance )
     {
-        enrollments.put( enrollment, programInstance );
+        enrollments.put( uid, programInstance );
     }
 
-    public ProgramStageInstance getEvent( String event )
+    public ProgramStageInstance getEvent( String uid )
     {
-        return events.get( event );
+        return events.get( uid );
     }
 
     public void putEvents( List<ProgramStageInstance> programStageInstances, List<Event> allEntities )
@@ -558,9 +557,9 @@ public class TrackerPreheat
         programStageInstances.forEach( psi -> putEvent( psi.getUid(), psi ) );
     }
 
-    public void putEvent( String event, ProgramStageInstance programStageInstance )
+    public void putEvent( String uid, ProgramStageInstance programStageInstance )
     {
-        events.put( event, programStageInstance );
+        events.put( uid, programStageInstance );
     }
 
     public void putNotes( List<TrackedEntityComment> trackedEntityComments )
