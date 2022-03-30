@@ -29,7 +29,6 @@ package org.hisp.dhis.analytics.util;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.Map;
 
@@ -71,13 +70,12 @@ public class AnalyticsTestUtils
      * Test if values from keyValue corresponds with values in
      * aggregatedResultMapping. Also test for null values.
      *
-     * @param scenario test scenario being run
-     * @param aggregatedResultData aggregated results
      * @param keyValue expected results
+     * @param aggregatedResultData aggregated results
      */
-    public static void assertResultGrid( String scenario, Grid aggregatedResultData, Map<String, Double> keyValue )
+    public static void assertResultGrid( Map<String, Object> keyValue, Grid aggregatedResultData )
     {
-        assertNotNull( aggregatedResultData, "Scenario '" + scenario + "' returned null Grid" );
+        assertNotNull( aggregatedResultData );
         for ( int i = 0; i < aggregatedResultData.getRows().size(); i++ )
         {
             int numberOfDimensions = aggregatedResultData.getRows().get( 0 ).size() - 1;
@@ -90,38 +88,12 @@ public class AnalyticsTestUtils
                     key.append( "-" );
                 }
             }
-            Double expected = keyValue.get( key.toString() );
+            Double expected = (Double) keyValue.get( key.toString() );
             Double actual = Double.parseDouble( aggregatedResultData.getValue( i, numberOfDimensions ).toString() );
-            assertNotNull( expected, "Scenario " + scenario + " did not find " + key + " in provided results" );
+            assertNotNull( expected, "Did not find " + key + " in provided results" );
             assertNotNull( aggregatedResultData.getRow( i ) );
             assertEquals( expected, actual,
-                "Scenario " + scenario + " value for " + key + " was " + actual + ", not expected " + expected );
-        }
-    }
-
-    /**
-     * Test if values from keyValue corresponds with values in
-     * aggregatedDataValueMapping. Also test for null values, and "" as key in
-     * aggregatedDataValueMapping
-     *
-     * @param scenario test scenario being run
-     * @param aggregatedResultMapping aggregated values
-     * @param keyValue expected results
-     */
-    public static void assertResultMapping( String scenario, Map<String, Object> aggregatedResultMapping,
-        Map<String, Double> keyValue )
-    {
-        assertNotNull( aggregatedResultMapping );
-        assertNull( aggregatedResultMapping.get( "testNull" ) );
-        assertNull( aggregatedResultMapping.get( "" ) );
-        for ( Map.Entry<String, Object> entry : aggregatedResultMapping.entrySet() )
-        {
-            String key = entry.getKey();
-            Double expected = keyValue.get( key );
-            Double actual = (Double) entry.getValue();
-            assertNotNull( expected, "Scenario " + scenario + " did not find " + key + " in provided results" );
-            assertEquals( expected, actual,
-                "Scenario " + scenario + " value for " + key + " was " + actual + ", not expected " + expected );
+                "Value for " + key + " was " + actual + ", not expected " + expected );
         }
     }
 
@@ -129,17 +101,17 @@ public class AnalyticsTestUtils
      * Test if values from keyValue corresponds with values in
      * aggregatedDataValueSet. Also test for null values.
      *
-     * @param aggregatedResultSet aggregated values
      * @param keyValue expected results
+     * @param aggregatedResultSet aggregated values
      */
-    public static void assertResultSet( DataValueSet aggregatedResultSet, Map<String, Double> keyValue )
+    public static void assertResultSet( Map<String, Object> keyValue, DataValueSet aggregatedResultSet )
     {
         for ( org.hisp.dhis.dxf2.datavalue.DataValue dataValue : aggregatedResultSet.getDataValues() )
         {
             String key = dataValue.getDataElement() + "-" + dataValue.getOrgUnit() + "-" + dataValue.getPeriod();
             assertNotNull( keyValue.get( key ) );
             Double actual = Double.parseDouble( dataValue.getValue() );
-            Double expected = keyValue.get( key );
+            Double expected = (Double) keyValue.get( key );
             assertEquals( expected, actual,
                 "Value for key: '" + key + "' not matching expected value: '" + expected + "'" );
         }
