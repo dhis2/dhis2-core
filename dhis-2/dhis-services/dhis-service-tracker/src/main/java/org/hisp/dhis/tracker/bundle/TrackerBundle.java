@@ -260,6 +260,6 @@ public class TrackerBundle
 
     public ProgramStageInstance getProgramStageInstance( String event )
     {
-        return getPreheat().getEvent( getIdentifier(), event );
+        return getPreheat().getEvent( event );
     }
 }

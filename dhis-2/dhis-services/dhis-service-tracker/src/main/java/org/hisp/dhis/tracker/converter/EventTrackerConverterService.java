@@ -157,7 +157,7 @@ public class EventTrackerConverterService
     @Override
     public ProgramStageInstance from( TrackerPreheat preheat, Event event )
     {
-        ProgramStageInstance programStageInstance = preheat.getEvent( TrackerIdScheme.UID, event.getEvent() );
+        ProgramStageInstance programStageInstance = preheat.getEvent( event.getEvent() );
         return from( preheat, event, programStageInstance );
     }
 
@@ -182,7 +182,7 @@ public class EventTrackerConverterService
     private List<EventDataValue> getProgramStageInstanceDataValues( TrackerPreheat preheat, Event event )
     {
         List<EventDataValue> eventDataValues = new ArrayList<>();
-        ProgramStageInstance programStageInstance = preheat.getEvent( TrackerIdScheme.UID, event.getEvent() );
+        ProgramStageInstance programStageInstance = preheat.getEvent( event.getEvent() );
         if ( programStageInstance == null )
         {
             return eventDataValues;

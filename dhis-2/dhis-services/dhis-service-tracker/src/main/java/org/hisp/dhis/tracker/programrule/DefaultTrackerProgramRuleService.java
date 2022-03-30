@@ -205,7 +205,6 @@ public class DefaultTrackerProgramRuleService
         // and are not present in the payload
         Stream<ProgramStageInstance> programStageInstances = bundle.getPreheat().getEvents().values()
             .stream()
-            .flatMap( psi -> psi.values().stream() )
             .filter( e -> e.getProgramInstance().getUid().equals( enrollment ) )
             .filter( e -> !bundleEventUids.contains( e.getUid() ) );
 

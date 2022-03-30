@@ -282,7 +282,7 @@ public class TrackerPreheat
      * existence for updates, and used for object merging.
      */
     @Getter
-    private final Map<TrackerIdScheme, Map<String, ProgramStageInstance>> events = new HashMap<>();
+    private final Map<String, ProgramStageInstance> events = new HashMap<>();
 
     /**
      * Internal map of all preheated relationships, mainly used for confirming
@@ -536,20 +536,14 @@ public class TrackerPreheat
         enrollments.put( enrollment, programInstance );
     }
 
-    public ProgramStageInstance getEvent( TrackerIdScheme identifier, String event )
+    public ProgramStageInstance getEvent( String event )
     {
-        if ( !events.containsKey( identifier ) )
-        {
-            return null;
-        }
-
-        return events.get( identifier ).get( event );
+        return events.get( event );
     }
 
-    public void putEvents( TrackerIdScheme identifier, List<ProgramStageInstance> programStageInstances,
-        List<Event> allEntities )
+    public void putEvents( List<ProgramStageInstance> programStageInstances, List<Event> allEntities )
     {
-        putEvents( identifier, programStageInstances );
+        putEvents( programStageInstances );
 
         List<String> uidOnDB = programStageInstances.stream().map( BaseIdentifiableObject::getUid )
             .collect( Collectors.toList() );
@@ -561,19 +555,14 @@ public class TrackerPreheat
             .forEach( psi -> this.addReference( TrackerType.EVENT, psi ) );
     }
 
-    public void putEvents( TrackerIdScheme identifier, List<ProgramStageInstance> programStageInstances )
+    public void putEvents( List<ProgramStageInstance> programStageInstances )
     {
-        programStageInstances.forEach( psi -> putEvent( identifier, psi.getUid(), psi ) );
+        programStageInstances.forEach( psi -> putEvent( psi.getUid(), psi ) );
     }
 
-    public void putEvent( TrackerIdScheme identifier, String event, ProgramStageInstance programStageInstance )
+    public void putEvent( String event, ProgramStageInstance programStageInstance )
     {
-        if ( !events.containsKey( identifier ) )
-        {
-            events.put( identifier, new HashMap<>() );
-        }
-
-        events.get( identifier ).put( event, programStageInstance );
+        events.put( event, programStageInstance );
     }
 
     public void putNotes( List<TrackedEntityComment> trackedEntityComments )
