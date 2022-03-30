@@ -212,8 +212,8 @@ public class TrackerPreheat
 
     /**
      * Get the identifier of a category option combo for given category combo
-     * and semi-colon separated list of category options. For the category
-     * option combo to exist it has to be stored before using
+     * and semicolon separated list of category options. For the category option
+     * combo to exist it has to be stored before using
      * {@link #putCategoryOptionCombo}.
      *
      * Category option identifiers needs to match the idScheme used when storing
@@ -222,7 +222,7 @@ public class TrackerPreheat
      * import.
      *
      * @param categoryCombo category combo
-     * @param categoryOptions semi-colon separated list of category options
+     * @param categoryOptions semicolon separated list of category options
      * @return category option combo identifier
      */
     public String getCategoryOptionComboIdentifier( CategoryCombo categoryCombo, String categoryOptions )
@@ -368,7 +368,7 @@ public class TrackerPreheat
     }
 
     /**
-     * Get a default value from the Preheat
+     * Get a default value from the preheat
      *
      * @param defaultClass The type of object to retrieve
      * @return The default object of the class provided
@@ -431,10 +431,7 @@ public class TrackerPreheat
 
         Class<? extends IdentifiableObject> klass = HibernateProxyUtils.getRealClass( object );
 
-        if ( !map.containsKey( klass ) )
-        {
-            map.put( klass, new HashMap<>() );
-        }
+        map.computeIfAbsent( klass, k -> new HashMap<>() );
 
         if ( User.class.isAssignableFrom( klass ) )
         {
@@ -594,7 +591,7 @@ public class TrackerPreheat
 
     public void putRelationships( List<Relationship> relationships )
     {
-        relationships.forEach( r -> putRelationship( r ) );
+        relationships.forEach( this::putRelationship );
     }
 
     public void putRelationship( Relationship relationship )
@@ -672,21 +669,15 @@ public class TrackerPreheat
     private void addProgramOwner( String teiUid, String programUid,
         TrackedEntityProgramOwnerOrgUnit tepo )
     {
-        if ( !programOwner.containsKey( teiUid ) )
-        {
-            programOwner.put( teiUid, new HashMap<>() );
-        }
-
-        programOwner.get( teiUid ).put( programUid, tepo );
+        programOwner
+            .computeIfAbsent( teiUid, k -> new HashMap<>() )
+            .put( programUid, tepo );
     }
 
     public void addProgramOwner( String teiUid, String programUid,
         OrganisationUnit orgUnit )
     {
-        if ( !programOwner.containsKey( teiUid ) )
-        {
-            programOwner.put( teiUid, new HashMap<>() );
-        }
+        programOwner.computeIfAbsent( teiUid, k -> new HashMap<>() );
         if ( !programOwner.get( teiUid ).containsKey( programUid ) )
         {
             TrackedEntityProgramOwnerOrgUnit tepo = new TrackedEntityProgramOwnerOrgUnit( teiUid, programUid,
