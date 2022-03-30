@@ -287,13 +287,6 @@ public class TrackerPreheat
     private final Map<String, TrackedEntityComment> notes = new HashMap<>();
 
     /**
-     * Internal map of all preheated tracked entity attributes, mainly used for
-     * confirming existence for updates, and used for object merging.
-     */
-    @Getter
-    private final Map<TrackerIdScheme, Map<String, TrackedEntityAttributeValue>> trackedEntityAttributes = new HashMap<>();
-
-    /**
      * Internal map of all existing TrackedEntityProgramOwner. Used for
      * ownership validations and updating. The root key of this map is the
      * trackedEntityInstance UID. The value of the root map is another map which
