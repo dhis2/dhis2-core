@@ -268,32 +268,29 @@ public class TrackerPreheat
      * confirming existence for updates, and used for object merging.
      */
     @Getter
-    @Setter
-    private Map<TrackerIdScheme, Map<String, TrackedEntityAttributeValue>> trackedEntityAttributes = new HashMap<>();
+    private final Map<TrackerIdScheme, Map<String, TrackedEntityAttributeValue>> trackedEntityAttributes = new HashMap<>();
 
     /**
      * Internal map of all preheated enrollments, mainly used for confirming
      * existence for updates, and used for object merging.
      */
     @Getter
-    @Setter
-    private Map<TrackerIdScheme, Map<String, ProgramInstance>> enrollments = new HashMap<>();
+    private final Map<TrackerIdScheme, Map<String, ProgramInstance>> enrollments = new HashMap<>();
 
     /**
      * Internal map of all preheated events, mainly used for confirming
      * existence for updates, and used for object merging.
      */
     @Getter
-    @Setter
-    private Map<TrackerIdScheme, Map<String, ProgramStageInstance>> events = new HashMap<>();
+    private final Map<TrackerIdScheme, Map<String, ProgramStageInstance>> events = new HashMap<>();
 
     /**
      * Internal map of all preheated relationships, mainly used for confirming
      * existence for updates, and used for object merging.
      */
     @Getter
-    @Setter
-    private Map<TrackerIdScheme, Map<String, Relationship>> relationships = new EnumMap<>( TrackerIdScheme.class );
+    private final Map<TrackerIdScheme, Map<String, Relationship>> relationships = new EnumMap<>(
+        TrackerIdScheme.class );
 
     /**
      * Internal map of all preheated notes (events and enrollments)
@@ -309,8 +306,7 @@ public class TrackerPreheat
      * the ownership OrganisationUnit
      */
     @Getter
-    @Setter
-    private Map<String, Map<String, TrackedEntityProgramOwnerOrgUnit>> programOwner = new HashMap<>();
+    private final Map<String, Map<String, TrackedEntityProgramOwnerOrgUnit>> programOwner = new HashMap<>();
 
     /**
      * A Map of trackedEntity uid connected to Program Instances
