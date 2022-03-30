@@ -52,7 +52,7 @@ jobs:
           distribution: temurin
           cache: maven
       - name: Run integration tests
-        run: mvn --threads 2C test --batch-mode --no-transfer-progress --update-snapshots -Pintegration -DexcludeAnalyticsTests=true -f ./dhis-2/pom.xml -pl -dhis-web-embedded-jetty
+        run: mvn --threads 2C test --batch-mode --no-transfer-progress -Pintegration -DexcludeAnalyticsTests=true -f ./dhis-2/pom.xml -pl -dhis-web-embedded-jetty
       - name: Archive surefire reports
         uses: actions/upload-artifact@v2
         with:
@@ -75,7 +75,7 @@ jobs:
       - name: Run analytics integration tests
         env:
           MAVEN_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=125
-        run: mvn test -Pintegration --batch-mode --no-transfer-progress --update-snapshots -f ./dhis-2/dhis-services/dhis-service-analytics/pom.xml
+        run: mvn test -Pintegration --batch-mode --no-transfer-progress -f ./dhis-2/dhis-services/dhis-service-analytics/pom.xml
       - name: Archive surefire reports
         uses: actions/upload-artifact@v2
         with:
