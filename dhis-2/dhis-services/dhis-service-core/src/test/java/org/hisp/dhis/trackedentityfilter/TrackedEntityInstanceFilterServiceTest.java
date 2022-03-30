@@ -44,6 +44,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.programstagefilter.DateFilterPeriod;
 import org.hisp.dhis.programstagefilter.DatePeriodType;
+import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.user.UserService;
@@ -99,6 +100,14 @@ class TrackedEntityInstanceFilterServiceTest extends DhisSpringTest
         assertEquals( idB, trackedEntityInstanceFilterB.getId() );
         assertEquals( trackedEntityInstanceFilterA, trackedEntityInstanceFilterService.get( idA ) );
         assertEquals( trackedEntityInstanceFilterB, trackedEntityInstanceFilterService.get( idB ) );
+    }
+
+    @Test
+    void testDefaultPrivateAccess()
+    {
+        long idA = trackedEntityInstanceFilterService.add( createTrackedEntityInstanceFilter( 'A', programA ) );
+        TrackedEntityInstanceFilter trackedEntityInstanceFilterA = trackedEntityInstanceFilterService.get( idA );
+        assertEquals( trackedEntityInstanceFilterA.getPublicAccess(), AccessStringHelper.DEFAULT );
     }
 
     @Test

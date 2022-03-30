@@ -258,7 +258,13 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
         return rootNode;
     }
 
-    @GetMapping( produces = "application/csv" )
+    /**
+     * This is disabled for now and will be enabled after new field filtering is
+     * added.
+     * <p>
+     * Request with csv format will go through
+     * {@link AbstractFullReadOnlyController#getObjectList} instead.
+     */
     public ResponseEntity<String> getObjectListCsv(
         @RequestParam Map<String, String> rpParameters, OrderParams orderParams,
         @CurrentUser User currentUser,
