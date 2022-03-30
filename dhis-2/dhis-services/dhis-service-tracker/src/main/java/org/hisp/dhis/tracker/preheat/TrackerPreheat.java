@@ -69,9 +69,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
-import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerIdentifierParams;
 import org.hisp.dhis.tracker.TrackerType;
@@ -287,13 +285,6 @@ public class TrackerPreheat
      * Internal map of all preheated notes (events and enrollments)
      */
     private final Map<String, TrackedEntityComment> notes = new HashMap<>();
-
-    /**
-     * Internal map of all preheated tracked entity attributes, mainly used for
-     * confirming existence for updates, and used for object merging.
-     */
-    @Getter
-    private final Map<TrackerIdScheme, Map<String, TrackedEntityAttributeValue>> trackedEntityAttributes = new HashMap<>();
 
     /**
      * Internal map of all existing TrackedEntityProgramOwner. Used for
