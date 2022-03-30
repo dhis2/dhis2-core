@@ -33,6 +33,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.common.DefaultRequestInfoService;
@@ -90,6 +91,15 @@ import com.google.common.collect.ImmutableMap;
 @EnableGlobalMethodSecurity( prePostEnabled = true )
 public class WebMvcConfig extends DelegatingWebMvcConfiguration
 {
+    // Paths where XML should still be allowed.
+    public static final List<Pattern> XML_PATTERNS = List.of(
+        Pattern.compile( "/(\\d\\d/)?relationships(/?$|/.+)" ),
+        Pattern.compile( "/(\\d\\d/)?enrollments(/?$|/.+)" ),
+        Pattern.compile( "/(\\d\\d/)?events(/?$|/.+)" ),
+        Pattern.compile( "/(\\d\\d/)?trackedEntityInstances(/?$|/.+)" ),
+        Pattern.compile( "/(\\d\\d/)?dataValueSets(/?$|/.+)" ),
+        Pattern.compile( "/(\\d\\d/)?completeDataSetRegistrations(/?$|/.+)" ) );
+
     @Autowired
     public CurrentUserHandlerMethodArgumentResolver currentUserHandlerMethodArgumentResolver;
 

@@ -149,7 +149,24 @@ public enum JobType
 
     public boolean isUsingNotifications()
     {
-        return this == RESOURCE_TABLE || this == ANALYTICS_TABLE || this == CONTINUOUS_ANALYTICS_TABLE;
+        return this == RESOURCE_TABLE
+            || this == ANALYTICS_TABLE
+            || this == CONTINUOUS_ANALYTICS_TABLE
+            || this == DATA_SET_NOTIFICATION
+            || this == MONITORING
+            || this == VALIDATION_RESULTS_NOTIFICATION
+            || this == SYSTEM_VERSION_UPDATE_CHECK
+            || this == EVENT_PROGRAMS_DATA_SYNC
+            || this == TRACKER_PROGRAMS_DATA_SYNC;
+    }
+
+    public boolean isUsingErrorNotification()
+    {
+        return this == VALIDATION_RESULTS_NOTIFICATION
+            || this == DATA_SET_NOTIFICATION
+            || this == SYSTEM_VERSION_UPDATE_CHECK
+            || this == EVENT_PROGRAMS_DATA_SYNC
+            || this == TRACKER_PROGRAMS_DATA_SYNC;
     }
 
     public boolean isCronSchedulingType()

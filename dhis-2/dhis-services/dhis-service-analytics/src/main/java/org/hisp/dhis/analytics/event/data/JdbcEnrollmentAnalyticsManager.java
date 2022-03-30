@@ -140,8 +140,19 @@ public class JdbcEnrollmentAnalyticsManager
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 
+        int rowsRed = 0;
+
+        grid.setLastDataRow( true );
+
         while ( rowSet.next() )
         {
+            if ( ++rowsRed > params.getPageSizeWithDefault() && !params.isTotalPages() )
+            {
+                grid.setLastDataRow( false );
+
+                continue;
+            }
+
             grid.addRow();
 
             for ( int i = 0; i < grid.getHeaders().size(); ++i )

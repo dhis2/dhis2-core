@@ -28,9 +28,12 @@
 package org.hisp.dhis.webapi.mvc.messageconverter;
 
 import javax.annotation.Nonnull;
+import javax.servlet.http.HttpServletRequest;
 
 import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.node.NodeService;
+import org.hisp.dhis.webapi.security.config.WebMvcConfig;
+import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 
@@ -52,6 +55,29 @@ public class XmlMessageConverter extends AbstractRootNodeMessageConverter
     public static final ImmutableList<MediaType> ZIP_SUPPORTED_MEDIA_TYPES = ImmutableList.<MediaType> builder()
         .add( new MediaType( "application", "xml+zip" ) )
         .build();
+
+    @Override
+    protected boolean supports( Class<?> clazz )
+    {
+        HttpServletRequest request = ContextUtils.getRequest();
+
+        if ( request == null )
+        {
+            return super.supports( clazz );
+        }
+
+        String pathInfo = request.getPathInfo();
+
+        for ( var pathPattern : WebMvcConfig.XML_PATTERNS )
+        {
+            if ( pathPattern.matcher( pathInfo ).matches() )
+            {
+                return super.supports( clazz );
+            }
+        }
+
+        return false;
+    }
 
     public XmlMessageConverter( @Autowired @Nonnull NodeService nodeService, Compression compression )
     {

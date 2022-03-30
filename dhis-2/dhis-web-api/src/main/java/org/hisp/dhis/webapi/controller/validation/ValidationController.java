@@ -48,6 +48,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.validation.ValidationAnalysisParams;
 import org.hisp.dhis.validation.ValidationService;
@@ -127,7 +128,8 @@ public class ValidationController
             .withAttributeOptionCombo( attributeOptionCombo )
             .build();
 
-        summary.setValidationRuleViolations( new ArrayList<>( validationService.validationAnalysis( params ) ) );
+        summary.setValidationRuleViolations(
+            new ArrayList<>( validationService.validationAnalysis( params, NoopJobProgress.INSTANCE ) ) );
         summary.setCommentRequiredViolations(
             validationService.validateRequiredComments( dataSet, period, orgUnit, attributeOptionCombo ) );
 

@@ -142,6 +142,18 @@ public interface JobProgress
         failedProcess( "Process failed: " + (isNotEmpty( message ) ? message : cause.getClass().getSimpleName()) );
     }
 
+    default void endingProcess( boolean success )
+    {
+        if ( success )
+        {
+            completedProcess( null );
+        }
+        else
+        {
+            failedProcess( (String) null );
+        }
+    }
+
     /**
      * Announce start of a new stage.
      *
@@ -307,21 +319,39 @@ public interface JobProgress
     }
 
     /**
+     * @see #runStage(Function, Runnable)
+     */
+    default boolean runStage( Runnable work )
+    {
+        return runStage( null, work );
+    }
+
+    /**
      * Run a stage with no individual work items but a single work
      * {@link Runnable} with proper completion wrapping.
      * <p>
      * If the work task throws an {@link Exception} the stage is considered
      * failed otherwise it is considered complete when done.
      *
+     * @param summary used when stage completes successfully (return value to
+     *        summary)
      * @param work work for the entire stage
      * @return true, if completed successful, false if completed exceptionally
      */
-    default boolean runStage( Runnable work )
+    default boolean runStage( Function<Boolean, String> summary, Runnable work )
     {
-        return runStage( false, () -> {
+        return runStage( false, summary, () -> {
             work.run();
             return true;
         } );
+    }
+
+    /**
+     * @see #runStage(Object, Function, Callable)
+     */
+    default <T> T runStage( T errorValue, Callable<T> work )
+    {
+        return runStage( errorValue, null, work );
     }
 
     /**
@@ -333,16 +363,18 @@ public interface JobProgress
      *
      * @param errorValue the value returned in case the work throws an
      *        {@link Exception}
+     * @param summary used when stage completes successfully (return value to
+     *        summary)
      * @param work work for the entire stage
      * @return the value returned by work task when successful or the errorValue
      *         in case the task threw an {@link Exception}
      */
-    default <T> T runStage( T errorValue, Callable<T> work )
+    default <T> T runStage( T errorValue, Function<T, String> summary, Callable<T> work )
     {
         try
         {
             T res = work.call();
-            completedStage( null );
+            completedStage( summary == null ? null : summary.apply( res ) );
             return res;
         }
         catch ( Exception ex )
@@ -476,6 +508,9 @@ public interface JobProgress
         public abstract Date getStartedTime();
 
         @JsonProperty
+        public abstract String getDescription();
+
+        @JsonProperty
         public long getDuration()
         {
             return completedTime == null
@@ -533,11 +568,6 @@ public interface JobProgress
         {
             this.cancelledTime = new Date();
             this.status = Status.CANCELLED;
-        }
-
-        public void abort()
-        {
-            completeExceptionally( "aborted after failed stage or item", null );
         }
     }
 

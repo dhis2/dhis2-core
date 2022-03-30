@@ -60,7 +60,6 @@ import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.hooks.AbstractTrackerDtoValidationHook;
 import org.hisp.dhis.user.User;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
 class DefaultTrackerValidationServiceTest
@@ -116,7 +115,6 @@ class DefaultTrackerValidationServiceTest
         verify( hook2, times( 1 ) ).validate( any(), any() );
     }
 
-    @NotNull
     private User superUser()
     {
         User user = mock( User.class );
@@ -446,25 +444,21 @@ class DefaultTrackerValidationServiceTest
         assertTrue( bundle.getEvents().isEmpty() );
     }
 
-    @NotNull
     private TrackedEntity trackedEntity()
     {
         return TrackedEntity.builder().trackedEntity( CodeGenerator.generateUid() ).build();
     }
 
-    @NotNull
     private Enrollment enrollment()
     {
         return Enrollment.builder().enrollment( CodeGenerator.generateUid() ).build();
     }
 
-    @NotNull
     private Event event()
     {
         return Event.builder().event( CodeGenerator.generateUid() ).build();
     }
 
-    @NotNull
     private List<TrackedEntity> trackedEntities( TrackedEntity... trackedEntities )
     {
         // Note: the current AbstractTrackerDtoValidationHook relies on the
@@ -474,7 +468,6 @@ class DefaultTrackerValidationServiceTest
         return new ArrayList<>( Arrays.asList( trackedEntities ) );
     }
 
-    @NotNull
     private List<Enrollment> enrollments( Enrollment... enrollments )
     {
         // Note: the current AbstractTrackerDtoValidationHook relies on the
@@ -484,7 +477,6 @@ class DefaultTrackerValidationServiceTest
         return new ArrayList<>( Arrays.asList( enrollments ) );
     }
 
-    @NotNull
     private List<Event> events( Event... events )
     {
         // Note: the current AbstractTrackerDtoValidationHook relies on the

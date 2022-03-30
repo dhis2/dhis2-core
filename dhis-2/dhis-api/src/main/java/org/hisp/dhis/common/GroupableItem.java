@@ -25,15 +25,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.validation;
+package org.hisp.dhis.common;
 
-import java.util.List;
+import java.util.UUID;
 
-import org.hisp.dhis.analytics.AnalyticsService;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-
-public interface ValidationTask
-    extends Runnable
+public interface GroupableItem
 {
-    void init( List<OrganisationUnit> orgUnits, ValidationRunContext context, AnalyticsService analyticsService );
+
+    default void setGroupUUID( UUID uuid )
+    {
+
+    }
+
+    default UUID getGroupUUID()
+    {
+        return null;
+    }
+
 }

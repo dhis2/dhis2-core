@@ -299,7 +299,7 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
         JobProgress tracker = configuration.getJobType().isUsingNotifications()
             ? new NotifierJobProgress( notifier, configuration )
             : NoopJobProgress.INSTANCE;
-        return new ControlledJobProgress( configuration, tracker, true );
+        return new ControlledJobProgress( messageService, configuration, tracker, true );
     }
 
     private void whenRunIsDone( JobConfiguration configuration, Clock clock )

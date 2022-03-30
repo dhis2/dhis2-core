@@ -207,7 +207,7 @@ public abstract class AbstractAnalyticsService
         return grid;
     }
 
-    private static void maybeApplyPaging( EventQueryParams params, long count, Grid grid )
+    private void maybeApplyPaging( EventQueryParams params, long count, Grid grid )
     {
         if ( params.isPaging() )
         {

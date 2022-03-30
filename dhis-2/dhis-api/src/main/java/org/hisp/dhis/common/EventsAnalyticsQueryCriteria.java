@@ -308,22 +308,27 @@ public class EventsAnalyticsQueryCriteria extends RequestTypeAware
     /**
      * The page number. Default page is 1.
      */
-    private Integer page;
+    private Integer page = 1;
 
     /**
      * The page size.
      */
-    private Integer pageSize;
+    private Integer pageSize = 50;
 
     /**
      * The paging parameter. When set to false we should not paginate. The
      * default is true (always paginate).
      */
-    private boolean paging = true;
+    private Boolean paging = true;
 
     /**
      * The paging parameter. When set to false we should not count total pages.
      * The default is true (always total pages flag activated).
      */
     private boolean totalPages = true;
+
+    /**
+     * flag to enable enhanced OR conditions on queryItem dimensions/filters
+     */
+    private boolean enhancedConditions;
 }
