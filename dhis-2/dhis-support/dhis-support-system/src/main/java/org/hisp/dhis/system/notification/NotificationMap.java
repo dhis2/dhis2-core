@@ -29,13 +29,13 @@ package org.hisp.dhis.system.notification;
 
 import static java.util.Arrays.stream;
 import static java.util.Collections.unmodifiableMap;
+import static java.util.stream.Collectors.toMap;
 
-import java.util.Deque;
-import java.util.EnumMap;
-import java.util.LinkedList;
-import java.util.Map;
+import java.util.*;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
@@ -44,33 +44,39 @@ import org.hisp.dhis.scheduling.JobType;
  * Keeps an ordered list of {@link Notification}s and/or summary {@link Object}s
  * per {@link JobType} and {@link JobConfiguration} UID.
  * <p>
- * For each {@link JobType} the capacity of entries is capped at a fixed maximum
+ * For each {@link Pool} the capacity of entries is capped at a fixed maximum
  * {@link #capacity}.
  * <p>
  * If maximum capacity is reached and another entry is added for that
- * {@link JobType} the overall oldest entry is removed and the new one added.
- * This means entries of another {@link JobConfiguration} can be removed as long
- * as they belong to the same {@link JobType}.
- * <p>
- * The values maps contain the data that is remembered. Since the capacity and
- * order spans potentially multiple {@link JobConfiguration}s for the same
- * {@link JobType} there is an additional {@link Deque} per type to track the
- * capacity usage and to have an order, so it can be identified which
- * {@link JobConfiguration} list needs to be shortended next.
+ * {@link JobType}'s {@link Pool} the overall oldest entry is removed and the
+ * new one added. This means entries of another {@link JobConfiguration} can be
+ * removed as long as they belong to the same {@link JobType}.
  *
  * @author Henning Håkonsen
  * @author Jan Bernitt (thread-safety)
  */
 public class NotificationMap
 {
-    private final Map<JobType, Map<String, Deque<Notification>>> notificationValuesByType = new EnumMap<>(
-        JobType.class );
+    private final Map<JobType, Pool<Deque<Notification>>> notifications = new EnumMap<>( JobType.class );
 
-    private final Map<JobType, Map<String, Object>> summaryValuesByType = new EnumMap<>( JobType.class );
+    private final Map<JobType, Pool<Object>> summaries = new EnumMap<>( JobType.class );
 
-    private final Map<JobType, Deque<String>> notificationJobIdsByType = new EnumMap<>( JobType.class );
+    static final class Pool<T>
+    {
 
-    private final Map<JobType, Deque<String>> summaryJobIdsByType = new EnumMap<>( JobType.class );
+        final AtomicInteger size = new AtomicInteger();
+
+        final Deque<String> jobIdsInOrder = new ConcurrentLinkedDeque<>();
+
+        final Map<String, T> valuesByJobId = new ConcurrentHashMap<>();
+
+        private synchronized void remove( String jobId )
+        {
+            size.set( jobIdsInOrder.size() );
+            jobIdsInOrder.removeIf( jobId::equals );
+            valuesByJobId.remove( jobId );
+        }
+    }
 
     private final int capacity;
 
@@ -78,28 +84,28 @@ public class NotificationMap
     {
         this.capacity = capacity;
         stream( JobType.values() ).forEach( jobType -> {
-            notificationValuesByType.put( jobType, new ConcurrentHashMap<>() );
-            summaryValuesByType.put( jobType, new ConcurrentHashMap<>() );
-            notificationJobIdsByType.put( jobType, new ConcurrentLinkedDeque<>() );
-            summaryJobIdsByType.put( jobType, new ConcurrentLinkedDeque<>() );
+            notifications.put( jobType, new Pool<>() );
+            summaries.put( jobType, new Pool<>() );
         } );
     }
 
     public Map<JobType, Map<String, Deque<Notification>>> getNotifications()
     {
-        return unmodifiableMap( notificationValuesByType );
+        return notifications.entrySet().stream()
+            .filter( e -> e.getValue().size.get() > 0 )
+            .collect( toMap( Entry::getKey, e -> e.getValue().valuesByJobId ) );
     }
 
     public Deque<Notification> getNotificationsByJobId( JobType jobType, String jobId )
     {
-        Deque<Notification> notifications = notificationValuesByType.get( jobType ).get( jobId );
+        Deque<Notification> res = notifications.get( jobType ).valuesByJobId.get( jobId );
         // return a defensive copy
-        return notifications == null ? new LinkedList<>() : new LinkedList<>( notifications );
+        return res == null ? new LinkedList<>() : new LinkedList<>( res );
     }
 
     public Map<String, Deque<Notification>> getNotificationsWithType( JobType jobType )
     {
-        return unmodifiableMap( notificationValuesByType.get( jobType ) );
+        return unmodifiableMap( notifications.get( jobType ).valuesByJobId );
     }
 
     public void add( JobConfiguration configuration, Notification notification )
@@ -109,20 +115,24 @@ public class NotificationMap
         {
             return;
         }
-        JobType jobType = configuration.getJobType();
-        Deque<String> notificationJobIds = notificationJobIdsByType.get( jobType );
-        Map<String, Deque<Notification>> notificationValues = notificationValuesByType.get( jobType );
-        if ( notificationJobIds.size() >= capacity )
+        Pool<Deque<Notification>> pool = notifications.get( configuration.getJobType() );
+        if ( pool.size.incrementAndGet() > capacity )
         {
-            String jobIdToShorten = notificationJobIds.removeLast();
-            Deque<Notification> notifications = notificationValues.get( jobIdToShorten );
-            if ( notifications != null )
-            {
-                notifications.removeLast();
-            }
+            String jobIdToShorten = pool.jobIdsInOrder.removeLast();
+            pool.valuesByJobId.compute( jobIdToShorten, ( key, value ) -> {
+                if ( value != null )
+                {
+                    value.removeLast();
+                    if ( value.isEmpty() )
+                    {
+                        return null;
+                    }
+                }
+                return value;
+            } );
         }
-        notificationJobIds.addFirst( jobId );
-        notificationValues
+        pool.jobIdsInOrder.addFirst( jobId );
+        pool.valuesByJobId
             .computeIfAbsent( jobId, key -> new ConcurrentLinkedDeque<>() )
             .addFirst( notification );
     }
@@ -134,34 +144,30 @@ public class NotificationMap
         {
             return;
         }
-        JobType jobType = configuration.getJobType();
-        Deque<String> summaryJobIds = summaryJobIdsByType.get( jobType );
-        Map<String, Object> summaryValues = summaryValuesByType.get( jobType );
-        if ( summaryJobIds.size() >= capacity )
+        Pool<Object> pool = summaries.get( configuration.getJobType() );
+        if ( pool.size.incrementAndGet() > capacity )
         {
-            summaryValues.remove( summaryJobIds.removeLast() );
+            pool.valuesByJobId.remove( pool.jobIdsInOrder.removeLast() );
         }
-        summaryJobIds.addFirst( jobId );
-        summaryValues.put( jobId, summary );
+        pool.jobIdsInOrder.addFirst( jobId );
+        pool.valuesByJobId.put( jobId, summary );
     }
 
     public Object getSummary( JobType jobType, String jobId )
     {
-        return summaryValuesByType.get( jobType ).get( jobId );
+        return summaries.get( jobType ).valuesByJobId.get( jobId );
     }
 
     public Map<String, Object> getJobSummariesForJobType( JobType jobType )
     {
-        return unmodifiableMap( summaryValuesByType.get( jobType ) );
+        return unmodifiableMap( summaries.get( jobType ).valuesByJobId );
     }
 
     public void clear( JobConfiguration configuration )
     {
         JobType jobType = configuration.getJobType();
         String jobId = configuration.getUid();
-        notificationValuesByType.get( jobType ).remove( jobId );
-        notificationJobIdsByType.get( jobType ).removeIf( e -> e.equals( jobId ) );
-        summaryValuesByType.get( jobType ).remove( jobId );
-        summaryJobIdsByType.get( jobType ).removeIf( e -> e.equals( jobId ) );
+        notifications.get( jobType ).remove( jobId );
+        summaries.get( jobType ).remove( jobId );
     }
 }
