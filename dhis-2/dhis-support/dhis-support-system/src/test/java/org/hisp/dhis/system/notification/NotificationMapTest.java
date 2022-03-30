@@ -28,7 +28,10 @@
 package org.hisp.dhis.system.notification;
 
 import static org.hisp.dhis.scheduling.JobType.DATAVALUE_IMPORT;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Date;
 import java.util.Deque;
