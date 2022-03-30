@@ -255,7 +255,7 @@ public class TrackerBundle
 
     public ProgramInstance getProgramInstance( String id )
     {
-        return getPreheat().getEnrollment( getIdentifier(), id );
+        return getPreheat().getEnrollment( id );
     }
 
     public ProgramStageInstance getProgramStageInstance( String event )

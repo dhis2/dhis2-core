@@ -337,7 +337,7 @@ class TrackerPreheatTest extends DhisConvenienceTest
                 setTrackedEntity( allEntities.get( 0 ) );
             }
         } );
-        preheat.putEnrollments( TrackerIdScheme.UID, psList, allPs );
+        preheat.putEnrollments( psList, allPs );
         // Create 4 Enrollments, where TEI is parent
         ProgramStageInstance psi = new ProgramStageInstance();
         psi.setUid( CodeGenerator.generateUid() );

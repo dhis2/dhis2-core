@@ -45,7 +45,6 @@ import org.hisp.dhis.programrule.engine.ProgramRuleEngine;
 import org.hisp.dhis.rules.models.RuleEffects;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerProgramRuleService;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.converter.RuleEngineConverterService;
@@ -194,7 +193,7 @@ public class DefaultTrackerProgramRuleService
 
     private ProgramInstance getEnrollment( TrackerBundle bundle, String enrollmentUid )
     {
-        return bundle.getPreheat().getEnrollment( TrackerIdScheme.UID, enrollmentUid );
+        return bundle.getPreheat().getEnrollment( enrollmentUid );
     }
 
     private Set<ProgramStageInstance> getEventsFromEnrollment( String enrollment, TrackerBundle bundle )

@@ -156,7 +156,7 @@ public class RelationshipTrackerConverterService
         else if ( relationshipType.getFromConstraint().getRelationshipEntity().equals( PROGRAM_INSTANCE ) )
         {
             fromItem.setProgramInstance(
-                preheat.getEnrollment( TrackerIdScheme.UID,
+                preheat.getEnrollment(
                     fromRelationship.getFrom().getEnrollment().getEnrollment() ) );
         }
         else if ( relationshipType.getFromConstraint().getRelationshipEntity().equals( PROGRAM_STAGE_INSTANCE ) )
@@ -176,7 +176,7 @@ public class RelationshipTrackerConverterService
         else if ( relationshipType.getToConstraint().getRelationshipEntity().equals( PROGRAM_INSTANCE ) )
         {
             toItem.setProgramInstance(
-                preheat.getEnrollment( TrackerIdScheme.UID,
+                preheat.getEnrollment(
                     fromRelationship.getTo().getEnrollment().getEnrollment() ) );
         }
         else if ( relationshipType.getToConstraint().getRelationshipEntity().equals( PROGRAM_STAGE_INSTANCE ) )

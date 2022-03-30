@@ -91,7 +91,7 @@ public class StrategyPreProcessor
         {
             TrackerImportStrategy importStrategy = bundle.getImportStrategy();
 
-            ProgramInstance existingPI = bundle.getPreheat().getEnrollment( TrackerIdScheme.UID,
+            ProgramInstance existingPI = bundle.getPreheat().getEnrollment(
                 enrollment.getEnrollment() );
 
             if ( importStrategy.isCreateAndUpdate() )

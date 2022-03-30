@@ -301,7 +301,7 @@ public class EventTrackerConverterService
     {
         if ( ProgramType.WITH_REGISTRATION == program.getProgramType() )
         {
-            return preheat.getEnrollment( identifier, enrollment );
+            return preheat.getEnrollment( enrollment );
         }
 
         if ( ProgramType.WITHOUT_REGISTRATION == program.getProgramType() )

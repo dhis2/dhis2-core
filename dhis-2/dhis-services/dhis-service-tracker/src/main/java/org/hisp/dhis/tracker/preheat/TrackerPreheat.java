@@ -275,7 +275,7 @@ public class TrackerPreheat
      * existence for updates, and used for object merging.
      */
     @Getter
-    private final Map<TrackerIdScheme, Map<String, ProgramInstance>> enrollments = new HashMap<>();
+    private final Map<String, ProgramInstance> enrollments = new HashMap<>();
 
     /**
      * Internal map of all preheated events, mainly used for confirming
@@ -508,20 +508,14 @@ public class TrackerPreheat
         trackedEntities.put( trackedEntity, trackedEntityInstance );
     }
 
-    public ProgramInstance getEnrollment( TrackerIdScheme identifier, String enrollment )
+    public ProgramInstance getEnrollment( String enrollment )
     {
-        if ( !enrollments.containsKey( identifier ) )
-        {
-            return null;
-        }
-
-        return enrollments.get( identifier ).get( enrollment );
+        return enrollments.get( enrollment );
     }
 
-    public void putEnrollments( TrackerIdScheme identifier, List<ProgramInstance> programInstances,
-        List<Enrollment> allEntities )
+    public void putEnrollments( List<ProgramInstance> programInstances, List<Enrollment> allEntities )
     {
-        putEnrollments( identifier, programInstances );
+        putEnrollments( programInstances );
         List<String> uidOnDB = programInstances.stream().map( BaseIdentifiableObject::getUid )
             .collect( Collectors.toList() );
 
@@ -532,19 +526,14 @@ public class TrackerPreheat
             .forEach( pi -> this.addReference( TrackerType.ENROLLMENT, pi ) );
     }
 
-    public void putEnrollments( TrackerIdScheme identifier, List<ProgramInstance> programInstances )
+    public void putEnrollments( List<ProgramInstance> programInstances )
     {
-        programInstances.forEach( pi -> putEnrollment( identifier, pi.getUid(), pi ) );
+        programInstances.forEach( pi -> putEnrollment( pi.getUid(), pi ) );
     }
 
-    public void putEnrollment( TrackerIdScheme identifier, String enrollment, ProgramInstance programInstance )
+    public void putEnrollment( String enrollment, ProgramInstance programInstance )
     {
-        if ( !enrollments.containsKey( identifier ) )
-        {
-            enrollments.put( identifier, new HashMap<>() );
-        }
-
-        enrollments.get( identifier ).put( enrollment, programInstance );
+        enrollments.put( enrollment, programInstance );
     }
 
     public ProgramStageInstance getEvent( TrackerIdScheme identifier, String event )
