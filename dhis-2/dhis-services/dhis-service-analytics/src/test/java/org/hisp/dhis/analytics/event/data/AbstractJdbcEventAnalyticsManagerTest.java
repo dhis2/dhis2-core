@@ -323,7 +323,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
             .withSkipMeta( false )
             .build();
 
-        final List<String> columns = this.subject.getSelectColumns( params );
+        final List<String> columns = this.subject.getSelectColumns( params, false );
 
         // Then
 
