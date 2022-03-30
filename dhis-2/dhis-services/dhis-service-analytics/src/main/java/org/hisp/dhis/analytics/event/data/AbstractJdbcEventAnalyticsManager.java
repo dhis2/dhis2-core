@@ -349,20 +349,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
             }
             else if ( queryItem.getValueType() == ValueType.NUMBER && !isGroupByClause )
             {
-                ColumnAndAlias columnAndAlias;
-
-                // For aggregated queries, we do not prefix the columns as they
-                // will be always "group by" queries.
-                if ( isAggregated )
-                {
-                    columnAndAlias = getColumnAndAlias( queryItem, true,
-                        queryItem.getItemName() );
-                }
-                else
-                {
-                    columnAndAlias = getColumnAndAlias( queryItem, false,
-                        queryItem.getItemName() );
-                }
+                ColumnAndAlias columnAndAlias = getColumnAndAlias( queryItem, isAggregated, queryItem.getItemName() );
 
                 // If the alias is null, we use the default "item name" as
                 // alias.
