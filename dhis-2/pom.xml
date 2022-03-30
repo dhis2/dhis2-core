@@ -231,8 +231,8 @@
         <jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
         <jrebel-x-maven-plugin.version>1.1.10</jrebel-x-maven-plugin.version>
         <dhis-antlr-expression-parser.version>1.0.26</dhis-antlr-expression-parser.version>
-        <ow2.asm.version>9.2</ow2.asm.version>
         <jai-imageio.version>1.1.1</jai-imageio.version>
+        <ow2.asm.version>9.2</ow2.asm.version>
         <gson.version>2.8.9</gson.version>
         <semver4j.version>3.1.0</semver4j.version>
     </properties>
@@ -707,22 +707,54 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-dependency-plugin</artifactId>
                     <version>${maven-dependency-plugin.version}</version>
+                    <executions>
+                        <execution>
+                            <id>analyze</id>
+                            <goals>
+                                <goal>analyze-only</goal>
+                            </goals>
+                            <configuration>
+                                <failOnWarning>true</failOnWarning>
+                            </configuration>
+                        </execution>
+                    </executions>
                     <configuration>
                         <ignoredUnusedDeclaredDependencies>
                             <ignoredUnusedDeclaredDependency>org.projectlombok:lombok</ignoredUnusedDeclaredDependency>
                             <ignoredUnusedDeclaredDependency>org.junit.jupiter:junit-jupiter</ignoredUnusedDeclaredDependency>
                             <ignoredUnusedDeclaredDependency>org.springframework.security:spring-security-core</ignoredUnusedDeclaredDependency>
                             <ignoredUnusedDeclaredDependency>net.sf.jasperreports:jasperreports</ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>org.mockito:mockito-inline</ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>org.apache.logging.log4j:log4j-slf4j-impl</ignoredUnusedDeclaredDependency>
 
                             <!-- Removing these dependencies from the pom makes some tests fail -->
                             <ignoredUnusedDeclaredDependency>io.netty:netty-all</ignoredUnusedDeclaredDependency>
                             <ignoredUnusedDeclaredDependency>org.hibernate.validator:hibernate-validator</ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>com.cronutils:cron-utils</ignoredUnusedDeclaredDependency>
                             <ignoredUnusedDeclaredDependency>com.h2database:h2</ignoredUnusedDeclaredDependency>
                             <ignoredUnusedDeclaredDependency>org.cache2k:cache2k-core:jar</ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>org.springframework.security:spring-security-aspects</ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>org.skyscreamer:jsonassert</ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>commons-fileupload:commons-fileupload</ignoredUnusedDeclaredDependency>
+
+                            <!-- Removing these dependency makes the startup fail -->
+                            <ignoredUnusedDeclaredDependency>org.hibernate:hibernate-ehcache</ignoredUnusedDeclaredDependency>
+
+                            <!-- Removing these dependency makes the startup with Jetty fail -->
+                            <ignoredUnusedDeclaredDependency>javax.media:jai_imageio</ignoredUnusedDeclaredDependency>
 
                             <!-- These are some module dependencies that only exist at runtime -->
                             <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-support-hibernate</ignoredUnusedDeclaredDependency>
                             <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-support-db-migration</ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-support-audit</ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-validation</ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-administration</ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-program-rule</ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-core</ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-web-api:jar</ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-dxf2:jar</ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-reporting:jar</ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-analytics:jar</ignoredUnusedDeclaredDependency>
                         </ignoredUnusedDeclaredDependencies>
                         <ignoredUsedUndeclaredDependencies>
                             <ignoredUsedUndeclaredDependency>org.junit.jupiter:junit-jupiter-api</ignoredUsedUndeclaredDependency>
@@ -731,6 +763,12 @@
                             <ignoredUsedUndeclaredDependency>org.apache.activemq:artemis-commons</ignoredUsedUndeclaredDependency>
                             <ignoredUsedUndeclaredDependency>io.debezium:debezium-core</ignoredUsedUndeclaredDependency>
                             <ignoredUsedUndeclaredDependency>org.apache.kafka:connect-api</ignoredUsedUndeclaredDependency>
+                            <ignoredUsedUndeclaredDependency>javax.transaction:javax.transaction-api</ignoredUsedUndeclaredDependency>
+                            <ignoredUsedUndeclaredDependency>org.springframework.security:spring-security-oauth2-core</ignoredUsedUndeclaredDependency>
+                            <ignoredUsedUndeclaredDependency>com.nimbusds:nimbus-jose-jwt</ignoredUsedUndeclaredDependency>
+                            <ignoredUsedUndeclaredDependency>io.prometheus:simpleclient_common</ignoredUsedUndeclaredDependency>
+                            <ignoredUsedUndeclaredDependency>org.springframework.restdocs:spring-restdocs-core</ignoredUsedUndeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>org.springframework:spring-jcl</ignoredUnusedDeclaredDependency>
                         </ignoredUsedUndeclaredDependencies>
                         <ignoredNonTestScopedDependencies>
                             <!-- Setting the scope of this dependency to test makes the build fail-->
@@ -802,6 +840,13 @@
                                     <reason>Do not use this annotations. Use javax.annotation instead</reason>
                                     <bannedImports>
                                         <bannedImport>org.jetbrains.annotations.**</bannedImport>
+                                    </bannedImports>
+                                </RestrictImports>
+                                <RestrictImports>
+                                    <reason>Do not use this json library. Use org.hisp.dhis.jsontree instead</reason>
+                                    <bannedImports>
+                                        <bannedImport>org.json.**</bannedImport>
+                                        <bannedImport>net.minidev.json.**</bannedImport>
                                     </bannedImports>
                                 </RestrictImports>
                             </rules>
@@ -894,11 +939,6 @@
             <dependency>
                 <groupId>org.hisp.dhis</groupId>
                 <artifactId>dhis-service-tracker</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.hisp.dhis</groupId>
-                <artifactId>dhis-service-audit-consumer</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -1335,6 +1375,10 @@
                         <groupId>org.aspectj</groupId>
                         <artifactId>aspectjrt</artifactId>
                     </exclusion>
+                    <exclusion>
+                        <groupId>commons-logging</groupId>
+                        <artifactId>commons-logging</artifactId>
+                    </exclusion>
                 </exclusions>
             </dependency>
 
@@ -1347,6 +1391,10 @@
                     <exclusion>
                         <groupId>com.fasterxml.woodstox</groupId>
                         <artifactId>woodstox-core</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>commons-logging</groupId>
+                        <artifactId>commons-logging</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
@@ -1445,6 +1493,12 @@
                 <groupId>commons-beanutils</groupId>
                 <artifactId>commons-beanutils</artifactId>
                 <version>${commons-beanutils.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>commons-logging</groupId>
+                        <artifactId>commons-logging</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.apache.commons</groupId>
@@ -1479,6 +1533,10 @@
                     <exclusion>
                         <groupId>commons-digester</groupId>
                         <artifactId>commons-digester</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>commons-logging</groupId>
+                        <artifactId>commons-logging</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
@@ -1518,6 +1576,12 @@
                 <groupId>org.apache.httpcomponents</groupId>
                 <artifactId>httpclient</artifactId>
                 <version>${httpcomponents-client.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>commons-logging</groupId>
+                        <artifactId>commons-logging</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.apache.httpcomponents</groupId>
@@ -1540,6 +1604,12 @@
                 <groupId>org.hibernate</groupId>
                 <artifactId>hibernate-core</artifactId>
                 <version>${hibernate.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.jboss.spec.javax.transaction</groupId>
+                        <artifactId>jboss-transaction-api_1.2_spec</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.hibernate</groupId>
@@ -1592,6 +1662,7 @@
                 <groupId>org.apache.logging.log4j</groupId>
                 <artifactId>log4j-slf4j-impl</artifactId>
                 <version>${log4j.version}</version>
+                <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>org.slf4j</groupId>
@@ -1850,6 +1921,10 @@
                         <groupId>xalan</groupId>
                         <artifactId>xalan</artifactId>
                     </exclusion>
+                    <exclusion>
+                        <groupId>commons-logging</groupId>
+                        <artifactId>commons-logging</artifactId>
+                    </exclusion>
                 </exclusions>
             </dependency>
             <dependency>
@@ -1979,10 +2054,6 @@
                 <artifactId>gt-render</artifactId>
                 <version>${geotools.version}</version>
                 <exclusions>
-                    <exclusion>
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_imageio</artifactId>
-                    </exclusion>
                     <exclusion>
                         <groupId>xalan</groupId>
                         <artifactId>xalan</artifactId>
@@ -2116,6 +2187,12 @@
                 <groupId>org.apache.activemq</groupId>
                 <artifactId>artemis-jms-client</artifactId>
                 <version>${artemis.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>jakarta.jms</groupId>
+                        <artifactId>jakarta.jms-api</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.apache.activemq</groupId>
@@ -2165,6 +2242,10 @@
                     <exclusion>
                         <groupId>org.wildfly.common</groupId>
                         <artifactId>wildfly-common</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>commons-logging</groupId>
+                        <artifactId>commons-logging</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
@@ -2290,6 +2371,12 @@
                 <groupId>org.eclipse.jetty</groupId>
                 <artifactId>jetty-server</artifactId>
                 <version>${jetty.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.eclipse.jetty.toolchain</groupId>
+                        <artifactId>jetty-servlet-api</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
 
             <!-- Lombok-->
@@ -2322,6 +2409,10 @@
                     <exclusion>
                         <groupId>jakarta.annotation</groupId>
                         <artifactId>jakarta.annotation-api</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>jakarta.validation</groupId>
+                        <artifactId>jakarta.validation-api</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>

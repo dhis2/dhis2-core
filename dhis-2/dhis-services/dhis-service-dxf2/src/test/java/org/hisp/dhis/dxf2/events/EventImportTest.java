@@ -44,7 +44,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.exparity.hamcrest.date.DateMatchers;
 import org.hamcrest.CoreMatchers;
@@ -86,14 +85,14 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
@@ -615,10 +614,11 @@ class EventImportTest extends TransactionalIntegrationTest
 
     private InputStream createEventsJsonInputStream( List<Event> events, DataElement dataElement, String value )
     {
-        List<JSONObject> objects = events.stream().map( e -> createEventJSONObject( e, dataElement, value ) )
-            .collect( Collectors.toList() );
-        JSONObject jsonEvents = new JSONObject();
-        jsonEvents.put( "events", objects );
+        JsonArray jsonArrayEvents = new JsonArray();
+        events.stream().forEach( e -> jsonArrayEvents.add( createEventJsonObject( e, dataElement, value ) ) );
+        JsonObject jsonEvents = new JsonObject();
+        jsonEvents.add( "events", jsonArrayEvents );
+
         return new ByteArrayInputStream( jsonEvents.toString().getBytes() );
     }
 
@@ -630,32 +630,32 @@ class EventImportTest extends TransactionalIntegrationTest
         event.setProgramStage( programStage );
         event.setOrgUnit( orgUnit );
         event.setTrackedEntityInstance( person );
-        return new ByteArrayInputStream( createEventJSONObject( event, dataElement, value ).toString().getBytes() );
+        return new ByteArrayInputStream( createEventJsonObject( event, dataElement, value ).toString().getBytes() );
     }
 
-    private JSONObject createEventJSONObject( Event event, DataElement dataElement, String value )
+    private JsonObject createEventJsonObject( Event event, DataElement dataElement, String value )
     {
-        JSONObject eventJsonPayload = new JSONObject();
-        eventJsonPayload.put( "program", event.getProgram() );
-        eventJsonPayload.put( "programStage", event.getProgramStage() );
-        eventJsonPayload.put( "orgUnit", event.getOrgUnit() );
-        eventJsonPayload.put( "status", "COMPLETED" );
-        eventJsonPayload.put( "eventDate", "2018-08-20" );
-        eventJsonPayload.put( "completedDate", "2018-08-27" );
-        eventJsonPayload.put( "trackedEntityInstance", event.getTrackedEntityInstance() );
-        JSONObject dataValue = new JSONObject();
-        dataValue.put( "dataElement", dataElement.getUid() );
-        dataValue.put( "value", value );
-        // JSONObject geometry = new JSONObject();
+        JsonObject eventJsonPayload = new JsonObject();
+        eventJsonPayload.addProperty( "program", event.getProgram() );
+        eventJsonPayload.addProperty( "programStage", event.getProgramStage() );
+        eventJsonPayload.addProperty( "orgUnit", event.getOrgUnit() );
+        eventJsonPayload.addProperty( "status", "COMPLETED" );
+        eventJsonPayload.addProperty( "eventDate", "2018-08-20" );
+        eventJsonPayload.addProperty( "completedDate", "2018-08-27" );
+        eventJsonPayload.addProperty( "trackedEntityInstance", event.getTrackedEntityInstance() );
+        JsonObject dataValue = new JsonObject();
+        dataValue.addProperty( "dataElement", dataElement.getUid() );
+        dataValue.addProperty( "value", value );
+        // JsonObject geometry = new JsonObject();
         // geometry.put( "type", "Point" );
-        // JSONArray coordinates = new JSONArray();
+        // JsonArray coordinates = new JsonArray();
         // coordinates.add( "1.33343" );
         // coordinates.add( "-21.9954" );
         // geometry.put( "coordinates", coordinates );
         // eventJsonPayload.put( "geometry", geometry );
-        JSONArray dataValues = new JSONArray();
+        JsonArray dataValues = new JsonArray();
         dataValues.add( dataValue );
-        eventJsonPayload.put( "dataValues", dataValues );
+        eventJsonPayload.add( "dataValues", dataValues );
         return eventJsonPayload;
     }
 
