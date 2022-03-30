@@ -407,6 +407,9 @@
 
         <profile>
             <id>sonarqube</id>
+            <properties>
+                <skipTests>true</skipTests>
+            </properties>
             <build>
                 <plugins>
                     <plugin>
@@ -463,6 +466,9 @@
 
         <profile>
             <id>dev</id>
+            <properties>
+                <skipTests>true</skipTests>
+            </properties>
             <build>
                 <plugins>
                     <plugin>
