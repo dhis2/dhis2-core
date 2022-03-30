@@ -32,7 +32,6 @@ import static org.hisp.dhis.tracker.preheat.RelationshipPreheatKeySupport.getRel
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -294,7 +293,7 @@ public class TrackerPreheat
     /**
      * Internal map of all preheated notes (events and enrollments)
      */
-    private Map<TrackerIdScheme, Map<String, TrackedEntityComment>> notes = new EnumMap<>( TrackerIdScheme.class );
+    private Map<String, TrackedEntityComment> notes = new HashMap<>();
 
     /**
      * Internal map of all existing TrackedEntityProgramOwner. Used for
@@ -566,14 +565,17 @@ public class TrackerPreheat
 
     public void putNotes( List<TrackedEntityComment> trackedEntityComments )
     {
-        // Notes are always using UID scheme
-        notes.put( TrackerIdScheme.UID, trackedEntityComments.stream().collect(
-            Collectors.toMap( TrackedEntityComment::getUid, Function.identity() ) ) );
+        trackedEntityComments.forEach( c -> putNote( c.getUid(), c ) );
+    }
+
+    public void putNote( String uid, TrackedEntityComment comment )
+    {
+        notes.put( uid, comment );
     }
 
     public Optional<TrackedEntityComment> getNote( String uid )
     {
-        return Optional.ofNullable( notes.getOrDefault( TrackerIdScheme.UID, new HashMap<>() ).get( uid ) );
+        return Optional.ofNullable( notes.get( uid ) );
     }
 
     public Relationship getRelationship( org.hisp.dhis.tracker.domain.Relationship relationship )
