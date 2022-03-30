@@ -337,13 +337,13 @@ public class RelationshipTypeObjectBundleHook
         if ( constraint.getProgram() != null && constraint.getProgramStage() != null )
         {
             addReports.accept(
-                new ErrorReport( RelationshipConstraint.class, ErrorCode.E4025, "program", "programStage" ) );
+                new ErrorReport( RelationshipConstraint.class, ErrorCode.E4025, PROGRAM, PROGRAM_STAGE ) );
         }
 
         if ( constraint.getProgram() == null && constraint.getProgramStage() == null )
         {
             addReports
-                .accept( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4026, "program", "programStage",
+                .accept( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4026, PROGRAM, PROGRAM_STAGE,
                     "relationshipEntity", PROGRAM_STAGE_INSTANCE ) );
         }
 
