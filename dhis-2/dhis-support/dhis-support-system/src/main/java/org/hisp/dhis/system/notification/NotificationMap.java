@@ -92,7 +92,6 @@ public class NotificationMap
     public Map<JobType, Map<String, Deque<Notification>>> getNotifications()
     {
         return notifications.entrySet().stream()
-            .filter( e -> e.getValue().size.get() > 0 )
             .collect( toMap( Entry::getKey, e -> e.getValue().valuesByJobId ) );
     }
 
