@@ -41,7 +41,7 @@ import org.springframework.web.WebApplicationInitializer;
  */
 @Slf4j
 @Order( 1 )
-public class DisEnvCompatibilityCheck implements WebApplicationInitializer
+public class Dhis2EnvCompatibilityCheck implements WebApplicationInitializer
 {
     @Override
     public void onStartup( ServletContext context )
