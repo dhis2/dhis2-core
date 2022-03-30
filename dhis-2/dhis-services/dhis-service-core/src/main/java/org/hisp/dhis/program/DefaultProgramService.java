@@ -146,7 +146,7 @@ public class DefaultProgramService
     @Transactional( readOnly = true )
     public List<Program> getCurrentUserPrograms()
     {
-        User user = CurrentUserService.getCurrentUser();
+        User user = currentUserService.getCurrentUser();
         if ( user == null || user.isSuper() )
         {
             return getAllPrograms();

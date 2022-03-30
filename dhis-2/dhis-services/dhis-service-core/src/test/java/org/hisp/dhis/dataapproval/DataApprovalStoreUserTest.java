@@ -47,6 +47,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -61,6 +62,9 @@ class DataApprovalStoreUserTest extends DhisTest
 
     @Autowired
     private DataApprovalStore dataApprovalStore;
+
+    @Autowired
+    private UserService _userService;
 
     @Autowired
     private DataApprovalService dataApprovalService;
@@ -110,6 +114,9 @@ class DataApprovalStoreUserTest extends DhisTest
     public void setUpTest()
         throws Exception
     {
+        userService = _userService;
+        preCreateInjectAdminUser();
+
         periodA = createPeriod( "201801" );
         periodService.addPeriod( periodA );
         level1 = new DataApprovalLevel( "Level1", 1, null );
@@ -141,7 +148,10 @@ class DataApprovalStoreUserTest extends DhisTest
         organisationUnitService.updateOrganisationUnit( orgUnitC );
         organisationUnitService.updateOrganisationUnit( orgUnitD );
 
-        currentUser = MockCurrentUserService.makeUser( true, Sets.newHashSet( orgUnitA ), Sets.newHashSet( orgUnitA ) );
+//        currentUser = MockCurrentUserService.makeUser( true, Sets.newHashSet( orgUnitA ), Sets.newHashSet( orgUnitA ) );
+
+        currentUser = mockUser( true, "username", newHashSet( orgUnitA ), newHashSet( orgUnitA ) );
+        injectSecurityContext( currentUser );
 
         // mockCurrentUserService = new MockCurrentUserService( true,
         // Sets.newHashSet( orgUnitA ),

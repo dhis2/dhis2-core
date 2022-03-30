@@ -2756,23 +2756,25 @@ public abstract class DhisConvenienceTest
     {
         User user = preCreateInjectAdminUserWithoutPersistence();
 
+        userService.addUserRole( user.getUserRoles().stream().findFirst().get() );
         userService.addUser( user );
         userService.encodeAndSetPassword( user, user.getPassword() );
         userService.updateUser( user );
-        userService.addUserRole( user.getUserRoles().stream().findFirst().get() );
 
         return user;
     }
 
     protected User preCreateInjectAdminUserWithoutPersistence()
     {
-        UserRole role = createUserRole( "Superuser", "ALL" );
-        role.setUid( "yrB6vc5Ip3r" );
+        UserRole role = createUserRole( "Superuser_Test", "ALL" );
+//        role.setUid( "yrB6vc5Ip3r" );
+        role.setUid( CodeGenerator.generateUid() );
 
         User user = new User();
         user.setFirstName( "Admin" );
         user.setSurname( "User" );
-        user.setUsername( DEFAULT_USERNAME );
+//        user.setUsername( DEFAULT_USERNAME );
+        user.setUsername( DEFAULT_USERNAME+"_test" );
         user.setPassword( DEFAULT_ADMIN_PASSWORD );
         user.getUserRoles().add( role );
 

@@ -306,7 +306,7 @@ class DataQueryServiceTest extends DhisSpringTest
 
         userService.addUser( user );
 
-        saveAndInjectUserSecurityContext( user );
+//        saveAndInjectUserSecurityContext( user );
         injectSecurityContext( user );
     }
 

@@ -294,7 +294,7 @@ public class DefaultProgramMessageService
 
         programs = new HashSet<>( programService.getCurrentUserPrograms() );
 
-        if ( CurrentUserService.getCurrentUser() != null && !programs.contains( programInstance.getProgram() ) )
+        if ( currentUserService.getCurrentUser() != null && !programs.contains( programInstance.getProgram() ) )
         {
             throw new IllegalQueryException( "User does not have access to the required program" );
         }

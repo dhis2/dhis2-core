@@ -954,21 +954,25 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     @Override
     public final List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder, String access )
     {
-        return getDataSharingPredicates( builder, currentUserService.getCurrentUser(),
+        User currentUser = currentUserService.getCurrentUser();
+        return getDataSharingPredicates( builder, currentUser,
             currentUserService.getCurrentUserGroupsInfo(), access );
     }
 
     @Override
     public final List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder )
     {
-        return getSharingPredicates( builder, currentUserService.getCurrentUser(),
-            currentUserService.getCurrentUserGroupsInfo(), AclService.LIKE_READ_METADATA );
+        User currentUser = currentUserService.getCurrentUser();
+        CurrentUserGroupInfo currentUserGroupsInfo = currentUserService.getCurrentUserGroupsInfo();
+        return getSharingPredicates( builder, currentUser,
+            currentUserGroupsInfo, AclService.LIKE_READ_METADATA );
     }
 
     @Override
     public List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder, User user )
     {
-        return getSharingPredicates( builder, user, currentUserService.getCurrentUserGroupsInfo( user ),
+        CurrentUserGroupInfo currentUserGroupsInfo = currentUserService.getCurrentUserGroupsInfo( user );
+        return getSharingPredicates( builder, user, currentUserGroupsInfo,
             AclService.LIKE_READ_METADATA );
     }
 

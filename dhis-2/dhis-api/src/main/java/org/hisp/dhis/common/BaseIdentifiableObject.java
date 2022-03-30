@@ -561,7 +561,10 @@ public class BaseIdentifiableObject
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isFavorite()
     {
-        User user = CurrentUserService.getCurrentUser();
+//        User user = CurrentUserService.getCurrentUser();
+        //TODO: 12098 FIX
+        User user = null;
+
 
         return user != null && favorites != null ? favorites.contains( user.getUid() ) : false;
     }

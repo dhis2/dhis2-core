@@ -85,12 +85,14 @@ public abstract class TrackerTest extends TransactionalIntegrationTest
     protected void setUpTest()
         throws IOException
     {
-        preCreateInjectAdminUserWithoutPersistence();
-        renderService = _renderService;
         userService = _userService;
+        preCreateInjectAdminUser();
+
+        renderService = _renderService;
         initTest();
         // Clear the session to simulate different API call after the setup
-        manager.clear();
+//        manager.clear();
+//        dbmsManager.flushSession();
     }
 
     protected abstract void initTest()
@@ -107,7 +109,10 @@ public abstract class TrackerTest extends TransactionalIntegrationTest
         params.setObjects( metadata );
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validationReport = objectBundleValidationService.validate( bundle );
-        validationReport.forEachErrorReport( errorReport -> log.error( errorReport.toString() ) );
+        validationReport.forEachErrorReport( errorReport -> {
+            String s = errorReport.toString();
+            log.error( s );
+        } );
         boolean condition = validationReport.hasErrorReports();
         assertFalse( condition );
         objectBundleService.commit( bundle );

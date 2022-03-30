@@ -231,9 +231,10 @@ class DataValueSetServiceExportTest extends IntegrationTestBase
         user = createUser( 'A' );
         user.setOrganisationUnits( Sets.newHashSet( ouA, ouB ) );
         userService.addUser( user );
-        CurrentUserService currentUserService = new MockCurrentUserService( user );
-        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
-            currentUserService, dataValueSetService, organisationUnitService );
+        injectSecurityContext( user );
+//        CurrentUserService currentUserService = new MockCurrentUserService( user );
+//        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
+//            currentUserService, dataValueSetService, organisationUnitService );
         enableDataSharing( user, dsA, AccessStringHelper.DATA_READ_WRITE );
         enableDataSharing( user, dsB, AccessStringHelper.DATA_READ_WRITE );
         dataSetService.updateDataSet( dsA );

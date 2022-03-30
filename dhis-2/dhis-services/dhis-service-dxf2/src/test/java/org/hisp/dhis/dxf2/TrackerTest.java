@@ -380,7 +380,8 @@ public abstract class TrackerTest extends IntegrationTestBase
     protected void mockCurrentUserService()
     {
         User user = createUserWithAuth( "testUser" );
-        currentUserService = new MockCurrentUserService( user );
+        injectSecurityContext( user );
+//        currentUserService = new MockCurrentUserService( user );
     }
 
     protected ProgramStage createProgramStage( Program program, boolean publicAccess )

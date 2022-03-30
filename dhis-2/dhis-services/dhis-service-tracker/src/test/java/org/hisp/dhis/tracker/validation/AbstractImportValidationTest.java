@@ -81,8 +81,9 @@ public abstract class AbstractImportValidationTest extends TrackerTest
 
         TrackerImportParams params = renderService.fromJson( inputStream, TrackerImportParams.class );
 
-        User user = userService.getUser( ADMIN_USER_UID );
-        params.setUser( user );
+//        User user = userService.getUser( ADMIN_USER_UID );
+
+        params.setUser( currentUserService.getCurrentUser() );
 
         return params;
     }

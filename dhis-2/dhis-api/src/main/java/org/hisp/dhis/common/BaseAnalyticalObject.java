@@ -1434,7 +1434,9 @@ public abstract class BaseAnalyticalObject
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isSubscribed()
     {
-        User user = CurrentUserService.getCurrentUser();
+//        User user = CurrentUserService.getCurrentUser();
+        //TODO: 12098 FIX
+        User user = null;
 
         return (user != null && subscribers != null) && subscribers.contains( user.getUid() );
     }

@@ -313,8 +313,9 @@ class DataValueSetExportAccessControlTest extends TransactionalIntegrationTest
     private void setCurrentUser( User user )
     {
         userService.addUser( user );
-        CurrentUserService currentUserService = new MockCurrentUserService( user );
-        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
-            currentUserService, dataValueSetService, dataValueSetStore, organisationUnitService );
+        injectSecurityContext( user );
+//        CurrentUserService currentUserService = new MockCurrentUserService( user );
+//        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
+//            currentUserService, dataValueSetService, dataValueSetStore, organisationUnitService );
     }
 }

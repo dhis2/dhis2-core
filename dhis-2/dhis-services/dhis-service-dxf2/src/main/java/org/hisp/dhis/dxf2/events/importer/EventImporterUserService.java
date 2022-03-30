@@ -58,9 +58,9 @@ public class EventImporterUserService
         return CurrentUserService.getCurrentUsername();
     }
 
-    public User getCurrentUser()
-    {
-        return CurrentUserService.getCurrentUser();
-    }
+//    public User getCurrentUser()
+//    {
+//        return currentUserService.getCurrentUser();
+//    }
 
 }

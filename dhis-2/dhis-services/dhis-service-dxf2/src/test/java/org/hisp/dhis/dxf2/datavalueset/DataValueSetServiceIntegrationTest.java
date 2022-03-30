@@ -154,9 +154,10 @@ class DataValueSetServiceIntegrationTest extends DhisTest
         idObjectManager.save( ouC );
         user = createAndInjectAdminUser();
         user.setOrganisationUnits( Sets.newHashSet( ouA, ouB, ouC ) );
-        CurrentUserService currentUserService = new MockCurrentUserService( user );
-        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
-            currentUserService, dataValueSetService );
+        injectSecurityContext( user );
+//        CurrentUserService currentUserService = new MockCurrentUserService( user );
+//        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
+//            currentUserService, dataValueSetService );
     }
 
     // -------------------------------------------------------------------------

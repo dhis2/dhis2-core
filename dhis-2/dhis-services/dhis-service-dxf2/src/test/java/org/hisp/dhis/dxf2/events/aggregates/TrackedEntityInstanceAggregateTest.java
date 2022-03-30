@@ -109,7 +109,8 @@ class TrackedEntityInstanceAggregateTest extends TrackerTest
         user.addOrganisationUnit( organisationUnitA );
         userService.updateUser( user );
         makeUserSuper( user );
-        currentUserService = new MockCurrentUserService( user );
+        injectSecurityContext( user );
+//        currentUserService = new MockCurrentUserService( user );
         ReflectionTestUtils.setField( trackedEntityInstanceAggregate, "currentUserService", currentUserService );
         ReflectionTestUtils.setField( trackedEntityInstanceService, "currentUserService", currentUserService );
         ReflectionTestUtils.setField( teiService, "currentUserService", currentUserService );

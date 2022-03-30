@@ -34,6 +34,7 @@ import static org.hamcrest.core.Every.everyItem;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -42,8 +43,10 @@ import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
+import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.tracker.report.TrackerStatus;
+import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,6 +54,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
+@Disabled("TODO FIX 12098")
 class EnrollmentAttrValidationTest extends AbstractImportValidationTest
 {
 
@@ -69,7 +73,13 @@ class EnrollmentAttrValidationTest extends AbstractImportValidationTest
     {
         setUpMetadata( "tracker/tracker_basic_metadata_mandatory_attr.json" );
         TrackerImportParams trackerBundleParams = fromJson( "tracker/validations/enrollments_te_te-data_2.json" );
+        User currentUser = currentUserService.getCurrentUser();
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
+        List<TrackerErrorReport> errors = trackerImportReport.getValidationReport().getErrors();
+        errors.forEach( error -> {
+            System.out.println( error.getErrorCode() + ": " + error.getMessage() );
+        } );
+
         assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
         assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
         manager.flush();

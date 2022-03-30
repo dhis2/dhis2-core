@@ -320,9 +320,10 @@ class AdxDataServiceIntegrationTest extends DhisTest
         user = createAndInjectAdminUser();
         user.setOrganisationUnits( Sets.newHashSet( ouA, ouB ) );
         userService.addUser( user );
-        CurrentUserService currentUserService = new MockCurrentUserService( user );
-        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
-            currentUserService, dataValueSetService, organisationUnitService );
+        injectSecurityContext( user );
+//        CurrentUserService currentUserService = new MockCurrentUserService( user );
+//        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
+//            currentUserService, dataValueSetService, organisationUnitService );
     }
 
     // --------------------------------------------------------------------------
