@@ -48,9 +48,8 @@ import org.springframework.stereotype.Component;
  * @author aamerm
  */
 @Slf4j
+@Component
 @AllArgsConstructor
-@Component( "metadataSyncPostProcessor" )
-@Scope( "prototype" )
 public class MetadataSyncPostProcessor
 {
     private final EmailService emailService;

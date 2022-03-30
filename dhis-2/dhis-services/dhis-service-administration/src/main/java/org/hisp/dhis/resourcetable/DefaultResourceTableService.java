@@ -77,7 +77,7 @@ import com.google.common.collect.Lists;
  * @author Lars Helge Overland
  */
 @Slf4j
-@Service( "org.hisp.dhis.resourcetable.ResourceTableService" )
+@Service
 @AllArgsConstructor
 public class DefaultResourceTableService
     implements ResourceTableService
@@ -196,7 +196,7 @@ public class DefaultResourceTableService
         List<OrganisationUnitLevel> orgUnitLevels = Lists.newArrayList(
             dataApprovalLevelService.getOrganisationUnitApprovalLevels() );
 
-        if ( orgUnitLevels.size() > 0 )
+        if ( !orgUnitLevels.isEmpty() )
         {
             resourceTableStore.generateResourceTable( new DataApprovalMinLevelResourceTable( orgUnitLevels ) );
         }

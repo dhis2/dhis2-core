@@ -33,6 +33,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
@@ -65,7 +66,8 @@ import org.springframework.stereotype.Component;
  * @author David Katuscak <katuscak.d@gmail.com>
  */
 @Slf4j
-@Component( "metadataSyncJob" )
+@Component
+@AllArgsConstructor
 public class MetadataSyncJob extends SynchronizationJob
 {
     public static final String VERSION_KEY = "version";
@@ -100,33 +102,6 @@ public class MetadataSyncJob extends SynchronizationJob
     private final MetadataSyncService metadataSyncService;
 
     private final MetadataRetryContext metadataRetryContext;
-
-    // -------------------------------------------------------------------------
-    // Implementation
-    // -------------------------------------------------------------------------
-
-    public MetadataSyncJob( SystemSettingManager systemSettingManager, RetryTemplate retryTemplate,
-        SynchronizationManager synchronizationManager, MetadataSyncPreProcessor metadataSyncPreProcessor,
-        MetadataSyncPostProcessor metadataSyncPostProcessor, MetadataSyncService metadataSyncService,
-        MetadataRetryContext metadataRetryContext )
-    {
-
-        checkNotNull( systemSettingManager );
-        checkNotNull( retryTemplate );
-        checkNotNull( synchronizationManager );
-        checkNotNull( metadataSyncPreProcessor );
-        checkNotNull( metadataSyncPostProcessor );
-        checkNotNull( metadataSyncService );
-        checkNotNull( metadataRetryContext );
-
-        this.systemSettingManager = systemSettingManager;
-        this.retryTemplate = retryTemplate;
-        this.synchronizationManager = synchronizationManager;
-        this.metadataSyncPreProcessor = metadataSyncPreProcessor;
-        this.metadataSyncPostProcessor = metadataSyncPostProcessor;
-        this.metadataSyncService = metadataSyncService;
-        this.metadataRetryContext = metadataRetryContext;
-    }
 
     @Override
     public JobType getJobType()

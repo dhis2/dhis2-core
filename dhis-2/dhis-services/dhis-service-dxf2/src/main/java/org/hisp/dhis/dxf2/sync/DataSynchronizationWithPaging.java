@@ -27,26 +27,35 @@
  */
 package org.hisp.dhis.dxf2.sync;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import org.hisp.dhis.dxf2.synch.SystemInstance;
 import org.hisp.dhis.system.util.Clock;
 
 /**
  * @author David Katuscak <katuscak.d@gmail.com>
  */
-public abstract class DataSynchronizationWithPaging
+public interface DataSynchronizationWithPaging
 {
-    protected boolean syncResult = false;
 
-    protected Clock clock;
+    @Getter
+    @RequiredArgsConstructor
+    class SynchronisationState {
+        private final Clock clock;
 
-    protected int objectsToSynchronize;
+        private final int objectsToSynchronize;
 
-    protected SystemInstance instance;
+        private final SystemInstance instance;
 
-    protected int pages;
+        private final int pages;
 
-    public abstract SynchronizationResult synchronizeData( final int pageSize );
+        private final int pageSize;
+    }
 
+    SynchronizationResult synchronizeData( final int pageSize );
+
+    /*
     protected void runSyncWithPaging( int pageSize )
     {
         syncResult = true;
@@ -57,5 +66,8 @@ public abstract class DataSynchronizationWithPaging
         }
     }
 
-    protected abstract void synchronizePage( int page, int pageSize );
+    void synchronizePage( int page, int pageSize );
+
+    */
+
 }

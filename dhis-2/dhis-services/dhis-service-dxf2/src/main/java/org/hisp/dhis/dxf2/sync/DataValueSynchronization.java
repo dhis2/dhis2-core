@@ -50,7 +50,7 @@ import org.springframework.web.client.RestTemplate;
  */
 @Slf4j
 @Component
-public class DataValueSynchronization extends DataSynchronizationWithPaging
+public class DataValueSynchronization implements DataSynchronizationWithPaging
 {
     private final DataValueService dataValueService;
 

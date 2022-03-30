@@ -56,7 +56,7 @@ import org.springframework.web.client.RestTemplate;
  */
 @Slf4j
 @Component
-public class EventSynchronization extends DataSynchronizationWithPaging
+public class EventSynchronization implements DataSynchronizationWithPaging
 {
     private final EventService eventService;
 
