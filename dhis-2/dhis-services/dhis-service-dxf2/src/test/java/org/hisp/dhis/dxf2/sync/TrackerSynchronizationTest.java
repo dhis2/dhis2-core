@@ -213,9 +213,7 @@ class TrackerSynchronizationTest extends DhisSpringTest
         queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setIncludeDeleted( true );
         queryParams.setSynchronizationQuery( true );
-        params = new TrackedEntityInstanceParams();
-        params.setDataSynchronizationQuery( true );
-        params.setIncludeDeleted( true );
+        params = new TrackedEntityInstanceParams( false, false, false, false, true, true );
     }
 
     @Test
