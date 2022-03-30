@@ -130,12 +130,13 @@ class TrackerPreheatServiceIntegrationTest extends TransactionalIntegrationTest
             .build();
 
         TrackerImportParams params = TrackerImportParams.builder()
-            .user(currentUser)
+            .user( currentUser )
             .trackedEntities( Lists.newArrayList( teA ) )
             .enrollments( Lists.newArrayList( enrollmentA ) )
-            .identifiers( TrackerIdentifierParams.builder().idScheme( TrackerIdentifierParam.UID )
+            .identifiers( TrackerIdentifierParams.builder()
+                .idScheme( TrackerIdentifierParam.UID )
                 .orgUnitIdScheme( TrackerIdentifierParam.CODE )
-                .programIdScheme( TrackerIdentifierParam.builder().idScheme( TrackerIdScheme.ATTRIBUTE ).value( ATTRIBUTE_UID ) .build() )
+                .programIdScheme( TrackerIdentifierParam.of( TrackerIdScheme.ATTRIBUTE, ATTRIBUTE_UID ) )
                 .build() )
             .build();
 
