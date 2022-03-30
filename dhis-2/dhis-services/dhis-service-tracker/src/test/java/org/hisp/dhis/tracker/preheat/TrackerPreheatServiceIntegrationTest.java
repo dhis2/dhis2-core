@@ -136,8 +136,8 @@ class TrackerPreheatServiceIntegrationTest extends TransactionalIntegrationTest
             .identifiers( TrackerIdentifierParams.builder()
                 .idScheme( TrackerIdentifier.UID )
                 .orgUnitIdScheme( TrackerIdentifier.CODE )
-                .programIdScheme(
-                    TrackerIdentifier.builder().idScheme( TrackerIdScheme.ATTRIBUTE ).value( ATTRIBUTE_UID ).build() )
+                    .programIdScheme(
+                            TrackerIdentifier.builder().idScheme( TrackerIdScheme.ATTRIBUTE ).value( ATTRIBUTE_UID ).build() )
                 .build() )
             .build();
 
