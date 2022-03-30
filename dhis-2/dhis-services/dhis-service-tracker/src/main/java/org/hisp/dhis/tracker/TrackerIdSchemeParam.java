@@ -42,13 +42,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Value
 @Builder
 @AllArgsConstructor( staticName = "of" )
-public class TrackerIdentifierParam
+public class TrackerIdSchemeParam
 {
-    public final static TrackerIdentifierParam UID = builder().idScheme( TrackerIdScheme.UID ).build();
+    public final static TrackerIdSchemeParam UID = builder().idScheme( TrackerIdScheme.UID ).build();
 
-    public final static TrackerIdentifierParam CODE = builder().idScheme( TrackerIdScheme.CODE ).build();
+    public final static TrackerIdSchemeParam CODE = builder().idScheme( TrackerIdScheme.CODE ).build();
 
-    public final static TrackerIdentifierParam NAME = builder().idScheme( TrackerIdScheme.NAME ).build();
+    public final static TrackerIdSchemeParam NAME = builder().idScheme( TrackerIdScheme.NAME ).build();
 
     @JsonProperty
     @Builder.Default
@@ -64,9 +64,9 @@ public class TrackerIdentifierParam
      * @param value the attribute value
      * @return tracker identifier representing an attribute
      */
-    public static TrackerIdentifierParam ofAttribute( String value )
+    public static TrackerIdSchemeParam ofAttribute( String value )
     {
-        return new TrackerIdentifierParam( TrackerIdScheme.ATTRIBUTE, value );
+        return new TrackerIdSchemeParam( TrackerIdScheme.ATTRIBUTE, value );
     }
 
     public <T extends IdentifiableObject> String getIdentifier( T object )

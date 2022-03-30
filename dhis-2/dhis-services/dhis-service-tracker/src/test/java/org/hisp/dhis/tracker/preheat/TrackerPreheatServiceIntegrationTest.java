@@ -42,8 +42,8 @@ import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.tracker.TrackerIdScheme;
-import org.hisp.dhis.tracker.TrackerIdentifierParam;
-import org.hisp.dhis.tracker.TrackerIdentifierParams;
+import org.hisp.dhis.tracker.TrackerIdSchemeParam;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
@@ -133,10 +133,10 @@ class TrackerPreheatServiceIntegrationTest extends TransactionalIntegrationTest
             .user( currentUser )
             .trackedEntities( Lists.newArrayList( teA ) )
             .enrollments( Lists.newArrayList( enrollmentA ) )
-            .identifiers( TrackerIdentifierParams.builder()
-                .idScheme( TrackerIdentifierParam.UID )
-                .orgUnitIdScheme( TrackerIdentifierParam.CODE )
-                .programIdScheme( TrackerIdentifierParam.of( TrackerIdScheme.ATTRIBUTE, ATTRIBUTE_UID ) )
+            .identifiers( TrackerIdSchemeParams.builder()
+                .idScheme( TrackerIdSchemeParam.UID )
+                .orgUnitIdScheme( TrackerIdSchemeParam.CODE )
+                .programIdScheme( TrackerIdSchemeParam.of( TrackerIdScheme.ATTRIBUTE, ATTRIBUTE_UID ) )
                 .build() )
             .build();
 

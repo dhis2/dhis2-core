@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.tracker.TrackerIdentifierParam;
+import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
@@ -56,12 +56,12 @@ class TrackerReportUtils
 
     protected static List<String> buildArgumentList( TrackerBundle bundle, List<Object> arguments )
     {
-        final TrackerIdentifierParam identifier = TrackerIdentifierParam.builder().idScheme( bundle.getIdentifier() )
+        final TrackerIdSchemeParam identifier = TrackerIdSchemeParam.builder().idScheme( bundle.getIdentifier() )
             .build();
         return arguments.stream().map( arg -> parseArgs( identifier, arg ) ).collect( Collectors.toList() );
     }
 
-    private static String parseArgs( TrackerIdentifierParam identifier, Object argument )
+    private static String parseArgs( TrackerIdSchemeParam identifier, Object argument )
     {
         if ( String.class.isAssignableFrom( ObjectUtils.firstNonNull( argument, "NULL" ).getClass() ) )
         {

@@ -44,35 +44,35 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TrackerIdentifierParams
+public class TrackerIdSchemeParams
 {
     /**
      * Specific identifier to match data elements on.
      */
     @JsonProperty
     @Builder.Default
-    private TrackerIdentifierParam dataElementIdScheme = TrackerIdentifierParam.UID;
+    private TrackerIdSchemeParam dataElementIdScheme = TrackerIdSchemeParam.UID;
 
     /**
      * Specific identifier to match organisation units on.
      */
     @JsonProperty
     @Builder.Default
-    private TrackerIdentifierParam orgUnitIdScheme = TrackerIdentifierParam.UID;
+    private TrackerIdSchemeParam orgUnitIdScheme = TrackerIdSchemeParam.UID;
 
     /**
      * Specific identifier to match program on.
      */
     @JsonProperty
     @Builder.Default
-    private TrackerIdentifierParam programIdScheme = TrackerIdentifierParam.UID;
+    private TrackerIdSchemeParam programIdScheme = TrackerIdSchemeParam.UID;
 
     /**
      * Specific identifier to match program stage on.
      */
     @JsonProperty
     @Builder.Default
-    private TrackerIdentifierParam programStageIdScheme = TrackerIdentifierParam.UID;
+    private TrackerIdSchemeParam programStageIdScheme = TrackerIdSchemeParam.UID;
 
     /**
      * Specific identifier to match all metadata on. Will be overridden by
@@ -80,23 +80,23 @@ public class TrackerIdentifierParams
      */
     @JsonProperty
     @Builder.Default
-    private TrackerIdentifierParam idScheme = TrackerIdentifierParam.UID;
+    private TrackerIdSchemeParam idScheme = TrackerIdSchemeParam.UID;
 
     /**
      * Specific identifier to match category option combo on.
      */
     @JsonProperty
     @Builder.Default
-    private TrackerIdentifierParam categoryOptionComboIdScheme = TrackerIdentifierParam.UID;
+    private TrackerIdSchemeParam categoryOptionComboIdScheme = TrackerIdSchemeParam.UID;
 
     /**
      * Specific identifier to match category option on.
      */
     @JsonProperty
     @Builder.Default
-    private TrackerIdentifierParam categoryOptionIdScheme = TrackerIdentifierParam.UID;
+    private TrackerIdSchemeParam categoryOptionIdScheme = TrackerIdSchemeParam.UID;
 
-    public TrackerIdentifierParam getByClass( Class<?> klazz )
+    public TrackerIdSchemeParam getByClass( Class<?> klazz )
     {
         switch ( klazz.getSimpleName() )
         {

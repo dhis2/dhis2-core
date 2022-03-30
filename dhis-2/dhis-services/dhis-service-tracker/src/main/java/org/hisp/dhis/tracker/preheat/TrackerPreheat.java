@@ -70,8 +70,8 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
-import org.hisp.dhis.tracker.TrackerIdentifierParam;
-import org.hisp.dhis.tracker.TrackerIdentifierParams;
+import org.hisp.dhis.tracker.TrackerIdSchemeParam;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
@@ -159,7 +159,7 @@ public class TrackerPreheat
     {
         if ( categoryOptionCombo != null )
         {
-            TrackerIdentifierParam optionComboIdScheme = getIdentifiers().getCategoryOptionComboIdScheme();
+            TrackerIdSchemeParam optionComboIdScheme = getIdentifiers().getCategoryOptionComboIdScheme();
             this.cosToCOC.put( categoryOptionComboCacheKey( categoryCombo, categoryOptions ),
                 optionComboIdScheme.getIdentifier( categoryOptionCombo ) );
             this.put( optionComboIdScheme, categoryOptionCombo );
@@ -347,7 +347,7 @@ public class TrackerPreheat
      */
     @Getter
     @Setter
-    private TrackerIdentifierParams identifiers = new TrackerIdentifierParams();
+    private TrackerIdSchemeParams identifiers = new TrackerIdSchemeParams();
 
     /**
      * Map of Program ID (primary key) and List of Org Unit ID associated to
@@ -422,7 +422,7 @@ public class TrackerPreheat
     }
 
     @SuppressWarnings( "unchecked" )
-    public <T extends IdentifiableObject> TrackerPreheat put( TrackerIdentifierParam identifier, T object )
+    public <T extends IdentifiableObject> TrackerPreheat put( TrackerIdSchemeParam identifier, T object )
     {
         if ( object == null )
         {
@@ -452,7 +452,7 @@ public class TrackerPreheat
         return this;
     }
 
-    public <T extends IdentifiableObject> TrackerPreheat put( TrackerIdentifierParam identifier, Collection<T> objects )
+    public <T extends IdentifiableObject> TrackerPreheat put( TrackerIdSchemeParam identifier, Collection<T> objects )
     {
         for ( T object : objects )
         {

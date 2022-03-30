@@ -59,8 +59,8 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.tracker.AtomicMode;
 import org.hisp.dhis.tracker.FlushMode;
 import org.hisp.dhis.tracker.TrackerIdScheme;
-import org.hisp.dhis.tracker.TrackerIdentifierParam;
-import org.hisp.dhis.tracker.TrackerIdentifierParams;
+import org.hisp.dhis.tracker.TrackerIdSchemeParam;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.ValidationMode;
@@ -115,11 +115,11 @@ public class TrackerImportParamsBuilder
         return Enums.getIfPresent( enumKlass, value ).or( defaultValue );
     }
 
-    private static TrackerIdentifierParams getTrackerIdentifiers( Map<String, List<String>> parameters )
+    private static TrackerIdSchemeParams getTrackerIdentifiers( Map<String, List<String>> parameters )
     {
         TrackerIdScheme idScheme = getEnumWithDefault( TrackerIdScheme.class, parameters, ID_SCHEME_KEY, UID );
 
-        return TrackerIdentifierParams.builder()
+        return TrackerIdSchemeParams.builder()
             .idScheme( bySchemeAndKey( parameters, ID_SCHEME_KEY, idScheme ) )
             .orgUnitIdScheme( bySchemeAndKey( parameters, ORG_UNIT_ID_SCHEME_KEY, idScheme ) )
             .programIdScheme( bySchemeAndKey( parameters, PROGRAM_ID_SCHEME_KEY, idScheme ) )
@@ -172,7 +172,7 @@ public class TrackerImportParamsBuilder
         return null;
     }
 
-    private static TrackerIdentifierParam bySchemeAndKey( Map<String, List<String>> parameters,
+    private static TrackerIdSchemeParam bySchemeAndKey( Map<String, List<String>> parameters,
         TrackerImportParamKey trackerImportParameterKey,
         TrackerIdScheme defaultIdScheme )
     {
@@ -180,7 +180,7 @@ public class TrackerImportParamsBuilder
         TrackerIdScheme trackerIdScheme = getEnumWithDefault( TrackerIdScheme.class, parameters,
             trackerImportParameterKey, defaultIdScheme );
 
-        return TrackerIdentifierParam.of( trackerIdScheme,
+        return TrackerIdSchemeParam.of( trackerIdScheme,
             getAttributeUidOrNull( parameters, trackerImportParameterKey ) );
     }
 

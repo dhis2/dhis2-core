@@ -79,7 +79,7 @@ public class TrackerImportParams
      */
     @JsonProperty
     @Builder.Default
-    private TrackerIdentifierParams identifiers = new TrackerIdentifierParams();
+    private TrackerIdSchemeParams identifiers = new TrackerIdSchemeParams();
 
     /**
      * Sets import strategy (create, update, etc).

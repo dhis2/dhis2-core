@@ -42,7 +42,7 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceStore;
 import org.hisp.dhis.program.ProgramStore;
 import org.hisp.dhis.random.BeanRandomizer;
-import org.hisp.dhis.tracker.TrackerIdentifierParam;
+import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.junit.jupiter.api.BeforeEach;
@@ -109,7 +109,7 @@ class ProgramInstanceSupplierTest extends DhisConvenienceTest
     {
         // given
         TrackerPreheat preheat = new TrackerPreheat();
-        preheat.put( TrackerIdentifierParam.UID, programWithRegistration );
+        preheat.put( TrackerIdSchemeParam.UID, programWithRegistration );
 
         // when
         this.supplier.preheatAdd( params, preheat );
@@ -150,7 +150,7 @@ class ProgramInstanceSupplierTest extends DhisConvenienceTest
     {
         // given
         TrackerPreheat preheat = new TrackerPreheat();
-        preheat.put( TrackerIdentifierParam.UID,
+        preheat.put( TrackerIdSchemeParam.UID,
             Lists.newArrayList( programWithRegistration, programWithoutRegistration ) );
 
         // when

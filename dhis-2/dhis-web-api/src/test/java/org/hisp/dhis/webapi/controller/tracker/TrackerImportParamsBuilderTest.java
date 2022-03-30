@@ -45,8 +45,8 @@ import java.util.Map;
 import org.hisp.dhis.tracker.AtomicMode;
 import org.hisp.dhis.tracker.FlushMode;
 import org.hisp.dhis.tracker.TrackerIdScheme;
-import org.hisp.dhis.tracker.TrackerIdentifierParam;
-import org.hisp.dhis.tracker.TrackerIdentifierParams;
+import org.hisp.dhis.tracker.TrackerIdSchemeParam;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.ValidationMode;
@@ -231,13 +231,13 @@ class TrackerImportParamsBuilderTest
         assertThat( params.getImportStrategy(), is( TrackerImportStrategy.CREATE_AND_UPDATE ) );
         assertThat( params.getAtomicMode(), is( AtomicMode.ALL ) );
         assertThat( params.getFlushMode(), is( FlushMode.AUTO ) );
-        TrackerIdentifierParams identifiers = params.getIdentifiers();
-        assertThat( identifiers.getOrgUnitIdScheme(), is( TrackerIdentifierParam.UID ) );
-        assertThat( identifiers.getProgramIdScheme(), is( TrackerIdentifierParam.UID ) );
-        assertThat( identifiers.getCategoryOptionComboIdScheme(), is( TrackerIdentifierParam.UID ) );
-        assertThat( identifiers.getCategoryOptionIdScheme(), is( TrackerIdentifierParam.UID ) );
-        assertThat( identifiers.getDataElementIdScheme(), is( TrackerIdentifierParam.UID ) );
-        assertThat( identifiers.getProgramStageIdScheme(), is( TrackerIdentifierParam.UID ) );
-        assertThat( identifiers.getIdScheme(), is( TrackerIdentifierParam.UID ) );
+        TrackerIdSchemeParams identifiers = params.getIdentifiers();
+        assertThat( identifiers.getOrgUnitIdScheme(), is( TrackerIdSchemeParam.UID ) );
+        assertThat( identifiers.getProgramIdScheme(), is( TrackerIdSchemeParam.UID ) );
+        assertThat( identifiers.getCategoryOptionComboIdScheme(), is( TrackerIdSchemeParam.UID ) );
+        assertThat( identifiers.getCategoryOptionIdScheme(), is( TrackerIdSchemeParam.UID ) );
+        assertThat( identifiers.getDataElementIdScheme(), is( TrackerIdSchemeParam.UID ) );
+        assertThat( identifiers.getProgramStageIdScheme(), is( TrackerIdSchemeParam.UID ) );
+        assertThat( identifiers.getIdScheme(), is( TrackerIdSchemeParam.UID ) );
     }
 }

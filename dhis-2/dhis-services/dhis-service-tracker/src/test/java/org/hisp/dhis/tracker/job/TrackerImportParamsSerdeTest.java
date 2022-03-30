@@ -37,8 +37,8 @@ import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.tracker.AtomicMode;
 import org.hisp.dhis.tracker.FlushMode;
 import org.hisp.dhis.tracker.TrackerIdScheme;
-import org.hisp.dhis.tracker.TrackerIdentifierParam;
-import org.hisp.dhis.tracker.TrackerIdentifierParams;
+import org.hisp.dhis.tracker.TrackerIdSchemeParam;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.TrackerTest;
@@ -67,10 +67,10 @@ class TrackerImportParamsSerdeTest extends TrackerTest
     void testJsonSerialization()
         throws Exception
     {
-        TrackerIdentifierParams identifierParams = TrackerIdentifierParams.builder()
-            .idScheme( TrackerIdentifierParam.CODE )
+        TrackerIdSchemeParams identifierParams = TrackerIdSchemeParams.builder()
+            .idScheme( TrackerIdSchemeParam.CODE )
             .programIdScheme(
-                TrackerIdentifierParam.builder().idScheme( TrackerIdScheme.ATTRIBUTE ).value( "aaaa" ).build() )
+                TrackerIdSchemeParam.builder().idScheme( TrackerIdScheme.ATTRIBUTE ).value( "aaaa" ).build() )
             .build();
         TrackerImportParams trackerImportParams = TrackerImportParams.builder().identifiers( identifierParams )
             .atomicMode( AtomicMode.OBJECT ).flushMode( FlushMode.OBJECT ).skipRuleEngine( true )
@@ -115,8 +115,8 @@ class TrackerImportParamsSerdeTest extends TrackerTest
         assertThat( trackerImportParams.isSkipSideEffects(), is( true ) );
         assertThat( trackerImportParams.isSkipRuleEngine(), is( true ) );
         assertThat( trackerImportParams.getUser(), is( nullValue() ) );
-        TrackerIdentifierParams identifiers = trackerImportParams.getIdentifiers();
-        assertThat( identifiers.getIdScheme(), is( TrackerIdentifierParam.CODE ) );
+        TrackerIdSchemeParams identifiers = trackerImportParams.getIdentifiers();
+        assertThat( identifiers.getIdScheme(), is( TrackerIdSchemeParam.CODE ) );
         assertThat( identifiers.getProgramIdScheme().getIdScheme(), is( TrackerIdScheme.ATTRIBUTE ) );
         assertThat( identifiers.getProgramIdScheme().getValue(), is( "aaaa" ) );
     }
