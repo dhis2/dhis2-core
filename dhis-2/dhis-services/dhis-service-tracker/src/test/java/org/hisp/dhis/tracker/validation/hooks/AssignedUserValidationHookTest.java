@@ -36,7 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.TrackerIdentifierParam;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
@@ -88,7 +88,7 @@ class AssignedUserValidationHookTest extends DhisConvenienceTest
         programStage = new ProgramStage();
         programStage.setUid( PROGRAM_STAGE );
         programStage.setEnableUserAssignment( true );
-        preheat.put( TrackerIdentifier.UID, programStage );
+        preheat.put( TrackerIdentifierParam.UID, programStage );
     }
 
     @Test
@@ -171,7 +171,7 @@ class AssignedUserValidationHookTest extends DhisConvenienceTest
 
         // when
         TrackerPreheat preheat = new TrackerPreheat();
-        preheat.put( TrackerIdentifier.UID, programStage );
+        preheat.put( TrackerIdentifierParam.UID, programStage );
         bundle = TrackerBundle.builder().preheat( preheat ).build();
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 

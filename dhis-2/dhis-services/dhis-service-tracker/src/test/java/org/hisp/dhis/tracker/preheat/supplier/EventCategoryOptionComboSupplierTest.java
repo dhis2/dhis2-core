@@ -50,7 +50,7 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.TrackerIdentifierParam;
 import org.hisp.dhis.tracker.TrackerIdentifierParams;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.domain.Event;
@@ -83,8 +83,8 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
     {
 
         TrackerIdentifierParams identifierParams = TrackerIdentifierParams.builder()
-            .categoryOptionComboIdScheme( TrackerIdentifier.CODE )
-            .categoryOptionIdScheme( TrackerIdentifier.UID )
+            .categoryOptionComboIdScheme( TrackerIdentifierParam.CODE )
+            .categoryOptionIdScheme( TrackerIdentifierParam.UID )
             .build();
 
         Program program = createProgram( 'A' );
@@ -122,10 +122,10 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
     {
 
         TrackerIdentifierParams identifierParams = TrackerIdentifierParams.builder()
-            .programIdScheme( TrackerIdentifier.CODE )
-            .programStageIdScheme( TrackerIdentifier.CODE )
-            .categoryOptionComboIdScheme( TrackerIdentifier.CODE )
-            .categoryOptionIdScheme( TrackerIdentifier.UID )
+            .programIdScheme( TrackerIdentifierParam.CODE )
+            .programStageIdScheme( TrackerIdentifierParam.CODE )
+            .categoryOptionComboIdScheme( TrackerIdentifierParam.CODE )
+            .categoryOptionIdScheme( TrackerIdentifierParam.UID )
             .build();
 
         Program program = createProgram( 'A' );
@@ -166,8 +166,8 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
     {
 
         TrackerIdentifierParams identifierParams = TrackerIdentifierParams.builder()
-            .categoryOptionComboIdScheme( TrackerIdentifier.CODE )
-            .categoryOptionIdScheme( TrackerIdentifier.UID )
+            .categoryOptionComboIdScheme( TrackerIdentifierParam.CODE )
+            .categoryOptionIdScheme( TrackerIdentifierParam.UID )
             .build();
 
         Program program = createProgram( 'A' );
@@ -208,8 +208,8 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
     {
 
         TrackerIdentifierParams identifierParams = TrackerIdentifierParams.builder()
-            .categoryOptionComboIdScheme( TrackerIdentifier.CODE )
-            .categoryOptionIdScheme( TrackerIdentifier.UID )
+            .categoryOptionComboIdScheme( TrackerIdentifierParam.CODE )
+            .categoryOptionIdScheme( TrackerIdentifierParam.UID )
             .build();
 
         Program program = createProgram( 'A' );
@@ -249,8 +249,8 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
     void shouldNotPreheatEventAOCIfNotProvidedAndCONotFound()
     {
         TrackerIdentifierParams identifierParams = TrackerIdentifierParams.builder()
-            .categoryOptionComboIdScheme( TrackerIdentifier.CODE )
-            .categoryOptionIdScheme( TrackerIdentifier.UID )
+            .categoryOptionComboIdScheme( TrackerIdentifierParam.CODE )
+            .categoryOptionIdScheme( TrackerIdentifierParam.UID )
             .build();
 
         Program program = createProgram( 'A' );
@@ -284,8 +284,8 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
     {
 
         TrackerIdentifierParams identifierParams = TrackerIdentifierParams.builder()
-            .categoryOptionComboIdScheme( TrackerIdentifier.CODE )
-            .categoryOptionIdScheme( TrackerIdentifier.UID )
+            .categoryOptionComboIdScheme( TrackerIdentifierParam.CODE )
+            .categoryOptionIdScheme( TrackerIdentifierParam.UID )
             .build();
 
         CategoryCombo categoryCombo = categoryCombo();
@@ -313,10 +313,10 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
     {
 
         TrackerIdentifierParams identifierParams = TrackerIdentifierParams.builder()
-            .programIdScheme( TrackerIdentifier.CODE )
-            .programStageIdScheme( TrackerIdentifier.CODE )
-            .categoryOptionComboIdScheme( TrackerIdentifier.CODE )
-            .categoryOptionIdScheme( TrackerIdentifier.UID )
+            .programIdScheme( TrackerIdentifierParam.CODE )
+            .programStageIdScheme( TrackerIdentifierParam.CODE )
+            .categoryOptionComboIdScheme( TrackerIdentifierParam.CODE )
+            .categoryOptionIdScheme( TrackerIdentifierParam.UID )
             .build();
 
         CategoryCombo categoryCombo = categoryCombo();
@@ -347,10 +347,10 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
     {
 
         TrackerIdentifierParams identifierParams = TrackerIdentifierParams.builder()
-            .programIdScheme( TrackerIdentifier.CODE )
-            .programStageIdScheme( TrackerIdentifier.CODE )
-            .categoryOptionComboIdScheme( TrackerIdentifier.CODE )
-            .categoryOptionIdScheme( TrackerIdentifier.UID )
+            .programIdScheme( TrackerIdentifierParam.CODE )
+            .programStageIdScheme( TrackerIdentifierParam.CODE )
+            .categoryOptionComboIdScheme( TrackerIdentifierParam.CODE )
+            .categoryOptionIdScheme( TrackerIdentifierParam.UID )
             .build();
 
         ProgramStage stage = createProgramStage( 'A', (Program) null );
@@ -385,8 +385,8 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
     {
 
         TrackerIdentifierParams identifierParams = TrackerIdentifierParams.builder()
-            .categoryOptionComboIdScheme( TrackerIdentifier.CODE )
-            .categoryOptionIdScheme( TrackerIdentifier.UID )
+            .categoryOptionComboIdScheme( TrackerIdentifierParam.CODE )
+            .categoryOptionIdScheme( TrackerIdentifierParam.UID )
             .build();
 
         Program program = createProgram( 'A' );
@@ -419,8 +419,8 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
     {
 
         TrackerIdentifierParams identifierParams = TrackerIdentifierParams.builder()
-            .categoryOptionComboIdScheme( TrackerIdentifier.CODE )
-            .categoryOptionIdScheme( TrackerIdentifier.UID )
+            .categoryOptionComboIdScheme( TrackerIdentifierParam.CODE )
+            .categoryOptionIdScheme( TrackerIdentifierParam.UID )
             .build();
 
         Program program = createProgram( 'A' );
@@ -452,8 +452,8 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
     {
 
         TrackerIdentifierParams identifierParams = TrackerIdentifierParams.builder()
-            .categoryOptionComboIdScheme( TrackerIdentifier.CODE )
-            .categoryOptionIdScheme( TrackerIdentifier.UID )
+            .categoryOptionComboIdScheme( TrackerIdentifierParam.CODE )
+            .categoryOptionIdScheme( TrackerIdentifierParam.UID )
             .build();
 
         Program program = createProgram( 'A' );
@@ -477,7 +477,7 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
         verify( preheat, times( 0 ) ).putCategoryOptionCombo( any(), any(), any() );
     }
 
-    private String concatCategoryOptions( TrackerIdentifier identifier, Set<CategoryOption> options )
+    private String concatCategoryOptions( TrackerIdentifierParam identifier, Set<CategoryOption> options )
     {
         return options.stream()
             .map( identifier::getIdentifier )

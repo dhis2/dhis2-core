@@ -41,7 +41,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.TrackerIdentifierParam;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.DataValue;
@@ -85,7 +85,7 @@ public class FileResourceSupplier extends AbstractPreheatSupplier
             .forEach( en -> collectResourceIds( fileResourceDataElements, fileResourceIds, en.getDataValues() ) );
 
         List<FileResource> fileResources = fileResourceService.getFileResources( fileResourceIds );
-        preheat.put( TrackerIdentifier.UID, fileResources );
+        preheat.put( TrackerIdentifierParam.UID, fileResources );
     }
 
     private void collectResourceIds( List<String> fileResourceAttributes, List<String> fileResourceIds,

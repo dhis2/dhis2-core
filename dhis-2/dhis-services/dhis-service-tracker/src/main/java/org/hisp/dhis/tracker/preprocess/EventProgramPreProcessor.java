@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
 
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.TrackerIdentifierParam;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
@@ -90,7 +90,7 @@ public class EventProgramPreProcessor
                         return;
                     }
                     event.setProgram( programStage.getProgram().getUid() );
-                    bundle.getPreheat().put( TrackerIdentifier.UID, programStage.getProgram() );
+                    bundle.getPreheat().put( TrackerIdentifierParam.UID, programStage.getProgram() );
                 }
             }
             // If it is a program event, extract program stage from program
@@ -103,7 +103,7 @@ public class EventProgramPreProcessor
                     if ( programStage.isPresent() )
                     {
                         event.setProgramStage( programStage.get().getUid() );
-                        bundle.getPreheat().put( TrackerIdentifier.UID, programStage.get() );
+                        bundle.getPreheat().put( TrackerIdentifierParam.UID, programStage.get() );
                     }
                 }
             }

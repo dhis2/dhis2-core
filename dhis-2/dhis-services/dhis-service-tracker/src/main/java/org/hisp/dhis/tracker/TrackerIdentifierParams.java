@@ -51,28 +51,28 @@ public class TrackerIdentifierParams
      */
     @JsonProperty
     @Builder.Default
-    private TrackerIdentifier dataElementIdScheme = TrackerIdentifier.UID;
+    private TrackerIdentifierParam dataElementIdScheme = TrackerIdentifierParam.UID;
 
     /**
      * Specific identifier to match organisation units on.
      */
     @JsonProperty
     @Builder.Default
-    private TrackerIdentifier orgUnitIdScheme = TrackerIdentifier.UID;
+    private TrackerIdentifierParam orgUnitIdScheme = TrackerIdentifierParam.UID;
 
     /**
      * Specific identifier to match program on.
      */
     @JsonProperty
     @Builder.Default
-    private TrackerIdentifier programIdScheme = TrackerIdentifier.UID;
+    private TrackerIdentifierParam programIdScheme = TrackerIdentifierParam.UID;
 
     /**
      * Specific identifier to match program stage on.
      */
     @JsonProperty
     @Builder.Default
-    private TrackerIdentifier programStageIdScheme = TrackerIdentifier.UID;
+    private TrackerIdentifierParam programStageIdScheme = TrackerIdentifierParam.UID;
 
     /**
      * Specific identifier to match all metadata on. Will be overridden by
@@ -80,23 +80,23 @@ public class TrackerIdentifierParams
      */
     @JsonProperty
     @Builder.Default
-    private TrackerIdentifier idScheme = TrackerIdentifier.UID;
+    private TrackerIdentifierParam idScheme = TrackerIdentifierParam.UID;
 
     /**
      * Specific identifier to match category option combo on.
      */
     @JsonProperty
     @Builder.Default
-    private TrackerIdentifier categoryOptionComboIdScheme = TrackerIdentifier.UID;
+    private TrackerIdentifierParam categoryOptionComboIdScheme = TrackerIdentifierParam.UID;
 
     /**
      * Specific identifier to match category option on.
      */
     @JsonProperty
     @Builder.Default
-    private TrackerIdentifier categoryOptionIdScheme = TrackerIdentifier.UID;
+    private TrackerIdentifierParam categoryOptionIdScheme = TrackerIdentifierParam.UID;
 
-    public TrackerIdentifier getByClass( Class<?> klazz )
+    public TrackerIdentifierParam getByClass( Class<?> klazz )
     {
         switch ( klazz.getSimpleName() )
         {

@@ -40,7 +40,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.TrackerIdentifierParam;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
@@ -74,7 +74,7 @@ public class OrgUnitValueTypeSupplier extends AbstractPreheatSupplier
         params.getEnrollments()
             .forEach( en -> collectResourceIds( orgUnitAttributes, orgUnitIds, en.getAttributes() ) );
 
-        preheat.put( TrackerIdentifier.UID, manager.getByUid( OrganisationUnit.class, orgUnitIds ) );
+        preheat.put( TrackerIdentifierParam.UID, manager.getByUid( OrganisationUnit.class, orgUnitIds ) );
     }
 
     private void collectResourceIds( List<String> orgUnitAttributes, List<String> orgUnitIds,

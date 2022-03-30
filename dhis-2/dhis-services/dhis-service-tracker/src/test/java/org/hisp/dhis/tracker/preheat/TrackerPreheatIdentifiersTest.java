@@ -44,7 +44,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.TrackerIdentifierParam;
 import org.hisp.dhis.tracker.TrackerIdentifierParams;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerTest;
@@ -72,8 +72,8 @@ class TrackerPreheatIdentifiersTest extends TrackerTest
     @Test
     void testOrgUnitIdentifiers()
     {
-        List<Pair<String, TrackerIdentifier>> data = buildDataSet( "PlKwabX2xRW", "COU1", "Country" );
-        for ( Pair<String, TrackerIdentifier> pair : data )
+        List<Pair<String, TrackerIdentifierParam>> data = buildDataSet( "PlKwabX2xRW", "COU1", "Country" );
+        for ( Pair<String, TrackerIdentifierParam> pair : data )
         {
             Event event = new Event();
             event.setOrgUnit( pair.getLeft() );
@@ -86,8 +86,8 @@ class TrackerPreheatIdentifiersTest extends TrackerTest
     @Test
     void testProgramStageIdentifiers()
     {
-        List<Pair<String, TrackerIdentifier>> data = buildDataSet( "NpsdDv6kKSO", "PRGA", "ProgramA" );
-        for ( Pair<String, TrackerIdentifier> pair : data )
+        List<Pair<String, TrackerIdentifierParam>> data = buildDataSet( "NpsdDv6kKSO", "PRGA", "ProgramA" );
+        for ( Pair<String, TrackerIdentifierParam> pair : data )
         {
             Event event = new Event();
             event.setProgramStage( pair.getLeft() );
@@ -101,8 +101,8 @@ class TrackerPreheatIdentifiersTest extends TrackerTest
     @Test
     void testDataElementIdentifiers()
     {
-        List<Pair<String, TrackerIdentifier>> data = buildDataSet( "DSKTW8qFP0z", "DEAGE", "DE Age" );
-        for ( Pair<String, TrackerIdentifier> pair : data )
+        List<Pair<String, TrackerIdentifierParam>> data = buildDataSet( "DSKTW8qFP0z", "DEAGE", "DE Age" );
+        for ( Pair<String, TrackerIdentifierParam> pair : data )
         {
             Event event = new Event();
             event.setProgramStage( "NpsdDv6kKSO" );
@@ -119,8 +119,8 @@ class TrackerPreheatIdentifiersTest extends TrackerTest
     @Test
     void testCategoryOptionIdentifiers()
     {
-        List<Pair<String, TrackerIdentifier>> data = buildDataSet( "XXXrKDKCefk", "COA", "COAname" );
-        for ( Pair<String, TrackerIdentifier> pair : data )
+        List<Pair<String, TrackerIdentifierParam>> data = buildDataSet( "XXXrKDKCefk", "COA", "COAname" );
+        for ( Pair<String, TrackerIdentifierParam> pair : data )
         {
             Event event = new Event();
             event.setAttributeCategoryOptions( pair.getLeft() );
@@ -134,8 +134,8 @@ class TrackerPreheatIdentifiersTest extends TrackerTest
     @Test
     void testCategoryOptionComboIdentifiers()
     {
-        List<Pair<String, TrackerIdentifier>> data = buildDataSet( "XXXvX50cXC0", "COCA", "COCAname" );
-        for ( Pair<String, TrackerIdentifier> pair : data )
+        List<Pair<String, TrackerIdentifierParam>> data = buildDataSet( "XXXvX50cXC0", "COCA", "COCAname" );
+        for ( Pair<String, TrackerIdentifierParam> pair : data )
         {
             Event event = new Event();
             event.setAttributeOptionCombo( pair.getLeft() );
@@ -154,16 +154,16 @@ class TrackerPreheatIdentifiersTest extends TrackerTest
         return params;
     }
 
-    private List<Pair<String, TrackerIdentifier>> buildDataSet( String uid, String code, String name )
+    private List<Pair<String, TrackerIdentifierParam>> buildDataSet( String uid, String code, String name )
     {
-        List<Pair<String, TrackerIdentifier>> data = new ArrayList<>();
-        data.add( ImmutablePair.of( uid, TrackerIdentifier.UID ) );
-        data.add( ImmutablePair.of( code, TrackerIdentifier.CODE ) );
-        data.add( ImmutablePair.of( name, TrackerIdentifier.NAME ) );
+        List<Pair<String, TrackerIdentifierParam>> data = new ArrayList<>();
+        data.add( ImmutablePair.of( uid, TrackerIdentifierParam.UID ) );
+        data.add( ImmutablePair.of( code, TrackerIdentifierParam.CODE ) );
+        data.add( ImmutablePair.of( name, TrackerIdentifierParam.NAME ) );
         return data;
     }
 
-    private void assertPreheatedObjectExists( TrackerPreheat preheat, Class klazz, TrackerIdentifier identifier,
+    private void assertPreheatedObjectExists( TrackerPreheat preheat, Class klazz, TrackerIdentifierParam identifier,
         String id )
     {
         assertThat(

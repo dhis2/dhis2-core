@@ -37,7 +37,7 @@ import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.tracker.AtomicMode;
 import org.hisp.dhis.tracker.FlushMode;
 import org.hisp.dhis.tracker.TrackerIdScheme;
-import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.TrackerIdentifierParam;
 import org.hisp.dhis.tracker.TrackerIdentifierParams;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
@@ -67,9 +67,10 @@ class TrackerImportParamsSerdeTest extends TrackerTest
     void testJsonSerialization()
         throws Exception
     {
-        TrackerIdentifierParams identifierParams = TrackerIdentifierParams.builder().idScheme( TrackerIdentifier.CODE )
+        TrackerIdentifierParams identifierParams = TrackerIdentifierParams.builder()
+            .idScheme( TrackerIdentifierParam.CODE )
             .programIdScheme(
-                TrackerIdentifier.builder().idScheme( TrackerIdScheme.ATTRIBUTE ).value( "aaaa" ).build() )
+                TrackerIdentifierParam.builder().idScheme( TrackerIdScheme.ATTRIBUTE ).value( "aaaa" ).build() )
             .build();
         TrackerImportParams trackerImportParams = TrackerImportParams.builder().identifiers( identifierParams )
             .atomicMode( AtomicMode.OBJECT ).flushMode( FlushMode.OBJECT ).skipRuleEngine( true )
@@ -115,7 +116,7 @@ class TrackerImportParamsSerdeTest extends TrackerTest
         assertThat( trackerImportParams.isSkipRuleEngine(), is( true ) );
         assertThat( trackerImportParams.getUser(), is( nullValue() ) );
         TrackerIdentifierParams identifiers = trackerImportParams.getIdentifiers();
-        assertThat( identifiers.getIdScheme(), is( TrackerIdentifier.CODE ) );
+        assertThat( identifiers.getIdScheme(), is( TrackerIdentifierParam.CODE ) );
         assertThat( identifiers.getProgramIdScheme().getIdScheme(), is( TrackerIdScheme.ATTRIBUTE ) );
         assertThat( identifiers.getProgramIdScheme().getValue(), is( "aaaa" ) );
     }

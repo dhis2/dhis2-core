@@ -45,7 +45,7 @@ import java.util.Map;
 import org.hisp.dhis.tracker.AtomicMode;
 import org.hisp.dhis.tracker.FlushMode;
 import org.hisp.dhis.tracker.TrackerIdScheme;
-import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.TrackerIdentifierParam;
 import org.hisp.dhis.tracker.TrackerIdentifierParams;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
@@ -232,12 +232,12 @@ class TrackerImportParamsBuilderTest
         assertThat( params.getAtomicMode(), is( AtomicMode.ALL ) );
         assertThat( params.getFlushMode(), is( FlushMode.AUTO ) );
         TrackerIdentifierParams identifiers = params.getIdentifiers();
-        assertThat( identifiers.getOrgUnitIdScheme(), is( TrackerIdentifier.UID ) );
-        assertThat( identifiers.getProgramIdScheme(), is( TrackerIdentifier.UID ) );
-        assertThat( identifiers.getCategoryOptionComboIdScheme(), is( TrackerIdentifier.UID ) );
-        assertThat( identifiers.getCategoryOptionIdScheme(), is( TrackerIdentifier.UID ) );
-        assertThat( identifiers.getDataElementIdScheme(), is( TrackerIdentifier.UID ) );
-        assertThat( identifiers.getProgramStageIdScheme(), is( TrackerIdentifier.UID ) );
-        assertThat( identifiers.getIdScheme(), is( TrackerIdentifier.UID ) );
+        assertThat( identifiers.getOrgUnitIdScheme(), is( TrackerIdentifierParam.UID ) );
+        assertThat( identifiers.getProgramIdScheme(), is( TrackerIdentifierParam.UID ) );
+        assertThat( identifiers.getCategoryOptionComboIdScheme(), is( TrackerIdentifierParam.UID ) );
+        assertThat( identifiers.getCategoryOptionIdScheme(), is( TrackerIdentifierParam.UID ) );
+        assertThat( identifiers.getDataElementIdScheme(), is( TrackerIdentifierParam.UID ) );
+        assertThat( identifiers.getProgramStageIdScheme(), is( TrackerIdentifierParam.UID ) );
+        assertThat( identifiers.getIdScheme(), is( TrackerIdentifierParam.UID ) );
     }
 }

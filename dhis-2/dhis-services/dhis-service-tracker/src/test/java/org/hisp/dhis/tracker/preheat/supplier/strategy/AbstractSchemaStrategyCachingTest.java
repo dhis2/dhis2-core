@@ -55,7 +55,7 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.schema.descriptors.ProgramSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.RelationshipTypeSchemaDescriptor;
-import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.TrackerIdentifierParam;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.cache.PreheatCacheService;
 import org.hisp.dhis.tracker.preheat.mappers.CopyMapper;
@@ -110,7 +110,7 @@ class AbstractSchemaStrategyCachingTest
             manager, cache );
 
         // When
-        strategy.queryForIdentifiableObjects( preheat, schema, TrackerIdentifier.UID,
+        strategy.queryForIdentifiableObjects( preheat, schema, TrackerIdentifierParam.UID,
             singletonList( singletonList( ID_WILDCARD ) ), RelationshipTypeMapper.class );
 
         // Then
@@ -136,7 +136,7 @@ class AbstractSchemaStrategyCachingTest
             manager, cache );
 
         // When
-        strategy.queryForIdentifiableObjects( preheat, schema, TrackerIdentifier.UID,
+        strategy.queryForIdentifiableObjects( preheat, schema, TrackerIdentifierParam.UID,
             singletonList( singletonList( UID ) ), ProgramMapper.INSTANCE.getClass() );
 
         // Then
@@ -160,7 +160,7 @@ class AbstractSchemaStrategyCachingTest
             manager, cache );
 
         // When
-        strategy.queryForIdentifiableObjects( preheat, schema, TrackerIdentifier.UID,
+        strategy.queryForIdentifiableObjects( preheat, schema, TrackerIdentifierParam.UID,
             singletonList( singletonList( UID ) ), CopyMapper.class );
 
         // Then

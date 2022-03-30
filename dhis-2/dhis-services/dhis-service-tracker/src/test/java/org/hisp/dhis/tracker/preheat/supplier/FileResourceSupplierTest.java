@@ -38,7 +38,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.TrackerIdentifierParam;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.DataValue;
@@ -104,7 +104,7 @@ class FileResourceSupplierTest extends DhisConvenienceTest
         nullFileResourceDataElement.setUid( NULL_FILE_RESOURCE_DATA_ELEMENT_UID );
         nullFileResourceDataElement.setValueType( ValueType.FILE_RESOURCE );
 
-        preheat.put( TrackerIdentifier.UID, Lists
+        preheat.put( TrackerIdentifierParam.UID, Lists
             .newArrayList( numericDataElement, fileResourceDataElement, emptyFileResourceDataElement,
                 nullFileResourceDataElement ) );
 
@@ -116,7 +116,7 @@ class FileResourceSupplierTest extends DhisConvenienceTest
         fileResourceAttribute.setUid( FILE_RESOURCE_ATTRIBUTE_UID );
         fileResourceAttribute.setValueType( ValueType.FILE_RESOURCE );
 
-        preheat.put( TrackerIdentifier.UID, Lists.newArrayList( numericAttribute, fileResourceAttribute ) );
+        preheat.put( TrackerIdentifierParam.UID, Lists.newArrayList( numericAttribute, fileResourceAttribute ) );
 
         supplierToTest = new FileResourceSupplier( fileResourceService );
     }

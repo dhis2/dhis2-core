@@ -46,7 +46,7 @@ import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ValidationStrategy;
-import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.TrackerIdentifierParam;
 import org.hisp.dhis.tracker.TrackerIdentifierParams;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
@@ -259,10 +259,10 @@ class EventDataValuesValidationHookTest
     void succeedsWhenMandatoryDataElementIsPartOfProgramStageAndIdSchemeIsSetToCode()
     {
         TrackerIdentifierParams params = TrackerIdentifierParams.builder()
-            .idScheme( TrackerIdentifier.CODE )
-            .programIdScheme( TrackerIdentifier.UID )
-            .programStageIdScheme( TrackerIdentifier.UID )
-            .dataElementIdScheme( TrackerIdentifier.CODE )
+            .idScheme( TrackerIdentifierParam.CODE )
+            .programIdScheme( TrackerIdentifierParam.UID )
+            .programStageIdScheme( TrackerIdentifierParam.UID )
+            .dataElementIdScheme( TrackerIdentifierParam.CODE )
             .build();
         when( preheat.getIdentifiers() ).thenReturn( params );
 
@@ -327,10 +327,10 @@ class EventDataValuesValidationHookTest
     void succeedsWhenDataElementIsPartOfProgramStageAndIdSchemeIsSetToCode()
     {
         TrackerIdentifierParams params = TrackerIdentifierParams.builder()
-            .idScheme( TrackerIdentifier.CODE )
-            .programIdScheme( TrackerIdentifier.UID )
-            .programStageIdScheme( TrackerIdentifier.UID )
-            .dataElementIdScheme( TrackerIdentifier.CODE )
+            .idScheme( TrackerIdentifierParam.CODE )
+            .programIdScheme( TrackerIdentifierParam.UID )
+            .programStageIdScheme( TrackerIdentifierParam.UID )
+            .dataElementIdScheme( TrackerIdentifierParam.CODE )
             .build();
         when( preheat.getIdentifiers() ).thenReturn( params );
 
@@ -814,10 +814,10 @@ class EventDataValuesValidationHookTest
     private void setUpIdentifiers()
     {
         TrackerIdentifierParams params = TrackerIdentifierParams.builder()
-            .idScheme( TrackerIdentifier.UID )
-            .programIdScheme( TrackerIdentifier.UID )
-            .programStageIdScheme( TrackerIdentifier.UID )
-            .dataElementIdScheme( TrackerIdentifier.UID )
+            .idScheme( TrackerIdentifierParam.UID )
+            .programIdScheme( TrackerIdentifierParam.UID )
+            .programStageIdScheme( TrackerIdentifierParam.UID )
+            .dataElementIdScheme( TrackerIdentifierParam.UID )
             .build();
         when( preheat.getIdentifiers() ).thenReturn( params );
     }

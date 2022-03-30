@@ -47,7 +47,7 @@ import org.hisp.dhis.query.Restrictions;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.tracker.TrackerIdScheme;
-import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.TrackerIdentifierParam;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.cache.PreheatCacheService;
@@ -84,7 +84,7 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
     @Override
     public void add( TrackerImportParams params, List<List<String>> splitList, TrackerPreheat preheat )
     {
-        TrackerIdentifier identifier = params.getIdentifiers().getByClass( getSchemaClass() );
+        TrackerIdentifierParam identifier = params.getIdentifiers().getByClass( getSchemaClass() );
         Schema schema = schemaService.getDynamicSchema( getSchemaClass() );
 
         queryForIdentifiableObjects( preheat, schema, identifier, splitList, mapper() );
@@ -96,7 +96,8 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
     }
 
     @SuppressWarnings( { "unchecked", "rawtypes" } )
-    protected void queryForIdentifiableObjects( TrackerPreheat preheat, Schema schema, TrackerIdentifier identifier,
+    protected void queryForIdentifiableObjects( TrackerPreheat preheat, Schema schema,
+        TrackerIdentifierParam identifier,
         List<List<String>> splitList, Class<? extends PreheatMapper> mapper )
     {
 
@@ -127,7 +128,7 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
     }
 
     @SuppressWarnings( { "unchecked", "rawtypes" } )
-    private List<IdentifiableObject> cacheAwareFetch( User user, Schema schema, TrackerIdentifier identifier,
+    private List<IdentifiableObject> cacheAwareFetch( User user, Schema schema, TrackerIdentifierParam identifier,
         List<String> ids, Class<? extends PreheatMapper> mapper )
     {
         TrackerIdScheme idScheme = identifier.getIdScheme();

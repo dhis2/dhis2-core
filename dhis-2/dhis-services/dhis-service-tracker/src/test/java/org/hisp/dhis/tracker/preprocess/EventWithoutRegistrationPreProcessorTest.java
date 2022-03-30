@@ -35,7 +35,7 @@ import java.util.Collections;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.TrackerIdentifierParam;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
@@ -72,7 +72,7 @@ class EventWithoutRegistrationPreProcessorTest
         programStage.setProgram( program );
         TrackerPreheat preheat = new TrackerPreheat();
         preheat.putProgramInstancesWithoutRegistration( "programUid", programInstance );
-        preheat.put( TrackerIdentifier.UID, programStage );
+        preheat.put( TrackerIdentifierParam.UID, programStage );
         bundle.setPreheat( preheat );
         // When
         preProcessorToTest.process( bundle );
@@ -95,7 +95,7 @@ class EventWithoutRegistrationPreProcessorTest
         programStage.setUid( "programStageUid" );
         TrackerPreheat preheat = new TrackerPreheat();
         preheat.putProgramInstancesWithoutRegistration( "programUid", programInstance );
-        preheat.put( TrackerIdentifier.UID, programStage );
+        preheat.put( TrackerIdentifierParam.UID, programStage );
         bundle.setPreheat( preheat );
         // When
         preProcessorToTest.process( bundle );

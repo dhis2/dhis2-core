@@ -32,7 +32,7 @@ import static org.hamcrest.Matchers.hasSize;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.TrackerIdentifierParam;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.RelationshipItem;
@@ -65,8 +65,8 @@ class DuplicateRelationshipsPreProcessorTest
         relationshipTypeBidirectional.setBidirectional( true );
         RelationshipType relationshipTypeNonBidirectional = new RelationshipType();
         relationshipTypeNonBidirectional.setUid( REL_TYPE_NONBIDIRECTIONAL_UID );
-        preheat.put( TrackerIdentifier.UID, relationshipTypeBidirectional );
-        preheat.put( TrackerIdentifier.UID, relationshipTypeNonBidirectional );
+        preheat.put( TrackerIdentifierParam.UID, relationshipTypeBidirectional );
+        preheat.put( TrackerIdentifierParam.UID, relationshipTypeNonBidirectional );
         this.preProcessor = new DuplicateRelationshipsPreProcessor();
     }
 

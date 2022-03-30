@@ -45,7 +45,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
-import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.TrackerIdentifierParam;
 import org.hisp.dhis.tracker.TrackerIdentifierParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
@@ -94,7 +94,7 @@ class EventProgramPreProcessorTest
 
         preprocessor.process( bundle );
 
-        verify( preheat ).put( TrackerIdentifier.UID, programWithRegistration() );
+        verify( preheat ).put( TrackerIdentifierParam.UID, programWithRegistration() );
         assertEquals( PROGRAM_WITH_REGISTRATION, bundle.getEvents().get( 0 ).getProgram() );
     }
 
@@ -111,7 +111,7 @@ class EventProgramPreProcessorTest
 
         preprocessor.process( bundle );
 
-        verify( preheat ).put( TrackerIdentifier.UID, programWithoutRegistration() );
+        verify( preheat ).put( TrackerIdentifierParam.UID, programWithoutRegistration() );
         assertEquals( PROGRAM_WITHOUT_REGISTRATION, bundle.getEvents().get( 0 ).getProgram() );
     }
 
@@ -147,7 +147,7 @@ class EventProgramPreProcessorTest
 
         preprocessor.process( bundle );
 
-        verify( preheat, never() ).put( TrackerIdentifier.UID, programStage.getProgram() );
+        verify( preheat, never() ).put( TrackerIdentifierParam.UID, programStage.getProgram() );
     }
 
     @Test
@@ -164,7 +164,7 @@ class EventProgramPreProcessorTest
 
         preprocessor.process( bundle );
 
-        verify( preheat ).put( TrackerIdentifier.UID, programStageWithoutRegistration() );
+        verify( preheat ).put( TrackerIdentifierParam.UID, programStageWithoutRegistration() );
         assertEquals( PROGRAM_STAGE_WITHOUT_REGISTRATION, bundle.getEvents().get( 0 ).getProgramStage() );
     }
 
@@ -208,7 +208,7 @@ class EventProgramPreProcessorTest
     {
 
         TrackerIdentifierParams identifierParams = TrackerIdentifierParams.builder()
-            .categoryOptionComboIdScheme( TrackerIdentifier.CODE )
+            .categoryOptionComboIdScheme( TrackerIdentifierParam.CODE )
             .build();
         when( preheat.getIdentifiers() ).thenReturn( identifierParams );
 
@@ -239,7 +239,7 @@ class EventProgramPreProcessorTest
     {
 
         TrackerIdentifierParams identifierParams = TrackerIdentifierParams.builder()
-            .categoryOptionComboIdScheme( TrackerIdentifier.CODE )
+            .categoryOptionComboIdScheme( TrackerIdentifierParam.CODE )
             .build();
         when( preheat.getIdentifiers() ).thenReturn( identifierParams );
 
@@ -267,7 +267,7 @@ class EventProgramPreProcessorTest
     {
 
         TrackerIdentifierParams identifierParams = TrackerIdentifierParams.builder()
-            .categoryOptionComboIdScheme( TrackerIdentifier.CODE )
+            .categoryOptionComboIdScheme( TrackerIdentifierParam.CODE )
             .build();
         when( preheat.getIdentifiers() ).thenReturn( identifierParams );
 
@@ -294,7 +294,7 @@ class EventProgramPreProcessorTest
     {
 
         TrackerIdentifierParams identifierParams = TrackerIdentifierParams.builder()
-            .categoryOptionComboIdScheme( TrackerIdentifier.CODE )
+            .categoryOptionComboIdScheme( TrackerIdentifierParam.CODE )
             .build();
         when( preheat.getIdentifiers() ).thenReturn( identifierParams );
 
@@ -323,7 +323,7 @@ class EventProgramPreProcessorTest
     {
 
         TrackerIdentifierParams identifierParams = TrackerIdentifierParams.builder()
-            .categoryOptionComboIdScheme( TrackerIdentifier.CODE )
+            .categoryOptionComboIdScheme( TrackerIdentifierParam.CODE )
             .build();
         when( preheat.getIdentifiers() ).thenReturn( identifierParams );
 
@@ -350,7 +350,7 @@ class EventProgramPreProcessorTest
     {
 
         TrackerIdentifierParams identifierParams = TrackerIdentifierParams.builder()
-            .categoryOptionComboIdScheme( TrackerIdentifier.CODE )
+            .categoryOptionComboIdScheme( TrackerIdentifierParam.CODE )
             .build();
         when( preheat.getIdentifiers() ).thenReturn( identifierParams );
 

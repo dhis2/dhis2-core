@@ -59,7 +59,7 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.tracker.AtomicMode;
 import org.hisp.dhis.tracker.FlushMode;
 import org.hisp.dhis.tracker.TrackerIdScheme;
-import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.TrackerIdentifierParam;
 import org.hisp.dhis.tracker.TrackerIdentifierParams;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
@@ -172,7 +172,7 @@ public class TrackerImportParamsBuilder
         return null;
     }
 
-    private static TrackerIdentifier bySchemeAndKey( Map<String, List<String>> parameters,
+    private static TrackerIdentifierParam bySchemeAndKey( Map<String, List<String>> parameters,
         TrackerImportParamKey trackerImportParameterKey,
         TrackerIdScheme defaultIdScheme )
     {
@@ -180,7 +180,8 @@ public class TrackerImportParamsBuilder
         TrackerIdScheme trackerIdScheme = getEnumWithDefault( TrackerIdScheme.class, parameters,
             trackerImportParameterKey, defaultIdScheme );
 
-        return TrackerIdentifier.of( trackerIdScheme, getAttributeUidOrNull( parameters, trackerImportParameterKey ) );
+        return TrackerIdentifierParam.of( trackerIdScheme,
+            getAttributeUidOrNull( parameters, trackerImportParameterKey ) );
     }
 
     enum TrackerImportParamKey

@@ -32,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.TrackerIdentifierParam;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
@@ -80,7 +80,7 @@ class BidirectionalRelationshipsPreProcessorTest extends DhisConvenienceTest
         biDirectionalRelationshipType.setUid( BIDIRECTIONAL_RELATIONSHIP_TYPE_UID );
         biDirectionalRelationshipType.setBidirectional( true );
         TrackerPreheat trackerPreheat = new TrackerPreheat();
-        trackerPreheat.put( TrackerIdentifier.UID,
+        trackerPreheat.put( TrackerIdentifierParam.UID,
             Lists.newArrayList( biDirectionalRelationshipType, uniDirectionalRelationshipType ) );
         return trackerPreheat;
     }
