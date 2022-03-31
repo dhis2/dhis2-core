@@ -273,9 +273,13 @@ public class EnrollmentAnalyticsController
         Integer analyticsMaxLimit = systemSettingManager.getIntSetting( SettingKey.ANALYTICS_MAX_LIMIT );
 
         // no paging params at all should fall back to default paging (50)
-        if ( criteria.getPaging() == null )
+        if ( criteria.getPaging() == null || (criteria.getPaging() != null && criteria.getPaging()) )
         {
+            criteria
+                .setPageSize( criteria.getPageSize() > analyticsMaxLimit ? analyticsMaxLimit : criteria.getPageSize() );
+
             criteria.setPaging( true );
+
             return;
         }
 
@@ -283,7 +287,10 @@ public class EnrollmentAnalyticsController
         // decide the returned number
         if ( !criteria.getPaging() )
         {
+            criteria.setPage( 1 );
+
             criteria.setPageSize( analyticsMaxLimit );
+
             return;
         }
 
