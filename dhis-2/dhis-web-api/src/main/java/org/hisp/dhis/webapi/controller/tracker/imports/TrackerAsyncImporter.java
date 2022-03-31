@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.strategy.tracker.imports.impl;
+package org.hisp.dhis.webapi.controller.tracker.imports;
 
 import lombok.RequiredArgsConstructor;
 
@@ -34,8 +34,6 @@ import org.hisp.dhis.artemis.Topics;
 import org.hisp.dhis.security.AuthenticationSerializer;
 import org.hisp.dhis.tracker.job.TrackerMessage;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
-import org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportRequest;
-import org.hisp.dhis.webapi.strategy.tracker.imports.TrackerImportStrategyHandler;
 import org.springframework.stereotype.Component;
 
 /**
@@ -43,7 +41,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class TrackerAsyncImporter implements TrackerImportStrategyHandler
+public class TrackerAsyncImporter implements TrackerImporter
 {
     private final MessageManager messageManager;
 

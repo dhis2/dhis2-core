@@ -25,32 +25,14 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.strategy.tracker.imports.impl;
+package org.hisp.dhis.webapi.controller.tracker.imports;
 
-import lombok.RequiredArgsConstructor;
-
-import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
-import org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportRequest;
-import org.hisp.dhis.webapi.strategy.tracker.imports.TrackerImportStrategyHandler;
-import org.springframework.stereotype.Component;
 
 /**
  * @author Luca Cambi <luca@dhis2.org>
  */
-@Component
-@RequiredArgsConstructor
-public class TrackerSyncImporter implements TrackerImportStrategyHandler
+public interface TrackerImporter
 {
-    private final TrackerImportService trackerImportService;
-
-    @Override
-    public TrackerImportReport importTracker( TrackerImportRequest trackerImportRequest )
-    {
-        TrackerImportReport trackerImportReport = trackerImportService
-            .importTracker( trackerImportRequest.getTrackerImportParams() );
-
-        return trackerImportService.buildImportReport( trackerImportReport,
-            trackerImportRequest.getTrackerBundleReportMode() );
-    }
+    TrackerImportReport importTracker( TrackerImportRequest trackerImportRequest );
 }

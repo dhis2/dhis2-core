@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.strategy.tracker.imports.impl;
+package org.hisp.dhis.webapi.controller.tracker.imports;
 
 import lombok.RequiredArgsConstructor;
 
@@ -33,9 +33,6 @@ import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
-import org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportParamsBuilder;
-import org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportRequest;
-import org.hisp.dhis.webapi.strategy.tracker.imports.TrackerImportStrategyHandler;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
@@ -45,7 +42,7 @@ import org.springframework.stereotype.Component;
 @Component
 @Primary
 @RequiredArgsConstructor
-public class TrackerImporter implements TrackerImportStrategyHandler
+public class DefaultTrackerImporter implements TrackerImporter
 {
 
     private final TrackerSyncImporter syncImporter;

@@ -65,7 +65,6 @@ import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.controller.tracker.TrackerControllerSupport;
 import org.hisp.dhis.webapi.service.DefaultContextService;
-import org.hisp.dhis.webapi.strategy.tracker.imports.TrackerImportStrategyHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -90,7 +89,7 @@ class TrackerImportControllerTest
     private DefaultTrackerImportService trackerImportService;
 
     @Mock
-    private TrackerImportStrategyHandler importStrategy;
+    private TrackerImporter importStrategy;
 
     @Mock
     private CsvEventService<Event> csvEventService;

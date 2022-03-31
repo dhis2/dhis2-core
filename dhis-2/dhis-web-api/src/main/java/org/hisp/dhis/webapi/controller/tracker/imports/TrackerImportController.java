@@ -62,7 +62,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
-import org.hisp.dhis.webapi.strategy.tracker.imports.TrackerImportStrategyHandler;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.locationtech.jts.io.ParseException;
 import org.springframework.http.HttpStatus;
@@ -89,7 +88,7 @@ public class TrackerImportController
 {
     static final String TRACKER_JOB_ADDED = "Tracker job added";
 
-    private final TrackerImportStrategyHandler trackerImportStrategy;
+    private final TrackerImporter trackerImportStrategy;
 
     private final TrackerImportService trackerImportService;
 

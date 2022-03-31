@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.strategy.tracker.imports;
+package org.hisp.dhis.webapi.controller.tracker.imports;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -41,9 +41,6 @@ import org.hisp.dhis.tracker.TrackerBundleReportMode;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.job.TrackerMessage;
-import org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportRequest;
-import org.hisp.dhis.webapi.strategy.tracker.imports.impl.TrackerAsyncImporter;
-import org.hisp.dhis.webapi.strategy.tracker.imports.impl.TrackerSyncImporter;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -52,13 +49,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith( MockitoExtension.class )
-class TrackerImportStrategyHandlerImplTest
+class TrackerImporterImplTest
 {
     @InjectMocks
-    TrackerAsyncImporter importAsyncStrategy;
+    TrackerAsyncImporter asyncImporter;
 
     @InjectMocks
-    TrackerSyncImporter importAsyncFalseStrategy;
+    TrackerSyncImporter syncImporter;
 
     @Mock
     TrackerImportService trackerImportService;
@@ -81,7 +78,7 @@ class TrackerImportStrategyHandlerImplTest
             .trackerBundleReportMode( TrackerBundleReportMode.FULL )
             .build();
 
-        importAsyncFalseStrategy.importTracker( trackerImportRequest );
+        syncImporter.importTracker( trackerImportRequest );
 
         verify( trackerImportService ).importTracker( trackerImportRequest.getTrackerImportParams() );
         verify( trackerImportService ).buildImportReport( any(), any() );
@@ -106,7 +103,7 @@ class TrackerImportStrategyHandlerImplTest
                 .build() )
             .build();
 
-        importAsyncStrategy.importTracker( trackerImportRequest );
+        asyncImporter.importTracker( trackerImportRequest );
 
         verify( trackerImportService, times( 0 ) ).importTracker( any() );
         verify( messageManager ).sendQueue( any(), any() );

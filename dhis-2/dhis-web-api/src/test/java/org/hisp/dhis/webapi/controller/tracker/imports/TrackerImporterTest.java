@@ -25,18 +25,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.strategy.tracker.imports;
+package org.hisp.dhis.webapi.controller.tracker.imports;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import org.hisp.dhis.webapi.controller.tracker.imports.TrackerBundleParams;
-import org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportRequest;
 import org.hisp.dhis.webapi.service.ContextService;
-import org.hisp.dhis.webapi.strategy.tracker.imports.impl.TrackerAsyncImporter;
-import org.hisp.dhis.webapi.strategy.tracker.imports.impl.TrackerImporter;
-import org.hisp.dhis.webapi.strategy.tracker.imports.impl.TrackerSyncImporter;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -44,16 +39,16 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith( MockitoExtension.class )
-class TrackerImportStrategyHandlerTest
+class TrackerImporterTest
 {
     @InjectMocks
-    TrackerImporter importStrategy;
+    DefaultTrackerImporter importStrategy;
 
     @Mock
-    TrackerAsyncImporter importAsyncStrategy;
+    TrackerAsyncImporter asyncImporter;
 
     @Mock
-    TrackerSyncImporter importAsyncFalseStrategy;
+    TrackerSyncImporter syncImporter;
 
     @Mock
     ContextService contextService;
@@ -72,8 +67,8 @@ class TrackerImportStrategyHandlerTest
 
         importStrategy.importTracker( trackerImportRequest );
 
-        verify( importAsyncStrategy ).importTracker( any() );
-        verify( importAsyncFalseStrategy, times( 0 ) ).importTracker( any() );
+        verify( asyncImporter ).importTracker( any() );
+        verify( syncImporter, times( 0 ) ).importTracker( any() );
     }
 
     @Test
@@ -89,7 +84,7 @@ class TrackerImportStrategyHandlerTest
 
         importStrategy.importTracker( trackerImportRequest );
 
-        verify( importAsyncStrategy, times( 0 ) ).importTracker( any() );
-        verify( importAsyncFalseStrategy ).importTracker( any() );
+        verify( asyncImporter, times( 0 ) ).importTracker( any() );
+        verify( syncImporter ).importTracker( any() );
     }
 }
