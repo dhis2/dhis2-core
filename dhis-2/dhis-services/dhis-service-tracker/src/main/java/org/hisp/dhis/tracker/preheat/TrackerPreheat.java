@@ -103,7 +103,6 @@ public class TrackerPreheat
      * value of each id can be either the metadata object's uid, code, name or
      * attribute value
      */
-    @Getter
     private Map<Class<? extends IdentifiableObject>, Map<String, IdentifiableObject>> map = new HashMap<>();
 
     /**
