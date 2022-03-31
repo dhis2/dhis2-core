@@ -234,7 +234,7 @@ public class EventDataQueryRequest
                 .outputType( criteria.getOutputType() )
                 .page( criteria.getPage() )
                 .pageSize( criteria.getPageSize() )
-                .paging( criteria.getPaging() )
+                .paging( criteria.getPaging() == null || criteria.getPaging() )
                 .programStatus( criteria.getProgramStatus() )
                 .relativePeriodDate( criteria.getRelativePeriodDate() )
                 .showHierarchy( criteria.isShowHierarchy() )
