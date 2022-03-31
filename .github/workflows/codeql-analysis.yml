@@ -14,7 +14,9 @@ on:
       - master
   schedule:
     - cron: '0 12 * * *'
-
+concurrency:
+    group: ${{ github.workflow}}-${{ github.ref }}
+    cancel-in-progress: true
 jobs:
   analyze:
     name: Analyze
