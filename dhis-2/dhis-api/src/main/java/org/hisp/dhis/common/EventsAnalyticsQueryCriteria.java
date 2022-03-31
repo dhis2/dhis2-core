@@ -319,7 +319,7 @@ public class EventsAnalyticsQueryCriteria extends RequestTypeAware
      * The paging parameter. When set to false we should not paginate. The
      * default is true (always paginate).
      */
-    private Boolean paging = true;
+    private Boolean paging = null;
 
     /**
      * The paging parameter. When set to false we should not count total pages.

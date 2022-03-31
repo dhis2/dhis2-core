@@ -441,6 +441,28 @@ public class EventAnalyticsController
     {
         Integer analyticsMaxLimit = systemSettingManager.getIntSetting( SettingKey.ANALYTICS_MAX_LIMIT );
 
+        // no paging params at all should fall back to default paging (50)
+        if ( criteria.getPaging() == null || (criteria.getPaging() != null && criteria.getPaging()) )
+        {
+            criteria
+                .setPageSize( criteria.getPageSize() > analyticsMaxLimit ? analyticsMaxLimit : criteria.getPageSize() );
+
+            criteria.setPaging( true );
+
+            return;
+        }
+
+        // paging=false should disable paging completely and let the max limit
+        // decide the returned number
+        if ( !criteria.getPaging() )
+        {
+            criteria.setPage( 1 );
+
+            criteria.setPageSize( analyticsMaxLimit );
+
+            return;
+        }
+
         if ( criteria.getPageSize() != null && criteria.getPageSize() > analyticsMaxLimit )
         {
             criteria.setPageSize( analyticsMaxLimit );
