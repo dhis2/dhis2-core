@@ -25,18 +25,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export;
+package org.hisp.dhis.webapi.controller.tracker.imports;
 
-import org.hisp.dhis.webapi.controller.tracker.view.Attribute;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
+import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
+import org.mapstruct.Context;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 
-@Mapper( uses = InstantMapper.class )
-public interface AttributeMapper extends ViewMapper<org.hisp.dhis.dxf2.events.trackedentity.Attribute, Attribute>
+@Mapper( uses = {
+    RelationshipMapper.class,
+    NoteMapper.class,
+    DataValueMapper.class,
+    InstantMapper.class } )
+interface EventMapper extends DomainMapper<Event, org.hisp.dhis.tracker.domain.Event>
 {
-
-    @Mapping( target = "createdAt", source = "created" )
-    @Mapping( target = "updatedAt", source = "lastUpdated" )
-    Attribute from( org.hisp.dhis.dxf2.events.trackedentity.Attribute attribute );
+    org.hisp.dhis.tracker.domain.Event from( Event event, @Context TrackerIdSchemeParams idSchemeParams );
 }

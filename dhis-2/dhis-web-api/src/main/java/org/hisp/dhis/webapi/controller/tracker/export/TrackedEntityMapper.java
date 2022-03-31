@@ -28,7 +28,8 @@
 package org.hisp.dhis.webapi.controller.tracker.export;
 
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
+import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -39,7 +40,7 @@ import org.mapstruct.Mapping;
     ProgramOwnerMapper.class,
     InstantMapper.class,
     UserMapper.class } )
-interface TrackedEntityMapper extends DomainMapper<TrackedEntityInstance, TrackedEntity>
+interface TrackedEntityMapper extends ViewMapper<TrackedEntityInstance, TrackedEntity>
 {
     @Mapping( target = "trackedEntity", source = "trackedEntityInstance" )
     @Mapping( target = "createdAt", source = "created" )

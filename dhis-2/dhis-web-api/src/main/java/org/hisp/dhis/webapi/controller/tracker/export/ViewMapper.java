@@ -27,16 +27,22 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
-import org.hisp.dhis.webapi.controller.tracker.view.Attribute;
-import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
-@Mapper( uses = InstantMapper.class )
-public interface AttributeMapper extends ViewMapper<org.hisp.dhis.dxf2.events.trackedentity.Attribute, Attribute>
+public interface ViewMapper<FROM, TO>
 {
+    TO from( FROM from );
 
-    @Mapping( target = "createdAt", source = "created" )
-    @Mapping( target = "updatedAt", source = "lastUpdated" )
-    Attribute from( org.hisp.dhis.dxf2.events.trackedentity.Attribute attribute );
+    default List<TO> fromCollection( Collection<FROM> froms )
+    {
+        return Optional.ofNullable( froms )
+            .orElse( Collections.emptySet() )
+            .stream()
+            .map( this::from )
+            .collect( Collectors.toList() );
+    }
 }

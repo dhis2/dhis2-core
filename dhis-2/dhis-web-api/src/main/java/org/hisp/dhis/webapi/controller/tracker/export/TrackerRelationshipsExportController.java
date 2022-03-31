@@ -137,7 +137,7 @@ public class TrackerRelationshipsExportController
 
         String identifier = criteria.getIdentifierParam();
         String identifierName = criteria.getIdentifierName();
-        List<org.hisp.dhis.tracker.domain.Relationship> relationships = tryGetRelationshipFrom(
+        List<org.hisp.dhis.webapi.controller.tracker.view.Relationship> relationships = tryGetRelationshipFrom(
             identifier,
             criteria.getIdentifierClass(),
             () -> notFound( "No " + identifierName + " '" + identifier + "' found." ),
@@ -164,7 +164,7 @@ public class TrackerRelationshipsExportController
         throws NotFoundException
     {
 
-        org.hisp.dhis.tracker.domain.Relationship relationship = RELATIONSHIP_MAPPER
+        org.hisp.dhis.webapi.controller.tracker.view.Relationship relationship = RELATIONSHIP_MAPPER
             .from( relationshipService.getRelationshipByUid( id ) );
         if ( relationship == null )
         {
@@ -174,7 +174,7 @@ public class TrackerRelationshipsExportController
     }
 
     @SneakyThrows
-    private List<org.hisp.dhis.tracker.domain.Relationship> tryGetRelationshipFrom(
+    private List<org.hisp.dhis.webapi.controller.tracker.view.Relationship> tryGetRelationshipFrom(
         String identifier,
         Class<?> type,
         Supplier<WebMessage> notFoundMessageSupplier,

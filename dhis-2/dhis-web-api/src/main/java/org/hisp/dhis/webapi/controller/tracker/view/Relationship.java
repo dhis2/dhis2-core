@@ -25,18 +25,61 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export;
+package org.hisp.dhis.webapi.controller.tracker.view;
 
-import org.hisp.dhis.webapi.controller.tracker.view.Attribute;
-import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import java.time.Instant;
 
-@Mapper( uses = InstantMapper.class )
-public interface AttributeMapper extends ViewMapper<org.hisp.dhis.dxf2.events.trackedentity.Attribute, Attribute>
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import org.hisp.dhis.tracker.TrackerType;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+/**
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
+ */
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class Relationship implements TrackerDto
 {
+    @JsonProperty
+    private String relationship;
 
-    @Mapping( target = "createdAt", source = "created" )
-    @Mapping( target = "updatedAt", source = "lastUpdated" )
-    Attribute from( org.hisp.dhis.dxf2.events.trackedentity.Attribute attribute );
+    @JsonProperty
+    private String relationshipName;
+
+    @JsonProperty
+    private String relationshipType;
+
+    @JsonProperty
+    private Instant createdAt;
+
+    @JsonProperty
+    private Instant updatedAt;
+
+    @JsonProperty
+    private boolean bidirectional;
+
+    @JsonProperty
+    private RelationshipItem from;
+
+    @JsonProperty
+    private RelationshipItem to;
+
+    @Override
+    public String getUid()
+    {
+        return relationship;
+    }
+
+    @Override
+    public TrackerType getTrackerType()
+    {
+        return TrackerType.RELATIONSHIP;
+    }
 }

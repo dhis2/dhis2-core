@@ -115,7 +115,7 @@ public class TrackerImportParamsBuilder
         return Enums.getIfPresent( enumKlass, value ).or( defaultValue );
     }
 
-    private static TrackerIdSchemeParams getTrackerIdentifiers( Map<String, List<String>> parameters )
+    public static TrackerIdSchemeParams getTrackerIdentifiers( Map<String, List<String>> parameters )
     {
         TrackerIdScheme idScheme = getEnumWithDefault( TrackerIdScheme.class, parameters, ID_SCHEME_KEY, UID );
 

@@ -25,18 +25,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export;
+package org.hisp.dhis.webapi.controller.tracker.view;
 
-import org.hisp.dhis.webapi.controller.tracker.view.Attribute;
-import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.chrono.ChronoZonedDateTime;
+import java.util.Date;
+import java.util.Optional;
+
+import org.hisp.dhis.util.DateUtils;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 
-@Mapper( uses = InstantMapper.class )
-public interface AttributeMapper extends ViewMapper<org.hisp.dhis.dxf2.events.trackedentity.Attribute, Attribute>
+@Mapper
+public interface InstantMapper
 {
 
-    @Mapping( target = "createdAt", source = "created" )
-    @Mapping( target = "updatedAt", source = "lastUpdated" )
-    Attribute from( org.hisp.dhis.dxf2.events.trackedentity.Attribute attribute );
+    default Instant fromString( String dateAsString )
+    {
+        return DateUtils.instantFromDateAsString( dateAsString );
+    }
+
+    default Instant fromDate( Date date )
+    {
+        if ( date instanceof java.sql.Date )
+        {
+            return fromSqlDate( (java.sql.Date) date );
+        }
+        return DateUtils.instantFromDate( date );
+    }
+
+    default Instant fromSqlDate( java.sql.Date date )
+    {
+        return Optional.ofNullable( date )
+            .map( java.sql.Date::toLocalDate )
+            .map( localDate -> localDate.atStartOfDay( ZoneId.systemDefault() ) )
+            .map( ChronoZonedDateTime::toInstant )
+            .orElse( null );
+    }
+
 }

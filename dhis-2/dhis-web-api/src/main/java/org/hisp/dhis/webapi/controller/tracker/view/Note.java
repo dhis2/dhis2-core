@@ -25,18 +25,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export;
+package org.hisp.dhis.webapi.controller.tracker.view;
 
-import org.hisp.dhis.webapi.controller.tracker.view.Attribute;
-import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import java.time.Instant;
 
-@Mapper( uses = InstantMapper.class )
-public interface AttributeMapper extends ViewMapper<org.hisp.dhis.dxf2.events.trackedentity.Attribute, Attribute>
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+/**
+ * Notes are text-only objects attached to Events and Enrollments. An Event or
+ * Enrollment may have multiple notes.
+ *
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
+ */
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class Note
 {
+    @JsonProperty
+    private String note;
 
-    @Mapping( target = "createdAt", source = "created" )
-    @Mapping( target = "updatedAt", source = "lastUpdated" )
-    Attribute from( org.hisp.dhis.dxf2.events.trackedentity.Attribute attribute );
+    @JsonProperty
+    private Instant storedAt;
+
+    @JsonProperty
+    private String value;
+
+    @JsonProperty
+    private User createdBy;
+
+    @JsonProperty
+    private String storedBy;
 }
