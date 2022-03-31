@@ -143,7 +143,7 @@ class TrackerImportControllerTest
             .andExpect( content().contentType( "application/json" ) );
 
         verify( csvEventService ).readEvents( any(), eq( true ) );
-        verify( importStrategy ).importReport( any() );
+        verify( importStrategy ).importTracker( any() );
     }
 
     @Test
@@ -151,7 +151,7 @@ class TrackerImportControllerTest
         throws Exception
     {
         // When
-        when( importStrategy.importReport( any() ) ).thenReturn( TrackerImportReport.withImportCompleted(
+        when( importStrategy.importTracker( any() ) ).thenReturn( TrackerImportReport.withImportCompleted(
             TrackerStatus.OK,
             TrackerBundleReport.builder()
                 .status( TrackerStatus.OK )
@@ -172,7 +172,7 @@ class TrackerImportControllerTest
             .getResponse()
             .getContentAsString();
 
-        verify( importStrategy ).importReport( any() );
+        verify( importStrategy ).importTracker( any() );
 
         try
         {
@@ -189,7 +189,7 @@ class TrackerImportControllerTest
         throws Exception
     {
         // When
-        when( importStrategy.importReport( any() ) ).thenReturn( TrackerImportReport.withImportCompleted(
+        when( importStrategy.importTracker( any() ) ).thenReturn( TrackerImportReport.withImportCompleted(
             TrackerStatus.OK,
             TrackerBundleReport.builder()
                 .status( TrackerStatus.OK )
@@ -210,7 +210,7 @@ class TrackerImportControllerTest
             .getContentAsString();
 
         verify( csvEventService ).readEvents( any(), eq( true ) );
-        verify( importStrategy ).importReport( any() );
+        verify( importStrategy ).importTracker( any() );
 
         try
         {
@@ -228,7 +228,7 @@ class TrackerImportControllerTest
     {
         String errorMessage = "errorMessage";
         // When
-        when( importStrategy.importReport( any() ) ).thenReturn( TrackerImportReport.withError( "errorMessage",
+        when( importStrategy.importTracker( any() ) ).thenReturn( TrackerImportReport.withError( "errorMessage",
             new TrackerValidationReport(),
             new TrackerTimingsStats() ) );
 
@@ -244,7 +244,7 @@ class TrackerImportControllerTest
             .getResponse()
             .getContentAsString();
 
-        verify( importStrategy ).importReport( any() );
+        verify( importStrategy ).importTracker( any() );
 
         try
         {
@@ -262,7 +262,7 @@ class TrackerImportControllerTest
     {
         String errorMessage = "errorMessage";
         // When
-        when( importStrategy.importReport( any() ) ).thenReturn( TrackerImportReport.withError( "errorMessage",
+        when( importStrategy.importTracker( any() ) ).thenReturn( TrackerImportReport.withError( "errorMessage",
             new TrackerValidationReport(),
             new TrackerTimingsStats() ) );
 
@@ -278,7 +278,7 @@ class TrackerImportControllerTest
             .getContentAsString();
 
         verify( csvEventService ).readEvents( any(), eq( true ) );
-        verify( importStrategy ).importReport( any() );
+        verify( importStrategy ).importTracker( any() );
 
         try
         {

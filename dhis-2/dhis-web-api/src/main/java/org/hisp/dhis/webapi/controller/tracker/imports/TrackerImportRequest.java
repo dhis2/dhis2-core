@@ -37,7 +37,7 @@ import org.springframework.security.core.Authentication;
 
 @Data
 @Builder
-public class TrackerImportReportRequest
+public class TrackerImportRequest
 {
     private Authentication authentication;
 

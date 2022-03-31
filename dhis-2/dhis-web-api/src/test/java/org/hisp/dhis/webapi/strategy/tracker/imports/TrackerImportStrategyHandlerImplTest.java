@@ -41,9 +41,9 @@ import org.hisp.dhis.tracker.TrackerBundleReportMode;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.job.TrackerMessage;
-import org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportReportRequest;
-import org.hisp.dhis.webapi.strategy.tracker.imports.impl.TrackerImportAsyncStrategyImpl;
-import org.hisp.dhis.webapi.strategy.tracker.imports.impl.TrackerImportSyncStrategyImpl;
+import org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportRequest;
+import org.hisp.dhis.webapi.strategy.tracker.imports.impl.TrackerAsyncImporter;
+import org.hisp.dhis.webapi.strategy.tracker.imports.impl.TrackerSyncImporter;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -55,10 +55,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class TrackerImportStrategyHandlerImplTest
 {
     @InjectMocks
-    TrackerImportAsyncStrategyImpl importAsyncStrategy;
+    TrackerAsyncImporter importAsyncStrategy;
 
     @InjectMocks
-    TrackerImportSyncStrategyImpl importAsyncFalseStrategy;
+    TrackerSyncImporter importAsyncFalseStrategy;
 
     @Mock
     TrackerImportService trackerImportService;
@@ -69,7 +69,7 @@ class TrackerImportStrategyHandlerImplTest
     @Test
     void shouldCreateReportAsyncFalse()
     {
-        TrackerImportReportRequest trackerImportReportRequest = TrackerImportReportRequest
+        TrackerImportRequest trackerImportRequest = TrackerImportRequest
             .builder()
             .trackerImportParams( TrackerImportParams.builder()
                 .jobConfiguration( new JobConfiguration(
@@ -81,9 +81,9 @@ class TrackerImportStrategyHandlerImplTest
             .trackerBundleReportMode( TrackerBundleReportMode.FULL )
             .build();
 
-        importAsyncFalseStrategy.importReport( trackerImportReportRequest );
+        importAsyncFalseStrategy.importTracker( trackerImportRequest );
 
-        verify( trackerImportService ).importTracker( trackerImportReportRequest.getTrackerImportParams() );
+        verify( trackerImportService ).importTracker( trackerImportRequest.getTrackerImportParams() );
         verify( trackerImportService ).buildImportReport( any(), any() );
     }
 
@@ -95,7 +95,7 @@ class TrackerImportStrategyHandlerImplTest
 
         doNothing().when( messageManager ).sendQueue( queueNameCaptor.capture(), trackerMessageCaptor.capture() );
 
-        TrackerImportReportRequest trackerImportReportRequest = TrackerImportReportRequest
+        TrackerImportRequest trackerImportRequest = TrackerImportRequest
             .builder()
             .trackerImportParams( TrackerImportParams.builder()
                 .jobConfiguration( new JobConfiguration(
@@ -106,12 +106,12 @@ class TrackerImportStrategyHandlerImplTest
                 .build() )
             .build();
 
-        importAsyncStrategy.importReport( trackerImportReportRequest );
+        importAsyncStrategy.importTracker( trackerImportRequest );
 
         verify( trackerImportService, times( 0 ) ).importTracker( any() );
         verify( messageManager ).sendQueue( any(), any() );
         assertEquals( Topics.TRACKER_IMPORT_JOB_TOPIC_NAME, queueNameCaptor.getValue() );
-        assertEquals( trackerImportReportRequest.getTrackerImportParams(),
+        assertEquals( trackerImportRequest.getTrackerImportParams(),
             trackerMessageCaptor.getValue().getTrackerImportParams() );
     }
 }

@@ -34,7 +34,7 @@ import org.hisp.dhis.artemis.Topics;
 import org.hisp.dhis.security.AuthenticationSerializer;
 import org.hisp.dhis.tracker.job.TrackerMessage;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
-import org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportReportRequest;
+import org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportRequest;
 import org.hisp.dhis.webapi.strategy.tracker.imports.TrackerImportStrategyHandler;
 import org.springframework.stereotype.Component;
 
@@ -43,17 +43,17 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class TrackerImportAsyncStrategyImpl implements TrackerImportStrategyHandler
+public class TrackerAsyncImporter implements TrackerImportStrategyHandler
 {
     private final MessageManager messageManager;
 
     @Override
-    public TrackerImportReport importReport( TrackerImportReportRequest trackerImportReportRequest )
+    public TrackerImportReport importTracker( TrackerImportRequest trackerImportRequest )
     {
         TrackerMessage trackerMessage = TrackerMessage.builder()
-            .trackerImportParams( trackerImportReportRequest.getTrackerImportParams() )
-            .authentication( AuthenticationSerializer.serialize( trackerImportReportRequest.getAuthentication() ) )
-            .uid( trackerImportReportRequest.getUid() )
+            .trackerImportParams( trackerImportRequest.getTrackerImportParams() )
+            .authentication( AuthenticationSerializer.serialize( trackerImportRequest.getAuthentication() ) )
+            .uid( trackerImportRequest.getUid() )
             .build();
 
         messageManager.sendQueue( Topics.TRACKER_IMPORT_JOB_TOPIC_NAME, trackerMessage );

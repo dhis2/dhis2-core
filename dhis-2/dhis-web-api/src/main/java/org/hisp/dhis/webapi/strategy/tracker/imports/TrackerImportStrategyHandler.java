@@ -28,12 +28,12 @@
 package org.hisp.dhis.webapi.strategy.tracker.imports;
 
 import org.hisp.dhis.tracker.report.TrackerImportReport;
-import org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportReportRequest;
+import org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportRequest;
 
 /**
  * @author Luca Cambi <luca@dhis2.org>
  */
 public interface TrackerImportStrategyHandler
 {
-    TrackerImportReport importReport( TrackerImportReportRequest trackerImportReportRequest );
+    TrackerImportReport importTracker( TrackerImportRequest trackerImportRequest );
 }
