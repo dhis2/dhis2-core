@@ -325,7 +325,7 @@ final class GistBuilder
         if ( !query.isInverse() )
         {
             return String.format(
-                "select %s from %s o left join o.%s as e where o.uid = :OwnerId and (%s) and (%s) order by %s",
+                "select %s from %s o inner join o.%s as e where o.uid = :OwnerId and (%s) and (%s) order by %s",
                 fields, ownerTable, collectionName, userFilters, accessFilters, orders );
         }
         return String.format(
