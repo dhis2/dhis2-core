@@ -84,10 +84,10 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
     @Override
     public void add( TrackerImportParams params, List<List<String>> splitList, TrackerPreheat preheat )
     {
-        TrackerIdSchemeParam identifier = params.getIdentifiers().getByClass( getSchemaClass() );
+        TrackerIdSchemeParam idSchemeParam = params.getIdSchemes().getByClass( getSchemaClass() );
         Schema schema = schemaService.getDynamicSchema( getSchemaClass() );
 
-        queryForIdentifiableObjects( preheat, schema, identifier, splitList, mapper() );
+        queryForIdentifiableObjects( preheat, schema, idSchemeParam, splitList, mapper() );
     }
 
     protected Class<?> getSchemaClass()
@@ -97,11 +97,11 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
 
     @SuppressWarnings( { "unchecked", "rawtypes" } )
     protected void queryForIdentifiableObjects( TrackerPreheat preheat, Schema schema,
-        TrackerIdSchemeParam identifier,
+        TrackerIdSchemeParam idSchemeParam,
         List<List<String>> splitList, Class<? extends PreheatMapper> mapper )
     {
 
-        TrackerIdScheme idScheme = identifier.getIdScheme();
+        TrackerIdScheme idScheme = idSchemeParam.getIdScheme();
         for ( List<String> ids : splitList )
         {
             List<? extends IdentifiableObject> objects;
@@ -109,16 +109,16 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
             if ( TrackerIdScheme.ATTRIBUTE.equals( idScheme ) )
             {
                 Attribute attribute = new Attribute();
-                attribute.setUid( identifier.getValue() );
+                attribute.setUid( idSchemeParam.getValue() );
                 objects = manager.getAllByAttributeAndValues(
                     (Class<? extends IdentifiableObject>) schema.getKlass(), attribute, ids );
             }
             else
             {
-                objects = cacheAwareFetch( preheat.getUser(), schema, identifier, ids, mapper );
+                objects = cacheAwareFetch( preheat.getUser(), schema, idSchemeParam, ids, mapper );
             }
 
-            preheat.put( identifier, objects );
+            preheat.put( idSchemeParam, objects );
         }
     }
 

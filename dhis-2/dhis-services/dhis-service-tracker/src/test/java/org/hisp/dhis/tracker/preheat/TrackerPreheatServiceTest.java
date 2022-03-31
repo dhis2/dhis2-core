@@ -127,7 +127,7 @@ class TrackerPreheatServiceTest extends TrackerTest
     void testCollectIdentifiersAttributeValues()
     {
         TrackerImportParams params = TrackerImportParams.builder()
-            .identifiers( TrackerIdSchemeParams.builder()
+            .idSchemes( TrackerIdSchemeParams.builder()
                 .idScheme(
                     TrackerIdSchemeParam.builder().idScheme( TrackerIdScheme.ATTRIBUTE ).value( "ATTR1234567" )
                         .build() )

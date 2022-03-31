@@ -78,7 +78,7 @@ public class DefaultTrackerPreheatService implements TrackerPreheatService, Appl
     public TrackerPreheat preheat( TrackerImportParams params )
     {
         TrackerPreheat preheat = new TrackerPreheat();
-        preheat.setIdentifiers( params.getIdentifiers() );
+        preheat.setIdSchemes( params.getIdSchemes() );
         preheat.setUser( params.getUser() );
         preheat.setDefaults( manager.getDefaults() );
 

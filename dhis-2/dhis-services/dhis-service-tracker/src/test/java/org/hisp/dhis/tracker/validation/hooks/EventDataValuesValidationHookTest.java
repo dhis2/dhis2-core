@@ -264,7 +264,7 @@ class EventDataValuesValidationHookTest
             .programStageIdScheme( TrackerIdSchemeParam.UID )
             .dataElementIdScheme( TrackerIdSchemeParam.CODE )
             .build();
-        when( preheat.getIdentifiers() ).thenReturn( params );
+        when( preheat.getIdSchemes() ).thenReturn( params );
 
         DataElement dataElement = dataElement();
         dataElement.setCode( "DE_424050" );
@@ -332,7 +332,7 @@ class EventDataValuesValidationHookTest
             .programStageIdScheme( TrackerIdSchemeParam.UID )
             .dataElementIdScheme( TrackerIdSchemeParam.CODE )
             .build();
-        when( preheat.getIdentifiers() ).thenReturn( params );
+        when( preheat.getIdSchemes() ).thenReturn( params );
 
         DataElement dataElement = dataElement();
         dataElement.setCode( "DE_424050" );
@@ -819,7 +819,7 @@ class EventDataValuesValidationHookTest
             .programStageIdScheme( TrackerIdSchemeParam.UID )
             .dataElementIdScheme( TrackerIdSchemeParam.UID )
             .build();
-        when( preheat.getIdentifiers() ).thenReturn( params );
+        when( preheat.getIdSchemes() ).thenReturn( params );
     }
 
     private DataElement dataElement( ValueType type )

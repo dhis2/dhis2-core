@@ -85,7 +85,7 @@ public class TrackerImportParamsBuilder
         return TrackerImportParams.builder()
             .validationMode( getEnumWithDefault( ValidationMode.class, parameters, VALIDATION_MODE_KEY, FULL ) )
             .importMode( getEnumWithDefault( TrackerBundleMode.class, parameters, IMPORT_MODE_KEY, COMMIT ) )
-            .identifiers( getTrackerIdentifiers( parameters ) )
+            .idSchemes( getTrackerIdentifiers( parameters ) )
             .importStrategy(
                 getEnumWithDefault( TrackerImportStrategy.class, parameters, IMPORT_STRATEGY_KEY,
                     CREATE_AND_UPDATE ) )

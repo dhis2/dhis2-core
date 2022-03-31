@@ -85,7 +85,7 @@ class EventProgramPreProcessorTest
     void testTrackerEventIsEnhancedWithProgram()
     {
         TrackerIdSchemeParams identifierParams = TrackerIdSchemeParams.builder().build();
-        when( preheat.getIdentifiers() ).thenReturn( identifierParams );
+        when( preheat.getIdSchemes() ).thenReturn( identifierParams );
         when( preheat.get( ProgramStage.class, PROGRAM_STAGE_WITH_REGISTRATION ) )
             .thenReturn( programStageWithRegistration() );
 
@@ -102,7 +102,7 @@ class EventProgramPreProcessorTest
     void testProgramEventIsEnhancedWithProgram()
     {
         TrackerIdSchemeParams identifierParams = TrackerIdSchemeParams.builder().build();
-        when( preheat.getIdentifiers() ).thenReturn( identifierParams );
+        when( preheat.getIdSchemes() ).thenReturn( identifierParams );
         when( preheat.get( ProgramStage.class, PROGRAM_STAGE_WITHOUT_REGISTRATION ) )
             .thenReturn( programStageWithoutRegistration() );
 
@@ -119,7 +119,7 @@ class EventProgramPreProcessorTest
     void testTrackerEventWithProgramAndProgramStageIsNotProcessed()
     {
         TrackerIdSchemeParams identifierParams = TrackerIdSchemeParams.builder().build();
-        when( preheat.getIdentifiers() ).thenReturn( identifierParams );
+        when( preheat.getIdSchemes() ).thenReturn( identifierParams );
 
         Event event = completeTrackerEvent();
         TrackerBundle bundle = TrackerBundle.builder().events( Collections.singletonList( event ) ).preheat( preheat )
@@ -154,7 +154,7 @@ class EventProgramPreProcessorTest
     void testProgramEventIsEnhancedWithProgramStage()
     {
         TrackerIdSchemeParams identifierParams = TrackerIdSchemeParams.builder().build();
-        when( preheat.getIdentifiers() ).thenReturn( identifierParams );
+        when( preheat.getIdSchemes() ).thenReturn( identifierParams );
         when( preheat.get( Program.class, PROGRAM_WITHOUT_REGISTRATION ) )
             .thenReturn( programWithoutRegistrationWithProgramStages() );
 
@@ -172,7 +172,7 @@ class EventProgramPreProcessorTest
     void testTrackerEventIsNotEnhancedWithProgramStage()
     {
         TrackerIdSchemeParams identifierParams = TrackerIdSchemeParams.builder().build();
-        when( preheat.getIdentifiers() ).thenReturn( identifierParams );
+        when( preheat.getIdSchemes() ).thenReturn( identifierParams );
         when( preheat.get( Program.class, PROGRAM_WITH_REGISTRATION ) )
             .thenReturn( programWithRegistrationWithProgramStages() );
         Event event = trackerEventWithProgram();
@@ -189,7 +189,7 @@ class EventProgramPreProcessorTest
     void testProgramEventWithProgramAndProgramStageIsNotProcessed()
     {
         TrackerIdSchemeParams identifierParams = TrackerIdSchemeParams.builder().build();
-        when( preheat.getIdentifiers() ).thenReturn( identifierParams );
+        when( preheat.getIdSchemes() ).thenReturn( identifierParams );
 
         Event event = completeProgramEvent();
         TrackerBundle bundle = TrackerBundle.builder().events( Collections.singletonList( event ) ).preheat( preheat )
@@ -210,7 +210,7 @@ class EventProgramPreProcessorTest
         TrackerIdSchemeParams identifierParams = TrackerIdSchemeParams.builder()
             .categoryOptionComboIdScheme( TrackerIdSchemeParam.CODE )
             .build();
-        when( preheat.getIdentifiers() ).thenReturn( identifierParams );
+        when( preheat.getIdSchemes() ).thenReturn( identifierParams );
 
         Program program = createProgram( 'A' );
         CategoryCombo categoryCombo = createCategoryCombo( 'A' );
@@ -241,7 +241,7 @@ class EventProgramPreProcessorTest
         TrackerIdSchemeParams identifierParams = TrackerIdSchemeParams.builder()
             .categoryOptionComboIdScheme( TrackerIdSchemeParam.CODE )
             .build();
-        when( preheat.getIdentifiers() ).thenReturn( identifierParams );
+        when( preheat.getIdSchemes() ).thenReturn( identifierParams );
 
         Program program = createProgram( 'A' );
         CategoryCombo categoryCombo = createCategoryCombo( 'A' );
@@ -269,7 +269,7 @@ class EventProgramPreProcessorTest
         TrackerIdSchemeParams identifierParams = TrackerIdSchemeParams.builder()
             .categoryOptionComboIdScheme( TrackerIdSchemeParam.CODE )
             .build();
-        when( preheat.getIdentifiers() ).thenReturn( identifierParams );
+        when( preheat.getIdSchemes() ).thenReturn( identifierParams );
 
         Program program = createProgram( 'A' );
         CategoryCombo categoryCombo = createCategoryCombo( 'A' );
@@ -296,7 +296,7 @@ class EventProgramPreProcessorTest
         TrackerIdSchemeParams identifierParams = TrackerIdSchemeParams.builder()
             .categoryOptionComboIdScheme( TrackerIdSchemeParam.CODE )
             .build();
-        when( preheat.getIdentifiers() ).thenReturn( identifierParams );
+        when( preheat.getIdSchemes() ).thenReturn( identifierParams );
 
         Program program = createProgram( 'A' );
         CategoryCombo categoryCombo = createCategoryCombo( 'A' );
@@ -325,7 +325,7 @@ class EventProgramPreProcessorTest
         TrackerIdSchemeParams identifierParams = TrackerIdSchemeParams.builder()
             .categoryOptionComboIdScheme( TrackerIdSchemeParam.CODE )
             .build();
-        when( preheat.getIdentifiers() ).thenReturn( identifierParams );
+        when( preheat.getIdSchemes() ).thenReturn( identifierParams );
 
         Program program = createProgram( 'A' );
         CategoryCombo categoryCombo = createCategoryCombo( 'A' );
@@ -352,7 +352,7 @@ class EventProgramPreProcessorTest
         TrackerIdSchemeParams identifierParams = TrackerIdSchemeParams.builder()
             .categoryOptionComboIdScheme( TrackerIdSchemeParam.CODE )
             .build();
-        when( preheat.getIdentifiers() ).thenReturn( identifierParams );
+        when( preheat.getIdSchemes() ).thenReturn( identifierParams );
 
         Program program = createProgram( 'A' );
         CategoryCombo categoryCombo = createCategoryCombo( 'A' );

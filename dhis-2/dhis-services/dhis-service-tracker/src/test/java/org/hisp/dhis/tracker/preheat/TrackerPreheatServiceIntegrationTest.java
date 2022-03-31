@@ -133,7 +133,7 @@ class TrackerPreheatServiceIntegrationTest extends TransactionalIntegrationTest
             .user( currentUser )
             .trackedEntities( Lists.newArrayList( teA ) )
             .enrollments( Lists.newArrayList( enrollmentA ) )
-            .identifiers( TrackerIdSchemeParams.builder()
+            .idSchemes( TrackerIdSchemeParams.builder()
                 .idScheme( TrackerIdSchemeParam.UID )
                 .orgUnitIdScheme( TrackerIdSchemeParam.CODE )
                 .programIdScheme( TrackerIdSchemeParam.of( TrackerIdScheme.ATTRIBUTE, ATTRIBUTE_UID ) )

@@ -99,7 +99,7 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
             .build();
         List<Event> events = List.of( event );
         TrackerImportParams params = TrackerImportParams.builder()
-            .identifiers( identifierParams )
+            .idSchemes( identifierParams )
             .events( events )
             .build();
 
@@ -143,7 +143,7 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
             .build();
         List<Event> events = List.of( event );
         TrackerImportParams params = TrackerImportParams.builder()
-            .identifiers( identifierParams )
+            .idSchemes( identifierParams )
             .events( events )
             .build();
 
@@ -182,7 +182,7 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
             .build();
         List<Event> events = List.of( event, event );
         TrackerImportParams params = TrackerImportParams.builder()
-            .identifiers( identifierParams )
+            .idSchemes( identifierParams )
             .events( events )
             .build();
 
@@ -224,7 +224,7 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
             .build();
         List<Event> events = List.of( event, event );
         TrackerImportParams params = TrackerImportParams.builder()
-            .identifiers( identifierParams )
+            .idSchemes( identifierParams )
             .events( events )
             .build();
 
@@ -265,7 +265,7 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
             .build();
         List<Event> events = List.of( event );
         TrackerImportParams params = TrackerImportParams.builder()
-            .identifiers( identifierParams )
+            .idSchemes( identifierParams )
             .events( events )
             .build();
 
@@ -298,7 +298,7 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
             .build();
         List<Event> events = List.of( event );
         TrackerImportParams params = TrackerImportParams.builder()
-            .identifiers( identifierParams )
+            .idSchemes( identifierParams )
             .events( events )
             .build();
 
@@ -328,7 +328,7 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
             .build();
         List<Event> events = List.of( event );
         TrackerImportParams params = TrackerImportParams.builder()
-            .identifiers( identifierParams )
+            .idSchemes( identifierParams )
             .events( events )
             .build();
 
@@ -365,7 +365,7 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
             .build();
         List<Event> events = List.of( event );
         TrackerImportParams params = TrackerImportParams.builder()
-            .identifiers( identifierParams )
+            .idSchemes( identifierParams )
             .events( events )
             .build();
 
@@ -402,7 +402,7 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
             .build();
         List<Event> events = List.of( event );
         TrackerImportParams params = TrackerImportParams.builder()
-            .identifiers( identifierParams )
+            .idSchemes( identifierParams )
             .events( events )
             .build();
 
@@ -434,7 +434,7 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
             .build();
         List<Event> events = List.of( event );
         TrackerImportParams params = TrackerImportParams.builder()
-            .identifiers( identifierParams )
+            .idSchemes( identifierParams )
             .events( events )
             .build();
 
@@ -465,7 +465,7 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
             .build();
         List<Event> events = List.of( event );
         TrackerImportParams params = TrackerImportParams.builder()
-            .identifiers( identifierParams )
+            .idSchemes( identifierParams )
             .events( events )
             .build();
 

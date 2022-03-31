@@ -95,7 +95,7 @@ class TrackerPreheatTest extends DhisConvenienceTest
             .categoryOptionComboIdScheme( TrackerIdSchemeParam.CODE )
             .build();
         TrackerPreheat preheat = new TrackerPreheat();
-        preheat.setIdentifiers( identifierParams );
+        preheat.setIdSchemes( identifierParams );
 
         assertFalse( preheat.containsCategoryOptionCombo( categoryCombo, options ) );
         assertNull( preheat.getCategoryOptionCombo( categoryCombo, options ) );
@@ -119,7 +119,7 @@ class TrackerPreheatTest extends DhisConvenienceTest
 
         TrackerPreheat preheat = new TrackerPreheat();
         TrackerIdSchemeParams identifiers = new TrackerIdSchemeParams();
-        preheat.setIdentifiers( identifiers );
+        preheat.setIdSchemes( identifiers );
 
         String optionsString = concatCategoryOptions( identifiers.getCategoryOptionComboIdScheme(), options );
         assertFalse( preheat.containsCategoryOptionCombo( categoryCombo, options ) );
@@ -149,7 +149,7 @@ class TrackerPreheatTest extends DhisConvenienceTest
 
         TrackerPreheat preheat = new TrackerPreheat();
         TrackerIdSchemeParams identifiers = new TrackerIdSchemeParams();
-        preheat.setIdentifiers( identifiers );
+        preheat.setIdSchemes( identifiers );
 
         preheat.putCategoryOptionCombo( categoryCombo, options, aoc );
 
@@ -169,7 +169,7 @@ class TrackerPreheatTest extends DhisConvenienceTest
 
         TrackerPreheat preheat = new TrackerPreheat();
         TrackerIdSchemeParams identifiers = new TrackerIdSchemeParams();
-        preheat.setIdentifiers( identifiers );
+        preheat.setIdSchemes( identifiers );
 
         preheat.putCategoryOptionCombo( categoryCombo, options, null );
 

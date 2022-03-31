@@ -34,6 +34,7 @@ import lombok.Value;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.IdentifiableObject;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
@@ -52,6 +53,9 @@ public class TrackerIdSchemeParam
 
     public static final TrackerIdSchemeParam NAME = builder().idScheme( TrackerIdScheme.NAME ).build();
 
+    @JsonAlias( "identifier" ) // Artemis queue might persist parameters in the
+                               // old format; keep it backwards-compatible
+                               // during 2.39; remove in 2.30
     @JsonProperty
     @Builder.Default
     private final TrackerIdScheme idScheme = TrackerIdScheme.UID;

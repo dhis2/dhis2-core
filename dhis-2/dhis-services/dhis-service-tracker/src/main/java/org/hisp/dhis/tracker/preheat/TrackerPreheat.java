@@ -159,7 +159,7 @@ public class TrackerPreheat
     {
         if ( categoryOptionCombo != null )
         {
-            TrackerIdSchemeParam optionComboIdScheme = getIdentifiers().getCategoryOptionComboIdScheme();
+            TrackerIdSchemeParam optionComboIdScheme = this.getIdSchemes().getCategoryOptionComboIdScheme();
             this.cosToCOC.put( categoryOptionComboCacheKey( categoryCombo, categoryOptions ),
                 optionComboIdScheme.getIdentifier( categoryOptionCombo ) );
             this.put( optionComboIdScheme, categoryOptionCombo );
@@ -174,7 +174,7 @@ public class TrackerPreheat
         Set<CategoryOption> categoryOptions )
     {
         Set<String> coIds = categoryOptions.stream()
-            .map( getIdentifiers().getCategoryOptionIdScheme()::getIdentifier )
+            .map( this.getIdSchemes().getCategoryOptionIdScheme()::getIdentifier )
             .collect( Collectors.toSet() );
         return Pair.of( categoryCombo.getUid(), coIds );
     }
@@ -233,7 +233,7 @@ public class TrackerPreheat
         {
             return null;
         }
-        return identifiers.getCategoryOptionComboIdScheme().getIdentifier( categoryOptionCombo );
+        return idSchemes.getCategoryOptionComboIdScheme().getIdentifier( categoryOptionCombo );
     }
 
     private Pair<String, Set<String>> categoryOptionComboCacheKey( CategoryCombo categoryCombo,
@@ -343,11 +343,11 @@ public class TrackerPreheat
     private List<Pair<String, String>> programStageWithEvents = Lists.newArrayList();
 
     /**
-     * Identifier map
+     * idScheme map
      */
     @Getter
     @Setter
-    private TrackerIdSchemeParams identifiers = new TrackerIdSchemeParams();
+    private TrackerIdSchemeParams idSchemes = new TrackerIdSchemeParams();
 
     /**
      * Map of Program ID (primary key) and List of Org Unit ID associated to

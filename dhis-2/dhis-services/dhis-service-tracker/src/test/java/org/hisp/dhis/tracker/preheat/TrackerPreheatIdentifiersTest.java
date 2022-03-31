@@ -150,7 +150,7 @@ class TrackerPreheatIdentifiersTest extends TrackerTest
     {
         TrackerImportParams params = TrackerImportParams.builder().events( Collections.singletonList( event ) )
             .user( currentUserService.getCurrentUser() ).build();
-        params.setIdentifiers( idParams );
+        params.setIdSchemes( idParams );
         return params;
     }
 
