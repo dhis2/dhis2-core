@@ -52,7 +52,6 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.program.UserInfoSnapshot;
-import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.User;
@@ -224,7 +223,7 @@ public class EventTrackerConverterService
         programStageInstance.setCreatedAtClient( DateUtils.fromInstant( event.getCreatedAtClient() ) );
         programStageInstance.setLastUpdatedAtClient( DateUtils.fromInstant( event.getUpdatedAtClient() ) );
         programStageInstance.setProgramInstance(
-            getProgramInstance( preheat, TrackerIdScheme.UID, event.getEnrollment(), program ) );
+            getProgramInstance( preheat, event.getEnrollment(), program ) );
 
         programStageInstance.setProgramStage( programStage );
         programStageInstance.setOrganisationUnit( organisationUnit );
@@ -296,8 +295,7 @@ public class EventTrackerConverterService
         return programStageInstance;
     }
 
-    private ProgramInstance getProgramInstance( TrackerPreheat preheat, TrackerIdScheme identifier, String enrollment,
-        Program program )
+    private ProgramInstance getProgramInstance( TrackerPreheat preheat, String enrollment, Program program )
     {
         if ( ProgramType.WITH_REGISTRATION == program.getProgramType() )
         {
