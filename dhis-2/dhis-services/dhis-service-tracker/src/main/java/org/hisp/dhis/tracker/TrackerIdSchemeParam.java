@@ -46,11 +46,11 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 @AllArgsConstructor( staticName = "of" )
 public class TrackerIdSchemeParam
 {
-    public final static TrackerIdSchemeParam UID = builder().idScheme( TrackerIdScheme.UID ).build();
+    public static final TrackerIdSchemeParam UID = builder().idScheme( TrackerIdScheme.UID ).build();
 
-    public final static TrackerIdSchemeParam CODE = builder().idScheme( TrackerIdScheme.CODE ).build();
+    public static final TrackerIdSchemeParam CODE = builder().idScheme( TrackerIdScheme.CODE ).build();
 
-    public final static TrackerIdSchemeParam NAME = builder().idScheme( TrackerIdScheme.NAME ).build();
+    public static final TrackerIdSchemeParam NAME = builder().idScheme( TrackerIdScheme.NAME ).build();
 
     @JsonProperty
     @Builder.Default
