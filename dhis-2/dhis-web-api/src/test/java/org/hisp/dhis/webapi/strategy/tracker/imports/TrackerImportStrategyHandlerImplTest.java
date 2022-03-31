@@ -41,7 +41,7 @@ import org.hisp.dhis.tracker.TrackerBundleReportMode;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.job.TrackerMessage;
-import org.hisp.dhis.webapi.controller.tracker.TrackerImportReportRequest;
+import org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportReportRequest;
 import org.hisp.dhis.webapi.strategy.tracker.imports.impl.TrackerImportAsyncStrategyImpl;
 import org.hisp.dhis.webapi.strategy.tracker.imports.impl.TrackerImportSyncStrategyImpl;
 import org.junit.jupiter.api.Test;

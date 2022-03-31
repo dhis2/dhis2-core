@@ -34,7 +34,7 @@ import org.hisp.dhis.artemis.Topics;
 import org.hisp.dhis.security.AuthenticationSerializer;
 import org.hisp.dhis.tracker.job.TrackerMessage;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
-import org.hisp.dhis.webapi.controller.tracker.TrackerImportReportRequest;
+import org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportReportRequest;
 import org.hisp.dhis.webapi.strategy.tracker.imports.TrackerImportStrategyHandler;
 import org.springframework.stereotype.Component;
 

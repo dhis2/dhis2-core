@@ -25,15 +25,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker;
+package org.hisp.dhis.webapi.controller.tracker.imports;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder.TrackerImportParamKey.ATOMIC_MODE_KEY;
-import static org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder.TrackerImportParamKey.FLUSH_MODE_KEY;
-import static org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder.TrackerImportParamKey.IMPORT_MODE_KEY;
-import static org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder.TrackerImportParamKey.IMPORT_STRATEGY_KEY;
-import static org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder.TrackerImportParamKey.VALIDATION_MODE_KEY;
+import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportParamsBuilder.TrackerImportParamKey.ATOMIC_MODE_KEY;
+import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportParamsBuilder.TrackerImportParamKey.FLUSH_MODE_KEY;
+import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportParamsBuilder.TrackerImportParamKey.IMPORT_MODE_KEY;
+import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportParamsBuilder.TrackerImportParamKey.IMPORT_STRATEGY_KEY;
+import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportParamsBuilder.TrackerImportParamKey.VALIDATION_MODE_KEY;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.Arrays;

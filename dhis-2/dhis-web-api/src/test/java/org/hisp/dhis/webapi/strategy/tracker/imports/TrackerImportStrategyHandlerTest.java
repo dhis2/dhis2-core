@@ -31,8 +31,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import org.hisp.dhis.webapi.controller.tracker.TrackerBundleParams;
-import org.hisp.dhis.webapi.controller.tracker.TrackerImportReportRequest;
+import org.hisp.dhis.webapi.controller.tracker.imports.TrackerBundleParams;
+import org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportReportRequest;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.strategy.tracker.imports.impl.TrackerImportAsyncStrategyImpl;
 import org.hisp.dhis.webapi.strategy.tracker.imports.impl.TrackerImportStrategyImpl;

@@ -28,7 +28,7 @@
 package org.hisp.dhis.webapi.strategy.tracker.imports;
 
 import org.hisp.dhis.tracker.report.TrackerImportReport;
-import org.hisp.dhis.webapi.controller.tracker.TrackerImportReportRequest;
+import org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportReportRequest;
 
 /**
  * @author Luca Cambi <luca@dhis2.org>

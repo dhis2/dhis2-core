@@ -31,7 +31,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
-import org.hisp.dhis.webapi.controller.tracker.TrackerImportReportRequest;
+import org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportReportRequest;
 import org.hisp.dhis.webapi.strategy.tracker.imports.TrackerImportStrategyHandler;
 import org.springframework.stereotype.Component;
 

@@ -60,8 +60,6 @@ import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
-import org.hisp.dhis.webapi.controller.tracker.TrackerBundleParams;
-import org.hisp.dhis.webapi.controller.tracker.TrackerImportReportRequest;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.strategy.tracker.imports.TrackerImportStrategyHandler;
