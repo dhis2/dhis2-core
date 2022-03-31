@@ -256,7 +256,8 @@ public class EnrollmentAnalyticsController
     private EventQueryParams getEventQueryParams( @PathVariable String program,
         EnrollmentAnalyticsQueryCriteria criteria, DhisApiVersion apiVersion, boolean analyzeOnly )
     {
-        checkAndMaybeModifyCriteria( criteria );
+        criteria
+            .checkAndMaybeModifyPagingCriteria( systemSettingManager.getIntSetting( SettingKey.ANALYTICS_MAX_LIMIT ) );
 
         EventDataQueryRequest request = EventDataQueryRequest.builder()
             .fromCriteria( (EnrollmentAnalyticsQueryCriteria) criteria.withQueryEndpointAction()
@@ -266,37 +267,5 @@ public class EnrollmentAnalyticsController
             .build();
 
         return eventDataQueryService.getFromRequest( request, analyzeOnly );
-    }
-
-    private void checkAndMaybeModifyCriteria( EnrollmentAnalyticsQueryCriteria criteria )
-    {
-        Integer analyticsMaxLimit = systemSettingManager.getIntSetting( SettingKey.ANALYTICS_MAX_LIMIT );
-
-        // no paging params at all should fall back to default paging (50)
-        if ( criteria.getPaging() == null || (criteria.getPaging() != null && criteria.getPaging()) )
-        {
-            criteria
-                .setPageSize( criteria.getPageSize() > analyticsMaxLimit ? analyticsMaxLimit : criteria.getPageSize() );
-
-            criteria.setPaging( true );
-
-            return;
-        }
-
-        // paging=false should disable paging completely and let the max limit
-        // decide the returned number
-        if ( !criteria.getPaging() )
-        {
-            criteria.setPage( 1 );
-
-            criteria.setPageSize( analyticsMaxLimit );
-
-            return;
-        }
-
-        if ( criteria.getPageSize() != null && criteria.getPageSize() > analyticsMaxLimit )
-        {
-            criteria.setPageSize( analyticsMaxLimit );
-        }
     }
 }
