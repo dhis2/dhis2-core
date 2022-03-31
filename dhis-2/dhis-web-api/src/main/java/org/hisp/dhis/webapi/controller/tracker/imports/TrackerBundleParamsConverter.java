@@ -84,7 +84,7 @@ import com.fasterxml.jackson.databind.util.StdConverter;
  *
  * @author Luciano Fiandesio
  */
-public class TrackerBundleParamsConverter
+class TrackerBundleParamsConverter
     extends
     StdConverter<TrackerBundleParams, TrackerBundleParams>
 {
