@@ -1056,6 +1056,22 @@ class ExpressionServiceTest extends DhisSpringTest
     }
 
     @Test
+    void testNull()
+    {
+        assertEquals( "null", eval( "null" ) );
+        assertEquals( "null", eval( "1 - null" ) );
+    }
+
+    @Test
+    public void testRemoveZeros()
+    {
+        assertEquals( "null", eval( "removeZeros( 0 )" ) );
+        assertEquals( "null", eval( "removeZeros( 10 - 2 * 5 )" ) );
+        assertEquals( "10", eval( "removeZeros( 10 )" ) );
+        assertEquals( "8", eval( "removeZeros( 10 - 2 )" ) );
+    }
+
+    @Test
     void testDataElementAndDataElementOperand()
     {
         assertEquals( "HllvX50cXC0", categoryService.getDefaultCategoryOptionCombo().getUid() );
