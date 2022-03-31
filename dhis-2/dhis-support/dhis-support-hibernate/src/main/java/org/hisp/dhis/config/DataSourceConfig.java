@@ -112,7 +112,7 @@ public class DataSourceConfig
         return jdbcTemplate;
     }
 
-    @Bean( "actualDataSource" )
+    @Bean( "dataSource" )
     public DataSource actualDataSource( HibernateConfigurationProvider hibernateConfigurationProvider )
     {
         String jdbcUrl = dhisConfig.getProperty( ConfigurationKey.CONNECTION_URL );
@@ -140,55 +140,55 @@ public class DataSourceConfig
         }
     }
 
-    @Bean( "dataSource" )
-    @DependsOn( "actualDataSource" )
-    @Primary
-    public DataSource dataSource( @Qualifier( "actualDataSource" ) DataSource actualDataSource )
-    {
-        boolean enableQueryLogging = dhisConfig.isEnabled( ConfigurationKey.ENABLE_QUERY_LOGGING );
-
-        if ( !enableQueryLogging )
-        {
-            return actualDataSource;
-        }
-
-        PrettyQueryEntryCreator creator = new PrettyQueryEntryCreator();
-        creator.setMultiline( true );
-
-        SLF4JQueryLoggingListener listener = new SLF4JQueryLoggingListener();
-        listener.setLogger( "org.hisp.dhis.datasource.query" );
-        listener.setLogLevel( SLF4JLogLevel.INFO );
-        listener.setQueryLogEntryCreator( creator );
-
-        ProxyDataSourceBuilder b = ProxyDataSourceBuilder
-
-            .create( actualDataSource )
-            .name( "ProxyDS_DHIS2_" + dhisConfig.getProperty( ConfigurationKey.DB_POOL_TYPE ) +
-                "_" + CodeGenerator.generateCode( 5 ) )
-
-            .logSlowQueryBySlf4j(
-                Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.SLOW_QUERY_LOGGING_THRESHOLD_TIME_MS ) ),
-                TimeUnit.MILLISECONDS, SLF4JLogLevel.WARN )
-
-            .listener( listener )
-            .proxyResultSet();
-
-        boolean elapsedTimeLogging = dhisConfig.isEnabled( ConfigurationKey.ELAPSED_TIME_QUERY_LOGGING_ENABLED );
-        boolean methodLoggingEnabled = dhisConfig.isEnabled( ConfigurationKey.METHOD_QUERY_LOGGING_ENABLED );
-
-        if ( methodLoggingEnabled )
-        {
-            b.afterMethod( DataSourceConfig::executeAfterMethod );
-        }
-
-        if ( elapsedTimeLogging )
-        {
-            b.afterQuery(
-                ( execInfo, queryInfoList ) -> log.info( "Query took " + execInfo.getElapsedTime() + "msec" ) );
-        }
-
-        return b.build();
-    }
+//    @Bean( "dataSource" )
+//    @DependsOn( "actualDataSource" )
+//    @Primary
+//    public DataSource dataSource( @Qualifier( "actualDataSource" ) DataSource actualDataSource )
+//    {
+//        boolean enableQueryLogging = dhisConfig.isEnabled( ConfigurationKey.ENABLE_QUERY_LOGGING );
+//
+//        if ( !enableQueryLogging )
+//        {
+//            return actualDataSource;
+//        }
+//
+//        PrettyQueryEntryCreator creator = new PrettyQueryEntryCreator();
+//        creator.setMultiline( true );
+//
+//        SLF4JQueryLoggingListener listener = new SLF4JQueryLoggingListener();
+//        listener.setLogger( "org.hisp.dhis.datasource.query" );
+//        listener.setLogLevel( SLF4JLogLevel.INFO );
+//        listener.setQueryLogEntryCreator( creator );
+//
+//        ProxyDataSourceBuilder b = ProxyDataSourceBuilder
+//
+//            .create( actualDataSource )
+//            .name( "ProxyDS_DHIS2_" + dhisConfig.getProperty( ConfigurationKey.DB_POOL_TYPE ) +
+//                "_" + CodeGenerator.generateCode( 5 ) )
+//
+//            .logSlowQueryBySlf4j(
+//                Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.SLOW_QUERY_LOGGING_THRESHOLD_TIME_MS ) ),
+//                TimeUnit.MILLISECONDS, SLF4JLogLevel.WARN )
+//
+//            .listener( listener )
+//            .proxyResultSet();
+//
+//        boolean elapsedTimeLogging = dhisConfig.isEnabled( ConfigurationKey.ELAPSED_TIME_QUERY_LOGGING_ENABLED );
+//        boolean methodLoggingEnabled = dhisConfig.isEnabled( ConfigurationKey.METHOD_QUERY_LOGGING_ENABLED );
+//
+//        if ( methodLoggingEnabled )
+//        {
+//            b.afterMethod( DataSourceConfig::executeAfterMethod );
+//        }
+//
+//        if ( elapsedTimeLogging )
+//        {
+//            b.afterQuery(
+//                ( execInfo, queryInfoList ) -> log.info( "Query took " + execInfo.getElapsedTime() + "msec" ) );
+//        }
+//
+//        return b.build();
+//    }
 
     private static void executeAfterMethod( MethodExecutionContext executionContext )
     {

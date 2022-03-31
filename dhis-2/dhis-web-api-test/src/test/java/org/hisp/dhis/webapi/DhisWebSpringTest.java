@@ -39,6 +39,7 @@ import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.utils.TestUtils;
+import org.hisp.dhis.webapi.security.config.WebMvcConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,7 +65,7 @@ import org.springframework.web.filter.CharacterEncodingFilter;
  */
 @ExtendWith( { RestDocumentationExtension.class, SpringExtension.class } )
 @WebAppConfiguration
-@ContextConfiguration( classes = { MvcTestConfig.class, WebTestConfiguration.class } )
+@ContextConfiguration( classes = { ConfigProviderConfig.class,MvcTestConfig.class, WebTestConfiguration.class  } )
 @ActiveProfiles( "test-h2" )
 @Transactional
 public abstract class DhisWebSpringTest extends DhisConvenienceTest

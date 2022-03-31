@@ -56,7 +56,8 @@ import org.springframework.web.context.WebApplicationContext;
  */
 @ExtendWith( SpringExtension.class )
 @WebAppConfiguration
-@ContextConfiguration( classes = { WebMvcConfig.class, WebTestConfigurationWithJwtTokenAuth.class } )
+//@ContextConfiguration( classes = { WebMvcConfig.class, WebTestConfigurationWithJwtTokenAuth.class } )
+@ContextConfiguration( classes = { JwtConfigProviderConfig.class, WebMvcConfig.class  } )
 @ActiveProfiles( "test-h2" )
 @Transactional
 public abstract class DhisControllerWithJwtTokenAuthTest extends DhisMockMvcControllerTest

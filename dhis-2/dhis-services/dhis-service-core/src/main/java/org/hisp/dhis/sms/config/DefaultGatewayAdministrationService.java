@@ -76,7 +76,7 @@ public class DefaultGatewayAdministrationService
     @EventListener
     public void handleContextRefresh( ContextRefreshedEvent contextRefreshedEvent )
     {
-        updateHasGatewaysState();
+//        updateHasGatewaysState();
     }
 
     @Override

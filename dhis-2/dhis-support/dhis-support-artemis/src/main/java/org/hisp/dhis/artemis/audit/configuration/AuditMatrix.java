@@ -35,13 +35,15 @@ import org.hisp.dhis.artemis.audit.Audit;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.AuditType;
 import org.springframework.context.annotation.DependsOn;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Luciano Fiandesio
  */
+//@Profile( { "!test", "!test-h2" } )
 @Component
-@DependsOn( "dhisConfigurationProvider" )
+//@DependsOn( "dhisConfigurationProvider" )
 public class AuditMatrix
 {
     private Map<AuditScope, Map<AuditType, Boolean>> matrix;

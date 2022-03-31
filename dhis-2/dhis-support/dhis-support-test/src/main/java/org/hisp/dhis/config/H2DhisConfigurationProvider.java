@@ -42,20 +42,25 @@ import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.conf.GoogleAccessToken;
+
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.support.PropertiesLoaderUtils;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
+//@Profile( "test-h2" )
+//@Component
 @Slf4j
 public class H2DhisConfigurationProvider implements DhisConfigurationProvider
 {
     private static final String DEFAULT_CONFIGURATION_FILE_NAME = "h2TestConfig.conf";
 
-    private Properties properties;
+    protected Properties properties;
 
     private EncryptionStatus encryptionStatus = EncryptionStatus.OK;
 
@@ -179,7 +184,7 @@ public class H2DhisConfigurationProvider implements DhisConfigurationProvider
                 : getPropertyOrDefault( v, v.getDefaultValue() != null ? v.getDefaultValue() : "" ) ) );
     }
 
-    private Properties getPropertiesFromFile( String fileName )
+    protected Properties getPropertiesFromFile( String fileName )
     {
         try
         {
