@@ -39,19 +39,19 @@ import org.springframework.security.core.Authentication;
 @Builder
 public class TrackerImportReportRequest
 {
-    Authentication authentication;
+    private Authentication authentication;
 
-    String uid;
+    private String uid;
 
-    String userUid;
+    private String userUid;
 
-    ContextService contextService;
+    private ContextService contextService;
 
-    TrackerBundleParams trackerBundleParams;
+    private TrackerBundleParams trackerBundleParams;
 
-    TrackerImportParams trackerImportParams;
+    private TrackerImportParams trackerImportParams;
 
     boolean isAsync;
 
-    TrackerBundleReportMode trackerBundleReportMode;
+    private TrackerBundleReportMode trackerBundleReportMode;
 }
