@@ -64,26 +64,26 @@ public class TrackerBundleParams
      */
     @JsonProperty
     @Builder.Default
-    private List<TrackedEntity> trackedEntities = new ArrayList<>();
+    private final List<TrackedEntity> trackedEntities = new ArrayList<>();
 
     /**
      * Enrollments to import.
      */
     @JsonProperty
     @Builder.Default
-    private List<Enrollment> enrollments = new ArrayList<>();
+    private final List<Enrollment> enrollments = new ArrayList<>();
 
     /**
      * Events to import.
      */
     @JsonProperty
     @Builder.Default
-    private List<Event> events = new ArrayList<>();
+    private final List<Event> events = new ArrayList<>();
 
     /**
      * Relationships to import.
      */
     @JsonProperty
     @Builder.Default
-    private List<Relationship> relationships = new ArrayList<>();
+    private final List<Relationship> relationships = new ArrayList<>();
 }
