@@ -32,8 +32,10 @@ import java.util.List;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
@@ -48,7 +50,9 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Data
+@Getter
+@ToString
+@EqualsAndHashCode
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor

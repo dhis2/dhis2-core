@@ -157,8 +157,9 @@ public class TrackerImportController
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
 
         List<Event> events = csvEventService.readEvents( inputStream, skipFirst );
-        TrackerBundleParams trackerBundleParams = new TrackerBundleParams();
-        trackerBundleParams.setEvents( events );
+        TrackerBundleParams trackerBundleParams = TrackerBundleParams.builder()
+            .events( events )
+            .build();
 
         TrackerImportReportRequest trackerImportReportRequest = TrackerImportReportRequest.builder()
             .trackerBundleParams( trackerBundleParams )
@@ -190,8 +191,9 @@ public class TrackerImportController
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
 
         List<Event> events = csvEventService.readEvents( inputStream, skipFirst );
-        TrackerBundleParams trackerBundleParams = new TrackerBundleParams();
-        trackerBundleParams.setEvents( events );
+        TrackerBundleParams trackerBundleParams = TrackerBundleParams.builder()
+            .events( events )
+            .build();
         TrackerImportReportRequest trackerImportReportRequest = TrackerImportReportRequest.builder()
             .trackerBundleParams( trackerBundleParams )
             .contextService( contextService )
