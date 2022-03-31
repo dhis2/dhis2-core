@@ -50,6 +50,7 @@ import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
+import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -167,5 +168,18 @@ public abstract class TrackerTest extends TransactionalIntegrationTest
     public boolean emptyDatabaseAfterTest()
     {
         return true;
+    }
+
+    protected TrackerStatus logTrackerErrors( TrackerImportReport trackerImportReport )
+    {
+        TrackerStatus status = trackerImportReport.getStatus();
+        if( status == TrackerStatus.ERROR )
+        {
+            List<TrackerErrorReport> errors = trackerImportReport.getValidationReport().getErrors();
+            errors.forEach( error -> {
+                log.error( error.getErrorCode() + ": " + error.getMessage() );
+            } );
+        }
+        return status;
     }
 }

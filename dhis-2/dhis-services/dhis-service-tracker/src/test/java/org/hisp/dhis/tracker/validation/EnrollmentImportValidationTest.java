@@ -79,9 +79,14 @@ class EnrollmentImportValidationTest extends AbstractImportValidationTest
         TrackerImportParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/enrollments_te_te-data.json" );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
+
+        logTrackerErrors( trackerImportReport );
+
         assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
         manager.flush();
     }
+
+
 
     @Test
     void testEnrollmentValidationOkAll()
