@@ -190,7 +190,8 @@ public class EventManager
 
             executorsByPhase.get( EventProcessorPhase.INSERT_POST ).execute( workContext, savedEvents );
 
-            savedEvents.forEach( e -> logTrackedEntityDataValueHistory( e, workContext ) );
+            Date today = new Date();
+            savedEvents.forEach( e -> logTrackedEntityDataValueHistory( e, workContext, today ) );
 
             incrementSummaryTotals( events, importSummaries, CREATE );
         }
@@ -261,7 +262,8 @@ public class EventManager
 
             executorsByPhase.get( EventProcessorPhase.UPDATE_POST ).execute( workContext, savedEvents );
 
-            savedEvents.forEach( e -> logTrackedEntityDataValueHistory( e, workContext ) );
+            Date today = new Date();
+            savedEvents.forEach( e -> logTrackedEntityDataValueHistory( e, workContext, today ) );
 
             incrementSummaryTotals( events, importSummaries, UPDATE );
         }
@@ -317,10 +319,10 @@ public class EventManager
                 .filter( e -> !eventPersistenceFailedUids.contains( e.getEvent() ) ).collect( toList() );
             executorsByPhase.get( EventProcessorPhase.DELETE_POST ).execute( workContext, deletedEvents );
 
-            deletedEvents.forEach( e -> logTrackedEntityDataValueHistory( e, workContext ) );
+            Date today = new Date();
+            deletedEvents.forEach( e -> logTrackedEntityDataValueHistory( e, workContext, today ) );
 
             incrementSummaryTotals( events, importSummaries, DELETE );
-
         }
 
         return importSummaries;
@@ -493,9 +495,8 @@ public class EventManager
         return importSummaries;
     }
 
-    private void logTrackedEntityDataValueHistory( Event event, WorkContext workContext )
+    private void logTrackedEntityDataValueHistory( Event event, WorkContext workContext, Date today )
     {
-        Date created = new Date();
         String persistedDataValue = null;
 
         ProgramStageInstance psi = workContext.getPersistedProgramStageInstanceMap().get( event.getUid() );
@@ -534,7 +535,7 @@ public class EventManager
             }
 
             TrackedEntityDataValueAudit audit = new TrackedEntityDataValueAudit();
-            audit.setCreated( created );
+            audit.setCreated( today );
             audit.setAuditType( auditType );
             audit.setProvidedElsewhere( dv.getProvidedElsewhere() );
             audit.setProgramStageInstance( psi );
