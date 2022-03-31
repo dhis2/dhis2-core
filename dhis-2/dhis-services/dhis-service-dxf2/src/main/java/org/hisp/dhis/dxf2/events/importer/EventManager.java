@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dxf2.events.importer;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
@@ -39,26 +40,40 @@ import static org.hisp.dhis.importexport.ImportStrategy.DELETE;
 import static org.hisp.dhis.importexport.ImportStrategy.UPDATE;
 
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.persistence.EventPersistenceService;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAudit;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
+import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
@@ -86,6 +101,12 @@ public class EventManager
 
     @NonNull
     private final EventPersistenceService eventPersistenceService;
+
+    @NonNull
+    private final TrackedEntityDataValueAuditService entityDataValueAuditService;
+
+    @NonNull
+    private final CurrentUserService currentUserService;
 
     private static final String IMPORT_ERROR_STRING = "Invalid or conflicting data";
 
@@ -169,8 +190,9 @@ public class EventManager
 
             executorsByPhase.get( EventProcessorPhase.INSERT_POST ).execute( workContext, savedEvents );
 
-            incrementSummaryTotals( events, importSummaries, CREATE );
+            savedEvents.forEach( e -> logTrackedEntityDataValueHistory( e, workContext ) );
 
+            incrementSummaryTotals( events, importSummaries, CREATE );
         }
         return importSummaries;
     }
@@ -239,8 +261,9 @@ public class EventManager
 
             executorsByPhase.get( EventProcessorPhase.UPDATE_POST ).execute( workContext, savedEvents );
 
-            incrementSummaryTotals( events, importSummaries, UPDATE );
+            savedEvents.forEach( e -> logTrackedEntityDataValueHistory( e, workContext ) );
 
+            incrementSummaryTotals( events, importSummaries, UPDATE );
         }
 
         return importSummaries;
@@ -289,8 +312,12 @@ public class EventManager
             // Post processing only the events that passed validation and were
             // persisted
             // correctly.
-            executorsByPhase.get( EventProcessorPhase.DELETE_POST ).execute( workContext, events.stream()
-                .filter( e -> !eventPersistenceFailedUids.contains( e.getEvent() ) ).collect( toList() ) );
+
+            List<Event> deletedEvents = events.stream()
+                .filter( e -> !eventPersistenceFailedUids.contains( e.getEvent() ) ).collect( toList() );
+            executorsByPhase.get( EventProcessorPhase.DELETE_POST ).execute( workContext, deletedEvents );
+
+            deletedEvents.forEach( e -> logTrackedEntityDataValueHistory( e, workContext ) );
 
             incrementSummaryTotals( events, importSummaries, DELETE );
 
@@ -464,5 +491,59 @@ public class EventManager
         }
 
         return importSummaries;
+    }
+
+    private void logTrackedEntityDataValueHistory( Event event, WorkContext workContext )
+    {
+        Date created = new Date();
+        String persistedDataValue = null;
+
+        ProgramStageInstance psi = workContext.getPersistedProgramStageInstanceMap().get( event.getUid() );
+
+        Map<String, EventDataValue> dataValueDBMap = Optional.ofNullable( psi ).map( p -> {
+            return p.getEventDataValues()
+                .stream()
+                .collect( Collectors.toMap( EventDataValue::getDataElement, Function.identity() ) );
+        } ).orElse( new HashMap<>() );
+
+        for ( DataValue dv : event.getDataValues() )
+        {
+            AuditType auditType = null;
+
+            DataElement dateElement = workContext.getDataElementMap().get( dv.getDataElement() );
+
+            checkNotNull( dateElement,
+                "Data element should never be NULL here if validation is enforced before commit." );
+
+            EventDataValue eventDataValue = dataValueDBMap.get( dv.getDataElement() );
+
+            if ( eventDataValue == null )
+            {
+                auditType = AuditType.CREATE;
+                persistedDataValue = dv.getValue();
+            }
+            else if ( StringUtils.isEmpty( dv.getValue() ) )
+            {
+                auditType = AuditType.DELETE;
+                persistedDataValue = eventDataValue.getValue();
+            }
+            else if ( !dv.getValue().equals( persistedDataValue ) )
+            {
+                persistedDataValue = dv.getValue();
+                auditType = AuditType.UPDATE;
+            }
+
+            TrackedEntityDataValueAudit audit = new TrackedEntityDataValueAudit();
+            audit.setCreated( created );
+            audit.setAuditType( auditType );
+            audit.setProvidedElsewhere( dv.getProvidedElsewhere() );
+            audit.setProgramStageInstance( psi );
+            audit.setValue( persistedDataValue != null ? persistedDataValue : dv.getValue() );
+            audit.setDataElement( workContext.getDataElementMap().get( dv.getDataElement() ) );
+            audit.setModifiedBy( currentUserService.getCurrentUsername() );
+
+            entityDataValueAuditService.addTrackedEntityDataValueAudit( audit );
+        }
+
     }
 }
