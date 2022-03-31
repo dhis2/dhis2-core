@@ -235,12 +235,12 @@ public class NotifierTest extends DhisSpringTest
 
     @Test
     public void testInsertingNotificationJobConcurrently()
-        throws InterruptedException
     {
+        notifier.notify( createJobConfig( -1 ), "zero" );
         ExecutorService e = Executors.newFixedThreadPool( 5 );
-        IntStream.range( 0, 500 ).forEach( i -> {
+        IntStream.range( 0, 1000 ).forEach( i -> {
             e.execute( () -> {
-                notifier.notify( createJobConfig( i ), "somethingid" );
+                notifier.notify( createJobConfig( i ), "somethingid" + i );
             } );
         } );
         awaitTermination( e );
