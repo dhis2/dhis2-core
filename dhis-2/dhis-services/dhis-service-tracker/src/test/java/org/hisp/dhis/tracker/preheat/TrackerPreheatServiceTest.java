@@ -78,7 +78,7 @@ class TrackerPreheatServiceTest extends TrackerTest
     {
         TrackerImportParams params = new TrackerImportParams();
         Map<Class<?>, Set<String>> collectedMap = identifierCollector.collect( params, Maps.newHashMap() );
-        assertEquals( collectedMap.keySet().size(), 2 );
+        assertEquals( 2, collectedMap.keySet().size() );
         assertTrue( collectedMap.containsKey( TrackedEntityType.class ) );
         assertTrue( collectedMap.containsKey( RelationshipType.class ) );
     }
@@ -167,13 +167,14 @@ class TrackerPreheatServiceTest extends TrackerTest
         assertTrue( params.getTrackedEntities().isEmpty() );
         assertTrue( params.getEnrollments().isEmpty() );
         assertFalse( params.getEvents().isEmpty() );
+
         TrackerPreheat preheat = trackerPreheatService.preheat( params );
+
         assertNotNull( preheat );
-        assertNotNull( preheat.getMap() );
-        assertNotNull( preheat.getMap().get( DataElement.class ) );
-        assertNotNull( preheat.getMap().get( OrganisationUnit.class ) );
-        assertNotNull( preheat.getMap().get( ProgramStage.class ) );
-        assertNotNull( preheat.getMap().get( CategoryOptionCombo.class ) );
+        assertFalse( preheat.getAll( DataElement.class ).isEmpty() );
+        assertFalse( preheat.getAll( OrganisationUnit.class ).isEmpty() );
+        assertFalse( preheat.getAll( ProgramStage.class ).isEmpty() );
+        assertFalse( preheat.getAll( CategoryOptionCombo.class ).isEmpty() );
         assertNotNull( preheat.get( CategoryOptionCombo.class, "XXXvX50cXC0" ) );
         assertNotNull( preheat.get( CategoryOption.class, "XXXrKDKCefk" ) );
     }
