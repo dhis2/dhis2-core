@@ -77,7 +77,7 @@ public class AnalyticsCache
      * will be fetched by the function provided. In this case, the fetched Grid
      * will be cached, so the next consumers can hit the cache only.
      * <p>
-     * The TTL of the cached object will be set accordingly to the cache
+     * f The TTL of the cached object will be set accordingly to the cache
      * settings available at
      * {@link org.hisp.dhis.analytics.cache.AnalyticsCacheSettings}.
      *
