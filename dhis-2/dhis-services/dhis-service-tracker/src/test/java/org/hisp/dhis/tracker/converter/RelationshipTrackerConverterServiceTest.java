@@ -43,7 +43,6 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.RelationshipItem;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
@@ -219,14 +218,14 @@ class RelationshipTrackerConverterServiceTest extends DhisConvenienceTest
 
     private void setUpMocks()
     {
-        when( preheat.getRelationship( TrackerIdScheme.UID, relationshipA() ) ).thenReturn( relationshipAFromDB() );
-        when( preheat.getRelationship( TrackerIdScheme.UID, relationshipB() ) ).thenReturn( relationshipBFromDB() );
+        when( preheat.getRelationship( relationshipA() ) ).thenReturn( relationshipAFromDB() );
+        when( preheat.getRelationship( relationshipB() ) ).thenReturn( relationshipBFromDB() );
         when( preheat.get( RelationshipType.class, TEI_TO_ENROLLMENT_RELATIONSHIP_TYPE ) )
             .thenReturn( teiToEnrollmentRelationshipType );
         when( preheat.get( RelationshipType.class, TEI_TO_EVENT_RELATIONSHIP_TYPE ) )
             .thenReturn( teiToEventRelationshipType );
-        when( preheat.getTrackedEntity( TrackerIdScheme.UID, TEI ) ).thenReturn( trackedEntityInstance );
-        when( preheat.getEnrollment( TrackerIdScheme.UID, ENROLLMENT ) ).thenReturn( programInstance );
-        when( preheat.getEvent( TrackerIdScheme.UID, EVENT ) ).thenReturn( programStageInstance );
+        when( preheat.getTrackedEntity( TEI ) ).thenReturn( trackedEntityInstance );
+        when( preheat.getEnrollment( ENROLLMENT ) ).thenReturn( programInstance );
+        when( preheat.getEvent( EVENT ) ).thenReturn( programStageInstance );
     }
 }
