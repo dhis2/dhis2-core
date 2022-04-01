@@ -50,8 +50,6 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-// @Profile( "test-h2" )
-// @Component
 @Slf4j
 public class H2DhisConfigurationProvider implements DhisConfigurationProvider
 {

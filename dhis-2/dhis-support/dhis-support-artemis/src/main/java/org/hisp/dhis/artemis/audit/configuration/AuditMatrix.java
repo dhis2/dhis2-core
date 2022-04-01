@@ -39,9 +39,7 @@ import org.springframework.stereotype.Component;
 /**
  * @author Luciano Fiandesio
  */
-// @Profile( { "!test", "!test-h2" } )
 @Component
-// @DependsOn( "dhisConfigurationProvider" )
 public class AuditMatrix
 {
     private Map<AuditScope, Map<AuditType, Boolean>> matrix;

@@ -31,15 +31,20 @@ import java.beans.PropertyVetoException;
 import java.lang.reflect.Method;
 import java.sql.SQLException;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 import javax.sql.DataSource;
 
 import lombok.extern.slf4j.Slf4j;
 import net.ttddyy.dsproxy.listener.MethodExecutionContext;
 import net.ttddyy.dsproxy.listener.logging.DefaultQueryLogEntryCreator;
+import net.ttddyy.dsproxy.listener.logging.SLF4JLogLevel;
+import net.ttddyy.dsproxy.listener.logging.SLF4JQueryLoggingListener;
+import net.ttddyy.dsproxy.support.ProxyDataSourceBuilder;
 
 import org.hibernate.engine.jdbc.internal.FormatStyle;
 import org.hibernate.engine.jdbc.internal.Formatter;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.datasource.DatabasePoolUtils;
 import org.hisp.dhis.datasource.DefaultReadOnlyDataSourceManager;
@@ -107,7 +112,7 @@ public class DataSourceConfig
         return jdbcTemplate;
     }
 
-    @Bean( "dataSource" )
+    @Bean( "actualDataSource" )
     public DataSource actualDataSource( HibernateConfigurationProvider hibernateConfigurationProvider )
     {
         String jdbcUrl = dhisConfig.getProperty( ConfigurationKey.CONNECTION_URL );
@@ -135,62 +140,61 @@ public class DataSourceConfig
         }
     }
 
-    // @Bean( "dataSource" )
-    // @DependsOn( "actualDataSource" )
-    // @Primary
-    // public DataSource dataSource( @Qualifier( "actualDataSource" ) DataSource
-    // actualDataSource )
-    // {
-    // boolean enableQueryLogging = dhisConfig.isEnabled(
-    // ConfigurationKey.ENABLE_QUERY_LOGGING );
-    //
-    // if ( !enableQueryLogging )
-    // {
-    // return actualDataSource;
-    // }
-    //
-    // PrettyQueryEntryCreator creator = new PrettyQueryEntryCreator();
-    // creator.setMultiline( true );
-    //
-    // SLF4JQueryLoggingListener listener = new SLF4JQueryLoggingListener();
-    // listener.setLogger( "org.hisp.dhis.datasource.query" );
-    // listener.setLogLevel( SLF4JLogLevel.INFO );
-    // listener.setQueryLogEntryCreator( creator );
-    //
-    // ProxyDataSourceBuilder b = ProxyDataSourceBuilder
-    //
-    // .create( actualDataSource )
-    // .name( "ProxyDS_DHIS2_" + dhisConfig.getProperty(
-    // ConfigurationKey.DB_POOL_TYPE ) +
-    // "_" + CodeGenerator.generateCode( 5 ) )
-    //
-    // .logSlowQueryBySlf4j(
-    // Integer.parseInt( dhisConfig.getProperty(
-    // ConfigurationKey.SLOW_QUERY_LOGGING_THRESHOLD_TIME_MS ) ),
-    // TimeUnit.MILLISECONDS, SLF4JLogLevel.WARN )
-    //
-    // .listener( listener )
-    // .proxyResultSet();
-    //
-    // boolean elapsedTimeLogging = dhisConfig.isEnabled(
-    // ConfigurationKey.ELAPSED_TIME_QUERY_LOGGING_ENABLED );
-    // boolean methodLoggingEnabled = dhisConfig.isEnabled(
-    // ConfigurationKey.METHOD_QUERY_LOGGING_ENABLED );
-    //
-    // if ( methodLoggingEnabled )
-    // {
-    // b.afterMethod( DataSourceConfig::executeAfterMethod );
-    // }
-    //
-    // if ( elapsedTimeLogging )
-    // {
-    // b.afterQuery(
-    // ( execInfo, queryInfoList ) -> log.info( "Query took " +
-    // execInfo.getElapsedTime() + "msec" ) );
-    // }
-    //
-    // return b.build();
-    // }
+    @Bean( "dataSource" )
+    @DependsOn( "actualDataSource" )
+    @Primary
+    public DataSource dataSource( @Qualifier( "actualDataSource" ) DataSource actualDataSource )
+    {
+        boolean enableQueryLogging = dhisConfig.isEnabled(
+            ConfigurationKey.ENABLE_QUERY_LOGGING );
+
+        if ( !enableQueryLogging )
+        {
+            return actualDataSource;
+        }
+
+        PrettyQueryEntryCreator creator = new PrettyQueryEntryCreator();
+        creator.setMultiline( true );
+
+        SLF4JQueryLoggingListener listener = new SLF4JQueryLoggingListener();
+        listener.setLogger( "org.hisp.dhis.datasource.query" );
+        listener.setLogLevel( SLF4JLogLevel.INFO );
+        listener.setQueryLogEntryCreator( creator );
+
+        ProxyDataSourceBuilder b = ProxyDataSourceBuilder
+
+            .create( actualDataSource )
+            .name( "ProxyDS_DHIS2_" + dhisConfig.getProperty(
+                ConfigurationKey.DB_POOL_TYPE ) +
+                "_" + CodeGenerator.generateCode( 5 ) )
+
+            .logSlowQueryBySlf4j(
+                Integer.parseInt( dhisConfig.getProperty(
+                    ConfigurationKey.SLOW_QUERY_LOGGING_THRESHOLD_TIME_MS ) ),
+                TimeUnit.MILLISECONDS, SLF4JLogLevel.WARN )
+
+            .listener( listener )
+            .proxyResultSet();
+
+        boolean elapsedTimeLogging = dhisConfig.isEnabled(
+            ConfigurationKey.ELAPSED_TIME_QUERY_LOGGING_ENABLED );
+        boolean methodLoggingEnabled = dhisConfig.isEnabled(
+            ConfigurationKey.METHOD_QUERY_LOGGING_ENABLED );
+
+        if ( methodLoggingEnabled )
+        {
+            b.afterMethod( DataSourceConfig::executeAfterMethod );
+        }
+
+        if ( elapsedTimeLogging )
+        {
+            b.afterQuery(
+                ( execInfo, queryInfoList ) -> log.info( "Query took " +
+                    execInfo.getElapsedTime() + "msec" ) );
+        }
+
+        return b.build();
+    }
 
     private static void executeAfterMethod( MethodExecutionContext executionContext )
     {

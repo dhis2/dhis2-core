@@ -61,9 +61,7 @@ import com.google.common.collect.ImmutableMap;
  *
  * @author Luciano Fiandesio
  */
-// @Profile( { "!test", "!test-h2" } )
 @Component
-// @DependsOn( "dhisConfigurationProvider" )
 public class AuditMatrixConfigurer
 {
     private final DhisConfigurationProvider config;

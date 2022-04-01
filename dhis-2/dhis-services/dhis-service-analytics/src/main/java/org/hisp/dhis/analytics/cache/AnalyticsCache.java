@@ -50,8 +50,6 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component
-@DependsOn( "dataSource" )
-@Order( 10001 )
 public class AnalyticsCache
 {
     private final CacheProvider cacheProvider;
