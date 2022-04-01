@@ -206,12 +206,6 @@ public class RelationshipTypeObjectBundleHook
                 RELATIONSHIP_ENTITY, TRACKED_ENTITY_INSTANCE ) );
         }
 
-        if ( constraint.getProgram() != null )
-        {
-            addReports.accept( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4023, PROGRAM,
-                RELATIONSHIP_ENTITY, TRACKED_ENTITY_INSTANCE ) );
-        }
-
         // Should be not be null
         if ( trackedEntityType == null )
         {
