@@ -89,12 +89,12 @@ class TrackerImportParamsSerdeTest extends TrackerTest
         // TrackerImportParams in the old format; keep it backwards-compatible
         // during 2.39; remove in 2.40
         final String json = "" + "{\"importMode\":\"COMMIT\","
-            + "\"identifiers\":{\"dataElementIdScheme\":{\"identifier\":\"UID\"},"
-            + "\"orgUnitIdScheme\":{\"identifier\":\"UID\"},"
-            + "\"programIdScheme\":{\"identifier\":\"ATTRIBUTE\",\"value\":\"aaaa\"},"
-            + "\"programStageIdScheme\":{\"identifier\":\"UID\"}," + "\"idScheme\":{\"identifier\":\"CODE\"},"
-            + "\"categoryOptionComboIdScheme\":{\"identifier\":\"UID\"},"
-            + "\"categoryOptionIdScheme\":{\"identifier\":\"UID\"}}," + "\"importStrategy\":\"DELETE\","
+            + "\"identifiers\":{\"dataElementIdScheme\":{\"idScheme\":\"UID\"},"
+            + "\"orgUnitIdScheme\":{\"idScheme\":\"UID\"},"
+            + "\"programIdScheme\":{\"idScheme\":\"ATTRIBUTE\",\"value\":\"aaaa\"},"
+            + "\"programStageIdScheme\":{\"idScheme\":\"UID\"}," + "\"idScheme\":{\"idScheme\":\"CODE\"},"
+            + "\"categoryOptionComboIdScheme\":{\"idScheme\":\"UID\"},"
+            + "\"categoryOptionIdScheme\":{\"idScheme\":\"UID\"}}," + "\"importStrategy\":\"DELETE\","
             + "\"atomicMode\":\"OBJECT\"," + "\"flushMode\":\"OBJECT\"," + "\"validationMode\":\"SKIP\","
             + "\"skipPatternValidation\":true," + "\"skipSideEffects\":true," + "\"skipRuleEngine\":true,"
             + "\"trackedEntities\":[]," + "\"enrollments\":[]," + "\"events\":[]," + "\"relationships\":[],"
