@@ -50,9 +50,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class AnalyticsCache
 {
-    private final Cache<Grid> queryCache;
+    private final CacheProvider cacheProvider;
 
     private final AnalyticsCacheSettings analyticsCacheSettings;
+
+    private Cache<Grid> queryCache;
 
     /**
      * Default constructor. Note that a default expiration time is set, as as
@@ -64,19 +66,28 @@ public class AnalyticsCache
         checkNotNull( cacheProvider );
         checkNotNull( analyticsCacheSettings );
 
+        this.cacheProvider = cacheProvider;
         this.analyticsCacheSettings = analyticsCacheSettings;
-        //// long initialExpirationTime =
-        //// analyticsCacheSettings.fixedExpirationTimeOrDefault();
-        this.queryCache = cacheProvider.createAnalyticsResponseCache(
-            Duration.ofSeconds( 1 ) );
-        //
-        // log.info( String.format( "Analytics server-side cache is enabled with
-        // expiration time: %d s",
-        // initialExpirationTime ) );
+
+    }
+
+    private void initializeCache()
+    {
+        if ( queryCache == null )
+        {
+            long initialExpirationTime = analyticsCacheSettings.fixedExpirationTimeOrDefault();
+            this.queryCache = cacheProvider.createAnalyticsResponseCache(
+                Duration.ofSeconds( initialExpirationTime ) );
+
+            log.info( String.format( "Analytics server-side cache is enabled with expiration time: %d s",
+                initialExpirationTime ) );
+        }
     }
 
     public Optional<Grid> get( final String key )
     {
+        initializeCache();
+
         return getGridClone( queryCache.get( key ) );
     }
 
@@ -85,13 +96,14 @@ public class AnalyticsCache
      * given DataQueryParams. If the Grid is not found in the cache, the Grid
      * will be fetched by the function provided. In this case, the fetched Grid
      * will be cached, so the next consumers can hit the cache only.
-     *
+     * <p>
      * The TTL of the cached object will be set accordingly to the cache
      * settings available at
      * {@link org.hisp.dhis.analytics.cache.AnalyticsCacheSettings}.
      *
      * @param params the current DataQueryParams.
      * @param function that fetches a grid based on the given DataQueryParams.
+     *
      * @return the cached or fetched Grid.
      */
     public Grid getOrFetch( final DataQueryParams params, final Function<DataQueryParams, Grid> function )
@@ -115,7 +127,7 @@ public class AnalyticsCache
     /**
      * This method will cache the given Grid associated with the given
      * DataQueryParams.
-     *
+     * <p>
      * The TTL of the cached object will be set accordingly to the cache
      * settings available at {@link AnalyticsCacheSettings}.
      *
@@ -147,6 +159,8 @@ public class AnalyticsCache
      */
     public void put( final String key, final Grid grid, final long ttlInSeconds )
     {
+        initializeCache();
+
         queryCache.put( key, getGridClone( grid ), ttlInSeconds );
     }
 
@@ -155,6 +169,8 @@ public class AnalyticsCache
      */
     public void invalidateAll()
     {
+        initializeCache();
+
         queryCache.invalidateAll();
 
         log.info( "Analytics cache cleared" );
