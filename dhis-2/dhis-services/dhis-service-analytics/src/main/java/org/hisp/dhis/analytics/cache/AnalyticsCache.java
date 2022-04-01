@@ -29,7 +29,6 @@ package org.hisp.dhis.analytics.cache;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.time.Duration;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -40,8 +39,6 @@ import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.Grid;
-import org.springframework.context.annotation.DependsOn;
-import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 /**
@@ -50,12 +47,8 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component
-@DependsOn( "dataSource" )
-@Order( 10001 )
 public class AnalyticsCache
 {
-    private final CacheProvider cacheProvider;
-
     private final AnalyticsCacheSettings analyticsCacheSettings;
 
     private Cache<Grid> queryCache;
@@ -64,33 +57,17 @@ public class AnalyticsCache
      * Default constructor. Note that a default expiration time is set, as as
      * the TTL will always be overwritten during cache put operations.
      */
-    public AnalyticsCache( final CacheProvider cacheProvider,
-        final AnalyticsCacheSettings analyticsCacheSettings )
+    public AnalyticsCache( final CacheProvider cacheProvider, final AnalyticsCacheSettings analyticsCacheSettings )
     {
         checkNotNull( cacheProvider );
         checkNotNull( analyticsCacheSettings );
 
-        this.cacheProvider = cacheProvider;
         this.analyticsCacheSettings = analyticsCacheSettings;
-    }
-
-    private synchronized void initializeCache()
-    {
-        if ( queryCache == null )
-        {
-            long initialExpirationTime = analyticsCacheSettings.fixedExpirationTimeOrDefault();
-            this.queryCache = cacheProvider.createAnalyticsResponseCache(
-                Duration.ofSeconds( initialExpirationTime ) );
-
-            log.info( String.format( "Analytics server-side cache is enabled with expiration time: %d s",
-                initialExpirationTime ) );
-        }
+        this.queryCache = cacheProvider.createAnalyticsCache();
     }
 
     public Optional<Grid> get( final String key )
     {
-        initializeCache();
-
         return getGridClone( queryCache.get( key ) );
     }
 
@@ -162,8 +139,6 @@ public class AnalyticsCache
      */
     public void put( final String key, final Grid grid, final long ttlInSeconds )
     {
-        initializeCache();
-
         queryCache.put( key, getGridClone( grid ), ttlInSeconds );
     }
 
@@ -172,8 +147,6 @@ public class AnalyticsCache
      */
     public void invalidateAll()
     {
-        initializeCache();
-
         queryCache.invalidateAll();
 
         log.info( "Analytics cache cleared" );
