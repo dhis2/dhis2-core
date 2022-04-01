@@ -40,7 +40,6 @@ import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.config.DataSourceConfig;
-import org.hisp.dhis.config.H2DhisConfigurationProvider;
 import org.hisp.dhis.config.HibernateConfig;
 import org.hisp.dhis.config.HibernateEncryptionConfig;
 import org.hisp.dhis.config.ServiceConfig;
@@ -67,7 +66,6 @@ import org.hisp.dhis.security.SystemAuthoritiesProvider;
 import org.hisp.dhis.startup.DefaultAdminUserPopulator;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.webapi.mvc.ContentNegotiationConfig;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -175,8 +173,6 @@ public class WebTestConfiguration
             throw new IllegalStateException( message, e );
         }
     }
-
-
 
     @Bean
     public BCryptPasswordEncoder bCryptPasswordEncoder()

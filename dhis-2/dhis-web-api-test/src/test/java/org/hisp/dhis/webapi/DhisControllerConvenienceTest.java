@@ -62,8 +62,10 @@ import org.springframework.web.context.WebApplicationContext;
  */
 @ExtendWith( SpringExtension.class )
 @WebAppConfiguration
-//@ContextConfiguration( classes = { MvcTestConfig.class, WebTestConfiguration.class } )
-@ContextConfiguration( classes = { ConfigProviderConfig.class,MvcTestConfig.class, WebTestConfiguration.class  } )
+// @ContextConfiguration( classes = { MvcTestConfig.class,
+// WebTestConfiguration.class } )
+@ContextConfiguration( classes = { ConfigProviderConfiguration.class, MvcTestConfig.class,
+    WebTestConfiguration.class } )
 @ActiveProfiles( "test-h2" )
 @Transactional
 public abstract class DhisControllerConvenienceTest extends DhisMockMvcControllerTest

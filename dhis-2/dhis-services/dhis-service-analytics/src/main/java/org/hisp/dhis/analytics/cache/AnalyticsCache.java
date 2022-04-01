@@ -65,12 +65,14 @@ public class AnalyticsCache
         checkNotNull( analyticsCacheSettings );
 
         this.analyticsCacheSettings = analyticsCacheSettings;
-////        long initialExpirationTime = analyticsCacheSettings.fixedExpirationTimeOrDefault();
+        //// long initialExpirationTime =
+        //// analyticsCacheSettings.fixedExpirationTimeOrDefault();
         this.queryCache = cacheProvider.createAnalyticsResponseCache(
             Duration.ofSeconds( 1 ) );
-//
-//        log.info( String.format( "Analytics server-side cache is enabled with expiration time: %d s",
-//            initialExpirationTime ) );
+        //
+        // log.info( String.format( "Analytics server-side cache is enabled with
+        // expiration time: %d s",
+        // initialExpirationTime ) );
     }
 
     public Optional<Grid> get( final String key )

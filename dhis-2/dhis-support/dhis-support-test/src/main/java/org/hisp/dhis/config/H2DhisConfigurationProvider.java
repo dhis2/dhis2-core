@@ -42,19 +42,16 @@ import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.conf.GoogleAccessToken;
-
-import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.support.PropertiesLoaderUtils;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
-import org.springframework.stereotype.Component;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-//@Profile( "test-h2" )
-//@Component
+// @Profile( "test-h2" )
+// @Component
 @Slf4j
 public class H2DhisConfigurationProvider implements DhisConfigurationProvider
 {
