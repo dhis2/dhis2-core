@@ -1804,20 +1804,45 @@ public abstract class DhisConvenienceTest
     public static Relationship createTeiToTeiRelationship( TrackedEntityInstance from, TrackedEntityInstance to,
         RelationshipType relationshipType )
     {
-        Relationship relationship = new Relationship();
         RelationshipItem _from = new RelationshipItem();
         RelationshipItem _to = new RelationshipItem();
-
         _from.setTrackedEntityInstance( from );
         _to.setTrackedEntityInstance( to );
 
+        return createRelationship( relationshipType, _from, _to );
+    }
+
+    public static Relationship createTeiToEnrollmentRelationship( TrackedEntityInstance from, ProgramInstance to,
+        RelationshipType relationshipType )
+    {
+        RelationshipItem _from = new RelationshipItem();
+        RelationshipItem _to = new RelationshipItem();
+        _from.setTrackedEntityInstance( from );
+        _to.setProgramInstance( to );
+
+        return createRelationship( relationshipType, _from, _to );
+    }
+
+    public static Relationship createTeiToEventRelationship( TrackedEntityInstance from, ProgramStageInstance to,
+        RelationshipType relationshipType )
+    {
+        RelationshipItem _from = new RelationshipItem();
+        RelationshipItem _to = new RelationshipItem();
+        _from.setTrackedEntityInstance( from );
+        _to.setProgramStageInstance( to );
+
+        return createRelationship( relationshipType, _from, _to );
+    }
+
+    private static Relationship createRelationship( RelationshipType relationshipType, RelationshipItem _from,
+        RelationshipItem _to )
+    {
+        Relationship relationship = new Relationship();
         relationship.setRelationshipType( relationshipType );
         relationship.setFrom( _from );
         relationship.setTo( _to );
         relationship.setKey( RelationshipUtils.generateRelationshipKey( relationship ) );
         relationship.setInvertedKey( RelationshipUtils.generateRelationshipInvertedKey( relationship ) );
-
-        relationship.setAutoFields();
 
         return relationship;
     }

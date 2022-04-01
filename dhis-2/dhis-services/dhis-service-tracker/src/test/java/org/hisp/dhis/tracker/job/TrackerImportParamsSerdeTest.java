@@ -41,9 +41,9 @@ import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerIdentifierParams;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
-import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundleMode;
+import org.hisp.dhis.tracker.config.SpringTrackerTest;
 import org.junit.jupiter.api.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
 import org.skyscreamer.jsonassert.JSONCompareMode;
@@ -52,16 +52,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Luciano Fiandesio
  */
-class TrackerImportParamsSerdeTest extends TrackerTest
+class TrackerImportParamsSerdeTest extends SpringTrackerTest
 {
 
     @Autowired
     private RenderService renderService;
-
-    @Override
-    protected void initTest()
-    {
-    }
 
     @Test
     void testJsonSerialization()

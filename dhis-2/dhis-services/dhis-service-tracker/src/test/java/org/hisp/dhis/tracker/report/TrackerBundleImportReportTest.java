@@ -46,11 +46,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.tracker.DefaultTrackerImportService;
 import org.hisp.dhis.tracker.TrackerBundleReportMode;
-import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.TrackerType;
+import org.hisp.dhis.tracker.config.SpringTrackerTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -60,11 +60,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class TrackerBundleImportReportTest extends DhisSpringTest
+class TrackerBundleImportReportTest extends SpringTrackerTest
 {
-
     @Autowired
-    private TrackerImportService trackerImportService;
+    private DefaultTrackerImportService trackerImportService;
 
     @Autowired
     private ObjectMapper jsonMapper;

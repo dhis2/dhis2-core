@@ -33,19 +33,20 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collections;
 
-import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.bundle.TrackerBundleMode;
+import org.hisp.dhis.tracker.config.SpringTrackerTest;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class DefaultTrackerValidationServiceConfigOrderTest extends DhisSpringTest
+class DefaultTrackerValidationServiceConfigOrderTest extends SpringTrackerTest
 {
+
     @Autowired
-    TrackerValidationService trackerValidationService;
+    private TrackerValidationService trackerValidationService;
 
     @Test
     void hooksAreExecutedInTrackerValidationConfigOrder()

@@ -30,46 +30,39 @@ package org.hisp.dhis.tracker.converter;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.Mockito.when;
 
-import java.io.IOException;
-import java.util.Date;
 import java.util.List;
 
-import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceService;
-import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStageInstanceService;
-import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.relationship.RelationshipTypeService;
-import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-import org.hisp.dhis.tracker.TrackerImportParams;
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.bundle.TrackerBundleService;
+import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.domain.Relationship;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.tracker.domain.RelationshipItem;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.core.io.ClassPathResource;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author Enrico Colasante
  */
-class RelationshipTrackerConverterServiceTest extends DhisSpringTest
+@ExtendWith( MockitoExtension.class )
+class RelationshipTrackerConverterServiceTest extends DhisConvenienceTest
 {
+
+    private final static String RELATIONSHIP_A_UID = "Nva3Xj2j75W";
+
+    private final static String RELATIONSHIP_B_UID = "HiXiipNGsxT";
 
     private final static String TEI_TO_ENROLLMENT_RELATIONSHIP_TYPE = "xLmPUYJX8Ks";
 
@@ -81,94 +74,60 @@ class RelationshipTrackerConverterServiceTest extends DhisSpringTest
 
     private final static String EVENT = "D9PbzJY8bJO";
 
-    @Autowired
-    @Qualifier( "relationshipTrackerConverterService" )
-    private TrackerConverterService<Relationship, org.hisp.dhis.relationship.Relationship> relationshipConverterService;
+    private final static boolean IS_BIDIRECTIONAL = false;
 
-    @Autowired
-    private TrackerBundleService trackerBundleService;
+    private Program program;
 
-    @Autowired
-    private RenderService _renderService;
+    private ProgramStage programStage;
 
-    @Autowired
-    private UserService _userService;
+    private TrackedEntityType trackedEntityType;
 
-    @Autowired
-    private RelationshipTypeService relationshipTypeService;
+    private OrganisationUnit organisationUnit;
 
-    @Autowired
-    private TrackedEntityTypeService trackedEntityTypeService;
+    private TrackedEntityInstance trackedEntityInstance;
 
-    @Autowired
-    private TrackedEntityInstanceService trackedEntityInstanceService;
+    private ProgramInstance programInstance;
 
-    @Autowired
-    private ProgramInstanceService programInstanceService;
+    private ProgramStageInstance programStageInstance;
 
-    @Autowired
-    private ProgramStageInstanceService programStageInstanceService;
+    private RelationshipType teiToEnrollmentRelationshipType;
 
-    @Autowired
-    private ProgramStageService programStageService;
+    private RelationshipType teiToEventRelationshipType;
 
-    @Autowired
-    private OrganisationUnitService organisationUnitService;
+    @Mock
+    private TrackerPreheat preheat;
 
-    @Autowired
-    private ProgramService programService;
+    private RelationshipTrackerConverterService relationshipConverterService = new RelationshipTrackerConverterService();
 
-    private TrackerBundle trackerBundle;
-
-    @Override
-    protected void setUpTest()
-        throws IOException
+    @BeforeEach
+    void setUp()
     {
-        preCreateInjectAdminUserWithoutPersistence();
-        renderService = _renderService;
-        userService = _userService;
-        TrackedEntityType trackedEntityType = createTrackedEntityType( 'A' );
-        trackedEntityTypeService.addTrackedEntityType( trackedEntityType );
-        Program program = createProgram( 'A' );
-        programService.addProgram( program );
-        ProgramStage programStage = createProgramStage( 'A', program );
-        programStageService.saveProgramStage( programStage );
-        TrackedEntityAttribute trackedEntityAttribute = createTrackedEntityAttribute( 'A' );
-        OrganisationUnit organisationUnit = createOrganisationUnit( 'A' );
-        organisationUnitService.addOrganisationUnit( organisationUnit );
-        TrackedEntityInstance trackedEntityInstance = createTrackedEntityInstance( 'A', organisationUnit,
-            trackedEntityAttribute );
+        program = createProgram( 'A' );
+        programStage = createProgramStage( 'A', program );
+        trackedEntityType = createTrackedEntityType( 'A' );
+        organisationUnit = createOrganisationUnit( 'A' );
+        trackedEntityInstance = createTrackedEntityInstance( organisationUnit );
         trackedEntityInstance.setUid( TEI );
-        ProgramInstance programInstance = new ProgramInstance();
-        programInstance.setEnrollmentDate( new Date() );
-        programInstance.setProgram( program );
+        programInstance = createProgramInstance( program, trackedEntityInstance, organisationUnit );
         programInstance.setUid( ENROLLMENT );
-        ProgramStageInstance programStageInstance = new ProgramStageInstance();
+        programStageInstance = createProgramStageInstance( programStage, programInstance, organisationUnit );
         programStageInstance.setUid( EVENT );
-        programStageInstance.setProgramInstance( programInstance );
-        programStageInstance.setProgramStage( programStage );
-        trackedEntityInstanceService.addTrackedEntityInstance( trackedEntityInstance );
-        programInstanceService.addProgramInstance( programInstance );
-        programStageInstanceService.addProgramStageInstance( programStageInstance );
-        RelationshipType relationshipTypeA = createTeiToEnrollmentRelationshipType( 'A', program, trackedEntityType,
-            false );
-        relationshipTypeA.setUid( TEI_TO_ENROLLMENT_RELATIONSHIP_TYPE );
-        RelationshipType relationshipTypeB = createTeiToEventRelationshipType( 'B', program, trackedEntityType, false );
-        relationshipTypeB.setUid( TEI_TO_EVENT_RELATIONSHIP_TYPE );
-        relationshipTypeService.addRelationshipType( relationshipTypeA );
-        relationshipTypeService.addRelationshipType( relationshipTypeB );
-        TrackerImportParams trackerImportParams = renderService.fromJson(
-            new ClassPathResource( "tracker/relationships.json" ).getInputStream(), TrackerImportParams.class );
-        User adminUser = createAndInjectAdminUser();
-        trackerImportParams.setUser( adminUser );
-        trackerBundle = trackerBundleService.create( trackerImportParams );
+
+        teiToEnrollmentRelationshipType = createTeiToEnrollmentRelationshipType( 'A', program, trackedEntityType,
+            IS_BIDIRECTIONAL );
+        teiToEnrollmentRelationshipType.setUid( TEI_TO_ENROLLMENT_RELATIONSHIP_TYPE );
+
+        teiToEventRelationshipType = createTeiToEventRelationshipType( 'A', program, trackedEntityType,
+            IS_BIDIRECTIONAL );
+        teiToEventRelationshipType.setUid( TEI_TO_EVENT_RELATIONSHIP_TYPE );
+        setUpMocks();
     }
 
     @Test
     void testConverterFromRelationships()
     {
-        List<org.hisp.dhis.relationship.Relationship> from = relationshipConverterService
-            .from( trackerBundle.getPreheat(), trackerBundle.getRelationships() );
+        List<org.hisp.dhis.relationship.Relationship> from = relationshipConverterService.from( preheat,
+            relationships() );
         assertNotNull( from );
         assertEquals( 2, from.size() );
         from.forEach( relationship -> {
@@ -194,8 +153,8 @@ class RelationshipTrackerConverterServiceTest extends DhisSpringTest
     @Test
     void testConverterToRelationships()
     {
-        List<org.hisp.dhis.relationship.Relationship> from = relationshipConverterService
-            .from( trackerBundle.getPreheat(), trackerBundle.getRelationships() );
+        List<org.hisp.dhis.relationship.Relationship> from = relationshipConverterService.from( preheat,
+            relationships() );
         List<Relationship> to = relationshipConverterService.to( from );
         assertNotNull( to );
         assertEquals( 2, to.size() );
@@ -217,5 +176,57 @@ class RelationshipTrackerConverterServiceTest extends DhisSpringTest
             assertNotNull( relationship.getFrom() );
             assertNotNull( relationship.getTo() );
         } );
+    }
+
+    private Relationship relationshipA()
+    {
+        return Relationship.builder()
+            .relationship( RELATIONSHIP_A_UID )
+            .from( RelationshipItem.builder()
+                .trackedEntity( RelationshipItem.TrackedEntity.builder().trackedEntity( TEI ).build() ).build() )
+            .to( RelationshipItem.builder()
+                .enrollment( RelationshipItem.Enrollment.builder().enrollment( ENROLLMENT ).build() ).build() )
+            .relationshipType( TEI_TO_ENROLLMENT_RELATIONSHIP_TYPE )
+            .build();
+    }
+
+    private Relationship relationshipB()
+    {
+        return Relationship.builder()
+            .relationship( RELATIONSHIP_B_UID )
+            .from( RelationshipItem.builder()
+                .trackedEntity( RelationshipItem.TrackedEntity.builder().trackedEntity( TEI ).build() ).build() )
+            .to( RelationshipItem.builder().event( RelationshipItem.Event.builder().event( EVENT ).build() ).build() )
+            .relationshipType( TEI_TO_EVENT_RELATIONSHIP_TYPE )
+            .build();
+    }
+
+    private org.hisp.dhis.relationship.Relationship relationshipAFromDB()
+    {
+        return createTeiToEnrollmentRelationship( trackedEntityInstance, programInstance,
+            teiToEnrollmentRelationshipType );
+    }
+
+    private org.hisp.dhis.relationship.Relationship relationshipBFromDB()
+    {
+        return createTeiToEventRelationship( trackedEntityInstance, programStageInstance, teiToEventRelationshipType );
+    }
+
+    private List<Relationship> relationships()
+    {
+        return List.of( relationshipA(), relationshipB() );
+    }
+
+    private void setUpMocks()
+    {
+        when( preheat.getRelationship( TrackerIdScheme.UID, relationshipA() ) ).thenReturn( relationshipAFromDB() );
+        when( preheat.getRelationship( TrackerIdScheme.UID, relationshipB() ) ).thenReturn( relationshipBFromDB() );
+        when( preheat.get( RelationshipType.class, TEI_TO_ENROLLMENT_RELATIONSHIP_TYPE ) )
+            .thenReturn( teiToEnrollmentRelationshipType );
+        when( preheat.get( RelationshipType.class, TEI_TO_EVENT_RELATIONSHIP_TYPE ) )
+            .thenReturn( teiToEventRelationshipType );
+        when( preheat.getTrackedEntity( TrackerIdScheme.UID, TEI ) ).thenReturn( trackedEntityInstance );
+        when( preheat.getEnrollment( TrackerIdScheme.UID, ENROLLMENT ) ).thenReturn( programInstance );
+        when( preheat.getEvent( TrackerIdScheme.UID, EVENT ) ).thenReturn( programStageInstance );
     }
 }
