@@ -40,6 +40,8 @@ import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.Grid;
+import org.springframework.context.annotation.DependsOn;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 /**
@@ -48,6 +50,8 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component
+@DependsOn( "dataSource" )
+@Order( 10001 )
 public class AnalyticsCache
 {
     private final CacheProvider cacheProvider;
@@ -68,10 +72,9 @@ public class AnalyticsCache
 
         this.cacheProvider = cacheProvider;
         this.analyticsCacheSettings = analyticsCacheSettings;
-
     }
 
-    private void initializeCache()
+    private synchronized void initializeCache()
     {
         if ( queryCache == null )
         {
