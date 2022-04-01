@@ -45,6 +45,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @ExtendWith( SpringExtension.class )
 @ActiveProfiles( "test-h2" )
 @ContextConfiguration( classes = { UnitTestConfig.class } )
+@IntegrationTest
 public abstract class DhisTest extends BaseSpringTest
 {
 

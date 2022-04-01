@@ -36,7 +36,7 @@ import java.util.Map;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.hisp.dhis.TransactionalIntegrationTest;
+import org.hisp.dhis.SingleSetupIntegrationTestBase;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -60,7 +60,7 @@ import org.springframework.core.io.ClassPathResource;
  * @author Luciano Fiandesio
  */
 @Slf4j
-public abstract class TrackerTest extends TransactionalIntegrationTest
+public abstract class TrackerTest extends SingleSetupIntegrationTestBase
 {
 
     @Autowired

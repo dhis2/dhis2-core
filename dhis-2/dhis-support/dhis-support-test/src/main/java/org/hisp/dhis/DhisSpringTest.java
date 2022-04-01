@@ -51,6 +51,7 @@ import org.springframework.transaction.annotation.Transactional;
 @ExtendWith( SpringExtension.class )
 @ContextConfiguration( classes = UnitTestConfig.class )
 @ActiveProfiles( profiles = { "test-h2" } )
+@IntegrationTest
 @Transactional
 public abstract class DhisSpringTest extends BaseSpringTest
 {
