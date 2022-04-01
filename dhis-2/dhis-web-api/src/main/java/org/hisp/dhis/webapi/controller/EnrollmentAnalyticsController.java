@@ -257,7 +257,7 @@ public class EnrollmentAnalyticsController
         EnrollmentAnalyticsQueryCriteria criteria, DhisApiVersion apiVersion, boolean analyzeOnly )
     {
         criteria
-            .checkAndMaybeModifyPagingCriteria( systemSettingManager.getIntSetting( SettingKey.ANALYTICS_MAX_LIMIT ) );
+            .definePageSize( systemSettingManager.getIntSetting( SettingKey.ANALYTICS_MAX_LIMIT ) );
 
         EventDataQueryRequest request = EventDataQueryRequest.builder()
             .fromCriteria( (EnrollmentAnalyticsQueryCriteria) criteria.withQueryEndpointAction()

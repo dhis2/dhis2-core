@@ -427,7 +427,7 @@ public class EventAnalyticsController
         DhisApiVersion apiVersion, boolean analyzeOnly )
     {
         criteria
-            .checkAndMaybeModifyPagingCriteria( systemSettingManager.getIntSetting( SettingKey.ANALYTICS_MAX_LIMIT ) );
+            .definePageSize( systemSettingManager.getIntSetting( SettingKey.ANALYTICS_MAX_LIMIT ) );
 
         EventDataQueryRequest request = EventDataQueryRequest.builder()
             .fromCriteria( (EventsAnalyticsQueryCriteria) criteria.withQueryEndpointAction()
