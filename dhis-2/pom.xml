@@ -363,7 +363,7 @@
                             <skipTests>${skipTests}</skipTests>
                             <trimStackTrace>false</trimStackTrace>
                             <argLine>${surefireArgLine}</argLine>
-                            <excludedGroups>integration</excludedGroups>
+                            <excludedGroups>integration,integrationH2</excludedGroups>
                         </configuration>
                         <dependencies>
                             <dependency>
@@ -403,7 +403,31 @@
             </build>
         </profile>
 
-
+        <!-- IntegrationH2 test profile, this runs all the integrations tests with H2, but not the unit tests -->
+        <profile>
+            <id>integrationH2</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <skipTests>false</skipTests>
+                            <trimStackTrace>false</trimStackTrace>
+                            <argLine>${surefireArgLine}</argLine>
+                            <groups>integrationH2</groups>
+                        </configuration>
+                        <dependencies>
+                            <dependency>
+                                <groupId>org.ow2.asm</groupId>
+                                <artifactId>asm</artifactId>
+                                <version>${ow2.asm.version}</version>
+                            </dependency>
+                        </dependencies>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
 
         <profile>
             <id>sonarqube</id>
@@ -468,7 +492,7 @@
                             <skipTests>true</skipTests>
                             <trimStackTrace>false</trimStackTrace>
                             <argLine>${surefireArgLine}</argLine>
-                            <excludedGroups>integration</excludedGroups>
+                            <excludedGroups>integration,integrationH2</excludedGroups>
                         </configuration>
                         <dependencies>
                             <dependency>

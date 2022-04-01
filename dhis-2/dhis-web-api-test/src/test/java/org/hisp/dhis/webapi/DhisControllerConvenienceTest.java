@@ -32,6 +32,7 @@ import static org.hisp.dhis.webapi.utils.WebClientUtils.failOnException;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 
+import org.hisp.dhis.IntegrationH2Test;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.user.User;
@@ -67,6 +68,7 @@ import org.springframework.web.context.WebApplicationContext;
 @ContextConfiguration( classes = { ConfigProviderConfiguration.class, MvcTestConfig.class,
     WebTestConfiguration.class } )
 @ActiveProfiles( "test-h2" )
+@IntegrationH2Test
 @Transactional
 public abstract class DhisControllerConvenienceTest extends DhisMockMvcControllerTest
 {
