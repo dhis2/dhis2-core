@@ -344,7 +344,7 @@ public class JdbcEnrollmentAnalyticsManager
     @Override
     protected String getSelectClause( EventQueryParams params )
     {
-        List<String> selectCols = ListUtils.distinctUnion( COLUMNS, getSelectColumns( params ) );
+        List<String> selectCols = ListUtils.distinctUnion( COLUMNS, getSelectColumns( params, false ) );
 
         return "select " + StringUtils.join( selectCols, "," ) + " ";
     }
