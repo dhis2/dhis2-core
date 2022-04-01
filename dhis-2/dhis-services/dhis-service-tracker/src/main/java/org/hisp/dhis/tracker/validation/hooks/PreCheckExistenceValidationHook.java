@@ -136,7 +136,7 @@ public class PreCheckExistenceValidationHook
     {
         TrackerBundle bundle = reporter.getBundle();
         TrackerPreheat preheat = bundle.getPreheat();
-        org.hisp.dhis.relationship.Relationship existingRelationship = preheat.getRelationship( bundle.getIdentifier(),
+        org.hisp.dhis.relationship.Relationship existingRelationship = preheat.getRelationship(
             relationship );
 
         if ( existingRelationship != null )
