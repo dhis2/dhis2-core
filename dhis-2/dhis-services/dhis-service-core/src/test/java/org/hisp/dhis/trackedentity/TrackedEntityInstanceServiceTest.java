@@ -65,7 +65,7 @@ import com.google.common.collect.Sets;
 /**
  * @author Chau Thu Tran
  */
-public class TrackedEntityInstanceServiceTest
+class TrackedEntityInstanceServiceTest
     extends IntegrationTestBase
 {
 
@@ -267,7 +267,7 @@ public class TrackedEntityInstanceServiceTest
     }
 
     @Test
-    public void testTrackedEntityAttributeFilter()
+    void testTrackedEntityAttributeFilter()
     {
         User user = createUser( "attributeFilterUser" );
         user.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
