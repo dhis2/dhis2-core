@@ -250,16 +250,16 @@ public class TrackerBundle
 
     public TrackedEntityInstance getTrackedEntityInstance( String id )
     {
-        return getPreheat().getTrackedEntity( getIdentifier(), id );
+        return getPreheat().getTrackedEntity( id );
     }
 
     public ProgramInstance getProgramInstance( String id )
     {
-        return getPreheat().getEnrollment( getIdentifier(), id );
+        return getPreheat().getEnrollment( id );
     }
 
     public ProgramStageInstance getProgramStageInstance( String event )
     {
-        return getPreheat().getEvent( getIdentifier(), event );
+        return getPreheat().getEvent( event );
     }
 }

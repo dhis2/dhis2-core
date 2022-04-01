@@ -43,7 +43,6 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
@@ -97,7 +96,7 @@ public class EnrollmentTrackerConverterService
     @Override
     public ProgramInstance from( TrackerPreheat preheat, Enrollment enrollment )
     {
-        ProgramInstance programInstance = preheat.getEnrollment( TrackerIdScheme.UID, enrollment.getEnrollment() );
+        ProgramInstance programInstance = preheat.getEnrollment( enrollment.getEnrollment() );
         return from( preheat, enrollment, programInstance );
     }
 
@@ -128,7 +127,7 @@ public class EnrollmentTrackerConverterService
         checkNotNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );
 
         TrackedEntityInstance trackedEntityInstance = preheat
-            .getTrackedEntity( TrackerIdScheme.UID, enrollment.getTrackedEntity() );
+            .getTrackedEntity( enrollment.getTrackedEntity() );
 
         Date now = new Date();
 

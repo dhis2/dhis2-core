@@ -38,7 +38,6 @@ import java.util.stream.Collectors;
 
 import org.hisp.dhis.commons.util.RelationshipUtils;
 import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.RelationshipItem;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
@@ -106,7 +105,7 @@ public class RelationshipTrackerConverterService
     public org.hisp.dhis.relationship.Relationship from( TrackerPreheat preheat, Relationship fromRelationship )
     {
         org.hisp.dhis.relationship.Relationship toRelationship = preheat
-            .getRelationship( TrackerIdScheme.UID, fromRelationship );
+            .getRelationship( fromRelationship );
         return from( preheat, fromRelationship, toRelationship );
     }
 
@@ -150,19 +149,19 @@ public class RelationshipTrackerConverterService
 
         if ( relationshipType.getFromConstraint().getRelationshipEntity().equals( TRACKED_ENTITY_INSTANCE ) )
         {
-            fromItem.setTrackedEntityInstance( preheat.getTrackedEntity( TrackerIdScheme.UID,
+            fromItem.setTrackedEntityInstance( preheat.getTrackedEntity(
                 fromRelationship.getFrom().getTrackedEntity().getTrackedEntity() ) );
         }
         else if ( relationshipType.getFromConstraint().getRelationshipEntity().equals( PROGRAM_INSTANCE ) )
         {
             fromItem.setProgramInstance(
-                preheat.getEnrollment( TrackerIdScheme.UID,
+                preheat.getEnrollment(
                     fromRelationship.getFrom().getEnrollment().getEnrollment() ) );
         }
         else if ( relationshipType.getFromConstraint().getRelationshipEntity().equals( PROGRAM_STAGE_INSTANCE ) )
         {
             fromItem.setProgramStageInstance(
-                preheat.getEvent( TrackerIdScheme.UID, fromRelationship.getFrom().getEvent().getEvent() ) );
+                preheat.getEvent( fromRelationship.getFrom().getEvent().getEvent() ) );
         }
 
         // TO
@@ -170,19 +169,19 @@ public class RelationshipTrackerConverterService
 
         if ( relationshipType.getToConstraint().getRelationshipEntity().equals( TRACKED_ENTITY_INSTANCE ) )
         {
-            toItem.setTrackedEntityInstance( preheat.getTrackedEntity( TrackerIdScheme.UID,
+            toItem.setTrackedEntityInstance( preheat.getTrackedEntity(
                 fromRelationship.getTo().getTrackedEntity().getTrackedEntity() ) );
         }
         else if ( relationshipType.getToConstraint().getRelationshipEntity().equals( PROGRAM_INSTANCE ) )
         {
             toItem.setProgramInstance(
-                preheat.getEnrollment( TrackerIdScheme.UID,
+                preheat.getEnrollment(
                     fromRelationship.getTo().getEnrollment().getEnrollment() ) );
         }
         else if ( relationshipType.getToConstraint().getRelationshipEntity().equals( PROGRAM_STAGE_INSTANCE ) )
         {
             toItem.setProgramStageInstance(
-                preheat.getEvent( TrackerIdScheme.UID, fromRelationship.getTo().getEvent().getEvent() ) );
+                preheat.getEvent( fromRelationship.getTo().getEvent().getEvent() ) );
         }
 
         toRelationship.setFrom( fromItem );
