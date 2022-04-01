@@ -97,7 +97,6 @@ import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.constant.ConstantService;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.expression.dataitem.DimItemDataElementAndOperand;
 import org.hisp.dhis.expression.dataitem.DimItemIndicator;
@@ -482,11 +481,11 @@ public class DefaultExpressionService
     }
 
     @Override
-    public Set<DataElement> getExpressionDataElements( String expression, ParseType parseType )
+    public Set<String> getExpressionDataElementIds( String expression, ParseType parseType )
     {
         return getExpressionDimensionalItemIds( expression, parseType ).stream()
             .filter( DimensionalItemId::isDataElementOrOperand )
-            .map( i -> dataElementService.getDataElement( i.getId0() ) )
+            .map( DimensionalItemId::getId0 )
             .collect( Collectors.toSet() );
     }
 

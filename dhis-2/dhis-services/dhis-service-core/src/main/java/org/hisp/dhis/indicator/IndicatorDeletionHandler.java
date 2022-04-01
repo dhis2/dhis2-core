@@ -28,8 +28,10 @@
 package org.hisp.dhis.indicator;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.apache.commons.collections4.CollectionUtils.containsAny;
 import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
 
+import java.util.Iterator;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -116,14 +118,13 @@ public class IndicatorDeletionHandler
     {
         for ( Indicator indicator : indicatorService.getAllIndicators() )
         {
-            for ( LegendSet ls : indicator.getLegendSets() )
+            for ( Iterator<LegendSet> itr = indicator.getLegendSets().iterator(); itr.hasNext(); )
             {
-                if ( legendSet.equals( ls ) )
+                if ( legendSet.equals( itr.next() ) )
                 {
-                    indicator.getLegendSets().remove( ls );
+                    itr.remove();
                     indicatorService.updateIndicator( indicator );
                 }
-
             }
         }
     }
@@ -133,23 +134,19 @@ public class IndicatorDeletionHandler
     {
         for ( Indicator indicator : indicatorService.getAllIndicators() )
         {
-            Set<DataElement> daels = expressionService.getExpressionDataElements( indicator.getNumerator(),
-                INDICATOR_EXPRESSION );
-
-            if ( daels != null && daels.contains( dataElement ) )
-            {
-                return indicator.getName();
-            }
-
-            daels = expressionService.getExpressionDataElements( indicator.getDenominator(), INDICATOR_EXPRESSION );
-
-            if ( daels != null && daels.contains( dataElement ) )
+            if ( getElementIds( indicator.getNumerator() ).contains( dataElement.getUid() ) ||
+                getElementIds( indicator.getDenominator() ).contains( dataElement.getUid() ) )
             {
                 return indicator.getName();
             }
         }
 
         return null;
+    }
+
+    private Set<String> getElementIds( String expression )
+    {
+        return expressionService.getExpressionDataElementIds( expression, INDICATOR_EXPRESSION );
     }
 
     @Override
@@ -160,25 +157,18 @@ public class IndicatorDeletionHandler
 
         for ( Indicator indicator : indicatorService.getAllIndicators() )
         {
-            Set<String> comboIds = expressionService.getExpressionOptionComboIds(
-                indicator.getNumerator(), INDICATOR_EXPRESSION );
-            comboIds.retainAll( optionComboIds );
-
-            if ( !comboIds.isEmpty() )
-            {
-                return indicator.getName();
-            }
-
-            comboIds = expressionService.getExpressionOptionComboIds(
-                indicator.getDenominator(), INDICATOR_EXPRESSION );
-            comboIds.retainAll( optionComboIds );
-
-            if ( !comboIds.isEmpty() )
+            if ( containsAny( getOptionComboIds( indicator.getNumerator() ), optionComboIds ) ||
+                containsAny( getOptionComboIds( indicator.getDenominator() ), optionComboIds ) )
             {
                 return indicator.getName();
             }
         }
 
         return null;
+    }
+
+    private Set<String> getOptionComboIds( String expression )
+    {
+        return expressionService.getExpressionOptionComboIds( expression, INDICATOR_EXPRESSION );
     }
 }
