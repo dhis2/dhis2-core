@@ -651,31 +651,22 @@ class ExpressionService2Test extends DhisSpringTest
     }
 
     @Test
-    void testGetExpressionDataElements()
+    void testGetExpressionDataElementIds()
     {
-        when( idObjectManager.get( DataElement.class, opA.getDimensionItem().split( "\\." )[0] ) )
-            .thenReturn( opA.getDataElement() );
-        when( idObjectManager.get( DataElement.class, opB.getDimensionItem().split( "\\." )[0] ) )
-            .thenReturn( opB.getDataElement() );
-        Set<DataElement> dataElements = target.getExpressionDataElements( expressionA, INDICATOR_EXPRESSION );
+        Set<String> dataElementIds = target.getExpressionDataElementIds( expressionA, INDICATOR_EXPRESSION );
 
-        assertThat( dataElements, hasSize( 2 ) );
-        assertThat( dataElements, hasItems( opA.getDataElement(), opB.getDataElement() ) );
+        assertThat( dataElementIds, hasSize( 2 ) );
+        assertThat( dataElementIds, hasItems( opA.getDataElement().getUid(), opB.getDataElement().getUid() ) );
 
-        // Expression G
-        when( idObjectManager.get( DataElement.class, deA.getUid() ) ).thenReturn( deA );
-        when( idObjectManager.get( DataElement.class, deB.getUid() ) ).thenReturn( deB );
-        when( idObjectManager.get( DataElement.class, deC.getUid() ) ).thenReturn( deC );
+        dataElementIds = target.getExpressionDataElementIds( expressionG, INDICATOR_EXPRESSION );
 
-        dataElements = target.getExpressionDataElements( expressionG, INDICATOR_EXPRESSION );
+        assertThat( dataElementIds, hasSize( 3 ) );
+        assertThat( dataElementIds, hasItems( deA.getUid(), deB.getUid(), deC.getUid() ) );
 
-        assertThat( dataElements, hasSize( 3 ) );
-        assertThat( dataElements, hasItems( deA, deB, deC ) );
+        dataElementIds = target.getExpressionDataElementIds( expressionM, INDICATOR_EXPRESSION );
 
-        dataElements = target.getExpressionDataElements( expressionM, INDICATOR_EXPRESSION );
-
-        assertThat( dataElements, hasSize( 2 ) );
-        assertThat( dataElements, hasItems( deA, deB ) );
+        assertThat( dataElementIds, hasSize( 2 ) );
+        assertThat( dataElementIds, hasItems( deA.getUid(), deB.getUid() ) );
     }
 
     @Test
