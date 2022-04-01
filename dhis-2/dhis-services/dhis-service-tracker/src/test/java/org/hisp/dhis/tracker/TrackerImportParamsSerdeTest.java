@@ -87,7 +87,7 @@ class TrackerImportParamsSerdeTest extends TrackerTest
     {
         // Artemis queue might persist tracker import job messages with
         // TrackerImportParams in the old format; keep it backwards-compatible
-        // during 2.39; remove in 2.30
+        // during 2.39; remove in 2.40
         final String json = "" + "{\"importMode\":\"COMMIT\","
             + "\"identifiers\":{\"dataElementIdScheme\":{\"identifier\":\"UID\"},"
             + "\"orgUnitIdScheme\":{\"identifier\":\"UID\"},"

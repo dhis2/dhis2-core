@@ -55,7 +55,7 @@ public class TrackerIdSchemeParam
 
     @JsonAlias( "identifier" ) // Artemis queue might persist parameters in the
                                // old format; keep it backwards-compatible
-                               // during 2.39; remove in 2.30
+                               // during 2.39; remove in 2.40
     @JsonProperty
     @Builder.Default
     private final TrackerIdScheme idScheme = TrackerIdScheme.UID;
