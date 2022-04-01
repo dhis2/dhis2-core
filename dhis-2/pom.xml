@@ -364,6 +364,8 @@
                             <trimStackTrace>false</trimStackTrace>
                             <argLine>${surefireArgLine}</argLine>
                             <excludedGroups>integration</excludedGroups>
+                            <forkCount>3</forkCount>
+                            <reuseForks>true</reuseForks>
                         </configuration>
                         <dependencies>
                             <dependency>
@@ -390,6 +392,8 @@
                             <trimStackTrace>false</trimStackTrace>
                             <argLine>${surefireArgLine}</argLine>
                             <groups>integration</groups>
+                            <forkCount>3</forkCount>
+                            <reuseForks>true</reuseForks>
                         </configuration>
                         <dependencies>
                             <dependency>
@@ -469,6 +473,8 @@
                             <trimStackTrace>false</trimStackTrace>
                             <argLine>${surefireArgLine}</argLine>
                             <excludedGroups>integration</excludedGroups>
+                            <forkCount>3</forkCount>
+                            <reuseForks>true</reuseForks>
                         </configuration>
                         <dependencies>
                             <dependency>
