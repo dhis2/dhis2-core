@@ -35,7 +35,6 @@ import org.hibernate.Session;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService;
-import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.converter.TrackerConverterService;
@@ -84,7 +83,7 @@ public class TrackedEntityPersister extends AbstractTrackerPersister<TrackedEnti
     @Override
     protected void updatePreheat( TrackerPreheat preheat, TrackedEntityInstance dto )
     {
-        preheat.putTrackedEntities( TrackerIdScheme.UID, Collections.singletonList( dto ) );
+        preheat.putTrackedEntities( Collections.singletonList( dto ) );
     }
 
     @Override
@@ -102,7 +101,7 @@ public class TrackedEntityPersister extends AbstractTrackerPersister<TrackedEnti
     @Override
     protected boolean isNew( TrackerPreheat preheat, String uid )
     {
-        return preheat.getTrackedEntity( TrackerIdScheme.UID, uid ) == null;
+        return preheat.getTrackedEntity( uid ) == null;
     }
 
     @Override

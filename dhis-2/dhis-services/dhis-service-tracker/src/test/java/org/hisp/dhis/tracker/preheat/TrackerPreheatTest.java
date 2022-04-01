@@ -312,7 +312,7 @@ class TrackerPreheatTest extends DhisConvenienceTest
         teiList.add( tei );
         List<String> allEntities = new ArrayList<>();
         allEntities.add( CodeGenerator.generateUid() );
-        preheat.putTrackedEntities( TrackerIdScheme.UID, teiList, allEntities );
+        preheat.putTrackedEntities( teiList, allEntities );
         // Create 2 Enrollments, where TEI is parent
         ProgramInstance programInstance = new ProgramInstance();
         programInstance.setUid( CodeGenerator.generateUid() );
@@ -337,7 +337,7 @@ class TrackerPreheatTest extends DhisConvenienceTest
                 setTrackedEntity( allEntities.get( 0 ) );
             }
         } );
-        preheat.putEnrollments( TrackerIdScheme.UID, psList, allPs );
+        preheat.putEnrollments( psList, allPs );
         // Create 4 Enrollments, where TEI is parent
         ProgramStageInstance psi = new ProgramStageInstance();
         psi.setUid( CodeGenerator.generateUid() );
@@ -380,7 +380,7 @@ class TrackerPreheatTest extends DhisConvenienceTest
                 setEnrollment( allPs.get( 1 ).getEnrollment() );
             }
         } );
-        preheat.putEvents( TrackerIdScheme.UID, psiList, allEvents );
+        preheat.putEvents( psiList, allEvents );
         preheat.createReferenceTree();
         Optional<ReferenceTrackerEntity> reference = preheat.getReference( allEvents.get( 0 ).getUid() );
         assertThat( reference.get().getUid(), is( allEvents.get( 0 ).getUid() ) );
