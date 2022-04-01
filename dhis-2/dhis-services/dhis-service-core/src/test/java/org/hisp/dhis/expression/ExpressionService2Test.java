@@ -33,7 +33,6 @@ import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.category.CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
-import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
 import static org.hisp.dhis.expression.Expression.SEPARATOR;
 import static org.hisp.dhis.expression.ExpressionService.SYMBOL_DAYS;
 import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
@@ -539,7 +538,7 @@ public class ExpressionService2Test extends DhisSpringTest
     }
 
     @Test
-    void testGetExpressionDataElementIds()
+    public void testGetExpressionDataElementIds()
     {
         Set<String> dataElementIds = target.getExpressionDataElementIds( expressionA, INDICATOR_EXPRESSION );
 
