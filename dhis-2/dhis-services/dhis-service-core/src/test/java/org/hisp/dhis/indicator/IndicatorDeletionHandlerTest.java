@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.indicator;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.category.CategoryCombo;
@@ -42,10 +42,10 @@ import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.UserService;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class IndicatorDeletionHandlerTest
+public class IndicatorDeletionHandlerTest
     extends DhisSpringTest
 {
     @Autowired
@@ -72,7 +72,7 @@ class IndicatorDeletionHandlerTest
     }
 
     @Test
-    void testAllowDeleteIndicatorType()
+    public void testAllowDeleteIndicatorType()
     {
         IndicatorType typeA = new IndicatorType( "TypeA", 1, true );
         IndicatorType typeB = new IndicatorType( "TypeB", 1, true );
@@ -88,7 +88,7 @@ class IndicatorDeletionHandlerTest
     }
 
     @Test
-    void testDeleteIndicatorGroup()
+    public void testDeleteIndicatorGroup()
     {
         IndicatorGroup groupA = createIndicatorGroup( 'A' );
         groupA.addIndicator( indicator );
@@ -102,7 +102,7 @@ class IndicatorDeletionHandlerTest
     }
 
     @Test
-    void testDeleteDataSet()
+    public void testDeleteDataSet()
     {
         PeriodType monthly = PeriodType.getPeriodTypeByName( "Monthly" );
         monthly = periodService.reloadPeriodType( monthly );
@@ -119,7 +119,7 @@ class IndicatorDeletionHandlerTest
     }
 
     @Test
-    void testDeleteLegendSet()
+    public void testDeleteLegendSet()
     {
         LegendSet setA = createLegendSet( 'A' );
         manager.save( setA );
@@ -135,7 +135,7 @@ class IndicatorDeletionHandlerTest
     }
 
     @Test
-    void testAllowDeleteDataElement()
+    public void testAllowDeleteDataElement()
     {
         DataElement elementA = createDataElement( 'A' );
         DataElement elementB = createDataElement( 'B' );
@@ -155,7 +155,7 @@ class IndicatorDeletionHandlerTest
     }
 
     @Test
-    void testAllowDeleteCategoryCombo()
+    public void testAllowDeleteCategoryCombo()
     {
         CategoryCombo comboA = createCategoryCombo( 'A' );
         CategoryCombo comboB = createCategoryCombo( 'B' );
