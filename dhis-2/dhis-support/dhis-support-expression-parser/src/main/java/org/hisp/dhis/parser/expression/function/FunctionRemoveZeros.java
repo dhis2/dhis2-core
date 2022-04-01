@@ -25,40 +25,45 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.schema.descriptors;
+package org.hisp.dhis.parser.expression.function;
 
-import org.hisp.dhis.programstagefilter.ProgramStageInstanceFilter;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
-import org.hisp.dhis.security.Authority;
-import org.hisp.dhis.security.AuthorityType;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
-import com.google.common.collect.Lists;
+import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import org.hisp.dhis.parser.expression.ExpressionItem;
+import org.hisp.dhis.parser.expression.antlr.ExpressionParser;
 
 /**
- * @author Ameen Mohamed <ameen@dhis2.org>
+ * Replace any zero value with a null
  *
+ * @author Jim Grace
  */
-public class ProgramStageInstanceFilterSchemaDescriptor implements SchemaDescriptor
+public class FunctionRemoveZeros
+    implements ExpressionItem
 {
-    public static final String SINGULAR = "eventFilter";
-
-    public static final String PLURAL = "eventFilters";
-
-    public static final String API_ENDPOINT = "/" + PLURAL;
+    private static final Double ZERO = Double.valueOf( 0.0 );
 
     @Override
-    public Schema getSchema()
+    public final Object evaluate( ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        Schema schema = new Schema( ProgramStageInstanceFilter.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setDefaultPrivate( true );
-        schema.setImplicitPrivateAuthority( true );
+        Object value = visitor.visit( ctx.expr( 0 ) );
 
-        schema.add( new Authority( AuthorityType.CREATE, Lists.newArrayList( "F_PROGRAMSTAGE_ADD" ) ) );
-        schema.add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_PROGRAMSTAGE_DELETE" ) ) );
+        if ( ZERO.equals( value ) )
+        {
+            // Don't replace this null with a zero:
+            visitor.getState().setReplaceNulls( false );
 
-        return schema;
+            return null;
+        }
+
+        return value;
     }
 
+    @Override
+    public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
+    {
+        String value = visitor.castStringVisit( ctx.expr( 0 ) );
+
+        return " case " + value + " when 0 then null else " + value + " end";
+    }
 }

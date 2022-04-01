@@ -27,17 +27,17 @@
  */
 package org.hisp.dhis.analytics.data;
 
+import static java.util.Collections.emptyList;
 import static org.hisp.dhis.expression.Operator.equal_to;
+import static org.hisp.dhis.utils.Assertions.assertMapEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.hisp.dhis.IntegrationTestBase;
+import org.hisp.dhis.SingleSetupIntegrationTestBase;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsService;
@@ -56,7 +56,6 @@ import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.DataDimensionType;
-import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.ReportingRate;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -97,29 +96,68 @@ import com.google.common.collect.Lists;
 
 /**
  * Tests aggregation of data in analytics tables.
- * <p>
- * To create a new test:
- * <p>
- * <ul>
- * <li>Make new DataQueryParam/AnalyticalObject.</li>
- * <li>Add to 'dataQueryParams'/'analyticalObjectHashMap' map.</li>
- * <li>Add HashMap<String, Double> with expected output to results map.</li>
- * </ul>
  *
- * @author Henning Haakonsen
+ * @author Henning Haakonsen (original)
+ * @author Jim Grace (break cases into indidual tests)
  */
-class AnalyticsServiceTest extends IntegrationTestBase
+class AnalyticsServiceTest
+    extends SingleSetupIntegrationTestBase
 {
-
     private CategoryOptionCombo ocDef;
 
     private Category catDef;
 
-    private Map<String, DataQueryParams> dataQueryParams = new HashMap<>();
+    private Period peJan;
 
-    private Map<String, AnalyticalObject> analyticalObjectHashMap = new HashMap<>();
+    private Period peFeb;
 
-    private Map<String, Map<String, Double>> results = new HashMap<>();
+    private Period peMar;
+
+    private Period peApril;
+
+    private Period peMay;
+
+    private Period peJune;
+
+    private Period peJuly;
+
+    private Period quarter;
+
+    private Period year;
+
+    private DataElement deA;
+
+    private DataElement deB;
+
+    private DataElement deC;
+
+    private DataElement deD;
+
+    private DataElement deE;
+
+    private OrganisationUnit ouA;
+
+    private OrganisationUnit ouB;
+
+    private OrganisationUnit ouC;
+
+    private OrganisationUnit ouD;
+
+    private OrganisationUnit ouE;
+
+    private DataSet dataSetA;
+
+    private DataSet dataSetB;
+
+    private IndicatorType indicatorTypeA;
+
+    private ReportingRate reportingRateA;
+
+    private ReportingRate reportingRateB;
+
+    private ValidationRule validationRuleA;
+
+    private ValidationRule validationRuleB;
 
     @Autowired
     private List<AnalyticsTableService> analyticsTableServices;
@@ -170,6 +208,10 @@ class AnalyticsServiceTest extends IntegrationTestBase
     @Qualifier( "readOnlyJdbcTemplate" )
     private JdbcTemplate jdbcTemplate;
 
+    // --------------------------------------------------------------------------
+    // Set up for all tests
+    // --------------------------------------------------------------------------
+
     // Database (value, data element, period)
     // --------------------------------------------------------------------
     //
@@ -192,23 +234,41 @@ class AnalyticsServiceTest extends IntegrationTestBase
         throws IOException,
         InterruptedException
     {
-        // Set up meta data for data values
-        ReportingRate reportingRateA;
-        ReportingRate reportingRateB;
+        setUpMetadata();
+        setUpDataValues();
+        setUpValidation();
+
+        // to ensure that Hibernate has flushed validation
+        // results before generating tables.
+        Thread.sleep( 1000 );
+
+        // Generate analytics tables
+        analyticsTableGenerator.generateTables( AnalyticsTableUpdateParams.newBuilder().build(),
+            NoopJobProgress.INSTANCE );
+    }
+
+    private void setUpMetadata()
+    {
         ocDef = categoryService.getDefaultCategoryOptionCombo();
         ocDef.setUid( "o1234578def" );
+
         categoryService.updateCategoryOptionCombo( ocDef );
         catDef = categoryService.getDefaultCategory();
         catDef.setUid( "cat12345def" );
         categoryService.updateCategory( catDef );
-        Period peJan = createPeriod( "2017-01" );
-        Period peFeb = createPeriod( "2017-02" );
-        Period peMar = createPeriod( "2017-03" );
-        Period peApril = createPeriod( "2017-04" );
-        Period peMay = createPeriod( "2017-05" );
-        Period peJune = createPeriod( "2017-06" );
-        Period peJuly = createPeriod( "2017-07" );
-        Period quarter = createPeriod( "2017Q1" );
+
+        peJan = createPeriod( "2017-01" );
+        peFeb = createPeriod( "2017-02" );
+        peMar = createPeriod( "2017-03" );
+        peApril = createPeriod( "2017-04" );
+        peMay = createPeriod( "2017-05" );
+        peJune = createPeriod( "2017-06" );
+        peJuly = createPeriod( "2017-07" );
+
+        // These periods don't need to be persisted:
+        quarter = createPeriod( "2017Q1" );
+        year = createPeriod( "2017" );
+
         periodService.addPeriod( peJan );
         periodService.addPeriod( peFeb );
         periodService.addPeriod( peMar );
@@ -216,463 +276,190 @@ class AnalyticsServiceTest extends IntegrationTestBase
         periodService.addPeriod( peMay );
         periodService.addPeriod( peJune );
         periodService.addPeriod( peJuly );
-        DataElement deA = createDataElement( 'A' );
-        DataElement deB = createDataElement( 'B' );
-        DataElement deC = createDataElement( 'C' );
-        DataElement deD = createDataElement( 'D' );
-        DataElement deE = createDataElement( 'E' );
+
+        deA = createDataElement( 'A' );
+        deB = createDataElement( 'B' );
+        deC = createDataElement( 'C' );
+        deD = createDataElement( 'D' );
+        deE = createDataElement( 'E' );
         deE.setValueType( ValueType.INTEGER );
+
         dataElementService.addDataElement( deA );
         dataElementService.addDataElement( deB );
         dataElementService.addDataElement( deC );
         dataElementService.addDataElement( deD );
         dataElementService.addDataElement( deE );
-        OrganisationUnit ouA = createOrganisationUnit( 'A' );
-        OrganisationUnit ouB = createOrganisationUnit( 'B' );
-        OrganisationUnit ouC = createOrganisationUnit( 'C' );
+
+        ouA = createOrganisationUnit( 'A' );
+
+        ouB = createOrganisationUnit( 'B' );
+
+        ouC = createOrganisationUnit( 'C' );
         ouC.setOpeningDate( getDate( 2016, 4, 10 ) );
         ouC.setClosedDate( null );
-        OrganisationUnit ouD = createOrganisationUnit( 'D' );
+
+        ouD = createOrganisationUnit( 'D' );
         ouD.setOpeningDate( getDate( 2016, 12, 10 ) );
         ouD.setClosedDate( null );
-        OrganisationUnit ouE = createOrganisationUnit( 'E' );
+
+        ouE = createOrganisationUnit( 'E' );
+
         AnalyticsTestUtils.configureHierarchy( ouA, ouB, ouC, ouD, ouE );
+
         organisationUnitService.addOrganisationUnit( ouA );
         organisationUnitService.addOrganisationUnit( ouB );
         organisationUnitService.addOrganisationUnit( ouC );
         organisationUnitService.addOrganisationUnit( ouD );
         organisationUnitService.addOrganisationUnit( ouE );
+
         OrganisationUnitGroup organisationUnitGroupA = createOrganisationUnitGroup( 'A' );
         organisationUnitGroupA.setUid( "a2345groupA" );
         organisationUnitGroupA.addOrganisationUnit( ouA );
         organisationUnitGroupA.addOrganisationUnit( ouB );
+
         OrganisationUnitGroup organisationUnitGroupB = createOrganisationUnitGroup( 'B' );
         organisationUnitGroupB.setUid( "a2345groupB" );
         organisationUnitGroupB.addOrganisationUnit( ouC );
         organisationUnitGroupB.addOrganisationUnit( ouD );
         organisationUnitGroupB.addOrganisationUnit( ouE );
+
         OrganisationUnitGroup organisationUnitGroupC = createOrganisationUnitGroup( 'C' );
         organisationUnitGroupC.setUid( "a2345groupC" );
         organisationUnitGroupC.addOrganisationUnit( ouA );
         organisationUnitGroupC.addOrganisationUnit( ouB );
         organisationUnitGroupC.addOrganisationUnit( ouC );
+
         OrganisationUnitGroup organisationUnitGroupD = createOrganisationUnitGroup( 'D' );
         organisationUnitGroupD.setUid( "a2345groupD" );
         organisationUnitGroupD.addOrganisationUnit( ouD );
         organisationUnitGroupD.addOrganisationUnit( ouE );
+
         organisationUnitGroupService.addOrganisationUnitGroup( organisationUnitGroupA );
         organisationUnitGroupService.addOrganisationUnitGroup( organisationUnitGroupB );
         organisationUnitGroupService.addOrganisationUnitGroup( organisationUnitGroupC );
         organisationUnitGroupService.addOrganisationUnitGroup( organisationUnitGroupD );
+
         OrganisationUnitGroupSet organisationUnitGroupSetA = createOrganisationUnitGroupSet( 'A' );
         organisationUnitGroupSetA.setUid( "a234567setA" );
         OrganisationUnitGroupSet organisationUnitGroupSetB = createOrganisationUnitGroupSet( 'B' );
         organisationUnitGroupSetB.setUid( "a234567setB" );
+
         organisationUnitGroupSetA.getOrganisationUnitGroups().add( organisationUnitGroupA );
         organisationUnitGroupSetA.getOrganisationUnitGroups().add( organisationUnitGroupB );
         organisationUnitGroupSetB.getOrganisationUnitGroups().add( organisationUnitGroupC );
         organisationUnitGroupSetB.getOrganisationUnitGroups().add( organisationUnitGroupD );
+
         organisationUnitGroupService.addOrganisationUnitGroupSet( organisationUnitGroupSetA );
         organisationUnitGroupService.addOrganisationUnitGroupSet( organisationUnitGroupSetB );
-        DataSet dataSetA = createDataSet( 'A' );
+
+        dataSetA = createDataSet( 'A' );
         dataSetA.setUid( "a23dataSetA" );
-        dataSetA.addOrganisationUnit( ouD );
         dataSetA.addOrganisationUnit( ouC );
-        DataSet dataSetB = createDataSet( 'B' );
+        dataSetA.addOrganisationUnit( ouD );
+
+        dataSetB = createDataSet( 'B' );
         dataSetB.setUid( "a23dataSetB" );
         dataSetB.addOrganisationUnit( ouD );
+
         dataSetService.addDataSet( dataSetA );
         dataSetService.addDataSet( dataSetB );
+
+        indicatorTypeA = createIndicatorType( 'A' );
+        indicatorTypeA.setFactor( 1 );
+        indicatorService.addIndicatorType( indicatorTypeA );
+
+        reportingRateA = new ReportingRate( dataSetA );
+        reportingRateB = new ReportingRate( dataSetB );
+    }
+
+    private void setUpDataValues()
+        throws IOException
+    {
         // Read data values from CSV files
         List<String[]> dataValueLines = CsvUtils.readCsvAsListFromClasspath( "csv/dataValues.csv", true );
         parseDataValues( dataValueLines );
         List<String[]> dataSetRegistrationLines = CsvUtils.readCsvAsListFromClasspath( "csv/dataSetRegistrations.csv",
             true );
         parseDataSetRegistrations( dataSetRegistrationLines );
-        // Make indicators
-        IndicatorType indicatorType_1 = createIndicatorType( 'A' );
-        indicatorType_1.setFactor( 1 );
-        indicatorService.addIndicatorType( indicatorType_1 );
-        // deA
-        Indicator indicatorA = createIndicator( 'A', indicatorType_1 );
-        String expressionA = "#{" + deA.getUid() + "." + ocDef.getUid() + "}";
-        indicatorA.setNumerator( expressionA );
-        indicatorA.setDenominator( "1" );
-        // deB + deC
-        Indicator indicatorB = createIndicator( 'B', indicatorType_1 );
-        String expressionB = "#{" + deB.getUid() + "." + ocDef.getUid() + "}" + "+#{" + deC.getUid() + "."
-            + ocDef.getUid() + "}";
-        indicatorB.setNumerator( expressionB );
-        indicatorB.setDenominator( "1" );
-        // (deB * deC) / 100
-        Indicator indicatorC = createIndicator( 'C', indicatorType_1 );
-        String expressionC = "#{" + deB.getUid() + "." + ocDef.getUid() + "}" + "*#{" + deC.getUid() + "."
-            + ocDef.getUid() + "}";
-        indicatorC.setNumerator( expressionC );
-        indicatorC.setDenominator( "100" );
-        // (deA * deC) / deB
-        Indicator indicatorD = createIndicator( 'D', indicatorType_1 );
-        String expressionD = "#{" + deA.getUid() + "." + ocDef.getUid() + "}" + "*#{" + deC.getUid() + "."
-            + ocDef.getUid() + "}";
-        indicatorD.setNumerator( expressionD );
-        indicatorD.setDenominator( "#{" + deB.getUid() + "." + ocDef.getUid() + "}" );
-        // deA * reporting rate B
-        Indicator indicatorE = createIndicator( 'E', indicatorType_1 );
-        reportingRateA = new ReportingRate( dataSetA );
-        reportingRateB = new ReportingRate( dataSetB );
-        String expressionE = "#{" + deA.getUid() + "." + ocDef.getUid() + "}" + "*(R{" + reportingRateB.getUid()
-            + ".REPORTING_RATE} / 100)";
-        indicatorE.setNumerator( expressionE );
-        indicatorE.setDenominator( "1" );
-        // deA * reporting rate A
-        Indicator indicatorF = createIndicator( 'F', indicatorType_1 );
-        String expressionF = "#{" + deA.getUid() + "." + ocDef.getUid() + "}" + "*(R{" + reportingRateA.getUid()
-            + ".REPORTING_RATE} / 100)";
-        indicatorF.setNumerator( expressionF );
-        indicatorF.setDenominator( "1" );
-        // deE.periodOffset(-1) + deE.periodOffset(-2)
-        Indicator indicatorG = createIndicator( 'G', indicatorType_1 );
-        String expressionG = "#{" + deE.getUid() + "}.periodOffset(-1) + #{" + deE.getUid() + "}.periodOffset(-2)";
-        indicatorG.setNumerator( expressionG );
-        indicatorG.setDenominator( "1" );
-        indicatorService.addIndicator( indicatorA );
-        indicatorService.addIndicator( indicatorB );
-        indicatorService.addIndicator( indicatorC );
-        indicatorService.addIndicator( indicatorD );
-        indicatorService.addIndicator( indicatorE );
-        indicatorService.addIndicator( indicatorF );
-        indicatorService.addIndicator( indicatorG );
-        // Validation results
+    }
+
+    private void setUpValidation()
+    {
         CategoryOption optionA = new CategoryOption( "CategoryOptionA" );
         CategoryOption optionB = new CategoryOption( "CategoryOptionB" );
         categoryService.addCategoryOption( optionA );
         categoryService.addCategoryOption( optionB );
+
         Category categoryA = createCategory( 'A', optionA, optionB );
         categoryA.setDataDimensionType( DataDimensionType.ATTRIBUTE );
         categoryA.setUid( "categoryabA" );
         categoryService.addCategory( categoryA );
+
         CategoryCombo categoryComboA = createCategoryCombo( 'A', categoryA );
         categoryService.addCategoryCombo( categoryComboA );
+
         CategoryOptionCombo optionComboA = createCategoryOptionCombo( categoryComboA, optionA );
         CategoryOptionCombo optionComboB = createCategoryOptionCombo( categoryComboA, optionB );
         CategoryOptionCombo optionComboC = createCategoryOptionCombo( categoryComboA, optionA, optionB );
         categoryService.addCategoryOptionCombo( optionComboA );
         categoryService.addCategoryOptionCombo( optionComboB );
         categoryService.addCategoryOptionCombo( optionComboC );
+
         CategoryOptionGroup optionGroupA = createCategoryOptionGroup( 'A', optionA );
         CategoryOptionGroup optionGroupB = createCategoryOptionGroup( 'B', optionB );
         categoryService.saveCategoryOptionGroup( optionGroupA );
         categoryService.saveCategoryOptionGroup( optionGroupB );
+
         CategoryOptionGroupSet optionGroupSetB = new CategoryOptionGroupSet( "OptionGroupSetB" );
         categoryService.saveCategoryOptionGroupSet( optionGroupSetB );
         optionGroupSetB.addCategoryOptionGroup( optionGroupA );
         optionGroupSetB.addCategoryOptionGroup( optionGroupB );
         optionGroupA.getGroupSets().add( optionGroupSetB );
         optionGroupB.getGroupSets().add( optionGroupSetB );
+
         Expression expressionVRA = new Expression( "expressionA", "descriptionA" );
         Expression expressionVRB = new Expression( "expressionB", "descriptionB" );
         Expression expressionVRC = new Expression( "expressionC", "descriptionC" );
         Expression expressionVRD = new Expression( "expressionD", "descriptionD" );
+
         expressionService.addExpression( expressionVRA );
         expressionService.addExpression( expressionVRB );
         expressionService.addExpression( expressionVRC );
         expressionService.addExpression( expressionVRD );
+
         PeriodType periodType = PeriodType.getPeriodTypeByName( "Monthly" );
-        ValidationRule validationRuleA = createValidationRule( 'A', equal_to, expressionVRA, expressionVRB,
+
+        validationRuleA = createValidationRule( 'A', equal_to, expressionVRA, expressionVRB,
             periodType );
         validationRuleA.setUid( "a234567vruA" );
-        ValidationRule validationRuleB = createValidationRule( 'B', equal_to, expressionVRC, expressionVRD,
+
+        validationRuleB = createValidationRule( 'B', equal_to, expressionVRC, expressionVRD,
             periodType );
         validationRuleB.setUid( "a234567vruB" );
         validationRuleService.saveValidationRule( validationRuleA );
         validationRuleService.saveValidationRule( validationRuleB );
+
+        ValidationResult resultAA = new ValidationResult( validationRuleA, peJan, ouA, optionComboA, 1.0, 2.0, 3 );
+        ValidationResult resultAB = new ValidationResult( validationRuleA, peJan, ouA, optionComboB, 1.0, 2.0, 3 );
+        ValidationResult resultBA = new ValidationResult( validationRuleA, peJan, ouB, optionComboA, 1.0, 2.0, 3 );
+        ValidationResult resultBB = new ValidationResult( validationRuleA, peJan, ouB, optionComboB, 1.0, 2.0, 3 );
+        ValidationResult resultBAB = new ValidationResult( validationRuleB, peJan, ouA, optionComboB, 1.0, 2.0, 3 );
+        ValidationResult resultBBB = new ValidationResult( validationRuleB, peFeb, ouB, optionComboB, 1.0, 2.0, 3 );
+        ValidationResult resultBBA = new ValidationResult( validationRuleB, peFeb, ouB, optionComboA, 1.0, 2.0, 3 );
+
         Date today = new Date();
-        ValidationResult validationResultBA = new ValidationResult( validationRuleA, peJan, ouB, optionComboA, 1.0, 2.0,
-            3 );
-        validationResultBA.setCreated( today );
-        ValidationResult validationResultBB = new ValidationResult( validationRuleA, peJan, ouB, optionComboB, 1.0, 2.0,
-            3 );
-        validationResultBB.setCreated( today );
-        ValidationResult validationResultAA = new ValidationResult( validationRuleA, peJan, ouA, optionComboA, 1.0, 2.0,
-            3 );
-        validationResultAA.setCreated( today );
-        ValidationResult validationResultAB = new ValidationResult( validationRuleA, peJan, ouA, optionComboB, 1.0, 2.0,
-            3 );
-        validationResultAB.setCreated( today );
-        ValidationResult validationResultBAB = new ValidationResult( validationRuleB, peJan, ouA, optionComboB, 1.0,
-            2.0, 3 );
-        validationResultBAB.setCreated( today );
-        ValidationResult validationResultBBB = new ValidationResult( validationRuleB, peFeb, ouB, optionComboB, 1.0,
-            2.0, 3 );
-        validationResultBBB.setCreated( today );
-        ValidationResult validationResultBBA = new ValidationResult( validationRuleB, peFeb, ouB, optionComboA, 1.0,
-            2.0, 3 );
-        validationResultService.saveValidationResults( Lists.newArrayList( validationResultAA, validationResultAB,
-            validationResultBB, validationResultBA, validationResultBAB, validationResultBBB, validationResultBBA ) );
-        // to ensure that Hibernate has flushed validation
-        Thread.sleep( 1000 );
-        // results before generating tables.
-        // Generate analytics tables
-        analyticsTableGenerator.generateTables( AnalyticsTableUpdateParams.newBuilder().build(),
-            NoopJobProgress.INSTANCE );
-        // Set parameters
-        List<Indicator> param_indicators = new ArrayList<>();
-        List<ReportingRate> param_reportingRates = new ArrayList<>();
-        Period y2017 = createPeriod( "2017" );
-        // all data elements - mar 2017
-        Period y2017_mar = createPeriod( "2017-03" );
-        DataQueryParams de_avg_2017_03_params = DataQueryParams.newBuilder()
-            .withDataElements( dataElementService.getAllDataElements() )
-            .withAggregationType( AnalyticsAggregationType.AVERAGE ).withSkipRounding( true ).withPeriod( y2017_mar )
-            .withOutputFormat( OutputFormat.ANALYTICS ).build();
-        // org unit B - data element C - mar 2017
-        List<DataElement> dataElements1 = new ArrayList<>();
-        dataElements1.add( deC );
-        DataQueryParams deC_ouB_2017_03_params = DataQueryParams.newBuilder().withOrganisationUnit( ouB )
-            .withDataElements( dataElements1 ).withAggregationType( AnalyticsAggregationType.SUM )
-            .withPeriod( y2017_mar ).withOutputFormat( OutputFormat.ANALYTICS ).build();
-        AnalyticalObject deC_ouB_2017_03_analytical = new Visualization( "deC_ouB_2017_03", dataElements1,
-            param_indicators, param_reportingRates, Lists.newArrayList( y2017_mar ), Lists.newArrayList( ouB ), false,
-            true, true );
-        // org unit A - data element A - Q1 2017
-        List<DataElement> dataElements2 = new ArrayList<>();
-        dataElements2.add( deA );
-        DataQueryParams deA_ouA_2017_Q01_params = DataQueryParams.newBuilder().withOrganisationUnit( ouA )
-            .withDataElements( dataElements2 ).withAggregationType( AnalyticsAggregationType.SUM ).withPeriod( quarter )
-            .withOutputFormat( OutputFormat.ANALYTICS ).build();
-        AnalyticalObject deA_ouA_2017_Q01_analytical = new Visualization( "deA_ouA_2017_Q01", dataElements2,
-            param_indicators, param_reportingRates, Lists.newArrayList( quarter ), Lists.newArrayList( ouA ), false,
-            true, true );
-        // indicator A - 2017
-        DataQueryParams inA_2017_params = DataQueryParams.newBuilder()
-            .withIndicators( Lists.newArrayList( indicatorA ) ).withAggregationType( AnalyticsAggregationType.SUM )
-            .withPeriod( y2017 ).withOutputFormat( OutputFormat.ANALYTICS ).build();
-        // indicator B (deB + deC) - 2017 Q1
-        DataQueryParams inB_deB_deC_2017_Q01_params = DataQueryParams.newBuilder()
-            .withIndicators( Lists.newArrayList( indicatorB ) ).withAggregationType( AnalyticsAggregationType.SUM )
-            .withPeriod( quarter ).withOutputFormat( OutputFormat.ANALYTICS ).build();
-        // indicator C (deB * deC) in hundreds - 2017 Q1
-        List<Indicator> param_indicators3 = new ArrayList<>();
-        param_indicators3.add( indicatorC );
-        DataQueryParams inC_deB_deC_2017_Q01_params = DataQueryParams.newBuilder().withIndicators( param_indicators3 )
-            .withAggregationType( AnalyticsAggregationType.SUM ).withPeriod( quarter )
-            .withOutputFormat( OutputFormat.ANALYTICS ).build();
-        AnalyticalObject inC_deB_deC_2017_Q01_analytical = new Visualization( "deA_ouA_2017_Q01", Lists.newArrayList(),
-            param_indicators3, param_reportingRates, Lists.newArrayList( quarter ), Lists.newArrayList( ouA ), true,
-            true, true );
-        // indicator D (deA * deC)/deB - 2017 Q1
-        DataQueryParams inD_deA_deB_deC_2017_Q01_params = DataQueryParams.newBuilder()
-            .withIndicators( Lists.newArrayList( indicatorD ) ).withAggregationType( AnalyticsAggregationType.SUM )
-            .withPeriod( quarter ).withOutputFormat( OutputFormat.ANALYTICS ).build();
-        // indicator E (deA * reporting rate B) / 100 - 2017 Q1
-        DataQueryParams inE_deA_reRateA_2017_Q01_params = DataQueryParams.newBuilder().withOrganisationUnit( ouD )
-            .withIndicators( Lists.newArrayList( indicatorE ) ).withAggregationType( AnalyticsAggregationType.SUM )
-            .withPeriod( quarter ).withOutputFormat( OutputFormat.ANALYTICS ).build();
-        // indicator F (deA * reporting rate A) / 100 - 2017 Q1
-        DataQueryParams inF_deA_reRateB_2017_Q01_params = DataQueryParams.newBuilder().withOrganisationUnit( ouD )
-            .withIndicators( Lists.newArrayList( indicatorF ) ).withAggregationType( AnalyticsAggregationType.SUM )
-            .withPeriod( quarter ).withOutputFormat( OutputFormat.ANALYTICS ).build();
-        // indicator G (deE.periodOffset(-1) + deE.periodOffset(-2)) 2017-07
-        DataQueryParams inG_deE_periodOffsets_2017_07_params = DataQueryParams.newBuilder().withOrganisationUnit( ouA )
-            .withIndicators( Lists.newArrayList( indicatorG ) ).withAggregationType( AnalyticsAggregationType.SUM )
-            .withPeriod( peJuly ).withOutputFormat( OutputFormat.ANALYTICS ).build();
-        // Max value - org unit B and C - data element A - 2017 Feb
-        DataQueryParams deA_ouB_ouC_2017_02_params = DataQueryParams.newBuilder()
-            .withFilterOrganisationUnits( Lists.newArrayList( ouB, ouC ) ).withDataElements( Lists.newArrayList( deA ) )
-            .withAggregationType( new AnalyticsAggregationType( AggregationType.MAX, AggregationType.MAX ) )
-            .withPeriod( peFeb ).withOutputFormat( OutputFormat.ANALYTICS ).build();
-        // Average value - org unit C and E - data element A, B and D - 2017
-        // April
-        DataQueryParams deA_deB_deD_ouC_ouE_2017_04_params = DataQueryParams.newBuilder()
-            .withFilterOrganisationUnits( Lists.newArrayList( ouC, ouE ) )
-            .withDataElements( Lists.newArrayList( deA, deB, deD ) )
-            .withAggregationType( AnalyticsAggregationType.AVERAGE ).withOutputFormat( OutputFormat.ANALYTICS )
-            .withPeriod( peApril ).withOutputFormat( OutputFormat.ANALYTICS ).build();
-        // Sum org unit B - 2017-01-01 -> 2017-02-20
-        DataQueryParams ouB_2017_01_01_2017_02_20_params = DataQueryParams.newBuilder()
-            .withDataElements( Lists.newArrayList( deA, deB ) ).withOrganisationUnit( ouB )
-            .withStartDate( getDate( 2017, 1, 1 ) ).withEndDate( getDate( 2017, 2, 20 ) )
-            .withAggregationType( AnalyticsAggregationType.SUM ).withOutputFormat( OutputFormat.ANALYTICS ).build();
-        // Reportingrate for dataSet A - Q1 2017
-        DataQueryParams reRate_2017_Q01_ouC_params = DataQueryParams.newBuilder().withOrganisationUnit( ouC )
-            .withReportingRates( Lists.newArrayList( reportingRateA ) ).withPeriod( quarter )
-            .withAggregationType( AnalyticsAggregationType.SUM ).withOutputFormat( OutputFormat.ANALYTICS ).build();
-        // Reportingrate for dataSet B - Q1 2017
-        DataQueryParams reRate_2017_Q01_ouD_params = DataQueryParams.newBuilder().withOrganisationUnit( ouD )
-            .withReportingRates( Lists.newArrayList( reportingRateB ) ).withPeriod( quarter )
-            .withAggregationType( AnalyticsAggregationType.SUM ).withOutputFormat( OutputFormat.ANALYTICS ).build();
-        // Validation result queries
-        DataQueryParams ou_2017_validationruleA_params = DataQueryParams.newBuilder()
-            .withValidationRules( Lists.newArrayList( validationRuleA ) )
-            .withOrganisationUnits( organisationUnitService.getAllOrganisationUnits() )
-            .withAggregationType( AnalyticsAggregationType.COUNT ).withPeriod( y2017 )
-            .withOutputFormat( OutputFormat.ANALYTICS ).build();
-        DataQueryParams ou_2017_validationruleB_params = DataQueryParams.newBuilder()
-            .withValidationRules( Lists.newArrayList( validationRuleB ) )
-            .withOrganisationUnits( organisationUnitService.getAllOrganisationUnits() )
-            .withAggregationType( AnalyticsAggregationType.COUNT ).withPeriod( y2017 )
-            .withOutputFormat( OutputFormat.ANALYTICS ).build();
-        DataQueryParams ou_2017_validationruleAB_params = DataQueryParams.newBuilder()
-            .withValidationRules( Lists.newArrayList( validationRuleA, validationRuleB ) )
-            .withOrganisationUnits( organisationUnitService.getAllOrganisationUnits() )
-            .withAggregationType( AnalyticsAggregationType.COUNT ).withPeriod( y2017 )
-            .withOutputFormat( OutputFormat.ANALYTICS ).build();
-        dataQueryParams.put( "de_avg_2017_03", de_avg_2017_03_params );
-        dataQueryParams.put( "deC_ouB_2017_03", deC_ouB_2017_03_params );
-        dataQueryParams.put( "deA_ouA_2017_Q01", deA_ouA_2017_Q01_params );
-        dataQueryParams.put( "inA_2017", inA_2017_params );
-        dataQueryParams.put( "inB_deB_deC_2017_Q01", inB_deB_deC_2017_Q01_params );
-        dataQueryParams.put( "inC_deB_deC_2017_Q01", inC_deB_deC_2017_Q01_params );
-        dataQueryParams.put( "inD_deA_deB_deC_2017_Q01", inD_deA_deB_deC_2017_Q01_params );
-        dataQueryParams.put( "inE_deA_reRateA_2017_Q01", inE_deA_reRateA_2017_Q01_params );
-        dataQueryParams.put( "inF_deA_reRateB_2017_Q01", inF_deA_reRateB_2017_Q01_params );
-        dataQueryParams.put( "inG_deE_periodOffsets_2017_07", inG_deE_periodOffsets_2017_07_params );
-        dataQueryParams.put( "deA_ouB_ouC_2017_02", deA_ouB_ouC_2017_02_params );
-        dataQueryParams.put( "deA_deB_deD_ouC_ouE_2017_04", deA_deB_deD_ouC_ouE_2017_04_params );
-        dataQueryParams.put( "ouB_2017_01_01_2017_02_20", ouB_2017_01_01_2017_02_20_params );
-        dataQueryParams.put( "reRate_2017_Q01_ouC", reRate_2017_Q01_ouC_params );
-        dataQueryParams.put( "reRate_2017_Q01_ouD", reRate_2017_Q01_ouD_params );
-        dataQueryParams.put( "ou_2017_validationruleA", ou_2017_validationruleA_params );
-        dataQueryParams.put( "ou_2017_validationruleB", ou_2017_validationruleB_params );
-        dataQueryParams.put( "ou_2017_validationruleAB", ou_2017_validationruleAB_params );
-        analyticalObjectHashMap.put( "deC_ouB_2017_03", deC_ouB_2017_03_analytical );
-        analyticalObjectHashMap.put( "deA_ouA_2017_Q01", deA_ouA_2017_Q01_analytical );
-        analyticalObjectHashMap.put( "inC_deB_deC_2017_Q01", inC_deB_deC_2017_Q01_analytical );
-        // Set results
-        // --------------------------------------------------------------------
-        Map<String, Double> de_avg_2017_03_keyValue = new HashMap<>();
-        de_avg_2017_03_keyValue.put( "deabcdefghC-201703", 6.75 );
-        Map<String, Double> deC_ouB_2017_03_keyValue = new HashMap<>();
-        deC_ouB_2017_03_keyValue.put( "deabcdefghC-ouabcdefghB-201703", 6.0 );
-        deC_ouB_2017_03_keyValue.put( "deabcdefghC-201703-ouabcdefghB", 6.0 );
-        Map<String, Double> deA_ouA_2017_Q01_keyValue = new HashMap<>();
-        deA_ouA_2017_Q01_keyValue.put( "deabcdefghA-ouabcdefghA-2017Q1", 308.0 );
-        deA_ouA_2017_Q01_keyValue.put( "deabcdefghA-2017Q1-ouabcdefghA", 308.0 );
-        Map<String, Double> inA_2017_keyValue = new HashMap<>();
-        inA_2017_keyValue.put( "inabcdefghA-2017", 308.0 );
-        Map<String, Double> inB_deB_deC_2017_Q01_keyValue = new HashMap<>();
-        inB_deB_deC_2017_Q01_keyValue.put( "inabcdefghB-2017Q1", 567.0 );
-        Map<String, Double> inC_deB_deC_2017_Q01_keyValue = new HashMap<>();
-        inC_deB_deC_2017_Q01_keyValue.put( "inabcdefghC-2017Q1", 258.50 );
-        inC_deB_deC_2017_Q01_keyValue.put( "inabcdefghC-2017Q1-ouabcdefghA", 258.50 );
-        Map<String, Double> inD_deA_deB_deC_2017_Q01_keyValue = new HashMap<>();
-        inD_deA_deB_deC_2017_Q01_keyValue.put( "inabcdefghD-2017Q1", 29.8 );
-        Map<String, Double> inE_deA_reRateA_2017_Q01_keyValue = new HashMap<>();
-        inE_deA_reRateA_2017_Q01_keyValue.put( "inabcdefghE-ouabcdefghD-2017Q1", 99.6 );
-        Map<String, Double> inF_deA_reRateB_2017_Q01_keyValue = new HashMap<>();
-        inF_deA_reRateB_2017_Q01_keyValue.put( "inabcdefghF-ouabcdefghD-2017Q1", 199.4 );
-        Map<String, Double> inG_deE_periodOffsets_2017_07_keyvalue = new HashMap<>();
-        inG_deE_periodOffsets_2017_07_keyvalue.put( "inabcdefghG-ouabcdefghA-201707", 3.0 );
-        Map<String, Double> deA_ouB_ouC_2017_02_keyValue = new HashMap<>();
-        deA_ouB_ouC_2017_02_keyValue.put( "deabcdefghA-201702", 233.0 );
-        Map<String, Double> deA_deB_deD_ouC_ouE_2017_04_keyValue = new HashMap<>();
-        deA_deB_deD_ouC_ouE_2017_04_keyValue.put( "deabcdefghD-201704", 10.5 );
-        Map<String, Double> deA_deB_2017_Q01_keyValue = new HashMap<>();
-        deA_deB_2017_Q01_keyValue.put( "2017Q1", 53.3 );
-        Map<String, Double> ouB_2017_01_01_2017_02_20_keyValue = new HashMap<>();
-        ouB_2017_01_01_2017_02_20_keyValue.put( "deabcdefghA-ouabcdefghB", 68.0 );
-        Map<String, Double> reRate_2017_Q01_ouC_keyValue = new HashMap<>();
-        reRate_2017_Q01_ouC_keyValue.put( "a23dataSetA.REPORTING_RATE-ouabcdefghC-2017Q1", 100.0 );
-        Map<String, Double> reRate_2017_Q01_ouD_keyValue = new HashMap<>();
-        reRate_2017_Q01_ouD_keyValue.put( "a23dataSetB.REPORTING_RATE-ouabcdefghD-2017Q1", 33.3 );
-        Map<String, Double> ou_2017_validationruleA_keyValue = new HashMap<>();
-        ou_2017_validationruleA_keyValue.put( "a234567vruA-ouabcdefghA-2017", 4.0 );
-        ou_2017_validationruleA_keyValue.put( "a234567vruA-ouabcdefghB-2017", 2.0 );
-        Map<String, Double> ou_2017_validationruleB_keyValue = new HashMap<>();
-        ou_2017_validationruleB_keyValue.put( "a234567vruB-ouabcdefghA-2017", 3.0 );
-        ou_2017_validationruleB_keyValue.put( "a234567vruB-ouabcdefghB-2017", 2.0 );
-        Map<String, Double> ou_2017_validationruleAB_keyValue = new HashMap<>();
-        ou_2017_validationruleAB_keyValue.put( "a234567vruA-ouabcdefghA-2017", 4.0 );
-        ou_2017_validationruleAB_keyValue.put( "a234567vruA-ouabcdefghB-2017", 2.0 );
-        ou_2017_validationruleAB_keyValue.put( "a234567vruB-ouabcdefghA-2017", 3.0 );
-        ou_2017_validationruleAB_keyValue.put( "a234567vruB-ouabcdefghB-2017", 2.0 );
-        results.put( "de_avg_2017_03", de_avg_2017_03_keyValue );
-        results.put( "deC_ouB_2017_03", deC_ouB_2017_03_keyValue );
-        results.put( "deA_ouA_2017_Q01", deA_ouA_2017_Q01_keyValue );
-        results.put( "inA_2017", inA_2017_keyValue );
-        results.put( "inB_deB_deC_2017_Q01", inB_deB_deC_2017_Q01_keyValue );
-        results.put( "inC_deB_deC_2017_Q01", inC_deB_deC_2017_Q01_keyValue );
-        results.put( "inD_deA_deB_deC_2017_Q01", inD_deA_deB_deC_2017_Q01_keyValue );
-        results.put( "inE_deA_reRateA_2017_Q01", inE_deA_reRateA_2017_Q01_keyValue );
-        results.put( "inF_deA_reRateB_2017_Q01", inF_deA_reRateB_2017_Q01_keyValue );
-        results.put( "inG_deE_periodOffsets_2017_07", inG_deE_periodOffsets_2017_07_keyvalue );
-        results.put( "deA_ouB_ouC_2017_02", deA_ouB_ouC_2017_02_keyValue );
-        results.put( "deA_deB_deD_ouC_ouE_2017_04", deA_deB_deD_ouC_ouE_2017_04_keyValue );
-        results.put( "deA_deB_2017_Q01", deA_deB_2017_Q01_keyValue );
-        results.put( "ouB_2017_01_01_2017_02_20", ouB_2017_01_01_2017_02_20_keyValue );
-        results.put( "reRate_2017_Q01_ouC", reRate_2017_Q01_ouC_keyValue );
-        results.put( "reRate_2017_Q01_ouD", reRate_2017_Q01_ouD_keyValue );
-        results.put( "ou_2017_validationruleA", ou_2017_validationruleA_keyValue );
-        results.put( "ou_2017_validationruleB", ou_2017_validationruleB_keyValue );
-        results.put( "ou_2017_validationruleAB", ou_2017_validationruleAB_keyValue );
+        resultAA.setCreated( today );
+        resultAB.setCreated( today );
+        resultBA.setCreated( today );
+        resultBB.setCreated( today );
+        resultBAB.setCreated( today );
+        resultBBB.setCreated( today );
+        resultBBA.setCreated( today );
+
+        validationResultService.saveValidationResults( List.of( resultAA, resultAB, resultBA, resultBB,
+            resultBAB, resultBBB, resultBBA ) );
     }
 
-    @Override
-    public void tearDownTest()
-    {
-        for ( AnalyticsTableService service : analyticsTableServices )
-        {
-            service.dropTables();
-        }
-    }
-
-    @Test
-    void queryValidationResultTable()
-    {
-        List<Map<String, Object>> resultMap = jdbcTemplate
-            .queryForList( "select * from analytics_validationresult_2017;" );
-        assertEquals( 7, resultMap.size() );
-    }
-
-    @Test
-    void testMappingAggregation()
-    {
-        Map<String, Object> aggregatedDataValueMapping;
-        for ( Map.Entry<String, DataQueryParams> entry : dataQueryParams.entrySet() )
-        {
-            String key = entry.getKey();
-            DataQueryParams params = entry.getValue();
-            aggregatedDataValueMapping = analyticsService.getAggregatedDataValueMapping( params );
-            AnalyticsTestUtils.assertResultMapping( key, aggregatedDataValueMapping, results.get( key ) );
-        }
-        for ( Map.Entry<String, AnalyticalObject> entry : analyticalObjectHashMap.entrySet() )
-        {
-            String key = entry.getKey();
-            AnalyticalObject params = entry.getValue();
-            aggregatedDataValueMapping = analyticsService.getAggregatedDataValueMapping( params );
-            AnalyticsTestUtils.assertResultMapping( key, aggregatedDataValueMapping, results.get( key ) );
-        }
-    }
-
-    @Test
-    void testGridAggregation()
-    {
-        Grid aggregatedDataValueGrid;
-        for ( Map.Entry<String, DataQueryParams> entry : dataQueryParams.entrySet() )
-        {
-            String scenario = entry.getKey();
-            DataQueryParams params = entry.getValue();
-            aggregatedDataValueGrid = analyticsService.getAggregatedDataValues( params );
-            AnalyticsTestUtils.assertResultGrid( scenario, aggregatedDataValueGrid, results.get( scenario ) );
-        }
-    }
-
-    @Test
-    void testSetAggregation()
-    {
-        // Params: Sum for all org units for 2017
-        DataValueSet aggregatedDataValueSet = analyticsService
-            .getAggregatedDataValueSet( dataQueryParams.get( "deC_ouB_2017_03" ) );
-        AnalyticsTestUtils.assertResultSet( aggregatedDataValueSet, results.get( "deC_ouB_2017_03" ) );
-        // Params: Sum for all org unit A, in data element a in Q1 2017
-        aggregatedDataValueSet = analyticsService
-            .getAggregatedDataValueSet( dataQueryParams.get( "deA_ouA_2017_Q01" ) );
-        AnalyticsTestUtils.assertResultSet( aggregatedDataValueSet, results.get( "deA_ouA_2017_Q01" ) );
-    }
-
-    // -------------------------------------------------------------------------
-    // Internal Logic
-    // -------------------------------------------------------------------------
     /**
      * Adds data value based on input from vales
      *
@@ -689,7 +476,7 @@ class AnalyticsServiceTest extends IntegrationTestBase
             dataValue.setValue( line[3] );
             dataValueService.addDataValue( dataValue );
         }
-        assertEquals( dataValueService.getAllDataValues().size(), 27,
+        assertEquals( 27, dataValueService.getAllDataValues().size(),
             "Import of data values failed, number of imports are wrong" );
     }
 
@@ -712,7 +499,356 @@ class AnalyticsServiceTest extends IntegrationTestBase
                 organisationUnit, ocDef, now, storedBy, new Date(), lastUpdatedBy, true );
             completeDataSetRegistrationService.saveCompleteDataSetRegistration( completeDataSetRegistration );
         }
-        assertEquals( completeDataSetRegistrationService.getAllCompleteDataSetRegistrations().size(), 15,
+        assertEquals( 15, completeDataSetRegistrationService.getAllCompleteDataSetRegistrations().size(),
             "Import of data set registrations failed, number of imports are wrong" );
+    }
+
+    // --------------------------------------------------------------------------
+    // Tear down from all tests
+    // --------------------------------------------------------------------------
+
+    @Override
+    public void tearDownTest()
+    {
+        for ( AnalyticsTableService service : analyticsTableServices )
+        {
+            service.dropTables();
+        }
+    }
+
+    // --------------------------------------------------------------------------
+    // Test helpers
+    // --------------------------------------------------------------------------
+
+    private void assertDataValues( Map<String, Object> expected, DataQueryParams params )
+    {
+        assertMapEquals( expected, analyticsService.getAggregatedDataValueMapping( params ) );
+
+        AnalyticsTestUtils.assertResultGrid( expected, analyticsService.getAggregatedDataValues( params ) );
+    }
+
+    private Map<String, Object> getDataValueMapping( AnalyticalObject object )
+    {
+        return analyticsService.getAggregatedDataValueMapping( object );
+    }
+
+    private DataValueSet getDataValueSet( DataQueryParams params )
+    {
+        return analyticsService.getAggregatedDataValueSet( params );
+    }
+
+    // --------------------------------------------------------------------------
+    // Tests
+    // --------------------------------------------------------------------------
+
+    @Test
+    void queryValidationResultTable()
+    {
+        List<Map<String, Object>> resultMap = jdbcTemplate
+            .queryForList( "select * from analytics_validationresult_2017;" );
+        assertEquals( 7, resultMap.size() );
+    }
+
+    @Test
+    void test_de_avg_2017_03()
+    {
+        assertDataValues(
+            Map.of( "deabcdefghC-201703", 6.75 ),
+            DataQueryParams.newBuilder()
+                .withDataElements( dataElementService.getAllDataElements() )
+                .withAggregationType( AnalyticsAggregationType.AVERAGE )
+                .withSkipRounding( true )
+                .withPeriod( peMar )
+                .withOutputFormat( OutputFormat.ANALYTICS ).build() );
+    }
+
+    @Test
+    void test_deC_ouB_2017_03()
+    {
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withOrganisationUnit( ouB )
+            .withDataElements( List.of( deC ) )
+            .withAggregationType( AnalyticsAggregationType.SUM )
+            .withPeriod( peMar )
+            .withOutputFormat( OutputFormat.ANALYTICS ).build();
+
+        assertDataValues(
+            Map.of( "deabcdefghC-ouabcdefghB-201703", 6.0 ),
+            params );
+
+        AnalyticsTestUtils.assertResultSet(
+            Map.of( "deabcdefghC-ouabcdefghB-201703", 6.0 ),
+            getDataValueSet( params ) );
+
+        assertMapEquals(
+            Map.of( "deabcdefghC-201703-ouabcdefghB", 6.0 ),
+            getDataValueMapping( new Visualization( "deC_ouB_2017_03",
+                List.of( deC ), emptyList(), emptyList(), List.of( peMar ), List.of( ouB ),
+                false, true, true ) ) );
+    }
+
+    @Test
+    void test_deA_ouA_2017_Q01()
+    {
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withOrganisationUnit( ouA )
+            .withDataElements( List.of( deA ) )
+            .withAggregationType( AnalyticsAggregationType.SUM )
+            .withPeriod( quarter )
+            .withOutputFormat( OutputFormat.ANALYTICS ).build();
+
+        assertDataValues(
+            Map.of( "deabcdefghA-ouabcdefghA-2017Q1", 308.0 ),
+            params );
+
+        AnalyticsTestUtils.assertResultSet(
+            Map.of( "deabcdefghA-ouabcdefghA-2017Q1", 308.0 ),
+            getDataValueSet( params ) );
+
+        assertMapEquals(
+            Map.of( "deabcdefghA-2017Q1-ouabcdefghA", 308.0 ),
+            getDataValueMapping( new Visualization( "deA_ouA_2017_Q01",
+                List.of( deA ), emptyList(), emptyList(), List.of( quarter ), List.of( ouA ),
+                false, true, true ) ) );
+    }
+
+    @Test
+    void test_inA_2017()
+    {
+        Indicator indicatorA = createIndicator( 'A', indicatorTypeA,
+            "#{" + deA.getUid() + "." + ocDef.getUid() + "}",
+            "1" );
+        indicatorService.addIndicator( indicatorA );
+
+        assertDataValues(
+            Map.of( "inabcdefghA-2017", 308.0 ),
+            DataQueryParams.newBuilder()
+                .withIndicators( List.of( indicatorA ) )
+                .withAggregationType( AnalyticsAggregationType.SUM )
+                .withPeriod( year )
+                .withOutputFormat( OutputFormat.ANALYTICS ).build() );
+    }
+
+    @Test
+    void test_inB_deB_deC_2017_Q01()
+    {
+        Indicator indicatorB = createIndicator( 'B', indicatorTypeA,
+            "#{" + deB.getUid() + "." + ocDef.getUid() + "}" + "+#{" + deC.getUid() + "." + ocDef.getUid() + "}",
+            "1" );
+        indicatorService.addIndicator( indicatorB );
+
+        assertDataValues(
+            Map.of( "inabcdefghB-2017Q1", 567.0 ),
+            DataQueryParams.newBuilder()
+                .withIndicators( List.of( indicatorB ) )
+                .withAggregationType( AnalyticsAggregationType.SUM )
+                .withPeriod( quarter )
+                .withOutputFormat( OutputFormat.ANALYTICS ).build() );
+    }
+
+    @Test
+    void test_inC_deB_deC_2017_Q01()
+    {
+        Indicator indicatorC = createIndicator( 'C', indicatorTypeA,
+            "#{" + deB.getUid() + "." + ocDef.getUid() + "}" + "*#{" + deC.getUid() + "." + ocDef.getUid() + "}",
+            "100" );
+        indicatorService.addIndicator( indicatorC );
+
+        assertDataValues(
+            Map.of( "inabcdefghC-2017Q1", 258.50 ),
+            DataQueryParams.newBuilder()
+                .withIndicators( List.of( indicatorC ) )
+                .withAggregationType( AnalyticsAggregationType.SUM )
+                .withPeriod( quarter )
+                .withOutputFormat( OutputFormat.ANALYTICS ).build() );
+
+        assertMapEquals(
+            Map.of( "inabcdefghC-2017Q1-ouabcdefghA", 258.50 ),
+            getDataValueMapping( new Visualization( "deA_ouA_2017_Q01", emptyList(),
+                List.of( indicatorC ), emptyList(), List.of( quarter ), List.of( ouA ),
+                true, true, true ) ) );
+    }
+
+    @Test
+    void test_inD_deA_deB_deC_2017_Q01()
+    {
+        Indicator indicatorD = createIndicator( 'D', indicatorTypeA,
+            "#{" + deA.getUid() + "." + ocDef.getUid() + "}" + "*#{" + deC.getUid() + "." + ocDef.getUid() + "}",
+            "#{" + deB.getUid() + "." + ocDef.getUid() + "}" );
+        indicatorService.addIndicator( indicatorD );
+
+        assertDataValues(
+            Map.of( "inabcdefghD-2017Q1", 29.8 ),
+            DataQueryParams.newBuilder()
+                .withIndicators( List.of( indicatorD ) )
+                .withAggregationType( AnalyticsAggregationType.SUM )
+                .withPeriod( quarter )
+                .withOutputFormat( OutputFormat.ANALYTICS ).build() );
+    }
+
+    @Test
+    void test_inE_deA_reRateB_2017_Q01()
+    {
+        Indicator indicatorE = createIndicator( 'E', indicatorTypeA,
+            "#{" + deA.getUid() + "." + ocDef.getUid() + "}"
+                + "*(R{" + reportingRateB.getUid() + ".REPORTING_RATE} / 100)",
+            "1" );
+        indicatorService.addIndicator( indicatorE );
+
+        assertDataValues(
+            Map.of( "inabcdefghE-ouabcdefghD-2017Q1", 99.6 ),
+            DataQueryParams.newBuilder()
+                .withOrganisationUnit( ouD )
+                .withIndicators( List.of( indicatorE ) )
+                .withAggregationType( AnalyticsAggregationType.SUM )
+                .withPeriod( quarter )
+                .withOutputFormat( OutputFormat.ANALYTICS ).build() );
+    }
+
+    @Test
+    void test_inF_deA_reRateA_2017_Q01()
+    {
+        Indicator indicatorF = createIndicator( 'F', indicatorTypeA,
+            "#{" + deA.getUid() + "." + ocDef.getUid() + "}"
+                + "*(R{" + reportingRateA.getUid() + ".REPORTING_RATE} / 100)",
+            "1" );
+        indicatorService.addIndicator( indicatorF );
+
+        assertDataValues(
+            Map.of( "inabcdefghF-ouabcdefghD-2017Q1", 199.4 ),
+            DataQueryParams.newBuilder()
+                .withOrganisationUnit( ouD )
+                .withIndicators( List.of( indicatorF ) )
+                .withAggregationType( AnalyticsAggregationType.SUM )
+                .withPeriod( quarter )
+                .withOutputFormat( OutputFormat.ANALYTICS ).build() );
+    }
+
+    @Test
+    void test_inG_deE_periodOffsets_2017_07()
+    {
+        Indicator indicatorG = createIndicator( 'G', indicatorTypeA,
+            "#{" + deE.getUid() + "}.periodOffset(-1) + #{" + deE.getUid() + "}.periodOffset(-2)",
+            "1" );
+        indicatorService.addIndicator( indicatorG );
+
+        assertDataValues(
+            Map.of( "inabcdefghG-ouabcdefghA-201707", 3.0 ),
+            DataQueryParams.newBuilder()
+                .withOrganisationUnit( ouA )
+                .withIndicators( Lists.newArrayList( indicatorG ) )
+                .withAggregationType( AnalyticsAggregationType.SUM )
+                .withPeriod( peJuly )
+                .withOutputFormat( OutputFormat.ANALYTICS ).build() );
+    }
+
+    @Test
+    void test_deA_ouB_ouC_2017_02()
+    {
+        assertDataValues(
+            Map.of( "deabcdefghA-201702", 233.0 ),
+            DataQueryParams.newBuilder()
+                .withFilterOrganisationUnits( List.of( ouB, ouC ) )
+                .withDataElements( List.of( deA ) )
+                .withAggregationType( new AnalyticsAggregationType( AggregationType.MAX, AggregationType.MAX ) )
+                .withPeriod( peFeb )
+                .withOutputFormat( OutputFormat.ANALYTICS ).build() );
+    }
+
+    @Test
+    void test_deA_deB_deD_ouC_ouE_2017_04()
+    {
+        assertDataValues(
+            Map.of( "deabcdefghD-201704", 10.5 ),
+            DataQueryParams.newBuilder()
+                .withFilterOrganisationUnits( Lists.newArrayList( ouC, ouE ) )
+                .withDataElements( Lists.newArrayList( deA, deB, deD ) )
+                .withAggregationType( AnalyticsAggregationType.AVERAGE )
+                .withPeriod( peApril )
+                .withOutputFormat( OutputFormat.ANALYTICS ).build() );
+    }
+
+    @Test
+    void test_ouB_2017_01_01_2017_02_20()
+    {
+        assertDataValues(
+            Map.of( "deabcdefghA-ouabcdefghB", 68.0 ),
+            DataQueryParams.newBuilder()
+                .withDataElements( Lists.newArrayList( deA, deB ) )
+                .withOrganisationUnit( ouB )
+                .withStartDate( getDate( 2017, 1, 1 ) )
+                .withEndDate( getDate( 2017, 2, 20 ) )
+                .withAggregationType( AnalyticsAggregationType.SUM )
+                .withOutputFormat( OutputFormat.ANALYTICS ).build() );
+    }
+
+    @Test
+    void test_reRate_2017_Q01_ouC()
+    {
+        assertDataValues(
+            Map.of( "a23dataSetA.REPORTING_RATE-ouabcdefghC-2017Q1", 100.0 ),
+            DataQueryParams.newBuilder()
+                .withOrganisationUnit( ouC )
+                .withReportingRates( List.of( reportingRateA ) )
+                .withPeriod( quarter )
+                .withAggregationType( AnalyticsAggregationType.SUM )
+                .withOutputFormat( OutputFormat.ANALYTICS ).build() );
+    }
+
+    @Test
+    void test_reRate_2017_Q01_ouD()
+    {
+        assertDataValues(
+            Map.of( "a23dataSetB.REPORTING_RATE-ouabcdefghD-2017Q1", 33.3 ),
+            DataQueryParams.newBuilder()
+                .withOrganisationUnit( ouD )
+                .withReportingRates( List.of( reportingRateB ) )
+                .withPeriod( quarter )
+                .withAggregationType( AnalyticsAggregationType.SUM )
+                .withOutputFormat( OutputFormat.ANALYTICS ).build() );
+    }
+
+    @Test
+    void test_ou_2017_validationruleA()
+    {
+        assertDataValues(
+            Map.of( "a234567vruA-ouabcdefghA-2017", 4.0,
+                "a234567vruA-ouabcdefghB-2017", 2.0 ),
+            DataQueryParams.newBuilder()
+                .withValidationRules( List.of( validationRuleA ) )
+                .withOrganisationUnits( organisationUnitService.getAllOrganisationUnits() )
+                .withPeriod( year )
+                .withAggregationType( AnalyticsAggregationType.COUNT )
+                .withOutputFormat( OutputFormat.ANALYTICS ).build() );
+    }
+
+    @Test
+    void test_ou_2017_validationruleB()
+    {
+        assertDataValues(
+            Map.of( "a234567vruB-ouabcdefghA-2017", 3.0,
+                "a234567vruB-ouabcdefghB-2017", 2.0 ),
+            DataQueryParams.newBuilder()
+                .withValidationRules( List.of( validationRuleB ) )
+                .withOrganisationUnits( organisationUnitService.getAllOrganisationUnits() )
+                .withPeriod( year )
+                .withAggregationType( AnalyticsAggregationType.COUNT )
+                .withOutputFormat( OutputFormat.ANALYTICS ).build() );
+    }
+
+    @Test
+    void test_ou_2017_validationruleAB()
+    {
+        assertDataValues(
+            Map.of( "a234567vruA-ouabcdefghA-2017", 4.0,
+                "a234567vruA-ouabcdefghB-2017", 2.0,
+                "a234567vruB-ouabcdefghA-2017", 3.0,
+                "a234567vruB-ouabcdefghB-2017", 2.0 ),
+            DataQueryParams.newBuilder()
+                .withValidationRules( List.of( validationRuleA, validationRuleB ) )
+                .withOrganisationUnits( organisationUnitService.getAllOrganisationUnits() )
+                .withPeriod( year )
+                .withAggregationType( AnalyticsAggregationType.COUNT )
+                .withOutputFormat( OutputFormat.ANALYTICS ).build() );
     }
 }
