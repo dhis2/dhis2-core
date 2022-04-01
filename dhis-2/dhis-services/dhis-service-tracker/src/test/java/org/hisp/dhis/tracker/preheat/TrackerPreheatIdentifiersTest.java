@@ -163,11 +163,12 @@ class TrackerPreheatIdentifiersTest extends TrackerTest
         return data;
     }
 
-    private void assertPreheatedObjectExists( TrackerPreheat preheat, Class klazz, TrackerIdSchemeParam identifier,
+    private void assertPreheatedObjectExists( TrackerPreheat preheat, Class klazz, TrackerIdSchemeParam idSchemeParam,
         String id )
     {
         assertThat(
-            "Expecting a preheated object for identifier: " + identifier.getIdScheme().name() + " with value: " + id,
+            "Expecting a preheated object for idSchemeParam: " + idSchemeParam.getIdScheme().name() + " with value: "
+                + id,
             preheat.get( klazz, id ), is( notNullValue() ) );
     }
 }

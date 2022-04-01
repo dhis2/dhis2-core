@@ -422,7 +422,7 @@ public class TrackerPreheat
     }
 
     @SuppressWarnings( "unchecked" )
-    public <T extends IdentifiableObject> TrackerPreheat put( TrackerIdSchemeParam identifier, T object )
+    public <T extends IdentifiableObject> TrackerPreheat put( TrackerIdSchemeParam idSchemeParam, T object )
     {
         if ( object == null )
         {
@@ -439,24 +439,25 @@ public class TrackerPreheat
 
             Map<String, IdentifiableObject> identifierMap = map.get( User.class );
 
-            if ( !StringUtils.isEmpty( identifier.getIdentifier( userObject ) ) &&
-                !identifierMap.containsKey( identifier.getIdentifier( userObject ) ) )
+            if ( !StringUtils.isEmpty( idSchemeParam.getIdentifier( userObject ) ) &&
+                !identifierMap.containsKey( idSchemeParam.getIdentifier( userObject ) ) )
             {
-                identifierMap.put( identifier.getIdentifier( userObject ), userObject );
+                identifierMap.put( idSchemeParam.getIdentifier( userObject ), userObject );
             }
         }
 
-        Optional.ofNullable( identifier.getIdentifier( object ) )
+        Optional.ofNullable( idSchemeParam.getIdentifier( object ) )
             .ifPresent( k -> map.get( klass ).put( k, object ) );
 
         return this;
     }
 
-    public <T extends IdentifiableObject> TrackerPreheat put( TrackerIdSchemeParam identifier, Collection<T> objects )
+    public <T extends IdentifiableObject> TrackerPreheat put( TrackerIdSchemeParam idSchemeParam,
+        Collection<T> objects )
     {
         for ( T object : objects )
         {
-            put( identifier, object );
+            put( idSchemeParam, object );
         }
 
         return this;

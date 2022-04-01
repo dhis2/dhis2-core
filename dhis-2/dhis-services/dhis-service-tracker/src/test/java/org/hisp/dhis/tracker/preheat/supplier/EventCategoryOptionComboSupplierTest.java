@@ -477,10 +477,10 @@ class EventCategoryOptionComboSupplierTest extends DhisConvenienceTest
         verify( preheat, times( 0 ) ).putCategoryOptionCombo( any(), any(), any() );
     }
 
-    private String concatCategoryOptions( TrackerIdSchemeParam identifier, Set<CategoryOption> options )
+    private String concatCategoryOptions( TrackerIdSchemeParam idSchemeParam, Set<CategoryOption> options )
     {
         return options.stream()
-            .map( identifier::getIdentifier )
+            .map( idSchemeParam::getIdentifier )
             .collect( Collectors.joining( ";" ) );
     }
 
