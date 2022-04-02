@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,52 +25,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.artemis.audit.configuration;
+package org.hisp.dhis.config;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.Map;
-
-import org.hisp.dhis.artemis.audit.Audit;
-import org.hisp.dhis.audit.AuditScope;
-import org.hisp.dhis.audit.AuditType;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 /**
- * @author Luciano Fiandesio
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Component
-public class AuditMatrix
+@Configuration
+public class ConfigProviderConfiguration
 {
-    private Map<AuditScope, Map<AuditType, Boolean>> matrix;
-
-    public AuditMatrix( AuditMatrixConfigurer auditMatrixConfigurer )
+    @Bean( name = "dhisConfigurationProvider" )
+    public DhisConfigurationProvider dhisConfigurationProvider()
     {
-        checkNotNull( auditMatrixConfigurer );
-
-        matrix = auditMatrixConfigurer.configure();
-    }
-
-    public boolean isEnabled( Audit audit )
-    {
-        return matrix.get( audit.getAuditScope() ).getOrDefault( audit.getAuditType(), false );
-    }
-
-    public boolean isEnabled( AuditScope auditScope, AuditType auditType )
-    {
-        return matrix.get( auditScope ).getOrDefault( auditType, false );
-    }
-
-    public boolean isReadEnabled()
-    {
-        final AuditScope[] auditScopes = AuditScope.values();
-        for ( AuditScope auditScope : auditScopes )
-        {
-            if ( isEnabled( auditScope, AuditType.READ ) )
-            {
-                return true;
-            }
-        }
-        return false;
+        return new H2DhisConfigurationProvider();
     }
 }

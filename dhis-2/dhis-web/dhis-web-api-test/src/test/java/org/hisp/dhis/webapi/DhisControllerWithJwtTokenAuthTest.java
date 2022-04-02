@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.failOnException;
 
 import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.config.JwtConfigProviderConfiguration;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.utils.TestUtils;
 import org.hisp.dhis.webapi.json.JsonResponse;
@@ -57,7 +58,7 @@ import org.springframework.web.filter.CharacterEncodingFilter;
  */
 @RunWith( SpringRunner.class )
 @WebAppConfiguration
-@ContextConfiguration( classes = { WebMvcConfig.class, WebTestConfigurationWithJwtTokenAuth.class } )
+@ContextConfiguration( classes = { JwtConfigProviderConfiguration.class, WebMvcConfig.class } )
 @ActiveProfiles( "test-h2" )
 @Transactional
 public abstract class DhisControllerWithJwtTokenAuthTest extends DhisConvenienceTest implements AuthenticatedWebClient
