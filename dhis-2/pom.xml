@@ -54,7 +54,7 @@
         <snippetsDirectory>${project.build.directory}/generated-snippets</snippetsDirectory>
         <sonar.organization>dhis2</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
-        <surefireArgLine>-Xmx1024m --illegal-access=permit</surefireArgLine>
+        <surefireArgLine>-Xmx2024m --illegal-access=permit</surefireArgLine>
 
         <!-- Needed so we can disable running tests when the default profile is used (activated by default). It does not
           honor -DskipTests otherwise https://maven.apache.org/surefire/maven-surefire-plugin/examples/skipping-tests.html -->
@@ -79,7 +79,7 @@
         <cglib.version>3.3.0</cglib.version>
 
         <!-- Spring-->
-        <spring.version>5.3.13</spring.version>
+        <spring.version>5.3.18</spring.version>
         <spring-data-redis.version>2.6.0</spring-data-redis.version>
         <spring-session-data-redis.version>2.6.2</spring-session-data-redis.version>
         <spring-mobile-device.version>1.1.5.RELEASE</spring-mobile-device.version>
