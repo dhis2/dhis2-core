@@ -172,6 +172,15 @@ public class DefaultCacheProvider
             .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_10K ) ) ) );
     }
 
+    @Override
+    public <V> Cache<V> createAnalyticsCache()
+    {
+        return registerCache( this.<V> newBuilder()
+            .forRegion( Region.analyticsResponse.name() )
+            .expireAfterWrite( 12, TimeUnit.HOURS )
+            .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_10K ) ) ) );
+    }
+
     /**
      * Cache for default objects such as default category combination and
      * default category option combination which are permanent and will never
