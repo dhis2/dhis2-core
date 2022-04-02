@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,6 @@ package org.hisp.dhis.analytics.cache;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.logging.LogFactory.getLog;
 
-import java.time.Duration;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -58,19 +57,13 @@ public class AnalyticsCache
      * Default constructor. Note that a default expiration time is set, as as
      * the TTL will always be overwritten during cache put operations.
      */
-    public AnalyticsCache( final CacheProvider cacheProvider,
-        final AnalyticsCacheSettings analyticsCacheSettings )
+    public AnalyticsCache( final CacheProvider cacheProvider, final AnalyticsCacheSettings analyticsCacheSettings )
     {
         checkNotNull( cacheProvider );
         checkNotNull( analyticsCacheSettings );
 
         this.analyticsCacheSettings = analyticsCacheSettings;
-        long initialExpirationTime = analyticsCacheSettings.fixedExpirationTimeOrDefault();
-        this.queryCache = cacheProvider.createAnalyticsResponseCache(
-            Duration.ofSeconds( initialExpirationTime ) );
-
-        log.info( String.format( "Analytics server-side cache is enabled with expiration time: %d s",
-            initialExpirationTime ) );
+        this.queryCache = cacheProvider.createAnalyticsCache();
     }
 
     public Optional<Grid> get( final String key )
@@ -90,6 +83,7 @@ public class AnalyticsCache
      *
      * @param params the current DataQueryParams.
      * @param function that fetches a grid based on the given DataQueryParams.
+     *
      * @return the cached or fetched Grid.
      */
     public Grid getOrFetch( final DataQueryParams params, final Function<DataQueryParams, Grid> function )
@@ -113,7 +107,7 @@ public class AnalyticsCache
     /**
      * This method will cache the given Grid associated with the given
      * DataQueryParams.
-     *
+     * <p>
      * The TTL of the cached object will be set accordingly to the cache
      * settings available at {@link AnalyticsCacheSettings}.
      *

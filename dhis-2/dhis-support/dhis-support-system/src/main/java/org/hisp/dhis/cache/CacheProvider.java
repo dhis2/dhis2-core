@@ -46,6 +46,8 @@ public interface CacheProvider
 {
     <V> Cache<V> createAnalyticsResponseCache( Duration initialExpirationTime );
 
+    <V> Cache<V> createAnalyticsCache();
+
     <V> Cache<V> createDefaultObjectCache();
 
     <V> Cache<V> createIsDataApprovedCache();
