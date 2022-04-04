@@ -289,10 +289,9 @@ public class RelationshipTypeObjectBundleHook
         {
             Program program = programService.getProgram( constraint.getProgram().getUid() );
 
-            if ( program == null )
+            if ( program.isWithoutRegistration() )
             {
-                addReports.accept( new ErrorReport( RelationshipConstraint.class, ErrorCode.E7129,
-                    constraint.getProgram().getUid() ) );
+                addReports.accept( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4315, program.getUid() ) );
             }
 
             Set<String> trackedEntityAttributes = Optional.ofNullable( program )
