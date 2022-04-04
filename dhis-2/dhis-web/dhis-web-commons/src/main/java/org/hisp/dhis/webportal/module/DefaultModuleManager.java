@@ -50,7 +50,6 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.security.ActionAccessResolver;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import com.opensymphony.xwork2.config.Configuration;
 import com.opensymphony.xwork2.config.entities.PackageConfig;
@@ -60,7 +59,6 @@ import com.opensymphony.xwork2.config.entities.PackageConfig;
  * @version $Id: DefaultModuleManager.java 4883 2008-04-12 13:12:54Z larshelg $
  */
 @Slf4j
-@Component
 public class DefaultModuleManager
     implements ModuleManager
 {
