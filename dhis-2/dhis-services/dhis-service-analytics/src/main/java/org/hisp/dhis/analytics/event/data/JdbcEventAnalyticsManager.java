@@ -358,7 +358,7 @@ public class JdbcEventAnalyticsManager
         cols.add( "ST_AsGeoJSON(psigeometry, 6) as geometry", "longitude", "latitude", "ouname", "oucode", "pistatus",
             "psistatus" );
 
-        List<String> selectCols = ListUtils.distinctUnion( cols.build(), getSelectColumns( params ) );
+        List<String> selectCols = ListUtils.distinctUnion( cols.build(), getSelectColumns( params, false ) );
 
         return "select " + StringUtils.join( selectCols, "," ) + " ";
     }
