@@ -94,9 +94,5 @@ import org.springframework.stereotype.Service;
 @Transactional
 public class WebTestConfigurationWithJwtTokenAuth
 {
-    @Bean( name = "dhisConfigurationProvider" )
-    public DhisConfigurationProvider dhisConfigurationProvider()
-    {
-        return new H2DhisConfigurationProvider( "h2TestConfigWithJWTAuth.conf" );
-    }
+
 }
