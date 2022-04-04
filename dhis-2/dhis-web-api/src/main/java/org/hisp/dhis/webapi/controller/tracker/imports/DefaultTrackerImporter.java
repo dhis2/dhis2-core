@@ -53,7 +53,7 @@ public class DefaultTrackerImporter implements TrackerImporter
     @Override
     public TrackerImportReport importTracker( TrackerImportRequest request )
     {
-        TrackerImportParams params = setTrackerImportParams( request );
+        TrackerImportParams params = trackerImportParams( request );
 
         if ( request.isAsync() )
         {
@@ -64,7 +64,7 @@ public class DefaultTrackerImporter implements TrackerImporter
         return syncImporter.importTracker( params, request.getTrackerBundleReportMode() );
     }
 
-    private TrackerImportParams setTrackerImportParams( TrackerImportRequest request )
+    private TrackerImportParams trackerImportParams( TrackerImportRequest request )
     {
         TrackerImportParams.TrackerImportParamsBuilder paramsBuilder = TrackerImportParamsBuilder
             .builder( request.getContextService().getParameterValuesMap() )
