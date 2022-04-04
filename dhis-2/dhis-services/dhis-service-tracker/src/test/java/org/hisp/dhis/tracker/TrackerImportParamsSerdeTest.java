@@ -63,9 +63,14 @@ class TrackerImportParamsSerdeTest extends TrackerTest
             .programIdScheme(
                 TrackerIdSchemeParam.builder().idScheme( TrackerIdScheme.ATTRIBUTE ).value( "aaaa" ).build() )
             .build();
-        TrackerImportParams trackerImportParams = TrackerImportParams.builder().idSchemes( identifierParams )
-            .atomicMode( AtomicMode.OBJECT ).flushMode( FlushMode.OBJECT ).skipRuleEngine( true )
-            .importStrategy( TrackerImportStrategy.DELETE ).validationMode( ValidationMode.SKIP ).build();
+        TrackerImportParams trackerImportParams = TrackerImportParams.builder()
+            .idSchemes( identifierParams )
+            .atomicMode( AtomicMode.OBJECT )
+            .flushMode( FlushMode.OBJECT )
+            .skipRuleEngine( true )
+            .importStrategy( TrackerImportStrategy.DELETE )
+            .validationMode( ValidationMode.SKIP )
+            .build();
         String json = renderService.toJsonAsString( trackerImportParams );
         JSONAssert.assertEquals( json,
             "" + "{\"importMode\":\"COMMIT\"," + "\"idSchemes\":{\"dataElementIdScheme\":{\"idScheme\":\"UID\"},"

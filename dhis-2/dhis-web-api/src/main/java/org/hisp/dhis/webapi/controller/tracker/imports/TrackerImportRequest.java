@@ -31,7 +31,6 @@ import lombok.Builder;
 import lombok.Data;
 
 import org.hisp.dhis.tracker.TrackerBundleReportMode;
-import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.springframework.security.core.Authentication;
 
@@ -49,9 +48,7 @@ public class TrackerImportRequest
 
     private TrackerBundleParams trackerBundleParams;
 
-    private TrackerImportParams trackerImportParams;
-
-    boolean isAsync;
+    private final boolean isAsync;
 
     private TrackerBundleReportMode trackerBundleReportMode;
 }
