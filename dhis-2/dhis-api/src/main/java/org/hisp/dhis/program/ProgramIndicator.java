@@ -140,7 +140,25 @@ public class ProgramIndicator
      */
     public AggregationType getAggregationTypeFallback()
     {
-        return aggregationType != null ? aggregationType : AggregationType.AVERAGE;
+        if ( aggregationType == null )
+        {
+            return AggregationType.AVERAGE;
+        }
+
+        switch ( aggregationType )
+        {
+        case AVERAGE_SUM_ORG_UNIT:
+        case FIRST:
+        case LAST:
+        case LAST_IN_PERIOD:
+            return AggregationType.SUM;
+        case FIRST_AVERAGE_ORG_UNIT:
+        case LAST_AVERAGE_ORG_UNIT:
+        case LAST_IN_PERIOD_AVERAGE_ORG_UNIT:
+            return AggregationType.AVERAGE;
+        default:
+            return aggregationType;
+        }
     }
 
     public void addProgramIndicatorGroup( ProgramIndicatorGroup group )
