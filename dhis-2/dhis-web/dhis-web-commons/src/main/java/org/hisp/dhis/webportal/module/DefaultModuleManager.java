@@ -53,12 +53,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.opensymphony.xwork2.config.Configuration;
 import com.opensymphony.xwork2.config.entities.PackageConfig;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Torgeir Lorange Ostby
  * @version $Id: DefaultModuleManager.java 4883 2008-04-12 13:12:54Z larshelg $
  */
 @Slf4j
+@Component
 public class DefaultModuleManager
     implements ModuleManager
 {
