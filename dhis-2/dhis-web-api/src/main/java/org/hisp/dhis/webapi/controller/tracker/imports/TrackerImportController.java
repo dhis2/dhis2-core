@@ -88,7 +88,7 @@ public class TrackerImportController
 {
     static final String TRACKER_JOB_ADDED = "Tracker job added";
 
-    private final TrackerImporter trackerImportStrategy;
+    private final TrackerImporter trackerImporter;
 
     private final TrackerImportService trackerImportService;
 
@@ -112,7 +112,7 @@ public class TrackerImportController
             .authentication( SecurityContextHolder.getContext().getAuthentication() )
             .build();
 
-        trackerImportStrategy
+        trackerImporter
             .importTracker( trackerImportRequest );
 
         String location = ContextUtils.getRootPath( request ) + "/tracker/jobs/" + jobId;
@@ -134,7 +134,7 @@ public class TrackerImportController
             .uid( CodeGenerator.generateUid() )
             .build();
 
-        TrackerImportReport trackerImportReport = trackerImportStrategy
+        TrackerImportReport trackerImportReport = trackerImporter
             .importTracker( trackerImportRequest );
 
         ResponseEntity.BodyBuilder builder = trackerImportReport.getStatus() == TrackerStatus.ERROR
@@ -169,7 +169,7 @@ public class TrackerImportController
             .authentication( SecurityContextHolder.getContext().getAuthentication() )
             .build();
 
-        trackerImportStrategy.importTracker( trackerImportRequest );
+        trackerImporter.importTracker( trackerImportRequest );
 
         String location = ContextUtils.getRootPath( request ) + "/tracker/jobs/" + jobId;
 
@@ -201,7 +201,7 @@ public class TrackerImportController
             .uid( CodeGenerator.generateUid() )
             .build();
 
-        TrackerImportReport trackerImportReport = trackerImportStrategy.importTracker( trackerImportRequest );
+        TrackerImportReport trackerImportReport = trackerImporter.importTracker( trackerImportRequest );
 
         ResponseEntity.BodyBuilder builder = trackerImportReport.getStatus() == TrackerStatus.ERROR
             ? ResponseEntity.status( HttpStatus.CONFLICT )
