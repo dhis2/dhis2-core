@@ -28,16 +28,15 @@
 package org.hisp.dhis.config;
 
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class JwtConfigConfiguration
 {
-        @Bean( name = "dhisConfigurationProvider" )
-        public DhisConfigurationProvider dhisConfigurationProvider()
-        {
-            return new H2DhisConfigurationProvider( "h2TestConfigWithJWTAuth.conf" );
-        }
+    @Bean( name = "dhisConfigurationProvider" )
+    public DhisConfigurationProvider dhisConfigurationProvider()
+    {
+        return new H2DhisConfigurationProvider( "h2TestConfigWithJWTAuth.conf" );
+    }
 }
