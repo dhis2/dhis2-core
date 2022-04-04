@@ -77,15 +77,14 @@ public class ProgramStageInstanceMapper extends AbstractMapper<Event, ProgramSta
             mapForUpdate( event, psi );
         }
 
-        // We run the psi through this method to make sure data value
-        // identifiers are UID. Otherwise, we would store
-        // data values with whatever identifier is used for import, for example
-        // CODE or ATTRIBUTE.
         return mapDataValueIdentifier( psi, super.workContext.getDataElementMap() );
     }
 
     /**
-     * Set data element identifier to uid.
+     * Set data element identifier to uid. We run the psi through this method to
+     * make sure data value identifiers are UID. Otherwise, we would store data
+     * values with whatever identifier is used for import, for example CODE or
+     * ATTRIBUTE.
      *
      * @param psi the psi with the datavalues to normalize to uid identifiers
      * @param dataElementMap a map of persisted data elements.
