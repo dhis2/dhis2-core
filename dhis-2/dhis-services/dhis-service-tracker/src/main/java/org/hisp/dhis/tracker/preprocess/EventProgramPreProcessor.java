@@ -36,7 +36,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.util.Strings;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
@@ -89,7 +89,7 @@ public class EventProgramPreProcessor
                         return;
                     }
                     event.setProgram( programStage.getProgram().getUid() );
-                    bundle.getPreheat().put( TrackerIdentifier.UID, programStage.getProgram() );
+                    bundle.getPreheat().put( TrackerIdSchemeParam.UID, programStage.getProgram() );
                 }
             }
             // If it is a program event, extract program stage from program
@@ -102,7 +102,7 @@ public class EventProgramPreProcessor
                     if ( programStage.isPresent() )
                     {
                         event.setProgramStage( programStage.get().getUid() );
-                        bundle.getPreheat().put( TrackerIdentifier.UID, programStage.get() );
+                        bundle.getPreheat().put( TrackerIdSchemeParam.UID, programStage.get() );
                     }
                 }
             }

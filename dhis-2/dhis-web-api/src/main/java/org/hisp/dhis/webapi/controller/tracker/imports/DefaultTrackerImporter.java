@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.strategy.tracker.imports.impl;
+package org.hisp.dhis.webapi.controller.tracker.imports;
 
 import lombok.RequiredArgsConstructor;
 
@@ -33,9 +33,6 @@ import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
-import org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder;
-import org.hisp.dhis.webapi.controller.tracker.TrackerImportReportRequest;
-import org.hisp.dhis.webapi.strategy.tracker.imports.TrackerImportStrategyHandler;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
@@ -45,49 +42,46 @@ import org.springframework.stereotype.Component;
 @Component
 @Primary
 @RequiredArgsConstructor
-public class TrackerImportStrategyImpl implements TrackerImportStrategyHandler
+public class DefaultTrackerImporter implements TrackerImporter
 {
 
-    private final TrackerImportSyncStrategyImpl importAsyncFalseStrategy;
+    private final TrackerSyncImporter syncImporter;
 
-    private final TrackerImportAsyncStrategyImpl importAsyncStrategy;
+    private final TrackerAsyncImporter asyncImporter;
 
     @Override
-    public TrackerImportReport importReport( TrackerImportReportRequest trackerImportReportRequest )
+    public TrackerImportReport importTracker( TrackerImportRequest request )
     {
-        setTrackerImportParams( trackerImportReportRequest );
+        setTrackerImportParams( request );
 
-        if ( trackerImportReportRequest.isAsync() )
+        if ( request.isAsync() )
         {
-            return importAsyncStrategy.importReport( trackerImportReportRequest );
+            return asyncImporter.importTracker( request );
         }
-        else
-        {
-            JobConfiguration jobConfiguration = new JobConfiguration(
-                "",
-                JobType.TRACKER_IMPORT_JOB,
-                trackerImportReportRequest.getUserUid(),
-                trackerImportReportRequest.isAsync() );
 
-            jobConfiguration.setUid( trackerImportReportRequest.getUid() );
+        JobConfiguration jobConfiguration = new JobConfiguration(
+            "",
+            JobType.TRACKER_IMPORT_JOB,
+            request.getUserUid(),
+            request.isAsync() );
+        jobConfiguration.setUid( request.getUid() );
+        request.getTrackerImportParams().setJobConfiguration( jobConfiguration );
 
-            trackerImportReportRequest.getTrackerImportParams().setJobConfiguration( jobConfiguration );
-            return importAsyncFalseStrategy.importReport( trackerImportReportRequest );
-        }
+        return syncImporter.importTracker( request );
     }
 
-    private void setTrackerImportParams( TrackerImportReportRequest trackerImportReportRequest )
+    private void setTrackerImportParams( TrackerImportRequest trackerImportRequest )
     {
         TrackerImportParams.TrackerImportParamsBuilder paramsBuilder = TrackerImportParamsBuilder
-            .builder( trackerImportReportRequest.getContextService().getParameterValuesMap() );
+            .builder( trackerImportRequest.getContextService().getParameterValuesMap() );
 
-        trackerImportReportRequest.setTrackerImportParams(
+        trackerImportRequest.setTrackerImportParams(
             paramsBuilder
-                .userId( trackerImportReportRequest.getUserUid() )
-                .trackedEntities( trackerImportReportRequest.getTrackerBundleParams().getTrackedEntities() )
-                .enrollments( trackerImportReportRequest.getTrackerBundleParams().getEnrollments() )
-                .events( trackerImportReportRequest.getTrackerBundleParams().getEvents() )
-                .relationships( trackerImportReportRequest.getTrackerBundleParams().getRelationships() )
+                .userId( trackerImportRequest.getUserUid() )
+                .trackedEntities( trackerImportRequest.getTrackerBundleParams().getTrackedEntities() )
+                .enrollments( trackerImportRequest.getTrackerBundleParams().getEnrollments() )
+                .events( trackerImportRequest.getTrackerBundleParams().getEvents() )
+                .relationships( trackerImportRequest.getTrackerBundleParams().getRelationships() )
                 .build() );
     }
 

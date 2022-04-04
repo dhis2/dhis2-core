@@ -25,61 +25,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker;
+package org.hisp.dhis.webapi.controller.tracker.imports;
 
-import java.util.ArrayList;
-import java.util.List;
+import lombok.RequiredArgsConstructor;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.domain.Relationship;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import org.hisp.dhis.artemis.MessageManager;
+import org.hisp.dhis.artemis.Topics;
+import org.hisp.dhis.security.AuthenticationSerializer;
+import org.hisp.dhis.tracker.job.TrackerMessage;
+import org.hisp.dhis.tracker.report.TrackerImportReport;
+import org.springframework.stereotype.Component;
 
 /**
- * Maps the Tracker import payload
- *
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Luca Cambi <luca@dhis2.org>
  */
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-@JsonDeserialize( converter = TrackerBundleParamsConverter.class )
-public class TrackerBundleParams
+@Component
+@RequiredArgsConstructor
+public class TrackerAsyncImporter implements TrackerImporter
 {
-    /**
-     * Tracked entities to import.
-     */
-    @JsonProperty
-    @Builder.Default
-    private List<TrackedEntity> trackedEntities = new ArrayList<>();
+    private final MessageManager messageManager;
 
-    /**
-     * Enrollments to import.
-     */
-    @JsonProperty
-    @Builder.Default
-    private List<Enrollment> enrollments = new ArrayList<>();
+    @Override
+    public TrackerImportReport importTracker( TrackerImportRequest trackerImportRequest )
+    {
+        TrackerMessage trackerMessage = TrackerMessage.builder()
+            .trackerImportParams( trackerImportRequest.getTrackerImportParams() )
+            .authentication( AuthenticationSerializer.serialize( trackerImportRequest.getAuthentication() ) )
+            .uid( trackerImportRequest.getUid() )
+            .build();
 
-    /**
-     * Events to import.
-     */
-    @JsonProperty
-    @Builder.Default
-    private List<Event> events = new ArrayList<>();
+        messageManager.sendQueue( Topics.TRACKER_IMPORT_JOB_TOPIC_NAME, trackerMessage );
 
-    /**
-     * Relationships to import.
-     */
-    @JsonProperty
-    @Builder.Default
-    private List<Relationship> relationships = new ArrayList<>();
+        return null; // empty report is not
+                     // returned
+                     // in async creation
+    }
 }

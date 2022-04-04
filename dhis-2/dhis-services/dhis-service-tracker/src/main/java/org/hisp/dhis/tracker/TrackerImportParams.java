@@ -45,6 +45,7 @@ import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.user.User;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -75,11 +76,14 @@ public class TrackerImportParams
     private TrackerBundleMode importMode = TrackerBundleMode.COMMIT;
 
     /**
-     * Identifiers to match metadata
+     * IdSchemes to match metadata
      */
+    @JsonAlias( "identifiers" ) // Artemis queue might persist parameters in the
+                                // old format; keep it backwards-compatible
+                                // during 2.39; remove in 2.40
     @JsonProperty
     @Builder.Default
-    private TrackerIdentifierParams identifiers = new TrackerIdentifierParams();
+    private TrackerIdSchemeParams idSchemes = new TrackerIdSchemeParams();
 
     /**
      * Sets import strategy (create, update, etc).
