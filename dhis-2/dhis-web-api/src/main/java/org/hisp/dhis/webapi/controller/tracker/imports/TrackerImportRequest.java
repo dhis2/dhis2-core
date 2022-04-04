@@ -28,27 +28,27 @@
 package org.hisp.dhis.webapi.controller.tracker.imports;
 
 import lombok.Builder;
-import lombok.Data;
+import lombok.Value;
 
 import org.hisp.dhis.tracker.TrackerBundleReportMode;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.springframework.security.core.Authentication;
 
-@Data
+@Value
 @Builder
 public class TrackerImportRequest
 {
-    private Authentication authentication;
+    private final Authentication authentication;
 
-    private String uid;
+    private final String uid;
 
-    private String userUid;
+    private final String userUid;
 
-    private ContextService contextService;
+    private final ContextService contextService;
 
-    private TrackerBundleParams trackerBundleParams;
+    private final TrackerBundleParams trackerBundleParams;
 
     private final boolean isAsync;
 
-    private TrackerBundleReportMode trackerBundleReportMode;
+    private final TrackerBundleReportMode trackerBundleReportMode;
 }
