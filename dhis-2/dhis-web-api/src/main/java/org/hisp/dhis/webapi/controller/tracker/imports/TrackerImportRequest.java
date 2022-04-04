@@ -25,32 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.strategy.tracker.imports.impl;
+package org.hisp.dhis.webapi.controller.tracker.imports;
 
-import lombok.RequiredArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
 
-import org.hisp.dhis.tracker.TrackerImportService;
-import org.hisp.dhis.tracker.report.TrackerImportReport;
-import org.hisp.dhis.webapi.controller.tracker.TrackerImportReportRequest;
-import org.hisp.dhis.webapi.strategy.tracker.imports.TrackerImportStrategyHandler;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.tracker.TrackerBundleReportMode;
+import org.hisp.dhis.tracker.TrackerImportParams;
+import org.hisp.dhis.webapi.service.ContextService;
+import org.springframework.security.core.Authentication;
 
-/**
- * @author Luca Cambi <luca@dhis2.org>
- */
-@Component
-@RequiredArgsConstructor
-public class TrackerImportSyncStrategyImpl implements TrackerImportStrategyHandler
+@Data
+@Builder
+public class TrackerImportRequest
 {
-    private final TrackerImportService trackerImportService;
+    private Authentication authentication;
 
-    @Override
-    public TrackerImportReport importReport( TrackerImportReportRequest trackerImportReportRequest )
-    {
-        TrackerImportReport trackerImportReport = trackerImportService
-            .importTracker( trackerImportReportRequest.getTrackerImportParams() );
+    private String uid;
 
-        return trackerImportService.buildImportReport( trackerImportReport,
-            trackerImportReportRequest.getTrackerBundleReportMode() );
-    }
+    private String userUid;
+
+    private ContextService contextService;
+
+    private TrackerBundleParams trackerBundleParams;
+
+    private TrackerImportParams trackerImportParams;
+
+    boolean isAsync;
+
+    private TrackerBundleReportMode trackerBundleReportMode;
 }

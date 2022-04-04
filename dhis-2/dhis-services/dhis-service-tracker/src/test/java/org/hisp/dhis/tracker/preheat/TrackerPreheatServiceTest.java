@@ -44,9 +44,9 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.TrackerIdScheme;
-import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.TrackerIdSchemeParam;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerIdentifierCollector;
-import org.hisp.dhis.tracker.TrackerIdentifierParams;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
@@ -127,9 +127,10 @@ class TrackerPreheatServiceTest extends TrackerTest
     void testCollectIdentifiersAttributeValues()
     {
         TrackerImportParams params = TrackerImportParams.builder()
-            .identifiers( TrackerIdentifierParams.builder()
+            .idSchemes( TrackerIdSchemeParams.builder()
                 .idScheme(
-                    TrackerIdentifier.builder().idScheme( TrackerIdScheme.ATTRIBUTE ).value( "ATTR1234567" ).build() )
+                    TrackerIdSchemeParam.builder().idScheme( TrackerIdScheme.ATTRIBUTE ).value( "ATTR1234567" )
+                        .build() )
                 .build() )
             .trackedEntities( Lists.newArrayList(
                 TrackedEntity.builder().trackedEntity( "TEI12345678" ).orgUnit( "OU123456789" ).build() ) )

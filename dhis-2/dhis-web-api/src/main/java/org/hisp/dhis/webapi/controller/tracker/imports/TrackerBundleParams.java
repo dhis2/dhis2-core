@@ -25,33 +25,65 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker;
+package org.hisp.dhis.webapi.controller.tracker.imports;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
-import org.hisp.dhis.tracker.TrackerBundleReportMode;
-import org.hisp.dhis.tracker.TrackerImportParams;
-import org.hisp.dhis.webapi.service.ContextService;
-import org.springframework.security.core.Authentication;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.Relationship;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
 
-@Data
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+
+/**
+ * Maps the Tracker import payload
+ *
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
+ */
+@Getter
+@ToString
+@EqualsAndHashCode
 @Builder
-public class TrackerImportReportRequest
+@NoArgsConstructor
+@AllArgsConstructor
+@JsonDeserialize( converter = TrackerBundleParamsConverter.class )
+public class TrackerBundleParams
 {
-    Authentication authentication;
+    /**
+     * Tracked entities to import.
+     */
+    @JsonProperty
+    @Builder.Default
+    private final List<TrackedEntity> trackedEntities = new ArrayList<>();
 
-    String uid;
+    /**
+     * Enrollments to import.
+     */
+    @JsonProperty
+    @Builder.Default
+    private final List<Enrollment> enrollments = new ArrayList<>();
 
-    String userUid;
+    /**
+     * Events to import.
+     */
+    @JsonProperty
+    @Builder.Default
+    private final List<Event> events = new ArrayList<>();
 
-    ContextService contextService;
-
-    TrackerBundleParams trackerBundleParams;
-
-    TrackerImportParams trackerImportParams;
-
-    boolean isAsync;
-
-    TrackerBundleReportMode trackerBundleReportMode;
+    /**
+     * Relationships to import.
+     */
+    @JsonProperty
+    @Builder.Default
+    private final List<Relationship> relationships = new ArrayList<>();
 }
