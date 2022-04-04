@@ -138,7 +138,8 @@ public class TrackerImportParams
      * Name of file that was used for import (if available).
      */
     @JsonProperty
-    private String filename;
+    @Builder.Default
+    private final String filename = null;
 
     /**
      * Job configuration

@@ -72,7 +72,7 @@ class TrackerImportParamsSerdeTest extends TrackerTest
             .validationMode( ValidationMode.SKIP )
             .build();
         String json = renderService.toJsonAsString( trackerImportParams );
-        JSONAssert.assertEquals( json,
+        JSONAssert.assertEquals(
             "" + "{\"importMode\":\"COMMIT\"," + "\"idSchemes\":{\"dataElementIdScheme\":{\"idScheme\":\"UID\"},"
                 + "\"orgUnitIdScheme\":{\"idScheme\":\"UID\"},"
                 + "\"programIdScheme\":{\"idScheme\":\"ATTRIBUTE\",\"value\":\"aaaa\"},"
@@ -83,6 +83,7 @@ class TrackerImportParamsSerdeTest extends TrackerTest
                 + "\"skipPatternValidation\":false," + "\"skipSideEffects\":false," + "\"skipRuleEngine\":true,"
                 + "\"trackedEntities\":[]," + "\"enrollments\":[]," + "\"events\":[]," + "\"relationships\":[],"
                 + "\"username\":\"system-process\"}",
+            json,
             JSONCompareMode.LENIENT );
     }
 
