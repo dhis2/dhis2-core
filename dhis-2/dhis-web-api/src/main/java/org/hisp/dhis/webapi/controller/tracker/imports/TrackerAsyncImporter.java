@@ -27,13 +27,16 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.imports;
 
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.artemis.MessageManager;
 import org.hisp.dhis.artemis.Topics;
 import org.hisp.dhis.security.AuthenticationSerializer;
+import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.job.TrackerMessage;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
 /**
@@ -41,17 +44,17 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class TrackerAsyncImporter implements TrackerImporter
+public class TrackerAsyncImporter
 {
+    @NonNull
     private final MessageManager messageManager;
 
-    @Override
-    public TrackerImportReport importTracker( TrackerImportRequest trackerImportRequest )
+    public TrackerImportReport importTracker( TrackerImportParams params, Authentication authentication, String uid )
     {
         TrackerMessage trackerMessage = TrackerMessage.builder()
-            .trackerImportParams( trackerImportRequest.getTrackerImportParams() )
-            .authentication( AuthenticationSerializer.serialize( trackerImportRequest.getAuthentication() ) )
-            .uid( trackerImportRequest.getUid() )
+            .trackerImportParams( params )
+            .authentication( AuthenticationSerializer.serialize( authentication ) )
+            .uid( uid )
             .build();
 
         messageManager.sendQueue( Topics.TRACKER_IMPORT_JOB_TOPIC_NAME, trackerMessage );

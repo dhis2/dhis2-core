@@ -27,8 +27,11 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.imports;
 
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
+import org.hisp.dhis.tracker.TrackerBundleReportMode;
+import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.springframework.stereotype.Component;
@@ -38,17 +41,16 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class TrackerSyncImporter implements TrackerImporter
+public class TrackerSyncImporter
 {
+
+    @NonNull
     private final TrackerImportService trackerImportService;
 
-    @Override
-    public TrackerImportReport importTracker( TrackerImportRequest trackerImportRequest )
+    public TrackerImportReport importTracker( TrackerImportParams params, TrackerBundleReportMode reportMode )
     {
-        TrackerImportReport trackerImportReport = trackerImportService
-            .importTracker( trackerImportRequest.getTrackerImportParams() );
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
 
-        return trackerImportService.buildImportReport( trackerImportReport,
-            trackerImportRequest.getTrackerBundleReportMode() );
+        return trackerImportService.buildImportReport( trackerImportReport, reportMode );
     }
 }

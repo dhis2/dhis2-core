@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller.tracker.imports;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -64,24 +65,20 @@ class TrackerImporterImplTest
     MessageManager messageManager;
 
     @Test
-    void shouldCreateReportAsyncFalse()
+    void shouldCreateReportSync()
     {
-        TrackerImportRequest trackerImportRequest = TrackerImportRequest
-            .builder()
-            .trackerImportParams( TrackerImportParams.builder()
-                .jobConfiguration( new JobConfiguration(
-                    "",
-                    JobType.TRACKER_IMPORT_JOB,
-                    "userId",
-                    false ) )
-                .build() )
-            .trackerBundleReportMode( TrackerBundleReportMode.FULL )
+        TrackerImportParams params = TrackerImportParams.builder()
+            .jobConfiguration( new JobConfiguration(
+                "",
+                JobType.TRACKER_IMPORT_JOB,
+                "userId",
+                false ) )
             .build();
 
-        syncImporter.importTracker( trackerImportRequest );
+        syncImporter.importTracker( params, TrackerBundleReportMode.FULL );
 
-        verify( trackerImportService ).importTracker( trackerImportRequest.getTrackerImportParams() );
-        verify( trackerImportService ).buildImportReport( any(), any() );
+        verify( trackerImportService ).importTracker( params );
+        verify( trackerImportService ).buildImportReport( any(), eq( TrackerBundleReportMode.FULL ) );
     }
 
     @Test
@@ -92,23 +89,19 @@ class TrackerImporterImplTest
 
         doNothing().when( messageManager ).sendQueue( queueNameCaptor.capture(), trackerMessageCaptor.capture() );
 
-        TrackerImportRequest trackerImportRequest = TrackerImportRequest
-            .builder()
-            .trackerImportParams( TrackerImportParams.builder()
-                .jobConfiguration( new JobConfiguration(
-                    "",
-                    JobType.TRACKER_IMPORT_JOB,
-                    "userId",
-                    true ) )
-                .build() )
+        TrackerImportParams params = TrackerImportParams.builder()
+            .jobConfiguration( new JobConfiguration(
+                "",
+                JobType.TRACKER_IMPORT_JOB,
+                "userId",
+                true ) )
             .build();
 
-        asyncImporter.importTracker( trackerImportRequest );
+        asyncImporter.importTracker( params, null, "" );
 
         verify( trackerImportService, times( 0 ) ).importTracker( any() );
         verify( messageManager ).sendQueue( any(), any() );
         assertEquals( Topics.TRACKER_IMPORT_JOB_TOPIC_NAME, queueNameCaptor.getValue() );
-        assertEquals( trackerImportRequest.getTrackerImportParams(),
-            trackerMessageCaptor.getValue().getTrackerImportParams() );
+        assertEquals( params, trackerMessageCaptor.getValue().getTrackerImportParams() );
     }
 }
