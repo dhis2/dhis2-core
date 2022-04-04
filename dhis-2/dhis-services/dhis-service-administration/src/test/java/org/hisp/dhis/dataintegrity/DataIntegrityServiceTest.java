@@ -534,7 +534,7 @@ class DataIntegrityServiceTest
         // arrange
         ProgramIndicator programIndicator = new ProgramIndicator();
         programIndicator.setName( "Test-PI" );
-        programIndicator.setExpression( "A{someuid} + 1" );
+        programIndicator.setExpression( "#{someuid} + 1" );
 
         // act
         // assert
