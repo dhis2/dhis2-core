@@ -100,11 +100,11 @@ import com.google.common.collect.ImmutableMap;
 @Transactional
 public class WebTestConfiguration
 {
-    @Bean( name = "dhisConfigurationProvider" )
-    public DhisConfigurationProvider dhisConfigurationProvider()
-    {
-        return new H2DhisConfigurationProvider();
-    }
+//    @Bean( name = "dhisConfigurationProvider" )
+//    public DhisConfigurationProvider dhisConfigurationProvider()
+//    {
+//        return new H2DhisConfigurationProvider();
+//    }
 
     @Bean
     public BCryptPasswordEncoder bCryptPasswordEncoder()

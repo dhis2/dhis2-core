@@ -45,6 +45,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.io.Resource;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.orm.hibernate5.HibernateTransactionManager;
@@ -61,7 +62,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 public class HibernateConfig
 {
     @Bean( "hibernateConfigurationProvider" )
-    public HibernateConfigurationProvider hibernateConfigurationProvider( DhisConfigurationProvider dhisConfig )
+    public HibernateConfigurationProvider hibernateConfigurationProvider( @Lazy DhisConfigurationProvider dhisConfig )
     {
         DefaultHibernateConfigurationProvider hibernateConfigurationProvider = new DefaultHibernateConfigurationProvider();
         hibernateConfigurationProvider.setConfigProvider( dhisConfig );
@@ -71,7 +72,7 @@ public class HibernateConfig
     @Bean
     @DependsOn( "flyway" )
     public LocalSessionFactoryBean sessionFactory( DataSource dataSource,
-        @Qualifier( "hibernateConfigurationProvider" ) HibernateConfigurationProvider hibernateConfigurationProvider )
+        @Qualifier( "hibernateConfigurationProvider" ) @Lazy HibernateConfigurationProvider hibernateConfigurationProvider )
     {
         Objects.requireNonNull( dataSource );
         Objects.requireNonNull( hibernateConfigurationProvider );
