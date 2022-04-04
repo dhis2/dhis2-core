@@ -35,7 +35,7 @@ import java.lang.annotation.Target;
 import org.junit.jupiter.api.Tag;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Enrico Colasante
  */
 @Target( { ElementType.TYPE, ElementType.METHOD } )
 @Retention( RetentionPolicy.RUNTIME )
