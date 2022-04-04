@@ -156,6 +156,7 @@ public class ProgramIndicator
         case FIRST_AVERAGE_ORG_UNIT:
         case LAST_AVERAGE_ORG_UNIT:
         case LAST_IN_PERIOD_AVERAGE_ORG_UNIT:
+        case DEFAULT:
             return AggregationType.AVERAGE;
         default:
             return aggregationType;
