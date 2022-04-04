@@ -294,10 +294,6 @@ public class RelationshipTypeObjectBundleHook
                 addReports.accept( new ErrorReport( RelationshipConstraint.class, ErrorCode.E7129,
                     constraint.getProgram().getUid() ) );
             }
-            else if ( program.isWithoutRegistration() )
-            {
-                addReports.accept( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4315, program.getUid() ) );
-            }
 
             Set<String> trackedEntityAttributes = Optional.ofNullable( program )
                 .map( p -> p.getTrackedEntityAttributes().stream().map( BaseIdentifiableObject::getUid )
