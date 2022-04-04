@@ -148,9 +148,11 @@ class TrackerPreheatIdentifiersTest extends TrackerTest
 
     private TrackerImportParams buildParams( Event event, TrackerIdSchemeParams idParams )
     {
-        TrackerImportParams params = TrackerImportParams.builder().events( Collections.singletonList( event ) )
-            .user( currentUserService.getCurrentUser() ).build();
-        params.setIdSchemes( idParams );
+        TrackerImportParams params = TrackerImportParams.builder()
+            .events( Collections.singletonList( event ) )
+            .user( currentUserService.getCurrentUser() )
+            .idSchemes( idParams )
+            .build();
         return params;
     }
 

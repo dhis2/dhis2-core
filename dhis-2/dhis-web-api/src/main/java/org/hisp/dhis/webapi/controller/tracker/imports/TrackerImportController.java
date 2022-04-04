@@ -104,16 +104,17 @@ public class TrackerImportController
         @CurrentUser User currentUser,
         @RequestBody TrackerBundleParams trackerBundleParams )
     {
-        String jobId = CodeGenerator.generateUid();
 
+        String jobId = CodeGenerator.generateUid();
         TrackerImportRequest trackerImportRequest = TrackerImportRequest.builder()
-            .trackerBundleParams( trackerBundleParams ).contextService( contextService ).userUid( currentUser.getUid() )
-            .isAsync( true ).uid( jobId )
+            .trackerBundleParams( trackerBundleParams )
+            .contextService( contextService )
+            .userUid( currentUser.getUid() )
+            .isAsync( true )
+            .uid( jobId )
             .authentication( SecurityContextHolder.getContext().getAuthentication() )
             .build();
-
-        trackerImporter
-            .importTracker( trackerImportRequest );
+        trackerImporter.importTracker( trackerImportRequest );
 
         String location = ContextUtils.getRootPath( request ) + "/tracker/jobs/" + jobId;
 
@@ -127,15 +128,15 @@ public class TrackerImportController
         @RequestParam( defaultValue = "errors", required = false ) String reportMode, @CurrentUser User currentUser,
         @RequestBody TrackerBundleParams trackerBundleParams )
     {
+
         TrackerImportRequest trackerImportRequest = TrackerImportRequest.builder()
-            .trackerBundleParams( trackerBundleParams ).contextService( contextService ).userUid( currentUser.getUid() )
-            .trackerBundleReportMode( TrackerBundleReportMode
-                .getTrackerBundleReportMode( reportMode ) )
+            .trackerBundleParams( trackerBundleParams )
+            .contextService( contextService )
+            .userUid( currentUser.getUid() )
+            .trackerBundleReportMode( TrackerBundleReportMode.getTrackerBundleReportMode( reportMode ) )
             .uid( CodeGenerator.generateUid() )
             .build();
-
-        TrackerImportReport trackerImportReport = trackerImporter
-            .importTracker( trackerImportRequest );
+        TrackerImportReport trackerImportReport = trackerImporter.importTracker( trackerImportRequest );
 
         ResponseEntity.BodyBuilder builder = trackerImportReport.getStatus() == TrackerStatus.ERROR
             ? ResponseEntity.status( HttpStatus.CONFLICT )
@@ -156,10 +157,10 @@ public class TrackerImportController
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
 
         List<Event> events = csvEventService.readEvents( inputStream, skipFirst );
+
         TrackerBundleParams trackerBundleParams = TrackerBundleParams.builder()
             .events( events )
             .build();
-
         TrackerImportRequest trackerImportRequest = TrackerImportRequest.builder()
             .trackerBundleParams( trackerBundleParams )
             .contextService( contextService )
@@ -168,7 +169,6 @@ public class TrackerImportController
             .uid( jobId )
             .authentication( SecurityContextHolder.getContext().getAuthentication() )
             .build();
-
         trackerImporter.importTracker( trackerImportRequest );
 
         String location = ContextUtils.getRootPath( request ) + "/tracker/jobs/" + jobId;

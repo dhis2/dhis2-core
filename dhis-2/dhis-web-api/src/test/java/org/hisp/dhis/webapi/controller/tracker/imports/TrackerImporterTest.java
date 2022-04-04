@@ -28,9 +28,11 @@
 package org.hisp.dhis.webapi.controller.tracker.imports;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import org.hisp.dhis.tracker.TrackerBundleReportMode;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -42,7 +44,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class TrackerImporterTest
 {
     @InjectMocks
-    DefaultTrackerImporter importStrategy;
+    DefaultTrackerImporter defaultTrackerImporter;
 
     @Mock
     TrackerAsyncImporter asyncImporter;
@@ -65,14 +67,14 @@ class TrackerImporterTest
             .isAsync( true )
             .build();
 
-        importStrategy.importTracker( trackerImportRequest );
+        defaultTrackerImporter.importTracker( trackerImportRequest );
 
-        verify( asyncImporter ).importTracker( any() );
-        verify( syncImporter, times( 0 ) ).importTracker( any() );
+        verify( asyncImporter ).importTracker( any(), any(), eq( "uid" ) );
+        verify( syncImporter, times( 0 ) ).importTracker( any(), any() );
     }
 
     @Test
-    void shouldNotImportAsync()
+    void shouldImportSync()
     {
         TrackerImportRequest trackerImportRequest = TrackerImportRequest
             .builder()
@@ -80,11 +82,12 @@ class TrackerImporterTest
             .userUid( "userUid" )
             .uid( "uid" )
             .trackerBundleParams( TrackerBundleParams.builder().build() )
+            .trackerBundleReportMode( TrackerBundleReportMode.ERRORS )
             .build();
 
-        importStrategy.importTracker( trackerImportRequest );
+        defaultTrackerImporter.importTracker( trackerImportRequest );
 
-        verify( asyncImporter, times( 0 ) ).importTracker( any() );
-        verify( syncImporter ).importTracker( any() );
+        verify( asyncImporter, times( 0 ) ).importTracker( any(), any(), any() );
+        verify( syncImporter ).importTracker( any(), eq( TrackerBundleReportMode.ERRORS ) );
     }
 }
