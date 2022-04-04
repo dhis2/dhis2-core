@@ -67,7 +67,7 @@ public class ClassBasedSupplier
     private final TrackerIdentifierCollector identifierCollector;
 
     /**
-     * A Map correlating a Tracker class name to the Preheat strategy class name
+     * A Map correlating a Tracker class name to the preheat strategy class name
      * to use to load the data
      */
     @Qualifier( "preheatStrategies" )

@@ -29,37 +29,47 @@ package org.hisp.dhis.tracker;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Value;
 
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.IdentifiableObject;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 /**
  * @author Stian Sandvold
  */
-
-@Data
+@Value
 @Builder
-@NoArgsConstructor
+@JsonDeserialize( builder = TrackerIdSchemeParam.TrackerIdSchemeParamBuilder.class )
 @AllArgsConstructor( staticName = "of" )
-public class TrackerIdentifier
+public class TrackerIdSchemeParam
 {
-    public final static TrackerIdentifier UID = builder().idScheme( TrackerIdScheme.UID ).build();
+    public static final TrackerIdSchemeParam UID = builder().idScheme( TrackerIdScheme.UID ).build();
 
-    public final static TrackerIdentifier CODE = builder().idScheme( TrackerIdScheme.CODE ).build();
+    public static final TrackerIdSchemeParam CODE = builder().idScheme( TrackerIdScheme.CODE ).build();
 
-    public final static TrackerIdentifier NAME = builder().idScheme( TrackerIdScheme.NAME ).build();
-
-    @JsonProperty
-    @Builder.Default
-    private TrackerIdScheme idScheme = TrackerIdScheme.UID;
+    public static final TrackerIdSchemeParam NAME = builder().idScheme( TrackerIdScheme.NAME ).build();
 
     @JsonProperty
     @Builder.Default
-    private String value = null;
+    private final TrackerIdScheme idScheme = TrackerIdScheme.UID;
+
+    @JsonProperty
+    @Builder.Default
+    private final String value = null;
+
+    /**
+     * Creates a TrackerIdentifier of idScheme ATTRIBUTE.
+     *
+     * @param value the attribute value
+     * @return tracker identifier representing an attribute
+     */
+    public static TrackerIdSchemeParam ofAttribute( String value )
+    {
+        return new TrackerIdSchemeParam( TrackerIdScheme.ATTRIBUTE, value );
+    }
 
     public <T extends IdentifiableObject> String getIdentifier( T object )
     {

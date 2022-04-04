@@ -89,7 +89,9 @@ public class DefaultAdminUserPopulator
         "F_TRACKER_IMPORTER_EXPERIMENTAL",
         "F_VIEW_SERVER_INFO",
         "F_ORG_UNIT_PROFILE_ADD",
-        "F_TRACKED_ENTITY_MERGE" );
+        "F_TRACKED_ENTITY_MERGE",
+        "F_DATAVALUE_ADD",
+        "F_DATAVALUE_DELETE" );
 
     private final UserService userService;
 

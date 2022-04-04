@@ -51,10 +51,12 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.MOD;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.MUL;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.NE;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.NOT;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.NULL;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.OR;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.PAREN;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.PLUS;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.POWER;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.REMOVE_ZEROS;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.VERTICAL_BAR_2;
 import static org.hisp.dhis.util.DateUtils.parseDate;
 
@@ -70,6 +72,8 @@ import org.hisp.dhis.parser.expression.function.FunctionIsNull;
 import org.hisp.dhis.parser.expression.function.FunctionLeast;
 import org.hisp.dhis.parser.expression.function.FunctionLog;
 import org.hisp.dhis.parser.expression.function.FunctionLog10;
+import org.hisp.dhis.parser.expression.function.FunctionRemoveZeros;
+import org.hisp.dhis.parser.expression.literal.NullLiteral;
 import org.hisp.dhis.parser.expression.operator.OperatorCompareEqual;
 import org.hisp.dhis.parser.expression.operator.OperatorCompareGreaterThan;
 import org.hisp.dhis.parser.expression.operator.OperatorCompareGreaterThanOrEqual;
@@ -135,7 +139,7 @@ public class ParserUtils
         .put( GEQ, new OperatorCompareGreaterThanOrEqual() )
         .put( LEQ, new OperatorCompareLessThanOrEqual() )
 
-        // Functions
+        // Functions (alphabetical)
 
         .put( FIRST_NON_NULL, new FunctionFirstNonNull() )
         .put( GREATEST, new FunctionGreatest() )
@@ -145,10 +149,15 @@ public class ParserUtils
         .put( LEAST, new FunctionLeast() )
         .put( LOG, new FunctionLog() )
         .put( LOG10, new FunctionLog10() )
+        .put( REMOVE_ZEROS, new FunctionRemoveZeros() )
 
         // Data items
 
         .put( C_BRACE, new ItemConstant() )
+
+        // Literal
+
+        .put( NULL, new NullLiteral() )
 
         .build();
 

@@ -25,33 +25,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker;
+package org.hisp.dhis;
 
-import lombok.Builder;
-import lombok.Data;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-import org.hisp.dhis.tracker.TrackerBundleReportMode;
-import org.hisp.dhis.tracker.TrackerImportParams;
-import org.hisp.dhis.webapi.service.ContextService;
-import org.springframework.security.core.Authentication;
+import org.junit.jupiter.api.Tag;
 
-@Data
-@Builder
-public class TrackerImportReportRequest
+/**
+ * @author Enrico Colasante
+ */
+@Target( { ElementType.TYPE, ElementType.METHOD } )
+@Retention( RetentionPolicy.RUNTIME )
+@Tag( "integrationH2" )
+public @interface IntegrationH2Test
 {
-    Authentication authentication;
-
-    String uid;
-
-    String userUid;
-
-    ContextService contextService;
-
-    TrackerBundleParams trackerBundleParams;
-
-    TrackerImportParams trackerImportParams;
-
-    boolean isAsync;
-
-    TrackerBundleReportMode trackerBundleReportMode;
 }

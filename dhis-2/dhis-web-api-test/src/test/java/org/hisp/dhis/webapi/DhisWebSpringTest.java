@@ -34,6 +34,7 @@ import static org.springframework.restdocs.operation.preprocess.Preprocessors.pr
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.prettyPrint;
 
 import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.IntegrationH2Test;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.SchemaService;
@@ -64,8 +65,10 @@ import org.springframework.web.filter.CharacterEncodingFilter;
  */
 @ExtendWith( { RestDocumentationExtension.class, SpringExtension.class } )
 @WebAppConfiguration
-@ContextConfiguration( classes = { MvcTestConfig.class, WebTestConfiguration.class } )
+@ContextConfiguration( classes = { ConfigProviderConfiguration.class, MvcTestConfig.class,
+    WebTestConfiguration.class } )
 @ActiveProfiles( "test-h2" )
+@IntegrationH2Test
 @Transactional
 public abstract class DhisWebSpringTest extends DhisConvenienceTest
 {

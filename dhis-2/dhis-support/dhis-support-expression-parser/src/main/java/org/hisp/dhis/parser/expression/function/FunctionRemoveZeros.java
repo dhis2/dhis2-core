@@ -25,41 +25,45 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.strategy.tracker.imports.impl;
+package org.hisp.dhis.parser.expression.function;
 
-import lombok.RequiredArgsConstructor;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
-import org.hisp.dhis.artemis.MessageManager;
-import org.hisp.dhis.artemis.Topics;
-import org.hisp.dhis.security.AuthenticationSerializer;
-import org.hisp.dhis.tracker.job.TrackerMessage;
-import org.hisp.dhis.tracker.report.TrackerImportReport;
-import org.hisp.dhis.webapi.controller.tracker.TrackerImportReportRequest;
-import org.hisp.dhis.webapi.strategy.tracker.imports.TrackerImportStrategyHandler;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import org.hisp.dhis.parser.expression.ExpressionItem;
+import org.hisp.dhis.parser.expression.antlr.ExpressionParser;
 
 /**
- * @author Luca Cambi <luca@dhis2.org>
+ * Replace any zero value with a null
+ *
+ * @author Jim Grace
  */
-@Component
-@RequiredArgsConstructor
-public class TrackerImportAsyncStrategyImpl implements TrackerImportStrategyHandler
+public class FunctionRemoveZeros
+    implements ExpressionItem
 {
-    private final MessageManager messageManager;
+    private static final Double ZERO = Double.valueOf( 0.0 );
 
     @Override
-    public TrackerImportReport importReport( TrackerImportReportRequest trackerImportReportRequest )
+    public final Object evaluate( ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        TrackerMessage trackerMessage = TrackerMessage.builder()
-            .trackerImportParams( trackerImportReportRequest.getTrackerImportParams() )
-            .authentication( AuthenticationSerializer.serialize( trackerImportReportRequest.getAuthentication() ) )
-            .uid( trackerImportReportRequest.getUid() )
-            .build();
+        Object value = visitor.visit( ctx.expr( 0 ) );
 
-        messageManager.sendQueue( Topics.TRACKER_IMPORT_JOB_TOPIC_NAME, trackerMessage );
+        if ( ZERO.equals( value ) )
+        {
+            // Don't replace this null with a zero:
+            visitor.getState().setReplaceNulls( false );
 
-        return null; // empty report is not
-                     // returned
-                     // in async creation
+            return null;
+        }
+
+        return value;
+    }
+
+    @Override
+    public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
+    {
+        String value = visitor.castStringVisit( ctx.expr( 0 ) );
+
+        return " case " + value + " when 0 then null else " + value + " end";
     }
 }

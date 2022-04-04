@@ -54,7 +54,7 @@
         <snippetsDirectory>${project.build.directory}/generated-snippets</snippetsDirectory>
         <sonar.organization>dhis2</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
-        <surefireArgLine>-Xmx1024m --illegal-access=permit</surefireArgLine>
+        <surefireArgLine>-Xmx2024m --illegal-access=permit</surefireArgLine>
 
         <!-- Needed so we can disable running tests when the default profile is used (activated by default). It does not
           honor -DskipTests otherwise https://maven.apache.org/surefire/maven-surefire-plugin/examples/skipping-tests.html -->
@@ -63,12 +63,12 @@
         <!-- *Dependencies* -->
 
         <!-- DHIS2 Rule Engine-->
-        <dhis2-rule-engine.version>2.0.37</dhis2-rule-engine.version>
+        <dhis2-rule-engine.version>2.0.38</dhis2-rule-engine.version>
 
         <!-- HISP Quick and Staxwax -->
         <dhis-hisp-quick.version>1.4.0</dhis-hisp-quick.version>
         <dhis-hisp-staxwax.version>2.0.0</dhis-hisp-staxwax.version>
-        <dhis-json-tree.version>0.2.0</dhis-json-tree.version>
+        <dhis-json-tree.version>0.3.0</dhis-json-tree.version>
 
         <!-- Security-->
         <spring-security.version>5.6.2</spring-security.version>
@@ -79,7 +79,7 @@
         <cglib.version>3.3.0</cglib.version>
 
         <!-- Spring-->
-        <spring.version>5.3.13</spring.version>
+        <spring.version>5.3.18</spring.version>
         <spring-data-redis.version>2.6.0</spring-data-redis.version>
         <spring-session-data-redis.version>2.6.2</spring-session-data-redis.version>
         <spring-mobile-device.version>1.1.5.RELEASE</spring-mobile-device.version>
@@ -144,7 +144,7 @@
         <jts.version>1.16.1</jts.version>
 
         <!-- Apache Artemis -->
-        <artemis.version>2.20.0</artemis.version>
+        <artemis.version>2.21.0</artemis.version>
         <netty-all.version>4.1.74.Final</netty-all.version>
         <classgraph.version>4.8.141</classgraph.version>
 
@@ -200,7 +200,7 @@
 
         <!-- Test -->
         <junit.version>5.8.2</junit.version>
-        <mockito.version>4.3.1</mockito.version>
+        <mockito.version>4.4.0</mockito.version>
         <powermock.version>2.0.9</powermock.version>
         <hamcrest.version>2.2</hamcrest.version>
         <hamcrest-date.version>2.0.8</hamcrest-date.version>
@@ -230,7 +230,7 @@
         <speedy-spotless-maven-plugin.version>0.1.3</speedy-spotless-maven-plugin.version>
         <jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
         <jrebel-x-maven-plugin.version>1.1.10</jrebel-x-maven-plugin.version>
-        <dhis-antlr-expression-parser.version>1.0.26</dhis-antlr-expression-parser.version>
+        <dhis-antlr-expression-parser.version>1.0.27</dhis-antlr-expression-parser.version>
         <jai-imageio.version>1.1.1</jai-imageio.version>
         <ow2.asm.version>9.2</ow2.asm.version>
         <gson.version>2.8.9</gson.version>
@@ -360,10 +360,12 @@
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-surefire-plugin</artifactId>
                         <configuration>
+                            <parallel>all</parallel>
+                            <threadCount>10</threadCount>
                             <skipTests>${skipTests}</skipTests>
                             <trimStackTrace>false</trimStackTrace>
                             <argLine>${surefireArgLine}</argLine>
-                            <excludedGroups>integration</excludedGroups>
+                            <excludedGroups>integration,integrationH2</excludedGroups>
                         </configuration>
                         <dependencies>
                             <dependency>
@@ -403,10 +405,37 @@
             </build>
         </profile>
 
-
+        <!-- IntegrationH2 test profile, this runs all the integrations tests with H2, but not the unit tests -->
+        <profile>
+            <id>integrationH2</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <skipTests>false</skipTests>
+                            <trimStackTrace>false</trimStackTrace>
+                            <argLine>${surefireArgLine}</argLine>
+                            <groups>integrationH2</groups>
+                        </configuration>
+                        <dependencies>
+                            <dependency>
+                                <groupId>org.ow2.asm</groupId>
+                                <artifactId>asm</artifactId>
+                                <version>${ow2.asm.version}</version>
+                            </dependency>
+                        </dependencies>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
 
         <profile>
             <id>sonarqube</id>
+            <properties>
+                <skipTests>true</skipTests>
+            </properties>
             <build>
                 <plugins>
                     <plugin>
@@ -426,7 +455,6 @@
                             </dependency>
                         </dependencies>
                     </plugin>
-
                     <plugin>
                         <groupId>org.jacoco</groupId>
                         <artifactId>jacoco-maven-plugin</artifactId>
@@ -454,6 +482,9 @@
 
         <profile>
             <id>dev</id>
+            <properties>
+                <skipTests>true</skipTests>
+            </properties>
             <build>
                 <plugins>
                     <plugin>
@@ -463,7 +494,7 @@
                             <skipTests>true</skipTests>
                             <trimStackTrace>false</trimStackTrace>
                             <argLine>${surefireArgLine}</argLine>
-                            <excludedGroups>integration</excludedGroups>
+                            <excludedGroups>integration,integrationH2</excludedGroups>
                         </configuration>
                         <dependencies>
                             <dependency>
@@ -473,7 +504,6 @@
                             </dependency>
                         </dependencies>
                     </plugin>
-
                     <plugin>
                         <groupId>org.zeroturnaround</groupId>
                         <artifactId>jrebel-maven-plugin</artifactId>
@@ -707,18 +737,8 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-dependency-plugin</artifactId>
                     <version>${maven-dependency-plugin.version}</version>
-                    <executions>
-                        <execution>
-                            <id>analyze</id>
-                            <goals>
-                                <goal>analyze-only</goal>
-                            </goals>
-                            <configuration>
-                                <failOnWarning>true</failOnWarning>
-                            </configuration>
-                        </execution>
-                    </executions>
                     <configuration>
+                        <failOnWarning>true</failOnWarning>
                         <ignoredUnusedDeclaredDependencies>
                             <ignoredUnusedDeclaredDependency>org.projectlombok:lombok</ignoredUnusedDeclaredDependency>
                             <ignoredUnusedDeclaredDependency>org.junit.jupiter:junit-jupiter</ignoredUnusedDeclaredDependency>
@@ -726,13 +746,18 @@
                             <ignoredUnusedDeclaredDependency>net.sf.jasperreports:jasperreports</ignoredUnusedDeclaredDependency>
                             <ignoredUnusedDeclaredDependency>org.mockito:mockito-inline</ignoredUnusedDeclaredDependency>
                             <ignoredUnusedDeclaredDependency>org.apache.logging.log4j:log4j-slf4j-impl</ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>org.apache.struts:struts2-spring-plugin</ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>org.apache.velocity:velocity-tools</ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>io.lettuce:lettuce-core</ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>org.springframework:spring-context-support</ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>javax.servlet:javax.servlet-api</ignoredUnusedDeclaredDependency>
 
                             <!-- Removing these dependencies from the pom makes some tests fail -->
                             <ignoredUnusedDeclaredDependency>io.netty:netty-all</ignoredUnusedDeclaredDependency>
                             <ignoredUnusedDeclaredDependency>org.hibernate.validator:hibernate-validator</ignoredUnusedDeclaredDependency>
                             <ignoredUnusedDeclaredDependency>com.cronutils:cron-utils</ignoredUnusedDeclaredDependency>
                             <ignoredUnusedDeclaredDependency>com.h2database:h2</ignoredUnusedDeclaredDependency>
-                            <ignoredUnusedDeclaredDependency>org.cache2k:cache2k-core:jar</ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>org.cache2k:cache2k-core</ignoredUnusedDeclaredDependency>
                             <ignoredUnusedDeclaredDependency>org.springframework.security:spring-security-aspects</ignoredUnusedDeclaredDependency>
                             <ignoredUnusedDeclaredDependency>org.skyscreamer:jsonassert</ignoredUnusedDeclaredDependency>
                             <ignoredUnusedDeclaredDependency>commons-fileupload:commons-fileupload</ignoredUnusedDeclaredDependency>
@@ -751,15 +776,20 @@
                             <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-administration</ignoredUnusedDeclaredDependency>
                             <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-program-rule</ignoredUnusedDeclaredDependency>
                             <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-core</ignoredUnusedDeclaredDependency>
-                            <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-web-api:jar</ignoredUnusedDeclaredDependency>
-                            <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-dxf2:jar</ignoredUnusedDeclaredDependency>
-                            <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-reporting:jar</ignoredUnusedDeclaredDependency>
-                            <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-analytics:jar</ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-web-api</ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-dxf2</ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-reporting</ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-analytics</ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-web-commons</ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-web-commons-resources</ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-web-dataentry</ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-web-approval</ignoredUnusedDeclaredDependency>
+                            <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-web-apps</ignoredUnusedDeclaredDependency>
                         </ignoredUnusedDeclaredDependencies>
                         <ignoredUsedUndeclaredDependencies>
                             <ignoredUsedUndeclaredDependency>org.junit.jupiter:junit-jupiter-api</ignoredUsedUndeclaredDependency>
                             <ignoredUsedUndeclaredDependency>io.micrometer:micrometer-core</ignoredUsedUndeclaredDependency>
-                            <ignoredUsedUndeclaredDependency>io.prometheus:simpleclient:jar</ignoredUsedUndeclaredDependency>
+                            <ignoredUsedUndeclaredDependency>io.prometheus:simpleclient</ignoredUsedUndeclaredDependency>
                             <ignoredUsedUndeclaredDependency>org.apache.activemq:artemis-commons</ignoredUsedUndeclaredDependency>
                             <ignoredUsedUndeclaredDependency>io.debezium:debezium-core</ignoredUsedUndeclaredDependency>
                             <ignoredUsedUndeclaredDependency>org.apache.kafka:connect-api</ignoredUsedUndeclaredDependency>
@@ -768,7 +798,9 @@
                             <ignoredUsedUndeclaredDependency>com.nimbusds:nimbus-jose-jwt</ignoredUsedUndeclaredDependency>
                             <ignoredUsedUndeclaredDependency>io.prometheus:simpleclient_common</ignoredUsedUndeclaredDependency>
                             <ignoredUsedUndeclaredDependency>org.springframework.restdocs:spring-restdocs-core</ignoredUsedUndeclaredDependency>
-                            <ignoredUnusedDeclaredDependency>org.springframework:spring-jcl</ignoredUnusedDeclaredDependency>
+                            <ignoredUsedUndeclaredDependency>org.springframework:spring-jcl</ignoredUsedUndeclaredDependency>
+                            <ignoredUsedUndeclaredDependency>ognl:ognl</ignoredUsedUndeclaredDependency>
+                            <ignoredUsedUndeclaredDependency>org.springframework.session:spring-session-core</ignoredUsedUndeclaredDependency>
                         </ignoredUsedUndeclaredDependencies>
                         <ignoredNonTestScopedDependencies>
                             <!-- Setting the scope of this dependency to test makes the build fail-->
@@ -851,6 +883,24 @@
                                 </RestrictImports>
                             </rules>
                         </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>${maven-dependency-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>analyze</id>
+                        <goals>
+                            <goal>analyze-only</goal>
+                        </goals>
+                        <configuration>
+                            <failOnWarning>true</failOnWarning>
+                            <skip>${skipTests}</skip>
+                        </configuration>
+                        <phase>process-test-classes</phase>
                     </execution>
                 </executions>
             </plugin>

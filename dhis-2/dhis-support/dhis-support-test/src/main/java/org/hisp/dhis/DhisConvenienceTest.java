@@ -760,6 +760,18 @@ public abstract class DhisConvenienceTest
      */
     public static Indicator createIndicator( char uniqueCharacter, IndicatorType type )
     {
+        return createIndicator( uniqueCharacter, type, "Numerator", "Denominator" );
+    }
+
+    /**
+     * @param uniqueCharacter A unique character to identify the object.
+     * @param type The type.
+     * @param numerator The numerator.
+     * @param denominator The denominator.
+     */
+    public static Indicator createIndicator( char uniqueCharacter, IndicatorType type,
+        String numerator, String denominator )
+    {
         Indicator indicator = new Indicator();
         indicator.setAutoFields();
 
@@ -770,9 +782,9 @@ public abstract class DhisConvenienceTest
         indicator.setDescription( "IndicatorDescription" + uniqueCharacter );
         indicator.setAnnualized( false );
         indicator.setIndicatorType( type );
-        indicator.setNumerator( "Numerator" );
+        indicator.setNumerator( numerator );
         indicator.setNumeratorDescription( "NumeratorDescription" );
-        indicator.setDenominator( "Denominator" );
+        indicator.setDenominator( denominator );
         indicator.setDenominatorDescription( "DenominatorDescription" );
 
         return indicator;

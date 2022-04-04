@@ -25,61 +25,14 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker;
+package org.hisp.dhis.webapi.controller.tracker.imports;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.domain.Relationship;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import org.hisp.dhis.tracker.report.TrackerImportReport;
 
 /**
- * Maps the Tracker import payload
- *
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Luca Cambi <luca@dhis2.org>
  */
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-@JsonDeserialize( converter = TrackerBundleParamsConverter.class )
-public class TrackerBundleParams
+public interface TrackerImporter
 {
-    /**
-     * Tracked entities to import.
-     */
-    @JsonProperty
-    @Builder.Default
-    private List<TrackedEntity> trackedEntities = new ArrayList<>();
-
-    /**
-     * Enrollments to import.
-     */
-    @JsonProperty
-    @Builder.Default
-    private List<Enrollment> enrollments = new ArrayList<>();
-
-    /**
-     * Events to import.
-     */
-    @JsonProperty
-    @Builder.Default
-    private List<Event> events = new ArrayList<>();
-
-    /**
-     * Relationships to import.
-     */
-    @JsonProperty
-    @Builder.Default
-    private List<Relationship> relationships = new ArrayList<>();
+    TrackerImportReport importTracker( TrackerImportRequest trackerImportRequest );
 }

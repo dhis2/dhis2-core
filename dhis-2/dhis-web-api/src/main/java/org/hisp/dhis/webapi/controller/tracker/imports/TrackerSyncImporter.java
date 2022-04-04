@@ -25,52 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.artemis.audit.configuration;
+package org.hisp.dhis.webapi.controller.tracker.imports;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
-import java.util.Map;
-
-import org.hisp.dhis.artemis.audit.Audit;
-import org.hisp.dhis.audit.AuditScope;
-import org.hisp.dhis.audit.AuditType;
+import org.hisp.dhis.tracker.TrackerBundleReportMode;
+import org.hisp.dhis.tracker.TrackerImportParams;
+import org.hisp.dhis.tracker.TrackerImportService;
+import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.springframework.stereotype.Component;
 
 /**
- * @author Luciano Fiandesio
+ * @author Luca Cambi <luca@dhis2.org>
  */
 @Component
-public class AuditMatrix
+@RequiredArgsConstructor
+public class TrackerSyncImporter
 {
-    private Map<AuditScope, Map<AuditType, Boolean>> matrix;
 
-    public AuditMatrix( AuditMatrixConfigurer auditMatrixConfigurer )
+    @NonNull
+    private final TrackerImportService trackerImportService;
+
+    public TrackerImportReport importTracker( TrackerImportParams params, TrackerBundleReportMode reportMode )
     {
-        checkNotNull( auditMatrixConfigurer );
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
 
-        matrix = auditMatrixConfigurer.configure();
-    }
-
-    public boolean isEnabled( Audit audit )
-    {
-        return matrix.get( audit.getAuditScope() ).getOrDefault( audit.getAuditType(), false );
-    }
-
-    public boolean isEnabled( AuditScope auditScope, AuditType auditType )
-    {
-        return matrix.get( auditScope ).getOrDefault( auditType, false );
-    }
-
-    public boolean isReadEnabled()
-    {
-        final AuditScope[] auditScopes = AuditScope.values();
-        for ( AuditScope auditScope : auditScopes )
-        {
-            if ( isEnabled( auditScope, AuditType.READ ) )
-            {
-                return true;
-            }
-        }
-        return false;
+        return trackerImportService.buildImportReport( trackerImportReport, reportMode );
     }
 }

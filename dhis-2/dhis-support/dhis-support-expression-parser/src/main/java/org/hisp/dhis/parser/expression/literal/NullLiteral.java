@@ -25,52 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.artemis.audit.configuration;
+package org.hisp.dhis.parser.expression.literal;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.Map;
-
-import org.hisp.dhis.artemis.audit.Audit;
-import org.hisp.dhis.audit.AuditScope;
-import org.hisp.dhis.audit.AuditType;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import org.hisp.dhis.parser.expression.ExpressionItem;
+import org.hisp.dhis.parser.expression.antlr.ExpressionParser;
 
 /**
- * @author Luciano Fiandesio
+ * Provides a null value
+ *
+ * @author Jim Grace
  */
-@Component
-public class AuditMatrix
+public class NullLiteral
+    implements ExpressionItem
 {
-    private Map<AuditScope, Map<AuditType, Boolean>> matrix;
-
-    public AuditMatrix( AuditMatrixConfigurer auditMatrixConfigurer )
+    @Override
+    public final Object evaluate( ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        checkNotNull( auditMatrixConfigurer );
+        // Don't replace this null with a zero:
+        visitor.getState().setReplaceNulls( false );
 
-        matrix = auditMatrixConfigurer.configure();
+        return null;
     }
 
-    public boolean isEnabled( Audit audit )
+    @Override
+    public Object getSql( ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        return matrix.get( audit.getAuditScope() ).getOrDefault( audit.getAuditType(), false );
-    }
-
-    public boolean isEnabled( AuditScope auditScope, AuditType auditType )
-    {
-        return matrix.get( auditScope ).getOrDefault( auditType, false );
-    }
-
-    public boolean isReadEnabled()
-    {
-        final AuditScope[] auditScopes = AuditScope.values();
-        for ( AuditScope auditScope : auditScopes )
-        {
-            if ( isEnabled( auditScope, AuditType.READ ) )
-            {
-                return true;
-            }
-        }
-        return false;
+        return "null";
     }
 }
