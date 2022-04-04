@@ -27,52 +27,19 @@
  */
 package org.hisp.dhis;
 
-import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.core.config.Configurator;
-import org.hisp.dhis.config.UnitTestConfig;
-import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.hisp.dhis.utils.TestUtils;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+import org.junit.jupiter.api.Tag;
 
 /**
- * @author Lars Helge Overland
+ * @author Enrico Colasante
  */
-@ExtendWith( SpringExtension.class )
-@ActiveProfiles( "test-h2" )
-@ContextConfiguration( classes = { UnitTestConfig.class } )
-@IntegrationH2Test
-public abstract class DhisTest extends BaseSpringTest
+@Target( { ElementType.TYPE, ElementType.METHOD } )
+@Retention( RetentionPolicy.RUNTIME )
+@Tag( "integrationH2" )
+public @interface IntegrationH2Test
 {
-
-    protected boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
-    @BeforeEach
-    final void before()
-        throws Exception
-    {
-        bindSession();
-        TestUtils.executeStartupRoutines( applicationContext );
-        boolean enableQueryLogging = dhisConfigurationProvider.isEnabled( ConfigurationKey.ENABLE_QUERY_LOGGING );
-        if ( enableQueryLogging )
-        {
-            Configurator.setLevel( "org.hisp.dhis.datasource.query", Level.INFO );
-            Configurator.setRootLevel( Level.INFO );
-        }
-        setUpTest();
-    }
-
-    @AfterEach
-    final void after()
-        throws Exception
-    {
-        nonTransactionalAfter();
-    }
 }
