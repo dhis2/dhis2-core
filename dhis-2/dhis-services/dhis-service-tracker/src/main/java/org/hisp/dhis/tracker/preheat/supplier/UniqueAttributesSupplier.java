@@ -51,7 +51,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
-import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
@@ -125,7 +124,7 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier
 
     private TrackedEntity getEntityForEnrollment( TrackerImportParams params, TrackerPreheat preheat, String teiUid )
     {
-        TrackedEntityInstance trackedEntity = preheat.getTrackedEntity( TrackerIdScheme.UID, teiUid );
+        TrackedEntityInstance trackedEntity = preheat.getTrackedEntity( teiUid );
 
         // Get tei from Preheat
         Optional<TrackedEntity> optionalTei = params.getTrackedEntities()

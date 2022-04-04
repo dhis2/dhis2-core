@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.tracker.preheat.supplier;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -41,7 +40,6 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerStore;
-import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.mappers.OrganisationUnitMapper;
@@ -61,12 +59,8 @@ public class ProgramOwnerSupplier extends AbstractPreheatSupplier
     @Override
     public void preheatAdd( TrackerImportParams params, TrackerPreheat preheat )
     {
-        final Map<String, TrackedEntityInstance> preheatedTrackedEntities = preheat.getTrackedEntities().getOrDefault(
-            TrackerIdScheme.UID,
-            new HashMap<>() );
-        final Map<String, ProgramInstance> preheatedEnrollments = preheat.getEnrollments().getOrDefault(
-            TrackerIdScheme.UID,
-            new HashMap<>() );
+        final Map<String, TrackedEntityInstance> preheatedTrackedEntities = preheat.getTrackedEntities();
+        final Map<String, ProgramInstance> preheatedEnrollments = preheat.getEnrollments();
         Set<Long> teiIds = new HashSet<>();
         params.getEnrollments().stream().forEach( en -> {
             TrackedEntityInstance tei = preheatedTrackedEntities.get( en.getTrackedEntity() );

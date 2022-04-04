@@ -79,6 +79,13 @@ public abstract class DhisMockMvcControllerTest extends DhisConvenienceTest impl
     public HttpResponse webRequest( HttpMethod method, String url, List<Header> headers, MediaType contentType,
         String content )
     {
+        return webRequest( buildMockRequest( method, url, headers, contentType, content ) );
+    }
+
+    protected MockHttpServletRequestBuilder buildMockRequest( HttpMethod method, String url, List<Header> headers,
+        MediaType contentType,
+        String content )
+    {
         MockHttpServletRequestBuilder request = MockMvcRequestBuilders.request( method, url );
         for ( Header header : headers )
         {
@@ -92,7 +99,8 @@ public abstract class DhisMockMvcControllerTest extends DhisConvenienceTest impl
         {
             request.content( content );
         }
-        return webRequest( request );
+
+        return request;
     }
 
     protected abstract HttpResponse webRequest( MockHttpServletRequestBuilder request );
