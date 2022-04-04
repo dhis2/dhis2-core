@@ -2222,12 +2222,12 @@ function registerCompleteDataSet( completedStatus )
 	    	success: function( data, textStatus, xhr )
 	        {
                 dhis2.de.storageManager.clearCompleteDataSet( params );
-                if( data && data.status == 'SUCCESS' )
+                if( data && data.response && data.response.status == 'SUCCESS' )
                 {
                     $( document ).trigger( dhis2.de.event.completed, [ dhis2.de.currentDataSetId, params ] );
                     disableCompleteButton( params.isCompleted );
                 }
-                else if( data && data.status == 'ERROR' )
+                else if( data && data.response && data.response.status == 'ERROR' )
                 {
                     handleDataSetCompletenessResponse( data );
                 }
