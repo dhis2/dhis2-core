@@ -136,8 +136,8 @@ public class ProgramIndicator
     }
 
     /**
-     * Returns aggregation type (aggregation function supported by postgres), if
-     * not exists returns AVERAGE.
+     * Returns aggregation type (for example for aggregation function supported
+     * by postgres), if not exists returns AVERAGE.
      */
     public AggregationType getAggregationTypeFallback()
     {
