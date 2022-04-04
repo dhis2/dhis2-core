@@ -40,6 +40,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import com.google.common.collect.Sets;
 import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -191,11 +192,13 @@ public class RelationshipTypeObjectBundleHook
     private void validateTrackedEntityInstance( RelationshipConstraint constraint, Consumer<ErrorReport> addReports,
         TrackerDataView trackerDataView )
     {
-        List<String> trackerDataViewAttributes = new ArrayList<>();
+        Set<String> trackerDataViewAttributes = new HashSet<>();
+        Set<String> dataElements = new HashSet<>();
 
         if ( trackerDataView != null )
         {
             trackerDataViewAttributes = trackerDataView.getAttributes();
+            dataElements = trackerDataView.getDataElements();
         }
 
         TrackedEntityType trackedEntityType = constraint.getTrackedEntityType();
@@ -216,43 +219,47 @@ public class RelationshipTypeObjectBundleHook
         {
             trackedEntityType = trackedEntityTypeService.getTrackedEntityType( trackedEntityType.getUid() );
 
-            List<TrackedEntityAttribute> trackedEntityAttributes = Optional.ofNullable( trackedEntityType )
-                .map( TrackedEntityType::getTrackedEntityAttributes ).orElse( new ArrayList<>() );
+            Set<String> trackedEntityTypeAttributes = Optional.ofNullable( trackedEntityType )
+                .map( t -> t.getTrackedEntityTypeAttributes().stream().map(BaseIdentifiableObject::getUid).collect(Collectors.toSet()) )
+                    .orElse( new HashSet<>() );
 
-            List<String> trackedEntityTypeAttributeIds = trackedEntityAttributes.stream()
-                .filter( Objects::nonNull ).map( BaseIdentifiableObject::getUid )
-                .collect( Collectors.toList() );
+            Set<String> programTrackedEntityAttributes = Optional.ofNullable( constraint.getProgram() ).map(p -> programService.getProgram( p.getUid() ) )
+                    .map( p -> p.getTrackedEntityAttributes().stream().map(BaseIdentifiableObject::getUid).collect(Collectors.toSet() ) )
+                    .orElse( new HashSet<>() );
+
+            Set<String> trackedEntityAttributeIds = Sets.union( trackedEntityTypeAttributes, programTrackedEntityAttributes );
 
             if ( !trackerDataViewAttributes.isEmpty()
-                && !trackedEntityTypeAttributeIds.containsAll( trackerDataViewAttributes ) )
+                && !trackedEntityAttributeIds.containsAll( trackerDataViewAttributes ) )
             {
-
                 List<String> teaNotPartOfTei = trackerDataViewAttributes.stream()
-                    .filter( t -> !trackedEntityTypeAttributeIds.contains( t ) )
+                    .filter( t -> !trackedEntityAttributeIds.contains( t ) )
                     .collect( Collectors.toList() );
 
                 addReports.accept( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4314,
                     "TrackedEntityAttributes", String.join( ",", teaNotPartOfTei ),
-                    "TrackedEntityInstance" ) );
+                    "TrackedEntityType" ) );
             }
-        }
 
-        // Should be null
-        if ( constraint.getProgramStage() != null )
-        {
-            addReports.accept( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4023, PROGRAM_STAGE,
-                RELATIONSHIP_ENTITY, TRACKED_ENTITY_INSTANCE ) );
+            if ( !dataElements.isEmpty() )
+            {
+                addReports.accept( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4023,
+                        "DataElements", String.join( ",", dataElements ),
+                        "TrackedEntityType" ) );
+            }
         }
     }
 
     private void validateProgramInstance( RelationshipConstraint constraint, Consumer<ErrorReport> addReports,
         TrackerDataView trackerDataView )
     {
-        List<String> trackerDataViewAttributes = new ArrayList<>();
+        Set<String> trackerDataViewAttributes = new HashSet<>();
+        Set<String> dataElements = new HashSet<>();
 
         if ( trackerDataView != null )
         {
             trackerDataViewAttributes = trackerDataView.getAttributes();
+            dataElements = trackerDataView.getDataElements();
         }
 
         Program program = constraint.getProgram();
@@ -279,26 +286,29 @@ public class RelationshipTypeObjectBundleHook
         else
         {
             program = programService.getProgram( program.getUid() );
-
-            List<TrackedEntityAttribute> trackedEntityAttributes = Optional.ofNullable( program )
-                .map( Program::getTrackedEntityAttributes )
-                .orElse( new ArrayList<>() );
-
-            List<String> trackedEntityAttributeIds = trackedEntityAttributes.stream()
-                .filter( Objects::nonNull ).map( BaseIdentifiableObject::getUid )
-                .collect( Collectors.toList() );
+            
+            Set<String> trackedEntityAttributes = Optional.ofNullable( program )
+                .map( p -> p.getTrackedEntityAttributes().stream().map( BaseIdentifiableObject::getUid ).collect(Collectors.toSet()) )
+                .orElse( new HashSet<>() );
 
             if ( !trackerDataViewAttributes.isEmpty()
-                && !trackedEntityAttributeIds.containsAll( trackerDataViewAttributes ) )
+                && !trackedEntityAttributes.containsAll( trackerDataViewAttributes ) )
             {
                 List<String> teaNotPartOfProgram = trackerDataViewAttributes.stream()
-                    .filter( t -> !trackedEntityAttributeIds.contains( t ) )
+                    .filter( t -> !trackedEntityAttributes.contains( t ) )
                     .collect( Collectors.toList() );
 
                 addReports.accept( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4314,
                     "TrackedEntityAttributes", String.join( ",", teaNotPartOfProgram ),
                     PROGRAM ) );
             }
+        }
+
+        if ( !dataElements.isEmpty() )
+        {
+            addReports.accept( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4023,
+                    "DataElements", String.join( ",", dataElements ),
+                    "ProgramInstance" ) );
         }
 
         // Should be null
@@ -312,7 +322,7 @@ public class RelationshipTypeObjectBundleHook
     private void validateProgramStageInstance( RelationshipConstraint constraint, Consumer<ErrorReport> addReports,
         TrackerDataView trackerDataView )
     {
-        List<String> trackerDataViewDataElements = new ArrayList<>();
+        Set<String> trackerDataViewDataElements = new HashSet<>();
 
         if ( trackerDataView != null )
         {
