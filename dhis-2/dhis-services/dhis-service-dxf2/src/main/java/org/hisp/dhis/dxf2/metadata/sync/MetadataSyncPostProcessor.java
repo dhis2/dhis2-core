@@ -39,7 +39,6 @@ import org.hisp.dhis.feedback.Stats;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.metadata.version.VersionType;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 /**

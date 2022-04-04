@@ -27,11 +27,10 @@
  */
 package org.hisp.dhis.analytics.table.scheduling;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.Date;
 
 import lombok.AllArgsConstructor;
+
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.scheduling.Job;

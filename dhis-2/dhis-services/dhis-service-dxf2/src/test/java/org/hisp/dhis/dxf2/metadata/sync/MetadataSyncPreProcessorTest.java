@@ -51,6 +51,7 @@ import org.hisp.dhis.dxf2.synch.SynchronizationManager;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.metadata.version.MetadataVersionService;
 import org.hisp.dhis.metadata.version.VersionType;
+import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.scheduling.parameters.MetadataSyncJobParameters;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -93,7 +94,8 @@ class MetadataSyncPreProcessorTest extends IntegrationTestBase
         MetadataRetryContext mockRetryContext = mock( MetadataRetryContext.class );
         AvailabilityStatus availabilityStatus = new AvailabilityStatus( true, "test_message", null );
         when( synchronizationManager.isRemoteServerAvailable() ).thenReturn( availabilityStatus );
-        metadataSyncPreProcessor.handleDataValuePush( mockRetryContext, metadataSyncJobParameters );
+        metadataSyncPreProcessor.handleDataValuePush( mockRetryContext, metadataSyncJobParameters,
+            NoopJobProgress.INSTANCE );
         verify( synchronizationManager, times( 1 ) ).executeDataValuePush();
     }
 
@@ -106,9 +108,10 @@ class MetadataSyncPreProcessorTest extends IntegrationTestBase
         AvailabilityStatus availabilityStatus = new AvailabilityStatus( true, "test_message", null );
         when( synchronizationManager.isRemoteServerAvailable() ).thenReturn( availabilityStatus );
         doThrow( MetadataSyncServiceException.class ).when( metadataSyncPreProcessor )
-            .handleDataValuePush( mockRetryContext, metadataSyncJobParameters );
+            .handleDataValuePush( mockRetryContext, metadataSyncJobParameters, NoopJobProgress.INSTANCE );
         assertThrows( MetadataSyncServiceException.class,
-            () -> metadataSyncPreProcessor.handleDataValuePush( mockRetryContext, metadataSyncJobParameters ) );
+            () -> metadataSyncPreProcessor.handleDataValuePush( mockRetryContext, metadataSyncJobParameters,
+                NoopJobProgress.INSTANCE ) );
     }
 
     @Test
@@ -119,10 +122,12 @@ class MetadataSyncPreProcessorTest extends IntegrationTestBase
         expectedSummary.setStatus( ImportStatus.SUCCESS );
         AvailabilityStatus availabilityStatus = new AvailabilityStatus( true, "test_message", null );
         when( synchronizationManager.isRemoteServerAvailable() ).thenReturn( availabilityStatus );
-        doNothing().when( metadataSyncPreProcessor ).handleDataValuePush( mockRetryContext, metadataSyncJobParameters );
-        metadataSyncPreProcessor.handleDataValuePush( mockRetryContext, metadataSyncJobParameters );
+        doNothing().when( metadataSyncPreProcessor ).handleDataValuePush( mockRetryContext, metadataSyncJobParameters,
+            NoopJobProgress.INSTANCE );
+        metadataSyncPreProcessor.handleDataValuePush( mockRetryContext, metadataSyncJobParameters,
+            NoopJobProgress.INSTANCE );
         verify( metadataSyncPreProcessor, times( 1 ) ).handleDataValuePush( mockRetryContext,
-            metadataSyncJobParameters );
+            metadataSyncJobParameters, NoopJobProgress.INSTANCE );
     }
 
     @Test

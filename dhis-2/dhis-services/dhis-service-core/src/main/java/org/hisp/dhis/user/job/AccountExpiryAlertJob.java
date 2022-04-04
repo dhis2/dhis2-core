@@ -94,7 +94,7 @@ public class AccountExpiryAlertJob implements Job
             return;
         }
 
-        progress.startingProcess("Notify expiring account users");
+        progress.startingProcess( "Notify expiring account users" );
         int inDays = systemSettingManager.getIntSetting( SettingKey.ACCOUNT_EXPIRES_IN_DAYS );
         List<UserAccountExpiryInfo> soonExpiring = userService.getExpiringUserAccounts( inDays );
 

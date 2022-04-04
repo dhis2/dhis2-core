@@ -27,11 +27,13 @@
  */
 package org.hisp.dhis.dxf2.sync;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static java.lang.String.format;
+import static org.hisp.dhis.setting.SettingKey.SKIP_SYNCHRONIZATION_FOR_DATA_CHANGED_BEFORE;
 
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,11 +42,11 @@ import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstances;
+import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
 import org.hisp.dhis.dxf2.synch.SystemInstance;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.springframework.http.MediaType;
@@ -54,6 +56,7 @@ import org.springframework.web.client.RestTemplate;
 
 /**
  * @author David Katuscak <katuscak.d@gmail.com>
+ * @author Jan Bernitt (job progress tracking refactoring)
  */
 @Slf4j
 @Component
@@ -62,83 +65,66 @@ public class TrackerSynchronization implements DataSynchronizationWithPaging
 {
     private final TrackedEntityInstanceService teiService;
 
-    private final SystemSettingManager systemSettingManager;
+    private final SystemSettingManager settings;
 
     private final RestTemplate restTemplate;
 
     private final RenderService renderService;
 
     @Override
-    public SynchronizationResult synchronizeData( final int pageSize )
+    public SynchronizationResult synchronizeData( final int pageSize, JobProgress progress )
     {
-        if ( !SyncUtils.testServerAvailability( systemSettingManager, restTemplate ).isAvailable() )
+        progress.startingProcess( "Starting Tracker programs data synchronization job." );
+        if ( !SyncUtils.testServerAvailability( settings, restTemplate ).isAvailable() )
         {
-            return SynchronizationResult.newFailureResultWithMessage(
-                "Tracker programs data synchronization failed. Remote server is unavailable." );
+            String msg = "Tracker programs data synchronization failed. Remote server is unavailable.";
+            progress.failedProcess( msg );
+            return SynchronizationResult.failure( msg );
         }
 
-        TrackedEntityInstanceQueryParams queryParams = initializeQueryParams();
-        SynchronisationState state = initializeSyncVariables( queryParams, pageSize );
+        TrackedEntityInstanceQueryParams params = initializeQueryParams();
 
-        if ( state.getObjectsToSynchronize() == 0 )
+        progress.startingStage( "Counting TEIs to synchronise" );
+        PagedDataSynchronisationContext context = progress.runStage(
+            new PagedDataSynchronisationContext( null, pageSize ),
+            ctx -> "TrackedEntityInstances last changed before " + ctx.getSkipChangedBefore()
+                + " will not be synchronized.",
+            () -> createContext( params, pageSize ) );
+
+        if ( context.getObjectsToSynchronize() == 0 )
         {
-            log.info( "Skipping synchronization. No new tracker data to synchronize were found." );
-            return SynchronizationResult.newSuccessResultWithMessage(
-                "Tracker programs data synchronization skipped. No new or updated TEIs found." );
+            String msg = "Tracker programs data synchronization skipped. No new or updated TEIs found.";
+            progress.completedProcess( msg );
+            return SynchronizationResult.success( msg );
         }
 
-        runSyncWithPaging( queryParams, state );
-
-        if ( state.isSyncResult() )
+        if ( runSyncWithPaging( params, context, progress ) )
         {
-            state.getClock().logTime( "SUCCESS! Tracker programs data synchronization was successfully done! It took " );
-            return SynchronizationResult.newSuccessResultWithMessage(
-                "Tracker programs data synchronization done. It took " + state.getClock().getTime() + " ms." );
-        }
+            progress.completedProcess( "SUCCESS! Tracker programs data synchronization was successfully done!" );
+            return SynchronizationResult.success( "Tracker programs data synchronization done." );
 
-        return SynchronizationResult.newFailureResultWithMessage( "Tracker programs data synchronization failed." );
+        }
+        String msg = "Tracker programs data synchronization failed. Not all pages were synchronised successfully.";
+        progress.failedProcess( msg );
+        return SynchronizationResult.failure( msg );
     }
 
-    private SynchronisationState initializeSyncVariables( TrackedEntityInstanceQueryParams queryParams, final int pageSize )
+    private PagedDataSynchronisationContext createContext( TrackedEntityInstanceQueryParams queryParams,
+        final int pageSize )
     {
-        clock = new Clock( log ).startClock().logTime( "Starting Tracker programs data synchronization job." );
-        final Date skipChangedBefore = systemSettingManager
-            .getDateSetting( SettingKey.SKIP_SYNCHRONIZATION_FOR_DATA_CHANGED_BEFORE );
+        final Date skipChangedBefore = settings.getDateSetting( SKIP_SYNCHRONIZATION_FOR_DATA_CHANGED_BEFORE );
         queryParams.setSkipChangedBefore( skipChangedBefore );
-        objectsToSynchronize = teiService.getTrackedEntityInstanceCount( queryParams, true, true );
+        int objectsToSynchronize = teiService.getTrackedEntityInstanceCount( queryParams, true, true );
 
-        log.info( "TrackedEntityInstances last changed before " + skipChangedBefore + " will not be synchronized." );
-
-        if ( objectsToSynchronize != 0 )
+        if ( objectsToSynchronize == 0 )
         {
-            instance = SyncUtils.getRemoteInstanceWithSyncImportStrategy( systemSettingManager,
-                SyncEndpoint.TRACKED_ENTITY_INSTANCES );
-            pages = (objectsToSynchronize / pageSize) + ((objectsToSynchronize % pageSize == 0) ? 0 : 1); // Have
-                                                                                                          // to
-                                                                                                          // use
-                                                                                                          // this
-                                                                                                          // as
-                                                                                                          // (int)
-                                                                                                          // Match.ceil
-                                                                                                          // doesn't
-                                                                                                          // work
-                                                                                                          // until
-                                                                                                          // I
-                                                                                                          // am
-                                                                                                          // casting
-                                                                                                          // int
-                                                                                                          // to
-                                                                                                          // double
-
-            log.info( objectsToSynchronize + " TEIs to sync were found." );
-            log.info( "Remote server URL for Tracker programs POST synchronization: " + instance.getUrl() );
-            log.info(
-                "Tracker programs data synchronization job has " + pages + " pages to synchronize. With page size: " +
-                    pageSize );
-
-            queryParams.setPageSize( pageSize );
+            return new PagedDataSynchronisationContext( skipChangedBefore, pageSize );
         }
-        return null; //TODO
+        SystemInstance instance = SyncUtils.getRemoteInstanceWithSyncImportStrategy( settings,
+            SyncEndpoint.TRACKED_ENTITY_INSTANCES );
+
+        queryParams.setPageSize( pageSize );
+        return new PagedDataSynchronisationContext( skipChangedBefore, objectsToSynchronize, instance, pageSize );
     }
 
     private TrackedEntityInstanceQueryParams initializeQueryParams()
@@ -150,54 +136,60 @@ public class TrackerSynchronization implements DataSynchronizationWithPaging
         return queryParams;
     }
 
-    private void runSyncWithPaging( TrackedEntityInstanceQueryParams queryParams, SynchronisationState state )
+    private boolean runSyncWithPaging( TrackedEntityInstanceQueryParams queryParams,
+        PagedDataSynchronisationContext context, JobProgress progress )
     {
-        syncResult = true;
+        String msg = context.getObjectsToSynchronize() + " TEIs to sync were found.\n";
+        msg += "Remote server URL for Tracker programs POST synchronization: " + context.getInstance().getUrl() + "\n";
+        msg += "Tracker programs data synchronization job has " + context.getPages()
+            + " pages to synchronize. With page size: " +
+            context.getPageSize() + "";
 
-        for ( int page = 1; page <= pages; page++ )
-        {
-            queryParams.setPage( page );
-            synchronizePage( queryParams, state );
-        }
+        progress.startingStage( msg, context.getPages() );
+        return progress.runStage( IntStream.range( 0, context.getPages() ).boxed(),
+            page -> format( "Synchronizing page %d with page size %d", page, context.getPageSize() ),
+            page -> {
+                queryParams.setPage( page );
+                synchronizePage( queryParams, context );
+            } );
     }
 
-    private boolean synchronizePage( TrackedEntityInstanceQueryParams queryParams, SynchronisationState state )
+    private void synchronizePage( TrackedEntityInstanceQueryParams queryParams,
+        PagedDataSynchronisationContext context )
     {
         List<TrackedEntityInstance> dtoTeis = teiService.getTrackedEntityInstances( queryParams,
             TrackedEntityInstanceParams.DATA_SYNCHRONIZATION, true, true );
-        log.info( String.format( "Synchronizing page %d with page size %d", queryParams.getPage(), state.getPageSize() ) );
 
         if ( log.isDebugEnabled() )
         {
             log.debug( "TEIs that are going to be synchronized are: " + dtoTeis );
         }
 
-        if ( sendSyncRequest( state, dtoTeis ) )
+        if ( sendSyncRequest( context, dtoTeis ) )
         {
             List<String> teiUIDs = dtoTeis.stream()
                 .map( TrackedEntityInstance::getTrackedEntityInstance )
                 .collect( Collectors.toList() );
             log.info( "The lastSynchronized flag of these TEIs will be updated: " + teiUIDs );
-            teiService.updateTrackedEntityInstancesSyncTimestamp( teiUIDs, new Date( state.getClock().getStartTime() ) );
-            return true;
+            teiService.updateTrackedEntityInstancesSyncTimestamp( teiUIDs, context.getStartTime() );
         }
-        return false;
+        throw new MetadataSyncServiceException( format( "Page %d synchronisation failed.", queryParams.getPage() ) );
     }
 
-    private boolean sendSyncRequest( SynchronisationState state, List<TrackedEntityInstance> dtoTeis )
+    private boolean sendSyncRequest( PagedDataSynchronisationContext context, List<TrackedEntityInstance> dtoTeis )
     {
         TrackedEntityInstances teis = new TrackedEntityInstances();
         teis.setTrackedEntityInstances( dtoTeis );
-        SystemInstance instance = state.getInstance();
+        SystemInstance instance = context.getInstance();
 
-        final RequestCallback requestCallback = request -> {
+        RequestCallback requestCallback = request -> {
             request.getHeaders().setContentType( MediaType.APPLICATION_JSON );
             request.getHeaders().add( SyncUtils.HEADER_AUTHORIZATION,
                 CodecUtils.getBasicAuthString( instance.getUsername(), instance.getPassword() ) );
             renderService.toJson( request.getBody(), teis );
         };
 
-        return SyncUtils.sendSyncRequest( systemSettingManager, restTemplate, requestCallback, instance,
+        return SyncUtils.sendSyncRequest( settings, restTemplate, requestCallback, instance,
             SyncEndpoint.TRACKED_ENTITY_INSTANCES );
     }
 }

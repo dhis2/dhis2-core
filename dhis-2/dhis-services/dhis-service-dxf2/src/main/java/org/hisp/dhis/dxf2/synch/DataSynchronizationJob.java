@@ -27,31 +27,29 @@
  */
 package org.hisp.dhis.dxf2.synch;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import lombok.AllArgsConstructor;
+
 import org.hisp.dhis.dxf2.sync.CompleteDataSetRegistrationSynchronization;
 import org.hisp.dhis.dxf2.sync.DataValueSynchronization;
-import org.hisp.dhis.dxf2.sync.SynchronizationJob;
+import org.hisp.dhis.dxf2.sync.SyncUtils;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.DataSynchronizationJobParameters;
-import org.hisp.dhis.system.notification.Notifier;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Lars Helge Overland
  * @author David Katuscak <katuscak.d@gmail.com>
+ * @author Jan Bernitt (job progress tracking)
  */
 @Component
 @AllArgsConstructor
-public class DataSynchronizationJob extends SynchronizationJob
+public class DataSynchronizationJob implements Job
 {
     private final SynchronizationManager syncManager;
-
-    private final Notifier notifier;
 
     private final DataValueSynchronization dataValueSync;
 
@@ -64,23 +62,19 @@ public class DataSynchronizationJob extends SynchronizationJob
     }
 
     @Override
-    public void execute( JobConfiguration jobConfiguration, JobProgress progress )
+    public void execute( JobConfiguration config, JobProgress progress )
     {
-        DataSynchronizationJobParameters jobParameters = (DataSynchronizationJobParameters) jobConfiguration
+        DataSynchronizationJobParameters params = (DataSynchronizationJobParameters) config
             .getJobParameters();
-        dataValueSync.synchronizeData( jobParameters.getPageSize() );
-        notifier.notify( jobConfiguration, "Data value sync successful" );
 
-        completenessSync.synchronizeData();
-        notifier.notify( jobConfiguration, "Complete data set registration sync successful" );
-
-        notifier.notify( jobConfiguration, "Data value and Complete data set registration sync successful" );
+        dataValueSync.synchronizeData( params.getPageSize(), progress );
+        completenessSync.synchronizeData( progress );
     }
 
     @Override
     public ErrorReport validate()
     {
-        return validateRemoteServerAvailability( syncManager, DataSynchronizationJob.class )
-            .orElse( super.validate() );
+        return SyncUtils.validateRemoteServerAvailability( syncManager, DataSynchronizationJob.class )
+            .orElse( null );
     }
 }

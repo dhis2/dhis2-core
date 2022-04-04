@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.dxf2.metadata.sync;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -45,11 +43,11 @@ import org.hisp.dhis.dxf2.metadata.version.exception.MetadataVersionServiceExcep
 import org.hisp.dhis.dxf2.sync.*;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.metadata.version.MetadataVersionService;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.parameters.MetadataSyncJobParameters;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.util.DateUtils;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 /**
@@ -82,10 +80,11 @@ public class MetadataSyncPreProcessor
         systemSettingManager.saveSystemSetting( SettingKey.METADATAVERSION_ENABLED, true );
     }
 
-    public void handleDataValuePush( MetadataRetryContext context, MetadataSyncJobParameters syncParams )
+    public void handleDataValuePush( MetadataRetryContext context, MetadataSyncJobParameters syncParams,
+        JobProgress progress )
     {
         SynchronizationResult dataValuesSynchronizationResult = dataValueSync
-            .synchronizeData( syncParams.getDataValuesPageSize() );
+            .synchronizeData( syncParams.getDataValuesPageSize(), progress );
 
         if ( dataValuesSynchronizationResult.status == SynchronizationStatus.FAILURE )
         {
@@ -95,10 +94,11 @@ public class MetadataSyncPreProcessor
         }
     }
 
-    public void handleTrackerProgramsDataPush( MetadataRetryContext context, MetadataSyncJobParameters syncParams )
+    public void handleTrackerProgramsDataPush( MetadataRetryContext context, MetadataSyncJobParameters syncParams,
+        JobProgress progress )
     {
         int pageSize = syncParams.getTrackerProgramPageSize();
-        SynchronizationResult trackerSynchronizationResult = trackerSync.synchronizeData( pageSize );
+        SynchronizationResult trackerSynchronizationResult = trackerSync.synchronizeData( pageSize, progress );
 
         if ( trackerSynchronizationResult.status == SynchronizationStatus.FAILURE )
         {
@@ -108,10 +108,11 @@ public class MetadataSyncPreProcessor
         }
     }
 
-    public void handleEventProgramsDataPush( MetadataRetryContext context, MetadataSyncJobParameters syncParams )
+    public void handleEventProgramsDataPush( MetadataRetryContext context, MetadataSyncJobParameters syncParams,
+        JobProgress progress )
     {
         int pageSize = syncParams.getEventProgramPageSize();
-        SynchronizationResult eventsSynchronizationResult = eventSync.synchronizeData( pageSize );
+        SynchronizationResult eventsSynchronizationResult = eventSync.synchronizeData( pageSize, progress );
 
         if ( eventsSynchronizationResult.status == SynchronizationStatus.FAILURE )
         {
@@ -126,30 +127,30 @@ public class MetadataSyncPreProcessor
     {
         log.debug( "Fetching the list of remote versions" );
 
-        List<MetadataVersion> metadataVersionList;
+        List<MetadataVersion> versions;
 
         try
         {
-            metadataVersionList = metadataVersionDelegate.getMetaDataDifference( metadataVersion );
+            versions = metadataVersionDelegate.getMetaDataDifference( metadataVersion );
 
             if ( metadataVersion == null )
             {
                 log.info( "There is no initial version in the system" );
             }
 
-            if ( isRemoteVersionEmpty( metadataVersion, metadataVersionList ) )
+            if ( isRemoteVersionEmpty( metadataVersion, versions ) )
             {
                 log.info( "There are no metadata versions created in the remote instance." );
-                return metadataVersionList;
+                return versions;
             }
 
-            if ( isUsingLatestVersion( metadataVersion, metadataVersionList ) )
+            if ( isUsingLatestVersion( metadataVersion, versions ) )
             {
                 log.info( "Your instance is already using the latest version:" + metadataVersion );
-                return metadataVersionList;
+                return versions;
             }
 
-            MetadataVersion latestVersion = getLatestVersion( metadataVersionList );
+            MetadataVersion latestVersion = getLatestVersion( versions );
             assert latestVersion != null;
 
             systemSettingManager.saveSystemSetting( SettingKey.REMOTE_METADATA_VERSION, latestVersion.getName() );
@@ -174,7 +175,7 @@ public class MetadataSyncPreProcessor
             throw new MetadataSyncServiceException( message, ex );
         }
 
-        return metadataVersionList;
+        return versions;
     }
 
     private String setVersionListErrorInfoInContext( MetadataRetryContext context, MetadataVersion version,
@@ -238,9 +239,9 @@ public class MetadataSyncPreProcessor
         return null;
     }
 
-    public void handleCompleteDataSetRegistrationDataPush( MetadataRetryContext context )
+    public void handleCompleteDataSetRegistrationDataPush( MetadataRetryContext context, JobProgress progress )
     {
-        SynchronizationResult result = completeDataSetRegistrationSync.synchronizeData();
+        SynchronizationResult result = completeDataSetRegistrationSync.synchronizeData( progress );
 
         if ( result.status == SynchronizationStatus.FAILURE )
         {

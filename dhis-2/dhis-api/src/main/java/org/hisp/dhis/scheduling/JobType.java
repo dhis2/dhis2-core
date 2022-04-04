@@ -157,7 +157,8 @@ public enum JobType
             || this == VALIDATION_RESULTS_NOTIFICATION
             || this == SYSTEM_VERSION_UPDATE_CHECK
             || this == EVENT_PROGRAMS_DATA_SYNC
-            || this == TRACKER_PROGRAMS_DATA_SYNC;
+            || this == TRACKER_PROGRAMS_DATA_SYNC
+            || this == DATA_SYNC;
     }
 
     public boolean isUsingErrorNotification()

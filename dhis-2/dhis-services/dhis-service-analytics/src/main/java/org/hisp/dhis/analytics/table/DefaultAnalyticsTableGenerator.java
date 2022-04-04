@@ -45,8 +45,6 @@ import org.hisp.dhis.analytics.AnalyticsTableService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.cache.AnalyticsCache;
-import org.hisp.dhis.commons.collection.CollectionUtils;
-import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.scheduling.JobProgress;
@@ -113,7 +111,7 @@ public class DefaultAnalyticsTableGenerator
             }
         }
         progress.startingStage( "Updating settings" );
-        progress.runStage( () -> updateLastSuccessfulSystemSettings( params, clock ));
+        progress.runStage( () -> updateLastSuccessfulSystemSettings( params, clock ) );
 
         progress.startingStage( "Invalidate analytics caches" );
         progress.runStage( analyticsCache::invalidateAll );
