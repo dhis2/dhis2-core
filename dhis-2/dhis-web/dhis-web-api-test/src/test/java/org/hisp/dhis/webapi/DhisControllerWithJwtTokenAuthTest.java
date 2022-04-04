@@ -58,7 +58,8 @@ import org.springframework.web.filter.CharacterEncodingFilter;
  */
 @RunWith( SpringRunner.class )
 @WebAppConfiguration
-@ContextConfiguration( classes = { JwtConfigConfiguration.class, WebMvcConfig.class, WebTestConfigurationWithJwtTokenAuth.class } )
+@ContextConfiguration( classes = { JwtConfigConfiguration.class, WebMvcConfig.class,
+    WebTestConfigurationWithJwtTokenAuth.class } )
 @ActiveProfiles( "test-h2" )
 @Transactional
 public abstract class DhisControllerWithJwtTokenAuthTest extends DhisConvenienceTest implements AuthenticatedWebClient
