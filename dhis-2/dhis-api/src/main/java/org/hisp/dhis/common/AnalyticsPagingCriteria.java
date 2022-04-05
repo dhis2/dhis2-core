@@ -27,85 +27,50 @@
  */
 package org.hisp.dhis.common;
 
-import java.util.Date;
-import java.util.Set;
-
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import org.hisp.dhis.analytics.SortOrder;
-import org.hisp.dhis.program.ProgramStatus;
-
 /**
- * @author Jan Bernitt
+ * This class contains all the paging criteria that can be used to execute a
+ * DHIS2 analytics query using the AnalyticsController
  */
+
 @Getter
 @Setter
-@NoArgsConstructor
-public class EnrollmentAnalyticsQueryCriteria extends AnalyticsPagingCriteria
+public class AnalyticsPagingCriteria extends RequestTypeAware
 {
-    private Date startDate;
-
-    private Date endDate;
+    /**
+     * The page number. Default page is 1.
+     */
+    private Integer page = 1;
 
     /**
-     * Date interval for enrollment date;
+     * The page size.
      */
-    private String enrollmentDate;
+    private Integer pageSize = 50;
 
     /**
-     * Time interval for incident date;
+     * The paging parameter. When set to false we should not paginate. The
+     * default is true (always paginate).
      */
-    private String incidentDate;
+    private boolean paging = true;
 
     /**
-     * Time interval for last updated date;
+     * The paging parameter. When set to false we should not count total pages.
+     * The default is true (always total pages flag activated).
      */
-    private String lastUpdated;
+    private boolean totalPages = true;
 
-    private String timeField;
-
-    private Set<String> dimension;
-
-    private Set<String> filter;
-
-    /**
-     * This parameter selects the headers to be returned as part of the
-     * response. The implementation for this Set will be LinkedHashSet as the
-     * ordering is important.
-     */
-    private Set<String> headers;
-
-    private OrganisationUnitSelectionMode ouMode;
-
-    private Set<String> asc;
-
-    private Set<String> desc;
-
-    private boolean skipMeta;
-
-    private boolean skipData;
-
-    private boolean completedOnly;
-
-    private boolean hierarchyMeta;
-
-    private boolean coordinatesOnly;
-
-    private boolean includeMetadataDetails;
-
-    private IdScheme dataIdScheme;
-
-    private Set<ProgramStatus> programStatus;
-
-    private DisplayProperty displayProperty;
-
-    private Date relativePeriodDate;
-
-    private String userOrgUnit;
-
-    private String coordinateField;
-
-    private SortOrder sortOrder;
+    public void definePageSize( int analyticsMaxLimit )
+    {
+        if ( isPaging() )
+        {
+            setPageSize(
+                getPageSize() != null && getPageSize() > analyticsMaxLimit ? analyticsMaxLimit : getPageSize() );
+        }
+        else
+        {
+            setPageSize( analyticsMaxLimit );
+        }
+    }
 }
