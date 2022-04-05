@@ -162,6 +162,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityfilter.EntityQueryCriteria;
 import org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilter;
+import org.hisp.dhis.trackerdataview.TrackerDataView;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserRole;
@@ -1883,12 +1884,18 @@ public abstract class DhisConvenienceTest
     {
         RelationshipType relationshipType = new RelationshipType();
 
+        RelationshipConstraint fromRelationShipConstraint = new RelationshipConstraint();
+        fromRelationShipConstraint.setTrackerDataView( TrackerDataView.builder().build() );
+
+        RelationshipConstraint toRelationShipConstraint = new RelationshipConstraint();
+        toRelationShipConstraint.setTrackerDataView( TrackerDataView.builder().build() );
+
         relationshipType.setFromToName( "from_" + uniqueCharacter );
         relationshipType.setToFromName( "to_" + uniqueCharacter );
         relationshipType.setAutoFields();
         relationshipType.setName( "RelationshipType_" + relationshipType.getUid() );
-        relationshipType.setFromConstraint( new RelationshipConstraint() );
-        relationshipType.setToConstraint( new RelationshipConstraint() );
+        relationshipType.setFromConstraint( fromRelationShipConstraint );
+        relationshipType.setToConstraint( toRelationShipConstraint );
 
         return relationshipType;
     }

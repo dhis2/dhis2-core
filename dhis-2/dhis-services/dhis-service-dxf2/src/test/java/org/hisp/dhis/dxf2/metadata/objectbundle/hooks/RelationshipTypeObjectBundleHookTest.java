@@ -143,31 +143,33 @@ public class RelationshipTypeObjectBundleHookTest extends DhisConvenienceTest
         personConstraint.setTrackedEntityType( personTrackedEntityType );
         personConstraint.setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
         personConstraint.setTrackerDataView(
-            TrackerDataView.builder().trackedEntityAttributes( Lists.newArrayList( trackedEntityAttribute ) ).build() );
+            TrackerDataView.builder().attributes( Sets.newHashSet( trackedEntityAttribute.getUid() ) ).build() );
 
         personConstraintWithNoAttribute = new RelationshipConstraint();
         personConstraintWithNoAttribute.setTrackedEntityType( personTrackedEntityType );
         personConstraintWithNoAttribute.setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
         personConstraintWithNoAttribute
-            .setTrackerDataView( TrackerDataView.builder().trackedEntityAttributes( Lists.newArrayList() ).build() );
+            .setTrackerDataView( TrackerDataView.builder().attributes( Sets.newHashSet() ).build() );
 
         personConstraintWithMultipleAttribute = new RelationshipConstraint();
         personConstraintWithMultipleAttribute.setTrackedEntityType( personTrackedEntityType );
         personConstraintWithMultipleAttribute.setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
         personConstraintWithMultipleAttribute.setTrackerDataView( TrackerDataView.builder()
-            .trackedEntityAttributes( Lists.newArrayList( trackedEntityAttribute, teaNotPartOfProgram ) ).build() );
+            .attributes( Sets.newHashSet( trackedEntityAttribute.getUid(), teaNotPartOfProgram.getUid() ) )
+            .build() );
 
         enrollmentConstraint = new RelationshipConstraint();
         enrollmentConstraint.setProgram( program );
         enrollmentConstraint.setRelationshipEntity( RelationshipEntity.PROGRAM_INSTANCE );
         enrollmentConstraint.setTrackerDataView(
-            TrackerDataView.builder().trackedEntityAttributes( Lists.newArrayList( trackedEntityAttribute ) ).build() );
+            TrackerDataView.builder().attributes( Sets.newHashSet( trackedEntityAttribute.getUid() ) ).build() );
 
         eventConstraint = new RelationshipConstraint();
         eventConstraint.setProgramStage( programStage );
         eventConstraint.setRelationshipEntity( RelationshipEntity.PROGRAM_STAGE_INSTANCE );
         eventConstraint
-            .setTrackerDataView( TrackerDataView.builder().dataElements( Lists.newArrayList( dataElement ) ).build() );
+            .setTrackerDataView(
+                TrackerDataView.builder().dataElements( Sets.newHashSet( dataElement.getUid() ) ).build() );
 
         teiToTeiRelationshipType = createPersonToPersonRelationshipType( 'A', program, personTrackedEntityType, false );
         teiToTeiRelationshipType.setToConstraint( personConstraint );
