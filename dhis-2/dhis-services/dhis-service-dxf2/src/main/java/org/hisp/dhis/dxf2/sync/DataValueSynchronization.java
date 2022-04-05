@@ -146,10 +146,10 @@ public class DataValueSynchronization implements DataSynchronizationWithPaging
         String msg = context.getObjectsToSynchronize() + " DataValues to synchronize were found.\n";
         msg += "Remote server URL for DataValues POST sync: " + context.getInstance().getUrl() + "\n";
         msg += "DataValueSynchronization job has " + context.getPages() + " pages to sync. With page size: "
-            + context.getPages();
+            + context.getPageSize();
 
         progress.startingStage( msg, context.getPages() );
-        return progress.runStage( IntStream.range( 0, context.getPages() ).boxed(),
+        return progress.runStage( IntStream.range( 1, context.getPages() + 1 ).boxed(),
             page -> format( "Synchronizing page %d with page size %d", page, context.getPageSize() ),
             page -> synchronizePage( page, context ) );
     }

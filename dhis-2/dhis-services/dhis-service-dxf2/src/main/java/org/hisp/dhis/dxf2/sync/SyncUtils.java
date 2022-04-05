@@ -470,7 +470,7 @@ public class SyncUtils
      * @param endpoint Endpoint against which the sync was run
      * @return true if sync was successful, false otherwise
      */
-    static boolean checkSummaryStatus( ImportSummary summary, SyncEndpoint endpoint )
+    private static boolean checkSummaryStatus( ImportSummary summary, SyncEndpoint endpoint )
     {
         if ( summary.getStatus() == ImportStatus.ERROR || summary.getStatus() == ImportStatus.WARNING )
         {
