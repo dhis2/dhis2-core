@@ -62,7 +62,7 @@ import org.springframework.web.filter.CharacterEncodingFilter;
  */
 @RunWith( SpringRunner.class )
 @WebAppConfiguration
-@ContextConfiguration( classes = { WebTestConfigConfiguration.class, MvcTestConfig.class, WebTestConfiguration.class } )
+@ContextConfiguration( classes = { WebTestDataSourceConfiguration.class, MvcTestConfig.class, WebTestConfiguration.class } )
 @ActiveProfiles( "test-h2" )
 @Transactional
 public abstract class DhisControllerConvenienceTest extends DhisConvenienceTest implements WebClient

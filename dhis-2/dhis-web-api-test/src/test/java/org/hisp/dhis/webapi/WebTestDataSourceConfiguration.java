@@ -51,7 +51,7 @@ import org.springframework.context.annotation.Primary;
 
 @Slf4j
 @Configuration
-public class WebTestConfigConfiguration
+public class WebTestDataSourceConfiguration
 {
     @Bean( name = "dhisConfigurationProvider" )
     public DhisConfigurationProvider dhisConfigurationProvider()
