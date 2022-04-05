@@ -33,7 +33,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.annotation.Nonnull;
 
@@ -109,6 +108,7 @@ import org.hisp.dhis.visualization.Visualization;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 /**
@@ -268,31 +268,21 @@ public class DefaultMetadataExportService implements MetadataExportService
     }
 
     @Override
-    public ObjectNode getMetadataWithDependenciesAsNode( IdentifiableObject object,
-        @Nonnull MetadataExportParams params )
+    public RootNode getMetadataWithDependenciesAsNode( IdentifiableObject object, @Nonnull MetadataExportParams params )
     {
-        ObjectNode rootNode = fieldFilterService.createObjectNode()
-            .putObject( "system" )
-            .put( "date", DateUtils.getIso8601( new Date() ) );
+        RootNode rootNode = NodeUtils.createMetadata();
+        rootNode.addChild( new SimpleNode( "date", new Date(), true ) );
 
         SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata = getMetadataWithDependencies(
             object );
 
         for ( Class<? extends IdentifiableObject> klass : metadata.keySet() )
         {
-            FieldFilterParams<?> fieldFilterParams = FieldFilterParams.builder()
-                .objects( new ArrayList<>( metadata.get( klass ) ) )
-                .filters( Set.of( ":owner" ) )
-                .skipSharing( params.getSkipSharing() )
-                .build();
-
-            List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes( fieldFilterParams );
-
-            if ( !objectNodes.isEmpty() )
-            {
-                String plural = schemaService.getDynamicSchema( klass ).getPlural();
-                rootNode.putArray( plural ).addAll( objectNodes );
-            }
+            org.hisp.dhis.fieldfilter.FieldFilterParams fieldFilterParams = new org.hisp.dhis.fieldfilter.FieldFilterParams(
+                Lists.newArrayList( metadata.get( klass ) ),
+                Lists.newArrayList( ":owner" ) );
+            fieldFilterParams.setSkipSharing( params.getSkipSharing() );
+            rootNode.addChild( oldFieldFilterService.toCollectionNode( klass, fieldFilterParams ) );
         }
 
         return rootNode;
