@@ -32,9 +32,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.hisp.dhis.attribute.Attribute;
-import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;
+import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.junit.jupiter.api.Assertions;
@@ -46,8 +46,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.net.HttpHeaders;
 
 /**
@@ -71,7 +69,7 @@ class MetadataExportControllerUtilsTest
         final Map<String, List<String>> parameterValuesMap = new HashMap<>();
         final MetadataExportParams exportParams = new MetadataExportParams();
         final Attribute attribute = new Attribute();
-        final ObjectNode rootNode = JacksonObjectMapperConfig.jsonMapper.createObjectNode();
+        final RootNode rootNode = NodeUtils.createMetadata();
 
         Mockito.when( contextService.getParameterValuesMap() ).thenReturn( parameterValuesMap );
         Mockito.when( exportService.getParamsFromMap( Mockito.same( parameterValuesMap ) ) ).thenReturn( exportParams );
@@ -80,7 +78,7 @@ class MetadataExportControllerUtilsTest
                 Mockito.same( exportParams ) ) )
             .thenReturn( rootNode );
 
-        final ResponseEntity<JsonNode> responseEntity = MetadataExportControllerUtils
+        final ResponseEntity<RootNode> responseEntity = MetadataExportControllerUtils
             .getWithDependencies( contextService, exportService, attribute, false );
         Assertions.assertEquals( HttpStatus.OK, responseEntity.getStatusCode() );
         Assertions.assertSame( rootNode, responseEntity.getBody() );
@@ -93,7 +91,7 @@ class MetadataExportControllerUtilsTest
         final Map<String, List<String>> parameterValuesMap = new HashMap<>();
         final MetadataExportParams exportParams = new MetadataExportParams();
         final Attribute attribute = new Attribute();
-        final ObjectNode rootNode = JacksonObjectMapperConfig.jsonMapper.createObjectNode();
+        final RootNode rootNode = NodeUtils.createMetadata();
 
         Mockito.when( contextService.getParameterValuesMap() ).thenReturn( parameterValuesMap );
         Mockito.when( exportService.getParamsFromMap( Mockito.same( parameterValuesMap ) ) ).thenReturn( exportParams );
@@ -102,7 +100,7 @@ class MetadataExportControllerUtilsTest
                 Mockito.same( exportParams ) ) )
             .thenReturn( rootNode );
 
-        final ResponseEntity<JsonNode> responseEntity = MetadataExportControllerUtils
+        final ResponseEntity<RootNode> responseEntity = MetadataExportControllerUtils
             .getWithDependencies( contextService, exportService, attribute, true );
         Assertions.assertEquals( HttpStatus.OK, responseEntity.getStatusCode() );
         Assertions.assertSame( rootNode, responseEntity.getBody() );
