@@ -52,7 +52,7 @@ public class XmlPathMappingJackson2XmlHttpMessageConverter extends MappingJackso
         Pattern.compile( "/(\\d\\d/)?events(/?$|/.+)" ),
         Pattern.compile( "/(\\d\\d/)?trackedEntityInstances(/?$|/.+)" ),
         Pattern.compile( "/(\\d\\d/)?dataValueSets(/?$|/.+)" ),
-        Pattern.compile( "/analytics/dataValueSet.xml" ),
+        Pattern.compile( "/(\\d\\d/)?analytics(/?$|/.+)" ),
         Pattern.compile( "/(\\d\\d/)?completeDataSetRegistrations(/?$|/.+)" ) );
 
     public XmlPathMappingJackson2XmlHttpMessageConverter( ObjectMapper objectMapper )
