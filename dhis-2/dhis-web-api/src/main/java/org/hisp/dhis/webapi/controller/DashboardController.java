@@ -40,6 +40,7 @@ import org.hisp.dhis.dashboard.DashboardItemType;
 import org.hisp.dhis.dashboard.DashboardSearchResult;
 import org.hisp.dhis.dashboard.DashboardService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.schema.descriptors.DashboardSchemaDescriptor;
 import org.hisp.dhis.sharing.CascadeSharingParameters;
 import org.hisp.dhis.sharing.CascadeSharingReport;
@@ -56,8 +57,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-
-import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * @author Lars Helge Overland
@@ -99,7 +98,7 @@ public class DashboardController
     // -------------------------------------------------------------------------
 
     @GetMapping( "/{uid}/metadata" )
-    public ResponseEntity<JsonNode> getDataSetWithDependencies( @PathVariable( "uid" ) String dashboardId,
+    public ResponseEntity<RootNode> getDataSetWithDependencies( @PathVariable( "uid" ) String dashboardId,
         @RequestParam( required = false, defaultValue = "false" ) boolean download )
         throws WebMessageException
     {
