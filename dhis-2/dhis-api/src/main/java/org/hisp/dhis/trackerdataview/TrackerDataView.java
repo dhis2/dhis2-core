@@ -28,8 +28,8 @@
 package org.hisp.dhis.trackerdataview;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -39,8 +39,6 @@ import lombok.Setter;
 import lombok.ToString;
 
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -62,15 +60,10 @@ public class TrackerDataView implements Serializable
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     @Builder.Default
-    private List<TrackedEntityAttribute> trackedEntityAttributes = new ArrayList<>();
+    private Set<String> attributes = new HashSet<>();
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     @Builder.Default
-    private List<DataElement> dataElements = new ArrayList<>();
-
-    public boolean isEmpty()
-    {
-        return this.trackedEntityAttributes.isEmpty() && this.dataElements.isEmpty();
-    }
+    private Set<String> dataElements = new HashSet<>();
 }
