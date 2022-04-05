@@ -19,7 +19,8 @@
           "valueType": "INTEGER",
           "attribute": "sYn3tkL3XKa",
           "value": "123"
-        }],
+        }
+      ],
       "programOwners": [
         {
           "ownerOrgUnit": "PlKwabX2xRW",
@@ -29,7 +30,6 @@
       ]
     }
   ],
-
   "enrollments": [
     {
       "enrollment": "TvctPPhpD8u",
