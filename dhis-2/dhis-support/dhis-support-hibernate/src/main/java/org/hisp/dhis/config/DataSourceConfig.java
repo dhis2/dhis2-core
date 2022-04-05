@@ -145,7 +145,8 @@ public class DataSourceConfig
     @Primary
     public DataSource dataSource( @Qualifier( "actualDataSource" ) DataSource actualDataSource )
     {
-        boolean enableQueryLogging = dhisConfig.isEnabled( ConfigurationKey.ENABLE_QUERY_LOGGING );
+        boolean enableQueryLogging = dhisConfig.isEnabled(
+            ConfigurationKey.ENABLE_QUERY_LOGGING );
 
         if ( !enableQueryLogging )
         {
@@ -163,18 +164,22 @@ public class DataSourceConfig
         ProxyDataSourceBuilder b = ProxyDataSourceBuilder
 
             .create( actualDataSource )
-            .name( "ProxyDS_DHIS2_" + dhisConfig.getProperty( ConfigurationKey.DB_POOL_TYPE ) +
+            .name( "ProxyDS_DHIS2_" + dhisConfig.getProperty(
+                ConfigurationKey.DB_POOL_TYPE ) +
                 "_" + CodeGenerator.generateCode( 5 ) )
 
             .logSlowQueryBySlf4j(
-                Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.SLOW_QUERY_LOGGING_THRESHOLD_TIME_MS ) ),
+                Integer.parseInt( dhisConfig.getProperty(
+                    ConfigurationKey.SLOW_QUERY_LOGGING_THRESHOLD_TIME_MS ) ),
                 TimeUnit.MILLISECONDS, SLF4JLogLevel.WARN )
 
             .listener( listener )
             .proxyResultSet();
 
-        boolean elapsedTimeLogging = dhisConfig.isEnabled( ConfigurationKey.ELAPSED_TIME_QUERY_LOGGING_ENABLED );
-        boolean methodLoggingEnabled = dhisConfig.isEnabled( ConfigurationKey.METHOD_QUERY_LOGGING_ENABLED );
+        boolean elapsedTimeLogging = dhisConfig.isEnabled(
+            ConfigurationKey.ELAPSED_TIME_QUERY_LOGGING_ENABLED );
+        boolean methodLoggingEnabled = dhisConfig.isEnabled(
+            ConfigurationKey.METHOD_QUERY_LOGGING_ENABLED );
 
         if ( methodLoggingEnabled )
         {
@@ -184,7 +189,8 @@ public class DataSourceConfig
         if ( elapsedTimeLogging )
         {
             b.afterQuery(
-                ( execInfo, queryInfoList ) -> log.info( "Query took " + execInfo.getElapsedTime() + "msec" ) );
+                ( execInfo, queryInfoList ) -> log.info( "Query took " +
+                    execInfo.getElapsedTime() + "msec" ) );
         }
 
         return b.build();
