@@ -38,13 +38,11 @@ import org.hisp.dhis.cache.DefaultHibernateCacheManager;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dbms.HibernateDbmsManager;
 import org.hisp.dhis.deletedobject.DeletedObject;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.hibernate.DefaultHibernateConfigurationProvider;
 import org.hisp.dhis.hibernate.HibernateConfigurationProvider;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.io.Resource;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.orm.hibernate5.HibernateTransactionManager;
@@ -60,18 +58,20 @@ import org.springframework.transaction.support.TransactionTemplate;
 @EnableTransactionManagement
 public class HibernateConfig
 {
-    @Bean( "hibernateConfigurationProvider" )
-    public HibernateConfigurationProvider hibernateConfigurationProvider( DhisConfigurationProvider dhisConfig )
-    {
-        DefaultHibernateConfigurationProvider hibernateConfigurationProvider = new DefaultHibernateConfigurationProvider();
-        hibernateConfigurationProvider.setConfigProvider( dhisConfig );
-        return hibernateConfigurationProvider;
-    }
+    // @Bean( "hibernateConfigurationProvider" )
+    // public HibernateConfigurationProvider hibernateConfigurationProvider(
+    // @Lazy DhisConfigurationProvider dhisConfig )
+    // {
+    // DefaultHibernateConfigurationProvider hibernateConfigurationProvider =
+    // new DefaultHibernateConfigurationProvider();
+    // hibernateConfigurationProvider.setConfigProvider( dhisConfig );
+    // return hibernateConfigurationProvider;
+    // }
 
     @Bean
     @DependsOn( "flyway" )
     public LocalSessionFactoryBean sessionFactory( DataSource dataSource,
-        @Qualifier( "hibernateConfigurationProvider" ) HibernateConfigurationProvider hibernateConfigurationProvider )
+        @Lazy HibernateConfigurationProvider hibernateConfigurationProvider )
     {
         Objects.requireNonNull( dataSource );
         Objects.requireNonNull( hibernateConfigurationProvider );
@@ -93,6 +93,7 @@ public class HibernateConfig
     }
 
     @Bean
+    @DependsOn( "dataSource" )
     public HibernateTransactionManager hibernateTransactionManager( DataSource dataSource,
         SessionFactory sessionFactory )
     {
