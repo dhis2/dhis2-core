@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.dxf2.metadata.jobs;
 
+import static java.lang.String.format;
+
 import java.util.Date;
 import java.util.List;
 
@@ -146,26 +148,29 @@ public class MetadataSyncJob implements Job
         throws MetadataSyncServiceException,
         DhisVersionMismatchException
     {
-        metadataSyncPreProcessor.setUp( context );
+        metadataSyncPreProcessor.setUp( context, progress );
         metadataSyncPreProcessor.handleDataValuePush( context, params, progress );
         metadataSyncPreProcessor.handleEventProgramsDataPush( context, params, progress );
         metadataSyncPreProcessor.handleCompleteDataSetRegistrationDataPush( context, progress );
         metadataSyncPreProcessor.handleTrackerProgramsDataPush( context, params, progress );
 
-        MetadataVersion version = metadataSyncPreProcessor.handleCurrentMetadataVersion( context );
+        MetadataVersion version = metadataSyncPreProcessor.handleCurrentMetadataVersion( context, progress );
 
-        List<MetadataVersion> versions = metadataSyncPreProcessor.handleMetadataVersionsList( context, version );
+        List<MetadataVersion> versions = metadataSyncPreProcessor.handleMetadataVersionsList( context, version,
+            progress );
 
-        handleMetadataVersions( context, versions );
+        handleMetadataSync( context, versions, progress );
 
         log.info( "Metadata sync cron job ended " );
     }
 
-    private void handleMetadataVersions( MetadataRetryContext context, List<MetadataVersion> versions )
+    private void handleMetadataSync( MetadataRetryContext context, List<MetadataVersion> versions,
+        JobProgress progress )
         throws DhisVersionMismatchException
     {
         if ( versions != null )
         {
+            progress.startingProcess( "Synchronize metadata" );
             for ( MetadataVersion dataVersion : versions )
             {
                 MetadataSyncParams syncParams = new MetadataSyncParams( new MetadataImportParams(), dataVersion );
@@ -174,7 +179,7 @@ public class MetadataSyncJob implements Job
 
                 if ( isSyncRequired )
                 {
-                    metadataSyncSummary = handleMetadataSync( context, dataVersion );
+                    metadataSyncSummary = handleMetadataSync( context, dataVersion, progress );
                 }
                 else
                 {
@@ -192,6 +197,7 @@ public class MetadataSyncJob implements Job
 
                 clearFailedVersionSettings();
             }
+            progress.completedProcess( null );
         }
     }
 
@@ -199,30 +205,26 @@ public class MetadataSyncJob implements Job
     // Private Methods
     // ----------------------------------------------------------------------------------------
 
-    private MetadataSyncSummary handleMetadataSync( MetadataRetryContext context, MetadataVersion dataVersion )
+    private MetadataSyncSummary handleMetadataSync( MetadataRetryContext context, MetadataVersion dataVersion,
+        JobProgress progress )
         throws DhisVersionMismatchException
     {
-
+        progress.startingStage(
+            format( "Synchronizing metadata for version %s %s ", dataVersion.getName(), dataVersion.getType() ) );
         MetadataSyncParams syncParams = new MetadataSyncParams( new MetadataImportParams(), dataVersion );
-        MetadataSyncSummary metadataSyncSummary = null;
 
         try
         {
-            metadataSyncSummary = metadataSyncService.doMetadataSync( syncParams );
+            MetadataSyncSummary summary = metadataSyncService.doMetadataSync( syncParams );
+            progress.completedStage( "" + summary.getImportReport().getStatus() );
+            return summary;
         }
-        catch ( MetadataSyncServiceException e )
+        catch ( MetadataSyncServiceException | DhisVersionMismatchException ex )
         {
-            log.error( "Exception happened  while trying to do metadata sync  " + e.getMessage(), e );
-            context.updateRetryContext( METADATA_SYNC, e.getMessage(), dataVersion );
-            throw e;
+            progress.failedStage( ex );
+            context.updateRetryContext( METADATA_SYNC, ex.getMessage(), dataVersion );
+            throw ex;
         }
-        catch ( DhisVersionMismatchException e )
-        {
-            context.updateRetryContext( METADATA_SYNC, e.getMessage(), dataVersion );
-            throw e;
-        }
-        return metadataSyncSummary;
-
     }
 
     private void updateMetadataVersionFailureDetails( MetadataRetryContext retryContext )

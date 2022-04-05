@@ -75,78 +75,66 @@ public class MetadataSyncPreProcessor
 
     private final CompleteDataSetRegistrationSynchronization completeDataSetRegistrationSync;
 
-    public void setUp( MetadataRetryContext context )
+    public void setUp( MetadataRetryContext context, JobProgress progress )
     {
-        systemSettingManager.saveSystemSetting( SettingKey.METADATAVERSION_ENABLED, true );
+        progress.startingStage( "Setting up metadata synchronisation" );
+        progress.runStage( () -> systemSettingManager.saveSystemSetting( SettingKey.METADATAVERSION_ENABLED, true ) );
     }
 
     public void handleDataValuePush( MetadataRetryContext context, MetadataSyncJobParameters syncParams,
         JobProgress progress )
     {
-        SynchronizationResult dataValuesSynchronizationResult = dataValueSync
-            .synchronizeData( syncParams.getDataValuesPageSize(), progress );
+        SynchronizationResult result = dataValueSync.synchronizeData( syncParams.getDataValuesPageSize(), progress );
 
-        if ( dataValuesSynchronizationResult.status == SynchronizationStatus.FAILURE )
+        if ( result.status == SynchronizationStatus.FAILURE )
         {
-            context.updateRetryContext( MetadataSyncJob.DATA_PUSH_SUMMARY, dataValuesSynchronizationResult.message,
-                null, null );
-            throw new MetadataSyncServiceException( dataValuesSynchronizationResult.message );
+            context.updateRetryContext( MetadataSyncJob.DATA_PUSH_SUMMARY, result.message, null, null );
+            throw new MetadataSyncServiceException( result.message );
         }
     }
 
     public void handleTrackerProgramsDataPush( MetadataRetryContext context, MetadataSyncJobParameters syncParams,
         JobProgress progress )
     {
-        int pageSize = syncParams.getTrackerProgramPageSize();
-        SynchronizationResult trackerSynchronizationResult = trackerSync.synchronizeData( pageSize, progress );
+        SynchronizationResult result = trackerSync.synchronizeData( syncParams.getTrackerProgramPageSize(), progress );
 
-        if ( trackerSynchronizationResult.status == SynchronizationStatus.FAILURE )
+        if ( result.status == SynchronizationStatus.FAILURE )
         {
-            context.updateRetryContext( MetadataSyncJob.TRACKER_PUSH_SUMMARY, trackerSynchronizationResult.message,
-                null, null );
-            throw new MetadataSyncServiceException( trackerSynchronizationResult.message );
+            context.updateRetryContext( MetadataSyncJob.TRACKER_PUSH_SUMMARY, result.message, null, null );
+            throw new MetadataSyncServiceException( result.message );
         }
     }
 
     public void handleEventProgramsDataPush( MetadataRetryContext context, MetadataSyncJobParameters syncParams,
         JobProgress progress )
     {
-        int pageSize = syncParams.getEventProgramPageSize();
-        SynchronizationResult eventsSynchronizationResult = eventSync.synchronizeData( pageSize, progress );
+        SynchronizationResult result = eventSync.synchronizeData( syncParams.getEventProgramPageSize(), progress );
 
-        if ( eventsSynchronizationResult.status == SynchronizationStatus.FAILURE )
+        if ( result.status == SynchronizationStatus.FAILURE )
         {
-            context.updateRetryContext( MetadataSyncJob.EVENT_PUSH_SUMMARY, eventsSynchronizationResult.message, null,
-                null );
-            throw new MetadataSyncServiceException( eventsSynchronizationResult.message );
+            context.updateRetryContext( MetadataSyncJob.EVENT_PUSH_SUMMARY, result.message, null, null );
+            throw new MetadataSyncServiceException( result.message );
         }
     }
 
-    public List<MetadataVersion> handleMetadataVersionsList( MetadataRetryContext context,
-        MetadataVersion metadataVersion )
+    public List<MetadataVersion> handleMetadataVersionsList( MetadataRetryContext context, MetadataVersion version,
+        JobProgress progress )
     {
-        log.debug( "Fetching the list of remote versions" );
-
-        List<MetadataVersion> versions;
-
+        progress.startingStage( "Fetching the list of remote versions"
+            + (version == null ? "There is no initial version in the system" : "") );
         try
         {
-            versions = metadataVersionDelegate.getMetaDataDifference( metadataVersion );
+            List<MetadataVersion> versions = metadataVersionDelegate.getMetaDataDifference( version );
 
-            if ( metadataVersion == null )
+            if ( isRemoteVersionEmpty( version, versions ) )
             {
-                log.info( "There is no initial version in the system" );
-            }
-
-            if ( isRemoteVersionEmpty( metadataVersion, versions ) )
-            {
-                log.info( "There are no metadata versions created in the remote instance." );
+                progress.completedStage( "There are no metadata versions created in the remote instance." );
                 return versions;
             }
 
-            if ( isUsingLatestVersion( metadataVersion, versions ) )
+            if ( isUsingLatestVersion( version, versions ) )
             {
-                log.info( "Your instance is already using the latest version:" + metadataVersion );
+                progress.completedStage( "Your instance is already using the latest version:" + version );
                 return versions;
             }
 
@@ -154,28 +142,27 @@ public class MetadataSyncPreProcessor
             assert latestVersion != null;
 
             systemSettingManager.saveSystemSetting( SettingKey.REMOTE_METADATA_VERSION, latestVersion.getName() );
-            log.info( "Remote system is at version: " + latestVersion.getName() );
-
+            progress.completedStage( "Remote system is at version: " + latestVersion.getName() );
+            return versions;
         }
         catch ( MetadataVersionServiceException e )
         {
-            String message = setVersionListErrorInfoInContext( context, metadataVersion, e );
+            String message = setVersionListErrorInfoInContext( context, version, e );
+            progress.failedStage( message );
             throw new MetadataSyncServiceException( message, e );
         }
         catch ( Exception ex )
         {
             if ( ex instanceof MetadataSyncServiceException )
             {
-                log.error( ex.getMessage(), ex );
+                progress.failedStage( ex );
                 throw ex;
             }
 
-            String message = setVersionListErrorInfoInContext( context, metadataVersion, ex );
-            log.error( message, ex );
+            String message = setVersionListErrorInfoInContext( context, version, ex );
+            progress.failedStage( ex );
             throw new MetadataSyncServiceException( message, ex );
         }
-
-        return versions;
     }
 
     private String setVersionListErrorInfoInContext( MetadataRetryContext context, MetadataVersion version,
@@ -196,19 +183,20 @@ public class MetadataSyncPreProcessor
         return metadataVersion == null && versions.isEmpty();
     }
 
-    public MetadataVersion handleCurrentMetadataVersion( MetadataRetryContext context )
+    public MetadataVersion handleCurrentMetadataVersion( MetadataRetryContext context, JobProgress progress )
     {
-        log.debug( "Getting the current version of the system" );
+        progress.startingStage( "Getting the current version of the system" );
 
         try
         {
             MetadataVersion version = metadataVersionService.getCurrentVersion();
-            log.info( "Current Metadata Version of the system: " + version );
+            progress.completedStage( "Current Metadata Version of the system: " + version );
             return version;
         }
         catch ( MetadataVersionServiceException ex )
         {
             context.updateRetryContext( MetadataSyncJob.GET_METADATAVERSION, ex.getMessage(), null, null );
+            progress.failedStage( ex );
             throw new MetadataSyncServiceException( ex.getMessage(), ex );
         }
     }
@@ -235,7 +223,6 @@ public class MetadataSyncPreProcessor
                 return metadataVersion;
             }
         }
-
         return null;
     }
 
