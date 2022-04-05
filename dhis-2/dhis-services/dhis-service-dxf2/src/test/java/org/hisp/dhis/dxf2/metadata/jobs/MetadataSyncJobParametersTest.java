@@ -40,6 +40,7 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncParams;
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncPostProcessor;
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncPreProcessor;
@@ -102,7 +103,8 @@ class MetadataSyncJobParametersTest
     @BeforeEach
     public void setUp()
     {
-        metadataSyncSummary = mock( MetadataSyncSummary.class );
+        metadataSyncSummary = new MetadataSyncSummary();
+        metadataSyncSummary.setImportReport( new ImportReport() );
         metadataVersion = mock( MetadataVersion.class );
         metadataVersions = new ArrayList<>();
         metadataVersions.add( metadataVersion );
