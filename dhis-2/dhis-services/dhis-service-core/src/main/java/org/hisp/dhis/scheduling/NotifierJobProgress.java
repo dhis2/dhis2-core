@@ -105,19 +105,13 @@ public class NotifierJobProgress implements JobProgress
     @Override
     public void startingWorkItem( String description )
     {
-        if ( isNotEmpty( description ) )
-        {
-            notifier.notify( jobId, NotificationLevel.INFO, description );
-        }
+        // intentionally not fowarded
     }
 
     @Override
     public void completedWorkItem( String summary )
     {
-        if ( isNotEmpty( summary ) )
-        {
-            notifier.notify( jobId, NotificationLevel.INFO, summary, false );
-        }
+        // intentionally not fowarded
     }
 
     @Override

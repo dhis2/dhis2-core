@@ -25,18 +25,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.strategy.tracker.imports;
+package org.hisp.dhis.webapi.controller.tracker.imports;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import org.hisp.dhis.webapi.controller.tracker.TrackerBundleParams;
-import org.hisp.dhis.webapi.controller.tracker.TrackerImportReportRequest;
+import org.hisp.dhis.tracker.TrackerBundleReportMode;
 import org.hisp.dhis.webapi.service.ContextService;
-import org.hisp.dhis.webapi.strategy.tracker.imports.impl.TrackerImportAsyncStrategyImpl;
-import org.hisp.dhis.webapi.strategy.tracker.imports.impl.TrackerImportStrategyImpl;
-import org.hisp.dhis.webapi.strategy.tracker.imports.impl.TrackerImportSyncStrategyImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -44,16 +41,16 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith( MockitoExtension.class )
-class TrackerImportStrategyHandlerTest
+class TrackerImporterTest
 {
     @InjectMocks
-    TrackerImportStrategyImpl importStrategy;
+    DefaultTrackerImporter defaultTrackerImporter;
 
     @Mock
-    TrackerImportAsyncStrategyImpl importAsyncStrategy;
+    TrackerAsyncImporter asyncImporter;
 
     @Mock
-    TrackerImportSyncStrategyImpl importAsyncFalseStrategy;
+    TrackerSyncImporter syncImporter;
 
     @Mock
     ContextService contextService;
@@ -61,7 +58,7 @@ class TrackerImportStrategyHandlerTest
     @Test
     void shouldImportAsync()
     {
-        TrackerImportReportRequest trackerImportReportRequest = TrackerImportReportRequest
+        TrackerImportRequest trackerImportRequest = TrackerImportRequest
             .builder()
             .contextService( contextService )
             .userUid( "userUid" )
@@ -70,26 +67,27 @@ class TrackerImportStrategyHandlerTest
             .isAsync( true )
             .build();
 
-        importStrategy.importReport( trackerImportReportRequest );
+        defaultTrackerImporter.importTracker( trackerImportRequest );
 
-        verify( importAsyncStrategy ).importReport( any() );
-        verify( importAsyncFalseStrategy, times( 0 ) ).importReport( any() );
+        verify( asyncImporter ).importTracker( any(), any(), eq( "uid" ) );
+        verify( syncImporter, times( 0 ) ).importTracker( any(), any() );
     }
 
     @Test
-    void shouldNotImportAsync()
+    void shouldImportSync()
     {
-        TrackerImportReportRequest trackerImportReportRequest = TrackerImportReportRequest
+        TrackerImportRequest trackerImportRequest = TrackerImportRequest
             .builder()
             .contextService( contextService )
             .userUid( "userUid" )
             .uid( "uid" )
             .trackerBundleParams( TrackerBundleParams.builder().build() )
+            .trackerBundleReportMode( TrackerBundleReportMode.ERRORS )
             .build();
 
-        importStrategy.importReport( trackerImportReportRequest );
+        defaultTrackerImporter.importTracker( trackerImportRequest );
 
-        verify( importAsyncStrategy, times( 0 ) ).importReport( any() );
-        verify( importAsyncFalseStrategy ).importReport( any() );
+        verify( asyncImporter, times( 0 ) ).importTracker( any(), any(), any() );
+        verify( syncImporter ).importTracker( any(), eq( TrackerBundleReportMode.ERRORS ) );
     }
 }

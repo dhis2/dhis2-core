@@ -121,7 +121,7 @@ class PreCheckExistenceValidationHookTest
         when( bundle.getProgramInstance( ENROLLMENT_UID ) ).thenReturn( getEnrollment() );
         when( bundle.getProgramStageInstance( SOFT_DELETED_EVENT_UID ) ).thenReturn( getSoftDeletedEvent() );
         when( bundle.getProgramStageInstance( EVENT_UID ) ).thenReturn( getEvent() );
-        when( preheat.getRelationship( bundle.getIdentifier(), getPayloadRelationship() ) )
+        when( preheat.getRelationship( getPayloadRelationship() ) )
             .thenReturn( getRelationship() );
     }
 

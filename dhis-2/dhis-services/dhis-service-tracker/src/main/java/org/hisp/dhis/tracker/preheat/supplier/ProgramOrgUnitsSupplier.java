@@ -62,9 +62,7 @@ public class ProgramOrgUnitsSupplier extends JdbcAbstractPreheatSupplier
     public void preheatAdd( TrackerImportParams params, TrackerPreheat preheat )
     {
         // fetch all existing Org Units from payload
-        final List<Long> orgUnitIds = preheat.getMap()
-            .getOrDefault( OrganisationUnit.class, Collections.emptyMap() )
-            .values()
+        final List<Long> orgUnitIds = preheat.getAll( OrganisationUnit.class )
             .stream()
             .map( IdentifiableObject::getId )
             .distinct()

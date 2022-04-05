@@ -100,7 +100,7 @@ public class EventDataValuesValidationHook
             final List<String> mandatoryDataElements = programStage.getProgramStageDataElements()
                 .stream()
                 .filter( ProgramStageDataElement::isCompulsory )
-                .map( de -> preheat.getIdentifiers().getDataElementIdScheme()
+                .map( de -> preheat.getIdSchemes().getDataElementIdScheme()
                     .getIdentifier( de.getDataElement() ) )
                 .collect( Collectors.toList() );
             List<String> missingDataValue = validateMandatoryDataValue( programStage, event,
@@ -154,7 +154,7 @@ public class EventDataValuesValidationHook
         TrackerPreheat preheat = reporter.getBundle().getPreheat();
         final Set<String> dataElements = programStage.getProgramStageDataElements()
             .stream()
-            .map( de -> preheat.getIdentifiers().getDataElementIdScheme()
+            .map( de -> preheat.getIdSchemes().getDataElementIdScheme()
                 .getIdentifier( de.getDataElement() ) )
             .collect( Collectors.toSet() );
 

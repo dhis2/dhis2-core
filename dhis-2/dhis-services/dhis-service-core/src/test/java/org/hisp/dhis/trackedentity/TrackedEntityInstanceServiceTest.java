@@ -34,7 +34,10 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.IntegrationTestBase;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.QueryFilter;
+import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -46,6 +49,9 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.security.acl.AccessStringHelper;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
+import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.joda.time.DateTime;
@@ -57,7 +63,8 @@ import com.google.common.collect.Sets;
 /**
  * @author Chau Thu Tran
  */
-class TrackedEntityInstanceServiceTest extends DhisSpringTest
+class TrackedEntityInstanceServiceTest
+    extends IntegrationTestBase
 {
 
     @Autowired
@@ -80,6 +87,9 @@ class TrackedEntityInstanceServiceTest extends DhisSpringTest
 
     @Autowired
     private TrackedEntityAttributeService attributeService;
+
+    @Autowired
+    private TrackedEntityAttributeValueService attributeValueService;
 
     @Autowired
     private UserService userService;
@@ -110,6 +120,16 @@ class TrackedEntityInstanceServiceTest extends DhisSpringTest
     private TrackedEntityAttribute filtF = createTrackedEntityAttribute( 'F' );
 
     private TrackedEntityAttribute filtG = createTrackedEntityAttribute( 'G' );
+
+    private TrackedEntityAttribute filtH = createTrackedEntityAttribute( 'H' );
+
+    private final static String ATTRIBUTE_VALUE = "Value";
+
+    @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
+    }
 
     @Override
     public void setUpTest()
@@ -246,5 +266,40 @@ class TrackedEntityInstanceServiceTest extends DhisSpringTest
         entityInstanceService.addTrackedEntityInstance( entityInstanceA1 );
         TrackedEntityInstance tei = entityInstanceService.getTrackedEntityInstance( entityInstanceA1.getUid() );
         assertEquals( "test", tei.getStoredBy() );
+    }
+
+    @Test
+    void testTrackedEntityAttributeFilter()
+    {
+        User user = createUser( "attributeFilterUser" );
+        user.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
+        CurrentUserService currentUserService = new MockCurrentUserService( user );
+        ReflectionTestUtils.setField( entityInstanceService, "currentUserService", currentUserService );
+
+        filtH.setDisplayInListNoProgram( true );
+
+        attributeService.addTrackedEntityAttribute( filtH );
+
+        entityInstanceA1.setTrackedEntityType( trackedEntityTypeA );
+        entityInstanceService.addTrackedEntityInstance( entityInstanceA1 );
+
+        TrackedEntityAttributeValue trackedEntityAttributeValue = new TrackedEntityAttributeValue();
+
+        trackedEntityAttributeValue.setAttribute( filtH );
+        trackedEntityAttributeValue.setEntityInstance( entityInstanceA1 );
+        trackedEntityAttributeValue.setValue( ATTRIBUTE_VALUE );
+
+        attributeValueService.addTrackedEntityAttributeValue( trackedEntityAttributeValue );
+
+        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+        params.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
+        params.setTrackedEntityType( trackedEntityTypeA );
+
+        params.setQuery( new QueryFilter( QueryOperator.LIKE, ATTRIBUTE_VALUE ) );
+
+        Grid grid = entityInstanceService.getTrackedEntityInstancesGrid( params );
+
+        assertEquals( 1, grid.getHeight() );
+
     }
 }

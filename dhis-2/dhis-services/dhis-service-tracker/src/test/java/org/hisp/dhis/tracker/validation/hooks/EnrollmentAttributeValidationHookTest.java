@@ -44,7 +44,6 @@ import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
@@ -142,7 +141,7 @@ class EnrollmentAttributeValidationHookTest
             .thenReturn( new HashSet<>(
                 Arrays.asList( new TrackedEntityAttributeValue( trackedEntityAttribute, trackedEntityInstance ),
                     new TrackedEntityAttributeValue( trackedEntityAttribute1, trackedEntityInstance ) ) ) );
-        when( preheat.getTrackedEntity( TrackerIdScheme.UID, enrollment.getTrackedEntity() ) )
+        when( preheat.getTrackedEntity( enrollment.getTrackedEntity() ) )
             .thenReturn( trackedEntityInstance );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
@@ -170,7 +169,7 @@ class EnrollmentAttributeValidationHookTest
             .thenReturn( new HashSet<>(
                 Arrays.asList( new TrackedEntityAttributeValue( trackedEntityAttribute, trackedEntityInstance ),
                     new TrackedEntityAttributeValue( trackedEntityAttribute1, trackedEntityInstance ) ) ) );
-        when( preheat.getTrackedEntity( TrackerIdScheme.UID, enrollment.getTrackedEntity() ) )
+        when( preheat.getTrackedEntity( enrollment.getTrackedEntity() ) )
             .thenReturn( trackedEntityInstance );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
@@ -196,7 +195,7 @@ class EnrollmentAttributeValidationHookTest
         when( trackedEntityInstance.getTrackedEntityAttributeValues() )
             .thenReturn( new HashSet<>( Collections
                 .singletonList( new TrackedEntityAttributeValue( trackedEntityAttribute, trackedEntityInstance ) ) ) );
-        when( preheat.getTrackedEntity( TrackerIdScheme.UID, enrollment.getTrackedEntity() ) )
+        when( preheat.getTrackedEntity( enrollment.getTrackedEntity() ) )
             .thenReturn( trackedEntityInstance );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
@@ -222,7 +221,7 @@ class EnrollmentAttributeValidationHookTest
         when( trackedEntityInstance.getTrackedEntityAttributeValues() )
             .thenReturn( new HashSet<>( Collections
                 .singletonList( new TrackedEntityAttributeValue( trackedEntityAttribute, trackedEntityInstance ) ) ) );
-        when( preheat.getTrackedEntity( TrackerIdScheme.UID, enrollment.getTrackedEntity() ) )
+        when( preheat.getTrackedEntity( enrollment.getTrackedEntity() ) )
             .thenReturn( trackedEntityInstance );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
