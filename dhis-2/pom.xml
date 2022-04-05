@@ -854,6 +854,7 @@
                                     <bannedImports>
                                         <bannedImport>com.google.api.client.util.**</bannedImport>
                                         <bannedImport>org.apache.logging.log4j.util.**</bannedImport>
+                                        <bannedImport>org.wildfly.common.**</bannedImport>
                                     </bannedImports>
                                 </RestrictImports>
                                 <RestrictImports>
@@ -2288,10 +2289,6 @@
                     <exclusion>
                         <groupId>io.netty</groupId>
                         <artifactId>netty-transport-native-kqueue</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.wildfly.common</groupId>
-                        <artifactId>wildfly-common</artifactId>
                     </exclusion>
                     <exclusion>
                         <groupId>commons-logging</groupId>
