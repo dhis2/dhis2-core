@@ -44,12 +44,14 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
 
 import com.google.common.collect.Sets;
 
+@Ignore // ignored until we can inject dhis.conf property overrides
 @ActiveProfiles( profiles = { "test-audit" } )
 public class HardDeleteAuditTest
     extends IntegrationTestBase
