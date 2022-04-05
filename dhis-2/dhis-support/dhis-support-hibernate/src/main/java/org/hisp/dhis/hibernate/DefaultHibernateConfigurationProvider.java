@@ -59,15 +59,18 @@ import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.location.LocationManagerException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
+import org.springframework.stereotype.Component;
 import org.springframework.util.ResourceUtils;
 
 /**
  * @author Torgeir Lorange Ostby
  */
 @Slf4j
+@Component( "hibernateConfigurationProvider" )
 public class DefaultHibernateConfigurationProvider
     implements HibernateConfigurationProvider
 {
@@ -106,12 +109,14 @@ public class DefaultHibernateConfigurationProvider
     // Dependencies
     // -------------------------------------------------------------------------
 
+    @Autowired
+    @Lazy
     private DhisConfigurationProvider configProvider;
 
-    public void setConfigProvider( DhisConfigurationProvider configProvider )
-    {
-        this.configProvider = configProvider;
-    }
+    // public void setConfigProvider( DhisConfigurationProvider configProvider )
+    // {
+    // this.configProvider = configProvider;
+    // }
 
     // -------------------------------------------------------------------------
     // Initialize

@@ -131,9 +131,13 @@ public class DataSourceConfig
 
     @Bean( "dataSource" )
     @DependsOn( "actualDataSource" )
-    @Primary
     public DataSource dataSource( @Lazy DhisConfigurationProvider dhisConfig,
         @Qualifier( "actualDataSource" ) DataSource actualDataSource )
+    {
+        return createDataSource( dhisConfig, actualDataSource );
+    }
+
+    public static DataSource createDataSource( DhisConfigurationProvider dhisConfig, DataSource actualDataSource )
     {
         boolean enableQueryLogging = dhisConfig.getBoolean( ConfigurationKey.ENABLE_QUERY_LOGGING );
 
