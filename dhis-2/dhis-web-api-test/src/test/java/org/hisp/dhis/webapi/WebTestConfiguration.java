@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.webapi;
 
-import java.beans.PropertyVetoException;
-import java.sql.SQLException;
 import java.util.Date;
 
 import javax.sql.DataSource;
@@ -38,21 +36,15 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
-import org.hisp.dhis.commons.util.DebugUtils;
-import org.hisp.dhis.config.DataSourceConfig;
-import org.hisp.dhis.config.H2DhisConfigurationProvider;
 import org.hisp.dhis.config.HibernateConfig;
 import org.hisp.dhis.config.HibernateEncryptionConfig;
 import org.hisp.dhis.config.ServiceConfig;
 import org.hisp.dhis.config.StartupConfig;
 import org.hisp.dhis.config.StoreConfig;
 import org.hisp.dhis.configuration.NotifierConfiguration;
-import org.hisp.dhis.datasource.DatabasePoolUtils;
+import org.hisp.dhis.datasource.DefaultReadOnlyDataSourceManager;
 import org.hisp.dhis.db.migration.config.FlywayConfig;
-import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.h2.H2SqlFunction;
-import org.hisp.dhis.hibernate.HibernateConfigurationProvider;
 import org.hisp.dhis.jdbc.config.JdbcConfig;
 import org.hisp.dhis.leader.election.LeaderElectionConfiguration;
 import org.hisp.dhis.leader.election.LeaderManager;
@@ -67,14 +59,19 @@ import org.hisp.dhis.security.SystemAuthoritiesProvider;
 import org.hisp.dhis.startup.DefaultAdminUserPopulator;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.webapi.mvc.ContentNegotiationConfig;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ComponentScan.Filter;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.ImportResource;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Primary;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
 import org.springframework.security.authentication.event.AuthenticationFailureBadCredentialsEvent;
@@ -87,6 +84,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableMap;
 
 /**
@@ -102,7 +100,6 @@ import com.google.common.collect.ImmutableMap;
 }, excludeFilters = @Filter( Configuration.class ) )
 @Import( {
     HibernateConfig.class,
-    DataSourceConfig.class,
     JdbcConfig.class,
     FlywayConfig.class,
     HibernateEncryptionConfig.class,
@@ -134,44 +131,35 @@ public class WebTestConfiguration
         return new org.springframework.security.core.session.SessionRegistryImpl();
     }
 
-    @Bean( "actualDataSource" )
-    public DataSource actualDataSource( HibernateConfigurationProvider hibernateConfigurationProvider )
+    @Bean
+    @DependsOn( "dataSource" )
+    public NamedParameterJdbcTemplate namedParameterJdbcTemplate( @Qualifier( "dataSource" ) DataSource dataSource )
     {
-        final DhisConfigurationProvider config = dhisConfigurationProvider();
-        String jdbcUrl = config.getProperty( ConfigurationKey.CONNECTION_URL );
-        String username = config.getProperty( ConfigurationKey.CONNECTION_USERNAME );
-        String dbPoolType = config.getProperty( ConfigurationKey.DB_POOL_TYPE );
-
-        DatabasePoolUtils.PoolConfig.PoolConfigBuilder builder = DatabasePoolUtils.PoolConfig.builder();
-        builder.dhisConfig( config );
-        builder.hibernateConfig( hibernateConfigurationProvider );
-        builder.dbPoolType( dbPoolType );
-
-        try
-        {
-            final DataSource dbPool = DatabasePoolUtils.createDbPool( builder.build() );
-
-            // H2 JSON functions
-            H2SqlFunction.registerH2Functions( dbPool );
-
-            return dbPool;
-        }
-        catch ( SQLException | PropertyVetoException e )
-        {
-            String message = String.format( "Connection test failed for main database pool, " +
-                "jdbcUrl: '%s', user: '%s'", jdbcUrl, username );
-
-            log.error( message );
-            log.error( DebugUtils.getStackTrace( e ) );
-
-            throw new IllegalStateException( message, e );
-        }
+        return new NamedParameterJdbcTemplate( dataSource );
     }
 
-    @Bean( name = "dhisConfigurationProvider" )
-    public DhisConfigurationProvider dhisConfigurationProvider()
+    @Bean( "jdbcTemplate" )
+    @DependsOn( "dataSource" )
+    @Primary
+    public JdbcTemplate jdbcTemplate( @Qualifier( "dataSource" ) DataSource dataSource )
     {
-        return new H2DhisConfigurationProvider();
+        JdbcTemplate jdbcTemplate = new JdbcTemplate( dataSource );
+        jdbcTemplate.setFetchSize( 1000 );
+        return jdbcTemplate;
+    }
+
+    @Bean( "readOnlyJdbcTemplate" )
+    @DependsOn( "dataSource" )
+    public JdbcTemplate readOnlyJdbcTemplate( @Lazy DhisConfigurationProvider dhisConfig,
+        @Qualifier( "dataSource" ) DataSource dataSource )
+    {
+        DefaultReadOnlyDataSourceManager manager = new DefaultReadOnlyDataSourceManager( dhisConfig );
+
+        JdbcTemplate jdbcTemplate = new JdbcTemplate(
+            MoreObjects.firstNonNull( manager.getReadOnlyDataSource(), dataSource ) );
+        jdbcTemplate.setFetchSize( 1000 );
+
+        return jdbcTemplate;
     }
 
     @Bean
