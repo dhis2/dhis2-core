@@ -283,7 +283,7 @@ class IndicatorServiceTest extends DhisSpringTest
     }
 
     @Test
-    @Disabled("TODO: 12098 fix this test, translation issue")
+    @Disabled( "TODO: 12098 fix this test, translation issue" )
     void testNumeratorTranslation()
     {
         Locale locale = Locale.FRENCH;

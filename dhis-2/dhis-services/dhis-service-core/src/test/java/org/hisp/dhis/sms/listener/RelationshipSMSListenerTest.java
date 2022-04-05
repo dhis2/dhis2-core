@@ -177,7 +177,7 @@ class RelationshipSMSListenerTest extends
     private void setUpInstances()
         throws SmsCompressionException
     {
-        user = createUser( 'U' );
+        user = makeUser( "U" );
         user.setPhoneNumber( ORIGINATOR );
 
         programInstance = new ProgramInstance();

@@ -73,11 +73,11 @@ class UserMetadataOrgUnitMergeHandlerTest extends DhisSpringTest
     @Test
     void testMergeUsers()
     {
-        User userA = createUser( 'A' );
+        User userA = makeUser( "A" );
         userA.addOrganisationUnit( ouA );
         userA.getDataViewOrganisationUnits().add( ouA );
         userA.getTeiSearchOrganisationUnits().add( ouA );
-        User userB = createUser( 'B' );
+        User userB = makeUser( "B" );
         userB.addOrganisationUnit( ouB );
         userB.getDataViewOrganisationUnits().add( ouB );
         userB.getTeiSearchOrganisationUnits().add( ouB );

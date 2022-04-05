@@ -92,8 +92,8 @@ public abstract class TrackerTest extends TransactionalIntegrationTest
         renderService = _renderService;
         initTest();
         // Clear the session to simulate different API call after the setup
-//        manager.clear();
-//        dbmsManager.flushSession();
+        // manager.clear();
+        // dbmsManager.flushSession();
     }
 
     protected abstract void initTest()
@@ -173,7 +173,7 @@ public abstract class TrackerTest extends TransactionalIntegrationTest
     protected TrackerStatus logTrackerErrors( TrackerImportReport trackerImportReport )
     {
         TrackerStatus status = trackerImportReport.getStatus();
-        if( status == TrackerStatus.ERROR )
+        if ( status == TrackerStatus.ERROR )
         {
             List<TrackerErrorReport> errors = trackerImportReport.getValidationReport().getErrors();
             errors.forEach( error -> {

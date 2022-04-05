@@ -101,7 +101,7 @@ class QueryParserTest extends IntegrationTestBase
         throws Exception
     {
         OrganisationUnit orgUnitA = createOrganisationUnit( 'A' );
-        User user = createUser( 'A' );
+        User user = makeUser( "A" );
         user.addOrganisationUnit( orgUnitA );
         // CurrentUserService currentUserService = new MockCurrentUserService(
         // user );

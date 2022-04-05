@@ -65,7 +65,6 @@ import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
@@ -191,7 +190,9 @@ public abstract class TrackerTest extends IntegrationTestBase
         programA.setProgramStages(
             Stream.of( programStageA1, programStageA2 ).collect( Collectors.toCollection( HashSet::new ) ) );
         manager.update( programA );
+
         super.userService = this.userService;
+
         mockCurrentUserService();
     }
 
@@ -381,7 +382,7 @@ public abstract class TrackerTest extends IntegrationTestBase
     {
         User user = createUserWithAuth( "testUser" );
         injectSecurityContext( user );
-//        currentUserService = new MockCurrentUserService( user );
+        // currentUserService = new MockCurrentUserService( user );
     }
 
     protected ProgramStage createProgramStage( Program program, boolean publicAccess )

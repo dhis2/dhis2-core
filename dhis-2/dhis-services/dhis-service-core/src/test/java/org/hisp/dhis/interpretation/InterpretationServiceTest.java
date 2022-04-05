@@ -104,8 +104,8 @@ class InterpretationServiceTest extends TransactionalIntegrationTest
     @BeforeEach
     void beforeTest()
     {
-        userA = createUser( 'A' );
-        userB = createUser( 'B' );
+        userA = makeUser( "A" );
+        userB = makeUser( "B" );
         userC = createUserWithAuth( "C.D-E_F" );
         userService.addUser( userA );
         userService.addUser( userB );

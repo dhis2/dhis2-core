@@ -42,7 +42,6 @@ import java.util.Set;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.user.CurrentUserService;
@@ -404,7 +403,7 @@ class DataApprovalLevelServiceTest extends DhisSpringTest
         // setDependency( CurrentUserServiceTarget.class,
         // CurrentUserServiceTarget::setCurrentUserService,
         // currentUserService, dataApprovalLevelService );
-        User cu = MockCurrentUserService.makeUser( assignedOrgUnits, dataViewOrgUnits );
+        User cu = mockUser( assignedOrgUnits, dataViewOrgUnits );
         injectSecurityContext( cu );
 
         Map<OrganisationUnit, Integer> readApprovalLevels = dataApprovalLevelService.getUserReadApprovalLevels();
@@ -436,7 +435,7 @@ class DataApprovalLevelServiceTest extends DhisSpringTest
         Set<OrganisationUnit> dataViewOrgUnits = new HashSet<>();
         dataViewOrgUnits.add( organisationUnitB );
 
-        User cu = MockCurrentUserService.makeUser( assignedOrgUnits, dataViewOrgUnits,
+        User cu = mockUser( assignedOrgUnits, dataViewOrgUnits,
             DataApproval.AUTH_APPROVE_LOWER_LEVELS );
         injectSecurityContext( cu );
 
@@ -486,7 +485,7 @@ class DataApprovalLevelServiceTest extends DhisSpringTest
         Set<OrganisationUnit> dataViewOrgUnits = new HashSet<>();
         dataViewOrgUnits.add( organisationUnitB );
 
-        User cu = MockCurrentUserService.makeUser( assignedOrgUnits, dataViewOrgUnits );
+        User cu = mockUser( assignedOrgUnits, dataViewOrgUnits );
         injectSecurityContext( cu );
 
         // CurrentUserService currentUserService = new MockCurrentUserService(
@@ -532,7 +531,7 @@ class DataApprovalLevelServiceTest extends DhisSpringTest
         // CurrentUserServiceTarget::setCurrentUserService,
         // currentUserService, dataApprovalLevelService );
 
-        User cu = MockCurrentUserService.makeUser( assignedOrgUnits, dataViewOrgUnits );
+        User cu = mockUser( assignedOrgUnits, dataViewOrgUnits );
         injectSecurityContext( cu );
 
         Map<OrganisationUnit, Integer> readApprovalLevels = dataApprovalLevelService.getUserReadApprovalLevels();
@@ -570,7 +569,7 @@ class DataApprovalLevelServiceTest extends DhisSpringTest
         // CurrentUserServiceTarget::setCurrentUserService,
         // currentUserService, dataApprovalLevelService );
 
-        User cu = MockCurrentUserService.makeUser( assignedOrgUnits, dataViewOrgUnits,
+        User cu = mockUser( assignedOrgUnits, dataViewOrgUnits,
             DataApproval.AUTH_APPROVE );
         injectSecurityContext( cu );
 
@@ -599,7 +598,7 @@ class DataApprovalLevelServiceTest extends DhisSpringTest
         Set<OrganisationUnit> dataViewOrgUnits = new HashSet<>();
         dataViewOrgUnits.add( organisationUnitB );
 
-        User cu = MockCurrentUserService.makeUser( assignedOrgUnits, dataViewOrgUnits,
+        User cu = mockUser( assignedOrgUnits, dataViewOrgUnits,
             DataApproval.AUTH_APPROVE_LOWER_LEVELS );
         injectSecurityContext( cu );
 
@@ -640,7 +639,7 @@ class DataApprovalLevelServiceTest extends DhisSpringTest
         // CurrentUserServiceTarget::setCurrentUserService,
         // currentUserService, dataApprovalLevelService );
 
-        User cu = MockCurrentUserService.makeUser( assignedOrgUnits, dataViewOrgUnits,
+        User cu = mockUser( assignedOrgUnits, dataViewOrgUnits,
             DataApproval.AUTH_APPROVE, DataApproval.AUTH_APPROVE_LOWER_LEVELS );
         injectSecurityContext( cu );
 
@@ -675,7 +674,7 @@ class DataApprovalLevelServiceTest extends DhisSpringTest
         // CurrentUserServiceTarget::setCurrentUserService,
         // currentUserService, dataApprovalLevelService );
 
-        User cu = MockCurrentUserService.makeUser( assignedOrgUnits, dataViewOrgUnits,
+        User cu = mockUser( assignedOrgUnits, dataViewOrgUnits,
             DataApproval.AUTH_ACCEPT_LOWER_LEVELS );
         injectSecurityContext( cu );
 
@@ -693,7 +692,7 @@ class DataApprovalLevelServiceTest extends DhisSpringTest
         Set<OrganisationUnit> dataViewOrgUnits = new HashSet<>();
         dataViewOrgUnits.add( organisationUnitB );
 
-        User cu = MockCurrentUserService.makeUser( assignedOrgUnits, dataViewOrgUnits,
+        User cu = mockUser( assignedOrgUnits, dataViewOrgUnits,
             DataApproval.AUTH_ACCEPT_LOWER_LEVELS );
         injectSecurityContext( cu );
 

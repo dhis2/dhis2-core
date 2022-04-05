@@ -82,7 +82,7 @@ import com.google.common.collect.Sets;
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-@Disabled("TODO: 12098 fix this test")
+@Disabled( "TODO: 12098 fix this test" )
 class TranslationServiceTest extends DhisSpringTest
 {
 

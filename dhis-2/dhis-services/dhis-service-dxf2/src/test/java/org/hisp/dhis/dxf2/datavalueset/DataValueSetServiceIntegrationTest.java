@@ -48,14 +48,11 @@ import org.hisp.dhis.dxf2.importsummary.ImportConflicts;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.importexport.ImportStrategy;
-import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
@@ -155,9 +152,11 @@ class DataValueSetServiceIntegrationTest extends DhisTest
         user = createAndInjectAdminUser();
         user.setOrganisationUnits( Sets.newHashSet( ouA, ouB, ouC ) );
         injectSecurityContext( user );
-//        CurrentUserService currentUserService = new MockCurrentUserService( user );
-//        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
-//            currentUserService, dataValueSetService );
+        // CurrentUserService currentUserService = new MockCurrentUserService(
+        // user );
+        // setDependency( CurrentUserServiceTarget.class,
+        // CurrentUserServiceTarget::setCurrentUserService,
+        // currentUserService, dataValueSetService );
     }
 
     // -------------------------------------------------------------------------

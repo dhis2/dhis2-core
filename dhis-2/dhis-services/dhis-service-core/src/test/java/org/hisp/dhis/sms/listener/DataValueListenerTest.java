@@ -529,23 +529,23 @@ class DataValueListenerTest extends DhisConvenienceTest
         dataSet.addOrganisationUnit( organisationUnitB );
         period = createPeriod( new Date(), new Date() );
 
-        user = createUser( 'U' );
+        user = makeUser( "U" );
         user.setPhoneNumber( ORIGINATOR );
         user.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
 
-        userB = createUser( 'B' );
+        userB = makeUser( "B" );
         userB.setPhoneNumber( ORIGINATOR );
         userB.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
 
-        userC = createUser( 'C' );
+        userC = makeUser( "C" );
         userC.setPhoneNumber( ORIGINATOR );
         userC.setOrganisationUnits( Sets.newHashSet( organisationUnitA, organisationUnitB ) );
 
-        userWithNoOu = createUser( 'V' );
+        userWithNoOu = makeUser( "V" );
         userWithNoOu.setPhoneNumber( null );
         userWithNoOu.setOrganisationUnits( null );
 
-        userwithMultipleOu = createUser( 'W' );
+        userwithMultipleOu = makeUser( "W" );
         userwithMultipleOu.setPhoneNumber( ORIGINATOR );
         userwithMultipleOu.setOrganisationUnits( Sets.newHashSet( organisationUnitA, organisationUnitB ) );
 

@@ -218,8 +218,8 @@ class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTest
         periodService.addPeriod( periodMay );
         periodService.addPeriod( periodJun );
 
-        userA = createUser( 'A' );
-        userB = createUser( 'B' );
+        userA = makeUser( "A" );
+        userB = makeUser( "B" );
 
         userA.addOrganisationUnit( sourceA );
         userB.addOrganisationUnit( sourceA );

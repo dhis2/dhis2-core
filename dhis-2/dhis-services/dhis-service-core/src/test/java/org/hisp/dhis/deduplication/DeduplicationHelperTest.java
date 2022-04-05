@@ -128,7 +128,7 @@ class DeduplicationHelperTest extends DhisConvenienceTest
             .trackedEntityAttributes( attributeUids )
             .enrollments( enrollmentUids )
             .build();
-        user = createUser( 'A', Lists.newArrayList( "F_TRACKED_ENTITY_MERGE" ) );
+        user = makeUser( "A", Lists.newArrayList( "F_TRACKED_ENTITY_MERGE" ) );
         relationshipType.setBidirectional( false );
         relationshipTypeBidirectional.setBidirectional( true );
 
@@ -581,7 +581,7 @@ class DeduplicationHelperTest extends DhisConvenienceTest
 
     private User getNoMergeAuthsUser()
     {
-        return createUser( 'A', Lists.newArrayList( "USELESS_AUTH" ) );
+        return makeUser( "A", Lists.newArrayList( "USELESS_AUTH" ) );
     }
 
     private Relationship getRelationship()

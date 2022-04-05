@@ -155,7 +155,7 @@ class DataApprovalAuditStoreTest extends DhisSpringTest
         sourceB = createOrganisationUnit( 'B', sourceA );
         organisationUnitService.addOrganisationUnit( sourceA );
         organisationUnitService.addOrganisationUnit( sourceB );
-        userA = createUser( 'A' );
+        userA = makeUser( "A" );
         userService.addUser( userA );
         optionA = new CategoryOption( "CategoryOptionA" );
         optionB = new CategoryOption( "CategoryOptionB" );

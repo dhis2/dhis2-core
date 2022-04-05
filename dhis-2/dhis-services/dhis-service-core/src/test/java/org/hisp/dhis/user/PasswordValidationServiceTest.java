@@ -75,7 +75,7 @@ class PasswordValidationServiceTest
         when( userService.getUserByUsername( anyString() ) ).thenReturn( user );
 
         CurrentUserService currentUserService = mock( CurrentUserService.class );
-//        when( currentUserService.getCurrentUsername() ).thenReturn( "Luke" );
+        // when( currentUserService.getCurrentUsername() ).thenReturn( "Luke" );
         SystemSettingManager systemSettings = mock( SystemSettingManager.class );
         when( systemSettings.getIntSetting( SettingKey.MIN_PASSWORD_LENGTH ) ).thenReturn( 8 );
         when( systemSettings.getIntSetting( SettingKey.MAX_PASSWORD_LENGTH ) ).thenReturn( 16 );

@@ -33,7 +33,6 @@ import lombok.experimental.Delegate;
 
 import org.hisp.dhis.artemis.config.UsernameSupplier;
 import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
 
 @RequiredArgsConstructor
@@ -58,9 +57,9 @@ public class EventImporterUserService
         return CurrentUserService.getCurrentUsername();
     }
 
-//    public User getCurrentUser()
-//    {
-//        return currentUserService.getCurrentUser();
-//    }
+    // public User getCurrentUser()
+    // {
+    // return currentUserService.getCurrentUser();
+    // }
 
 }

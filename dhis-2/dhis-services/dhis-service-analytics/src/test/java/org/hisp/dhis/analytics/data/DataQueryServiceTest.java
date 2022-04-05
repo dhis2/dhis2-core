@@ -300,13 +300,13 @@ class DataQueryServiceTest extends DhisSpringTest
         // ---------------------------------------------------------------------
         UserRole role = createUserRole( 'A', "ALL" );
         userService.addUserRole( role );
-        User user = createUser( 'A' );
+        User user = makeUser( "A" );
         user.addOrganisationUnit( ouA );
         user.getUserRoles().add( role );
 
         userService.addUser( user );
 
-//        saveAndInjectUserSecurityContext( user );
+        // saveAndInjectUserSecurityContext( user );
         injectSecurityContext( user );
     }
 

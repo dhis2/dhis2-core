@@ -79,7 +79,7 @@ class SupplementaryDataProviderTest extends DhisConvenienceTest
     @BeforeEach
     void setUp()
     {
-        User user = createUser( 'A' );
+        User user = makeUser( "A" );
         user.setUserRoles( getUserRoles() );
         when( currentUserService.getCurrentUser() ).thenReturn( user );
         orgUnitA = createOrganisationUnit( 'A' );

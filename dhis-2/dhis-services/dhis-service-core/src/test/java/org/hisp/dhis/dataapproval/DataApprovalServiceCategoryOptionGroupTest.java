@@ -327,7 +327,7 @@ class DataApprovalServiceCategoryOptionGroupTest extends IntegrationTestBase
         organisationUnitService.addOrganisationUnit( brazil );
         organisationUnitService.addOrganisationUnit( china );
         organisationUnitService.addOrganisationUnit( india );
-        userA = createUser( 'A' );
+        userA = makeUser( "A" );
         userService.addUser( userA );
         dateA = new Date();
         superUser = mockUser( true, "SuperUser", global, AUTHORITY_ALL );

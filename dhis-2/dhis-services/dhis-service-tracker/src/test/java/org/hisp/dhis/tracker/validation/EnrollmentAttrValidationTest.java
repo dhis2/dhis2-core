@@ -54,7 +54,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Disabled("TODO FIX 12098")
+@Disabled( "TODO FIX 12098" )
 class EnrollmentAttrValidationTest extends AbstractImportValidationTest
 {
 

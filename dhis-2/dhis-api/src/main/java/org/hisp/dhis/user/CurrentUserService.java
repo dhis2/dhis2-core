@@ -115,7 +115,7 @@ public class CurrentUserService
         throw new RuntimeException( "Authentication principal is not supported; principal:" + principal );
     }
 
-    public  User getCurrentUser()
+    public User getCurrentUser()
     {
         String username = getCurrentUsername();
 

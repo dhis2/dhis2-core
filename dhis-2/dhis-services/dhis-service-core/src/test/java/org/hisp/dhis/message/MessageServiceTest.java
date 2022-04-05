@@ -74,9 +74,9 @@ class MessageServiceTest extends DhisSpringTest
     public void setUpTest()
     {
         userService = _userService;
-        sender = createUser( 'S' );
-        userA = createUser( 'A' );
-        userB = createUser( 'B' );
+        sender = makeUser( "S" );
+        userA = makeUser( "A" );
+        userB = makeUser( "B" );
         userService.addUser( sender );
         userService.addUser( userA );
         userService.addUser( userB );

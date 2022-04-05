@@ -170,7 +170,7 @@ class OrganisationUnitServiceTest extends DhisSpringTest
     {
         OrganisationUnit organisationUnit1 = createOrganisationUnit( 'A' );
         Program program = createProgram( 'A' );
-        User user = createUser( 'A' );
+        User user = makeUser( "A" );
         DataSet dataSet = createDataSet( 'A' );
         long id1 = organisationUnitService.addOrganisationUnit( organisationUnit1 );
         long programId = programService.addProgram( program );
@@ -872,7 +872,7 @@ class OrganisationUnitServiceTest extends DhisSpringTest
         organisationUnitService.addOrganisationUnit( ouE );
         organisationUnitService.addOrganisationUnit( ouF );
         organisationUnitService.addOrganisationUnit( ouG );
-        User user = createUser( 'A' );
+        User user = makeUser( "A" );
         Set<OrganisationUnit> organisationUnits = Sets.newHashSet( ouB );
         user.setOrganisationUnits( organisationUnits );
         assertTrue( organisationUnitService.isInUserHierarchy( ouB.getUid(), organisationUnits ) );

@@ -86,7 +86,7 @@ class UserPropertyTransformerTest extends DhisSpringTest
         throws JsonProcessingException
     {
         Simple simple = new Simple( 1, "Simple1" );
-        simple.setUser( createUser( 'a' ) );
+        simple.setUser( makeUser( "a" ) );
         simple.getUser().setUuid( uuid );
         ComplexNode complexNode = nodeService.toNode( simple );
         RootNode rootNode = NodeUtils.createRootNode( complexNode );
@@ -108,12 +108,12 @@ class UserPropertyTransformerTest extends DhisSpringTest
         throws JsonProcessingException
     {
         Simple simple = new Simple( 1, "Simple1" );
-        simple.setUser( createUser( 'a' ) );
+        simple.setUser( makeUser( "a" ) );
         simple.getUser().setUuid( uuid );
-        simple.getUsers().add( createUser( 'A' ) );
-        simple.getUsers().add( createUser( 'B' ) );
-        simple.getUsers().add( createUser( 'C' ) );
-        simple.getUsers().add( createUser( 'D' ) );
+        simple.getUsers().add( makeUser( "A" ) );
+        simple.getUsers().add( makeUser( "B" ) );
+        simple.getUsers().add( makeUser( "C" ) );
+        simple.getUsers().add( makeUser( "D" ) );
         ComplexNode complexNode = nodeService.toNode( simple );
         RootNode rootNode = NodeUtils.createRootNode( complexNode );
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -139,12 +139,12 @@ class UserPropertyTransformerTest extends DhisSpringTest
         throws JsonProcessingException
     {
         Simple simple = new Simple( 1, "Simple1" );
-        simple.setUser( createUser( 'a' ) );
+        simple.setUser( makeUser( "a" ) );
         simple.getUser().setUuid( uuid );
-        simple.getUsers().add( createUser( 'A' ) );
-        simple.getUsers().add( createUser( 'B' ) );
-        simple.getUsers().add( createUser( 'C' ) );
-        simple.getUsers().add( createUser( 'D' ) );
+        simple.getUsers().add( makeUser( "A" ) );
+        simple.getUsers().add( makeUser( "B" ) );
+        simple.getUsers().add( makeUser( "C" ) );
+        simple.getUsers().add( makeUser( "D" ) );
         ComplexNode complexNode = nodeService.toNode( simple );
         RootNode rootNode = NodeUtils.createRootNode( complexNode );
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -170,7 +170,7 @@ class UserPropertyTransformerTest extends DhisSpringTest
         throws JsonProcessingException
     {
         Simple simple = new Simple( 1, "Simple1" );
-        User user = createUser( 'a' );
+        User user = makeUser( "a" );
         simple.setUser( user );
         simple.getUser().setUuid( uuid );
         String jsonSource = jsonMapper.writeValueAsString( simple );
@@ -190,7 +190,7 @@ class UserPropertyTransformerTest extends DhisSpringTest
         throws JsonProcessingException
     {
         Simple simple = new Simple( 1, "Simple1" );
-        User user = createUser( 'a' );
+        User user = makeUser( "a" );
         simple.setUser( user );
         simple.getUser().setUuid( uuid );
         String xmlSource = xmlMapper.writeValueAsString( simple );

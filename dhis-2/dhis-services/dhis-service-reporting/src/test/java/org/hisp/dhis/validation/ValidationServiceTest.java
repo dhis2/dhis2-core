@@ -73,7 +73,6 @@ import org.hisp.dhis.datavalue.DataValueStore;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.ExpressionParams;
 import org.hisp.dhis.expression.ExpressionService;
-import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
@@ -89,7 +88,6 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserSettingKey;
@@ -259,9 +257,14 @@ class ValidationServiceTest extends DhisTest
         throws Exception
     {
         this.userService = injectUserService;
-        CurrentUserService currentUserService = new MockCurrentUserService( allSources, null );
-        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
-            currentUserService, validationService );
+        // CurrentUserService currentUserService = new MockCurrentUserService(
+        // allSources, null );
+        // setDependency( CurrentUserServiceTarget.class,
+        // CurrentUserServiceTarget::setCurrentUserService,
+        // currentUserService, validationService );
+        User user = mockUser( allSources, null );
+        injectSecurityContext( user );
+
         ptWeekly = new WeeklyPeriodType();
         ptMonthly = new MonthlyPeriodType();
         ptYearly = new YearlyPeriodType();

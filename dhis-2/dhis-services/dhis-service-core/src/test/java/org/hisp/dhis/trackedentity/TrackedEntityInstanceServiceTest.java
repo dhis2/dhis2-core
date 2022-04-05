@@ -51,7 +51,6 @@ import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.joda.time.DateTime;
@@ -271,10 +270,14 @@ class TrackedEntityInstanceServiceTest
     @Test
     void testTrackedEntityAttributeFilter()
     {
-        User user = createUser( "attributeFilterUser" );
+        User user = makeUser( "Q" );
         user.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
-        CurrentUserService currentUserService = new MockCurrentUserService( user );
-        ReflectionTestUtils.setField( entityInstanceService, "currentUserService", currentUserService );
+        // CurrentUserService currentUserService = new MockCurrentUserService(
+        // user );
+        // ReflectionTestUtils.setField( entityInstanceService,
+        // "currentUserService", currentUserService );
+
+        injectSecurityContext( user );
 
         filtH.setDisplayInListNoProgram( true );
 

@@ -153,7 +153,7 @@ class DeleteEventSMSListenerTest extends
     private void setUpInstances()
         throws SmsCompressionException
     {
-        user = createUser( 'U' );
+        user = makeUser( "U" );
         user.setPhoneNumber( ORIGINATOR );
 
         programStageInstance = new ProgramStageInstance();

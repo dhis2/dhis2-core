@@ -224,7 +224,7 @@ class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest
         organisationUnit = createOrganisationUnit( 'O' );
         program = createProgram( 'P' );
 
-        user = createUser( 'U' );
+        user = makeUser( "U" );
         user.setPhoneNumber( ORIGINATOR );
         user.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
 

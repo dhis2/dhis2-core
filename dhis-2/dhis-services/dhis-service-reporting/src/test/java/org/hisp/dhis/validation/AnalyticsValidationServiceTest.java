@@ -65,7 +65,6 @@ import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.ExpressionParams;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.mock.MockAnalyticsService;
-import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
@@ -90,8 +89,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.CurrentUserServiceTarget;
+import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -287,9 +285,14 @@ class AnalyticsValidationServiceTest extends TransactionalIntegrationTest
         MockAnalyticsService mockAnalyticsSerivce = new MockAnalyticsService();
         mockAnalyticsSerivce.setDateGridMap( dateGridMap );
         runner.setAnalyticsService( mockAnalyticsSerivce );
-        CurrentUserService currentUserService = new MockCurrentUserService( Sets.newHashSet( orgUnitA ), null );
-        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
-            currentUserService, validationService );
+        // CurrentUserService currentUserService = new MockCurrentUserService(
+        // Sets.newHashSet( orgUnitA ), null );
+        // setDependency( CurrentUserServiceTarget.class,
+        // CurrentUserServiceTarget::setCurrentUserService,
+        // currentUserService, validationService );
+
+        User user = mockUser( Sets.newHashSet( orgUnitA ), null );
+        injectSecurityContext( user );
     }
 
     @Override

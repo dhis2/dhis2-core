@@ -307,7 +307,7 @@ class IdentifiableObjectManagerTest extends TransactionalIntegrationTest
     void userDeniedDeleteObject()
     {
         createUserAndInjectSecurityContext( false, "F_DATAELEMENT_PUBLIC_ADD", "F_USER_ADD" );
-        User user = createUser( 'B' );
+        User user = makeUser( "B" );
         identifiableObjectManager.save( user );
         DataElement dataElement = createDataElement( 'A' );
         identifiableObjectManager.save( dataElement );
@@ -332,7 +332,7 @@ class IdentifiableObjectManagerTest extends TransactionalIntegrationTest
     void readPrivateObjects()
     {
         createUserAndInjectSecurityContext( false, "F_DATAELEMENT_PUBLIC_ADD", "F_USER_ADD" );
-        User user = createUser( 'B' );
+        User user = makeUser( "B" );
         identifiableObjectManager.save( user );
         identifiableObjectManager.save( createDataElement( 'A' ) );
         identifiableObjectManager.save( createDataElement( 'B' ) );
@@ -355,7 +355,7 @@ class IdentifiableObjectManagerTest extends TransactionalIntegrationTest
     {
         User loginUser = createUserAndInjectSecurityContext( false, "F_DATAELEMENT_PUBLIC_ADD", "F_USER_ADD",
             "F_USERGROUP_PUBLIC_ADD" );
-        User user = createUser( 'B' );
+        User user = makeUser( "B" );
         identifiableObjectManager.save( user );
         UserGroup userGroup = createUserGroup( 'A', Sets.newHashSet( loginUser ) );
         identifiableObjectManager.save( userGroup );
@@ -551,7 +551,7 @@ class IdentifiableObjectManagerTest extends TransactionalIntegrationTest
     @Test
     void testRemoveUserGroupFromSharing()
     {
-        User userA = createUser( 'A' );
+        User userA = makeUser( "A" );
         userService.addUser( userA );
         UserGroup userGroupA = createUserGroup( 'A', Sets.newHashSet( userA ) );
         identifiableObjectManager.save( userGroupA );

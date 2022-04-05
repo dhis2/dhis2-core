@@ -48,7 +48,6 @@ import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
-import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramService;
@@ -118,7 +117,7 @@ class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest
         user.getTeiSearchOrganisationUnits().add( organisationUnitB );
         // makeUserSuper( user );
         manager.update( user );
-//        currentUserService = new MockCurrentUserService( user );
+        // currentUserService = new MockCurrentUserService( user );
         injectSecurityContext( user );
         ReflectionTestUtils.setField( trackedEntityInstanceAggregate, "currentUserService", currentUserService );
         ReflectionTestUtils.setField( trackedEntityInstanceService, "currentUserService", currentUserService );

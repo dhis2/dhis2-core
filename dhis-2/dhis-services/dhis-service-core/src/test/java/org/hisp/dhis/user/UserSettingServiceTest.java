@@ -58,7 +58,7 @@ class UserSettingServiceTest extends DhisSpringTest
     protected void setUpTest()
     {
         userSettingService.invalidateCache();
-        userA = createUser( 'A' );
+        userA = makeUser( "A" );
         userA.setUsername( "usernameA" );
         userService.addUser( userA );
     }

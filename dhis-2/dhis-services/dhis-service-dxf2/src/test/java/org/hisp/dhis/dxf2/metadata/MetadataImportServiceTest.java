@@ -241,7 +241,7 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest
     @Test
     void testImportWithSkipSharingIsTrueAndWritePermission()
     {
-        User userA = createUser( 'A' );
+        User userA = makeUser( "A" );
         userService.addUser( userA );
 
         injectSecurityContext( userA );
@@ -479,7 +479,7 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest
     void testImportEmbeddedObjectWithSkipSharingIsTrue()
         throws IOException
     {
-        User user = createUser( 'A' );
+        User user = makeUser( "A" );
         manager.save( user );
         UserGroup userGroup = createUserGroup( 'A', Sets.newHashSet( user ) );
         manager.save( userGroup );
@@ -523,7 +523,7 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest
     void testImportEmbeddedObjectWithSkipSharingIsFalse()
         throws IOException
     {
-        User user = createUser( 'A' );
+        User user = makeUser( "A" );
         manager.save( user );
         User userA = manager.get( User.class, user.getUid() );
         assertNotNull( userA );
@@ -736,7 +736,7 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest
     void testUpdateUserGroupWithoutCreatedUserProperty()
         throws IOException
     {
-        User userA = createUser( 'A', Lists.newArrayList( "ALL" ) );
+        User userA = makeUser( "A", Lists.newArrayList( "ALL" ) );
         userService.addUser( userA );
 
         injectSecurityContext( userA );
@@ -766,7 +766,7 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest
     void testUpdateImmutableCreatedByField()
         throws IOException
     {
-        User userA = createUser( 'A', Lists.newArrayList( "ALL" ) );
+        User userA = makeUser( "A", Lists.newArrayList( "ALL" ) );
         userService.addUser( userA );
 
         injectSecurityContext( userA );
@@ -797,7 +797,7 @@ class MetadataImportServiceTest extends TransactionalIntegrationTest
     void testImportUser()
         throws IOException
     {
-        User userF = createUser( 'F', Lists.newArrayList( "ALL" ) );
+        User userF = makeUser( "F", Lists.newArrayList( "ALL" ) );
         userService.addUser( userF );
 
         injectSecurityContext( userF );

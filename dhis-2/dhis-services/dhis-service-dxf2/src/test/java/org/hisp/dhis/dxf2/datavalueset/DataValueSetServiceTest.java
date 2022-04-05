@@ -75,7 +75,6 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.jdbc.batchhandler.DataValueAuditBatchHandler;
 import org.hisp.dhis.jdbc.batchhandler.DataValueBatchHandler;
-import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.mock.batchhandler.MockBatchHandler;
 import org.hisp.dhis.mock.batchhandler.MockBatchHandlerFactory;
 import org.hisp.dhis.option.Option;
@@ -88,8 +87,6 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AccessStringHelper;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
@@ -314,13 +311,15 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
         periodService.addPeriod( peB );
         periodService.addPeriod( peC );
         dataSetService.addDataSet( dsA );
-        user = createUser( 'A', Lists.newArrayList( Authorities.F_SKIP_DATA_IMPORT_AUDIT.getAuthority() ) );
+        user = makeUser( "A", Lists.newArrayList( Authorities.F_SKIP_DATA_IMPORT_AUDIT.getAuthority() ) );
         user.setOrganisationUnits( Sets.newHashSet( ouA, ouB ) );
         userService.addUser( user );
         injectSecurityContext( user );
-//        CurrentUserService currentUserService = new MockCurrentUserService( user );
-//        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
-//            currentUserService, dataValueSetService );
+        // CurrentUserService currentUserService = new MockCurrentUserService(
+        // user );
+        // setDependency( CurrentUserServiceTarget.class,
+        // CurrentUserServiceTarget::setCurrentUserService,
+        // currentUserService, dataValueSetService );
         enableDataSharing( user, dsA, AccessStringHelper.DATA_READ_WRITE );
         enableDataSharing( user, categoryOptionA, AccessStringHelper.DATA_READ_WRITE );
         enableDataSharing( user, categoryOptionB, AccessStringHelper.DATA_READ_WRITE );

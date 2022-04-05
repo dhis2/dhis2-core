@@ -126,7 +126,7 @@ class PreheatServiceTest extends TransactionalIntegrationTest
         DataElement de1 = createDataElement( 'A' );
         DataElement de2 = createDataElement( 'B' );
         DataElement de3 = createDataElement( 'C' );
-        User user = createUser( 'A' );
+        User user = makeUser( "A" );
         deg1.addDataElement( de1 );
         deg1.addDataElement( de2 );
         deg1.addDataElement( de3 );
@@ -170,7 +170,7 @@ class PreheatServiceTest extends TransactionalIntegrationTest
         DataElement de1 = createDataElement( 'A' );
         DataElement de2 = createDataElement( 'B' );
         DataElement de3 = createDataElement( 'C' );
-        User user = createUser( 'A' );
+        User user = makeUser( "A" );
         dataElementGroup.addDataElement( de1 );
         dataElementGroup.addDataElement( de2 );
         dataElementGroup.addDataElement( de3 );
@@ -218,7 +218,7 @@ class PreheatServiceTest extends TransactionalIntegrationTest
         manager.save( de1 );
         manager.save( de2 );
         manager.save( de3 );
-        User user = createUser( 'A' );
+        User user = makeUser( "A" );
         manager.save( user );
         dataElementGroup.addDataElement( de1 );
         dataElementGroup.addDataElement( de2 );
@@ -254,7 +254,7 @@ class PreheatServiceTest extends TransactionalIntegrationTest
         manager.save( de1 );
         manager.save( de2 );
         manager.save( de3 );
-        User user = createUser( 'A' );
+        User user = makeUser( "A" );
         manager.save( user );
         dataElementGroup.addDataElement( de1 );
         dataElementGroup.addDataElement( de2 );
@@ -473,7 +473,7 @@ class PreheatServiceTest extends TransactionalIntegrationTest
         manager.save( de1 );
         manager.save( de2 );
         manager.save( de3 );
-        User user = createUser( 'A' );
+        User user = makeUser( "A" );
         manager.save( user );
     }
 
@@ -496,7 +496,7 @@ class PreheatServiceTest extends TransactionalIntegrationTest
         manager.save( de1 );
         manager.save( de2 );
         manager.save( de3 );
-        User user = createUser( 'A' );
+        User user = makeUser( "A" );
         manager.save( user );
     }
 

@@ -32,6 +32,8 @@ import static org.hisp.dhis.webapi.utils.WebClientUtils.failOnException;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 
+import java.util.Collections;
+
 import org.hisp.dhis.IntegrationH2Test;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.jsontree.JsonResponse;
@@ -164,7 +166,7 @@ public abstract class DhisControllerConvenienceTest extends DhisMockMvcControlle
 
     protected void switchToUserWithOrgUnitDataView( String userName, String orgUnitId )
     {
-        User user = createUser( userName, "ALL" );
+        User user = makeUser( userName, Collections.singletonList( "ALL" ) );
         user.getDataViewOrganisationUnits().add( manager.get( orgUnitId ) );
         userService.addUser( user );
         switchContextToUser( user );

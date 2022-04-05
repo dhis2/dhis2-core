@@ -40,7 +40,6 @@ import org.hisp.dhis.dxf2.TrackerTest;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
-import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
@@ -72,7 +71,7 @@ class TrackedEntityInstanceAttributesAggregateAclTest extends TrackerTest
     {
         User user = createUserWithAuth( "testUser" );
         setUserAuthorityToNonSuper( user );
-//        currentUserService = new MockCurrentUserService( user );
+        // currentUserService = new MockCurrentUserService( user );
         injectSecurityContext( user );
         ReflectionTestUtils.setField( trackedEntityInstanceAggregate, "currentUserService", currentUserService );
         ReflectionTestUtils.setField( trackedEntityInstanceService, "currentUserService", currentUserService );

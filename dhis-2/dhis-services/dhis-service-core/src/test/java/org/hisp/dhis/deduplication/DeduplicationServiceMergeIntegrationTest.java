@@ -54,7 +54,6 @@ import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
-import org.junit.Ignore;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -206,10 +205,14 @@ class DeduplicationServiceMergeIntegrationTest extends IntegrationTestBase
         User user = createUserWithAuth( "testUser", authorities );
         user.setOrganisationUnits( ou );
 
-//        MockCurrentUserService currentUserService = new MockCurrentUserService( user );
-//        ReflectionTestUtils.setField( potentialDuplicateStore, "currentUserService", currentUserService );
-//        ReflectionTestUtils.setField( deduplicationHelper, "currentUserService", currentUserService );
-//        ReflectionTestUtils.setField( deduplicationService, "currentUserService", currentUserService );
+        // MockCurrentUserService currentUserService = new
+        // MockCurrentUserService( user );
+        // ReflectionTestUtils.setField( potentialDuplicateStore,
+        // "currentUserService", currentUserService );
+        // ReflectionTestUtils.setField( deduplicationHelper,
+        // "currentUserService", currentUserService );
+        // ReflectionTestUtils.setField( deduplicationService,
+        // "currentUserService", currentUserService );
         return user;
     }
 }

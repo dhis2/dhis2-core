@@ -42,7 +42,6 @@ import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
 import org.hisp.dhis.dxf2.events.trackedentity.JacksonTrackedEntityInstanceService;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.fileresource.FileResourceService;
-import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.query.QueryService;
@@ -200,7 +199,8 @@ class TrackerSynchronizationTest extends DhisSpringTest
         currentSession = sessionFactory.getCurrentSession();
         User user = createUserWithAuth( "userUID0001" );
         currentSession.save( user );
-//        CurrentUserService currentUserService = new MockCurrentUserService( user );
+        // CurrentUserService currentUserService = new MockCurrentUserService(
+        // user );
         subject = new JacksonTrackedEntityInstanceService( teiService, trackedEntityAttributeService,
             _relationshipService, relationshipService, relationshipTypeService, trackedEntityAttributeValueService,
             manager, _userService, dbmsManager, enrollmentService, programInstanceService, currentUserService,

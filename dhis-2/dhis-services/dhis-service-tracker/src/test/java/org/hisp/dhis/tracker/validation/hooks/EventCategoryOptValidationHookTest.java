@@ -134,7 +134,7 @@ class EventCategoryOptValidationHookTest extends DhisConvenienceTest
         event.setProgram( program.getUid() );
         event.setOccurredAt( EVENT_INSTANT );
 
-        User user = createUser( 'A' );
+        User user = makeUser( "A" );
 
         TrackerBundle bundle = TrackerBundle.builder()
             .user( user )

@@ -343,7 +343,7 @@ class EnrollmentSMSListenerTest extends
         program = createProgram( 'P' );
         programStage = createProgramStage( 'S', program );
 
-        user = createUser( 'U' );
+        user = makeUser( "U" );
         user.setPhoneNumber( ORIGINATOR );
         user.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
 

@@ -38,7 +38,6 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
-import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
@@ -52,7 +51,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 
 /**
  * @author Jim Grace
@@ -148,7 +146,8 @@ class DataApprovalStoreUserTest extends DhisTest
         organisationUnitService.updateOrganisationUnit( orgUnitC );
         organisationUnitService.updateOrganisationUnit( orgUnitD );
 
-//        currentUser = MockCurrentUserService.makeUser( true, Sets.newHashSet( orgUnitA ), Sets.newHashSet( orgUnitA ) );
+        // currentUser = MockCurrentUserService.makeUser( true, Sets.newHashSet(
+        // orgUnitA ), Sets.newHashSet( orgUnitA ) );
 
         currentUser = mockUser( true, "username", newHashSet( orgUnitA ), newHashSet( orgUnitA ) );
         injectSecurityContext( currentUser );

@@ -57,7 +57,6 @@ import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.MissingValueStrategy;
 import org.hisp.dhis.jdbc.batchhandler.DataValueBatchHandler;
-import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
@@ -70,6 +69,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.CurrentUserServiceTarget;
+import org.hisp.dhis.user.User;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
 import org.joda.time.DateTime;
@@ -305,9 +305,15 @@ class PredictionServiceTest extends IntegrationTestBase
         summary = new PredictionSummary();
         dataValueBatchHandler = batchHandlerFactory.createBatchHandler( DataValueBatchHandler.class ).init();
         Set<OrganisationUnit> units = newHashSet( sourceA, sourceB, sourceG );
-        CurrentUserService mockCurrentUserService = new MockCurrentUserService( true, units, units );
-        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
-            mockCurrentUserService, predictionService );
+
+        // CurrentUserService mockCurrentUserService = new
+        // MockCurrentUserService( true, units, units );
+        // setDependency( CurrentUserServiceTarget.class,
+        // CurrentUserServiceTarget::setCurrentUserService,
+        // mockCurrentUserService, predictionService );
+
+        User user = mockUser( true, "mockUser", units, units );
+        injectSecurityContext( user );
     }
 
     @Override
@@ -571,9 +577,13 @@ class PredictionServiceTest extends IntegrationTestBase
     {
         setupTestData();
         Set<OrganisationUnit> units = newHashSet( sourceA );
-        CurrentUserService mockCurrentUserService = new MockCurrentUserService( true, units, units );
-        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
-            mockCurrentUserService, predictionService );
+        // CurrentUserService mockCurrentUserService = new
+        // MockCurrentUserService( true, units, units );
+        // setDependency( CurrentUserServiceTarget.class,
+        // CurrentUserServiceTarget::setCurrentUserService,
+        // mockCurrentUserService, predictionService );
+
+        mockUser( true, "mockUser", units, units );
         Predictor p = createPredictor( dataElementX, defaultCombo, "PredictSequential", expressionH, null,
             periodTypeMonthly, orgUnitLevel1, 3, 1, 0 );
         predictionService.predict( p, monthStart( 2001, 7 ), monthStart( 2001, 12 ), summary );

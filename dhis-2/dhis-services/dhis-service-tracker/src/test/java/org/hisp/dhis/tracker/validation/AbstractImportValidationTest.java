@@ -35,7 +35,6 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.bundle.TrackerBundleService;
-import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
@@ -81,7 +80,7 @@ public abstract class AbstractImportValidationTest extends TrackerTest
 
         TrackerImportParams params = renderService.fromJson( inputStream, TrackerImportParams.class );
 
-//        User user = userService.getUser( ADMIN_USER_UID );
+        // User user = userService.getUser( ADMIN_USER_UID );
 
         params.setUser( currentUserService.getCurrentUser() );
 

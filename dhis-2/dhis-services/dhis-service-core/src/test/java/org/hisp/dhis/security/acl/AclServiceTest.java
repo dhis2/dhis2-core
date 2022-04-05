@@ -512,8 +512,8 @@ class AclServiceTest extends TransactionalIntegrationTest
     @Test
     void testUserCanUpdateDashboard()
     {
-        User user1 = createUser( 'A' );
-        User user2 = createUser( 'B' );
+        User user1 = makeUser( "A" );
+        User user2 = makeUser( "B" );
         manager.save( user1 );
         manager.save( user2 );
         Dashboard dashboard = new Dashboard( "Dashboard" );
@@ -534,8 +534,8 @@ class AclServiceTest extends TransactionalIntegrationTest
     @Test
     void testUserCanUpdateDeleteSharedDashboard()
     {
-        User user1 = createUser( 'A' );
-        User user2 = createUser( 'B' );
+        User user1 = makeUser( "A" );
+        User user2 = makeUser( "B" );
         manager.save( user1 );
         manager.save( user2 );
         Dashboard dashboard = new Dashboard( "Dashboard" );
@@ -560,8 +560,8 @@ class AclServiceTest extends TransactionalIntegrationTest
     @Test
     void testUserCantUpdateDeletePrivateDashboard()
     {
-        User user1 = createUser( 'A' );
-        User user2 = createUser( 'B' );
+        User user1 = makeUser( "A" );
+        User user2 = makeUser( "B" );
         manager.save( user1 );
         manager.save( user2 );
         Dashboard dashboard = new Dashboard( "Dashboard" );
@@ -586,8 +586,8 @@ class AclServiceTest extends TransactionalIntegrationTest
     @Test
     void testUserCantReadPrivateDashboard()
     {
-        User user1 = createUser( 'A' );
-        User user2 = createUser( 'B' );
+        User user1 = makeUser( "A" );
+        User user2 = makeUser( "B" );
         manager.save( user1 );
         manager.save( user2 );
         Dashboard dashboard = new Dashboard( "Dashboard" );
@@ -608,8 +608,8 @@ class AclServiceTest extends TransactionalIntegrationTest
     @Test
     void testUserCanUpdateDashboardSharedWithUserGroup()
     {
-        User user1 = createUser( 'A' );
-        User user2 = createUser( 'B' );
+        User user1 = makeUser( "A" );
+        User user2 = makeUser( "B" );
         manager.save( user1 );
         manager.save( user2 );
         UserGroup userGroup = createUserGroup( 'A', Sets.newHashSet( user1, user2 ) );
@@ -1023,7 +1023,7 @@ class AclServiceTest extends TransactionalIntegrationTest
     @Test
     void testUserBCanUpdateVisualizationWithAuthority()
     {
-        User userA = createUser( 'A' );
+        User userA = makeUser( "A" );
         manager.save( userA );
         Visualization visualization = new Visualization();
         visualization.setAutoFields();
@@ -1039,7 +1039,7 @@ class AclServiceTest extends TransactionalIntegrationTest
         userRole.setName( "UR" );
         userRole.getAuthorities().add( "F_VISUALIZATION_PUBLIC_ADD" );
         manager.save( userRole );
-        User userB = createUser( 'B' );
+        User userB = makeUser( "B" );
         userB.getUserRoles().add( userRole );
         manager.save( userB );
         visualization.getSharing().addUserAccess( new UserAccess( userB, AccessStringHelper.FULL ) );
@@ -1051,7 +1051,7 @@ class AclServiceTest extends TransactionalIntegrationTest
     void testUserBCanUpdateEventVisualizationWithAuthority()
     {
         // Given
-        User userA = createUser( 'A' );
+        User userA = makeUser( "A" );
         manager.save( userA );
         EventVisualization eventVisualization = new EventVisualization();
         eventVisualization.setAutoFields();
@@ -1068,7 +1068,7 @@ class AclServiceTest extends TransactionalIntegrationTest
         userRole.setName( "UR" );
         userRole.getAuthorities().add( "F_EVENT_VISUALIZATION_PUBLIC_ADD" );
         manager.save( userRole );
-        User userB = createUser( 'B' );
+        User userB = makeUser( "B" );
         userB.getUserRoles().add( userRole );
         manager.save( userB );
         eventVisualization.getSharing().addUserAccess( new UserAccess( userB, AccessStringHelper.FULL ) );
@@ -1079,7 +1079,7 @@ class AclServiceTest extends TransactionalIntegrationTest
     @Test
     void testUserBCanUpdateVisualizationWithAuthorityNoUserAccess()
     {
-        User userA = createUser( 'A' );
+        User userA = makeUser( "A" );
         manager.save( userA );
         Visualization visualization = new Visualization();
         visualization.setAutoFields();
@@ -1095,7 +1095,7 @@ class AclServiceTest extends TransactionalIntegrationTest
         userRole.setName( "UR" );
         userRole.getAuthorities().add( "F_VISUALIZATION_PUBLIC_ADD" );
         manager.save( userRole );
-        User userB = createUser( 'B' );
+        User userB = makeUser( "B" );
         userB.getUserRoles().add( userRole );
         manager.save( userB );
         manager.update( visualization );
@@ -1106,7 +1106,7 @@ class AclServiceTest extends TransactionalIntegrationTest
     void testUserBCanUpdateEventVisualizationWithAuthorityNoUserAccess()
     {
         // Given
-        User userA = createUser( 'A' );
+        User userA = makeUser( "A" );
         manager.save( userA );
         EventVisualization eventVisualization = new EventVisualization();
         eventVisualization.setAutoFields();
@@ -1123,7 +1123,7 @@ class AclServiceTest extends TransactionalIntegrationTest
         userRole.setName( "UR" );
         userRole.getAuthorities().add( "F_EVENT_VISUALIZATION_PUBLIC_ADD" );
         manager.save( userRole );
-        User userB = createUser( 'B' );
+        User userB = makeUser( "B" );
         userB.getUserRoles().add( userRole );
         manager.save( userB );
         manager.update( eventVisualization );
@@ -1133,7 +1133,7 @@ class AclServiceTest extends TransactionalIntegrationTest
     @Test
     void testUserBCanUpdateVisualizationWithoutAuthority()
     {
-        User userA = createUser( 'A' );
+        User userA = makeUser( "A" );
         manager.save( userA );
         Visualization visualization = new Visualization();
         visualization.setAutoFields();
@@ -1144,7 +1144,7 @@ class AclServiceTest extends TransactionalIntegrationTest
         visualization.setType( VisualizationType.COLUMN );
         assertTrue( aclService.canUpdate( userA, visualization ) );
         manager.save( visualization );
-        User userB = createUser( 'B' );
+        User userB = makeUser( "B" );
         manager.save( userB );
         visualization.getSharing().addUserAccess( new UserAccess( userB, AccessStringHelper.FULL ) );
         manager.update( visualization );
@@ -1155,7 +1155,7 @@ class AclServiceTest extends TransactionalIntegrationTest
     void testUserBCanUpdateEventVisualizationWithoutAuthority()
     {
         // Given
-        User userA = createUser( 'A' );
+        User userA = makeUser( "A" );
         manager.save( userA );
         EventVisualization eventVisualization = new EventVisualization();
         eventVisualization.setAutoFields();
@@ -1167,7 +1167,7 @@ class AclServiceTest extends TransactionalIntegrationTest
         assertTrue( aclService.canUpdate( userA, eventVisualization ) );
         manager.save( eventVisualization );
         // Then
-        User userB = createUser( 'B' );
+        User userB = makeUser( "B" );
         manager.save( userB );
         eventVisualization.getSharing().addUserAccess( new UserAccess( userB, AccessStringHelper.FULL ) );
         manager.update( eventVisualization );
@@ -1204,7 +1204,7 @@ class AclServiceTest extends TransactionalIntegrationTest
         Sharing sharing = Sharing.builder().publicAccess( AccessStringHelper.DEFAULT ).owner( null ).build();
         de.setSharing( sharing );
         manager.save( de, false );
-        User userA = createUser( 'A' );
+        User userA = makeUser( "A" );
         manager.save( userA );
         dbmsManager.flushSession();
         de = manager.get( de.getUid() );

@@ -1390,7 +1390,7 @@ class ObjectBundleServiceTest extends TransactionalIntegrationTest
         manager.save( de2 );
         manager.save( de3 );
         manager.save( de4 );
-        User user = createUser( 'A' );
+        User user = makeUser( "A" );
         manager.save( user );
         UserGroup userGroup = createUserGroup( 'A', Sets.newHashSet( user ) );
         manager.save( userGroup );

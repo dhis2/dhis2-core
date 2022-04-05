@@ -257,7 +257,7 @@ class DataApprovalAuditServiceTest extends TransactionalIntegrationTest
         userB = createUser( "UserB", false, sourceB );
         userC = createUser( "UserC", false, sourceB );
         userD = createUser( "UserD", false, sourceB );
-        userZ = createUser( 'Z' );
+        userZ = makeUser( "Z" );
         userService.addUser( userZ );
         UserGroup userGroupC = getUserGroup( "UserGroupA", Sets.newHashSet( userC ) );
         UserGroup userGroupD = getUserGroup( "UserGroupB", Sets.newHashSet( userD ) );
@@ -383,7 +383,7 @@ class DataApprovalAuditServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    @Disabled("TODO: 12098 fix this test")
+    @Disabled( "TODO: 12098 fix this test" )
     void TestGetDataApprovalAudits()
     {
         DataApprovalAuditQueryParams params = new DataApprovalAuditQueryParams();

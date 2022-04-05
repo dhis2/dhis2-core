@@ -445,8 +445,8 @@ class DataApprovalServiceTest extends IntegrationTestBase
         dataSetService.addDataSet( dataSetG );
         dataSetService.addDataSet( dataSetI );
         dataSetService.addDataSet( dataSetJ );
-        userA = createUser( 'A' );
-        userB = createUser( 'B' );
+        userA = makeUser( "A" );
+        userB = makeUser( "B" );
         userService.addUser( userA );
         userService.addUser( userB );
     }

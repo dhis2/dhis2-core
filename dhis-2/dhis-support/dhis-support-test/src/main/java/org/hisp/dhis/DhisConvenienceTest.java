@@ -1377,12 +1377,12 @@ public abstract class DhisConvenienceTest
         return eventVisualization;
     }
 
-    public static User createUser( char uniqueCharacter )
+    public static User makeUser( String uniqueCharacter )
     {
-        return createUser( uniqueCharacter, Lists.newArrayList() );
+        return makeUser( uniqueCharacter, Lists.newArrayList() );
     }
 
-    public static User createUser( char uniqueCharacter, List<String> auths )
+    public static User makeUser( String uniqueCharacter, List<String> auths )
     {
         User user = new User();
         user.setUid( BASE_USER_UID + uniqueCharacter );
@@ -1396,7 +1396,7 @@ public abstract class DhisConvenienceTest
         {
             UserRole role = new UserRole();
             role.setName( "Role_" + CodeGenerator.generateCode( 5 ) );
-            auths.stream().forEach( auth -> role.getAuthorities().add( auth ) );
+            auths.forEach( auth -> role.getAuthorities().add( auth ) );
             user.getUserRoles().add( role );
         }
 
@@ -2399,7 +2399,7 @@ public abstract class DhisConvenienceTest
 
         userService.addUserRole( group );
 
-        User user = createUser( nextUserName++ );
+        User user = makeUser( CodeGenerator.generateCode( 2 ) );
 
         if ( organisationUnits != null )
         {
@@ -2589,30 +2589,6 @@ public abstract class DhisConvenienceTest
         object.getSharing().addUserAccess( userAccess );
     }
 
-    // protected void switchCurrentUserTo( String username, String password,
-    // List<GrantedAuthority> authorities )
-    // {
-    // UserDetails user = new
-    // org.springframework.security.core.userdetails.User( username, password,
-    // authorities );
-    //
-    // Authentication authentication = new UsernamePasswordAuthenticationToken(
-    // user, "", authorities );
-    // SecurityContext context = SecurityContextHolder.createEmptyContext();
-    // context.setAuthentication( authentication );
-    // SecurityContextHolder.setContext( context );
-    // }
-
-    // protected void switchCurrentUserTo( User user, List<GrantedAuthority>
-    // authorities )
-    // {
-    // Authentication authentication = new UsernamePasswordAuthenticationToken(
-    // user, "", authorities );
-    // SecurityContext context = SecurityContextHolder.createEmptyContext();
-    // context.setAuthentication( authentication );
-    // SecurityContextHolder.setContext( context );
-    // }
-
     private static User createUser( String username, String uid )
     {
         User user = new User();
@@ -2642,29 +2618,29 @@ public abstract class DhisConvenienceTest
         return group;
     }
 
-    protected final User addUser( char uniqueCharacter )
+    protected final User addUser( String uniqueCharacter )
     {
         return addUser( uniqueCharacter, (Consumer<User>) null );
     }
 
-    protected final <T> User addUser( char uniqueCharacter, BiConsumer<User, T> setter, T value )
+    protected final <T> User addUser( String uniqueCharacter, BiConsumer<User, T> setter, T value )
     {
         return addUser( uniqueCharacter, user -> setter.accept( user, value ) );
     }
 
-    protected final User addUser( char uniqueCharacter, OrganisationUnit... units )
+    protected final User addUser( String uniqueCharacter, OrganisationUnit... units )
     {
         return addUser( uniqueCharacter,
             user -> user.getOrganisationUnits().addAll( asList( units ) ) );
     }
 
-    protected final User addUser( char uniqueCharacter, UserRole... roles )
+    protected final User addUser( String uniqueCharacter, UserRole... roles )
     {
         return addUser( uniqueCharacter,
             user -> user.getUserRoles().addAll( asList( roles ) ) );
     }
 
-    protected final User addUser( char uniqueCharacter, Consumer<User> consumer )
+    protected final User addUser( String uniqueCharacter, Consumer<User> consumer )
     {
         User user = createUser( uniqueCharacter );
         if ( consumer != null )
@@ -2779,14 +2755,14 @@ public abstract class DhisConvenienceTest
     protected User preCreateInjectAdminUserWithoutPersistence()
     {
         UserRole role = createUserRole( "Superuser_Test", "ALL" );
-//        role.setUid( "yrB6vc5Ip3r" );
+        // role.setUid( "yrB6vc5Ip3r" );
         role.setUid( CodeGenerator.generateUid() );
 
         User user = new User();
         user.setFirstName( "Admin" );
         user.setSurname( "User" );
-//        user.setUsername( DEFAULT_USERNAME );
-        user.setUsername( DEFAULT_USERNAME+"_test" );
+        // user.setUsername( DEFAULT_USERNAME );
+        user.setUsername( DEFAULT_USERNAME + "_test" );
         user.setPassword( DEFAULT_ADMIN_PASSWORD );
         user.getUserRoles().add( role );
 

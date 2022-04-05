@@ -63,7 +63,7 @@ class UserDetailsServiceTest extends DhisSpringTest
     protected void setUpTest()
         throws Exception
     {
-        user = createUser( 'A' );
+        user = makeUser( "A" );
         userService.addUser( user );
     }
 

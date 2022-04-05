@@ -86,8 +86,6 @@ class EnrollmentImportValidationTest extends AbstractImportValidationTest
         manager.flush();
     }
 
-
-
     @Test
     void testEnrollmentValidationOkAll()
         throws IOException
@@ -166,7 +164,7 @@ class EnrollmentImportValidationTest extends AbstractImportValidationTest
     }
 
     @Test
-    @Disabled("TODO: 12098 fix this test ")
+    @Disabled( "TODO: 12098 fix this test " )
     void testDeleteCascadeProgramInstances()
         throws IOException
     {
