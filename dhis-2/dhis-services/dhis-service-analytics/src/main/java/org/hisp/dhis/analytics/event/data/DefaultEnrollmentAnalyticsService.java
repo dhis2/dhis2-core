@@ -153,7 +153,7 @@ public class DefaultEnrollmentAnalyticsService
 
         long count = 0;
 
-        if ( params.isPaging() )
+        if ( params.isTotalPages() )
         {
             count += enrollmentAnalyticsManager.getEnrollmentCount( params );
         }
