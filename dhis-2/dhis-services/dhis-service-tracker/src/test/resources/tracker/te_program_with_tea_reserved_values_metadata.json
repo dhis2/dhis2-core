@@ -90,37 +90,37 @@
       "surname": "admin",
       "lastCheckedInterpretations": "2020-02-10T09:06:47.644",
       "firstName": "admin",
-        "name": "admin admin",
-        "lastLogin": "2020-02-25T17:47:16.499",
-        "displayName": "admin admin",
-        "externalAuth": false,
-        "externalAccess": false,
-        "disabled": false,
-        "twoFA": false,
-        "passwordLastUpdated": "2020-02-10T09:07:34.946",
-        "invitation": false,
-        "selfRegistered": false,
-        "favorite": false,
-        "username": "admin",
-        "access": {
-          "read": true,
-          "update": true,
-          "externalize": true,
-          "delete": true,
-          "write": true,
-          "manage": true
-        },
-        "favorites": [],
-        "cogsDimensionConstraints": [],
-        "catDimensionConstraints": [],
-        "translations": [],
-        "userGroupAccesses": [],
-        "userRoles": [
-          {
-            "id": "yrB6vc5Ip3r"
-          }
-        ],
-        "userAccesses": [],
+      "name": "admin admin",
+      "lastLogin": "2020-02-25T17:47:16.499",
+      "displayName": "admin admin",
+      "externalAuth": false,
+      "externalAccess": false,
+      "disabled": false,
+      "twoFA": false,
+      "passwordLastUpdated": "2020-02-10T09:07:34.946",
+      "invitation": false,
+      "selfRegistered": false,
+      "favorite": false,
+      "username": "admin",
+      "access": {
+        "read": true,
+        "update": true,
+        "externalize": true,
+        "delete": true,
+        "write": true,
+        "manage": true
+      },
+      "favorites": [],
+      "cogsDimensionConstraints": [],
+      "catDimensionConstraints": [],
+      "translations": [],
+      "userGroupAccesses": [],
+      "userRoles": [
+        {
+          "id": "yrB6vc5Ip3r"
+        }
+      ],
+      "userAccesses": [],
       "teiSearchOrganisationUnits": [],
       "organisationUnits": [
         {
