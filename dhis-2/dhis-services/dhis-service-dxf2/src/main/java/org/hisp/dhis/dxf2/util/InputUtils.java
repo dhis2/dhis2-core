@@ -40,6 +40,8 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
 
@@ -140,15 +142,14 @@ public class InputUtils
 
         if ( (cc == null && options != null) || (cc != null && options == null) )
         {
-            throw new IllegalQueryException(
-                "Both or none of category combination and category options must be present" );
+            throw new IllegalQueryException( ErrorCode.E2040 );
         }
 
         CategoryCombo categoryCombo = null;
 
         if ( cc != null && (categoryCombo = idObjectManager.get( CategoryCombo.class, cc )) == null )
         {
-            throw new IllegalQueryException( "Illegal category combo identifier: " + cc );
+            throw new IllegalQueryException( new ErrorMessage( ErrorCode.E1110, cc ) );
         }
 
         if ( categoryCombo == null )
@@ -206,13 +207,13 @@ public class InputUtils
         {
             Set<CategoryOption> categoryOptions = new HashSet<>();
 
-            for ( String uid : options )
+            for ( String option : options )
             {
-                CategoryOption categoryOption = idObjectManager.getObject( CategoryOption.class, idScheme, uid );
+                CategoryOption categoryOption = idObjectManager.getObject( CategoryOption.class, idScheme, option );
 
                 if ( categoryOption == null )
                 {
-                    throw new IllegalQueryException( "Illegal category option identifier: " + uid );
+                    throw new IllegalQueryException( new ErrorMessage( ErrorCode.E1111, option ) );
                 }
 
                 categoryOptions.add( categoryOption );
@@ -222,8 +223,7 @@ public class InputUtils
 
             if ( attrOptCombo == null )
             {
-                throw new IllegalQueryException(
-                    "Attribute option combo does not exist for given category combo and category options" );
+                throw new IllegalQueryException( ErrorCode.E2041 );
             }
         }
         else if ( attributeOptionCombo != null )
@@ -238,11 +238,6 @@ public class InputUtils
         if ( attrOptCombo == null )
         {
             attrOptCombo = categoryService.getDefaultCategoryOptionCombo();
-        }
-
-        if ( attrOptCombo == null )
-        {
-            throw new IllegalQueryException( "Default attribute option combo does not exist" );
         }
 
         return attrOptCombo;
