@@ -25,15 +25,14 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.strategy.tracker.imports;
+package org.hisp.dhis.webapi.controller.tracker.imports;
 
 import org.hisp.dhis.tracker.report.TrackerImportReport;
-import org.hisp.dhis.webapi.controller.tracker.TrackerImportReportRequest;
 
 /**
  * @author Luca Cambi <luca@dhis2.org>
  */
-public interface TrackerImportStrategyHandler
+public interface TrackerImporter
 {
-    TrackerImportReport importReport( TrackerImportReportRequest trackerImportReportRequest );
+    TrackerImportReport importTracker( TrackerImportRequest trackerImportRequest );
 }

@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
@@ -56,11 +56,12 @@ class TrackerReportUtils
 
     protected static List<String> buildArgumentList( TrackerBundle bundle, List<Object> arguments )
     {
-        final TrackerIdentifier identifier = TrackerIdentifier.builder().idScheme( bundle.getIdentifier() ).build();
-        return arguments.stream().map( arg -> parseArgs( identifier, arg ) ).collect( Collectors.toList() );
+        final TrackerIdSchemeParam idSchemeParam = TrackerIdSchemeParam.builder().idScheme( bundle.getIdentifier() )
+            .build();
+        return arguments.stream().map( arg -> parseArgs( idSchemeParam, arg ) ).collect( Collectors.toList() );
     }
 
-    private static String parseArgs( TrackerIdentifier identifier, Object argument )
+    private static String parseArgs( TrackerIdSchemeParam idSchemeParam, Object argument )
     {
         if ( String.class.isAssignableFrom( ObjectUtils.firstNonNull( argument, "NULL" ).getClass() ) )
         {
@@ -68,7 +69,7 @@ class TrackerReportUtils
         }
         else if ( IdentifiableObject.class.isAssignableFrom( argument.getClass() ) )
         {
-            return identifier.getIdAndName( (IdentifiableObject) argument );
+            return idSchemeParam.getIdAndName( (IdentifiableObject) argument );
         }
         else if ( Date.class.isAssignableFrom( argument.getClass() ) )
         {
