@@ -71,6 +71,18 @@ public class DataValueSetQueryParams
 
     private Set<String> attributeOptionCombo;
 
+    /**
+     * The <code>categoryCombo</code> and <code>categoryOptions</code>
+     * parameters must be specified together.
+     */
+    private String attributeCombo;
+
+    /**
+     * The <code>categoryCombo</code> and <code>categoryOptions</code>
+     * parameters must be specified together.
+     */
+    private Set<String> attributeOptions;
+
     private boolean includeDeleted;
 
     private Date lastUpdated;

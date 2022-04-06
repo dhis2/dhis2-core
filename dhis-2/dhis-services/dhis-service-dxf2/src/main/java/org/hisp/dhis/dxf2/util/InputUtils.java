@@ -40,6 +40,8 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
 
@@ -83,9 +85,31 @@ public class InputUtils
     }
 
     /**
-     * Validates and retrieves the attribute option combo. 409 conflict as
-     * status code along with a textual message will be set on the response in
-     * case of invalid input. The response is cached.
+     * Validates and retrieves the attribute option combo. Throws
+     * {@link IllegalQueryException} if the attribute option combo does not
+     * exist.
+     *
+     * @param cc the category combo identifier.
+     * @param options the set of category option identifiers.
+     * @return the attribute option combo identified from the given input.
+     * @throws IllegalQueryException if the attribute option combo does not
+     *         exist.
+     */
+    public CategoryOptionCombo getAttributeOptionCombo( String cc, Set<String> options )
+        throws IllegalQueryException
+    {
+        CategoryOptionCombo optionCombo = getAttributeOptionCombo( cc, options, true );
+
+        if ( optionCombo == null )
+        {
+            throw new IllegalQueryException( new ErrorMessage( ErrorCode.E2040, cc ) );
+        }
+
+        return optionCombo;
+    }
+
+    /**
+     * Validates and retrieves the attribute option combo.
      *
      * @param cc the category combo identifier.
      * @param options the set of category option identifiers.
@@ -123,7 +147,7 @@ public class InputUtils
         // Attribute category combo validation
         // ---------------------------------------------------------------------
 
-        if ( (cc == null && options != null || (cc != null && options == null)) )
+        if ( (cc == null && options != null) || (cc != null && options == null) )
         {
             throw new IllegalQueryException(
                 "Both or none of category combination and category options must be present" );
@@ -150,9 +174,7 @@ public class InputUtils
     }
 
     /**
-     * Validates and retrieves the attribute option combo. 409 conflict as
-     * status code along with a textual message will be set on the response in
-     * case of invalid input.
+     * Validates and retrieves the attribute option combo.
      *
      * @param categoryCombo the category combo.
      * @param options list of category option identifiers.
@@ -166,9 +188,7 @@ public class InputUtils
     }
 
     /**
-     * Validates and retrieves the attribute option combo. 409 conflict as
-     * status code along with a textual message will be set on the response in
-     * case of invalid input.
+     * Validates and retrieves the attribute option combo.
      *
      * @param categoryCombo the category combo.
      * @param options list of category option identifiers.
@@ -238,8 +258,7 @@ public class InputUtils
     }
 
     /**
-     * Checks if user is authorized to force data input. Having just the
-     * authority is not enough. User has to explicitly ask for it.
+     * Checks if user is authorized to force data input.
      *
      * @param currentUser the user attempting to force data input
      * @param force request to force data input
