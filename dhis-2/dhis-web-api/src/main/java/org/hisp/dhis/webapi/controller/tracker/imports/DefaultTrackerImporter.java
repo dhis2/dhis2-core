@@ -27,62 +27,65 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.imports;
 
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
-import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Luca Cambi <luca@dhis2.org>
  */
 @Component
-@Primary
 @RequiredArgsConstructor
 public class DefaultTrackerImporter implements TrackerImporter
 {
 
+    @NonNull
     private final TrackerSyncImporter syncImporter;
 
+    @NonNull
     private final TrackerAsyncImporter asyncImporter;
 
     @Override
     public TrackerImportReport importTracker( TrackerImportRequest request )
     {
-        setTrackerImportParams( request );
+        TrackerImportParams params = trackerImportParams( request );
 
         if ( request.isAsync() )
         {
-            return asyncImporter.importTracker( request );
+            return asyncImporter.importTracker( params, request.getAuthentication(),
+                request.getUid() );
         }
 
-        JobConfiguration jobConfiguration = new JobConfiguration(
-            "",
-            JobType.TRACKER_IMPORT_JOB,
-            request.getUserUid(),
-            request.isAsync() );
-        jobConfiguration.setUid( request.getUid() );
-        request.getTrackerImportParams().setJobConfiguration( jobConfiguration );
-
-        return syncImporter.importTracker( request );
+        return syncImporter.importTracker( params, request.getTrackerBundleReportMode() );
     }
 
-    private void setTrackerImportParams( TrackerImportRequest trackerImportRequest )
+    private TrackerImportParams trackerImportParams( TrackerImportRequest request )
     {
         TrackerImportParams.TrackerImportParamsBuilder paramsBuilder = TrackerImportParamsBuilder
-            .builder( trackerImportRequest.getContextService().getParameterValuesMap() );
+            .builder( request.getContextService().getParameterValuesMap() )
+            .userId( request.getUserUid() )
+            .trackedEntities( request.getTrackerBundleParams().getTrackedEntities() )
+            .enrollments( request.getTrackerBundleParams().getEnrollments() )
+            .events( request.getTrackerBundleParams().getEvents() )
+            .relationships( request.getTrackerBundleParams().getRelationships() );
 
-        trackerImportRequest.setTrackerImportParams(
-            paramsBuilder
-                .userId( trackerImportRequest.getUserUid() )
-                .trackedEntities( trackerImportRequest.getTrackerBundleParams().getTrackedEntities() )
-                .enrollments( trackerImportRequest.getTrackerBundleParams().getEnrollments() )
-                .events( trackerImportRequest.getTrackerBundleParams().getEvents() )
-                .relationships( trackerImportRequest.getTrackerBundleParams().getRelationships() )
-                .build() );
+        if ( !request.isAsync() )
+        {
+            JobConfiguration jobConfiguration = new JobConfiguration(
+                "",
+                JobType.TRACKER_IMPORT_JOB,
+                request.getUserUid(),
+                request.isAsync() );
+            jobConfiguration.setUid( request.getUid() );
+            paramsBuilder.jobConfiguration( jobConfiguration );
+        }
+
+        return paramsBuilder.build();
     }
 
 }

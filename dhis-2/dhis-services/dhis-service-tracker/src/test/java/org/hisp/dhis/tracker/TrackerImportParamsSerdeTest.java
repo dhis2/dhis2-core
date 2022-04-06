@@ -64,11 +64,16 @@ class TrackerImportParamsSerdeTest extends TrackerTest
             .programIdScheme(
                 TrackerIdSchemeParam.builder().idScheme( TrackerIdScheme.ATTRIBUTE ).value( "aaaa" ).build() )
             .build();
-        TrackerImportParams trackerImportParams = TrackerImportParams.builder().idSchemes( identifierParams )
-            .atomicMode( AtomicMode.OBJECT ).flushMode( FlushMode.OBJECT ).skipRuleEngine( true )
-            .importStrategy( TrackerImportStrategy.DELETE ).validationMode( ValidationMode.SKIP ).build();
+        TrackerImportParams trackerImportParams = TrackerImportParams.builder()
+            .idSchemes( identifierParams )
+            .atomicMode( AtomicMode.OBJECT )
+            .flushMode( FlushMode.OBJECT )
+            .skipRuleEngine( true )
+            .importStrategy( TrackerImportStrategy.DELETE )
+            .validationMode( ValidationMode.SKIP )
+            .build();
         String json = renderService.toJsonAsString( trackerImportParams );
-        JSONAssert.assertEquals( json,
+        JSONAssert.assertEquals(
             "" + "{\"importMode\":\"COMMIT\"," + "\"idSchemes\":{\"dataElementIdScheme\":{\"idScheme\":\"UID\"},"
                 + "\"orgUnitIdScheme\":{\"idScheme\":\"UID\"},"
                 + "\"programIdScheme\":{\"idScheme\":\"ATTRIBUTE\",\"value\":\"aaaa\"},"
@@ -79,6 +84,7 @@ class TrackerImportParamsSerdeTest extends TrackerTest
                 + "\"skipPatternValidation\":false," + "\"skipSideEffects\":false," + "\"skipRuleEngine\":true,"
                 + "\"trackedEntities\":[]," + "\"enrollments\":[]," + "\"events\":[]," + "\"relationships\":[],"
                 + "\"username\":\"system-process\"}",
+            json,
             JSONCompareMode.LENIENT );
     }
 
