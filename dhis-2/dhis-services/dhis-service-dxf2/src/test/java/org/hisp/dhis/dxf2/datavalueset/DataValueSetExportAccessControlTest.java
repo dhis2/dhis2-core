@@ -130,14 +130,12 @@ class DataValueSetExportAccessControlTest extends TransactionalIntegrationTest
 
     private OrganisationUnit ouA;
 
-    private User adminUser;
-
     @Override
     public void setUpTest()
     {
         userService = _userService;
 
-        adminUser = createAndInjectAdminUser();
+        createAndInjectAdminUser();
         // Metadata
         PeriodType ptA = periodService.getPeriodTypeByName( MonthlyPeriodType.NAME );
         deA = createDataElement( 'A' );
