@@ -10,30 +10,30 @@
       "id": "M5zQapPyTZI",
       "surname": "admin",
       "firstName": "admin",
-        "displayName": "admin admin",
-        "externalAuth": false,
-        "externalAccess": false,
-        "disabled": false,
-        "twoFA": false,
-        "passwordLastUpdated": "2019-01-28T11:04:32.052",
-        "invitation": false,
-        "selfRegistered": false,
-        "favorite": false,
-        "username": "admin",
-        "access": {
-          "read": true,
-          "update": true,
-          "externalize": true,
-          "delete": true,
-          "write": true,
-          "manage": true
-        },
-        "userRoles": [
-          {
-            "id": "yrB6vc5Ip3r"
-          }
-        ],
-        "userAccesses": [],
+      "displayName": "admin admin",
+      "externalAuth": false,
+      "externalAccess": false,
+      "disabled": false,
+      "twoFA": false,
+      "passwordLastUpdated": "2019-01-28T11:04:32.052",
+      "invitation": false,
+      "selfRegistered": false,
+      "favorite": false,
+      "username": "admin",
+      "access": {
+        "read": true,
+        "update": true,
+        "externalize": true,
+        "delete": true,
+        "write": true,
+        "manage": true
+      },
+      "userRoles": [
+        {
+          "id": "yrB6vc5Ip3r"
+        }
+      ],
+      "userAccesses": [],
       "organisationUnits": [
         {
           "id": "PlKwabX2xRW"
