@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -124,25 +125,29 @@ public class TrackedEntityInstanceAggregate
     public List<TrackedEntityInstance> find( List<Long> ids, TrackedEntityInstanceParams params,
         TrackedEntityInstanceQueryParams queryParams )
     {
-        final User user = currentUserService.getCurrentUser();
+        final Optional<User> user = Optional.ofNullable( currentUserService.getCurrentUser() );
 
-        if ( !userGroupUIDCache.get( user.getUid() ).isPresent() && !CollectionUtils.isEmpty( user.getGroups() ) )
-        {
-            userGroupUIDCache.put( user.getUid(),
-                user.getGroups().stream().map( group -> group.getUid() ).collect( Collectors.toList() ) );
-        }
+        user.ifPresent( u -> {
+            if ( userGroupUIDCache.get( user.get().getUid() ).isEmpty()
+                && !CollectionUtils.isEmpty( user.get().getGroups() ) )
+            {
+                userGroupUIDCache.put( user.get().getUid(),
+                    user.get().getGroups().stream().map( BaseIdentifiableObject::getUid )
+                        .collect( Collectors.toList() ) );
+            }
+        } );
 
         /*
          * Create a context with information which will be used to fetch the
-         * entities
+         * entities. Use a superUser context if the user is null.
          */
-        AggregateContext ctx = securityCache
-            .get( user.getUid(),
-                userUID -> getSecurityContext( userUID,
-                    userGroupUIDCache.get( userUID ).orElse( Lists.newArrayList() ) ) )
+        AggregateContext ctx = user.map( u -> securityCache.get( u.getUid(),
+            userUID -> getSecurityContext( userUID, userGroupUIDCache.get( userUID )
+                .orElse( Lists.newArrayList() ) ) )
             .toBuilder()
-            .userId( user.getId() )
-            .superUser( user.isSuper() )
+            .userId( u.getId() )
+            .superUser( u.isSuper() ) )
+            .orElse( new AggregateContext.AggregateContextBuilder().superUser( true ) )
             .params( params )
             .queryParams( queryParams )
             .build();
@@ -187,7 +192,8 @@ public class TrackedEntityInstanceAggregate
          * Async fetch Owned Tei mapped to the provided program attributes by
          * TrackedEntityInstance id
          */
-        final CompletableFuture<Multimap<String, String>> ownedTeiAsync = supplyAsync(
+        final CompletableFuture<Multimap<String, String>> ownedTeiAsync = conditionalAsyncFetch(
+            user.isPresent(),
             () -> trackedEntityInstanceStore.getOwnedTeis( ids, ctx ), getPool() );
 
         /*
@@ -206,7 +212,7 @@ public class TrackedEntityInstanceAggregate
 
                 Stream<String> teiUidStream = teis.keySet().parallelStream();
 
-                if ( queryParams.hasProgram() )
+                if ( user.isPresent() && queryParams.hasProgram() )
                 {
                     teiUidStream = teiUidStream.filter( ownedTeis::containsKey );
                 }
