@@ -25,52 +25,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.artemis.audit.configuration;
+package org.hisp.dhis.webapi.controller.tracker.imports;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import lombok.Builder;
+import lombok.Value;
 
-import java.util.Map;
+import org.hisp.dhis.tracker.TrackerBundleReportMode;
+import org.hisp.dhis.webapi.service.ContextService;
+import org.springframework.security.core.Authentication;
 
-import org.hisp.dhis.artemis.audit.Audit;
-import org.hisp.dhis.audit.AuditScope;
-import org.hisp.dhis.audit.AuditType;
-import org.springframework.stereotype.Component;
-
-/**
- * @author Luciano Fiandesio
- */
-@Component
-public class AuditMatrix
+@Value
+@Builder
+public class TrackerImportRequest
 {
-    private Map<AuditScope, Map<AuditType, Boolean>> matrix;
+    private final Authentication authentication;
 
-    public AuditMatrix( AuditMatrixConfigurer auditMatrixConfigurer )
-    {
-        checkNotNull( auditMatrixConfigurer );
+    private final String uid;
 
-        matrix = auditMatrixConfigurer.configure();
-    }
+    private final String userUid;
 
-    public boolean isEnabled( Audit audit )
-    {
-        return matrix.get( audit.getAuditScope() ).getOrDefault( audit.getAuditType(), false );
-    }
+    private final ContextService contextService;
 
-    public boolean isEnabled( AuditScope auditScope, AuditType auditType )
-    {
-        return matrix.get( auditScope ).getOrDefault( auditType, false );
-    }
+    private final TrackerBundleParams trackerBundleParams;
 
-    public boolean isReadEnabled()
-    {
-        final AuditScope[] auditScopes = AuditScope.values();
-        for ( AuditScope auditScope : auditScopes )
-        {
-            if ( isEnabled( auditScope, AuditType.READ ) )
-            {
-                return true;
-            }
-        }
-        return false;
-    }
+    private final boolean isAsync;
+
+    private final TrackerBundleReportMode trackerBundleReportMode;
 }

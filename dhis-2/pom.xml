@@ -54,7 +54,7 @@
         <snippetsDirectory>${project.build.directory}/generated-snippets</snippetsDirectory>
         <sonar.organization>dhis2</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
-        <surefireArgLine>-Xmx1024m --illegal-access=permit</surefireArgLine>
+        <surefireArgLine>-Xmx2024m --illegal-access=permit</surefireArgLine>
 
         <!-- Needed so we can disable running tests when the default profile is used (activated by default). It does not
           honor -DskipTests otherwise https://maven.apache.org/surefire/maven-surefire-plugin/examples/skipping-tests.html -->
@@ -79,7 +79,7 @@
         <cglib.version>3.3.0</cglib.version>
 
         <!-- Spring-->
-        <spring.version>5.3.13</spring.version>
+        <spring.version>5.3.18</spring.version>
         <spring-data-redis.version>2.6.0</spring-data-redis.version>
         <spring-session-data-redis.version>2.6.2</spring-session-data-redis.version>
         <spring-mobile-device.version>1.1.5.RELEASE</spring-mobile-device.version>
@@ -144,7 +144,7 @@
         <jts.version>1.16.1</jts.version>
 
         <!-- Apache Artemis -->
-        <artemis.version>2.20.0</artemis.version>
+        <artemis.version>2.21.0</artemis.version>
         <netty-all.version>4.1.74.Final</netty-all.version>
         <classgraph.version>4.8.141</classgraph.version>
 
@@ -200,7 +200,7 @@
 
         <!-- Test -->
         <junit.version>5.8.2</junit.version>
-        <mockito.version>4.3.1</mockito.version>
+        <mockito.version>4.4.0</mockito.version>
         <powermock.version>2.0.9</powermock.version>
         <hamcrest.version>2.2</hamcrest.version>
         <hamcrest-date.version>2.0.8</hamcrest-date.version>
@@ -360,10 +360,12 @@
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-surefire-plugin</artifactId>
                         <configuration>
+                            <parallel>all</parallel>
+                            <threadCount>10</threadCount>
                             <skipTests>${skipTests}</skipTests>
                             <trimStackTrace>false</trimStackTrace>
                             <argLine>${surefireArgLine}</argLine>
-                            <excludedGroups>integration</excludedGroups>
+                            <excludedGroups>integration,integrationH2</excludedGroups>
                         </configuration>
                         <dependencies>
                             <dependency>
@@ -403,7 +405,31 @@
             </build>
         </profile>
 
-
+        <!-- IntegrationH2 test profile, this runs all the integrations tests with H2, but not the unit tests -->
+        <profile>
+            <id>integrationH2</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <skipTests>false</skipTests>
+                            <trimStackTrace>false</trimStackTrace>
+                            <argLine>${surefireArgLine}</argLine>
+                            <groups>integrationH2</groups>
+                        </configuration>
+                        <dependencies>
+                            <dependency>
+                                <groupId>org.ow2.asm</groupId>
+                                <artifactId>asm</artifactId>
+                                <version>${ow2.asm.version}</version>
+                            </dependency>
+                        </dependencies>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
 
         <profile>
             <id>sonarqube</id>
@@ -468,7 +494,7 @@
                             <skipTests>true</skipTests>
                             <trimStackTrace>false</trimStackTrace>
                             <argLine>${surefireArgLine}</argLine>
-                            <excludedGroups>integration</excludedGroups>
+                            <excludedGroups>integration,integrationH2</excludedGroups>
                         </configuration>
                         <dependencies>
                             <dependency>
@@ -621,7 +647,7 @@
                         <dependency>
                             <groupId>com.github.spotbugs</groupId>
                             <artifactId>spotbugs</artifactId>
-                            <version>4.5.1</version>
+                            <version>4.6.0</version>
                         </dependency>
                     </dependencies>
                     <configuration>
@@ -828,6 +854,7 @@
                                     <bannedImports>
                                         <bannedImport>com.google.api.client.util.**</bannedImport>
                                         <bannedImport>org.apache.logging.log4j.util.**</bannedImport>
+                                        <bannedImport>org.wildfly.common.**</bannedImport>
                                     </bannedImports>
                                 </RestrictImports>
                                 <RestrictImports>
@@ -2262,10 +2289,6 @@
                     <exclusion>
                         <groupId>io.netty</groupId>
                         <artifactId>netty-transport-native-kqueue</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.wildfly.common</groupId>
-                        <artifactId>wildfly-common</artifactId>
                     </exclusion>
                     <exclusion>
                         <groupId>commons-logging</groupId>

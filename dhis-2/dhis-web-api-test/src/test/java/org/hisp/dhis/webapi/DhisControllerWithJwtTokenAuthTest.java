@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi;
 
 import static org.hisp.dhis.webapi.utils.WebClientUtils.failOnException;
 
+import org.hisp.dhis.IntegrationH2Test;
 import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.utils.TestUtils;
@@ -56,8 +57,9 @@ import org.springframework.web.context.WebApplicationContext;
  */
 @ExtendWith( SpringExtension.class )
 @WebAppConfiguration
-@ContextConfiguration( classes = { WebMvcConfig.class, WebTestConfigurationWithJwtTokenAuth.class } )
+@ContextConfiguration( classes = { JwtConfigProviderConfiguration.class, WebMvcConfig.class } )
 @ActiveProfiles( "test-h2" )
+@IntegrationH2Test
 @Transactional
 public abstract class DhisControllerWithJwtTokenAuthTest extends DhisMockMvcControllerTest
 {
