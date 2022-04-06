@@ -45,7 +45,10 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class DataValueSetServiceFromUrlTest
+/**
+ * @author Lars Helge Overland
+ */
+class DataValueSetServiceGetFromUrlTest
     extends DhisSpringTest
 {
     @Autowired
