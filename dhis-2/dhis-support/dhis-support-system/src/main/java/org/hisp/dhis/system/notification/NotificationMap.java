@@ -89,7 +89,7 @@ public class NotificationMap
 
         synchronized void add( String jobId, UnaryOperator<T> limit, ToIntFunction<T> size, UnaryOperator<T> adder )
         {
-            if ( jobIdsInOrder.size() > capacity )
+            if ( jobIdsInOrder.size() >= capacity )
             {
                 String jobIdToShorten = jobIdsInOrder.removeLast();
                 valuesByJobId.compute( jobIdToShorten, ( key, values ) -> limit.apply( values ) );
