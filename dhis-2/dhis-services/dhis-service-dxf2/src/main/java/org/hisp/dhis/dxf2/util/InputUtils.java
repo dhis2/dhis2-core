@@ -40,8 +40,6 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.commons.util.TextUtils;
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
 
@@ -85,7 +83,8 @@ public class InputUtils
     }
 
     /**
-     * Validates and retrieves the attribute option combo. Throws
+     * Validates and retrieves the attribute option combo. Does not attempt to
+     * fall back to the default option combo. Throws
      * {@link IllegalQueryException} if the attribute option combo does not
      * exist.
      *
@@ -96,16 +95,8 @@ public class InputUtils
      *         exist.
      */
     public CategoryOptionCombo getAttributeOptionCombo( String cc, Set<String> options )
-        throws IllegalQueryException
     {
-        CategoryOptionCombo optionCombo = getAttributeOptionCombo( cc, options, true );
-
-        if ( optionCombo == null )
-        {
-            throw new IllegalQueryException( new ErrorMessage( ErrorCode.E2040, cc ) );
-        }
-
-        return optionCombo;
+        return getAttributeOptionCombo( cc, options, true );
     }
 
     /**

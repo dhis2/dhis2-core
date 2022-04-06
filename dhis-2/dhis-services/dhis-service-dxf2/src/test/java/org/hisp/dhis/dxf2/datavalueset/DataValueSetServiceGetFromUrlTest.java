@@ -28,7 +28,6 @@
 package org.hisp.dhis.dxf2.datavalueset;
 
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Set;
@@ -41,7 +40,6 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.datavalue.DataExportParams;
-import org.hisp.dhis.feedback.ErrorCode;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -132,8 +130,6 @@ class DataValueSetServiceGetFromUrlTest
         params.setAttributeCombo( categoryComboA.getUid() );
         params.setAttributeOptions( Set.of( categoryOptionA.getUid(), categoryOptionE.getUid() ) );
 
-        IllegalQueryException ex = assertThrows( IllegalQueryException.class,
-            () -> dataValueSetService.getFromUrl( params ) );
-        assertEquals( ErrorCode.E2040, ex.getErrorCode() );
+        assertThrows( IllegalQueryException.class, () -> dataValueSetService.getFromUrl( params ) );
     }
 }
