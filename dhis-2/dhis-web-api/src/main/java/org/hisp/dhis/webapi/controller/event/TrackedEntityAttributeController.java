@@ -35,6 +35,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.DhisApiVersion;
@@ -52,6 +53,7 @@ import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
@@ -221,6 +223,31 @@ public class TrackedEntityAttributeController
         }
 
         return result;
+    }
+
+    // --------------------------------------------------------------------------
+    // Hooks
+    // --------------------------------------------------------------------------
+    @Override
+    protected void forceFiltering( final WebOptions webOptions, final List<String> filters )
+    {
+        if ( webOptions == null || !webOptions.isTrue( "indexableOnly" ) )
+        {
+            return;
+        }
+
+        if ( filters.stream().anyMatch( f -> f.startsWith( "id:" ) ) )
+        {
+            throw new IllegalArgumentException(
+                "indexableOnly parameter cannot be set if a separate filter for id is specified" );
+        }
+
+        StringBuilder sb = new StringBuilder();
+        sb.append( "id:in:" );
+        Set<TrackedEntityAttribute> indexableTeas = trackedEntityAttributeService
+            .getAllTrigramIndexableTrackedEntityAttributes();
+        sb.append( indexableTeas.stream().map( tea -> tea.getUid() ).collect( Collectors.joining( ",", "[", "]" ) ) );
+        filters.add( sb.toString() );
     }
 
 }
