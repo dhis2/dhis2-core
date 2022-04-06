@@ -51,6 +51,7 @@ import org.hisp.dhis.dxf2.synch.SynchronizationManager;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.metadata.version.MetadataVersionService;
 import org.hisp.dhis.metadata.version.VersionType;
+import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.scheduling.parameters.MetadataSyncJobParameters;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -93,7 +94,8 @@ class MetadataSyncPreProcessorTest extends IntegrationTestBase
         MetadataRetryContext mockRetryContext = mock( MetadataRetryContext.class );
         AvailabilityStatus availabilityStatus = new AvailabilityStatus( true, "test_message", null );
         when( synchronizationManager.isRemoteServerAvailable() ).thenReturn( availabilityStatus );
-        metadataSyncPreProcessor.handleDataValuePush( mockRetryContext, metadataSyncJobParameters );
+        metadataSyncPreProcessor.handleDataValuePush( mockRetryContext, metadataSyncJobParameters,
+            NoopJobProgress.INSTANCE );
         verify( synchronizationManager, times( 1 ) ).executeDataValuePush();
     }
 
@@ -106,9 +108,10 @@ class MetadataSyncPreProcessorTest extends IntegrationTestBase
         AvailabilityStatus availabilityStatus = new AvailabilityStatus( true, "test_message", null );
         when( synchronizationManager.isRemoteServerAvailable() ).thenReturn( availabilityStatus );
         doThrow( MetadataSyncServiceException.class ).when( metadataSyncPreProcessor )
-            .handleDataValuePush( mockRetryContext, metadataSyncJobParameters );
+            .handleDataValuePush( mockRetryContext, metadataSyncJobParameters, NoopJobProgress.INSTANCE );
         assertThrows( MetadataSyncServiceException.class,
-            () -> metadataSyncPreProcessor.handleDataValuePush( mockRetryContext, metadataSyncJobParameters ) );
+            () -> metadataSyncPreProcessor.handleDataValuePush( mockRetryContext, metadataSyncJobParameters,
+                NoopJobProgress.INSTANCE ) );
     }
 
     @Test
@@ -119,10 +122,12 @@ class MetadataSyncPreProcessorTest extends IntegrationTestBase
         expectedSummary.setStatus( ImportStatus.SUCCESS );
         AvailabilityStatus availabilityStatus = new AvailabilityStatus( true, "test_message", null );
         when( synchronizationManager.isRemoteServerAvailable() ).thenReturn( availabilityStatus );
-        doNothing().when( metadataSyncPreProcessor ).handleDataValuePush( mockRetryContext, metadataSyncJobParameters );
-        metadataSyncPreProcessor.handleDataValuePush( mockRetryContext, metadataSyncJobParameters );
+        doNothing().when( metadataSyncPreProcessor ).handleDataValuePush( mockRetryContext, metadataSyncJobParameters,
+            NoopJobProgress.INSTANCE );
+        metadataSyncPreProcessor.handleDataValuePush( mockRetryContext, metadataSyncJobParameters,
+            NoopJobProgress.INSTANCE );
         verify( metadataSyncPreProcessor, times( 1 ) ).handleDataValuePush( mockRetryContext,
-            metadataSyncJobParameters );
+            metadataSyncJobParameters, NoopJobProgress.INSTANCE );
     }
 
     @Test
@@ -143,7 +148,7 @@ class MetadataSyncPreProcessorTest extends IntegrationTestBase
         listOfVersions.add( newVersion );
         when( metadataVersionDelegate.getMetaDataDifference( currentVersion ) ).thenReturn( listOfVersions );
         List<MetadataVersion> expectedListOfVersions = metadataSyncPreProcessor
-            .handleMetadataVersionsList( mockRetryContext, currentVersion );
+            .handleMetadataVersionsList( mockRetryContext, currentVersion, NoopJobProgress.INSTANCE );
         assertEquals( listOfVersions.size(), expectedListOfVersions.size() );
         assertEquals( expectedListOfVersions, listOfVersions );
     }
@@ -161,7 +166,7 @@ class MetadataSyncPreProcessorTest extends IntegrationTestBase
         currentVersion.setHashCode( "samplehashcode" );
         when( metadataVersionDelegate.getMetaDataDifference( currentVersion ) ).thenReturn( new ArrayList<>() );
         List<MetadataVersion> expectedListOfVersions = metadataSyncPreProcessor
-            .handleMetadataVersionsList( mockRetryContext, currentVersion );
+            .handleMetadataVersionsList( mockRetryContext, currentVersion, NoopJobProgress.INSTANCE );
         assertEquals( 0, expectedListOfVersions.size() );
     }
 
@@ -179,7 +184,7 @@ class MetadataSyncPreProcessorTest extends IntegrationTestBase
         List<MetadataVersion> listOfVersions = new ArrayList<>();
         when( metadataVersionDelegate.getMetaDataDifference( currentVersion ) ).thenReturn( listOfVersions );
         List<MetadataVersion> expectedListOfVersions = metadataSyncPreProcessor
-            .handleMetadataVersionsList( mockRetryContext, currentVersion );
+            .handleMetadataVersionsList( mockRetryContext, currentVersion, NoopJobProgress.INSTANCE );
         assertEquals( 0, expectedListOfVersions.size() );
     }
 
@@ -199,7 +204,8 @@ class MetadataSyncPreProcessorTest extends IntegrationTestBase
         when( metadataVersionDelegate.getMetaDataDifference( currentVersion ) )
             .thenThrow( new MetadataSyncServiceException( "test_message" ) );
         assertThrows( MetadataSyncServiceException.class,
-            () -> metadataSyncPreProcessor.handleMetadataVersionsList( mockRetryContext, currentVersion ) );
+            () -> metadataSyncPreProcessor.handleMetadataVersionsList( mockRetryContext, currentVersion,
+                NoopJobProgress.INSTANCE ) );
     }
 
     @Test
@@ -212,7 +218,8 @@ class MetadataSyncPreProcessorTest extends IntegrationTestBase
         currentVersion.setCreated( new Date() );
         currentVersion.setHashCode( "samplehashcode" );
         when( metadataVersionService.getCurrentVersion() ).thenReturn( currentVersion );
-        MetadataVersion actualVersion = metadataSyncPreProcessor.handleCurrentMetadataVersion( mockRetryContext );
+        MetadataVersion actualVersion = metadataSyncPreProcessor.handleCurrentMetadataVersion( mockRetryContext,
+            NoopJobProgress.INSTANCE );
         assertEquals( currentVersion, actualVersion );
     }
 
@@ -241,7 +248,7 @@ class MetadataSyncPreProcessorTest extends IntegrationTestBase
         metadataVersionList.add( version4 );
         when( metadataVersionDelegate.getMetaDataDifference( currentVersion ) ).thenReturn( metadataVersionList );
         List<MetadataVersion> expectedListOfVersions = metadataSyncPreProcessor
-            .handleMetadataVersionsList( mockRetryContext, currentVersion );
+            .handleMetadataVersionsList( mockRetryContext, currentVersion, NoopJobProgress.INSTANCE );
         verify( systemSettingManager ).saveSystemSetting( SettingKey.REMOTE_METADATA_VERSION, version4.getName() );
         assertEquals( 3, expectedListOfVersions.size() );
     }

@@ -27,27 +27,25 @@
  */
 package org.hisp.dhis.dxf2.sync;
 
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+
 /**
  * @author David Katuscak
  */
+@AllArgsConstructor( access = AccessLevel.PRIVATE )
 public class SynchronizationResult
 {
     public final SynchronizationStatus status;
 
     public final String message;
 
-    private SynchronizationResult( SynchronizationStatus status, String message )
-    {
-        this.status = status;
-        this.message = message;
-    }
-
-    public static SynchronizationResult newSuccessResultWithMessage( String message )
+    public static SynchronizationResult success( String message )
     {
         return new SynchronizationResult( SynchronizationStatus.SUCCESS, message );
     }
 
-    public static SynchronizationResult newFailureResultWithMessage( String message )
+    public static SynchronizationResult failure( String message )
     {
         return new SynchronizationResult( SynchronizationStatus.FAILURE, message );
     }

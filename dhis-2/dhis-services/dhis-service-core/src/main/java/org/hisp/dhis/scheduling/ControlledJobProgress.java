@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.scheduling;
 
+import static org.hisp.dhis.scheduling.JobProgress.getMessage;
+
 import java.util.Deque;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ConcurrentLinkedDeque;
@@ -131,9 +133,9 @@ public class ControlledJobProgress implements JobProgress
         tracker.failedProcess( cause );
         if ( processes.getLast().getStatus() != Status.CANCELLED )
         {
-            automaticAbort( false, cause.getMessage(), cause );
+            automaticAbort( false, getMessage( cause ), cause );
             Process process = getOrAddLastIncompleteProcess();
-            process.completeExceptionally( cause.getMessage(), cause );
+            process.completeExceptionally( getMessage( cause ), cause );
             sendErrorNotification( process, cause );
         }
     }
@@ -169,9 +171,9 @@ public class ControlledJobProgress implements JobProgress
     {
         cause = cancellationAsAbort( cause );
         tracker.failedStage( cause );
-        automaticAbort( cause.getMessage(), cause );
+        automaticAbort( getMessage( cause ), cause );
         Stage stage = getOrAddLastIncompleteStage();
-        stage.completeExceptionally( cause.getMessage(), cause );
+        stage.completeExceptionally( getMessage( cause ), cause );
         sendErrorNotification( stage, cause );
     }
 
@@ -201,9 +203,9 @@ public class ControlledJobProgress implements JobProgress
     public void failedWorkItem( Exception cause )
     {
         tracker.failedWorkItem( cause );
-        automaticAbort( cause.getMessage(), cause );
+        automaticAbort( getMessage( cause ), cause );
         Item item = getOrAddLastIncompleteItem();
-        item.completeExceptionally( cause.getMessage(), cause );
+        item.completeExceptionally( getMessage( cause ), cause );
         sendErrorNotification( item, cause );
     }
 
@@ -287,7 +289,7 @@ public class ControlledJobProgress implements JobProgress
     private Exception cancellationAsAbort( Exception cause )
     {
         return cause instanceof CancellationException && abortAfterFailure.get()
-            ? new RuntimeException( "processing aborted: " + cause.getMessage() )
+            ? new RuntimeException( "processing aborted: " + getMessage( cause ) )
             : cause;
     }
 

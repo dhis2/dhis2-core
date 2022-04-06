@@ -32,6 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.dxf2.synch.SynchronizationManager;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
@@ -45,7 +46,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @AllArgsConstructor
-public class EventProgramsDataSynchronizationJob extends SynchronizationJob
+public class EventProgramsDataSynchronizationJob implements Job
 {
     private final EventSynchronization eventSync;
 
@@ -58,19 +59,17 @@ public class EventProgramsDataSynchronizationJob extends SynchronizationJob
     }
 
     @Override
-    public void execute( JobConfiguration jobConfiguration, JobProgress progress )
+    public void execute( JobConfiguration config, JobProgress progress )
     {
-        EventProgramsDataSynchronizationJobParameters params = (EventProgramsDataSynchronizationJobParameters) jobConfiguration
+        EventProgramsDataSynchronizationJobParameters params = (EventProgramsDataSynchronizationJobParameters) config
             .getJobParameters();
-        progress.startingProcess( "Event program data synchronisation" );
-        progress.startingStage( "Synchronising event program data" );
-        progress.endingProcess( progress.runStage( () -> eventSync.synchronizeData( params.getPageSize() ) ) );
+        eventSync.synchronizeData( params.getPageSize(), progress );
     }
 
     @Override
     public ErrorReport validate()
     {
-        return validateRemoteServerAvailability( syncManager, EventProgramsDataSynchronizationJob.class )
-            .orElse( super.validate() );
+        return SyncUtils.validateRemoteServerAvailability( syncManager, EventProgramsDataSynchronizationJob.class )
+            .orElse( null );
     }
 }
