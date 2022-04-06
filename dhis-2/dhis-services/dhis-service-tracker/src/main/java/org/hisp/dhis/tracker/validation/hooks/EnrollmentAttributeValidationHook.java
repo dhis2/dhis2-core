@@ -47,7 +47,6 @@ import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.Enrollment;
@@ -189,7 +188,7 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
         return Optional.of( reporter )
             .map( ValidationErrorReporter::getBundle )
             .map( TrackerBundle::getPreheat )
-            .map( trackerPreheat -> trackerPreheat.getTrackedEntity( TrackerIdScheme.UID, trackedEntityInstanceUid ) )
+            .map( trackerPreheat -> trackerPreheat.getTrackedEntity( trackedEntityInstanceUid ) )
             .map( TrackedEntityInstance::getTrackedEntityAttributeValues )
             .orElse( Collections.emptySet() )
             .stream()

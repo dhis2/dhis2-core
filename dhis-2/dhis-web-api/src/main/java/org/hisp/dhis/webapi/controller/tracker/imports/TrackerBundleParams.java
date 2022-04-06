@@ -25,87 +25,65 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.webapi.controller.tracker.imports;
 
-import java.util.Date;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.ToString;
 
-import org.hisp.dhis.analytics.SortOrder;
-import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.Relationship;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 /**
- * @author Jan Bernitt
+ * Maps the Tracker import payload
+ *
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Getter
-@Setter
+@ToString
+@EqualsAndHashCode
+@Builder
 @NoArgsConstructor
-public class EnrollmentAnalyticsQueryCriteria extends AnalyticsPagingCriteria
+@AllArgsConstructor
+@JsonDeserialize( converter = TrackerBundleParamsConverter.class )
+public class TrackerBundleParams
 {
-    private Date startDate;
-
-    private Date endDate;
+    /**
+     * Tracked entities to import.
+     */
+    @JsonProperty
+    @Builder.Default
+    private final List<TrackedEntity> trackedEntities = new ArrayList<>();
 
     /**
-     * Date interval for enrollment date;
+     * Enrollments to import.
      */
-    private String enrollmentDate;
+    @JsonProperty
+    @Builder.Default
+    private final List<Enrollment> enrollments = new ArrayList<>();
 
     /**
-     * Time interval for incident date;
+     * Events to import.
      */
-    private String incidentDate;
+    @JsonProperty
+    @Builder.Default
+    private final List<Event> events = new ArrayList<>();
 
     /**
-     * Time interval for last updated date;
+     * Relationships to import.
      */
-    private String lastUpdated;
-
-    private String timeField;
-
-    private Set<String> dimension;
-
-    private Set<String> filter;
-
-    /**
-     * This parameter selects the headers to be returned as part of the
-     * response. The implementation for this Set will be LinkedHashSet as the
-     * ordering is important.
-     */
-    private Set<String> headers;
-
-    private OrganisationUnitSelectionMode ouMode;
-
-    private Set<String> asc;
-
-    private Set<String> desc;
-
-    private boolean skipMeta;
-
-    private boolean skipData;
-
-    private boolean completedOnly;
-
-    private boolean hierarchyMeta;
-
-    private boolean coordinatesOnly;
-
-    private boolean includeMetadataDetails;
-
-    private IdScheme dataIdScheme;
-
-    private Set<ProgramStatus> programStatus;
-
-    private DisplayProperty displayProperty;
-
-    private Date relativePeriodDate;
-
-    private String userOrgUnit;
-
-    private String coordinateField;
-
-    private SortOrder sortOrder;
+    @JsonProperty
+    @Builder.Default
+    private final List<Relationship> relationships = new ArrayList<>();
 }

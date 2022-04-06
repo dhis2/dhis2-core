@@ -25,32 +25,52 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.strategy.tracker.imports.impl;
+package org.hisp.dhis.common;
 
-import lombok.RequiredArgsConstructor;
-
-import org.hisp.dhis.tracker.TrackerImportService;
-import org.hisp.dhis.tracker.report.TrackerImportReport;
-import org.hisp.dhis.webapi.controller.tracker.TrackerImportReportRequest;
-import org.hisp.dhis.webapi.strategy.tracker.imports.TrackerImportStrategyHandler;
-import org.springframework.stereotype.Component;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
- * @author Luca Cambi <luca@dhis2.org>
+ * This class contains all the paging criteria that can be used to execute a
+ * DHIS2 analytics query using the AnalyticsController
  */
-@Component
-@RequiredArgsConstructor
-public class TrackerImportSyncStrategyImpl implements TrackerImportStrategyHandler
+
+@Getter
+@Setter
+public class AnalyticsPagingCriteria extends RequestTypeAware
 {
-    private final TrackerImportService trackerImportService;
+    /**
+     * The page number. Default page is 1.
+     */
+    private Integer page = 1;
 
-    @Override
-    public TrackerImportReport importReport( TrackerImportReportRequest trackerImportReportRequest )
+    /**
+     * The page size.
+     */
+    private Integer pageSize = 50;
+
+    /**
+     * The paging parameter. When set to false we should not paginate. The
+     * default is true (always paginate).
+     */
+    private boolean paging = true;
+
+    /**
+     * The paging parameter. When set to false we should not count total pages.
+     * The default is true (always total pages flag activated).
+     */
+    private boolean totalPages = true;
+
+    public void definePageSize( int analyticsMaxLimit )
     {
-        TrackerImportReport trackerImportReport = trackerImportService
-            .importTracker( trackerImportReportRequest.getTrackerImportParams() );
-
-        return trackerImportService.buildImportReport( trackerImportReport,
-            trackerImportReportRequest.getTrackerBundleReportMode() );
+        if ( isPaging() )
+        {
+            setPageSize(
+                getPageSize() != null && getPageSize() > analyticsMaxLimit ? analyticsMaxLimit : getPageSize() );
+        }
+        else
+        {
+            setPageSize( analyticsMaxLimit );
+        }
     }
 }

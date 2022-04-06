@@ -100,5 +100,5 @@ public interface MetadataExportService
      * @return Original object + selected set of dependencies, exported as
      *         RootNode
      */
-    ObjectNode getMetadataWithDependenciesAsNode( IdentifiableObject object, @Nonnull MetadataExportParams params );
+    RootNode getMetadataWithDependenciesAsNode( IdentifiableObject object, @Nonnull MetadataExportParams params );
 }
