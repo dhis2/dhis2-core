@@ -49,7 +49,6 @@ import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
-import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.converter.TrackerConverterService;
@@ -103,13 +102,13 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
     @Override
     protected void updatePreheat( TrackerPreheat preheat, ProgramStageInstance programStageInstance )
     {
-        preheat.putEvents( TrackerIdScheme.UID, Collections.singletonList( programStageInstance ) );
+        preheat.putEvents( Collections.singletonList( programStageInstance ) );
     }
 
     @Override
     protected boolean isNew( TrackerPreheat preheat, String uid )
     {
-        return preheat.getEvent( TrackerIdScheme.UID, uid ) == null;
+        return preheat.getEvent( uid ) == null;
     }
 
     @Override

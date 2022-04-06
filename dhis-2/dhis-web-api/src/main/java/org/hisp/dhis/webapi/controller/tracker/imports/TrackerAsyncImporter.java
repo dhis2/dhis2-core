@@ -25,15 +25,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.strategy.tracker.imports;
+package org.hisp.dhis.webapi.controller.tracker.imports;
 
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+
+import org.hisp.dhis.artemis.MessageManager;
+import org.hisp.dhis.artemis.Topics;
+import org.hisp.dhis.security.AuthenticationSerializer;
+import org.hisp.dhis.tracker.TrackerImportParams;
+import org.hisp.dhis.tracker.job.TrackerMessage;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
-import org.hisp.dhis.webapi.controller.tracker.TrackerImportReportRequest;
+import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Luca Cambi <luca@dhis2.org>
  */
-public interface TrackerImportStrategyHandler
+@Component
+@RequiredArgsConstructor
+public class TrackerAsyncImporter
 {
-    TrackerImportReport importReport( TrackerImportReportRequest trackerImportReportRequest );
+    @NonNull
+    private final MessageManager messageManager;
+
+    public TrackerImportReport importTracker( TrackerImportParams params, Authentication authentication, String uid )
+    {
+        TrackerMessage trackerMessage = TrackerMessage.builder()
+            .trackerImportParams( params )
+            .authentication( AuthenticationSerializer.serialize( authentication ) )
+            .uid( uid )
+            .build();
+
+        messageManager.sendQueue( Topics.TRACKER_IMPORT_JOB_TOPIC_NAME, trackerMessage );
+
+        return null; // empty report is not
+                     // returned
+                     // in async creation
+    }
 }

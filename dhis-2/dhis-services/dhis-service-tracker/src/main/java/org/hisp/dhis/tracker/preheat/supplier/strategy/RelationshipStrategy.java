@@ -35,7 +35,6 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.relationship.RelationshipStore;
-import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.preheat.DetachUtils;
@@ -59,7 +58,7 @@ public class RelationshipStrategy implements ClassBasedSupplierStrategy
     {
         List<org.hisp.dhis.relationship.Relationship> relationships = retrieveRelationships( splitList );
 
-        preheat.putRelationships( TrackerIdScheme.UID,
+        preheat.putRelationships(
             DetachUtils.detach( this.getClass().getAnnotation( StrategyFor.class ).mapper(), relationships ) );
     }
 

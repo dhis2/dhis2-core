@@ -25,14 +25,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.strategy.tracker.imports.impl;
+package org.hisp.dhis.webapi.controller.tracker.imports;
 
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
+import org.hisp.dhis.tracker.TrackerBundleReportMode;
+import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
-import org.hisp.dhis.webapi.controller.tracker.TrackerImportReportRequest;
-import org.hisp.dhis.webapi.strategy.tracker.imports.TrackerImportStrategyHandler;
 import org.springframework.stereotype.Component;
 
 /**
@@ -40,17 +41,16 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class TrackerImportSyncStrategyImpl implements TrackerImportStrategyHandler
+public class TrackerSyncImporter
 {
+
+    @NonNull
     private final TrackerImportService trackerImportService;
 
-    @Override
-    public TrackerImportReport importReport( TrackerImportReportRequest trackerImportReportRequest )
+    public TrackerImportReport importTracker( TrackerImportParams params, TrackerBundleReportMode reportMode )
     {
-        TrackerImportReport trackerImportReport = trackerImportService
-            .importTracker( trackerImportReportRequest.getTrackerImportParams() );
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
 
-        return trackerImportService.buildImportReport( trackerImportReport,
-            trackerImportReportRequest.getTrackerBundleReportMode() );
+        return trackerImportService.buildImportReport( trackerImportReport, reportMode );
     }
 }

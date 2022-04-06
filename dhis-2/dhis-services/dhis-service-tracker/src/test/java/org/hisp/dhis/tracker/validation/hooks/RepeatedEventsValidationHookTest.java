@@ -43,7 +43,6 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
-import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
@@ -122,7 +121,7 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
         // when
         bundle.setStrategy( event, TrackerImportStrategy.CREATE );
 
-        when( preheat.getEnrollment( TrackerIdScheme.UID, event.getEnrollment() ) ).thenReturn( programInstance );
+        when( preheat.getEnrollment( event.getEnrollment() ) ).thenReturn( programInstance );
         when( preheat.getProgramStageWithEvents() )
             .thenReturn( Lists.newArrayList( Pair.of( event.getProgramStage(), event.getEnrollment() ) ) );
         bundle.setEvents( Lists.newArrayList( event ) );
