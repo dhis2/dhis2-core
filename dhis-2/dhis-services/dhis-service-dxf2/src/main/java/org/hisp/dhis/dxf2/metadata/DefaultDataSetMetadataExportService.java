@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dxf2.metadata;
 
+import static com.google.common.collect.Sets.union;
 import static org.hisp.dhis.commons.collection.CollectionUtils.flatMapToSet;
 import static org.hisp.dhis.commons.collection.CollectionUtils.mapToSet;
 
@@ -81,7 +82,7 @@ public class DefaultDataSetMetadataExportService
 
     private static final String FIELDS_INDICATORS = ":simple,explodedNumerator,explodedDenominator";
 
-    private static final String FIELDS_DATAELEMENT_CAT_COMBOS = ":simple,isDefault,categories~pluck[id]," +
+    private static final String FIELDS_DATA_ELEMENT_CAT_COMBOS = ":simple,isDefault,categories~pluck[id]," +
         "categoryOptionCombos[id,code,name,displayName,categoryOptions~pluck[id]]";
 
     private static final String FIELDS_DATA_SET_CAT_COMBOS = ":simple,isDefault,categories~pluck[id]";
@@ -105,6 +106,8 @@ public class DefaultDataSetMetadataExportService
     public ObjectNode getDataSetMetadata()
     {
         User user = currentUserService.getCurrentUser();
+        CategoryCombo defaultCategoryCombo = categoryService.getDefaultCategoryCombo();
+
         List<DataSet> dataSets = idObjectManager.getDataWriteAll( DataSet.class );
         Set<DataElement> dataElements = flatMapToSet( dataSets, DataSet::getDataElements );
         Set<Indicator> indicators = flatMapToSet( dataSets, DataSet::getIndicators );
@@ -112,8 +115,10 @@ public class DefaultDataSetMetadataExportService
         Set<CategoryCombo> dataSetCategoryCombos = mapToSet( dataSets, DataSet::getCategoryCombo );
         Set<Category> dataElementCategories = flatMapToSet( dataElementCategoryCombos, CategoryCombo::getCategories );
         Set<Category> dataSetCategories = flatMapToSet( dataSetCategoryCombos, CategoryCombo::getCategories );
+        Set<Category> categories = union( dataElementCategories, dataSetCategories );
         Set<CategoryOption> categoryOptions = getCategoryOptions( dataElementCategories, dataSetCategories, user );
 
+        dataSetCategoryCombos.remove( defaultCategoryCombo );
         expressionService.substituteIndicatorExpressions( indicators );
 
         ObjectNode rootNode = fieldFilterService.createObjectNode();
@@ -125,11 +130,10 @@ public class DefaultDataSetMetadataExportService
         rootNode.putArray( IndicatorSchemaDescriptor.PLURAL )
             .addAll( asObjectNodes( indicators, FIELDS_INDICATORS, Indicator.class ) );
         rootNode.putArray( CategoryComboSchemaDescriptor.PLURAL )
-            .addAll( asObjectNodes( dataElementCategoryCombos, FIELDS_DATAELEMENT_CAT_COMBOS, CategoryCombo.class ) )
+            .addAll( asObjectNodes( dataElementCategoryCombos, FIELDS_DATA_ELEMENT_CAT_COMBOS, CategoryCombo.class ) )
             .addAll( asObjectNodes( dataSetCategoryCombos, FIELDS_DATA_SET_CAT_COMBOS, CategoryCombo.class ) );
         rootNode.putArray( CategorySchemaDescriptor.PLURAL )
-            .addAll( asObjectNodes( dataElementCategories, FIELDS_CATEGORIES, Category.class ) )
-            .addAll( asObjectNodes( dataSetCategories, FIELDS_CATEGORIES, Category.class ) );
+            .addAll( asObjectNodes( categories, FIELDS_CATEGORIES, Category.class ) );
         rootNode.putArray( CategoryOptionSchemaDescriptor.PLURAL )
             .addAll( asObjectNodes( categoryOptions, FIELDS_CATEGORIES, CategoryOption.class ) );
 
