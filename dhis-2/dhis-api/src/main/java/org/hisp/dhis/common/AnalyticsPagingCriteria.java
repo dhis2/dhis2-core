@@ -25,52 +25,52 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.artemis.audit.configuration;
+package org.hisp.dhis.common;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.Map;
-
-import org.hisp.dhis.artemis.audit.Audit;
-import org.hisp.dhis.audit.AuditScope;
-import org.hisp.dhis.audit.AuditType;
-import org.springframework.stereotype.Component;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
- * @author Luciano Fiandesio
+ * This class contains all the paging criteria that can be used to execute a
+ * DHIS2 analytics query using the AnalyticsController
  */
-@Component
-public class AuditMatrix
+
+@Getter
+@Setter
+public abstract class AnalyticsPagingCriteria extends RequestTypeAware
 {
-    private Map<AuditScope, Map<AuditType, Boolean>> matrix;
+    /**
+     * The page number. Default page is 1.
+     */
+    private Integer page = 1;
 
-    public AuditMatrix( AuditMatrixConfigurer auditMatrixConfigurer )
+    /**
+     * The page size.
+     */
+    private Integer pageSize = 50;
+
+    /**
+     * The paging parameter. When set to false we should not paginate. The
+     * default is true (always paginate).
+     */
+    private boolean paging = true;
+
+    /**
+     * The paging parameter. When set to false we should not count total pages.
+     * The default is true (always total pages flag activated).
+     */
+    private boolean totalPages = true;
+
+    public void definePageSize( int analyticsMaxLimit )
     {
-        checkNotNull( auditMatrixConfigurer );
-
-        matrix = auditMatrixConfigurer.configure();
-    }
-
-    public boolean isEnabled( Audit audit )
-    {
-        return matrix.get( audit.getAuditScope() ).getOrDefault( audit.getAuditType(), false );
-    }
-
-    public boolean isEnabled( AuditScope auditScope, AuditType auditType )
-    {
-        return matrix.get( auditScope ).getOrDefault( auditType, false );
-    }
-
-    public boolean isReadEnabled()
-    {
-        final AuditScope[] auditScopes = AuditScope.values();
-        for ( AuditScope auditScope : auditScopes )
+        if ( isPaging() )
         {
-            if ( isEnabled( auditScope, AuditType.READ ) )
-            {
-                return true;
-            }
+            setPageSize(
+                getPageSize() != null && getPageSize() > analyticsMaxLimit ? analyticsMaxLimit : getPageSize() );
         }
-        return false;
+        else
+        {
+            setPageSize( analyticsMaxLimit );
+        }
     }
 }

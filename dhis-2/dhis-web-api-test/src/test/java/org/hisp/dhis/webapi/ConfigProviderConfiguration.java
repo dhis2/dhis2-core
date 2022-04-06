@@ -25,15 +25,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.strategy.tracker.imports;
+package org.hisp.dhis.webapi;
 
-import org.hisp.dhis.tracker.report.TrackerImportReport;
-import org.hisp.dhis.webapi.controller.tracker.TrackerImportReportRequest;
+import org.hisp.dhis.config.H2DhisConfigurationProvider;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 /**
- * @author Luca Cambi <luca@dhis2.org>
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public interface TrackerImportStrategyHandler
+@Configuration
+public class ConfigProviderConfiguration
 {
-    TrackerImportReport importReport( TrackerImportReportRequest trackerImportReportRequest );
+    @Bean( name = "dhisConfigurationProvider" )
+    public DhisConfigurationProvider dhisConfigurationProvider()
+    {
+        return new H2DhisConfigurationProvider();
+    }
 }

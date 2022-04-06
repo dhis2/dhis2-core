@@ -426,7 +426,8 @@ public class EventAnalyticsController
     private EventQueryParams getEventQueryParams( String program, EventsAnalyticsQueryCriteria criteria,
         DhisApiVersion apiVersion, boolean analyzeOnly )
     {
-        checkAndMaybeModifyCriteria( criteria );
+        criteria
+            .definePageSize( systemSettingManager.getIntSetting( SettingKey.ANALYTICS_MAX_LIMIT ) );
 
         EventDataQueryRequest request = EventDataQueryRequest.builder()
             .fromCriteria( (EventsAnalyticsQueryCriteria) criteria.withQueryEndpointAction()
@@ -435,16 +436,6 @@ public class EventAnalyticsController
             .apiVersion( apiVersion ).build();
 
         return eventDataService.getFromRequest( request, analyzeOnly );
-    }
-
-    private void checkAndMaybeModifyCriteria( EventsAnalyticsQueryCriteria criteria )
-    {
-        Integer analyticsMaxLimit = systemSettingManager.getIntSetting( SettingKey.ANALYTICS_MAX_LIMIT );
-
-        if ( criteria.getPageSize() != null && criteria.getPageSize() > analyticsMaxLimit )
-        {
-            criteria.setPageSize( analyticsMaxLimit );
-        }
     }
 
     private void configResponseForJson( HttpServletResponse response )
