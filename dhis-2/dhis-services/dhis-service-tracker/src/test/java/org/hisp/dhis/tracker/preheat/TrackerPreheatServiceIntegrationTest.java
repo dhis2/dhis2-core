@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.preheat;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import org.hisp.dhis.TransactionalIntegrationTest;
@@ -46,16 +47,20 @@ import org.hisp.dhis.tracker.TrackerIdentifierParams;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
-class TrackerPreheatServiceIntegration extends TransactionalIntegrationTest
+class TrackerPreheatServiceIntegrationTest extends TransactionalIntegrationTest
 {
+
+    private final String TET_UID = "TET12345678";
+
+    private final String ATTRIBUTE_UID = "ATTR1234567";
 
     @Autowired
     private TrackerPreheatService trackerPreheatService;
@@ -72,28 +77,29 @@ class TrackerPreheatServiceIntegration extends TransactionalIntegrationTest
     @Autowired
     private AttributeService attributeService;
 
-    private final String TET_UID = "TET12345678";
-
-    private final String TE_UID = "TE123456789";
-
-    private final String ATTRIBUTE_UID = "ATTR1234567";
-
     @Autowired
     private UserService _userService;
+
+    private User currentUser;
+
+    private Program program;
+
+    private String programAttribute;
 
     @Override
     public void setUpTest()
         throws Exception
     {
         userService = _userService;
+        currentUser = createAndInjectAdminUser( "ALL" );
         // Set up placeholder OU; We add Code for testing idScheme.
-        OrganisationUnit ouA = createOrganisationUnit( 'A' );
-        ouA.setCode( "OUA" );
-        organisationUnitService.addOrganisationUnit( ouA );
+        OrganisationUnit orgUnit = createOrganisationUnit( 'A' );
+        orgUnit.setCode( "OUA" );
+        organisationUnitService.addOrganisationUnit( orgUnit );
         // Set up placeholder TET
-        TrackedEntityType tetA = createTrackedEntityType( 'A' );
-        tetA.setUid( TET_UID );
-        trackedEntityTypeService.addTrackedEntityType( tetA );
+        TrackedEntityType trackedEntityType = createTrackedEntityType( 'A' );
+        trackedEntityType.setUid( TET_UID );
+        trackedEntityTypeService.addTrackedEntityType( trackedEntityType );
         // Set up attribute for program, to be used for testing idScheme.
         Attribute attributeA = createAttribute( 'A' );
         attributeA.setUid( ATTRIBUTE_UID );
@@ -101,31 +107,49 @@ class TrackerPreheatServiceIntegration extends TransactionalIntegrationTest
         attributeA.setProgramAttribute( true );
         attributeService.addAttribute( attributeA );
         // Set up placeholder Program, with attributeValue
-        Program programA = createProgram( 'A' );
-        programA.addOrganisationUnit( ouA );
-        programA.setTrackedEntityType( tetA );
-        programA.setProgramType( ProgramType.WITH_REGISTRATION );
-        programA.setAttributeValues( Sets.newHashSet( new AttributeValue( "PROGRAM1", attributeA ) ) );
-        programService.addProgram( programA );
+        program = createProgram( 'A' );
+        program.addOrganisationUnit( orgUnit );
+        program.setTrackedEntityType( trackedEntityType );
+        program.setProgramType( ProgramType.WITH_REGISTRATION );
+        programAttribute = "PROGRAM1";
+        program.setAttributeValues( Sets.newHashSet( new AttributeValue( programAttribute, attributeA ) ) );
+        programService.addProgram( program );
     }
 
     @Test
-    @Disabled
     void testPreheatWithDifferentIdSchemes()
     {
-        TrackedEntity teA = TrackedEntity.builder().orgUnit( "OUA" ).trackedEntityType( TET_UID ).build();
-        Enrollment enrollmentA = Enrollment.builder().orgUnit( "OUA" ).program( "PROGRAM1" ).trackedEntity( TE_UID )
+        TrackedEntity teA = TrackedEntity.builder()
+            .orgUnit( "OUA" )
+            .trackedEntityType( TET_UID )
             .build();
-        TrackerImportParams trackerPreheatParams = TrackerImportParams.builder()
-            .trackedEntities( Lists.newArrayList( teA ) ).enrollments( Lists.newArrayList( enrollmentA ) )
-            .identifiers( TrackerIdentifierParams.builder().idScheme( TrackerIdentifier.UID )
+        Enrollment enrollmentA = Enrollment.builder()
+            .orgUnit( "OUA" )
+            .program( "PROGRAM1" )
+            .trackedEntity( "TE123456789" )
+            .build();
+
+        TrackerImportParams params = TrackerImportParams.builder()
+            .user( currentUser )
+            .trackedEntities( Lists.newArrayList( teA ) )
+            .enrollments( Lists.newArrayList( enrollmentA ) )
+            .identifiers( TrackerIdentifierParams.builder()
+                .idScheme( TrackerIdentifier.UID )
                 .orgUnitIdScheme( TrackerIdentifier.CODE )
                 .programIdScheme(
                     TrackerIdentifier.builder().idScheme( TrackerIdScheme.ATTRIBUTE ).value( ATTRIBUTE_UID ).build() )
                 .build() )
             .build();
-        TrackerPreheat preheat = trackerPreheatService.preheat( trackerPreheatParams );
+
+        TrackerPreheat preheat = trackerPreheatService.preheat( params );
+
         assertNotNull( preheat );
-        assertNotNull( preheat.getMap() );
+        // asserting on specific fields instead of plain assertEquals since
+        // PreheatMappers are not mapping all fields
+        assertEquals( "OUA", preheat.getOrganisationUnit( "OUA" ).getCode() );
+        assertEquals( TET_UID, preheat.getTrackedEntityType( TET_UID ).getUid() );
+        Program actualProgram = preheat.getProgram( programAttribute );
+        assertNotNull( actualProgram );
+        assertEquals( program.getUid(), actualProgram.getUid() );
     }
 }
