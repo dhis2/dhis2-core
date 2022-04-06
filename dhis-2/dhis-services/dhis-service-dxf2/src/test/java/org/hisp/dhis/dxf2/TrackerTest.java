@@ -124,8 +124,6 @@ public abstract class TrackerTest extends IntegrationTestBase
     @Autowired
     private RelationshipService relationshipService;
 
-    protected CurrentUserService currentUserService;
-
     protected TrackedEntityType trackedEntityTypeA;
 
     protected OrganisationUnit organisationUnitA;

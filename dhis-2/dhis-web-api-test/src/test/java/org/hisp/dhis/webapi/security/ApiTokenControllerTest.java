@@ -61,6 +61,7 @@ class ApiTokenControllerTest extends DhisControllerConvenienceTest
 {
 
     public static final String USER_A_USERNAME = "userA";
+    public static final String USER_B_USERNAME = "userB";
 
     @Autowired
     private ApiTokenService apiTokenService;
@@ -69,12 +70,17 @@ class ApiTokenControllerTest extends DhisControllerConvenienceTest
     private RenderService _renderService;
 
     private User userA;
+    private User userB;
 
     @BeforeEach
     final void setupTest()
     {
         this.renderService = _renderService;
         userA = createUserWithAuth( USER_A_USERNAME );
+        userB = createUserWithAuth( USER_B_USERNAME );
+
+        //Default user is userA
+        injectSecurityContext( userA );
     }
 
     @Test
@@ -279,7 +285,7 @@ class ApiTokenControllerTest extends DhisControllerConvenienceTest
     void testCantDeleteOtherTokens()
     {
         final ApiToken newToken = createNewEmptyToken();
-        switchContextToUser( userA );
+        switchContextToUser( userB );
         assertStatus( HttpStatus.NOT_FOUND, DELETE( ApiTokenSchemaDescriptor.API_ENDPOINT + "/" + newToken.getUid() ) );
     }
 

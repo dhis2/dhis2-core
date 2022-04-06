@@ -225,19 +225,23 @@ class DataValueSetServiceExportTest extends IntegrationTestBase
         dataValueService.addDataValue( new DataValue( deB, peA, ouB, cocB, cocB, "1" ) );
         // Flush session to make data values visible to JDBC query
         // Service mocks
-        user = makeUser( "A" );
-        user.setOrganisationUnits( Sets.newHashSet( ouA, ouB ) );
-        userService.addUser( user );
-        injectSecurityContext( user );
+
         // CurrentUserService currentUserService = new MockCurrentUserService(
         // user );
         // setDependency( CurrentUserServiceTarget.class,
         // CurrentUserServiceTarget::setCurrentUserService,
         // currentUserService, dataValueSetService, organisationUnitService );
-        enableDataSharing( user, dsA, AccessStringHelper.DATA_READ_WRITE );
-        enableDataSharing( user, dsB, AccessStringHelper.DATA_READ_WRITE );
+
         dataSetService.updateDataSet( dsA );
         dataSetService.updateDataSet( dsB );
+
+        user = makeUser( "A" );
+        user.setOrganisationUnits( Sets.newHashSet( ouA, ouB ) );
+        userService.addUser( user );
+        injectSecurityContext( user );
+
+        enableDataSharing( user, dsA, AccessStringHelper.DATA_READ_WRITE );
+        enableDataSharing( user, dsB, AccessStringHelper.DATA_READ_WRITE );
     }
 
     // -------------------------------------------------------------------------

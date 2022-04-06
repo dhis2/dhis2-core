@@ -46,6 +46,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -66,6 +67,9 @@ class DataApprovalLevelServiceTest extends DhisSpringTest
 
     @Autowired
     private CurrentUserService currentUserService;
+
+    @Autowired
+    private UserService _userService;
 
     // -------------------------------------------------------------------------
     // Supporting data
@@ -144,6 +148,7 @@ class DataApprovalLevelServiceTest extends DhisSpringTest
     @Override
     public void setUpTest()
     {
+        this.userService = _userService;
         // ---------------------------------------------------------------------
         // Add supporting data
         // ---------------------------------------------------------------------

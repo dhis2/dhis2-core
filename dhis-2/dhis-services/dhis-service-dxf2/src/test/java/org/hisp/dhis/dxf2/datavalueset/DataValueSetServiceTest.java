@@ -311,10 +311,12 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
         periodService.addPeriod( peB );
         periodService.addPeriod( peC );
         dataSetService.addDataSet( dsA );
+
         user = makeUser( "A", Lists.newArrayList( Authorities.F_SKIP_DATA_IMPORT_AUDIT.getAuthority() ) );
         user.setOrganisationUnits( Sets.newHashSet( ouA, ouB ) );
         userService.addUser( user );
         injectSecurityContext( user );
+
         // CurrentUserService currentUserService = new MockCurrentUserService(
         // user );
         // setDependency( CurrentUserServiceTarget.class,

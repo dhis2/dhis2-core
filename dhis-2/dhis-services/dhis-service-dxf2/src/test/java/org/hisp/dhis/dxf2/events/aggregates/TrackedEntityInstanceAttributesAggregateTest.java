@@ -40,6 +40,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.RandomStringUtils;
+
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.ValueType;
@@ -61,10 +62,13 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
+import org.hisp.dhis.user.CurrentUser;
+import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccess;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.testcontainers.shaded.com.google.common.collect.ImmutableMap;
@@ -98,6 +102,9 @@ class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest
     @Autowired
     private TrackerOwnershipManager trackerOwnershipManager;
 
+    @Autowired
+    private CurrentUserService currentUserService;
+
     private Program programB;
 
     private final static int A = 65;
@@ -115,19 +122,19 @@ class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest
         user.addOrganisationUnit( organisationUnitA );
         user.getTeiSearchOrganisationUnits().add( organisationUnitA );
         user.getTeiSearchOrganisationUnits().add( organisationUnitB );
-        // makeUserSuper( user );
+        makeUserSuper( user );
         manager.update( user );
         // currentUserService = new MockCurrentUserService( user );
         injectSecurityContext( user );
-        ReflectionTestUtils.setField( trackedEntityInstanceAggregate, "currentUserService", currentUserService );
-        ReflectionTestUtils.setField( trackedEntityInstanceService, "currentUserService", currentUserService );
-        ReflectionTestUtils.setField( teiService, "currentUserService", currentUserService );
+        //        ReflectionTestUtils.setField( trackedEntityInstanceAggregate, "currentUserService", currentUserService );
+        //        ReflectionTestUtils.setField( trackedEntityInstanceService, "currentUserService", currentUserService );
+        //        ReflectionTestUtils.setField( teiService, "currentUserService", currentUserService );
     }
 
     @BeforeEach
     void setUp()
     {
-        ReflectionTestUtils.setField( trackedEntityInstanceAggregate, "currentUserService", currentUserService );
+        //        ReflectionTestUtils.setField( trackedEntityInstanceAggregate, "currentUserService", currentUserService );
     }
 
     @Test
@@ -182,7 +189,8 @@ class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest
         TrackedEntityInstanceParams params = TrackedEntityInstanceParams.FALSE;
         final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
             .getTrackedEntityInstances( queryParams, params, false, true );
-        assertAttributes( trackedEntityInstances.get( 0 ).getAttributes(), "A", "B", "E" );
+        List<Attribute> attributes = trackedEntityInstances.get( 0 ).getAttributes();
+        assertAttributes( attributes, "A", "B", "E" );
     }
 
     @Test

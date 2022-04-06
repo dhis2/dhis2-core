@@ -91,7 +91,7 @@ class TrackedEntityInstanceServiceTest
     private TrackedEntityAttributeValueService attributeValueService;
 
     @Autowired
-    private UserService userService;
+    private UserService _userService;
 
     @Autowired
     private TrackedEntityTypeService trackedEntityTypeService;
@@ -124,6 +124,8 @@ class TrackedEntityInstanceServiceTest
 
     private final static String ATTRIBUTE_VALUE = "Value";
 
+    private User adminUser;
+
     @Override
     public boolean emptyDatabaseAfterTest()
     {
@@ -133,6 +135,10 @@ class TrackedEntityInstanceServiceTest
     @Override
     public void setUpTest()
     {
+        super.userService = _userService;
+
+        this.adminUser = preCreateInjectAdminUser();
+
         organisationUnit = createOrganisationUnit( 'A' );
         organisationUnitService.addOrganisationUnit( organisationUnit );
         OrganisationUnit organisationUnitB = createOrganisationUnit( 'B' );
@@ -169,7 +175,6 @@ class TrackedEntityInstanceServiceTest
         attributeService.addTrackedEntityAttribute( attrE );
         attributeService.addTrackedEntityAttribute( filtF );
         attributeService.addTrackedEntityAttribute( filtG );
-        super.userService = this.userService;
         User user = createUserWithAuth( "testUser" );
         user.setTeiSearchOrganisationUnits( Sets.newHashSet( organisationUnit ) );
         injectSecurityContext( user );
@@ -270,14 +275,7 @@ class TrackedEntityInstanceServiceTest
     @Test
     void testTrackedEntityAttributeFilter()
     {
-        User user = makeUser( "Q" );
-        user.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
-        // CurrentUserService currentUserService = new MockCurrentUserService(
-        // user );
-        // ReflectionTestUtils.setField( entityInstanceService,
-        // "currentUserService", currentUserService );
-
-        injectSecurityContext( user );
+        injectSecurityContext( adminUser );
 
         filtH.setDisplayInListNoProgram( true );
 
@@ -303,6 +301,5 @@ class TrackedEntityInstanceServiceTest
         Grid grid = entityInstanceService.getTrackedEntityInstancesGrid( params );
 
         assertEquals( 1, grid.getHeight() );
-
     }
 }

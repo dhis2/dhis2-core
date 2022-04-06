@@ -36,6 +36,7 @@ import java.util.Collections;
 
 import org.hisp.dhis.IntegrationH2Test;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -83,6 +84,9 @@ public abstract class DhisControllerConvenienceTest extends DhisMockMvcControlle
     @Autowired
     private IdentifiableObjectManager manager;
 
+    @Autowired
+    protected DbmsManager dbmsManager;
+
     private MockMvc mvc;
 
     private MockHttpSession session;
@@ -96,13 +100,19 @@ public abstract class DhisControllerConvenienceTest extends DhisMockMvcControlle
         throws Exception
     {
         userService = _userService;
-        mvc = MockMvcBuilders.webAppContextSetup( webApplicationContext ).build();
-
+        clearSecurityContext();
         superUser = createAdminUser( "ALL" );
+
+        mvc = MockMvcBuilders.webAppContextSetup( webApplicationContext ).build();
         switchContextToUser( superUser );
+
         currentUser = superUser;
 
         TestUtils.executeStartupRoutines( webApplicationContext );
+
+        dbmsManager.flushSession();
+        dbmsManager.clearSession();
+
     }
 
     protected final String getSuperuserUid()

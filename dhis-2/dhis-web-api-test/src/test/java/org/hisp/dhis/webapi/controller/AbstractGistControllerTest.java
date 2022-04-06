@@ -32,8 +32,11 @@ import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Set;
+
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,9 +59,22 @@ abstract class AbstractGistControllerTest extends DhisControllerConvenienceTest
 
     protected String dataSetId;
 
+    private User userA;
+    private User userB;
+    public static final String USER_A_USERNAME = "userA";
+    public static final String USER_B_USERNAME = "userB";
+
     @BeforeEach
     void setUp()
     {
+        userA = createUserWithAuth( "userA","ALL" );
+//        userB = createUserWithAuth( USER_B_USERNAME );
+//
+//        //Default user is userA
+        switchContextToUser( userA );
+
+        Set<String> allAuthorities = userA.getAllAuthorities();
+
         userGroupId = assertStatus( HttpStatus.CREATED,
             POST( "/userGroups/", "{'name':'groupX', 'users':[{'id':'" + getSuperuserUid() + "'}]}" ) );
         assertStatus( HttpStatus.OK, PATCH( "/users/{id}?importReportMode=ERRORS", getSuperuserUid(),

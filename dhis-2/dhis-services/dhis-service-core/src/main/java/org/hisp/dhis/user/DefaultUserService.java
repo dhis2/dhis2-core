@@ -446,7 +446,7 @@ public class DefaultUserService
     @Transactional
     public long addUserRole( UserRole userRole )
     {
-        User currentUser = currentUserService.getCurrentUser();
+//        User currentUser = currentUserService.getCurrentUser();
         userRoleStore.save( userRole );
         return userRole.getId();
     }

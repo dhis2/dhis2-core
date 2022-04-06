@@ -122,9 +122,11 @@ public class DefaultTrackedEntityInstanceService
     // TrackedEntityInstanceService --> TrackerOwnershipManager -->
     // TrackedEntityProgramOwnerService --> TrackedEntityInstanceService
     public DefaultTrackedEntityInstanceService( TrackedEntityInstanceStore trackedEntityInstanceStore,
-        TrackedEntityAttributeValueService attributeValueService, TrackedEntityAttributeService attributeService,
+        TrackedEntityAttributeValueService attributeValueService,
+        TrackedEntityAttributeService attributeService,
         TrackedEntityTypeService trackedEntityTypeService,
-        OrganisationUnitService organisationUnitService, CurrentUserService currentUserService, AclService aclService,
+        OrganisationUnitService organisationUnitService,
+        CurrentUserService currentUserService, AclService aclService,
         @Lazy TrackerOwnershipManager trackerOwnershipAccessManager,
         @Lazy TrackedEntityInstanceAuditService trackedEntityInstanceAuditService,
         @Lazy TrackedEntityAttributeValueAuditService attributeValueAuditService )
@@ -235,7 +237,7 @@ public class DefaultTrackedEntityInstanceService
             validateSearchScope( params, false );
         }
 
-        User user = currentUserService.getCurrentUser();
+        User user = this.currentUserService.getCurrentUser();
 
         params.setUser( user );
 

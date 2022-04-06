@@ -60,7 +60,7 @@ class UserServiceTest extends DhisSpringTest
 {
 
     @Autowired
-    private UserService userService;
+    private UserService _userService;
 
     @Autowired
     private UserGroupService userGroupService;
@@ -91,7 +91,7 @@ class UserServiceTest extends DhisSpringTest
     public void setUpTest()
         throws Exception
     {
-        super.userService = userService;
+        super.userService = _userService;
         unitA = createOrganisationUnit( 'A' );
         unitB = createOrganisationUnit( 'B' );
         unitC = createOrganisationUnit( 'C', unitA );
@@ -138,7 +138,6 @@ class UserServiceTest extends DhisSpringTest
         addUser( "a" );
         addUser( "b" );
 
-        List<User> allUsers = userService.getAllUsers();
         assertEquals( 2, userService.getUsersByUsernames( asList( "usernamea", "usernameb" ) ).size() );
         assertEquals( 2,
             userService.getUsersByUsernames( asList( "usernamea", "usernameb", "usernamex" ) ).size() );
