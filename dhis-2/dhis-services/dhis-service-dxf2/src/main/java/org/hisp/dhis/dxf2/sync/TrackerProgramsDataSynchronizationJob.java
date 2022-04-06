@@ -32,6 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.dxf2.synch.SynchronizationManager;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
@@ -45,7 +46,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @AllArgsConstructor
-public class TrackerProgramsDataSynchronizationJob extends SynchronizationJob
+public class TrackerProgramsDataSynchronizationJob implements Job
 {
     private final TrackerSynchronization trackerSync;
 
@@ -58,19 +59,17 @@ public class TrackerProgramsDataSynchronizationJob extends SynchronizationJob
     }
 
     @Override
-    public void execute( JobConfiguration jobConfiguration, JobProgress progress )
+    public void execute( JobConfiguration config, JobProgress progress )
     {
-        TrackerProgramsDataSynchronizationJobParameters params = (TrackerProgramsDataSynchronizationJobParameters) jobConfiguration
+        TrackerProgramsDataSynchronizationJobParameters params = (TrackerProgramsDataSynchronizationJobParameters) config
             .getJobParameters();
-        progress.startingProcess( "Tracker program data synchronisation" );
-        progress.startingStage( "Synchronising tracker program data" );
-        progress.endingProcess( progress.runStage( () -> trackerSync.synchronizeData( params.getPageSize() ) ) );
+        trackerSync.synchronizeData( params.getPageSize(), progress );
     }
 
     @Override
     public ErrorReport validate()
     {
-        return validateRemoteServerAvailability( syncManager, TrackerProgramsDataSynchronizationJob.class )
-            .orElse( super.validate() );
+        return SyncUtils.validateRemoteServerAvailability( syncManager, TrackerProgramsDataSynchronizationJob.class )
+            .orElse( null );
     }
 }
