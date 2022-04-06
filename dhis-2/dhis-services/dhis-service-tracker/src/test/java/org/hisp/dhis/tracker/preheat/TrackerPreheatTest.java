@@ -237,7 +237,8 @@ class TrackerPreheatTest extends DhisConvenienceTest
         DataElement de1 = new DataElement( "dataElementA" );
         de1.setAttributeValues( Collections.singleton( attributeValue ) );
         preheat.put(
-            TrackerIdSchemeParam.builder().idScheme( TrackerIdScheme.ATTRIBUTE ).value( attribute.getUid() ).build(),
+            TrackerIdSchemeParam.builder().idScheme( TrackerIdScheme.ATTRIBUTE ).attributeUid( attribute.getUid() )
+                .build(),
             de1 );
         assertEquals( 1, preheat.getAll( DataElement.class ).size() );
         assertThat( preheat.get( DataElement.class, "value1" ), is( notNullValue() ) );
