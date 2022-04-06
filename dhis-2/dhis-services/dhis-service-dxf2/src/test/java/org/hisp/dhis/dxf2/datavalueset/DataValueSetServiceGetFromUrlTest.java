@@ -88,7 +88,7 @@ class DataValueSetServiceGetFromUrlTest
         categoryOptionB = createCategoryOption( 'B' );
         categoryOptionC = createCategoryOption( 'C' );
         categoryOptionD = createCategoryOption( 'D' );
-        categoryOptionD = createCategoryOption( 'E' );
+        categoryOptionE = createCategoryOption( 'E' );
         categoryService.addCategoryOption( categoryOptionA );
         categoryService.addCategoryOption( categoryOptionB );
         categoryService.addCategoryOption( categoryOptionC );
@@ -114,7 +114,7 @@ class DataValueSetServiceGetFromUrlTest
     }
 
     @Test
-    public void testGetFromUrlWithAttributes()
+    void testGetFromUrlWithAttributes()
     {
         DataValueSetQueryParams params = new DataValueSetQueryParams();
         params.setAttributeCombo( categoryComboA.getUid() );
@@ -126,7 +126,7 @@ class DataValueSetServiceGetFromUrlTest
     }
 
     @Test
-    public void testGetFromUrlWithAttributesException()
+    void testGetFromUrlWithAttributesException()
     {
         DataValueSetQueryParams params = new DataValueSetQueryParams();
         params.setAttributeCombo( categoryComboA.getUid() );
