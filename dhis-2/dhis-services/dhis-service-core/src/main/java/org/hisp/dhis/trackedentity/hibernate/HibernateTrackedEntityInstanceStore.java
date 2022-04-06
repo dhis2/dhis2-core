@@ -684,7 +684,8 @@ public class HibernateTrackedEntityInstanceStore
 
         attributes
             .append( "INNER JOIN trackedentityattributevalue Q " )
-            .append( "ON Q.trackedentityinstanceid IN (" )
+            .append( "ON Q.trackedentityinstanceid = TEI.trackedentityinstanceid " )
+            .append( "AND Q.trackedentityattributeid IN (" )
             .append( getCommaDelimitedString( itemIds ) )
             .append( ") AND (" );
 
