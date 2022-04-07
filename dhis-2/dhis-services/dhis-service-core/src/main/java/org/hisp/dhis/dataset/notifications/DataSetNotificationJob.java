@@ -56,11 +56,10 @@ public class DataSetNotificationJob implements Job
     }
 
     @Override
-    public void execute( JobConfiguration jobConfiguration, JobProgress progress )
+    public void execute( JobConfiguration config, JobProgress progress )
     {
         progress.startingProcess( "Dataset notification" );
-        progress.startingStage( "Sending scheduled dataset notifications" );
-        progress.endingProcess( progress.runStage(
-            () -> dataSetNotificationService.sendScheduledDataSetNotificationsForDay( new Date(), progress ) ) );
+        dataSetNotificationService.sendScheduledDataSetNotificationsForDay( new Date(), progress );
+        progress.completedProcess( null );
     }
 }
