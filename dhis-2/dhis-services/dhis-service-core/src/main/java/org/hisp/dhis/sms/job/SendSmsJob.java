@@ -85,6 +85,8 @@ public class SendSmsJob implements Job
         sms.setStatus( status != null && status.isOk() ? OutboundSmsStatus.SENT : OutboundSmsStatus.FAILED );
         progress.startingStage( format( "Persisting outcome as %s", sms.getStatus().name() ) );
         progress.runStage( () -> outboundSmsService.save( sms ) );
+
+        progress.completedProcess( null );
     }
 
 }
