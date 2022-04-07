@@ -29,9 +29,7 @@ package org.hisp.dhis.query;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.util.Collection;
 import java.util.List;
@@ -43,6 +41,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.query.operators.MatchMode;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
@@ -739,6 +738,42 @@ public class CriteriaQueryEngineTest extends TransactionalIntegrationTest
         assertEquals( 0, queryEngine.count( query ) );
         assertEquals( 0, queryEngine.query( query ).size() );
 
+    }
+
+    @Test
+    public void testOrderByNonPersistedFieldNameAsc()
+    {
+        OrganisationUnit parent = createOrganisationUnit( "parent" );
+        identifiableObjectManager.save( parent );
+
+        OrganisationUnit child = createOrganisationUnit( "child" );
+        child.setParent( parent );
+        identifiableObjectManager.save( child );
+
+        Schema schema = schemaService.getDynamicSchema( OrganisationUnit.class );
+        Query query = Query.from( schema );
+        query.addOrder( Order.asc( schema.getProperty( "level" ) ) );
+        List<? extends IdentifiableObject> orgUnits = queryEngine.query( query );
+        assertEquals( "parent", orgUnits.get( 0 ).getName() );
+        assertEquals( "child", orgUnits.get( 1 ).getName() );
+    }
+
+    @Test
+    public void testOrderByNonPersistedFieldNameDesc()
+    {
+        OrganisationUnit parent = createOrganisationUnit( "parent" );
+        identifiableObjectManager.save( parent );
+
+        OrganisationUnit child = createOrganisationUnit( "child" );
+        child.setParent( parent );
+        identifiableObjectManager.save( child );
+
+        Schema schema = schemaService.getDynamicSchema( OrganisationUnit.class );
+        Query query = Query.from( schema );
+        query.addOrder( Order.desc( schema.getProperty( "level" ) ) );
+        List<? extends IdentifiableObject> orgUnits = queryEngine.query( query );
+        assertEquals( "child", orgUnits.get( 0 ).getName() );
+        assertEquals( "parent", orgUnits.get( 1 ).getName() );
     }
 
     @Override
