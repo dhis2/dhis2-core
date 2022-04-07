@@ -143,6 +143,7 @@ public class DefaultRenderService
     public <T> void toXml( OutputStream output, T value )
         throws IOException
     {
+        log.info( "Deprecation-Notice: XML support will be removed in 2.39" );
         xmlMapper.writeValue( output, value );
     }
 
@@ -150,6 +151,7 @@ public class DefaultRenderService
     public <T> T fromXml( InputStream input, Class<T> klass )
         throws IOException
     {
+        log.info( "Deprecation-Notice: XML support will be removed in 2.39" );
         return xmlMapper.readValue( input, klass );
     }
 
@@ -157,6 +159,7 @@ public class DefaultRenderService
     public <T> T fromXml( String input, Class<T> klass )
         throws IOException
     {
+        log.info( "Deprecation-Notice: XML support will be removed in 2.39" );
         return xmlMapper.readValue( input, klass );
     }
 
