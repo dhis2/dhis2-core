@@ -61,6 +61,7 @@ class ApiTokenControllerTest extends DhisControllerConvenienceTest
 {
 
     public static final String USER_A_USERNAME = "userA";
+
     public static final String USER_B_USERNAME = "userB";
 
     @Autowired
@@ -70,6 +71,7 @@ class ApiTokenControllerTest extends DhisControllerConvenienceTest
     private RenderService _renderService;
 
     private User userA;
+
     private User userB;
 
     @BeforeEach
@@ -79,7 +81,7 @@ class ApiTokenControllerTest extends DhisControllerConvenienceTest
         userA = createUserWithAuth( USER_A_USERNAME );
         userB = createUserWithAuth( USER_B_USERNAME );
 
-        //Default user is userA
+        // Default user is userA
         injectSecurityContext( userA );
     }
 

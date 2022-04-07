@@ -122,7 +122,7 @@ public abstract class DhisWebSpringTest extends DhisConvenienceTest
 
     public MockHttpSession getSession( String... authorities )
     {
-//        createAndInjectAdminUser( authorities );
+        // createAndInjectAdminUser( authorities );
 
         MockHttpSession session = new MockHttpSession();
 

@@ -74,7 +74,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import com.google.common.collect.Sets;
 
@@ -110,9 +109,12 @@ class TrackedEntityInstanceAggregateTest extends TrackerTest
         makeUserSuper( user );
         injectSecurityContext( user );
         // currentUserService = new MockCurrentUserService( user );
-//        ReflectionTestUtils.setField( trackedEntityInstanceAggregate, "currentUserService", currentUserService );
-//        ReflectionTestUtils.setField( trackedEntityInstanceService, "currentUserService", currentUserService );
-//        ReflectionTestUtils.setField( teiService, "currentUserService", currentUserService );
+        // ReflectionTestUtils.setField( trackedEntityInstanceAggregate,
+        // "currentUserService", currentUserService );
+        // ReflectionTestUtils.setField( trackedEntityInstanceService,
+        // "currentUserService", currentUserService );
+        // ReflectionTestUtils.setField( teiService, "currentUserService",
+        // currentUserService );
     }
 
     @Test

@@ -46,7 +46,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserRole;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
@@ -73,9 +72,12 @@ class TrackedEntityInstanceAttributesAggregateAclTest extends TrackerTest
         setUserAuthorityToNonSuper( user );
         // currentUserService = new MockCurrentUserService( user );
         injectSecurityContext( user );
-//        ReflectionTestUtils.setField( trackedEntityInstanceAggregate, "currentUserService", currentUserService );
-//        ReflectionTestUtils.setField( trackedEntityInstanceService, "currentUserService", currentUserService );
-//        ReflectionTestUtils.setField( teiService, "currentUserService", currentUserService );
+        // ReflectionTestUtils.setField( trackedEntityInstanceAggregate,
+        // "currentUserService", currentUserService );
+        // ReflectionTestUtils.setField( trackedEntityInstanceService,
+        // "currentUserService", currentUserService );
+        // ReflectionTestUtils.setField( teiService, "currentUserService",
+        // currentUserService );
     }
 
     @Test
