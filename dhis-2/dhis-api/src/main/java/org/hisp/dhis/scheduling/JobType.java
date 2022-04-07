@@ -150,6 +150,7 @@ public enum JobType
     public boolean isUsingNotifications()
     {
         return this == RESOURCE_TABLE
+            || this == SEND_SCHEDULED_MESSAGE
             || this == ANALYTICS_TABLE
             || this == CONTINUOUS_ANALYTICS_TABLE
             || this == DATA_SET_NOTIFICATION
