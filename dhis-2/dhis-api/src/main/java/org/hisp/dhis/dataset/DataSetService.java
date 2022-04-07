@@ -29,7 +29,9 @@ package org.hisp.dhis.dataset;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
+import org.apache.commons.collections4.SetValuedMap;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataentryform.DataEntryForm;
@@ -304,4 +306,15 @@ public interface DataSetService extends DataSetDataIntegrityProvider
      * @return a list of LockException with given filter list
      */
     List<LockException> filterLockExceptions( List<String> filters );
+
+    /**
+     * Return a mapping between the given data sets and the associated
+     * organisation units. Access control relative to the current user is
+     * respected.
+     *
+     * @param dataSetUids the data set identifiers.
+     * @return a {@link SetValuedMap} between data sets and organisation unit
+     *         identifiers.
+     */
+    SetValuedMap<String, String> getDataSetOrganisationUnitsAssociations( Set<String> dataSetUids );
 }

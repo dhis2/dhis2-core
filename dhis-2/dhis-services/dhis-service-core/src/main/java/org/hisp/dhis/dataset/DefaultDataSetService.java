@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.commons.collections4.SetValuedMap;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataapproval.DataApprovalService;
 import org.hisp.dhis.dataelement.DataElement;
@@ -45,10 +46,12 @@ import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.program.jdbc.JdbcOrgUnitAssociationsStore;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -72,10 +75,14 @@ public class DefaultDataSetService
 
     private final DataApprovalService dataApprovalService;
 
+    @Qualifier( "jdbcDataSetOrgUnitAssociationsStore" )
+    private final JdbcOrgUnitAssociationsStore jdbcOrgUnitAssociationsStore;
+
     private CurrentUserService currentUserService;
 
     public DefaultDataSetService( DataSetStore dataSetStore, LockExceptionStore lockExceptionStore,
-        @Lazy DataApprovalService dataApprovalService, CurrentUserService currentUserService )
+        @Lazy DataApprovalService dataApprovalService, JdbcOrgUnitAssociationsStore jdbcOrgUnitAssociationsStore,
+        CurrentUserService currentUserService )
     {
         checkNotNull( dataSetStore );
         checkNotNull( lockExceptionStore );
@@ -85,6 +92,7 @@ public class DefaultDataSetService
         this.dataSetStore = dataSetStore;
         this.lockExceptionStore = lockExceptionStore;
         this.dataApprovalService = dataApprovalService;
+        this.jdbcOrgUnitAssociationsStore = jdbcOrgUnitAssociationsStore;
         this.currentUserService = currentUserService;
     }
 
@@ -407,6 +415,16 @@ public class DefaultDataSetService
 
         return new ArrayList<>( returnList );
     }
+
+    @Override
+    public SetValuedMap<String, String> getDataSetOrganisationUnitsAssociations( Set<String> dataSetUids )
+    {
+        return jdbcOrgUnitAssociationsStore.getOrganisationUnitsAssociationsForCurrentUser( dataSetUids );
+    }
+
+    // -------------------------------------------------------------------------
+    // Supportive methods
+    // -------------------------------------------------------------------------
 
     private List<LockException> getLockExceptionByOrganisationUnit( String operator, String orgUnitIds,
         Collection<LockException> lockExceptions )

@@ -30,6 +30,7 @@ package org.hisp.dhis.program.jdbc;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.association.CategoryOptionOrganisationUnitAssociationsQueryBuilder;
+import org.hisp.dhis.association.DataSetOrganisationUnitAssociationsQueryBuilder;
 import org.hisp.dhis.association.ProgramOrganisationUnitAssociationsQueryBuilder;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.user.CurrentUserService;
@@ -41,7 +42,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 @RequiredArgsConstructor
 public class JdbcOrgUnitAssociationStoreConfiguration
 {
-
     private final CacheProvider cacheProvider;
 
     @Bean( "jdbcProgramOrgUnitAssociationsStore" )
@@ -60,6 +60,15 @@ public class JdbcOrgUnitAssociationStoreConfiguration
         return new JdbcOrgUnitAssociationsStore( currentUserService, jdbcTemplate,
             new CategoryOptionOrganisationUnitAssociationsQueryBuilder( currentUserService ),
             cacheProvider.createCatOptOrgUnitAssociationCache() );
+    }
+
+    @Bean( "jdbcDataSetOrgUnitAssociationsStore" )
+    JdbcOrgUnitAssociationsStore jdbcDataSetOrgUnitAssociationStore( CurrentUserService currentUserService,
+        JdbcTemplate jdbcTemplate )
+    {
+        return new JdbcOrgUnitAssociationsStore( currentUserService, jdbcTemplate,
+            new DataSetOrganisationUnitAssociationsQueryBuilder( currentUserService ),
+            cacheProvider.createDataSetOrgUnitAssociationCache() );
     }
 
 }

@@ -43,27 +43,28 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.jdbc.core.JdbcTemplate;
 
+/**
+ * @author Ameen Mohamed
+ */
 @RequiredArgsConstructor
 public class JdbcOrgUnitAssociationsStore
 {
-
     private final CurrentUserService currentUserService;
 
     private final JdbcTemplate jdbcTemplate;
 
     private final AbstractOrganisationUnitAssociationsQueryBuilder queryBuilder;
 
-    private final Cache<Set<String>> orgUnitAssocCache;
+    private final Cache<Set<String>> orgUnitAssociationCache;
 
-    public SetValuedMap<String, String> getOrganisationUnitsAssociationsForCurrentUser( Set<String> programUids )
+    public SetValuedMap<String, String> getOrganisationUnitsAssociationsForCurrentUser( Set<String> objectUids )
     {
-
         Set<String> userOrgUnitPaths = getUserOrgUnitPaths();
 
         return jdbcTemplate.query(
-            queryBuilder.buildSqlQuery( programUids, userOrgUnitPaths, currentUserService.getCurrentUser() ),
+            queryBuilder.buildSqlQuery( objectUids, userOrgUnitPaths, currentUserService.getCurrentUser() ),
             resultSet -> {
-                SetValuedMap<String, String> setValuedMap = new HashSetValuedHashMap<String, String>();
+                SetValuedMap<String, String> setValuedMap = new HashSetValuedHashMap<>();
                 while ( resultSet.next() )
                 {
                     setValuedMap.putAll(
@@ -77,12 +78,12 @@ public class JdbcOrgUnitAssociationsStore
 
     public SetValuedMap<String, String> getOrganisationUnitsAssociations( Set<String> uids )
     {
-        SetValuedMap<String, String> setValuedMap = new HashSetValuedHashMap<String, String>();
+        SetValuedMap<String, String> setValuedMap = new HashSetValuedHashMap<>();
 
         boolean cached = true;
         for ( String uid : uids )
         {
-            Optional<Set<String>> orgUnitUids = orgUnitAssocCache.get( uid );
+            Optional<Set<String>> orgUnitUids = orgUnitAssociationCache.get( uid );
             if ( !orgUnitUids.isPresent() )
             {
                 cached = false;
@@ -109,8 +110,8 @@ public class JdbcOrgUnitAssociationsStore
                         setValuedMap.putAll(
                             resultSet.getString( 1 ),
                             Arrays.asList( (String[]) resultSet.getArray( 2 ).getArray() ) );
-                        orgUnitAssocCache.put( resultSet.getString( 1 ),
-                            new HashSet<String>( setValuedMap.get( resultSet.getString( 1 ) ) ) );
+                        orgUnitAssociationCache.put( resultSet.getString( 1 ),
+                            new HashSet<>( setValuedMap.get( resultSet.getString( 1 ) ) ) );
 
                     }
                     return setValuedMap;
