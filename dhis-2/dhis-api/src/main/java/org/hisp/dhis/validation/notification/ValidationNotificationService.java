@@ -27,8 +27,10 @@
  */
 package org.hisp.dhis.validation.notification;
 
+import java.util.Collection;
 import java.util.Set;
 
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.validation.ValidationResult;
 
 /**
@@ -36,7 +38,7 @@ import org.hisp.dhis.validation.ValidationResult;
  */
 public interface ValidationNotificationService
 {
-    Set<ValidationResult> sendNotifications( Set<ValidationResult> results );
+    Set<ValidationResult> sendNotifications( Collection<ValidationResult> results, JobProgress progress );
 
-    void sendUnsentNotifications();
+    void sendUnsentNotifications( JobProgress progress );
 }
