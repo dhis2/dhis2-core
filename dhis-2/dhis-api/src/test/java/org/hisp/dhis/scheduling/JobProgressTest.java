@@ -170,7 +170,7 @@ class JobProgressTest
         verify( progress, never() ).completedStage( anyString() );
         verify( progress, never() ).startingWorkItem( anyString() );
         verify( progress ).failedStage( any( IllegalStateException.class ) );
-        verify( progress, never() ).failedStage( anyString() );
+        verify( progress ).failedStage( "java.lang.IllegalStateException" );
     }
 
     @Test
@@ -194,7 +194,7 @@ class JobProgressTest
         verify( progress, never() ).completedStage( anyString() );
         verify( progress, never() ).startingWorkItem( anyString() );
         verify( progress ).failedStage( any( IllegalStateException.class ) );
-        verify( progress, never() ).failedStage( anyString() );
+        verify( progress ).failedStage( "java.lang.IllegalStateException" );
     }
 
     @Test

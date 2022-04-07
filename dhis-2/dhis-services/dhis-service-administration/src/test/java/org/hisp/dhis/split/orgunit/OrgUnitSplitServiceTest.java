@@ -42,6 +42,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.program.Program;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -133,17 +134,32 @@ class OrgUnitSplitServiceTest extends DhisSpringTest
         dsB.addOrganisationUnit( ouA );
         idObjectManager.save( dsA );
         idObjectManager.save( dsB );
+        Program prA = createProgram( 'A' );
+        prA.addOrganisationUnit( ouA );
+        Program prB = createProgram( 'B' );
+        prB.addOrganisationUnit( ouA );
+        idObjectManager.save( ouA );
+        idObjectManager.save( ouB );
         assertNotNull( idObjectManager.get( OrganisationUnit.class, ouA.getUid() ) );
         assertNotNull( idObjectManager.get( OrganisationUnit.class, ouB.getUid() ) );
         assertNotNull( idObjectManager.get( OrganisationUnit.class, ouC.getUid() ) );
-        OrgUnitSplitRequest request = new OrgUnitSplitRequest.Builder().withSource( ouA ).addTarget( ouB )
-            .addTarget( ouC ).withPrimaryTarget( ouB ).build();
+        OrgUnitSplitRequest request = new OrgUnitSplitRequest.Builder()
+            .withSource( ouA )
+            .addTarget( ouB )
+            .addTarget( ouC )
+            .withPrimaryTarget( ouB )
+            .build();
         assertEquals( 2, ouA.getDataSets().size() );
         assertEquals( 0, ouB.getDataSets().size() );
         assertEquals( 0, ouC.getDataSets().size() );
+        assertEquals( 2, ouA.getPrograms().size() );
+        assertEquals( 0, ouB.getPrograms().size() );
+        assertEquals( 0, ouC.getPrograms().size() );
         service.split( request );
         assertEquals( 2, ouB.getDataSets().size() );
         assertEquals( 2, ouC.getDataSets().size() );
+        assertEquals( 2, ouB.getPrograms().size() );
+        assertEquals( 2, ouC.getPrograms().size() );
         assertNull( idObjectManager.get( OrganisationUnit.class, ouA.getUid() ) );
         assertNotNull( idObjectManager.get( OrganisationUnit.class, ouB.getUid() ) );
         assertNotNull( idObjectManager.get( OrganisationUnit.class, ouC.getUid() ) );

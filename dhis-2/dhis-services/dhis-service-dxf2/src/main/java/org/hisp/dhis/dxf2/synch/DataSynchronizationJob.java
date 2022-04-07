@@ -27,54 +27,33 @@
  */
 package org.hisp.dhis.dxf2.synch;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.Optional;
+import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.dxf2.sync.CompleteDataSetRegistrationSynchronization;
 import org.hisp.dhis.dxf2.sync.DataValueSynchronization;
-import org.hisp.dhis.dxf2.sync.SynchronizationJob;
+import org.hisp.dhis.dxf2.sync.SyncUtils;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.DataSynchronizationJobParameters;
-import org.hisp.dhis.system.notification.Notifier;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Lars Helge Overland
  * @author David Katuscak <katuscak.d@gmail.com>
+ * @author Jan Bernitt (job progress tracking)
  */
-@Component( "dataSyncJob" )
-public class DataSynchronizationJob extends SynchronizationJob
+@Component
+@AllArgsConstructor
+public class DataSynchronizationJob implements Job
 {
-    private final SynchronizationManager synchronizationManager;
+    private final SynchronizationManager syncManager;
 
-    private final Notifier notifier;
+    private final DataValueSynchronization dataValueSync;
 
-    private final DataValueSynchronization dataValueSynchronization;
-
-    private final CompleteDataSetRegistrationSynchronization completenessSynchronization;
-
-    public DataSynchronizationJob( Notifier notifier, DataValueSynchronization dataValueSynchronization,
-        CompleteDataSetRegistrationSynchronization completenessSynchronization,
-        SynchronizationManager synchronizationManager )
-    {
-        checkNotNull( notifier );
-        checkNotNull( dataValueSynchronization );
-        checkNotNull( completenessSynchronization );
-        checkNotNull( synchronizationManager );
-
-        this.notifier = notifier;
-        this.dataValueSynchronization = dataValueSynchronization;
-        this.completenessSynchronization = completenessSynchronization;
-        this.synchronizationManager = synchronizationManager;
-    }
-
-    // -------------------------------------------------------------------------
-    // Implementation
-    // -------------------------------------------------------------------------
+    private final CompleteDataSetRegistrationSynchronization completenessSync;
 
     @Override
     public JobType getJobType()
@@ -83,25 +62,19 @@ public class DataSynchronizationJob extends SynchronizationJob
     }
 
     @Override
-    public void execute( JobConfiguration jobConfiguration, JobProgress progress )
+    public void execute( JobConfiguration config, JobProgress progress )
     {
-        DataSynchronizationJobParameters jobParameters = (DataSynchronizationJobParameters) jobConfiguration
+        DataSynchronizationJobParameters params = (DataSynchronizationJobParameters) config
             .getJobParameters();
-        dataValueSynchronization.synchronizeData( jobParameters.getPageSize() );
-        notifier.notify( jobConfiguration, "Data value sync successful" );
 
-        completenessSynchronization.synchronizeData();
-        notifier.notify( jobConfiguration, "Complete data set registration sync successful" );
-
-        notifier.notify( jobConfiguration, "Data value and Complete data set registration sync successful" );
+        dataValueSync.synchronizeData( params.getPageSize(), progress );
+        completenessSync.synchronizeData( progress );
     }
 
     @Override
     public ErrorReport validate()
     {
-        Optional<ErrorReport> errorReport = validateRemoteServerAvailability( synchronizationManager,
-            DataSynchronizationJob.class );
-
-        return errorReport.orElse( super.validate() );
+        return SyncUtils.validateRemoteServerAvailability( syncManager, DataSynchronizationJob.class )
+            .orElse( null );
     }
 }

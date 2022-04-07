@@ -32,6 +32,7 @@ import static org.hisp.dhis.scheduling.JobType.DATAVALUE_IMPORT;
 import static org.hisp.dhis.scheduling.JobType.METADATA_IMPORT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Deque;
 import java.util.Map;
@@ -221,7 +222,9 @@ class NotifierTest extends DhisSpringTest
             } );
         } );
         awaitTermination( e );
-        assertEquals( 500, notifier.getNotificationsByJobType( METADATA_IMPORT ).size() );
+        int actualSize = notifier.getNotificationsByJobType( METADATA_IMPORT ).size();
+        int delta = actualSize - 500;
+        assertTrue( delta <= 5, "delta should not be larger than number of workers but was: " + delta );
     }
 
     private JobConfiguration createJobConfig( int i )
