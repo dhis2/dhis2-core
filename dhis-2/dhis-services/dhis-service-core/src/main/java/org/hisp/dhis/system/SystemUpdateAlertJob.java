@@ -59,7 +59,7 @@ public class SystemUpdateAlertJob implements Job
     }
 
     @Override
-    public void execute( JobConfiguration jobConfiguration, JobProgress progress )
+    public void execute( JobConfiguration config, JobProgress progress )
     {
         if ( !dhisConfig.isEnabled( SYSTEM_UPDATE_NOTIFICATIONS_ENABLED ) )
         {
@@ -68,8 +68,7 @@ public class SystemUpdateAlertJob implements Job
             return;
         }
         progress.startingProcess( "System update alert" );
-        progress.startingStage( "Sending message for each version" );
-        progress.endingProcess( progress.runStage(
-            () -> systemUpdateService.sendMessageForEachVersion( SystemUpdateService.getLatestNewerThanCurrent() ) ) );
+        systemUpdateService.sendMessageForEachVersion( SystemUpdateService.getLatestNewerThanCurrent(), progress );
+        progress.completedProcess( null );
     }
 }
