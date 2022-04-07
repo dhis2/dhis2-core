@@ -247,7 +247,7 @@ public class NotifierTest extends DhisSpringTest
         awaitTermination( e );
         int actualSize = notifier.getNotificationsByJobType( METADATA_IMPORT ).size();
         int delta = actualSize - 500;
-        assertTrue( delta <= 5, "delta should not be larger than number of workers but was: " + delta );
+        assertTrue( "delta should not be larger than number of workers but was: " + delta, delta <= 5 );
     }
 
     private JobConfiguration createJobConfig( int i )
