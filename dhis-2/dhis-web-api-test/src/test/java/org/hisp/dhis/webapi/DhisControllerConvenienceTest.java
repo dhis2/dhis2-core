@@ -32,6 +32,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.utils.TestUtils;
@@ -72,6 +73,9 @@ public abstract class DhisControllerConvenienceTest extends DhisConvenienceTest 
 
     @Autowired
     private UserService _userService;
+
+    @Autowired
+    private IdentifiableObjectManager manager;
 
     private MockMvc mvc;
 
@@ -158,5 +162,13 @@ public abstract class DhisControllerConvenienceTest extends DhisConvenienceTest 
         assertEquals( "unexpected status", status, actual.getStatus() );
         assertEquals( "unexpected message", message, actual.getMessage() );
         return actual;
+    }
+
+    protected void switchToUserWithOrgUnitDataView( String userName, String orgUnitId )
+    {
+        User user = createUser( userName, "ALL" );
+        user.getDataViewOrganisationUnits().add( manager.get( orgUnitId ) );
+        userService.addUser( user );
+        switchContextToUser( user );
     }
 }
