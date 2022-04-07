@@ -32,6 +32,7 @@ import java.util.Map;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.system.SystemUpdateService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,7 +70,7 @@ public class SystemSoftwareUpdateNotifyController
 
         Map<Semver, Map<String, String>> newerVersions = SystemUpdateService.getLatestNewerThan( currentVersion );
 
-        systemUpdateService.sendMessageForEachVersion( newerVersions );
+        systemUpdateService.sendMessageForEachVersion( newerVersions, NoopJobProgress.INSTANCE );
 
         WebMessage ok = WebMessageUtils.ok();
         ok.setResponse( new SoftwareUpdateResponse( newerVersions ) );
