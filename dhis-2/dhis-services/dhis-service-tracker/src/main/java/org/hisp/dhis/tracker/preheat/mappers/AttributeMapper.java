@@ -25,41 +25,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.imports;
+package org.hisp.dhis.tracker.preheat.mappers;
 
-import org.hisp.dhis.tracker.TrackerIdScheme;
-import org.hisp.dhis.tracker.TrackerIdSchemeParams;
-import org.hisp.dhis.tracker.domain.MetadataIdentifier;
-import org.hisp.dhis.webapi.controller.tracker.view.Enrollment;
-import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
-import org.mapstruct.Context;
+import org.hisp.dhis.attribute.Attribute;
+import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.Named;
+import org.mapstruct.factory.Mappers;
 
-@Mapper( uses = {
-    RelationshipMapper.class,
-    AttributeMapper.class,
-    NoteMapper.class,
-    EventMapper.class,
-    InstantMapper.class,
-    UserMapper.class } )
-interface EnrollmentMapper extends DomainMapper<Enrollment, org.hisp.dhis.tracker.domain.Enrollment>
+@Mapper( uses = { DebugMapper.class } )
+public interface AttributeMapper extends PreheatMapper<Attribute>
 {
-    @Mapping( target = "program", source = "program", qualifiedByName = "program" )
-    org.hisp.dhis.tracker.domain.Enrollment from( Enrollment enrollment,
-        @Context TrackerIdSchemeParams idSchemeParams );
+    AttributeMapper INSTANCE = Mappers.getMapper( AttributeMapper.class );
 
-    @Named( "program" )
-    default org.hisp.dhis.tracker.domain.MetadataIdentifier from( String identifier,
-        @Context TrackerIdSchemeParams idSchemeParams )
-    {
-
-        TrackerIdScheme idScheme = idSchemeParams.getProgramIdScheme().getIdScheme();
-        if ( idScheme == TrackerIdScheme.ATTRIBUTE )
-        {
-            return MetadataIdentifier.ofAttribute( idSchemeParams.getProgramIdScheme().getAttributeUid(), identifier );
-        }
-        return MetadataIdentifier.of( idSchemeParams.getProgramIdScheme().getIdScheme(), identifier, null );
-    }
+    @BeanMapping( ignoreByDefault = true )
+    @Mapping( target = "uid" )
+    Attribute map( Attribute attribute );
 }

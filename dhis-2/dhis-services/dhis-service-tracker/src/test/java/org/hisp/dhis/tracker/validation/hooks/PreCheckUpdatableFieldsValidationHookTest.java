@@ -50,6 +50,7 @@ import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.junit.jupiter.api.BeforeEach;
@@ -148,8 +149,7 @@ class PreCheckUpdatableFieldsValidationHookTest
     void verifyEnrollmentValidationFailsWhenUpdateProgram()
     {
         // given
-        Enrollment enrollment = validEnrollment();
-        enrollment.setProgram( "NewProgramId" );
+        Enrollment enrollment = validEnrollment( "NewProgramId" );
 
         // when
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
@@ -232,10 +232,15 @@ class PreCheckUpdatableFieldsValidationHookTest
 
     private Enrollment validEnrollment()
     {
+        return validEnrollment( PROGRAM_ID );
+    }
+
+    private Enrollment validEnrollment( String uid )
+    {
         return Enrollment.builder()
             .enrollment( ENROLLMENT_ID )
             .trackedEntity( TRACKED_ENTITY_ID )
-            .program( PROGRAM_ID )
+            .program( MetadataIdentifier.ofUid( uid ) )
             .build();
     }
 

@@ -27,39 +27,62 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.imports;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+
 import org.hisp.dhis.tracker.TrackerIdScheme;
+import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
-import org.hisp.dhis.webapi.controller.tracker.view.Enrollment;
-import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
-import org.mapstruct.Context;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.Named;
+import org.junit.jupiter.api.Test;
+import org.mapstruct.factory.Mappers;
 
-@Mapper( uses = {
-    RelationshipMapper.class,
-    AttributeMapper.class,
-    NoteMapper.class,
-    EventMapper.class,
-    InstantMapper.class,
-    UserMapper.class } )
-interface EnrollmentMapper extends DomainMapper<Enrollment, org.hisp.dhis.tracker.domain.Enrollment>
+class EnrollmentMapperTest
 {
-    @Mapping( target = "program", source = "program", qualifiedByName = "program" )
-    org.hisp.dhis.tracker.domain.Enrollment from( Enrollment enrollment,
-        @Context TrackerIdSchemeParams idSchemeParams );
 
-    @Named( "program" )
-    default org.hisp.dhis.tracker.domain.MetadataIdentifier from( String identifier,
-        @Context TrackerIdSchemeParams idSchemeParams )
+    private static final EnrollmentMapper ENROLLMENT_MAPPER = Mappers.getMapper( EnrollmentMapper.class );
+
+    @Test
+    void programIdentifierFromUID()
     {
 
-        TrackerIdScheme idScheme = idSchemeParams.getProgramIdScheme().getIdScheme();
-        if ( idScheme == TrackerIdScheme.ATTRIBUTE )
-        {
-            return MetadataIdentifier.ofAttribute( idSchemeParams.getProgramIdScheme().getAttributeUid(), identifier );
-        }
-        return MetadataIdentifier.of( idSchemeParams.getProgramIdScheme().getIdScheme(), identifier, null );
+        TrackerIdSchemeParams params = TrackerIdSchemeParams.builder()
+            .idScheme( TrackerIdSchemeParam.CODE )
+            .build();
+
+        MetadataIdentifier id = ENROLLMENT_MAPPER.from( "RiNIt1yJoge", params );
+
+        assertEquals( TrackerIdScheme.UID, id.getIdScheme() );
+        assertEquals( "RiNIt1yJoge", id.getIdentifier() );
+    }
+
+    @Test
+    void programIdentifierFromAttribute()
+    {
+
+        TrackerIdSchemeParams params = TrackerIdSchemeParams.builder()
+            .idScheme( TrackerIdSchemeParam.CODE )
+            .programIdScheme( TrackerIdSchemeParam.ofAttribute( "RiNIt1yJoge" ) )
+            .build();
+
+        MetadataIdentifier id = ENROLLMENT_MAPPER.from( "clouds", params );
+
+        assertEquals( TrackerIdScheme.ATTRIBUTE, id.getIdScheme() );
+        assertEquals( "RiNIt1yJoge", id.getIdentifier() );
+        assertEquals( "clouds", id.getAttributeValue() );
+    }
+
+    @Test
+    void programIdentifierFromUIDIfNull()
+    {
+
+        TrackerIdSchemeParams params = TrackerIdSchemeParams.builder()
+            .idScheme( TrackerIdSchemeParam.CODE )
+            .build();
+
+        MetadataIdentifier id = ENROLLMENT_MAPPER.from( (String) null, params );
+
+        assertEquals( TrackerIdScheme.UID, id.getIdScheme() );
+        assertNull( id.getIdentifier() );
     }
 }

@@ -181,8 +181,7 @@ class MetadataIdentifierTest
     {
 
         Program p = new Program();
-        Attribute att = new Attribute();
-        att.setUid( CodeGenerator.generateUid() );
+        Attribute att = new Attribute( CodeGenerator.generateUid() );
         p.setAttributeValues(
             Set.of( new AttributeValue( att, "sunshine" ), attributeValue( "grass" ), attributeValue( "rocks" ) ) );
 

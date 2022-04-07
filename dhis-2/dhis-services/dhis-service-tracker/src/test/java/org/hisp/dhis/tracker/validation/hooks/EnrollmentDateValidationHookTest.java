@@ -43,6 +43,7 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.junit.jupiter.api.BeforeEach;
@@ -78,10 +79,11 @@ class EnrollmentDateValidationHookTest
     @Test
     void testMandatoryDatesMustBePresent()
     {
-        Enrollment enrollment = new Enrollment();
-        enrollment.setEnrollment( CodeGenerator.generateUid() );
-        enrollment.setProgram( CodeGenerator.generateUid() );
-        enrollment.setOccurredAt( Instant.now() );
+        Enrollment enrollment = Enrollment.builder()
+            .enrollment( CodeGenerator.generateUid() )
+            .program( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
+            .occurredAt( Instant.now() )
+            .build();
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
@@ -95,13 +97,13 @@ class EnrollmentDateValidationHookTest
     @Test
     void testDatesMustNotBeInTheFuture()
     {
-        Enrollment enrollment = new Enrollment();
-        enrollment.setEnrollment( CodeGenerator.generateUid() );
-        enrollment.setProgram( CodeGenerator.generateUid() );
         final Instant dateInTheFuture = Instant.now().plus( Duration.ofDays( 2 ) );
-
-        enrollment.setOccurredAt( dateInTheFuture );
-        enrollment.setEnrolledAt( dateInTheFuture );
+        Enrollment enrollment = Enrollment.builder()
+            .enrollment( CodeGenerator.generateUid() )
+            .program( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
+            .occurredAt( dateInTheFuture )
+            .enrolledAt( dateInTheFuture )
+            .build();
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
@@ -116,12 +118,13 @@ class EnrollmentDateValidationHookTest
     @Test
     void testDatesShouldBeAllowedOnSameDayIfFutureDatesAreNotAllowed()
     {
-        Enrollment enrollment = new Enrollment();
-        enrollment.setProgram( CodeGenerator.generateUid() );
         final Instant today = Instant.now().plus( Duration.ofMinutes( 1 ) );
-
-        enrollment.setOccurredAt( today );
-        enrollment.setEnrolledAt( today );
+        Enrollment enrollment = Enrollment.builder()
+            .enrollment( CodeGenerator.generateUid() )
+            .program( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
+            .occurredAt( today )
+            .enrolledAt( today )
+            .build();
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
@@ -135,12 +138,13 @@ class EnrollmentDateValidationHookTest
     @Test
     void testDatesCanBeInTheFuture()
     {
-        Enrollment enrollment = new Enrollment();
-        enrollment.setEnrollment( CodeGenerator.generateUid() );
-        enrollment.setProgram( CodeGenerator.generateUid() );
         final Instant dateInTheFuture = Instant.now().plus( Duration.ofDays( 2 ) );
-        enrollment.setOccurredAt( dateInTheFuture );
-        enrollment.setEnrolledAt( dateInTheFuture );
+        Enrollment enrollment = Enrollment.builder()
+            .enrollment( CodeGenerator.generateUid() )
+            .program( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
+            .occurredAt( dateInTheFuture )
+            .enrolledAt( dateInTheFuture )
+            .build();
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
@@ -157,11 +161,11 @@ class EnrollmentDateValidationHookTest
     @Test
     void testFailOnMissingOccurredAtDate()
     {
-        Enrollment enrollment = new Enrollment();
-        enrollment.setEnrollment( CodeGenerator.generateUid() );
-        enrollment.setProgram( CodeGenerator.generateUid() );
-
-        enrollment.setEnrolledAt( Instant.now() );
+        Enrollment enrollment = Enrollment.builder()
+            .enrollment( CodeGenerator.generateUid() )
+            .program( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
+            .enrolledAt( Instant.now() )
+            .build();
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 

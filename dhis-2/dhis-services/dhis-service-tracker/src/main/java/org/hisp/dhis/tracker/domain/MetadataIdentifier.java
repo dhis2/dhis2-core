@@ -33,6 +33,7 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Value;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.tracker.TrackerIdScheme;
@@ -41,6 +42,9 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
+ * MetadataIdentifier represents an immutable idScheme aware identifier of
+ * metadata.
+ *
  * idScheme=ATTRIBUTE uses the {@link #identifier} and {@link #attributeValue}
  * to identify metadata while the other idSchemes only rely on the identifier
  * (UID, CODE, NAME).
@@ -50,46 +54,53 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class MetadataIdentifier
 {
 
+    /**
+     * Represents the idScheme the {@link #identifier} is in.
+     */
     @JsonProperty
     private final TrackerIdScheme idScheme;
 
+    /**
+     * Represents the actual identifier of the metadata. UID for idScheme
+     * {@code UID} and {@code ATTRIBUTE} in which case its the UID of the
+     * metadata attribute, code and name respectively.
+     *
+     * <strong>CAUTION:</strong> when using the {@code identifier} directly. You
+     * loose the context of which idScheme it is in, which was the source of
+     * many bugs. If you are doing equality comparisons use
+     * {@link #isEqualTo(IdentifiableObject)} instead.
+     */
     @JsonProperty
     private final String identifier;
 
+    /**
+     * Represents the value of a metadata attribute. It is only non-null if
+     * idScheme is {@code ATTRIBUTE}.
+     */
     @JsonProperty
     private final String attributeValue;
 
     /**
-     * Used to gradually migrate JSON test fixtures code over to
-     * {@link MetadataIdentifier}. DO NOT USE THIS OTHER THAN IN TEST FIXTURE
-     * RELATED CODE!!!
-     *
-     * @return identifier value of attribute
-     */
-    // TODO(DHIS2-12563) remove this one before releasing/closing this issue!
-    @Deprecated( ) // just so the IDE highlights that it should not be used
-    @JsonCreator
-    public static MetadataIdentifier of( String uid )
-    {
-        return MetadataIdentifier.ofUid( uid );
-    }
-
-    /**
-     * Creates identifier for metadata using idScheme and given identifier.
+     * Creates an identifier for metadata identifier. {@code attributeValue}
+     * only needs to be set if idScheme is {@code ATTRIBUTE}. Prefer idScheme
+     * specific factory methods {@link #ofUid(String)}, {@link #ofCode(String)},
+     * {@link #ofName(String)} and {@link #ofAttribute(String, String)} over
+     * this one.
      *
      * @param idScheme idScheme of metadata identifier
      * @param identifier identifier of metadata identifier
+     * @param attributeValue attribute value for idScheme ATTRIBUTE
      * @return metadata identifier
      */
     @JsonCreator
     public static MetadataIdentifier of( @JsonProperty( "idScheme" ) TrackerIdScheme idScheme,
-        @JsonProperty( "identifier" ) String identifier, @JsonProperty( "value" ) String value )
+        @JsonProperty( "identifier" ) String identifier, @JsonProperty( "attributeValue" ) String attributeValue )
     {
-        return new MetadataIdentifier( idScheme, identifier, value );
+        return new MetadataIdentifier( idScheme, identifier, attributeValue );
     }
 
     /**
-     * Creates identifier for metadata using idScheme UID and given uid.
+     * Creates an identifier for metadata using idScheme UID and the given uid.
      *
      * @param uid metadata uid
      * @return metadata identifier representing a UID
@@ -100,7 +111,8 @@ public class MetadataIdentifier
     }
 
     /**
-     * Creates identifier for metadata using idScheme CODE and given code.
+     * Creates an identifier for metadata using idScheme CODE and the given
+     * code.
      *
      * @param code metadata code
      * @return metadata identifier representing a code
@@ -111,7 +123,8 @@ public class MetadataIdentifier
     }
 
     /**
-     * Creates identifier for metadata using idScheme NAME and given name.
+     * Creates an identifier for metadata using idScheme NAME and the given
+     * name.
      *
      * @param name metadata name
      * @return metadata identifier representing a name
@@ -122,8 +135,8 @@ public class MetadataIdentifier
     }
 
     /**
-     * Creates identifier for metadata using idScheme ATTRIBUTE and its given
-     * uid and value.
+     * Creates an identifier for metadata using idScheme ATTRIBUTE and the given
+     * attribute uid and value.
      *
      * @param uid metadata attribute uid
      * @param value metadata attribute value
@@ -134,7 +147,14 @@ public class MetadataIdentifier
         return new MetadataIdentifier( TrackerIdScheme.ATTRIBUTE, uid, value );
     }
 
-    public <T extends IdentifiableObject> String getIdentifier( T object )
+    /**
+     * Returns the objects' identifier matching this {@link #idScheme}.
+     *
+     * @param object identifiable object of which identifier will be returned
+     * @param <T> identifiable object
+     * @return identifier of identifiable object
+     */
+    public <T extends IdentifiableObject> String identifierOf( T object )
     {
         switch ( idScheme )
         {
@@ -156,10 +176,28 @@ public class MetadataIdentifier
         throw new RuntimeException( "Unhandled identifier type." );
     }
 
-    public <T extends IdentifiableObject> String getIdAndName( T object )
+    // TODO(DHIS2-12563) test
+    /**
+     * Returns the {@link #identifier} for idScheme {@code UID}, {@code CODE},
+     * {@code NAME} or {@link #attributeValue} for idScheme {@code ATTRIBUTE}.
+     * Used for example as a unique key in the {@code TrackerPreheat} during a
+     * tracker import. An attribute is usually only uniquely identified via its
+     * UID and value. A tracker import uses the same UID for all metadata
+     * identifiers overall or per metadata type (defined by query parameters).
+     * Therefore, the {@link #attributeValue} is enough to uniquely identify an
+     * entity if partitioned per metadata class (i.e. Program, ProgramStage,
+     * ...).
+     *
+     * @return identifier or attribute value
+     */
+    public String getIdentifierOrAttributeValue()
     {
-        String identifier = getIdentifier( object );
-        return object.getClass().getSimpleName() + " (" + identifier + ")";
+
+        if ( this.idScheme == TrackerIdScheme.ATTRIBUTE )
+        {
+            return this.attributeValue;
+        }
+        return this.identifier;
     }
 
     /**
@@ -176,12 +214,22 @@ public class MetadataIdentifier
             return false;
         }
 
-        final String thatId = this.getIdentifier( metadata );
+        final String thatId = this.identifierOf( metadata );
         if ( this.idScheme == TrackerIdScheme.ATTRIBUTE )
         {
             return Objects.equals( this.attributeValue, thatId );
         }
 
         return Objects.equals( this.identifier, thatId );
+    }
+
+    /**
+     * Determines whether this metadata identifier is blank.
+     *
+     * @return true if identifier is blank
+     */
+    public boolean isBlank()
+    {
+        return StringUtils.isBlank( this.getIdentifier() );
     }
 }

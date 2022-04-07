@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.bundle;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.time.Instant;
@@ -107,7 +108,8 @@ class OwnershipTest extends TrackerTest
         assertNotNull( tepo.getEntityInstance() );
         assertNotNull( tepo.getProgram() );
         assertNotNull( tepo.getOrganisationUnit() );
-        assertEquals( enrollmentParams.getEnrollments().get( 0 ).getProgram(), tepo.getProgram().getUid() );
+        assertTrue(
+            enrollmentParams.getEnrollments().get( 0 ).getProgram().isEqualTo( tepo.getProgram() ) );
         assertEquals( enrollmentParams.getEnrollments().get( 0 ).getOrgUnit(), tepo.getOrganisationUnit().getUid() );
         assertEquals( enrollmentParams.getEnrollments().get( 0 ).getTrackedEntity(),
             tepo.getEntityInstance().getUid() );

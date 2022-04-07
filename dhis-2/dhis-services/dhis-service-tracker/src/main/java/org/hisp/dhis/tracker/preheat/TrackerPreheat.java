@@ -70,11 +70,13 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
+import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.user.User;
 
 import com.google.common.collect.ArrayListMultimap;
@@ -377,6 +379,29 @@ public class TrackerPreheat
     {
         String uid = this.defaults.get( defaultClass ).getUid();
         return this.get( defaultClass, uid );
+    }
+
+    /**
+     * Fetch a metadata object from the pre-heat, based on the type of the
+     * object and the cached identifier.
+     *
+     * @param klass The metadata class to fetch
+     * @param id metadata identifier
+     * @return A metadata object or null
+     */
+    @SuppressWarnings( "unchecked" )
+    public <T extends IdentifiableObject> T get( Class<? extends IdentifiableObject> klass, MetadataIdentifier id )
+    {
+        if ( id == null )
+        {
+            return null;
+        }
+        // TODO(DHIS2-12563) add TrackerPreheatTest
+        if ( id.getIdScheme() == TrackerIdScheme.ATTRIBUTE )
+        {
+            return this.get( klass, id.getAttributeValue() );
+        }
+        return this.get( klass, id.getIdentifier() );
     }
 
     /**
@@ -716,6 +741,11 @@ public class TrackerPreheat
     public ProgramStage getProgramStage( String id )
     {
         return get( ProgramStage.class, id );
+    }
+
+    public Program getProgram( MetadataIdentifier id )
+    {
+        return get( Program.class, id );
     }
 
     public Program getProgram( String id )
