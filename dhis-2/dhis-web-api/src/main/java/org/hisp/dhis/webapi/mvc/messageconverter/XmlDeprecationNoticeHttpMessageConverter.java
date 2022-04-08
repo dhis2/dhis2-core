@@ -27,70 +27,48 @@
  */
 package org.hisp.dhis.webapi.mvc.messageconverter;
 
-import java.util.List;
-import java.util.regex.Pattern;
+import java.io.IOException;
+import java.lang.reflect.Type;
 
-import javax.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 
-import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.springframework.http.MediaType;
+import org.springframework.http.HttpInputMessage;
+import org.springframework.http.HttpOutputMessage;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.http.converter.xml.MappingJackson2XmlHttpMessageConverter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * Custom {@link MappingJackson2XmlHttpMessageConverter} that only supports XML
- * for certain endpoints.
+ * Custom {@link MappingJackson2XmlHttpMessageConverter} that logs deprecation
+ * notice when XML support is given through an ObjectMapper.
  *
  * @author Morten Olav Hansen
  */
-public class XmlPathMappingJackson2XmlHttpMessageConverter extends MappingJackson2XmlHttpMessageConverter
+@Slf4j
+public class XmlDeprecationNoticeHttpMessageConverter extends MappingJackson2XmlHttpMessageConverter
 {
-    private static final List<Pattern> XML_PATTERNS = List.of(
-        Pattern.compile( "/(\\d\\d/)?relationships(/?$|/.+)" ),
-        Pattern.compile( "/(\\d\\d/)?enrollments(/?$|/.+)" ),
-        Pattern.compile( "/(\\d\\d/)?events(/?$|/.+)" ),
-        Pattern.compile( "/(\\d\\d/)?trackedEntityInstances(/?$|/.+)" ),
-        Pattern.compile( "/(\\d\\d/)?dataValueSets(/?$|/.+)" ),
-        Pattern.compile( "/(\\d\\d/)?analytics(/?$|/.+)" ),
-        Pattern.compile( "/(\\d\\d/)?completeDataSetRegistrations(/?$|/.+)" ) );
-
-    public XmlPathMappingJackson2XmlHttpMessageConverter( ObjectMapper objectMapper )
+    public XmlDeprecationNoticeHttpMessageConverter( ObjectMapper objectMapper )
     {
         super( objectMapper );
     }
 
     @Override
-    public boolean canRead( Class<?> clazz, MediaType mediaType )
+    protected Object readInternal( Class<?> clazz, HttpInputMessage inputMessage )
+        throws IOException,
+        HttpMessageNotReadableException
     {
-        HttpServletRequest request = ContextUtils.getRequest();
-        String pathInfo = request.getPathInfo();
-
-        for ( var pathPattern : XML_PATTERNS )
-        {
-            if ( pathPattern.matcher( pathInfo ).matches() )
-            {
-                return super.canRead( clazz, mediaType );
-            }
-        }
-
-        return false;
+        log.info( "Deprecation-Notice: XML support will be removed in 2.39" );
+        return super.readInternal( clazz, inputMessage );
     }
 
     @Override
-    public boolean canWrite( Class<?> clazz, MediaType mediaType )
+    protected void writeInternal( Object object, Type type, HttpOutputMessage outputMessage )
+        throws IOException,
+        HttpMessageNotWritableException
     {
-        HttpServletRequest request = ContextUtils.getRequest();
-        String pathInfo = request.getPathInfo();
-
-        for ( var pathPattern : XML_PATTERNS )
-        {
-            if ( pathPattern.matcher( pathInfo ).matches() )
-            {
-                return super.canWrite( clazz, mediaType );
-            }
-        }
-
-        return false;
+        log.info( "Deprecation-Notice: XML support will be removed in 2.39" );
+        super.writeInternal( object, type, outputMessage );
     }
 }
