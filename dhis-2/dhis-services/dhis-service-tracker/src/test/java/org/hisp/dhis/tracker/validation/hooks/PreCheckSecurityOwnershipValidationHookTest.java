@@ -417,7 +417,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
             .enrollment( CodeGenerator.generateUid() )
             .orgUnit( ORG_UNIT_ID )
             .trackedEntity( TEI_ID )
-            .program( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
+            .program( MetadataIdentifier.ofUid( PROGRAM_ID ) )
             .build();
 
         when( bundle.getPreheat() ).thenReturn( preheat );
@@ -500,7 +500,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
             .enrollment( enrollmentUid )
             .orgUnit( ORG_UNIT_ID )
             .trackedEntity( TEI_ID )
-            .program( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
+            .program( MetadataIdentifier.ofUid( PROGRAM_ID ) )
             .build();
 
         when( bundle.getPreheat() ).thenReturn( preheat );
@@ -551,7 +551,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
             .enrollment( CodeGenerator.generateUid() )
             .orgUnit( ORG_UNIT_ID )
             .trackedEntity( TEI_ID )
-            .program( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
+            .program( MetadataIdentifier.ofUid( PROGRAM_ID ) )
             .build();
 
         when( bundle.getPreheat() ).thenReturn( preheat );
@@ -577,7 +577,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
             .enrollment( CodeGenerator.generateUid() )
             .orgUnit( ORG_UNIT_ID )
             .trackedEntity( TEI_ID )
-            .program( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
+            .program( MetadataIdentifier.ofUid( PROGRAM_ID ) )
             .build();
 
         when( bundle.getPreheat() ).thenReturn( preheat );
@@ -605,7 +605,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
             .enrollment( CodeGenerator.generateUid() )
             .orgUnit( ORG_UNIT_ID )
             .trackedEntity( TEI_ID )
-            .program( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
+            .program( MetadataIdentifier.ofUid( PROGRAM_ID ) )
             .build();
 
         when( bundle.getPreheat() ).thenReturn( preheat );
@@ -632,7 +632,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
             .enrollment( CodeGenerator.generateUid() )
             .orgUnit( ORG_UNIT_ID )
             .trackedEntity( TEI_ID )
-            .program( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
+            .program( MetadataIdentifier.ofUid( PROGRAM_ID ) )
             .build();
 
         when( bundle.getPreheat() ).thenReturn( preheat );
@@ -661,7 +661,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
             .enrollment( enrollmentUid )
             .orgUnit( ORG_UNIT_ID )
             .trackedEntity( TEI_ID )
-            .program( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
+            .program( MetadataIdentifier.ofUid( PROGRAM_ID ) )
             .build();
 
         when( bundle.getPreheat() ).thenReturn( preheat );
@@ -688,7 +688,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
             .enrollment( enrollmentUid )
             .orgUnit( ORG_UNIT_ID )
             .trackedEntity( TEI_ID )
-            .program( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
+            .program( MetadataIdentifier.ofUid( PROGRAM_ID ) )
             .build();
 
         when( bundle.getPreheat() ).thenReturn( preheat );

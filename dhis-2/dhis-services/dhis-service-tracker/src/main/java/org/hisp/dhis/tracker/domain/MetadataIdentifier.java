@@ -46,8 +46,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * metadata.
  *
  * idScheme=ATTRIBUTE uses the {@link #identifier} and {@link #attributeValue}
- * to identify metadata while the other idSchemes only rely on the identifier
- * (UID, CODE, NAME).
+ * to identify metadata while the other idSchemes only rely on the
+ * {@link #identifier} (UID, CODE, NAME).
  */
 @Value
 @AllArgsConstructor( access = AccessLevel.PRIVATE )
@@ -81,9 +81,9 @@ public class MetadataIdentifier
     private final String attributeValue;
 
     /**
-     * Creates an identifier for metadata identifier. {@code attributeValue}
-     * only needs to be set if idScheme is {@code ATTRIBUTE}. Prefer idScheme
-     * specific factory methods {@link #ofUid(String)}, {@link #ofCode(String)},
+     * Creates an identifier for metadata. {@code attributeValue} only needs to
+     * be set if idScheme is {@code ATTRIBUTE}. Prefer idScheme specific factory
+     * methods {@link #ofUid(String)}, {@link #ofCode(String)},
      * {@link #ofName(String)} and {@link #ofAttribute(String, String)} over
      * this one.
      *
@@ -150,9 +150,10 @@ public class MetadataIdentifier
     /**
      * Returns the objects' identifier matching this {@link #idScheme}.
      *
-     * @param object identifiable object of which identifier will be returned
+     * @param object identifiable object of which the identifier will be
+     *        returned
      * @param <T> identifiable object
-     * @return identifier of identifiable object
+     * @return identifier of given identifiable object
      */
     public <T extends IdentifiableObject> String identifierOf( T object )
     {
