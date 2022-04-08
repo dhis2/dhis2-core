@@ -177,7 +177,6 @@ public class MetadataIdentifier
         throw new RuntimeException( "Unhandled identifier type." );
     }
 
-    // TODO(DHIS2-12563) test
     /**
      * Returns the {@link #identifier} for idScheme {@code UID}, {@code CODE},
      * {@code NAME} or {@link #attributeValue} for idScheme {@code ATTRIBUTE}.
