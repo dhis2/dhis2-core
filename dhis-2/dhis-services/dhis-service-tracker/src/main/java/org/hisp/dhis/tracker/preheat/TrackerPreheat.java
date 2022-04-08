@@ -396,7 +396,6 @@ public class TrackerPreheat
         {
             return null;
         }
-        // TODO(DHIS2-12563) add TrackerPreheatTest
         if ( id.getIdScheme() == TrackerIdScheme.ATTRIBUTE )
         {
             return this.get( klass, id.getAttributeValue() );

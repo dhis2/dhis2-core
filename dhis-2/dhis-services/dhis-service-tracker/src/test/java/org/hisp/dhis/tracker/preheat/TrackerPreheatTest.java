@@ -63,6 +63,7 @@ import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.junit.jupiter.api.Test;
 
 import com.google.common.collect.Lists;
@@ -242,6 +243,38 @@ class TrackerPreheatTest extends DhisConvenienceTest
             de1 );
         assertEquals( 1, preheat.getAll( DataElement.class ).size() );
         assertThat( preheat.get( DataElement.class, "value1" ), is( notNullValue() ) );
+    }
+
+    @Test
+    void testGetByMetadataIdentifier()
+    {
+        TrackerPreheat preheat = new TrackerPreheat();
+
+        Attribute attribute = new Attribute();
+        attribute.setAutoFields();
+        attribute.setName( "best" );
+        preheat.put( TrackerIdSchemeParam.builder()
+            .idScheme( TrackerIdScheme.NAME )
+            .build(), attribute );
+
+        DataElement de1 = new DataElement( "dataElementA" );
+        de1.setAttributeValues( Collections.singleton( new AttributeValue( "value1", attribute ) ) );
+        preheat.put( TrackerIdSchemeParam.builder()
+            .idScheme( TrackerIdScheme.ATTRIBUTE )
+            .attributeUid( attribute.getUid() )
+            .build(), de1 );
+
+        assertEquals( attribute, preheat.get( Attribute.class, MetadataIdentifier.ofName( "best" ) ) );
+        assertEquals( de1,
+            preheat.get( DataElement.class, MetadataIdentifier.ofAttribute( attribute.getUid(), "value1" ) ) );
+    }
+
+    @Test
+    void testGetByMetadataIdentifierGivenNull()
+    {
+        TrackerPreheat preheat = new TrackerPreheat();
+
+        assertNull( preheat.get( Attribute.class, (MetadataIdentifier) null ) );
     }
 
     @Test
