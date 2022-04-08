@@ -31,6 +31,7 @@ package org.hisp.dhis.helpers.matchers;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeDiagnosingMatcher;
+import org.hamcrest.collection.IsIterableContainingInAnyOrder;
 
 import java.util.Arrays;
 import java.util.List;
@@ -80,6 +81,24 @@ public class CustomMatchers
             public void describeTo( Description description )
             {
                 description.appendText( "a string that contains one of " + strings.toString());
+            }
+        };
+    }
+
+    public static TypeSafeDiagnosingMatcher<Object> hasToStringContaining( List<String> substrings ) {
+        return new TypeSafeDiagnosingMatcher<Object>()
+        {
+            @Override
+            protected boolean matchesSafely( Object item, Description mismatchDescription )
+            {
+                String toString = item.toString();
+                return substrings.stream().allMatch( toString::contains);
+            }
+
+            @Override
+            public void describeTo( Description description )
+            {
+                description.appendValue( "a toString() that contains substrings in any order " + substrings );
             }
         };
     }
