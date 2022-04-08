@@ -77,8 +77,6 @@ class TrackedEntityAttributeControllerTest extends DhisWebSpringTest
             .content( TestUtils.convertObjectToJsonBytes( trackedEntityAttribute ) ) )
             .andExpect( status().is( HttpStatus.SC_CREATED ) );
 
-        dbmsManager.clearSession();
-
         mvc.perform( get( TrackedEntityAttributeSchemaDescriptor.API_ENDPOINT + "/" + trackedEntityAttribute.getUid()
             + "/generateAndReserve" ).param( "ORG_UNIT_CODE", "A030101" ).session( session ) )
             .andExpect( status().isOk() );
