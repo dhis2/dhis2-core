@@ -335,7 +335,6 @@ public class I18nFormat
 
         try
         {
-
             return Character.toUpperCase( startDate.charAt( 0 ) ) + startDate.substring( 1 ) + endDate;
         }
         catch ( IllegalArgumentException ex )
