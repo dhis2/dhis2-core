@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.domain;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -40,6 +41,22 @@ import org.junit.jupiter.api.Test;
 
 class MetadataIdentifierTest
 {
+
+    @Test
+    void getIdentifierOrAttributeValue()
+    {
+
+        assertEquals( "wow", MetadataIdentifier.ofUid( "wow" ).getIdentifierOrAttributeValue() );
+        assertEquals( "wow", MetadataIdentifier.ofCode( "wow" ).getIdentifierOrAttributeValue() );
+        assertEquals( "wow", MetadataIdentifier.ofName( "wow" ).getIdentifierOrAttributeValue() );
+    }
+
+    @Test
+    void getIdentifierOrAttributeValueGivenAttribute()
+    {
+
+        assertEquals( "wow", MetadataIdentifier.ofAttribute( "MNWZ6hnuhSw", "wow" ).getIdentifierOrAttributeValue() );
+    }
 
     @Test
     void isEqualToNull()
@@ -188,6 +205,21 @@ class MetadataIdentifierTest
         MetadataIdentifier id = MetadataIdentifier.ofAttribute( att.getUid(), "clouds" );
 
         assertFalse( id.isEqualTo( p ) );
+    }
+
+    @Test
+    void isBlankTrue()
+    {
+
+        assertTrue( MetadataIdentifier.ofUid( null ).isBlank() );
+        assertTrue( MetadataIdentifier.ofUid( " " ).isBlank() );
+    }
+
+    @Test
+    void isBlankFalse()
+    {
+
+        assertFalse( MetadataIdentifier.ofUid( "a" ).isBlank() );
     }
 
     private AttributeValue attributeValue( String value )
