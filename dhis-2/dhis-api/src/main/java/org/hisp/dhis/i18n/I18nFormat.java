@@ -355,7 +355,7 @@ public class I18nFormat
         return "format." + typeName + ".endDate";
     }
 
-    private String getStartDateFormat( String typeName, PeriodType periodType )
+    private static String getStartDateFormat( String typeName, PeriodType periodType )
     {
         if ( periodType instanceof BiMonthlyPeriodType || periodType instanceof QuarterlyPeriodType ||
             periodType instanceof SixMonthlyAbstractPeriodType || periodType instanceof FinancialPeriodType )
