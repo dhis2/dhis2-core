@@ -63,7 +63,7 @@ public class UserDisableTest
 
         loginActions.loginAsSuperUser();
 
-        userId = userActions.addUser( "johnny", "bravo", userName, password );
+        userId = userActions.addUserFull( "johnny", "bravo", userName, password );
     }
 
     @Test

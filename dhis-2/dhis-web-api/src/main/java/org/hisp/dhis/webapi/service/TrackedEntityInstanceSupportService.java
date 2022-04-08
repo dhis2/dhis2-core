@@ -55,6 +55,9 @@ import org.springframework.stereotype.Service;
 
 import com.google.common.base.Joiner;
 
+/**
+ * This service should not be used in the new tracker.
+ */
 @Service
 @RequiredArgsConstructor
 public class TrackedEntityInstanceSupportService
@@ -147,26 +150,26 @@ public class TrackedEntityInstanceSupportService
             return TrackedEntityInstanceParams.TRUE;
         }
 
-        TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
+        TrackedEntityInstanceParams params = TrackedEntityInstanceParams.FALSE;
 
         if ( joined.contains( "relationships" ) )
         {
-            params.setIncludeRelationships( true );
+            params = params.withIncludeRelationships( true );
         }
 
         if ( joined.contains( "enrollments" ) )
         {
-            params.setIncludeEnrollments( true );
+            params = params.withIncludeEnrollments( true );
         }
 
         if ( joined.contains( "events" ) )
         {
-            params.setIncludeEvents( true );
+            params = params.withIncludeEvents( true );
         }
 
         if ( joined.contains( "programOwners" ) )
         {
-            params.setIncludeProgramOwners( true );
+            params = params.withIncludeProgramOwners( true );
         }
 
         return params;

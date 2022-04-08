@@ -46,6 +46,7 @@ import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.schema.descriptors.DataElementGroupSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.controller.metadata.MetadataExportControllerUtils;
@@ -60,7 +61,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Lists;
 
 /**
@@ -162,7 +162,7 @@ public class DataElementGroupController
     }
 
     @GetMapping( "/{uid}/metadata" )
-    public ResponseEntity<JsonNode> getDataElementGroupWithDependencies(
+    public ResponseEntity<RootNode> getDataElementGroupWithDependencies(
         @PathVariable( "uid" ) String dataElementGroupId,
         @RequestParam( required = false, defaultValue = "false" ) boolean download )
         throws WebMessageException,

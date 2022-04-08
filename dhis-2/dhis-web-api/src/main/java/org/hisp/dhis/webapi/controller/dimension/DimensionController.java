@@ -172,7 +172,7 @@ public class DimensionController
         RootNode rootNode = NodeUtils.createMetadata();
 
         CollectionNode collectionNode = rootNode
-            .addChild( deprecatedFieldFilterService.toCollectionNode( DimensionalItemObject.class,
+            .addChild( oldFieldFilterService.toCollectionNode( DimensionalItemObject.class,
                 new FieldFilterParams( paginatedItems, fields ) ) );
         collectionNode.setName( "items" );
 

@@ -39,7 +39,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * Utilities for metadata export controllers.
@@ -62,16 +61,16 @@ public abstract class MetadataExportControllerUtils
      * @return the response with the metadata.
      */
     @Nonnull
-    public static ResponseEntity<JsonNode> getWithDependencies( @Nonnull ContextService contextService,
+    public static ResponseEntity<RootNode> getWithDependencies( @Nonnull ContextService contextService,
         @Nonnull MetadataExportService exportService, @Nonnull IdentifiableObject identifiableObject, boolean download )
     {
         final MetadataExportParams exportParams = exportService
             .getParamsFromMap( contextService.getParameterValuesMap() );
         exportService.validate( exportParams );
 
-        ObjectNode rootNode = exportService.getMetadataWithDependenciesAsNode( identifiableObject, exportParams );
+        RootNode rootNode = exportService.getMetadataWithDependenciesAsNode( identifiableObject, exportParams );
 
-        return createJsonNodeResponseEntity( rootNode, download );
+        return createResponseEntity( rootNode, download );
     }
 
     /**

@@ -25,33 +25,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker;
+package org.hisp.dhis.webapi.controller.tracker.imports;
 
 import lombok.Builder;
-import lombok.Data;
+import lombok.Value;
 
 import org.hisp.dhis.tracker.TrackerBundleReportMode;
-import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.springframework.security.core.Authentication;
 
-@Data
+@Value
 @Builder
-public class TrackerImportReportRequest
+public class TrackerImportRequest
 {
-    Authentication authentication;
+    private final Authentication authentication;
 
-    String uid;
+    private final String uid;
 
-    String userUid;
+    private final String userUid;
 
-    ContextService contextService;
+    private final ContextService contextService;
 
-    TrackerBundleParams trackerBundleParams;
+    private final TrackerBundleParams trackerBundleParams;
 
-    TrackerImportParams trackerImportParams;
+    private final boolean isAsync;
 
-    boolean isAsync;
-
-    TrackerBundleReportMode trackerBundleReportMode;
+    private final TrackerBundleReportMode trackerBundleReportMode;
 }

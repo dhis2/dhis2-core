@@ -59,8 +59,8 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.TrackerIdScheme;
-import org.hisp.dhis.tracker.TrackerIdentifier;
-import org.hisp.dhis.tracker.TrackerIdentifierParams;
+import org.hisp.dhis.tracker.TrackerIdSchemeParam;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.junit.jupiter.api.Test;
@@ -91,11 +91,11 @@ class TrackerPreheatTest extends DhisConvenienceTest
         aoc.setCode( "ABC" );
         Set<CategoryOption> options = aoc.getCategoryOptions();
 
-        TrackerIdentifierParams identifierParams = TrackerIdentifierParams.builder()
-            .categoryOptionComboIdScheme( TrackerIdentifier.CODE )
+        TrackerIdSchemeParams identifierParams = TrackerIdSchemeParams.builder()
+            .categoryOptionComboIdScheme( TrackerIdSchemeParam.CODE )
             .build();
         TrackerPreheat preheat = new TrackerPreheat();
-        preheat.setIdentifiers( identifierParams );
+        preheat.setIdSchemes( identifierParams );
 
         assertFalse( preheat.containsCategoryOptionCombo( categoryCombo, options ) );
         assertNull( preheat.getCategoryOptionCombo( categoryCombo, options ) );
@@ -118,8 +118,8 @@ class TrackerPreheatTest extends DhisConvenienceTest
         Set<CategoryOption> options = aoc.getCategoryOptions();
 
         TrackerPreheat preheat = new TrackerPreheat();
-        TrackerIdentifierParams identifiers = new TrackerIdentifierParams();
-        preheat.setIdentifiers( identifiers );
+        TrackerIdSchemeParams identifiers = new TrackerIdSchemeParams();
+        preheat.setIdSchemes( identifiers );
 
         String optionsString = concatCategoryOptions( identifiers.getCategoryOptionComboIdScheme(), options );
         assertFalse( preheat.containsCategoryOptionCombo( categoryCombo, options ) );
@@ -148,8 +148,8 @@ class TrackerPreheatTest extends DhisConvenienceTest
         CategoryOption option2 = it.next();
 
         TrackerPreheat preheat = new TrackerPreheat();
-        TrackerIdentifierParams identifiers = new TrackerIdentifierParams();
-        preheat.setIdentifiers( identifiers );
+        TrackerIdSchemeParams identifiers = new TrackerIdSchemeParams();
+        preheat.setIdSchemes( identifiers );
 
         preheat.putCategoryOptionCombo( categoryCombo, options, aoc );
 
@@ -168,8 +168,8 @@ class TrackerPreheatTest extends DhisConvenienceTest
         Set<CategoryOption> options = aoc.getCategoryOptions();
 
         TrackerPreheat preheat = new TrackerPreheat();
-        TrackerIdentifierParams identifiers = new TrackerIdentifierParams();
-        preheat.setIdentifiers( identifiers );
+        TrackerIdSchemeParams identifiers = new TrackerIdSchemeParams();
+        preheat.setIdSchemes( identifiers );
 
         preheat.putCategoryOptionCombo( categoryCombo, options, null );
 
@@ -191,8 +191,8 @@ class TrackerPreheatTest extends DhisConvenienceTest
         de1.setUid( CodeGenerator.generateUid() );
         DataElement de2 = new DataElement( "dataElementB" );
         de2.setUid( CodeGenerator.generateUid() );
-        preheat.put( TrackerIdentifier.UID, de1 );
-        preheat.put( TrackerIdentifier.UID, de2 );
+        preheat.put( TrackerIdSchemeParam.UID, de1 );
+        preheat.put( TrackerIdSchemeParam.UID, de2 );
         assertEquals( 2, preheat.getAll( DataElement.class ).size() );
     }
 
@@ -204,8 +204,8 @@ class TrackerPreheatTest extends DhisConvenienceTest
         de1.setCode( "CODE1" );
         DataElement de2 = new DataElement( "dataElementB" );
         de2.setCode( "CODE2" );
-        preheat.put( TrackerIdentifier.CODE, de1 );
-        preheat.put( TrackerIdentifier.CODE, de2 );
+        preheat.put( TrackerIdSchemeParam.CODE, de1 );
+        preheat.put( TrackerIdSchemeParam.CODE, de2 );
         assertEquals( 2, preheat.getAll( DataElement.class ).size() );
         assertThat( preheat.get( DataElement.class, de1.getCode() ), is( notNullValue() ) );
         assertThat( preheat.get( DataElement.class, de2.getCode() ), is( notNullValue() ) );
@@ -219,8 +219,8 @@ class TrackerPreheatTest extends DhisConvenienceTest
         de1.setName( "DATA_ELEM1" );
         DataElement de2 = new DataElement( "dataElementB" );
         de2.setName( "DATA_ELEM2" );
-        preheat.put( TrackerIdentifier.NAME, de1 );
-        preheat.put( TrackerIdentifier.NAME, de2 );
+        preheat.put( TrackerIdSchemeParam.NAME, de1 );
+        preheat.put( TrackerIdSchemeParam.NAME, de2 );
         assertEquals( 2, preheat.getAll( DataElement.class ).size() );
         assertThat( preheat.get( DataElement.class, de1.getName() ), is( notNullValue() ) );
         assertThat( preheat.get( DataElement.class, de2.getName() ), is( notNullValue() ) );
@@ -237,7 +237,7 @@ class TrackerPreheatTest extends DhisConvenienceTest
         DataElement de1 = new DataElement( "dataElementA" );
         de1.setAttributeValues( Collections.singleton( attributeValue ) );
         preheat.put(
-            TrackerIdentifier.builder().idScheme( TrackerIdScheme.ATTRIBUTE ).value( attribute.getUid() ).build(),
+            TrackerIdSchemeParam.builder().idScheme( TrackerIdScheme.ATTRIBUTE ).value( attribute.getUid() ).build(),
             de1 );
         assertEquals( 1, preheat.getAll( DataElement.class ).size() );
         assertThat( preheat.get( DataElement.class, "value1" ), is( notNullValue() ) );
@@ -253,9 +253,9 @@ class TrackerPreheatTest extends DhisConvenienceTest
         de1.setAutoFields();
         de2.setAutoFields();
         de3.setAutoFields();
-        preheat.put( TrackerIdentifier.UID, de1 );
-        preheat.put( TrackerIdentifier.UID, de2 );
-        preheat.put( TrackerIdentifier.UID, de3 );
+        preheat.put( TrackerIdSchemeParam.UID, de1 );
+        preheat.put( TrackerIdSchemeParam.UID, de2 );
+        preheat.put( TrackerIdSchemeParam.UID, de3 );
         assertFalse( preheat.isEmpty() );
         assertEquals( de1.getUid(), preheat.get( DataElement.class, de1.getUid() ).getUid() );
         assertEquals( de2.getUid(), preheat.get( DataElement.class, de2.getUid() ).getUid() );
@@ -275,9 +275,9 @@ class TrackerPreheatTest extends DhisConvenienceTest
         de2.setCode( "Code2" );
         de3.setAutoFields();
         de3.setCode( "Code3" );
-        preheat.put( TrackerIdentifier.CODE, de1 );
-        preheat.put( TrackerIdentifier.CODE, de2 );
-        preheat.put( TrackerIdentifier.CODE, de3 );
+        preheat.put( TrackerIdSchemeParam.CODE, de1 );
+        preheat.put( TrackerIdSchemeParam.CODE, de2 );
+        preheat.put( TrackerIdSchemeParam.CODE, de3 );
         assertFalse( preheat.isEmpty() );
         assertEquals( de1.getCode(), preheat.get( DataElement.class, de1.getCode() ).getCode() );
         assertEquals( de2.getCode(), preheat.get( DataElement.class, de2.getCode() ).getCode() );
@@ -294,7 +294,7 @@ class TrackerPreheatTest extends DhisConvenienceTest
         de1.setAutoFields();
         de2.setAutoFields();
         de3.setAutoFields();
-        preheat.put( TrackerIdentifier.UID, Lists.newArrayList( de1, de2, de3 ) );
+        preheat.put( TrackerIdSchemeParam.UID, Lists.newArrayList( de1, de2, de3 ) );
         assertFalse( preheat.isEmpty() );
         assertEquals( de1.getUid(), preheat.get( DataElement.class, de1.getUid() ).getUid() );
         assertEquals( de2.getUid(), preheat.get( DataElement.class, de2.getUid() ).getUid() );
@@ -312,7 +312,7 @@ class TrackerPreheatTest extends DhisConvenienceTest
         teiList.add( tei );
         List<String> allEntities = new ArrayList<>();
         allEntities.add( CodeGenerator.generateUid() );
-        preheat.putTrackedEntities( TrackerIdScheme.UID, teiList, allEntities );
+        preheat.putTrackedEntities( teiList, allEntities );
         // Create 2 Enrollments, where TEI is parent
         ProgramInstance programInstance = new ProgramInstance();
         programInstance.setUid( CodeGenerator.generateUid() );
@@ -337,7 +337,7 @@ class TrackerPreheatTest extends DhisConvenienceTest
                 setTrackedEntity( allEntities.get( 0 ) );
             }
         } );
-        preheat.putEnrollments( TrackerIdScheme.UID, psList, allPs );
+        preheat.putEnrollments( psList, allPs );
         // Create 4 Enrollments, where TEI is parent
         ProgramStageInstance psi = new ProgramStageInstance();
         psi.setUid( CodeGenerator.generateUid() );
@@ -380,7 +380,7 @@ class TrackerPreheatTest extends DhisConvenienceTest
                 setEnrollment( allPs.get( 1 ).getEnrollment() );
             }
         } );
-        preheat.putEvents( TrackerIdScheme.UID, psiList, allEvents );
+        preheat.putEvents( psiList, allEvents );
         preheat.createReferenceTree();
         Optional<ReferenceTrackerEntity> reference = preheat.getReference( allEvents.get( 0 ).getUid() );
         assertThat( reference.get().getUid(), is( allEvents.get( 0 ).getUid() ) );
@@ -396,10 +396,10 @@ class TrackerPreheatTest extends DhisConvenienceTest
         assertThat( reference4.get().getParentUid(), is( allPs.get( 1 ).getUid() ) );
     }
 
-    private String concatCategoryOptions( TrackerIdentifier identifier, Set<CategoryOption> options )
+    private String concatCategoryOptions( TrackerIdSchemeParam idSchemeParam, Set<CategoryOption> options )
     {
         return options.stream()
-            .map( identifier::getIdentifier )
+            .map( idSchemeParam::getIdentifier )
             .collect( Collectors.joining( ";" ) );
     }
 

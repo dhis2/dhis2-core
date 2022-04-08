@@ -63,11 +63,11 @@ public class UserDeletionHandler
         whenVetoing( FileResource.class, this::allowDeleteFileResource );
     }
 
-    private void deleteUserRole( UserRole authorityGroup )
+    private void deleteUserRole( UserRole role )
     {
-        for ( User user : authorityGroup.getMembers() )
+        for ( User user : role.getMembers() )
         {
-            user.getUserRoles().remove( authorityGroup );
+            user.getUserRoles().remove( role );
             idObjectManager.updateNoAcl( user );
         }
     }
@@ -90,13 +90,13 @@ public class UserDeletionHandler
         }
     }
 
-    private DeletionVeto allowDeleteUserRole( UserRole authorityGroup )
+    private DeletionVeto allowDeleteUserRole( UserRole userRole )
     {
-        for ( User credentials : authorityGroup.getMembers() )
+        for ( User credentials : userRole.getMembers() )
         {
             for ( UserRole role : credentials.getUserRoles() )
             {
-                if ( role.equals( authorityGroup ) )
+                if ( role.equals( userRole ) )
                 {
                     return new DeletionVeto( User.class, credentials.getName() );
                 }

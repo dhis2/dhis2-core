@@ -140,8 +140,19 @@ public class JdbcEnrollmentAnalyticsManager
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 
+        int rowsRed = 0;
+
+        grid.setLastDataRow( true );
+
         while ( rowSet.next() )
         {
+            if ( ++rowsRed > params.getPageSizeWithDefault() && !params.isTotalPages() )
+            {
+                grid.setLastDataRow( false );
+
+                continue;
+            }
+
             grid.addRow();
 
             for ( int i = 0; i < grid.getHeaders().size(); ++i )
@@ -344,7 +355,7 @@ public class JdbcEnrollmentAnalyticsManager
     @Override
     protected String getSelectClause( EventQueryParams params )
     {
-        List<String> selectCols = ListUtils.distinctUnion( COLUMNS, getSelectColumns( params ) );
+        List<String> selectCols = ListUtils.distinctUnion( COLUMNS, getSelectColumns( params, false ) );
 
         return "select " + StringUtils.join( selectCols, "," ) + " ";
     }

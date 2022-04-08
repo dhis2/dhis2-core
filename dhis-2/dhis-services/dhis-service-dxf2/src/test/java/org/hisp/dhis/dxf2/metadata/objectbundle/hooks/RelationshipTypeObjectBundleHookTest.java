@@ -30,6 +30,8 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -40,8 +42,10 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
+import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.relationship.RelationshipConstraint;
 import org.hisp.dhis.relationship.RelationshipEntity;
@@ -49,11 +53,13 @@ import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackerdataview.TrackerDataView;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.google.common.collect.Lists;
@@ -67,6 +73,15 @@ public class RelationshipTypeObjectBundleHookTest extends DhisConvenienceTest
 {
     @InjectMocks
     private RelationshipTypeObjectBundleHook subject;
+
+    @Mock
+    private TrackedEntityTypeService trackedEntityTypeService;
+
+    @Mock
+    private ProgramService programService;
+
+    @Mock
+    private ProgramStageService programStageService;
 
     private Program program;
 
@@ -128,31 +143,33 @@ public class RelationshipTypeObjectBundleHookTest extends DhisConvenienceTest
         personConstraint.setTrackedEntityType( personTrackedEntityType );
         personConstraint.setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
         personConstraint.setTrackerDataView(
-            TrackerDataView.builder().trackedEntityAttributes( Lists.newArrayList( trackedEntityAttribute ) ).build() );
+            TrackerDataView.builder().attributes( Sets.newHashSet( trackedEntityAttribute.getUid() ) ).build() );
 
         personConstraintWithNoAttribute = new RelationshipConstraint();
         personConstraintWithNoAttribute.setTrackedEntityType( personTrackedEntityType );
         personConstraintWithNoAttribute.setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
         personConstraintWithNoAttribute
-            .setTrackerDataView( TrackerDataView.builder().trackedEntityAttributes( Lists.newArrayList() ).build() );
+            .setTrackerDataView( TrackerDataView.builder().attributes( Sets.newHashSet() ).build() );
 
         personConstraintWithMultipleAttribute = new RelationshipConstraint();
         personConstraintWithMultipleAttribute.setTrackedEntityType( personTrackedEntityType );
         personConstraintWithMultipleAttribute.setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
         personConstraintWithMultipleAttribute.setTrackerDataView( TrackerDataView.builder()
-            .trackedEntityAttributes( Lists.newArrayList( trackedEntityAttribute, teaNotPartOfProgram ) ).build() );
+            .attributes( Sets.newHashSet( trackedEntityAttribute.getUid(), teaNotPartOfProgram.getUid() ) )
+            .build() );
 
         enrollmentConstraint = new RelationshipConstraint();
         enrollmentConstraint.setProgram( program );
         enrollmentConstraint.setRelationshipEntity( RelationshipEntity.PROGRAM_INSTANCE );
         enrollmentConstraint.setTrackerDataView(
-            TrackerDataView.builder().trackedEntityAttributes( Lists.newArrayList( trackedEntityAttribute ) ).build() );
+            TrackerDataView.builder().attributes( Sets.newHashSet( trackedEntityAttribute.getUid() ) ).build() );
 
         eventConstraint = new RelationshipConstraint();
         eventConstraint.setProgramStage( programStage );
         eventConstraint.setRelationshipEntity( RelationshipEntity.PROGRAM_STAGE_INSTANCE );
         eventConstraint
-            .setTrackerDataView( TrackerDataView.builder().dataElements( Lists.newArrayList( dataElement ) ).build() );
+            .setTrackerDataView(
+                TrackerDataView.builder().dataElements( Sets.newHashSet( dataElement.getUid() ) ).build() );
 
         teiToTeiRelationshipType = createPersonToPersonRelationshipType( 'A', program, personTrackedEntityType, false );
         teiToTeiRelationshipType.setToConstraint( personConstraint );
@@ -167,11 +184,14 @@ public class RelationshipTypeObjectBundleHookTest extends DhisConvenienceTest
             false );
         teiToEventRelationshipType.setToConstraint( eventConstraint );
         teiToEventRelationshipType.setFromConstraint( eventConstraint );
+
     }
 
     @Test
     public void test_successful_TrackerDataView_For_TrackedEntityType_Relationship()
     {
+        when( trackedEntityTypeService.getTrackedEntityType( anyString() ) ).thenReturn( personTrackedEntityType );
+
         List<ErrorReport> errorReportList = subject.validate( teiToTeiRelationshipType, null );
 
         assertNotNull( errorReportList );
@@ -181,6 +201,8 @@ public class RelationshipTypeObjectBundleHookTest extends DhisConvenienceTest
     @Test
     public void test_successful_TrackerDataView_For_TrackedEnrollment_Relationship()
     {
+        when( programService.getProgram( anyString() ) ).thenReturn( program );
+
         List<ErrorReport> errorReportList = subject.validate( teiToEnrollmentRelationshipType, null );
 
         assertNotNull( errorReportList );
@@ -190,6 +212,8 @@ public class RelationshipTypeObjectBundleHookTest extends DhisConvenienceTest
     @Test
     public void test_successful_TrackerDataView_For_Event_Relationship()
     {
+        when( programStageService.getProgramStage( anyString() ) ).thenReturn( programStage );
+
         List<ErrorReport> errorReportList = subject.validate( teiToEventRelationshipType, null );
 
         assertNotNull( errorReportList );
@@ -199,6 +223,8 @@ public class RelationshipTypeObjectBundleHookTest extends DhisConvenienceTest
     @Test
     public void test_empty_TrackerDataView_For_TrackedEntityType_Relationship()
     {
+        when( trackedEntityTypeService.getTrackedEntityType( anyString() ) ).thenReturn( personTrackedEntityType );
+
         teiToTeiRelationshipType.setToConstraint( personConstraintWithNoAttribute );
         List<ErrorReport> errorReportList = subject.validate( teiToTeiRelationshipType, null );
 
@@ -209,6 +235,8 @@ public class RelationshipTypeObjectBundleHookTest extends DhisConvenienceTest
     @Test
     public void test_error_report_TrackerDataView_For_TrackedEntityType_Relationship()
     {
+        when( trackedEntityTypeService.getTrackedEntityType( anyString() ) ).thenReturn( personTrackedEntityType );
+
         teiToTeiRelationshipType.setToConstraint( personConstraintWithMultipleAttribute );
         List<ErrorReport> errorReportList = subject.validate( teiToTeiRelationshipType, null );
 

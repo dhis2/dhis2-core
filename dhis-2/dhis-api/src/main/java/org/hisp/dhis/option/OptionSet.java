@@ -30,6 +30,7 @@ package org.hisp.dhis.option;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -128,17 +129,17 @@ public class OptionSet
 
     public List<String> getOptionValues()
     {
-        return options.stream().map( Option::getName ).collect( Collectors.toList() );
+        return options.stream().filter( Objects::nonNull ).map( Option::getName ).collect( Collectors.toList() );
     }
 
     public List<String> getOptionCodes()
     {
-        return options.stream().map( Option::getCode ).collect( Collectors.toList() );
+        return options.stream().filter( Objects::nonNull ).map( Option::getCode ).collect( Collectors.toList() );
     }
 
     public Set<String> getOptionCodesAsSet()
     {
-        return options.stream().map( Option::getCode ).collect( Collectors.toSet() );
+        return options.stream().filter( Objects::nonNull ).map( Option::getCode ).collect( Collectors.toSet() );
     }
 
     public Option getOptionByCode( String code )
@@ -154,9 +155,23 @@ public class OptionSet
         return null;
     }
 
+    public Option getOptionByUid( String uid )
+    {
+        for ( Option option : options )
+        {
+            if ( option != null && option.getUid().equals( uid ) )
+            {
+                return option;
+            }
+        }
+
+        return null;
+    }
+
     public Map<String, String> getOptionCodePropertyMap( IdScheme idScheme )
     {
-        return options.stream().collect( Collectors.toMap( Option::getCode, o -> o.getPropertyValue( idScheme ) ) );
+        return options.stream().filter( Objects::nonNull )
+            .collect( Collectors.toMap( Option::getCode, o -> o.getPropertyValue( idScheme ) ) );
     }
 
     // -------------------------------------------------------------------------

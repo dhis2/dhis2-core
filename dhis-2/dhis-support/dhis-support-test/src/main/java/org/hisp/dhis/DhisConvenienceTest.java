@@ -162,6 +162,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityfilter.EntityQueryCriteria;
 import org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilter;
+import org.hisp.dhis.trackerdataview.TrackerDataView;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserRole;
@@ -1349,7 +1350,7 @@ public abstract class DhisConvenienceTest
         eventVisualization.setAutoFields();
         eventVisualization.setProgram( program );
         eventVisualization.setName( "EventVisualization" + uniqueCharacter );
-        eventVisualization.setType( EventVisualizationType.COLUMN );
+        eventVisualization.setType( EventVisualizationType.LINE_LIST );
 
         return eventVisualization;
     }
@@ -1871,12 +1872,18 @@ public abstract class DhisConvenienceTest
     {
         RelationshipType relationshipType = new RelationshipType();
 
+        RelationshipConstraint fromRelationShipConstraint = new RelationshipConstraint();
+        fromRelationShipConstraint.setTrackerDataView( TrackerDataView.builder().build() );
+
+        RelationshipConstraint toRelationShipConstraint = new RelationshipConstraint();
+        toRelationShipConstraint.setTrackerDataView( TrackerDataView.builder().build() );
+
         relationshipType.setFromToName( "from_" + uniqueCharacter );
         relationshipType.setToFromName( "to_" + uniqueCharacter );
         relationshipType.setAutoFields();
         relationshipType.setName( "RelationshipType_" + relationshipType.getUid() );
-        relationshipType.setFromConstraint( new RelationshipConstraint() );
-        relationshipType.setToConstraint( new RelationshipConstraint() );
+        relationshipType.setFromConstraint( fromRelationShipConstraint );
+        relationshipType.setToConstraint( toRelationShipConstraint );
 
         return relationshipType;
     }
@@ -2424,7 +2431,7 @@ public abstract class DhisConvenienceTest
     {
         checkUserServiceWasInjected();
 
-        UserRole userRole = createAuthorityGroup( username, authorities );
+        UserRole userRole = createUserRole( username, authorities );
         userService.addUserRole( userRole );
 
         boolean present = uid.isPresent();
@@ -2451,8 +2458,8 @@ public abstract class DhisConvenienceTest
     {
         checkUserServiceWasInjected();
 
-        UserRole group = createAuthorityGroup( "Superuser", authorities );
-        group.setUid( "yrB6vc5Ip3r" );
+        UserRole role = createUserRole( "Superuser", authorities );
+        role.setUid( "yrB6vc5Ip3r" );
 
         String username = DEFAULT_USERNAME;
         String password = DEFAULT_ADMIN_PASSWORD;
@@ -2463,14 +2470,14 @@ public abstract class DhisConvenienceTest
         user.setName( "Admin" );
         user.setUsername( username );
         user.setPassword( password );
-        user.getUserRoles().add( group );
+        user.getUserRoles().add( role );
 
         userService.addUser( user );
 
         userService.encodeAndSetPassword( user, password );
         userService.updateUser( user );
 
-        userService.addUserRole( group );
+        userService.addUserRole( role );
 
         return user;
     }
@@ -2595,12 +2602,12 @@ public abstract class DhisConvenienceTest
         return user;
     }
 
-    private static UserRole createAuthorityGroup( String username, String... authorities )
+    protected static UserRole createUserRole( String name, String... authorities )
     {
         UserRole group = new UserRole();
-        group.setCode( username );
-        group.setName( username );
-        group.setDescription( username );
+        group.setCode( name );
+        group.setName( name );
+        group.setDescription( name );
         group.setAuthorities( Sets.newHashSet( authorities ) );
         return group;
     }

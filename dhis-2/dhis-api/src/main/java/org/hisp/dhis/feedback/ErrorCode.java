@@ -202,6 +202,9 @@ public enum ErrorCode
     E4047( "DataElement `{0}` is not linked to any ProgramStageDataElement for program rule `{1}`" ),
     E4048( "TrackedEntityAttribute `{0}` is not linked to ProgramTrackedEntityAttribute for program rule `{1}`" ),
     E4049( "Property `{0}` requires a valid username, was given `{1}`." ),
+    E4054( "Property `{0}` already exists, was given `{1}`." ),
+    E4056( "Property `{0}` can not be changed, was given `{1}`." ),
+    E4055( "An user needs to have at least one user role associated with it." ),
     E4050(
         "One of the parameters DataElement, TrackedEntityAttribute or ProgramRuleVariable is required for program rule `{0}`" ),
 
@@ -226,6 +229,7 @@ public enum ErrorCode
     E4312( "Current user is not authorised to read data from SQL view: `{0}`" ),
     E4313( "SQL query contains variable names that are invalid: `{0}`" ),
     E4314( "Provided `{0}`: (`{1}`) are not part of the selected `{2}`" ),
+    E4315( "Provided Program: (`{0}`) is without registration" ),
 
     /* Preheat */
     E5000( "Found matching object for reference, but import mode is CREATE. Identifier was {0}, and object was {1}." ),

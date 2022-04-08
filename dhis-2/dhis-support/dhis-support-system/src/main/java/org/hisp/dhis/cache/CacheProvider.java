@@ -135,4 +135,6 @@ public interface CacheProvider
     <V> Cache<V> createDataIntegritySummaryCache();
 
     <V> Cache<V> createDataIntegrityDetailsCache();
+
+    <V> Cache<V> createSubExpressionCache();
 }

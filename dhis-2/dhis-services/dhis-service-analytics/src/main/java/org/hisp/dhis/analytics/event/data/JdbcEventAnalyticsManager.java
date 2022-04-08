@@ -161,7 +161,7 @@ public class JdbcEventAnalyticsManager
 
         while ( rowSet.next() )
         {
-            if ( ++rowsRed > params.getPageSize() && !params.isTotalPages() )
+            if ( ++rowsRed > params.getPageSizeWithDefault() && !params.isTotalPages() )
             {
                 grid.setLastDataRow( false );
 
@@ -358,7 +358,7 @@ public class JdbcEventAnalyticsManager
         cols.add( "ST_AsGeoJSON(psigeometry, 6) as geometry", "longitude", "latitude", "ouname", "oucode", "pistatus",
             "psistatus" );
 
-        List<String> selectCols = ListUtils.distinctUnion( cols.build(), getSelectColumns( params ) );
+        List<String> selectCols = ListUtils.distinctUnion( cols.build(), getSelectColumns( params, false ) );
 
         return "select " + StringUtils.join( selectCols, "," ) + " ";
     }

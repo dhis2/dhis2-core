@@ -72,6 +72,7 @@ import org.hisp.dhis.common.FallbackCoordinateFieldType;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.RequestTypeAware;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
@@ -281,6 +282,9 @@ public class EventQueryParams
     @Getter
     protected Map<AnalyticsDateFilter, DateRange> dateRangeByDateFilter = new HashMap<>();
 
+    @Getter
+    protected RequestTypeAware.EndpointItem endpointItem;
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -349,6 +353,7 @@ public class EventQueryParams
         params.explainOrderId = this.explainOrderId;
         params.dateRangeByDateFilter = this.dateRangeByDateFilter;
         params.skipPartitioning = this.skipPartitioning;
+        params.endpointItem = this.endpointItem;
         return params;
     }
 
@@ -827,7 +832,7 @@ public class EventQueryParams
 
     public boolean isPaging()
     {
-        return paging || page != null || pageSize != null;
+        return paging && (page != null || pageSize != null);
     }
 
     public boolean isTotalPages()
@@ -1527,6 +1532,12 @@ public class EventQueryParams
         public EventQueryParams build()
         {
             return params;
+        }
+
+        public Builder withEndpointItem( RequestTypeAware.EndpointItem endpointItem )
+        {
+            this.params.endpointItem = endpointItem;
+            return this;
         }
     }
 }

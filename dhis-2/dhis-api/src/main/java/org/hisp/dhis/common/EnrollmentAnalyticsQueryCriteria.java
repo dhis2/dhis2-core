@@ -30,8 +30,9 @@ package org.hisp.dhis.common;
 import java.util.Date;
 import java.util.Set;
 
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.program.ProgramStatus;
@@ -39,9 +40,10 @@ import org.hisp.dhis.program.ProgramStatus;
 /**
  * @author Jan Bernitt
  */
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
-public class EnrollmentAnalyticsQueryCriteria extends RequestTypeAware
+public class EnrollmentAnalyticsQueryCriteria extends AnalyticsPagingCriteria
 {
     private Date startDate;
 
@@ -97,12 +99,6 @@ public class EnrollmentAnalyticsQueryCriteria extends RequestTypeAware
 
     private Set<ProgramStatus> programStatus;
 
-    private Integer page;
-
-    private Integer pageSize;
-
-    private boolean paging;
-
     private DisplayProperty displayProperty;
 
     private Date relativePeriodDate;
@@ -112,6 +108,4 @@ public class EnrollmentAnalyticsQueryCriteria extends RequestTypeAware
     private String coordinateField;
 
     private SortOrder sortOrder;
-
-    private boolean totalPages;
 }

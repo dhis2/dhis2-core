@@ -186,7 +186,7 @@ public class EntityQueryCriteria implements Serializable
         return enrollmentIncidentDate;
     }
 
-    public void setProgramIncidentDate( DateFilterPeriod enrollmentIncidentDate )
+    public void setEnrollmentIncidentDate( DateFilterPeriod enrollmentIncidentDate )
     {
         this.enrollmentIncidentDate = enrollmentIncidentDate;
     }

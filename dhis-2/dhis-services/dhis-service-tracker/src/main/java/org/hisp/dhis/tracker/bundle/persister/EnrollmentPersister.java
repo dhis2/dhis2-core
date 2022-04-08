@@ -38,7 +38,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
-import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.converter.TrackerConverterService;
@@ -82,7 +81,7 @@ public class EnrollmentPersister extends AbstractTrackerPersister<Enrollment, Pr
         Enrollment enrollment, ProgramInstance programInstance )
     {
         handleTrackedEntityAttributeValues( session, preheat, enrollment.getAttributes(),
-            preheat.getTrackedEntity( TrackerIdScheme.UID, programInstance.getEntityInstance().getUid() ) );
+            preheat.getTrackedEntity( programInstance.getEntityInstance().getUid() ) );
     }
 
     @Override
@@ -110,7 +109,7 @@ public class EnrollmentPersister extends AbstractTrackerPersister<Enrollment, Pr
     @Override
     protected void updatePreheat( TrackerPreheat preheat, ProgramInstance programInstance )
     {
-        preheat.putEnrollments( TrackerIdScheme.UID, Collections.singletonList( programInstance ) );
+        preheat.putEnrollments( Collections.singletonList( programInstance ) );
         preheat.addProgramOwner( programInstance.getEntityInstance().getUid(), programInstance.getProgram().getUid(),
             programInstance.getOrganisationUnit() );
     }
@@ -118,7 +117,7 @@ public class EnrollmentPersister extends AbstractTrackerPersister<Enrollment, Pr
     @Override
     protected boolean isNew( TrackerPreheat preheat, String uid )
     {
-        return preheat.getEnrollment( TrackerIdScheme.UID, uid ) == null;
+        return preheat.getEnrollment( uid ) == null;
     }
 
     @Override

@@ -45,6 +45,7 @@ import static org.hisp.dhis.parser.expression.ExpressionItem.ITEM_GET_DESCRIPTIO
 import static org.hisp.dhis.parser.expression.ExpressionItem.ITEM_GET_EXPRESSION_INFO;
 import static org.hisp.dhis.parser.expression.ParserUtils.COMMON_EXPRESSION_ITEMS;
 import static org.hisp.dhis.parser.expression.ParserUtils.DOUBLE_VALUE_IF_NULL;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionLexer.SUB_EXPRESSION;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.AGGREGATION_TYPE;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.AVG;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.A_BRACE;
@@ -105,7 +106,6 @@ import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.constant.ConstantService;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.expression.dataitem.DimItemDataElementAndOperand;
 import org.hisp.dhis.expression.dataitem.DimItemIndicator;
@@ -119,6 +119,7 @@ import org.hisp.dhis.expression.function.FunctionOrgUnitAncestor;
 import org.hisp.dhis.expression.function.FunctionOrgUnitDataSet;
 import org.hisp.dhis.expression.function.FunctionOrgUnitGroup;
 import org.hisp.dhis.expression.function.FunctionOrgUnitProgram;
+import org.hisp.dhis.expression.function.FunctionSubExpression;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.indicator.Indicator;
@@ -229,6 +230,7 @@ public class DefaultExpressionService
         .put( MAX_DATE, new FunctionMaxDate() )
         .put( MIN_DATE, new FunctionMinDate() )
         .put( PERIOD_OFFSET, new PeriodOffset() )
+        .put( SUB_EXPRESSION, new FunctionSubExpression() )
         .build();
 
     private static final ImmutableMap<ParseType, ImmutableMap<Integer, ExpressionItem>> PARSE_TYPE_EXPRESSION_ITEMS = ImmutableMap
@@ -291,6 +293,12 @@ public class DefaultExpressionService
         this.statementBuilder = statementBuilder;
         this.i18nManager = i18nManager;
         this.constantMapCache = cacheProvider.createAllConstantsCache();
+
+        FunctionSubExpression fn = (FunctionSubExpression) INDICATOR_EXPRESSION_ITEMS.get( SUB_EXPRESSION );
+        if ( fn != null )
+        {
+            fn.init( cacheProvider );
+        }
     }
 
     // -------------------------------------------------------------------------
@@ -537,11 +545,11 @@ public class DefaultExpressionService
     }
 
     @Override
-    public Set<DataElement> getExpressionDataElements( String expression, ParseType parseType )
+    public Set<String> getExpressionDataElementIds( String expression, ParseType parseType )
     {
         return getExpressionDimensionalItemIds( expression, parseType ).stream()
             .filter( DimensionalItemId::isDataElementOrOperand )
-            .map( i -> idObjectManager.get( DataElement.class, i.getId0() ) )
+            .map( DimensionalItemId::getId0 )
             .collect( Collectors.toSet() );
     }
 
