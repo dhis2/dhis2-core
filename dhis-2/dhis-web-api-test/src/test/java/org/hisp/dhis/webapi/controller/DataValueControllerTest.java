@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.webapi.WebClient.Body;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 
@@ -105,6 +106,26 @@ public class DataValueControllerTest extends AbstractDataValueControllerTest
             dataValueKeyJSON( "2021-03", false ) ) ) ) );
 
         assertFollowups( false, true, false );
+    }
+
+    /**
+     * Check if the dataValueSet endpoint return correct fileName.
+     */
+    @Test
+    public void testGetDataValueSetJsonWithAttachment()
+    {
+        String dsId = assertStatus( HttpStatus.CREATED,
+            POST( "/dataSets/",
+                "{'name':'My data set', 'periodType':'Monthly', 'dataSetElements':[{'dataElement':{'id':'"
+                    + dataElementId + "'}}]}" ) );
+        addDataValue( "2021-01", "2", null, false );
+        switchToUserWithOrgUnitDataView( "testUser", orgUnitId );
+        String url = "/dataValueSets?orgUnit=" + orgUnitId + "&startDate=2022-01-01&endDate=2022-01-30&dataSet=" + dsId
+            +
+            "&format=json&compression=zip&attachment=dataValues.json.zip";
+        HttpResponse dataValueResponse = GET( url );
+        assertTrue( dataValueResponse.header( "Content-Disposition" )
+            .contains( "dataValues_2022-01-01_2022-01-30.json.zip" ) );
     }
 
     private void assertFollowups( boolean... expected )
