@@ -77,7 +77,6 @@ import com.google.common.collect.Sets;
  */
 class DataValueSetServiceExportTest extends IntegrationTestBase
 {
-
     @Autowired
     private CategoryService categoryService;
 

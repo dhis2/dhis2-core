@@ -150,6 +150,7 @@ public enum JobType
     public boolean isUsingNotifications()
     {
         return this == RESOURCE_TABLE
+            || this == SEND_SCHEDULED_MESSAGE
             || this == ANALYTICS_TABLE
             || this == CONTINUOUS_ANALYTICS_TABLE
             || this == DATA_SET_NOTIFICATION
@@ -158,7 +159,8 @@ public enum JobType
             || this == SYSTEM_VERSION_UPDATE_CHECK
             || this == EVENT_PROGRAMS_DATA_SYNC
             || this == TRACKER_PROGRAMS_DATA_SYNC
-            || this == DATA_SYNC;
+            || this == DATA_SYNC
+            || this == SMS_SEND;
     }
 
     public boolean isUsingErrorNotification()

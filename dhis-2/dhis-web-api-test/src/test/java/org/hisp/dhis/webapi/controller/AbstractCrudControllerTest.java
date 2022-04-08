@@ -135,7 +135,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
                     .content( HttpStatus.CONFLICT ) );
         JsonErrorReport error = message.find( JsonErrorReport.class,
             report -> report.getErrorCode() == ErrorCode.E1107 );
-        assertEquals( "Object type `User` is not translatable.", error.getMessage() );
+        assertEquals( "Object type `User` is not translatable", error.getMessage() );
     }
 
     @Test
