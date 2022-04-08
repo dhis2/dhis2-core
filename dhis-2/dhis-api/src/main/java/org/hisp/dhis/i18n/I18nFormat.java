@@ -76,6 +76,12 @@ public class I18nFormat
 
     public static final String FORMAT_DATETIME = "yyyy-MM-dd HH:mm";
 
+    public static final String FORMAT_PREFIX = "format.";
+
+    public static final String START_DATE_POSTFIX = ".startDate";
+
+    public static final String END_DATE_POSTFIX = ".endDate";
+
     private ResourceBundle resourceBundle;
 
     public I18nFormat( ResourceBundle resourceBundle )
@@ -348,10 +354,10 @@ public class I18nFormat
         if ( periodType instanceof BiMonthlyPeriodType || periodType instanceof QuarterlyPeriodType ||
             periodType instanceof SixMonthlyAbstractPeriodType || periodType instanceof FinancialPeriodType )
         {
-            return "format." + typeName + ".endDate.ext";
+            return FORMAT_PREFIX + typeName + END_DATE_POSTFIX + ".ext";
         }
 
-        return "format." + typeName + ".endDate";
+        return FORMAT_PREFIX + typeName + END_DATE_POSTFIX;
     }
 
     private static String getStartDateFormat( String typeName, PeriodType periodType )
@@ -359,10 +365,10 @@ public class I18nFormat
         if ( periodType instanceof BiMonthlyPeriodType || periodType instanceof QuarterlyPeriodType ||
             periodType instanceof SixMonthlyAbstractPeriodType || periodType instanceof FinancialPeriodType )
         {
-            return "format." + typeName + ".startDate.ext";
+            return FORMAT_PREFIX + typeName + START_DATE_POSTFIX + ".ext";
         }
 
-        return "format." + typeName + ".startDate";
+        return FORMAT_PREFIX + typeName + START_DATE_POSTFIX;
     }
 
     /**
