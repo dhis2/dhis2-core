@@ -50,6 +50,7 @@ public enum ErrorCode
     E1109( "Could not remove item from collection: {0}" ),
     E1110( "Category combo not found or not accessible: `{0}`" ),
     E1111( "Category option not found or not accessible: `{0}`" ),
+    E1112( "Object(s) of type `{0}` not found or not accessible: `{1}`" ),
 
     /* Org unit merge */
     E1500( "At least two source orgs unit must be specified" ),
