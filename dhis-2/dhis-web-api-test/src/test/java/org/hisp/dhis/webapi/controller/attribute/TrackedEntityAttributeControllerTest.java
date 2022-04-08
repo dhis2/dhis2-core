@@ -33,7 +33,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import org.apache.http.HttpStatus;
 import org.hisp.dhis.common.Objects;
-import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.schema.descriptors.TrackedEntityAttributeSchemaDescriptor;
 import org.hisp.dhis.textpattern.TextPattern;
 import org.hisp.dhis.textpattern.TextPatternParser;
@@ -41,7 +40,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.webapi.DhisWebSpringTest;
 import org.hisp.dhis.webapi.utils.TestUtils;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockHttpSession;
 
 /**
@@ -49,9 +47,6 @@ import org.springframework.mock.web.MockHttpSession;
  */
 class TrackedEntityAttributeControllerTest extends DhisWebSpringTest
 {
-    @Autowired
-    protected DbmsManager dbmsManager;
-
     @Test
     void shouldGenerateRandomValuesOrgUnitCodeAndRandom()
         throws Exception
