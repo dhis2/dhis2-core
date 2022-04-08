@@ -84,17 +84,18 @@ public class MonitoringJob implements Job
 
     @Override
     @Transactional
-    public void execute( JobConfiguration jobConfiguration, JobProgress progress )
+    public void execute( JobConfiguration config, JobProgress progress )
     {
         progress.startingProcess( "Data validation" );
         try
         {
-            MonitoringJobParameters params = (MonitoringJobParameters) jobConfiguration.getJobParameters();
+            MonitoringJobParameters params = (MonitoringJobParameters) config.getJobParameters();
             List<String> groupUIDs = params.getValidationRuleGroups();
             Collection<ValidationRule> rules = getValidationRules( groupUIDs );
             progress.startingStage( "Preparing analysis parameters" );
-            List<Period> periods = getPeriods( params, rules );
-            progress.completedStage( rules.stream().map( BaseIdentifiableObject::getName ).collect( joining( ", " ) ) );
+            List<Period> periods = progress.runStage( List.of(),
+                ps -> rules.stream().map( BaseIdentifiableObject::getName ).collect( joining( ", " ) ),
+                () -> getPeriods( params, rules ) );
 
             ValidationAnalysisParams parameters = validationService
                 .newParamsBuilder( rules, null, periods )

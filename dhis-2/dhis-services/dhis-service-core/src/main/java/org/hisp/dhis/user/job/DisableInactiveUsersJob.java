@@ -85,6 +85,7 @@ public class DisableInactiveUsersJob implements Job
         Integer reminderDaysBefore = parameters.getReminderDaysBefore();
         if ( reminderDaysBefore == null )
         {
+            progress.completedProcess( "Skipping reminder emails. Done." );
             return; // done
         }
         int daysUntilDisable = reminderDaysBefore;

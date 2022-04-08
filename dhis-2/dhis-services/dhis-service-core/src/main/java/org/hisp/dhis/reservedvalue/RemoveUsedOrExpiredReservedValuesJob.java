@@ -38,7 +38,7 @@ import org.springframework.stereotype.Component;
 /**
  * @author Henning Håkonsen
  */
-@Component( "removeUsedOrExpiredReservedValuesJob" )
+@Component
 @RequiredArgsConstructor
 public class RemoveUsedOrExpiredReservedValuesJob implements Job
 {
@@ -53,6 +53,8 @@ public class RemoveUsedOrExpiredReservedValuesJob implements Job
     @Override
     public void execute( JobConfiguration jobConfiguration, JobProgress progress )
     {
-        reservedValueService.removeUsedOrExpiredReservations();
+        progress.startingProcess( "Delete expired reserved values" );
+        progress.startingStage( "Deleting expired reserved values" );
+        progress.endingProcess( progress.runStage( reservedValueService::removeUsedOrExpiredReservations ) );
     }
 }
