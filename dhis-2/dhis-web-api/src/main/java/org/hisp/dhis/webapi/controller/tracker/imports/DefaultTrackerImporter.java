@@ -63,9 +63,6 @@ public class DefaultTrackerImporter implements TrackerImporter
     public TrackerImportReport importTracker( TrackerImportRequest request )
     {
 
-        // TODO move common mappers into a common package. import should not
-        // depend on export and the other way around.
-        // TODO this services will do the mapping from view to tracker domain :)
         TrackerImportParams params = trackerImportParams( request );
 
         if ( request.isAsync() )
@@ -79,7 +76,6 @@ public class DefaultTrackerImporter implements TrackerImporter
 
     private TrackerImportParams trackerImportParams( TrackerImportRequest request )
     {
-        // TODO get idSchemeParams in a clean way
         TrackerIdSchemeParams idSchemeParams = TrackerImportParamsBuilder
             .getTrackerIdentifiers( request.getContextService().getParameterValuesMap() );
 
