@@ -43,15 +43,14 @@ import org.hisp.dhis.webapi.utils.TestUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockHttpSession;
-import org.springframework.transaction.support.TransactionTemplate;
 
+/**
+ * @author Luca Cambi
+ */
 class TrackedEntityAttributeControllerTest extends DhisWebSpringTest
 {
     @Autowired
     protected DbmsManager dbmsManager;
-
-    @Autowired
-    protected TransactionTemplate transactionTemplate;
 
     @Test
     void shouldGenerateRandomValuesOrgUnitCodeAndRandom()
