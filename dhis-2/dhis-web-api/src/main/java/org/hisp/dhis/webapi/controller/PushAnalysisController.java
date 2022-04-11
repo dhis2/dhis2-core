@@ -97,8 +97,7 @@ public class PushAnalysisController
         log.info(
             "User '" + currentUserService.getCurrentUser().getUsername() + "' started PushAnalysis for 'rendering'" );
 
-        String result = pushAnalysisService.generateHtmlReport( pushAnalysis, currentUserService.getCurrentUser(),
-            null );
+        String result = pushAnalysisService.generateHtmlReport( pushAnalysis, currentUserService.getCurrentUser() );
         response.getWriter().write( result );
         response.getWriter().close();
     }
@@ -106,8 +105,7 @@ public class PushAnalysisController
     @ResponseStatus( HttpStatus.NO_CONTENT )
     @PostMapping( "/{uid}/run" )
     public void sendPushAnalysis( @PathVariable( ) String uid )
-        throws WebMessageException,
-        IOException
+        throws WebMessageException
     {
         PushAnalysis pushAnalysis = pushAnalysisService.getByUid( uid );
 
@@ -117,8 +115,8 @@ public class PushAnalysisController
                 notFound( "Push analysis with uid " + uid + " was not found" ) );
         }
 
-        JobConfiguration pushAnalysisJobConfiguration = new JobConfiguration( "pushAnalysisJob from controller",
+        JobConfiguration config = new JobConfiguration( "pushAnalysisJob from controller",
             JobType.PUSH_ANALYSIS, "", new PushAnalysisJobParameters( uid ), true, true );
-        schedulingManager.executeNow( pushAnalysisJobConfiguration );
+        schedulingManager.executeNow( config );
     }
 }

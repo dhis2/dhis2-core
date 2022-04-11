@@ -160,7 +160,8 @@ public enum JobType
             || this == EVENT_PROGRAMS_DATA_SYNC
             || this == TRACKER_PROGRAMS_DATA_SYNC
             || this == DATA_SYNC
-            || this == SMS_SEND;
+            || this == SMS_SEND
+            || this == PUSH_ANALYSIS;
     }
 
     public boolean isUsingErrorNotification()
