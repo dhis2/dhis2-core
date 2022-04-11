@@ -48,6 +48,10 @@ public class NotifierJobProgress implements JobProgress
 
     private final JobConfiguration jobId;
 
+    private int stageItems;
+
+    private int stageItem;
+
     @Override
     public boolean isCancellationRequested()
     {
@@ -78,6 +82,8 @@ public class NotifierJobProgress implements JobProgress
     @Override
     public void startingStage( String description, int workItems )
     {
+        stageItems = workItems;
+        stageItem = 0;
         if ( isNotEmpty( description ) )
         {
             notifier.notify( jobId, description );
@@ -105,13 +111,22 @@ public class NotifierJobProgress implements JobProgress
     @Override
     public void startingWorkItem( String description )
     {
-        // intentionally not fowarded
+        if ( isNotEmpty( description ) )
+        {
+            String nOf = "[" + (stageItems > 0 ? stageItem + "/" + stageItems : "" + stageItem) + "] ";
+            notifier.notify( jobId, NotificationLevel.LOOP, nOf + description, false );
+        }
+        stageItem++;
     }
 
     @Override
     public void completedWorkItem( String summary )
     {
-        // intentionally not fowarded
+        if ( isNotEmpty( summary ) )
+        {
+            String nOf = "[" + (stageItems > 0 ? stageItem + "/" + stageItems : "" + stageItem) + "] ";
+            notifier.notify( jobId, NotificationLevel.LOOP, nOf + summary, false );
+        }
     }
 
     @Override
