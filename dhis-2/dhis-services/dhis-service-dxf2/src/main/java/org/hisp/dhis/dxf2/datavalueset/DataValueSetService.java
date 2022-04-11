@@ -48,7 +48,11 @@ import org.hisp.dhis.scheduling.JobConfiguration;
 public interface DataValueSetService
 {
     /**
-     * @return a data export object for the given parameters.
+     * Returns a {@link DataExportParams} based on the given
+     * {@link DataValueSetQueryParams}.
+     *
+     * @param params the {@link DataValueSetQueryParams}.
+     * @return a {@link DataExportParams}.
      */
     DataExportParams getFromUrl( DataValueSetQueryParams params );
 

@@ -153,8 +153,7 @@ public class DefaultValidationService implements ValidationService, CurrentUserS
 
         if ( context.isSendNotifications() )
         {
-            progress.startingStage( "Sending notifications" );
-            progress.runStage( () -> notificationService.sendNotifications( Sets.newHashSet( results ) ) );
+            notificationService.sendNotifications( results, progress );
         }
 
         return results;

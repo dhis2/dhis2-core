@@ -88,6 +88,7 @@ class CategoryServiceTest extends DhisSpringTest
     // -------------------------------------------------------------------------
     // Fixture
     // -------------------------------------------------------------------------
+
     @Override
     public void setUpTest()
     {
@@ -106,6 +107,7 @@ class CategoryServiceTest extends DhisSpringTest
     // -------------------------------------------------------------------------
     // Category
     // -------------------------------------------------------------------------
+
     @Test
     void testAddGet()
     {
@@ -194,6 +196,7 @@ class CategoryServiceTest extends DhisSpringTest
     // -------------------------------------------------------------------------
     // CategoryOptionGroup
     // -------------------------------------------------------------------------
+
     @Test
     void testAddGetCategoryGroup()
     {
@@ -217,6 +220,7 @@ class CategoryServiceTest extends DhisSpringTest
     // -------------------------------------------------------------------------
     // CategoryOptionGroupSet
     // -------------------------------------------------------------------------
+
     @Test
     void testAddGetCategoryGroupSet()
     {
@@ -249,6 +253,7 @@ class CategoryServiceTest extends DhisSpringTest
     // -------------------------------------------------------------------------
     // DataElementOperand
     // -------------------------------------------------------------------------
+
     @Test
     void testGetOperands()
     {

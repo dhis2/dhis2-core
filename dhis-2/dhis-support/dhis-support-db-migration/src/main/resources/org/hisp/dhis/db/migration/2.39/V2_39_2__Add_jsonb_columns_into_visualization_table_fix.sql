@@ -5,16 +5,12 @@
 -- 1) creates new JSONB columns("legend" and "axes") into visualization table;
 -- 2) runs a store procedure to move data/columns into the new JSONB columns("legend" and "axes").
 
-
--- Step 1) creates new JSONB columns("legend" and "axes") into visualization table;
-alter table visualization add column if not exists "legend" jsonb;
-alter table visualization add column if not exists "axes" jsonb;
-
-
--- Step 2) runs a store procedure to move data/columns into the new JSONB columns("legend" and "axes").
+-- Check if columns do not exist yet. Execute the migration ONLY if the columns are not present.
 DO
 $$
     DECLARE
+        has_legend_column bool;
+        has_axes_column bool;
         r record;
         legendJson json;
         axesJson json;
@@ -27,19 +23,33 @@ $$
         debug bool := FALSE;
 
     BEGIN
-        FOR r IN (
-            SELECT visualizationid, baseLineLabel, baseLineValue, domainAxisLabel,
-                   rangeAxisDecimals, rangeAxisLabel, rangeAxisMaxValue, rangeAxisMinValue,
-                   rangeAxisSteps, targetLineLabel, targetLineValue, subtitle, title, hideLegend,
-                   fontStyle -> 'baseLineLabel' AS baseLineLabelFontStyle,
-                   fontStyle -> 'targetLineLabel' AS targetLineLabelFontStyle,
-                   fontStyle -> 'seriesAxisLabel' AS seriesAxisLabelFontStyle,
-                   fontStyle -> 'verticalAxisTitle' AS verticalAxisTitleFontStyle,
-                   fontStyle -> 'categoryAxisLabel' AS categoryAxisLabelFontStyle,
-                   fontStyle -> 'horizontalAxisTitle' AS horizontalAxisTitleFontStyle,
-                   fontStyle -> 'legend' AS legendFontStyle
-            FROM visualization v
-        ) LOOP
+        has_legend_column := (SELECT EXISTS (SELECT 1
+                                FROM information_schema.columns
+                                WHERE table_name='visualization' AND column_name='legend'));
+
+        has_axes_column := (SELECT EXISTS (SELECT 1
+                                FROM information_schema.columns
+                                WHERE table_name='visualization' AND column_name='axes'));
+
+        IF has_legend_column = FALSE AND has_axes_column = FALSE THEN
+            -- Step 1) creates new JSONB columns("legend" and "axes") into visualization table;
+            alter table visualization add column if not exists "legend" jsonb;
+            alter table visualization add column if not exists "axes" jsonb;
+
+            -- Step 2) runs a store procedure to move data/columns into the new JSONB columns("legend" and "axes").
+            FOR r IN (
+                SELECT visualizationid, baseLineLabel, baseLineValue, domainAxisLabel,
+                       rangeAxisDecimals, rangeAxisLabel, rangeAxisMaxValue, rangeAxisMinValue,
+                       rangeAxisSteps, targetLineLabel, targetLineValue, subtitle, title, hideLegend,
+                       fontStyle -> 'baseLineLabel' AS baseLineLabelFontStyle,
+                       fontStyle -> 'targetLineLabel' AS targetLineLabelFontStyle,
+                       fontStyle -> 'seriesAxisLabel' AS seriesAxisLabelFontStyle,
+                       fontStyle -> 'verticalAxisTitle' AS verticalAxisTitleFontStyle,
+                       fontStyle -> 'categoryAxisLabel' AS categoryAxisLabelFontStyle,
+                       fontStyle -> 'horizontalAxisTitle' AS horizontalAxisTitleFontStyle,
+                       fontStyle -> 'legend' AS legendFontStyle
+                FROM visualization v
+            ) LOOP
                 -- Ensure global FLAGS are reset.
                 axisIndex := 0;
                 axesJson := '[{},{}]';
@@ -97,14 +107,14 @@ $$
                 END IF;
 
                 IF (COALESCE(r.rangeAxisLabel, '') != '' AND r.verticalAxisTitleFontStyle IS NULL) THEN
-                    axesJson := jsonb_set(axesJson::jsonb, ('{' || axisIndex || ',title}')::TEXT[], format('{"text":"%s"}', r.rangeAxisLabel, r.verticalAxisTitleFontStyle)::jsonb);
+                    axesJson := jsonb_set(axesJson::jsonb, ('{' || axisIndex || ',title}')::TEXT[], format('{"text":"%s"}', r.rangeAxisLabel)::jsonb);
                     has_range := TRUE;
 
                     IF debug THEN
                         RAISE INFO '%', CONCAT('Axes RANGE, rangeAxisLabel: ', axesJson);
                     END IF;
                 ELSEIF (COALESCE(r.rangeAxisLabel, '') = '' AND r.verticalAxisTitleFontStyle IS NOT NULL) THEN
-                    axesJson := jsonb_set(axesJson::jsonb, ('{' || axisIndex || ',title}')::TEXT[], format('{"fontStyle":%s}', r.rangeAxisLabel, r.verticalAxisTitleFontStyle)::jsonb);
+                    axesJson := jsonb_set(axesJson::jsonb, ('{' || axisIndex || ',title}')::TEXT[], format('{"fontStyle":%s}', r.verticalAxisTitleFontStyle)::jsonb);
                     has_range := TRUE;
 
                     IF debug THEN
@@ -305,5 +315,6 @@ $$
                     END IF;
                 END IF;
             END LOOP;
-    END;
+        END IF;
+    END
 $$ LANGUAGE plpgsql
