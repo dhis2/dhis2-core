@@ -31,6 +31,7 @@ import java.util.Date;
 
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.scheduling.JobProgress;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -53,14 +54,17 @@ public interface ProgramNotificationService
      *
      * @param day the Date representing the day relative to the scheduled
      *        notifications for which to send messages.
+     * @param progress tracking of job progress
      */
-    void sendScheduledNotificationsForDay( Date day );
+    void sendScheduledNotificationsForDay( Date day, JobProgress progress );
 
     /**
      * Sends all notifications which are scheduled by program rule and having
      * scheduledDate for today.
+     *
+     * @param progress tracking of job progress
      */
-    void sendScheduledNotifications();
+    void sendScheduledNotifications( JobProgress progress );
 
     /**
      * Send completion notifications for the ProgramStageInstance. If the

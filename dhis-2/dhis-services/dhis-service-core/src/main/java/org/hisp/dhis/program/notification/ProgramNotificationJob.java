@@ -27,48 +27,24 @@
  */
 package org.hisp.dhis.program.notification;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.Calendar;
 
-import org.hisp.dhis.message.MessageService;
+import lombok.AllArgsConstructor;
+
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
-import org.hisp.dhis.system.notification.NotificationLevel;
-import org.hisp.dhis.system.notification.Notifier;
-import org.hisp.dhis.system.util.Clock;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Halvdan Hoem Grelland
  */
-
-@Component( "programNotificationsJob" )
+@Component
+@AllArgsConstructor
 public class ProgramNotificationJob implements Job
 {
     private final ProgramNotificationService programNotificationService;
-
-    private final MessageService messageService;
-
-    private final Notifier notifier;
-
-    public ProgramNotificationJob( ProgramNotificationService programNotificationService, MessageService messageService,
-        Notifier notifier )
-    {
-        checkNotNull( programNotificationService );
-        checkNotNull( messageService );
-        checkNotNull( notifier );
-
-        this.programNotificationService = programNotificationService;
-        this.messageService = messageService;
-        this.notifier = notifier;
-    }
-
-    // -------------------------------------------------------------------------
-    // Implementation
-    // -------------------------------------------------------------------------
 
     @Override
     public JobType getJobType()
@@ -79,35 +55,13 @@ public class ProgramNotificationJob implements Job
     @Override
     public void execute( JobConfiguration jobConfiguration, JobProgress progress )
     {
-        final Clock clock = new Clock().startClock();
-
-        notifier.notify( jobConfiguration, "Generating and sending scheduled program notifications" );
-
-        try
-        {
-            runInternal();
-
-            notifier.notify( jobConfiguration, NotificationLevel.INFO,
-                "Generated and sent scheduled program notifications: " + clock.time(), true );
-        }
-        catch ( RuntimeException ex )
-        {
-            notifier.notify( jobConfiguration, NotificationLevel.ERROR, "Process failed: " + ex.getMessage(), true );
-
-            messageService.sendSystemErrorNotification( "Generating and sending scheduled program notifications failed",
-                ex );
-
-            throw ex;
-        }
-    }
-
-    private void runInternal()
-    {
         // Today at 00:00:00
         Calendar calendar = Calendar.getInstance();
         calendar.set( Calendar.HOUR, 0 );
 
-        programNotificationService.sendScheduledNotificationsForDay( calendar.getTime() );
-        programNotificationService.sendScheduledNotifications();
+        progress.startingProcess( "Generating and sending scheduled program notifications" );
+        programNotificationService.sendScheduledNotificationsForDay( calendar.getTime(), progress );
+        programNotificationService.sendScheduledNotifications( progress );
+        progress.completedProcess( "Generated and sent scheduled program notifications." );
     }
 }
