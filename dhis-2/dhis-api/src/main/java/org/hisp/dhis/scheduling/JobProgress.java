@@ -28,7 +28,6 @@
 package org.hisp.dhis.scheduling;
 
 import static java.lang.String.format;
-import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 import java.io.Serializable;
 import java.util.Collection;
@@ -138,8 +137,7 @@ public interface JobProgress
 
     default void failedProcess( Exception cause )
     {
-        String message = cause.getMessage();
-        failedProcess( "Process failed: " + (isNotEmpty( message ) ? message : cause.getClass().getSimpleName()) );
+        failedProcess( "Process failed: " + getMessage( cause ) );
     }
 
     default void endingProcess( boolean success )
@@ -176,7 +174,7 @@ public interface JobProgress
 
     default void failedStage( Exception cause )
     {
-        failedStage( cause.getMessage() );
+        failedStage( getMessage( cause ) );
     }
 
     void startingWorkItem( String description );
@@ -192,7 +190,7 @@ public interface JobProgress
 
     default void failedWorkItem( Exception cause )
     {
-        failedWorkItem( cause.getMessage() );
+        failedWorkItem( getMessage( cause ) );
     }
 
     /*
@@ -569,11 +567,6 @@ public interface JobProgress
             this.cancelledTime = new Date();
             this.status = Status.CANCELLED;
         }
-
-        public void abort()
-        {
-            completeExceptionally( "aborted after failed stage or item", null );
-        }
     }
 
     @Getter
@@ -604,5 +597,11 @@ public interface JobProgress
 
         @JsonProperty
         private final String description;
+    }
+
+    static String getMessage( Exception cause )
+    {
+        String msg = cause.getMessage();
+        return msg == null || msg.isBlank() ? cause.getClass().getName() : msg;
     }
 }

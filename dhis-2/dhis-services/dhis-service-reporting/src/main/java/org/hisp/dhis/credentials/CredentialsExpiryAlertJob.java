@@ -28,11 +28,10 @@
 package org.hisp.dhis.credentials;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.lang.String.format;
 
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -52,7 +51,11 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 /**
- * Created by zubair on 29.03.17.
+ * Sends an alert to users whose user credentials are soon expiring so that they
+ * have a chance to update their credentials.
+ *
+ * @author zubair (original)
+ * @author Jan Bernitt (job progress tracking)
  */
 @Slf4j
 @Component
@@ -93,32 +96,16 @@ public class CredentialsExpiryAlertJob implements Job
     {
         if ( !systemSettingManager.getBoolSetting( SettingKey.CREDENTIALS_EXPIRY_ALERT ) )
         {
-            log.info( String.format( "%s aborted. Expiry alerts are disabled", KEY_TASK ) );
+            log.info( format( "%s aborted. Expiry alerts are disabled", KEY_TASK ) );
             return;
         }
 
-        log.info( String.format( "%s has started", KEY_TASK ) );
-
-        progress.startingProcess();
-        sendExpiryAlert( findAndPrepareRecipients( progress ), progress );
-        progress.completedProcess( null );
-    }
-
-    private Map<String, String> findAndPrepareRecipients( JobProgress progress )
-    {
+        progress.startingProcess( "User account expire alerts" );
         progress.startingStage( "finding and preparing email recipients" );
-        List<User> users = userService.getExpiringUsers();
-        Map<String, String> content = new HashMap<>();
-        for ( User user : users )
-        {
-            if ( user.getEmail() != null )
-            {
-                content.put( user.getEmail(), createText( user ) );
-            }
-        }
-        progress.completedStage( String.format( "%d recipients", content.size() ) );
-        log.info( String.format( "Users added for alert: %d", content.size() ) );
-        return content;
+        List<User> users = progress.runStage( List.of(),
+            recipients -> format( "%d recipients", recipients.size() ), userService::getExpiringUsers );
+        sendExpiryAlert( users, progress );
+        progress.completedProcess( null );
     }
 
     @Override
@@ -129,28 +116,27 @@ public class CredentialsExpiryAlertJob implements Job
             return new ErrorReport( CredentialsExpiryAlertJob.class, ErrorCode.E7010,
                 "EMAIL gateway configuration does not exist" );
         }
-
         return Job.super.validate();
     }
 
-    private void sendExpiryAlert( Map<String, String> content, JobProgress progress )
+    private void sendExpiryAlert( List<User> users, JobProgress progress )
     {
-        progress.startingStage( "sending expiry alert", content.size() );
+        progress.startingStage( "sending expiry alert emails", users.size() );
         if ( emailMessageSender.isConfigured() )
         {
-            progress.runStage( content.entrySet(), e -> "to: " + e.getKey(),
-                e -> emailMessageSender.sendMessage( SUBJECT, e.getKey(), e.getValue() ) );
+            progress.runStage( users,
+                user -> "to: " + user.getUsername(),
+                user -> emailMessageSender.sendMessage( SUBJECT, createText( user ), user.getEmail() ) );
         }
         else
         {
-            log.error( "Email service is not configured" );
             progress.failedStage( "Email service is not configured" );
         }
     }
 
     private String createText( User user )
     {
-        return String.format( TEXT, user.getUsername(), getRemainingDays( user ) );
+        return format( TEXT, user.getUsername(), getRemainingDays( user ) );
     }
 
     private int getRemainingDays( User user )

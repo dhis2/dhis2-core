@@ -25,32 +25,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.strategy.tracker.imports.impl;
+package org.hisp.dhis.webapi;
 
-import lombok.RequiredArgsConstructor;
-
-import org.hisp.dhis.tracker.TrackerImportService;
-import org.hisp.dhis.tracker.report.TrackerImportReport;
-import org.hisp.dhis.webapi.controller.tracker.TrackerImportReportRequest;
-import org.hisp.dhis.webapi.strategy.tracker.imports.TrackerImportStrategyHandler;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.config.H2DhisConfigurationProvider;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 /**
- * @author Luca Cambi <luca@dhis2.org>
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Component
-@RequiredArgsConstructor
-public class TrackerImportSyncStrategyImpl implements TrackerImportStrategyHandler
+@Configuration
+public class ConfigProviderConfiguration
 {
-    private final TrackerImportService trackerImportService;
-
-    @Override
-    public TrackerImportReport importReport( TrackerImportReportRequest trackerImportReportRequest )
+    @Bean( name = "dhisConfigurationProvider" )
+    public DhisConfigurationProvider dhisConfigurationProvider()
     {
-        TrackerImportReport trackerImportReport = trackerImportService
-            .importTracker( trackerImportReportRequest.getTrackerImportParams() );
-
-        return trackerImportService.buildImportReport( trackerImportReport,
-            trackerImportReportRequest.getTrackerBundleReportMode() );
+        return new H2DhisConfigurationProvider();
     }
 }

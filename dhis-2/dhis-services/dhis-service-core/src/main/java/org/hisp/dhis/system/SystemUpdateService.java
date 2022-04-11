@@ -44,6 +44,7 @@ import org.hisp.dhis.message.MessageConversation;
 import org.hisp.dhis.message.MessageConversationParams;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.message.MessageType;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.system.util.DhisHttpResponse;
 import org.hisp.dhis.system.util.HttpUtils;
 import org.hisp.dhis.user.User;
@@ -51,6 +52,7 @@ import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserStore;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -201,33 +203,44 @@ public class SystemUpdateService
         return versionsAndMessage;
     }
 
-    public void sendMessageForEachVersion( Map<Semver, Map<String, String>> patchVersions )
+    @Transactional
+    public void sendMessageForEachVersion( Map<Semver, Map<String, String>> patchVersions, JobProgress progress )
     {
-        Set<User> recipients = getRecipients();
+        progress.startingStage( "Finding notification recipients" );
+        Set<User> recipients = progress.runStage( Set.of(), users -> users.size() + " recipients",
+            this::getRecipients );
 
+        if ( recipients.isEmpty() )
+        {
+            return;
+        }
         for ( Map.Entry<Semver, Map<String, String>> versionEntry : patchVersions.entrySet() )
         {
-            Semver version = versionEntry.getKey();
-            Map<String, String> message = versionEntry.getValue();
+            sendMessageForVersion( recipients, versionEntry.getKey(), versionEntry.getValue(), progress );
+        }
+    }
 
-            // Check if message has been sent before using
-            // version.getValue() as extMessageId
-            List<MessageConversation> existingMessages = messageService.getMatchingExtId( version.getValue() );
+    private void sendMessageForVersion( Set<User> recipients, Semver version, Map<String, String> message,
+        JobProgress progress )
+    {
 
-            if ( existingMessages.isEmpty() )
-            {
-                for ( User recipient : recipients )
-                {
-                    MessageConversationParams params = new MessageConversationParams.Builder()
-                        .withRecipients( Set.of( recipient ) )
-                        .withSubject( NEW_VERSION_AVAILABLE_MESSAGE_SUBJECT )
-                        .withText( buildMessageBody( message ) )
-                        .withMessageType( MessageType.SYSTEM )
-                        .withExtMessageId( version.getValue() ).build();
+        // Check if message has been sent before using version.getValue() as
+        // extMessageId
+        progress.startingStage( "Finding conversations for version " + version );
+        List<MessageConversation> existingMessages = progress.runStage( List.of(),
+            conversations -> "found " + conversations.size() + " conversations",
+            () -> messageService.getMatchingExtId( version.getValue() ) );
 
-                    messageService.sendMessage( params );
-                }
-            }
+        if ( existingMessages.isEmpty() )
+        {
+            progress.startingStage( "Sending notifications to recipients", recipients.size() );
+            progress.runStage( recipients, recipient -> "to: " + recipient.getUsername(),
+                recipient -> messageService.sendMessage( new MessageConversationParams.Builder()
+                    .withRecipients( Set.of( recipient ) )
+                    .withSubject( NEW_VERSION_AVAILABLE_MESSAGE_SUBJECT )
+                    .withText( buildMessageBody( message ) )
+                    .withMessageType( MessageType.SYSTEM )
+                    .withExtMessageId( version.getValue() ).build() ) );
         }
     }
 

@@ -55,7 +55,7 @@ public class ValidationResultNotificationJob implements Job
     public void execute( JobConfiguration jobConfiguration, JobProgress progress )
     {
         progress.startingProcess( "Validation result notification" );
-        progress.startingStage( "Sending validation result notifications" );
-        progress.endingProcess( progress.runStage( notificationService::sendUnsentNotifications ) );
+        notificationService.sendUnsentNotifications( progress );
+        progress.completedProcess( null );
     }
 }

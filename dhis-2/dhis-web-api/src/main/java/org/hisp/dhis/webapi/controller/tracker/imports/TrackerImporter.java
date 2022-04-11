@@ -25,31 +25,14 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.sync;
+package org.hisp.dhis.webapi.controller.tracker.imports;
 
-import java.util.Optional;
-
-import org.hisp.dhis.dxf2.synch.AvailabilityStatus;
-import org.hisp.dhis.dxf2.synch.SynchronizationManager;
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.scheduling.Job;
+import org.hisp.dhis.tracker.report.TrackerImportReport;
 
 /**
- * @author David Katuscak <katuscak.d@gmail.com>
+ * @author Luca Cambi <luca@dhis2.org>
  */
-public abstract class SynchronizationJob implements Job
+public interface TrackerImporter
 {
-    protected Optional<ErrorReport> validateRemoteServerAvailability( SynchronizationManager synchronizationManager,
-        Class<?> klass )
-    {
-        AvailabilityStatus isRemoteServerAvailable = synchronizationManager.isRemoteServerAvailable();
-
-        if ( !isRemoteServerAvailable.isAvailable() )
-        {
-            return Optional.of( new ErrorReport( klass, ErrorCode.E7010, isRemoteServerAvailable.getMessage() ) );
-        }
-
-        return Optional.empty();
-    }
+    TrackerImportReport importTracker( TrackerImportRequest trackerImportRequest );
 }

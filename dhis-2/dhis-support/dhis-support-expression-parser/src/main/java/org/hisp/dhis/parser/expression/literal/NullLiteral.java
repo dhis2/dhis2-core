@@ -25,33 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker;
+package org.hisp.dhis.parser.expression.literal;
 
-import lombok.Builder;
-import lombok.Data;
+import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import org.hisp.dhis.parser.expression.ExpressionItem;
+import org.hisp.dhis.parser.expression.antlr.ExpressionParser;
 
-import org.hisp.dhis.tracker.TrackerBundleReportMode;
-import org.hisp.dhis.tracker.TrackerImportParams;
-import org.hisp.dhis.webapi.service.ContextService;
-import org.springframework.security.core.Authentication;
-
-@Data
-@Builder
-public class TrackerImportReportRequest
+/**
+ * Provides a null value
+ *
+ * @author Jim Grace
+ */
+public class NullLiteral
+    implements ExpressionItem
 {
-    Authentication authentication;
+    @Override
+    public final Object evaluate( ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor )
+    {
+        // Don't replace this null with a zero:
+        visitor.getState().setReplaceNulls( false );
 
-    String uid;
+        return null;
+    }
 
-    String userUid;
-
-    ContextService contextService;
-
-    TrackerBundleParams trackerBundleParams;
-
-    TrackerImportParams trackerImportParams;
-
-    boolean isAsync;
-
-    TrackerBundleReportMode trackerBundleReportMode;
+    @Override
+    public Object getSql( ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor )
+    {
+        return "null";
+    }
 }

@@ -32,6 +32,8 @@ import static org.hisp.dhis.webapi.utils.WebClientUtils.failOnException;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 
+import org.hisp.dhis.IntegrationH2Test;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -49,6 +51,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
@@ -62,17 +65,21 @@ import org.springframework.web.context.WebApplicationContext;
  */
 @ExtendWith( SpringExtension.class )
 @WebAppConfiguration
-@ContextConfiguration( classes = { MvcTestConfig.class, WebTestConfiguration.class } )
+@ContextConfiguration( classes = { ConfigProviderConfiguration.class, MvcTestConfig.class,
+    WebTestConfiguration.class } )
 @ActiveProfiles( "test-h2" )
+@IntegrationH2Test
 @Transactional
 public abstract class DhisControllerConvenienceTest extends DhisMockMvcControllerTest
 {
-
     @Autowired
     private WebApplicationContext webApplicationContext;
 
     @Autowired
     private UserService _userService;
+
+    @Autowired
+    private IdentifiableObjectManager manager;
 
     private MockMvc mvc;
 
@@ -145,8 +152,21 @@ public abstract class DhisControllerConvenienceTest extends DhisMockMvcControlle
             toResponse( mvc.perform( request.session( session ) ).andReturn().getResponse() ) ) );
     }
 
+    protected final MvcResult webRequestWithMvcResult( MockHttpServletRequestBuilder request )
+    {
+        return failOnException( () -> mvc.perform( request.session( session ) ).andReturn() );
+    }
+
     protected final void assertJson( String expected, HttpResponse actual )
     {
         assertEquals( singleToDoubleQuotes( expected ), actual.content().toString() );
+    }
+
+    protected void switchToUserWithOrgUnitDataView( String userName, String orgUnitId )
+    {
+        User user = createUser( userName, "ALL" );
+        user.getDataViewOrganisationUnits().add( manager.get( orgUnitId ) );
+        userService.addUser( user );
+        switchContextToUser( user );
     }
 }

@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker;
+package org.hisp.dhis.webapi.controller.tracker.imports;
 
 import static org.hisp.dhis.tracker.AtomicMode.ALL;
 import static org.hisp.dhis.tracker.FlushMode.AUTO;
@@ -33,20 +33,20 @@ import static org.hisp.dhis.tracker.TrackerIdScheme.UID;
 import static org.hisp.dhis.tracker.TrackerImportStrategy.CREATE_AND_UPDATE;
 import static org.hisp.dhis.tracker.ValidationMode.FULL;
 import static org.hisp.dhis.tracker.bundle.TrackerBundleMode.COMMIT;
-import static org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder.TrackerImportParamKey.ATOMIC_MODE_KEY;
-import static org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder.TrackerImportParamKey.CATEGORY_OPTION_COMBO_ID_SCHEME_KEY;
-import static org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder.TrackerImportParamKey.CATEGORY_OPTION_ID_SCHEME_KEY;
-import static org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder.TrackerImportParamKey.DATA_ELEMENT_ID_SCHEME_KEY;
-import static org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder.TrackerImportParamKey.FLUSH_MODE_KEY;
-import static org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder.TrackerImportParamKey.ID_SCHEME_KEY;
-import static org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder.TrackerImportParamKey.IMPORT_MODE_KEY;
-import static org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder.TrackerImportParamKey.IMPORT_STRATEGY_KEY;
-import static org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder.TrackerImportParamKey.ORG_UNIT_ID_SCHEME_KEY;
-import static org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder.TrackerImportParamKey.PROGRAM_ID_SCHEME_KEY;
-import static org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder.TrackerImportParamKey.PROGRAM_STAGE_ID_SCHEME_KEY;
-import static org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder.TrackerImportParamKey.SKIP_RULE_ENGINE_KEY;
-import static org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder.TrackerImportParamKey.SKIP_SIDE_EFFECTS;
-import static org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder.TrackerImportParamKey.VALIDATION_MODE_KEY;
+import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportParamsBuilder.TrackerImportParamKey.ATOMIC_MODE_KEY;
+import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportParamsBuilder.TrackerImportParamKey.CATEGORY_OPTION_COMBO_ID_SCHEME_KEY;
+import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportParamsBuilder.TrackerImportParamKey.CATEGORY_OPTION_ID_SCHEME_KEY;
+import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportParamsBuilder.TrackerImportParamKey.DATA_ELEMENT_ID_SCHEME_KEY;
+import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportParamsBuilder.TrackerImportParamKey.FLUSH_MODE_KEY;
+import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportParamsBuilder.TrackerImportParamKey.ID_SCHEME_KEY;
+import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportParamsBuilder.TrackerImportParamKey.IMPORT_MODE_KEY;
+import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportParamsBuilder.TrackerImportParamKey.IMPORT_STRATEGY_KEY;
+import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportParamsBuilder.TrackerImportParamKey.ORG_UNIT_ID_SCHEME_KEY;
+import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportParamsBuilder.TrackerImportParamKey.PROGRAM_ID_SCHEME_KEY;
+import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportParamsBuilder.TrackerImportParamKey.PROGRAM_STAGE_ID_SCHEME_KEY;
+import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportParamsBuilder.TrackerImportParamKey.SKIP_RULE_ENGINE_KEY;
+import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportParamsBuilder.TrackerImportParamKey.SKIP_SIDE_EFFECTS;
+import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportParamsBuilder.TrackerImportParamKey.VALIDATION_MODE_KEY;
 
 import java.util.List;
 import java.util.Map;
@@ -59,8 +59,8 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.tracker.AtomicMode;
 import org.hisp.dhis.tracker.FlushMode;
 import org.hisp.dhis.tracker.TrackerIdScheme;
-import org.hisp.dhis.tracker.TrackerIdentifier;
-import org.hisp.dhis.tracker.TrackerIdentifierParams;
+import org.hisp.dhis.tracker.TrackerIdSchemeParam;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.ValidationMode;
@@ -85,7 +85,7 @@ public class TrackerImportParamsBuilder
         return TrackerImportParams.builder()
             .validationMode( getEnumWithDefault( ValidationMode.class, parameters, VALIDATION_MODE_KEY, FULL ) )
             .importMode( getEnumWithDefault( TrackerBundleMode.class, parameters, IMPORT_MODE_KEY, COMMIT ) )
-            .identifiers( getTrackerIdentifiers( parameters ) )
+            .idSchemes( getTrackerIdentifiers( parameters ) )
             .importStrategy(
                 getEnumWithDefault( TrackerImportStrategy.class, parameters, IMPORT_STRATEGY_KEY,
                     CREATE_AND_UPDATE ) )
@@ -115,11 +115,11 @@ public class TrackerImportParamsBuilder
         return Enums.getIfPresent( enumKlass, value ).or( defaultValue );
     }
 
-    private static TrackerIdentifierParams getTrackerIdentifiers( Map<String, List<String>> parameters )
+    private static TrackerIdSchemeParams getTrackerIdentifiers( Map<String, List<String>> parameters )
     {
         TrackerIdScheme idScheme = getEnumWithDefault( TrackerIdScheme.class, parameters, ID_SCHEME_KEY, UID );
 
-        return TrackerIdentifierParams.builder()
+        return TrackerIdSchemeParams.builder()
             .idScheme( bySchemeAndKey( parameters, ID_SCHEME_KEY, idScheme ) )
             .orgUnitIdScheme( bySchemeAndKey( parameters, ORG_UNIT_ID_SCHEME_KEY, idScheme ) )
             .programIdScheme( bySchemeAndKey( parameters, PROGRAM_ID_SCHEME_KEY, idScheme ) )
@@ -172,7 +172,7 @@ public class TrackerImportParamsBuilder
         return null;
     }
 
-    private static TrackerIdentifier bySchemeAndKey( Map<String, List<String>> parameters,
+    private static TrackerIdSchemeParam bySchemeAndKey( Map<String, List<String>> parameters,
         TrackerImportParamKey trackerImportParameterKey,
         TrackerIdScheme defaultIdScheme )
     {
@@ -180,7 +180,8 @@ public class TrackerImportParamsBuilder
         TrackerIdScheme trackerIdScheme = getEnumWithDefault( TrackerIdScheme.class, parameters,
             trackerImportParameterKey, defaultIdScheme );
 
-        return TrackerIdentifier.of( trackerIdScheme, getAttributeUidOrNull( parameters, trackerImportParameterKey ) );
+        return TrackerIdSchemeParam.of( trackerIdScheme,
+            getAttributeUidOrNull( parameters, trackerImportParameterKey ) );
     }
 
     enum TrackerImportParamKey

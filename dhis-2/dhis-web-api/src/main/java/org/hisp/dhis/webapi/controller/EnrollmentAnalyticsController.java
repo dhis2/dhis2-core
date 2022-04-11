@@ -256,7 +256,8 @@ public class EnrollmentAnalyticsController
     private EventQueryParams getEventQueryParams( @PathVariable String program,
         EnrollmentAnalyticsQueryCriteria criteria, DhisApiVersion apiVersion, boolean analyzeOnly )
     {
-        checkAndMaybeModifyCriteria( criteria );
+        criteria
+            .definePageSize( systemSettingManager.getIntSetting( SettingKey.ANALYTICS_MAX_LIMIT ) );
 
         EventDataQueryRequest request = EventDataQueryRequest.builder()
             .fromCriteria( (EnrollmentAnalyticsQueryCriteria) criteria.withQueryEndpointAction()
@@ -266,15 +267,5 @@ public class EnrollmentAnalyticsController
             .build();
 
         return eventDataQueryService.getFromRequest( request, analyzeOnly );
-    }
-
-    private void checkAndMaybeModifyCriteria( EnrollmentAnalyticsQueryCriteria criteria )
-    {
-        Integer analyticsMaxLimit = systemSettingManager.getIntSetting( SettingKey.ANALYTICS_MAX_LIMIT );
-
-        if ( criteria.getPageSize() != null && criteria.getPageSize() > analyticsMaxLimit )
-        {
-            criteria.setPageSize( analyticsMaxLimit );
-        }
     }
 }

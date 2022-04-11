@@ -42,6 +42,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
+import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.program.ProgramStageInstance;
@@ -49,7 +50,8 @@ import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
-import org.hisp.dhis.tracker.TrackerIdScheme;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAudit;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.converter.TrackerConverterService;
@@ -73,16 +75,20 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
 
     private final TrackerSideEffectConverterService sideEffectConverterService;
 
+    private final TrackedEntityDataValueAuditService trackedEntityDataValueAuditService;
+
     public EventPersister( ReservedValueService reservedValueService,
         TrackerConverterService<Event, ProgramStageInstance> eventConverter,
         TrackedEntityCommentService trackedEntityCommentService,
         TrackerSideEffectConverterService sideEffectConverterService,
-        TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService )
+        TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService,
+        TrackedEntityDataValueAuditService trackedEntityDataValueAuditService )
     {
         super( reservedValueService, trackedEntityAttributeValueAuditService );
         this.eventConverter = eventConverter;
         this.trackedEntityCommentService = trackedEntityCommentService;
         this.sideEffectConverterService = sideEffectConverterService;
+        this.trackedEntityDataValueAuditService = trackedEntityDataValueAuditService;
     }
 
     @Override
@@ -103,13 +109,13 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
     @Override
     protected void updatePreheat( TrackerPreheat preheat, ProgramStageInstance programStageInstance )
     {
-        preheat.putEvents( TrackerIdScheme.UID, Collections.singletonList( programStageInstance ) );
+        preheat.putEvents( Collections.singletonList( programStageInstance ) );
     }
 
     @Override
     protected boolean isNew( TrackerPreheat preheat, String uid )
     {
-        return preheat.getEvent( TrackerIdScheme.UID, uid ) == null;
+        return preheat.getEvent( uid ) == null;
     }
 
     @Override
@@ -157,33 +163,48 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
     private void handleDataValues( Session session, TrackerPreheat preheat, Set<DataValue> payloadDataValues,
         ProgramStageInstance psi )
     {
+        String persistedDataValue = "";
+
         Map<String, EventDataValue> dataValueDBMap = psi
             .getEventDataValues()
             .stream()
             .collect( Collectors.toMap( EventDataValue::getDataElement, Function.identity() ) );
 
+        Date today = new Date();
+
         for ( DataValue dv : payloadDataValues )
         {
+            AuditType auditType = null;
+
             DataElement dateElement = preheat.get( DataElement.class, dv.getDataElement() );
 
             checkNotNull( dateElement,
                 "Data element should never be NULL here if validation is enforced before commit." );
 
-            EventDataValue eventDataValue = dataValueDBMap.getOrDefault( dv.getDataElement(), new EventDataValue() );
+            EventDataValue eventDataValue = dataValueDBMap.get( dv.getDataElement() );
 
+            if ( eventDataValue == null )
+            {
+                eventDataValue = new EventDataValue();
+                auditType = AuditType.CREATE;
+            }
+
+            persistedDataValue = eventDataValue.getValue();
             eventDataValue.setDataElement( dateElement.getUid() );
             eventDataValue.setValue( dv.getValue() );
             eventDataValue.setStoredBy( dv.getStoredBy() );
 
             handleDataValueCreatedUpdatedDates( dv, eventDataValue );
 
-            if ( StringUtils.isEmpty( eventDataValue.getValue() ) )
+            if ( StringUtils.isEmpty( dv.getValue() ) )
             {
                 if ( dateElement.isFileType() )
                 {
                     unassignFileResource( session, preheat, dataValueDBMap.get( dv.getDataElement() ).getValue() );
                 }
+
                 psi.getEventDataValues().remove( eventDataValue );
+                auditType = AuditType.DELETE;
             }
             else
             {
@@ -191,8 +212,17 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
                 {
                     assignFileResource( session, preheat, eventDataValue.getValue() );
                 }
+
                 psi.getEventDataValues().add( eventDataValue );
+
+                if ( !dv.getValue().equals( persistedDataValue ) )
+                {
+                    auditType = AuditType.UPDATE;
+                }
             }
+
+            logTrackedEntityDataValueHistory( preheat.getUsername(), eventDataValue, dateElement, psi, auditType,
+                today );
         }
     }
 
@@ -208,6 +238,24 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
             .map( dateGetter )
             .map( DateUtils::fromInstant )
             .orElseGet( Date::new );
+    }
+
+    private void logTrackedEntityDataValueHistory( String userName,
+        EventDataValue eventDataValue, DataElement de, ProgramStageInstance psi, AuditType auditType, Date created )
+    {
+        if ( auditType != null )
+        {
+            TrackedEntityDataValueAudit valueAudit = new TrackedEntityDataValueAudit();
+            valueAudit.setProgramStageInstance( psi );
+            valueAudit.setValue( eventDataValue.getValue() );
+            valueAudit.setAuditType( auditType );
+            valueAudit.setDataElement( de );
+            valueAudit.setModifiedBy( userName );
+            valueAudit.setProvidedElsewhere( eventDataValue.getProvidedElsewhere() );
+            valueAudit.setCreated( created );
+
+            trackedEntityDataValueAuditService.addTrackedEntityDataValueAudit( valueAudit );
+        }
     }
 
     @Override

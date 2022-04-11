@@ -350,8 +350,8 @@ public class DataSetController
         {
             Set<CategoryOptionCombo> attrOptionCombos = options == null || options.isEmpty()
                 ? null
-                : Sets.newHashSet(
-                    inputUtils.getAttributeOptionCombo( dataSet.getCategoryCombo(), options, IdScheme.UID ) );
+                : Sets.newHashSet( inputUtils.getAttributeOptionCombo(
+                    dataSet.getCategoryCombo(), options, IdScheme.UID ) );
 
             List<DataValue> dataValues = dataValueService.getDataValues( new DataExportParams()
                 .setDataElements( dataSets.get( 0 ).getDataElements() )

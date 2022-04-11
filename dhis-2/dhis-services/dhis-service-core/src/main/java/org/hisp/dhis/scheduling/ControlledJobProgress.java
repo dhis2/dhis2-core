@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.scheduling;
 
+import static org.hisp.dhis.scheduling.JobProgress.getMessage;
+
 import java.util.Deque;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ConcurrentLinkedDeque;
@@ -119,7 +121,7 @@ public class ControlledJobProgress implements JobProgress
         tracker.failedProcess( error );
         if ( processes.getLast().getStatus() != Status.CANCELLED )
         {
-            automaticAbort( false );
+            automaticAbort( false, error, null );
             getOrAddLastIncompleteProcess().completeExceptionally( error, null );
         }
     }
@@ -131,9 +133,9 @@ public class ControlledJobProgress implements JobProgress
         tracker.failedProcess( cause );
         if ( processes.getLast().getStatus() != Status.CANCELLED )
         {
-            automaticAbort( false );
+            automaticAbort( false, getMessage( cause ), cause );
             Process process = getOrAddLastIncompleteProcess();
-            process.completeExceptionally( cause.getMessage(), cause );
+            process.completeExceptionally( getMessage( cause ), cause );
             sendErrorNotification( process, cause );
         }
     }
@@ -160,7 +162,7 @@ public class ControlledJobProgress implements JobProgress
     public void failedStage( String error )
     {
         tracker.failedStage( error );
-        automaticAbort();
+        automaticAbort( error, null );
         getOrAddLastIncompleteStage().completeExceptionally( error, null );
     }
 
@@ -169,9 +171,9 @@ public class ControlledJobProgress implements JobProgress
     {
         cause = cancellationAsAbort( cause );
         tracker.failedStage( cause );
-        automaticAbort();
+        automaticAbort( getMessage( cause ), cause );
         Stage stage = getOrAddLastIncompleteStage();
-        stage.completeExceptionally( cause.getMessage(), cause );
+        stage.completeExceptionally( getMessage( cause ), cause );
         sendErrorNotification( stage, cause );
     }
 
@@ -193,7 +195,7 @@ public class ControlledJobProgress implements JobProgress
     public void failedWorkItem( String error )
     {
         tracker.failedWorkItem( error );
-        automaticAbort();
+        automaticAbort( error, null );
         getOrAddLastIncompleteItem().completeExceptionally( error, null );
     }
 
@@ -201,18 +203,18 @@ public class ControlledJobProgress implements JobProgress
     public void failedWorkItem( Exception cause )
     {
         tracker.failedWorkItem( cause );
-        automaticAbort();
+        automaticAbort( getMessage( cause ), cause );
         Item item = getOrAddLastIncompleteItem();
-        item.completeExceptionally( cause.getMessage(), cause );
+        item.completeExceptionally( getMessage( cause ), cause );
         sendErrorNotification( item, cause );
     }
 
-    private void automaticAbort()
+    private void automaticAbort( String error, Exception cause )
     {
-        automaticAbort( true );
+        automaticAbort( true, error, cause );
     }
 
-    private void automaticAbort( boolean abortProcess )
+    private void automaticAbort( boolean abortProcess, String error, Exception cause )
     {
         if ( abortOnFailure
             // OBS! we only mark abort if we could mark cancellation
@@ -221,7 +223,12 @@ public class ControlledJobProgress implements JobProgress
             && abortAfterFailure.compareAndSet( false, true )
             && abortProcess )
         {
-            processes.forEach( Process::abort );
+            processes.forEach( process -> {
+                if ( !process.isComplete() )
+                {
+                    process.completeExceptionally( error, cause );
+                }
+            } );
         }
     }
 
@@ -282,7 +289,7 @@ public class ControlledJobProgress implements JobProgress
     private Exception cancellationAsAbort( Exception cause )
     {
         return cause instanceof CancellationException && abortAfterFailure.get()
-            ? new RuntimeException( "processing aborted: " + cause.getMessage() )
+            ? new RuntimeException( "processing aborted: " + getMessage( cause ) )
             : cause;
     }
 

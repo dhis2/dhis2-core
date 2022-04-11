@@ -32,6 +32,7 @@ import static org.hisp.dhis.scheduling.JobType.DATAVALUE_IMPORT;
 import static org.hisp.dhis.scheduling.JobType.METADATA_IMPORT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Deque;
 import java.util.Map;
@@ -212,16 +213,18 @@ class NotifierTest extends DhisSpringTest
 
     @Test
     void testInsertingNotificationJobConcurrently()
-        throws InterruptedException
     {
+        notifier.notify( createJobConfig( -1 ), "zero" );
         ExecutorService e = Executors.newFixedThreadPool( 5 );
-        IntStream.range( 0, 500 ).forEach( i -> {
+        IntStream.range( 0, 1000 ).forEach( i -> {
             e.execute( () -> {
-                notifier.notify( createJobConfig( i ), "somethingid" );
+                notifier.notify( createJobConfig( i ), "somethingid" + i );
             } );
         } );
         awaitTermination( e );
-        assertEquals( 500, notifier.getNotificationsByJobType( METADATA_IMPORT ).size() );
+        int actualSize = notifier.getNotificationsByJobType( METADATA_IMPORT ).size();
+        int delta = actualSize - 500;
+        assertTrue( delta <= 5, "delta should not be larger than number of workers but was: " + delta );
     }
 
     private JobConfiguration createJobConfig( int i )

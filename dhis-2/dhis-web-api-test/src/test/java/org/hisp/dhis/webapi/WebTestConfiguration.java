@@ -40,7 +40,6 @@ import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.config.DataSourceConfig;
-import org.hisp.dhis.config.H2DhisConfigurationProvider;
 import org.hisp.dhis.config.HibernateConfig;
 import org.hisp.dhis.config.HibernateEncryptionConfig;
 import org.hisp.dhis.config.ServiceConfig;
@@ -67,6 +66,7 @@ import org.hisp.dhis.security.SystemAuthoritiesProvider;
 import org.hisp.dhis.startup.DefaultAdminUserPopulator;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.webapi.mvc.ContentNegotiationConfig;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ComponentScan.Filter;
@@ -75,6 +75,7 @@ import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.annotation.Primary;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
 import org.springframework.security.authentication.event.AuthenticationFailureBadCredentialsEvent;
@@ -126,6 +127,7 @@ import com.google.common.collect.ImmutableMap;
 } )
 @Transactional
 @Slf4j
+@Order( 10 )
 public class WebTestConfiguration
 {
     @Bean
@@ -134,10 +136,14 @@ public class WebTestConfiguration
         return new org.springframework.security.core.session.SessionRegistryImpl();
     }
 
-    @Bean( "actualDataSource" )
+    @Autowired
+    private DhisConfigurationProvider dhisConfigurationProvider;
+
+    @Bean( "dataSource" )
+    @Primary
     public DataSource actualDataSource( HibernateConfigurationProvider hibernateConfigurationProvider )
     {
-        final DhisConfigurationProvider config = dhisConfigurationProvider();
+        final DhisConfigurationProvider config = dhisConfigurationProvider;
         String jdbcUrl = config.getProperty( ConfigurationKey.CONNECTION_URL );
         String username = config.getProperty( ConfigurationKey.CONNECTION_USERNAME );
         String dbPoolType = config.getProperty( ConfigurationKey.DB_POOL_TYPE );
@@ -166,12 +172,6 @@ public class WebTestConfiguration
 
             throw new IllegalStateException( message, e );
         }
-    }
-
-    @Bean( name = "dhisConfigurationProvider" )
-    public DhisConfigurationProvider dhisConfigurationProvider()
-    {
-        return new H2DhisConfigurationProvider();
     }
 
     @Bean

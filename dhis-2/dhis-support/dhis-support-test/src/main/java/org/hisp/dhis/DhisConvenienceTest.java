@@ -162,6 +162,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityfilter.EntityQueryCriteria;
 import org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilter;
+import org.hisp.dhis.trackerdataview.TrackerDataView;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserRole;
@@ -760,6 +761,18 @@ public abstract class DhisConvenienceTest
      */
     public static Indicator createIndicator( char uniqueCharacter, IndicatorType type )
     {
+        return createIndicator( uniqueCharacter, type, "Numerator", "Denominator" );
+    }
+
+    /**
+     * @param uniqueCharacter A unique character to identify the object.
+     * @param type The type.
+     * @param numerator The numerator.
+     * @param denominator The denominator.
+     */
+    public static Indicator createIndicator( char uniqueCharacter, IndicatorType type,
+        String numerator, String denominator )
+    {
         Indicator indicator = new Indicator();
         indicator.setAutoFields();
 
@@ -770,9 +783,9 @@ public abstract class DhisConvenienceTest
         indicator.setDescription( "IndicatorDescription" + uniqueCharacter );
         indicator.setAnnualized( false );
         indicator.setIndicatorType( type );
-        indicator.setNumerator( "Numerator" );
+        indicator.setNumerator( numerator );
         indicator.setNumeratorDescription( "NumeratorDescription" );
-        indicator.setDenominator( "Denominator" );
+        indicator.setDenominator( denominator );
         indicator.setDenominatorDescription( "DenominatorDescription" );
 
         return indicator;
@@ -1871,12 +1884,18 @@ public abstract class DhisConvenienceTest
     {
         RelationshipType relationshipType = new RelationshipType();
 
+        RelationshipConstraint fromRelationShipConstraint = new RelationshipConstraint();
+        fromRelationShipConstraint.setTrackerDataView( TrackerDataView.builder().build() );
+
+        RelationshipConstraint toRelationShipConstraint = new RelationshipConstraint();
+        toRelationShipConstraint.setTrackerDataView( TrackerDataView.builder().build() );
+
         relationshipType.setFromToName( "from_" + uniqueCharacter );
         relationshipType.setToFromName( "to_" + uniqueCharacter );
         relationshipType.setAutoFields();
         relationshipType.setName( "RelationshipType_" + relationshipType.getUid() );
-        relationshipType.setFromConstraint( new RelationshipConstraint() );
-        relationshipType.setToConstraint( new RelationshipConstraint() );
+        relationshipType.setFromConstraint( fromRelationShipConstraint );
+        relationshipType.setToConstraint( toRelationShipConstraint );
 
         return relationshipType;
     }
