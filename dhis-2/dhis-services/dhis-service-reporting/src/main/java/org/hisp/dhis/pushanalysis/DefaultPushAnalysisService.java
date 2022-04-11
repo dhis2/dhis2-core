@@ -66,12 +66,10 @@ import org.hisp.dhis.mapgeneration.MapUtils;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
-import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.grid.GridUtils;
-import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.ChartUtils;
 import org.hisp.dhis.system.velocity.VelocityManager;
@@ -95,10 +93,9 @@ import com.google.common.io.ByteSource;
  * @author Stian Sandvold
  */
 @Slf4j
-@Service( "org.hisp.dhis.pushanalysis.PushAnalysisService" )
+@Service
 @Transactional
-public class DefaultPushAnalysisService
-    implements PushAnalysisService
+public class DefaultPushAnalysisService implements PushAnalysisService
 {
     private static final Encoder encoder = new Encoder();
 
@@ -469,38 +466,6 @@ public class DefaultPushAnalysisService
 
         return dhisConfigurationProvider.getServerBaseUrl() + "/api/externalFileResources/" + accessToken;
 
-    }
-
-    /**
-     * Helper method for logging both for custom logger and for notifier.
-     *
-     * @param jobId associated with the task running (for notifier)
-     * @param notificationLevel The level this message should be logged
-     * @param message message to be logged
-     * @param completed a flag indicating the task is completed (notifier)
-     * @param exception exception if one exists (logger)
-     */
-    private void log( JobConfiguration jobId, NotificationLevel notificationLevel, String message, boolean completed,
-        Throwable exception )
-    {
-        notifier.notify( jobId, notificationLevel, message, completed );
-
-        switch ( notificationLevel )
-        {
-        case DEBUG:
-            log.debug( message );
-        case INFO:
-            log.info( message );
-            break;
-        case WARN:
-            log.warn( message, exception );
-            break;
-        case ERROR:
-            log.error( message, exception );
-            break;
-        default:
-            break;
-        }
     }
 
     /**
