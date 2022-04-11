@@ -47,10 +47,6 @@ public class InMemoryNotifier implements Notifier
 
     private final NotificationMap notificationMap = new NotificationMap( MAX_POOL_TYPE_SIZE );
 
-    // -------------------------------------------------------------------------
-    // Notifier implementation
-    // -------------------------------------------------------------------------
-
     @Override
     public Notifier notify( JobConfiguration id, String message )
     {
