@@ -171,8 +171,6 @@ public class DataHandler
 
     private final RawAnalyticsManager rawAnalyticsManager;
 
-    private final ConstantService constantService;
-
     private final ExpressionResolvers resolvers;
 
     private final ExpressionService expressionService;
@@ -192,14 +190,13 @@ public class DataHandler
     private final ExecutionPlanStore executionPlanStore;
 
     public DataHandler( EventAnalyticsService eventAnalyticsService, RawAnalyticsManager rawAnalyticsManager,
-        ConstantService constantService, ExpressionResolvers resolvers, ExpressionService expressionService,
+        ExpressionResolvers resolvers, ExpressionService expressionService,
         QueryPlanner queryPlanner, QueryValidator queryValidator, SystemSettingManager systemSettingManager,
         AnalyticsManager analyticsManager, OrganisationUnitService organisationUnitService,
         ExecutionPlanStore executionPlanStore )
     {
         checkNotNull( eventAnalyticsService );
         checkNotNull( rawAnalyticsManager );
-        checkNotNull( constantService );
         checkNotNull( resolvers );
         checkNotNull( expressionService );
         checkNotNull( queryPlanner );
@@ -211,7 +208,6 @@ public class DataHandler
 
         this.eventAnalyticsService = eventAnalyticsService;
         this.rawAnalyticsManager = rawAnalyticsManager;
-        this.constantService = constantService;
         this.resolvers = resolvers;
         this.expressionService = expressionService;
         this.queryPlanner = queryPlanner;
@@ -1197,5 +1193,4 @@ public class DataHandler
     {
         this.dataAggregator = dataAggregator;
     }
-
 }
