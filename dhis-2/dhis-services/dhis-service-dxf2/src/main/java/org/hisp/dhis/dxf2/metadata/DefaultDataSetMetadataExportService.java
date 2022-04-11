@@ -75,8 +75,7 @@ public class DefaultDataSetMetadataExportService
         "compulsoryDataElementOperands[dataElement[id],categoryOptionCombo[id]]," +
         "dataInputPeriods[period,openingDate,closingDate]," +
         "sections[:simple,dataElements~pluck[id],indicators~pluck[id]," +
-        "greyedFields[dataElement[id],categoryOptionCombo[id]]]," +
-        "organisationUnits~pluck[id]";
+        "greyedFields[dataElement[id],categoryOptionCombo[id]]]";
 
     private static final String FIELDS_DATA_ELEMENTS = ":identifiable,displayName,displayShortName,displayFormName," +
         "zeroIsSignificant,valueType,aggregationType,categoryCombo[id],optionSet[id],commentOptionSet";
