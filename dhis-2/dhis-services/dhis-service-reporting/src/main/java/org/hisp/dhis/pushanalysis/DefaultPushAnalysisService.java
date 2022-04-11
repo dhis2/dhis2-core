@@ -70,7 +70,6 @@ import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.grid.GridUtils;
-import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.ChartUtils;
 import org.hisp.dhis.system.velocity.VelocityManager;
 import org.hisp.dhis.user.CurrentUserService;
@@ -99,8 +98,6 @@ public class DefaultPushAnalysisService implements PushAnalysisService
 {
     private static final Encoder encoder = new Encoder();
 
-    private final Notifier notifier;
-
     private final SystemSettingManager systemSettingManager;
 
     private final DhisConfigurationProvider dhisConfigurationProvider;
@@ -123,7 +120,7 @@ public class DefaultPushAnalysisService implements PushAnalysisService
 
     private final IdentifiableObjectStore<PushAnalysis> pushAnalysisStore;
 
-    public DefaultPushAnalysisService( Notifier notifier, SystemSettingManager systemSettingManager,
+    public DefaultPushAnalysisService( SystemSettingManager systemSettingManager,
         DhisConfigurationProvider dhisConfigurationProvider, ExternalFileResourceService externalFileResourceService,
         FileResourceService fileResourceService, CurrentUserService currentUserService,
         MapGenerationService mapGenerationService, VisualizationGridService visualizationGridService,
@@ -131,7 +128,6 @@ public class DefaultPushAnalysisService implements PushAnalysisService
         @Qualifier( "emailMessageSender" ) MessageSender messageSender,
         @Qualifier( "org.hisp.dhis.pushanalysis.PushAnalysisStore" ) IdentifiableObjectStore<PushAnalysis> pushAnalysisStore )
     {
-        checkNotNull( notifier );
         checkNotNull( systemSettingManager );
         checkNotNull( dhisConfigurationProvider );
         checkNotNull( externalFileResourceService );
@@ -144,7 +140,6 @@ public class DefaultPushAnalysisService implements PushAnalysisService
         checkNotNull( messageSender );
         checkNotNull( pushAnalysisStore );
 
-        this.notifier = notifier;
         this.systemSettingManager = systemSettingManager;
         this.dhisConfigurationProvider = dhisConfigurationProvider;
         this.externalFileResourceService = externalFileResourceService;
