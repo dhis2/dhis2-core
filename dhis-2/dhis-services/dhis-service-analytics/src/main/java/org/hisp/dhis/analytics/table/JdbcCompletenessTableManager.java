@@ -205,9 +205,9 @@ public class JdbcCompletenessTableManager
             select += col.getAlias() + ",";
         }
 
-        select = select.replace( "organisationunitid", "sourceid" ); // Database
-                                                                     // legacy
-                                                                     // fix
+        // Database legacy fix
+
+        select = select.replace( "organisationunitid", "sourceid" );
 
         select += "cdr.date as value " +
             "from completedatasetregistration cdr " +

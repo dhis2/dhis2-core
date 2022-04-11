@@ -39,6 +39,7 @@ import static org.hisp.dhis.analytics.ColumnNotNullConstraint.NOT_NULL;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.getClosingParentheses;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
+import static org.hisp.dhis.analytics.util.DisplayNameUtils.getDisplayName;
 import static org.hisp.dhis.resourcetable.ResourceTable.NEWEST_YEAR_PERIOD_SUPPORTED;
 import static org.hisp.dhis.resourcetable.ResourceTable.OLDEST_YEAR_PERIOD_SUPPORTED;
 import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
@@ -580,9 +581,9 @@ public class JdbcEventAnalyticsTableManager
         if ( valueType.isNumeric() || valueType.isDate() )
         {
             String regex = valueType.isNumeric() ? NUMERIC_LENIENT_REGEXP : DATE_REGEXP;
+            String regexMatch = statementBuilder.getRegexpMatch();
 
-            return " and eventdatavalues #>> '{" + uid + ",value}' " + statementBuilder.getRegexpMatch() + " '" + regex
-                + "'";
+            return " and eventdatavalues #>> '{" + uid + ",value}' " + regexMatch + " '" + regex + "'";
         }
 
         return "";
