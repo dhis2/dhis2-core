@@ -27,31 +27,26 @@
  */
 package org.hisp.dhis.webapi.controller.attribute;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
 
-import org.apache.http.HttpStatus;
 import org.hisp.dhis.common.Objects;
 import org.hisp.dhis.schema.descriptors.TrackedEntityAttributeSchemaDescriptor;
 import org.hisp.dhis.textpattern.TextPattern;
 import org.hisp.dhis.textpattern.TextPatternParser;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.webapi.DhisWebSpringTest;
+import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.utils.TestUtils;
 import org.junit.jupiter.api.Test;
-import org.springframework.mock.web.MockHttpSession;
 
 /**
  * @author Luca Cambi
  */
-class TrackedEntityAttributeControllerTest extends DhisWebSpringTest
+class TrackedEntityAttributeControllerTest extends DhisControllerConvenienceTest
 {
     @Test
     void shouldGenerateRandomValuesOrgUnitCodeAndRandom()
         throws Exception
     {
-        MockHttpSession session = getSession( "ALL" );
 
         TrackedEntityAttribute trackedEntityAttribute = createTrackedEntityAttribute( 'A' );
         trackedEntityAttribute.setGenerated( true );
@@ -66,15 +61,13 @@ class TrackedEntityAttributeControllerTest extends DhisWebSpringTest
         trackedEntityAttribute.setTextPattern( textPattern );
         trackedEntityAttribute.setPattern( pattern );
 
-        mvc.perform( post( TrackedEntityAttributeSchemaDescriptor.API_ENDPOINT )
-            .session( session )
-            .contentType( TestUtils.APPLICATION_JSON_UTF8 )
-            .content( TestUtils.convertObjectToJsonBytes( trackedEntityAttribute ) ) )
-            .andExpect( status().is( HttpStatus.SC_CREATED ) );
+        String uid = assertStatus( org.springframework.http.HttpStatus.CREATED,
+            POST( TrackedEntityAttributeSchemaDescriptor.API_ENDPOINT,
+                new String( TestUtils.convertObjectToJsonBytes( trackedEntityAttribute ) ) ) );
 
-        mvc.perform( get( TrackedEntityAttributeSchemaDescriptor.API_ENDPOINT + "/" + trackedEntityAttribute.getUid()
-            + "/generateAndReserve" ).param( "ORG_UNIT_CODE", "A030101" ).session( session ) )
-            .andExpect( status().isOk() );
+        assertStatus( org.springframework.http.HttpStatus.OK, GET(
+            TrackedEntityAttributeSchemaDescriptor.API_ENDPOINT + "/" + uid + "/generateAndReserve"
+                + "?ORG_UNIT_CODE=A030101" ) );
     }
 
 }

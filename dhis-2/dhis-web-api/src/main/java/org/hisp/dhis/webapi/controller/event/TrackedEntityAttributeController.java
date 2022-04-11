@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.event;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.badRequest;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 
 import java.util.Date;
 import java.util.List;
@@ -38,7 +39,6 @@ import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.reservedvalue.ReserveValueException;
 import org.hisp.dhis.reservedvalue.ReservedValue;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
@@ -119,8 +119,9 @@ public class TrackedEntityAttributeController
     @GetMapping( "/{id}/requiredValues" )
     @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
     public @ResponseBody Map<String, List<String>> getRequiredValues( @PathVariable String id )
+        throws WebMessageException
     {
-        TrackedEntityAttribute trackedEntityAttribute = trackedEntityAttributeService.getTrackedEntityAttribute( id );
+        TrackedEntityAttribute trackedEntityAttribute = getTrackedEntityAttribute( id );
 
         return textPatternService.getRequiredValues( trackedEntityAttribute.getTextPattern() );
     }
@@ -196,12 +197,12 @@ public class TrackedEntityAttributeController
 
         if ( trackedEntityAttribute == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( TrackedEntityAttribute.class, id ) );
+            throw new WebMessageException( notFound( TrackedEntityAttribute.class, id ) );
         }
 
         if ( trackedEntityAttribute.getTextPattern() == null )
         {
-            throw new WebMessageException( WebMessageUtils.badRequest( "Attribute does not contain pattern." ) );
+            throw new WebMessageException( badRequest( "Attribute does not contain pattern." ) );
         }
 
         return trackedEntityAttribute;
