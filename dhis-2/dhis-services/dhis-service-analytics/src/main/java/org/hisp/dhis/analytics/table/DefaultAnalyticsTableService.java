@@ -98,6 +98,7 @@ public class DefaultAnalyticsTableService
         progress.startingStage( "Validating Analytics Table " + tableType );
         String validState = tableManager.validState();
         progress.completedStage( validState );
+
         if ( validState != null || progress.isCancellationRequested() )
         {
             return;
