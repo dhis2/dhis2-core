@@ -425,7 +425,6 @@ class AbstractJdbcEventAnalyticsManagerTest extends
     @Test
     void testGetItemTwoConditionsSameGroupSql()
     {
-        UUID groupUUID = UUID.randomUUID();
         EventQueryParams queryParams = new EventQueryParams.Builder()
             .addItem( buildQueryItemWithGroupAndFilters(
                 "item",
