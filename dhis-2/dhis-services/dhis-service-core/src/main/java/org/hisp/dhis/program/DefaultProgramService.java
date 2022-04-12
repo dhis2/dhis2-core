@@ -35,6 +35,7 @@ import java.util.Set;
 import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.collections4.SetValuedMap;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -61,6 +62,8 @@ public class DefaultProgramService
     // -------------------------------------------------------------------------
 
     private final ProgramStore programStore;
+
+    private final IdentifiableObjectManager idObjectManager;
 
     private final CurrentUserService currentUserService;
 
@@ -195,9 +198,10 @@ public class DefaultProgramService
     }
 
     @Override
-    public SetValuedMap<String, String> getProgramOrganisationUnitsAssociationsForCurrentUser(
-        Set<String> programUids )
+    public SetValuedMap<String, String> getProgramOrganisationUnitsAssociationsForCurrentUser( Set<String> programUids )
     {
+        idObjectManager.getAndValidateByUid( Program.class, programUids );
+
         return jdbcOrgUnitAssociationsStore.getOrganisationUnitsAssociationsForCurrentUser( programUids );
     }
 
