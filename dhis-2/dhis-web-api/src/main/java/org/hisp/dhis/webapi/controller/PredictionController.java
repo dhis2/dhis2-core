@@ -93,14 +93,13 @@ public class PredictionController
         @RequestParam( defaultValue = "false", required = false ) boolean async,
         HttpServletRequest request )
     {
+        JobConfiguration jobId = new JobConfiguration( "inMemoryPrediction", PREDICTOR,
+            currentUserService.getCurrentUser().getUid(), true );
+
+        JobProgress progress = new ControlledJobProgress( messageService, jobId,
+            new NotifierJobProgress( notifier, jobId ), true );
         if ( async )
         {
-            JobConfiguration jobId = new JobConfiguration( "inMemoryPrediction", PREDICTOR,
-                currentUserService.getCurrentUser().getUid(), true );
-
-            JobProgress progress = new ControlledJobProgress( messageService, jobId,
-                new NotifierJobProgress( notifier, jobId ), true );
-
             taskExecutor.executeTask(
                 new PredictionTask( startDate, endDate, predictors, predictorGroups, predictionService, progress ) );
 
@@ -108,7 +107,7 @@ public class PredictionController
                 .setLocation( "/system/tasks/" + PREDICTOR );
         }
         PredictionSummary predictionSummary = predictionService.predictTask( startDate, endDate, predictors,
-            predictorGroups, null );
+            predictorGroups, progress );
 
         return new WebMessage( Status.OK, HttpStatus.OK )
             .setResponse( predictionSummary )
