@@ -53,6 +53,7 @@ import org.hisp.dhis.commons.jsonfiltering.model.Outer;
 import org.hisp.dhis.commons.jsonfiltering.model.User;
 import org.hisp.dhis.commons.jsonfiltering.parser.JsonFilteringParser;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -62,6 +63,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.google.common.base.Charsets;
 
+@Ignore
 public class JsonFilteringPropertyFilterTest
 {
 
