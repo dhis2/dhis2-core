@@ -232,4 +232,19 @@ public class MetadataIdentifier
     {
         return StringUtils.isBlank( this.getIdentifierOrAttributeValue() );
     }
+
+    /**
+     * Used to gradually migrate JSON test fixtures code over to
+     * {@link MetadataIdentifier}. DO NOT USE THIS OTHER THAN IN TEST FIXTURE
+     * RELATED CODE!!!
+     *
+     * @return identifier value of attribute
+     */
+    // TODO(DHIS2-12563) remove this one before releasing/closing this issue!
+    @Deprecated( ) // just so the IDE highlights that it should not be used
+    @JsonCreator
+    public static MetadataIdentifier of( String uid )
+    {
+        return MetadataIdentifier.ofUid( uid );
+    }
 }
