@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
+import java.util.Optional;
+
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -38,6 +40,8 @@ import org.hisp.dhis.analytics.util.AnalyticsSqlUtils;
 @AllArgsConstructor( access = AccessLevel.PRIVATE )
 class ColumnAndAlias
 {
+
+    public static final ColumnAndAlias EMPTY = ColumnAndAlias.ofColumn( "" );
 
     private final String column;
 
@@ -67,6 +71,8 @@ class ColumnAndAlias
 
     public String getQuotedAlias()
     {
-        return AnalyticsSqlUtils.quote( alias );
+        return Optional.ofNullable( alias )
+            .map( AnalyticsSqlUtils::quote )
+            .orElse( null );
     }
 }
