@@ -28,12 +28,12 @@
 package org.hisp.dhis.predictor;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
+import static java.lang.String.format;
 import static org.hisp.dhis.common.OrganisationUnitDescendants.DESCENDANTS;
 import static org.hisp.dhis.expression.MissingValueStrategy.NEVER_SKIP;
 import static org.hisp.dhis.expression.ParseType.PREDICTOR_EXPRESSION;
 import static org.hisp.dhis.expression.ParseType.PREDICTOR_SKIP_TEST;
 import static org.hisp.dhis.predictor.PredictionFormatter.formatPrediction;
-import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -72,10 +72,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.parameters.PredictorJobParameters;
-import org.hisp.dhis.system.notification.NotificationLevel;
-import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.User;
@@ -111,8 +109,6 @@ public class DefaultPredictionService
 
     private final IdentifiableObjectManager idObjectManager;
 
-    private final Notifier notifier;
-
     private final BatchHandlerFactory batchHandlerFactory;
 
     private AnalyticsService analyticsService;
@@ -136,85 +132,71 @@ public class DefaultPredictionService
     // -------------------------------------------------------------------------
 
     @Override
-    public PredictionSummary predictJob( PredictorJobParameters params, JobConfiguration jobId )
+    public PredictionSummary predictJob( PredictorJobParameters params, JobProgress progress )
     {
         Date startDate = DateUtils.getDateAfterAddition( new Date(), params.getRelativeStart() );
         Date endDate = DateUtils.getDateAfterAddition( new Date(), params.getRelativeEnd() );
 
-        return predictTask( startDate, endDate, params.getPredictors(), params.getPredictorGroups(), jobId );
+        return predictTask( startDate, endDate, params.getPredictors(), params.getPredictorGroups(), progress );
     }
 
     @Override
     public PredictionSummary predictTask( Date startDate, Date endDate,
-        List<String> predictors, List<String> predictorGroups, JobConfiguration jobId )
+        List<String> predictors, List<String> predictorGroups, JobProgress progress )
     {
-        PredictionSummary predictionSummary;
-
         try
         {
-            notifier.notify( jobId, NotificationLevel.INFO, "Making predictions", false );
-
-            predictionSummary = predictAll( startDate, endDate, predictors, predictorGroups );
-
-            notifier.update( jobId, NotificationLevel.INFO, "Prediction done", true )
-                .addJobSummary( jobId, predictionSummary, PredictionSummary.class );
+            return predictAll( startDate, endDate, predictors, predictorGroups, progress );
         }
         catch ( RuntimeException ex )
         {
             log.error( DebugUtils.getStackTrace( ex ) );
 
-            predictionSummary = new PredictionSummary( PredictionStatus.ERROR,
+            return new PredictionSummary( PredictionStatus.ERROR,
                 "Predictions failed: " + ex.getMessage() );
-
-            notifier.update( jobId, ERROR, predictionSummary.getDescription(), true );
         }
-
-        return predictionSummary;
     }
 
     @Override
     public PredictionSummary predictAll( Date startDate, Date endDate, List<String> predictors,
-        List<String> predictorGroups )
+        List<String> predictorGroups, JobProgress progress )
     {
-        List<Predictor> predictorList = new ArrayList<>();
+        progress.startingStage( "Fetching predictors" );
+        List<Predictor> predictorList = progress.runStage( List.of(),
+            () -> fetchPredictors( predictors, predictorGroups ) );
 
+        PredictionSummary summary = new PredictionSummary();
+        progress.startingStage( format( "Running predictors from %s to %s", startDate, endDate ),
+            predictorList.size() );
+        progress.runStage( predictorList.stream(),
+            predictor -> format( "Running predictor %s from %s to %s", predictor.getName(), startDate, endDate ),
+            predictor -> predict( predictor, startDate, endDate, summary ),
+            ( success, failed ) -> format( "Finished predictors from %s to %s: %s", startDate, endDate, summary ) );
+
+        return summary;
+    }
+
+    private List<Predictor> fetchPredictors( List<String> predictors, List<String> predictorGroups )
+    {
         if ( CollectionUtils.isEmpty( predictors ) && CollectionUtils.isEmpty( predictorGroups ) )
         {
-            predictorList = predictorService.getAllPredictors();
+            return predictorService.getAllPredictors();
         }
-        else
+
+        List<Predictor> predictorList = new ArrayList<>();
+        if ( !CollectionUtils.isEmpty( predictors ) )
         {
-            if ( !CollectionUtils.isEmpty( predictors ) )
-            {
-                predictorList = idObjectManager.getByUid( Predictor.class, predictors );
-            }
+            predictorList.addAll( idObjectManager.getByUid( Predictor.class, predictors ) );
+        }
 
-            if ( !CollectionUtils.isEmpty( predictorGroups ) )
+        if ( !CollectionUtils.isEmpty( predictorGroups ) )
+        {
+            for ( PredictorGroup predictorGroup : idObjectManager.getByUid( PredictorGroup.class, predictorGroups ) )
             {
-                List<PredictorGroup> predictorGroupList = idObjectManager.getByUid( PredictorGroup.class,
-                    predictorGroups );
-
-                for ( PredictorGroup predictorGroup : predictorGroupList )
-                {
-                    predictorList.addAll( predictorGroup.getSortedMembers() );
-                }
+                predictorList.addAll( predictorGroup.getSortedMembers() );
             }
         }
-
-        PredictionSummary predictionSummary = new PredictionSummary();
-
-        log.info( "Running " + predictorList.size() + " predictors from " + startDate.toString() + " to "
-            + endDate.toString() );
-
-        for ( Predictor predictor : predictorList )
-        {
-            predict( predictor, startDate, endDate, predictionSummary );
-        }
-
-        log.info( "Finished predictors from " + startDate.toString() + " to " + endDate.toString() + ": "
-            + predictionSummary.toString() );
-
-        return predictionSummary;
+        return predictorList;
     }
 
     @Override
