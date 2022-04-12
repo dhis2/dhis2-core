@@ -37,16 +37,16 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 /**
  * @author Enrico Colasante
  */
-public class JtsXmlModule
+public class JtsJsonModule
     extends SimpleModule
 {
-    public JtsXmlModule()
+    public JtsJsonModule()
     {
         this( new GeometryFactory() );
     }
 
     @SuppressWarnings( { "rawtypes", "unchecked" } )
-    public JtsXmlModule( GeometryFactory geometryFactory )
+    public JtsJsonModule( GeometryFactory geometryFactory )
     {
         super( "JtsJsonModule", new Version( 1, 0, 0, (String) null, "org.dhis", "dhis-service-node" ) );
         this.addSerializer( Geometry.class, new GeometrySerializer() );

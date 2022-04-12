@@ -42,11 +42,11 @@ import com.fasterxml.jackson.databind.JsonNode;
  * @author Enrico Colasante
  */
 @Slf4j
-public class XmlGenericGeometryParser
+public class GenericGeometryParser
     extends BaseParser
     implements GeometryParser<Geometry>
 {
-    public XmlGenericGeometryParser( GeometryFactory geometryFactory )
+    public GenericGeometryParser( GeometryFactory geometryFactory )
     {
         super( geometryFactory );
     }

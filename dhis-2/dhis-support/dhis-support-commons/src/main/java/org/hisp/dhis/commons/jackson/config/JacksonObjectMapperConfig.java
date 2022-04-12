@@ -31,6 +31,7 @@ import java.time.Instant;
 import java.util.Date;
 
 import org.hibernate.SessionFactory;
+import org.hisp.dhis.commons.jackson.config.geometry.JtsJsonModule;
 import org.hisp.dhis.commons.jackson.config.geometry.JtsXmlModule;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.PrecisionModel;
@@ -128,7 +129,7 @@ public class JacksonObjectMapperConfig
     static
     {
         JtsModule jtsModule = new JtsModule( new GeometryFactory( new PrecisionModel(), 4326 ) );
-        jsonMapper.registerModule( jtsModule );
+        jsonMapper.registerModule( new JtsJsonModule() );
         dataValueJsonMapper.registerModule( jtsModule );
         xmlMapper.registerModule( new JtsXmlModule() );
     }
