@@ -36,15 +36,15 @@ import org.hisp.dhis.textpattern.TextPatternParser;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.documentation.common.TestUtils;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 /**
  * @author Luca Cambi
  */
-class TrackedEntityAttributeControllerTest extends DhisControllerConvenienceTest
+public class TrackedEntityAttributeControllerTest extends DhisControllerConvenienceTest
 {
     @Test
-    void shouldGenerateRandomValuesOrgUnitCodeAndRandom()
+    public void shouldGenerateRandomValuesOrgUnitCodeAndRandom()
         throws Exception
     {
         TrackedEntityAttribute trackedEntityAttribute = createTrackedEntityAttribute( 'A' );
