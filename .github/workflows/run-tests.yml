@@ -1,7 +1,4 @@
 name: Test
-env:
-  # This is to make sure Maven don't timeout fetching dependencies. See: https://github.com/actions/virtual-environments/issues/1499
-  MAVEN_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=125
 
 on: [ pull_request ]
 concurrency:
@@ -29,7 +26,7 @@ jobs:
         uses: actions/setup-java@v2
         with:
           java-version: 11
-          distribution: temurin
+          distribution: zulu
           cache: maven
 
       - name: Run integration tests
