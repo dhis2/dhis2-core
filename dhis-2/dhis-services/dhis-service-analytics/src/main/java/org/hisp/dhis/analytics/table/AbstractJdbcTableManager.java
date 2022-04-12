@@ -532,15 +532,33 @@ public abstract class AbstractJdbcTableManager
      * Collects all the {@link PeriodType} as a list of
      * {@link AnalyticsTableColumn}.
      *
-     * @param prefix the prefix to use for the column name
+     * @param alias the alias of the column name
      * @return a List of {@link AnalyticsTableColumn}
      */
-    protected List<AnalyticsTableColumn> addPeriodTypeColumns( String prefix )
+    protected List<AnalyticsTableColumn> addPeriodTypeColumns( String alias )
     {
         return PeriodType.getAvailablePeriodTypes().stream()
             .map( pt -> {
                 String column = quote( pt.getName().toLowerCase() );
-                return new AnalyticsTableColumn( column, TEXT, prefix + "." + column );
+                return new AnalyticsTableColumn( column, TEXT, alias + "." + column );
+            } )
+            .collect( Collectors.toList() );
+    }
+
+    /**
+     * Collects all the {@link PeriodType} as a list of
+     * {@link AnalyticsTableColumn}.
+     *
+     * @param alias the alias of the column name
+     * @param prefix the prefix to be appended to the column name
+     * @return a List of {@link AnalyticsTableColumn}
+     */
+    protected List<AnalyticsTableColumn> addPeriodTypeColumns( String alias, String prefix )
+    {
+        return PeriodType.getAvailablePeriodTypes().stream()
+            .map( pt -> {
+                String column = quote( prefix.concat( pt.getName() ).toLowerCase() );
+                return new AnalyticsTableColumn( column, TEXT, alias + "." + column );
             } )
             .collect( Collectors.toList() );
     }
