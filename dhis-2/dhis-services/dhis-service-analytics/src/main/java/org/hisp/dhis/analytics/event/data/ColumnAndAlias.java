@@ -32,6 +32,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.analytics.util.AnalyticsSqlUtils;
 
 @Getter
 @AllArgsConstructor( access = AccessLevel.PRIVATE )
@@ -56,11 +57,16 @@ class ColumnAndAlias
     {
         if ( StringUtils.isNotEmpty( alias ) )
         {
-            return String.join( " as ", column, alias );
+            return String.join( " as ", column, getQuotedAlias() );
         }
         else
         {
             return column;
         }
+    }
+
+    public String getQuotedAlias()
+    {
+        return AnalyticsSqlUtils.quote( alias );
     }
 }
