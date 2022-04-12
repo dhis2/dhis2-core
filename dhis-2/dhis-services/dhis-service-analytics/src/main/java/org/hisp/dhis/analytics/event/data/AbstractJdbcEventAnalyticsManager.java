@@ -71,7 +71,6 @@ import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.ProgramIndicatorSubqueryBuilder;
-import org.hisp.dhis.analytics.util.AnalyticsSqlUtils;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionType;
@@ -354,7 +353,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
                 // If the alias is null, we use the default "item name" as
                 // alias.
                 columns.add( "coalesce(" + columnAndAlias.getColumn() + ", double precision 'NaN') as "
-                    + defaultIfNull( columnAndAlias.getAlias(), queryItem.getItemName() ) );
+                    + defaultIfNull( columnAndAlias.getQuotedAlias(), queryItem.getItemName() ) );
             }
             else
             {
@@ -378,7 +377,6 @@ public abstract class AbstractJdbcEventAnalyticsManager
                     .filter( QueryItem::hasRepeatableStageParams )
                     .map( QueryItem::getRepeatableStageParams )
                     .map( RepeatableStageParams::getDimension )
-                    .map( AnalyticsSqlUtils::quote )
                     .orElse( aliasIfMissing ) );
         }
         return ColumnAndAlias.ofColumn( column );
@@ -488,7 +486,8 @@ public abstract class AbstractJdbcEventAnalyticsManager
                 for ( QueryItem queryItem : params.getItems() )
                 {
 
-                    String itemName = rowSet.getString( queryItem.getItemName() );
+                    ColumnAndAlias columnAndAlias = getColumnAndAlias( queryItem, false, "" );
+                    String itemName = rowSet.getString( columnAndAlias.getAlias() );
                     String itemValue = params.isCollapseDataDimensions()
                         ? QueryItemHelper.getCollapsedDataItemValue( queryItem, itemName )
                         : itemName;
