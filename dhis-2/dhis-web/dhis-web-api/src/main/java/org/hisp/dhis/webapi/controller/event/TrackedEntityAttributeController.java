@@ -86,12 +86,9 @@ public class TrackedEntityAttributeController
         ContextUtils.CONTENT_TYPE_JSON, ContextUtils.CONTENT_TYPE_JAVASCRIPT } )
     @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
     public @ResponseBody List<ReservedValue> generateAndReserveValues(
-        @RequestParam( required = false, defaultValue = "1" )
-        Integer numberToReserve,
-        @RequestParam( required = false, defaultValue = "60" )
-        Integer expiration,
-        @PathVariable
-        String id )
+        @RequestParam( required = false, defaultValue = "1" ) Integer numberToReserve,
+        @RequestParam( required = false, defaultValue = "60" ) Integer expiration,
+        @PathVariable String id )
         throws WebMessageException
     {
         return reserve( id, numberToReserve, expiration );
@@ -112,10 +109,8 @@ public class TrackedEntityAttributeController
     @RequestMapping( value = "/{id}/generate", method = RequestMethod.GET )
     @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
     public @ResponseBody ReservedValue legacyQueryTrackedEntityInstancesJson(
-        @PathVariable
-        String id,
-        @RequestParam( required = false, defaultValue = "3" )
-        Integer expiration )
+        @PathVariable String id,
+        @RequestParam( required = false, defaultValue = "3" ) Integer expiration )
         throws WebMessageException
     {
         return reserve( id, 1, expiration ).get( 0 );
@@ -123,8 +118,7 @@ public class TrackedEntityAttributeController
 
     @RequestMapping( value = "/{id}/requiredValues", method = RequestMethod.GET )
     @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-    public @ResponseBody Map<String, List<String>> getRequiredValues( @PathVariable
-    String id )
+    public @ResponseBody Map<String, List<String>> getRequiredValues( @PathVariable String id )
         throws WebMessageException
     {
         TrackedEntityAttribute trackedEntityAttribute = getTrackedEntityAttribute( id );
