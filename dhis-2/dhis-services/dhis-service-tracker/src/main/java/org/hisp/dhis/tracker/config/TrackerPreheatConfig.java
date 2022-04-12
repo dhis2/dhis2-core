@@ -52,7 +52,8 @@ public class TrackerPreheatConfig
         UniqueAttributesSupplier.class,
         UserSupplier.class,
         FileResourceSupplier.class,
-        EventCategoryOptionComboSupplier.class );
+        EventCategoryOptionComboSupplier.class,
+        OrgUnitValueTypeSupplier.class );
 
     @Bean( "preheatOrder" )
     public List<String> getPreheatOrder()
