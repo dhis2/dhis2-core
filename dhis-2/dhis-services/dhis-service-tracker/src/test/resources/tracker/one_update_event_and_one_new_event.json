@@ -5,7 +5,10 @@
       "enrollment": "TvctPPhpD8u",
       "storedBy": "admin",
       "scheduledAt": "2019-01-28T12:10:38.100",
-      "program": "BFcipDERJnf",
+      "program": {
+        "idScheme": "UID",
+        "identifier": "BFcipDERJnf"
+      },
       "programStage": "NpsdDv6kKSO",
       "orgUnit": "h4w96yEMlzO",
       "status": "COMPLETED",
@@ -20,7 +23,10 @@
       "enrollment": "TvctPPhpD8u",
       "storedBy": "admin",
       "scheduledAt": "2019-01-28T12:10:38.100",
-      "program": "BFcipDERJnf",
+      "program": {
+        "idScheme": "UID",
+        "identifier": "BFcipDERJnf"
+      },
       "programStage": "NpsdDv6kKSO",
       "orgUnit": "h4w96yEMlzO",
       "status": "COMPLETED",

@@ -32,6 +32,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.tracker.domain.MetadataIdentifier;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -116,5 +119,10 @@ public class TrackerIdSchemeParams
             return idScheme;
         }
 
+    }
+
+    public MetadataIdentifier toMetadataIdentifier( Program program )
+    {
+        return programIdScheme.toMetadataIdentifier( program );
     }
 }

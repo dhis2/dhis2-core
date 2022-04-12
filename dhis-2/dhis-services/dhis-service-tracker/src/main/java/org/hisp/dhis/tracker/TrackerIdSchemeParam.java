@@ -33,6 +33,7 @@ import lombok.Value;
 
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -97,5 +98,19 @@ public class TrackerIdSchemeParam
     {
         String identifier = getIdentifier( object );
         return object.getClass().getSimpleName() + " (" + identifier + ")";
+    }
+
+    public MetadataIdentifier toMetadataIdentifier( IdentifiableObject metadata )
+    {
+        return toMetadataIdentifier( getIdentifier( metadata ) );
+    }
+
+    public MetadataIdentifier toMetadataIdentifier( String identifier )
+    {
+        if ( this.idScheme == TrackerIdScheme.ATTRIBUTE )
+        {
+            return MetadataIdentifier.ofAttribute( this.attributeUid, identifier );
+        }
+        return MetadataIdentifier.of( this.idScheme, identifier, null );
     }
 }

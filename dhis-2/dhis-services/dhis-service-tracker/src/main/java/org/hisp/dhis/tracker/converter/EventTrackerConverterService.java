@@ -204,7 +204,7 @@ public class EventTrackerConverterService
     private ProgramStageInstance from( TrackerPreheat preheat, Event event, ProgramStageInstance programStageInstance )
     {
         ProgramStage programStage = preheat.get( ProgramStage.class, event.getProgramStage() );
-        Program program = preheat.get( Program.class, event.getProgram() );
+        Program program = preheat.getProgram( event.getProgram() );
         OrganisationUnit organisationUnit = preheat.get( OrganisationUnit.class, event.getOrgUnit() );
 
         Date now = new Date();

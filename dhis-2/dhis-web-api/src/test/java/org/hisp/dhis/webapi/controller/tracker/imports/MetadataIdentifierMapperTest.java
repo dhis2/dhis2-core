@@ -37,10 +37,10 @@ import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 
-class EnrollmentMapperTest
+class MetadataIdentifierMapperTest
 {
 
-    private static final EnrollmentMapper ENROLLMENT_MAPPER = Mappers.getMapper( EnrollmentMapper.class );
+    private static final MetadataIdentifierMapper MAPPER = Mappers.getMapper( MetadataIdentifierMapper.class );
 
     @Test
     void programIdentifierFromUID()
@@ -50,7 +50,7 @@ class EnrollmentMapperTest
             .idScheme( TrackerIdSchemeParam.CODE )
             .build();
 
-        MetadataIdentifier id = ENROLLMENT_MAPPER.from( "RiNIt1yJoge", params );
+        MetadataIdentifier id = MAPPER.from( "RiNIt1yJoge", params );
 
         assertEquals( TrackerIdScheme.UID, id.getIdScheme() );
         assertEquals( "RiNIt1yJoge", id.getIdentifier() );
@@ -65,7 +65,7 @@ class EnrollmentMapperTest
             .programIdScheme( TrackerIdSchemeParam.ofAttribute( "RiNIt1yJoge" ) )
             .build();
 
-        MetadataIdentifier id = ENROLLMENT_MAPPER.from( "clouds", params );
+        MetadataIdentifier id = MAPPER.from( "clouds", params );
 
         assertEquals( TrackerIdScheme.ATTRIBUTE, id.getIdScheme() );
         assertEquals( "RiNIt1yJoge", id.getIdentifier() );
@@ -80,7 +80,7 @@ class EnrollmentMapperTest
             .idScheme( TrackerIdSchemeParam.CODE )
             .build();
 
-        MetadataIdentifier id = ENROLLMENT_MAPPER.from( (String) null, params );
+        MetadataIdentifier id = MAPPER.from( null, params );
 
         assertEquals( TrackerIdScheme.UID, id.getIdScheme() );
         assertNull( id.getIdentifier() );

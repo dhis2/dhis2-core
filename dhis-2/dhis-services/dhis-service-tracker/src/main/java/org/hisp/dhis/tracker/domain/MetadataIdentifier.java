@@ -230,6 +230,6 @@ public class MetadataIdentifier
      */
     public boolean isBlank()
     {
-        return StringUtils.isBlank( this.getIdentifier() );
+        return StringUtils.isBlank( this.getIdentifierOrAttributeValue() );
     }
 }

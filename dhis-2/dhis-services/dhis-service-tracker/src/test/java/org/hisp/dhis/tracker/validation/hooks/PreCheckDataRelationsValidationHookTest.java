@@ -251,7 +251,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         when( preheat.getOrganisationUnit( ORG_UNIT_ID ) )
             .thenReturn( orgUnit );
         Program program = programWithRegistration( PROGRAM_UID, orgUnit );
-        when( preheat.getProgram( PROGRAM_UID ) )
+        when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_UID ) ) )
             .thenReturn( program );
         when( preheat.getProgramWithOrgUnitsMap() )
             .thenReturn( Collections.singletonMap( PROGRAM_UID, Collections.singletonList( ORG_UNIT_ID ) ) );
@@ -267,7 +267,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
 
         Event event = Event.builder()
             .event( CodeGenerator.generateUid() )
-            .program( PROGRAM_UID )
+            .program( MetadataIdentifier.ofUid( program.getUid() ) )
             .programStage( PROGRAM_STAGE_ID )
             .orgUnit( ORG_UNIT_ID )
             .enrollment( ENROLLMENT_ID )
@@ -285,7 +285,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         when( preheat.getOrganisationUnit( ORG_UNIT_ID ) )
             .thenReturn( orgUnit );
         Program program = programWithRegistration( PROGRAM_UID, orgUnit );
-        when( preheat.getProgram( PROGRAM_UID ) )
+        when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_UID ) ) )
             .thenReturn( program );
         when( preheat.getProgramWithOrgUnitsMap() )
             .thenReturn( Collections.singletonMap( PROGRAM_UID, Collections.singletonList( ORG_UNIT_ID ) ) );
@@ -300,7 +300,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
 
         Event event = Event.builder()
             .event( CodeGenerator.generateUid() )
-            .program( PROGRAM_UID )
+            .program( MetadataIdentifier.ofUid( program.getUid() ) )
             .programStage( PROGRAM_STAGE_ID )
             .orgUnit( ORG_UNIT_ID )
             .build();
@@ -317,7 +317,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         when( preheat.getOrganisationUnit( ORG_UNIT_ID ) )
             .thenReturn( orgUnit );
         Program program = programWithRegistration( PROGRAM_UID, orgUnit );
-        when( preheat.getProgram( PROGRAM_UID ) )
+        when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_UID ) ) )
             .thenReturn( program );
         when( preheat.getProgramWithOrgUnitsMap() )
             .thenReturn( Collections.singletonMap( PROGRAM_UID, Collections.singletonList( ORG_UNIT_ID ) ) );
@@ -331,7 +331,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
 
         Event event = Event.builder()
             .event( CodeGenerator.generateUid() )
-            .program( PROGRAM_UID )
+            .program( MetadataIdentifier.ofUid( program.getUid() ) )
             .programStage( PROGRAM_STAGE_ID )
             .orgUnit( ORG_UNIT_ID )
             .build();
@@ -349,7 +349,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         when( preheat.getOrganisationUnit( ORG_UNIT_ID ) )
             .thenReturn( orgUnit );
         Program program = programWithRegistration( PROGRAM_UID, orgUnit );
-        when( preheat.getProgram( PROGRAM_UID ) )
+        when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_UID ) ) )
             .thenReturn( program );
         when( preheat.getProgramWithOrgUnitsMap() )
             .thenReturn( Collections.singletonMap( PROGRAM_UID, Collections.singletonList( ORG_UNIT_ID ) ) );
@@ -366,7 +366,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
 
         Event event = Event.builder()
             .event( CodeGenerator.generateUid() )
-            .program( PROGRAM_UID )
+            .program( MetadataIdentifier.ofUid( program.getUid() ) )
             .programStage( PROGRAM_STAGE_ID )
             .orgUnit( ORG_UNIT_ID )
             .enrollment( ENROLLMENT_ID )
@@ -386,7 +386,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .thenReturn( orgUnit );
         OrganisationUnit anotherOrgUnit = organisationUnit( CodeGenerator.generateUid() );
         Program program = programWithRegistration( PROGRAM_UID, anotherOrgUnit );
-        when( preheat.getProgram( PROGRAM_UID ) )
+        when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_UID ) ) )
             .thenReturn( program );
         when( preheat.getProgramWithOrgUnitsMap() )
             .thenReturn(
@@ -403,7 +403,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
 
         Event event = Event.builder()
             .event( CodeGenerator.generateUid() )
-            .program( PROGRAM_UID )
+            .program( MetadataIdentifier.ofUid( program.getUid() ) )
             .programStage( PROGRAM_STAGE_ID )
             .orgUnit( ORG_UNIT_ID )
             .enrollment( ENROLLMENT_ID )
@@ -1037,7 +1037,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     private Program setupProgram( OrganisationUnit orgUnit )
     {
         Program program = programWithRegistration( PROGRAM_UID, orgUnit );
-        when( preheat.getProgram( PROGRAM_UID ) )
+        when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_UID ) ) )
             .thenReturn( program );
         when( preheat.getProgramWithOrgUnitsMap() )
             .thenReturn( Collections.singletonMap( PROGRAM_UID, Collections.singletonList( ORG_UNIT_ID ) ) );
@@ -1116,7 +1116,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     {
         return Event.builder()
             .event( CodeGenerator.generateUid() )
-            .program( PROGRAM_UID )
+            .program( MetadataIdentifier.ofUid( PROGRAM_UID ) )
             .programStage( PROGRAM_STAGE_ID )
             .orgUnit( ORG_UNIT_ID )
             .enrollment( ENROLLMENT_ID );

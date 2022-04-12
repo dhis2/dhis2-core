@@ -1,40 +1,85 @@
 {
+  "importMode": "COMMIT",
+  "idSchemes": {
+    "dataElementIdScheme": {
+      "idScheme": "UID"
+    },
+    "orgUnitIdScheme": {
+      "idScheme": "UID"
+    },
+    "programIdScheme": {
+      "idScheme": "UID"
+    },
+    "programStageIdScheme": {
+      "idScheme": "UID"
+    },
+    "idScheme": {
+      "idScheme": "UID"
+    },
+    "categoryOptionComboIdScheme": {
+      "idScheme": "UID"
+    },
+    "categoryOptionIdScheme": {
+      "idScheme": "UID"
+    }
+  },
+  "importStrategy": "CREATE",
+  "atomicMode": "ALL",
+  "flushMode": "AUTO",
+  "validationMode": "FULL",
+  "skipPatternValidation": false,
+  "skipSideEffects": false,
+  "skipRuleEngine": false,
   "trackedEntities": [
     {
-      "trackedEntityType": "bPJ0FMtcnEh",
       "trackedEntity": "NCc1rCEOKaY",
+      "trackedEntityType": "bPJ0FMtcnEh",
+      "orgUnit": "QfUVllTs6cS",
+      "inactive": false,
+      "deleted": false,
+      "potentialDuplicate": false,
+      "relationships": [],
       "attributes": [
         {
           "attribute": "--BIpOStK--",
-          "value": "PersonA",
-          "storedBy": "admin"
+          "storedBy": "admin",
+          "value": "PersonA"
         },
         {
           "attribute": "sTJvSLN7Kcb",
-          "value": "AddressA",
-          "storedBy": "admin"
+          "storedBy": "admin",
+          "value": "AddressA"
         }
       ],
-      "orgUnit": "QfUVllTs6cS",
-      "inactive": false
+      "enrollments": [],
+      "programOwners": []
     },
     {
-      "trackedEntityType": "bPJ0FMtcnEh",
       "trackedEntity": "PB9VMezGkwA",
+      "trackedEntityType": "bPJ0FMtcnEh",
+      "orgUnit": "QfUVllTs6cS",
+      "inactive": false,
+      "deleted": false,
+      "potentialDuplicate": false,
+      "relationships": [],
       "attributes": [
         {
           "attribute": "--BIpOStK--",
-          "value": "PersonA",
-          "storedBy": "admin"
+          "storedBy": "admin",
+          "value": "PersonA"
         },
         {
           "attribute": "sTJvSLN7Kcb",
-          "value": "AddressA",
-          "storedBy": "admin"
+          "storedBy": "admin",
+          "value": "AddressA"
         }
       ],
-      "orgUnit": "QfUVllTs6cS",
-      "inactive": false
+      "enrollments": [],
+      "programOwners": []
     }
-  ]
+  ],
+  "enrollments": [],
+  "events": [],
+  "relationships": [],
+  "username": "system-process"
 }

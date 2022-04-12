@@ -208,7 +208,7 @@ class MetadataIdentifierTest
     }
 
     @Test
-    void isBlankTrue()
+    void isBlankTrueForUIDIfIdentifierIsBlank()
     {
 
         assertTrue( MetadataIdentifier.ofUid( null ).isBlank() );
@@ -216,10 +216,55 @@ class MetadataIdentifierTest
     }
 
     @Test
-    void isBlankFalse()
+    void isBlankFalseForUIDIfIdentifierIsNotBlank()
     {
 
         assertFalse( MetadataIdentifier.ofUid( "a" ).isBlank() );
+    }
+
+    @Test
+    void isBlankTrueForCodeIfIdentifierIsBlank()
+    {
+
+        assertTrue( MetadataIdentifier.ofCode( null ).isBlank() );
+        assertTrue( MetadataIdentifier.ofCode( " " ).isBlank() );
+    }
+
+    @Test
+    void isBlankFalseForCodeIfIdentifierIsNotBlank()
+    {
+
+        assertFalse( MetadataIdentifier.ofCode( "a" ).isBlank() );
+    }
+
+    @Test
+    void isBlankTrueForNameIfIdentifierIsBlank()
+    {
+
+        assertTrue( MetadataIdentifier.ofName( null ).isBlank() );
+        assertTrue( MetadataIdentifier.ofName( " " ).isBlank() );
+    }
+
+    @Test
+    void isBlankFalseForNameIfIdentifierIsNotBlank()
+    {
+
+        assertFalse( MetadataIdentifier.ofName( "a" ).isBlank() );
+    }
+
+    @Test
+    void isBlankTrueForAttributeIfIdentifierIsBlank()
+    {
+
+        assertTrue( MetadataIdentifier.ofAttribute( "XkJ3MQigbiU", null ).isBlank() );
+        assertTrue( MetadataIdentifier.ofAttribute( "XkJ3MQigbiU", " " ).isBlank() );
+    }
+
+    @Test
+    void isBlankFalseForAttributeIfIdentifierIsNotBlank()
+    {
+
+        assertFalse( MetadataIdentifier.ofAttribute( "XkJ3MQigbiU", "a" ).isBlank() );
     }
 
     private AttributeValue attributeValue( String value )

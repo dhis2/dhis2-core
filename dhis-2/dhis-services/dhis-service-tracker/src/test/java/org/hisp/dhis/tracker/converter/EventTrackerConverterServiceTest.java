@@ -51,6 +51,7 @@ import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.User;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.util.DateUtils;
@@ -321,7 +322,7 @@ class EventTrackerConverterServiceTest extends DhisConvenienceTest
     {
         when( preheat.getUser() ).thenReturn( user );
         when( preheat.get( ProgramStage.class, programStage.getUid() ) ).thenReturn( programStage );
-        when( preheat.get( Program.class, program.getUid() ) ).thenReturn( program );
+        when( preheat.getProgram( MetadataIdentifier.ofUid( program.getUid() ) ) ).thenReturn( program );
         when( preheat.get( OrganisationUnit.class, organisationUnit.getUid() ) ).thenReturn( organisationUnit );
     }
 
@@ -335,7 +336,7 @@ class EventTrackerConverterServiceTest extends DhisConvenienceTest
         Event event = new Event();
         event.setEvent( uid );
         event.setProgramStage( PROGRAM_STAGE_UID );
-        event.setProgram( PROGRAM_UID );
+        event.setProgram( MetadataIdentifier.ofUid( PROGRAM_UID ) );
         event.setOrgUnit( ORGANISATION_UNIT_UID );
         event.setDataValues( Sets.newHashSet( dataValue ) );
         return event;
