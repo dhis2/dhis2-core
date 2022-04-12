@@ -38,7 +38,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.ToIntFunction;
+import java.util.function.UnaryOperator;
+
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
@@ -48,7 +51,7 @@ import org.hisp.dhis.scheduling.JobType;
  * per {@link JobType} and {@link JobConfiguration} UID.
  * <p>
  * For each {@link Pool} the capacity of entries is capped at a fixed maximum
- * {@link #capacity}.
+ * capacity.
  * <p>
  * If maximum capacity is reached and another entry is added for that
  * {@link JobType}'s {@link Pool} the overall oldest entry is removed and the
@@ -60,54 +63,70 @@ import org.hisp.dhis.scheduling.JobType;
  */
 public class NotificationMap
 {
-    private final Map<JobType, Pool<Deque<Notification>>> notifications = new EnumMap<>( JobType.class );
+    private final Map<JobType, Pool<Deque<Notification>>> notificationsByJobType = new EnumMap<>( JobType.class );
 
-    private final Map<JobType, Pool<Object>> summaries = new EnumMap<>( JobType.class );
+    private final Map<JobType, Pool<Object>> summariesByJobType = new EnumMap<>( JobType.class );
 
+    @RequiredArgsConstructor
     static final class Pool<T>
     {
+        private final int capacity;
 
-        final AtomicInteger size = new AtomicInteger();
+        /**
+         * Remembers the job IDs in the order messages came in, so we know what
+         * job ID has the oldest message. When {@link #capacity} is exceeded
+         * that value is responsible for clearing memory.
+         */
+        private final Deque<String> jobIdsInOrder = new ConcurrentLinkedDeque<>();
 
-        final Deque<String> jobIdsInOrder = new ConcurrentLinkedDeque<>();
+        private final Map<String, T> valuesByJobId = new ConcurrentHashMap<>();
 
-        final Map<String, T> valuesByJobId = new ConcurrentHashMap<>();
-
-        private synchronized void remove( String jobId )
+        synchronized void remove( String jobId )
         {
-            size.set( jobIdsInOrder.size() );
             jobIdsInOrder.removeIf( jobId::equals );
             valuesByJobId.remove( jobId );
         }
-    }
 
-    private final int capacity;
+        synchronized void add( String jobId, UnaryOperator<T> limit, ToIntFunction<T> size, UnaryOperator<T> adder )
+        {
+            if ( jobIdsInOrder.size() >= capacity )
+            {
+                String jobIdToShorten = jobIdsInOrder.removeLast();
+                valuesByJobId.compute( jobIdToShorten, ( key, values ) -> limit.apply( values ) );
+            }
+            int sizeBefore = size.applyAsInt( valuesByJobId.get( jobId ) );
+            int sizeAfter = size.applyAsInt( valuesByJobId.compute( jobId, ( key, values ) -> adder.apply( values ) ) );
+            if ( sizeAfter > sizeBefore )
+            {
+                jobIdsInOrder.addFirst( jobId );
+            }
+        }
+    }
 
     NotificationMap( int capacity )
     {
-        this.capacity = capacity;
         stream( JobType.values() ).forEach( jobType -> {
-            notifications.put( jobType, new Pool<>() );
-            summaries.put( jobType, new Pool<>() );
+            notificationsByJobType.put( jobType, new Pool<>( capacity ) );
+            summariesByJobType.put( jobType, new Pool<>( capacity ) );
         } );
     }
 
     public Map<JobType, Map<String, Deque<Notification>>> getNotifications()
     {
-        return notifications.entrySet().stream()
+        return notificationsByJobType.entrySet().stream()
             .collect( toMap( Entry::getKey, e -> e.getValue().valuesByJobId ) );
     }
 
     public Deque<Notification> getNotificationsByJobId( JobType jobType, String jobId )
     {
-        Deque<Notification> res = notifications.get( jobType ).valuesByJobId.get( jobId );
+        Deque<Notification> res = notificationsByJobType.get( jobType ).valuesByJobId.get( jobId );
         // return a defensive copy
         return res == null ? new LinkedList<>() : new LinkedList<>( res );
     }
 
     public Map<String, Deque<Notification>> getNotificationsWithType( JobType jobType )
     {
-        return unmodifiableMap( notifications.get( jobType ).valuesByJobId );
+        return unmodifiableMap( notificationsByJobType.get( jobType ).valuesByJobId );
     }
 
     public void add( JobConfiguration configuration, Notification notification )
@@ -117,26 +136,10 @@ public class NotificationMap
         {
             return;
         }
-        Pool<Deque<Notification>> pool = notifications.get( configuration.getJobType() );
-        if ( pool.size.incrementAndGet() > capacity )
-        {
-            String jobIdToShorten = pool.jobIdsInOrder.removeLast();
-            pool.valuesByJobId.compute( jobIdToShorten, ( key, value ) -> {
-                if ( value != null )
-                {
-                    value.removeLast();
-                    if ( value.isEmpty() )
-                    {
-                        return null;
-                    }
-                }
-                return value;
-            } );
-        }
-        pool.jobIdsInOrder.addFirst( jobId );
-        pool.valuesByJobId
-            .computeIfAbsent( jobId, key -> new ConcurrentLinkedDeque<>() )
-            .addFirst( notification );
+        notificationsByJobType.get( configuration.getJobType() ).add( jobId,
+            NotificationMap::withLimit,
+            notifications -> notifications == null ? 0 : notifications.size(),
+            notifications -> withAdded( notifications, notification ) );
     }
 
     public void addSummary( JobConfiguration configuration, Object summary )
@@ -146,30 +149,63 @@ public class NotificationMap
         {
             return;
         }
-        Pool<Object> pool = summaries.get( configuration.getJobType() );
-        if ( pool.size.incrementAndGet() > capacity )
-        {
-            pool.valuesByJobId.remove( pool.jobIdsInOrder.removeLast() );
-        }
-        pool.jobIdsInOrder.addFirst( jobId );
-        pool.valuesByJobId.put( jobId, summary );
+        summariesByJobType.get( configuration.getJobType() ).add( jobId,
+            currentSummary -> null,
+            currentSummary -> currentSummary == null ? 0 : 1,
+            currentSummary -> summary );
     }
 
     public Object getSummary( JobType jobType, String jobId )
     {
-        return summaries.get( jobType ).valuesByJobId.get( jobId );
+        return summariesByJobType.get( jobType ).valuesByJobId.get( jobId );
     }
 
     public Map<String, Object> getJobSummariesForJobType( JobType jobType )
     {
-        return unmodifiableMap( summaries.get( jobType ).valuesByJobId );
+        return unmodifiableMap( summariesByJobType.get( jobType ).valuesByJobId );
     }
 
     public void clear( JobConfiguration configuration )
     {
         JobType jobType = configuration.getJobType();
         String jobId = configuration.getUid();
-        notifications.get( jobType ).remove( jobId );
-        summaries.get( jobType ).remove( jobId );
+        notificationsByJobType.get( jobType ).remove( jobId );
+        summariesByJobType.get( jobType ).remove( jobId );
+    }
+
+    private static Deque<Notification> withAdded( Deque<Notification> notifications, Notification item )
+    {
+        if ( notifications == null )
+        {
+            notifications = new ConcurrentLinkedDeque<>();
+        }
+        Notification mostRecent = notifications.peekFirst();
+        if ( mostRecent != null && mostRecent.getLevel() == NotificationLevel.LOOP )
+        {
+            notifications.pollFirst();
+        }
+        notifications.addFirst( item );
+        return notifications;
+    }
+
+    private static Deque<Notification> withLimit( Deque<Notification> notifications )
+    {
+        if ( notifications != null )
+        {
+            Notification mostRecent = notifications.peekFirst();
+            if ( mostRecent != null && mostRecent.getLevel() == NotificationLevel.LOOP )
+            {
+                notifications.pollFirst();
+            }
+            else
+            {
+                notifications.pollLast();
+            }
+            if ( notifications.isEmpty() )
+            {
+                return null;
+            }
+        }
+        return notifications;
     }
 }
