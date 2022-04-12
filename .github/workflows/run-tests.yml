@@ -19,7 +19,7 @@ jobs:
           distribution: temurin
           cache: maven
       - name: Test 
-        run: mvn -X -T 4 --batch-mode --no-transfer-progress clean install -f dhis-2/pom-full.xml --update-snapshots'
+        run: mvn -X -T 4 --batch-mode --no-transfer-progress clean install -f dhis-2/pom-full.xml --update-snapshots
 
   integration-test:
     runs-on: ubuntu-latest
