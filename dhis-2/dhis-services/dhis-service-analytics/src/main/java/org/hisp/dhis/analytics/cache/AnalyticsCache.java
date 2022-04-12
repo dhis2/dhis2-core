@@ -30,7 +30,6 @@ package org.hisp.dhis.analytics.cache;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.logging.LogFactory.getLog;
 
-import java.time.Duration;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -66,12 +65,7 @@ public class AnalyticsCache
         checkNotNull( analyticsCacheSettings );
 
         this.analyticsCacheSettings = analyticsCacheSettings;
-        long initialExpirationTime = analyticsCacheSettings.fixedExpirationTimeOrDefault();
-        this.queryCache = cacheProvider.createAnalyticsResponseCache(
-            Duration.ofSeconds( initialExpirationTime ) );
-
-        log.info( String.format( "Analytics server-side cache is enabled with expiration time: %d s",
-            initialExpirationTime ) );
+        this.queryCache = cacheProvider.createAnalyticsCache();
     }
 
     public Optional<Grid> get( final String key )
