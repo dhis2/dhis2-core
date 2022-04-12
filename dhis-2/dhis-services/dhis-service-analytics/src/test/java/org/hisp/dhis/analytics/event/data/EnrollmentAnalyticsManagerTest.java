@@ -116,8 +116,6 @@ class EnrollmentAnalyticsManagerTest extends
         + "createdbydisplayname" + "," + "lastupdatedbydisplayname"
         + ",lastupdated,ST_AsGeoJSON(pigeometry),longitude,latitude,ouname,oucode,enrollmentstatus";
 
-    private final String TABLE_NAME = "analytics_enrollment";
-
     private final BeanRandomizer rnd = BeanRandomizer.create();
 
     @BeforeEach

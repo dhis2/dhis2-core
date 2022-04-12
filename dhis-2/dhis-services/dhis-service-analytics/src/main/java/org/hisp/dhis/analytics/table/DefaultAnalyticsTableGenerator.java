@@ -45,7 +45,6 @@ import org.hisp.dhis.analytics.AnalyticsTableService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.cache.AnalyticsCache;
-import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.setting.SettingKey;
@@ -65,8 +64,6 @@ public class DefaultAnalyticsTableGenerator
     private final List<AnalyticsTableService> analyticsTableServices;
 
     private final ResourceTableService resourceTableService;
-
-    private final MessageService messageService;
 
     private final SystemSettingManager systemSettingManager;
 
@@ -96,11 +93,14 @@ public class DefaultAnalyticsTableGenerator
 
         progress.startingProcess( "Analytics table update process"
             + (params.isLatestUpdate() ? "(latest partition)" : "") );
+
         if ( !params.isSkipResourceTables() && !params.isLatestUpdate() )
         {
             generateResourceTablesInternal( progress );
         }
+
         final Set<AnalyticsTableType> skipTypes = emptyIfNull( params.getSkipTableTypes() );
+
         for ( AnalyticsTableService service : analyticsTableServices )
         {
             AnalyticsTableType tableType = service.getAnalyticsTableType();
@@ -110,6 +110,7 @@ public class DefaultAnalyticsTableGenerator
                 service.update( params, progress );
             }
         }
+
         progress.startingStage( "Updating settings" );
         progress.runStage( () -> updateLastSuccessfulSystemSettings( params, clock ) );
 
@@ -142,6 +143,7 @@ public class DefaultAnalyticsTableGenerator
         final Clock clock = new Clock().startClock();
 
         progress.startingProcess( "Generating resource tables" );
+
         try
         {
             generateResourceTablesInternal( progress );
@@ -179,10 +181,10 @@ public class DefaultAnalyticsTableGenerator
         generators.put( "generating OrganisationUnitGroupSet table",
             resourceTableService::generateOrganisationUnitGroupSetTable );
         generators.put( "generating Category table", resourceTableService::generateCategoryTable );
-        generators.put( "generating  DataElement table", resourceTableService::generateDataElementTable );
+        generators.put( "generating DataElement table", resourceTableService::generateDataElementTable );
         generators.put( "generating Period table", resourceTableService::generatePeriodTable );
         generators.put( "generating DatePeriod table", resourceTableService::generateDatePeriodTable );
-        generators.put( "generating  CategoryOptionCombo table",
+        generators.put( "generating CategoryOptionCombo table",
             resourceTableService::generateCategoryOptionComboTable );
         progress.startingStage( "Generating resource tables", generators.size() );
         progress.runStage( generators );

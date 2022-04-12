@@ -175,8 +175,9 @@ public class JdbcValidationResultTableManager
             select += col.getAlias() + ",";
         }
 
-        select = select.replace( "organisationunitid", "sourceid" ); // Legacy
-                                                                     // fix
+        // Database legacy fix
+
+        select = select.replace( "organisationunitid", "sourceid" );
 
         select += "vrs.created as value " +
             "from validationresult vrs " +
