@@ -92,7 +92,7 @@ public class KeyJsonValueController
 
         List<String> keys = service.getKeysInNamespace( namespace, lastUpdated );
 
-        if ( keys.isEmpty() )
+        if ( keys.isEmpty() && !service.isUsedNamespace( namespace ) )
         {
             throw new NotFoundException( String.format( "Namespace not found: '%s'", namespace ) );
         }
