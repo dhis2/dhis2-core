@@ -31,6 +31,7 @@ import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
 
 import com.bedatadriven.jackson.datatype.jts.serialization.GeometryDeserializer;
+import com.bedatadriven.jackson.datatype.jts.serialization.GeometrySerializer;
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 
@@ -48,9 +49,9 @@ public class JtsXmlModule
     @SuppressWarnings( { "rawtypes", "unchecked" } )
     public JtsXmlModule( GeometryFactory geometryFactory )
     {
-        super( "JtsJsonModule", new Version( 1, 0, 0, (String) null, "org.dhis", "dhis-service-node" ) );
+        super( "JtsXmlModule", new Version( 1, 0, 0, (String) null, "org.dhis", "dhis-service-node" ) );
         this.addSerializer( Geometry.class, new GeometrySerializer() );
-        GenericGeometryParser genericGeometryParser = new GenericGeometryParser( geometryFactory );
+        XmlGenericGeometryParser genericGeometryParser = new XmlGenericGeometryParser( geometryFactory );
         this.addDeserializer( Geometry.class, new GeometryDeserializer( genericGeometryParser ) );
     }
 
