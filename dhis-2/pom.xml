@@ -121,7 +121,7 @@
         <xercesImpl.version>2.12.2</xercesImpl.version>
 
         <!--Reporting -->
-        <jasperreports.version>6.19.0</jasperreports.version>
+        <jasperreports.version>6.19.1</jasperreports.version>
         <jfreechart.version>1.5.3</jfreechart.version>
         <htmlparser.version>2.1</htmlparser.version>
         <htmllexer.version>2.1</htmllexer.version>
