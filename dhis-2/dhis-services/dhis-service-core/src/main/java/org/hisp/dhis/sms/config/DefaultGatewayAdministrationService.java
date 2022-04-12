@@ -41,8 +41,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.CodeGenerator;
 import org.jasypt.encryption.pbe.PBEStringEncryptor;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 /**
@@ -53,7 +51,7 @@ import org.springframework.stereotype.Service;
 public class DefaultGatewayAdministrationService
     implements GatewayAdministrationService
 {
-    private final AtomicBoolean hasGateways = new AtomicBoolean();
+    private AtomicBoolean hasGateways = null;
 
     private final SmsConfigurationManager smsConfigurationManager;
 
@@ -73,10 +71,12 @@ public class DefaultGatewayAdministrationService
     // GatewayAdministrationService implementation
     // -------------------------------------------------------------------------
 
-    @EventListener
-    public void handleContextRefresh( ContextRefreshedEvent contextRefreshedEvent )
+    public synchronized void initState()
     {
-        updateHasGatewaysState();
+        if ( hasGateways == null )
+        {
+            hasGateways = new AtomicBoolean();
+        }
     }
 
     @Override
@@ -94,6 +94,8 @@ public class DefaultGatewayAdministrationService
     @Override
     public boolean addGateway( SmsGatewayConfig config )
     {
+        initState();
+
         if ( config == null )
         {
             return false;
@@ -131,6 +133,8 @@ public class DefaultGatewayAdministrationService
     @Override
     public void updateGateway( SmsGatewayConfig persistedConfig, SmsGatewayConfig updatedConfig )
     {
+        initState();
+
         if ( persistedConfig == null || updatedConfig == null )
         {
             log.warn( "Gateway configurations cannot be null" );
@@ -229,12 +233,16 @@ public class DefaultGatewayAdministrationService
     @Override
     public boolean hasDefaultGateway()
     {
+        initState();
+
         return getDefaultGateway() != null;
     }
 
     @Override
     public boolean hasGateways()
     {
+        initState();
+
         return hasGateways.get();
     }
 
@@ -244,6 +252,8 @@ public class DefaultGatewayAdministrationService
 
     private SmsConfiguration getSmsConfiguration()
     {
+        initState();
+
         SmsConfiguration smsConfiguration = smsConfigurationManager.getSmsConfiguration();
 
         if ( smsConfiguration != null )
