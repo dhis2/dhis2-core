@@ -68,6 +68,7 @@
             <plugin>
                 <groupId>org.antlr</groupId>
                 <artifactId>antlr4-maven-plugin</artifactId>
+                <version>4.9.3</version>
                 <configuration>
                     <visitor>true</visitor>
                 </configuration>
