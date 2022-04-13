@@ -70,5 +70,4 @@ public class JdbcOrgUnitAssociationStoreConfiguration
             new DataSetOrganisationUnitAssociationsQueryBuilder( currentUserService ),
             cacheProvider.createDataSetOrgUnitAssociationCache() );
     }
-
 }

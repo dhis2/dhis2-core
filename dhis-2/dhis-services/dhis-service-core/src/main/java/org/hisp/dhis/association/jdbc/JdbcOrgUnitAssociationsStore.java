@@ -136,5 +136,4 @@ public class JdbcOrgUnitAssociationsStore
         return allUserOrgUnitPaths.stream()
             .anyMatch( path -> !path.equals( orgUnitPath ) && orgUnitPath.startsWith( path ) );
     }
-
 }
