@@ -41,6 +41,7 @@ import io.restassured.path.json.config.JsonParserType;
 import io.restassured.path.json.config.JsonPathConfig;
 import io.restassured.response.Response;
 import io.restassured.response.ValidatableResponse;
+import org.hisp.dhis.jsontree.JsonResponse;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -135,6 +136,10 @@ public class ApiResponse
     public JsonObjectBuilder getBodyAsJsonBuilder()
     {
         return new JsonObjectBuilder( getBody() );
+    }
+
+    public JsonResponse getBodyAsJson() {
+        return new JsonResponse(raw.asString());
     }
 
     public boolean isEntityCreated()
