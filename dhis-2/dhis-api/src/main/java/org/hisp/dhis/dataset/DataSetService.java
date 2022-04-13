@@ -29,7 +29,6 @@ package org.hisp.dhis.dataset;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
 
 import org.apache.commons.collections4.SetValuedMap;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -309,12 +308,12 @@ public interface DataSetService extends DataSetDataIntegrityProvider
 
     /**
      * Return a mapping between the given data sets and the associated
-     * organisation units. Access control relative to the current user is
-     * respected.
+     * organisation units. Only data sets for which the current user has data
+     * write sharing access to are returned.
      *
      * @param dataSetUids the data set identifiers.
      * @return a {@link SetValuedMap} between data sets and organisation unit
      *         identifiers.
      */
-    SetValuedMap<String, String> getDataSetOrganisationUnitsAssociations( Set<String> dataSetUids );
+    SetValuedMap<String, String> getDataSetOrganisationUnitsAssociations();
 }

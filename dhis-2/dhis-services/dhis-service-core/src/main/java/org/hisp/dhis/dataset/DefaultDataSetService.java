@@ -417,9 +417,13 @@ public class DefaultDataSetService
     }
 
     @Override
-    public SetValuedMap<String, String> getDataSetOrganisationUnitsAssociations( Set<String> dataSetUids )
+    public SetValuedMap<String, String> getDataSetOrganisationUnitsAssociations()
     {
-        return jdbcOrgUnitAssociationsStore.getOrganisationUnitsAssociationsForCurrentUser( dataSetUids );
+        Set<String> uids = getAllDataWrite().stream()
+            .map( DataSet::getUid )
+            .collect( Collectors.toSet() );
+
+        return jdbcOrgUnitAssociationsStore.getOrganisationUnitsAssociationsForCurrentUser( uids );
     }
 
     // -------------------------------------------------------------------------
