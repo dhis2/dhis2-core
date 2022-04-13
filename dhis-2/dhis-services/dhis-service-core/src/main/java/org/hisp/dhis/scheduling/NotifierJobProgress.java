@@ -29,6 +29,8 @@ package org.hisp.dhis.scheduling;
 
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.system.notification.NotificationLevel;
@@ -48,6 +50,8 @@ public class NotifierJobProgress implements JobProgress
 
     private final JobConfiguration jobId;
 
+    private final AtomicBoolean hasCleared = new AtomicBoolean();
+
     private int stageItems;
 
     private int stageItem;
@@ -64,7 +68,11 @@ public class NotifierJobProgress implements JobProgress
         String message = isNotEmpty( description )
             ? description
             : jobId.getJobType() + " process started";
-        notifier.clear( jobId ).notify( jobId, message );
+        if ( hasCleared.compareAndSet( false, true ) )
+        {
+            notifier.clear( jobId );
+        }
+        notifier.notify( jobId, message );
     }
 
     @Override
