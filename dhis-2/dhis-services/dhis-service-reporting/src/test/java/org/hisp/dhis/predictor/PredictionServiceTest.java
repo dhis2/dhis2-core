@@ -68,6 +68,8 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.scheduling.JobProgress;
+import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.quick.BatchHandler;
@@ -85,6 +87,8 @@ import com.google.common.collect.Sets;
  */
 class PredictionServiceTest extends IntegrationTestBase
 {
+
+    private final JobProgress progress = NoopJobProgress.INSTANCE;
 
     @Autowired
     private PredictionService predictionService;
@@ -1001,15 +1005,19 @@ class PredictionServiceTest extends IntegrationTestBase
             orgUnitLevel1, 1, 0, 0 );
         predictorService.addPredictor( predictorA );
         predictorService.addPredictor( predictorB );
+
         List<String> predictors = Lists.newArrayList( predictorA.getUid() );
-        summary = predictionService.predictTask( monthStart( 2001, 7 ), monthStart( 2001, 8 ), predictors, null, null );
+        summary = predictionService.predictTask( monthStart( 2001, 7 ), monthStart( 2001, 8 ), predictors, null,
+            progress );
         assertEquals( "Pred 1 Ins 1 Upd 0 Del 0 Unch 0", shortSummary( summary ) );
         assertEquals( "10.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 7 ) ) );
         predictors = Lists.newArrayList( predictorA.getUid(), predictorB.getUid() );
-        summary = predictionService.predictTask( monthStart( 2001, 7 ), monthStart( 2001, 8 ), predictors, null, null );
+        summary = predictionService.predictTask( monthStart( 2001, 7 ), monthStart( 2001, 8 ), predictors, null,
+            progress );
         assertEquals( "Pred 2 Ins 1 Upd 0 Del 0 Unch 1", shortSummary( summary ) );
         assertEquals( "20", getDataValue( dataElementY, defaultCombo, sourceA, makeMonth( 2001, 7 ) ) );
-        summary = predictionService.predictTask( monthStart( 2001, 7 ), monthStart( 2001, 8 ), predictors, null, null );
+        summary = predictionService.predictTask( monthStart( 2001, 7 ), monthStart( 2001, 8 ), predictors, null,
+            progress );
         assertEquals( "Pred 2 Ins 0 Upd 0 Del 0 Unch 2", shortSummary( summary ) );
     }
 
@@ -1030,13 +1038,13 @@ class PredictionServiceTest extends IntegrationTestBase
         predictorService.addPredictorGroup( predictorGroupA );
         List<String> predictorGroups = Lists.newArrayList( predictorGroupA.getUid() );
         summary = predictionService.predictTask( monthStart( 2001, 7 ), monthStart( 2001, 8 ), null, predictorGroups,
-            null );
+            progress );
         assertEquals( "Pred 1 Ins 1 Upd 0 Del 0 Unch 0", shortSummary( summary ) );
         assertEquals( "10.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 7 ) ) );
         predictorGroupA.addPredictor( predictorB );
         predictorService.updatePredictorGroup( predictorGroupA );
         summary = predictionService.predictTask( monthStart( 2001, 7 ), monthStart( 2001, 8 ), null, predictorGroups,
-            null );
+            progress );
         assertEquals( "Pred 2 Ins 1 Upd 0 Del 0 Unch 1", shortSummary( summary ) );
         assertEquals( "20", getDataValue( dataElementY, defaultCombo, sourceA, makeMonth( 2001, 7 ) ) );
     }
@@ -1503,7 +1511,7 @@ class PredictionServiceTest extends IntegrationTestBase
         PredictorGroup predictorGroup = createPredictorGroup( 'A', p1, p2, p3, p4, p5, p6, p7 );
         predictorService.addPredictorGroup( predictorGroup );
         predictionService.predictTask( monthStart( 2021, 12 ), monthStart( 2022, 1 ), null,
-            Lists.newArrayList( "predictorgA" ), null );
+            Lists.newArrayList( "predictorgA" ), progress );
         assertEquals( "64", getDataValue( dataElementA, defaultCombo, sourceA, makeMonth( 2021, 12 ) ) );
     }
 }
