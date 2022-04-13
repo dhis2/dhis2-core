@@ -45,7 +45,7 @@ public class JdbcOrgUnitAssociationStoreConfiguration
     private final CacheProvider cacheProvider;
 
     @Bean( "jdbcProgramOrgUnitAssociationsStore" )
-    JdbcOrgUnitAssociationsStore jdbcProgramOrgUnitAssociationStore( CurrentUserService currentUserService,
+    public JdbcOrgUnitAssociationsStore jdbcProgramOrgUnitAssociationStore( CurrentUserService currentUserService,
         JdbcTemplate jdbcTemplate )
     {
         return new JdbcOrgUnitAssociationsStore( currentUserService, jdbcTemplate,
@@ -54,7 +54,8 @@ public class JdbcOrgUnitAssociationStoreConfiguration
     }
 
     @Bean( "jdbcCategoryOptionOrgUnitAssociationsStore" )
-    JdbcOrgUnitAssociationsStore jdbcCategoryOptionOrgUnitAssociationStore( CurrentUserService currentUserService,
+    public JdbcOrgUnitAssociationsStore jdbcCategoryOptionOrgUnitAssociationStore(
+        CurrentUserService currentUserService,
         JdbcTemplate jdbcTemplate )
     {
         return new JdbcOrgUnitAssociationsStore( currentUserService, jdbcTemplate,
@@ -63,7 +64,7 @@ public class JdbcOrgUnitAssociationStoreConfiguration
     }
 
     @Bean( "jdbcDataSetOrgUnitAssociationsStore" )
-    JdbcOrgUnitAssociationsStore jdbcDataSetOrgUnitAssociationStore( CurrentUserService currentUserService,
+    public JdbcOrgUnitAssociationsStore jdbcDataSetOrgUnitAssociationStore( CurrentUserService currentUserService,
         JdbcTemplate jdbcTemplate )
     {
         return new JdbcOrgUnitAssociationsStore( currentUserService, jdbcTemplate,
