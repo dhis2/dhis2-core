@@ -49,13 +49,13 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.i18n.I18nFormat;
+import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.springframework.stereotype.Service;
 
 import com.google.common.collect.ImmutableMap;
 
 @Service
-@RequiredArgsConstructor
 public class CommonLineListingMapper
     implements LineListingRequestMapper<CommonLineListingRequest, CommonLineListingParams>
 {
@@ -63,6 +63,12 @@ public class CommonLineListingMapper
     private final I18nFormat i18nFormat;
 
     private final DataQueryService dataQueryService;
+
+    public CommonLineListingMapper( I18nManager i18nManager, DataQueryService dataQueryService )
+    {
+        this.i18nFormat = i18nManager.getI18nFormat();
+        this.dataQueryService = dataQueryService;
+    }
 
     @Override
     public CommonLineListingParams map( CommonLineListingRequest request, DhisApiVersion apiVersion )
@@ -122,7 +128,7 @@ public class CommonLineListingMapper
                         // TODO: retrieve query items
                         elementsByType.get( definition.getQueryItemType() ).add( null );
                     }
-                } ));
+                } ) );
         return elementsByType;
     }
 

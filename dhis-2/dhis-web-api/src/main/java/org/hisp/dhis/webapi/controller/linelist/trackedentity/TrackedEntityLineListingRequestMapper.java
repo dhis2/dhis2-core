@@ -54,7 +54,7 @@ class TrackedEntityLineListingRequestMapper
         return TrackedEntityLineListingParams.builder()
             .programs( programService.getPrograms( request.getPrograms() ) )
             .trackedEntityType( trackedEntityTypeService.getTrackedEntityType( request.getTrackedEntityType() ) )
-            .commonParams( commonLineListingMapper.map( request.getCommonLineListingRequest(), apiVersion ) )
+            .commonParams( commonLineListingMapper.map( request, apiVersion ) )
             .build();
     }
 }

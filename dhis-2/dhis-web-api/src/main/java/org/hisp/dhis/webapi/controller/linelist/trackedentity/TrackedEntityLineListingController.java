@@ -56,14 +56,15 @@ class TrackedEntityLineListingController
 
     private final ContextUtils contextUtils;
 
-    @GetMapping( "query/{type}" )
+    @GetMapping( "query/{trackedEntityType}" )
     Grid getGrid(
-        @PathVariable String type,
+        @PathVariable String trackedEntityType,
         TrackedEntityLineListingRequest request,
         DhisApiVersion apiVersion,
         HttpServletResponse response )
     {
-        service.validateRequest( request.withTrackedEntityType( type ) );
+        request.setTrackedEntityType( trackedEntityType );
+        service.validateRequest( request );
         TrackedEntityLineListingParams params = mapper.map( request, apiVersion );
         contextUtils.configureResponse( response, CONTENT_TYPE_JSON, RESPECT_SYSTEM_SETTING );
         return service.getGrid( params );

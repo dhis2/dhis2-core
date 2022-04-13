@@ -52,7 +52,7 @@ class TrackedEntityLineListingService
     @Override
     public void validateRequest( TrackedEntityLineListingRequest request )
     {
-        commonLineListingService.validateRequest( request.getCommonLineListingRequest() );
+        commonLineListingService.validateRequest( request );
         // TODO: validate TEI fields in request
     }
 }

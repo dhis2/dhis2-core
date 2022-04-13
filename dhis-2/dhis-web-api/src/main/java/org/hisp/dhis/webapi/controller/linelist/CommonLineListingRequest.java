@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller.linelist;
 
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Set;
 
 import lombok.Getter;
@@ -37,8 +38,6 @@ import org.hisp.dhis.common.AnalyticsPagingCriteria;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 
-import com.fasterxml.jackson.annotation.JsonUnwrapped;
-
 @Getter
 @Setter
 public class CommonLineListingRequest extends AnalyticsPagingCriteria
@@ -46,29 +45,26 @@ public class CommonLineListingRequest extends AnalyticsPagingCriteria
 
     private String userOrgUnit;
 
-    private Set<String> dimension;
+    private Set<String> dimension = new HashSet<>();
 
-    private Set<String> filter;
+    private Set<String> filter = new HashSet<>();
 
-    private Set<String> headers;
+    private Set<String> headers = new HashSet<>();
 
     private OrganisationUnitSelectionMode ouMode;
 
-    private Set<String> asc;
+    private Set<String> asc = new HashSet<>();
 
-    private Set<String> desc;
+    private Set<String> desc = new HashSet<>();
 
     private boolean skipMeta;
 
     private boolean skipData;
 
-    private IdScheme dataIdScheme;
+    private IdScheme dataIdScheme = IdScheme.UID;
 
     private boolean totalPages;
 
     private Date relativePeriodDate;
-
-    @JsonUnwrapped
-    private AnalyticsPagingCriteria pagingCriteria;
 
 }
