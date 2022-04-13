@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.dataset;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -37,6 +35,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.collections4.SetValuedMap;
 import org.hisp.dhis.association.jdbc.JdbcOrgUnitAssociationsStore;
@@ -52,7 +52,6 @@ import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -61,6 +60,7 @@ import com.google.common.collect.Lists;
 /**
  * @author Lars Helge Overland
  */
+@RequiredArgsConstructor
 @Service( "org.hisp.dhis.dataset.DataSetService" )
 public class DefaultDataSetService
     implements DataSetService
@@ -75,26 +75,10 @@ public class DefaultDataSetService
 
     private final DataApprovalService dataApprovalService;
 
+    @Qualifier( "jdbcDataSetOrgUnitAssociationsStore" )
     private final JdbcOrgUnitAssociationsStore jdbcOrgUnitAssociationsStore;
 
-    private CurrentUserService currentUserService;
-
-    public DefaultDataSetService( DataSetStore dataSetStore, LockExceptionStore lockExceptionStore,
-        @Lazy DataApprovalService dataApprovalService,
-        @Qualifier( "jdbcDataSetOrgUnitAssociationsStore" ) JdbcOrgUnitAssociationsStore jdbcOrgUnitAssociationsStore,
-        CurrentUserService currentUserService )
-    {
-        checkNotNull( dataSetStore );
-        checkNotNull( lockExceptionStore );
-        checkNotNull( dataApprovalService );
-        checkNotNull( currentUserService );
-
-        this.dataSetStore = dataSetStore;
-        this.lockExceptionStore = lockExceptionStore;
-        this.dataApprovalService = dataApprovalService;
-        this.jdbcOrgUnitAssociationsStore = jdbcOrgUnitAssociationsStore;
-        this.currentUserService = currentUserService;
-    }
+    private final CurrentUserService currentUserService;
 
     // -------------------------------------------------------------------------
     // DataSet

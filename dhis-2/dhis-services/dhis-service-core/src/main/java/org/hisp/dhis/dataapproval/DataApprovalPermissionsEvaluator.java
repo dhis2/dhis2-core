@@ -34,7 +34,8 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.SimpleCacheBuilder;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
@@ -56,7 +57,7 @@ class DataApprovalPermissionsEvaluator
 {
     private DataApprovalLevelService dataApprovalLevelService;
 
-    private OrganisationUnitService organisationUnitService;
+    private IdentifiableObjectManager idObjectManager;
 
     private User user;
 
@@ -101,12 +102,12 @@ class DataApprovalPermissionsEvaluator
      * @return context for determining user permissions
      */
     public static DataApprovalPermissionsEvaluator makePermissionsEvaluator( CurrentUserService currentUserService,
-        OrganisationUnitService organisationUnitService, SystemSettingManager systemSettingManager,
+        IdentifiableObjectManager idObjectManager, SystemSettingManager systemSettingManager,
         DataApprovalLevelService dataApprovalLevelService )
     {
         DataApprovalPermissionsEvaluator ev = new DataApprovalPermissionsEvaluator();
 
-        ev.organisationUnitService = organisationUnitService;
+        ev.idObjectManager = idObjectManager;
         ev.dataApprovalLevelService = dataApprovalLevelService;
 
         ev.user = currentUserService.getCurrentUser();
@@ -259,7 +260,7 @@ class DataApprovalPermissionsEvaluator
 
         userApprovalLevel = USER_APPROVAL_LEVEL_CACHE.get( user.getId() + "-" + organisationUnitUid,
             c -> dataApprovalLevelService.getUserApprovalLevel( user,
-                organisationUnitService.getOrganisationUnit( organisationUnitUid ),
+                idObjectManager.get( OrganisationUnit.class, organisationUnitUid ),
                 dataApprovalWorkflow.getSortedLevels() ) );
 
         return userApprovalLevel;
