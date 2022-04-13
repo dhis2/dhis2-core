@@ -43,9 +43,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-/**
- * @author Ameen Mohamed
- */
 @RequiredArgsConstructor
 public class JdbcOrgUnitAssociationsStore
 {

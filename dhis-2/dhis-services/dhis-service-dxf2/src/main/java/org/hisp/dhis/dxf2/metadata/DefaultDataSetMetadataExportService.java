@@ -132,18 +132,18 @@ public class DefaultDataSetMetadataExportService
         ObjectNode rootNode = fieldFilterService.createObjectNode();
 
         rootNode.putArray( DataSetSchemaDescriptor.PLURAL )
-            .addAll( getDataSets( dataSets, dataSetOrgUnits ) );
+            .addAll( toDataSetObjectNodes( dataSets, dataSetOrgUnits ) );
         rootNode.putArray( DataElementSchemaDescriptor.PLURAL )
-            .addAll( asObjectNodes( dataElements, FIELDS_DATA_ELEMENTS, DataElement.class ) );
+            .addAll( toObjectNodes( dataElements, FIELDS_DATA_ELEMENTS, DataElement.class ) );
         rootNode.putArray( IndicatorSchemaDescriptor.PLURAL )
-            .addAll( asObjectNodes( indicators, FIELDS_INDICATORS, Indicator.class ) );
+            .addAll( toObjectNodes( indicators, FIELDS_INDICATORS, Indicator.class ) );
         rootNode.putArray( CategoryComboSchemaDescriptor.PLURAL )
-            .addAll( asObjectNodes( dataElementCategoryCombos, FIELDS_DATA_ELEMENT_CAT_COMBOS, CategoryCombo.class ) )
-            .addAll( asObjectNodes( dataSetCategoryCombos, FIELDS_DATA_SET_CAT_COMBOS, CategoryCombo.class ) );
+            .addAll( toObjectNodes( dataElementCategoryCombos, FIELDS_DATA_ELEMENT_CAT_COMBOS, CategoryCombo.class ) )
+            .addAll( toObjectNodes( dataSetCategoryCombos, FIELDS_DATA_SET_CAT_COMBOS, CategoryCombo.class ) );
         rootNode.putArray( CategorySchemaDescriptor.PLURAL )
-            .addAll( asObjectNodes( categories, FIELDS_CATEGORIES, Category.class ) );
+            .addAll( toObjectNodes( categories, FIELDS_CATEGORIES, Category.class ) );
         rootNode.putArray( CategoryOptionSchemaDescriptor.PLURAL )
-            .addAll( asObjectNodes( categoryOptions, FIELDS_CATEGORIES, CategoryOption.class ) );
+            .addAll( toObjectNodes( categoryOptions, FIELDS_CATEGORIES, CategoryOption.class ) );
 
         return rootNode;
     }
@@ -175,14 +175,15 @@ public class DefaultDataSetMetadataExportService
      *        organisation units.
      * @return data sets as a list of {@link ObjectNode}
      */
-    private List<ObjectNode> getDataSets( List<DataSet> dataSets, SetValuedMap<String, String> dataSetOrgUnits )
+    private List<ObjectNode> toDataSetObjectNodes( List<DataSet> dataSets,
+        SetValuedMap<String, String> dataSetOrgUnits )
     {
         List<ObjectNode> objectNodes = new ArrayList<>();
 
         for ( DataSet dataSet : dataSets )
         {
             ObjectNode objectNode = fieldFilterService.toObjectNode( dataSet, List.of( FIELDS_DATA_SETS ) );
-            objectNode.putArray( PROPERTY_ORGANISATION_UNITS ).add( getDataSetOrgUnits( dataSet, dataSetOrgUnits ) );
+            objectNode.putArray( PROPERTY_ORGANISATION_UNITS ).add( toOrgUnitsArrayNode( dataSet, dataSetOrgUnits ) );
             objectNodes.add( objectNode );
         }
 
@@ -198,7 +199,7 @@ public class DefaultDataSetMetadataExportService
      *        organisation units.
      * @return organisation unit associations for the given data set.
      */
-    private ArrayNode getDataSetOrgUnits( DataSet dataSet, SetValuedMap<String, String> dataSetOrgUnits )
+    private ArrayNode toOrgUnitsArrayNode( DataSet dataSet, SetValuedMap<String, String> dataSetOrgUnits )
     {
         ArrayNode arrayNode = fieldFilterService.createArrayNode();
         Set<String> orgUnits = dataSetOrgUnits.get( dataSet.getUid() );
@@ -215,7 +216,7 @@ public class DefaultDataSetMetadataExportService
      * @param type the class type.
      * @return an {@link ObjectNode}.
      */
-    private <T extends IdentifiableObject> List<ObjectNode> asObjectNodes(
+    private <T extends IdentifiableObject> List<ObjectNode> toObjectNodes(
         Collection<T> objects, String filters, Class<T> type )
     {
         FieldFilterParams<T> fieldFilterParams = FieldFilterParams.<T> builder()
