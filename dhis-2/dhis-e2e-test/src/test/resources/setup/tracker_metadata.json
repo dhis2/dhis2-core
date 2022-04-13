@@ -755,7 +755,7 @@
       "name": "TA Last name",
       "shortName": "TA Last name",
       "aggregationType": "NONE",
-      "displayInListNoProgram": false,
+      "displayInListNoProgram": true,
       "pattern": "",
       "skipSynchronization": false,
       "generated": false,
@@ -851,7 +851,7 @@
       "name": "TA First name",
       "shortName": "TA First name",
       "aggregationType": "NONE",
-      "displayInListNoProgram": false,
+      "displayInListNoProgram": true,
       "pattern": "",
       "skipSynchronization": false,
       "generated": false,
@@ -1844,7 +1844,7 @@
       "maxTeiCountToReturn": 0,
       "allowAuditLog": true,
       "featureType": "POLYGON",
-      "minAttributesRequiredToSearch": 1,
+      "minAttributesRequiredToSearch": 0,
       "sharing": {
         "owner": "M5zQapPyTZI",
         "userGroups": {
@@ -1867,8 +1867,8 @@
           "displayShortName": "null TA First name",
           "externalAccess": false,
           "valueType": "TEXT",
-          "searchable": false,
-          "displayInList": false,
+          "searchable": true,
+          "displayInList": true,
           "name": "TA Person TA First name",
           "favorite": false,
           "access": {
@@ -1904,8 +1904,8 @@
           "displayShortName": "null TA Last name",
           "externalAccess": false,
           "valueType": "TEXT",
-          "searchable": false,
-          "displayInList": false,
+          "searchable": true,
+          "displayInList": true,
           "name": "TA Person TA Last name",
           "favorite": false,
           "access": {
