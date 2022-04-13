@@ -39,7 +39,6 @@ import static org.springframework.http.MediaType.TEXT_XML_VALUE;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -55,7 +54,6 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
-import org.apache.commons.collections4.SetValuedMap;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -468,16 +466,6 @@ public class DataSetController
         }
 
         return MetadataExportControllerUtils.getWithDependencies( contextService, exportService, dataSet, download );
-    }
-
-    @ResponseBody
-    @GetMapping( value = "orgUnits" )
-    public Map<String, Collection<String>> getOrgUnitsAssociations(
-        @RequestParam Set<String> dataSets )
-    {
-        SetValuedMap<String, String> map = dataSetService.getDataSetOrganisationUnitsAssociations( dataSets );
-
-        return map.asMap();
     }
 
     /**
