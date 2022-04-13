@@ -115,6 +115,15 @@ public class KeyJsonValueControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
+    public void testGetKeysInNamespace_LastUpdatedFilter()
+    {
+        assertStatus( HttpStatus.CREATED, POST( "/dataStore/pets/cat", "{'answer': 42}" ) );
+        assertStatus( HttpStatus.CREATED, POST( "/dataStore/pets/dog", "{'answer': true}" ) );
+        assertTrue( GET( "/dataStore/pets?lastUpdated=" + (LocalDate.now().getYear() + 1) ).content().stringValues()
+            .isEmpty() );
+    }
+
+    @Test
     public void testGetKeysInNamespace_ProtectedNamespaceWhenRestricted()
     {
         setUpNamespaceProtection( "pets", ProtectionType.RESTRICTED, "pets-admin" );
