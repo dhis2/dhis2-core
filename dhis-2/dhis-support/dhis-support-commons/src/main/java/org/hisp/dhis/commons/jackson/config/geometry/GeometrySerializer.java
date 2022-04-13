@@ -40,15 +40,21 @@ import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.geom.Polygon;
 
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.RuntimeJsonMappingException;
 import com.fasterxml.jackson.databind.SerializerProvider;
 
+/**
+ * A custom serializer for a Geometry
+ */
+/*
+ * A custom serializer is needed as
+ * com.graphhopper.external:jackson-datatype-jts is obsolete and not compatible
+ * with last version of Hibernate library
+ */
 public class GeometrySerializer extends JsonSerializer<Geometry>
 {
-    public GeometrySerializer()
-    {
-    }
+    private static final String COORDINATES = "coordinates";
 
     public void serialize( Geometry value, JsonGenerator jgen, SerializerProvider provider )
         throws IOException
@@ -87,7 +93,7 @@ public class GeometrySerializer extends JsonSerializer<Geometry>
         {
             if ( !(value instanceof GeometryCollection) )
             {
-                throw new JsonMappingException( "Geometry type " + value.getClass().getName()
+                throw new RuntimeJsonMappingException( "Geometry type " + value.getClass().getName()
                     + " cannot be serialized as GeoJSON.Supported types are: "
                     + Arrays.asList( Point.class.getName(), LineString.class.getName(), Polygon.class.getName(),
                         MultiPoint.class.getName(), MultiLineString.class.getName(), MultiPolygon.class.getName(),
@@ -120,7 +126,7 @@ public class GeometrySerializer extends JsonSerializer<Geometry>
     {
         jgen.writeStartObject();
         jgen.writeStringField( "type", "MultiPoint" );
-        jgen.writeArrayFieldStart( "coordinates" );
+        jgen.writeArrayFieldStart( COORDINATES );
 
         for ( int i = 0; i != value.getNumGeometries(); ++i )
         {
@@ -136,7 +142,7 @@ public class GeometrySerializer extends JsonSerializer<Geometry>
     {
         jgen.writeStartObject();
         jgen.writeStringField( "type", "MultiLineString" );
-        jgen.writeArrayFieldStart( "coordinates" );
+        jgen.writeArrayFieldStart( COORDINATES );
 
         for ( int i = 0; i != value.getNumGeometries(); ++i )
         {
@@ -147,6 +153,7 @@ public class GeometrySerializer extends JsonSerializer<Geometry>
         jgen.writeEndObject();
     }
 
+    @Override
     public Class<Geometry> handledType()
     {
         return Geometry.class;
@@ -157,7 +164,7 @@ public class GeometrySerializer extends JsonSerializer<Geometry>
     {
         jgen.writeStartObject();
         jgen.writeStringField( "type", "MultiPolygon" );
-        jgen.writeArrayFieldStart( "coordinates" );
+        jgen.writeArrayFieldStart( COORDINATES );
 
         for ( int i = 0; i != value.getNumGeometries(); ++i )
         {
@@ -173,7 +180,7 @@ public class GeometrySerializer extends JsonSerializer<Geometry>
     {
         jgen.writeStartObject();
         jgen.writeStringField( "type", "Polygon" );
-        jgen.writeFieldName( "coordinates" );
+        jgen.writeFieldName( COORDINATES );
         this.writePolygonCoordinates( jgen, value );
         jgen.writeEndObject();
     }
@@ -211,7 +218,7 @@ public class GeometrySerializer extends JsonSerializer<Geometry>
     {
         jgen.writeStartObject();
         jgen.writeStringField( "type", "LineString" );
-        jgen.writeFieldName( "coordinates" );
+        jgen.writeFieldName( COORDINATES );
         this.writeLineStringCoords( jgen, lineString );
         jgen.writeEndObject();
     }
@@ -221,7 +228,7 @@ public class GeometrySerializer extends JsonSerializer<Geometry>
     {
         jgen.writeStartObject();
         jgen.writeStringField( "type", "Point" );
-        jgen.writeFieldName( "coordinates" );
+        jgen.writeFieldName( COORDINATES );
         this.writePointCoords( jgen, p );
         jgen.writeEndObject();
     }
