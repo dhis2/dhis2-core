@@ -29,25 +29,16 @@ package org.hisp.dhis.webapi.controller.linelist.trackedentity;
 
 import java.util.Collection;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.With;
 
 import org.hisp.dhis.webapi.controller.linelist.CommonLineListingRequest;
 
-import com.fasterxml.jackson.annotation.JsonUnwrapped;
-
-@With
 @Getter
 @Setter
-@AllArgsConstructor
-public class TrackedEntityLineListingRequest
+public class TrackedEntityLineListingRequest extends CommonLineListingRequest
 {
     private String trackedEntityType;
 
     private Collection<String> programs;
-
-    @JsonUnwrapped
-    private CommonLineListingRequest commonLineListingRequest;
 }
