@@ -161,7 +161,8 @@ public enum JobType
             || this == TRACKER_PROGRAMS_DATA_SYNC
             || this == DATA_SYNC
             || this == SMS_SEND
-            || this == PUSH_ANALYSIS;
+            || this == PUSH_ANALYSIS
+            || this == PREDICTOR;
     }
 
     public boolean isUsingErrorNotification()

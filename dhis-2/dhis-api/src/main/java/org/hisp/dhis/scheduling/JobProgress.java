@@ -273,6 +273,33 @@ public interface JobProgress
     default <T> boolean runStage( Stream<T> items, Function<T, String> description, Consumer<T> work,
         BiFunction<Integer, Integer, String> summary )
     {
+        return runStage( items, description, null, item -> {
+            work.accept( item );
+            return null;
+        }, summary );
+    }
+
+    /**
+     * Run work items as sequence using a {@link Stream} of work item inputs and
+     * an execution work {@link Consumer} function.
+     * <p>
+     * The entire stage only is considered failed in case a failing work item
+     * caused a change of the cancellation requested status.
+     *
+     * @param items stream of inputs to execute a work item
+     * @param description function to extract a description for a work item, may
+     *        return {@code null}
+     * @param result function to extract a result summary for a successful work
+     *        item, may return {@code  null}
+     * @param work function to execute the work of a single work item input
+     * @param summary accepts number of successful and failed items to compute a
+     *        summary, may return {@code null}
+     * @param <T> type of work item input
+     * @return true if all items were processed successful, otherwise false
+     */
+    default <T, R> boolean runStage( Stream<T> items, Function<T, String> description, Function<R, String> result,
+        Function<T, R> work, BiFunction<Integer, Integer, String> summary )
+    {
         int i = 0;
         int failed = 0;
         for ( Iterator<T> it = items.iterator(); it.hasNext(); )
@@ -296,8 +323,8 @@ public interface JobProgress
             i++;
             try
             {
-                work.accept( item );
-                completedWorkItem( null );
+                R res = work.apply( item );
+                completedWorkItem( result == null ? null : result.apply( res ) );
             }
             catch ( RuntimeException ex )
             {
