@@ -75,13 +75,13 @@ public class DefaultDataSetService
 
     private final DataApprovalService dataApprovalService;
 
-    @Qualifier( "jdbcDataSetOrgUnitAssociationsStore" )
     private final JdbcOrgUnitAssociationsStore jdbcOrgUnitAssociationsStore;
 
     private CurrentUserService currentUserService;
 
     public DefaultDataSetService( DataSetStore dataSetStore, LockExceptionStore lockExceptionStore,
-        @Lazy DataApprovalService dataApprovalService, JdbcOrgUnitAssociationsStore jdbcOrgUnitAssociationsStore,
+        @Lazy DataApprovalService dataApprovalService,
+        @Qualifier( "jdbcDataSetOrgUnitAssociationsStore" ) JdbcOrgUnitAssociationsStore jdbcOrgUnitAssociationsStore,
         CurrentUserService currentUserService )
     {
         checkNotNull( dataSetStore );
