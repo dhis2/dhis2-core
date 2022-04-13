@@ -39,6 +39,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.SetValuedMap;
+import org.hisp.dhis.association.jdbc.JdbcOrgUnitAssociationsStore;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataapproval.DataApprovalService;
 import org.hisp.dhis.dataelement.DataElement;
@@ -46,7 +47,6 @@ import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.program.jdbc.JdbcOrgUnitAssociationsStore;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.user.CurrentUserService;

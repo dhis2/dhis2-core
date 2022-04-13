@@ -35,11 +35,11 @@ import java.util.Set;
 import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.collections4.SetValuedMap;
+import org.hisp.dhis.association.jdbc.JdbcOrgUnitAssociationsStore;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.jdbc.JdbcOrgUnitAssociationsStore;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
