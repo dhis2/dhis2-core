@@ -39,6 +39,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.time.LocalDate;
+
 import org.hisp.dhis.datastore.DatastoreEntry;
 import org.hisp.dhis.datastore.DatastoreNamespaceProtection;
 import org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionType;
@@ -110,6 +112,15 @@ class DatastoreControllerTest extends DhisControllerConvenienceTest
     {
         assertEquals( "Namespace not found: 'missing'",
             GET( "/dataStore/missing" ).error( HttpStatus.NOT_FOUND ).getMessage() );
+    }
+
+    @Test
+    void testGetKeysInNamespace_LastUpdatedFilter()
+    {
+        assertStatus( HttpStatus.CREATED, POST( "/dataStore/pets/cat", "{'answer': 42}" ) );
+        assertStatus( HttpStatus.CREATED, POST( "/dataStore/pets/dog", "{'answer': true}" ) );
+        assertTrue( GET( "/dataStore/pets?lastUpdated=" + (LocalDate.now().getYear() + 1) ).content().stringValues()
+            .isEmpty() );
     }
 
     @Test
