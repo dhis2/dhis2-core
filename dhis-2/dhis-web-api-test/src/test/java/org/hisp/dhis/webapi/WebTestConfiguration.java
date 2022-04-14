@@ -36,6 +36,7 @@ import javax.transaction.Transactional;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.hisp.dhis.association.jdbc.JdbcOrgUnitAssociationStoreConfiguration;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.commons.util.DebugUtils;
@@ -56,7 +57,6 @@ import org.hisp.dhis.jdbc.config.JdbcConfig;
 import org.hisp.dhis.leader.election.LeaderElectionConfiguration;
 import org.hisp.dhis.leader.election.LeaderManager;
 import org.hisp.dhis.message.MessageService;
-import org.hisp.dhis.program.jdbc.JdbcOrgUnitAssociationStoreConfiguration;
 import org.hisp.dhis.scheduling.AbstractSchedulingManager;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;

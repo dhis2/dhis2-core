@@ -25,41 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.jdbc;
+package org.hisp.dhis.association;
 
-import lombok.RequiredArgsConstructor;
+import lombok.AccessLevel;
+import lombok.Getter;
 
-import org.hisp.dhis.association.CategoryOptionOrganisationUnitAssociationsQueryBuilder;
-import org.hisp.dhis.association.ProgramOrganisationUnitAssociationsQueryBuilder;
-import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.user.CurrentUserService;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Service;
 
-@Configuration
-@RequiredArgsConstructor
-public class JdbcOrgUnitAssociationStoreConfiguration
+@Service
+public class DataSetOrganisationUnitAssociationsQueryBuilder
+    extends AbstractOrganisationUnitAssociationsQueryBuilder
 {
+    @Getter( AccessLevel.PROTECTED )
+    private final String relationshipTableName = "datasetsource";
 
-    private final CacheProvider cacheProvider;
+    @Getter( AccessLevel.PROTECTED )
+    private final String orgUnitJoinColumnName = "sourceid";
 
-    @Bean( "jdbcProgramOrgUnitAssociationsStore" )
-    JdbcOrgUnitAssociationsStore jdbcProgramOrgUnitAssociationStore( CurrentUserService currentUserService,
-        JdbcTemplate jdbcTemplate )
+    @Getter( AccessLevel.PROTECTED )
+    private final String joinColumnName = "datasetid";
+
+    @Getter( AccessLevel.PROTECTED )
+    private final String baseTableName = "dataset";
+
+    public DataSetOrganisationUnitAssociationsQueryBuilder( CurrentUserService currentUserService )
     {
-        return new JdbcOrgUnitAssociationsStore( currentUserService, jdbcTemplate,
-            new ProgramOrganisationUnitAssociationsQueryBuilder( currentUserService ),
-            cacheProvider.createProgramOrgUnitAssociationCache() );
+        super( currentUserService );
     }
-
-    @Bean( "jdbcCategoryOptionOrgUnitAssociationsStore" )
-    JdbcOrgUnitAssociationsStore jdbcCategoryOptionOrgUnitAssociationStore( CurrentUserService currentUserService,
-        JdbcTemplate jdbcTemplate )
-    {
-        return new JdbcOrgUnitAssociationsStore( currentUserService, jdbcTemplate,
-            new CategoryOptionOrganisationUnitAssociationsQueryBuilder( currentUserService ),
-            cacheProvider.createCatOptOrgUnitAssociationCache() );
-    }
-
 }
