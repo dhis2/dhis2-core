@@ -121,8 +121,8 @@ public interface JobProgress
     boolean isCancellationRequested();
 
     /**
-     * @return true, if the currently running stage should be skipped.
-     * By default, this is only the case if cancellation was requested.
+     * @return true, if the currently running stage should be skipped. By
+     *         default, this is only the case if cancellation was requested.
      */
     default boolean isSkipCurrentStage()
     {
@@ -173,7 +173,8 @@ public interface JobProgress
     void startingStage( String description, int workItems, FaultTolerance onFailure )
         throws CancellationException;
 
-    default void startingStage( String description, int workItems ) {
+    default void startingStage( String description, int workItems )
+    {
         startingStage( description, workItems, FaultTolerance.PARENT );
     }
 
@@ -196,7 +197,8 @@ public interface JobProgress
         failedStage( getMessage( cause ) );
     }
 
-    default void startingWorkItem( String description ) {
+    default void startingWorkItem( String description )
+    {
         startingWorkItem( description, FaultTolerance.PARENT );
     }
 
@@ -355,7 +357,8 @@ public interface JobProgress
                 failedWorkItem( ex );
                 if ( isSkipCurrentStage() )
                 {
-                    String action = isCancellationRequested() ? "request for cancellation" : "skipping the current stage";
+                    String action = isCancellationRequested() ? "request for cancellation"
+                        : "skipping the current stage";
                     failedStage( new CancellationException( "skipped as failing item caused " + action ) );
                     return false;
                 }
@@ -537,18 +540,19 @@ public interface JobProgress
     enum FaultTolerance
     {
         /**
-         * Default used to "inherit" the behaviour from the node level above.
-         * If the root is not specified the behaviour is {@link #FAIL}.
+         * Default used to "inherit" the behaviour from the node level above. If
+         * the root is not specified the behaviour is {@link #FAIL}.
          */
         PARENT,
         /**
-         * Fail and abort processing as soon as possible.
-         * This is the effective default.
+         * Fail and abort processing as soon as possible. This is the effective
+         * default.
          */
         FAIL,
         /**
-         * When an item or stage fails the entire stage is skipped/ignored unconditionally.
-         * This means no further items are processed in the stage.
+         * When an item or stage fails the entire stage is skipped/ignored
+         * unconditionally. This means no further items are processed in the
+         * stage.
          */
         SKIP_STAGE,
         /**
@@ -556,10 +560,11 @@ public interface JobProgress
          */
         SKIP_ITEM,
         /**
-         * Same as {@link #SKIP_ITEM} but only if there has been a successfully completed item before.
-         * Otherwise, behaves like {@link #FAIL}.
+         * Same as {@link #SKIP_ITEM} but only if there has been a successfully
+         * completed item before. Otherwise, behaves like {@link #FAIL}.
          *
-         * This option is useful to only skip when it has been proven that the processing in general works but some items just have issues.
+         * This option is useful to only skip when it has been proven that the
+         * processing in general works but some items just have issues.
          */
         SKIP_ITEM_OUTLIER
     }
@@ -625,6 +630,7 @@ public interface JobProgress
         {
             return job.isEmpty() ? defaultValue : job.iterator().next().getStartedTime();
         }
+
         private final Date startedTime = new Date();
 
         @JsonProperty

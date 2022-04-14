@@ -203,7 +203,7 @@ public class ControlledJobProgress implements JobProgress
         tracker.failedStage( error );
         Stage stage = getOrAddLastIncompleteStage();
         stage.completeExceptionally( error, null );
-        if (stage.getOnFailure() != FaultTolerance.SKIP_STAGE)
+        if ( stage.getOnFailure() != FaultTolerance.SKIP_STAGE )
         {
             automaticAbort( error, null );
         }
@@ -218,7 +218,7 @@ public class ControlledJobProgress implements JobProgress
         String message = getMessage( cause );
         Stage stage = getOrAddLastIncompleteStage();
         stage.completeExceptionally( message, cause );
-        if (stage.getOnFailure() != FaultTolerance.SKIP_STAGE)
+        if ( stage.getOnFailure() != FaultTolerance.SKIP_STAGE )
         {
             automaticAbort( message, cause );
             sendErrorNotification( stage, cause );
@@ -249,7 +249,7 @@ public class ControlledJobProgress implements JobProgress
         tracker.failedWorkItem( error );
         Item item = getOrAddLastIncompleteItem();
         item.completeExceptionally( error, null );
-        if (!isSkipped( item ))
+        if ( !isSkipped( item ) )
         {
             automaticAbort( error, null );
         }
@@ -263,7 +263,7 @@ public class ControlledJobProgress implements JobProgress
         String message = getMessage( cause );
         Item item = getOrAddLastIncompleteItem();
         item.completeExceptionally( message, cause );
-        if (!isSkipped( item ) )
+        if ( !isSkipped( item ) )
         {
             automaticAbort( message, cause );
             sendErrorNotification( item, cause );
@@ -274,7 +274,8 @@ public class ControlledJobProgress implements JobProgress
     private boolean isSkipped( Item item )
     {
         FaultTolerance onFailure = item.getOnFailure();
-        if (onFailure == FaultTolerance.SKIP_STAGE) {
+        if ( onFailure == FaultTolerance.SKIP_STAGE )
+        {
             skipCurrentStage.set( true );
             return true;
         }
@@ -338,7 +339,7 @@ public class ControlledJobProgress implements JobProgress
     private Stage addStageRecord( Process process, String description, int totalItems, FaultTolerance onFailure )
     {
         Deque<Stage> stages = process.getStages();
-        Stage stage = new Stage(description, totalItems,
+        Stage stage = new Stage( description, totalItems,
             onFailure == FaultTolerance.PARENT ? FaultTolerance.FAIL : onFailure );
         stages.addLast( stage );
         incompleteStage.set( stage );
@@ -367,8 +368,8 @@ public class ControlledJobProgress implements JobProgress
     {
         return cause instanceof CancellationException
             && (abortAfterFailure.get() || skipCurrentStage.get())
-            ? new RuntimeException( "processing aborted: " + getMessage( cause ) )
-            : cause;
+                ? new RuntimeException( "processing aborted: " + getMessage( cause ) )
+                : cause;
     }
 
     private void sendErrorNotification( Node node, Exception cause )

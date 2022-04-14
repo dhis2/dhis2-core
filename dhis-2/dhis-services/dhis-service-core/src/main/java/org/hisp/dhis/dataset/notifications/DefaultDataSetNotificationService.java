@@ -463,7 +463,7 @@ public class DefaultDataSetNotificationService implements DataSetNotificationSer
             SKIP_ITEM_OUTLIER );
         progress.runStage( null,
             status -> "Resulting status from ProgramMessageService:\n " + status.toString(),
-            () ->externalMessageService.sendMessages( messages ));
+            () -> externalMessageService.sendMessages( messages ) );
     }
 
     private void sendBatch( String type, MessageBatch batch, JobProgress progress )

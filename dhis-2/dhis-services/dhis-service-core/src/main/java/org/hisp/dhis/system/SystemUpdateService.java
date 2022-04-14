@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.system;
 
+import static org.hisp.dhis.scheduling.JobProgress.FaultTolerance.SKIP_ITEM_OUTLIER;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -58,8 +60,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.vdurmont.semver4j.Semver;
-
-import static org.hisp.dhis.scheduling.JobProgress.FaultTolerance.SKIP_ITEM_OUTLIER;
 
 /**
  * @author Morten Svanaes

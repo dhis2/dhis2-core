@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.scheduling;
 
-import java.util.concurrent.CancellationException;
-
 /**
  * The {@link NoopJobProgress} can be used as a {@link JobProgress} instance
  * when no actual flow control and tracking is wanted. For example in test
