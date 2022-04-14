@@ -56,6 +56,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.Note;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
@@ -223,6 +224,12 @@ public class TrackerIdentifierCollector
                     relationship.getTo().getEvent() == null ? null : relationship.getTo().getEvent().getEvent() );
             }
         } );
+    }
+
+    private <T> void addIdentifier( Map<Class<?>, Set<String>> identifiers, Class<T> klass,
+        MetadataIdentifier identifier )
+    {
+        addIdentifier( identifiers, klass, identifier == null ? null : identifier.getIdentifierOrAttributeValue() );
     }
 
     private <T> void addIdentifier( Map<Class<?>, Set<String>> identifiers, Class<T> klass, String identifier )

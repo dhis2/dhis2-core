@@ -25,24 +25,37 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export;
+package org.hisp.dhis.webapi.controller.tracker.imports;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
+import org.hisp.dhis.webapi.controller.tracker.view.Enrollment;
+import org.hisp.dhis.webapi.controller.tracker.view.Event;
+import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
+import org.hisp.dhis.webapi.controller.tracker.view.RelationshipItem;
+import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
+import org.mapstruct.Context;
+import org.mapstruct.Mapper;
 
-public interface DomainMapper<FROM, TO>
+@Mapper( uses = {
+    AttributeMapper.class,
+    DataValueMapper.class,
+    ProgramOwnerMapper.class,
+    NoteMapper.class,
+    InstantMapper.class,
+    UserMapper.class,
+} )
+interface RelationshipItemMapper
+    extends DomainMapper<RelationshipItem, org.hisp.dhis.tracker.domain.RelationshipItem>
 {
-    TO from( FROM from );
+    org.hisp.dhis.tracker.domain.RelationshipItem from( RelationshipItem relationshipItem,
+        @Context TrackerIdSchemeParams idSchemeParams );
 
-    default List<TO> fromCollection( Collection<FROM> froms )
-    {
-        return Optional.ofNullable( froms )
-            .orElse( Collections.emptySet() )
-            .stream()
-            .map( this::from )
-            .collect( Collectors.toList() );
-    }
+    org.hisp.dhis.tracker.domain.RelationshipItem.TrackedEntity from( TrackedEntity trackedEntity,
+        @Context TrackerIdSchemeParams idSchemeParams );
+
+    org.hisp.dhis.tracker.domain.RelationshipItem.Enrollment from( Enrollment enrollment,
+        @Context TrackerIdSchemeParams idSchemeParams );
+
+    org.hisp.dhis.tracker.domain.RelationshipItem.Event from( Event event,
+        @Context TrackerIdSchemeParams idSchemeParams );
 }

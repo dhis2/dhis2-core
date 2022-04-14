@@ -147,7 +147,7 @@ class TrackerImportParamsBuilderTest
         TrackerImportParams params = TrackerImportParamsBuilder.build( paramMap );
 
         assertThat( params.getIdSchemes().getProgramIdScheme().getIdScheme(), is( TrackerIdScheme.UID ) );
-        assertNull( params.getIdSchemes().getProgramIdScheme().getValue() );
+        assertNull( params.getIdSchemes().getProgramIdScheme().getAttributeUid() );
     }
 
     @Test
@@ -159,7 +159,7 @@ class TrackerImportParamsBuilderTest
         TrackerImportParams params = TrackerImportParamsBuilder.build( paramMap );
 
         assertThat( params.getIdSchemes().getProgramIdScheme().getIdScheme(), is( TrackerIdScheme.UID ) );
-        assertNull( params.getIdSchemes().getProgramIdScheme().getValue() );
+        assertNull( params.getIdSchemes().getProgramIdScheme().getAttributeUid() );
     }
 
     @Test
@@ -171,7 +171,7 @@ class TrackerImportParamsBuilderTest
         TrackerImportParams params = TrackerImportParamsBuilder.build( paramMap );
 
         assertThat( params.getIdSchemes().getProgramIdScheme().getIdScheme(), is( TrackerIdScheme.UID ) );
-        assertNull( params.getIdSchemes().getProgramIdScheme().getValue() );
+        assertNull( params.getIdSchemes().getProgramIdScheme().getAttributeUid() );
     }
 
     @Test
@@ -181,7 +181,7 @@ class TrackerImportParamsBuilderTest
         TrackerImportParams params = TrackerImportParamsBuilder.build( paramMap );
 
         assertThat( params.getIdSchemes().getProgramIdScheme().getIdScheme(), is( TrackerIdScheme.ATTRIBUTE ) );
-        assertThat( params.getIdSchemes().getProgramIdScheme().getValue(), is( "WSiOAALYocA" ) );
+        assertThat( params.getIdSchemes().getProgramIdScheme().getAttributeUid(), is( "WSiOAALYocA" ) );
     }
 
     @Test
