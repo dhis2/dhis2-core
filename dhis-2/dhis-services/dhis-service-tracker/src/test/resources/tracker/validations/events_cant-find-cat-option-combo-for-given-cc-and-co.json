@@ -40,7 +40,10 @@
         "idScheme": "UID",
         "identifier": "YYY1E9tAppy"
       },
-      "programStage": "Pmqxq907VNz",
+      "programStage": {
+        "idScheme": "UID",
+        "identifier": "Pmqxq907VNz"
+      },
       "enrollment": "KNWZ6hnuhSw",
       "orgUnit": "QfUVllTs6cS",
       "relationships": [],

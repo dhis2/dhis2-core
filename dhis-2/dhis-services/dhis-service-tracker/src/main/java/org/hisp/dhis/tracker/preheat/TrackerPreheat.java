@@ -338,6 +338,7 @@ public class TrackerPreheat
     @Setter
     private List<String> programInstanceWithOneOrMoreNonDeletedEvent = Lists.newArrayList();
 
+    // TODO(DHIS2-12563) should this key be a MetadataIdentifier?
     /**
      * A list of Program Stage UID having 1 or more Events
      */
@@ -756,6 +757,11 @@ public class TrackerPreheat
     public OrganisationUnit getOrganisationUnit( String id )
     {
         return get( OrganisationUnit.class, id );
+    }
+
+    public ProgramStage getProgramStage( MetadataIdentifier id )
+    {
+        return get( ProgramStage.class, id );
     }
 
     public ProgramStage getProgramStage( String id )

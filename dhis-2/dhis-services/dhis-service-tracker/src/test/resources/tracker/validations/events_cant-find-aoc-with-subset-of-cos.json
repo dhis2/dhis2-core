@@ -40,7 +40,10 @@
         "idScheme": "UID",
         "identifier": "o4dcWCsO6p9"
       },
-      "programStage": "A9dLfii5MEu",
+      "programStage": {
+        "idScheme": "UID",
+        "identifier": "A9dLfii5MEu"
+      },
       "orgUnit": "QfUVllTs6cS",
       "relationships": [],
       "occurredAt": "2019-08-01T00:00:00.000",

@@ -37,6 +37,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
@@ -55,7 +56,8 @@ public class RepeatedEventsValidationHook
     @Override
     public void validate( ValidationErrorReporter reporter, TrackerBundle bundle )
     {
-        Map<Pair<String, String>, List<Event>> eventsByEnrollmentAndNotRepeatableProgramStage = bundle.getEvents()
+        Map<Pair<MetadataIdentifier, String>, List<Event>> eventsByEnrollmentAndNotRepeatableProgramStage = bundle
+            .getEvents()
             .stream()
             .filter( e -> !reporter.isInvalid( e ) )
             .filter( e -> !bundle.getStrategy( e ).isDelete() )
@@ -65,14 +67,15 @@ public class RepeatedEventsValidationHook
             } )
             .collect( Collectors.groupingBy( e -> Pair.of( e.getProgramStage(), e.getEnrollment() ) ) );
 
-        for ( Map.Entry<Pair<String, String>, List<Event>> mapEntry : eventsByEnrollmentAndNotRepeatableProgramStage
+        for ( Map.Entry<Pair<MetadataIdentifier, String>, List<Event>> mapEntry : eventsByEnrollmentAndNotRepeatableProgramStage
             .entrySet() )
         {
             if ( mapEntry.getValue().size() > 1 )
             {
                 for ( Event event : mapEntry.getValue() )
                 {
-                    reporter.addError( event, TrackerErrorCode.E1039, mapEntry.getKey().getLeft() );
+                    reporter.addError( event, TrackerErrorCode.E1039,
+                        mapEntry.getKey().getLeft().getIdentifierOrAttributeValue() );
                 }
             }
         }
@@ -93,7 +96,7 @@ public class RepeatedEventsValidationHook
             && programStageHasEvents( bundle.getPreheat(), programStage.getUid(),
                 programInstance.getUid() ) )
         {
-            reporter.addError( event, TrackerErrorCode.E1039, event.getProgramStage() );
+            reporter.addError( event, TrackerErrorCode.E1039, event.getProgramStage().getIdentifierOrAttributeValue() );
         }
     }
 

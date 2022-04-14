@@ -50,6 +50,7 @@ import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -90,7 +91,7 @@ class TrackerPreheatIdentifiersTest extends TrackerTest
         for ( Pair<String, TrackerIdSchemeParam> pair : data )
         {
             Event event = new Event();
-            event.setProgramStage( pair.getLeft() );
+            event.setProgramStage( MetadataIdentifier.ofUid( pair.getLeft() ) );
             TrackerImportParams params = buildParams( event,
                 builder().programStageIdScheme( pair.getRight() ).build() );
             TrackerPreheat preheat = trackerPreheatService.preheat( params );
@@ -105,7 +106,7 @@ class TrackerPreheatIdentifiersTest extends TrackerTest
         for ( Pair<String, TrackerIdSchemeParam> pair : data )
         {
             Event event = new Event();
-            event.setProgramStage( "NpsdDv6kKSO" );
+            event.setProgramStage( MetadataIdentifier.ofUid( "NpsdDv6kKSO" ) );
             DataValue dv1 = new DataValue();
             dv1.setDataElement( pair.getLeft() );
             dv1.setValue( "val1" );

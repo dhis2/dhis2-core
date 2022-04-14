@@ -44,11 +44,10 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
-import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -96,7 +95,7 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
     @Test
     void testSingleEventIsPassingValidation()
     {
-        when( preheat.getProgramStage( NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION ) )
+        when( preheat.getProgramStage( MetadataIdentifier.ofUid( NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION ) ) )
             .thenReturn( notRepeatebleProgramStageWithRegistration() );
         List<Event> events = Lists.newArrayList( notRepeatableEvent( "A" ) );
         bundle.setEvents( events );
@@ -111,7 +110,7 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
     @Test
     void testOneEventInNotRepeatableProgramStageAndOneAlreadyOnDBAreNotPassingValidation()
     {
-        when( preheat.getProgramStage( NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION ) )
+        when( preheat.getProgramStage( MetadataIdentifier.ofUid( NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION ) ) )
             .thenReturn( notRepeatebleProgramStageWithRegistration() );
         // given
         Event event = notRepeatableEvent( "A" );
@@ -123,7 +122,8 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
 
         when( preheat.getEnrollment( event.getEnrollment() ) ).thenReturn( programInstance );
         when( preheat.getProgramStageWithEvents() )
-            .thenReturn( Lists.newArrayList( Pair.of( event.getProgramStage(), event.getEnrollment() ) ) );
+            .thenReturn(
+                Lists.newArrayList( Pair.of( event.getProgramStage().getIdentifier(), event.getEnrollment() ) ) );
         bundle.setEvents( Lists.newArrayList( event ) );
         ValidationErrorReporter errorReporter = new ValidationErrorReporter( bundle );
 
@@ -142,7 +142,7 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
     @Test
     void testTwoEventInNotRepeatableProgramStageAreNotPassingValidation()
     {
-        when( preheat.getProgramStage( NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION ) )
+        when( preheat.getProgramStage( MetadataIdentifier.ofUid( NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION ) ) )
             .thenReturn( notRepeatebleProgramStageWithRegistration() );
         List<Event> events = Lists.newArrayList( notRepeatableEvent( "A" ), notRepeatableEvent( "B" ) );
         bundle.setEvents( events );
@@ -152,13 +152,13 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
         validatorToTest.validate( errorReporter, bundle );
 
         assertEquals( 2, errorReporter.getReportList().size() );
-        assertThat( errorReporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E1039 ) );
+        assertThat( errorReporter.getReportList().get( 0 ).getErrorCode(), is( E1039 ) );
         assertThat( errorReporter.getReportList().get( 0 ).getTrackerType(), is( EVENT ) );
         assertThat( errorReporter.getReportList().get( 0 ).getUid(), is( events.get( 0 ).getUid() ) );
         assertThat( errorReporter.getReportList().get( 0 ).getErrorMessage(),
             is( "ProgramStage: `" + NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION +
                 "`, is not repeatable and an event already exists." ) );
-        assertThat( errorReporter.getReportList().get( 1 ).getErrorCode(), is( TrackerErrorCode.E1039 ) );
+        assertThat( errorReporter.getReportList().get( 1 ).getErrorCode(), is( E1039 ) );
         assertThat( errorReporter.getReportList().get( 1 ).getTrackerType(), is( EVENT ) );
         assertThat( errorReporter.getReportList().get( 1 ).getUid(), is( events.get( 1 ).getUid() ) );
         assertThat( errorReporter.getReportList().get( 1 ).getErrorMessage(),
@@ -169,7 +169,7 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
     @Test
     void testTwoEventInRepeatableProgramStageArePassingValidation()
     {
-        when( preheat.getProgramStage( REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION ) )
+        when( preheat.getProgramStage( MetadataIdentifier.ofUid( REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION ) ) )
             .thenReturn( repeatebleProgramStageWithRegistration() );
         List<Event> events = Lists.newArrayList( repeatableEvent( "A" ), repeatableEvent( "B" ) );
         bundle.setEvents( events );
@@ -184,14 +184,14 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
     @Test
     void testTwoEventsInNotRepeatableProgramStageWhenOneIsInvalidArePassingValidation()
     {
-        when( preheat.getProgramStage( NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION ) )
+        when( preheat.getProgramStage( MetadataIdentifier.ofUid( NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION ) ) )
             .thenReturn( notRepeatebleProgramStageWithRegistration() );
         Event invalidEvent = notRepeatableEvent( "A" );
         List<Event> events = Lists.newArrayList( invalidEvent, notRepeatableEvent( "B" ) );
         bundle.setEvents( events );
         events.forEach( e -> bundle.setStrategy( e, TrackerImportStrategy.CREATE_AND_UPDATE ) );
         ValidationErrorReporter errorReporter = ValidationErrorReporter.emptyReporter();
-        errorReporter.getInvalidDTOs().put( TrackerType.EVENT, Lists.newArrayList( invalidEvent.getUid() ) );
+        errorReporter.getInvalidDTOs().put( EVENT, Lists.newArrayList( invalidEvent.getUid() ) );
 
         validatorToTest.validate( errorReporter, bundle );
 
@@ -201,7 +201,7 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
     @Test
     void testTwoEventsInNotRepeatableProgramStageButInDifferentEnrollmentsArePassingValidation()
     {
-        when( preheat.getProgramStage( NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION ) )
+        when( preheat.getProgramStage( MetadataIdentifier.ofUid( NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION ) ) )
             .thenReturn( notRepeatebleProgramStageWithRegistration() );
         Event eventEnrollmentA = notRepeatableEvent( "A" );
         Event eventEnrollmentB = notRepeatableEvent( "B" );
@@ -219,7 +219,7 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
     @Test
     void testTwoProgramEventsInSameProgramStageArePassingValidation()
     {
-        when( preheat.getProgramStage( NOT_REPEATABLE_PROGRAM_STAGE_WITHOUT_REGISTRATION ) )
+        when( preheat.getProgramStage( MetadataIdentifier.ofUid( NOT_REPEATABLE_PROGRAM_STAGE_WITHOUT_REGISTRATION ) ) )
             .thenReturn( notRepeatebleProgramStageWithoutRegistration() );
         Event eventProgramA = programEvent( "A" );
         Event eventProgramB = programEvent( "B" );
@@ -283,7 +283,7 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
     {
         Event event = new Event();
         event.setEvent( uid );
-        event.setProgramStage( NOT_REPEATABLE_PROGRAM_STAGE_WITHOUT_REGISTRATION );
+        event.setProgramStage( MetadataIdentifier.ofUid( NOT_REPEATABLE_PROGRAM_STAGE_WITHOUT_REGISTRATION ) );
         return event;
     }
 
@@ -292,7 +292,7 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
         Event event = new Event();
         event.setEvent( uid );
         event.setEnrollment( ENROLLMENT_A );
-        event.setProgramStage( NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION );
+        event.setProgramStage( MetadataIdentifier.ofUid( NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION ) );
         return event;
     }
 
@@ -301,7 +301,7 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
         Event event = new Event();
         event.setEvent( uid );
         event.setEnrollment( ENROLLMENT_A );
-        event.setProgramStage( REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION );
+        event.setProgramStage( MetadataIdentifier.ofUid( REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION ) );
         return event;
     }
 }

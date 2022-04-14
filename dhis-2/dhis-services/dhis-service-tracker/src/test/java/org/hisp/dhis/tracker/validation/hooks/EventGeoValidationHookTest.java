@@ -42,6 +42,7 @@ import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.junit.jupiter.api.BeforeEach;
@@ -81,7 +82,8 @@ class EventGeoValidationHookTest
 
         ProgramStage programStage = new ProgramStage();
         programStage.setFeatureType( FeatureType.POINT );
-        when( preheat.getProgramStage( PROGRAM_STAGE ) ).thenReturn( programStage );
+        when( preheat.getProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE ) ) )
+            .thenReturn( programStage );
     }
 
     @Test
@@ -89,7 +91,7 @@ class EventGeoValidationHookTest
     {
         // given
         Event event = new Event();
-        event.setProgramStage( PROGRAM_STAGE );
+        event.setProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE ) );
         event.setGeometry( new GeometryFactory().createPoint() );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
@@ -121,7 +123,7 @@ class EventGeoValidationHookTest
         // given
         Event event = new Event();
         event.setEvent( CodeGenerator.generateUid() );
-        event.setProgramStage( PROGRAM_STAGE );
+        event.setProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE ) );
         event.setGeometry( new GeometryFactory().createPoint() );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
@@ -141,7 +143,7 @@ class EventGeoValidationHookTest
         // given
         Event event = new Event();
         event.setEvent( CodeGenerator.generateUid() );
-        event.setProgramStage( PROGRAM_STAGE );
+        event.setProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE ) );
         event.setGeometry( new GeometryFactory().createPoint() );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
@@ -163,7 +165,7 @@ class EventGeoValidationHookTest
         // given
         Event event = new Event();
         event.setEvent( CodeGenerator.generateUid() );
-        event.setProgramStage( PROGRAM_STAGE );
+        event.setProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE ) );
         event.setGeometry( new GeometryFactory().createPoint() );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
