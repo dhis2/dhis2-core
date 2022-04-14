@@ -29,6 +29,7 @@ package org.hisp.dhis.trackedentityattributevalue;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.String.format;
+import static org.hisp.dhis.scheduling.JobProgress.FaultTolerance.SKIP_ITEM_OUTLIER;
 
 import java.util.HashSet;
 import java.util.List;
@@ -37,6 +38,7 @@ import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
@@ -168,7 +170,7 @@ public class TrackerTrigramIndexingJob implements Job
         Set<Long> teaIds = new HashSet<>( teaIdList );
 
         // Collect tea ids of all indexable attributets
-        Set<Long> allIndexableAttributeIds = allIndexableAttributes.stream().map( tea -> tea.getId() ).collect(
+        Set<Long> allIndexableAttributeIds = allIndexableAttributes.stream().map( BaseIdentifiableObject::getId ).collect(
             Collectors.toSet() );
 
         log.debug( "Found total {} trigram indexes in db", teaIds.size() );
@@ -182,12 +184,10 @@ public class TrackerTrigramIndexingJob implements Job
 
         log.debug( "Found total {} obsolete trigram indexes in db", teaIds.size() );
 
-        progress.startingStage( "Deleting obsolete trigram indexes", teaIds.size() );
+        progress.startingStage( "Deleting obsolete trigram indexes", teaIds.size(), SKIP_ITEM_OUTLIER );
         progress.runStage( teaIds.stream(), Object::toString,
-            teaId -> trackedEntityAttributeTableManager.dropTrigramIndex( teaId ),
+            trackedEntityAttributeTableManager::dropTrigramIndex,
             TrackerTrigramIndexingJob::computeTrigramIndexingDropSummary );
-        progress.completedStage( "Obsolete trigram indexes dropped" );
-        log.debug( "Dropped {} obsolete trigram indexes", teaIds.size() );
     }
 
     private void createTrigramIndexes( JobProgress progress, Set<TrackedEntityAttribute> indexableAttributes )
@@ -195,7 +195,7 @@ public class TrackerTrigramIndexingJob implements Job
         log.debug( "Creating {} trigram indexes", indexableAttributes.size() );
         progress.startingStage( "Creating trigram indexes for attributes", indexableAttributes.size() );
         progress.runStage( indexableAttributes.stream(), TrackedEntityAttribute::getName,
-            tea -> trackedEntityAttributeTableManager.createTrigramIndex( tea ),
+            trackedEntityAttributeTableManager::createTrigramIndex,
             TrackerTrigramIndexingJob::computeTrigramIndexingCreationSummary );
         progress.completedStage( "Trigram indexes created" );
         log.debug( "Created {} trigram indexes", indexableAttributes.size() );

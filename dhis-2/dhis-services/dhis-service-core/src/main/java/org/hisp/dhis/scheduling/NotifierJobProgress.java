@@ -29,6 +29,7 @@ package org.hisp.dhis.scheduling;
 
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import lombok.RequiredArgsConstructor;
@@ -88,7 +89,7 @@ public class NotifierJobProgress implements JobProgress
     }
 
     @Override
-    public void startingStage( String description, int workItems )
+    public void startingStage( String description, int workItems, FaultTolerance onFailure )
     {
         stageItems = workItems;
         stageItem = 0;
@@ -117,7 +118,7 @@ public class NotifierJobProgress implements JobProgress
     }
 
     @Override
-    public void startingWorkItem( String description )
+    public void startingWorkItem( String description, FaultTolerance onFailure )
     {
         if ( isNotEmpty( description ) )
         {

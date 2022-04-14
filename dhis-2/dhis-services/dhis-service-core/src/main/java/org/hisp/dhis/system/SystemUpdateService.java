@@ -59,6 +59,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.vdurmont.semver4j.Semver;
 
+import static org.hisp.dhis.scheduling.JobProgress.FaultTolerance.SKIP_ITEM_OUTLIER;
+
 /**
  * @author Morten Svanaes
  */
@@ -233,7 +235,7 @@ public class SystemUpdateService
 
         if ( existingMessages.isEmpty() )
         {
-            progress.startingStage( "Sending notifications to recipients", recipients.size() );
+            progress.startingStage( "Sending notifications to recipients", recipients.size(), SKIP_ITEM_OUTLIER );
             progress.runStage( recipients, recipient -> "to: " + recipient.getUsername(),
                 recipient -> messageService.sendMessage( new MessageConversationParams.Builder()
                     .withRecipients( Set.of( recipient ) )

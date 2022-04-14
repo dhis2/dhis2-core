@@ -120,6 +120,15 @@ public interface JobProgress
      */
     boolean isCancellationRequested();
 
+    /**
+     * @return true, if the currently running stage should be skipped.
+     * By default, this is only the case if cancellation was requested.
+     */
+    default boolean isSkipCurrentStage()
+    {
+        return isCancellationRequested();
+    }
+
     /*
      * Tracking API:
      */
@@ -157,15 +166,25 @@ public interface JobProgress
      *
      * @param description describes the work done
      * @param workItems number of work items in the stage, -1 if unknown
+     * @param onFailure what to do should the stage or one of its items fail
      * @throws CancellationException in case cancellation has been requested
      *         before this stage had started
      */
-    void startingStage( String description, int workItems )
+    void startingStage( String description, int workItems, FaultTolerance onFailure )
         throws CancellationException;
+
+    default void startingStage( String description, int workItems ) {
+        startingStage( description, workItems, FaultTolerance.PARENT );
+    }
+
+    default void startingStage( String description, FaultTolerance onFailure )
+    {
+        startingStage( description, 0, onFailure );
+    }
 
     default void startingStage( String description )
     {
-        startingStage( description, 0 );
+        startingStage( description, FaultTolerance.PARENT );
     }
 
     void completedStage( String summary );
@@ -177,7 +196,11 @@ public interface JobProgress
         failedStage( getMessage( cause ) );
     }
 
-    void startingWorkItem( String description );
+    default void startingWorkItem( String description ) {
+        startingWorkItem( description, FaultTolerance.PARENT );
+    }
+
+    void startingWorkItem( String description, FaultTolerance onFailure );
 
     default void startingWorkItem( int i )
     {
@@ -305,10 +328,10 @@ public interface JobProgress
         for ( Iterator<T> it = items.iterator(); it.hasNext(); )
         {
             T item = it.next();
-            if ( isCancellationRequested() )
+            if ( isSkipCurrentStage() )
             {
                 failedStage( new CancellationException(
-                    format( "cancelled after %d successful and %d failed items", i - failed, failed ) ) );
+                    format( "skipped after %d successful and %d failed items", i - failed, failed ) ) );
                 return false; // ends the stage immediately
             }
             String desc = description.apply( item );
@@ -329,12 +352,11 @@ public interface JobProgress
             catch ( RuntimeException ex )
             {
                 failed++;
-                boolean cancellationRequestedBefore = isCancellationRequested();
                 failedWorkItem( ex );
-                if ( !cancellationRequestedBefore && isCancellationRequested() )
+                if ( isSkipCurrentStage() )
                 {
-                    failedStage(
-                        new CancellationException( "cancelled as failing item caused request for cancellation" ) );
+                    String action = isCancellationRequested() ? "request for cancellation" : "skipping the current stage";
+                    failedStage( new CancellationException( "skipped as failing item caused " + action ) );
                     return false;
                 }
             }
@@ -441,7 +463,7 @@ public interface JobProgress
         boolean useCustomPool = parallelism >= cores;
 
         Callable<Boolean> task = () -> items.parallelStream().map( item -> {
-            if ( isCancellationRequested() )
+            if ( isSkipCurrentStage() )
             {
                 return false;
             }
@@ -471,7 +493,7 @@ public interface JobProgress
             {
                 completedStage( null );
             }
-            else if ( isCancellationRequested() )
+            else if ( isSkipCurrentStage() )
             {
                 failedStage( new CancellationException( "cancelled parallel processing" ) );
             }
@@ -510,6 +532,36 @@ public interface JobProgress
         SUCCESS,
         ERROR,
         CANCELLED
+    }
+
+    enum FaultTolerance
+    {
+        /**
+         * Default used to "inherit" the behaviour from the node level above.
+         * If the root is not specified the behaviour is {@link #FAIL}.
+         */
+        PARENT,
+        /**
+         * Fail and abort processing as soon as possible.
+         * This is the effective default.
+         */
+        FAIL,
+        /**
+         * When an item or stage fails the entire stage is skipped/ignored unconditionally.
+         * This means no further items are processed in the stage.
+         */
+        SKIP_STAGE,
+        /**
+         * When an item fails it is simply skipped/ignored unconditionally.
+         */
+        SKIP_ITEM,
+        /**
+         * Same as {@link #SKIP_ITEM} but only if there has been a successfully completed item before.
+         * Otherwise, behaves like {@link #FAIL}.
+         *
+         * This option is useful to only skip when it has been proven that the processing in general works but some items just have issues.
+         */
+        SKIP_ITEM_OUTLIER
     }
 
     @Getter
@@ -573,7 +625,6 @@ public interface JobProgress
         {
             return job.isEmpty() ? defaultValue : job.iterator().next().getStartedTime();
         }
-
         private final Date startedTime = new Date();
 
         @JsonProperty
@@ -613,6 +664,9 @@ public interface JobProgress
         private final int totalItems;
 
         @JsonProperty
+        private final FaultTolerance onFailure;
+
+        @JsonProperty
         private final Deque<Item> items = new ConcurrentLinkedDeque<>();
     }
 
@@ -624,6 +678,9 @@ public interface JobProgress
 
         @JsonProperty
         private final String description;
+
+        @JsonProperty
+        private final FaultTolerance onFailure;
     }
 
     static String getMessage( Exception cause )

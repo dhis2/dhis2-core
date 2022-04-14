@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.scheduling;
 
+import java.util.concurrent.CancellationException;
+
 /**
  * The {@link NoopJobProgress} can be used as a {@link JobProgress} instance
  * when no actual flow control and tracking is wanted. For example in test
@@ -69,7 +71,7 @@ public class NoopJobProgress implements JobProgress
     }
 
     @Override
-    public void startingStage( String description, int workItems )
+    public void startingStage( String description, int workItems, FaultTolerance onFailure )
     {
         // as the name said we do nothing
     }
@@ -87,7 +89,7 @@ public class NoopJobProgress implements JobProgress
     }
 
     @Override
-    public void startingWorkItem( String description )
+    public void startingWorkItem( String description, FaultTolerance onFailure )
     {
         // as the name said we do nothing
     }
