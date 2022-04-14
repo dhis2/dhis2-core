@@ -55,7 +55,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.access.AccessDecisionManager;
 
@@ -69,8 +69,12 @@ import com.google.common.collect.ImmutableSet;
 @Order( 3200 )
 public class AuthoritiesProviderConfig
 {
+
     @Autowired
     private SecurityService securityService;
+
+    @Autowired
+    private ModuleManager moduleManager;
 
     @Autowired
     private SchemaService schemaService;
@@ -93,8 +97,9 @@ public class AuthoritiesProviderConfig
     @Qualifier( "org.hisp.dhis.organisationunit.OrganisationUnitService" )
     public OrganisationUnitService organisationUnitService;
 
-    @Bean( "org.hisp.dhis.security.authority.SystemAuthoritiesProvider" )
-    public SystemAuthoritiesProvider systemAuthoritiesProvider( @Lazy ModuleManager moduleManager )
+    @Primary
+    @Bean( "org.hisp.dhis.security.SystemAuthoritiesProvider" )
+    public SystemAuthoritiesProvider systemAuthoritiesProvider()
     {
         SchemaAuthoritiesProvider schemaAuthoritiesProvider = new SchemaAuthoritiesProvider( schemaService );
         AppsSystemAuthoritiesProvider appsSystemAuthoritiesProvider = new AppsSystemAuthoritiesProvider( appManager );
@@ -105,7 +110,7 @@ public class AuthoritiesProviderConfig
         CompositeSystemAuthoritiesProvider provider = new CompositeSystemAuthoritiesProvider();
         provider.setSources( ImmutableSet.of(
             new CachingSystemAuthoritiesProvider( detectingSystemAuthoritiesProvider ),
-            new CachingSystemAuthoritiesProvider( moduleSystemAuthoritiesProvider( moduleManager ) ),
+            new CachingSystemAuthoritiesProvider( moduleSystemAuthoritiesProvider() ),
             new CachingSystemAuthoritiesProvider( simpleSystemAuthoritiesProvider() ),
             schemaAuthoritiesProvider,
             appsSystemAuthoritiesProvider ) );
@@ -129,7 +134,7 @@ public class AuthoritiesProviderConfig
         return provider;
     }
 
-    private ModuleSystemAuthoritiesProvider moduleSystemAuthoritiesProvider( ModuleManager moduleManager )
+    private ModuleSystemAuthoritiesProvider moduleSystemAuthoritiesProvider()
     {
         ModuleSystemAuthoritiesProvider provider = new ModuleSystemAuthoritiesProvider();
         provider.setAuthorityPrefix( "M_" );
