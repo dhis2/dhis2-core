@@ -374,11 +374,24 @@ public class DefaultEventDataQueryService
             {
                 QueryOperator operator = QueryOperator.fromString( split[i] );
                 QueryFilter filter = new QueryFilter( operator, split[i + 1] );
+                // FE uses HH.MM time format instead of HH:MM. This is not
+                // compatible with db table/cell values
+                modifyFilterWhenTimeQueryItem( queryItem, filter );
                 queryItem.addFilter( filter );
             }
         }
 
         return queryItem;
+    }
+
+    private static void modifyFilterWhenTimeQueryItem( QueryItem queryItem, QueryFilter filter )
+    {
+        if ( queryItem.getItem() instanceof DataElement
+            && ((DataElement) queryItem.getItem()).getValueType() == ValueType.TIME )
+        {
+            filter.setFilter( filter.getFilter().replace( ".", ":" ) );
+        }
+
     }
 
     private DimensionalItemObject getSortItem( String item, Program program, EventOutputType type )
