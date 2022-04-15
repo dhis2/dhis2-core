@@ -89,7 +89,7 @@ public class EnrollmentInExistingValidationHook
 
         Set<Enrollment> payloadEnrollment = reporter.getBundle().getEnrollments()
             .stream().filter( Objects::nonNull )
-            .filter( pi -> pi.getProgram().equals( program.getUid() ) )
+            .filter( pi -> pi.getProgram().isEqualTo( program ) )
             .filter( pi -> pi.getTrackedEntity().equals( tei.getUid() )
                 && !pi.getEnrollment().equals( enrollment.getEnrollment() ) )
             .filter( pi -> EnrollmentStatus.ACTIVE == pi.getStatus() || EnrollmentStatus.COMPLETED == pi.getStatus() )

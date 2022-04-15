@@ -347,7 +347,7 @@ public class AttributeOptionComboLoader
                 categoryOption.setName( rs.getString( "name" ) );
                 categoryOption.setStartDate( rs.getDate( "startdate" ) );
                 categoryOption.setEndDate( rs.getDate( "enddate" ) );
-                categoryOption.setSharing( getSharing( rs.getString( "sharing" ) ) );
+                categoryOption.setSharing( getSharing( rs.getObject( "sharing" ).toString() ) );
                 return categoryOption;
             } );
         }

@@ -78,6 +78,7 @@ public interface ProgramInstanceMapper extends PreheatMapper<ProgramInstance>
     @Mapping( target = "uid" )
     @Mapping( target = "code" )
     @Mapping( target = "name" )
+    @Mapping( target = "attributeValues" )
     @Mapping( target = "trackedEntityType" )
     @Mapping( target = "programType" )
     @Mapping( target = "sharing" )

@@ -114,6 +114,8 @@ public interface CacheProvider
 
     <V> Cache<V> createCatOptOrgUnitAssociationCache();
 
+    <V> Cache<V> createDataSetOrgUnitAssociationCache();
+
     <V> Cache<V> createApiKeyCache();
 
     <V> Cache<V> createProgramCache();

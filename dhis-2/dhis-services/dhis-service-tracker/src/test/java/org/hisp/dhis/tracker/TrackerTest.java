@@ -141,7 +141,8 @@ public abstract class TrackerTest extends TransactionalIntegrationTest
     protected TrackerImportParams _fromJson( String path )
         throws IOException
     {
-        return renderService.fromJson( new ClassPathResource( path ).getInputStream(), TrackerImportParams.class );
+        return renderService.fromJson( new ClassPathResource( path ).getInputStream(),
+            TrackerImportParams.class );
     }
 
     protected void assertNoImportErrors( TrackerImportReport report )

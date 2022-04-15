@@ -38,6 +38,8 @@ import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 
+import org.apache.commons.collections4.SetValuedMap;
+import org.hisp.dhis.association.jdbc.JdbcOrgUnitAssociationsStore;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataapproval.DataApprovalService;
 import org.hisp.dhis.dataelement.DataElement;
@@ -49,6 +51,7 @@ import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -71,6 +74,9 @@ public class DefaultDataSetService
     private final LockExceptionStore lockExceptionStore;
 
     private final DataApprovalService dataApprovalService;
+
+    @Qualifier( "jdbcDataSetOrgUnitAssociationsStore" )
+    private final JdbcOrgUnitAssociationsStore jdbcOrgUnitAssociationsStore;
 
     private final CurrentUserService currentUserService;
 
@@ -393,6 +399,20 @@ public class DefaultDataSetService
 
         return new ArrayList<>( returnList );
     }
+
+    @Override
+    public SetValuedMap<String, String> getDataSetOrganisationUnitsAssociations()
+    {
+        Set<String> uids = getAllDataWrite().stream()
+            .map( DataSet::getUid )
+            .collect( Collectors.toSet() );
+
+        return jdbcOrgUnitAssociationsStore.getOrganisationUnitsAssociationsForCurrentUser( uids );
+    }
+
+    // -------------------------------------------------------------------------
+    // Supportive methods
+    // -------------------------------------------------------------------------
 
     private List<LockException> getLockExceptionByOrganisationUnit( String operator, String orgUnitIds,
         Collection<LockException> lockExceptions )

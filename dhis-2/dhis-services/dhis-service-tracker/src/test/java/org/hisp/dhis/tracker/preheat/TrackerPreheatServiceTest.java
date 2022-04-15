@@ -129,7 +129,7 @@ class TrackerPreheatServiceTest extends TrackerTest
         TrackerImportParams params = TrackerImportParams.builder()
             .idSchemes( TrackerIdSchemeParams.builder()
                 .idScheme(
-                    TrackerIdSchemeParam.builder().idScheme( TrackerIdScheme.ATTRIBUTE ).value( "ATTR1234567" )
+                    TrackerIdSchemeParam.builder().idScheme( TrackerIdScheme.ATTRIBUTE ).attributeUid( "ATTR1234567" )
                         .build() )
                 .build() )
             .trackedEntities( Lists.newArrayList(
