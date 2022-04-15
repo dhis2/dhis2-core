@@ -91,7 +91,7 @@ class ProgramSupplierTest extends AbstractSupplierTest<Program>
         when( mockResultSet.getString( "code" ) ).thenReturn( "ALFA" );
         when( mockResultSet.getString( "name" ) ).thenReturn( "My Program" );
         when( mockResultSet.getString( "type" ) ).thenReturn( ProgramType.WITHOUT_REGISTRATION.getValue() );
-        when( mockResultSet.getString( "program_sharing" ) ).thenReturn( generateSharing( null, "rw------", false ) );
+        when( mockResultSet.getObject( "program_sharing" ) ).thenReturn( generateSharing( null, "rw------", false ) );
         when( mockResultSet.getInt( "opendaysaftercoenddate" ) ).thenReturn( 42 );
         when( mockResultSet.getLong( "catcombo_id" ) ).thenReturn( 200L );
         when( mockResultSet.getString( "catcombo_uid" ) ).thenReturn( "389dh83" );
@@ -102,7 +102,7 @@ class ProgramSupplierTest extends AbstractSupplierTest<Program>
         when( mockResultSet.getString( "ps_code" ) ).thenReturn( "cod5", "cod6" );
         when( mockResultSet.getString( "ps_name" ) ).thenReturn( "name5", "name6" );
         when( mockResultSet.getInt( "sort_order" ) ).thenReturn( 1, 2 );
-        when( mockResultSet.getString( "ps_sharing" ) ).thenReturn( generateSharing( null, "rw------", false ) );
+        when( mockResultSet.getObject( "ps_sharing" ) ).thenReturn( generateSharing( null, "rw------", false ) );
         when( mockResultSet.getString( "ps_feature_type" ) ).thenReturn( null, "POINT" );
         when( mockResultSet.getBoolean( "ps_repeatable" ) ).thenReturn( true, false );
         when( mockResultSet.getString( "validationstrategy" ) ).thenReturn( "ON_COMPLETE" );
