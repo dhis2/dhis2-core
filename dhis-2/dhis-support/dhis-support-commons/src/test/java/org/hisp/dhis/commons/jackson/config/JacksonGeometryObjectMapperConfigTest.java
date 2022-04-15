@@ -57,20 +57,20 @@ class JacksonGeometryObjectMapperConfigTest
 
     @ParameterizedTest
     @MethodSource( "data" )
-    void testLineStringSerialization( String geometryJson, Geometry geometry )
+    void testLineStringSerialization( String expectedString, Geometry geometry )
         throws JsonProcessingException
     {
         String actualString = jsonMapper.writeValueAsString( geometry );
-        assertEquals( geometryJson, actualString );
+        assertEquals( expectedString, actualString );
     }
 
     @ParameterizedTest
     @MethodSource( "data" )
-    void testLineStringDeserialization( String geometryJson, Geometry geometry )
+    void testLineStringDeserialization( String geometryJson, Geometry expectedGeometry )
         throws JsonProcessingException
     {
         Geometry actualGeometry = jsonMapper.readValue( geometryJson, Geometry.class );
-        assertEquals( geometry, actualGeometry );
+        assertEquals( expectedGeometry, actualGeometry );
     }
 
     private static Stream<Arguments> data()
