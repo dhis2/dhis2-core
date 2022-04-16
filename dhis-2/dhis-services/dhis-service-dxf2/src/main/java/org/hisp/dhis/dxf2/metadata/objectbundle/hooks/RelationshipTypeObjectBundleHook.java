@@ -334,10 +334,9 @@ public class RelationshipTypeObjectBundleHook
                 RELATIONSHIP_ENTITY, PROGRAM_STAGE_INSTANCE ) );
         }
 
-        if ( constraint.getProgram() == null && constraint.getProgramStage() == null )
+        if ( constraint.getProgramStage() == null )
         {
-            addReports
-                .accept( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4026, PROGRAM, PROGRAM_STAGE,
+            addReports.accept( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4024, PROGRAM_STAGE,
                     RELATIONSHIP_ENTITY, PROGRAM_STAGE_INSTANCE ) );
         }
 
@@ -346,15 +345,10 @@ public class RelationshipTypeObjectBundleHook
                 .orElse( StringUtils.EMPTY ) );
         ProgramStage programStage = constraint.getProgramStage();
 
-        Set<String> providedProgramStageDataElementIds = Optional.ofNullable( programStage )
+        Set<String> dataElementIds = Optional.ofNullable( programStage )
             .map( ps -> programStageService.getProgramStage( ps.getUid() ) )
             .map(
                 s -> s.getDataElements().stream().map( BaseIdentifiableObject::getUid ).collect( Collectors.toSet() ) )
-            .orElse( new HashSet<>() );
-
-        Set<String> fetchedProgramStageDataElementIds = Optional.ofNullable( program )
-            .map( pr -> pr.getProgramStages().stream().flatMap( ps -> ps.getDataElements().stream()
-                .map( BaseIdentifiableObject::getUid ) ).collect( Collectors.toSet() ) )
             .orElse( new HashSet<>() );
 
         Set<String> trackedEntityAttributesIds = Optional.ofNullable( program )
@@ -362,8 +356,6 @@ public class RelationshipTypeObjectBundleHook
                 .collect( Collectors.toSet() ) )
             .orElse( new HashSet<>() );
 
-        Set<String> dataElementIds = Sets.union( providedProgramStageDataElementIds,
-            fetchedProgramStageDataElementIds );
 
         if ( !trackerDataViewDataElements.isEmpty() && !dataElementIds.containsAll( trackerDataViewDataElements ) )
         {
