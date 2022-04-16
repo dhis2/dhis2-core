@@ -48,10 +48,12 @@ public class ProgramRemovalTest
     extends ApiTest
 {
     private ProgramActions programActions;
-
+    
     private RestApiActions relationshipTypeActions;
 
     private String programId;
+
+    private String programStageId;
 
     private String relationshipTypeId;
 
@@ -82,6 +84,9 @@ public class ProgramRemovalTest
         programId = programActions.createProgram( "WITH_REGISTRATION" ).extractUid();
         assertNotNull( programId, "Failed to create program" );
 
+        programStageId = programActions.createProgramStage( programId, "stage1" );
+        assertNotNull( programStageId, "Failed to create programStage" );
+
         JsonObject relationshipType = new FileReaderUtils()
             .read( new File( "src/test/resources/tracker/relationshipTypes.json" ) )
             .replacePropertyValuesWithIds( "id" )
@@ -92,6 +97,7 @@ public class ProgramRemovalTest
             .addObject( "toConstraint", new JsonObjectBuilder()
                 .addProperty( "relationshipEntity", "PROGRAM_STAGE_INSTANCE" )
                 .addObject( "program", new JsonObjectBuilder().addProperty( "id", programId ) )
+                .addObject( "programStage", new JsonObjectBuilder().addProperty( "id", programStageId ) )
             ).build();
 
         relationshipTypeId = relationshipTypeActions.create( relationshipType );
