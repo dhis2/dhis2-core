@@ -184,6 +184,7 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration
     {
         CustomRequestMappingHandlerMapping mapping = new CustomRequestMappingHandlerMapping();
         mapping.setOrder( 0 );
+        mapping.setUseRegisteredSuffixPatternMatch( true );
         mapping.setContentNegotiationManager( mvcContentNegotiationManager() );
         return mapping;
     }
