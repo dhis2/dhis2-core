@@ -337,7 +337,7 @@ public class RelationshipTypeObjectBundleHook
         if ( constraint.getProgramStage() == null )
         {
             addReports.accept( new ErrorReport( RelationshipConstraint.class, ErrorCode.E4024, PROGRAM_STAGE,
-                    RELATIONSHIP_ENTITY, PROGRAM_STAGE_INSTANCE ) );
+                RELATIONSHIP_ENTITY, PROGRAM_STAGE_INSTANCE ) );
         }
 
         Program program = programService.getProgram(
@@ -355,7 +355,6 @@ public class RelationshipTypeObjectBundleHook
             .map( p -> p.getTrackedEntityAttributes().stream().map( BaseIdentifiableObject::getUid )
                 .collect( Collectors.toSet() ) )
             .orElse( new HashSet<>() );
-
 
         if ( !trackerDataViewDataElements.isEmpty() && !dataElementIds.containsAll( trackerDataViewDataElements ) )
         {
