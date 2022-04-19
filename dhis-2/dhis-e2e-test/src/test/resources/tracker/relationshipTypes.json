@@ -75,6 +75,9 @@
         "program": {
           "id": "Zd2rkv8FsWq"
         },
+        "programStage": {
+          "id": "jKLB23QZS4I"
+        },
         "trackerDataView": {
           "dataElements": [
             "inc5BJvr4W5",
@@ -143,6 +146,9 @@
         "relationshipEntity": "PROGRAM_STAGE_INSTANCE",
         "program": {
           "id": "Zd2rkv8FsWq"
+        },
+        "programStage": {
+          "id": "jKLB23QZS4I"
         },
         "trackerDataView": {
           "dataElements": [
