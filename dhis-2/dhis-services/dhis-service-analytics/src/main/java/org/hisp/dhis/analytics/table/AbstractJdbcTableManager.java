@@ -263,6 +263,12 @@ public abstract class AbstractJdbcTableManager
     }
 
     @Override
+    public void dropTempTablePartition( AnalyticsTablePartition tablePartition )
+    {
+        dropTableCascade( tablePartition.getTempTableName() );
+    }
+
+    @Override
     public void dropTable( String tableName )
     {
         executeSilently( "drop table if exists " + tableName );
@@ -387,7 +393,7 @@ public abstract class AbstractJdbcTableManager
         }
         catch ( BadSqlGrammarException ex )
         {
-            log.debug( ex.getMessage() );
+            log.error( ex.getMessage() );
         }
     }
 
@@ -678,4 +684,5 @@ public abstract class AbstractJdbcTableManager
 
         executeSilently( sql );
     }
+
 }
