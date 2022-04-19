@@ -112,7 +112,7 @@ class JdbcEventStoreTest
     }
 
     @Test
-    public void verifyNullOrganisationUnitsIsHandled()
+    void verifyNullOrganisationUnitsIsHandled()
     {
         mockRowSet();
         EventSearchParams eventSearchParams = new EventSearchParams();
