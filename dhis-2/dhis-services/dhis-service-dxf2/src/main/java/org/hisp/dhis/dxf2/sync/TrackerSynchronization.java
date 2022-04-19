@@ -171,6 +171,7 @@ public class TrackerSynchronization implements DataSynchronizationWithPaging
                 .collect( Collectors.toList() );
             log.info( "The lastSynchronized flag of these TEIs will be updated: " + teiUIDs );
             teiService.updateTrackedEntityInstancesSyncTimestamp( teiUIDs, context.getStartTime() );
+            return;
         }
         throw new MetadataSyncServiceException( format( "Page %d synchronisation failed.", queryParams.getPage() ) );
     }
