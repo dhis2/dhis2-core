@@ -176,43 +176,10 @@ public class FieldFilterService
 
         for ( Object object : params.getObjects() )
         {
-            applyFieldPathVisitor( object, fieldPaths, params, s -> s.equals( "access" ) || s.endsWith( ".access" ),
-                o -> {
-                    if ( o instanceof BaseIdentifiableObject )
-                    {
-                        ((BaseIdentifiableObject) o)
-                            .setAccess( aclService.getAccess( ((IdentifiableObject) o), params.getUser() ) );
-                    }
-                } );
-
-            applyFieldPathVisitor( object, fieldPaths, params,
-                s -> s.equals( "userAccesses.displayName" ) || s.endsWith( ".userAccesses.displayName" ), o -> {
-                    if ( o instanceof BaseIdentifiableObject )
-                    {
-                        ((BaseIdentifiableObject) o).getSharing().getUsers().values()
-                            .forEach( ua -> ua.setDisplayName( userService.getDisplayName( ua.getId() ) ) );
-                    }
-                } );
-
-            applyFieldPathVisitor( object, fieldPaths, params,
-                s -> s.equals( "userGroupAccesses.displayName" ) || s.endsWith( ".userGroupAccesses.displayName" ),
-                o -> {
-                    if ( o instanceof BaseIdentifiableObject )
-                    {
-                        ((BaseIdentifiableObject) o).getSharing().getUserGroups().values()
-                            .forEach( uga -> uga.setDisplayName( userGroupService.getDisplayName( uga.getId() ) ) );
-                    }
-                } );
-
-            applyFieldPathVisitor( object, fieldPaths, params,
-                s -> s.equals( "attributeValues.attribute" ) || s.endsWith( ".attributeValues.attribute" ),
-                o -> {
-                    if ( o instanceof AttributeValue )
-                    {
-                        ((AttributeValue) o).setAttribute(
-                            attributeService.getAttribute( ((AttributeValue) o).getAttribute().getUid() ) );
-                    }
-                } );
+            applyAccess( params, fieldPaths, object );
+            applyUserAccessesDisplayName( params, fieldPaths, object );
+            applyUserGroupAccessesDisplayName( params, fieldPaths, object );
+            applyAttributeValuesAttribute( params, fieldPaths, object );
 
             ObjectNode objectNode = objectMapper.valueToTree( object );
             applyTransformers( objectNode, null, "", fieldTransformers );
@@ -359,5 +326,56 @@ public class FieldFilterService
         }
 
         return transformerMap;
+    }
+
+    private void applyAttributeValuesAttribute( FieldFilterParams<?> params, List<FieldPath> fieldPaths, Object object )
+    {
+        applyFieldPathVisitor( object, fieldPaths, params,
+            s -> s.equals( "attributeValues.attribute" ) || s.endsWith( ".attributeValues.attribute" ),
+            o -> {
+                if ( o instanceof AttributeValue )
+                {
+                    ((AttributeValue) o).setAttribute(
+                        attributeService.getAttribute( ((AttributeValue) o).getAttribute().getUid() ) );
+                }
+            } );
+    }
+
+    private void applyUserGroupAccessesDisplayName( FieldFilterParams<?> params, List<FieldPath> fieldPaths,
+        Object object )
+    {
+        applyFieldPathVisitor( object, fieldPaths, params,
+            s -> s.equals( "userGroupAccesses.displayName" ) || s.endsWith( ".userGroupAccesses.displayName" ),
+            o -> {
+                if ( o instanceof BaseIdentifiableObject )
+                {
+                    ((BaseIdentifiableObject) o).getSharing().getUserGroups().values()
+                        .forEach( uga -> uga.setDisplayName( userGroupService.getDisplayName( uga.getId() ) ) );
+                }
+            } );
+    }
+
+    private void applyUserAccessesDisplayName( FieldFilterParams<?> params, List<FieldPath> fieldPaths, Object object )
+    {
+        applyFieldPathVisitor( object, fieldPaths, params,
+            s -> s.equals( "userAccesses.displayName" ) || s.endsWith( ".userAccesses.displayName" ), o -> {
+                if ( o instanceof BaseIdentifiableObject )
+                {
+                    ((BaseIdentifiableObject) o).getSharing().getUsers().values()
+                        .forEach( ua -> ua.setDisplayName( userService.getDisplayName( ua.getId() ) ) );
+                }
+            } );
+    }
+
+    private void applyAccess( FieldFilterParams<?> params, List<FieldPath> fieldPaths, Object object )
+    {
+        applyFieldPathVisitor( object, fieldPaths, params, s -> s.equals( "access" ) || s.endsWith( ".access" ),
+            o -> {
+                if ( o instanceof BaseIdentifiableObject )
+                {
+                    ((BaseIdentifiableObject) o)
+                        .setAccess( aclService.getAccess( ((IdentifiableObject) o), params.getUser() ) );
+                }
+            } );
     }
 }
