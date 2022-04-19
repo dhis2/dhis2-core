@@ -188,7 +188,7 @@ public class DefaultTrackerProgramRuleService
 
     private Program getProgramFromEvent( TrackerPreheat preheat, Event event )
     {
-        return preheat.get( Program.class, event.getProgram() );
+        return preheat.getProgram( event.getProgram() );
     }
 
     private ProgramInstance getEnrollment( TrackerBundle bundle, String enrollmentUid )

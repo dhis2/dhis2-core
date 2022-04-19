@@ -245,7 +245,10 @@
     {
       "event": "D9PbzJY8bJO",
       "status": "COMPLETED",
-      "program": "E8o1E9tAppy",
+      "program": {
+        "idScheme": "UID",
+        "identifier": "E8o1E9tAppy"
+      },
       "programStage": "Qmqxq907VNz",
       "enrollment": "TvctPPhpD8u",
       "orgUnit": "QfUVllTs6cS",
@@ -266,7 +269,10 @@
     {
       "event": "D9PbzJY8bJ1",
       "status": "COMPLETED",
-      "program": "E8o1E9tAppy",
+      "program": {
+        "idScheme": "UID",
+        "identifier": "E8o1E9tAppy"
+      },
       "programStage": "Qmqxq907VNz",
       "enrollment": "TvctPPhpD8v",
       "orgUnit": "QfUVllTs6cS",

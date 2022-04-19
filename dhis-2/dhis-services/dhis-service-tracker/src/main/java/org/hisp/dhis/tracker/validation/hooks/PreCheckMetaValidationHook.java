@@ -97,7 +97,8 @@ public class PreCheckMetaValidationHook
         reporter.addErrorIfNull( organisationUnit, event, E1011, event.getOrgUnit() );
 
         Program program = reporter.getBundle().getPreheat().getProgram( event.getProgram() );
-        reporter.addErrorIfNull( program, event, E1010, event.getProgram() );
+        reporter.addErrorIfNull( program, event, E1010,
+            event.getProgram().getIdentifierOrAttributeValue() );
 
         ProgramStage programStage = reporter.getBundle().getPreheat().getProgramStage( event.getProgramStage() );
         reporter.addErrorIfNull( programStage, event, E1013, event.getProgramStage() );

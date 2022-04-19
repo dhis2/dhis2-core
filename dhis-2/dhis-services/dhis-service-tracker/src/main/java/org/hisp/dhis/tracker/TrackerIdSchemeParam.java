@@ -33,6 +33,7 @@ import lombok.Value;
 
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -97,5 +98,41 @@ public class TrackerIdSchemeParam
     {
         String identifier = getIdentifier( object );
         return object.getClass().getSimpleName() + " (" + identifier + ")";
+    }
+
+    /**
+     * Creates an identifier for given {@code metadata} using this idScheme
+     * parameter. This means the metadata identifier will have the this
+     * {@link #idScheme} and {@link #attributeUid} for idScheme ATTRIBUTE. The
+     * {@link MetadataIdentifier#getIdentifier()} will be the appropriate one
+     * for this idScheme.
+     *
+     * @param metadata to create metadata identifier for
+     * @return metadata identifier representing metadata using this idScheme
+     *         parameter
+     */
+    public MetadataIdentifier toMetadataIdentifier( IdentifiableObject metadata )
+    {
+        return toMetadataIdentifier( getIdentifier( metadata ) );
+    }
+
+    /**
+     * Creates an identifier for given {@code identifier} using this idScheme
+     * parameter. This means the metadata identifier will have the this
+     * {@link #idScheme} and {@link #attributeUid} for idScheme ATTRIBUTE. The
+     * {@link MetadataIdentifier#getIdentifier()} will be the appropriate one
+     * for this idScheme.
+     *
+     * @param identifier to create metadata identifier for
+     * @return metadata identifier representing metadata using this idScheme
+     *         parameter
+     */
+    public MetadataIdentifier toMetadataIdentifier( String identifier )
+    {
+        if ( this.idScheme == TrackerIdScheme.ATTRIBUTE )
+        {
+            return MetadataIdentifier.ofAttribute( this.attributeUid, identifier );
+        }
+        return MetadataIdentifier.of( this.idScheme, identifier, null );
     }
 }

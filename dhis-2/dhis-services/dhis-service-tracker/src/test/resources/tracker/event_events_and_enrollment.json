@@ -116,7 +116,10 @@
     {
       "event": "D9PbzJY8bJO",
       "status": "ACTIVE",
-      "program": "BFcipDERJwr",
+      "program": {
+        "idScheme": "UID",
+        "identifier": "BFcipDERJwr"
+      },
       "programStage": "NpsdDv6kKSO",
       "enrollment": "TvctPPhpD8u",
       "orgUnit": "PlKwabX2xRW",
@@ -147,7 +150,10 @@
     {
       "event": "vQaFEJwd8yW",
       "status": "COMPLETED",
-      "program": "BFcipDERJwr",
+      "program": {
+        "idScheme": "UID",
+        "identifier": "BFcipDERJwr"
+      },
       "programStage": "NpsdDv6kKSO",
       "enrollment": "TvctPPhpD8u",
       "orgUnit": "PlKwabX2xRW",
@@ -178,7 +184,10 @@
     {
       "event": "DB6kH3mDTAg",
       "status": "COMPLETED",
-      "program": "BFcipDERJwr",
+      "program": {
+        "idScheme": "UID",
+        "identifier": "BFcipDERJwr"
+      },
       "programStage": "NpsdDv6kKSO",
       "enrollment": "TvctPPhpD8u",
       "orgUnit": "PlKwabX2xRW",
@@ -209,7 +218,10 @@
     {
       "event": "axjn1txp4oq",
       "status": "COMPLETED",
-      "program": "BFcipDERJwr",
+      "program": {
+        "idScheme": "UID",
+        "identifier": "BFcipDERJwr"
+      },
       "programStage": "NpsdDv6kKSO",
       "enrollment": "TvctPPhpD8u",
       "orgUnit": "PlKwabX2xRW",
@@ -240,7 +252,10 @@
     {
       "event": "ihAktymaeT0",
       "status": "COMPLETED",
-      "program": "BFcipDERJwr",
+      "program": {
+        "idScheme": "UID",
+        "identifier": "BFcipDERJwr"
+      },
       "programStage": "NpsdDv6kKSO",
       "enrollment": "TvctPPhpD8u",
       "orgUnit": "PlKwabX2xRW",
@@ -271,7 +286,10 @@
     {
       "event": "OOPh5soZawq",
       "status": "COMPLETED",
-      "program": "BFcipDERJwr",
+      "program": {
+        "idScheme": "UID",
+        "identifier": "BFcipDERJwr"
+      },
       "programStage": "NpsdDv6kKSO",
       "enrollment": "TvctPPhpD8u",
       "orgUnit": "PlKwabX2xRW",
@@ -334,7 +352,10 @@
     {
       "event": "inxOmxgOjzm",
       "status": "COMPLETED",
-      "program": "BFcipDERJwr",
+      "program": {
+        "idScheme": "UID",
+        "identifier": "BFcipDERJwr"
+      },
       "programStage": "NpsdDv6kKSO",
       "enrollment": "TvctPPhpD8u",
       "orgUnit": "PlKwabX2xRW",
@@ -397,7 +418,10 @@
     {
       "event": "gHLdZusV5Wz",
       "status": "COMPLETED",
-      "program": "BFcipDERJwr",
+      "program": {
+        "idScheme": "UID",
+        "identifier": "BFcipDERJwr"
+      },
       "programStage": "NpsdDv6kKSO",
       "enrollment": "TvctPPhpD8u",
       "orgUnit": "PlKwabX2xRW",

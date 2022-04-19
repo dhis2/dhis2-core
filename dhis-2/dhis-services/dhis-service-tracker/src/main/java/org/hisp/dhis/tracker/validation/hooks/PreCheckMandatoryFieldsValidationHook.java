@@ -93,7 +93,7 @@ public class PreCheckMandatoryFieldsValidationHook
             return;
         }
 
-        reporter.addErrorIf( () -> StringUtils.isEmpty( event.getProgram() ), event, E1123, "program" );
+        reporter.addErrorIf( event.getProgram()::isBlank, event, E1123, "program" );
     }
 
     @Override

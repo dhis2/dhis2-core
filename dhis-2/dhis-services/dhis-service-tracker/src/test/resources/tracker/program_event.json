@@ -4,7 +4,10 @@
       "event": "EVENT123456",
       "storedBy": "admin",
       "scheduledAt": "2019-01-28T12:10:38.100",
-      "program": "BFcipDERJne",
+      "program": {
+        "idScheme": "UID",
+        "identifier": "BFcipDERJne"
+      },
       "programStage": "NpsdDv6kKSe",
       "orgUnit": "h4w96yEMlzO",
       "status": "COMPLETED",
