@@ -38,7 +38,6 @@ import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
-import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.springframework.stereotype.Component;
@@ -93,8 +92,8 @@ public class RepeatedEventsValidationHook
 
         if ( strategy == TrackerImportStrategy.CREATE && programStage != null && programInstance != null
             && !programStage.getRepeatable()
-            && programStageHasEvents( bundle.getPreheat(), programStage.getUid(),
-                programInstance.getUid() ) )
+            && reporter.getBundle().getPreheat().hasProgramStageWithEvents( event.getProgramStage(),
+                event.getEnrollment() ) )
         {
             reporter.addError( event, TrackerErrorCode.E1039, event.getProgramStage().getIdentifierOrAttributeValue() );
         }
@@ -105,10 +104,4 @@ public class RepeatedEventsValidationHook
     {
         return true;
     }
-
-    private boolean programStageHasEvents( TrackerPreheat preheat, String programStageUid, String enrollmentUid )
-    {
-        return preheat.getProgramStageWithEvents().contains( Pair.of( programStageUid, enrollmentUid ) );
-    }
-
 }

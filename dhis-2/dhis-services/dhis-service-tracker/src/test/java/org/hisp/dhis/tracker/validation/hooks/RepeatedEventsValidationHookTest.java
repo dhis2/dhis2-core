@@ -37,7 +37,6 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
@@ -121,9 +120,7 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
         bundle.setStrategy( event, TrackerImportStrategy.CREATE );
 
         when( preheat.getEnrollment( event.getEnrollment() ) ).thenReturn( programInstance );
-        when( preheat.getProgramStageWithEvents() )
-            .thenReturn(
-                Lists.newArrayList( Pair.of( event.getProgramStage().getIdentifier(), event.getEnrollment() ) ) );
+        when( preheat.hasProgramStageWithEvents( event.getProgramStage(), event.getEnrollment() ) ).thenReturn( true );
         bundle.setEvents( Lists.newArrayList( event ) );
         ValidationErrorReporter errorReporter = new ValidationErrorReporter( bundle );
 
