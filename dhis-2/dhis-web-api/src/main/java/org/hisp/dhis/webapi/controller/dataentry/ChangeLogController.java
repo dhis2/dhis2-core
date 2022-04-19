@@ -27,10 +27,14 @@
  */
 package org.hisp.dhis.webapi.controller.dataentry;
 
+import java.util.List;
+
 import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.dhis.datavalue.DataValueAuditService;
+import org.hisp.dhis.webapi.controller.datavalue.DataValidator;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.webdomain.datavalue.DataValueQueryParams;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -45,9 +49,16 @@ public class ChangeLogController
 {
     private final DataValueAuditService dataValueAuditService;
 
+    private final DataValidator dataValidator;
+
     @GetMapping( value = "/changeLog" )
     public void getChangeLog( DataValueQueryParams params )
     {
-        dataValueAuditService.getDataValueAudits( null, null, null, null, null, null );
+        List<DataValueAudit> audits = dataValueAuditService.getDataValueAudits(
+            dataValidator.getAndValidateDataElement( params.getDe() ),
+            dataValidator.getAndValidatePeriod( params.getPe() ),
+            dataValidator.getAndValidateOrganisationUnit( params.getOu() ),
+            null, null );
+
     }
 }
