@@ -90,12 +90,16 @@ class TrackerPreheatIdentifiersTest extends TrackerTest
         List<Pair<String, TrackerIdSchemeParam>> data = buildDataSet( "NpsdDv6kKSO", "PRGA", "ProgramA" );
         for ( Pair<String, TrackerIdSchemeParam> pair : data )
         {
-            Event event = new Event();
-            event.setProgramStage( MetadataIdentifier.ofUid( pair.getLeft() ) );
-            TrackerImportParams params = buildParams( event,
-                builder().programStageIdScheme( pair.getRight() ).build() );
+            String id = pair.getLeft();
+            TrackerIdSchemeParam param = pair.getRight();
+            Event event = Event.builder()
+                .programStage( param.toMetadataIdentifier( id ) )
+                .build();
+            TrackerImportParams params = buildParams( event, builder().programStageIdScheme( param ).build() );
+
             TrackerPreheat preheat = trackerPreheatService.preheat( params );
-            assertPreheatedObjectExists( preheat, ProgramStage.class, pair.getRight(), pair.getLeft() );
+
+            assertPreheatedObjectExists( preheat, ProgramStage.class, param, id );
         }
     }
 
