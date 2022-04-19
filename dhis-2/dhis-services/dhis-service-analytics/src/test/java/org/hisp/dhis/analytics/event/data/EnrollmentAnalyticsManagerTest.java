@@ -116,8 +116,6 @@ class EnrollmentAnalyticsManagerTest extends
         + "createdbydisplayname" + "," + "lastupdatedbydisplayname"
         + ",lastupdated,ST_AsGeoJSON(pigeometry),longitude,latitude,ouname,oucode,enrollmentstatus";
 
-    private final String TABLE_NAME = "analytics_enrollment";
-
     private final BeanRandomizer rnd = BeanRandomizer.create();
 
     @BeforeEach
@@ -197,7 +195,7 @@ class EnrollmentAnalyticsManagerTest extends
 
         if ( valueType == ValueType.NUMBER )
         {
-            subSelect = "coalesce(" + subSelect + ", double precision 'NaN') as fWIAEtYVEGk";
+            subSelect = "coalesce(" + subSelect + ", double precision 'NaN') as \"fWIAEtYVEGk\"";
         }
         String expected = "ax.\"monthly\",ax.\"ou\"," + subSelect + "  from " + getTable( programA.getUid() )
             + " as ax where ax.\"monthly\" in ('2000Q1') and (uidlevel1 = 'ouabcdefghA' ) " + "and ps = '"
@@ -262,7 +260,7 @@ class EnrollmentAnalyticsManagerTest extends
             + programStage.getUid() + "' order by executiondate desc limit 1 )";
 
         String expected = "ax.\"monthly\",ax.\"ou\"," + "coalesce(" + subSelect
-            + ", double precision 'NaN') as fWIAEtYVEGk" + "  from "
+            + ", double precision 'NaN') as \"fWIAEtYVEGk\"" + "  from "
             + getTable( programA.getUid() )
             + " as ax where ax.\"monthly\" in ('2000Q1') and (uidlevel1 = 'ouabcdefghA' ) "
             + "and ps = '" + programStage.getUid() + "' and " + subSelect + " > '10' limit 10001";
@@ -611,7 +609,7 @@ class EnrollmentAnalyticsManagerTest extends
         item.setProgram( programA );
 
         // When
-        String columnSql = subject.getCoordinateColumn( item );
+        String columnSql = subject.getCoordinateColumn( item ).asSql();
 
         // Then
         String colName = quote( item.getItemName() );
@@ -639,7 +637,7 @@ class EnrollmentAnalyticsManagerTest extends
         item.setProgram( programA );
 
         // When
-        String columnSql = subject.getCoordinateColumn( item );
+        String columnSql = subject.getCoordinateColumn( item ).asSql();
 
         // Then
         String colName = quote( item.getItemName() );
@@ -665,7 +663,7 @@ class EnrollmentAnalyticsManagerTest extends
         item.setProgramStage( programStage );
 
         // When
-        String columnSql = subject.getCoordinateColumn( item );
+        String columnSql = subject.getCoordinateColumn( item ).asSql();
 
         // Then
         assertThat( columnSql, is( EMPTY ) );

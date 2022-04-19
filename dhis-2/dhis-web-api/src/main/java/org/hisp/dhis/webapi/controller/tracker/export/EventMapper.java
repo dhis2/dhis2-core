@@ -27,8 +27,9 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
-import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.domain.User;
+import org.hisp.dhis.webapi.controller.tracker.view.Event;
+import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
+import org.hisp.dhis.webapi.controller.tracker.view.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -39,7 +40,7 @@ import org.mapstruct.Named;
     DataValueMapper.class,
     InstantMapper.class,
     UserMapper.class } )
-interface EventMapper extends DomainMapper<org.hisp.dhis.dxf2.events.event.Event, Event>
+interface EventMapper extends ViewMapper<org.hisp.dhis.dxf2.events.event.Event, Event>
 {
     @Mapping( target = "occurredAt", source = "eventDate" )
     @Mapping( target = "scheduledAt", source = "dueDate" )

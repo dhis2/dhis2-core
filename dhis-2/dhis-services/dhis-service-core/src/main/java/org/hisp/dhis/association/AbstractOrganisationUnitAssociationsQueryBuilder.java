@@ -34,6 +34,7 @@ import static org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions.EXTRACT_PATH_TEX
 import static org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions.HAS_USER_GROUP_IDS;
 import static org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions.HAS_USER_ID;
 import static org.hisp.dhis.security.acl.AclService.LIKE_READ_METADATA;
+import static org.hisp.dhis.system.util.SqlUtils.singleQuote;
 
 import java.util.Arrays;
 import java.util.Objects;
@@ -43,6 +44,7 @@ import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.commons.collection.CollectionUtils;
+import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.user.CurrentUserGroupInfo;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -50,7 +52,6 @@ import org.hisp.dhis.user.User;
 @RequiredArgsConstructor
 public abstract class AbstractOrganisationUnitAssociationsQueryBuilder
 {
-
     private final CurrentUserService currentUserService;
 
     private static final String SHARING_OUTER_QUERY_BEGIN = "select " +
@@ -77,11 +78,13 @@ public abstract class AbstractOrganisationUnitAssociationsQueryBuilder
             " left join " + getRelationshipTableName() + " " + REL_TABLE_ALIAS +
             " on " + T_ALIAS + "." + getJoinColumnName() + " = " + REL_TABLE_ALIAS + "." + getJoinColumnName() +
             " left join organisationunit ou " +
-            " on " + REL_TABLE_ALIAS + ".organisationunitid = ou.organisationunitid " +
+            " on " + REL_TABLE_ALIAS + "." + getOrgUnitJoinColumnName() + " = ou.organisationunitid " +
             "where";
     }
 
     protected abstract String getRelationshipTableName();
+
+    protected abstract String getOrgUnitJoinColumnName();
 
     protected abstract String getJoinColumnName();
 
@@ -147,14 +150,14 @@ public abstract class AbstractOrganisationUnitAssociationsQueryBuilder
     private String getOwnerCondition( CurrentUserGroupInfo currentUserGroupInfo )
     {
         return String.join( " or ",
-            jsonbFunction( EXTRACT_PATH_TEXT, "owner" ) + " = " + withQuotes( currentUserGroupInfo.getUserUID() ),
+            jsonbFunction( EXTRACT_PATH_TEXT, "owner" ) + " = " + singleQuote( currentUserGroupInfo.getUserUID() ),
             jsonbFunction( EXTRACT_PATH_TEXT, "owner" ) + " is null" );
     }
 
     private String getPublicSharingCondition( String access )
     {
         return String.join( " or ",
-            jsonbFunction( EXTRACT_PATH_TEXT, "public" ) + " like " + withQuotes( access ),
+            jsonbFunction( EXTRACT_PATH_TEXT, "public" ) + " like " + singleQuote( access ),
             jsonbFunction( EXTRACT_PATH_TEXT, "public" ) + " is null" );
     }
 
@@ -187,7 +190,7 @@ public abstract class AbstractOrganisationUnitAssociationsQueryBuilder
             "(",
             String.join( ",", "inner_query_alias.sharing",
                 Arrays.stream( params )
-                    .map( this::withQuotes )
+                    .map( SqlUtils::singleQuote )
                     .collect( joining( "," ) ) ),
             ")" );
     }
@@ -201,20 +204,15 @@ public abstract class AbstractOrganisationUnitAssociationsQueryBuilder
     {
         return T_ALIAS + ".uid in (" +
             uids.stream()
-                .map( this::withQuotes )
+                .map( SqlUtils::singleQuote )
                 .collect( joining( "," ) )
             + ")";
-    }
-
-    private String withQuotes( String uid )
-    {
-        return String.join( "", "'", uid, "'" );
     }
 
     private String getUserOrgUnitPathsFilter( Set<String> userOrgUnitPaths )
     {
         return Stream.concat(
-            Stream.of( "ou.organisationUnitId is null" ),
+            Stream.of( "ou.organisationunitid is null" ),
             userOrgUnitPaths.stream()
                 .map( userOrgUnitPath -> "ou.path like '" + userOrgUnitPath + "%'" ) )
             .collect( joining( " or ", "(", ")" ) );

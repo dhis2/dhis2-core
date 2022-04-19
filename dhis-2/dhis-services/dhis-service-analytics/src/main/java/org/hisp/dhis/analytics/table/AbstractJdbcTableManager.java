@@ -209,7 +209,7 @@ public abstract class AbstractJdbcTableManager
     @Override
     public void swapTable( AnalyticsTableUpdateParams params, AnalyticsTable table )
     {
-        log.info( "Swapping master table {}, and its partitions", table.getTableName() );
+        log.info( "Swapping master table including partitions: '{}'", table.getTableName() );
 
         swapTable( table );
 

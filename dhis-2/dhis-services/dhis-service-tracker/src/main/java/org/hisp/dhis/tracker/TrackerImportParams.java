@@ -72,14 +72,14 @@ public class TrackerImportParams
      */
     @JsonProperty
     @Builder.Default
-    private TrackerBundleMode importMode = TrackerBundleMode.COMMIT;
+    private final TrackerBundleMode importMode = TrackerBundleMode.COMMIT;
 
     /**
-     * Identifiers to match metadata
+     * IdSchemes to match metadata
      */
     @JsonProperty
     @Builder.Default
-    private TrackerIdentifierParams identifiers = new TrackerIdentifierParams();
+    private final TrackerIdSchemeParams idSchemes = new TrackerIdSchemeParams();
 
     /**
      * Sets import strategy (create, update, etc).
@@ -100,38 +100,42 @@ public class TrackerImportParams
      */
     @JsonProperty
     @Builder.Default
-    private FlushMode flushMode = FlushMode.AUTO;
+    private final FlushMode flushMode = FlushMode.AUTO;
 
     /**
      * Validation mode to use, defaults to fully validated objects.
      */
     @JsonProperty
     @Builder.Default
-    private ValidationMode validationMode = ValidationMode.FULL;
+    private final ValidationMode validationMode = ValidationMode.FULL;
 
     /**
      * Should text pattern validation be skipped or not, default is not.
      */
     @JsonProperty
-    private boolean skipPatternValidation;
+    @Builder.Default
+    private final boolean skipPatternValidation = false;
 
     /**
      * Should side effects be skipped or not, default is not.
      */
     @JsonProperty
-    private boolean skipSideEffects;
+    @Builder.Default
+    private final boolean skipSideEffects = false;
 
     /**
      * Should rule engine call be skipped or not, default is to skip.
      */
     @JsonProperty
-    private boolean skipRuleEngine;
+    @Builder.Default
+    private final boolean skipRuleEngine = false;
 
     /**
      * Name of file that was used for import (if available).
      */
     @JsonProperty
-    private String filename;
+    @Builder.Default
+    private final String filename = null;
 
     /**
      * Job configuration
@@ -143,28 +147,28 @@ public class TrackerImportParams
      */
     @JsonProperty
     @Builder.Default
-    private List<TrackedEntity> trackedEntities = new ArrayList<>();
+    private final List<TrackedEntity> trackedEntities = new ArrayList<>();
 
     /**
      * Enrollments to import.
      */
     @JsonProperty
     @Builder.Default
-    private List<Enrollment> enrollments = new ArrayList<>();
+    private final List<Enrollment> enrollments = new ArrayList<>();
 
     /**
      * Events to import.
      */
     @JsonProperty
     @Builder.Default
-    private List<Event> events = new ArrayList<>();
+    private final List<Event> events = new ArrayList<>();
 
     /**
      * Relationships to import.
      */
     @JsonProperty
     @Builder.Default
-    private List<Relationship> relationships = new ArrayList<>();
+    private final List<Relationship> relationships = new ArrayList<>();
 
     public TrackerImportParams setUser( User user )
     {

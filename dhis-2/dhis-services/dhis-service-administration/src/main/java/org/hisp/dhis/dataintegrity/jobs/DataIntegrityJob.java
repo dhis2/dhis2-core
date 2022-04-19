@@ -48,7 +48,7 @@ import org.springframework.stereotype.Component;
 /**
  * @author Halvdan Hoem Grelland <halvdanhg@gmail.com>
  */
-@Component( "dataIntegrityJob" )
+@Component
 @AllArgsConstructor
 public class DataIntegrityJob implements Job
 {

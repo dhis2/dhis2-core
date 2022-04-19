@@ -47,7 +47,7 @@ import org.hisp.dhis.query.Restrictions;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.tracker.TrackerIdScheme;
-import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.cache.PreheatCacheService;
@@ -84,10 +84,10 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
     @Override
     public void add( TrackerImportParams params, List<List<String>> splitList, TrackerPreheat preheat )
     {
-        TrackerIdentifier identifier = params.getIdentifiers().getByClass( getSchemaClass() );
+        TrackerIdSchemeParam idSchemeParam = params.getIdSchemes().getByClass( getSchemaClass() );
         Schema schema = schemaService.getDynamicSchema( getSchemaClass() );
 
-        queryForIdentifiableObjects( preheat, schema, identifier, splitList, mapper() );
+        queryForIdentifiableObjects( preheat, schema, idSchemeParam, splitList, mapper() );
     }
 
     protected Class<?> getSchemaClass()
@@ -96,11 +96,12 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
     }
 
     @SuppressWarnings( { "unchecked", "rawtypes" } )
-    protected void queryForIdentifiableObjects( TrackerPreheat preheat, Schema schema, TrackerIdentifier identifier,
+    protected void queryForIdentifiableObjects( TrackerPreheat preheat, Schema schema,
+        TrackerIdSchemeParam idSchemeParam,
         List<List<String>> splitList, Class<? extends PreheatMapper> mapper )
     {
 
-        TrackerIdScheme idScheme = identifier.getIdScheme();
+        TrackerIdScheme idScheme = idSchemeParam.getIdScheme();
         for ( List<String> ids : splitList )
         {
             List<? extends IdentifiableObject> objects;
@@ -108,16 +109,16 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
             if ( TrackerIdScheme.ATTRIBUTE.equals( idScheme ) )
             {
                 Attribute attribute = new Attribute();
-                attribute.setUid( identifier.getValue() );
+                attribute.setUid( idSchemeParam.getAttributeUid() );
                 objects = manager.getAllByAttributeAndValues(
                     (Class<? extends IdentifiableObject>) schema.getKlass(), attribute, ids );
             }
             else
             {
-                objects = cacheAwareFetch( preheat.getUser(), schema, identifier, ids, mapper );
+                objects = cacheAwareFetch( preheat.getUser(), schema, idSchemeParam, ids, mapper );
             }
 
-            preheat.put( identifier, objects );
+            preheat.put( idSchemeParam, objects );
         }
     }
 
@@ -127,10 +128,10 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
     }
 
     @SuppressWarnings( { "unchecked", "rawtypes" } )
-    private List<IdentifiableObject> cacheAwareFetch( User user, Schema schema, TrackerIdentifier identifier,
+    private List<IdentifiableObject> cacheAwareFetch( User user, Schema schema, TrackerIdSchemeParam idSchemeParam,
         List<String> ids, Class<? extends PreheatMapper> mapper )
     {
-        TrackerIdScheme idScheme = identifier.getIdScheme();
+        TrackerIdScheme idScheme = idSchemeParam.getIdScheme();
 
         List<IdentifiableObject> objects;
         final String cacheKey = buildCacheKey( schema );
@@ -166,7 +167,7 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
                     // put objects in query based on given scheme. If the key
                     // can't get resolved, send null to the
                     // cacheService, which will ignore the entry
-                    objects.forEach( o -> cache.put( cacheKey, identifier.getIdentifier( o ), o, getCacheTTL(),
+                    objects.forEach( o -> cache.put( cacheKey, idSchemeParam.getIdentifier( o ), o, getCacheTTL(),
                         getCapacity() ) );
 
                     // add back the cached objects to the final list

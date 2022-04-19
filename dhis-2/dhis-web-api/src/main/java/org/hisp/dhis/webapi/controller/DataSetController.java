@@ -280,7 +280,7 @@ public class DataSetController
 
         if ( dataSets.isEmpty() )
         {
-            throw new WebMessageException( notFound( "DataSet not found for uid: " + uid ) );
+            throw new WebMessageException( notFound( "Data set not found for uid: " + uid ) );
         }
 
         OrganisationUnit ou = manager.get( OrganisationUnit.class, orgUnit );
@@ -350,8 +350,8 @@ public class DataSetController
         {
             Set<CategoryOptionCombo> attrOptionCombos = options == null || options.isEmpty()
                 ? null
-                : Sets.newHashSet(
-                    inputUtils.getAttributeOptionCombo( dataSet.getCategoryCombo(), options, IdScheme.UID ) );
+                : Sets.newHashSet( inputUtils.getAttributeOptionCombo(
+                    dataSet.getCategoryCombo(), options, IdScheme.UID ) );
 
             List<DataValue> dataValues = dataValueService.getDataValues( new DataExportParams()
                 .setDataElements( dataSets.get( 0 ).getDataElements() )

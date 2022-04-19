@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dxf2.metadata;
 
+import static com.google.common.collect.Sets.union;
 import static org.hisp.dhis.commons.collection.CollectionUtils.flatMapToSet;
 import static org.hisp.dhis.commons.collection.CollectionUtils.mapToSet;
 
@@ -37,6 +38,7 @@ import java.util.Set;
 
 import lombok.AllArgsConstructor;
 
+import org.apache.commons.collections4.SetValuedMap;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -45,6 +47,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.fieldfiltering.FieldFilterParams;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
@@ -59,6 +62,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
@@ -69,6 +73,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 public class DefaultDataSetMetadataExportService
     implements DataSetMetadataExportService
 {
+    private static final String PROPERTY_ORGANISATION_UNITS = "organisationUnits";
+
     private static final String FIELDS_DATA_SETS = ":simple,categoryCombo[id],formType,dataEntryForm[id]," +
         "dataSetElements[dataElement[id],categoryCombo[id]]," +
         "compulsoryDataElementOperands[dataElement[id],categoryOptionCombo[id]]," +
@@ -81,7 +87,7 @@ public class DefaultDataSetMetadataExportService
 
     private static final String FIELDS_INDICATORS = ":simple,explodedNumerator,explodedDenominator";
 
-    private static final String FIELDS_DATAELEMENT_CAT_COMBOS = ":simple,isDefault,categories~pluck[id]," +
+    private static final String FIELDS_DATA_ELEMENT_CAT_COMBOS = ":simple,isDefault,categories~pluck[id]," +
         "categoryOptionCombos[id,code,name,displayName,categoryOptions~pluck[id]]";
 
     private static final String FIELDS_DATA_SET_CAT_COMBOS = ":simple,isDefault,categories~pluck[id]";
@@ -94,6 +100,8 @@ public class DefaultDataSetMetadataExportService
 
     private final CategoryService categoryService;
 
+    private final DataSetService dataSetService;
+
     private final ExpressionService expressionService;
 
     private final CurrentUserService currentUserService;
@@ -105,6 +113,9 @@ public class DefaultDataSetMetadataExportService
     public ObjectNode getDataSetMetadata()
     {
         User user = currentUserService.getCurrentUser();
+        CategoryCombo defaultCategoryCombo = categoryService.getDefaultCategoryCombo();
+        SetValuedMap<String, String> dataSetOrgUnits = dataSetService.getDataSetOrganisationUnitsAssociations();
+
         List<DataSet> dataSets = idObjectManager.getDataWriteAll( DataSet.class );
         Set<DataElement> dataElements = flatMapToSet( dataSets, DataSet::getDataElements );
         Set<Indicator> indicators = flatMapToSet( dataSets, DataSet::getIndicators );
@@ -112,26 +123,27 @@ public class DefaultDataSetMetadataExportService
         Set<CategoryCombo> dataSetCategoryCombos = mapToSet( dataSets, DataSet::getCategoryCombo );
         Set<Category> dataElementCategories = flatMapToSet( dataElementCategoryCombos, CategoryCombo::getCategories );
         Set<Category> dataSetCategories = flatMapToSet( dataSetCategoryCombos, CategoryCombo::getCategories );
+        Set<Category> categories = union( dataElementCategories, dataSetCategories );
         Set<CategoryOption> categoryOptions = getCategoryOptions( dataElementCategories, dataSetCategories, user );
 
+        dataSetCategoryCombos.remove( defaultCategoryCombo );
         expressionService.substituteIndicatorExpressions( indicators );
 
         ObjectNode rootNode = fieldFilterService.createObjectNode();
 
         rootNode.putArray( DataSetSchemaDescriptor.PLURAL )
-            .addAll( asObjectNodes( dataSets, FIELDS_DATA_SETS, DataSet.class ) );
+            .addAll( toDataSetObjectNodes( dataSets, dataSetOrgUnits ) );
         rootNode.putArray( DataElementSchemaDescriptor.PLURAL )
-            .addAll( asObjectNodes( dataElements, FIELDS_DATA_ELEMENTS, DataElement.class ) );
+            .addAll( toObjectNodes( dataElements, FIELDS_DATA_ELEMENTS, DataElement.class ) );
         rootNode.putArray( IndicatorSchemaDescriptor.PLURAL )
-            .addAll( asObjectNodes( indicators, FIELDS_INDICATORS, Indicator.class ) );
+            .addAll( toObjectNodes( indicators, FIELDS_INDICATORS, Indicator.class ) );
         rootNode.putArray( CategoryComboSchemaDescriptor.PLURAL )
-            .addAll( asObjectNodes( dataElementCategoryCombos, FIELDS_DATAELEMENT_CAT_COMBOS, CategoryCombo.class ) )
-            .addAll( asObjectNodes( dataSetCategoryCombos, FIELDS_DATA_SET_CAT_COMBOS, CategoryCombo.class ) );
+            .addAll( toObjectNodes( dataElementCategoryCombos, FIELDS_DATA_ELEMENT_CAT_COMBOS, CategoryCombo.class ) )
+            .addAll( toObjectNodes( dataSetCategoryCombos, FIELDS_DATA_SET_CAT_COMBOS, CategoryCombo.class ) );
         rootNode.putArray( CategorySchemaDescriptor.PLURAL )
-            .addAll( asObjectNodes( dataElementCategories, FIELDS_CATEGORIES, Category.class ) )
-            .addAll( asObjectNodes( dataSetCategories, FIELDS_CATEGORIES, Category.class ) );
+            .addAll( toObjectNodes( categories, FIELDS_CATEGORIES, Category.class ) );
         rootNode.putArray( CategoryOptionSchemaDescriptor.PLURAL )
-            .addAll( asObjectNodes( categoryOptions, FIELDS_CATEGORIES, CategoryOption.class ) );
+            .addAll( toObjectNodes( categoryOptions, FIELDS_CATEGORIES, CategoryOption.class ) );
 
         return rootNode;
     }
@@ -155,6 +167,47 @@ public class DefaultDataSetMetadataExportService
     }
 
     /**
+     * Returns data sets as a list of {@link ObjectNode}. Includes associations
+     * to organisation units.
+     *
+     * @param dataSets the list of {@link DataSet}.
+     * @param dataSetOrgUnits the associations between data sets and
+     *        organisation units.
+     * @return data sets as a list of {@link ObjectNode}
+     */
+    private List<ObjectNode> toDataSetObjectNodes( List<DataSet> dataSets,
+        SetValuedMap<String, String> dataSetOrgUnits )
+    {
+        List<ObjectNode> objectNodes = new ArrayList<>();
+
+        for ( DataSet dataSet : dataSets )
+        {
+            ObjectNode objectNode = fieldFilterService.toObjectNode( dataSet, List.of( FIELDS_DATA_SETS ) );
+            objectNode.putArray( PROPERTY_ORGANISATION_UNITS ).add( toOrgUnitsArrayNode( dataSet, dataSetOrgUnits ) );
+            objectNodes.add( objectNode );
+        }
+
+        return objectNodes;
+    }
+
+    /**
+     * Returns organisation unit associations for the given data set as an
+     * {@link ArrayNode}.
+     *
+     * @param dataSet the {@link DataSet}.
+     * @param dataSetOrgUnits the associations between data sets and
+     *        organisation units.
+     * @return organisation unit associations for the given data set.
+     */
+    private ArrayNode toOrgUnitsArrayNode( DataSet dataSet, SetValuedMap<String, String> dataSetOrgUnits )
+    {
+        ArrayNode arrayNode = fieldFilterService.createArrayNode();
+        Set<String> orgUnits = dataSetOrgUnits.get( dataSet.getUid() );
+        orgUnits.forEach( ou -> arrayNode.add( ou ) );
+        return arrayNode;
+    }
+
+    /**
      * Returns the given collection of objects as an {@link ObjectNode}.
      *
      * @param <T>
@@ -163,7 +216,7 @@ public class DefaultDataSetMetadataExportService
      * @param type the class type.
      * @return an {@link ObjectNode}.
      */
-    private <T extends IdentifiableObject> List<ObjectNode> asObjectNodes(
+    private <T extends IdentifiableObject> List<ObjectNode> toObjectNodes(
         Collection<T> objects, String filters, Class<T> type )
     {
         FieldFilterParams<T> fieldFilterParams = FieldFilterParams.<T> builder()

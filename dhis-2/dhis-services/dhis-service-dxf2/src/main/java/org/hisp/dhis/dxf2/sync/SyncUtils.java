@@ -40,10 +40,13 @@ import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.synch.AvailabilityStatus;
+import org.hisp.dhis.dxf2.synch.SynchronizationManager;
 import org.hisp.dhis.dxf2.synch.SystemInstance;
 import org.hisp.dhis.dxf2.webmessage.AbstractWebMessageResponse;
 import org.hisp.dhis.dxf2.webmessage.WebMessageParseException;
 import org.hisp.dhis.dxf2.webmessage.utils.WebMessageParseUtils;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.CodecUtils;
@@ -467,7 +470,7 @@ public class SyncUtils
      * @param endpoint Endpoint against which the sync was run
      * @return true if sync was successful, false otherwise
      */
-    static boolean checkSummaryStatus( ImportSummary summary, SyncEndpoint endpoint )
+    private static boolean checkSummaryStatus( ImportSummary summary, SyncEndpoint endpoint )
     {
         if ( summary.getStatus() == ImportStatus.ERROR || summary.getStatus() == ImportStatus.WARNING )
         {
@@ -478,22 +481,34 @@ public class SyncUtils
         return true;
     }
 
-    static SystemInstance getRemoteInstance( SystemSettingManager systemSettingManager, SyncEndpoint syncEndpoint )
+    static SystemInstance getRemoteInstance( SystemSettingManager settings, SyncEndpoint endpoint )
     {
-        String username = systemSettingManager.getStringSetting( SettingKey.REMOTE_INSTANCE_USERNAME );
-        String password = systemSettingManager.getStringSetting( SettingKey.REMOTE_INSTANCE_PASSWORD );
-        String syncUrl = systemSettingManager.getStringSetting( SettingKey.REMOTE_INSTANCE_URL )
-            + syncEndpoint.getPath();
+        String username = settings.getStringSetting( SettingKey.REMOTE_INSTANCE_USERNAME );
+        String password = settings.getStringSetting( SettingKey.REMOTE_INSTANCE_PASSWORD );
+        String syncUrl = settings.getStringSetting( SettingKey.REMOTE_INSTANCE_URL ) + endpoint.getPath();
 
         return new SystemInstance( syncUrl, username, password );
     }
 
-    static SystemInstance getRemoteInstanceWithSyncImportStrategy( SystemSettingManager systemSettingManager,
+    static SystemInstance getRemoteInstanceWithSyncImportStrategy( SystemSettingManager settings,
         SyncEndpoint syncEndpoint )
     {
-        SystemInstance systemInstance = getRemoteInstance( systemSettingManager, syncEndpoint );
+        SystemInstance systemInstance = getRemoteInstance( settings, syncEndpoint );
         systemInstance.setUrl( systemInstance.getUrl() + SyncUtils.IMPORT_STRATEGY_SYNC_SUFFIX );
 
         return systemInstance;
+    }
+
+    public static Optional<ErrorReport> validateRemoteServerAvailability( SynchronizationManager synchronizationManager,
+        Class<?> klass )
+    {
+        AvailabilityStatus isRemoteServerAvailable = synchronizationManager.isRemoteServerAvailable();
+
+        if ( !isRemoteServerAvailable.isAvailable() )
+        {
+            return Optional.of( new ErrorReport( klass, ErrorCode.E7010, isRemoteServerAvailable.getMessage() ) );
+        }
+
+        return Optional.empty();
     }
 }
