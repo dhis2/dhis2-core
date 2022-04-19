@@ -94,9 +94,19 @@ public class DefaultDataValueAuditService
 
     @Override
     @Transactional( readOnly = true )
+    public List<DataValueAudit> getDataValueAudits( DataElement dataElement, Period period,
+        OrganisationUnit organisationUnit, CategoryOptionCombo categoryOptionCombo,
+        CategoryOptionCombo attributeOptionCombo )
+    {
+        return dataValueAuditStore.getDataValueAudits( List.of( dataElement ), List.of( period ),
+            List.of( organisationUnit ), categoryOptionCombo, attributeOptionCombo, null );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
     public List<DataValueAudit> getDataValueAudits( List<DataElement> dataElements, List<Period> periods,
-        List<OrganisationUnit> organisationUnits,
-        CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo, AuditType auditType )
+        List<OrganisationUnit> organisationUnits, CategoryOptionCombo categoryOptionCombo,
+        CategoryOptionCombo attributeOptionCombo, AuditType auditType )
     {
         return dataValueAuditStore.getDataValueAudits( dataElements, periods, organisationUnits, categoryOptionCombo,
             attributeOptionCombo, auditType );
@@ -105,9 +115,8 @@ public class DefaultDataValueAuditService
     @Override
     @Transactional( readOnly = true )
     public List<DataValueAudit> getDataValueAudits( List<DataElement> dataElements, List<Period> periods,
-        List<OrganisationUnit> organisationUnits,
-        CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo, AuditType auditType,
-        int first, int max )
+        List<OrganisationUnit> organisationUnits, CategoryOptionCombo categoryOptionCombo,
+        CategoryOptionCombo attributeOptionCombo, AuditType auditType, int first, int max )
     {
         return dataValueAuditStore.getDataValueAudits( dataElements, periods, organisationUnits, categoryOptionCombo,
             attributeOptionCombo, auditType, first, max );

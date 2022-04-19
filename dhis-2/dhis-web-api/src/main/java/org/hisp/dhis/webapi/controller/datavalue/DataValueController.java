@@ -74,6 +74,7 @@ import org.hisp.dhis.webapi.webdomain.DataValueFollowUpRequest;
 import org.hisp.dhis.webapi.webdomain.DataValuesFollowUpRequest;
 import org.hisp.dhis.webapi.webdomain.datavalue.DataValueCategoryDto;
 import org.hisp.dhis.webapi.webdomain.datavalue.DataValueDto;
+import org.hisp.dhis.webapi.webdomain.datavalue.DataValueQueryParams;
 import org.jclouds.rest.AuthorizationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -414,12 +415,7 @@ public class DataValueController
     @DeleteMapping
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void deleteDataValue(
-        @RequestParam String de,
-        @RequestParam( required = false ) String co,
-        @RequestParam( required = false ) String cc,
-        @RequestParam( required = false ) String cp,
-        @RequestParam String pe,
-        @RequestParam String ou,
+        DataValueQueryParams params,
         @RequestParam( required = false ) String ds,
         @RequestParam( required = false ) boolean force,
         @CurrentUser User currentUser,
@@ -433,15 +429,17 @@ public class DataValueController
         // Input validation
         // ---------------------------------------------------------------------
 
-        DataElement dataElement = dataValueValidation.getAndValidateDataElement( de );
+        DataElement dataElement = dataValueValidation.getAndValidateDataElement( params.getDe() );
 
-        CategoryOptionCombo categoryOptionCombo = dataValueValidation.getAndValidateCategoryOptionCombo( co, false );
+        CategoryOptionCombo categoryOptionCombo = dataValueValidation.getAndValidateCategoryOptionCombo( params.getCo(),
+            false );
 
-        CategoryOptionCombo attributeOptionCombo = dataValueValidation.getAndValidateAttributeOptionCombo( cc, cp );
+        CategoryOptionCombo attributeOptionCombo = dataValueValidation.getAndValidateAttributeOptionCombo(
+            params.getCc(), params.getCp() );
 
-        Period period = dataValueValidation.getAndValidatePeriod( pe );
+        Period period = dataValueValidation.getAndValidatePeriod( params.getPe() );
 
-        OrganisationUnit organisationUnit = dataValueValidation.getAndValidateOrganisationUnit( ou );
+        OrganisationUnit organisationUnit = dataValueValidation.getAndValidateOrganisationUnit( params.getOu() );
 
         DataSet dataSet = dataValueValidation.getAndValidateOptionalDataSet( ds, dataElement );
 
@@ -488,12 +486,7 @@ public class DataValueController
 
     @GetMapping
     public List<String> getDataValue(
-        @RequestParam String de,
-        @RequestParam( required = false ) String co,
-        @RequestParam( required = false ) String cc,
-        @RequestParam( required = false ) String cp,
-        @RequestParam String pe,
-        @RequestParam String ou,
+        DataValueQueryParams params,
         @CurrentUser User currentUser,
         Model model, HttpServletResponse response )
         throws WebMessageException
@@ -502,15 +495,17 @@ public class DataValueController
         // Input validation
         // ---------------------------------------------------------------------
 
-        DataElement dataElement = dataValueValidation.getAndValidateDataElement( de );
+        DataElement dataElement = dataValueValidation.getAndValidateDataElement( params.getDe() );
 
-        CategoryOptionCombo categoryOptionCombo = dataValueValidation.getAndValidateCategoryOptionCombo( co, false );
+        CategoryOptionCombo categoryOptionCombo = dataValueValidation.getAndValidateCategoryOptionCombo(
+            params.getCo(), false );
 
-        CategoryOptionCombo attributeOptionCombo = dataValueValidation.getAndValidateAttributeOptionCombo( cc, cp );
+        CategoryOptionCombo attributeOptionCombo = dataValueValidation.getAndValidateAttributeOptionCombo(
+            params.getCc(), params.getCp() );
 
-        Period period = dataValueValidation.getAndValidatePeriod( pe );
+        Period period = dataValueValidation.getAndValidatePeriod( params.getPe() );
 
-        OrganisationUnit organisationUnit = dataValueValidation.getAndValidateOrganisationUnit( ou );
+        OrganisationUnit organisationUnit = dataValueValidation.getAndValidateOrganisationUnit( params.getOu() );
 
         // ---------------------------------------------------------------------
         // Get data value
@@ -580,12 +575,7 @@ public class DataValueController
 
     @GetMapping( "/files" )
     public void getDataValueFile(
-        @RequestParam String de,
-        @RequestParam( required = false ) String co,
-        @RequestParam( required = false ) String cc,
-        @RequestParam( required = false ) String cp,
-        @RequestParam String pe,
-        @RequestParam String ou,
+        DataValueQueryParams params,
         @RequestParam( defaultValue = "original" ) String dimension,
         HttpServletResponse response, HttpServletRequest request )
         throws WebMessageException
@@ -594,20 +584,22 @@ public class DataValueController
         // Input validation
         // ---------------------------------------------------------------------
 
-        DataElement dataElement = dataValueValidation.getAndValidateDataElement( de );
+        DataElement dataElement = dataValueValidation.getAndValidateDataElement( params.getDe() );
 
         if ( !dataElement.isFileType() )
         {
             throw new WebMessageException( conflict( "DataElement must be of type file" ) );
         }
 
-        CategoryOptionCombo categoryOptionCombo = dataValueValidation.getAndValidateCategoryOptionCombo( co, false );
+        CategoryOptionCombo categoryOptionCombo = dataValueValidation.getAndValidateCategoryOptionCombo(
+            params.getCo(), false );
 
-        CategoryOptionCombo attributeOptionCombo = dataValueValidation.getAndValidateAttributeOptionCombo( cc, cp );
+        CategoryOptionCombo attributeOptionCombo = dataValueValidation.getAndValidateAttributeOptionCombo(
+            params.getCc(), params.getCp() );
 
-        Period period = dataValueValidation.getAndValidatePeriod( pe );
+        Period period = dataValueValidation.getAndValidatePeriod( params.getPe() );
 
-        OrganisationUnit organisationUnit = dataValueValidation.getAndValidateOrganisationUnit( ou );
+        OrganisationUnit organisationUnit = dataValueValidation.getAndValidateOrganisationUnit( params.getOu() );
 
         dataValueValidation.validateOrganisationUnitPeriod( organisationUnit, period );
 
