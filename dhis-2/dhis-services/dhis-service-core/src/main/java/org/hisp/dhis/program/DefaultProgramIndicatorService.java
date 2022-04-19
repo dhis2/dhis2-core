@@ -382,7 +382,9 @@ public class DefaultProgramIndicatorService
     private String _getAnalyticsSql( String expression, ProgramIndicator programIndicator, Date startDate, Date endDate,
         String tableAlias )
     {
-        Set<String> uids = getDataElementAndAttributeIdentifiers( expression, programIndicator.getAnalyticsType() );
+        // Get the uids from the expression even if this is the filter
+        Set<String> uids = getDataElementAndAttributeIdentifiers( programIndicator.getExpression(),
+            programIndicator.getAnalyticsType() );
 
         ProgramExpressionParams params = ProgramExpressionParams.builder()
             .programIndicator( programIndicator )
