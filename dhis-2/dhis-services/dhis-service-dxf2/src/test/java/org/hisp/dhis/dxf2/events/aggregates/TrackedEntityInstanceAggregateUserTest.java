@@ -45,7 +45,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import com.google.common.collect.Sets;
 
-class TrackedEntityInstanceAggregateUserTest extends TrackerTest
+public class TrackedEntityInstanceAggregateUserTest extends TrackerTest
 {
     @Autowired
     private TrackedEntityInstanceService trackedEntityInstanceService;
@@ -66,7 +66,7 @@ class TrackedEntityInstanceAggregateUserTest extends TrackerTest
     }
 
     @Test
-    void testFetchTrackedEntityInstances()
+    public void testFetchTrackedEntityInstances()
     {
         doInTransaction( () -> {
             this.persistTrackedEntityInstance();
