@@ -124,8 +124,6 @@ public class EventTrackerConverterService
             }
 
             event.setEnrollment( psi.getProgramInstance().getUid() );
-            // TODO(DHIS2-12563) what are these converters for again?
-            // will/should this always be a uid?
             event.setProgramStage( MetadataIdentifier.ofUid( psi.getProgramStage().getUid() ) );
             event.setAttributeOptionCombo( psi.getAttributeOptionCombo().getUid() );
             event.setAttributeCategoryOptions( psi.getAttributeOptionCombo()
