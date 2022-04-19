@@ -200,12 +200,18 @@
         "relationshipEntity": "PROGRAM_STAGE_INSTANCE",
         "program": {
           "id": "Zd2rkv8FsWq"
+        },
+        "programStage": {
+          "id": "jKLB23QZS4I"
         }
       },
       "fromConstraint": {
         "relationshipEntity": "PROGRAM_STAGE_INSTANCE",
         "program": {
           "id": "Zd2rkv8FsWq"
+        },
+        "programStage": {
+          "id": "jKLB23QZS4I"
         }
       },
       "favorites": [],
