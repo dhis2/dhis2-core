@@ -745,8 +745,6 @@ class EventDataValuesValidationHookTest
 
         hook.validateEvent( reporter, event );
 
-        System.out.println( " the errors:  " + reporter.getReportList().toString() );
-
         assertFalse( reporter.hasErrors() );
     }
 
