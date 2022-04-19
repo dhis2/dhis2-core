@@ -166,8 +166,9 @@ public class TrackedEntityInstanceAggregate
         final Optional<User> user = Optional.ofNullable( currentUserService.getCurrentUser() );
 
         user.ifPresent( u -> {
-            if ( userGroupUIDCache.get( user.get().getUid() ).isEmpty()
-                && !CollectionUtils.isEmpty( user.get().getGroups() ) )
+            if ( !userGroupUIDCache.containsKey( user.get().getUid() ) ||
+                (userGroupUIDCache.get( user.get().getUid() ).isEmpty()
+                    && !CollectionUtils.isEmpty( user.get().getGroups() )) )
             {
                 userGroupUIDCache.put( user.get().getUid(),
                     user.get().getGroups().stream().map( BaseIdentifiableObject::getUid )
