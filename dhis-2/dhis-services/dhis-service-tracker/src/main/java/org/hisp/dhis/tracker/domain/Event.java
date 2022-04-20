@@ -66,7 +66,7 @@ public class Event
     private MetadataIdentifier program;
 
     @JsonProperty
-    private String programStage;
+    private MetadataIdentifier programStage;
 
     @JsonProperty
     private String enrollment;

@@ -341,8 +341,6 @@ public class TrackerPreheat
     /**
      * A list of Program Stage UID having 1 or more Events
      */
-    @Getter
-    @Setter
     private List<Pair<String, String>> programStageWithEvents = Lists.newArrayList();
 
     /**
@@ -758,6 +756,11 @@ public class TrackerPreheat
         return get( OrganisationUnit.class, id );
     }
 
+    public ProgramStage getProgramStage( MetadataIdentifier id )
+    {
+        return get( ProgramStage.class, id );
+    }
+
     public ProgramStage getProgramStage( String id )
     {
         return get( ProgramStage.class, id );
@@ -781,6 +784,19 @@ public class TrackerPreheat
     public TrackedEntityAttribute getTrackedEntityAttribute( String id )
     {
         return get( TrackedEntityAttribute.class, id );
+    }
+
+    public TrackerPreheat addProgramStageWithEvents( String programStageUid, String enrollmentUid )
+    {
+        this.programStageWithEvents.add( Pair.of( programStageUid, enrollmentUid ) );
+        return this;
+    }
+
+    public boolean hasProgramStageWithEvents( MetadataIdentifier programStage, String enrollmentUid )
+    {
+        ProgramStage ps = this.getProgramStage( programStage );
+        ProgramInstance pi = this.getEnrollment( enrollmentUid );
+        return this.programStageWithEvents.contains( Pair.of( ps.getUid(), pi.getUid() ) );
     }
 
     @Override

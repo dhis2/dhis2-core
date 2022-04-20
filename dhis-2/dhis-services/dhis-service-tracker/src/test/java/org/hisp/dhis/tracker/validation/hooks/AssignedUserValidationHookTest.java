@@ -39,6 +39,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.User;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
@@ -96,7 +97,7 @@ class AssignedUserValidationHookTest extends DhisConvenienceTest
         // given
         Event event = new Event();
         event.setAssignedUser( VALID_USER );
-        event.setProgramStage( PROGRAM_STAGE );
+        event.setProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE ) );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
@@ -113,7 +114,7 @@ class AssignedUserValidationHookTest extends DhisConvenienceTest
         // given
         Event event = new Event();
         event.setAssignedUser( null );
-        event.setProgramStage( PROGRAM_STAGE );
+        event.setProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE ) );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
@@ -130,7 +131,7 @@ class AssignedUserValidationHookTest extends DhisConvenienceTest
         // given
         Event event = new Event();
         event.setAssignedUser( User.builder().build() );
-        event.setProgramStage( PROGRAM_STAGE );
+        event.setProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE ) );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
@@ -148,7 +149,7 @@ class AssignedUserValidationHookTest extends DhisConvenienceTest
         Event event = new Event();
         event.setEvent( CodeGenerator.generateUid() );
         event.setAssignedUser( INVALID_USER );
-        event.setProgramStage( PROGRAM_STAGE );
+        event.setProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE ) );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
@@ -166,7 +167,7 @@ class AssignedUserValidationHookTest extends DhisConvenienceTest
         Event event = new Event();
         event.setEvent( CodeGenerator.generateUid() );
         event.setAssignedUser( VALID_USER );
-        event.setProgramStage( PROGRAM_STAGE );
+        event.setProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE ) );
 
         // when
         TrackerPreheat preheat = new TrackerPreheat();
@@ -187,7 +188,7 @@ class AssignedUserValidationHookTest extends DhisConvenienceTest
         Event event = new Event();
         event.setEvent( CodeGenerator.generateUid() );
         event.setAssignedUser( VALID_USER );
-        event.setProgramStage( PROGRAM_STAGE );
+        event.setProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE ) );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
@@ -211,7 +212,7 @@ class AssignedUserValidationHookTest extends DhisConvenienceTest
         Event event = new Event();
         event.setEvent( CodeGenerator.generateUid() );
         event.setAssignedUser( VALID_USER );
-        event.setProgramStage( PROGRAM_STAGE );
+        event.setProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE ) );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 

@@ -54,6 +54,7 @@ import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.User;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.util.DateUtils;
@@ -123,7 +124,7 @@ public class EventTrackerConverterService
             }
 
             event.setEnrollment( psi.getProgramInstance().getUid() );
-            event.setProgramStage( psi.getProgramStage().getUid() );
+            event.setProgramStage( MetadataIdentifier.ofUid( psi.getProgramStage().getUid() ) );
             event.setAttributeOptionCombo( psi.getAttributeOptionCombo().getUid() );
             event.setAttributeCategoryOptions( psi.getAttributeOptionCombo()
                 .getCategoryOptions().stream().map( CategoryOption::getUid ).collect( Collectors.joining( ";" ) ) );

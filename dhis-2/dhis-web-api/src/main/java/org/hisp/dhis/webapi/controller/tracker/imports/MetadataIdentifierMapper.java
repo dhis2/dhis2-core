@@ -37,9 +37,16 @@ interface MetadataIdentifierMapper
 {
 
     @Named( "programToMetadataIdentifier" )
-    default org.hisp.dhis.tracker.domain.MetadataIdentifier from( String identifier,
+    default org.hisp.dhis.tracker.domain.MetadataIdentifier fromProgram( String identifier,
         @Context TrackerIdSchemeParams idSchemeParams )
     {
         return idSchemeParams.getProgramIdScheme().toMetadataIdentifier( identifier );
+    }
+
+    @Named( "programStageToMetadataIdentifier" )
+    default org.hisp.dhis.tracker.domain.MetadataIdentifier fromProgramStage( String identifier,
+        @Context TrackerIdSchemeParams idSchemeParams )
+    {
+        return idSchemeParams.getProgramStageIdScheme().toMetadataIdentifier( identifier );
     }
 }

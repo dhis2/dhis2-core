@@ -40,7 +40,10 @@
         "idScheme": "UID",
         "identifier": "prabcdefghA"
       },
-      "programStage": "pgabcdefghA",
+      "programStage": {
+        "idScheme": "UID",
+        "identifier": "pgabcdefghA"
+      },
       "enrollment": "MNWZ6hnuhSX",
       "orgUnit": "ouabcdefghA",
       "orgUnitName": "TA org_unit lvl2",

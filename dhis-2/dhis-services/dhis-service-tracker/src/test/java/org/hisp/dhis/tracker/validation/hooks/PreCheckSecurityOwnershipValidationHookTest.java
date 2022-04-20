@@ -714,7 +714,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         Event event = Event.builder()
             .enrollment( enrollmentUid )
             .orgUnit( ORG_UNIT_ID )
-            .programStage( PS_ID )
+            .programStage( MetadataIdentifier.ofUid( PS_ID ) )
             .program( MetadataIdentifier.ofUid( PROGRAM_ID ) )
             .build();
 
@@ -747,7 +747,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         Event event = Event.builder()
             .enrollment( enrollmentUid )
             .orgUnit( ORG_UNIT_ID )
-            .programStage( PS_ID )
+            .programStage( MetadataIdentifier.ofUid( PS_ID ) )
             .program( MetadataIdentifier.ofUid( PROGRAM_ID ) )
             .build();
 
@@ -776,7 +776,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         Event event = Event.builder()
             .enrollment( CodeGenerator.generateUid() )
             .orgUnit( ORG_UNIT_ID )
-            .programStage( PS_ID )
+            .programStage( MetadataIdentifier.ofUid( PS_ID ) )
             .program( MetadataIdentifier.ofUid( PROGRAM_ID ) )
             .build();
 
@@ -804,7 +804,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         Event event = Event.builder()
             .enrollment( CodeGenerator.generateUid() )
             .orgUnit( ORG_UNIT_ID )
-            .programStage( PS_ID )
+            .programStage( MetadataIdentifier.ofUid( PS_ID ) )
             .program( MetadataIdentifier.ofUid( PROGRAM_ID ) )
             .build();
 
@@ -833,7 +833,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         Event event = Event.builder()
             .enrollment( enrollmentUid )
             .orgUnit( ORG_UNIT_ID )
-            .programStage( PS_ID )
+            .programStage( MetadataIdentifier.ofUid( PS_ID ) )
             .program( MetadataIdentifier.ofUid( PROGRAM_ID ) )
             .status( EventStatus.COMPLETED )
             .build();
@@ -866,7 +866,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
             .event( eventUid )
             .enrollment( enrollmentUid )
             .orgUnit( ORG_UNIT_ID )
-            .programStage( PS_ID )
+            .programStage( MetadataIdentifier.ofUid( PS_ID ) )
             .program( MetadataIdentifier.ofUid( PROGRAM_ID ) )
             .status( EventStatus.COMPLETED )
             .build();
@@ -905,7 +905,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         Event event = Event.builder()
             .enrollment( enrollmentUid )
             .orgUnit( ORG_UNIT_ID )
-            .programStage( PS_ID )
+            .programStage( MetadataIdentifier.ofUid( PS_ID ) )
             .program( MetadataIdentifier.ofUid( PROGRAM_ID ) )
             .build();
 
@@ -937,7 +937,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
             .event( CodeGenerator.generateUid() )
             .enrollment( CodeGenerator.generateUid() )
             .orgUnit( ORG_UNIT_ID )
-            .programStage( PS_ID )
+            .programStage( MetadataIdentifier.ofUid( PS_ID ) )
             .program( MetadataIdentifier.ofUid( PROGRAM_ID ) )
             .build();
 
@@ -967,7 +967,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
             .event( CodeGenerator.generateUid() )
             .enrollment( CodeGenerator.generateUid() )
             .orgUnit( ORG_UNIT_ID )
-            .programStage( PS_ID )
+            .programStage( MetadataIdentifier.ofUid( PS_ID ) )
             .program( MetadataIdentifier.ofUid( PROGRAM_ID ) )
             .status( EventStatus.SCHEDULE )
             .build();
@@ -999,7 +999,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
             .event( CodeGenerator.generateUid() )
             .enrollment( enrollmentUid )
             .orgUnit( ORG_UNIT_ID )
-            .programStage( PS_ID )
+            .programStage( MetadataIdentifier.ofUid( PS_ID ) )
             .program( MetadataIdentifier.ofUid( PROGRAM_ID ) )
             .build();
 
@@ -1030,7 +1030,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
             .event( CodeGenerator.generateUid() )
             .enrollment( enrollmentUid )
             .orgUnit( ORG_UNIT_ID )
-            .programStage( PS_ID )
+            .programStage( MetadataIdentifier.ofUid( PS_ID ) )
             .program( MetadataIdentifier.ofUid( PROGRAM_ID ) )
             .status( EventStatus.COMPLETED )
             .build();
