@@ -269,7 +269,7 @@ public class DefaultMetadataExportService implements MetadataExportService
 
                 String plural = schemaService.getDynamicSchema( klass ).getPlural();
                 generator.writeArrayFieldStart( plural );
-                fieldFilterService.streamObjectNodes( fieldFilterParams, generator );
+                fieldFilterService.toObjectNodesStream( fieldFilterParams, generator );
                 generator.writeEndArray();
             }
 

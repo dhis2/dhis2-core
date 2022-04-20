@@ -82,6 +82,7 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -90,7 +91,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -217,11 +220,29 @@ public class MetadataImportExportController
         return Arrays.asList( CsvImportClass.values() );
     }
 
+    @GetMapping( value = "", params = "download" )
+    public ResponseEntity<JsonNode> getMetadataDownload(
+        @RequestParam( required = false, defaultValue = "false" ) boolean translate,
+        @RequestParam( required = false ) String locale,
+        @RequestParam( defaultValue = "false" ) boolean download )
+    {
+        if ( translate )
+        {
+            TranslateParams translateParams = new TranslateParams( true, locale );
+            setUserContext( currentUserService.getCurrentUser(), translateParams );
+        }
+
+        MetadataExportParams params = metadataExportService.getParamsFromMap( contextService.getParameterValuesMap() );
+        metadataExportService.validate( params );
+
+        ObjectNode rootNode = metadataExportService.getMetadataAsNode( params );
+        return MetadataExportControllerUtils.createJsonNodeResponseEntity( rootNode, download );
+    }
+
     @GetMapping
     public void getMetadata(
         @RequestParam( required = false, defaultValue = "false" ) boolean translate,
         @RequestParam( required = false ) String locale,
-        @RequestParam( required = false, defaultValue = "false" ) boolean download,
         HttpServletResponse response )
         throws IOException
     {

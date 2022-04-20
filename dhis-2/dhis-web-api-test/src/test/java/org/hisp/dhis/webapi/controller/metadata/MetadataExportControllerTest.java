@@ -31,11 +31,16 @@ import org.hisp.dhis.dxf2.metadata.MetadataExportService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.webapi.service.ContextService;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
+
+import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * Unit tests for {@link MetadataExportControllerTest}.
@@ -61,25 +66,11 @@ class MetadataExportControllerTest
     private MetadataImportExportController controller;
 
     @Test
-    void withoutDownload()
-    {
-        /*
-         * ResponseEntity<JsonNode> responseEntity = controller.getMetadata(
-         * false, null, false ); Assertions.assertNull(
-         * responseEntity.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ) );
-         */
-    }
-
-    @Test
     void withDownload()
     {
-        /*
-         * ResponseEntity<JsonNode> responseEntity = controller.getMetadata(
-         * false, null, true ); Assertions.assertNotNull(
-         * responseEntity.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ) );
-         * Assertions.assertEquals( "attachment; filename=metadata",
-         * responseEntity.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION
-         * ).get( 0 ) );
-         */
+        ResponseEntity<JsonNode> responseEntity = controller.getMetadataDownload( false, null, true );
+        Assertions.assertNotNull( responseEntity.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ) );
+        Assertions.assertEquals( "attachment; filename=metadata",
+            responseEntity.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ).get( 0 ) );
     }
 }

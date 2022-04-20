@@ -194,29 +194,29 @@ public class FieldFilterService
     }
 
     /**
-     * Streams filtered object nodes using given ObjectMapper. Initializes a
      * JsonGenerator using given OutputStream.
      *
      * @param params Filter params to apply
      * @param outputStream OutputStream
      * @throws IOException
      */
-    public void streamObjectNodes( FieldFilterParams<?> params, OutputStream outputStream )
+    public void toObjectNodesStream( FieldFilterParams<?> params, OutputStream outputStream )
         throws IOException
     {
         try ( JsonGenerator generator = jsonMapper.getFactory().createGenerator( outputStream ) )
         {
-            streamObjectNodes( params, generator );
+            toObjectNodesStream( params, generator );
         }
     }
 
     /**
+     * Streams filtered object nodes using given JsonGenerator.
      *
      * @param params Filter params to apply
      * @param generator Pre-created json generator
      * @throws IOException
      */
-    public void streamObjectNodes( FieldFilterParams<?> params, JsonGenerator generator )
+    public void toObjectNodesStream( FieldFilterParams<?> params, JsonGenerator generator )
         throws IOException
     {
         if ( params.getObjects().isEmpty() )
