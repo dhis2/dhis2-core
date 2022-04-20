@@ -71,6 +71,12 @@ public class EnrollmentAnalyticsQueryCriteria
 
     private IdScheme dataIdScheme;
 
+    /**
+     * Identifier scheme to use for metadata items the query response, can be
+     * identifier, code or attributes. ( options: UID | CODE | ATTRIBUTE:<ID> )
+     */
+    private IdScheme outputIdScheme;
+
     private ProgramStatus programStatus;
 
     private Integer page;
