@@ -181,7 +181,7 @@ public class DefaultEventAnalyticsService
         AnalyticsCache analyticsCache, EnrollmentAnalyticsManager enrollmentAnalyticsManager,
         SchemaIdResponseMapper schemaIdResponseMapper )
     {
-        super( securityManager, queryValidator );
+        super( securityManager, queryValidator, schemaIdResponseMapper );
 
         checkNotNull( dataElementService );
         checkNotNull( trackedEntityAttributeService );
@@ -621,26 +621,6 @@ public class DefaultEventAnalyticsService
         return grid;
     }
 
-    /**
-     * Substitutes the meta data of the grid with the identifier scheme meta
-     * data property indicated in the query. This happens only when a custom ID
-     * Schema is set.
-     *
-     * @param params the {@link EventQueryParams}.
-     * @param grid the grid.
-     */
-    private void maybeApplyIdScheme( EventQueryParams params, Grid grid )
-    {
-        if ( !params.isSkipMeta() )
-        {
-            if ( params.hasCustomIdSchemaSet() )
-            {
-                // Apply all schemas set/mapped to the grid.
-                grid.substituteMetaData( schemaIdResponseMapper.getSchemeIdResponseMap( params ) );
-            }
-        }
-    }
-
     // -------------------------------------------------------------------------
     // Query
     // -------------------------------------------------------------------------
@@ -648,11 +628,7 @@ public class DefaultEventAnalyticsService
     @Override
     public Grid getEvents( EventQueryParams params )
     {
-        final Grid grid = getGrid( params );
-
-        maybeApplyIdScheme( params, grid );
-
-        return grid;
+        return getGrid( params );
     }
 
     @Override

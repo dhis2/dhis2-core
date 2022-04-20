@@ -105,6 +105,17 @@ public class JdbcEventStoreTest
         verify( rowSet, times( 4 ) ).getString( "psi_eventdatavalues" );
     }
 
+    @Test
+    public void verifyNullOrganisationUnitsIsHandled()
+    {
+        mockRowSet();
+        EventSearchParams eventSearchParams = new EventSearchParams();
+
+        List<EventRow> rows = subject.getEventRows( eventSearchParams, null );
+        assertThat( rows, hasSize( 1 ) );
+        verify( rowSet, times( 4 ) ).getString( "psi_eventdatavalues" );
+    }
+
     private void mockRowSet()
     {
         // Simulate 3 rows
