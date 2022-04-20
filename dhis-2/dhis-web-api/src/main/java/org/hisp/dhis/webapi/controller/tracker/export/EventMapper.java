@@ -39,8 +39,7 @@ import org.mapstruct.Named;
     NoteMapper.class,
     DataValueMapper.class,
     InstantMapper.class,
-    UserMapper.class,
-} )
+    UserMapper.class } )
 interface EventMapper extends ViewMapper<org.hisp.dhis.dxf2.events.event.Event, Event>
 {
     @Mapping( target = "occurredAt", source = "eventDate" )
