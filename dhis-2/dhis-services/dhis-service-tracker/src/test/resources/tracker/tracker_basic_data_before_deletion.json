@@ -1,176 +1,296 @@
 {
-  "events": [
+  "importMode": "COMMIT",
+  "idSchemes": {
+    "dataElementIdScheme": {
+      "idScheme": "UID"
+    },
+    "orgUnitIdScheme": {
+      "idScheme": "UID"
+    },
+    "programIdScheme": {
+      "idScheme": "UID"
+    },
+    "programStageIdScheme": {
+      "idScheme": "UID"
+    },
+    "idScheme": {
+      "idScheme": "UID"
+    },
+    "categoryOptionComboIdScheme": {
+      "idScheme": "UID"
+    },
+    "categoryOptionIdScheme": {
+      "idScheme": "UID"
+    }
+  },
+  "importStrategy": "CREATE",
+  "atomicMode": "ALL",
+  "flushMode": "AUTO",
+  "validationMode": "FULL",
+  "skipPatternValidation": false,
+  "skipSideEffects": false,
+  "skipRuleEngine": false,
+  "trackedEntities": [
     {
-      "event": "D9PbzJY8bJO",
-      "enrollment": "TvctPPhpD8u",
-      "storedBy": "admin",
-      "scheduledAt": "2019-01-28T12:10:38.100",
-      "program": "E8o1E9tAppy",
-      "programStage": "Qmqxq907VNz",
+      "trackedEntity": "NCc1rCEOKaY",
+      "trackedEntityType": "bPJ0FMtcnEh",
       "orgUnit": "QfUVllTs6cS",
-      "status": "COMPLETED",
-      "occurredAt": "2019-01-28T00:00:00.000",
-      "attributeCategoryOptions": "xYerKDKCefk",
-      "updatedAt": "2019-01-28T12:10:38.109",
-      "createdAt": "2019-01-28T12:10:38.108",
-      "completedAt": "2019-01-28T00:00:00.000",
-      "completedBy": "admin",
-      "dataValues": []
+      "inactive": false,
+      "deleted": false,
+      "potentialDuplicate": false,
+      "relationships": [],
+      "attributes": [
+        {
+          "attribute": "fmBIpOStKkF",
+          "storedBy": "admin",
+          "value": "PersonA"
+        },
+        {
+          "attribute": "sTJvSLN7Kcb",
+          "storedBy": "admin",
+          "value": "AddressA"
+        }
+      ],
+      "enrollments": [],
+      "programOwners": []
     },
     {
-      "event": "D9PbzJY8bJ1",
-      "enrollment": "TvctPPhpD8v",
-      "storedBy": "admin",
-      "scheduledAt": "2019-01-28T12:10:38.100",
-      "program": "E8o1E9tAppy",
-      "programStage": "Qmqxq907VNz",
+      "trackedEntity": "PB9VMezGkwA",
+      "trackedEntityType": "bPJ0FMtcnEh",
       "orgUnit": "QfUVllTs6cS",
-      "status": "COMPLETED",
-      "occurredAt": "2019-01-28T00:00:00.000",
-      "attributeCategoryOptions": "xYerKDKCefk",
-      "updatedAt": "2019-01-28T12:10:38.109",
-      "createdAt": "2019-01-28T12:10:38.108",
-      "completedAt": "2019-01-28T00:00:00.000",
-      "completedBy": "admin",
-      "dataValues": []
+      "inactive": false,
+      "deleted": false,
+      "potentialDuplicate": false,
+      "relationships": [],
+      "attributes": [],
+      "enrollments": [],
+      "programOwners": []
+    },
+    {
+      "trackedEntity": "N0wuhEwexUW",
+      "trackedEntityType": "bPJ0FMtcnEh",
+      "orgUnit": "QfUVllTs6cS",
+      "inactive": false,
+      "deleted": false,
+      "potentialDuplicate": false,
+      "relationships": [],
+      "attributes": [],
+      "enrollments": [],
+      "programOwners": []
+    },
+    {
+      "trackedEntity": "g3eF1fJXuSz",
+      "trackedEntityType": "bPJ0FMtcnEh",
+      "orgUnit": "QfUVllTs6cS",
+      "inactive": false,
+      "deleted": false,
+      "potentialDuplicate": false,
+      "relationships": [],
+      "attributes": [],
+      "enrollments": [],
+      "programOwners": []
+    },
+    {
+      "trackedEntity": "s9D7VHiYLwj",
+      "trackedEntityType": "bPJ0FMtcnEh",
+      "orgUnit": "QfUVllTs6cS",
+      "inactive": false,
+      "deleted": false,
+      "potentialDuplicate": false,
+      "relationships": [],
+      "attributes": [],
+      "enrollments": [],
+      "programOwners": []
+    },
+    {
+      "trackedEntity": "C5nACFyIFQo",
+      "trackedEntityType": "bPJ0FMtcnEh",
+      "orgUnit": "QfUVllTs6cS",
+      "inactive": false,
+      "deleted": false,
+      "potentialDuplicate": false,
+      "relationships": [],
+      "attributes": [],
+      "enrollments": [],
+      "programOwners": []
+    },
+    {
+      "trackedEntity": "Jx8Ul6pnRfM",
+      "trackedEntityType": "bPJ0FMtcnEh",
+      "orgUnit": "QfUVllTs6cS",
+      "inactive": false,
+      "deleted": false,
+      "potentialDuplicate": false,
+      "relationships": [],
+      "attributes": [],
+      "enrollments": [],
+      "programOwners": []
+    },
+    {
+      "trackedEntity": "Z324qoN3WrF",
+      "trackedEntityType": "bPJ0FMtcnEh",
+      "orgUnit": "QfUVllTs6cS",
+      "inactive": false,
+      "deleted": false,
+      "potentialDuplicate": false,
+      "relationships": [],
+      "attributes": [],
+      "enrollments": [],
+      "programOwners": []
+    },
+    {
+      "trackedEntity": "TGeGZIIt4MO",
+      "trackedEntityType": "bPJ0FMtcnEh",
+      "orgUnit": "QfUVllTs6cS",
+      "inactive": false,
+      "deleted": false,
+      "potentialDuplicate": false,
+      "relationships": [],
+      "attributes": [],
+      "enrollments": [],
+      "programOwners": []
+    },
+    {
+      "trackedEntity": "KSLmzEjaV6A",
+      "trackedEntityType": "bPJ0FMtcnEh",
+      "orgUnit": "QfUVllTs6cS",
+      "inactive": false,
+      "deleted": false,
+      "potentialDuplicate": false,
+      "relationships": [],
+      "attributes": [],
+      "enrollments": [],
+      "programOwners": []
+    },
+    {
+      "trackedEntity": "IybbQIQt6rn",
+      "trackedEntityType": "bPJ0FMtcnEh",
+      "orgUnit": "QfUVllTs6cS",
+      "inactive": false,
+      "deleted": false,
+      "potentialDuplicate": false,
+      "relationships": [],
+      "attributes": [],
+      "enrollments": [],
+      "programOwners": []
+    },
+    {
+      "trackedEntity": "daMwzsKN3oJ",
+      "trackedEntityType": "bPJ0FMtcnEh",
+      "orgUnit": "QfUVllTs6cS",
+      "inactive": false,
+      "deleted": false,
+      "potentialDuplicate": false,
+      "relationships": [],
+      "attributes": [],
+      "enrollments": [],
+      "programOwners": []
+    },
+    {
+      "trackedEntity": "pcSaZP9lFqu",
+      "trackedEntityType": "bPJ0FMtcnEh",
+      "orgUnit": "QfUVllTs6cS",
+      "inactive": false,
+      "deleted": false,
+      "potentialDuplicate": false,
+      "relationships": [],
+      "attributes": [],
+      "enrollments": [],
+      "programOwners": []
     }
   ],
   "enrollments": [
     {
       "enrollment": "TvctPPhpD8u",
-      "created": "2018-01-26T13:48:13.363",
-      "lastUpdated": "2018-01-26T13:48:13.363",
       "createdAtClient": "2017-01-26T13:48:13.363",
-      "trackedEntityType": "bPJ0FMtcnEh",
       "trackedEntity": "NCc1rCEOKaY",
-      "program": "E8o1E9tAppy",
+      "program": {
+        "idScheme": "UID",
+        "identifier": "E8o1E9tAppy"
+      },
       "status": "COMPLETED",
       "orgUnit": "QfUVllTs6cS",
       "orgUnitName": "Mbokie CHP",
       "enrolledAt": "2021-03-28T12:05:00.000",
       "occurredAt": "2021-03-28T12:05:00.000",
-      "followup": false,
-      "deleted": false
+      "followUp": false,
+      "deleted": false,
+      "events": [],
+      "relationships": [],
+      "attributes": [],
+      "notes": []
     },
     {
       "enrollment": "TvctPPhpD8v",
-      "created": "2018-01-26T13:48:13.363",
-      "lastUpdated": "2018-01-26T13:48:13.363",
       "createdAtClient": "2017-01-26T13:48:13.363",
-      "trackedEntityType": "bPJ0FMtcnEh",
       "trackedEntity": "NCc1rCEOKaY",
-      "program": "E8o1E9tAppy",
+      "program": {
+        "idScheme": "UID",
+        "identifier": "E8o1E9tAppy"
+      },
       "status": "COMPLETED",
       "orgUnit": "QfUVllTs6cS",
       "orgUnitName": "Mbokie CHP",
       "enrolledAt": "2020-03-28T12:05:00.000",
       "occurredAt": "2020-03-28T12:05:00.000",
-      "followup": false,
-      "deleted": false
+      "followUp": false,
+      "deleted": false,
+      "events": [],
+      "relationships": [],
+      "attributes": [],
+      "notes": []
     }
   ],
-  "trackedEntities": [
+  "events": [
     {
-      "trackedEntityType": "bPJ0FMtcnEh",
-      "trackedEntity": "NCc1rCEOKaY",
-      "attributes": [
-        {
-          "attribute": "fmBIpOStKkF",
-          "value": "PersonA",
-          "storedBy": "admin"
-        },
-        {
-          "attribute": "sTJvSLN7Kcb",
-          "value": "AddressA",
-          "storedBy": "admin"
-        }
-      ],
+      "event": "D9PbzJY8bJO",
+      "status": "COMPLETED",
+      "program": {
+        "idScheme": "UID",
+        "identifier": "E8o1E9tAppy"
+      },
+      "programStage": "Qmqxq907VNz",
+      "enrollment": "TvctPPhpD8u",
       "orgUnit": "QfUVllTs6cS",
-      "inactive": false
+      "relationships": [],
+      "occurredAt": "2019-01-28T00:00:00.000",
+      "scheduledAt": "2019-01-28T12:10:38.100",
+      "storedBy": "admin",
+      "followup": false,
+      "deleted": false,
+      "createdAt": "2019-01-28T12:10:38.108",
+      "updatedAt": "2019-01-28T12:10:38.109",
+      "attributeCategoryOptions": "xYerKDKCefk",
+      "completedBy": "admin",
+      "completedAt": "2019-01-28T00:00:00.000",
+      "dataValues": [],
+      "notes": []
     },
     {
-      "trackedEntityType": "bPJ0FMtcnEh",
-      "trackedEntity": "PB9VMezGkwA",
-      "attributes": [],
+      "event": "D9PbzJY8bJ1",
+      "status": "COMPLETED",
+      "program": {
+        "idScheme": "UID",
+        "identifier": "E8o1E9tAppy"
+      },
+      "programStage": "Qmqxq907VNz",
+      "enrollment": "TvctPPhpD8v",
       "orgUnit": "QfUVllTs6cS",
-      "inactive": false
-    },
-    {
-      "trackedEntityType": "bPJ0FMtcnEh",
-      "trackedEntity": "N0wuhEwexUW",
-      "attributes": [],
-      "orgUnit": "QfUVllTs6cS",
-      "inactive": false
-    },
-    {
-      "trackedEntityType": "bPJ0FMtcnEh",
-      "trackedEntity": "g3eF1fJXuSz",
-      "attributes": [],
-      "orgUnit": "QfUVllTs6cS",
-      "inactive": false
-    },
-    {
-      "trackedEntityType": "bPJ0FMtcnEh",
-      "trackedEntity": "s9D7VHiYLwj",
-      "attributes": [],
-      "orgUnit": "QfUVllTs6cS",
-      "inactive": false
-    },
-    {
-      "trackedEntityType": "bPJ0FMtcnEh",
-      "trackedEntity": "C5nACFyIFQo",
-      "attributes": [],
-      "orgUnit": "QfUVllTs6cS",
-      "inactive": false
-    },
-    {
-      "trackedEntityType": "bPJ0FMtcnEh",
-      "trackedEntity": "Jx8Ul6pnRfM",
-      "attributes": [],
-      "orgUnit": "QfUVllTs6cS",
-      "inactive": false
-    },
-    {
-      "trackedEntityType": "bPJ0FMtcnEh",
-      "trackedEntity": "Z324qoN3WrF",
-      "attributes": [],
-      "orgUnit": "QfUVllTs6cS",
-      "inactive": false
-    },
-    {
-      "trackedEntityType": "bPJ0FMtcnEh",
-      "trackedEntity": "TGeGZIIt4MO",
-      "attributes": [],
-      "orgUnit": "QfUVllTs6cS",
-      "inactive": false
-    },
-    {
-      "trackedEntityType": "bPJ0FMtcnEh",
-      "trackedEntity": "KSLmzEjaV6A",
-      "attributes": [],
-      "orgUnit": "QfUVllTs6cS",
-      "inactive": false
-    },
-    {
-      "trackedEntityType": "bPJ0FMtcnEh",
-      "trackedEntity": "IybbQIQt6rn",
-      "attributes": [],
-      "orgUnit": "QfUVllTs6cS",
-      "inactive": false
-    },
-    {
-      "trackedEntityType": "bPJ0FMtcnEh",
-      "trackedEntity": "daMwzsKN3oJ",
-      "attributes": [],
-      "orgUnit": "QfUVllTs6cS",
-      "inactive": false
-    },
-    {
-      "trackedEntityType": "bPJ0FMtcnEh",
-      "trackedEntity": "pcSaZP9lFqu",
-      "attributes": [],
-      "orgUnit": "QfUVllTs6cS",
-      "inactive": false
+      "relationships": [],
+      "occurredAt": "2019-01-28T00:00:00.000",
+      "scheduledAt": "2019-01-28T12:10:38.100",
+      "storedBy": "admin",
+      "followup": false,
+      "deleted": false,
+      "createdAt": "2019-01-28T12:10:38.108",
+      "updatedAt": "2019-01-28T12:10:38.109",
+      "attributeCategoryOptions": "xYerKDKCefk",
+      "completedBy": "admin",
+      "completedAt": "2019-01-28T00:00:00.000",
+      "dataValues": [],
+      "notes": []
     }
-  ]
+  ],
+  "relationships": [],
+  "username": "system-process"
 }

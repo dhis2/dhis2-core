@@ -25,42 +25,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export;
+package org.hisp.dhis.webapi.controller.tracker.imports;
 
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.chrono.ChronoZonedDateTime;
-import java.util.Date;
-import java.util.Optional;
-
-import org.hisp.dhis.util.DateUtils;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
+import org.hisp.dhis.webapi.controller.tracker.view.ProgramOwner;
+import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 
 @Mapper
-public interface InstantMapper
+public interface ProgramOwnerMapper extends DomainMapper<ProgramOwner, org.hisp.dhis.tracker.domain.ProgramOwner>
 {
-
-    default Instant fromString( String dateAsString )
-    {
-        return DateUtils.instantFromDateAsString( dateAsString );
-    }
-
-    default Instant fromDate( Date date )
-    {
-        if ( date instanceof java.sql.Date )
-        {
-            return fromSqlDate( (java.sql.Date) date );
-        }
-        return DateUtils.instantFromDate( date );
-    }
-
-    default Instant fromSqlDate( java.sql.Date date )
-    {
-        return Optional.ofNullable( date )
-            .map( java.sql.Date::toLocalDate )
-            .map( localDate -> localDate.atStartOfDay( ZoneId.systemDefault() ) )
-            .map( ChronoZonedDateTime::toInstant )
-            .orElse( null );
-    }
-
+    org.hisp.dhis.tracker.domain.ProgramOwner from( ProgramOwner programOwner,
+        @Context TrackerIdSchemeParams idSchemeParams );
 }

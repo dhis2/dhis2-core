@@ -28,8 +28,9 @@
 package org.hisp.dhis.webapi.controller.tracker.export;
 
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.tracker.domain.RelationshipItem;
-import org.hisp.dhis.tracker.domain.User;
+import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
+import org.hisp.dhis.webapi.controller.tracker.view.RelationshipItem;
+import org.hisp.dhis.webapi.controller.tracker.view.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -43,7 +44,7 @@ import org.mapstruct.Named;
     UserMapper.class,
 } )
 interface RelationshipItemMapper
-    extends DomainMapper<org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem, RelationshipItem>
+    extends ViewMapper<org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem, RelationshipItem>
 {
     @Mapping( target = "trackedEntity", source = "trackedEntityInstance" )
     @Mapping( target = "enrollment", source = "enrollment" )

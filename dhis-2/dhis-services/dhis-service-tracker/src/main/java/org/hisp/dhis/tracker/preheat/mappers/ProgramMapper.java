@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.preheat.mappers;
 
 import java.util.Set;
 
+import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.user.UserAccess;
@@ -39,7 +40,9 @@ import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
 @Mapper( uses = { DebugMapper.class, OrganisationUnitMapper.class, UserGroupAccessMapper.class,
-    UserAccessMapper.class, CategoryComboMapper.class, TrackedEntityTypeMapper.class, ProgramStageMapper.class } )
+    UserAccessMapper.class, CategoryComboMapper.class, TrackedEntityTypeMapper.class, ProgramStageMapper.class,
+    AttributeValueMapper.class
+} )
 public interface ProgramMapper extends PreheatMapper<Program>
 {
     ProgramMapper INSTANCE = Mappers.getMapper( ProgramMapper.class );
@@ -49,6 +52,7 @@ public interface ProgramMapper extends PreheatMapper<Program>
     @Mapping( target = "uid" )
     @Mapping( target = "code" )
     @Mapping( target = "name" )
+    @Mapping( target = "attributeValues" )
     @Mapping( target = "trackedEntityType" )
     @Mapping( target = "publicAccess" )
     @Mapping( target = "externalAccess" )
@@ -76,4 +80,6 @@ public interface ProgramMapper extends PreheatMapper<Program>
     Set<UserAccess> mapUserAccessProgramInstanceProgram( Set<UserAccess> userAccesses );
 
     Set<ProgramStage> mapProgramStages( Set<ProgramStage> programStages );
+
+    Set<AttributeValue> mapAttributeValues( Set<AttributeValue> attributeValues );
 }

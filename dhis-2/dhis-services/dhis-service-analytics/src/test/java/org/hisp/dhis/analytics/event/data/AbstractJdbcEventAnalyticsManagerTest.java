@@ -190,7 +190,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
         QueryItem item = new QueryItem( dio );
 
         // When
-        String column = subject.getCoordinateColumn( item );
+        String column = subject.getCoordinateColumn( item ).asSql();
 
         // Then
         String colName = quote( item.getItemName() );
@@ -425,7 +425,6 @@ class AbstractJdbcEventAnalyticsManagerTest extends
     @Test
     void testGetItemTwoConditionsSameGroupSql()
     {
-        UUID groupUUID = UUID.randomUUID();
         EventQueryParams queryParams = new EventQueryParams.Builder()
             .addItem( buildQueryItemWithGroupAndFilters(
                 "item",

@@ -1,21 +1,52 @@
 {
+  "importMode": "COMMIT",
+  "idSchemes": {
+    "dataElementIdScheme": {
+      "idScheme": "UID"
+    },
+    "orgUnitIdScheme": {
+      "idScheme": "UID"
+    },
+    "programIdScheme": {
+      "idScheme": "UID"
+    },
+    "programStageIdScheme": {
+      "idScheme": "UID"
+    },
+    "idScheme": {
+      "idScheme": "UID"
+    },
+    "categoryOptionComboIdScheme": {
+      "idScheme": "UID"
+    },
+    "categoryOptionIdScheme": {
+      "idScheme": "UID"
+    }
+  },
+  "importStrategy": "CREATE",
+  "atomicMode": "ALL",
+  "flushMode": "AUTO",
+  "validationMode": "FULL",
+  "skipPatternValidation": false,
+  "skipSideEffects": false,
+  "skipRuleEngine": false,
   "trackedEntities": [
     {
-      "trackedEntityType": "ja8NY4PW7Xm",
       "trackedEntity": "IOR1AXXl24H",
+      "trackedEntityType": "ja8NY4PW7Xm",
       "createdAt": "2020-02-20T12:09:21.844",
       "updatedAt": "2020-02-20T12:09:21.844",
-      "clientCreatedAt": "2020-02-20T12:09:21.844",
-      "clientUpdatedAt": "2020-02-20T12:09:21.844",
       "orgUnit": "h4w96yEMlzO",
       "inactive": false,
       "deleted": false,
-      "featureType": "NONE",
+      "potentialDuplicate": false,
+      "relationships": [],
+      "attributes": [],
+      "enrollments": [],
       "programOwners": [
         {
-          "ownerOrgUnit": "cNEZTkdAvmg",
-          "program": "hJUBNVQWl4e",
-          "trackedEntity": "EEFkxTWB55Y"
+          "trackedEntity": "EEFkxTWB55Y",
+          "program": "hJUBNVQWl4e"
         }
       ]
     }
@@ -23,47 +54,59 @@
   "enrollments": [
     {
       "enrollment": "TvctPPhpD8u",
-      "created": "2018-01-26T13:48:13.363",
-      "lastUpdated": "2018-01-26T13:48:13.363",
       "createdAtClient": "2017-01-26T13:48:13.363",
-      "trackedEntityType": "nEenWmSyUEp",
       "trackedEntity": "IOR1AXXl24H",
-      "program": "BFcipDERJnf",
+      "program": {
+        "idScheme": "UID",
+        "identifier": "BFcipDERJnf"
+      },
       "status": "ACTIVE",
       "orgUnit": "h4w96yEMlzO",
       "orgUnitName": "Mbokie CHP",
       "enrolledAt": "2019-03-28T12:05:00.000",
       "occurredAt": "2019-03-28T12:05:00.000",
-      "followup": false,
-      "deleted": false
+      "followUp": false,
+      "deleted": false,
+      "events": [],
+      "relationships": [],
+      "attributes": [],
+      "notes": []
     }
   ],
   "events": [
     {
       "event": "EVENT123456",
-      "enrollment": "TvctPPhpD8u",
-      "trackedEntity": "IOR1AXXl24H",
-      "storedBy": "admin",
-      "scheduledAt": "2019-01-28T12:10:38.100",
-      "program": "BFcipDERJnf",
-      "programStage": "NpsdDv6kKSO",
-      "orgUnit": "h4w96yEMlzO",
       "status": "COMPLETED",
+      "program": {
+        "idScheme": "UID",
+        "identifier": "BFcipDERJnf"
+      },
+      "programStage": "NpsdDv6kKSO",
+      "enrollment": "TvctPPhpD8u",
+      "orgUnit": "h4w96yEMlzO",
+      "relationships": [],
       "occurredAt": "2019-01-28T00:00:00.000",
-      "updatedAt": "2019-01-28T12:10:38.109",
+      "scheduledAt": "2019-01-28T12:10:38.100",
+      "storedBy": "admin",
+      "followup": false,
+      "deleted": false,
       "createdAt": "2019-01-28T12:10:38.108",
-      "completedAt": "2019-01-28T00:00:00.000",
+      "updatedAt": "2019-01-28T12:10:38.109",
       "completedBy": "admin",
+      "completedAt": "2019-01-28T00:00:00.000",
       "dataValues": [
         {
+          "createdAt": "2019-01-28T12:10:38.113",
           "updatedAt": "2019-01-28T12:10:38.113",
           "storedBy": "admin",
-          "createdAt": "2019-01-28T12:10:38.113",
+          "providedElsewhere": false,
           "dataElement": "DATAEL00002",
-          "value": "text",
-          "providedElsewhere": false
+          "value": "text"
         }
-      ]
+      ],
+      "notes": []
     }
-  ]
+  ],
+  "relationships": [],
+  "username": "system-process"
 }

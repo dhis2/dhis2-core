@@ -52,6 +52,7 @@ import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.user.User;
@@ -97,9 +98,9 @@ class EventDateValidationHookTest extends DhisConvenienceTest
             .preheat( preheat )
             .build();
 
-        when( preheat.getProgram( PROGRAM_WITH_REGISTRATION_ID ) )
+        when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_WITH_REGISTRATION_ID ) ) )
             .thenReturn( getProgramWithRegistration() );
-        when( preheat.getProgram( PROGRAM_WITHOUT_REGISTRATION_ID ) )
+        when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_WITHOUT_REGISTRATION_ID ) ) )
             .thenReturn( getProgramWithoutRegistration() );
     }
 
@@ -108,7 +109,7 @@ class EventDateValidationHookTest extends DhisConvenienceTest
     {
         // given
         Event event = new Event();
-        event.setProgram( PROGRAM_WITHOUT_REGISTRATION_ID );
+        event.setProgram( MetadataIdentifier.ofUid( PROGRAM_WITHOUT_REGISTRATION_ID ) );
         event.setOccurredAt( now() );
         event.setStatus( EventStatus.ACTIVE );
 
@@ -131,7 +132,7 @@ class EventDateValidationHookTest extends DhisConvenienceTest
         // given
         Event event = new Event();
         event.setEvent( CodeGenerator.generateUid() );
-        event.setProgram( PROGRAM_WITHOUT_REGISTRATION_ID );
+        event.setProgram( MetadataIdentifier.ofUid( PROGRAM_WITHOUT_REGISTRATION_ID ) );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
@@ -148,7 +149,7 @@ class EventDateValidationHookTest extends DhisConvenienceTest
         // given
         Event event = new Event();
         event.setEvent( CodeGenerator.generateUid() );
-        event.setProgram( PROGRAM_WITH_REGISTRATION_ID );
+        event.setProgram( MetadataIdentifier.ofUid( PROGRAM_WITH_REGISTRATION_ID ) );
         event.setStatus( EventStatus.ACTIVE );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
@@ -166,7 +167,7 @@ class EventDateValidationHookTest extends DhisConvenienceTest
         // given
         Event event = new Event();
         event.setEvent( CodeGenerator.generateUid() );
-        event.setProgram( PROGRAM_WITH_REGISTRATION_ID );
+        event.setProgram( MetadataIdentifier.ofUid( PROGRAM_WITH_REGISTRATION_ID ) );
         event.setStatus( EventStatus.COMPLETED );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
@@ -184,7 +185,7 @@ class EventDateValidationHookTest extends DhisConvenienceTest
         // given
         Event event = new Event();
         event.setEvent( CodeGenerator.generateUid() );
-        event.setProgram( PROGRAM_WITH_REGISTRATION_ID );
+        event.setProgram( MetadataIdentifier.ofUid( PROGRAM_WITH_REGISTRATION_ID ) );
         event.setOccurredAt( Instant.now() );
         event.setStatus( EventStatus.SCHEDULE );
 
@@ -203,7 +204,7 @@ class EventDateValidationHookTest extends DhisConvenienceTest
         // given
         Event event = new Event();
         event.setEvent( CodeGenerator.generateUid() );
-        event.setProgram( PROGRAM_WITH_REGISTRATION_ID );
+        event.setProgram( MetadataIdentifier.ofUid( PROGRAM_WITH_REGISTRATION_ID ) );
         event.setOccurredAt( now() );
         event.setStatus( EventStatus.COMPLETED );
 
@@ -222,7 +223,7 @@ class EventDateValidationHookTest extends DhisConvenienceTest
         // given
         Event event = new Event();
         event.setEvent( CodeGenerator.generateUid() );
-        event.setProgram( PROGRAM_WITH_REGISTRATION_ID );
+        event.setProgram( MetadataIdentifier.ofUid( PROGRAM_WITH_REGISTRATION_ID ) );
         event.setOccurredAt( now() );
         event.setCompletedAt( sevenDaysAgo() );
         event.setStatus( EventStatus.COMPLETED );
@@ -242,7 +243,7 @@ class EventDateValidationHookTest extends DhisConvenienceTest
         // given
         Event event = new Event();
         event.setEvent( CodeGenerator.generateUid() );
-        event.setProgram( PROGRAM_WITH_REGISTRATION_ID );
+        event.setProgram( MetadataIdentifier.ofUid( PROGRAM_WITH_REGISTRATION_ID ) );
         event.setOccurredAt( null );
         event.setScheduledAt( null );
         event.setStatus( EventStatus.SKIPPED );
@@ -262,7 +263,7 @@ class EventDateValidationHookTest extends DhisConvenienceTest
         // given
         Event event = new Event();
         event.setEvent( CodeGenerator.generateUid() );
-        event.setProgram( PROGRAM_WITH_REGISTRATION_ID );
+        event.setProgram( MetadataIdentifier.ofUid( PROGRAM_WITH_REGISTRATION_ID ) );
         event.setOccurredAt( sevenDaysAgo() );
         event.setStatus( EventStatus.ACTIVE );
 

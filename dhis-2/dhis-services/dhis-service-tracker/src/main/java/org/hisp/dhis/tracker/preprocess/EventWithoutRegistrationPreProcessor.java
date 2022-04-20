@@ -79,9 +79,9 @@ public class EventWithoutRegistrationPreProcessor
                     setEnrollment( bundle, programStage.getProgram().getUid(), event );
                 }
             }
-            else if ( StringUtils.isNotEmpty( event.getProgram() ) )
+            else if ( !event.getProgram().isBlank() )
             {
-                Program program = bundle.getPreheat().get( Program.class, event.getProgram() );
+                Program program = bundle.getPreheat().getProgram( event.getProgram() );
 
                 if ( program != null )
                 {

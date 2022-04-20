@@ -1,22 +1,73 @@
 {
+  "importMode": "COMMIT",
+  "idSchemes": {
+    "dataElementIdScheme": {
+      "idScheme": "UID"
+    },
+    "orgUnitIdScheme": {
+      "idScheme": "UID"
+    },
+    "programIdScheme": {
+      "idScheme": "UID"
+    },
+    "programStageIdScheme": {
+      "idScheme": "UID"
+    },
+    "idScheme": {
+      "idScheme": "UID"
+    },
+    "categoryOptionComboIdScheme": {
+      "idScheme": "UID"
+    },
+    "categoryOptionIdScheme": {
+      "idScheme": "UID"
+    }
+  },
+  "importStrategy": "CREATE",
+  "atomicMode": "ALL",
+  "flushMode": "AUTO",
+  "validationMode": "FULL",
+  "skipPatternValidation": false,
+  "skipSideEffects": false,
+  "skipRuleEngine": false,
+  "trackedEntities": [],
+  "enrollments": [],
   "events": [
     {
       "event": "T1FVaihz1pm",
-      "program": "rT3rvcn2vid",
+      "status": "ACTIVE",
+      "program": {
+        "idScheme": "UID",
+        "identifier": "rT3rvcn2vid"
+      },
       "programStage": "o68AuhbJDSz",
       "orgUnit": "QfUVllTs6cS",
-      "status": "ACTIVE",
+      "relationships": [],
       "occurredAt": "2018-12-31T06:13:07.000",
-      "attributeOptionCombo": "OOlvX50cXC0"
+      "followup": false,
+      "deleted": false,
+      "attributeOptionCombo": "OOlvX50cXC0",
+      "dataValues": [],
+      "notes": []
     },
     {
       "event": "LkAsjXR2BDM",
+      "status": "ACTIVE",
+      "program": {
+        "idScheme": "UID"
+      },
       "programStage": "o68AuhbJDSz",
       "orgUnit": "QfUVllTs6cS",
-      "status": "ACTIVE",
-      "scheduledAt": "2020-08-19T13:59:13.688",
+      "relationships": [],
       "occurredAt": "2020-08-01T00:00:00.000",
-      "attributeOptionCombo": "OOlvX50cXC0"
+      "scheduledAt": "2020-08-19T13:59:13.688",
+      "followup": false,
+      "deleted": false,
+      "attributeOptionCombo": "OOlvX50cXC0",
+      "dataValues": [],
+      "notes": []
     }
-  ]
+  ],
+  "relationships": [],
+  "username": "system-process"
 }

@@ -38,6 +38,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.reservedvalue.ReserveValueException;
@@ -93,13 +94,6 @@ public class TrackedEntityAttributeController
         @PathVariable String id )
         throws WebMessageException
     {
-        TrackedEntityAttribute trackedEntityAttribute = trackedEntityAttributeService.getTrackedEntityAttribute( id );
-
-        if ( trackedEntityAttribute == null )
-        {
-            throw new WebMessageException( notFound( TrackedEntityAttribute.class, id ) );
-        }
-
         return reserve( id, numberToReserve, expiration );
     }
 
@@ -122,13 +116,6 @@ public class TrackedEntityAttributeController
         @RequestParam( required = false, defaultValue = "3" ) Integer expiration )
         throws WebMessageException
     {
-        TrackedEntityAttribute trackedEntityAttribute = trackedEntityAttributeService.getTrackedEntityAttribute( id );
-
-        if ( trackedEntityAttribute == null )
-        {
-            throw new WebMessageException( notFound( TrackedEntityAttribute.class, id ) );
-        }
-
         return reserve( id, 1, expiration ).get( 0 );
     }
 
@@ -137,20 +124,9 @@ public class TrackedEntityAttributeController
     public @ResponseBody Map<String, List<String>> getRequiredValues( @PathVariable String id )
         throws WebMessageException
     {
-        TrackedEntityAttribute trackedEntityAttribute = trackedEntityAttributeService.getTrackedEntityAttribute( id );
-
-        if ( trackedEntityAttribute == null )
-        {
-            throw new WebMessageException( notFound( TrackedEntityAttribute.class, id ) );
-        }
-
-        if ( trackedEntityAttribute.getTextPattern() == null )
-        {
-            throw new WebMessageException( badRequest( "Attribute does not contain pattern." ) );
-        }
+        TrackedEntityAttribute trackedEntityAttribute = getTrackedEntityAttribute( id );
 
         return textPatternService.getRequiredValues( trackedEntityAttribute.getTextPattern() );
-
     }
 
     // Helpers
@@ -164,17 +140,9 @@ public class TrackedEntityAttributeController
                 badRequest( "You can only reserve between 1 and 1000 values in a single request." ) );
         }
 
-        Map<String, List<String>> params = context.getParameterValuesMap();
-        TrackedEntityAttribute attribute = trackedEntityAttributeService.getTrackedEntityAttribute( id );
-        if ( attribute == null )
-        {
-            throw new WebMessageException( notFound( "No attribute found with id " + id ) );
-        }
+        TrackedEntityAttribute attribute = getTrackedEntityAttribute( id );
 
-        if ( attribute.getTextPattern() == null )
-        {
-            throw new WebMessageException( conflict( "This attribute has no pattern" ) );
-        }
+        Map<String, List<String>> params = context.getParameterValuesMap();
 
         Map<String, String> values = getRequiredValues( attribute, params );
 
@@ -225,9 +193,6 @@ public class TrackedEntityAttributeController
         return result;
     }
 
-    // --------------------------------------------------------------------------
-    // Hooks
-    // --------------------------------------------------------------------------
     @Override
     protected void forceFiltering( final WebOptions webOptions, final List<String> filters )
     {
@@ -242,12 +207,32 @@ public class TrackedEntityAttributeController
                 "indexableOnly parameter cannot be set if a separate filter for id is specified" );
         }
 
-        StringBuilder sb = new StringBuilder();
-        sb.append( "id:in:" );
         Set<TrackedEntityAttribute> indexableTeas = trackedEntityAttributeService
             .getAllTrigramIndexableTrackedEntityAttributes();
-        sb.append( indexableTeas.stream().map( tea -> tea.getUid() ).collect( Collectors.joining( ",", "[", "]" ) ) );
+
+        StringBuilder sb = new StringBuilder( "id:in:" );
+        sb.append( indexableTeas.stream().map( BaseIdentifiableObject::getUid )
+            .collect( Collectors.joining( ",", "[", "]" ) ) );
+
         filters.add( sb.toString() );
+    }
+
+    private TrackedEntityAttribute getTrackedEntityAttribute( String id )
+        throws WebMessageException
+    {
+        TrackedEntityAttribute trackedEntityAttribute = trackedEntityAttributeService.getTrackedEntityAttribute( id );
+
+        if ( trackedEntityAttribute == null )
+        {
+            throw new WebMessageException( notFound( TrackedEntityAttribute.class, id ) );
+        }
+
+        if ( trackedEntityAttribute.getTextPattern() == null )
+        {
+            throw new WebMessageException( badRequest( "Attribute does not contain pattern." ) );
+        }
+
+        return trackedEntityAttribute;
     }
 
 }

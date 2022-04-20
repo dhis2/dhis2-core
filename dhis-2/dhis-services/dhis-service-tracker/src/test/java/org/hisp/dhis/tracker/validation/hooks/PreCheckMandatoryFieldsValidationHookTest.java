@@ -49,6 +49,7 @@ import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.RelationshipItem;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
@@ -140,7 +141,7 @@ class PreCheckMandatoryFieldsValidationHookTest
         Enrollment enrollment = Enrollment.builder()
             .enrollment( CodeGenerator.generateUid() )
             .orgUnit( CodeGenerator.generateUid() )
-            .program( CodeGenerator.generateUid() )
+            .program( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
             .trackedEntity( CodeGenerator.generateUid() )
             .build();
 
@@ -156,7 +157,7 @@ class PreCheckMandatoryFieldsValidationHookTest
         Enrollment enrollment = Enrollment.builder()
             .enrollment( CodeGenerator.generateUid() )
             .orgUnit( CodeGenerator.generateUid() )
-            .program( CodeGenerator.generateUid() )
+            .program( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
             .trackedEntity( null )
             .build();
 
@@ -172,7 +173,7 @@ class PreCheckMandatoryFieldsValidationHookTest
         Enrollment enrollment = Enrollment.builder()
             .enrollment( CodeGenerator.generateUid() )
             .orgUnit( CodeGenerator.generateUid() )
-            .program( null )
+            .program( MetadataIdentifier.ofUid( null ) )
             .trackedEntity( CodeGenerator.generateUid() )
             .build();
 
@@ -188,7 +189,7 @@ class PreCheckMandatoryFieldsValidationHookTest
         Enrollment enrollment = Enrollment.builder()
             .enrollment( CodeGenerator.generateUid() )
             .orgUnit( null )
-            .program( CodeGenerator.generateUid() )
+            .program( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
             .trackedEntity( CodeGenerator.generateUid() )
             .build();
 
@@ -205,7 +206,7 @@ class PreCheckMandatoryFieldsValidationHookTest
             .event( CodeGenerator.generateUid() )
             .orgUnit( CodeGenerator.generateUid() )
             .programStage( CodeGenerator.generateUid() )
-            .program( CodeGenerator.generateUid() )
+            .program( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
             .build();
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
@@ -221,7 +222,7 @@ class PreCheckMandatoryFieldsValidationHookTest
             .event( CodeGenerator.generateUid() )
             .orgUnit( CodeGenerator.generateUid() )
             .programStage( CodeGenerator.generateUid() )
-            .program( null )
+            .program( MetadataIdentifier.ofUid( null ) )
             .build();
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
@@ -257,7 +258,7 @@ class PreCheckMandatoryFieldsValidationHookTest
             .event( CodeGenerator.generateUid() )
             .orgUnit( CodeGenerator.generateUid() )
             .programStage( null )
-            .program( CodeGenerator.generateUid() )
+            .program( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
             .build();
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
@@ -273,7 +274,7 @@ class PreCheckMandatoryFieldsValidationHookTest
             .event( CodeGenerator.generateUid() )
             .orgUnit( null )
             .programStage( CodeGenerator.generateUid() )
-            .program( CodeGenerator.generateUid() )
+            .program( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
             .build();
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );

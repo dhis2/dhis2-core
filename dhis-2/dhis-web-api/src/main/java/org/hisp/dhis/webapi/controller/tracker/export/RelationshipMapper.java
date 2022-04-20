@@ -27,7 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
-import org.hisp.dhis.tracker.domain.Relationship;
+import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
+import org.hisp.dhis.webapi.controller.tracker.view.Relationship;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -35,7 +36,7 @@ import org.mapstruct.Mapping;
     RelationshipItemMapper.class,
     InstantMapper.class } )
 interface RelationshipMapper
-    extends DomainMapper<org.hisp.dhis.dxf2.events.trackedentity.Relationship, Relationship>
+    extends ViewMapper<org.hisp.dhis.dxf2.events.trackedentity.Relationship, Relationship>
 {
     @Mapping( target = "createdAt", source = "created" )
     @Mapping( target = "updatedAt", source = "lastUpdated" )
