@@ -174,6 +174,11 @@ public class RestApiActions
         return new ApiResponse( response );
     }
 
+    public ApiResponse get( QueryParamsBuilder queryParamsBuilder )
+    {
+        return this.get( "", queryParamsBuilder);
+    }
+
     /**
      * Sends get request with provided path, contentType, accepting content type
      * and queryParams appended to URL.

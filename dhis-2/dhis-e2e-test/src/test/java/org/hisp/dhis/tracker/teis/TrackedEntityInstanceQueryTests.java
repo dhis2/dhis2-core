@@ -26,7 +26,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.tracker;
+package org.hisp.dhis.tracker.teis;
 
 import com.google.gson.JsonObject;
 import org.apache.commons.lang3.tuple.Pair;
