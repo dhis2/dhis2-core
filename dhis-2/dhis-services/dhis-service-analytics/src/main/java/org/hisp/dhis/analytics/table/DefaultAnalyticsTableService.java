@@ -154,7 +154,7 @@ public class DefaultAnalyticsTableService
         clock.logTime( "Performed pre-create table work" );
         notifier.notify( jobId, "Dropping temp tables" );
 
-        dropTempTables( tables );
+        dropAllTempTables( tables );
 
         clock.logTime( "Dropped temp tables" );
         notifier.notify( jobId, "Creating analytics tables" );
@@ -233,6 +233,17 @@ public class DefaultAnalyticsTableService
     // -------------------------------------------------------------------------
 
     /**
+     * Drops the given temporary analytics tables including partition tables.
+     *
+     * @param tables the list of {@link AnalyticsTable}.
+     */
+    private void dropAllTempTables( final List<AnalyticsTable> tables )
+    {
+        dropTempTablesPartitions( tables );
+        dropTempTables( tables );
+    }
+
+    /**
      * Drops the given temporary analytics tables.
      *
      * @param tables the list of {@link AnalyticsTable}.
@@ -240,6 +251,12 @@ public class DefaultAnalyticsTableService
     private void dropTempTables( List<AnalyticsTable> tables )
     {
         tables.forEach( table -> tableManager.dropTempTable( table ) );
+    }
+
+    private void dropTempTablesPartitions( List<AnalyticsTable> tables )
+    {
+        tables.forEach( table -> table.getTablePartitions()
+            .forEach( partitionTable -> tableManager.dropTempTablePartition( partitionTable ) ) );
     }
 
     /**
