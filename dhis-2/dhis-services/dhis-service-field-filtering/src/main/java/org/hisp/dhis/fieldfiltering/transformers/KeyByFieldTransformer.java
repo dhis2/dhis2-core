@@ -29,7 +29,7 @@ package org.hisp.dhis.fieldfiltering.transformers;
 
 import org.hisp.dhis.fieldfiltering.FieldPathTransformer;
 import org.hisp.dhis.fieldfiltering.FieldTransformer;
-import org.hsqldb.lib.StringUtil;
+import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -79,7 +79,7 @@ public class KeyByFieldTransformer implements FieldTransformer
                 {
                     String propertyName = node.get( keyByFieldName ).asText();
 
-                    if ( !objectNode.has( propertyName ) && !StringUtil.isEmpty( propertyName ) )
+                    if ( !objectNode.has( propertyName ) && StringUtils.hasText( propertyName ) )
                     {
                         objectNode.set( propertyName, node );
                     }
