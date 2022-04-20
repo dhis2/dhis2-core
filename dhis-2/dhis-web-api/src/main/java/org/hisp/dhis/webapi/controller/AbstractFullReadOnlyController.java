@@ -168,7 +168,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
      * very specific cases where forcing a new filter, programmatically, make
      * sense.
      */
-    protected void forceFiltering( final List<String> filters )
+    protected void forceFiltering( final WebOptions webOptions, final List<String> filters )
     {
     }
 
@@ -185,7 +185,6 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
         List<Order> orders = orderParams.getOrders( getSchema() );
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
         List<String> filters = Lists.newArrayList( contextService.getParameterValues( "filter" ) );
-        forceFiltering( filters );
 
         if ( fields.isEmpty() )
         {
@@ -200,6 +199,8 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
             throw new ReadAccessDeniedException(
                 "You don't have the proper permissions to read objects of this type." );
         }
+
+        forceFiltering( options, filters );
 
         List<T> entities = getEntityList( metadata, options, filters, orders );
 
@@ -385,7 +386,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
 
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
         List<String> filters = Lists.newArrayList( contextService.getParameterValues( "filter" ) );
-        forceFiltering( filters );
+        forceFiltering( new WebOptions( rpParameters ), filters );
 
         if ( fields.isEmpty() )
         {
