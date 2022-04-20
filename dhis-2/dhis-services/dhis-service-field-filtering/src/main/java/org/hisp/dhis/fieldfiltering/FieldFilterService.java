@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.fieldfiltering;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -55,6 +57,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.OrderComparator;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -188,6 +191,71 @@ public class FieldFilterService
         }
 
         return objectNodes;
+    }
+
+    /**
+     * Streams filtered object nodes using given ObjectMapper. Initializes a
+     * JsonGenerator using given OutputStream.
+     *
+     * @param params Filter params to apply
+     * @param outputStream OutputStream
+     * @throws IOException
+     */
+    public void streamObjectNodes( FieldFilterParams<?> params, OutputStream outputStream )
+        throws IOException
+    {
+        try ( JsonGenerator generator = jsonMapper.getFactory().createGenerator( outputStream ) )
+        {
+            streamObjectNodes( params, generator );
+        }
+    }
+
+    /**
+     *
+     * @param params Filter params to apply
+     * @param generator Pre-created json generator
+     * @throws IOException
+     */
+    public void streamObjectNodes( FieldFilterParams<?> params, JsonGenerator generator )
+        throws IOException
+    {
+        if ( params.getObjects().isEmpty() )
+        {
+            return;
+        }
+
+        if ( params.getUser() == null )
+        {
+            params.setUser( currentUserService.getCurrentUser() );
+        }
+
+        List<FieldPath> fieldPaths = FieldFilterParser.parse( params.getFilters() );
+
+        // In case we get a proxied object in we can't just use o.getClass(), we
+        // need to figure out the real class name by using HibernateProxyUtils.
+        Object firstObject = params.getObjects().iterator().next();
+        fieldPathHelper.apply( fieldPaths, HibernateProxyUtils.getRealClass( firstObject ) );
+
+        SimpleFilterProvider filterProvider = getSimpleFilterProvider( fieldPaths, params.isSkipSharing() );
+
+        // only set filter provider on a local copy so that we don't affect
+        // other object mappers (running across other threads)
+        ObjectMapper objectMapper = jsonMapper.copy().setFilterProvider( filterProvider );
+
+        Map<String, List<FieldTransformer>> fieldTransformers = getTransformers( fieldPaths );
+
+        for ( Object object : params.getObjects() )
+        {
+            applyAccess( params, fieldPaths, object );
+            applyUserAccessesDisplayName( params, fieldPaths, object );
+            applyUserGroupAccessesDisplayName( params, fieldPaths, object );
+            applyAttributeValuesAttribute( params, fieldPaths, object );
+
+            ObjectNode objectNode = objectMapper.valueToTree( object );
+            applyTransformers( objectNode, null, "", fieldTransformers );
+
+            generator.writeObject( objectNode );
+        }
     }
 
     private void applyFieldPathVisitor( Object object, List<FieldPath> fieldPaths,

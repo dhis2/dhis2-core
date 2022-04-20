@@ -238,6 +238,7 @@ public class DefaultMetadataExportService implements MetadataExportService
     {
         SystemInfo systemInfo = systemService.getSystemInfo();
         Map<Class<? extends IdentifiableObject>, List<? extends IdentifiableObject>> metadata = getMetadata( params );
+        User currentUser = currentUserService.getCurrentUser();
 
         try ( JsonGenerator generator = objectMapper.getFactory().createGenerator( outputStream ) )
         {
@@ -252,26 +253,24 @@ public class DefaultMetadataExportService implements MetadataExportService
 
             for ( Class<? extends IdentifiableObject> klass : metadata.keySet() )
             {
+                List<Object> objects = new ArrayList<>( metadata.get( klass ) );
+
+                if ( objects.isEmpty() )
+                {
+                    continue;
+                }
+
                 FieldFilterParams<?> fieldFilterParams = FieldFilterParams.builder()
-                    .objects( new ArrayList<>( metadata.get( klass ) ) )
+                    .objects( objects )
                     .filters( new HashSet<>( params.getFields( klass ) ) )
                     .skipSharing( params.getSkipSharing() )
+                    .user( currentUser )
                     .build();
 
-                List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes( fieldFilterParams );
-
-                if ( !objectNodes.isEmpty() )
-                {
-                    String plural = schemaService.getDynamicSchema( klass ).getPlural();
-                    generator.writeArrayFieldStart( plural );
-
-                    for ( ObjectNode on : objectNodes )
-                    {
-                        objectMapper.writeValue( generator, on );
-                    }
-
-                    generator.writeEndArray();
-                }
+                String plural = schemaService.getDynamicSchema( klass ).getPlural();
+                generator.writeArrayFieldStart( plural );
+                fieldFilterService.streamObjectNodes( fieldFilterParams, generator );
+                generator.writeEndArray();
             }
 
             generator.writeEndObject();
