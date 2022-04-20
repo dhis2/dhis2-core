@@ -28,6 +28,7 @@
 package org.hisp.dhis.dxf2.metadata;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -37,7 +38,6 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.Nonnull;
-import javax.servlet.ServletOutputStream;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -233,7 +233,7 @@ public class DefaultMetadataExportService implements MetadataExportService
     }
 
     @Override
-    public void streamMetadata( MetadataExportParams params, ServletOutputStream outputStream )
+    public void streamMetadata( MetadataExportParams params, OutputStream outputStream )
         throws IOException
     {
         SystemInfo systemInfo = systemService.getSystemInfo();
