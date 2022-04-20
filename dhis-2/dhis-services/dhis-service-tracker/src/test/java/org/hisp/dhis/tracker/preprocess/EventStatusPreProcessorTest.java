@@ -37,6 +37,7 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -61,7 +62,7 @@ class EventStatusPreProcessorTest
         // Given
         Event event = new Event();
         event.setStatus( EventStatus.VISITED );
-        event.setProgramStage( "programStageUid" );
+        event.setProgramStage( MetadataIdentifier.ofUid( "programStageUid" ) );
         TrackerBundle bundle = TrackerBundle.builder().events( Collections.singletonList( event ) ).build();
         ProgramInstance programInstance = new ProgramInstance();
         programInstance.setUid( "programInstanceUid" );

@@ -116,7 +116,7 @@ public class SetMandatoryFieldValidator
     private List<ProgramRuleIssue> checkMandatoryDataElement( Event event, List<EventActionRule> actionRules,
         TrackerBundle bundle )
     {
-        ProgramStage programStage = bundle.getPreheat().get( ProgramStage.class, event.getProgramStage() );
+        ProgramStage programStage = bundle.getPreheat().getProgramStage( event.getProgramStage() );
 
         Map<String, EventActionRule> mandatoryDataElementsByActionRule = actionRules.stream()
             .filter( eventActionRule -> eventActionRule.getAttributeType() == AttributeType.DATA_ELEMENT )

@@ -28,7 +28,6 @@
 package org.hisp.dhis.tracker.preprocess;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 import java.util.List;
 import java.util.Objects;
@@ -37,7 +36,6 @@ import java.util.stream.Collectors;
 
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
@@ -59,15 +57,15 @@ public class EventProgramPreProcessor
     {
         List<Event> eventsToPreprocess = bundle.getEvents()
             .stream()
-            .filter( e -> e.getProgram().isBlank() || isBlank( e.getProgramStage() ) )
+            .filter( e -> e.getProgram().isBlank() || e.getProgramStage().isBlank() )
             .collect( Collectors.toList() );
 
         for ( Event event : eventsToPreprocess )
         {
             // Extract program from program stage
-            if ( isNotBlank( event.getProgramStage() ) )
+            if ( !event.getProgramStage().isBlank() )
             {
-                ProgramStage programStage = bundle.getPreheat().get( ProgramStage.class, event.getProgramStage() );
+                ProgramStage programStage = bundle.getPreheat().getProgramStage( event.getProgramStage() );
                 if ( Objects.nonNull( programStage ) )
                 {
                     // TODO remove if once metadata import is fixed
@@ -104,8 +102,8 @@ public class EventProgramPreProcessor
                     Optional<ProgramStage> programStage = program.getProgramStages().stream().findFirst();
                     if ( programStage.isPresent() )
                     {
-                        TrackerIdSchemeParam idScheme = bundle.getPreheat().getIdSchemes().getProgramStageIdScheme();
-                        event.setProgramStage( idScheme.getIdentifier( programStage.get() ) );
+                        TrackerIdSchemeParams idSchemes = bundle.getPreheat().getIdSchemes();
+                        event.setProgramStage( idSchemes.toMetadataIdentifier( programStage.get() ) );
                         bundle.getPreheat().put( programStage.get() );
                     }
                 }

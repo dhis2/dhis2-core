@@ -148,7 +148,7 @@ abstract public class AbstractRuleActionImplementer<T extends RuleAction>
             .collect( Collectors.toMap( Map.Entry::getKey,
                 e -> {
                     Event event = getEvent( bundle, e.getKey() ).get();
-                    ProgramStage programStage = bundle.getPreheat().get( ProgramStage.class, event.getProgramStage() );
+                    ProgramStage programStage = bundle.getPreheat().getProgramStage( event.getProgramStage() );
                     Set<DataValue> dataValues = event.getDataValues();
 
                     List<EventActionRule> eventActionRules = e.getValue()

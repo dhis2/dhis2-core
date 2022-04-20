@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.tracker.preprocess;
 
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
@@ -50,7 +49,7 @@ public class EventWithoutRegistrationPreProcessor
     {
         for ( Event event : bundle.getEvents() )
         {
-            if ( StringUtils.isNotEmpty( event.getProgramStage() ) )
+            if ( !event.getProgramStage().isBlank() )
             {
                 ProgramStage programStage = bundle.getPreheat().get( ProgramStage.class, event.getProgramStage() );
 

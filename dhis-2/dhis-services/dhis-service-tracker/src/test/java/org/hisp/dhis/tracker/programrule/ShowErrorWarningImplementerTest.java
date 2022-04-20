@@ -57,6 +57,7 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.programrule.implementers.ShowErrorOnCompleteValidator;
 import org.hisp.dhis.tracker.programrule.implementers.ShowErrorValidator;
@@ -138,7 +139,7 @@ class ShowErrorWarningImplementerTest extends DhisConvenienceTest
         ProgramStageDataElement programStageDataElementB = createProgramStageDataElement( anotherProgramStage,
             dataElementB, 0 );
         anotherProgramStage.setProgramStageDataElements( Sets.newHashSet( programStageDataElementB ) );
-        when( preheat.get( ProgramStage.class, PROGRAM_STAGE_ID ) ).thenReturn( programStage );
+        when( preheat.getProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_ID ) ) ).thenReturn( programStage );
     }
 
     @Test
@@ -255,11 +256,11 @@ class ShowErrorWarningImplementerTest extends DhisConvenienceTest
         Event activeEvent = new Event();
         activeEvent.setEvent( ACTIVE_EVENT_ID );
         activeEvent.setStatus( EventStatus.ACTIVE );
-        activeEvent.setProgramStage( PROGRAM_STAGE_ID );
+        activeEvent.setProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_ID ) );
         Event completedEvent = new Event();
         completedEvent.setEvent( COMPLETED_EVENT_ID );
         completedEvent.setStatus( EventStatus.COMPLETED );
-        completedEvent.setProgramStage( PROGRAM_STAGE_ID );
+        completedEvent.setProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_ID ) );
         return Lists.newArrayList( activeEvent, completedEvent );
     }
 

@@ -260,7 +260,8 @@ class PreCheckMetaValidationHookTest
         // when
         when( preheat.getOrganisationUnit( ORG_UNIT_UID ) ).thenReturn( new OrganisationUnit() );
         when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_UID ) ) ).thenReturn( new Program() );
-        when( preheat.getProgramStage( PROGRAM_STAGE_UID ) ).thenReturn( new ProgramStage() );
+        when( preheat.getProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_UID ) ) )
+            .thenReturn( new ProgramStage() );
 
         validatorToTest.validateEvent( reporter, event );
 
@@ -278,7 +279,8 @@ class PreCheckMetaValidationHookTest
 
         // when
         when( preheat.getOrganisationUnit( ORG_UNIT_UID ) ).thenReturn( new OrganisationUnit() );
-        when( preheat.getProgramStage( PROGRAM_STAGE_UID ) ).thenReturn( new ProgramStage() );
+        when( preheat.getProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_UID ) ) )
+            .thenReturn( new ProgramStage() );
 
         validatorToTest.validateEvent( reporter, event );
 
@@ -314,7 +316,8 @@ class PreCheckMetaValidationHookTest
 
         // when
         when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_UID ) ) ).thenReturn( new Program() );
-        when( preheat.getProgramStage( PROGRAM_STAGE_UID ) ).thenReturn( new ProgramStage() );
+        when( preheat.getProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_UID ) ) )
+            .thenReturn( new ProgramStage() );
 
         validatorToTest.validateEvent( reporter, event );
 
@@ -377,7 +380,7 @@ class PreCheckMetaValidationHookTest
     {
         return Event.builder()
             .event( CodeGenerator.generateUid() )
-            .programStage( PROGRAM_STAGE_UID )
+            .programStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_UID ) )
             .orgUnit( ORG_UNIT_UID )
             .program( MetadataIdentifier.ofUid( PROGRAM_UID ) )
             .build();

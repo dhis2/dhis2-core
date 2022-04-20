@@ -39,7 +39,10 @@
       "program": {
         "idScheme": "UID"
       },
-      "programStage": "NpsdDv6kKSO",
+      "programStage": {
+        "idScheme": "UID",
+        "identifier": "NpsdDv6kKSO"
+      },
       "enrollment": "TvctPPhpD8u",
       "orgUnit": "h4w96yEMlzO",
       "relationships": [],
