@@ -44,6 +44,7 @@ import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.DATE_PERIOD_STRUCT_
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ORG_UNIT_STRUCT_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
 import static org.hisp.dhis.common.DimensionItemType.PROGRAM_INDICATOR;
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
@@ -91,6 +92,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.AnalyticsType;
@@ -739,7 +741,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
         }
         catch ( ParseException pe )
         {
-            log.warn( "Unparsable date using known formats: " + filter );
+            throwIllegalQueryEx( ErrorCode.E7135, filter );
         }
         return filter;
     }
