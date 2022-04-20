@@ -61,8 +61,12 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.getDataElementOperandI
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionItemIdSchemeMap;
 
 import java.util.Map;
+import java.util.Set;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.option.Option;
 import org.springframework.stereotype.Component;
 
 /**
@@ -98,8 +102,7 @@ public class SchemaIdResponseMapper
         if ( params.isGeneralOutputIdSchemeSet() )
         {
             // Apply a schema to all data element operands using the general
-            // output schema
-            // defined.
+            // output schema defined.
             applyGeneralIdSchemaMapping( params, responseMap );
         }
 
@@ -151,6 +154,17 @@ public class SchemaIdResponseMapper
         if ( params.getProgram() != null )
         {
             map.put( params.getProgram().getUid(), params.getProgram().getPropertyValue( params.getOutputIdScheme() ) );
+        }
+
+        if ( params instanceof EventQueryParams
+            && CollectionUtils.isNotEmpty( ((EventQueryParams) params).getItemOptions() ) )
+        {
+            final Set<Option> options = ((EventQueryParams) params).getItemOptions();
+
+            for ( final Option option : options )
+            {
+                map.put( option.getCode(), option.getPropertyValue( params.getOutputIdScheme() ) );
+            }
         }
     }
 
