@@ -33,6 +33,7 @@ import static org.hisp.dhis.dxf2.events.aggregates.ThreadPoolManager.getPool;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -147,7 +148,12 @@ public class TrackedEntityInstanceAggregate
             .toBuilder()
             .userId( u.getId() )
             .superUser( u.isSuper() ) )
-            .orElse( new AggregateContext.AggregateContextBuilder().superUser( true ) )
+            .orElse( new AggregateContext.AggregateContextBuilder()
+                .superUser( true )
+                .trackedEntityTypes( Collections.emptyList() )
+                .programs( Collections.emptyList() )
+                .programStages( Collections.emptyList() )
+                .relationshipTypes( Collections.emptyList() ) )
             .params( params )
             .queryParams( queryParams )
             .build();
