@@ -246,7 +246,7 @@ public class FieldFilterService
 
         for ( Object object : params.getObjects() )
         {
-            // applyAccess( params, fieldPaths, object );
+            applyAccess( params, fieldPaths, object );
             applyUserAccessesDisplayName( params, fieldPaths, object );
             applyUserGroupAccessesDisplayName( params, fieldPaths, object );
             applyAttributeValuesAttribute( params, fieldPaths, object );
