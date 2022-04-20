@@ -51,6 +51,7 @@ import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.ENROLLMENT;
 import static org.hisp.dhis.system.util.MathUtils.getRounded;
 
+import java.text.ParseException;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -65,6 +66,8 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DateFormatUtils;
+import org.apache.commons.lang3.time.DateUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.SortOrder;
@@ -719,17 +722,40 @@ public abstract class AbstractJdbcEventAnalyticsManager
         }
     }
 
+    private String getFilter( String filter, QueryItem item )
+    {
+        try
+        {
+            if ( item.getValueType() == ValueType.DATETIME )
+            {
+                return DateFormatUtils.format(
+                    DateUtils.parseDate( filter,
+                        // known formats
+                        "yyyy-MM-dd'T'HH.mm",
+                        "yyyy-MM-dd'T'HH.mm.ss" ),
+                    // postgres format
+                    "yyyy-MM-dd HH:mm:ss" );
+            }
+        }
+        catch ( ParseException pe )
+        {
+            log.warn( "Unparsable date using known formats: " + filter );
+        }
+        return filter;
+    }
+
     /**
-     * Returns the filter value for the given query item.
+     * Returns the queryFilter value for the given query item.
      *
-     * @param filter the {@link QueryFilter}.
+     * @param queryFilter the {@link QueryFilter}.
      * @param item the {@link QueryItem}.
      */
-    protected String getSqlFilter( QueryFilter filter, QueryItem item )
+    protected String getSqlFilter( QueryFilter queryFilter, QueryItem item )
     {
-        String encodedFilter = statementBuilder.encode( filter.getFilter(), false );
+        String filter = getFilter( queryFilter.getFilter(), item );
+        String encodedFilter = statementBuilder.encode( filter, false );
 
-        return item.getSqlFilter( filter, encodedFilter );
+        return item.getSqlFilter( queryFilter, encodedFilter );
     }
 
     /**
