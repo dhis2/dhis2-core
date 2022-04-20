@@ -1,9 +1,43 @@
 {
+  "importMode": "COMMIT",
+  "idSchemes": {
+    "dataElementIdScheme": {
+      "idScheme": "UID"
+    },
+    "orgUnitIdScheme": {
+      "idScheme": "UID"
+    },
+    "programIdScheme": {
+      "idScheme": "UID"
+    },
+    "programStageIdScheme": {
+      "idScheme": "UID"
+    },
+    "idScheme": {
+      "idScheme": "UID"
+    },
+    "categoryOptionComboIdScheme": {
+      "idScheme": "UID"
+    },
+    "categoryOptionIdScheme": {
+      "idScheme": "UID"
+    }
+  },
+  "importStrategy": "CREATE",
+  "atomicMode": "ALL",
+  "flushMode": "AUTO",
+  "validationMode": "FULL",
+  "skipPatternValidation": false,
+  "skipSideEffects": false,
+  "skipRuleEngine": false,
   "trackedEntities": [
     {
-      "trackedEntityType": "bPJ0FMtcnEh",
       "trackedEntity": "NCc1rCEOKaY",
-      "featureType": "POINT",
+      "trackedEntityType": "bPJ0FMtcnEh",
+      "orgUnit": "QfUVllTs6cS",
+      "inactive": false,
+      "deleted": false,
+      "potentialDuplicate": false,
       "geometry": {
         "type": "Point",
         "coordinates": [
@@ -11,20 +45,25 @@
           8.1039
         ]
       },
+      "relationships": [],
       "attributes": [
         {
           "attribute": "fmBIpOStKkF",
-          "value": "PersonA",
-          "storedBy": "admin"
+          "storedBy": "admin",
+          "value": "PersonA"
         },
         {
           "attribute": "sTJvSLN7Kcb",
-          "value": "AddressA",
-          "storedBy": "admin"
+          "storedBy": "admin",
+          "value": "AddressA"
         }
       ],
-      "orgUnit": "QfUVllTs6cS",
-      "inactive": false
+      "enrollments": [],
+      "programOwners": []
     }
-  ]
+  ],
+  "enrollments": [],
+  "events": [],
+  "relationships": [],
+  "username": "system-process"
 }

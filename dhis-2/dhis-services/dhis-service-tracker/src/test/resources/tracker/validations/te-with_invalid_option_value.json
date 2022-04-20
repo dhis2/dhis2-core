@@ -1,30 +1,75 @@
 {
+  "importMode": "COMMIT",
+  "idSchemes": {
+    "dataElementIdScheme": {
+      "idScheme": "UID"
+    },
+    "orgUnitIdScheme": {
+      "idScheme": "UID"
+    },
+    "programIdScheme": {
+      "idScheme": "UID"
+    },
+    "programStageIdScheme": {
+      "idScheme": "UID"
+    },
+    "idScheme": {
+      "idScheme": "UID"
+    },
+    "categoryOptionComboIdScheme": {
+      "idScheme": "UID"
+    },
+    "categoryOptionIdScheme": {
+      "idScheme": "UID"
+    }
+  },
+  "importStrategy": "CREATE",
+  "atomicMode": "ALL",
+  "flushMode": "AUTO",
+  "validationMode": "FULL",
+  "skipPatternValidation": false,
+  "skipSideEffects": false,
+  "skipRuleEngine": false,
   "trackedEntities": [
     {
       "trackedEntity": "cNEZTkdAvre",
       "trackedEntityType": "bPJ0FMtcnEh",
+      "orgUnit": "QfUVllTs6cS",
+      "inactive": false,
+      "deleted": false,
+      "potentialDuplicate": false,
+      "relationships": [],
       "attributes": [
         {
           "attribute": "cejWyOfXge6",
-          "value": "Mle",
-          "storedBy": "admin"
+          "storedBy": "admin",
+          "value": "Mle"
         }
       ],
-      "orgUnit": "QfUVllTs6cS",
-      "inactive": false
+      "enrollments": [],
+      "programOwners": []
     },
     {
       "trackedEntity": "cNEZTkdAvrf",
       "trackedEntityType": "bPJ0FMtcnEh",
+      "orgUnit": "QfUVllTs6cS",
+      "inactive": false,
+      "deleted": false,
+      "potentialDuplicate": false,
+      "relationships": [],
       "attributes": [
         {
           "attribute": "cejWyOfXge6",
-          "value": "Female",
-          "storedBy": "admin"
+          "storedBy": "admin",
+          "value": "Female"
         }
       ],
-      "orgUnit": "QfUVllTs6cS",
-      "inactive": false
+      "enrollments": [],
+      "programOwners": []
     }
-  ]
+  ],
+  "enrollments": [],
+  "events": [],
+  "relationships": [],
+  "username": "system-process"
 }

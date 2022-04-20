@@ -32,6 +32,10 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.tracker.domain.MetadataIdentifier;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -116,5 +120,19 @@ public class TrackerIdSchemeParams
             return idScheme;
         }
 
+    }
+
+    /**
+     * Creates metadata identifier for given {@code program} using
+     * {@link #programIdScheme}. For more details refer to
+     * {@link TrackerIdSchemeParam#toMetadataIdentifier(IdentifiableObject)}
+     *
+     * @param program to create metadata identifier for
+     * @return metadata identifier representing metadata using the
+     *         programIdScheme
+     */
+    public MetadataIdentifier toMetadataIdentifier( Program program )
+    {
+        return programIdScheme.toMetadataIdentifier( program );
     }
 }

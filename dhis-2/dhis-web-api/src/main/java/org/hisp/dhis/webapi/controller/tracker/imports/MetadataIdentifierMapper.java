@@ -28,21 +28,18 @@
 package org.hisp.dhis.webapi.controller.tracker.imports;
 
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
-import org.hisp.dhis.webapi.controller.tracker.view.Event;
-import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
 import org.mapstruct.Context;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 
-@Mapper( uses = {
-    RelationshipMapper.class,
-    NoteMapper.class,
-    DataValueMapper.class,
-    InstantMapper.class,
-    MetadataIdentifierMapper.class
-} )
-interface EventMapper extends DomainMapper<Event, org.hisp.dhis.tracker.domain.Event>
+@Mapper
+interface MetadataIdentifierMapper
 {
-    @Mapping( target = "program", source = "program", qualifiedByName = "programToMetadataIdentifier" )
-    org.hisp.dhis.tracker.domain.Event from( Event event, @Context TrackerIdSchemeParams idSchemeParams );
+
+    @Named( "programToMetadataIdentifier" )
+    default org.hisp.dhis.tracker.domain.MetadataIdentifier from( String identifier,
+        @Context TrackerIdSchemeParams idSchemeParams )
+    {
+        return idSchemeParams.getProgramIdScheme().toMetadataIdentifier( identifier );
+    }
 }

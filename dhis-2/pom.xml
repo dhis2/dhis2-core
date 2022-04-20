@@ -71,7 +71,7 @@
         <dhis-json-tree.version>0.3.0</dhis-json-tree.version>
 
         <!-- Security-->
-        <spring-security.version>5.6.2</spring-security.version>
+        <spring-security.version>5.6.3</spring-security.version>
         <spring-security-oauth2.version>2.5.1.RELEASE</spring-security-oauth2.version>
         <spring-security-jwt.version>1.1.1.RELEASE</spring-security-jwt.version>
         <bcprov-jdk15on.version>1.70</bcprov-jdk15on.version>
@@ -103,7 +103,7 @@
         <javax.servlet-api.version>4.0.1</javax.servlet-api.version>
 
         <!-- Struts -->
-        <struts.version>2.5.29</struts.version>
+        <struts.version>2.5.30</struts.version>
         <velocity.version>1.7</velocity.version>
         <velocity-tools.version>2.0</velocity-tools.version>
 
@@ -146,10 +146,10 @@
         <sms-compression.version>0.2.1.1</sms-compression.version>
         <javacsv.version>2.0</javacsv.version>
         <aerogear-otp-java.version>1.0.0</aerogear-otp-java.version>
-        <jsmpp.version>2.3.7</jsmpp.version>
+        <jsmpp.version>2.3.11</jsmpp.version>
         <json-path.version>2.7.0</json-path.version>
         <jsoup.version>1.14.3</jsoup.version>
-        <jetty.version>10.0.8</jetty.version>
+        <jetty.version>10.0.9</jetty.version>
 
         <!-- Div. utils -->
         <version.debezium>1.8.1.Final</version.debezium>
@@ -159,7 +159,7 @@
         <google-api-client.version>1.33.2</google-api-client.version>
         <lombok.version>1.18.22</lombok.version>
         <lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
-        <joda-time.version>2.10.13</joda-time.version>
+        <joda-time.version>2.10.14</joda-time.version>
         <cron-utils.version>9.1.6</cron-utils.version>
         <validation-api.version>2.0.1.Final</validation-api.version>
         <hibernate-validator.version>6.2.0.Final</hibernate-validator.version>
@@ -191,7 +191,7 @@
         <powermock.version>2.0.9</powermock.version>
         <hamcrest.version>2.2</hamcrest.version>
         <hamcrest-date.version>2.0.8</hamcrest-date.version>
-        <testcontainers.version>1.16.3</testcontainers.version>
+        <testcontainers.version>1.17.1</testcontainers.version>
         <jsonassert.version>1.5.0</jsonassert.version>
         <awaitility.version>4.2.0</awaitility.version>
         <easy-random.version>5.0.0</easy-random.version>

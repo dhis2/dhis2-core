@@ -49,6 +49,7 @@ import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -95,7 +96,8 @@ class EventProgramPreProcessorTest
         preprocessor.process( bundle );
 
         verify( preheat ).put( TrackerIdSchemeParam.UID, programWithRegistration() );
-        assertEquals( PROGRAM_WITH_REGISTRATION, bundle.getEvents().get( 0 ).getProgram() );
+        assertEquals( MetadataIdentifier.ofUid( PROGRAM_WITH_REGISTRATION ),
+            bundle.getEvents().get( 0 ).getProgram() );
     }
 
     @Test
@@ -112,7 +114,8 @@ class EventProgramPreProcessorTest
         preprocessor.process( bundle );
 
         verify( preheat ).put( TrackerIdSchemeParam.UID, programWithoutRegistration() );
-        assertEquals( PROGRAM_WITHOUT_REGISTRATION, bundle.getEvents().get( 0 ).getProgram() );
+        assertEquals( MetadataIdentifier.ofUid( PROGRAM_WITHOUT_REGISTRATION ),
+            bundle.getEvents().get( 0 ).getProgram() );
     }
 
     @Test
@@ -129,7 +132,8 @@ class EventProgramPreProcessorTest
 
         verify( preheat, never() ).get( Program.class, PROGRAM_WITH_REGISTRATION );
         verify( preheat, never() ).get( ProgramStage.class, PROGRAM_STAGE_WITH_REGISTRATION );
-        assertEquals( PROGRAM_WITH_REGISTRATION, bundle.getEvents().get( 0 ).getProgram() );
+        assertEquals( MetadataIdentifier.ofUid( PROGRAM_WITH_REGISTRATION ),
+            bundle.getEvents().get( 0 ).getProgram() );
         assertEquals( PROGRAM_STAGE_WITH_REGISTRATION, bundle.getEvents().get( 0 ).getProgramStage() );
     }
 
@@ -140,8 +144,10 @@ class EventProgramPreProcessorTest
         programStage.setUid( "LGSWs20XFvy" );
         when( preheat.get( ProgramStage.class, "LGSWs20XFvy" ) ).thenReturn( programStage );
 
-        Event event = new Event();
-        event.setProgramStage( programStage.getUid() );
+        Event event = Event.builder()
+            .program( MetadataIdentifier.ofUid( null ) )
+            .programStage( programStage.getUid() )
+            .build();
         TrackerBundle bundle = TrackerBundle.builder().events( Collections.singletonList( event ) ).preheat( preheat )
             .build();
 
@@ -155,7 +161,7 @@ class EventProgramPreProcessorTest
     {
         TrackerIdSchemeParams identifierParams = TrackerIdSchemeParams.builder().build();
         when( preheat.getIdSchemes() ).thenReturn( identifierParams );
-        when( preheat.get( Program.class, PROGRAM_WITHOUT_REGISTRATION ) )
+        when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_WITHOUT_REGISTRATION ) ) )
             .thenReturn( programWithoutRegistrationWithProgramStages() );
 
         Event event = programEventWithProgram();
@@ -173,7 +179,7 @@ class EventProgramPreProcessorTest
     {
         TrackerIdSchemeParams identifierParams = TrackerIdSchemeParams.builder().build();
         when( preheat.getIdSchemes() ).thenReturn( identifierParams );
-        when( preheat.get( Program.class, PROGRAM_WITH_REGISTRATION ) )
+        when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_WITH_REGISTRATION ) ) )
             .thenReturn( programWithRegistrationWithProgramStages() );
         Event event = trackerEventWithProgram();
         TrackerBundle bundle = TrackerBundle.builder().events( Collections.singletonList( event ) ).preheat( preheat )
@@ -181,7 +187,8 @@ class EventProgramPreProcessorTest
 
         preprocessor.process( bundle );
 
-        assertEquals( PROGRAM_WITH_REGISTRATION, bundle.getEvents().get( 0 ).getProgram() );
+        assertEquals( MetadataIdentifier.ofUid( PROGRAM_WITH_REGISTRATION ),
+            bundle.getEvents().get( 0 ).getProgram() );
         assertNull( bundle.getEvents().get( 0 ).getProgramStage() );
     }
 
@@ -199,7 +206,8 @@ class EventProgramPreProcessorTest
 
         verify( preheat, never() ).get( Program.class, PROGRAM_WITHOUT_REGISTRATION );
         verify( preheat, never() ).get( ProgramStage.class, PROGRAM_STAGE_WITHOUT_REGISTRATION );
-        assertEquals( PROGRAM_WITHOUT_REGISTRATION, bundle.getEvents().get( 0 ).getProgram() );
+        assertEquals( MetadataIdentifier.ofUid( PROGRAM_WITHOUT_REGISTRATION ),
+            bundle.getEvents().get( 0 ).getProgram() );
         assertEquals( PROGRAM_STAGE_WITHOUT_REGISTRATION, bundle.getEvents().get( 0 ).getProgramStage() );
     }
 
@@ -216,9 +224,9 @@ class EventProgramPreProcessorTest
         CategoryCombo categoryCombo = createCategoryCombo( 'A' );
         program.setCategoryCombo( categoryCombo );
         Event event = completeTrackerEvent();
-        event.setProgram( program.getUid() );
+        event.setProgram( MetadataIdentifier.ofUid( program.getUid() ) );
         event.setAttributeCategoryOptions( "123;235" );
-        when( preheat.get( Program.class, event.getProgram() ) ).thenReturn( program );
+        when( preheat.getProgram( event.getProgram() ) ).thenReturn( program );
         CategoryOptionCombo categoryOptionCombo = createCategoryOptionCombo( 'A' );
         when( preheat.getCategoryOptionComboIdentifier( categoryCombo, "123;235" ) )
             .thenReturn( categoryOptionCombo.getCode() );
@@ -247,9 +255,9 @@ class EventProgramPreProcessorTest
         CategoryCombo categoryCombo = createCategoryCombo( 'A' );
         program.setCategoryCombo( categoryCombo );
         Event event = completeTrackerEvent();
-        event.setProgram( program.getUid() );
+        event.setProgram( MetadataIdentifier.ofUid( program.getUid() ) );
         event.setAttributeCategoryOptions( "123;235" );
-        when( preheat.get( Program.class, event.getProgram() ) ).thenReturn( program );
+        when( preheat.getProgram( event.getProgram() ) ).thenReturn( program );
 
         TrackerBundle bundle = TrackerBundle.builder()
             .events( Collections.singletonList( event ) )
@@ -275,7 +283,7 @@ class EventProgramPreProcessorTest
         CategoryCombo categoryCombo = createCategoryCombo( 'A' );
         program.setCategoryCombo( categoryCombo );
         Event event = completeTrackerEvent();
-        event.setProgram( program.getUid() );
+        event.setProgram( MetadataIdentifier.ofUid( program.getUid() ) );
         event.setAttributeCategoryOptions( "123;235" );
 
         TrackerBundle bundle = TrackerBundle.builder()
@@ -302,10 +310,10 @@ class EventProgramPreProcessorTest
         CategoryCombo categoryCombo = createCategoryCombo( 'A' );
         program.setCategoryCombo( categoryCombo );
         Event event = completeTrackerEvent();
-        event.setProgram( program.getUid() );
+        event.setProgram( MetadataIdentifier.ofUid( program.getUid() ) );
         event.setAttributeOptionCombo( "9871" );
         event.setAttributeCategoryOptions( "123;235" );
-        when( preheat.get( Program.class, event.getProgram() ) ).thenReturn( program );
+        when( preheat.getProgram( event.getProgram() ) ).thenReturn( program );
 
         TrackerBundle bundle = TrackerBundle.builder()
             .events( Collections.singletonList( event ) )
@@ -331,9 +339,9 @@ class EventProgramPreProcessorTest
         CategoryCombo categoryCombo = createCategoryCombo( 'A' );
         program.setCategoryCombo( categoryCombo );
         Event event = completeTrackerEvent();
-        event.setProgram( program.getUid() );
+        event.setProgram( MetadataIdentifier.ofUid( program.getUid() ) );
         event.setAttributeOptionCombo( "9871" );
-        when( preheat.get( Program.class, event.getProgram() ) ).thenReturn( program );
+        when( preheat.getProgram( event.getProgram() ) ).thenReturn( program );
 
         TrackerBundle bundle = TrackerBundle.builder()
             .events( Collections.singletonList( event ) )
@@ -358,8 +366,8 @@ class EventProgramPreProcessorTest
         CategoryCombo categoryCombo = createCategoryCombo( 'A' );
         program.setCategoryCombo( categoryCombo );
         Event event = completeTrackerEvent();
-        event.setProgram( program.getUid() );
-        when( preheat.get( Program.class, event.getProgram() ) ).thenReturn( program );
+        event.setProgram( MetadataIdentifier.ofUid( program.getUid() ) );
+        when( preheat.getProgram( event.getProgram() ) ).thenReturn( program );
 
         TrackerBundle bundle = TrackerBundle.builder()
             .events( Collections.singletonList( event ) )
@@ -425,44 +433,46 @@ class EventProgramPreProcessorTest
     private Event programEventWithProgram()
     {
         Event event = new Event();
-        event.setProgram( PROGRAM_WITHOUT_REGISTRATION );
+        event.setProgram( MetadataIdentifier.ofUid( PROGRAM_WITHOUT_REGISTRATION ) );
         return event;
     }
 
     private Event programEventWithProgramStage()
     {
-        Event event = new Event();
-        event.setProgramStage( PROGRAM_STAGE_WITHOUT_REGISTRATION );
-        return event;
+        return Event.builder()
+            .program( MetadataIdentifier.ofUid( null ) )
+            .programStage( PROGRAM_STAGE_WITHOUT_REGISTRATION )
+            .build();
     }
 
     private Event completeProgramEvent()
     {
         Event event = new Event();
         event.setProgramStage( PROGRAM_STAGE_WITHOUT_REGISTRATION );
-        event.setProgram( PROGRAM_WITHOUT_REGISTRATION );
+        event.setProgram( MetadataIdentifier.ofUid( PROGRAM_WITHOUT_REGISTRATION ) );
         return event;
     }
 
     private Event trackerEventWithProgramStage()
     {
-        Event event = new Event();
-        event.setProgramStage( PROGRAM_STAGE_WITH_REGISTRATION );
-        return event;
+        return Event.builder()
+            .program( MetadataIdentifier.ofUid( null ) )
+            .programStage( PROGRAM_STAGE_WITH_REGISTRATION )
+            .build();
     }
 
     private Event trackerEventWithProgram()
     {
-        Event event = new Event();
-        event.setProgram( PROGRAM_WITH_REGISTRATION );
-        return event;
+        return Event.builder()
+            .program( MetadataIdentifier.ofUid( PROGRAM_WITH_REGISTRATION ) )
+            .build();
     }
 
     private Event completeTrackerEvent()
     {
         Event event = new Event();
         event.setProgramStage( PROGRAM_STAGE_WITH_REGISTRATION );
-        event.setProgram( PROGRAM_WITH_REGISTRATION );
+        event.setProgram( MetadataIdentifier.ofUid( PROGRAM_WITH_REGISTRATION ) );
         return event;
     }
 }

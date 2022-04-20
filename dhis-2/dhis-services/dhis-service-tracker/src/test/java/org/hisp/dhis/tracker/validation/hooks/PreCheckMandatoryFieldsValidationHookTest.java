@@ -206,7 +206,7 @@ class PreCheckMandatoryFieldsValidationHookTest
             .event( CodeGenerator.generateUid() )
             .orgUnit( CodeGenerator.generateUid() )
             .programStage( CodeGenerator.generateUid() )
-            .program( CodeGenerator.generateUid() )
+            .program( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
             .build();
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
@@ -222,7 +222,7 @@ class PreCheckMandatoryFieldsValidationHookTest
             .event( CodeGenerator.generateUid() )
             .orgUnit( CodeGenerator.generateUid() )
             .programStage( CodeGenerator.generateUid() )
-            .program( null )
+            .program( MetadataIdentifier.ofUid( null ) )
             .build();
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
@@ -258,7 +258,7 @@ class PreCheckMandatoryFieldsValidationHookTest
             .event( CodeGenerator.generateUid() )
             .orgUnit( CodeGenerator.generateUid() )
             .programStage( null )
-            .program( CodeGenerator.generateUid() )
+            .program( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
             .build();
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
@@ -274,7 +274,7 @@ class PreCheckMandatoryFieldsValidationHookTest
             .event( CodeGenerator.generateUid() )
             .orgUnit( null )
             .programStage( CodeGenerator.generateUid() )
-            .program( CodeGenerator.generateUid() )
+            .program( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
             .build();
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );

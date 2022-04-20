@@ -77,7 +77,10 @@
     {
       "event": "EVENT123456",
       "status": "COMPLETED",
-      "program": "BFcipDERJnf",
+      "program": {
+        "idScheme": "UID",
+        "identifier": "BFcipDERJnf"
+      },
       "programStage": "NpsdDv6kKSO",
       "enrollment": "TvctPPhpD8u",
       "orgUnit": "h4w96yEMlzO",

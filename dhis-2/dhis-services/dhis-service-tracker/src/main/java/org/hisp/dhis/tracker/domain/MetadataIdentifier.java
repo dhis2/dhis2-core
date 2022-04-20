@@ -150,23 +150,23 @@ public class MetadataIdentifier
     /**
      * Returns the objects' identifier matching this {@link #idScheme}.
      *
-     * @param object identifiable object of which the identifier will be
+     * @param metadata identifiable object of which the identifier will be
      *        returned
      * @param <T> identifiable object
      * @return identifier of given identifiable object
      */
-    public <T extends IdentifiableObject> String identifierOf( T object )
+    public <T extends IdentifiableObject> String identifierOf( T metadata )
     {
         switch ( idScheme )
         {
         case UID:
-            return object.getUid();
+            return metadata.getUid();
         case CODE:
-            return object.getCode();
+            return metadata.getCode();
         case NAME:
-            return object.getName();
+            return metadata.getName();
         case ATTRIBUTE:
-            return object.getAttributeValues()
+            return metadata.getAttributeValues()
                 .stream()
                 .filter( av -> av.getAttribute().getUid().equals( this.identifier ) )
                 .map( AttributeValue::getValue )
@@ -230,6 +230,6 @@ public class MetadataIdentifier
      */
     public boolean isBlank()
     {
-        return StringUtils.isBlank( this.getIdentifier() );
+        return StringUtils.isBlank( this.getIdentifierOrAttributeValue() );
     }
 }
