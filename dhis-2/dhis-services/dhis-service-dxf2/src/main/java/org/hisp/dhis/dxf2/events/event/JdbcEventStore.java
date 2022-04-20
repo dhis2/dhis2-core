@@ -1126,7 +1126,7 @@ public class JdbcEventStore implements EventStore
                 .append( params.getCategoryOptionCombo().getId() ).append( " " );
         }
 
-        if ( !organisationUnits.isEmpty() || params.getOrgUnit() != null )
+        if ( !CollectionUtils.isEmpty( organisationUnits ) || params.getOrgUnit() != null )
         {
             sqlBuilder.append( hlp.whereAnd() ).append( getOrgUnitSql( hlp, params, organisationUnits ) );
         }
