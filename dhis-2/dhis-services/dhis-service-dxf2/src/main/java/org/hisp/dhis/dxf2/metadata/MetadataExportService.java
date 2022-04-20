@@ -27,11 +27,13 @@
  */
 package org.hisp.dhis.dxf2.metadata;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.Nonnull;
+import javax.servlet.ServletOutputStream;
 
 import org.hisp.dhis.common.IdentifiableObject;
 
@@ -98,4 +100,7 @@ public interface MetadataExportService
      *         RootNode
      */
     ObjectNode getMetadataWithDependenciesAsNode( IdentifiableObject object, @Nonnull MetadataExportParams params );
+
+    void streamMetadata( MetadataExportParams params, ServletOutputStream outputStream )
+        throws IOException;
 }

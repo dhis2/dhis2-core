@@ -42,6 +42,7 @@ import java.util.Locale;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -81,7 +82,6 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -90,9 +90,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -220,10 +218,12 @@ public class MetadataImportExportController
     }
 
     @GetMapping
-    public ResponseEntity<JsonNode> getMetadata(
+    public void getMetadata(
         @RequestParam( required = false, defaultValue = "false" ) boolean translate,
         @RequestParam( required = false ) String locale,
-        @RequestParam( required = false, defaultValue = "false" ) boolean download )
+        @RequestParam( required = false, defaultValue = "false" ) boolean download,
+        HttpServletResponse response )
+        throws IOException
     {
         if ( translate )
         {
@@ -234,9 +234,13 @@ public class MetadataImportExportController
         MetadataExportParams params = metadataExportService.getParamsFromMap( contextService.getParameterValuesMap() );
         metadataExportService.validate( params );
 
-        ObjectNode rootNode = metadataExportService.getMetadataAsNode( params );
+        response.setContentType( APPLICATION_JSON_VALUE );
+        metadataExportService.streamMetadata( params, response.getOutputStream() );
 
-        return MetadataExportControllerUtils.createJsonNodeResponseEntity( rootNode, download );
+        // ObjectNode rootNode = metadataExportService.getMetadataAsNode( params
+        // );
+        // return MetadataExportControllerUtils.createJsonNodeResponseEntity(
+        // rootNode, download );
     }
 
     @ResponseBody

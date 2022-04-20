@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dxf2.metadata;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -36,6 +37,7 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.Nonnull;
+import javax.servlet.ServletOutputStream;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -103,6 +105,8 @@ import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.visualization.Visualization;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Sets;
 
@@ -129,6 +133,8 @@ public class DefaultMetadataExportService implements MetadataExportService
     private final SystemService systemService;
 
     private final AttributeService attributeService;
+
+    private final ObjectMapper objectMapper;
 
     @Override
     @SuppressWarnings( "unchecked" )
@@ -224,6 +230,52 @@ public class DefaultMetadataExportService implements MetadataExportService
         }
 
         return rootNode;
+    }
+
+    @Override
+    public void streamMetadata( MetadataExportParams params, ServletOutputStream outputStream )
+        throws IOException
+    {
+        SystemInfo systemInfo = systemService.getSystemInfo();
+        Map<Class<? extends IdentifiableObject>, List<? extends IdentifiableObject>> metadata = getMetadata( params );
+
+        try ( JsonGenerator generator = objectMapper.getFactory().createGenerator( outputStream ) )
+        {
+            generator.writeStartObject();
+
+            generator.writeObjectFieldStart( "system" );
+            generator.writeStringField( "id", systemInfo.getSystemId() );
+            generator.writeStringField( "rev", systemInfo.getRevision() );
+            generator.writeStringField( "version", systemInfo.getVersion() );
+            generator.writeStringField( "date", DateUtils.getIso8601( systemInfo.getServerDate() ) );
+            generator.writeEndObject();
+
+            for ( Class<? extends IdentifiableObject> klass : metadata.keySet() )
+            {
+                FieldFilterParams<?> fieldFilterParams = FieldFilterParams.builder()
+                    .objects( new ArrayList<>( metadata.get( klass ) ) )
+                    .filters( new HashSet<>( params.getFields( klass ) ) )
+                    .skipSharing( params.getSkipSharing() )
+                    .build();
+
+                List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes( fieldFilterParams );
+
+                if ( !objectNodes.isEmpty() )
+                {
+                    String plural = schemaService.getDynamicSchema( klass ).getPlural();
+                    generator.writeArrayFieldStart( plural );
+
+                    for ( ObjectNode on : objectNodes )
+                    {
+                        objectMapper.writeValue( generator, on );
+                    }
+
+                    generator.writeEndArray();
+                }
+            }
+
+            generator.writeEndObject();
+        }
     }
 
     @Override
