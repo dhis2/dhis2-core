@@ -41,7 +41,6 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -85,8 +84,7 @@ public class TrackerIdentifierCollector
 
     private final ProgramRuleService programRuleService;
 
-    public Map<Class<?>, Set<String>> collect( TrackerImportParams params,
-        Map<Class<? extends IdentifiableObject>, IdentifiableObject> defaults )
+    public Map<Class<?>, Set<String>> collect( TrackerImportParams params )
     {
         final Map<Class<?>, Set<String>> identifiers = new HashMap<>();
 
@@ -98,7 +96,6 @@ public class TrackerIdentifierCollector
         // preloaded in the Preheat
         identifiers.put( TrackedEntityType.class, ImmutableSet.of( ID_WILDCARD ) );
         identifiers.put( RelationshipType.class, ImmutableSet.of( ID_WILDCARD ) );
-        collectDefaults( identifiers, defaults );
 
         collectProgramRulesFields( identifiers );
         return identifiers;
@@ -122,13 +119,6 @@ public class TrackerIdentifierCollector
             .collect( Collectors.toSet() );
 
         attributes.forEach( attribute -> addIdentifier( map, TrackedEntityAttribute.class, attribute ) );
-    }
-
-    private void collectDefaults( Map<Class<?>, Set<String>> map,
-        Map<Class<? extends IdentifiableObject>, IdentifiableObject> defaults )
-    {
-        defaults.forEach(
-            ( defaultClass, defaultMetadata ) -> addIdentifier( map, defaultClass, defaultMetadata.getUid() ) );
     }
 
     private void collectTrackedEntities( Map<Class<?>, Set<String>> identifiers, List<TrackedEntity> trackedEntities )
