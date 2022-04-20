@@ -95,7 +95,7 @@ class EventProgramPreProcessorTest
 
         preprocessor.process( bundle );
 
-        verify( preheat ).put( TrackerIdSchemeParam.UID, programWithRegistration() );
+        verify( preheat ).put( programWithRegistration() );
         assertEquals( MetadataIdentifier.ofUid( PROGRAM_WITH_REGISTRATION ),
             bundle.getEvents().get( 0 ).getProgram() );
     }
@@ -113,7 +113,7 @@ class EventProgramPreProcessorTest
 
         preprocessor.process( bundle );
 
-        verify( preheat ).put( TrackerIdSchemeParam.UID, programWithoutRegistration() );
+        verify( preheat ).put( programWithoutRegistration() );
         assertEquals( MetadataIdentifier.ofUid( PROGRAM_WITHOUT_REGISTRATION ),
             bundle.getEvents().get( 0 ).getProgram() );
     }
@@ -153,7 +153,7 @@ class EventProgramPreProcessorTest
 
         preprocessor.process( bundle );
 
-        verify( preheat, never() ).put( TrackerIdSchemeParam.UID, programStage.getProgram() );
+        verify( preheat, never() ).put( programStage.getProgram() );
     }
 
     @Test
@@ -170,7 +170,7 @@ class EventProgramPreProcessorTest
 
         preprocessor.process( bundle );
 
-        verify( preheat ).put( TrackerIdSchemeParam.UID, programStageWithoutRegistration() );
+        verify( preheat ).put( programStageWithoutRegistration() );
         assertEquals( PROGRAM_STAGE_WITHOUT_REGISTRATION, bundle.getEvents().get( 0 ).getProgramStage() );
     }
 

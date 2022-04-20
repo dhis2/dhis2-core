@@ -54,6 +54,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -164,7 +165,7 @@ public class TrackerPreheat
             TrackerIdSchemeParam optionComboIdScheme = this.getIdSchemes().getCategoryOptionComboIdScheme();
             this.cosToCOC.put( categoryOptionComboCacheKey( categoryCombo, categoryOptions ),
                 optionComboIdScheme.getIdentifier( categoryOptionCombo ) );
-            this.put( optionComboIdScheme, categoryOptionCombo );
+            this.put( categoryOptionCombo );
         }
         else
         {
@@ -485,6 +486,26 @@ public class TrackerPreheat
         }
 
         return this;
+    }
+
+    public TrackerPreheat put( DataElement dataElement )
+    {
+        return this.put( idSchemes.getDataElementIdScheme(), dataElement );
+    }
+
+    public TrackerPreheat put( Program program )
+    {
+        return this.put( idSchemes.getProgramIdScheme(), program );
+    }
+
+    public TrackerPreheat put( ProgramStage programStage )
+    {
+        return this.put( idSchemes.getProgramStageIdScheme(), programStage );
+    }
+
+    public TrackerPreheat put( CategoryOptionCombo categoryOptionCombo )
+    {
+        return this.put( idSchemes.getCategoryOptionComboIdScheme(), categoryOptionCombo );
     }
 
     public TrackedEntityInstance getTrackedEntity( String uid )
