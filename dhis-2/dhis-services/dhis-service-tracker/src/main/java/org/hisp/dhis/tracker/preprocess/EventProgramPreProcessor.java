@@ -92,7 +92,7 @@ public class EventProgramPreProcessor
                     }
                     TrackerIdSchemeParams idSchemes = bundle.getPreheat().getIdSchemes();
                     event.setProgram( idSchemes.toMetadataIdentifier( programStage.getProgram() ) );
-                    bundle.getPreheat().put( idSchemes.getProgramIdScheme(), programStage.getProgram() );
+                    bundle.getPreheat().put( programStage.getProgram() );
                 }
             }
             // If it is a program event, extract program stage from program
@@ -104,8 +104,9 @@ public class EventProgramPreProcessor
                     Optional<ProgramStage> programStage = program.getProgramStages().stream().findFirst();
                     if ( programStage.isPresent() )
                     {
-                        event.setProgramStage( programStage.get().getUid() );
-                        bundle.getPreheat().put( TrackerIdSchemeParam.UID, programStage.get() );
+                        TrackerIdSchemeParam idScheme = bundle.getPreheat().getIdSchemes().getProgramStageIdScheme();
+                        event.setProgramStage( idScheme.getIdentifier( programStage.get() ) );
+                        bundle.getPreheat().put( programStage.get() );
                     }
                 }
             }
