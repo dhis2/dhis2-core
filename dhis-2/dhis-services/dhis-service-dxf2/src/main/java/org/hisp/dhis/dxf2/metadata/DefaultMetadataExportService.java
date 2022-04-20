@@ -199,7 +199,7 @@ public class DefaultMetadataExportService implements MetadataExportService
     }
 
     @Override
-    public ObjectNode getMetadataAsNode( MetadataExportParams params )
+    public ObjectNode getMetadataAsObjectNode( MetadataExportParams params )
     {
         ObjectNode rootNode = fieldFilterService.createObjectNode();
         SystemInfo systemInfo = systemService.getSystemInfo();
@@ -233,7 +233,7 @@ public class DefaultMetadataExportService implements MetadataExportService
     }
 
     @Override
-    public void streamMetadata( MetadataExportParams params, OutputStream outputStream )
+    public void getMetadataAsObjectNodeStream( MetadataExportParams params, OutputStream outputStream )
         throws IOException
     {
         SystemInfo systemInfo = systemService.getSystemInfo();

@@ -235,7 +235,7 @@ public class MetadataImportExportController
         MetadataExportParams params = metadataExportService.getParamsFromMap( contextService.getParameterValuesMap() );
         metadataExportService.validate( params );
 
-        ObjectNode rootNode = metadataExportService.getMetadataAsNode( params );
+        ObjectNode rootNode = metadataExportService.getMetadataAsObjectNode( params );
         return MetadataExportControllerUtils.createJsonNodeResponseEntity( rootNode, download );
     }
 
@@ -256,12 +256,7 @@ public class MetadataImportExportController
         metadataExportService.validate( params );
 
         response.setContentType( APPLICATION_JSON_VALUE );
-        metadataExportService.streamMetadata( params, response.getOutputStream() );
-
-        // ObjectNode rootNode = metadataExportService.getMetadataAsNode( params
-        // );
-        // return MetadataExportControllerUtils.createJsonNodeResponseEntity(
-        // rootNode, download );
+        metadataExportService.getMetadataAsObjectNodeStream( params, response.getOutputStream() );
     }
 
     @ResponseBody
