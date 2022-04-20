@@ -99,14 +99,11 @@ public class EventVisualizationController
     private final ContextUtils contextUtils;
 
     @GetMapping( value = { "/{uid}/data", "/{uid}/data.png" } )
-    void generateChart(
-        @PathVariable( "uid" ) String uid,
-        @RequestParam( value = "date", required = false ) Date date,
+    void generateChart( @PathVariable( "uid" ) String uid, @RequestParam( value = "date", required = false ) Date date,
         @RequestParam( value = "ou", required = false ) String ou,
         @RequestParam( value = "width", defaultValue = "800", required = false ) int width,
         @RequestParam( value = "height", defaultValue = "500", required = false ) int height,
-        @RequestParam( value = "attachment", required = false ) boolean attachment,
-        HttpServletResponse response )
+        @RequestParam( value = "attachment", required = false ) boolean attachment, HttpServletResponse response )
         throws IOException,
         WebMessageException
     {
@@ -185,17 +182,33 @@ public class EventVisualizationController
     }
 
     @Override
+    protected void preCreateEntity( final EventVisualization newEventVisualization )
+    {
+        /**
+         * Once a legacy EventVisualization is CREATED through this new
+         * endpoint, it will automatically become a non-legacy
+         * EventVisualization.
+         */
+        forceNonLegacy( newEventVisualization );
+    }
+
+    @Override
     protected void preUpdateEntity( final EventVisualization eventVisualization,
         final EventVisualization newEventVisualization )
     {
         /**
-         * Once a legacy EventVisualization is updated through this new
+         * Once a legacy EventVisualization is UPDATED through this new
          * endpoint, it will automatically become a non-legacy
          * EventVisualization.
          */
+        forceNonLegacy( newEventVisualization );
+    }
+
+    private void forceNonLegacy( final EventVisualization eventVisualization )
+    {
         if ( eventVisualization != null && eventVisualization.isLegacy() )
         {
-            newEventVisualization.setLegacy( false );
+            eventVisualization.setLegacy( false );
         }
     }
 
