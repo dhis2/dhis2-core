@@ -247,14 +247,14 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
         return ResponseEntity.ok( jsonRoot );
     }
 
-    @GetMapping( produces = "application/csv" )
+    @GetMapping( produces = { "text/csv", "application/text" } )
     public ResponseEntity<String> getObjectListCsv(
         @RequestParam Map<String, String> rpParameters, OrderParams orderParams,
         @CurrentUser User currentUser,
         @RequestParam( defaultValue = "," ) char separator,
         @RequestParam( defaultValue = ";" ) String arraySeparator,
         @RequestParam( defaultValue = "false" ) boolean skipHeader,
-        HttpServletResponse response, HttpServletRequest request )
+        HttpServletResponse response )
         throws IOException,
         WebMessageException
     {

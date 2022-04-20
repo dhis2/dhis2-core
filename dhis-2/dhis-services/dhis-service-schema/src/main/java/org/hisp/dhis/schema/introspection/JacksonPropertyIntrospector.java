@@ -138,7 +138,7 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector
 
             Method getterMethod = property.getGetterMethod();
 
-            if ( getterMethod != null && !property.isCollection() && !hasProperties( getterMethod.getReturnType() ) )
+            if ( getterMethod != null && !property.isCollection() && isSimple( getterMethod.getReturnType() ) )
             {
                 property.setSimple( true );
             }
@@ -150,9 +150,10 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector
         }
     }
 
-    private static boolean hasProperties( Class<?> type )
+    private static boolean isSimple( Class<?> type )
     {
-        return HAS_PROPERTIES.computeIfAbsent( type, key -> !collectProperties( key ).isEmpty() );
+        return Primitives.allPrimitiveTypes().contains( type ) || Primitives.allWrapperTypes().contains( type )
+            || String.class.isAssignableFrom( type ) || Enum.class.isAssignableFrom( type );
     }
 
     private static void initFromDescription( Property property )
@@ -295,7 +296,7 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector
             Class<?> klass = (Class<?>) ReflectionUtils.getInnerType( (ParameterizedType) type );
             property.setItemKlass( Primitives.wrap( klass ) );
 
-            if ( !hasProperties( klass ) )
+            if ( isSimple( klass ) )
             {
                 property.setSimple( true );
             }
