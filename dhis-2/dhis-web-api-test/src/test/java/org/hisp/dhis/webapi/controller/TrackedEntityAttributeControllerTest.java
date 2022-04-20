@@ -31,12 +31,11 @@ import static org.hisp.dhis.webapi.controller.TrackerControllerAssertions.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
@@ -235,9 +234,12 @@ class TrackedEntityAttributeControllerTest extends DhisControllerConvenienceTest
     private static void assertAttributeList( JsonObject actualJson, Set<String> expected )
     {
         assertEquals( expected.size(), actualJson.getArray( "trackedEntityAttributes" ).size() );
-        assertEquals( expected, actualJson.getArray( "trackedEntityAttributes" )
-            .viewAsList( e -> e.asObject().getString( "displayName" ) )
-            .stream().map( JsonString::string )
-            .collect( Collectors.toSet() ) );
+        Set<String> actual = new HashSet<>();
+        for ( int i = 0; i < actualJson.getArray( "trackedEntityAttributes" ).size(); i++ )
+        {
+            actual.add(
+                actualJson.getArray( "trackedEntityAttributes" ).getObject( i ).getString( "displayName" ).string() );
+        }
+        assertEquals( expected, actual );
     }
 }
