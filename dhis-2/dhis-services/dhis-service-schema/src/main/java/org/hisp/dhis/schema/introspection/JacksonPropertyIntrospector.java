@@ -137,7 +137,9 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector
             initCollectionProperty( property );
 
             Method getterMethod = property.getGetterMethod();
-            if ( getterMethod != null && !property.isCollection() && !hasProperties( getterMethod.getReturnType() ) )
+
+            if ( getterMethod != null && !property.isCollection() && !hasProperties( getterMethod.getReturnType() )
+                && Primitives.allPrimitiveTypes().contains( getterMethod.getReturnType() ) )
             {
                 property.setSimple( true );
             }
@@ -294,7 +296,7 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector
             Class<?> klass = (Class<?>) ReflectionUtils.getInnerType( (ParameterizedType) type );
             property.setItemKlass( Primitives.wrap( klass ) );
 
-            if ( !hasProperties( klass ) )
+            if ( !hasProperties( klass ) && Primitives.allPrimitiveTypes().contains( klass ) )
             {
                 property.setSimple( true );
             }
