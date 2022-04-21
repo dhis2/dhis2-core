@@ -35,6 +35,8 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.asList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
 import static org.hisp.dhis.common.FallbackCoordinateFieldType.OU_GEOMETRY;
 import static org.hisp.dhis.common.FallbackCoordinateFieldType.PSI_GEOMETRY;
+import static org.hisp.dhis.event.EventStatus.ACTIVE;
+import static org.hisp.dhis.event.EventStatus.COMPLETED;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -118,6 +120,8 @@ public class EventQueryParams
 
     public static final ImmutableSet<FallbackCoordinateFieldType> FALLBACK_COORDINATE_FIELD_TYPES = ImmutableSet.of(
         OU_GEOMETRY, PSI_GEOMETRY );
+
+    public static final Set<EventStatus> DEFAULT_EVENT_STATUS = Set.of( ACTIVE, COMPLETED );
 
     /**
      * The query items.
@@ -1074,7 +1078,12 @@ public class EventQueryParams
 
     public Set<EventStatus> getEventStatus()
     {
-        return eventStatus;
+        if ( isNotEmpty( eventStatus ) )
+        {
+            return eventStatus;
+        }
+
+        return DEFAULT_EVENT_STATUS;
     }
 
     public boolean isCollapseDataDimensions()

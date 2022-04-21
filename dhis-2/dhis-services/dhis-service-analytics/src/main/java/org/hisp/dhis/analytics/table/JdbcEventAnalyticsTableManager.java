@@ -28,7 +28,6 @@
 package org.hisp.dhis.analytics.table;
 
 import static java.util.stream.Collectors.toList;
-import static org.apache.commons.collections4.CollectionUtils.union;
 import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_11;
 import static org.hisp.dhis.analytics.ColumnDataType.DOUBLE;
 import static org.hisp.dhis.analytics.ColumnDataType.GEOMETRY;
@@ -52,6 +51,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -101,8 +101,7 @@ public class JdbcEventAnalyticsTableManager
 
     public static final String OU_GEOMETRY_COL_SUFFIX = "_geom";
 
-    // public static final String[] EXPORTABLE_EVENT_STATUSES = { "'COMPLETED'",
-    // "'ACTIVE'", "'SCHEDULE'" };
+    public static final String[] EXPORTABLE_EVENT_STATUSES = { "'COMPLETED'", "'ACTIVE'", "'SCHEDULE'" };
 
     public JdbcEventAnalyticsTableManager( IdentifiableObjectManager idObjectManager,
         OrganisationUnitService organisationUnitService, CategoryService categoryService,
@@ -123,7 +122,7 @@ public class JdbcEventAnalyticsTableManager
         new AnalyticsTableColumn( quote( "ao" ), CHARACTER_11, NOT_NULL, "ao.uid" ),
         new AnalyticsTableColumn( quote( "enrollmentdate" ), TIMESTAMP, "pi.enrollmentdate" ),
         new AnalyticsTableColumn( quote( "incidentdate" ), TIMESTAMP, "pi.incidentdate" ),
-        new AnalyticsTableColumn( quote( "executiondate" ), TIMESTAMP, "psi.executiondate" ),
+        new AnalyticsTableColumn( quote( "executiondate" ), TIMESTAMP, getDateLinkedToStatus() ),
         new AnalyticsTableColumn( quote( "duedate" ), TIMESTAMP, "psi.duedate" ),
         new AnalyticsTableColumn( quote( "completeddate" ), TIMESTAMP, "psi.completeddate" ),
         new AnalyticsTableColumn( quote( "created" ), TIMESTAMP, "psi.created" ),
@@ -180,6 +179,20 @@ public class JdbcEventAnalyticsTableManager
     }
 
     /**
+     * This method encapsulates the SQL logic to get the correct date column
+     * based on the event(program stage instance) status. If new statuses need
+     * to be loaded into the analytics events tables, they have to be
+     * supported/added into this logic.
+     *
+     * @return a statement that returns the date column related to the
+     *         event(program stage instance) status
+     */
+    private static String getDateLinkedToStatus()
+    {
+        return "CASE WHEN 'SCHEDULE' = psi.status THEN psi.duedate ELSE psi.executiondate END";
+    }
+
+    /**
      * Creates a list of {@link AnalyticsTable} for each program. The tables
      * contain a partition for each year for which events exist.
      *
@@ -200,13 +213,11 @@ public class JdbcEventAnalyticsTableManager
 
         for ( Program program : programs )
         {
-            List<Integer> dataYears = union( getDataYears( params, program, "executiondate" ),
-                getDataYears( params, program, "duedate" ) ).stream().collect( toList() );
+            List<Integer> dataYears = getDataYears( params, program );
 
             Collections.sort( dataYears );
 
-            AnalyticsTable table = new AnalyticsTable( getAnalyticsTableType(),
-                getDimensionColumns( program, true, true ),
+            AnalyticsTable table = new AnalyticsTable( getAnalyticsTableType(), getDimensionColumns( program ),
                 Lists.newArrayList(), program );
 
             for ( Integer year : dataYears )
@@ -260,8 +271,8 @@ public class JdbcEventAnalyticsTableManager
 
             if ( hasUpdatedData )
             {
-                AnalyticsTable table = new AnalyticsTable( getAnalyticsTableType(),
-                    getDimensionColumns( program, true, true ), Lists.newArrayList(), program );
+                AnalyticsTable table = new AnalyticsTable( getAnalyticsTableType(), getDimensionColumns( program ),
+                    Lists.newArrayList(), program );
                 table.addPartitionTable( AnalyticsTablePartition.LATEST_PARTITION, startDate, endDate );
                 tables.add( table );
 
@@ -347,52 +358,14 @@ public class JdbcEventAnalyticsTableManager
     @Override
     protected void populateTable( AnalyticsTableUpdateParams params, AnalyticsTablePartition partition )
     {
-        populateExecutedEvents( params, partition );
-        populateScheduledEvents( params, partition );
-    }
-
-    private void populateExecutedEvents( final AnalyticsTableUpdateParams params,
-        final AnalyticsTablePartition partition )
-    {
         final Program program = partition.getMasterTable().getProgram();
         final String start = DateUtils.getLongDateString( partition.getStartDate() );
         final String end = DateUtils.getLongDateString( partition.getEndDate() );
         final String partitionClause = partition.isLatestPartition() ? "and psi.lastupdated >= '" + start + "' "
-            : "and psi.executiondate >= '" + start + "' and psi.executiondate < '" + end + "' ";
+            : "and " + "(" + getDateLinkedToStatus() + ") >= '" + start + "' "
+                + "and " + "(" + getDateLinkedToStatus() + ") < '" + end + "' ";
 
-        String fromClause = getCommonFromStatement( program, params, partitionClause ) +
-            "and dps.yearly is not null " +
-            "and dps.year >= " + OLDEST_YEAR_PERIOD_SUPPORTED + " " +
-            "and dps.year <= " + NEWEST_YEAR_PERIOD_SUPPORTED + " " +
-            "and psi.status in ('COMPLETED', 'ACTIVE')" +
-            "and psi.deleted is false ";
-
-        populateTableInternal( partition, getDimensionColumns( program, true, false ), fromClause );
-    }
-
-    private void populateScheduledEvents( final AnalyticsTableUpdateParams params,
-        final AnalyticsTablePartition partition )
-    {
-        final Program program = partition.getMasterTable().getProgram();
-        final String start = DateUtils.getLongDateString( partition.getStartDate() );
-        final String end = DateUtils.getLongDateString( partition.getEndDate() );
-        final String partitionClause = partition.isLatestPartition() ? "and psi.lastupdated >= '" + start + "' "
-            : "and psi.duedate >= '" + start + "' and psi.duedate < '" + end + "' ";
-
-        String fromClause = getCommonFromStatement( program, params, partitionClause ) +
-            "and dps.yearly is not null " +
-            "and dps.year >= " + OLDEST_YEAR_PERIOD_SUPPORTED + " " +
-            "and dps.year <= " + NEWEST_YEAR_PERIOD_SUPPORTED + " " +
-            "and psi.status in ('SCHEDULE')" +
-            "and psi.deleted is false ";
-
-        populateTableInternal( partition, getDimensionColumns( program, false, true ), fromClause );
-    }
-
-    private String getCommonFromStatement( final Program program, final AnalyticsTableUpdateParams params,
-        final String partitionClause )
-    {
-        return "from programstageinstance psi " +
+        String fromClause = "from programstageinstance psi " +
             "inner join programinstance pi on psi.programinstanceid=pi.programinstanceid " +
             "inner join programstage ps on psi.programstageid=ps.programstageid " +
             "inner join program pr on pi.programid=pr.programid and pi.deleted is false " +
@@ -402,13 +375,20 @@ public class JdbcEventAnalyticsTableManager
             "inner join organisationunit ou on psi.organisationunitid=ou.organisationunitid " +
             "left join _orgunitstructure ous on psi.organisationunitid=ous.organisationunitid " +
             "left join _organisationunitgroupsetstructure ougs on psi.organisationunitid=ougs.organisationunitid " +
-            "and (cast(date_trunc('month', psi.executiondate) as date)=ougs.startdate or ougs.startdate is null) " +
+            "and (cast(date_trunc('month', " + getDateLinkedToStatus() + ") as date)" +
+            "=ougs.startdate or ougs.startdate is null) " +
             "inner join _categorystructure acs on psi.attributeoptioncomboid=acs.categoryoptioncomboid " +
-            "left join _dateperiodstructure dps on cast(psi.duedate as date)=dps.dateperiod " +
-            "where psi.lastupdated < '" + getLongDateString( params.getStartTime() ) + "' " +
-            partitionClause +
+            "left join _dateperiodstructure dps on cast(" + getDateLinkedToStatus() + " as date)=dps.dateperiod " +
+            "where psi.lastupdated < '" + getLongDateString( params.getStartTime() ) + "' " + partitionClause +
             "and pr.programid=" + program.getId() + " " +
-            "and psi.organisationunitid is not null ";
+            "and psi.organisationunitid is not null " +
+            "and (" + getDateLinkedToStatus() + ") is not null " +
+            "and dps.year >= " + OLDEST_YEAR_PERIOD_SUPPORTED + " " +
+            "and dps.year <= " + NEWEST_YEAR_PERIOD_SUPPORTED + " " +
+            "and psi.status in (" + String.join( ",", EXPORTABLE_EVENT_STATUSES ) + ")" +
+            "and psi.deleted is false ";
+
+        populateTableInternal( partition, getDimensionColumns( program ), fromClause );
     }
 
     /**
@@ -417,8 +397,7 @@ public class JdbcEventAnalyticsTableManager
      * @param program the program.
      * @return a list of {@link AnalyticsTableColumn}.
      */
-    private List<AnalyticsTableColumn> getDimensionColumns( Program program, boolean withExecutedEvents,
-        boolean withScheduledEvents )
+    private List<AnalyticsTableColumn> getDimensionColumns( Program program )
     {
         List<AnalyticsTableColumn> columns = new ArrayList<>();
 
@@ -441,29 +420,20 @@ public class JdbcEventAnalyticsTableManager
 
         columns.addAll( categoryService.getAttributeCategoryOptionGroupSetsNoAcl().stream()
             .map( l -> toCharColumn( quote( l.getUid() ), "acs", l.getCreated() ) )
-            .collect( toList() ) );
-
-        if ( withScheduledEvents )
-        {
-            columns.addAll( addPeriodTypeColumns( "dps", "schedule_" ) );
-        }
-
-        if ( withExecutedEvents )
-        {
-            columns.addAll( addPeriodTypeColumns( "dps" ) );
-        }
+            .collect( Collectors.toList() ) );
+        columns.addAll( addPeriodTypeColumns( "dps" ) );
 
         columns.addAll( program.getAnalyticsDataElements().stream()
             .map( de -> getColumnFromDataElement( de, false ) ).flatMap( Collection::stream )
-            .collect( toList() ) );
+            .collect( Collectors.toList() ) );
 
         columns.addAll( program.getAnalyticsDataElementsWithLegendSet().stream()
             .map( de -> getColumnFromDataElement( de, true ) ).flatMap( Collection::stream )
-            .collect( toList() ) );
+            .collect( Collectors.toList() ) );
 
         columns.addAll( program.getNonConfidentialTrackedEntityAttributes().stream()
             .map( tea -> getColumnFromTrackedEntityAttribute( tea, getNumericClause(), getDateClause(), false ) )
-            .flatMap( Collection::stream ).collect( toList() ) );
+            .flatMap( Collection::stream ).collect( Collectors.toList() ) );
 
         columns.addAll( program.getNonConfidentialTrackedEntityAttributesWithLegendSet().stream()
             .map( tea -> getColumnFromTrackedEntityAttribute( tea, getNumericClause(), getDateClause(), true ) )
@@ -637,21 +607,22 @@ public class JdbcEventAnalyticsTableManager
         return "";
     }
 
-    private List<Integer> getDataYears( AnalyticsTableUpdateParams params, Program program, String dateColumn )
+    private List<Integer> getDataYears( AnalyticsTableUpdateParams params, Program program )
     {
         String sql = "select temp.supportedyear from " +
-            "(select distinct extract(year from psi." + dateColumn + ") as supportedyear " +
+            "(select distinct extract(year from " + getDateLinkedToStatus() + ") as supportedyear " +
             "from programstageinstance psi " +
             "inner join programinstance pi on psi.programinstanceid = pi.programinstanceid " +
             "where psi.lastupdated <= '" + getLongDateString( params.getStartTime() ) + "' " +
             "and pi.programid = " + program.getId() + " " +
-            "and psi." + dateColumn + " is not null " +
-            "and psi." + dateColumn + " > '1000-01-01' " +
+            "and (" + getDateLinkedToStatus() + ") is not null " +
+            "and (" + getDateLinkedToStatus() + ") > '1000-01-01' " +
             "and psi.deleted is false ";
 
         if ( params.getFromDate() != null )
         {
-            sql += "and psi." + dateColumn + " >= '" + DateUtils.getMediumDateString( params.getFromDate() ) + "'";
+            sql += "and (" + getDateLinkedToStatus() + ") >= '" +
+                DateUtils.getMediumDateString( params.getFromDate() ) + "'";
         }
 
         sql += ") as temp where temp.supportedyear >= " + OLDEST_YEAR_PERIOD_SUPPORTED +

@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.table;
 
-import static org.apache.commons.lang3.StringUtils.remove;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.getClosingParentheses;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
@@ -181,7 +180,7 @@ public abstract class AbstractEventJdbcTableManager
 
         for ( AnalyticsTableColumn col : columns )
         {
-            sql += remove( col.getAlias(), "schedule_" ) + ",";
+            sql += col.getAlias() + ",";
         }
 
         sql = TextUtils.removeLastComma( sql ) + " ";
