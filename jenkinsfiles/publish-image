@@ -7,8 +7,6 @@ pipeline {
     }
 
     environment {
-        RP_UUID = credentials('report-portal-access-uuid')
-        RP_ENABLE = 'true'
         GITHUB_TOKEN = credentials('github-token')
         DHIS2_VERSION = ''
         DOCKER_HUB_CORE_REPOSITORY = "${DOCKER_HUB_OWNER}/core-dev"
@@ -98,6 +96,11 @@ pipeline {
         }
 
         stage('Run api tests') {
+            environment {
+                RP_UUID = credentials('report-portal-access-uuid')
+                RP_ENABLE = 'true'
+                RP_ATTRIBUTES = "version:master;"
+            }
             matrix {
                 axes {
                     axis {
