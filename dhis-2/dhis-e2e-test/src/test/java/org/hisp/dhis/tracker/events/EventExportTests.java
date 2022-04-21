@@ -41,6 +41,7 @@ import org.hisp.dhis.actions.tracker.EventActions;
 import org.hisp.dhis.actions.tracker.importer.TrackerActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
+import org.hisp.dhis.tracker.TrackerApiTest;
 import org.hisp.dhis.tracker.importer.databuilder.RelationshipDataBuilder;
 import org.hisp.dhis.tracker.importer.databuilder.TeiDataBuilder;
 import org.hisp.dhis.utils.DataGenerator;
@@ -71,11 +72,9 @@ import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class EventExportTests
-    extends ApiTest
+    extends TrackerApiTest
 {
     private final String withoutRegistrationProgram = Constants.EVENT_PROGRAM_ID;
-
-    private EventActions eventActions;
 
     private final String withoutRegistrationProgramStage = Constants.EVENT_PROGRAM_STAGE_ID;
 
@@ -107,19 +106,13 @@ public class EventExportTests
 
     String relationshipId;
 
-    private LoginActions loginActions;
-
     private UserActions userActions;
-
-    private ProgramActions programActions;
 
     @BeforeAll
     public void beforeAll()
     {
         userActions = new UserActions();
         eventActions = new EventActions();
-        loginActions = new LoginActions();
-        programActions = new ProgramActions();
 
         loginActions.loginAsSuperUser();
 
@@ -261,6 +254,7 @@ public class EventExportTests
 
         eventActions.get( builder.build() )
             .validate().statusCode( 200 )
+            .body( "events", hasSize( greaterThanOrEqualTo( 1 ) ) )
             .body( "events.orgUnit", everyItem( in( expectedOrgUnits ) ) );
     }
 

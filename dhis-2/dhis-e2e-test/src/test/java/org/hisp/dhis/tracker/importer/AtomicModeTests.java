@@ -35,6 +35,7 @@ import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
+import org.hisp.dhis.helpers.file.JsonFileReader;
 import org.hisp.dhis.tracker.TrackerNtiApiTest;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -90,8 +91,8 @@ public class AtomicModeTests
     private JsonObject createWrongPayload()
         throws Exception
     {
-        JsonObject object = new FileReaderUtils()
-            .read( new File( "src/test/resources/tracker/importer/teis/teisAndRelationship.json" ) )
+        JsonObject object = new JsonFileReader( new File( "src/test/resources/tracker/importer/teis/teisAndRelationship.json" ))
+            .replaceStringsWithIds( "JjZ2Nwds92v", "JjZ2Nwds93v" )
             .get( JsonObject.class );
 
         object = JsonObjectBuilder.jsonObject( object )

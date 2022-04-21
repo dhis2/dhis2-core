@@ -56,7 +56,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 public class EventIdSchemeTests
     extends TrackerNtiApiTest
 {
-
     private static final String OU_NAME = "TA EventsImportIdSchemeTests ou name " + DataGenerator.randomString();
 
     private static final String OU_CODE = "TA EventsImportIdSchemeTests ou code " + DataGenerator.randomString();

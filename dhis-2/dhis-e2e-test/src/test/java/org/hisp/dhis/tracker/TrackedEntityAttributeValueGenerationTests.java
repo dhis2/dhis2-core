@@ -55,7 +55,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class TrackedEntityAttributeValueGenerationTests
-    extends ApiTest
+    extends TrackerApiTest
 {
     private RestApiActions trackedEntityAttributeActions;
 
