@@ -25,40 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.dataentry;
+package org.hisp.dhis.webapi.webdomain.datavalue;
 
+import java.util.ArrayList;
 import java.util.List;
 
-import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 
-import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.datavalue.DataValueAudit;
-import org.hisp.dhis.datavalue.DataValueAuditService;
-import org.hisp.dhis.webapi.controller.datavalue.DataValidator;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.webdomain.datavalue.DataValueQueryParams;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-@RestController
-@RequestMapping( value = "/dataEntry" )
-@AllArgsConstructor
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class ChangeLogController
+/**
+ * DTO which represents the context, such as data value audit records and data
+ * value history, for a single data value.
+ *
+ * @author Lars Helge Overland
+ */
+@Getter
+@Setter
+@Accessors( chain = true )
+@NoArgsConstructor
+public class DataValueContextDto
 {
-    private final DataValueAuditService dataValueAuditService;
+    @JsonProperty
+    private List<DataValueAuditDto> audits = new ArrayList<>();
 
-    private final DataValidator dataValidator;
-
-    @GetMapping( value = "/changeLog" )
-    public void getChangeLog( DataValueQueryParams params )
-    {
-        List<DataValueAudit> audits = dataValueAuditService.getDataValueAudits(
-            dataValidator.getAndValidateDataElement( params.getDe() ),
-            dataValidator.getAndValidatePeriod( params.getPe() ),
-            dataValidator.getAndValidateOrganisationUnit( params.getOu() ),
-            null, null );
-
-    }
+    @JsonProperty
+    private List<DataValueDto> history = new ArrayList<>();
 }

@@ -25,52 +25,52 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataelementhistory;
+package org.hisp.dhis.webapi.webdomain.datavalue;
 
-import org.hisp.dhis.period.Period;
+import java.util.Date;
+
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+
+import org.hisp.dhis.common.AuditType;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * @author Torgeir Lorange Ostby
+ * @author Lars Helge Overland
  */
-public class DataElementHistoryPoint
+@Getter
+@Setter
+@Accessors( chain = true )
+@NoArgsConstructor
+public class DataValueAuditDto
 {
-    private Period period;
+    @JsonProperty
+    private String dataElement;
 
-    private Double value;
+    @JsonProperty
+    private String period;
 
-    private double average;
+    @JsonProperty
+    private String orgUnit;
 
-    // -------------------------------------------------------------------------
-    // Getters and setters
-    // -------------------------------------------------------------------------
+    @JsonProperty
+    private String categoryOptionCombo;
 
-    public double getAverage()
-    {
-        return average;
-    }
+    @JsonProperty
+    private String attributeOptionCombo;
 
-    public void setAverage( double average )
-    {
-        this.average = average;
-    }
+    @JsonProperty
+    private String value;
 
-    public Period getPeriod()
-    {
-        return period;
-    }
+    @JsonProperty
+    private String modifiedBy;
 
-    public void setPeriod( Period period )
-    {
-        this.period = period;
-    }
+    @JsonProperty
+    private Date created;
 
-    public Double getValue()
-    {
-        return value;
-    }
-
-    public void setValue( Double value )
-    {
-        this.value = value;
-    }
+    @JsonProperty
+    private AuditType auditType;
 }
