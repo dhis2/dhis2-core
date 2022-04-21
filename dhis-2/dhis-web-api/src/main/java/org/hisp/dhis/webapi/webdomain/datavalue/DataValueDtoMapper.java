@@ -65,7 +65,7 @@ public class DataValueDtoMapper
     /**
      * Converts a {@link DataValue} object to a {@link DataValueDto} object.
      *
-     * @param audit the {@link DataValue}.
+     * @param value the {@link DataValue}.
      * @return a {@link DataValueDto}.
      */
     public static DataValueDto toDto( DataValue value )
