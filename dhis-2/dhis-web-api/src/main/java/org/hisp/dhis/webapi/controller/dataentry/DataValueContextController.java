@@ -77,7 +77,7 @@ public class DataValueContextController
         CategoryOptionCombo co = dataValidator.getAndValidateCategoryOptionCombo( params.getCo() );
         CategoryOptionCombo ao = dataValidator.getAndValidateAttributeOptionCombo( params.getCc(), params.getCp() );
 
-        List<DataValueAudit> audits = dataValueAuditService.getDataValueAudits( de, pe, ou, null, null );
+        List<DataValueAudit> audits = dataValueAuditService.getDataValueAudits( de, pe, ou, co, ao );
 
         List<Period> periods = periodService.getPeriods( pe, 13 );
 
@@ -89,9 +89,8 @@ public class DataValueContextController
             .setAttributeOptionCombos( Set.of( ao ) )
             .setOrderByPeriod( true ) );
 
-        DataValueContextDto context = new DataValueContextDto();
-        context.setAudits( mapToList( audits, DataValueDtoMapper::toDto ) );
-        context.setHistory( mapToList( dataValues, DataValueDtoMapper::toDto ) );
-        return context;
+        return new DataValueContextDto()
+            .setAudits( mapToList( audits, DataValueDtoMapper::toDto ) )
+            .setHistory( mapToList( dataValues, DataValueDtoMapper::toDto ) );
     }
 }
