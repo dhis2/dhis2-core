@@ -31,8 +31,7 @@ import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueAudit;
 
 /**
- * Class which provides methods for mapping between domain objcets and DTO
- * objects.
+ * Class which provides methods for mapping between domain objcets and DTOs.
  *
  * @author Lars Helge Overland
  */
