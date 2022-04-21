@@ -39,6 +39,8 @@ import org.hisp.dhis.common.AuditType;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
+ * DTO which represents a data value audit record.
+ *
  * @author Lars Helge Overland
  */
 @Getter

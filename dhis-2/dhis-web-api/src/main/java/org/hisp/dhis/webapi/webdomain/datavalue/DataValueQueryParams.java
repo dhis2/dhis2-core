@@ -36,6 +36,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * Object which encapsulates parameters for a data value query.
+ *
+ * @author Lars Helge Overland
+ */
 @Getter
 @Setter
 @Builder
