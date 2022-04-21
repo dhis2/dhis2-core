@@ -469,10 +469,11 @@ class JdbcEventAnalyticsTableManagerTest
         when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( Collections.singletonList( programA ) );
         when( organisationUnitService.getFilledOrganisationUnitLevels() ).thenReturn( ouLevels );
         when( jdbcTemplate.queryForList(
-            "select temp.supportedyear from (select distinct extract(year from psi.executiondate) as supportedyear "
+            "select temp.supportedyear from (select distinct extract(year from " + getDateLinkedToStatus()
+                + ") as supportedyear "
                 + "from programstageinstance psi inner join programinstance pi on psi.programinstanceid = pi.programinstanceid "
-                + "where psi.lastupdated <= '2019-08-01T00:00:00' and pi.programid = 0 and psi.executiondate is not null "
-                + "and psi.executiondate > '1000-01-01' and psi.deleted is false ) "
+                + "where psi.lastupdated <= '2019-08-01T00:00:00' and pi.programid = 0 and (" + getDateLinkedToStatus()
+                + ") is not null " + "and (" + getDateLinkedToStatus() + ") > '1000-01-01' and psi.deleted is false ) "
                 + "as temp where temp.supportedyear >= 1975 and temp.supportedyear <= " + NEWEST_YEAR_PERIOD_SUPPORTED,
             Integer.class ) ).thenReturn( Lists.newArrayList( 2018, 2019 ) );
 
@@ -605,10 +606,12 @@ class JdbcEventAnalyticsTableManagerTest
         when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( Lists.newArrayList( programA ) );
 
         when( jdbcTemplate.queryForList(
-            "select temp.supportedyear from (select distinct extract(year from psi.executiondate) as supportedyear "
+            "select temp.supportedyear from (select distinct extract(year from " + getDateLinkedToStatus()
+                + ") as supportedyear "
                 + "from programstageinstance psi inner join programinstance pi on psi.programinstanceid = pi.programinstanceid "
-                + "where psi.lastupdated <= '2019-08-01T00:00:00' and pi.programid = 0 and psi.executiondate is not null "
-                + "and psi.executiondate > '1000-01-01' and psi.deleted is false and psi.executiondate >= '2018-01-01') "
+                + "where psi.lastupdated <= '2019-08-01T00:00:00' and pi.programid = 0 and (" + getDateLinkedToStatus()
+                + ") is not null " + "and (" + getDateLinkedToStatus()
+                + ") > '1000-01-01' and psi.deleted is false and (" + getDateLinkedToStatus() + ") >= '2018-01-01') "
                 + "as temp where temp.supportedyear >= 1975 and temp.supportedyear <= " + NEWEST_YEAR_PERIOD_SUPPORTED,
             Integer.class ) ).thenReturn( Lists.newArrayList( 2018, 2019 ) );
 
@@ -640,19 +643,26 @@ class JdbcEventAnalyticsTableManagerTest
 
     private String getYearQueryForCurrentYear( Program program, boolean withExecutionDate )
     {
-        String sql = "select temp.supportedyear from (select distinct extract(year from psi.executiondate) as supportedyear "
+        String sql = "select temp.supportedyear from (select distinct "
+            + "extract(year from " + getDateLinkedToStatus() + ") as supportedyear "
             + "from programstageinstance psi inner join "
             + "programinstance pi on psi.programinstanceid = pi.programinstanceid where psi.lastupdated <= '"
             + "2019-08-01T00:00:00' and pi.programid = " + program.getId()
-            + " and psi.executiondate is not null and psi.executiondate > '1000-01-01' and psi.deleted is false ";
+            + " and (" + getDateLinkedToStatus()
+            + ") is not null and (" + getDateLinkedToStatus() + ") > '1000-01-01' and psi.deleted is false ";
 
         if ( withExecutionDate )
         {
-            sql += "and psi.executiondate >= '2018-01-01'";
+            sql += "and (" + getDateLinkedToStatus() + ") >= '2018-01-01'";
         }
 
         sql += ") as temp where temp.supportedyear >= 1975 and temp.supportedyear <= " + NEWEST_YEAR_PERIOD_SUPPORTED;
 
         return sql;
+    }
+
+    private String getDateLinkedToStatus()
+    {
+        return "CASE WHEN 'SCHEDULE' = psi.status THEN psi.duedate ELSE psi.executiondate END";
     }
 }
