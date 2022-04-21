@@ -687,8 +687,7 @@ public class DefaultAclService implements AclService
     {
         boolean b1 = haveOverrideAuthority( user );
         boolean b2 = anyAuthorities.isEmpty();
-        boolean b3 = haveAuthority( user, anyAuthorities );
-        return b1 || b2 || b3;
+        return b1 || b2 || haveAuthority( user, anyAuthorities );
     }
 
     private boolean haveAuthority( User user, Collection<String> anyAuthorities )
