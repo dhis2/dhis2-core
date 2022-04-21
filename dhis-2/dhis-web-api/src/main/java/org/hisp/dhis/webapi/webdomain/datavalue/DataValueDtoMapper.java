@@ -30,6 +30,12 @@ package org.hisp.dhis.webapi.webdomain.datavalue;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueAudit;
 
+/**
+ * Class which provides methods for mapping between domain objcets and DTO
+ * objects.
+ *
+ * @author Lars Helge Overland
+ */
 public class DataValueDtoMapper
 {
     /**
