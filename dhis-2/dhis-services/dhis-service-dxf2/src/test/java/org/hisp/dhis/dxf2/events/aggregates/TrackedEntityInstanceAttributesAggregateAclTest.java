@@ -67,6 +67,7 @@ class TrackedEntityInstanceAttributesAggregateAclTest extends TrackerTest
     private TrackedEntityInstanceAggregate trackedEntityInstanceAggregate;
 
     private User superUser;
+
     private User nonSuperUser;
 
     @Override
@@ -107,7 +108,7 @@ class TrackedEntityInstanceAttributesAggregateAclTest extends TrackerTest
     }
 
     @Test
-    @Disabled("TODO: fix this test 12098")
+    @Disabled( "TODO: fix this test 12098" )
     void verifyTeiCanBeAccessedWhenDATA_READPublicAccessOnTrackedEntityType()
     {
         final String tetUid = CodeGenerator.generateUid();

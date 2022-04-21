@@ -95,6 +95,7 @@ public abstract class DhisWebSpringTest extends DhisConvenienceTest
         throws Exception
     {
         userService = _userService;
+        clearSecurityContext();
 
         User all = createAdminUser( "ALL" );
         injectSecurityContext( all );

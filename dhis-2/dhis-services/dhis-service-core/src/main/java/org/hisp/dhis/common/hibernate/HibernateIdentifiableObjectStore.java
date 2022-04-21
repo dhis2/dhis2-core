@@ -1175,9 +1175,10 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
      */
     private boolean checkPublicAccess( User user, IdentifiableObject identifiableObject )
     {
-        return aclService.canMakePublic( user, identifiableObject ) ||
-            (aclService.canMakePrivate( user, identifiableObject ) &&
-                !AccessStringHelper.canReadOrWrite( identifiableObject.getSharing().getPublicAccess() ));
+        boolean b1 = aclService.canMakePublic( user, identifiableObject );
+        boolean b2 = aclService.canMakePrivate( user, identifiableObject );
+        boolean b3 = AccessStringHelper.canReadOrWrite( identifiableObject.getSharing().getPublicAccess() );
+        return b1 || (b2 && !b3);
     }
 
     private boolean forceAcl()

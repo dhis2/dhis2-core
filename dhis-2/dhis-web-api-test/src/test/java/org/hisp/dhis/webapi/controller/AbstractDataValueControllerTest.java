@@ -31,8 +31,12 @@ import static org.hisp.dhis.webapi.WebClient.Body;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
 
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.BeforeEach;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 
 abstract class AbstractDataValueControllerTest
@@ -45,6 +49,9 @@ abstract class AbstractDataValueControllerTest
     protected String categoryComboId;
 
     protected String categoryOptionComboId;
+
+    @Autowired
+    protected CurrentUserService currentUserService;
 
     @BeforeEach
     void setUp()
@@ -64,6 +71,25 @@ abstract class AbstractDataValueControllerTest
                 "{'name':'My data element', 'shortName':'DE1', 'code':'DE1', 'valueType':'INTEGER', "
                     + "'aggregationType':'SUM', 'zeroIsSignificant':false, 'domainType':'AGGREGATE', "
                     + "'categoryCombo': {'id': '" + categoryComboId + "'}}" ) );
+
+        OrganisationUnit unit = manager.get( orgUnitId );
+        User user = userService.getUser( superUser.getUid() );
+        user.addOrganisationUnit( unit );
+        userService.updateUser( user );
+
+        superUser = userService.getUser( superUser.getUid() );
+        String a = "a";
+
+        User currentUser1 = currentUserService.getCurrentUser();
+
+        switchContextToUser( superUser );
+
+        // dbmsManager.flushSession();
+        // dbmsManager.clearSession();
+
+        User currentUser2 = currentUserService.getCurrentUser();
+
+        String b = "a";
     }
 
     /**

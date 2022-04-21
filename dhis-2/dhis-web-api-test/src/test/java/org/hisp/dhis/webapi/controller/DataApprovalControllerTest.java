@@ -38,6 +38,7 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonDataApprovalPermissions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -83,6 +84,7 @@ class DataApprovalControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
+    @Disabled( "TODO: fix this test 12098" )
     void testGetApprovalPermissions()
     {
         JsonDataApprovalPermissions permissions = GET( "/dataApprovals?ou={ou}&pe=202101&wf={wf}", ouId, wfId )
@@ -122,6 +124,7 @@ class DataApprovalControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
+    @Disabled( "TODO: fix this test 12098" )
     void testGetApprovalByCategoryOptionCombos()
     {
         JsonArray statuses = GET( "/dataApprovals/categoryOptionCombos?ou={ou}&pe=202101&wf={wf}", ouId, wfId )
@@ -131,6 +134,7 @@ class DataApprovalControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
+    @Disabled( "TODO: fix this test 12098" )
     void testGetApproval()
     {
         JsonArray statuses = GET( "/dataApprovals/status?ou={ou}&pe=202101&wf={wf}&ds={ds}", ouId, wfId, dsId )

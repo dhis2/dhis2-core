@@ -158,6 +158,7 @@ class EventImportTest extends TransactionalIntegrationTest
     private Event event;
 
     private User superUser;
+
     private static final SimpleDateFormat simpleDateFormat = new SimpleDateFormat( DateUtils.ISO8601_NO_TZ_PATTERN );
 
     @Override
@@ -558,7 +559,7 @@ class EventImportTest extends TransactionalIntegrationTest
         assertEquals( ImportStatus.SUCCESS,
             eventService.updateEvent( event, false, ImportOptions.getDefaultImportOptions(), false ).getStatus() );
 
-//        cleanSession();
+        // cleanSession();
         dbmsManager.clearSession();
         ProgramStageInstance psi2 = programStageInstanceService.getProgramStageInstance( uid );
 
@@ -598,7 +599,7 @@ class EventImportTest extends TransactionalIntegrationTest
         event.setStatus( EventStatus.ACTIVE );
         assertEquals( ImportStatus.SUCCESS,
             eventService.updateEvent( event, false, ImportOptions.getDefaultImportOptions(), false ).getStatus() );
-//        cleanSession();
+        // cleanSession();
         dbmsManager.clearSession();
 
         ProgramStageInstance psi2 = programStageInstanceService.getProgramStageInstance( uid );

@@ -105,7 +105,8 @@ class LastUpdateImportTest extends TrackerTest
     void shouldUpdateTeiIfEventIsUpdated()
         throws IOException
     {
-        TrackerImportParams trackerImportParams = fromJson( "tracker/event_with_data_values.json",userService.getUser( ADMIN_USER_UID ) );
+        TrackerImportParams trackerImportParams = fromJson( "tracker/event_with_data_values.json",
+            userService.getUser( ADMIN_USER_UID ) );
         Date lastUpdateBefore = trackedEntityInstanceService
             .getTrackedEntityInstance( trackedEntity.getTrackedEntity() ).getLastUpdated();
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );

@@ -41,7 +41,6 @@ import org.hisp.dhis.webapi.security.config.WebMvcConfig;
 import org.hisp.dhis.webapi.utils.DhisMockMvcControllerTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.web.FilterChainProxy;
 import org.springframework.test.context.ActiveProfiles;
@@ -55,7 +54,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
 /**
- * Base class for convenient testing of the web API on basis of {@link JsonResponse}, with JWT token
+ * Base class for convenient testing of the web API on basis of
+ * {@link JsonResponse}, with JWT token
  *
  * @author Morten Svanæs
  */
@@ -84,7 +84,8 @@ public abstract class DhisControllerWithJwtTokenAuthTest extends DhisMockMvcCont
 
     protected User superUser;
 
-    @BeforeEach final void setup()
+    @BeforeEach
+    final void setup()
         throws Exception
     {
         userService = _userService;
@@ -100,8 +101,8 @@ public abstract class DhisControllerWithJwtTokenAuthTest extends DhisMockMvcCont
         TestUtils.executeStartupRoutines( webApplicationContext );
 
         H2SqlFunction.registerH2Functions( dataSource );
-        //        dbmsManager.flushSession();
-        //        dbmsManager.clearSession();
+        // dbmsManager.flushSession();
+        // dbmsManager.clearSession();
     }
 
     @Override

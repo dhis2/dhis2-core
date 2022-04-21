@@ -273,6 +273,7 @@ class TrackedEntityCriteriaMapperTest extends DhisWebSpringTest
     @Test
     void verifyCriteriaMappingFailOnUserNonInOuHierarchy()
     {
+        clearSecurityContext();
         // Force Current User Service to return a User without search org unit
         User mockUser = createUserWithAuth( "testUser2" );
         injectSecurityContext( mockUser );

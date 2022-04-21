@@ -62,7 +62,7 @@ class ApiTokenAuthenticationTest extends DhisControllerWithApiTokenAuthTest
     @Autowired
     private ApiTokenStore apiTokenStore;
 
-//    private User adminUser;
+    // private User adminUser;
 
     private static class TokenAndKey
     {

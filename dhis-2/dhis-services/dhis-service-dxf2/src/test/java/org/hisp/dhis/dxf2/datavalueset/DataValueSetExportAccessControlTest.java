@@ -189,7 +189,7 @@ class DataValueSetExportAccessControlTest extends TransactionalIntegrationTest
         User user = makeUser( "A" );
         userService.addUser( user );
         user.setOrganisationUnits( Sets.newHashSet( ouA ) );
-//        setCurrentUser( user );
+        // setCurrentUser( user );
         // Sharing
         enableDataSharing( user, coA, DATA_READ );
         enableDataSharing( user, coC, DATA_READ );
@@ -265,7 +265,7 @@ class DataValueSetExportAccessControlTest extends TransactionalIntegrationTest
         User user = makeUser( "A" );
         userService.addUser( user );
         user.setOrganisationUnits( Sets.newHashSet( ouA ) );
-//        setCurrentUser( user );
+        // setCurrentUser( user );
         // Sharing
         enableDataSharing( user, coA, DATA_READ );
         enableDataSharing( user, coC, DATA_READ );
@@ -295,7 +295,7 @@ class DataValueSetExportAccessControlTest extends TransactionalIntegrationTest
         User user = makeUser( "A" );
         userService.addUser( user );
         user.setOrganisationUnits( Sets.newHashSet( ouA ) );
-//        setCurrentUser( user );
+        // setCurrentUser( user );
         // Sharing
         enableDataSharing( user, coA, DATA_READ );
         enableDataSharing( user, dsA, DATA_READ );
@@ -303,7 +303,7 @@ class DataValueSetExportAccessControlTest extends TransactionalIntegrationTest
         idObjectManager.update( dsA );
         dbmsManager.flushSession();
 
-//        setCurrentUser( user );
+        // setCurrentUser( user );
         User user1 = userService.getUser( user.getUid() );
         injectSecurityContext( user1 );
         // Test

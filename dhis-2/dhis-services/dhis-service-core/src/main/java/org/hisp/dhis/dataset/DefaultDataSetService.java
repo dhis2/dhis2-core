@@ -385,7 +385,7 @@ public class DefaultDataSetService
     @Override
     public SetValuedMap<String, String> getDataSetOrganisationUnitsAssociations()
     {
-        Set<String> uids = getAllDataWrite().stream()
+        Set<String> uids = getUserDataWrite( currentUserService.getCurrentUser() ).stream()
             .map( DataSet::getUid )
             .collect( Collectors.toSet() );
 

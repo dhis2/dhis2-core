@@ -82,6 +82,7 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueServ
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -146,6 +147,9 @@ class EventPredictionServiceTest extends IntegrationTestBase
     @Autowired
     private CategoryManager categoryManager;
 
+    @Autowired
+    private UserService _userService;
+
     private CategoryOptionCombo defaultCombo;
 
     private OrganisationUnit orgUnitA;
@@ -177,6 +181,8 @@ class EventPredictionServiceTest extends IntegrationTestBase
     @Override
     public void setUpTest()
     {
+        this.userService = _userService;
+
         final String DATA_ELEMENT_A_UID = "DataElemenA";
         final String DATA_ELEMENT_D_UID = "DataElemenD";
         final String DATA_ELEMENT_I_UID = "DataElemenI";

@@ -331,9 +331,9 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
         enableDataSharing( this.user, dsA, AccessStringHelper.DATA_READ_WRITE );
         enableDataSharing( this.user, categoryOptionA, AccessStringHelper.DATA_READ_WRITE );
         enableDataSharing( this.user, categoryOptionB, AccessStringHelper.DATA_READ_WRITE );
-//        _userService.addUser( user );
+        // _userService.addUser( user );
         userService.updateUser( this.user );
-//        dbmsManager.clearSession();
+        // dbmsManager.clearSession();
 
         CompleteDataSetRegistration completeDataSetRegistration = new CompleteDataSetRegistration( dsA, peA, ouA,
             categoryOptionCombo, getDate( 2012, 1, 9 ), "userA", new Date(), "userA", true );
@@ -823,7 +823,7 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
     void testImportDataValuesInvalidAttributeOptionComboDates()
         throws Exception
     {
-//        clearSecurityContext();
+        // clearSecurityContext();
         injectSecurityContext( superUser );
 
         categoryOptionA.setStartDate( peB.getStartDate() );
@@ -847,7 +847,7 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
     void testImportDataValuesInvalidAttributeOptionComboOrgUnit()
         throws Exception
     {
-//        clearSecurityContext();
+        // clearSecurityContext();
         injectSecurityContext( superUser );
 
         categoryOptionA.setOrganisationUnits( Sets.newHashSet( ouA, ouB ) );
@@ -949,12 +949,12 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    @Disabled("TODO: fix this test 12098")
+    @Disabled( "TODO: fix this test 12098" )
     void testImportDataValuesWithDataSetAllowsPeriods()
     {
-//        clearSecurityContext();
+        // clearSecurityContext();
 
-//        injectSecurityContext( superUser );
+        // injectSecurityContext( superUser );
 
         Date thisMonth = DateUtils.truncate( new Date(), Calendar.MONTH );
         dsA.setExpiryDays( 62 );
@@ -1022,7 +1022,7 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
     void testImportValueDefaultCatComboOk()
         throws IOException
     {
-//        clearSecurityContext();
+        // clearSecurityContext();
         injectSecurityContext( superUser );
 
         enableDataSharing( user, dsA, AccessStringHelper.DATA_READ_WRITE );

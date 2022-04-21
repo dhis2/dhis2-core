@@ -78,12 +78,14 @@ public class DhisOidcUser
         return user;
     }
 
-    @Override public String getUsername()
+    @Override
+    public String getUsername()
     {
         return user.getUsername();
     }
 
-    @Override public User getDhis2User()
+    @Override
+    public User getDhis2User()
     {
         return user;
     }

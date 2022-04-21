@@ -119,9 +119,6 @@ class ValidationServiceIntegrationTest extends IntegrationTestBase
         // CurrentUserServiceTarget::setCurrentUserService,
         // currentUserService, validationService );
 
-        User user = mockUser( Sets.newHashSet( orgUnitA ), null );
-        injectSecurityContext( user );
-
         periodTypeMonthly = new MonthlyPeriodType();
         dataElementA = createDataElement( 'A' );
         dataElementService.addDataElement( dataElementA );
@@ -130,6 +127,9 @@ class ValidationServiceIntegrationTest extends IntegrationTestBase
         orgUnitA = createOrganisationUnit( 'A' );
         organisationUnitService.addOrganisationUnit( orgUnitA );
         defaultCombo = categoryService.getDefaultCategoryOptionCombo();
+
+        User user = mockUser( true, "SUPERMAN12098", Sets.newHashSet( orgUnitA ), null );
+        injectSecurityContext( user );
     }
 
     // -------------------------------------------------------------------------

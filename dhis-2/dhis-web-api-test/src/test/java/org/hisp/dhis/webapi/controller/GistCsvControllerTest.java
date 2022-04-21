@@ -44,11 +44,13 @@ class GistCsvControllerTest extends AbstractGistControllerTest
 {
     private static final MediaType TEXT_CSV = new MediaType( "text", "csv" );
 
-//    @Test
-//    void testList()
-//    {
-//        assertUserCsv( GET( "/users/gist?fields=id,code,education,twitter,employer", Accept( TEXT_CSV ) ) );
-//    }
+    // @Test
+    // void testList()
+    // {
+    // assertUserCsv( GET(
+    // "/users/gist?fields=id,code,education,twitter,employer", Accept( TEXT_CSV
+    // ) ) );
+    // }
 
     @Test
     void testObject()
@@ -67,7 +69,8 @@ class GistCsvControllerTest extends AbstractGistControllerTest
 
     private void assertUserCsv( HttpResponse response )
     {
-        // TODO: 12098 org.opentest4j.AssertionFailedError: more actual lines than expected: 1
+        // TODO: 12098 org.opentest4j.AssertionFailedError: more actual lines
+        // than expected: 1
         assertLinesMatch( List.of( "id,code,education,twitter,employer", getSuperuserUid() + ",Codeadmin,,," ),
             List.of( response.content( TEXT_CSV ).split( "\n" ) ) );
     }

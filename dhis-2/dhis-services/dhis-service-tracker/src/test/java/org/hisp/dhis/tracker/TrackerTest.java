@@ -88,20 +88,20 @@ public abstract class TrackerTest extends TransactionalIntegrationTest
     {
         userService = _userService;
         preCreateInjectAdminUser();
-//
+        //
         renderService = _renderService;
         dbmsManager.clearSession();
         initTest();
         /////////////////
         // Clear the session to simulate different API call after the setup
-        //         manager.clear();
+        // manager.clear();
 
-//        preCreateInjectAdminUserWithoutPersistence();
-//        renderService = _renderService;
-//        userService = _userService;
-//        initTest();
-//        // Clear the session to simulate different API call after the setup
-//        manager.clear();
+        // preCreateInjectAdminUserWithoutPersistence();
+        // renderService = _renderService;
+        // userService = _userService;
+        // initTest();
+        // // Clear the session to simulate different API call after the setup
+        // manager.clear();
     }
 
     protected abstract void initTest()
@@ -116,7 +116,7 @@ public abstract class TrackerTest extends TransactionalIntegrationTest
         params.setObjectBundleMode( ObjectBundleMode.COMMIT );
         params.setImportStrategy( ImportStrategy.CREATE );
         params.setObjects( metadata );
-//        params.setUser( currentUserService.getCurrentUser() );
+        // params.setUser( currentUserService.getCurrentUser() );
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validationReport = objectBundleValidationService.validate( bundle );
         validationReport.forEachErrorReport( errorReport -> {
@@ -139,7 +139,7 @@ public abstract class TrackerTest extends TransactionalIntegrationTest
         params.setImportStrategy( ImportStrategy.CREATE );
         params.setObjects( metadata );
         params.setUser( user );
-        //        params.setUser( currentUserService.getCurrentUser() );
+        // params.setUser( currentUserService.getCurrentUser() );
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validationReport = objectBundleValidationService.validate( bundle );
         validationReport.forEachErrorReport( errorReport -> {

@@ -66,7 +66,7 @@ import org.springframework.web.context.WebApplicationContext;
 @ActiveProfiles( "test-h2" )
 @IntegrationH2Test
 @Transactional
-public abstract class   DhisControllerWithApiTokenAuthTest extends DhisMockMvcControllerTest
+public abstract class DhisControllerWithApiTokenAuthTest extends DhisMockMvcControllerTest
 {
 
     @Autowired

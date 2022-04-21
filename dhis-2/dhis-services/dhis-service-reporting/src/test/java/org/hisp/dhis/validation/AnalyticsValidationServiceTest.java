@@ -90,6 +90,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -154,6 +155,9 @@ class AnalyticsValidationServiceTest extends TransactionalIntegrationTest
     @Autowired
     private DataValidationRunner runner;
 
+    @Autowired
+    private UserService _userService;
+
     private CategoryOptionCombo defaultCombo;
 
     private OrganisationUnit orgUnitA;
@@ -183,6 +187,9 @@ class AnalyticsValidationServiceTest extends TransactionalIntegrationTest
     @Override
     public void setUpTest()
     {
+
+        this.userService = _userService;
+
         final String DATA_ELEMENT_A_UID = "DataElement";
         final String TRACKED_ENTITY_ATTRIBUTE_UID = "TEAttribute";
         final String PROGRAM_UID = "ProgramABCD";

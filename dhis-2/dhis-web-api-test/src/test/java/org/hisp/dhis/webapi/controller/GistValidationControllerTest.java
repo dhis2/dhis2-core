@@ -98,10 +98,13 @@ class GistValidationControllerTest extends AbstractGistControllerTest
     @Test
     void testValidation_Filter_CanAccessMissingPattern()
     {
-        //Todo: fix 12098
-//        assertEquals(
-//            "Filter `surname:canaccess:[" + getSuperuserUid() + "]` requires a user ID and an access pattern argument.",
-//            GET( "/users/gist?filter=username:like:admin&filter=surname:canAccess" ).error( HttpStatus.BAD_REQUEST ).getMessage() );
+        // Todo: fix 12098
+        // assertEquals(
+        // "Filter `surname:canaccess:[" + getSuperuserUid() + "]` requires a
+        // user ID and an access pattern argument.",
+        // GET(
+        // "/users/gist?filter=username:like:admin&filter=surname:canAccess"
+        // ).error( HttpStatus.BAD_REQUEST ).getMessage() );
     }
 
     @Test

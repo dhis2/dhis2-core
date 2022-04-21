@@ -58,7 +58,8 @@ class PrePostSecurityAnnotationsTest extends DhisWebSpringTest
         clearSecurityContext();
         List<User> allUsers = userService.getAllUsers();
         MockHttpSession session = getSession( "NO_AUTHORITY" );
-//        mvc.perform( put( "/apps" ).session( session ) ).andExpect( status().isForbidden() );
+        // mvc.perform( put( "/apps" ).session( session ) ).andExpect(
+        // status().isForbidden() );
         // todo: 12098 fix
         mvc.perform( put( "/apps" ).session( session ) ).andExpect( status().is5xxServerError() );
     }

@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.tracker.bundle;
 
-import static org.hisp.dhis.tracker.validation.AbstractImportValidationTest.ADMIN_USER_UID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -58,7 +57,6 @@ import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -95,7 +93,7 @@ class OwnershipTest extends TrackerTest
         TrackerImportParams enrollmentParams = fromJson( "tracker/ownership_enrollment.json", superUser.getUid() );
         assertNoImportErrors( trackerImportService.importTracker( enrollmentParams ) );
 
-//        manager.flush();
+        // manager.flush();
         dbmsManager.clearSession();
     }
 
@@ -122,7 +120,7 @@ class OwnershipTest extends TrackerTest
     }
 
     @Test
-//    @Disabled("TODO: fix this test 12098")
+    // @Disabled("TODO: fix this test 12098")
     void testClientDatesForTeiEnrollmentEvent()
         throws IOException
     {
@@ -239,7 +237,7 @@ class OwnershipTest extends TrackerTest
     void testCreateEnrollmentWithoutOwnership()
         throws IOException
     {
-//        dbmsManager.clearSession();
+        // dbmsManager.clearSession();
         injectSecurityContext( userService.getUser( nonSuperUser.getUid() ) );
         TrackerImportParams enrollmentParams = fromJson( "tracker/ownership_enrollment.json", nonSuperUser );
         List<ProgramInstance> pis = manager.getAll( ProgramInstance.class );

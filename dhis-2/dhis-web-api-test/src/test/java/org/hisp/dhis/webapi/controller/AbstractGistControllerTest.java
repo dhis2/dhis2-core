@@ -32,8 +32,6 @@ import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.Set;
-
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.user.User;
@@ -59,7 +57,6 @@ abstract class AbstractGistControllerTest extends DhisControllerConvenienceTest
     protected String dataSetId;
 
     protected User userA;
-
 
     @BeforeEach
     void setUp()

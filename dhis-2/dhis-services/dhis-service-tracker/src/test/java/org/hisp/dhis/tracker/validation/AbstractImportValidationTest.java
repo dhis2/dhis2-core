@@ -74,14 +74,13 @@ public abstract class AbstractImportValidationTest extends TrackerTest
 
     public static final String USER_8 = "xbgFeL0l3Ap";
 
-
     protected TrackerImportParams createBundleFromJson( String jsonFile )
         throws IOException
     {
         return createBundleFromJson( jsonFile, userService.getUser( ADMIN_USER_UID ) );
     }
 
-    protected TrackerImportParams createBundleFromJson( String jsonFile, User user  )
+    protected TrackerImportParams createBundleFromJson( String jsonFile, User user )
         throws IOException
     {
         InputStream inputStream = new ClassPathResource( jsonFile ).getInputStream();

@@ -40,8 +40,8 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.RandomStringUtils;
 
+import org.apache.commons.lang3.RandomStringUtils;
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.ValueType;
@@ -68,7 +68,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccess;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testcontainers.shaded.com.google.common.collect.ImmutableMap;
 
@@ -108,6 +107,7 @@ class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest
     private Program programB;
 
     private User superUser;
+
     private User nonSuperUser;
 
     private final static int A = 65;
@@ -118,37 +118,37 @@ class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest
 
     private final static int F = 70;
 
-    //    @Override
-    //    protected void mockCurrentUserService()
-    //    {
-    //////        User user = createUserWithAuth( "testUser" );
-    ////        User user = mockUser( "testUser2",null);
-    ////        user.addOrganisationUnit( organisationUnitA );
-    ////        user.getTeiSearchOrganisationUnits().add( organisationUnitA );
-    ////        user.getTeiSearchOrganisationUnits().add( organisationUnitB );
-    //////        makeUserSuper( user );
-    ////        userService.updateUser( user );
-    ////        dbmsManager.flushSession();
-    ////        // currentUserService = new MockCurrentUserService( user );
-    ////        injectSecurityContext( user );
-    //        // ReflectionTestUtils.setField( trackedEntityInstanceAggregate,
-    //        // "currentUserService", currentUserService );
-    //        // ReflectionTestUtils.setField( trackedEntityInstanceService,
-    //        // "currentUserService", currentUserService );
-    //        // ReflectionTestUtils.setField( teiService, "currentUserService",
-    //        // currentUserService );
-    //    }
-//    @Override
-//    protected void mockCurrentUserService()
-//    {
-//        User user = createUserWithAuth( "testUser2" );
-//        user.addOrganisationUnit( organisationUnitA );
-//        user.getTeiSearchOrganisationUnits().add( organisationUnitA );
-//        user.getTeiSearchOrganisationUnits().add( organisationUnitB );
-//        userService.updateUser( user );
-//        injectSecurityContext( user );
-//        dbmsManager.clearSession();
-//    }
+    // @Override
+    // protected void mockCurrentUserService()
+    // {
+    ////// User user = createUserWithAuth( "testUser" );
+    //// User user = mockUser( "testUser2",null);
+    //// user.addOrganisationUnit( organisationUnitA );
+    //// user.getTeiSearchOrganisationUnits().add( organisationUnitA );
+    //// user.getTeiSearchOrganisationUnits().add( organisationUnitB );
+    ////// makeUserSuper( user );
+    //// userService.updateUser( user );
+    //// dbmsManager.flushSession();
+    //// // currentUserService = new MockCurrentUserService( user );
+    //// injectSecurityContext( user );
+    // // ReflectionTestUtils.setField( trackedEntityInstanceAggregate,
+    // // "currentUserService", currentUserService );
+    // // ReflectionTestUtils.setField( trackedEntityInstanceService,
+    // // "currentUserService", currentUserService );
+    // // ReflectionTestUtils.setField( teiService, "currentUserService",
+    // // currentUserService );
+    // }
+    // @Override
+    // protected void mockCurrentUserService()
+    // {
+    // User user = createUserWithAuth( "testUser2" );
+    // user.addOrganisationUnit( organisationUnitA );
+    // user.getTeiSearchOrganisationUnits().add( organisationUnitA );
+    // user.getTeiSearchOrganisationUnits().add( organisationUnitB );
+    // userService.updateUser( user );
+    // injectSecurityContext( user );
+    // dbmsManager.clearSession();
+    // }
 
     @BeforeEach
     void setUp()

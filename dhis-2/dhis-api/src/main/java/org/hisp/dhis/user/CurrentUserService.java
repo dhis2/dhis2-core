@@ -37,11 +37,8 @@ import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hibernate.SessionFactory;
-
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-
 import org.springframework.context.annotation.Lazy;
-import org.springframework.security.core.AuthenticatedPrincipal;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -50,8 +47,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * This interface defined methods for getting access to the currently logged in user and clearing the logged in state.
- * If no user is logged in or the auto access admin is active, all user access methods will return null.
+ * This interface defined methods for getting access to the currently logged in
+ * user and clearing the logged in state. If no user is logged in or the auto
+ * access admin is active, all user access methods will return null.
  *
  * @author Torgeir Lorange Ostby
  * @version $Id: CurrentUserService.java 5708 2008-09-16 14:28:32Z larshelg $
@@ -75,8 +73,8 @@ public class CurrentUserService
     }
 
     /**
-     * @return the username of the currently logged in user. If no user is logged in or the auto access admin is active,
-     * null is returned.
+     * @return the username of the currently logged in user. If no user is
+     *         logged in or the auto access admin is active, null is returned.
      */
     public static String getCurrentUsername()
     {

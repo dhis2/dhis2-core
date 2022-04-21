@@ -42,6 +42,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
@@ -72,6 +74,7 @@ import com.google.common.collect.Sets;
  * @author Torgeir Lorange Ostby
  */
 @Service( "org.hisp.dhis.organisationunit.OrganisationUnitService" )
+@Slf4j
 public class DefaultOrganisationUnitService
     implements OrganisationUnitService, CurrentUserServiceTarget
 {
@@ -464,14 +467,16 @@ public class DefaultOrganisationUnitService
     @Transactional( readOnly = true )
     public boolean isInUserHierarchy( OrganisationUnit organisationUnit )
     {
-        return isInUserHierarchy( currentUserService.getCurrentUser(), organisationUnit );
+        User currentUser = currentUserService.getCurrentUser();
+        return isInUserHierarchy( currentUser, organisationUnit );
     }
 
     @Override
     @Transactional( readOnly = true )
     public boolean isInUserHierarchyCached( OrganisationUnit organisationUnit )
     {
-        return isInUserHierarchyCached( currentUserService.getCurrentUser(), organisationUnit );
+        User currentUser = currentUserService.getCurrentUser();
+        return isInUserHierarchyCached( currentUser, organisationUnit );
     }
 
     @Override
@@ -487,12 +492,20 @@ public class DefaultOrganisationUnitService
     @Transactional( readOnly = true )
     public boolean isInUserHierarchy( User user, OrganisationUnit organisationUnit )
     {
-        if ( user == null || user.getOrganisationUnits() == null || user.getOrganisationUnits().isEmpty() )
+        boolean userIsNull = user == null;
+        if ( userIsNull )
+        {
+            log.error( "user us null" );
+            throw new RuntimeException( "User is null" );
+        }
+
+        if ( userIsNull || user.getOrganisationUnits() == null || user.getOrganisationUnits().isEmpty() )
         {
             return false;
         }
 
-        return organisationUnit.isDescendant( user.getOrganisationUnits() );
+        boolean descendant = organisationUnit.isDescendant( user.getOrganisationUnits() );
+        return descendant;
     }
 
     @Override
