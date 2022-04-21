@@ -27,6 +27,10 @@
  */
 package org.hisp.dhis.webapi.webdomain.datavalue;
 
+import static org.hisp.dhis.commons.collection.CollectionUtils.mapToSet;
+
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueAudit;
 
@@ -46,17 +50,16 @@ public class DataValueDtoMapper
      */
     public static DataValueAuditDto toDto( DataValueAudit audit )
     {
-        DataValueAuditDto dto = new DataValueAuditDto();
-        dto.setDataElement( audit.getDataElement().getUid() );
-        dto.setPeriod( audit.getPeriod().getIsoDate() );
-        dto.setOrgUnit( audit.getOrganisationUnit().getUid() );
-        dto.setCategoryOptionCombo( audit.getCategoryOptionCombo().getUid() );
-        dto.setAttributeOptionCombo( audit.getAttributeOptionCombo().getUid() );
-        dto.setValue( audit.getValue() );
-        dto.setModifiedBy( audit.getModifiedBy() );
-        dto.setCreated( audit.getCreated() );
-        dto.setAuditType( audit.getAuditType() );
-        return dto;
+        return new DataValueAuditDto()
+            .setDataElement( audit.getDataElement().getUid() )
+            .setPeriod( audit.getPeriod().getIsoDate() )
+            .setOrgUnit( audit.getOrganisationUnit().getUid() )
+            .setCategoryOptionCombo( audit.getCategoryOptionCombo().getUid() )
+            .setAttributeOptionCombo( audit.getAttributeOptionCombo().getUid() )
+            .setValue( audit.getValue() )
+            .setModifiedBy( audit.getModifiedBy() )
+            .setCreated( audit.getCreated() )
+            .setAuditType( audit.getAuditType() );
     }
 
     /**
@@ -67,15 +70,28 @@ public class DataValueDtoMapper
      */
     public static DataValueDto toDto( DataValue value )
     {
-        DataValueDto dto = new DataValueDto();
-        dto.setDataElement( value.getDataElement().getUid() );
-        dto.setPeriod( value.getPeriod().getIsoDate() );
-        dto.setOrgUnit( value.getSource().getUid() );
-        dto.setCategoryOptionCombo( value.getCategoryOptionCombo().getUid() );
-        dto.setAttribute( null );
-        dto.setValue( value.getValue() );
-        dto.setComment( value.getComment() );
-        dto.setFollowUp( value.isFollowup() );
-        return dto;
+        return new DataValueDto()
+            .setDataElement( value.getDataElement().getUid() )
+            .setPeriod( value.getPeriod().getIsoDate() )
+            .setOrgUnit( value.getSource().getUid() )
+            .setCategoryOptionCombo( value.getCategoryOptionCombo().getUid() )
+            .setAttribute( toDto( value.getAttributeOptionCombo() ) )
+            .setValue( value.getValue() )
+            .setComment( value.getComment() )
+            .setFollowUp( value.isFollowup() );
+    }
+
+    /**
+     * Converts an attribute {@link CategoryOptionCombo} object to a
+     * {@link DataValueCategoryDto} object.
+     *
+     * @param attribute the attribute {@link CategoryOptionCombo}.
+     * @return a {@link DataValueCategoryDto}.
+     */
+    public static DataValueCategoryDto toDto( CategoryOptionCombo attribute )
+    {
+        return new DataValueCategoryDto()
+            .setCombo( attribute.getCategoryCombo().getUid() )
+            .setOptions( mapToSet( attribute.getCategoryOptions(), CategoryOption::getUid ) );
     }
 }
