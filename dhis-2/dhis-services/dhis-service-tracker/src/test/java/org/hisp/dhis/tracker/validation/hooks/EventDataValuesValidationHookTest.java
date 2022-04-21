@@ -816,7 +816,7 @@ class EventDataValuesValidationHookTest
     @Test
     void failValidationWhenOrgUnitValueIsInvalid()
     {
-        setUpIdentifiers();
+        TrackerIdSchemeParams params = setUpIdentifiers();
 
         DataElement validDataElement = dataElement( ValueType.ORGANISATION_UNIT );
         when( preheat.get( DataElement.class, dataElementUid ) ).thenReturn( validDataElement );
@@ -830,7 +830,7 @@ class EventDataValuesValidationHookTest
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         Event event = Event.builder()
-            .programStage( programStage.getUid() )
+            .programStage( params.toMetadataIdentifier( programStage ) )
             .status( EventStatus.ACTIVE )
             .dataValues( Set.of( invalidDataValue ) )
             .build();
@@ -844,7 +844,7 @@ class EventDataValuesValidationHookTest
     @Test
     void succeedsValidationWhenOrgUnitValueIsValid()
     {
-        setUpIdentifiers();
+        TrackerIdSchemeParams params = setUpIdentifiers();
 
         DataElement validDataElement = dataElement( ValueType.ORGANISATION_UNIT );
         when( preheat.get( DataElement.class, dataElementUid ) ).thenReturn( validDataElement );
@@ -860,7 +860,7 @@ class EventDataValuesValidationHookTest
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         Event event = Event.builder()
-            .programStage( programStage.getUid() )
+            .programStage( params.toMetadataIdentifier( programStage ) )
             .status( EventStatus.ACTIVE )
             .dataValues( Set.of( validDataValue ) )
             .build();
