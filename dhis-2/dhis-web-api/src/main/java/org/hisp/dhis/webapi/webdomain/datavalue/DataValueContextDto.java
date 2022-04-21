@@ -50,6 +50,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class DataValueContextDto
 {
     @JsonProperty
+    private DataValueDto dataValue;
+
+    @JsonProperty
     private List<DataValueAuditDto> audits = new ArrayList<>();
 
     @JsonProperty

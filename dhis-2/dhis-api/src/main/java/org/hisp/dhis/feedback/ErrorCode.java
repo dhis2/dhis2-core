@@ -107,7 +107,7 @@ public enum ErrorCode
     E2029( "Data value is not a valid option of the data element option set: `{0}`" ),
     E2030( "Data value must match data element value type: `{0}`" ),
     E2031( "User does not have write access to category option combo: `{0}`" ),
-    E2032( "Data value does not exist" ),
+    E2032( "Data value not found or not accessible" ),
     E2033( "Follow-up must be specified" ),
     E2034( "Filter not supported: `{0}`" ),
     E2035( "Operator not supported: `{0}`" ),
