@@ -825,7 +825,8 @@ class EventDataValuesValidationHookTest
         when( preheat.get( OrganisationUnit.class, invalidDataValue.getValue() ) ).thenReturn( null );
 
         ProgramStage programStage = programStage( validDataElement );
-        when( preheat.getProgramStage( programStageUid ) ).thenReturn( programStage );
+        when( preheat.getProgramStage( MetadataIdentifier.ofUid( programStageUid ) ) )
+            .thenReturn( programStage );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
@@ -855,7 +856,8 @@ class EventDataValuesValidationHookTest
         when( preheat.get( OrganisationUnit.class, validDataValue.getValue() ) ).thenReturn( validOrgUnit );
 
         ProgramStage programStage = programStage( validDataElement );
-        when( preheat.getProgramStage( programStageUid ) ).thenReturn( programStage );
+        when( preheat.getProgramStage( MetadataIdentifier.ofUid( programStageUid ) ) )
+            .thenReturn( programStage );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
