@@ -25,15 +25,52 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.strategy.tracker.imports;
+package org.hisp.dhis.common;
 
-import org.hisp.dhis.tracker.report.TrackerImportReport;
-import org.hisp.dhis.webapi.controller.tracker.TrackerImportReportRequest;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
- * @author Luca Cambi <luca@dhis2.org>
+ * This class contains all the paging criteria that can be used to execute a
+ * DHIS2 analytics query using the AnalyticsController
  */
-public interface TrackerImportStrategyHandler
+
+@Getter
+@Setter
+public class AnalyticsPagingCriteria extends RequestTypeAware
 {
-    TrackerImportReport importReport( TrackerImportReportRequest trackerImportReportRequest );
+    /**
+     * The page number. Default page is 1.
+     */
+    private Integer page = 1;
+
+    /**
+     * The page size.
+     */
+    private Integer pageSize = 50;
+
+    /**
+     * The paging parameter. When set to false we should not paginate. The
+     * default is true (always paginate).
+     */
+    private boolean paging = true;
+
+    /**
+     * The paging parameter. When set to false we should not count total pages.
+     * The default is true (always total pages flag activated).
+     */
+    private boolean totalPages = true;
+
+    public void definePageSize( int analyticsMaxLimit )
+    {
+        if ( isPaging() )
+        {
+            setPageSize(
+                getPageSize() != null && getPageSize() > analyticsMaxLimit ? analyticsMaxLimit : getPageSize() );
+        }
+        else
+        {
+            setPageSize( analyticsMaxLimit );
+        }
+    }
 }

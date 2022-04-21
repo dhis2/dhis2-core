@@ -47,7 +47,7 @@ import org.hisp.dhis.program.ProgramStatus;
 @Getter
 @Setter
 @NoArgsConstructor
-public class EventsAnalyticsQueryCriteria extends RequestTypeAware
+public class EventsAnalyticsQueryCriteria extends AnalyticsPagingCriteria
 {
     // -------------------------------------------------------------------------
     // Event and aggregate analytics
@@ -304,22 +304,4 @@ public class EventsAnalyticsQueryCriteria extends RequestTypeAware
      * identifier, code or attributes. ( options: UID | CODE | ATTRIBUTE:<ID> )
      */
     private IdScheme outputIdScheme;
-
-    /**
-     * The page number. Default page is 1.
-     */
-    private Integer page;
-
-    /**
-     * The page size.
-     */
-    private Integer pageSize;
-
-    /**
-     * The paging parameter. When set to false we should not paginate. The
-     * default is true (always paginate).
-     */
-    private boolean paging = true;
-
-    private boolean totalPages;
 }

@@ -71,7 +71,6 @@ import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.ProgramIndicatorSubqueryBuilder;
-import org.hisp.dhis.analytics.util.AnalyticsSqlUtils;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionType;
@@ -169,6 +168,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
         if ( params.isPaging() )
         {
             int limit = params.isTotalPages() ? params.getPageSizeWithDefault() : params.getPageSizeWithDefault() + 1;
+
             sql += LIMIT + " " + limit + " offset " + params.getOffset();
         }
         else if ( maxLimit > 0 )
@@ -312,57 +312,65 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
         for ( QueryItem queryItem : params.getItems() )
         {
-            if ( queryItem.isProgramIndicator() )
-            {
-                ProgramIndicator in = (ProgramIndicator) queryItem.getItem();
-
-                String asClause = " as " + quote( in.getUid() );
-
-                if ( queryItem.hasRelationshipType() )
-                {
-                    columns.add( programIndicatorSubqueryBuilder.getAggregateClauseForProgramIndicator( in,
-                        queryItem.getRelationshipType(), getAnalyticsType(), params.getEarliestStartDate(),
-                        params.getLatestEndDate() ) + asClause );
-                }
-                else
-                {
-                    columns.add( programIndicatorSubqueryBuilder.getAggregateClauseForProgramIndicator( in,
-                        getAnalyticsType(), params.getEarliestStartDate(), params.getLatestEndDate() ) + asClause );
-                }
-
-            }
-            else if ( ValueType.COORDINATE == queryItem.getValueType() )
-            {
-                columns.add( getCoordinateColumn( queryItem ) );
-            }
-            else if ( ValueType.ORGANISATION_UNIT == queryItem.getValueType() )
-            {
-                if ( queryItem.getItem().getUid().equals( params.getCoordinateField() ) )
-                {
-                    columns.add( getCoordinateColumn( queryItem, OU_GEOMETRY_COL_SUFFIX ) );
-                }
-                else
-                {
-                    columns.add( getColumn( queryItem, OU_NAME_COL_SUFFIX ) );
-                }
-            }
-            else if ( queryItem.getValueType() == ValueType.NUMBER && !isGroupByClause )
-            {
-                ColumnAndAlias columnAndAlias = getColumnAndAlias( queryItem, isAggregated, queryItem.getItemName() );
-
-                // If the alias is null, we use the default "item name" as
-                // alias.
-                columns.add( "coalesce(" + columnAndAlias.getColumn() + ", double precision 'NaN') as "
-                    + defaultIfNull( columnAndAlias.getAlias(), queryItem.getItemName() ) );
-            }
-            else
-            {
-                ColumnAndAlias columnAndAlias = getColumnAndAlias( queryItem, isGroupByClause, "" );
-                columns.add( columnAndAlias.asSql() );
-            }
+            columns.add( getColumnAndAlias( queryItem, params, isGroupByClause, isAggregated ).asSql() );
         }
 
         return columns;
+    }
+
+    private ColumnAndAlias getColumnAndAlias( QueryItem queryItem, EventQueryParams params, boolean isGroupByClause,
+        boolean isAggregated )
+    {
+        if ( queryItem.isProgramIndicator() )
+        {
+            ProgramIndicator in = (ProgramIndicator) queryItem.getItem();
+
+            String asClause = in.getUid();
+
+            if ( queryItem.hasRelationshipType() )
+            {
+                return ColumnAndAlias.ofColumnAndAlias(
+                    programIndicatorSubqueryBuilder.getAggregateClauseForProgramIndicator( in,
+                        queryItem.getRelationshipType(), getAnalyticsType(), params.getEarliestStartDate(),
+                        params.getLatestEndDate() ),
+                    asClause );
+            }
+            else
+            {
+                return ColumnAndAlias.ofColumnAndAlias(
+                    programIndicatorSubqueryBuilder.getAggregateClauseForProgramIndicator( in,
+                        getAnalyticsType(), params.getEarliestStartDate(), params.getLatestEndDate() ),
+                    asClause );
+            }
+
+        }
+        else if ( ValueType.COORDINATE == queryItem.getValueType() )
+        {
+            return getCoordinateColumn( queryItem );
+        }
+        else if ( ValueType.ORGANISATION_UNIT == queryItem.getValueType() )
+        {
+            if ( queryItem.getItem().getUid().equals( params.getCoordinateField() ) )
+            {
+                return getCoordinateColumn( queryItem, OU_GEOMETRY_COL_SUFFIX );
+            }
+            else
+            {
+                return ColumnAndAlias.ofColumn( getColumn( queryItem, OU_NAME_COL_SUFFIX ) );
+            }
+        }
+        else if ( queryItem.getValueType() == ValueType.NUMBER && !isGroupByClause )
+        {
+            ColumnAndAlias columnAndAlias = getColumnAndAlias( queryItem, isAggregated, queryItem.getItemName() );
+
+            return ColumnAndAlias.ofColumnAndAlias(
+                "coalesce(" + columnAndAlias.getColumn() + ", double precision 'NaN')",
+                defaultIfNull( columnAndAlias.getAlias(), queryItem.getItemName() ) );
+        }
+        else
+        {
+            return getColumnAndAlias( queryItem, isGroupByClause, "" );
+        }
     }
 
     private ColumnAndAlias getColumnAndAlias( QueryItem queryItem, boolean isGroupByClause, String aliasIfMissing )
@@ -377,7 +385,6 @@ public abstract class AbstractJdbcEventAnalyticsManager
                     .filter( QueryItem::hasRepeatableStageParams )
                     .map( QueryItem::getRepeatableStageParams )
                     .map( RepeatableStageParams::getDimension )
-                    .map( AnalyticsSqlUtils::quote )
                     .orElse( aliasIfMissing ) );
         }
         return ColumnAndAlias.ofColumn( column );
@@ -486,11 +493,14 @@ public abstract class AbstractJdbcEventAnalyticsManager
             {
                 for ( QueryItem queryItem : params.getItems() )
                 {
-                    /*
-                     * String columnName = getColumnAndAlias( queryItem, false,
-                     * getIdentifier( queryItem ) ) .getUnquotedAlias();
-                     */
-                    String itemName = rowSet.getString( queryItem.getItemName() );
+
+                    ColumnAndAlias columnAndAlias = getColumnAndAlias( queryItem, params, false, true );
+                    String alias = columnAndAlias.getAlias();
+                    if ( StringUtils.isEmpty( alias ) )
+                    {
+                        alias = queryItem.getItemName();
+                    }
+                    String itemName = rowSet.getString( alias );
                     String itemValue = params.isCollapseDataDimensions()
                         ? QueryItemHelper.getCollapsedDataItemValue( queryItem, itemName )
                         : itemName;
@@ -629,12 +639,15 @@ public abstract class AbstractJdbcEventAnalyticsManager
      * @param item the {@link QueryItem}
      * @return the column select statement for the given item
      */
-    protected String getCoordinateColumn( final QueryItem item )
+    protected ColumnAndAlias getCoordinateColumn( final QueryItem item )
     {
-        final String colName = quote( item.getItemName() );
+        final String colName = item.getItemName();
 
-        return "'[' || round(ST_X(" + colName + ")::numeric, 6) || ',' || round(ST_Y(" + colName
-            + ")::numeric, 6) || ']' as " + colName;
+        return ColumnAndAlias
+            .ofColumnAndAlias(
+                "'[' || round(ST_X(" + quote( colName ) + ")::numeric, 6) || ',' || round(ST_Y(" + quote( colName )
+                    + ")::numeric, 6) || ']'",
+                colName );
     }
 
     /**
@@ -645,9 +658,9 @@ public abstract class AbstractJdbcEventAnalyticsManager
      * @param suffix the suffix to append to the item id
      * @return the column select statement for the given item
      */
-    protected String getCoordinateColumn( final QueryItem item, final String suffix )
+    protected ColumnAndAlias getCoordinateColumn( final QueryItem item, final String suffix )
     {
-        final String colName = quote( item.getItemId() + suffix );
+        final String colName = item.getItemId() + suffix;
 
         String stCentroidFunction = "";
 
@@ -656,8 +669,10 @@ public abstract class AbstractJdbcEventAnalyticsManager
             stCentroidFunction = "ST_Centroid";
         }
 
-        return "'[' || round(ST_X(" + stCentroidFunction + "(" + colName + "))::numeric, 6) || ',' || round(ST_Y("
-            + stCentroidFunction + "(" + colName + "))::numeric, 6) || ']' as " + colName;
+        return ColumnAndAlias.ofColumnAndAlias(
+            "'[' || round(ST_X(" + stCentroidFunction + "(" + quote( colName ) + "))::numeric, 6) || ',' || round(ST_Y("
+                + stCentroidFunction + "(" + quote( colName ) + "))::numeric, 6) || ']'",
+            colName );
     }
 
     /**

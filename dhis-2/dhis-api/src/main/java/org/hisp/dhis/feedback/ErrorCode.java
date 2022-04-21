@@ -48,6 +48,7 @@ public enum ErrorCode
     E1107( "Object type `{0}` is not translatable." ),
     E1108( "Could not add item to collection: {0}" ),
     E1109( "Could not remove item from collection: {0}" ),
+    E1112( "Object(s) of type `{0}` not found or not accessible: `{1}`" ),
 
     /* Org unit merge */
     E1500( "At least two source orgs unit must be specified" ),
@@ -229,6 +230,7 @@ public enum ErrorCode
     E4312( "Current user is not authorised to read data from SQL view: `{0}`" ),
     E4313( "SQL query contains variable names that are invalid: `{0}`" ),
     E4314( "Provided `{0}`: (`{1}`) are not part of the selected `{2}`" ),
+    E4315( "Provided Program: (`{0}`) is without registration" ),
 
     /* Preheat */
     E5000( "Found matching object for reference, but import mode is CREATE. Identifier was {0}, and object was {1}." ),

@@ -25,33 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker;
+package org.hisp.dhis.webapi.controller.tracker.imports;
 
-import lombok.Builder;
-import lombok.Data;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.tracker.TrackerBundleReportMode;
 import org.hisp.dhis.tracker.TrackerImportParams;
-import org.hisp.dhis.webapi.service.ContextService;
-import org.springframework.security.core.Authentication;
+import org.hisp.dhis.tracker.TrackerImportService;
+import org.hisp.dhis.tracker.report.TrackerImportReport;
+import org.springframework.stereotype.Component;
 
-@Data
-@Builder
-public class TrackerImportReportRequest
+/**
+ * @author Luca Cambi <luca@dhis2.org>
+ */
+@Component
+@RequiredArgsConstructor
+public class TrackerSyncImporter
 {
-    Authentication authentication;
 
-    String uid;
+    @NonNull
+    private final TrackerImportService trackerImportService;
 
-    String userUid;
+    public TrackerImportReport importTracker( TrackerImportParams params, TrackerBundleReportMode reportMode )
+    {
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
 
-    ContextService contextService;
-
-    TrackerBundleParams trackerBundleParams;
-
-    TrackerImportParams trackerImportParams;
-
-    boolean isAsync;
-
-    TrackerBundleReportMode trackerBundleReportMode;
+        return trackerImportService.buildImportReport( trackerImportReport, reportMode );
+    }
 }

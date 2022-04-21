@@ -110,13 +110,13 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
     @Override
     protected void updatePreheat( TrackerPreheat preheat, ProgramStageInstance programStageInstance )
     {
-        preheat.putEvents( TrackerIdScheme.UID, Collections.singletonList( programStageInstance ) );
+        preheat.putEvents( Collections.singletonList( programStageInstance ) );
     }
 
     @Override
     protected boolean isNew( TrackerPreheat preheat, String uid )
     {
-        return preheat.getEvent( TrackerIdScheme.UID, uid ) == null;
+        return preheat.getEvent( uid ) == null;
     }
 
     @Override

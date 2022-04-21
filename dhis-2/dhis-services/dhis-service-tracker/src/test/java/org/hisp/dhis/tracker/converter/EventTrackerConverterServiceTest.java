@@ -49,7 +49,6 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.User;
@@ -220,7 +219,7 @@ class EventTrackerConverterServiceTest extends DhisConvenienceTest
         // dataValues will be merged
         DataValue newDataValue = dataValue( dataElement.getUid(), "900" );
         Event event = event( existingPsi.getUid(), newDataValue );
-        when( preheat.getEvent( TrackerIdScheme.UID, existingPsi.getUid() ) ).thenReturn( existingPsi );
+        when( preheat.getEvent( existingPsi.getUid() ) ).thenReturn( existingPsi );
 
         ProgramStageInstance programStageInstance = converter.fromForRuleEngine( preheat, event );
 
@@ -250,7 +249,7 @@ class EventTrackerConverterServiceTest extends DhisConvenienceTest
         // to UID
         DataValue updatedValue = dataValue( dataElement.getUid(), "900" );
         Event event = event( existingPsi.getUid(), updatedValue );
-        when( preheat.getEvent( TrackerIdScheme.UID, event.getEvent() ) ).thenReturn( existingPsi );
+        when( preheat.getEvent( event.getEvent() ) ).thenReturn( existingPsi );
 
         ProgramStageInstance programStageInstance = converter.fromForRuleEngine( preheat, event );
 
@@ -283,7 +282,7 @@ class EventTrackerConverterServiceTest extends DhisConvenienceTest
         // to CODE
         DataValue updatedValue = dataValue( dataElement.getCode(), "900" );
         Event event = event( existingPsi.getUid(), updatedValue );
-        when( preheat.getEvent( TrackerIdScheme.UID, event.getEvent() ) ).thenReturn( existingPsi );
+        when( preheat.getEvent( event.getEvent() ) ).thenReturn( existingPsi );
 
         ProgramStageInstance programStageInstance = converter.fromForRuleEngine( preheat, event );
 
