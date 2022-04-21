@@ -323,6 +323,7 @@ public class User
      * Tests whether this user has any of the authorities in the given set.
      *
      * @param auths the authorities to compare with.
+     *
      * @return true or false.
      */
     public boolean hasAnyAuthority( Collection<String> auths )
@@ -1049,6 +1050,7 @@ public class User
      * Indicates whether this user can manage the given user group.
      *
      * @param userGroup the user group to test.
+     *
      * @return true if the given user group can be managed by this user, false
      *         if not.
      */
@@ -1061,6 +1063,7 @@ public class User
      * Indicates whether this user can manage the given user.
      *
      * @param user the user to test.
+     *
      * @return true if the given user can be managed by this user, false if not.
      */
     public boolean canManage( User user )
@@ -1085,6 +1088,7 @@ public class User
      * Indicates whether this user is managed by the given user group.
      *
      * @param userGroup the user group to test.
+     *
      * @return true if the given user group is managed by this user, false if
      *         not.
      */
@@ -1097,6 +1101,7 @@ public class User
      * Indicates whether this user is managed by the given user.
      *
      * @param user the user to test.
+     *
      * @return true if the given user is managed by this user, false if not.
      */
     public boolean isManagedBy( User user )
@@ -1481,7 +1486,8 @@ public class User
     public UserCredentialsDto getUserCredentials()
     {
         UserCredentialsDto userCredentialsDto = new UserCredentialsDto();
-        copyProperties( this, userCredentialsDto, "userCredentials", "password", "userRoles" );
+        copyProperties( this, userCredentialsDto, "userCredentials", "password", "userRoles", "secret",
+            "previousPasswords" );
         Set<UserRole> roles = this.getUserRoles();
         if ( roles != null && !roles.isEmpty() )
         {

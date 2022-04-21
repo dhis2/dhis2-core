@@ -1,23 +1,60 @@
 {
+  "importMode": "COMMIT",
+  "idSchemes": {
+    "dataElementIdScheme": {
+      "idScheme": "UID"
+    },
+    "orgUnitIdScheme": {
+      "idScheme": "UID"
+    },
+    "programIdScheme": {
+      "idScheme": "UID"
+    },
+    "programStageIdScheme": {
+      "idScheme": "UID"
+    },
+    "idScheme": {
+      "idScheme": "UID"
+    },
+    "categoryOptionComboIdScheme": {
+      "idScheme": "UID"
+    },
+    "categoryOptionIdScheme": {
+      "idScheme": "UID"
+    }
+  },
+  "importStrategy": "CREATE",
+  "atomicMode": "ALL",
+  "flushMode": "AUTO",
+  "validationMode": "FULL",
+  "skipPatternValidation": false,
+  "skipSideEffects": false,
+  "skipRuleEngine": false,
   "trackedEntities": [
     {
-      "trackedEntityType": "ja8NY4PW7Xm",
       "trackedEntity": "IOR1AXXl24H",
+      "trackedEntityType": "ja8NY4PW7Xm",
       "createdAt": "2020-02-20T12:09:21.844",
-      "updatedAt": "2020-02-20T12:09:21.844",
       "createdAtClient": "2020-02-20T10:09:21.844",
+      "updatedAt": "2020-02-20T12:09:21.844",
       "updatedAtClient": "2020-02-20T11:09:21.844",
       "orgUnit": "h4w96yEMlzO",
       "inactive": false,
       "deleted": false,
-      "featureType": "NONE",
+      "potentialDuplicate": false,
+      "relationships": [],
+      "attributes": [],
+      "enrollments": [],
       "programOwners": [
         {
-          "ownerOrgUnit": "cNEZTkdAvmg",
-          "program": "hJUBNVQWl4e",
-          "trackedEntity": "EEFkxTWB55Y"
+          "trackedEntity": "EEFkxTWB55Y",
+          "program": "hJUBNVQWl4e"
         }
       ]
     }
-  ]
+  ],
+  "enrollments": [],
+  "events": [],
+  "relationships": [],
+  "username": "system-process"
 }

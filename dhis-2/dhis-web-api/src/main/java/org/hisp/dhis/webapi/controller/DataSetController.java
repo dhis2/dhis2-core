@@ -280,7 +280,7 @@ public class DataSetController
 
         if ( dataSets.isEmpty() )
         {
-            throw new WebMessageException( notFound( "DataSet not found for uid: " + uid ) );
+            throw new WebMessageException( notFound( "Data set not found for uid: " + uid ) );
         }
 
         OrganisationUnit ou = manager.get( OrganisationUnit.class, orgUnit );

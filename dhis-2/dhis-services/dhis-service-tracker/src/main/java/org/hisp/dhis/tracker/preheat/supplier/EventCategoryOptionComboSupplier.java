@@ -102,13 +102,13 @@ public class EventCategoryOptionComboSupplier extends AbstractPreheatSupplier
     private Program resolveProgram( TrackerPreheat preheat, Event e )
     {
 
-        Program program = preheat.get( Program.class, e.getProgram() );
+        Program program = preheat.getProgram( e.getProgram() );
         if ( program != null )
         {
             return program;
         }
 
-        if ( StringUtils.isBlank( e.getProgramStage() ) )
+        if ( e.getProgramStage().isBlank() )
         {
             return null;
         }

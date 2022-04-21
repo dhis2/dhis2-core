@@ -187,7 +187,7 @@ public class PreCheckSecurityOwnershipValidationHook
                 .getProgram()
             : reporter.getBundle().getPreheat().getProgram( enrollment.getProgram() );
         OrganisationUnit ownerOrgUnit = getOwnerOrganisationUnit( preheat, enrollment.getTrackedEntity(),
-            enrollment.getProgram() );
+            preheat.getProgram( enrollment.getProgram() ) );
 
         checkNotNull( user, USER_CANT_BE_NULL );
         checkNotNull( enrollment, ENROLLMENT_CANT_BE_NULL );
@@ -217,17 +217,17 @@ public class PreCheckSecurityOwnershipValidationHook
         checkWriteEnrollmentAccess( reporter, enrollment, program, ownerOrgUnit );
     }
 
-    private OrganisationUnit getOwnerOrganisationUnit( TrackerPreheat preheat, String teiUid, String programUid )
+    private OrganisationUnit getOwnerOrganisationUnit( TrackerPreheat preheat, String teiUid, Program program )
     {
         Map<String, TrackedEntityProgramOwnerOrgUnit> programOwner = preheat.getProgramOwner()
             .get( teiUid );
-        if ( programOwner == null || programOwner.get( programUid ) == null )
+        if ( programOwner == null || programOwner.get( program.getUid() ) == null )
         {
             return null;
         }
         else
         {
-            return programOwner.get( programUid ).getOrganisationUnit();
+            return programOwner.get( program.getUid() ).getOrganisationUnit();
         }
     }
 
@@ -317,7 +317,7 @@ public class PreCheckSecurityOwnershipValidationHook
 
         CategoryOptionCombo categoryOptionCombo = bundle.getPreheat()
             .getCategoryOptionCombo( event.getAttributeOptionCombo() );
-        OrganisationUnit ownerOrgUnit = getOwnerOrganisationUnit( preheat, teiUid, program.getUid() );
+        OrganisationUnit ownerOrgUnit = getOwnerOrganisationUnit( preheat, teiUid, program );
         // Check acting user is allowed to change existing/write event
         if ( strategy.isUpdateOrDelete() )
         {

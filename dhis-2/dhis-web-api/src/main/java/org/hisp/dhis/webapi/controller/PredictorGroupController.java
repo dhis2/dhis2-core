@@ -38,6 +38,7 @@ import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.predictor.PredictionService;
 import org.hisp.dhis.predictor.PredictionSummary;
 import org.hisp.dhis.predictor.PredictorGroup;
+import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.schema.descriptors.PredictorGroupSchemaDescriptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -71,7 +72,7 @@ public class PredictorGroupController
         try
         {
             PredictionSummary predictionSummary = predictionService.predictAll( startDate, endDate,
-                null, List.of( uid ) );
+                null, List.of( uid ), NoopJobProgress.INSTANCE );
 
             return ok( "Generated " + predictionSummary.getPredictions() + " predictions" );
         }

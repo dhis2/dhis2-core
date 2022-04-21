@@ -63,10 +63,10 @@ public class Event
     private EventStatus status = EventStatus.ACTIVE;
 
     @JsonProperty
-    private String program;
+    private MetadataIdentifier program;
 
     @JsonProperty
-    private String programStage;
+    private MetadataIdentifier programStage;
 
     @JsonProperty
     private String enrollment;

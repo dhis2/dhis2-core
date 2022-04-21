@@ -73,9 +73,6 @@ class QueryParserTest extends IntegrationTestBase
     private OrganisationUnitStore organisationUnitStore;
 
     @Autowired
-    private DataSetService dataSetService;
-
-    @Autowired
     private OrganisationUnitLevelStore organisationUnitLevelStore;
 
     @Autowired
@@ -107,10 +104,10 @@ class QueryParserTest extends IntegrationTestBase
         // user );
         injectSecurityContext( user );
 
-        this.organisationUnitService = new DefaultOrganisationUnitService( organisationUnitStore, dataSetService,
+        this.organisationUnitService = new DefaultOrganisationUnitService( organisationUnitStore, identifiableObjectManager,
             organisationUnitLevelStore, currentUserService, configurationService, userSettingService, cacheProvider );
         organisationUnitService.addOrganisationUnit( orgUnitA );
-        // identifiableObjectManager.save( orgUnitA );
+         identifiableObjectManager.save( orgUnitA );
         queryParser = new DefaultJpaQueryParser( schemaService );
     }
 

@@ -1,35 +1,65 @@
 {
+  "importMode": "COMMIT",
+  "idSchemes": {
+    "dataElementIdScheme": {
+      "idScheme": "UID"
+    },
+    "orgUnitIdScheme": {
+      "idScheme": "UID"
+    },
+    "programIdScheme": {
+      "idScheme": "UID"
+    },
+    "programStageIdScheme": {
+      "idScheme": "UID"
+    },
+    "idScheme": {
+      "idScheme": "UID"
+    },
+    "categoryOptionComboIdScheme": {
+      "idScheme": "UID"
+    },
+    "categoryOptionIdScheme": {
+      "idScheme": "UID"
+    }
+  },
+  "importStrategy": "CREATE",
+  "atomicMode": "ALL",
+  "flushMode": "AUTO",
+  "validationMode": "FULL",
+  "skipPatternValidation": false,
+  "skipSideEffects": false,
+  "skipRuleEngine": false,
   "trackedEntities": [
     {
       "trackedEntity": "EEFkxTWB55A",
-      "created": "2020-02-20T12:09:21.844",
-      "orgUnit": "cNEZTkdAvmg",
-      "createdAtClient": "2020-02-20T12:09:21.844",
-      "lastUpdated": "2020-02-20T12:09:21.844",
       "trackedEntityType": "KrYIdvLxkMb",
-      "lastUpdatedAtClient": "2020-02-20T12:09:21.844",
+      "createdAtClient": "2020-02-20T12:09:21.844",
+      "orgUnit": "cNEZTkdAvmg",
       "inactive": false,
       "deleted": false,
-      "featureType": "NONE",
-      "programOwners": [
-        {
-          "ownerOrgUnit": "cNEZTkdAvmg",
-          "program": "hJUBNVQWl4e",
-          "trackedEntity": "EEFkxTWB55Y"
-        }
-      ],
+      "potentialDuplicate": false,
       "relationships": [],
       "attributes": [
         {
-          "lastUpdated": "2020-02-20T12:09:21.850",
-          "storedBy": "admin",
-          "displayName": "Attribute_FileResource",
-          "created": "2020-02-20T12:09:21.850",
-          "valueType": "FILE_RESOURCE",
           "attribute": "zmdwVu2aXj2",
+          "displayName": "Attribute_FileResource",
+          "storedBy": "admin",
+          "valueType": "FILE_RESOURCE",
           "value": "Jzf6hHNP7jx"
+        }
+      ],
+      "enrollments": [],
+      "programOwners": [
+        {
+          "trackedEntity": "EEFkxTWB55Y",
+          "program": "hJUBNVQWl4e"
         }
       ]
     }
-  ]
+  ],
+  "enrollments": [],
+  "events": [],
+  "relationships": [],
+  "username": "system-process"
 }

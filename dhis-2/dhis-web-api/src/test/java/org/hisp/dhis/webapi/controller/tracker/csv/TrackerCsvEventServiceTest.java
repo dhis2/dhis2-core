@@ -38,8 +38,8 @@ import java.io.InputStream;
 import java.util.List;
 
 import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.domain.User;
+import org.hisp.dhis.webapi.controller.tracker.view.Event;
+import org.hisp.dhis.webapi.controller.tracker.view.User;
 import org.junit.jupiter.api.Test;
 import org.locationtech.jts.io.ParseException;
 

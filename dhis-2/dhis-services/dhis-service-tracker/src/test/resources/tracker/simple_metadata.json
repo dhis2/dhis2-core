@@ -72,7 +72,11 @@
         "relationshipEntity": "PROGRAM_STAGE_INSTANCE",
         "program": {
           "id": "BFcipDERJnf"
+        },
+        "programStage": {
+          "id": "NpsdDv6kKSO"
         }
+
       },
       "userGroupAccesses": []
     }

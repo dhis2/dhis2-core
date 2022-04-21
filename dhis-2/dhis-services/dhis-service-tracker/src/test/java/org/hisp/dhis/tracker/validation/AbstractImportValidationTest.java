@@ -36,7 +36,6 @@ import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.bundle.TrackerBundleService;
 import org.hisp.dhis.user.User;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
@@ -75,26 +74,24 @@ public abstract class AbstractImportValidationTest extends TrackerTest
 
     public static final String USER_8 = "xbgFeL0l3Ap";
 
+
     protected TrackerImportParams createBundleFromJson( String jsonFile )
         throws IOException
     {
         return createBundleFromJson( jsonFile, userService.getUser( ADMIN_USER_UID ) );
     }
 
-    protected TrackerImportParams createBundleFromJson( String jsonFile, User user )
+    protected TrackerImportParams createBundleFromJson( String jsonFile, User user  )
         throws IOException
     {
         InputStream inputStream = new ClassPathResource( jsonFile ).getInputStream();
 
         TrackerImportParams params = renderService.fromJson( inputStream, TrackerImportParams.class );
 
-        // User user = userService.getUser( ADMIN_USER_UID );
-
         params.setUser( user );
 
         return params;
     }
-
 
     @Override
     protected void initTest()

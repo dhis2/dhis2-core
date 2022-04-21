@@ -111,8 +111,10 @@ class EnrollmentImportValidationTest extends AbstractImportValidationTest
             "tracker/validations/enrollments_te_enrollments-data.json" );
         TrackerPreheat preheat = trackerPreheatService.preheat( secondParams );
         secondParams.getEnrollments().forEach( e -> {
-            assertEquals( e.getOrgUnit(), preheat.getProgramOwner().get( e.getTrackedEntity() ).get( e.getProgram() )
-                .getOrganisationUnit().getUid() );
+            assertEquals( e.getOrgUnit(),
+                preheat.getProgramOwner().get( e.getTrackedEntity() )
+                    .get( e.getProgram().getIdentifier() )
+                    .getOrganisationUnit().getUid() );
         } );
     }
 

@@ -1,48 +1,74 @@
 {
+  "importMode": "COMMIT",
+  "idSchemes": {
+    "dataElementIdScheme": {
+      "idScheme": "UID"
+    },
+    "orgUnitIdScheme": {
+      "idScheme": "UID"
+    },
+    "programIdScheme": {
+      "idScheme": "UID"
+    },
+    "programStageIdScheme": {
+      "idScheme": "UID"
+    },
+    "idScheme": {
+      "idScheme": "UID"
+    },
+    "categoryOptionComboIdScheme": {
+      "idScheme": "UID"
+    },
+    "categoryOptionIdScheme": {
+      "idScheme": "UID"
+    }
+  },
+  "importStrategy": "CREATE",
+  "atomicMode": "ALL",
+  "flushMode": "AUTO",
+  "validationMode": "FULL",
+  "skipPatternValidation": false,
+  "skipSideEffects": false,
+  "skipRuleEngine": false,
   "trackedEntities": [
     {
-      "created": "2020-02-10T10:56:07.570",
-      "orgUnit": "cNEZTkdAvmg",
-      "createdAtClient": "2020-02-10T10:56:07.570",
       "trackedEntity": "CLR1fvPj4ic",
-      "lastUpdated": "2020-02-10T10:56:07.571",
       "trackedEntityType": "KrYIdvLxkMb",
-      "lastUpdatedAtClient": "2020-02-10T10:56:07.570",
+      "createdAtClient": "2020-02-10T10:56:07.570",
+      "orgUnit": "cNEZTkdAvmg",
       "inactive": false,
       "deleted": false,
-      "featureType": "NONE",
-      "programOwners": [],
-      "enrollments": [],
+      "potentialDuplicate": false,
       "relationships": [],
       "attributes": [
         {
-          "lastUpdated": "2020-02-10T10:56:07.591",
-          "storedBy": "admin",
-          "displayName": "Attribute_Integer",
-          "created": "2020-02-10T10:56:07.588",
-          "valueType": "INTEGER",
           "attribute": "sYn3tkL3XKa",
+          "displayName": "Attribute_Integer",
+          "storedBy": "admin",
+          "valueType": "INTEGER",
           "value": "123"
         },
         {
-          "lastUpdated": "2020-02-10T10:56:07.586",
-          "storedBy": "admin",
-          "displayName": "Attribute_Text",
-          "created": "2020-02-10T10:56:07.584",
-          "valueType": "TEXT",
           "attribute": "TsfP85GKsU5",
+          "displayName": "Attribute_Text",
+          "storedBy": "admin",
+          "valueType": "TEXT",
           "value": "Test"
         },
         {
-          "lastUpdated": "2020-02-10T10:56:07.587",
-          "storedBy": "admin",
-          "displayName": "Attribute_Date",
-          "created": "2020-02-10T10:56:07.587",
-          "valueType": "DATE",
           "attribute": "sTGqP5JNy6E",
+          "displayName": "Attribute_Date",
+          "storedBy": "admin",
+          "valueType": "DATE",
           "value": "2020-02-10"
         }
-      ]
+      ],
+      "enrollments": [],
+      "programOwners": []
     }
-  ]
+  ],
+  "enrollments": [],
+  "events": [],
+  "relationships": [],
+  "username": "system-process"
 }

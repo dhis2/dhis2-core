@@ -160,7 +160,9 @@ public enum JobType
             || this == EVENT_PROGRAMS_DATA_SYNC
             || this == TRACKER_PROGRAMS_DATA_SYNC
             || this == DATA_SYNC
-            || this == SMS_SEND;
+            || this == SMS_SEND
+            || this == PUSH_ANALYSIS
+            || this == PREDICTOR;
     }
 
     public boolean isUsingErrorNotification()
@@ -170,7 +172,8 @@ public enum JobType
             || this == DATA_SET_NOTIFICATION
             || this == SYSTEM_VERSION_UPDATE_CHECK
             || this == EVENT_PROGRAMS_DATA_SYNC
-            || this == TRACKER_PROGRAMS_DATA_SYNC;
+            || this == TRACKER_PROGRAMS_DATA_SYNC
+            || this == PROGRAM_NOTIFICATIONS;
     }
 
     public boolean isCronSchedulingType()

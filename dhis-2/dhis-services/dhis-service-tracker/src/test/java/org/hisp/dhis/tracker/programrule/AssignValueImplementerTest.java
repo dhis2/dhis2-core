@@ -63,6 +63,7 @@ import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.programrule.implementers.AssignValueImplementer;
@@ -150,8 +151,10 @@ class AssignValueImplementerTest extends DhisConvenienceTest
         ProgramStageDataElement programStageDataElementB = createProgramStageDataElement( secondProgramStage,
             dataElementB, 0 );
         secondProgramStage.setProgramStageDataElements( Sets.newHashSet( programStageDataElementB ) );
-        when( preheat.get( ProgramStage.class, firstProgramStage.getUid() ) ).thenReturn( firstProgramStage );
-        when( preheat.get( ProgramStage.class, secondProgramStage.getUid() ) ).thenReturn( secondProgramStage );
+        when( preheat.getProgramStage( MetadataIdentifier.ofUid( firstProgramStage.getUid() ) ) )
+            .thenReturn( firstProgramStage );
+        when( preheat.getProgramStage( MetadataIdentifier.ofUid( secondProgramStage.getUid() ) ) )
+            .thenReturn( secondProgramStage );
         when( preheat.get( DataElement.class, dataElementA.getUid() ) ).thenReturn( dataElementA );
         when( preheat.get( TrackedEntityAttribute.class, attributeA.getUid() ) ).thenReturn( attributeA );
         bundle = TrackerBundle.builder().build();
@@ -377,7 +380,7 @@ class AssignValueImplementerTest extends DhisConvenienceTest
         Event event = new Event();
         event.setEvent( FIRST_EVENT_ID );
         event.setStatus( EventStatus.ACTIVE );
-        event.setProgramStage( firstProgramStage.getUid() );
+        event.setProgramStage( MetadataIdentifier.ofUid( firstProgramStage.getUid() ) );
         event.setDataValues( getEventDataValues() );
         return event;
     }
@@ -387,7 +390,7 @@ class AssignValueImplementerTest extends DhisConvenienceTest
         Event event = new Event();
         event.setEvent( FIRST_EVENT_ID );
         event.setStatus( EventStatus.ACTIVE );
-        event.setProgramStage( firstProgramStage.getUid() );
+        event.setProgramStage( MetadataIdentifier.ofUid( firstProgramStage.getUid() ) );
         event.setDataValues( getEventDataValuesSameValue() );
         return event;
     }
@@ -397,17 +400,17 @@ class AssignValueImplementerTest extends DhisConvenienceTest
         Event event = new Event();
         event.setEvent( SECOND_EVENT_ID );
         event.setStatus( EventStatus.ACTIVE );
-        event.setProgramStage( firstProgramStage.getUid() );
+        event.setProgramStage( MetadataIdentifier.ofUid( firstProgramStage.getUid() ) );
         return event;
     }
 
     private Event getEventWithDataValueNOTSetInDifferentProgramStage()
     {
-        Event event = new Event();
-        event.setEvent( SECOND_EVENT_ID );
-        event.setStatus( EventStatus.ACTIVE );
-        event.setProgramStage( secondProgramStage.getUid() );
-        return event;
+        return Event.builder()
+            .event( SECOND_EVENT_ID )
+            .status( EventStatus.ACTIVE )
+            .programStage( MetadataIdentifier.ofUid( secondProgramStage.getUid() ) )
+            .build();
     }
 
     private Set<DataValue> getEventDataValues()
