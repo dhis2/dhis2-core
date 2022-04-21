@@ -51,6 +51,7 @@ import org.hisp.dhis.mock.MockI18nFormat;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.user.User;
@@ -131,7 +132,7 @@ class EventCategoryOptValidationHookTest extends DhisConvenienceTest
 
         event = new Event();
         event.setEvent( CodeGenerator.generateUid() );
-        event.setProgram( program.getUid() );
+        event.setProgram( MetadataIdentifier.ofUid( program.getUid() ) );
         event.setOccurredAt( EVENT_INSTANT );
 
         User user = createUser( 'A' );
@@ -141,7 +142,7 @@ class EventCategoryOptValidationHookTest extends DhisConvenienceTest
             .preheat( preheat )
             .build();
 
-        when( preheat.getProgram( program.getUid() ) )
+        when( preheat.getProgram( MetadataIdentifier.ofUid( program.getUid() ) ) )
             .thenReturn( program );
         when( i18nManager.getI18nFormat() ).thenReturn( I18N_FORMAT );
 

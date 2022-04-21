@@ -27,12 +27,13 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
-import org.hisp.dhis.tracker.domain.Note;
+import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
+import org.hisp.dhis.webapi.controller.tracker.view.Note;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 @Mapper( uses = { InstantMapper.class, UserMapper.class } )
-public interface NoteMapper extends DomainMapper<org.hisp.dhis.dxf2.events.event.Note, Note>
+public interface NoteMapper extends ViewMapper<org.hisp.dhis.dxf2.events.event.Note, Note>
 {
     @Mapping( target = "storedAt", source = "storedDate" )
     @Mapping( target = "createdBy", source = "lastUpdatedBy" )

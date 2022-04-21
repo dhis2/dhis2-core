@@ -307,6 +307,7 @@ public enum ErrorCode
     E7132( "An indicator expression caused division by zero operation" ),
     E7133( "Query cannot be executed, possibly because of invalid types or invalid operation" ),
     E7134( "Cannot retrieve total value for data elements with skip total category combination" ),
+    E7135( "Date time is not parsable: `{0}`" ),
 
     /* Event analytics */
     E7200( "At least one organisation unit must be specified" ),
@@ -394,7 +395,7 @@ public enum ErrorCode
     E7644( "Period: `{0}` does not conform to the open periods of associated data sets" ),
     E7645( "No data value for file resource exist for the given combination for data element: `{0}`" ),
 
-    // datastore query validation
+    /* Data store query validation */
     E7650( "Not a valid path: `{0}`" ),
     E7651( "Illegal fields expression. Expected `,`, `[` or `]` at position {0} but found `{1}`" ),
     E7652( "Illegal filter expression `{0}`: {1}" ),

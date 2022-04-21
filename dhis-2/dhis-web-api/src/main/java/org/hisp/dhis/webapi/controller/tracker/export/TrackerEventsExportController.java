@@ -100,7 +100,7 @@ public class TrackerEventsExportController
     private final ProgramStageInstanceService programStageInstanceService;
 
     @NonNull
-    private final CsvEventService<org.hisp.dhis.tracker.domain.Event> csvEventService;
+    private final CsvEventService<org.hisp.dhis.webapi.controller.tracker.view.Event> csvEventService;
 
     @NonNull
     private final FieldFilterService fieldFilterService;

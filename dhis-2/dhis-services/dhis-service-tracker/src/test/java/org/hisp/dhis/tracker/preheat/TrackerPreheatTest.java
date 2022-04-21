@@ -63,6 +63,7 @@ import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.junit.jupiter.api.Test;
 
 import com.google.common.collect.Lists;
@@ -187,12 +188,15 @@ class TrackerPreheatTest extends DhisConvenienceTest
         TrackerPreheat preheat = new TrackerPreheat();
         assertTrue( preheat.getAll( Program.class ).isEmpty() );
         assertTrue( preheat.isEmpty() );
+
         DataElement de1 = new DataElement( "dataElementA" );
         de1.setUid( CodeGenerator.generateUid() );
         DataElement de2 = new DataElement( "dataElementB" );
         de2.setUid( CodeGenerator.generateUid() );
+
         preheat.put( TrackerIdSchemeParam.UID, de1 );
         preheat.put( TrackerIdSchemeParam.UID, de2 );
+
         assertEquals( 2, preheat.getAll( DataElement.class ).size() );
     }
 
@@ -204,11 +208,13 @@ class TrackerPreheatTest extends DhisConvenienceTest
         de1.setCode( "CODE1" );
         DataElement de2 = new DataElement( "dataElementB" );
         de2.setCode( "CODE2" );
+
         preheat.put( TrackerIdSchemeParam.CODE, de1 );
         preheat.put( TrackerIdSchemeParam.CODE, de2 );
+
         assertEquals( 2, preheat.getAll( DataElement.class ).size() );
-        assertThat( preheat.get( DataElement.class, de1.getCode() ), is( notNullValue() ) );
-        assertThat( preheat.get( DataElement.class, de2.getCode() ), is( notNullValue() ) );
+        assertThat( preheat.get( DataElement.class, de1.getCode() ), is( de1 ) );
+        assertThat( preheat.get( DataElement.class, de2.getCode() ), is( de2 ) );
     }
 
     @Test
@@ -219,11 +225,13 @@ class TrackerPreheatTest extends DhisConvenienceTest
         de1.setName( "DATA_ELEM1" );
         DataElement de2 = new DataElement( "dataElementB" );
         de2.setName( "DATA_ELEM2" );
+
         preheat.put( TrackerIdSchemeParam.NAME, de1 );
         preheat.put( TrackerIdSchemeParam.NAME, de2 );
+
         assertEquals( 2, preheat.getAll( DataElement.class ).size() );
-        assertThat( preheat.get( DataElement.class, de1.getName() ), is( notNullValue() ) );
-        assertThat( preheat.get( DataElement.class, de2.getName() ), is( notNullValue() ) );
+        assertThat( preheat.get( DataElement.class, de1.getName() ), is( de1 ) );
+        assertThat( preheat.get( DataElement.class, de2.getName() ), is( de2 ) );
     }
 
     @Test
@@ -236,11 +244,126 @@ class TrackerPreheatTest extends DhisConvenienceTest
         attributeValue.setAttribute( attribute );
         DataElement de1 = new DataElement( "dataElementA" );
         de1.setAttributeValues( Collections.singleton( attributeValue ) );
+
         preheat.put(
-            TrackerIdSchemeParam.builder().idScheme( TrackerIdScheme.ATTRIBUTE ).value( attribute.getUid() ).build(),
+            TrackerIdSchemeParam.builder().idScheme( TrackerIdScheme.ATTRIBUTE ).attributeUid( attribute.getUid() )
+                .build(),
             de1 );
+
         assertEquals( 1, preheat.getAll( DataElement.class ).size() );
         assertThat( preheat.get( DataElement.class, "value1" ), is( notNullValue() ) );
+    }
+
+    @Test
+    void testPutAndGetDataElementByCode()
+    {
+        TrackerPreheat preheat = new TrackerPreheat();
+        preheat.setIdSchemes( TrackerIdSchemeParams.builder()
+            .idScheme( TrackerIdSchemeParam.UID )
+            .dataElementIdScheme( TrackerIdSchemeParam.CODE )
+            .build() );
+        DataElement de1 = new DataElement( "dataElementA" );
+        de1.setCode( "CODE1" );
+        DataElement de2 = new DataElement( "dataElementB" );
+        de2.setCode( "CODE2" );
+
+        preheat.put( de1 );
+        preheat.put( de2 );
+
+        assertEquals( 2, preheat.getAll( DataElement.class ).size() );
+        assertThat( preheat.get( DataElement.class, de1.getCode() ), is( de1 ) );
+        assertThat( preheat.get( DataElement.class, de2.getCode() ), is( de2 ) );
+    }
+
+    @Test
+    void testPutAndGetDataElementByName()
+    {
+        TrackerPreheat preheat = new TrackerPreheat();
+        preheat.setIdSchemes( TrackerIdSchemeParams.builder()
+            .idScheme( TrackerIdSchemeParam.CODE )
+            .dataElementIdScheme( TrackerIdSchemeParam.NAME )
+            .build() );
+        DataElement de1 = new DataElement( "dataElementA" );
+        DataElement de2 = new DataElement( "dataElementB" );
+
+        preheat.put( de1 );
+        preheat.put( de2 );
+
+        assertEquals( 2, preheat.getAll( DataElement.class ).size() );
+        assertThat( preheat.get( DataElement.class, de1.getName() ), is( de1 ) );
+        assertThat( preheat.get( DataElement.class, de2.getName() ), is( de2 ) );
+    }
+
+    @Test
+    void testPutAndGetProgramByCode()
+    {
+        TrackerPreheat preheat = new TrackerPreheat();
+        preheat.setIdSchemes( TrackerIdSchemeParams.builder()
+            .idScheme( TrackerIdSchemeParam.UID )
+            .programIdScheme( TrackerIdSchemeParam.CODE )
+            .build() );
+        Program p1 = new Program();
+        p1.setCode( "p1" );
+        Program p2 = new Program();
+        p2.setCode( "p2" );
+
+        preheat.put( p1 );
+        preheat.put( p2 );
+
+        assertEquals( 2, preheat.getAll( Program.class ).size() );
+        assertThat( preheat.get( Program.class, p1.getCode() ), is( p1 ) );
+        assertThat( preheat.get( Program.class, p2.getCode() ), is( p2 ) );
+    }
+
+    @Test
+    void testPutAndGetProgramByName()
+    {
+        TrackerPreheat preheat = new TrackerPreheat();
+        preheat.setIdSchemes( TrackerIdSchemeParams.builder()
+            .idScheme( TrackerIdSchemeParam.CODE )
+            .programIdScheme( TrackerIdSchemeParam.NAME )
+            .build() );
+        Program p1 = new Program( "p1" );
+        Program p2 = new Program( "p2" );
+
+        preheat.put( p1 );
+        preheat.put( p2 );
+
+        assertEquals( 2, preheat.getAll( Program.class ).size() );
+        assertThat( preheat.get( Program.class, p1.getName() ), is( p1 ) );
+        assertThat( preheat.get( Program.class, p2.getName() ), is( p2 ) );
+    }
+
+    @Test
+    void testGetByMetadataIdentifier()
+    {
+        TrackerPreheat preheat = new TrackerPreheat();
+
+        Attribute attribute = new Attribute();
+        attribute.setAutoFields();
+        attribute.setName( "best" );
+        preheat.put( TrackerIdSchemeParam.builder()
+            .idScheme( TrackerIdScheme.NAME )
+            .build(), attribute );
+
+        DataElement de1 = new DataElement( "dataElementA" );
+        de1.setAttributeValues( Collections.singleton( new AttributeValue( "value1", attribute ) ) );
+        preheat.put( TrackerIdSchemeParam.builder()
+            .idScheme( TrackerIdScheme.ATTRIBUTE )
+            .attributeUid( attribute.getUid() )
+            .build(), de1 );
+
+        assertEquals( attribute, preheat.get( Attribute.class, MetadataIdentifier.ofName( "best" ) ) );
+        assertEquals( de1,
+            preheat.get( DataElement.class, MetadataIdentifier.ofAttribute( attribute.getUid(), "value1" ) ) );
+    }
+
+    @Test
+    void testGetByMetadataIdentifierGivenNull()
+    {
+        TrackerPreheat preheat = new TrackerPreheat();
+
+        assertNull( preheat.get( Attribute.class, (MetadataIdentifier) null ) );
     }
 
     @Test

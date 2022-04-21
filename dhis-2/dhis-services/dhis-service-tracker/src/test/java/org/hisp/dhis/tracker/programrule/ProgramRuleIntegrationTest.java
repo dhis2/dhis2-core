@@ -32,7 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
@@ -153,6 +152,7 @@ class ProgramRuleIntegrationTest extends TransactionalIntegrationTest
         programRuleService.updateProgramRule( programRuleWithoutRegistration );
         programRuleB.getProgramRuleActions().add( programRuleActionShowWarningForProgramStage );
         programRuleService.updateProgramRule( programRuleB );
+
         userA = userService.getUser( "M5zQapPyTZI" );
         injectSecurityContext( userA );
     }
@@ -161,10 +161,11 @@ class ProgramRuleIntegrationTest extends TransactionalIntegrationTest
     void testImportProgramEventSuccessWithWarningRaised()
         throws IOException
     {
-        InputStream inputStream = new ClassPathResource( "tracker/program_event.json" ).getInputStream();
-        TrackerImportParams params = renderService.fromJson( inputStream, TrackerImportParams.class );
-        params.setUserId( userA.getUid() );
+
+        TrackerImportParams params = fromJson( "tracker/program_event.json" );
+
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
+
         assertNotNull( trackerImportReport );
         assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
         assertEquals( 1, trackerImportReport.getValidationReport().getWarnings().size() );
@@ -174,16 +175,18 @@ class ProgramRuleIntegrationTest extends TransactionalIntegrationTest
     void testImportEnrollmentSuccessWithWarningRaised()
         throws IOException
     {
-        InputStream inputStream = new ClassPathResource( "tracker/single_tei.json" ).getInputStream();
-        TrackerImportParams params = renderService.fromJson( inputStream, TrackerImportParams.class );
-        params.setUserId( userA.getUid() );
+
+        TrackerImportParams params = fromJson( "tracker/single_tei.json" );
+
         TrackerImportReport trackerImportTeiReport = trackerImportService.importTracker( params );
-        TrackerImportParams enrollmentParams = renderService.fromJson(
-            new ClassPathResource( "tracker/single_enrollment.json" ).getInputStream(), TrackerImportParams.class );
-        enrollmentParams.setUserId( userA.getUid() );
-        TrackerImportReport trackerImportEnrollmentReport = trackerImportService.importTracker( enrollmentParams );
         assertNotNull( trackerImportTeiReport );
         assertEquals( TrackerStatus.OK, trackerImportTeiReport.getStatus() );
+
+        TrackerImportParams enrollmentParams = fromJson( "tracker/single_enrollment.json" );
+        enrollmentParams.setUserId( userA.getUid() );
+
+        TrackerImportReport trackerImportEnrollmentReport = trackerImportService.importTracker( enrollmentParams );
+
         assertNotNull( trackerImportEnrollmentReport );
         assertEquals( TrackerStatus.OK, trackerImportEnrollmentReport.getStatus() );
         assertEquals( 1, trackerImportEnrollmentReport.getValidationReport().getWarnings().size() );
@@ -193,10 +196,11 @@ class ProgramRuleIntegrationTest extends TransactionalIntegrationTest
     void testImportEventInProgramStageSuccessWithWarningRaised()
         throws IOException
     {
-        InputStream inputStream = new ClassPathResource( "tracker/tei_enrollment_event.json" ).getInputStream();
-        TrackerImportParams params = renderService.fromJson( inputStream, TrackerImportParams.class );
-        params.setUserId( userA.getUid() );
+
+        TrackerImportParams params = fromJson( "tracker/tei_enrollment_event.json" );
+
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
+
         assertNotNull( trackerImportReport );
         assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
         List<TrackerWarningReport> warningReports = trackerImportReport.getValidationReport().getWarnings();
@@ -205,11 +209,12 @@ class ProgramRuleIntegrationTest extends TransactionalIntegrationTest
             warningReports.stream().filter( w -> w.getTrackerType().equals( TrackerType.EVENT ) ).count() );
         assertEquals( 1,
             warningReports.stream().filter( w -> w.getTrackerType().equals( TrackerType.ENROLLMENT ) ).count() );
-        inputStream = new ClassPathResource( "tracker/event_update_no_datavalue.json" ).getInputStream();
-        params = renderService.fromJson( inputStream, TrackerImportParams.class );
-        params.setUserId( userA.getUid() );
+
+        params = fromJson( "tracker/event_update_no_datavalue.json" );
         params.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
+
         trackerImportReport = trackerImportService.importTracker( params );
+
         assertNotNull( trackerImportReport );
         assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
         warningReports = trackerImportReport.getValidationReport().getWarnings();
@@ -218,11 +223,12 @@ class ProgramRuleIntegrationTest extends TransactionalIntegrationTest
         assertEquals(
             "Generated by program rule (`ProgramRule`) - DataElement `DATAEL00001` is being replaced in event `EVENT123456`",
             warningReports.get( 0 ).getWarningMessage() );
-        inputStream = new ClassPathResource( "tracker/event_update_datavalue.json" ).getInputStream();
-        params = renderService.fromJson( inputStream, TrackerImportParams.class );
-        params.setUserId( userA.getUid() );
+
+        params = fromJson( "tracker/event_update_datavalue.json" );
         params.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
+
         trackerImportReport = trackerImportService.importTracker( params );
+
         assertNotNull( trackerImportReport );
         assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
         warningReports = trackerImportReport.getValidationReport().getWarnings();
@@ -231,5 +237,14 @@ class ProgramRuleIntegrationTest extends TransactionalIntegrationTest
         assertEquals(
             "Generated by program rule (`ProgramRule`) - DataElement `DATAEL00001` is being replaced in event `EVENT123456`",
             warningReports.get( 0 ).getWarningMessage() );
+    }
+
+    protected TrackerImportParams fromJson( String path )
+        throws IOException
+    {
+        TrackerImportParams params = renderService.fromJson( new ClassPathResource( path ).getInputStream(),
+            TrackerImportParams.class );
+        params.setUserId( userA.getUid() );
+        return params;
     }
 }

@@ -30,7 +30,7 @@ package org.hisp.dhis.predictor;
 import java.util.Date;
 import java.util.List;
 
-import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.security.SecurityContextRunnable;
 
 /**
@@ -49,24 +49,24 @@ public class PredictionTask
 
     private final PredictionService predictionService;
 
-    private final JobConfiguration jobId;
+    private final JobProgress progress;
 
     public PredictionTask( Date startDate, Date endDate,
         List<String> predictors, List<String> predictorGroups,
-        PredictionService predictionService, JobConfiguration jobId )
+        PredictionService predictionService, JobProgress progress )
     {
         this.startDate = startDate;
         this.endDate = endDate;
         this.predictors = predictors;
         this.predictorGroups = predictorGroups;
         this.predictionService = predictionService;
-        this.jobId = jobId;
+        this.progress = progress;
     }
 
     @Override
     public void call()
     {
         predictionService.predictTask( startDate, endDate,
-            predictors, predictorGroups, jobId );
+            predictors, predictorGroups, progress );
     }
 }

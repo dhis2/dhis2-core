@@ -27,7 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
-import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.webapi.controller.tracker.view.Enrollment;
+import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -38,7 +39,7 @@ import org.mapstruct.Mapping;
     EventMapper.class,
     InstantMapper.class,
     UserMapper.class } )
-interface EnrollmentMapper extends DomainMapper<org.hisp.dhis.dxf2.events.enrollment.Enrollment, Enrollment>
+interface EnrollmentMapper extends ViewMapper<org.hisp.dhis.dxf2.events.enrollment.Enrollment, Enrollment>
 {
     @Mapping( target = "enrollment", source = "enrollment" )
     @Mapping( target = "createdAt", source = "created" )

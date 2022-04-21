@@ -141,9 +141,9 @@ public class PreCheckDataRelationsValidationHook
         }
     }
 
-    private void validateRegistrationProgram( ValidationErrorReporter reporter, Event event, Program program )
+    private void validateRegistrationProgram( ValidationErrorReporter reporter, Event event, Program eventProgram )
     {
-        if ( program.isRegistration() )
+        if ( eventProgram.isRegistration() )
         {
             if ( StringUtils.isEmpty( event.getEnrollment() ) )
             {
@@ -151,11 +151,11 @@ public class PreCheckDataRelationsValidationHook
             }
             else
             {
-                String programUid = getEnrollmentProgramUidFromEvent( reporter.getBundle(), event );
+                Program enrollmentProgram = getEnrollmentProgramFromEvent( reporter.getBundle(), event );
 
-                if ( !program.getUid().equals( programUid ) )
+                if ( !eventProgram.equals( enrollmentProgram ) )
                 {
-                    reporter.addError( event, E1079, event, program, event.getEnrollment() );
+                    reporter.addError( event, E1079, event, eventProgram, event.getEnrollment() );
                 }
             }
         }
@@ -408,13 +408,12 @@ public class PreCheckDataRelationsValidationHook
             && aoc.getCategoryOptions().size() == categoryOptions.size();
     }
 
-    private String getEnrollmentProgramUidFromEvent( TrackerBundle bundle,
-        Event event )
+    private Program getEnrollmentProgramFromEvent( TrackerBundle bundle, Event event )
     {
         ProgramInstance programInstance = bundle.getProgramInstance( event.getEnrollment() );
         if ( programInstance != null )
         {
-            return programInstance.getProgram().getUid();
+            return programInstance.getProgram();
         }
         else
         {
@@ -425,7 +424,7 @@ public class PreCheckDataRelationsValidationHook
                 final Optional<Enrollment> enrollment = bundle.getEnrollment( event.getEnrollment() );
                 if ( enrollment.isPresent() )
                 {
-                    return enrollment.get().getProgram();
+                    return bundle.getPreheat().getProgram( enrollment.get().getProgram() );
                 }
             }
         }

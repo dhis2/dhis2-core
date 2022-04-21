@@ -75,6 +75,9 @@
         "program": {
           "id": "Zd2rkv8FsWq"
         },
+        "programStage": {
+          "id": "jKLB23QZS4I"
+        },
         "trackerDataView": {
           "dataElements": [
             "inc5BJvr4W5",
@@ -144,6 +147,9 @@
         "program": {
           "id": "Zd2rkv8FsWq"
         },
+        "programStage": {
+          "id": "jKLB23QZS4I"
+        },
         "trackerDataView": {
           "dataElements": [
             "mB2QHw1tU96",
@@ -194,12 +200,18 @@
         "relationshipEntity": "PROGRAM_STAGE_INSTANCE",
         "program": {
           "id": "Zd2rkv8FsWq"
+        },
+        "programStage": {
+          "id": "jKLB23QZS4I"
         }
       },
       "fromConstraint": {
         "relationshipEntity": "PROGRAM_STAGE_INSTANCE",
         "program": {
           "id": "Zd2rkv8FsWq"
+        },
+        "programStage": {
+          "id": "jKLB23QZS4I"
         }
       },
       "favorites": [],

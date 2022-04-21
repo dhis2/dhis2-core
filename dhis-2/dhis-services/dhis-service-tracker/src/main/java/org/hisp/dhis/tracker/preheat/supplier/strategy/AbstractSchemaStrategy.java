@@ -109,7 +109,7 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
             if ( TrackerIdScheme.ATTRIBUTE.equals( idScheme ) )
             {
                 Attribute attribute = new Attribute();
-                attribute.setUid( idSchemeParam.getValue() );
+                attribute.setUid( idSchemeParam.getAttributeUid() );
                 objects = manager.getAllByAttributeAndValues(
                     (Class<? extends IdentifiableObject>) schema.getKlass(), attribute, ids );
             }

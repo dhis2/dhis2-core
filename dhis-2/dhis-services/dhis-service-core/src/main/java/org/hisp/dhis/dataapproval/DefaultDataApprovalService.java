@@ -46,6 +46,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.dataapproval.exceptions.DataApprovalNotFound;
@@ -55,7 +56,6 @@ import org.hisp.dhis.dataapproval.exceptions.DataMayNotBeUnacceptedException;
 import org.hisp.dhis.dataapproval.exceptions.DataMayNotBeUnapprovedException;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -85,9 +85,9 @@ public class DefaultDataApprovalService
 
     private final DataApprovalLevelService dataApprovalLevelService;
 
-    private CurrentUserService currentUserService;
+    private final IdentifiableObjectManager idObjectManager;
 
-    private final OrganisationUnitService organisationUnitService;
+    private CurrentUserService currentUserService;
 
     private final SystemSettingManager systemSettingManager;
 
@@ -520,8 +520,8 @@ public class DefaultDataApprovalService
 
         if ( status.getApprovedLevel() != null )
         {
-            OrganisationUnit approvedOrgUnit = organisationUnitService
-                .getOrganisationUnit( status.getApprovedOrgUnitId() );
+            OrganisationUnit approvedOrgUnit = idObjectManager
+                .get( OrganisationUnit.class, status.getApprovedOrgUnitId() );
 
             DataApproval da = dataApprovalStore.getDataApproval( status.getActionLevel(),
                 workflow, period, approvedOrgUnit, attributeOptionCombo );
@@ -836,6 +836,6 @@ public class DefaultDataApprovalService
     private DataApprovalPermissionsEvaluator makePermissionsEvaluator()
     {
         return DataApprovalPermissionsEvaluator.makePermissionsEvaluator(
-            currentUserService, organisationUnitService, systemSettingManager, dataApprovalLevelService );
+            currentUserService, idObjectManager, systemSettingManager, dataApprovalLevelService );
     }
 }

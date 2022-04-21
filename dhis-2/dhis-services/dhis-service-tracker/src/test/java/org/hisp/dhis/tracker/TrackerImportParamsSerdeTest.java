@@ -61,7 +61,7 @@ class TrackerImportParamsSerdeTest extends TrackerTest
         TrackerIdSchemeParams identifierParams = TrackerIdSchemeParams.builder()
             .idScheme( TrackerIdSchemeParam.CODE )
             .programIdScheme(
-                TrackerIdSchemeParam.builder().idScheme( TrackerIdScheme.ATTRIBUTE ).value( "aaaa" ).build() )
+                TrackerIdSchemeParam.builder().idScheme( TrackerIdScheme.ATTRIBUTE ).attributeUid( "aaaa" ).build() )
             .build();
         TrackerImportParams trackerImportParams = TrackerImportParams.builder()
             .idSchemes( identifierParams )
@@ -75,7 +75,7 @@ class TrackerImportParamsSerdeTest extends TrackerTest
         JSONAssert.assertEquals(
             "" + "{\"importMode\":\"COMMIT\"," + "\"idSchemes\":{\"dataElementIdScheme\":{\"idScheme\":\"UID\"},"
                 + "\"orgUnitIdScheme\":{\"idScheme\":\"UID\"},"
-                + "\"programIdScheme\":{\"idScheme\":\"ATTRIBUTE\",\"value\":\"aaaa\"},"
+                + "\"programIdScheme\":{\"idScheme\":\"ATTRIBUTE\",\"attributeUid\":\"aaaa\"},"
                 + "\"programStageIdScheme\":{\"idScheme\":\"UID\"}," + "\"idScheme\":{\"idScheme\":\"CODE\"},"
                 + "\"categoryOptionComboIdScheme\":{\"idScheme\":\"UID\"},"
                 + "\"categoryOptionIdScheme\":{\"idScheme\":\"UID\"}}," + "\"importStrategy\":\"DELETE\","
@@ -88,49 +88,13 @@ class TrackerImportParamsSerdeTest extends TrackerTest
     }
 
     @Test
-    void testJsonDeserializationOldFormat()
-        throws IOException
-    {
-        // Artemis queue might persist tracker import job messages with
-        // TrackerImportParams in the old format; keep it backwards-compatible
-        // during 2.39; remove in 2.40
-        final String json = "" + "{\"importMode\":\"COMMIT\","
-            + "\"identifiers\":{\"dataElementIdScheme\":{\"idScheme\":\"UID\"},"
-            + "\"orgUnitIdScheme\":{\"idScheme\":\"UID\"},"
-            + "\"programIdScheme\":{\"idScheme\":\"ATTRIBUTE\",\"value\":\"aaaa\"},"
-            + "\"programStageIdScheme\":{\"idScheme\":\"UID\"}," + "\"idScheme\":{\"idScheme\":\"CODE\"},"
-            + "\"categoryOptionComboIdScheme\":{\"idScheme\":\"UID\"},"
-            + "\"categoryOptionIdScheme\":{\"idScheme\":\"UID\"}}," + "\"importStrategy\":\"DELETE\","
-            + "\"atomicMode\":\"OBJECT\"," + "\"flushMode\":\"OBJECT\"," + "\"validationMode\":\"SKIP\","
-            + "\"skipPatternValidation\":true," + "\"skipSideEffects\":true," + "\"skipRuleEngine\":true,"
-            + "\"trackedEntities\":[]," + "\"enrollments\":[]," + "\"events\":[]," + "\"relationships\":[],"
-            + "\"username\":\"system-process\"}";
-
-        final TrackerImportParams trackerImportParams = renderService.fromJson( json, TrackerImportParams.class );
-
-        assertThat( trackerImportParams.getImportMode(), is( TrackerBundleMode.COMMIT ) );
-        assertThat( trackerImportParams.getImportStrategy(), is( TrackerImportStrategy.DELETE ) );
-        assertThat( trackerImportParams.getAtomicMode(), is( AtomicMode.OBJECT ) );
-        assertThat( trackerImportParams.getFlushMode(), is( FlushMode.OBJECT ) );
-        assertThat( trackerImportParams.getValidationMode(), is( ValidationMode.SKIP ) );
-        assertThat( trackerImportParams.isSkipPatternValidation(), is( true ) );
-        assertThat( trackerImportParams.isSkipSideEffects(), is( true ) );
-        assertThat( trackerImportParams.isSkipRuleEngine(), is( true ) );
-        assertThat( trackerImportParams.getUser(), is( nullValue() ) );
-        TrackerIdSchemeParams idSchemes = trackerImportParams.getIdSchemes();
-        assertThat( idSchemes.getIdScheme(), is( TrackerIdSchemeParam.CODE ) );
-        assertThat( idSchemes.getProgramIdScheme().getIdScheme(), is( TrackerIdScheme.ATTRIBUTE ) );
-        assertThat( idSchemes.getProgramIdScheme().getValue(), is( "aaaa" ) );
-    }
-
-    @Test
     void testJsonDeserialization()
         throws IOException
     {
         final String json = "" + "{\"importMode\":\"COMMIT\","
             + "\"idSchemes\":{\"dataElementIdScheme\":{\"idScheme\":\"UID\"},"
             + "\"orgUnitIdScheme\":{\"idScheme\":\"UID\"},"
-            + "\"programIdScheme\":{\"idScheme\":\"ATTRIBUTE\",\"value\":\"aaaa\"},"
+            + "\"programIdScheme\":{\"idScheme\":\"ATTRIBUTE\",\"attributeUid\":\"aaaa\"},"
             + "\"programStageIdScheme\":{\"idScheme\":\"UID\"}," + "\"idScheme\":{\"idScheme\":\"CODE\"},"
             + "\"categoryOptionComboIdScheme\":{\"idScheme\":\"UID\"},"
             + "\"categoryOptionIdScheme\":{\"idScheme\":\"UID\"}}," + "\"importStrategy\":\"DELETE\","
@@ -153,6 +117,6 @@ class TrackerImportParamsSerdeTest extends TrackerTest
         TrackerIdSchemeParams idSchemes = trackerImportParams.getIdSchemes();
         assertThat( idSchemes.getIdScheme(), is( TrackerIdSchemeParam.CODE ) );
         assertThat( idSchemes.getProgramIdScheme().getIdScheme(), is( TrackerIdScheme.ATTRIBUTE ) );
-        assertThat( idSchemes.getProgramIdScheme().getValue(), is( "aaaa" ) );
+        assertThat( idSchemes.getProgramIdScheme().getAttributeUid(), is( "aaaa" ) );
     }
 }

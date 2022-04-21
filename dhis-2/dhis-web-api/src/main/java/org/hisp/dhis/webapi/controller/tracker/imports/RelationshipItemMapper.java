@@ -25,41 +25,37 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.jdbc;
+package org.hisp.dhis.webapi.controller.tracker.imports;
 
-import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
+import org.hisp.dhis.webapi.controller.tracker.view.Enrollment;
+import org.hisp.dhis.webapi.controller.tracker.view.Event;
+import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
+import org.hisp.dhis.webapi.controller.tracker.view.RelationshipItem;
+import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
+import org.mapstruct.Context;
+import org.mapstruct.Mapper;
 
-import org.hisp.dhis.association.CategoryOptionOrganisationUnitAssociationsQueryBuilder;
-import org.hisp.dhis.association.ProgramOrganisationUnitAssociationsQueryBuilder;
-import org.hisp.dhis.cache.CacheProvider;
-import org.hisp.dhis.user.CurrentUserService;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.jdbc.core.JdbcTemplate;
-
-@Configuration
-@RequiredArgsConstructor
-public class JdbcOrgUnitAssociationStoreConfiguration
+@Mapper( uses = {
+    AttributeMapper.class,
+    DataValueMapper.class,
+    ProgramOwnerMapper.class,
+    NoteMapper.class,
+    InstantMapper.class,
+    UserMapper.class,
+} )
+interface RelationshipItemMapper
+    extends DomainMapper<RelationshipItem, org.hisp.dhis.tracker.domain.RelationshipItem>
 {
+    org.hisp.dhis.tracker.domain.RelationshipItem from( RelationshipItem relationshipItem,
+        @Context TrackerIdSchemeParams idSchemeParams );
 
-    private final CacheProvider cacheProvider;
+    org.hisp.dhis.tracker.domain.RelationshipItem.TrackedEntity from( TrackedEntity trackedEntity,
+        @Context TrackerIdSchemeParams idSchemeParams );
 
-    @Bean( "jdbcProgramOrgUnitAssociationsStore" )
-    JdbcOrgUnitAssociationsStore jdbcProgramOrgUnitAssociationStore( CurrentUserService currentUserService,
-        JdbcTemplate jdbcTemplate )
-    {
-        return new JdbcOrgUnitAssociationsStore( currentUserService, jdbcTemplate,
-            new ProgramOrganisationUnitAssociationsQueryBuilder( currentUserService ),
-            cacheProvider.createProgramOrgUnitAssociationCache() );
-    }
+    org.hisp.dhis.tracker.domain.RelationshipItem.Enrollment from( Enrollment enrollment,
+        @Context TrackerIdSchemeParams idSchemeParams );
 
-    @Bean( "jdbcCategoryOptionOrgUnitAssociationsStore" )
-    JdbcOrgUnitAssociationsStore jdbcCategoryOptionOrgUnitAssociationStore( CurrentUserService currentUserService,
-        JdbcTemplate jdbcTemplate )
-    {
-        return new JdbcOrgUnitAssociationsStore( currentUserService, jdbcTemplate,
-            new CategoryOptionOrganisationUnitAssociationsQueryBuilder( currentUserService ),
-            cacheProvider.createCatOptOrgUnitAssociationCache() );
-    }
-
+    org.hisp.dhis.tracker.domain.RelationshipItem.Event from( Event event,
+        @Context TrackerIdSchemeParams idSchemeParams );
 }

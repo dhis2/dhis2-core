@@ -25,24 +25,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export;
+package org.hisp.dhis.webapi.controller.tracker.imports;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
+import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
+import org.hisp.dhis.webapi.controller.tracker.view.Relationship;
+import org.mapstruct.Context;
+import org.mapstruct.Mapper;
 
-public interface DomainMapper<FROM, TO>
+@Mapper( uses = {
+    RelationshipItemMapper.class,
+    InstantMapper.class } )
+interface RelationshipMapper
+    extends DomainMapper<Relationship, org.hisp.dhis.tracker.domain.Relationship>
 {
-    TO from( FROM from );
-
-    default List<TO> fromCollection( Collection<FROM> froms )
-    {
-        return Optional.ofNullable( froms )
-            .orElse( Collections.emptySet() )
-            .stream()
-            .map( this::from )
-            .collect( Collectors.toList() );
-    }
+    org.hisp.dhis.tracker.domain.Relationship from( Relationship relationship,
+        @Context TrackerIdSchemeParams idSchemeParams );
 }

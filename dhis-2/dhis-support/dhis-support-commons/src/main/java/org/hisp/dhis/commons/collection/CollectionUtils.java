@@ -104,8 +104,8 @@ public class CollectionUtils
      * contained by {@code collection2} as an immutable list.
      *
      * @param <T>
-     * @param list1 the first collection.
-     * @param list2 the second collection.
+     * @param collection1 the first collection.
+     * @param collection2 the second collection.
      * @return all elements in {@code collection1} not in {@code collection2}.
      */
     public static <A> List<A> difference( Collection<A> collection1, Collection<A> collection2 )

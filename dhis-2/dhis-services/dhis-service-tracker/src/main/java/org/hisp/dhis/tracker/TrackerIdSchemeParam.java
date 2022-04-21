@@ -33,6 +33,7 @@ import lombok.Value;
 
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -58,17 +59,17 @@ public class TrackerIdSchemeParam
 
     @JsonProperty
     @Builder.Default
-    private final String value = null;
+    private final String attributeUid = null;
 
     /**
-     * Creates a TrackerIdentifier of idScheme ATTRIBUTE.
+     * Creates a TrackerIdSchemeParam of idScheme ATTRIBUTE.
      *
-     * @param value the attribute value
-     * @return tracker identifier representing an attribute
+     * @param uid attribute uid
+     * @return tracker idscheme parameter representing an attribute
      */
-    public static TrackerIdSchemeParam ofAttribute( String value )
+    public static TrackerIdSchemeParam ofAttribute( String uid )
     {
-        return new TrackerIdSchemeParam( TrackerIdScheme.ATTRIBUTE, value );
+        return new TrackerIdSchemeParam( TrackerIdScheme.ATTRIBUTE, uid );
     }
 
     public <T extends IdentifiableObject> String getIdentifier( T object )
@@ -84,7 +85,7 @@ public class TrackerIdSchemeParam
         case ATTRIBUTE:
             return object.getAttributeValues()
                 .stream()
-                .filter( av -> av.getAttribute().getUid().equals( value ) )
+                .filter( av -> av.getAttribute().getUid().equals( attributeUid ) )
                 .map( AttributeValue::getValue )
                 .findFirst()
                 .orElse( null );
@@ -97,5 +98,41 @@ public class TrackerIdSchemeParam
     {
         String identifier = getIdentifier( object );
         return object.getClass().getSimpleName() + " (" + identifier + ")";
+    }
+
+    /**
+     * Creates an identifier for given {@code metadata} using this idScheme
+     * parameter. This means the metadata identifier will have the this
+     * {@link #idScheme} and {@link #attributeUid} for idScheme ATTRIBUTE. The
+     * {@link MetadataIdentifier#getIdentifier()} will be the appropriate one
+     * for this idScheme.
+     *
+     * @param metadata to create metadata identifier for
+     * @return metadata identifier representing metadata using this idScheme
+     *         parameter
+     */
+    public MetadataIdentifier toMetadataIdentifier( IdentifiableObject metadata )
+    {
+        return toMetadataIdentifier( getIdentifier( metadata ) );
+    }
+
+    /**
+     * Creates an identifier for given {@code identifier} using this idScheme
+     * parameter. This means the metadata identifier will have the this
+     * {@link #idScheme} and {@link #attributeUid} for idScheme ATTRIBUTE. The
+     * {@link MetadataIdentifier#getIdentifier()} will be the appropriate one
+     * for this idScheme.
+     *
+     * @param identifier to create metadata identifier for
+     * @return metadata identifier representing metadata using this idScheme
+     *         parameter
+     */
+    public MetadataIdentifier toMetadataIdentifier( String identifier )
+    {
+        if ( this.idScheme == TrackerIdScheme.ATTRIBUTE )
+        {
+            return MetadataIdentifier.ofAttribute( this.attributeUid, identifier );
+        }
+        return MetadataIdentifier.of( this.idScheme, identifier, null );
     }
 }

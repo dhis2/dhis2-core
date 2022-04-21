@@ -27,13 +27,13 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
-import org.hisp.dhis.tracker.domain.ProgramOwner;
+import org.hisp.dhis.webapi.controller.tracker.view.ProgramOwner;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 @Mapper
 public interface ProgramOwnerMapper
-    extends DomainMapper<org.hisp.dhis.dxf2.events.trackedentity.ProgramOwner, ProgramOwner>
+    extends ViewMapper<org.hisp.dhis.dxf2.events.trackedentity.ProgramOwner, ProgramOwner>
 {
     @Mapping( target = "orgUnit", source = "ownerOrgUnit" )
     @Mapping( target = "trackedEntity", source = "trackedEntityInstance" )

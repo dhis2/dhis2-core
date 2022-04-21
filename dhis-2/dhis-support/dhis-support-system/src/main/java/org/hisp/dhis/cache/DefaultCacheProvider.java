@@ -120,6 +120,7 @@ public class DefaultCacheProvider
         programStageWebHookNotificationTemplateCache,
         pgmOrgUnitAssocCache,
         catOptOrgUnitAssocCache,
+        dataSetOrgUnitAssocCache,
         apiTokensCache,
         programCache,
         teiAttributesCache,
@@ -518,6 +519,16 @@ public class DefaultCacheProvider
     {
         return registerCache( this.<V> newBuilder()
             .forRegion( Region.catOptOrgUnitAssocCache.name() )
+            .expireAfterWrite( 1, TimeUnit.HOURS )
+            .withInitialCapacity( (int) getActualSize( 20 ) )
+            .withMaximumSize( orZeroInTestRun( SIZE_1K ) ) );
+    }
+
+    @Override
+    public <V> Cache<V> createDataSetOrgUnitAssociationCache()
+    {
+        return registerCache( this.<V> newBuilder()
+            .forRegion( Region.dataSetOrgUnitAssocCache.name() )
             .expireAfterWrite( 1, TimeUnit.HOURS )
             .withInitialCapacity( (int) getActualSize( 20 ) )
             .withMaximumSize( orZeroInTestRun( SIZE_1K ) ) );

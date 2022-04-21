@@ -407,17 +407,18 @@ class SqlViewServiceTest extends DhisSpringTest
         Map<String, String> variables = new HashMap<>();
         variables.put( "ten", "10" );
 
-        SqlView sqlView = new SqlView( "Name", "select '${_current_username}', ${_current_user_id}, ${ten}",
+        SqlView sqlView = new SqlView( "Name", "select '${_current_username}' as username, " +
+            "${_current_user_id} as id, ${ten} as value",
             SqlViewType.QUERY );
 
         Grid grid = sqlViewService.getSqlViewGrid( sqlView, null, variables, null, null );
 
         String username = admin.getUsername();
         long id = admin.getId();
-        assertEquals( grid.toString(), "[\n" +
-            "['" + username + "', " + id + ", 10]\n" +
+        assertEquals( "[\n" +
+            "[username, id, value]\n" +
             "[" + username + ", " + id + ", 10]\n" +
-            "]" );
+            "]", grid.toString() );
     }
 
     private SqlView getSqlView( String sqlViewString )

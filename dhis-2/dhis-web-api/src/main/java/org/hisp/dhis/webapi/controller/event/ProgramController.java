@@ -123,9 +123,9 @@ public class ProgramController
     @ResponseBody
     @GetMapping( value = "orgUnits" )
     public Map<String, Collection<String>> getOrgUnitsAssociations(
-        @RequestParam( value = "programs" ) Set<String> programUids )
+        @RequestParam( value = "programs" ) Set<String> programs )
     {
-        return Optional.ofNullable( programUids )
+        return Optional.ofNullable( programs )
             .filter( CollectionUtils::isNotEmpty )
             .map( programService::getProgramOrganisationUnitsAssociationsForCurrentUser )
             .map( SetValuedMap::asMap )
