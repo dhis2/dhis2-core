@@ -348,7 +348,9 @@ class DataValueServiceTest
         assertEquals( 2, dataValueService
             .getDataValues( new DataExportParams()
                 .setDataElements( Sets.newHashSet( dataElementA ) )
-                .setCategoryOptionCombos( Sets.newHashSet( optionCombo ) ) )
+                .setCategoryOptionCombos( Sets.newHashSet( optionCombo ) )
+                .setPeriods( Sets.newHashSet( periodA ) )
+                .setOrganisationUnits( Sets.newHashSet( sourceA, sourceB ) ) )
             .size() );
     }
 
