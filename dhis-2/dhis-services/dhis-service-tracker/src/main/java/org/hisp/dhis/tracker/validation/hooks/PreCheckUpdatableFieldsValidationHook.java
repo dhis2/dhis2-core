@@ -72,7 +72,8 @@ public class PreCheckUpdatableFieldsValidationHook
         Program program = pi.getProgram();
         TrackedEntityInstance trackedEntityInstance = pi.getEntityInstance();
 
-        reporter.addErrorIf( () -> !program.getUid().equals( enrollment.getProgram() ), enrollment, E1127, "program" );
+        reporter.addErrorIf( () -> !enrollment.getProgram().isEqualTo( program ), enrollment, E1127,
+            "program" );
         reporter.addErrorIf( () -> !trackedEntityInstance.getUid().equals( enrollment.getTrackedEntity() ), enrollment,
             E1127, "trackedEntity" );
     }
@@ -84,7 +85,7 @@ public class PreCheckUpdatableFieldsValidationHook
         ProgramStage programStage = programStageInstance.getProgramStage();
         ProgramInstance programInstance = programStageInstance.getProgramInstance();
 
-        reporter.addErrorIf( () -> !event.getProgramStage().equals( programStage.getUid() ), event, E1128,
+        reporter.addErrorIf( () -> !event.getProgramStage().isEqualTo( programStage ), event, E1128,
             "programStage" );
         reporter.addErrorIf(
             () -> event.getEnrollment() != null && !event.getEnrollment().equals( programInstance.getUid() ),

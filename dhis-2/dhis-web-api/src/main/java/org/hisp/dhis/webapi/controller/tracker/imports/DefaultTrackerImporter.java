@@ -32,8 +32,10 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
+import org.mapstruct.factory.Mappers;
 import org.springframework.stereotype.Component;
 
 /**
@@ -43,6 +45,13 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class DefaultTrackerImporter implements TrackerImporter
 {
+    private static final TrackedEntityMapper TRACKED_ENTITY_MAPPER = Mappers.getMapper( TrackedEntityMapper.class );
+
+    private static final EnrollmentMapper ENROLLMENT_MAPPER = Mappers.getMapper( EnrollmentMapper.class );
+
+    private static final EventMapper EVENT_MAPPER = Mappers.getMapper( EventMapper.class );
+
+    private static final RelationshipMapper RELATIONSHIP_MAPPER = Mappers.getMapper( RelationshipMapper.class );
 
     @NonNull
     private final TrackerSyncImporter syncImporter;
@@ -53,6 +62,7 @@ public class DefaultTrackerImporter implements TrackerImporter
     @Override
     public TrackerImportReport importTracker( TrackerImportRequest request )
     {
+
         TrackerImportParams params = trackerImportParams( request );
 
         if ( request.isAsync() )
@@ -66,13 +76,20 @@ public class DefaultTrackerImporter implements TrackerImporter
 
     private TrackerImportParams trackerImportParams( TrackerImportRequest request )
     {
+        TrackerIdSchemeParams idSchemeParams = TrackerImportParamsBuilder
+            .getTrackerIdentifiers( request.getContextService().getParameterValuesMap() );
+
         TrackerImportParams.TrackerImportParamsBuilder paramsBuilder = TrackerImportParamsBuilder
             .builder( request.getContextService().getParameterValuesMap() )
             .userId( request.getUserUid() )
-            .trackedEntities( request.getTrackerBundleParams().getTrackedEntities() )
-            .enrollments( request.getTrackerBundleParams().getEnrollments() )
-            .events( request.getTrackerBundleParams().getEvents() )
-            .relationships( request.getTrackerBundleParams().getRelationships() );
+            .trackedEntities(
+                TRACKED_ENTITY_MAPPER.fromCollection( request.getTrackerBundleParams().getTrackedEntities(),
+                    idSchemeParams ) )
+            .enrollments(
+                ENROLLMENT_MAPPER.fromCollection( request.getTrackerBundleParams().getEnrollments(), idSchemeParams ) )
+            .events( EVENT_MAPPER.fromCollection( request.getTrackerBundleParams().getEvents(), idSchemeParams ) )
+            .relationships( RELATIONSHIP_MAPPER.fromCollection( request.getTrackerBundleParams().getRelationships(),
+                idSchemeParams ) );
 
         if ( !request.isAsync() )
         {

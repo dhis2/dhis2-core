@@ -40,7 +40,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.program.ProgramStage;
@@ -93,21 +92,23 @@ public class EventDataValuesValidationHook
 
     private void validateMandatoryDataValues( Event event, ValidationErrorReporter reporter )
     {
-        if ( StringUtils.isNotEmpty( event.getProgramStage() ) )
+        if ( event.getProgramStage().isBlank() )
         {
-            TrackerPreheat preheat = reporter.getBundle().getPreheat();
-            ProgramStage programStage = reporter.getBundle().getPreheat().getProgramStage( event.getProgramStage() );
-            final List<String> mandatoryDataElements = programStage.getProgramStageDataElements()
-                .stream()
-                .filter( ProgramStageDataElement::isCompulsory )
-                .map( de -> preheat.getIdSchemes().getDataElementIdScheme()
-                    .getIdentifier( de.getDataElement() ) )
-                .collect( Collectors.toList() );
-            List<String> missingDataValue = validateMandatoryDataValue( programStage, event,
-                mandatoryDataElements );
-            missingDataValue
-                .forEach( de -> reporter.addError( event, E1303, de ) );
+            return;
         }
+
+        TrackerPreheat preheat = reporter.getBundle().getPreheat();
+        ProgramStage programStage = reporter.getBundle().getPreheat().getProgramStage( event.getProgramStage() );
+        final List<String> mandatoryDataElements = programStage.getProgramStageDataElements()
+            .stream()
+            .filter( ProgramStageDataElement::isCompulsory )
+            .map( de -> preheat.getIdSchemes().getDataElementIdScheme()
+                .getIdentifier( de.getDataElement() ) )
+            .collect( Collectors.toList() );
+        List<String> missingDataValue = validateMandatoryDataValue( programStage, event,
+            mandatoryDataElements );
+        missingDataValue
+            .forEach( de -> reporter.addError( event, E1303, de ) );
     }
 
     private void validateDataElement( ValidationErrorReporter reporter, DataElement dataElement,

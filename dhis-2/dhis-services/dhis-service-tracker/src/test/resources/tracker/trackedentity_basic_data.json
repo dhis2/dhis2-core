@@ -1,238 +1,338 @@
 {
+  "importMode": "COMMIT",
+  "idSchemes": {
+    "dataElementIdScheme": {
+      "idScheme": "UID"
+    },
+    "orgUnitIdScheme": {
+      "idScheme": "UID"
+    },
+    "programIdScheme": {
+      "idScheme": "UID"
+    },
+    "programStageIdScheme": {
+      "idScheme": "UID"
+    },
+    "idScheme": {
+      "idScheme": "UID"
+    },
+    "categoryOptionComboIdScheme": {
+      "idScheme": "UID"
+    },
+    "categoryOptionIdScheme": {
+      "idScheme": "UID"
+    }
+  },
+  "importStrategy": "CREATE",
+  "atomicMode": "ALL",
+  "flushMode": "AUTO",
+  "validationMode": "FULL",
+  "skipPatternValidation": false,
+  "skipSideEffects": false,
+  "skipRuleEngine": false,
   "trackedEntities": [
     {
-      "trackedEntityType": "bPJ0FMtcnEh",
       "trackedEntity": "NCc1rCEOKaY",
+      "trackedEntityType": "bPJ0FMtcnEh",
+      "orgUnit": "QfUVllTs6cS",
+      "inactive": false,
+      "deleted": false,
+      "potentialDuplicate": false,
+      "relationships": [],
       "attributes": [
         {
           "attribute": "fmBIpOStKkF",
-          "value": "PersonA",
-          "storedBy": "admin"
+          "storedBy": "admin",
+          "value": "PersonA"
         },
         {
           "attribute": "sTJvSLN7Kcb",
-          "value": "AddressA",
-          "storedBy": "admin"
+          "storedBy": "admin",
+          "value": "AddressA"
         }
       ],
-      "orgUnit": "QfUVllTs6cS",
-      "inactive": false
+      "enrollments": [],
+      "programOwners": []
     },
     {
-      "trackedEntityType": "bPJ0FMtcnEh",
       "trackedEntity": "PB9VMezGkwA",
+      "trackedEntityType": "bPJ0FMtcnEh",
+      "orgUnit": "QfUVllTs6cS",
+      "inactive": false,
+      "deleted": false,
+      "potentialDuplicate": false,
+      "relationships": [],
       "attributes": [
         {
           "attribute": "fmBIpOStKkF",
-          "value": "PersonA",
-          "storedBy": "admin"
+          "storedBy": "admin",
+          "value": "PersonA"
         },
         {
           "attribute": "sTJvSLN7Kcb",
-          "value": "AddressA",
-          "storedBy": "admin"
+          "storedBy": "admin",
+          "value": "AddressA"
         }
       ],
-      "orgUnit": "QfUVllTs6cS",
-      "inactive": false
+      "enrollments": [],
+      "programOwners": []
     },
     {
-      "trackedEntityType": "bPJ0FMtcnEh",
       "trackedEntity": "N0wuhEwexUW",
+      "trackedEntityType": "bPJ0FMtcnEh",
+      "orgUnit": "QfUVllTs6cS",
+      "inactive": false,
+      "deleted": false,
+      "potentialDuplicate": false,
+      "relationships": [],
       "attributes": [
         {
           "attribute": "fmBIpOStKkF",
-          "value": "PersonA",
-          "storedBy": "admin"
+          "storedBy": "admin",
+          "value": "PersonA"
         },
         {
           "attribute": "sTJvSLN7Kcb",
-          "value": "AddressA",
-          "storedBy": "admin"
+          "storedBy": "admin",
+          "value": "AddressA"
         }
       ],
-      "orgUnit": "QfUVllTs6cS",
-      "inactive": false
+      "enrollments": [],
+      "programOwners": []
     },
     {
-      "trackedEntityType": "bPJ0FMtcnEh",
       "trackedEntity": "g3eF1fJXuSz",
+      "trackedEntityType": "bPJ0FMtcnEh",
+      "orgUnit": "QfUVllTs6cS",
+      "inactive": false,
+      "deleted": false,
+      "potentialDuplicate": false,
+      "relationships": [],
       "attributes": [
         {
           "attribute": "fmBIpOStKkF",
-          "value": "PersonA",
-          "storedBy": "admin"
+          "storedBy": "admin",
+          "value": "PersonA"
         },
         {
           "attribute": "sTJvSLN7Kcb",
-          "value": "AddressA",
-          "storedBy": "admin"
+          "storedBy": "admin",
+          "value": "AddressA"
         }
       ],
-      "orgUnit": "QfUVllTs6cS",
-      "inactive": false
+      "enrollments": [],
+      "programOwners": []
     },
     {
-      "trackedEntityType": "bPJ0FMtcnEh",
       "trackedEntity": "s9D7VHiYLwj",
+      "trackedEntityType": "bPJ0FMtcnEh",
+      "orgUnit": "QfUVllTs6cS",
+      "inactive": false,
+      "deleted": false,
+      "potentialDuplicate": false,
+      "relationships": [],
       "attributes": [
         {
           "attribute": "fmBIpOStKkF",
-          "value": "PersonA",
-          "storedBy": "admin"
+          "storedBy": "admin",
+          "value": "PersonA"
         },
         {
           "attribute": "sTJvSLN7Kcb",
-          "value": "AddressA",
-          "storedBy": "admin"
+          "storedBy": "admin",
+          "value": "AddressA"
         }
       ],
-      "orgUnit": "QfUVllTs6cS",
-      "inactive": false
+      "enrollments": [],
+      "programOwners": []
     },
     {
-      "trackedEntityType": "bPJ0FMtcnEh",
       "trackedEntity": "C5nACFyIFQo",
+      "trackedEntityType": "bPJ0FMtcnEh",
+      "orgUnit": "QfUVllTs6cS",
+      "inactive": false,
+      "deleted": false,
+      "potentialDuplicate": false,
+      "relationships": [],
       "attributes": [
         {
           "attribute": "fmBIpOStKkF",
-          "value": "PersonA",
-          "storedBy": "admin"
+          "storedBy": "admin",
+          "value": "PersonA"
         },
         {
           "attribute": "sTJvSLN7Kcb",
-          "value": "AddressA",
-          "storedBy": "admin"
+          "storedBy": "admin",
+          "value": "AddressA"
         }
       ],
-      "orgUnit": "QfUVllTs6cS",
-      "inactive": false
+      "enrollments": [],
+      "programOwners": []
     },
     {
-      "trackedEntityType": "bPJ0FMtcnEh",
       "trackedEntity": "Jx8Ul6pnRfM",
+      "trackedEntityType": "bPJ0FMtcnEh",
+      "orgUnit": "QfUVllTs6cS",
+      "inactive": false,
+      "deleted": false,
+      "potentialDuplicate": false,
+      "relationships": [],
       "attributes": [
         {
           "attribute": "fmBIpOStKkF",
-          "value": "PersonA",
-          "storedBy": "admin"
+          "storedBy": "admin",
+          "value": "PersonA"
         },
         {
           "attribute": "sTJvSLN7Kcb",
-          "value": "AddressA",
-          "storedBy": "admin"
+          "storedBy": "admin",
+          "value": "AddressA"
         }
       ],
-      "orgUnit": "QfUVllTs6cS",
-      "inactive": false
+      "enrollments": [],
+      "programOwners": []
     },
     {
-      "trackedEntityType": "bPJ0FMtcnEh",
       "trackedEntity": "Z324qoN3WrF",
+      "trackedEntityType": "bPJ0FMtcnEh",
+      "orgUnit": "QfUVllTs6cS",
+      "inactive": false,
+      "deleted": false,
+      "potentialDuplicate": false,
+      "relationships": [],
       "attributes": [
         {
           "attribute": "fmBIpOStKkF",
-          "value": "PersonA",
-          "storedBy": "admin"
+          "storedBy": "admin",
+          "value": "PersonA"
         },
         {
           "attribute": "sTJvSLN7Kcb",
-          "value": "AddressA",
-          "storedBy": "admin"
+          "storedBy": "admin",
+          "value": "AddressA"
         }
       ],
-      "orgUnit": "QfUVllTs6cS",
-      "inactive": false
+      "enrollments": [],
+      "programOwners": []
     },
     {
-      "trackedEntityType": "bPJ0FMtcnEh",
       "trackedEntity": "TGeGZIIt4MO",
+      "trackedEntityType": "bPJ0FMtcnEh",
+      "orgUnit": "QfUVllTs6cS",
+      "inactive": false,
+      "deleted": false,
+      "potentialDuplicate": false,
+      "relationships": [],
       "attributes": [
         {
           "attribute": "fmBIpOStKkF",
-          "value": "PersonA",
-          "storedBy": "admin"
+          "storedBy": "admin",
+          "value": "PersonA"
         },
         {
           "attribute": "sTJvSLN7Kcb",
-          "value": "AddressA",
-          "storedBy": "admin"
+          "storedBy": "admin",
+          "value": "AddressA"
         }
       ],
-      "orgUnit": "QfUVllTs6cS",
-      "inactive": false
+      "enrollments": [],
+      "programOwners": []
     },
     {
-      "trackedEntityType": "bPJ0FMtcnEh",
       "trackedEntity": "KSLmzEjaV6A",
+      "trackedEntityType": "bPJ0FMtcnEh",
+      "orgUnit": "QfUVllTs6cS",
+      "inactive": false,
+      "deleted": false,
+      "potentialDuplicate": false,
+      "relationships": [],
       "attributes": [
         {
           "attribute": "fmBIpOStKkF",
-          "value": "PersonA",
-          "storedBy": "admin"
+          "storedBy": "admin",
+          "value": "PersonA"
         },
         {
           "attribute": "sTJvSLN7Kcb",
-          "value": "AddressA",
-          "storedBy": "admin"
+          "storedBy": "admin",
+          "value": "AddressA"
         }
       ],
-      "orgUnit": "QfUVllTs6cS",
-      "inactive": false
+      "enrollments": [],
+      "programOwners": []
     },
     {
-      "trackedEntityType": "bPJ0FMtcnEh",
       "trackedEntity": "IybbQIQt6rn",
+      "trackedEntityType": "bPJ0FMtcnEh",
+      "orgUnit": "QfUVllTs6cS",
+      "inactive": false,
+      "deleted": false,
+      "potentialDuplicate": false,
+      "relationships": [],
       "attributes": [
         {
           "attribute": "fmBIpOStKkF",
-          "value": "PersonA",
-          "storedBy": "admin"
+          "storedBy": "admin",
+          "value": "PersonA"
         },
         {
           "attribute": "sTJvSLN7Kcb",
-          "value": "AddressA",
-          "storedBy": "admin"
+          "storedBy": "admin",
+          "value": "AddressA"
         }
       ],
-      "orgUnit": "QfUVllTs6cS",
-      "inactive": false
+      "enrollments": [],
+      "programOwners": []
     },
     {
-      "trackedEntityType": "bPJ0FMtcnEh",
       "trackedEntity": "daMwzsKN3oJ",
+      "trackedEntityType": "bPJ0FMtcnEh",
+      "orgUnit": "QfUVllTs6cS",
+      "inactive": false,
+      "deleted": false,
+      "potentialDuplicate": false,
+      "relationships": [],
       "attributes": [
         {
           "attribute": "fmBIpOStKkF",
-          "value": "PersonA",
-          "storedBy": "admin"
+          "storedBy": "admin",
+          "value": "PersonA"
         },
         {
           "attribute": "sTJvSLN7Kcb",
-          "value": "AddressA",
-          "storedBy": "admin"
+          "storedBy": "admin",
+          "value": "AddressA"
         }
       ],
-      "orgUnit": "QfUVllTs6cS",
-      "inactive": false
+      "enrollments": [],
+      "programOwners": []
     },
     {
-      "trackedEntityType": "bPJ0FMtcnEh",
       "trackedEntity": "pcSaZP9lFqu",
+      "trackedEntityType": "bPJ0FMtcnEh",
+      "orgUnit": "QfUVllTs6cS",
+      "inactive": false,
+      "deleted": false,
+      "potentialDuplicate": false,
+      "relationships": [],
       "attributes": [
         {
           "attribute": "fmBIpOStKkF",
-          "value": "PersonA",
-          "storedBy": "admin"
+          "storedBy": "admin",
+          "value": "PersonA"
         },
         {
           "attribute": "sTJvSLN7Kcb",
-          "value": "AddressA",
-          "storedBy": "admin"
+          "storedBy": "admin",
+          "value": "AddressA"
         }
       ],
-      "orgUnit": "QfUVllTs6cS",
-      "inactive": false
+      "enrollments": [],
+      "programOwners": []
     }
-  ]
+  ],
+  "enrollments": [],
+  "events": [],
+  "relationships": [],
+  "username": "system-process"
 }

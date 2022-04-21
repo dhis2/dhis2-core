@@ -40,6 +40,8 @@ import java.util.HashSet;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,6 +61,9 @@ class ProgramIndicatorServiceVariableTest extends DhisSpringTest
     @Autowired
     private ProgramService programService;
 
+    @Autowired
+    private TrackedEntityAttributeService attributeService;
+
     private Program programA;
 
     private ProgramIndicator piA;
@@ -74,23 +79,33 @@ class ProgramIndicatorServiceVariableTest extends DhisSpringTest
     {
         OrganisationUnit organisationUnit = createOrganisationUnit( 'A' );
         organisationUnitService.addOrganisationUnit( organisationUnit );
+
         programA = createProgram( 'A', new HashSet<>(), organisationUnit );
         programA.setUid( "Program000A" );
         programService.addProgram( programA );
+
         piA = createProgramIndicator( 'A', programA, "20", null );
         programA.getProgramIndicators().add( piA );
         piB = createProgramIndicator( 'B', programA, "70", null );
         piB.setAnalyticsType( ENROLLMENT );
         programA.getProgramIndicators().add( piB );
+
+        TrackedEntityAttribute teaA = createTrackedEntityAttribute( 'A' );
+        teaA.setUid( "TEAttribute" );
+        attributeService.addTrackedEntityAttribute( teaA );
     }
 
     private String getSql( String expression )
     {
+        piA.setExpression( expression );
+
         return programIndicatorService.getAnalyticsSql( expression, piA, startDate, endDate );
     }
 
     private String getSqlEnrollment( String expression )
     {
+        piB.setExpression( expression );
+
         return programIndicatorService.getAnalyticsSql( expression, piB, startDate, endDate );
     }
 
@@ -249,14 +264,28 @@ class ProgramIndicatorServiceVariableTest extends DhisSpringTest
     @Test
     void testValueCount()
     {
-        assertEquals( "nullif(cast(() as double),0)", getSql( "V{value_count}" ) );
-        assertEquals( "nullif(cast(() as double),0)", getSqlEnrollment( "V{value_count}" ) );
+        assertEquals( "0", getSql( "V{value_count}" ) );
+        assertEquals( "0", getSqlEnrollment( "V{value_count}" ) );
+
+        assertEquals(
+            "coalesce(\"TEAttribute\",'') + nullif(cast((case when \"TEAttribute\" is not null then 1 else 0 end) as double),0)",
+            getSql( "A{TEAttribute} + V{value_count}" ) );
+        assertEquals(
+            "coalesce(\"TEAttribute\",'') + nullif(cast((case when \"TEAttribute\" is not null then 1 else 0 end) as double),0)",
+            getSqlEnrollment( "A{TEAttribute} + V{value_count}" ) );
     }
 
     @Test
     void testZeroPosValueCount()
     {
-        assertEquals( "nullif(cast(() as double),0)", getSql( "V{zero_pos_value_count}" ) );
-        assertEquals( "nullif(cast(() as double),0)", getSqlEnrollment( "V{zero_pos_value_count}" ) );
+        assertEquals( "0", getSql( "V{zero_pos_value_count}" ) );
+        assertEquals( "0", getSqlEnrollment( "V{zero_pos_value_count}" ) );
+
+        assertEquals(
+            "coalesce(\"TEAttribute\",'') + nullif(cast((case when \"TEAttribute\" >= 0 then 1 else 0 end) as double),0)",
+            getSql( "A{TEAttribute} + V{zero_pos_value_count}" ) );
+        assertEquals(
+            "coalesce(\"TEAttribute\",'') + nullif(cast((case when \"TEAttribute\" >= 0 then 1 else 0 end) as double),0)",
+            getSqlEnrollment( "A{TEAttribute} + V{zero_pos_value_count}" ) );
     }
 }

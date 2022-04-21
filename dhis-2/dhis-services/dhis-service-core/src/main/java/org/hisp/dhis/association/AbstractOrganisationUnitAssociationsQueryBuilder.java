@@ -52,7 +52,6 @@ import org.hisp.dhis.user.User;
 @RequiredArgsConstructor
 public abstract class AbstractOrganisationUnitAssociationsQueryBuilder
 {
-
     private final CurrentUserService currentUserService;
 
     private static final String SHARING_OUTER_QUERY_BEGIN = "select " +
@@ -79,11 +78,13 @@ public abstract class AbstractOrganisationUnitAssociationsQueryBuilder
             " left join " + getRelationshipTableName() + " " + REL_TABLE_ALIAS +
             " on " + T_ALIAS + "." + getJoinColumnName() + " = " + REL_TABLE_ALIAS + "." + getJoinColumnName() +
             " left join organisationunit ou " +
-            " on " + REL_TABLE_ALIAS + ".organisationunitid = ou.organisationunitid " +
+            " on " + REL_TABLE_ALIAS + "." + getOrgUnitJoinColumnName() + " = ou.organisationunitid " +
             "where";
     }
 
     protected abstract String getRelationshipTableName();
+
+    protected abstract String getOrgUnitJoinColumnName();
 
     protected abstract String getJoinColumnName();
 
@@ -211,7 +212,7 @@ public abstract class AbstractOrganisationUnitAssociationsQueryBuilder
     private String getUserOrgUnitPathsFilter( Set<String> userOrgUnitPaths )
     {
         return Stream.concat(
-            Stream.of( "ou.organisationUnitId is null" ),
+            Stream.of( "ou.organisationunitid is null" ),
             userOrgUnitPaths.stream()
                 .map( userOrgUnitPath -> "ou.path like '" + userOrgUnitPath + "%'" ) )
             .collect( joining( " or ", "(", ")" ) );
