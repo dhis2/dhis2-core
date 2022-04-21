@@ -163,8 +163,6 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
     private void handleDataValues( Session session, TrackerPreheat preheat, Set<DataValue> payloadDataValues,
         ProgramStageInstance psi )
     {
-        String persistedDataValue = "";
-
         Map<String, EventDataValue> dataValueDBMap = psi
             .getEventDataValues()
             .stream()
@@ -188,10 +186,15 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
                 eventDataValue = new EventDataValue();
                 auditType = AuditType.CREATE;
             }
+            else
+            {
+                if ( !dv.getValue().equals( eventDataValue.getValue() ) )
+                {
+                    auditType = AuditType.UPDATE;
+                }
+            }
 
-            persistedDataValue = eventDataValue.getValue();
             eventDataValue.setDataElement( dateElement.getUid() );
-            eventDataValue.setValue( dv.getValue() );
             eventDataValue.setStoredBy( dv.getStoredBy() );
 
             handleDataValueCreatedUpdatedDates( dv, eventDataValue );
@@ -208,17 +211,14 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
             }
             else
             {
+                eventDataValue.setValue( dv.getValue() );
+
                 if ( dateElement.isFileType() )
                 {
                     assignFileResource( session, preheat, eventDataValue.getValue() );
                 }
 
                 psi.getEventDataValues().add( eventDataValue );
-
-                if ( !dv.getValue().equals( persistedDataValue ) )
-                {
-                    auditType = AuditType.UPDATE;
-                }
             }
 
             logTrackedEntityDataValueHistory( preheat.getUsername(), eventDataValue, dateElement, psi, auditType,
