@@ -101,12 +101,12 @@ public class OrgUnitValueTypeSupplier extends AbstractPreheatSupplier
     }
 
     private void collectResourceIds( List<String> orgUnitDataElements, List<String> orgUnitIds,
-        Set<DataValue> dataElements )
+        Set<DataValue> dataValues )
     {
-        dataElements.forEach( de -> {
-            if ( orgUnitDataElements.contains( de.getDataElement() ) && !StringUtils.isEmpty( de.getValue() ) )
+        dataValues.forEach( dv -> {
+            if ( orgUnitDataElements.contains( dv.getDataElement() ) && !StringUtils.isEmpty( dv.getValue() ) )
             {
-                orgUnitIds.add( de.getValue() );
+                orgUnitIds.add( dv.getValue() );
             }
         } );
     }
