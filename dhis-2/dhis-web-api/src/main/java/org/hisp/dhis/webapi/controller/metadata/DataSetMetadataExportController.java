@@ -44,13 +44,13 @@ import com.fasterxml.jackson.databind.JsonNode;
  */
 @Controller
 @AllArgsConstructor
-@RequestMapping( "/dataSetMetadata" )
+@RequestMapping( "/dataEntry" )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class DataSetMetadataExportController
 {
     private final DataSetMetadataExportService exportService;
 
-    @GetMapping
+    @GetMapping( "/metadata" )
     public ResponseEntity<JsonNode> getMetadata()
     {
         return ResponseEntity.ok( exportService.getDataSetMetadata() );

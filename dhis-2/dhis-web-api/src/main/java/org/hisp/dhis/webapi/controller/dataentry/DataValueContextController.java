@@ -55,7 +55,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping( value = "/dataEntry" )
+@RequestMapping( "/dataEntry" )
 @AllArgsConstructor
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class DataValueContextController
@@ -68,7 +68,7 @@ public class DataValueContextController
 
     private final DataValidator dataValidator;
 
-    @GetMapping( value = "/dataValueContext" )
+    @GetMapping( "/dataValueContext" )
     public DataValueContextDto getChangeLog( DataValueQueryParams params )
     {
         DataElement de = dataValidator.getAndValidateDataElement( params.getDe() );
