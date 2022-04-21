@@ -49,7 +49,7 @@ class GistTransformControllerTest extends AbstractGistControllerTest
         JsonObject user = GET(
             "/users/{uid}/gist?fields=surname~rename(name),username~rename(alias)",
             getSuperuserUid() ).content();
-        assertEquals( "admin", user.getString( "name" ).string() );
+        assertEquals( "Surnameadmin", user.getString( "name" ).string() );
         assertEquals( 2, user.size() );
     }
 
@@ -68,7 +68,7 @@ class GistTransformControllerTest extends AbstractGistControllerTest
         JsonObject gist = GET( "/users/{uid}/userGroups/gist?fields=name,users::pluck(surname)", getSuperuserUid() )
             .content();
         assertHasPager( gist, 1, 50 );
-        assertEquals( "admin",
+        assertEquals( "Surnameadmin",
             gist.getArray( "userGroups" ).getObject( 0 ).getArray( "users" ).getString( 0 ).string() );
     }
 

@@ -31,6 +31,7 @@ import static org.hisp.dhis.webapi.utils.WebClientUtils.failOnException;
 
 import org.hisp.dhis.IntegrationH2Test;
 import org.hisp.dhis.jsontree.JsonResponse;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.utils.TestUtils;
 import org.hisp.dhis.webapi.security.config.WebMvcConfig;
@@ -65,7 +66,7 @@ import org.springframework.web.context.WebApplicationContext;
 @ActiveProfiles( "test-h2" )
 @IntegrationH2Test
 @Transactional
-public abstract class DhisControllerWithApiTokenAuthTest extends DhisMockMvcControllerTest
+public abstract class   DhisControllerWithApiTokenAuthTest extends DhisMockMvcControllerTest
 {
 
     @Autowired
@@ -79,13 +80,22 @@ public abstract class DhisControllerWithApiTokenAuthTest extends DhisMockMvcCont
 
     protected MockMvc mvc;
 
+    protected User adminUser;
+
     @BeforeEach
     public void setup()
         throws Exception
     {
         userService = _userService;
+
+        clearSecurityContext();
+        adminUser = createAdminUser( "ALL" );
+
         mvc = MockMvcBuilders.webAppContextSetup( webApplicationContext ).addFilter( springSecurityFilterChain )
             .build();
+
+        injectSecurityContext( adminUser );
+
         TestUtils.executeStartupRoutines( webApplicationContext );
     }
 

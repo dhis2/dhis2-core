@@ -39,7 +39,9 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
+
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.ValueType;
@@ -66,6 +68,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccess;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testcontainers.shaded.com.google.common.collect.ImmutableMap;
 
@@ -74,6 +77,7 @@ import com.google.common.collect.Sets;
 /**
  * @author Luciano Fiandesio
  */
+@Slf4j
 class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest
 {
 
@@ -103,6 +107,9 @@ class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest
 
     private Program programB;
 
+    private User superUser;
+    private User nonSuperUser;
+
     private final static int A = 65;
 
     private final static int C = 67;
@@ -111,30 +118,58 @@ class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest
 
     private final static int F = 70;
 
-    @Override
-    protected void mockCurrentUserService()
-    {
-        User user = createUserWithAuth( "testUser" );
-        user.addOrganisationUnit( organisationUnitA );
-        user.getTeiSearchOrganisationUnits().add( organisationUnitA );
-        user.getTeiSearchOrganisationUnits().add( organisationUnitB );
-        makeUserSuper( user );
-        manager.update( user );
-        // currentUserService = new MockCurrentUserService( user );
-        injectSecurityContext( user );
-        // ReflectionTestUtils.setField( trackedEntityInstanceAggregate,
-        // "currentUserService", currentUserService );
-        // ReflectionTestUtils.setField( trackedEntityInstanceService,
-        // "currentUserService", currentUserService );
-        // ReflectionTestUtils.setField( teiService, "currentUserService",
-        // currentUserService );
-    }
+    //    @Override
+    //    protected void mockCurrentUserService()
+    //    {
+    //////        User user = createUserWithAuth( "testUser" );
+    ////        User user = mockUser( "testUser2",null);
+    ////        user.addOrganisationUnit( organisationUnitA );
+    ////        user.getTeiSearchOrganisationUnits().add( organisationUnitA );
+    ////        user.getTeiSearchOrganisationUnits().add( organisationUnitB );
+    //////        makeUserSuper( user );
+    ////        userService.updateUser( user );
+    ////        dbmsManager.flushSession();
+    ////        // currentUserService = new MockCurrentUserService( user );
+    ////        injectSecurityContext( user );
+    //        // ReflectionTestUtils.setField( trackedEntityInstanceAggregate,
+    //        // "currentUserService", currentUserService );
+    //        // ReflectionTestUtils.setField( trackedEntityInstanceService,
+    //        // "currentUserService", currentUserService );
+    //        // ReflectionTestUtils.setField( teiService, "currentUserService",
+    //        // currentUserService );
+    //    }
+//    @Override
+//    protected void mockCurrentUserService()
+//    {
+//        User user = createUserWithAuth( "testUser2" );
+//        user.addOrganisationUnit( organisationUnitA );
+//        user.getTeiSearchOrganisationUnits().add( organisationUnitA );
+//        user.getTeiSearchOrganisationUnits().add( organisationUnitB );
+//        userService.updateUser( user );
+//        injectSecurityContext( user );
+//        dbmsManager.clearSession();
+//    }
 
     @BeforeEach
     void setUp()
     {
-        // ReflectionTestUtils.setField( trackedEntityInstanceAggregate,
-        // "currentUserService", currentUserService );
+        doInTransaction( () -> {
+            superUser = preCreateInjectAdminUser();
+            injectSecurityContext( superUser );
+
+            nonSuperUser = createUserWithAuth( "testUser2" );
+            nonSuperUser.addOrganisationUnit( organisationUnitA );
+            nonSuperUser.getTeiSearchOrganisationUnits().add( organisationUnitA );
+            nonSuperUser.getTeiSearchOrganisationUnits().add( organisationUnitB );
+            userService.updateUser( nonSuperUser );
+
+            dbmsManager.clearSession();
+            // ReflectionTestUtils.setField( trackedEntityInstanceAggregate,
+            // "currentUserService", currentUserService );
+            User currentUser = currentUserService.getCurrentUser();
+            log.info( "Setting up" );
+        } );
+
     }
 
     @Test
@@ -155,6 +190,7 @@ class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest
     void testTrackedEntityInstanceIncludeAllAttributesEnrollmentsEventsRelationshipsOwners()
     {
         populatePrerequisites( true );
+        injectSecurityContext( nonSuperUser );
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         queryParams.setTrackedEntityType( trackedEntityTypeA );
@@ -169,6 +205,7 @@ class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest
     void testTrackedEntityInstanceIncludeAllAttributesInProtectedProgramNoAccess()
     {
         populatePrerequisites( true );
+        injectSecurityContext( nonSuperUser );
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         queryParams.setTrackedEntityType( trackedEntityTypeA );
@@ -183,6 +220,7 @@ class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest
     void testTrackedEntityInstanceIncludeSpecificProtectedProgram()
     {
         populatePrerequisites( false );
+        injectSecurityContext( nonSuperUser );
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         queryParams.setProgram( programB );
@@ -197,6 +235,7 @@ class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest
     void testTrackedEntityInstanceIncludeSpecificOpenProgram()
     {
         populatePrerequisites( false );
+        injectSecurityContext( nonSuperUser );
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         queryParams.setProgram( programA );
@@ -225,6 +264,8 @@ class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest
     private void populatePrerequisites( boolean removeOwnership )
     {
         doInTransaction( () -> {
+            User currentUser = currentUserService.getCurrentUser();
+
             ProgramStage programStageA = createProgramStage( programB, true );
             ProgramStage programStageB = createProgramStage( programB, true );
             ProgramStage programStageA1 = createProgramStage( programA, true );
@@ -252,7 +293,7 @@ class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest
             programB.setUid( CodeGenerator.generateUid() );
             programB.setCode( RandomStringUtils.randomAlphanumeric( 10 ) );
             Set<UserAccess> programBUserAccess = new HashSet<>();
-            programBUserAccess.add( new UserAccess( currentUserService.getCurrentUser(), AccessStringHelper.FULL ) );
+            programBUserAccess.add( new UserAccess( currentUser, AccessStringHelper.FULL ) );
             programB.setUserAccesses( programBUserAccess );
             programB.setProgramStages(
                 Stream.of( programStageA, programStageB ).collect( Collectors.toCollection( HashSet::new ) ) );

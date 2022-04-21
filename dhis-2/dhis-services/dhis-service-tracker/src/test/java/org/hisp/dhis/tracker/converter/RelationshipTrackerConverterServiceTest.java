@@ -124,9 +124,12 @@ class RelationshipTrackerConverterServiceTest extends DhisSpringTest
     protected void setUpTest()
         throws IOException
     {
-        preCreateInjectAdminUserWithoutPersistence();
-        renderService = _renderService;
+//        preCreateInjectAdminUserWithoutPersistence();
         userService = _userService;
+        preCreateInjectAdminUser();
+        dbmsManager.clearSession();
+
+        renderService = _renderService;
         TrackedEntityType trackedEntityType = createTrackedEntityType( 'A' );
         trackedEntityTypeService.addTrackedEntityType( trackedEntityType );
         Program program = createProgram( 'A' );

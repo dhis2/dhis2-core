@@ -50,6 +50,7 @@ import java.util.stream.Stream;
 
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang3.RandomStringUtils;
+
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -84,6 +85,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -146,6 +148,10 @@ public abstract class TrackerTest extends IntegrationTestBase
     protected void setUpTest()
         throws Exception
     {
+        super.userService = this.userService;
+        //        User user = preCreateInjectAdminUser();
+        //        injectSecurityContext( user );
+
         // Tracker graph creation
         trackedEntityTypeA = createTrackedEntityType( 'A' );
         trackedEntityTypeA.setUid( CodeGenerator.generateUid() );
@@ -187,8 +193,6 @@ public abstract class TrackerTest extends IntegrationTestBase
         programA.setProgramStages(
             Stream.of( programStageA1, programStageA2 ).collect( Collectors.toCollection( HashSet::new ) ) );
         manager.update( programA );
-
-        super.userService = this.userService;
 
         mockCurrentUserService();
     }
@@ -412,8 +416,7 @@ public abstract class TrackerTest extends IntegrationTestBase
         UserRole group = new UserRole();
         group.setName( "Super" );
         group.setUid( "uid4" );
-        group
-            .setAuthorities( new HashSet<>( Arrays.asList( "z1", UserRole.AUTHORITY_ALL ) ) );
+        group.setAuthorities( new HashSet<>( Arrays.asList( "z1", UserRole.AUTHORITY_ALL ) ) );
         user.setUserRoles( Sets.newHashSet( group ) );
     }
 }

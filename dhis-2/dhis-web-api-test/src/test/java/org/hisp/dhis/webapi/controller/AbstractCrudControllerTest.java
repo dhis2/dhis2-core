@@ -77,7 +77,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
         JsonList<JsonUser> users = GET( "/users/" ).content( HttpStatus.OK ).getList( "users", JsonUser.class );
         assertEquals( 1, users.size() );
         JsonUser user = users.get( 0 );
-        assertEquals( "admin admin", user.getDisplayName() );
+        assertEquals( "FirstNameadmin Surnameadmin", user.getDisplayName() );
     }
 
     @Test
@@ -97,19 +97,21 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
         // response will look like: { "surname": <name> }
         JsonUser userProperty = GET( "/users/{id}/surname", run( SomeUserId::new ) ).content( HttpStatus.OK )
             .as( JsonUser.class );
-        assertEquals( "admin", userProperty.getSurname() );
+        assertEquals( "Surnameadmin", userProperty.getSurname() );
         assertEquals( 1, userProperty.size() );
     }
 
     @Test
     void testPartialUpdateObject()
     {
-        List<User> allUsers = userService.getAllUsers();
-        String id = run( SomeUserId::new );
+        dbmsManager.clearSession();
+        dbmsManager.flushSession();
+//        List<User> allUsers = userService.getAllUsers();
 
-        assertStatus( HttpStatus.OK, PATCH( "/users/" + id + "?importReportMode=ERRORS",
+        // todo: 12098
+        assertStatus( HttpStatus.OK, PATCH( "/users/" + "M5zQapPyTZI" + "?importReportMode=ERRORS",
             "[{'op': 'add', 'path': '/surname', 'value': 'Peter'}]" ) );
-        assertEquals( "Peter", GET( "/users/{id}", id ).content().as( JsonUser.class ).getSurname() );
+        assertEquals( "Peter", GET( "/users/{id}", "M5zQapPyTZI" ).content().as( JsonUser.class ).getSurname() );
     }
 
     @Test

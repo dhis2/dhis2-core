@@ -81,7 +81,7 @@ class GistFieldsControllerTest extends AbstractGistControllerTest
     @Test
     void testField_Single_OwnerObject()
     {
-        assertEquals( "admin", GET( "/users/{uid}/surname/gist", getSuperuserUid() ).content().string() );
+        assertEquals( "Surnameadmin", GET( "/users/{uid}/surname/gist", getSuperuserUid() ).content().string() );
     }
 
     @Test
@@ -225,6 +225,6 @@ class GistFieldsControllerTest extends AbstractGistControllerTest
     void testField_UserNameAutomaticFromTransformation()
     {
         JsonArray users = GET( "/users/gist?fields=id,name&headless=true" ).content();
-        assertEquals( "admin admin", users.getObject( 0 ).getString( "name" ).string() );
+        assertEquals( "FirstNameadmin Surnameadmin", users.getObject( 0 ).getString( "name" ).string() );
     }
 }

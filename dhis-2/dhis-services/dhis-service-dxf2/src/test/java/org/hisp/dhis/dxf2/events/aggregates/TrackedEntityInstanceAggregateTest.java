@@ -103,7 +103,7 @@ class TrackedEntityInstanceAggregateTest extends TrackerTest
     @Override
     protected void mockCurrentUserService()
     {
-        User user = createUserWithAuth( "testUser" );
+        User user = createUserWithAuth( "[Unknown]" );
         user.addOrganisationUnit( organisationUnitA );
         userService.updateUser( user );
         makeUserSuper( user );
@@ -506,7 +506,7 @@ class TrackedEntityInstanceAggregateTest extends TrackerTest
         assertThat( enrollment.getProgram(), is( programA.getUid() ) );
         assertThat( enrollment.getStatus(), is( EnrollmentStatus.COMPLETED ) );
         assertThat( enrollment.isDeleted(), is( false ) );
-        assertThat( enrollment.getStoredBy(), is( "system-process" ) );
+        assertThat( enrollment.getStoredBy(), is( "[Unknown]" ) );
         assertThat( enrollment.getFollowup(), is( nullValue() ) );
         // Dates
         checkDate( currentTime, enrollment.getCreated(), 200L );

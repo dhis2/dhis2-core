@@ -29,6 +29,7 @@ package org.hisp.dhis;
 
 import static com.google.common.collect.Sets.newHashSet;
 import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.visualization.VisualizationType.PIVOT_TABLE;
@@ -183,9 +184,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.util.Assert;
 import org.springframework.util.MimeTypeUtils;
@@ -2489,7 +2492,6 @@ public abstract class DhisConvenienceTest
 
     protected User createAdminUser( String... authorities )
     {
-
         checkUserServiceWasInjected();
 
         UserRole role = createUserRole( "Superuser", authorities );
@@ -2773,6 +2775,21 @@ public abstract class DhisConvenienceTest
 
         return user;
     }
+//
+//    protected void preCreateInjectAdminUserWithoutPersistence2()
+//    {
+//        switchCurrentUserTo2( DEFAULT_USERNAME, DEFAULT_ADMIN_PASSWORD,
+//            singletonList( new SimpleGrantedAuthority( "ALL" ) ) );
+//    }
+//
+//    protected void switchCurrentUserTo2( String username, String password, List<GrantedAuthority> authorities )
+//    {
+//        UserDetails user = new org.springframework.security.core.userdetails.User( username, password, authorities );
+//        Authentication authentication = new UsernamePasswordAuthenticationToken( user, "", authorities );
+//        SecurityContext context = SecurityContextHolder.createEmptyContext();
+//        context.setAuthentication( authentication );
+//        SecurityContextHolder.setContext( context );
+//    }
 
     protected User preCreateInjectAdminUserWithoutPersistence()
     {

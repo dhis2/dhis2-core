@@ -49,7 +49,6 @@ import org.springframework.http.HttpStatus;
  */
 abstract class AbstractGistControllerTest extends DhisControllerConvenienceTest
 {
-
     @Autowired
     protected OrganisationUnitService organisationUnitService;
 
@@ -59,24 +58,15 @@ abstract class AbstractGistControllerTest extends DhisControllerConvenienceTest
 
     protected String dataSetId;
 
-    private User userA;
+    protected User userA;
 
-    private User userB;
-
-    public static final String USER_A_USERNAME = "userA";
-
-    public static final String USER_B_USERNAME = "userB";
 
     @BeforeEach
     void setUp()
     {
         userA = createUserWithAuth( "userA", "ALL" );
-        // userB = createUserWithAuth( USER_B_USERNAME );
-        //
-        // //Default user is userA
-        switchContextToUser( userA );
 
-        Set<String> allAuthorities = userA.getAllAuthorities();
+        switchContextToUser( userA );
 
         userGroupId = assertStatus( HttpStatus.CREATED,
             POST( "/userGroups/", "{'name':'groupX', 'users':[{'id':'" + getSuperuserUid() + "'}]}" ) );

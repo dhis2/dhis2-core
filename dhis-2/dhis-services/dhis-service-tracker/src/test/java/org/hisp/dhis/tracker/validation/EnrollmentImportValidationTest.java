@@ -53,6 +53,7 @@ import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
@@ -164,21 +165,19 @@ class EnrollmentImportValidationTest extends AbstractImportValidationTest
     }
 
     @Test
-    @Disabled( "TODO: 12098 fix this test " )
+        //    @Disabled( "TODO: 12098 fix this test " )
     void testDeleteCascadeProgramInstances()
         throws IOException
     {
+        User superUser = userService.getUser( ADMIN_USER_UID );
+        injectSecurityContext( superUser );
+
         TrackerImportParams params = renderService.fromJson(
             new ClassPathResource( "tracker/validations/enrollments_te_attr-data.json" ).getInputStream(),
             TrackerImportParams.class );
+        params.setUser( superUser );
         params.setImportStrategy( TrackerImportStrategy.CREATE );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
-
-        User currentUser = currentUserService.getCurrentUser();
-        List<TrackerErrorReport> errors = trackerImportReport.getValidationReport().getErrors();
-        errors.forEach( e -> {
-            e.getMessage();
-        } );
 
         assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
         assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );

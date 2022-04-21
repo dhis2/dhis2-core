@@ -29,14 +29,19 @@ package org.hisp.dhis.webapi;
 
 import static org.hisp.dhis.webapi.utils.WebClientUtils.failOnException;
 
+import javax.sql.DataSource;
+
 import org.hisp.dhis.IntegrationH2Test;
+import org.hisp.dhis.h2.H2SqlFunction;
 import org.hisp.dhis.jsontree.JsonResponse;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.utils.TestUtils;
 import org.hisp.dhis.webapi.security.config.WebMvcConfig;
 import org.hisp.dhis.webapi.utils.DhisMockMvcControllerTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.web.FilterChainProxy;
 import org.springframework.test.context.ActiveProfiles;
@@ -50,8 +55,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
 /**
- * Base class for convenient testing of the web API on basis of
- * {@link JsonResponse}, with JWT token
+ * Base class for convenient testing of the web API on basis of {@link JsonResponse}, with JWT token
  *
  * @author Morten Svanæs
  */
@@ -73,16 +77,31 @@ public abstract class DhisControllerWithJwtTokenAuthTest extends DhisMockMvcCont
     @Autowired
     private UserService _userService;
 
+    @Autowired
+    private DataSource dataSource;
+
     protected MockMvc mvc;
 
-    @BeforeEach
-    final void setup()
+    protected User superUser;
+
+    @BeforeEach final void setup()
         throws Exception
     {
         userService = _userService;
+
+        clearSecurityContext();
+        superUser = createAdminUser( "ALL" );
+
         mvc = MockMvcBuilders.webAppContextSetup( webApplicationContext ).addFilter( springSecurityFilterChain )
             .build();
+
+        injectSecurityContext( superUser );
+
         TestUtils.executeStartupRoutines( webApplicationContext );
+
+        H2SqlFunction.registerH2Functions( dataSource );
+        //        dbmsManager.flushSession();
+        //        dbmsManager.clearSession();
     }
 
     @Override

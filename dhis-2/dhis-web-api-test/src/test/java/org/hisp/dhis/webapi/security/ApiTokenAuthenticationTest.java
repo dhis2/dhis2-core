@@ -62,7 +62,7 @@ class ApiTokenAuthenticationTest extends DhisControllerWithApiTokenAuthTest
     @Autowired
     private ApiTokenStore apiTokenStore;
 
-    private User adminUser;
+//    private User adminUser;
 
     private static class TokenAndKey
     {
@@ -97,6 +97,7 @@ class ApiTokenAuthenticationTest extends DhisControllerWithApiTokenAuthTest
     private TokenAndKey createNewToken()
     {
         ApiToken token = new ApiToken();
+        token.setOwner( "M5zQapPyTZI" );
         token.setType( ApiTokenType.PERSONAL_ACCESS_TOKEN );
         token = apiTokenService.initToken( token );
         apiTokenStore.save( token );

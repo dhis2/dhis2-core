@@ -78,6 +78,6 @@ class UserLookupControllerTest extends DhisControllerConvenienceTest
         JsonArray matches = GET( "/userLookup?query=John" ).content().getArray( "users" );
         assertEquals( 1, matches.size() );
         JsonUser user = matches.get( 0, JsonUser.class );
-        assertEquals( "John", user.getFirstName() );
+        assertEquals( "FirstNameJohn", user.getFirstName() );
     }
 }
