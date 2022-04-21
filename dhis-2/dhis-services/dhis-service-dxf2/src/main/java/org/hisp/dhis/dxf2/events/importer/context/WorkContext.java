@@ -107,6 +107,14 @@ public class WorkContext
     private final Map<String, ProgramStageInstance> programStageInstanceMap;
 
     /**
+     * Holds a Map of all {@see ProgramStageInstance} associated to the Events
+     * to import and only constains already persisted values.
+     *
+     * Map: key -> ProgramStageInstance UID value -> ProgramStageInstance
+     */
+    private final Map<String, ProgramStageInstance> persistedProgramStageInstanceMap;
+
+    /**
      * Holds a Map of all {@see CategoryOptionCombo} associated to the Events to
      * import.
      *
