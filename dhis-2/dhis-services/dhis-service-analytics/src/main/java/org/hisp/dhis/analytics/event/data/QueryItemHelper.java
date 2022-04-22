@@ -27,11 +27,22 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
+import static java.util.stream.Collectors.toList;
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.trimToEmpty;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.option.Option;
@@ -44,6 +55,10 @@ public class QueryItemHelper
     private static final String ITEM_NAME_SEP = ": ";
 
     private static final String NA = "[N/A]";
+
+    private QueryItemHelper()
+    {
+    }
 
     /**
      * Returns an item value (legend) for OutputIdScheme (Code, Name, Id, Uid).
@@ -116,5 +131,99 @@ public class QueryItemHelper
 
             return value + itemValue;
         }
+    }
+
+    /**
+     * Returns a map of metadata item options and {@link Option}.
+     *
+     * @param grid the Grid instance.
+     * @param params the EventQueryParams.
+     * @return a list of options.
+     */
+    public static List<Option> getItemOptions( final Grid grid, final EventQueryParams params )
+    {
+        final List<Option> options = new ArrayList<>();
+
+        for ( int i = 0; i < grid.getHeaders().size(); ++i )
+        {
+            final GridHeader gridHeader = grid.getHeaders().get( i );
+
+            if ( gridHeader.hasOptionSet() && isNotEmpty( grid.getRows() ) )
+            {
+                options.addAll( getItemOptionsThatMatchesRows( grid, i, gridHeader ) );
+            }
+            else if ( gridHeader.hasOptionSet() && isEmpty( grid.getRows() ) )
+            {
+                options.addAll( getItemOptionsWhenRowsIsEmpty( params ) );
+            }
+        }
+
+        return options.stream().distinct().collect( toList() );
+    }
+
+    private static List<Option> getItemOptionsWhenRowsIsEmpty( final EventQueryParams params )
+    {
+        final List<Option> options = new ArrayList<>();
+
+        if ( isNotEmpty( params.getItems() ) )
+        {
+            final List<QueryItem> items = params.getItems();
+
+            for ( final QueryItem item : items )
+            {
+                final boolean hasOptions = item.getOptionSet() != null
+                    && isNotEmpty( item.getOptionSet().getOptions() );
+
+                if ( hasOptions && isNotEmpty( item.getFilters() ) )
+                {
+                    options.addAll( getItemOptionsBasedOnTheFilter( item ) );
+                }
+            }
+        }
+
+        return options;
+    }
+
+    private static List<Option> getItemOptionsThatMatchesRows( final Grid grid, final int columnIndex,
+        final GridHeader gridHeader )
+    {
+        final List<Option> options = new ArrayList<>();
+
+        options.addAll( gridHeader
+            .getOptionSetObject()
+            .getOptions()
+            .stream()
+            .filter( opt -> opt != null && grid.getRows().stream().anyMatch( r -> {
+                Object o = r.get( columnIndex );
+                if ( o instanceof String )
+                {
+                    return ((String) o).equalsIgnoreCase( opt.getCode() );
+                }
+
+                return false;
+            } ) ).collect( toList() ) );
+
+        return options;
+    }
+
+    private static List<Option> getItemOptionsBasedOnTheFilter( final QueryItem item )
+    {
+        final List<Option> options = new ArrayList<>();
+
+        for ( final Option option : item.getOptionSet().getOptions() )
+        {
+            for ( final QueryFilter filter : item.getFilters() )
+            {
+                final List<String> filterSplit = Arrays
+                    .stream( trimToEmpty( filter.getFilter() ).split( ";" ) )
+                    .collect( toList() );
+                if ( filterSplit.contains( trimToEmpty( option.getCode() ) ) )
+                {
+                    options.add( option );
+                }
+            }
+        }
+
+        return options;
     }
 }

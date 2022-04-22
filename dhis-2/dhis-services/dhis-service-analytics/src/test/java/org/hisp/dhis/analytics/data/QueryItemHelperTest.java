@@ -27,19 +27,29 @@
  */
 package org.hisp.dhis.analytics.data;
 
+import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.List;
 
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.data.QueryItemHelper;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.RepeatableStageParams;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
+import org.hisp.dhis.system.grid.ListGrid;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -138,5 +148,87 @@ class QueryItemHelperTest extends DhisConvenienceTest
         assertEquals( UID_B, optionValueB );
         assertEquals( UID_A, legendValueA );
         assertEquals( UID_B, legendValueB );
+    }
+
+    @Test
+    void testGetItemOptionsWhenRowsArePresent()
+    {
+        // Given
+        final Option option = new Option( "Opt-A", "Code-A" );
+        final OptionSet optionSet = new OptionSet();
+        optionSet.addOption( option );
+
+        final Grid grid = stubGridWithRowsAndOptionSet( optionSet );
+        final QueryItem queryItem = new QueryItem( null, null, null, null, optionSet );
+        queryItem.addFilter( new QueryFilter( IN, "Code-A" ) );
+
+        final EventQueryParams params = new EventQueryParams.Builder().addItem( queryItem ).build();
+        params.getItems().add( queryItem );
+
+        // When
+        final List<Option> options = QueryItemHelper.getItemOptions( grid, params );
+
+        // Then
+        assertTrue( options.contains( option ) );
+    }
+
+    @Test
+    void testGetItemOptionsWhenRowsAreEmpty()
+    {
+        // Given
+        final Option option = new Option( "Opt-A", "Code-A" );
+        final OptionSet optionSet = new OptionSet();
+        optionSet.addOption( option );
+
+        final Grid grid = stubGridWithEmptyRowsAndOptionSet( optionSet );
+        final QueryItem queryItem = new QueryItem( null, null, null, null, optionSet );
+        queryItem.addFilter( new QueryFilter( IN, "Code-A" ) );
+
+        final EventQueryParams params = new EventQueryParams.Builder().addItem( queryItem ).build();
+        params.getItems().add( queryItem );
+
+        // When
+        final List<Option> options = QueryItemHelper.getItemOptions( grid, params );
+
+        // Then
+        assertTrue( options.contains( option ) );
+    }
+
+    private Grid stubGridWithRowsAndOptionSet( final OptionSet optionSet )
+    {
+        final Grid grid = new ListGrid();
+        final GridHeader headerA = new GridHeader( "ColA", "colA", ValueType.TEXT, false, true,
+            optionSet, null, "programStage", new RepeatableStageParams() );
+        final GridHeader headerB = new GridHeader( "ColB", "colB", ValueType.TEXT, false, true );
+
+        grid.addHeader( headerA );
+        grid.addHeader( headerB );
+        grid.addRow();
+        grid.addValue( "Code-A" );
+        grid.addValue( 11 );
+        grid.addRow();
+        grid.addValue( 21 );
+        grid.addValue( 22 );
+        grid.addRow();
+        grid.addValue( 31 );
+        grid.addValue( 32 );
+        grid.addRow();
+        grid.addValue( 41 );
+        grid.addValue( 42 );
+
+        return grid;
+    }
+
+    private Grid stubGridWithEmptyRowsAndOptionSet( final OptionSet optionSet )
+    {
+        final Grid grid = new ListGrid();
+        final GridHeader headerA = new GridHeader( "ColA", "colA", ValueType.TEXT, false, true,
+            optionSet, null, "programStage", new RepeatableStageParams() );
+        final GridHeader headerB = new GridHeader( "ColB", "colB", ValueType.TEXT, false, true );
+
+        grid.addHeader( headerA );
+        grid.addHeader( headerB );
+
+        return grid;
     }
 }
