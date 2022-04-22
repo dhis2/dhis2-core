@@ -44,7 +44,10 @@
         "idScheme": "UID",
         "identifier": "o68AuhbJDSz"
       },
-      "orgUnit": "QfUVllTs6cS",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "QfUVllTs6cS"
+      },
       "relationships": [],
       "occurredAt": "2018-12-31T06:13:07.000",
       "followup": false,
@@ -63,7 +66,10 @@
         "idScheme": "UID",
         "identifier": "o68AuhbJDSz"
       },
-      "orgUnit": "QfUVllTs6cS",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "QfUVllTs6cS"
+      },
       "relationships": [],
       "occurredAt": "2020-08-01T00:00:00.000",
       "scheduledAt": "2020-08-19T13:59:13.688",

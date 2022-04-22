@@ -119,7 +119,7 @@ public class EventTrackerConverterService
 
             if ( ou != null )
             {
-                event.setOrgUnit( ou.getUid() );
+                event.setOrgUnit( MetadataIdentifier.ofUid( ou.getUid() ) );
                 event.setOrgUnitName( ou.getName() );
             }
 
@@ -206,7 +206,7 @@ public class EventTrackerConverterService
     {
         ProgramStage programStage = preheat.get( ProgramStage.class, event.getProgramStage() );
         Program program = preheat.getProgram( event.getProgram() );
-        OrganisationUnit organisationUnit = preheat.get( OrganisationUnit.class, event.getOrgUnit() );
+        OrganisationUnit organisationUnit = preheat.getOrganisationUnit( event.getOrgUnit() );
 
         Date now = new Date();
 
