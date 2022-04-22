@@ -38,6 +38,9 @@ import lombok.experimental.Accessors;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
+ * DTO which represents a data value category option combination represented as
+ * a category combination and a set of category options.
+ *
  * @author Lars Helge Overland
  */
 @Getter

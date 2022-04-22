@@ -53,9 +53,9 @@ import com.google.common.collect.Sets;
 /**
  * @author Kristian Nordal
  */
-class DataValueServiceTest extends DhisSpringTest
+class DataValueServiceTest
+    extends DhisSpringTest
 {
-
     @Autowired
     private CategoryService categoryService;
 
@@ -71,6 +71,7 @@ class DataValueServiceTest extends DhisSpringTest
     // -------------------------------------------------------------------------
     // Supporting data
     // -------------------------------------------------------------------------
+
     private DataElement dataElementA;
 
     private DataElement dataElementB;
@@ -98,6 +99,7 @@ class DataValueServiceTest extends DhisSpringTest
     // -------------------------------------------------------------------------
     // Set up/tear down
     // -------------------------------------------------------------------------
+
     @Override
     public void setUpTest()
         throws Exception
@@ -221,6 +223,7 @@ class DataValueServiceTest extends DhisSpringTest
     // -------------------------------------------------------------------------
     // Collections of DataValues
     // -------------------------------------------------------------------------
+
     @Test
     void testGetDataValuesDataExportParamsA()
     {
@@ -283,39 +286,72 @@ class DataValueServiceTest extends DhisSpringTest
         dataValueService.addDataValue( dataValueH );
         dataValueService.addDataValue( dataValueI );
         dataValueService.addDataValue( dataValueJ );
+
         assertEquals( 4, dataValueService
-            .getDataValues( new DataExportParams().setDataElements( Sets.newHashSet( dataElementA, dataElementB ) )
-                .setPeriods( Sets.newHashSet( periodB ) ).setOrganisationUnits( Sets.newHashSet( sourceA, sourceB ) ) )
+            .getDataValues( new DataExportParams()
+                .setDataElements( Sets.newHashSet( dataElementA, dataElementB ) )
+                .setPeriods( Sets.newHashSet( periodB ) )
+                .setOrganisationUnits( Sets.newHashSet( sourceA, sourceB ) ) )
             .size() );
         assertEquals( 2,
             dataValueService
-                .getDataValues( new DataExportParams().setDataElements( Sets.newHashSet( dataElementA, dataElementB ) )
-                    .setPeriods( Sets.newHashSet( periodA ) ).setOrganisationUnits( Sets.newHashSet( sourceB ) ) )
+                .getDataValues( new DataExportParams()
+                    .setDataElements( Sets.newHashSet( dataElementA, dataElementB ) )
+                    .setPeriods( Sets.newHashSet( periodA ) )
+                    .setOrganisationUnits( Sets.newHashSet( sourceB ) ) )
                 .size() );
         assertEquals( 4,
-            dataValueService.getDataValues( new DataExportParams().setDataElements( Sets.newHashSet( dataElementA ) )
+            dataValueService.getDataValues( new DataExportParams()
+                .setDataElements( Sets.newHashSet( dataElementA ) )
                 .setPeriods( Sets.newHashSet( periodA, periodC ) )
                 .setOrganisationUnits( Sets.newHashSet( sourceA, sourceB ) ) ).size() );
         assertEquals( 4,
-            dataValueService.getDataValues( new DataExportParams().setDataElements( Sets.newHashSet( dataElementB ) )
+            dataValueService.getDataValues( new DataExportParams()
+                .setDataElements( Sets.newHashSet( dataElementB ) )
                 .setPeriods( Sets.newHashSet( periodA, periodB ) )
                 .setOrganisationUnits( Sets.newHashSet( sourceA, sourceB ) ) ).size() );
         assertEquals( 1,
             dataValueService
-                .getDataValues( new DataExportParams().setDataElements( Sets.newHashSet( dataElementB ) )
-                    .setPeriods( Sets.newHashSet( periodB ) ).setOrganisationUnits( Sets.newHashSet( sourceA ) ) )
+                .getDataValues( new DataExportParams()
+                    .setDataElements( Sets.newHashSet( dataElementB ) )
+                    .setPeriods( Sets.newHashSet( periodB ) )
+                    .setOrganisationUnits( Sets.newHashSet( sourceA ) ) )
                 .size() );
         assertEquals( 1,
             dataValueService
-                .getDataValues( new DataExportParams().setDataElements( Sets.newHashSet( dataElementA ) )
-                    .setPeriods( Sets.newHashSet( periodA ) ).setOrganisationUnits( Sets.newHashSet( sourceB ) ) )
+                .getDataValues( new DataExportParams()
+                    .setDataElements( Sets.newHashSet( dataElementA ) )
+                    .setPeriods( Sets.newHashSet( periodA ) )
+                    .setOrganisationUnits( Sets.newHashSet( sourceB ) ) )
                 .size() );
         assertEquals( 1,
             dataValueService
-                .getDataValues( new DataExportParams().setDataElements( Sets.newHashSet( dataElementA ) )
+                .getDataValues( new DataExportParams()
+                    .setDataElements( Sets.newHashSet( dataElementA ) )
                     .setStartDate( periodA.getStartDate() ).setEndDate( periodA.getEndDate() )
                     .setOrganisationUnits( Sets.newHashSet( sourceB ) ) )
                 .size() );
+    }
+
+    @Test
+    void testGetDataValuesExportParamsC()
+    {
+        DataValue dataValueA = new DataValue( dataElementA, periodA, sourceA, optionCombo, optionCombo, "1" );
+        DataValue dataValueB = new DataValue( dataElementA, periodA, sourceB, optionCombo, optionCombo, "2" );
+        DataValue dataValueC = new DataValue( dataElementB, periodA, sourceA, optionCombo, optionCombo, "3" );
+        DataValue dataValueD = new DataValue( dataElementB, periodA, sourceB, optionCombo, optionCombo, "4" );
+        dataValueService.addDataValue( dataValueA );
+        dataValueService.addDataValue( dataValueB );
+        dataValueService.addDataValue( dataValueC );
+        dataValueService.addDataValue( dataValueD );
+
+        assertEquals( 2, dataValueService
+            .getDataValues( new DataExportParams()
+                .setDataElements( Sets.newHashSet( dataElementA ) )
+                .setCategoryOptionCombos( Sets.newHashSet( optionCombo ) )
+                .setPeriods( Sets.newHashSet( periodA ) )
+                .setOrganisationUnits( Sets.newHashSet( sourceA, sourceB ) ) )
+            .size() );
     }
 
     @Test
