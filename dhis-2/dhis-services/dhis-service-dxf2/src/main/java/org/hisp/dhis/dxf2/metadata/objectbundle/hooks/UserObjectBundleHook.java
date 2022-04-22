@@ -252,7 +252,9 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
 
             handleNoAccessRoles( user, bundle, userRoles );
 
-            sessionFactory.getCurrentSession().update( user );
+            // todo: current user needs full reload of user... 12098
+//            sessionFactory.getCurrentSession().update( user );
+            sessionFactory.getCurrentSession().merge( user );
         }
     }
 

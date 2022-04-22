@@ -40,6 +40,7 @@ import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 import static org.springframework.http.MediaType.TEXT_XML_VALUE;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
@@ -62,6 +63,7 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.commons.collection.CollectionUtils;
+import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
@@ -136,6 +138,9 @@ public class UserController
     private static final String KEY_USERNAME = "username";
 
     private static final String KEY_PASSWORD = "password";
+
+    @Autowired
+    protected DbmsManager dbmsManager;
 
     @Autowired
     private UserService userService;
@@ -775,6 +780,38 @@ public class UserController
         throws Exception
     {
         User currentUser = currentUserService.getCurrentUser();
+
+        boolean contains1 = dbmsManager.contains( currentUser );
+        boolean contains2 = dbmsManager.contains( entity );
+
+        try
+        {
+            Serializable id1 = dbmsManager.getIdentifier( currentUser );
+            log.info( "currentUser: " + id1 );
+        }
+        catch ( Exception e )
+        {
+          //  throw new RuntimeException( e );
+            log.info( "Error getting identifier for user: " + currentUser.getUid() );
+        }
+
+        try
+        {
+            Serializable id1 = dbmsManager.getIdentifier( entity );
+            log.info( "Entity id: " + id1 );
+        }
+        catch ( Exception e )
+        {
+            //  throw new RuntimeException( e );
+            log.info( "Error getting identifier for user: " + entity.getUid() );
+        }
+
+        if(entity.getUid().equals( currentUser.getUid() ))
+        {
+            //throw new WebMessageException( conflict( "You cannot modify your own user." ) );
+            log.info( "You cannot modify your own user." );
+        }
+
 
         if ( !userService.canAddOrUpdateUser( getUids( entity.getGroups() ), currentUser )
             || !currentUser.canModifyUser( entity ) )

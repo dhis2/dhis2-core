@@ -27,13 +27,16 @@
  */
 package org.hisp.dhis.dbms;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
 
 import org.hibernate.SessionFactory;
+
 import org.hisp.dhis.cache.HibernateCacheManager;
+
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
@@ -457,4 +460,15 @@ public class HibernateDbmsManager
         sessionFactory.getCurrentSession().evict( object );
     }
 
+    @Override
+    public boolean contains( Object object )
+    {
+        return sessionFactory.getCurrentSession().contains( object );
+    }
+
+    @Override
+    public Serializable getIdentifier( Object object )
+    {
+        return sessionFactory.getCurrentSession().getIdentifier( object );
+    }
 }

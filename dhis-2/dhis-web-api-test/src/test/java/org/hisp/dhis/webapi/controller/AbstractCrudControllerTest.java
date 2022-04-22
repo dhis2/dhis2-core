@@ -101,7 +101,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    @Disabled( "TODO: fix this test 12098" )
+//    @Disabled( "TODO: fix this test 12098" )
     void testPartialUpdateObject()
     {
         // dbmsManager.clearSession();
@@ -253,7 +253,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    @Disabled( "TODO: fix this test 12098" )
+//    @Disabled( "TODO: fix this test 12098" )
     void testPatchObject()
     {
         String id = getCurrentUser().getUid();
