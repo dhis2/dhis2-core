@@ -326,21 +326,29 @@ public abstract class AbstractJdbcEventAnalyticsManager
             ProgramIndicator in = (ProgramIndicator) queryItem.getItem();
 
             String asClause = in.getUid();
+            String programIndicatorSubquery;
 
             if ( queryItem.hasRelationshipType() )
             {
+                programIndicatorSubquery = programIndicatorSubqueryBuilder.getAggregateClauseForProgramIndicator( in,
+                    queryItem.getRelationshipType(), getAnalyticsType(), params.getEarliestStartDate(),
+                    params.getLatestEndDate() );
+            }
+            else
+            {
+                programIndicatorSubquery = programIndicatorSubqueryBuilder.getAggregateClauseForProgramIndicator( in,
+                    getAnalyticsType(), params.getEarliestStartDate(), params.getLatestEndDate() );
+            }
+
+            if ( queryItem.getValueType() == ValueType.NUMBER )
+            {
                 return ColumnAndAlias.ofColumnAndAlias(
-                    programIndicatorSubqueryBuilder.getAggregateClauseForProgramIndicator( in,
-                        queryItem.getRelationshipType(), getAnalyticsType(), params.getEarliestStartDate(),
-                        params.getLatestEndDate() ),
+                    coalesceAsDoubleNan( programIndicatorSubquery ),
                     asClause );
             }
             else
             {
-                return ColumnAndAlias.ofColumnAndAlias(
-                    programIndicatorSubqueryBuilder.getAggregateClauseForProgramIndicator( in,
-                        getAnalyticsType(), params.getEarliestStartDate(), params.getLatestEndDate() ),
-                    asClause );
+                return ColumnAndAlias.ofColumnAndAlias( programIndicatorSubquery, asClause );
             }
 
         }
@@ -364,13 +372,18 @@ public abstract class AbstractJdbcEventAnalyticsManager
             ColumnAndAlias columnAndAlias = getColumnAndAlias( queryItem, isAggregated, queryItem.getItemName() );
 
             return ColumnAndAlias.ofColumnAndAlias(
-                "coalesce(" + columnAndAlias.getColumn() + ", double precision 'NaN')",
+                coalesceAsDoubleNan( columnAndAlias.getColumn() ),
                 defaultIfNull( columnAndAlias.getAlias(), queryItem.getItemName() ) );
         }
         else
         {
             return getColumnAndAlias( queryItem, isGroupByClause, "" );
         }
+    }
+
+    protected String coalesceAsDoubleNan( String column )
+    {
+        return "coalesce(" + column + ", double precision 'NaN')";
     }
 
     private ColumnAndAlias getColumnAndAlias( QueryItem queryItem, boolean isGroupByClause, String aliasIfMissing )
