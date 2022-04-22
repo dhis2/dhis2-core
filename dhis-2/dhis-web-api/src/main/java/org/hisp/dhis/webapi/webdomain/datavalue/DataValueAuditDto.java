@@ -25,34 +25,54 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.metadata;
+package org.hisp.dhis.webapi.webdomain.datavalue;
 
-import lombok.AllArgsConstructor;
+import java.util.Date;
 
-import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.dxf2.metadata.DataSetMetadataExportService;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import org.hisp.dhis.common.AuditType;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
+ * DTO which represents a data value audit record.
+ *
  * @author Lars Helge Overland
  */
-@Controller
-@AllArgsConstructor
-@RequestMapping( "/dataEntry" )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class DataSetMetadataExportController
+@Getter
+@Setter
+@Accessors( chain = true )
+@NoArgsConstructor
+public class DataValueAuditDto
 {
-    private final DataSetMetadataExportService exportService;
+    @JsonProperty
+    private String dataElement;
 
-    @GetMapping( "/metadata" )
-    public ResponseEntity<JsonNode> getMetadata()
-    {
-        return ResponseEntity.ok( exportService.getDataSetMetadata() );
-    }
+    @JsonProperty
+    private String period;
+
+    @JsonProperty
+    private String orgUnit;
+
+    @JsonProperty
+    private String categoryOptionCombo;
+
+    @JsonProperty
+    private String attributeOptionCombo;
+
+    @JsonProperty
+    private String value;
+
+    @JsonProperty
+    private String modifiedBy;
+
+    @JsonProperty
+    private Date created;
+
+    @JsonProperty
+    private AuditType auditType;
 }

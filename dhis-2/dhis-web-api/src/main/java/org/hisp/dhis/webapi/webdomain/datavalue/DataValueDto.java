@@ -35,6 +35,8 @@ import lombok.experimental.Accessors;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
+ * DTO which represents a data value.
+ *
  * @author Lars Helge Overland
  */
 @Getter

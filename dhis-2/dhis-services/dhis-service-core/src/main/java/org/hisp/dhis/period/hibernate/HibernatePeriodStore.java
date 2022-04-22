@@ -136,18 +136,6 @@ public class HibernatePeriodStore
     }
 
     @Override
-    public List<Period> getIntersectingPeriodsByPeriodType( PeriodType periodType, Date startDate, Date endDate )
-    {
-        String query = "from Period p where p.startDate <=:endDate and p.endDate >=:startDate and p.periodType.id =:periodType";
-
-        Query<Period> typedQuery = getQuery( query )
-            .setParameter( "startDate", startDate )
-            .setParameter( "endDate", endDate )
-            .setParameter( "periodType", reloadPeriodType( periodType ).getId() );
-        return getList( typedQuery );
-    }
-
-    @Override
     public List<Period> getIntersectingPeriods( Date startDate, Date endDate )
     {
         String query = "from Period p where p.startDate <=:endDate and p.endDate >=:startDate";

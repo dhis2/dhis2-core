@@ -33,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
@@ -289,77 +288,6 @@ class PeriodStoreTest extends DhisSpringTest
         assertTrue( periods.contains( periodC ) );
         assertTrue( periods.contains( periodD ) );
         assertTrue( periods.contains( periodE ) );
-    }
-
-    @Test
-    void testGetIntersectingPeriodsByPeriodType()
-    {
-        PeriodType ypt = PeriodType.getPeriodTypeByName( YearlyPeriodType.NAME );
-        Date jan2006 = getDate( 2006, 1, 1 );
-        Date dec2006 = getDate( 2006, 12, 31 );
-        Date jan2007 = getDate( 2007, 1, 1 );
-        Date dec2007 = getDate( 2007, 12, 31 );
-        Period periodA = new Period( ypt, jan2006, dec2006 );
-        Period periodB = new Period( ypt, jan2007, dec2007 );
-        periodStore.addPeriod( periodA );
-        periodStore.addPeriod( periodB );
-        PeriodType mpt = PeriodType.getPeriodTypeByName( MonthlyPeriodType.NAME );
-        Date janstart = getDate( 2006, 1, 1 );
-        Date janend = getDate( 2006, 1, 31 );
-        Date febstart = getDate( 2006, 2, 1 );
-        Date febend = getDate( 2006, 2, 28 );
-        Date marstart = getDate( 2006, 3, 1 );
-        Date marend = getDate( 2006, 3, 31 );
-        Date aprstart = getDate( 2006, 4, 1 );
-        Date aprend = getDate( 2006, 4, 30 );
-        Date maystart = getDate( 2006, 5, 1 );
-        Date mayend = getDate( 2006, 5, 31 );
-        Date junstart = getDate( 2006, 6, 1 );
-        Date junend = getDate( 2006, 6, 30 );
-        Date julstart = getDate( 2006, 7, 1 );
-        Date julend = getDate( 2006, 7, 31 );
-        Date augstart = getDate( 2006, 8, 1 );
-        Date augend = getDate( 2006, 8, 31 );
-        Date sepstart = getDate( 2006, 9, 1 );
-        Date sepend = getDate( 2006, 9, 30 );
-        Date octstart = getDate( 2006, 10, 1 );
-        Date octend = getDate( 2006, 10, 31 );
-        Date novstart = getDate( 2006, 11, 1 );
-        Date novend = getDate( 2006, 11, 30 );
-        Date decstart = getDate( 2006, 12, 1 );
-        Date decend = getDate( 2006, 12, 31 );
-        Period periodC = new Period( mpt, janstart, janend );
-        Period periodD = new Period( mpt, febstart, febend );
-        Period periodE = new Period( mpt, marstart, marend );
-        Period periodF = new Period( mpt, aprstart, aprend );
-        Period periodG = new Period( mpt, maystart, mayend );
-        Period periodH = new Period( mpt, junstart, junend );
-        Period periodI = new Period( mpt, julstart, julend );
-        Period periodJ = new Period( mpt, augstart, augend );
-        Period periodK = new Period( mpt, sepstart, sepend );
-        Period periodL = new Period( mpt, octstart, octend );
-        Period periodM = new Period( mpt, novstart, novend );
-        Period periodN = new Period( mpt, decstart, decend );
-        periodStore.addPeriod( periodC );
-        periodStore.addPeriod( periodD );
-        periodStore.addPeriod( periodE );
-        periodStore.addPeriod( periodF );
-        periodStore.addPeriod( periodG );
-        periodStore.addPeriod( periodH );
-        periodStore.addPeriod( periodI );
-        periodStore.addPeriod( periodJ );
-        periodStore.addPeriod( periodK );
-        periodStore.addPeriod( periodL );
-        periodStore.addPeriod( periodM );
-        periodStore.addPeriod( periodN );
-        List<Period> periodsA = periodStore.getIntersectingPeriodsByPeriodType( ypt, getDate( 2006, 6, 1 ),
-            getDate( 2006, 11, 30 ) );
-        assertNotNull( periodsA );
-        assertEquals( 1, periodsA.size() );
-        List<Period> periodsB = periodStore.getIntersectingPeriodsByPeriodType( mpt, getDate( 2006, 6, 1 ),
-            getDate( 2006, 11, 30 ) );
-        assertNotNull( periodsB );
-        assertEquals( 6, periodsB.size() );
     }
 
     @Test

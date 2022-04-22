@@ -36,7 +36,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /**
  * @author Torgeir Lorange Ostby
- * @version $Id: DataElementHistory.java 4438 2008-01-26 16:35:24Z abyot $
  */
 public class DataElementHistory
 {

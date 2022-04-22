@@ -103,19 +103,6 @@ public interface PeriodStore
     List<Period> getPeriodsBetweenOrSpanningDates( Date startDate, Date endDate );
 
     /**
-     * Returns all intersecting Periods between the startDate and endDate based
-     * on PeriodType For example if the startDate is 2007-05-01 and endDate is
-     * 2007-08-01 and periodType is Quarterly then it returns the periods for
-     * Q2,Q3
-     *
-     * @param periodType is the ultimate period type
-     * @param startDate is intercepting startDate
-     * @param endDate is intercepting endDate
-     * @return a list of periods.
-     */
-    List<Period> getIntersectingPeriodsByPeriodType( PeriodType periodType, Date startDate, Date endDate );
-
-    /**
      * Returns Periods where at least one its days is between the given start
      * date and end date.
      *
