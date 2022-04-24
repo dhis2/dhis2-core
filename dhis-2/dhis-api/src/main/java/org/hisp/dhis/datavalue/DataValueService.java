@@ -31,6 +31,7 @@ import java.util.Date;
 import java.util.List;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -122,9 +123,25 @@ public interface DataValueService
      * @param categoryOptionCombo the category option combo.
      * @param attributeOptionCombo the attribute option combo.
      * @return the DataValue which corresponds to the given parameters, or null
-     *         if no match.
+     *         if not found or not accessible.
      */
     DataValue getDataValue( DataElement dataElement, Period period, OrganisationUnit source,
+        CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo );
+
+    /**
+     * Returns a DataValue. Throws {@link IllegalQueryException} if the data
+     * value was not found or is not accessible.
+     *
+     * @param dataElement the DataElement of the DataValue.
+     * @param period the Period of the DataValue.
+     * @param source the Source of the DataValue.
+     * @param categoryOptionCombo the category option combo.
+     * @param attributeOptionCombo the attribute option combo.
+     * @return the DataValue which corresponds to the given parameters.
+     * @throws IllegalQueryException if the data value was not found or not
+     *         accessible.
+     */
+    DataValue getAndValidateDataValue( DataElement dataElement, Period period, OrganisationUnit source,
         CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo );
 
     // -------------------------------------------------------------------------

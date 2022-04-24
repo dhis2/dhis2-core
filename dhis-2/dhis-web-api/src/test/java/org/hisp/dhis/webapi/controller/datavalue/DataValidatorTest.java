@@ -236,12 +236,22 @@ class DataValidatorTest
     }
 
     @Test
+    void testMissingCategoryOptionCombo()
+    {
+        final String uid = CodeGenerator.generateUid();
+
+        when( categoryService.getCategoryOptionCombo( uid ) ).thenReturn( null );
+
+        IllegalQueryException ex = assertThrows( IllegalQueryException.class,
+            () -> dataValidator.getAndValidateCategoryOptionCombo( uid ) );
+
+        assertEquals( ErrorCode.E1103, ex.getErrorCode() );
+    }
+
+    @Test
     void testValidateAttributeOptionComboWithEarlyData()
     {
-        // Given
         categoryOptionA.setStartDate( feb15 );
-
-        // Then
 
         assertThrows( IllegalQueryException.class,
             () -> dataValidator.validateAttributeOptionCombo( optionComboA, periodJan, dataSetA, dataElementA ) );
@@ -250,10 +260,7 @@ class DataValidatorTest
     @Test
     void testValidateAttributeOptionComboWithLateData()
     {
-        // Given
         categoryOptionA.setEndDate( jan15 );
-
-        // Then
 
         assertThrows( IllegalQueryException.class,
             () -> dataValidator.validateAttributeOptionCombo( optionComboA, periodFeb, null, dataElementA ) );
@@ -262,11 +269,8 @@ class DataValidatorTest
     @Test
     void testValidateAttributeOptionComboWithLateAdjustedData()
     {
-        // Given
         categoryOptionA.setEndDate( jan15 );
         dataSetA.setOpenPeriodsAfterCoEndDate( 1 );
-
-        // Then
 
         assertThrows( IllegalQueryException.class,
             () -> dataValidator.validateAttributeOptionCombo( optionComboA, periodMar, dataSetA, dataElementA ) );
@@ -275,12 +279,10 @@ class DataValidatorTest
     @Test
     void validateBooleanDataValueWhenValuesAreAcceptableTrue()
     {
-        // Given
         final DataElement aBooleanTypeDataElement = new DataElement();
         final String normalizedBooleanValue = "true";
         aBooleanTypeDataElement.setValueType( BOOLEAN );
 
-        // Then
         String aBooleanDataValue = "true";
         aBooleanDataValue = dataValidator.validateAndNormalizeDataValue( aBooleanDataValue, aBooleanTypeDataElement );
         assertThat( aBooleanDataValue, is( normalizedBooleanValue ) );
@@ -305,12 +307,10 @@ class DataValidatorTest
     @Test
     void validateBooleanDataValueWhenValuesAreAcceptableFalse()
     {
-        // Given
         final DataElement aBooleanTypeDataElement = new DataElement();
         final String normalizedBooleanValue = "false";
         aBooleanTypeDataElement.setValueType( BOOLEAN );
 
-        // Then
         String aBooleanDataValue = "false";
         aBooleanDataValue = dataValidator.validateAndNormalizeDataValue( aBooleanDataValue, aBooleanTypeDataElement );
         assertThat( aBooleanDataValue, is( normalizedBooleanValue ) );
@@ -335,7 +335,6 @@ class DataValidatorTest
     @Test
     void validateBooleanDataValueWhenValueIsNotValid()
     {
-        // Given
         String anInvalidBooleanValue = "InvalidValue";
         final DataElement aBooleanTypeDataElement = new DataElement();
         aBooleanTypeDataElement.setValueType( BOOLEAN );

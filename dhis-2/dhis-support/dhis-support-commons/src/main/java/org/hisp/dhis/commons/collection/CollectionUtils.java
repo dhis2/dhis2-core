@@ -85,6 +85,23 @@ public class CollectionUtils
     }
 
     /**
+     * Performs a mapping of the given collection using the given mapping
+     * function.
+     *
+     * @param <A>
+     * @param <B>
+     * @param collection collection the collection of objects to map.
+     * @param mapper the mapping function.
+     * @return a list of mapped objects.
+     */
+    public static <A, B> List<B> mapToList( Collection<A> collection, Function<? super A, ? extends B> mapper )
+    {
+        return collection.stream()
+            .map( mapper )
+            .collect( Collectors.toList() );
+    }
+
+    /**
      * Returns the intersection of the given Collections.
      *
      * @param <A>
