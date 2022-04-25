@@ -150,9 +150,10 @@ public class EventSynchronization implements DataSynchronizationWithPaging
         msg += "Event programs data synchronization job has " + context.getPages()
             + " pages to synchronize. With page size: " + context.getPageSize();
         progress.startingStage( msg, context.getPages() );
-        return progress.runStage( IntStream.range( 1, context.getPages() + 1 ).boxed(),
+        progress.runStage( IntStream.range( 1, context.getPages() + 1 ).boxed(),
             page -> format( "Synchronizing page %d with page size %d", page, context.getPageSize() ),
             page -> synchronizePage( page, context ) );
+        return !progress.isSkipCurrentStage();
     }
 
     protected void synchronizePage( int page, EventSynchronisationContext context )
