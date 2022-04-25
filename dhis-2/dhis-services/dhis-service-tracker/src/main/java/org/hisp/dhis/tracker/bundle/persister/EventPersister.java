@@ -172,7 +172,7 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
 
         for ( DataValue dv : payloadDataValues )
         {
-            AuditType auditType = null;
+            AuditType auditType;
 
             DataElement dateElement = preheat.get( DataElement.class, dv.getDataElement() );
 
@@ -192,8 +192,9 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
 
                 Optional<AuditType> optionalAuditType = Optional.ofNullable( dv.getValue() )
                     .filter( v -> !dv.getValue().equals( persistedValue ) )
-                    .map( v1 -> AuditType.from( "update" ) )
-                    .orElseGet( () -> dv.getValue() == null ? AuditType.from( "delete" ) : Optional.empty() );
+                    .map( v1 -> AuditType.UPDATE )
+                    .or( () -> Optional.ofNullable( dv.getValue() ).map( a -> AuditType.READ )
+                        .or( () -> Optional.of( AuditType.DELETE ) ) );
 
                 auditType = optionalAuditType.orElse( null );
             }
