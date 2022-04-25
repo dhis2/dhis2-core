@@ -178,7 +178,7 @@ class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTest
     {
         dataApprovalStore = new HibernateDataApprovalStore( sessionFactory, jdbcTemplate,
             publisher, cacheProvider, periodService, periodStore, currentUserService, categoryService,
-            systemSettingManager, new PostgreSQLStatementBuilder() );
+            systemSettingManager, new PostgreSQLStatementBuilder(), organisationUnitService );
 
         // ---------------------------------------------------------------------
         // Add supporting data

@@ -125,15 +125,24 @@ public class CurrentUserUtil
 
     public static void setUserSettingInternal( String key, Serializable value )
     {
-        Map<String, Serializable> userSettings = getCurrentUser().getUserSettings();
-        if ( value != null )
+        User currentUser = getCurrentUser();
+        if ( currentUser != null )
         {
-            userSettings.put( key, value );
+            Map<String, Serializable> userSettings = currentUser.getUserSettings();
+            if ( userSettings != null )
+            {
+                if ( value != null )
+                {
+                    userSettings.put( key, value );
+                }
+                else
+                {
+                    userSettings.remove( key );
+                }
+            }
+
         }
-        else
-        {
-            userSettings.remove( key );
-        }
+
     }
 
     public static <T> T getUserSetting( UserSettingKey key )
@@ -144,6 +153,12 @@ public class CurrentUserUtil
             return null;
         }
 
-        return (T) currentUser.getUserSettings().get( key.getName() );
+        Map<String, Serializable> userSettings = currentUser.getUserSettings();
+        if ( userSettings == null )
+        {
+            return null;
+        }
+
+        return (T) userSettings.get( key.getName() );
     }
 }

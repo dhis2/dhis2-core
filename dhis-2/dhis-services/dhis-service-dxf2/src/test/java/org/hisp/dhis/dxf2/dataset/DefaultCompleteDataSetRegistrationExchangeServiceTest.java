@@ -208,7 +208,7 @@ class DefaultCompleteDataSetRegistrationExchangeServiceTest
         subject = new DefaultCompleteDataSetRegistrationExchangeService( cdsrStore, idObjManager, orgUnitService,
             notifier, i18nManager, batchHandlerFactory, systemSettingManager, categoryService, periodService,
             currentUserService, registrationService, inputUtils, aggregateAccessManager, notificationPublisher,
-            messageService, JacksonObjectMapperConfig.staticJsonMapper() );
+            messageService, JacksonObjectMapperConfig.staticJsonMapper(), orgUnitService );
 
         DEFAULT_COC = new CategoryOptionCombo();
     }

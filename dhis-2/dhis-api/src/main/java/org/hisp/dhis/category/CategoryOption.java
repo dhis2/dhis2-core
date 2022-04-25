@@ -157,23 +157,24 @@ public class CategoryOption
         organisationUnits.forEach( this::removeOrganisationUnit );
     }
 
-    public boolean includes( OrganisationUnit ou )
-    {
-        return organisationUnits == null || organisationUnits.isEmpty() || ou.isDescendant( organisationUnits );
-    }
+    // public boolean includes( OrganisationUnit ou )
+    // {
+    // return organisationUnits == null || organisationUnits.isEmpty() ||
+    // ou.isDescendant( null, organisationUnits );
+    // }
 
-    public boolean includesAny( Set<OrganisationUnit> orgUnits )
-    {
-        for ( OrganisationUnit ou : orgUnits )
-        {
-            if ( includes( ou ) )
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
+    // public boolean includesAny( Set<OrganisationUnit> orgUnits )
+    // {
+    // for ( OrganisationUnit ou : orgUnits )
+    // {
+    // if ( includes( ou ) )
+    // {
+    // return true;
+    // }
+    // }
+    //
+    // return false;
+    // }
 
     /**
      * Gets an adjusted end date, adjusted if this data set has open periods

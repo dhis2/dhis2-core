@@ -56,6 +56,7 @@ import org.hisp.dhis.dxf2.datavalueset.ImportContext.DataValueContext;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.ValidationUtils;
@@ -81,6 +82,8 @@ public class DataValueSetImportValidator
     private final DataApprovalService approvalService;
 
     private final DataValueService dataValueService;
+
+    private final OrganisationUnitService organisationUnitService;
 
     /**
      * Validation on the {@link DataSet} level
@@ -140,7 +143,7 @@ public class DataValueSetImportValidator
         register( this::validateDataValueCategoryOptionComboAccess );
         register( DataValueSetImportValidator::validateDataValueAttrOptionComboExists );
         register( this::validateDataValueAttrOptionComboAccess );
-        register( DataValueSetImportValidator::validateDataValueOrgUnitInUserHierarchy );
+        register( this::validateDataValueOrgUnitInUserHierarchy );
         register( DataValueSetImportValidator::validateDataValueIsDefined );
         register( DataValueSetImportValidator::validateDataValueIsValid );
         register( DataValueSetImportValidator::validateDataValueCommentIsValid );
@@ -156,7 +159,7 @@ public class DataValueSetImportValidator
         register( DataValueSetImportValidator::checkDataValueStrictOrgUnits );
         register( DataValueSetImportValidator::checkDataValueStoredByIsValid );
         register( DataValueSetImportValidator::checkDataValuePeriodWithinAttrOptionComboRange );
-        register( DataValueSetImportValidator::checkDataValueOrgUnitValidForAttrOptionCombo );
+        register( this::checkDataValueOrgUnitValidForAttrOptionCombo );
         register( this::checkDataValueTodayNotPastPeriodExpiry );
         register( DataValueSetImportValidator::checkDataValueNotAfterLatestOpenFuturePeriod );
         register( this::checkDataValueNotAlreadyApproved );
@@ -342,11 +345,11 @@ public class DataValueSetImportValidator
         }
     }
 
-    private static void validateDataValueOrgUnitInUserHierarchy( DataValueEntry dataValue, ImportContext context,
+    private void validateDataValueOrgUnitInUserHierarchy( DataValueEntry dataValue, ImportContext context,
         DataSetContext dataSetContext, DataValueContext valueContext )
     {
         boolean inUserHierarchy = context.getOrgUnitInHierarchyMap().get( valueContext.getOrgUnit().getUid(),
-            () -> valueContext.getOrgUnit().isDescendant( context.getCurrentOrgUnits() ) );
+            () -> organisationUnitService.isDescendant( valueContext.getOrgUnit(), context.getCurrentOrgUnits() ) );
 
         if ( !inUserHierarchy )
         {
@@ -551,7 +554,7 @@ public class DataValueSetImportValidator
         }
     }
 
-    private static void checkDataValueOrgUnitValidForAttrOptionCombo( DataValueEntry dataValue, ImportContext context,
+    private void checkDataValueOrgUnitValidForAttrOptionCombo( DataValueEntry dataValue, ImportContext context,
         DataSetContext dataSetContext, DataValueContext valueContext )
     {
         if ( !context.getAttrOptionComboOrgUnitMap()
@@ -564,10 +567,10 @@ public class DataValueSetImportValidator
         }
     }
 
-    private static boolean isOrgUnitValidForAttrOptionCombo( DataValueContext valueContext )
+    private boolean isOrgUnitValidForAttrOptionCombo( DataValueContext valueContext )
     {
         Set<OrganisationUnit> aocOrgUnits = valueContext.getAttrOptionCombo().getOrganisationUnits();
-        return aocOrgUnits == null || valueContext.getOrgUnit().isDescendant( aocOrgUnits );
+        return aocOrgUnits == null || organisationUnitService.isDescendant( valueContext.getOrgUnit(), aocOrgUnits );
     }
 
     private void checkDataValueTodayNotPastPeriodExpiry( DataValueEntry dataValue, ImportContext context,

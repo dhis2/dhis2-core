@@ -29,11 +29,14 @@ package org.hisp.dhis.security;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.util.Set;
+
 import lombok.extern.slf4j.Slf4j;
 
 import org.hibernate.Hibernate;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.dao.DataAccessException;
@@ -101,6 +104,10 @@ public class DefaultUserDetailsService
 
         Hibernate.initialize( user.getOrganisationUnits() );
         Hibernate.initialize( user.getUserRoles() );
+        for ( UserRole userRole : user.getUserRoles() )
+        {
+            Hibernate.initialize( userRole.getAuthorities() );
+        }
         Hibernate.initialize( user.getGroups() );
         Hibernate.initialize( user.getTeiSearchOrganisationUnits() );
         Hibernate.initialize( user.getDataViewOrganisationUnits() );
@@ -109,6 +116,9 @@ public class DefaultUserDetailsService
         Hibernate.initialize( user.getCatDimensionConstraints() );
         Hibernate.initialize( user.getPreviousPasswords() );
         Hibernate.initialize( user.getApps() );
+
+        boolean aSuper = user.isSuper();
+        Set<String> allAuthorities = user.getAllAuthorities();
 
         sessionFactory.getCurrentSession().evict( user );
 

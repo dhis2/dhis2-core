@@ -54,6 +54,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.GenericDimensionalObjectStore;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dashboard.Dashboard;
+import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.hibernate.InternalHibernateGenericStore;
@@ -69,8 +70,10 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserGroupInfo;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.CurrentUserServiceTarget;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.SharingUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -84,6 +87,9 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     extends HibernateGenericStore<T>
     implements GenericDimensionalObjectStore<T>, InternalHibernateGenericStore<T>, CurrentUserServiceTarget
 {
+    @Autowired
+    protected DbmsManager dbmsManager;
+
     protected CurrentUserService currentUserService;
 
     protected AclService aclService;
@@ -239,7 +245,16 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
         if ( object != null )
         {
-            getSession().update( object );
+            User currentUser = CurrentUserUtil.getCurrentUser();
+            if ( currentUser != null && currentUser.getUid().equals( object.getUid() ) )
+            {
+                // todo: 12098 issue
+                getSession().merge( object );
+            }
+            else
+            {
+                getSession().update( object );
+            }
         }
     }
 
@@ -981,6 +996,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
      *
      * @param builder CriteriaBuilder
      * @param access Access String
+     *
      * @return List of Function<Root<T>, Predicate>
      */
     @Override
@@ -1073,6 +1089,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
      * @param userUid User Uid for checking access
      * @param userGroupUids List of UserGroup Uid which given user belong to
      * @param access Access String for checking
+     *
      * @return Predicate
      */
     private List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder, String userUid,
@@ -1123,6 +1140,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
      * @param userUid User Uid for checking access
      * @param userGroupUids List of UserGroup Uid which given user belong to
      * @param access Access String for checking
+     *
      * @return Predicate
      */
     private List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder, String userUid,
@@ -1171,6 +1189,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
      *
      * @param user the user.
      * @param identifiableObject the identifiable object.
+     *
      * @return true or false.
      */
     private boolean checkPublicAccess( User user, IdentifiableObject identifiableObject )
@@ -1188,7 +1207,20 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
     private boolean sharingEnabled( User user )
     {
-        return forceAcl() || (aclService.isClassShareable( clazz ) && !(user == null || user.isSuper()));
+
+        boolean b = forceAcl();
+        if ( b )
+        {
+            return b;
+        }
+        else
+        {
+            User currentUser = CurrentUserUtil.getCurrentUser();
+            boolean contains1 = dbmsManager.contains( user );
+
+            return (aclService.isClassShareable( clazz ) && !(user == null || user.isSuper()));
+        }
+
     }
 
     private boolean dataSharingEnabled( User user )

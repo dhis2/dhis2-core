@@ -55,6 +55,7 @@ import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
@@ -81,21 +82,25 @@ public class DefaultAnalyticsSecurityManager
 
     private final CurrentUserService currentUserService;
 
+    private final OrganisationUnitService organisationUnitService;
+
     public DefaultAnalyticsSecurityManager( DataApprovalLevelService approvalLevelService,
         SystemSettingManager systemSettingManager, DimensionService dimensionService, AclService aclService,
-        CurrentUserService currentUserService )
+        CurrentUserService currentUserService, OrganisationUnitService organisationUnitService )
     {
         checkNotNull( approvalLevelService );
         checkNotNull( systemSettingManager );
         checkNotNull( dimensionService );
         checkNotNull( aclService );
         checkNotNull( currentUserService );
+        checkNotNull( organisationUnitService );
 
         this.approvalLevelService = approvalLevelService;
         this.systemSettingManager = systemSettingManager;
         this.dimensionService = dimensionService;
         this.aclService = aclService;
         this.currentUserService = currentUserService;
+        this.organisationUnitService = organisationUnitService;
     }
 
     // -------------------------------------------------------------------------
@@ -134,7 +139,7 @@ public class DefaultAnalyticsSecurityManager
 
         for ( OrganisationUnit queryOrgUnit : queryOrgUnits )
         {
-            boolean notDescendant = !queryOrgUnit.isDescendant( viewOrgUnits );
+            boolean notDescendant = !organisationUnitService.isDescendant( queryOrgUnit, viewOrgUnits );
 
             if ( notDescendant )
             {

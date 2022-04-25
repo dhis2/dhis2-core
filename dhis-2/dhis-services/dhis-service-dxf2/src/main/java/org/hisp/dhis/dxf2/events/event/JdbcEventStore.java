@@ -121,6 +121,7 @@ import org.hisp.dhis.jdbc.BatchPreparedStatementSetterWithKeyHolder;
 import org.hisp.dhis.jdbc.JdbcUtils;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitStore;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
@@ -138,6 +139,7 @@ import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
 import org.postgresql.util.PGobject;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.env.Environment;
 import org.springframework.dao.DataAccessException;
@@ -164,6 +166,9 @@ import com.google.gson.Gson;
 @RequiredArgsConstructor
 public class JdbcEventStore implements EventStore
 {
+    @Autowired
+    private final OrganisationUnitStore organisationUnitStore;
+
     private static final String RELATIONSHIP_IDS_QUERY = " left join (select ri.programstageinstanceid as ri_psi_id, json_agg(ri.relationshipid) as psi_rl FROM relationshipitem ri"
         + " GROUP by ri_psi_id)  as fgh on fgh.ri_psi_id=event.psi_id ";
 
@@ -1942,22 +1947,25 @@ public class JdbcEventStore implements EventStore
             String path = "ou.path LIKE '";
             for ( OrganisationUnit organisationUnit : organisationUnits )
             {
+                // todo: check why we loose session here 12098
+                OrganisationUnit unit = organisationUnitStore.getByUid( organisationUnit.getUid() );
+
                 if ( params.isOrganisationUnitMode( OrganisationUnitSelectionMode.DESCENDANTS ) )
                 {
                     orgUnitSql.append( orHlp.or() ).append( path )
-                        .append( organisationUnit.getPath() ).append( "%' " )
-                        .append( hlp.whereAnd() ).append( " ou.hierarchylevel > " + organisationUnit.getLevel() );
+                        .append( unit.getPath() ).append( "%' " )
+                        .append( hlp.whereAnd() ).append( " ou.hierarchylevel > " + unit.getLevel() );
                 }
                 else if ( params.isOrganisationUnitMode( OrganisationUnitSelectionMode.CHILDREN ) )
                 {
                     orgUnitSql.append( orHlp.or() ).append( path )
-                        .append( organisationUnit.getPath() ).append( "%' " )
-                        .append( hlp.whereAnd() ).append( " ou.hierarchylevel = " + (organisationUnit.getLevel() + 1) );
+                        .append( unit.getPath() ).append( "%' " )
+                        .append( hlp.whereAnd() ).append( " ou.hierarchylevel = " + (unit.getLevel() + 1) );
                 }
                 else
                 {
                     orgUnitSql.append( orHlp.or() ).append( path )
-                        .append( organisationUnit.getPath() ).append( "%' " );
+                        .append( unit.getPath() ).append( "%' " );
                 }
             }
 

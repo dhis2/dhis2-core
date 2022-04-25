@@ -357,6 +357,7 @@ public class User
      */
     public boolean isSuper()
     {
+
         return userRoles.stream().anyMatch( UserRole::isSuper );
     }
 

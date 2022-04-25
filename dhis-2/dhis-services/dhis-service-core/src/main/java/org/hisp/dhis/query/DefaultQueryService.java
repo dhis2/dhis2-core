@@ -50,6 +50,7 @@ import org.springframework.stereotype.Component;
 public class DefaultQueryService
     implements QueryService
 {
+
     private final QueryParser queryParser;
 
     private final QueryPlanner queryPlanner;

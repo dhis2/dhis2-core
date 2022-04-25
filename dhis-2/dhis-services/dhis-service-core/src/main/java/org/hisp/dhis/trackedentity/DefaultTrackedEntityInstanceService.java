@@ -961,7 +961,7 @@ public class DefaultTrackedEntityInstanceService
 
         for ( OrganisationUnit ou : searchOrgUnits )
         {
-            if ( !ou.isDescendant( localOrgUnits ) )
+            if ( !organisationUnitService.isDescendant( ou, localOrgUnits ) )
             {
                 return false;
             }

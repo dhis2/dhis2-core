@@ -46,7 +46,6 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.comparator.CategoryComboSizeNameComparator;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.ListMap;
-import org.hisp.dhis.common.UserContext;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataentryform.DataEntryForm;
@@ -63,6 +62,7 @@ import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
@@ -282,8 +282,7 @@ public class LoadFormAction
         User currentUser = currentUserService.getCurrentUser();
 
         Locale dbLocale = getLocaleWithDefault( new TranslateParams( true ) );
-        UserContext.setUser( currentUser );
-        UserContext.setUserSetting( UserSettingKey.DB_LOCALE, dbLocale );
+        CurrentUserUtil.setUserSetting( UserSettingKey.DB_LOCALE, dbLocale );
 
         dataSet = dataSetService.getDataSet( dataSetId );
 

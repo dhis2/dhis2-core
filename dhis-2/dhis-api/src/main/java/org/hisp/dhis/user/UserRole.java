@@ -94,6 +94,7 @@ public class UserRole
 
     public boolean isSuper()
     {
+
         return authorities != null && authorities.contains( AUTHORITY_ALL );
     }
 

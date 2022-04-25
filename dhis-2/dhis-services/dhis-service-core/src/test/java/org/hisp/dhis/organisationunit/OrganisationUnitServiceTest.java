@@ -485,12 +485,12 @@ class OrganisationUnitServiceTest extends DhisSpringTest
         organisationUnitService.addOrganisationUnit( unit3 );
         OrganisationUnit unit4 = createOrganisationUnit( '4' );
         organisationUnitService.addOrganisationUnit( unit4 );
-        assertTrue( unit1.isDescendant( Sets.newHashSet( unit1 ) ) );
-        assertTrue( unit2.isDescendant( Sets.newHashSet( unit1 ) ) );
-        assertTrue( unit3.isDescendant( Sets.newHashSet( unit1 ) ) );
-        assertTrue( unit2.isDescendant( Sets.newHashSet( unit1, unit3 ) ) );
-        assertFalse( unit2.isDescendant( Sets.newHashSet( unit3 ) ) );
-        assertFalse( unit4.isDescendant( Sets.newHashSet( unit1 ) ) );
+        assertTrue( unit1.isDescendant( null, Sets.newHashSet( unit1 ) ) );
+        assertTrue( unit2.isDescendant( null, Sets.newHashSet( unit1 ) ) );
+        assertTrue( unit3.isDescendant( null, Sets.newHashSet( unit1 ) ) );
+        assertTrue( unit2.isDescendant( null, Sets.newHashSet( unit1, unit3 ) ) );
+        assertFalse( unit2.isDescendant( null, Sets.newHashSet( unit3 ) ) );
+        assertFalse( unit4.isDescendant( null, Sets.newHashSet( unit1 ) ) );
     }
 
     @Test

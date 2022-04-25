@@ -504,8 +504,51 @@ public class DefaultOrganisationUnitService
             return false;
         }
 
-        boolean descendant = organisationUnit.isDescendant( user.getOrganisationUnits() );
+        boolean descendant = isDescendant( organisationUnit, user.getOrganisationUnits() );
         return descendant;
+    }
+
+    @Override
+    @Transactional
+    public boolean isDescendant( OrganisationUnit organisationUnit, Set<OrganisationUnit> ancestors )
+    {
+
+        OrganisationUnit unit = getOrganisationUnit( organisationUnit.getUid() );
+
+        if ( ancestors == null || ancestors.isEmpty() )
+        {
+            return false;
+        }
+
+        Set<String> ancestorsUid = new HashSet<>();
+        for ( OrganisationUnit ancestor : ancestors )
+        {
+            if ( ancestor == null )
+            {
+
+                log.info( "Ancestor is null" );
+                continue;
+            }
+
+            String uid1 = ancestor.getUid();
+            ancestorsUid.add( uid1 );
+        }
+
+        // Set<String> ancestorsUid = ancestors.stream()
+        // .map( OrganisationUnit::getUid )
+        // .collect( Collectors.toSet() );
+
+        while ( unit != null )
+        {
+            if ( ancestorsUid.contains( unit.getUid() ) )
+            {
+                return true;
+            }
+
+            unit = unit.getParent();
+        }
+
+        return false;
     }
 
     @Override
@@ -532,7 +575,7 @@ public class DefaultOrganisationUnitService
             return false;
         }
 
-        return organisationUnit.isDescendant( user.getDataViewOrganisationUnitsWithFallback() );
+        return isDescendant( organisationUnit, user.getDataViewOrganisationUnitsWithFallback() );
     }
 
     @Override
@@ -579,7 +622,7 @@ public class DefaultOrganisationUnitService
             return false;
         }
 
-        return organisationUnit.isDescendant( user.getTeiSearchOrganisationUnitsWithFallback() );
+        return isDescendant( organisationUnit, user.getTeiSearchOrganisationUnitsWithFallback() );
     }
 
     @Override
@@ -588,7 +631,7 @@ public class DefaultOrganisationUnitService
     {
         OrganisationUnit organisationUnit = organisationUnitStore.getByUid( uid );
 
-        return organisationUnit != null && organisationUnit.isDescendant( organisationUnits );
+        return organisationUnit != null && isDescendant( organisationUnit, organisationUnits );
     }
 
     @Override

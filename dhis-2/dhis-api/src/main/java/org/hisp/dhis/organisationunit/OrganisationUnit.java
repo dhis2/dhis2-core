@@ -449,12 +449,13 @@ public class OrganisationUnit
      * given ancestor organisation units, i.e. if any of the given organisation
      * units is an ancestor of this organisation unit.
      *
+     * @param organisationUnit
      * @param ancestors the organisation units to check.
      *
      * @return true if any of the given organisation unit is an ancestor of this
      *         organisation unit.
      */
-    public boolean isDescendant( Set<OrganisationUnit> ancestors )
+    public boolean isDescendant( OrganisationUnit organisationUnit, Set<OrganisationUnit> ancestors )
     {
         if ( ancestors == null || ancestors.isEmpty() )
         {

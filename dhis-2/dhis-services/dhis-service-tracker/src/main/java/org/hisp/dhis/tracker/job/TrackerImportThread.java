@@ -27,9 +27,11 @@
  */
 package org.hisp.dhis.tracker.job;
 
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.security.SecurityContextRunnable;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -43,6 +45,9 @@ import org.springframework.util.Assert;
 public class TrackerImportThread
     extends SecurityContextRunnable
 {
+    @Autowired
+    private SessionFactory sessionFactory;
+
     private final TrackerImportService trackerImportService;
 
     private TrackerImportParams trackerImportParams;
