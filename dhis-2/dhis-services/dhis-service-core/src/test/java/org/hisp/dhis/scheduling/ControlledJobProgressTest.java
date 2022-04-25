@@ -27,9 +27,11 @@
  */
 package org.hisp.dhis.scheduling;
 
-import static org.hisp.dhis.scheduling.JobProgress.FaultTolerance.SKIP_ITEM;
-import static org.hisp.dhis.scheduling.JobProgress.FaultTolerance.SKIP_ITEM_OUTLIER;
-import static org.hisp.dhis.scheduling.JobProgress.FaultTolerance.SKIP_STAGE;
+import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.FAIL;
+import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.PARENT;
+import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM;
+import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLIER;
+import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_STAGE;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -46,7 +48,8 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests the processing (in particular the fault tolerance logic) of the
+ * Tests the processing (in particular the
+ * {@link org.hisp.dhis.scheduling.JobProgress.FailurePolicy}) of the
  * {@link ControlledJobProgress} implementation.
  *
  * @author Jan Bernitt
@@ -58,13 +61,31 @@ class ControlledJobProgressTest
     private final JobProgress progress = new ControlledJobProgress( config );
 
     @Test
-    void testSkipItem_FirstItemFails()
+    void testSkipItem_NoFailures()
     {
         progress.startingStage( "test", 3, SKIP_ITEM );
-        boolean stageSuccessful = progress.runStage( Stream.of( 1, 2, 3 ), String::valueOf, alwaysFail,
-            assertSummary( 0, 3 ) );
+        progress.runStage( Stream.of( 1, 2, 3 ), String::valueOf, neverFail, assertSummary( 3, 0 ) );
+        assertFalse( progress.isSkipCurrentStage(), "no failure occurred so stage should not be skipped" );
+        assertProcessCanContinue();
+    }
 
-        assertTrue( stageSuccessful, "the stage should be considered successful as failing items are skipped" );
+    @Test
+    void testSkipItem_FirstItemFailsStageContinues()
+    {
+        progress.startingStage( "test", 3, SKIP_ITEM );
+        progress.runStage( Stream.of( 1, 2, 3 ), String::valueOf, alwaysFail, assertSummary( 0, 3 ) );
+
+        assertFalse( progress.isSkipCurrentStage(),
+            "the stage should be considered successful as failing items are skipped" );
+        assertProcessCanContinue();
+    }
+
+    @Test
+    void testSkipItemOutlier_NoFailures()
+    {
+        progress.startingStage( "test", 3, SKIP_ITEM_OUTLIER );
+        progress.runStage( Stream.of( 1, 2, 3 ), String::valueOf, neverFail, assertSummary( 3, 0 ) );
+        assertFalse( progress.isSkipCurrentStage(), "no failure occurred so stage should not be skipped" );
         assertProcessCanContinue();
     }
 
@@ -72,10 +93,9 @@ class ControlledJobProgressTest
     void testSkipItemOutlier_FirstItemFailsStageFails()
     {
         progress.startingStage( "test", 3, SKIP_ITEM_OUTLIER );
-        boolean stageSuccessful = progress.runStage( Stream.of( 1, 2, 3 ), String::valueOf, alwaysFail,
-            assertSummary( 0, 1 ) );
+        progress.runStage( Stream.of( 1, 2, 3 ), String::valueOf, alwaysFail, assertSummary( 0, 1 ) );
 
-        assertFalse( stageSuccessful, "the stage should be considered failed as first item failed" );
+        assertTrue( progress.isSkipCurrentStage(), "the stage should be considered failed as first item failed" );
         assertProcessCanNotContinue();
     }
 
@@ -83,22 +103,61 @@ class ControlledJobProgressTest
     void testSkipItemOutlier_SecondItemFailsStageContinues()
     {
         progress.startingStage( "test", 3, SKIP_ITEM_OUTLIER );
-        boolean stageSuccessful = progress.runStage( Stream.of( 1, 2, 3 ), String::valueOf, failsAfter( 1 ),
-            assertSummary( 1, 2 ) );
+        progress.runStage( Stream.of( 1, 2, 3 ), String::valueOf, failsAfter( 1 ), assertSummary( 1, 2 ) );
 
-        assertTrue( stageSuccessful, "the stage should be considered successful as first item was successful" );
+        assertFalse( progress.isSkipCurrentStage(),
+            "the stage should be considered successful as first item was successful" );
         assertProcessCanContinue();
     }
 
     @Test
-    void testSkipStage_ItemFails()
+    void testSkipStage_NoFailures()
+    {
+        progress.startingStage( "test", 3, SKIP_STAGE );
+        progress.runStage( Stream.of( 1, 2, 3 ), String::valueOf, neverFail, assertSummary( 3, 0 ) );
+        assertFalse( progress.isSkipCurrentStage(), "no failure occurred so stage should not be skipped" );
+        assertProcessCanContinue();
+    }
+
+    @Test
+    void testSkipStage_AsSoonAsItemFailsStageSkipsToEnd()
     {
         progress.startingStage( "test", 5, SKIP_STAGE );
-        boolean stageSuccessful = progress.runStage( Stream.of( 1, 2, 3, 4, 5 ), String::valueOf, failsAfter( 2 ),
-            assertSummary( 2, 1 ) );
+        progress.runStage( Stream.of( 1, 2, 3, 4, 5 ), String::valueOf, failsAfter( 2 ), assertSummary( 2, 1 ) );
 
-        assertFalse( stageSuccessful, "the stage should be considered failed when an item fails" );
+        assertTrue( progress.isSkipCurrentStage(), "the stage should be considered failed when an item fails" );
         assertProcessCanContinue();
+    }
+
+    @Test
+    void testSkipItem_IndividualPolicy()
+    {
+        // by default, the entire stage would be skipped if an item fails but
+        // items will override this policy
+        progress.startingStage( "test", 5, SKIP_STAGE );
+
+        progress.startingWorkItem( "1", SKIP_ITEM );
+        progress.failedWorkItem( "Meh!" );
+        assertFalse( progress.isSkipCurrentStage() );
+
+        progress.startingWorkItem( "2" );
+        progress.completedWorkItem( "success!" );
+
+        progress.startingWorkItem( "3", SKIP_ITEM_OUTLIER );
+        progress.failedWorkItem( "Meh again!" );
+        assertFalse( progress.isSkipCurrentStage() );
+
+        progress.startingWorkItem( "4", PARENT ); // inherit the skip stage
+                                                  // behaviour
+        progress.failedWorkItem( "Oh no!" );
+        assertTrue( progress.isSkipCurrentStage() );
+        assertFalse( progress.isCancellationRequested() );
+
+        // next item is started anyway (skip works cooperatively)
+        progress.startingWorkItem( "5", FAIL );
+        progress.failedWorkItem( "And again..." );
+        assertTrue( progress.isSkipCurrentStage() );
+        assertTrue( progress.isCancellationRequested() );
     }
 
     private void assertProcessCanContinue()
@@ -106,6 +165,7 @@ class ControlledJobProgressTest
         assertFalse( progress.isCancellationRequested() );
         assertDoesNotThrow( () -> progress.startingStage( "another" ),
             "execution should be possible to continue with next stage" );
+        assertFalse( progress.isSkipCurrentStage(), "flag should reset after calling `startingStage`" );
     }
 
     private void assertProcessCanNotContinue()
@@ -123,6 +183,9 @@ class ControlledJobProgressTest
             return null;
         };
     }
+
+    private final Consumer<Integer> neverFail = item -> {
+    };
 
     private final Consumer<Integer> alwaysFail = item -> {
         throw new IllegalArgumentException( "failing" );

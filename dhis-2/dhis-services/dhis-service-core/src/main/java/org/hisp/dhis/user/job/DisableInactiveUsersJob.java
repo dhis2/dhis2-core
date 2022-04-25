@@ -29,7 +29,7 @@ package org.hisp.dhis.user.job;
 
 import static java.lang.String.format;
 import static java.time.ZoneId.systemDefault;
-import static org.hisp.dhis.scheduling.JobProgress.FaultTolerance.SKIP_STAGE;
+import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_STAGE;
 
 import java.time.LocalDate;
 import java.time.ZonedDateTime;

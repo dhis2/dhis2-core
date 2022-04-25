@@ -29,7 +29,7 @@ package org.hisp.dhis.resourcetable;
 
 import static java.util.Comparator.reverseOrder;
 import static java.util.stream.Collectors.toList;
-import static org.hisp.dhis.scheduling.JobProgress.FaultTolerance.SKIP_ITEM;
+import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM;
 
 import java.util.ArrayList;
 import java.util.List;

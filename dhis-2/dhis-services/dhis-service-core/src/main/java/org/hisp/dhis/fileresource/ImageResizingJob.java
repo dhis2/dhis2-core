@@ -28,7 +28,7 @@
 package org.hisp.dhis.fileresource;
 
 import static java.lang.String.format;
-import static org.hisp.dhis.scheduling.JobProgress.FaultTolerance.SKIP_ITEM_OUTLIER;
+import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLIER;
 
 import java.io.File;
 import java.io.FileOutputStream;

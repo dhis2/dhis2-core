@@ -40,7 +40,7 @@ import static org.hisp.dhis.dataintegrity.DataIntegrityDetails.DataIntegrityIssu
 import static org.hisp.dhis.dataintegrity.DataIntegrityYamlReader.readDataIntegrityYaml;
 import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
 import static org.hisp.dhis.expression.ParseType.VALIDATION_RULE_EXPRESSION;
-import static org.hisp.dhis.scheduling.JobProgress.FaultTolerance.SKIP_ITEM;
+import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM;
 
 import java.util.ArrayList;
 import java.util.Arrays;

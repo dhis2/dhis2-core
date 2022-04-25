@@ -28,7 +28,7 @@
 package org.hisp.dhis.fileresource;
 
 import static java.util.stream.Collectors.toList;
-import static org.hisp.dhis.scheduling.JobProgress.FaultTolerance.SKIP_ITEM_OUTLIER;
+import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLIER;
 
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;

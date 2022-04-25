@@ -30,7 +30,7 @@ package org.hisp.dhis.dataset.notifications;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.*;
 import static org.hisp.dhis.program.notification.NotificationTrigger.SCHEDULED_DAYS_DUE_DATE;
-import static org.hisp.dhis.scheduling.JobProgress.FaultTolerance.SKIP_ITEM_OUTLIER;
+import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLIER;
 
 import java.util.*;
 import java.util.Map.Entry;

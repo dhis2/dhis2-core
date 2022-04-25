@@ -28,7 +28,7 @@
 package org.hisp.dhis.validation;
 
 import static org.hisp.dhis.expression.ParseType.VALIDATION_RULE_EXPRESSION;
-import static org.hisp.dhis.scheduling.JobProgress.FaultTolerance.SKIP_STAGE;
+import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_STAGE;
 
 import java.util.ArrayList;
 import java.util.Collection;

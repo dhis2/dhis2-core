@@ -28,7 +28,7 @@
 package org.hisp.dhis.datastatistics;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.scheduling.JobProgress.FaultTolerance.SKIP_STAGE;
+import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_STAGE;
 
 import java.util.Calendar;
 import java.util.Date;

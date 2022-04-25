@@ -30,7 +30,7 @@ package org.hisp.dhis.program.notification;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.program.notification.NotificationTrigger.PROGRAM_RULE;
-import static org.hisp.dhis.scheduling.JobProgress.FaultTolerance.SKIP_ITEM_OUTLIER;
+import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLIER;
 
 import java.util.Collections;
 import java.util.Date;

@@ -176,7 +176,7 @@ public class ControlledJobProgress implements JobProgress
     }
 
     @Override
-    public void startingStage( String description, int workItems, FaultTolerance onFailure )
+    public void startingStage( String description, int workItems, FailurePolicy onFailure )
     {
         if ( isCancellationRequested() )
         {
@@ -203,7 +203,7 @@ public class ControlledJobProgress implements JobProgress
         tracker.failedStage( error );
         Stage stage = getOrAddLastIncompleteStage();
         stage.completeExceptionally( error, null );
-        if ( stage.getOnFailure() != FaultTolerance.SKIP_STAGE )
+        if ( stage.getOnFailure() != FailurePolicy.SKIP_STAGE )
         {
             automaticAbort( error, null );
         }
@@ -218,7 +218,7 @@ public class ControlledJobProgress implements JobProgress
         String message = getMessage( cause );
         Stage stage = getOrAddLastIncompleteStage();
         stage.completeExceptionally( message, cause );
-        if ( stage.getOnFailure() != FaultTolerance.SKIP_STAGE )
+        if ( stage.getOnFailure() != FailurePolicy.SKIP_STAGE )
         {
             automaticAbort( message, cause );
             sendErrorNotification( stage, cause );
@@ -227,7 +227,7 @@ public class ControlledJobProgress implements JobProgress
     }
 
     @Override
-    public void startingWorkItem( String description, FaultTolerance onFailure )
+    public void startingWorkItem( String description, FailurePolicy onFailure )
     {
         tracker.startingWorkItem( description, onFailure );
         Item item = addItemRecord( getOrAddLastIncompleteStage(), description, onFailure );
@@ -273,14 +273,14 @@ public class ControlledJobProgress implements JobProgress
 
     private boolean isSkipped( Item item )
     {
-        FaultTolerance onFailure = item.getOnFailure();
-        if ( onFailure == FaultTolerance.SKIP_STAGE )
+        FailurePolicy onFailure = item.getOnFailure();
+        if ( onFailure == FailurePolicy.SKIP_STAGE )
         {
             skipCurrentStage.set( true );
             return true;
         }
-        return onFailure == FaultTolerance.SKIP_ITEM
-            || onFailure == FaultTolerance.SKIP_ITEM_OUTLIER
+        return onFailure == FailurePolicy.SKIP_ITEM
+            || onFailure == FailurePolicy.SKIP_ITEM_OUTLIER
                 && incompleteStage.get().getItems().stream().anyMatch( i -> i.status == Status.SUCCESS );
     }
 
@@ -333,14 +333,14 @@ public class ControlledJobProgress implements JobProgress
         Stage stage = incompleteStage.get();
         return stage != null && !stage.isComplete()
             ? stage
-            : addStageRecord( getOrAddLastIncompleteProcess(), null, -1, FaultTolerance.PARENT );
+            : addStageRecord( getOrAddLastIncompleteProcess(), null, -1, FailurePolicy.PARENT );
     }
 
-    private Stage addStageRecord( Process process, String description, int totalItems, FaultTolerance onFailure )
+    private Stage addStageRecord( Process process, String description, int totalItems, FailurePolicy onFailure )
     {
         Deque<Stage> stages = process.getStages();
         Stage stage = new Stage( description, totalItems,
-            onFailure == FaultTolerance.PARENT ? FaultTolerance.FAIL : onFailure );
+            onFailure == FailurePolicy.PARENT ? FailurePolicy.FAIL : onFailure );
         stages.addLast( stage );
         incompleteStage.set( stage );
         return stage;
@@ -351,14 +351,14 @@ public class ControlledJobProgress implements JobProgress
         Item item = incompleteItem.get();
         return item != null && !item.isComplete()
             ? item
-            : addItemRecord( getOrAddLastIncompleteStage(), null, FaultTolerance.PARENT );
+            : addItemRecord( getOrAddLastIncompleteStage(), null, FailurePolicy.PARENT );
     }
 
-    private Item addItemRecord( Stage stage, String description, FaultTolerance onFailure )
+    private Item addItemRecord( Stage stage, String description, FailurePolicy onFailure )
     {
         Deque<Item> items = stage.getItems();
         Item item = new Item( description,
-            onFailure == FaultTolerance.PARENT ? stage.getOnFailure() : onFailure );
+            onFailure == FailurePolicy.PARENT ? stage.getOnFailure() : onFailure );
         items.addLast( item );
         incompleteItem.set( item );
         return item;

@@ -29,7 +29,7 @@ package org.hisp.dhis.validation;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
-import static org.hisp.dhis.scheduling.JobProgress.FaultTolerance.SKIP_ITEM_OUTLIER;
+import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLIER;
 
 import java.util.ArrayList;
 import java.util.Collection;

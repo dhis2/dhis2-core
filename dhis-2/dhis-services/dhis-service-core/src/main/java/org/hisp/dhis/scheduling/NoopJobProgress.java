@@ -69,7 +69,7 @@ public class NoopJobProgress implements JobProgress
     }
 
     @Override
-    public void startingStage( String description, int workItems, FaultTolerance onFailure )
+    public void startingStage( String description, int workItems, FailurePolicy onFailure )
     {
         // as the name said we do nothing
     }
@@ -87,7 +87,7 @@ public class NoopJobProgress implements JobProgress
     }
 
     @Override
-    public void startingWorkItem( String description, FaultTolerance onFailure )
+    public void startingWorkItem( String description, FailurePolicy onFailure )
     {
         // as the name said we do nothing
     }
