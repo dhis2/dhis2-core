@@ -791,7 +791,7 @@ public class UserController
         }
         catch ( Exception e )
         {
-          //  throw new RuntimeException( e );
+            // throw new RuntimeException( e );
             log.info( "Error getting identifier for user: " + currentUser.getUid() );
         }
 
@@ -802,16 +802,16 @@ public class UserController
         }
         catch ( Exception e )
         {
-            //  throw new RuntimeException( e );
+            // throw new RuntimeException( e );
             log.info( "Error getting identifier for user: " + entity.getUid() );
         }
 
-        if(entity.getUid().equals( currentUser.getUid() ))
+        if ( entity.getUid().equals( currentUser.getUid() ) )
         {
-            //throw new WebMessageException( conflict( "You cannot modify your own user." ) );
+            // throw new WebMessageException( conflict( "You cannot modify your
+            // own user." ) );
             log.info( "You cannot modify your own user." );
         }
-
 
         if ( !userService.canAddOrUpdateUser( getUids( entity.getGroups() ), currentUser )
             || !currentUser.canModifyUser( entity ) )

@@ -2721,6 +2721,11 @@ public abstract class DhisConvenienceTest
         return user;
     }
 
+    protected User mockUser( String userName )
+    {
+        return mockUser( false, userName, null );
+    }
+
     protected User mockUser( Set<OrganisationUnit> organisationUnits,
         Set<OrganisationUnit> dataViewOrganisationUnits, String... auths )
     {

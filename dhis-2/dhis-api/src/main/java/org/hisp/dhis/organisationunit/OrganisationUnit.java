@@ -38,7 +38,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
 import org.geotools.geojson.geom.GeometryJSON;
@@ -77,6 +78,7 @@ import com.google.common.collect.Sets;
 /**
  * @author Kristian Nordal
  */
+@Slf4j
 @JacksonXmlRootElement( localName = "organisationUnit", namespace = DxfNamespaces.DXF_2_0 )
 public class OrganisationUnit
     extends BaseDimensionalItemObject
@@ -416,6 +418,7 @@ public class OrganisationUnit
      * ancestor of this organisation unit.
      *
      * @param ancestor the organisation unit to check.
+     *
      * @return true if the given organisation unit is an ancestor of this
      *         organisation unit.
      */
@@ -447,6 +450,7 @@ public class OrganisationUnit
      * units is an ancestor of this organisation unit.
      *
      * @param ancestors the organisation units to check.
+     *
      * @return true if any of the given organisation unit is an ancestor of this
      *         organisation unit.
      */
@@ -457,9 +461,23 @@ public class OrganisationUnit
             return false;
         }
 
-        Set<String> ancestorsUid = ancestors.stream()
-            .map( OrganisationUnit::getUid )
-            .collect( Collectors.toSet() );
+        Set<String> ancestorsUid = new HashSet<>();
+        for ( OrganisationUnit ancestor : ancestors )
+        {
+            if ( ancestor == null )
+            {
+
+                log.info( "Ancestor is null" );
+                continue;
+            }
+
+            String uid1 = ancestor.getUid();
+            ancestorsUid.add( uid1 );
+        }
+
+        // Set<String> ancestorsUid = ancestors.stream()
+        // .map( OrganisationUnit::getUid )
+        // .collect( Collectors.toSet() );
 
         OrganisationUnit unit = this;
 

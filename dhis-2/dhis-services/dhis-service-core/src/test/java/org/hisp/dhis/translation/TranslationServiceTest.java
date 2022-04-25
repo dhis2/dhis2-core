@@ -73,7 +73,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.visualization.Visualization;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -82,7 +81,6 @@ import com.google.common.collect.Sets;
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-@Disabled( "TODO: 12098 fix this test" )
 class TranslationServiceTest extends DhisSpringTest
 {
 

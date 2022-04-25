@@ -120,7 +120,6 @@ class OwnershipTest extends TrackerTest
     }
 
     @Test
-    // @Disabled("TODO: fix this test 12098")
     void testClientDatesForTeiEnrollmentEvent()
         throws IOException
     {

@@ -43,6 +43,8 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.time.DateUtils;
 import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.attribute.Attribute;
@@ -100,6 +102,8 @@ import com.google.common.collect.Sets;
 /**
  * @author Lars Helge Overland
  */
+
+@Slf4j
 class DataValueSetServiceTest extends TransactionalIntegrationTest
 {
 
@@ -318,11 +322,12 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
         periodService.addPeriod( peC );
         dataSetService.addDataSet( dsA );
 
-        this.user = makeUser( "A", Lists.newArrayList( Authorities.F_SKIP_DATA_IMPORT_AUDIT.getAuthority() ) );
-        this.user.setOrganisationUnits( Sets.newHashSet( ouA, ouB ) );
-        userService.addUser( this.user );
-        injectSecurityContext( this.user );
+        this.user = mockUser( false, "A", null, Authorities.F_SKIP_DATA_IMPORT_AUDIT.getAuthority() );
+        this.user.addOrganisationUnits( Sets.newHashSet( ouA, ouB ) );
+        // userService.addUser( this.user );
+        userService.updateUser( this.user );
 
+        clearSecurityContext();
         // CurrentUserService currentUserService = new MockCurrentUserService(
         // user );
         // setDependency( CurrentUserServiceTarget.class,
@@ -333,6 +338,7 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
         enableDataSharing( this.user, categoryOptionB, AccessStringHelper.DATA_READ_WRITE );
         // _userService.addUser( user );
         userService.updateUser( this.user );
+        injectSecurityContext( this.user );
         // dbmsManager.clearSession();
 
         CompleteDataSetRegistration completeDataSetRegistration = new CompleteDataSetRegistration( dsA, peA, ouA,
@@ -351,7 +357,10 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
         ImportSummary summary = dataValueSetService.importDataValueSetXml( in );
         assertNotNull( summary );
         assertNotNull( summary.getImportCount() );
+        String description = summary.getDescription();
+        log.info( ":" + description );
         assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
+
         assertHasNoConflicts( summary );
         Collection<DataValue> dataValues = mockDataValueBatchHandler.getInserts();
         Collection<DataValueAudit> auditValues = mockDataValueAuditBatchHandler.getInserts();

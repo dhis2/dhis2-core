@@ -30,7 +30,6 @@ package org.hisp.dhis.user;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.Serializable;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -39,10 +38,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -58,8 +53,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class CurrentUserService
 {
-    String ID = CurrentUserService.class.getName();
-
     private final UserStore userStore;
 
     private final SessionFactory sessionFactory;
@@ -76,83 +69,14 @@ public class CurrentUserService
      * @return the username of the currently logged in user. If no user is
      *         logged in or the auto access admin is active, null is returned.
      */
-    public static String getCurrentUsername()
+    public String getCurrentUsername()
     {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if ( authentication == null || !authentication.isAuthenticated() || authentication.getPrincipal() == null )
-        {
-            return null;
-        }
-
-        Object principal = authentication.getPrincipal();
-
-        // Principal being a string implies anonymous authentication
-        // This is the state before the user is authenticated.
-        if ( principal instanceof String )
-        {
-            if ( !"anonymousUser".equals( principal ) )
-            {
-                return null;
-            }
-
-            return (String) principal;
-        }
-
-        if ( principal instanceof UserDetails )
-        {
-            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-            return userDetails.getUsername();
-        }
-        else if ( principal instanceof Dhis2User )
-        {
-            Dhis2User dhisOidcUser = (Dhis2User) authentication.getPrincipal();
-            return dhisOidcUser.getUsername();
-        }
-        else
-        {
-            throw new RuntimeException( "Authentication principal is not supported; principal:" + principal );
-        }
+        return CurrentUserUtil.getCurrentUsername();
     }
 
     public User getCurrentUser()
     {
-        String username = getCurrentUsername();
-
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if ( authentication == null || !authentication.isAuthenticated() || authentication.getPrincipal() == null )
-        {
-            return null;
-        }
-
-        if ( username == null )
-        {
-            throw new IllegalStateException( "No current user" );
-        }
-
-        if ( username.equals( "anonymousUser" ) )
-        {
-            return null;
-        }
-
-        Object principal = authentication.getPrincipal();
-
-        if ( principal instanceof UserDetails )
-        {
-            User principal1 = (User) authentication.getPrincipal();
-            Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
-            Set<String> allAuthorities = principal1.getAllAuthorities();
-            return principal1;
-        }
-        else if ( principal instanceof Dhis2User )
-        {
-            Dhis2User dhisOidcUser = (Dhis2User) authentication.getPrincipal();
-            return dhisOidcUser.getDhis2User();
-        }
-        else
-        {
-            throw new RuntimeException( "Authentication principal is not supported; principal:" + principal );
-        }
+        return CurrentUserUtil.getCurrentUser();
     }
 
     @Transactional( readOnly = true )
@@ -242,11 +166,6 @@ public class CurrentUserService
     // ???????????????
     // ???????????????
 
-    public boolean haveUser()
-    {
-        return getCurrentUser() != null;
-    }
-
     public void setUserSetting( UserSettingKey key, Serializable value )
     {
         setUserSettingInternal( key.getName(), value );
@@ -254,26 +173,12 @@ public class CurrentUserService
 
     private void setUserSettingInternal( String key, Serializable value )
     {
-        // if ( threadUserSettings.get() == null )
-        // {
-        // threadUserSettings.set( new HashMap<>() );
-        // }
-        //
-        // if ( value != null )
-        // {
-        // threadUserSettings.get().put( key, value );
-        // }
-        // else
-        // {
-        // threadUserSettings.get().remove( key );
-        // }
+        CurrentUserUtil.setUserSettingInternal( key, value );
     }
 
     static public <T> T getUserSetting( UserSettingKey key )
     {
-        // return threadUserSettings.get() != null ? (T)
-        // threadUserSettings.get().get( key.getName() ) : null;
-        return null;
+        return CurrentUserUtil.getUserSetting( key );
     }
 
     protected void evictCurrentUser( User user )

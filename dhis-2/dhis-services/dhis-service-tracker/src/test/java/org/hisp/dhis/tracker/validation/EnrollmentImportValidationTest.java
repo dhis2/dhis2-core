@@ -163,7 +163,6 @@ class EnrollmentImportValidationTest extends AbstractImportValidationTest
     }
 
     @Test
-    // @Disabled( "TODO: 12098 fix this test " )
     void testDeleteCascadeProgramInstances()
         throws IOException
     {

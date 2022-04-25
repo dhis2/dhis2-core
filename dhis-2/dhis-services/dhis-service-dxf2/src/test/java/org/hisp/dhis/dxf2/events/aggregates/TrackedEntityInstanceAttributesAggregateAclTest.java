@@ -44,7 +44,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserRole;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -108,7 +107,6 @@ class TrackedEntityInstanceAttributesAggregateAclTest extends TrackerTest
     }
 
     @Test
-    @Disabled( "TODO: fix this test 12098" )
     void verifyTeiCanBeAccessedWhenDATA_READPublicAccessOnTrackedEntityType()
     {
         final String tetUid = CodeGenerator.generateUid();

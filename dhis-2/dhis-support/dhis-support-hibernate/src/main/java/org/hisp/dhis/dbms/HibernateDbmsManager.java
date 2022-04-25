@@ -34,9 +34,7 @@ import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hibernate.SessionFactory;
-
 import org.hisp.dhis.cache.HibernateCacheManager;
-
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;

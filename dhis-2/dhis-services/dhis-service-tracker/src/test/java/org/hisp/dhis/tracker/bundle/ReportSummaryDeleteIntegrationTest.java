@@ -84,7 +84,6 @@ class ReportSummaryDeleteIntegrationTest extends TrackerTest
     }
 
     @Test
-    // @Disabled("TODO: fix this test 12098")
     void testTrackedEntityInstanceDeletion()
         throws IOException
     {
@@ -106,7 +105,6 @@ class ReportSummaryDeleteIntegrationTest extends TrackerTest
     }
 
     @Test
-    // @Disabled("TODO: fix this test 12098")
     void testEnrollmentDeletion()
         throws IOException
     {

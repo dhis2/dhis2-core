@@ -56,7 +56,6 @@ import org.hisp.dhis.webapi.json.domain.JsonTypeReport;
 import org.hisp.dhis.webapi.json.domain.JsonUser;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.webapi.snippets.SomeUserId;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -101,14 +100,9 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-//    @Disabled( "TODO: fix this test 12098" )
     void testPartialUpdateObject()
     {
-        // dbmsManager.clearSession();
-        // dbmsManager.flushSession();
-        // List<User> allUsers = userService.getAllUsers();
-
-        // todo: 12098
+        // TODO: 12098 needs merge instead update
         assertStatus( HttpStatus.OK, PATCH( "/users/" + "M5zQapPyTZI" + "?importReportMode=ERRORS",
             "[{'op': 'add', 'path': '/surname', 'value': 'Peter'}]" ) );
         assertEquals( "Peter", GET( "/users/{id}", "M5zQapPyTZI" ).content().as( JsonUser.class ).getSurname() );
@@ -253,9 +247,9 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-//    @Disabled( "TODO: fix this test 12098" )
     void testPatchObject()
     {
+        // TODO: 12098 needs merge instead update
         String id = getCurrentUser().getUid();
         assertStatus( HttpStatus.OK, PATCH( "/users/" + id + "?importReportMode=ERRORS",
             "[{'op': 'add', 'path': '/firstName', 'value': 'Fancy Mike'}]" ) );
@@ -538,18 +532,19 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    @Disabled( "TODO: fix this test 12098" )
     void testMergeCollectionItemsJson()
     {
         String userId = getCurrentUser().getUid();
         // first create an object which has a collection
         String groupId = assertStatus( HttpStatus.CREATED, POST( "/userGroups/", "{'name':'testers'}" ) );
+
         assertStatus( HttpStatus.OK,
             POST( "/userGroups/" + groupId + "/users", "{'additions': [{'id':'" + userId + "'}]}" ) );
+
         assertUserGroupHasOnlyUser( groupId, userId );
 
-        User testUser1 = makeUser( "test1" );
-        User testUser2 = makeUser( "test2" );
+        User testUser1 = mockUser( "test1" );
+        User testUser2 = mockUser( "test2" );
 
         // Add 2 new users and remove existing user from the created group
         assertStatus( HttpStatus.OK,
@@ -559,6 +554,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
 
         JsonList<JsonUser> usersInGroup = GET( "/userGroups/{uid}/", groupId ).content()
             .getList( "users", JsonUser.class );
+
         assertEquals( 2, usersInGroup.size() );
     }
 

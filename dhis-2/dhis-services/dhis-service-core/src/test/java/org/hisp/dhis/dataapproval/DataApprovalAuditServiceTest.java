@@ -253,12 +253,11 @@ class DataApprovalAuditServiceTest extends TransactionalIntegrationTest
         organisationUnitService.addOrganisationUnit( sourceA );
         organisationUnitService.addOrganisationUnit( sourceB );
         superUser = createUser( "SuperUser", true, sourceA, UserRole.AUTHORITY_ALL );
-        userA = createUser( "UserA", false, sourceA );
-        userB = createUser( "UserB", false, sourceB );
-        userC = createUser( "UserC", false, sourceB );
-        userD = createUser( "UserD", false, sourceB );
-        userZ = makeUser( "Z" );
-        userService.addUser( userZ );
+        userA = mockUser( false, "UserA", sourceA );
+        userB = mockUser( false, "UserB", sourceB );
+        userC = mockUser( false, "UserC", sourceB );
+        userD = mockUser( false, "UserD", sourceB );
+        userZ = mockUser( "Z" );
         UserGroup userGroupC = getUserGroup( "UserGroupA", Sets.newHashSet( userC ) );
         UserGroup userGroupD = getUserGroup( "UserGroupB", Sets.newHashSet( userD ) );
         userC.getGroups().add( userGroupC );
@@ -344,6 +343,12 @@ class DataApprovalAuditServiceTest extends TransactionalIntegrationTest
         dataApprovalAuditStore.save( auditBA3 );
         dataApprovalAuditStore.save( auditBB3 );
         dataApprovalAuditStore.save( auditBC3 );
+
+        userService.updateUser( userA );
+        userService.updateUser( userB );
+        userService.updateUser( userC );
+        userService.updateUser( userD );
+        userService.updateUser( userZ );
     }
 
     @Override

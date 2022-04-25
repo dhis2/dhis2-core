@@ -40,6 +40,7 @@ import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.SubscribableObject;
 import org.hisp.dhis.interpretation.Interpretation;
 import org.hisp.dhis.schema.annotation.PropertyRange;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -200,10 +201,7 @@ public class Map
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isSubscribed()
     {
-        // User user = CurrentUserService.getCurrentUser();
-        // TODO: 12098 FIX
-        User user = null;
-
+        User user = CurrentUserUtil.getCurrentUser();
         return user != null && subscribers != null ? subscribers.contains( user.getUid() ) : false;
     }
 

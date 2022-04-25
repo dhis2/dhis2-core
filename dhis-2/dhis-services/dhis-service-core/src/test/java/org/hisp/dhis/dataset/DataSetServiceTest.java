@@ -63,7 +63,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.UserAccess;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -355,7 +354,6 @@ class DataSetServiceTest extends DhisTest
     }
 
     @Test
-    @Disabled( "TODO: 12098 fix this test" )
     void testIsLockedDataElement()
     {
         DataSet dataSetA = createDataSet( 'A', periodType );
@@ -426,7 +424,6 @@ class DataSetServiceTest extends DhisTest
     }
 
     @Test
-    @Disabled( "TODO: 12098 fix this test" )
     void testIsLockedDataSet()
     {
         DataSet dataSetA = createDataSet( 'A', periodType );
@@ -526,7 +523,6 @@ class DataSetServiceTest extends DhisTest
     }
 
     @Test
-    @Disabled( "TODO: 12098 fix this test" )
     void testDataSharingDataSet()
     {
         User user = mockUser( false, "usernameA", null );

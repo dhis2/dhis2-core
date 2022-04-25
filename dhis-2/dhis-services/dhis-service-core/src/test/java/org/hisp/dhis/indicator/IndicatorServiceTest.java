@@ -44,7 +44,6 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserSettingKey;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -283,7 +282,6 @@ class IndicatorServiceTest extends DhisSpringTest
     }
 
     @Test
-    @Disabled( "TODO: 12098 fix this test, translation issue" )
     void testNumeratorTranslation()
     {
         Locale locale = Locale.FRENCH;
