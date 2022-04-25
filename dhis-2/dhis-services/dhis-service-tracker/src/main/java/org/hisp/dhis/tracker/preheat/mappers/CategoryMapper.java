@@ -44,5 +44,6 @@ public interface CategoryMapper
     @Mapping( target = "uid" )
     @Mapping( target = "name" )
     @Mapping( target = "code" )
+    @Mapping( target = "sharing" )
     Category map( Category category );
 }
