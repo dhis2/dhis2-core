@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.hisp.dhis.common.DxfNamespaces;
 
@@ -47,21 +48,55 @@ import com.google.common.base.MoreObjects;
 @JacksonXmlRootElement( localName = "typeReport", namespace = DxfNamespaces.DXF_2_0 )
 public class TypeReport
 {
-    private Class<?> klass;
+    private static final Map<Class<?>, TypeReport> EMPTY_BY_TYPE = new ConcurrentHashMap<>();
 
     private Stats stats = new Stats();
 
+    private final Class<?> klass;
+
+    private final boolean empty;
+
     private Map<Integer, ObjectReport> objectReportMap = new HashMap<>();
+
+    public static TypeReport empty( Class<?> klass )
+    {
+        return EMPTY_BY_TYPE.computeIfAbsent( klass, type -> new TypeReport( type, true ) );
+    }
 
     @JsonCreator
     public TypeReport( @JsonProperty( "klass" ) Class<?> klass )
     {
+        this( klass, false );
+    }
+
+    private TypeReport( Class<?> klass, boolean empty )
+    {
         this.klass = klass;
+        this.empty = empty;
+    }
+
+    public final boolean isEmptySingleton()
+    {
+        return empty;
     }
 
     // -----------------------------------------------------------------------------------
     // Utility Methods
     // -----------------------------------------------------------------------------------
+
+    public TypeReport mergeAllowEmpty( TypeReport other )
+    {
+        if ( isEmptySingleton() )
+        {
+            return other;
+        }
+        if ( other.isEmptySingleton() )
+        {
+            return this;
+        }
+        merge( other );
+        return this;
+    }
 
     public void merge( TypeReport typeReport )
     {
