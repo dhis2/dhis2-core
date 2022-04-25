@@ -45,7 +45,10 @@
         "identifier": "pgabcdefghA"
       },
       "enrollment": "MNWZ6hnuhSX",
-      "orgUnit": "ouabcdefghA",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "ouabcdefghA"
+      },
       "orgUnitName": "TA org_unit lvl2",
       "relationships": [],
       "occurredAt": "2019-08-01T00:00:00.000",
