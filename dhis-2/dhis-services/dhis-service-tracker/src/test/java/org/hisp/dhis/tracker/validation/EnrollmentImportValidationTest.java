@@ -34,6 +34,7 @@ import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.core.Every.everyItem;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 
@@ -104,10 +105,10 @@ class EnrollmentImportValidationTest extends AbstractImportValidationTest
             "tracker/validations/enrollments_te_enrollments-data.json" );
         TrackerPreheat preheat = trackerPreheatService.preheat( secondParams );
         secondParams.getEnrollments().forEach( e -> {
-            assertEquals( e.getOrgUnit(),
+            assertTrue( e.getOrgUnit().isEqualTo(
                 preheat.getProgramOwner().get( e.getTrackedEntity() )
                     .get( e.getProgram().getIdentifier() )
-                    .getOrganisationUnit().getUid() );
+                    .getOrganisationUnit() ) );
         } );
     }
 
