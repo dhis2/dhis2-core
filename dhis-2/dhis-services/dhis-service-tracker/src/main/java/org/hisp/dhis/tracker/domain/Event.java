@@ -72,7 +72,7 @@ public class Event
     private String enrollment;
 
     @JsonProperty
-    private String orgUnit;
+    private MetadataIdentifier orgUnit;
 
     @JsonProperty
     private String orgUnitName;

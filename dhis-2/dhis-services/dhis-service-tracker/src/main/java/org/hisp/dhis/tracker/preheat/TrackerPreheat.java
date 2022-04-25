@@ -751,6 +751,11 @@ public class TrackerPreheat
             .findAny();
     }
 
+    public OrganisationUnit getOrganisationUnit( MetadataIdentifier id )
+    {
+        return get( OrganisationUnit.class, id );
+    }
+
     public OrganisationUnit getOrganisationUnit( String id )
     {
         return get( OrganisationUnit.class, id );

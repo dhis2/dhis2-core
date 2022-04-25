@@ -129,4 +129,48 @@ class MetadataIdentifierMapperTest
         assertEquals( TrackerIdScheme.UID, id.getIdScheme() );
         assertNull( id.getIdentifier() );
     }
+
+    @Test
+    void orgUnitIdentifierFromUID()
+    {
+
+        TrackerIdSchemeParams params = TrackerIdSchemeParams.builder()
+            .idScheme( TrackerIdSchemeParam.CODE )
+            .build();
+
+        MetadataIdentifier id = MAPPER.fromOrgUnit( "RiNIt1yJoge", params );
+
+        assertEquals( TrackerIdScheme.UID, id.getIdScheme() );
+        assertEquals( "RiNIt1yJoge", id.getIdentifier() );
+    }
+
+    @Test
+    void orgUnitIdentifierFromAttribute()
+    {
+
+        TrackerIdSchemeParams params = TrackerIdSchemeParams.builder()
+            .idScheme( TrackerIdSchemeParam.CODE )
+            .orgUnitIdScheme( TrackerIdSchemeParam.ofAttribute( "RiNIt1yJoge" ) )
+            .build();
+
+        MetadataIdentifier id = MAPPER.fromOrgUnit( "clouds", params );
+
+        assertEquals( TrackerIdScheme.ATTRIBUTE, id.getIdScheme() );
+        assertEquals( "RiNIt1yJoge", id.getIdentifier() );
+        assertEquals( "clouds", id.getAttributeValue() );
+    }
+
+    @Test
+    void orgUnitIdentifierFromUIDIfNull()
+    {
+
+        TrackerIdSchemeParams params = TrackerIdSchemeParams.builder()
+            .idScheme( TrackerIdSchemeParam.CODE )
+            .build();
+
+        MetadataIdentifier id = MAPPER.fromOrgUnit( null, params );
+
+        assertEquals( TrackerIdScheme.UID, id.getIdScheme() );
+        assertNull( id.getIdentifier() );
+    }
 }
