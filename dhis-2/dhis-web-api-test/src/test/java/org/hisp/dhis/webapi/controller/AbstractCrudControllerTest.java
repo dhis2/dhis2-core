@@ -535,6 +535,30 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
+    void testMergeCollectionItemsJson()
+    {
+        String userId = getCurrentUser().getUid();
+        // first create an object which has a collection
+        String groupId = assertStatus( HttpStatus.CREATED, POST( "/userGroups/", "{'name':'testers'}" ) );
+        assertStatus( HttpStatus.OK,
+            POST( "/userGroups/" + groupId + "/users", "{'additions': [{'id':'" + userId + "'}]}" ) );
+        assertUserGroupHasOnlyUser( groupId, userId );
+
+        User testUser1 = createUser( "test1" );
+        User testUser2 = createUser( "test2" );
+
+        // Add 2 new users and remove existing user from the created group
+        assertStatus( HttpStatus.OK,
+            POST( "/userGroups/" + groupId + "/users",
+                "{'additions': [{'id':'" + testUser1.getUid() + "'},{'id':'" + testUser2.getUid() + "'}]" +
+                    ",'deletions':[{'id':'" + userId + "'}]}" ) );
+
+        JsonList<JsonUser> usersInGroup = GET( "/userGroups/{uid}/", groupId ).content()
+            .getList( "users", JsonUser.class );
+        assertEquals( 2, usersInGroup.size() );
+    }
+
+    @Test
     void testReplaceCollectionItemsJson()
     {
         String userId = getCurrentUser().getUid();

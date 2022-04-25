@@ -39,6 +39,7 @@ import lombok.AllArgsConstructor;
 import org.hisp.dhis.cache.HibernateCacheManager;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IdentifiableObjects;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
@@ -107,7 +108,6 @@ public class DefaultCollectionService implements CollectionService
         }
 
         dbmsManager.clearSession();
-        cacheManager.clearCache();
         return report;
     }
 
@@ -191,7 +191,6 @@ public class DefaultCollectionService implements CollectionService
         manager.update( object );
 
         dbmsManager.clearSession();
-        cacheManager.clearCache();
         return report;
     }
 
@@ -252,6 +251,16 @@ public class DefaultCollectionService implements CollectionService
         TypeReport deletions = delCollectionItems( object, propertyName, getCollection( object, property ) );
         TypeReport additions = addCollectionItems( object, propertyName, objects );
         return deletions.mergeAllowEmpty( additions );
+    }
+
+    @Override
+    @Transactional
+    public TypeReport mergeCollectionItems( IdentifiableObject object, String propertyName, IdentifiableObjects items )
+        throws Exception
+    {
+        TypeReport delReport = delCollectionItems( object, propertyName, items.getDeletions() );
+        TypeReport addReport = addCollectionItems( object, propertyName, items.getAdditions() );
+        return delReport.mergeAllowEmpty( addReport );
     }
 
     private Property validateUpdate( IdentifiableObject object, String propertyName, String message )
