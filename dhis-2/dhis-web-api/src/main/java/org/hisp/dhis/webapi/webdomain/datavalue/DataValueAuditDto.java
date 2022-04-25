@@ -25,26 +25,54 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.imports;
+package org.hisp.dhis.webapi.webdomain.datavalue;
 
-import org.hisp.dhis.tracker.TrackerIdSchemeParams;
-import org.hisp.dhis.webapi.controller.tracker.view.Event;
-import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
-import org.mapstruct.Context;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import java.util.Date;
 
-@Mapper( uses = {
-    RelationshipMapper.class,
-    NoteMapper.class,
-    DataValueMapper.class,
-    InstantMapper.class,
-    MetadataIdentifierMapper.class
-} )
-interface EventMapper extends DomainMapper<Event, org.hisp.dhis.tracker.domain.Event>
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+
+import org.hisp.dhis.common.AuditType;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+/**
+ * DTO which represents a data value audit record.
+ *
+ * @author Lars Helge Overland
+ */
+@Getter
+@Setter
+@Accessors( chain = true )
+@NoArgsConstructor
+public class DataValueAuditDto
 {
-    @Mapping( target = "program", source = "program", qualifiedByName = "programToMetadataIdentifier" )
-    @Mapping( target = "programStage", source = "programStage", qualifiedByName = "programStageToMetadataIdentifier" )
-    @Mapping( target = "orgUnit", source = "orgUnit", qualifiedByName = "orgUnitToMetadataIdentifier" )
-    org.hisp.dhis.tracker.domain.Event from( Event event, @Context TrackerIdSchemeParams idSchemeParams );
+    @JsonProperty
+    private String dataElement;
+
+    @JsonProperty
+    private String period;
+
+    @JsonProperty
+    private String orgUnit;
+
+    @JsonProperty
+    private String categoryOptionCombo;
+
+    @JsonProperty
+    private String attributeOptionCombo;
+
+    @JsonProperty
+    private String value;
+
+    @JsonProperty
+    private String modifiedBy;
+
+    @JsonProperty
+    private Date created;
+
+    @JsonProperty
+    private AuditType auditType;
 }

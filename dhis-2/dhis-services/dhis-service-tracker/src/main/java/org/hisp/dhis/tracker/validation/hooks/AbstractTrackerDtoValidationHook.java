@@ -121,6 +121,11 @@ public abstract class AbstractTrackerDtoValidationHook
         TrackerDto dto,
         T optionalObject, String value )
     {
+        if ( value == null )
+        {
+            return;
+        }
+
         Optional.ofNullable( optionalObject.getOptionSet() )
             .ifPresent( optionSet -> reporter.addErrorIf(
                 () -> optionSet.getOptions().stream().filter( Objects::nonNull )

@@ -45,7 +45,10 @@
         "identifier": "Qmqxq907VNz"
       },
       "enrollment": "TvctPPhpD8v",
-      "orgUnit": "QfUVllTs6cZ",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "QfUVllTs6cZ"
+      },
       "relationships": [],
       "occurredAt": "2019-01-28T00:00:00.000",
       "scheduledAt": "2019-01-28T12:10:38.100",

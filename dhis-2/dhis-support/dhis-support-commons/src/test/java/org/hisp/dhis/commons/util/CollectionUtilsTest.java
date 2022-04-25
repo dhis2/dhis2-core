@@ -28,6 +28,7 @@
 package org.hisp.dhis.commons.util;
 
 import static org.hisp.dhis.commons.collection.CollectionUtils.flatMapToSet;
+import static org.hisp.dhis.commons.collection.CollectionUtils.mapToList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
@@ -43,7 +44,7 @@ import com.google.common.collect.Lists;
 class CollectionUtilsTest
 {
     @Test
-    public void testFlatMapToSet()
+    void testFlatMapToSet()
     {
         DataElement deA = new DataElement();
         DataElement deB = new DataElement();
@@ -70,7 +71,7 @@ class CollectionUtilsTest
     }
 
     @Test
-    public void testDifference()
+    void testDifference()
     {
         List<String> collection1 = Lists.newArrayList( "One", "Two", "Three" );
         List<String> collection2 = Lists.newArrayList( "One", "Two", "Four" );
@@ -78,5 +79,14 @@ class CollectionUtilsTest
 
         assertEquals( 1, difference.size() );
         assertEquals( "Three", difference.get( 0 ) );
+    }
+
+    @Test
+    void testMapToList()
+    {
+        List<String> collection = Lists.newArrayList( "1", "2", "3" );
+
+        assertEquals( 3, mapToList( collection, Integer::parseInt ).size() );
+        assertEquals( 1, mapToList( collection, Integer::parseInt ).get( 0 ) );
     }
 }

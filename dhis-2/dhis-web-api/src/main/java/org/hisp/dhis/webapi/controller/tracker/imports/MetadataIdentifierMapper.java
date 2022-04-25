@@ -49,4 +49,11 @@ interface MetadataIdentifierMapper
     {
         return idSchemeParams.getProgramStageIdScheme().toMetadataIdentifier( identifier );
     }
+
+    @Named( "orgUnitToMetadataIdentifier" )
+    default org.hisp.dhis.tracker.domain.MetadataIdentifier fromOrgUnit( String identifier,
+        @Context TrackerIdSchemeParams idSchemeParams )
+    {
+        return idSchemeParams.getOrgUnitIdScheme().toMetadataIdentifier( identifier );
+    }
 }

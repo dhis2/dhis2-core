@@ -71,7 +71,7 @@ public class PreCheckMandatoryFieldsValidationHook
     @Override
     public void validateEvent( ValidationErrorReporter reporter, Event event )
     {
-        reporter.addErrorIf( () -> StringUtils.isEmpty( event.getOrgUnit() ), event, E1123, ORG_UNIT );
+        reporter.addErrorIf( () -> event.getOrgUnit().isBlank(), event, E1123, ORG_UNIT );
         reporter.addErrorIf( () -> event.getProgramStage().isBlank(), event, E1123, "programStage" );
 
         // TODO remove if once metadata import is fixed

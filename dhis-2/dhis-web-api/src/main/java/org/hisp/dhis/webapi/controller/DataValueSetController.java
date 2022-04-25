@@ -58,8 +58,6 @@ import java.util.zip.ZipOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.SessionFactory;
@@ -96,7 +94,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
  */
 @Controller
 @RequestMapping( value = "/dataValueSets" )
-@Slf4j
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class DataValueSetController
 {
@@ -403,7 +400,8 @@ public class DataValueSetController
             // no-compression option.
             if ( !StringUtils.isEmpty( attachment ) )
             {
-                response.addHeader( ContextUtils.HEADER_CONTENT_DISPOSITION, "attachment; filename=" + fileName );
+                response.addHeader( ContextUtils.HEADER_CONTENT_DISPOSITION,
+                    "attachment; filename=" + fileName + "." + format );
                 response.addHeader( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
             }
 
