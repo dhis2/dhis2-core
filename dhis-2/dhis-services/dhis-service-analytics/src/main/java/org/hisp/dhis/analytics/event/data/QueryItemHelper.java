@@ -134,11 +134,21 @@ public class QueryItemHelper
     }
 
     /**
-     * Returns a map of metadata item options and {@link Option}.
+     * Returns a list of options {@link Option}.
      *
-     * @param grid the Grid instance.
-     * @param params the EventQueryParams.
-     * @return a list of options.
+     * Based on the given Grid and EventQueryParams, this method will return the
+     * options correct list of options.
+     *
+     * When the Grid has no rows, it will return the options specified as
+     * element "filter", ie.: Zj7UnCAulEk.K6uUAvq500H:IN:A03, where "A03" is the
+     * option code.
+     *
+     * When the Grid has rows, this method will return only the options that are
+     * part of the row object.
+     *
+     * @param grid the Grid instance
+     * @param params the EventQueryParams
+     * @return a list of options based on the Grid/EventQueryParams
      */
     public static List<Option> getItemOptions( final Grid grid, final EventQueryParams params )
     {
@@ -150,18 +160,25 @@ public class QueryItemHelper
 
             if ( gridHeader.hasOptionSet() && isNotEmpty( grid.getRows() ) )
             {
-                options.addAll( getItemOptionsThatMatchesRows( grid, i, gridHeader ) );
+                options.addAll( getItemOptionsThatMatchesRows( grid, i ) );
             }
             else if ( gridHeader.hasOptionSet() && isEmpty( grid.getRows() ) )
             {
-                options.addAll( getItemOptionsWhenRowsIsEmpty( params ) );
+                options.addAll( getItemOptionsForEmptyRows( params ) );
             }
         }
 
         return options.stream().distinct().collect( toList() );
     }
 
-    private static List<Option> getItemOptionsWhenRowsIsEmpty( final EventQueryParams params )
+    /**
+     * This method will extract the options (based on their codes) from the
+     * element filter.
+     *
+     * @param params the EventQueryParams
+     * @return the options for empty rows
+     */
+    private static List<Option> getItemOptionsForEmptyRows( final EventQueryParams params )
     {
         final List<Option> options = new ArrayList<>();
 
@@ -176,7 +193,7 @@ public class QueryItemHelper
 
                 if ( hasOptions && isNotEmpty( item.getFilters() ) )
                 {
-                    options.addAll( getItemOptionsBasedOnTheFilter( item ) );
+                    options.addAll( getItemOptionsForFilter( item ) );
                 }
             }
         }
@@ -184,10 +201,19 @@ public class QueryItemHelper
         return options;
     }
 
-    private static List<Option> getItemOptionsThatMatchesRows( final Grid grid, final int columnIndex,
-        final GridHeader gridHeader )
+    /**
+     * For the list of rows, in the Grid, it will return only the options that
+     * are part of each row object. It picks each option, from the list of all
+     * options available, that matches the current header.
+     *
+     * @param grid the Grid
+     * @param columnIndex
+     * @return the list of matching options
+     */
+    private static List<Option> getItemOptionsThatMatchesRows( final Grid grid, final int columnIndex )
     {
         final List<Option> options = new ArrayList<>();
+        final GridHeader gridHeader = grid.getHeaders().get( columnIndex );
 
         options.addAll( gridHeader
             .getOptionSetObject()
@@ -206,7 +232,18 @@ public class QueryItemHelper
         return options;
     }
 
-    private static List<Option> getItemOptionsBasedOnTheFilter( final QueryItem item )
+    /**
+     * Returns the options specified as element "filter" (option code), ie.:
+     * Zj7UnCAulEk.K6uUAvq500H:IN:A03;B01, where "A03;B01" are the options
+     * codes.
+     *
+     * The codes are split by the token ";" and the respective Option objects
+     * are returned.
+     *
+     * @param item the QueryItem
+     * @return the list of options found in the filter
+     */
+    private static List<Option> getItemOptionsForFilter( final QueryItem item )
     {
         final List<Option> options = new ArrayList<>();
 
