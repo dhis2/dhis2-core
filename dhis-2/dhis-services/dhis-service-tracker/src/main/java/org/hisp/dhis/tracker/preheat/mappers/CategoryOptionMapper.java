@@ -43,5 +43,10 @@ public interface CategoryOptionMapper extends PreheatMapper<CategoryOption>
     @Mapping( target = "uid" )
     @Mapping( target = "name" )
     @Mapping( target = "code" )
+    @Mapping( target = "startDate" )
+    @Mapping( target = "endDate" )
+    @Mapping( target = "formName" )
+    @Mapping( target = "style" )
+    @Mapping( target = "sharing" )
     CategoryOption map( CategoryOption categoryOption );
 }
