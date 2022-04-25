@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.common;
 
+import java.util.Optional;
+import java.util.stream.Stream;
+
 /**
  * This class is deprecated in favor of new async auditing solution, do not use.
  *
@@ -50,5 +53,10 @@ public enum AuditType
     public String getValue()
     {
         return value;
+    }
+
+    public static Optional<AuditType> from( String value )
+    {
+        return Stream.of( AuditType.values() ).filter( k -> k.getValue().equals( value ) ).findAny();
     }
 }

@@ -188,10 +188,14 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
             }
             else
             {
-                if ( !dv.getValue().equals( eventDataValue.getValue() ) )
-                {
-                    auditType = AuditType.UPDATE;
-                }
+                final String persistedValue = eventDataValue.getValue();
+
+                Optional<AuditType> optionalAuditType = Optional.ofNullable( dv.getValue() )
+                    .filter( v -> !dv.getValue().equals( persistedValue ) )
+                    .map( v1 -> AuditType.from( "update" ) )
+                    .orElseGet( () -> dv.getValue() == null ? AuditType.from( "delete" ) : Optional.empty() );
+
+                auditType = optionalAuditType.orElse( null );
             }
 
             eventDataValue.setDataElement( dateElement.getUid() );
@@ -207,7 +211,6 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
                 }
 
                 psi.getEventDataValues().remove( eventDataValue );
-                auditType = AuditType.DELETE;
             }
             else
             {
