@@ -31,7 +31,10 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import org.hisp.dhis.tracker.TrackerType;
 import org.locationtech.jts.geom.Geometry;
@@ -101,10 +104,6 @@ public class TrackedEntity
     @JsonProperty
     @Builder.Default
     private List<Enrollment> enrollments = new ArrayList<>();
-
-    @JsonProperty
-    @Builder.Default
-    private List<ProgramOwner> programOwners = new ArrayList<>();
 
     @Override
     public String getUid()

@@ -37,7 +37,6 @@ import org.mapstruct.Mapper;
     RelationshipMapper.class,
     AttributeMapper.class,
     EnrollmentMapper.class,
-    ProgramOwnerMapper.class,
     InstantMapper.class,
     UserMapper.class } )
 interface TrackedEntityMapper extends DomainMapper<TrackedEntity, org.hisp.dhis.tracker.domain.TrackedEntity>
