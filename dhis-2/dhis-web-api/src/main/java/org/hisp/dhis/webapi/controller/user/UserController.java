@@ -40,7 +40,6 @@ import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 import static org.springframework.http.MediaType.TEXT_XML_VALUE;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
@@ -597,6 +596,7 @@ public class UserController
 
     @PatchMapping( value = "/{uid}" )
     @ResponseStatus( value = HttpStatus.NO_CONTENT )
+    @Override
     public void partialUpdateObject(
         @PathVariable( "uid" ) String pvUid, @RequestParam Map<String, String> rpParameters,
         @CurrentUser User currentUser, HttpServletRequest request )
@@ -761,6 +761,7 @@ public class UserController
         // current user may have been changed and detached and must become
         // managed again
         // TODO: what is this doing? I don't understand how this is possible.
+        // 12098, handle update to current user if needed since now it's static
         if ( currentUser != null && currentUser.getId() == user.getId() )
         {
             currentUser = currentUserService.getCurrentUser();
@@ -780,38 +781,6 @@ public class UserController
         throws Exception
     {
         User currentUser = currentUserService.getCurrentUser();
-
-        boolean contains1 = dbmsManager.contains( currentUser );
-        boolean contains2 = dbmsManager.contains( entity );
-
-        try
-        {
-            Serializable id1 = dbmsManager.getIdentifier( currentUser );
-            log.info( "currentUser: " + id1 );
-        }
-        catch ( Exception e )
-        {
-            // throw new RuntimeException( e );
-            log.info( "Error getting identifier for user: " + currentUser.getUid() );
-        }
-
-        try
-        {
-            Serializable id1 = dbmsManager.getIdentifier( entity );
-            log.info( "Entity id: " + id1 );
-        }
-        catch ( Exception e )
-        {
-            // throw new RuntimeException( e );
-            log.info( "Error getting identifier for user: " + entity.getUid() );
-        }
-
-        if ( entity.getUid().equals( currentUser.getUid() ) )
-        {
-            // throw new WebMessageException( conflict( "You cannot modify your
-            // own user." ) );
-            log.info( "You cannot modify your own user." );
-        }
 
         if ( !userService.canAddOrUpdateUser( getUids( entity.getGroups() ), currentUser )
             || !currentUser.canModifyUser( entity ) )

@@ -39,6 +39,11 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 public class CurrentUserUtil
 {
+    private CurrentUserUtil()
+    {
+        throw new IllegalStateException( "Utility class" );
+    }
+
     public static String getCurrentUsername()
     {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -110,6 +115,7 @@ public class CurrentUserUtil
         else if ( principal instanceof Dhis2User )
         {
             Dhis2User dhisOidcUser = (Dhis2User) authentication.getPrincipal();
+
             return dhisOidcUser.getDhis2User();
         }
         else
@@ -140,9 +146,7 @@ public class CurrentUserUtil
                     userSettings.remove( key );
                 }
             }
-
         }
-
     }
 
     public static <T> T getUserSetting( UserSettingKey key )

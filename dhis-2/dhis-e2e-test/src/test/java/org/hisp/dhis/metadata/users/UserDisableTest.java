@@ -40,7 +40,7 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class UserDisableTest
+class UserDisableTest
     extends ApiTest
 {
     private UserActions userActions;
@@ -67,7 +67,7 @@ public class UserDisableTest
     }
 
     @Test
-    public void shouldDisableUser()
+    void shouldDisableUser()
     {
         loginActions.loginAsUser( userName, password );
         loginActions.loginAsSuperUser();
@@ -86,7 +86,7 @@ public class UserDisableTest
     }
 
     @Test
-    public void shouldEnableUser()
+    void shouldEnableUser()
     {
         loginActions.loginAsUser( userName, password );
         loginActions.loginAsSuperUser();

@@ -35,7 +35,6 @@ import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -50,12 +49,6 @@ class OrgUnitSplitValidatorTest extends DhisSpringTest
 
     @Autowired
     private OrgUnitSplitValidator validator;
-
-    @BeforeEach
-    void before()
-    {
-        // this.validator = new OrgUnitSplitValidator();
-    }
 
     @Test
     void testValidateMissingSource()

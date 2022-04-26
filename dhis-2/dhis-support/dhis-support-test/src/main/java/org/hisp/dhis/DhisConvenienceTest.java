@@ -253,8 +253,6 @@ public abstract class DhisConvenienceTest
 
     protected static CategoryService categoryService;
 
-    private char nextUserName = 'k';
-
     @PostConstruct
     protected void initServices()
     {
@@ -2762,8 +2760,6 @@ public abstract class DhisConvenienceTest
 
         user.getUserRoles().forEach( userRole -> userService.addUserRole( userRole ) );
 
-        // userService.addUserRole(
-        // user.getUserRoles().stream().findFirst().get() );
         userService.encodeAndSetPassword( user, user.getPassword() );
         userService.updateUser( user );
 

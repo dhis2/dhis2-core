@@ -240,8 +240,7 @@ public class User
     private transient UserCredentialsDto userCredentialsRaw;
 
     /**
-     * Organisation units for data input and data capture operations. TODO move
-     * to User.
+     * Organisation units for data input and data capture operations.
      */
     private Set<OrganisationUnit> organisationUnits = new HashSet<>();
 

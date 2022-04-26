@@ -126,13 +126,12 @@ public class CurrentUserService
             return null;
         }
 
-        // return currentUserGroupInfoCache
-        // .get( userInfo.getUsername(), this::getCurrentUserGroupsInfo );
         return getCurrentUserGroupsInfo( user.getUsername() );
     }
 
     public void invalidateUserGroupCache( String username )
     {
+        // TODO: investigate 12098
         // try
         // {
         // currentUserGroupInfoCache.invalidate( username );
@@ -159,13 +158,6 @@ public class CurrentUserService
         return userStore.getCurrentUserGroupInfo( currentUser.getId() );
     }
 
-    // ???????????????
-    // ???????????????
-    // ???????????????
-    // ???????????????
-    // ???????????????
-    // ???????????????
-
     public void setUserSetting( UserSettingKey key, Serializable value )
     {
         setUserSettingInternal( key.getName(), value );
@@ -176,7 +168,7 @@ public class CurrentUserService
         CurrentUserUtil.setUserSettingInternal( key, value );
     }
 
-    static public <T> T getUserSetting( UserSettingKey key )
+    public static <T> T getUserSetting( UserSettingKey key )
     {
         return CurrentUserUtil.getUserSetting( key );
     }
