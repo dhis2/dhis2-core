@@ -71,6 +71,7 @@ public class DimensionFilteringAndPagingService
         "id", comparing( DimensionResponse::getId, nullsFirst( naturalOrder() ) ),
         "name", comparing( DimensionResponse::getName, nullsFirst( naturalOrder() ) ),
         "dimensionType", comparing( DimensionResponse::getDimensionType, nullsFirst( naturalOrder() ) ),
+        "displayShortName", comparing( DimensionResponse::getDisplayShortName, nullsFirst( naturalOrder() ) ),
         "displayName", comparing( DimensionResponse::getDisplayName, nullsFirst( naturalOrder() ) ) );
 
     public AnalyticsDimensionsPagingWrapper<ObjectNode> pageAndFilter(
