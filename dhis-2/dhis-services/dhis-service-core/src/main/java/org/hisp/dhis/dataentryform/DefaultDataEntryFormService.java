@@ -176,7 +176,7 @@ public class DefaultDataEntryFormService
     {
         // TODO HTML encode names
 
-        if ( dataSet == null || dataSet.getFormType() != FormType.CUSTOM || !dataSet.hasDataEntryForm() )
+        if ( dataSet.getFormType() != FormType.CUSTOM || !dataSet.hasDataEntryForm() )
         {
             throw new IllegalQueryException( new ErrorMessage( ErrorCode.E1114, dataSet.getUid() ) );
         }
