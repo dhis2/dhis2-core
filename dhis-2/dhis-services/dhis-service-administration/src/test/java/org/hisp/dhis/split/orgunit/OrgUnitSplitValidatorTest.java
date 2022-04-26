@@ -37,7 +37,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -55,7 +54,7 @@ class OrgUnitSplitValidatorTest extends DhisSpringTest
     @BeforeEach
     void before()
     {
-//        this.validator = new OrgUnitSplitValidator();
+        // this.validator = new OrgUnitSplitValidator();
     }
 
     @Test

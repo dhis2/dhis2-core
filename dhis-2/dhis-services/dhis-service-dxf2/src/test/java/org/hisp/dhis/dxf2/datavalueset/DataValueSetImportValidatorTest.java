@@ -71,7 +71,6 @@ import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.acl.AclService;
@@ -79,7 +78,6 @@ import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -87,7 +85,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  * @author Jan Bernitt
  */
-@Disabled("TODO: fix this test 12098, issues with org unit service not mockable")
+@Disabled( "TODO: fix this test 12098, issues with org unit service not mockable" )
 class DataValueSetImportValidatorTest extends DhisSpringTest
 {
 
@@ -103,7 +101,6 @@ class DataValueSetImportValidatorTest extends DhisSpringTest
     @Autowired
     private DataValueService dataValueService;
 
-
     private I18n i18n;
 
     @Autowired
@@ -113,7 +110,7 @@ class DataValueSetImportValidatorTest extends DhisSpringTest
     void setUp()
     {
         i18n = mock( I18n.class );
-//        setupUserCanWriteCategoryOptions( true );
+        // setupUserCanWriteCategoryOptions( true );
 
         when( i18n.getString( anyString() ) ).thenAnswer( invocation -> invocation.getArgument( 0, String.class ) );
     }

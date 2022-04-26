@@ -33,7 +33,6 @@ import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -47,6 +46,7 @@ public class OrgUnitSplitValidator
 {
     @Autowired
     private OrganisationUnitService organisationUnitService;
+
     /**
      * Validates the given {@link OrgUnitSplitRequest}. Throws
      * {@link IllegalQueryException} if validation fails.
@@ -96,7 +96,7 @@ public class OrgUnitSplitValidator
         }
         for ( OrganisationUnit target : request.getTargets() )
         {
-            if ( organisationUnitService.isDescendant(target, request.getSource() ) )
+            if ( organisationUnitService.isDescendant( target, request.getSource() ) )
             {
                 return new ErrorMessage( ErrorCode.E1516, target.getUid() );
             }

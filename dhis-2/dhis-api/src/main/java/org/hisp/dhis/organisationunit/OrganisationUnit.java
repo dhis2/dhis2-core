@@ -412,89 +412,92 @@ public class OrganisationUnit
         return CoordinateUtils.hasDescendantsWithCoordinates( children );
     }
 
-//    /**
-//     * Indicates whether this organisation unit is a descendant of the given
-//     * ancestor organisation unit, i.e. if the given organisation unit is an
-//     * ancestor of this organisation unit.
-//     *
-//     * @param ancestor the organisation unit to check.
-//     *
-//     * @return true if the given organisation unit is an ancestor of this
-//     *         organisation unit.
-//     */
-//    public boolean isDescendant( OrganisationUnit ancestor )
-//    {
-//        if ( ancestor == null )
-//        {
-//            return false;
-//        }
-//
-//        OrganisationUnit unit = this;
-//
-//        while ( unit != null )
-//        {
-//            if ( ancestor.equals( unit ) )
-//            {
-//                return true;
-//            }
-//
-//            unit = unit.getParent();
-//        }
-//
-//        return false;
-//    }
+    // /**
+    // * Indicates whether this organisation unit is a descendant of the given
+    // * ancestor organisation unit, i.e. if the given organisation unit is an
+    // * ancestor of this organisation unit.
+    // *
+    // * @param ancestor the organisation unit to check.
+    // *
+    // * @return true if the given organisation unit is an ancestor of this
+    // * organisation unit.
+    // */
+    // public boolean isDescendant( OrganisationUnit ancestor )
+    // {
+    // if ( ancestor == null )
+    // {
+    // return false;
+    // }
+    //
+    // OrganisationUnit unit = this;
+    //
+    // while ( unit != null )
+    // {
+    // if ( ancestor.equals( unit ) )
+    // {
+    // return true;
+    // }
+    //
+    // unit = unit.getParent();
+    // }
+    //
+    // return false;
+    // }
 
-//    /**
-//     * Indicates whether this organisation unit is a descendant of any of the
-//     * given ancestor organisation units, i.e. if any of the given organisation
-//     * units is an ancestor of this organisation unit.
-//     *
-//     * @param organisationUnit
-//     * @param ancestors the organisation units to check.
-//     *
-//     * @return true if any of the given organisation unit is an ancestor of this
-//     *         organisation unit.
-//     */
-//    public boolean isDescendant( OrganisationUnit organisationUnit, Set<OrganisationUnit> ancestors )
-//    {
-//        if ( ancestors == null || ancestors.isEmpty() )
-//        {
-//            return false;
-//        }
-//
-//        Set<String> ancestorsUid = new HashSet<>();
-//        for ( OrganisationUnit ancestor : ancestors )
-//        {
-//            if ( ancestor == null )
-//            {
-//
-//                log.info( "Ancestor is null" );
-//                continue;
-//            }
-//
-//            String uid1 = ancestor.getUid();
-//            ancestorsUid.add( uid1 );
-//        }
-//
-//        // Set<String> ancestorsUid = ancestors.stream()
-//        // .map( OrganisationUnit::getUid )
-//        // .collect( Collectors.toSet() );
-//
-//        OrganisationUnit unit = this;
-//
-//        while ( unit != null )
-//        {
-//            if ( ancestorsUid.contains( unit.getUid() ) )
-//            {
-//                return true;
-//            }
-//
-//            unit = unit.getParent();
-//        }
-//
-//        return false;
-//    }
-//
+    // /**
+    // * Indicates whether this organisation unit is a descendant of any of the
+    // * given ancestor organisation units, i.e. if any of the given
+    // organisation
+    // * units is an ancestor of this organisation unit.
+    // *
+    // * @param organisationUnit
+    // * @param ancestors the organisation units to check.
+    // *
+    // * @return true if any of the given organisation unit is an ancestor of
+    // this
+    // * organisation unit.
+    // */
+    // public boolean isDescendant( OrganisationUnit organisationUnit,
+    // Set<OrganisationUnit> ancestors )
+    // {
+    // if ( ancestors == null || ancestors.isEmpty() )
+    // {
+    // return false;
+    // }
+    //
+    // Set<String> ancestorsUid = new HashSet<>();
+    // for ( OrganisationUnit ancestor : ancestors )
+    // {
+    // if ( ancestor == null )
+    // {
+    //
+    // log.info( "Ancestor is null" );
+    // continue;
+    // }
+    //
+    // String uid1 = ancestor.getUid();
+    // ancestorsUid.add( uid1 );
+    // }
+    //
+    // // Set<String> ancestorsUid = ancestors.stream()
+    // // .map( OrganisationUnit::getUid )
+    // // .collect( Collectors.toSet() );
+    //
+    // OrganisationUnit unit = this;
+    //
+    // while ( unit != null )
+    // {
+    // if ( ancestorsUid.contains( unit.getUid() ) )
+    // {
+    // return true;
+    // }
+    //
+    // unit = unit.getParent();
+    // }
+    //
+    // return false;
+    // }
+    //
     public boolean hasCoordinatesUp()
     {
         if ( parent != null )

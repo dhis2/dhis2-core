@@ -37,7 +37,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -48,13 +47,14 @@ class OrgUnitMergeValidatorTest extends DhisSpringTest
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
+
     @Autowired
     private OrgUnitMergeValidator validator;
 
     @BeforeEach
     void before()
     {
-//        validator = new OrgUnitMergeValidator();
+        // validator = new OrgUnitMergeValidator();
     }
 
     @Test
