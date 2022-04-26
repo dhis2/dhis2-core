@@ -36,6 +36,8 @@ import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hibernate.SessionFactory;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -57,12 +59,16 @@ public class CurrentUserService
 
     private final SessionFactory sessionFactory;
 
-    public CurrentUserService( @Lazy UserStore userStore, SessionFactory sessionFactory )
+    private final Cache<CurrentUserGroupInfo> currentUserGroupInfoCache;
+
+    public CurrentUserService( @Lazy UserStore userStore, SessionFactory sessionFactory, CacheProvider cacheProvider )
     {
         checkNotNull( userStore );
+        checkNotNull( sessionFactory );
 
         this.sessionFactory = sessionFactory;
         this.userStore = userStore;
+        this.currentUserGroupInfoCache = cacheProvider.createCurrentUserGroupInfoCache();
     }
 
     /**
@@ -115,8 +121,13 @@ public class CurrentUserService
     public CurrentUserGroupInfo getCurrentUserGroupsInfo()
     {
         User currentUser = getCurrentUser();
+        if ( currentUser == null )
+        {
+            return null;
+        }
 
-        return getCurrentUserGroupsInfo( currentUser );
+        return currentUserGroupInfoCache
+            .get( currentUser.getUsername(), this::getCurrentUserGroupsInfo );
     }
 
     @Transactional( readOnly = true )
@@ -127,20 +138,20 @@ public class CurrentUserService
             return null;
         }
 
-        return getCurrentUserGroupsInfo( user.getUsername() );
+        return currentUserGroupInfoCache
+            .get( user.getUsername(), this::getCurrentUserGroupsInfo );
     }
 
     public void invalidateUserGroupCache( String username )
     {
-        // TODO: investigate 12098
-        // try
-        // {
-        // currentUserGroupInfoCache.invalidate( username );
-        // }
-        // catch ( NullPointerException exception )
-        // {
-        // // Ignore if key doesn't exist
-        // }
+        try
+        {
+            currentUserGroupInfoCache.invalidate( username );
+        }
+        catch ( NullPointerException exception )
+        {
+            // Ignore if key doesn't exist
+        }
     }
 
     private CurrentUserGroupInfo getCurrentUserGroupsInfo( String username )
@@ -172,11 +183,6 @@ public class CurrentUserService
     public static <T> T getUserSetting( UserSettingKey key )
     {
         return CurrentUserUtil.getUserSetting( key );
-    }
-
-    protected void evictCurrentUser( User user )
-    {
-        sessionFactory.getCurrentSession().evict( user );
     }
 
 }
