@@ -45,6 +45,7 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.ObjectUtils;
+
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -65,6 +66,7 @@ import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -512,7 +514,6 @@ public class DefaultOrganisationUnitService
     @Transactional
     public boolean isDescendant( OrganisationUnit organisationUnit, Set<OrganisationUnit> ancestors )
     {
-
         OrganisationUnit unit = getOrganisationUnit( organisationUnit.getUid() );
 
         if ( ancestors == null || ancestors.isEmpty() )
@@ -549,6 +550,30 @@ public class DefaultOrganisationUnitService
         }
 
         return false;
+    }
+
+    @Transactional( readOnly = true )
+    @Override public boolean isDescendant( OrganisationUnit organisationUnit, OrganisationUnit ancestor )
+    {
+        if ( ancestor == null )
+        {
+            return false;
+        }
+
+        OrganisationUnit unit = getOrganisationUnit( organisationUnit.getUid() );
+
+        while ( unit != null )
+        {
+            if ( ancestor.equals( unit ) )
+            {
+                return true;
+            }
+
+            unit = unit.getParent();
+        }
+
+        return false;
+
     }
 
     @Override
@@ -939,8 +964,7 @@ public class DefaultOrganisationUnitService
     }
 
     /**
-     * Get lowest level/target level Organisation Units that includes the
-     * coordinates.
+     * Get lowest level/target level Organisation Units that includes the coordinates.
      */
     @Override
     @Transactional( readOnly = true )
@@ -1021,8 +1045,7 @@ public class DefaultOrganisationUnitService
     // -------------------------------------------------------------------------
 
     /**
-     * Searches organisation units until finding one with polygon containing
-     * point.
+     * Searches organisation units until finding one with polygon containing point.
      */
     private List<OrganisationUnit> getTopLevelOrgUnitWithPoint( double longitude, double latitude, int searchLevel,
         int stopLevel )

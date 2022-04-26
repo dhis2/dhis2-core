@@ -54,6 +54,7 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.MimeTypeUtils;
 
@@ -485,12 +486,12 @@ class OrganisationUnitServiceTest extends DhisSpringTest
         organisationUnitService.addOrganisationUnit( unit3 );
         OrganisationUnit unit4 = createOrganisationUnit( '4' );
         organisationUnitService.addOrganisationUnit( unit4 );
-        assertTrue( unit1.isDescendant( null, Sets.newHashSet( unit1 ) ) );
-        assertTrue( unit2.isDescendant( null, Sets.newHashSet( unit1 ) ) );
-        assertTrue( unit3.isDescendant( null, Sets.newHashSet( unit1 ) ) );
-        assertTrue( unit2.isDescendant( null, Sets.newHashSet( unit1, unit3 ) ) );
-        assertFalse( unit2.isDescendant( null, Sets.newHashSet( unit3 ) ) );
-        assertFalse( unit4.isDescendant( null, Sets.newHashSet( unit1 ) ) );
+        assertTrue( organisationUnitService.isDescendant( unit1, Sets.newHashSet( unit1 ) ) );
+        assertTrue( organisationUnitService.isDescendant( unit2, Sets.newHashSet( unit1 ) ) );
+        assertTrue( organisationUnitService.isDescendant( unit3, Sets.newHashSet( unit1 ) ) );
+        assertTrue( organisationUnitService.isDescendant( unit2, Sets.newHashSet( unit1, unit3 ) ) );
+        assertFalse( organisationUnitService.isDescendant( unit2, Sets.newHashSet( unit3 ) ) );
+        assertFalse( organisationUnitService.isDescendant( unit4, Sets.newHashSet( unit1 ) ) );
     }
 
     @Test
@@ -506,11 +507,11 @@ class OrganisationUnitServiceTest extends DhisSpringTest
         organisationUnitService.addOrganisationUnit( unit3 );
         OrganisationUnit unit4 = createOrganisationUnit( '4' );
         organisationUnitService.addOrganisationUnit( unit4 );
-        assertTrue( unit1.isDescendant( unit1 ) );
-        assertTrue( unit2.isDescendant( unit1 ) );
-        assertTrue( unit3.isDescendant( unit1 ) );
-        assertFalse( unit2.isDescendant( unit3 ) );
-        assertFalse( unit4.isDescendant( unit1 ) );
+        assertTrue( organisationUnitService.isDescendant( unit1, unit1 ) );
+        assertTrue( organisationUnitService.isDescendant( unit2, unit1 ) );
+        assertTrue( organisationUnitService.isDescendant( unit3, unit1 ) );
+        assertFalse( organisationUnitService.isDescendant( unit2, unit3 ) );
+        assertFalse( organisationUnitService.isDescendant( unit4, unit1 ) );
     }
 
     @Test
