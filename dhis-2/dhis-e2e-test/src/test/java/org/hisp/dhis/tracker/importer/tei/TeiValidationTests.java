@@ -90,7 +90,7 @@ public class TeiValidationTests
     }
 
     @Test
-    public void shouldReturnErrorReportsWhenTeiIncorrect()
+    public void shouldReturnErrorReportsWhenTetIncorrect()
     {
         // arrange
         JsonObject trackedEntities = new TeiDataBuilder().array( "", Constants.ORG_UNIT_IDS[0] );

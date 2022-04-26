@@ -32,17 +32,24 @@ import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.common.DimensionalObject.ITEM_SEP;
 import static org.hisp.dhis.common.DimensionalObject.PROGRAMSTAGE_SEP;
 
+import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
+import lombok.RequiredArgsConstructor;
+
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.event.QueryItemLocator;
 import org.hisp.dhis.analytics.util.RepeatableStageParamsHelper;
+import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.PrimaryKeyObject;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.RepeatableStageParams;
 import org.hisp.dhis.common.ValueType;
@@ -68,6 +75,7 @@ import org.springframework.stereotype.Component;
  * @author Luciano Fiandesio
  */
 @Component
+@RequiredArgsConstructor
 public class DefaultQueryItemLocator
     implements QueryItemLocator
 {
@@ -83,17 +91,7 @@ public class DefaultQueryItemLocator
 
     private final RelationshipTypeService relationshipTypeService;
 
-    public DefaultQueryItemLocator( ProgramStageService programStageService, DataElementService dataElementService,
-        TrackedEntityAttributeService attributeService, ProgramIndicatorService programIndicatorService,
-        LegendSetService legendSetService, RelationshipTypeService relationshipTypeService )
-    {
-        this.programStageService = programStageService;
-        this.dataElementService = dataElementService;
-        this.attributeService = attributeService;
-        this.programIndicatorService = programIndicatorService;
-        this.legendSetService = legendSetService;
-        this.relationshipTypeService = relationshipTypeService;
-    }
+    private final DataQueryService dataQueryService;
 
     @Override
     public QueryItem getQueryItemFromDimension( String dimension, Program program, EventOutputType type )
@@ -105,8 +103,34 @@ public class DefaultQueryItemLocator
         return getDataElement( dimension, program, legendSet, type )
             .orElseGet( () -> getTrackedEntityAttribute( dimension, program, legendSet )
                 .orElseGet( () -> getProgramIndicator( dimension, program, legendSet )
-                    .orElseThrow(
-                        () -> new IllegalQueryException( new ErrorMessage( ErrorCode.E7224, dimension ) ) ) ) );
+                    // if not DE, TEA or PI, we try to get as dynamic dimension
+                    .orElseGet( () -> getDynamicDimension( dimension )
+                        .orElseThrow(
+                            () -> new IllegalQueryException( new ErrorMessage( ErrorCode.E7224, dimension ) ) ) ) ) );
+    }
+
+    /**
+     * given a UID representing a dimension, tries to check if it exists, and if
+     * true, returns a QueryItem using the passed UID
+     *
+     * @param dimension an UID representing a dimension
+     * @return a query item wrapping the specified dimension.
+     */
+    private Optional<QueryItem> getDynamicDimension( String dimension )
+    {
+        return Optional.ofNullable(
+            dataQueryService.getDimension(
+                dimension,
+                Collections.emptyList(),
+                null,
+                Collections.emptyList(),
+                null,
+                true,
+                false,
+                IdScheme.UID ) )
+            .map( PrimaryKeyObject::getUid )
+            .map( BaseDimensionalItemObject::new )
+            .map( QueryItem::new );
     }
 
     private LegendSet getLegendSet( String dimension )

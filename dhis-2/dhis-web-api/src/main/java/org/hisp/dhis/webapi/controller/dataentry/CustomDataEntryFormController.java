@@ -25,38 +25,43 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.preheat.supplier.strategy;
+package org.hisp.dhis.webapi.controller.dataentry;
 
-import java.util.List;
+import lombok.AllArgsConstructor;
 
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.dataentryform.DataEntryFormService;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.webapi.webdomain.dataentry.CustomDataEntryFormDto;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentStore;
-import org.hisp.dhis.tracker.TrackerImportParams;
-import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.preheat.mappers.NoteMapper;
-import org.hisp.dhis.tracker.preheat.supplier.DetachUtils;
-import org.springframework.stereotype.Component;
-
-/**
- * @author Luciano Fiandesio
- */
-@RequiredArgsConstructor
-@Component
-@StrategyFor( value = TrackedEntityComment.class, mapper = NoteMapper.class )
-public class NoteStrategy implements ClassBasedSupplierStrategy
+@RestController
+@RequestMapping( "/dataEntry" )
+@AllArgsConstructor
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+public class CustomDataEntryFormController
 {
-    @NonNull
-    private final TrackedEntityCommentStore trackedEntityCommentStore;
+    private final DataEntryFormService dataEntryFormService;
 
-    @Override
-    public void add( TrackerImportParams params, List<List<String>> splitList, TrackerPreheat preheat )
+    private final IdentifiableObjectManager idObjectManager;
+
+    @GetMapping( "/customForms/{uid}" )
+    public CustomDataEntryFormDto getForm( @PathVariable String uid )
     {
-        splitList
-            .forEach( ids -> preheat.putNotes( DetachUtils.detach(
-                this.getClass().getAnnotation( StrategyFor.class ).mapper(), trackedEntityCommentStore.getByUid( ids,
-                    preheat.getUser() ) ) ) );
+        DataSet dataSet = idObjectManager.getAndValidate( DataSet.class, uid );
+
+        String form = dataEntryFormService.prepareDataEntryFormForEntry( dataSet );
+
+        return new CustomDataEntryFormDto()
+            .setId( dataSet.getDataEntryForm().getUid() )
+            .setDataSetId( dataSet.getUid() )
+            .setVersion( dataSet.getVersion() )
+            .setDisplayDensity( dataSet.getDataEntryForm().getStyle() )
+            .setForm( form );
     }
 }

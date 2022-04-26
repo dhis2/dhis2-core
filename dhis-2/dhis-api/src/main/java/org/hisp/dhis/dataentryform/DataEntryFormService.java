@@ -33,7 +33,6 @@ import java.util.regex.Pattern;
 
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.i18n.I18n;
 
 /**
  * @author Bharath Kumar
@@ -107,31 +106,26 @@ public interface DataEntryFormService
      * Prepare DataEntryForm code for save by reversing the effects of
      * prepareDataEntryFormForEdit().
      *
-     * @return htmlCode the HTML code of the data entry form.
+     * @return data entry form content as HTML/CSS.
      */
     String prepareDataEntryFormForSave( String htmlCode );
 
     /**
-     * Prepares the data entry form code by injecting the data element operand
-     * name as value and title for each entry field.
+     * Prepares the data entry form for data entry by injecting required
+     * javascripts and drop down lists. The data set must have form type custom
+     * and have a data entry form associated.
      *
-     * @param dataEntryForm the data entry form.
      * @param dataSet the data set associated with this form.
-     * @param i18n the i18n object.
-     * @return HTML code for the data entry form.
+     * @return data entry form content as HTML/CSS.
      */
-    String prepareDataEntryFormForEdit( DataEntryForm dataEntryForm, DataSet dataSet, I18n i18n );
+    String prepareDataEntryFormForEntry( DataSet dataSet );
 
     /**
-     * Prepares the data entry form for data entry by injecting required
-     * javascripts and drop down lists.
+     * Returns the data elements which are referenced in the custom data entry
+     * form of the given data set.
      *
-     * @param dataEntryForm the data entry form.
-     * @param dataSet the data set associated with this form.
-     * @param i18n the i18n object.
-     * @return HTML code for the form.
+     * @param dataSet the data set.
+     * @return the set of data elements.
      */
-    String prepareDataEntryFormForEntry( DataEntryForm dataEntryForm, DataSet dataSet, I18n i18n );
-
     Set<DataElement> getDataElementsInDataEntryForm( DataSet dataSet );
 }

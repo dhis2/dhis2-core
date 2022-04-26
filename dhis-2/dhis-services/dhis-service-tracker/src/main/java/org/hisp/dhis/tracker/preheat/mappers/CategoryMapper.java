@@ -25,38 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.preheat.supplier.strategy;
+package org.hisp.dhis.tracker.preheat.mappers;
 
-import java.util.List;
+import org.hisp.dhis.category.Category;
+import org.mapstruct.BeanMapping;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.factory.Mappers;
 
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentStore;
-import org.hisp.dhis.tracker.TrackerImportParams;
-import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.preheat.mappers.NoteMapper;
-import org.hisp.dhis.tracker.preheat.supplier.DetachUtils;
-import org.springframework.stereotype.Component;
-
-/**
- * @author Luciano Fiandesio
- */
-@RequiredArgsConstructor
-@Component
-@StrategyFor( value = TrackedEntityComment.class, mapper = NoteMapper.class )
-public class NoteStrategy implements ClassBasedSupplierStrategy
+@Mapper( uses = DebugMapper.class )
+public interface CategoryMapper
+    extends PreheatMapper<Category>
 {
-    @NonNull
-    private final TrackedEntityCommentStore trackedEntityCommentStore;
+    CategoryMapper INSTANCE = Mappers.getMapper( CategoryMapper.class );
 
-    @Override
-    public void add( TrackerImportParams params, List<List<String>> splitList, TrackerPreheat preheat )
-    {
-        splitList
-            .forEach( ids -> preheat.putNotes( DetachUtils.detach(
-                this.getClass().getAnnotation( StrategyFor.class ).mapper(), trackedEntityCommentStore.getByUid( ids,
-                    preheat.getUser() ) ) ) );
-    }
+    @BeanMapping( ignoreByDefault = true )
+    @Mapping( target = "id" )
+    @Mapping( target = "uid" )
+    @Mapping( target = "name" )
+    @Mapping( target = "code" )
+    @Mapping( target = "sharing" )
+    Category map( Category category );
 }

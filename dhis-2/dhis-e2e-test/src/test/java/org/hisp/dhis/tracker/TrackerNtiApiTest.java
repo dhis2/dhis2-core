@@ -27,8 +27,9 @@
  */
 package org.hisp.dhis.tracker;
 
+import com.epam.reportportal.annotations.attribute.Attribute;
+import com.epam.reportportal.annotations.attribute.Attributes;
 import com.google.gson.JsonObject;
-import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.MaintenanceActions;
@@ -40,6 +41,7 @@ import org.hisp.dhis.helpers.file.JsonFileReader;
 import org.hisp.dhis.tracker.importer.databuilder.RelationshipDataBuilder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Tag;
 
 import java.io.File;
 import java.util.List;
@@ -47,8 +49,9 @@ import java.util.List;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
+@Tag( "category:tracker_nti" )
 public class TrackerNtiApiTest
-    extends ApiTest
+    extends TrackerApiTest
 {
     protected static final String TRACKER_PROGRAM_STAGE_ID = "nlXNK4b7LVr";
 
@@ -56,16 +59,10 @@ public class TrackerNtiApiTest
 
     protected TrackerActions trackerActions;
 
-    protected ProgramActions programActions;
-
-    protected LoginActions loginActions;
-
     @BeforeAll
     public void beforeTrackerNti()
     {
         trackerActions = new TrackerActions();
-        loginActions = new LoginActions();
-        programActions = new ProgramActions();
     }
 
     protected String importEnrollment()
