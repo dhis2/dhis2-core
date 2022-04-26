@@ -32,6 +32,7 @@ import lombok.AllArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.dataentryform.DataEntryFormService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.FormType;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -49,6 +50,8 @@ import org.springframework.web.bind.annotation.RestController;
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class CustomDataEntryFormController
 {
+    private final DataEntryFormService dataEntryFormService;
+
     private final IdentifiableObjectManager idObjectManager;
 
     @GetMapping( "/customForms/{uid}" )
@@ -61,11 +64,13 @@ public class CustomDataEntryFormController
             throw new IllegalQueryException( new ErrorMessage( ErrorCode.E1114, uid ) );
         }
 
+        String form = dataEntryFormService.prepareDataEntryFormForEntry( dataSet );
+
         return new CustomDataEntryFormDto()
             .setId( dataSet.getDataEntryForm().getUid() )
             .setDataSetId( dataSet.getUid() )
             .setVersion( dataSet.getVersion() )
-            .setForm( dataSet.getDataEntryForm().getHtmlCode() )
+            .setForm( form )
             .setDisplayDensity( dataSet.getDataEntryForm().getStyle() );
     }
 }
