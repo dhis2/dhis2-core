@@ -53,9 +53,9 @@ import org.springframework.stereotype.Component;
 public class DefaultsSupplier extends AbstractPreheatSupplier
 {
 
-    private static final int CACHE_TTL = 60;
+    private static final int CACHE_TTL = 720; // 12h
 
-    private static final long CACHE_CAPACITY = 1000;
+    private static final long CACHE_CAPACITY = 10;
 
     @NonNull
     private final IdentifiableObjectManager manager;
@@ -85,8 +85,8 @@ public class DefaultsSupplier extends AbstractPreheatSupplier
     private <T extends IdentifiableObject> void preheatDefault( TrackerPreheat preheat, Class<T> klass,
         PreheatMapper<T> mapper, String name )
     {
-        Optional<T> metadata = (Optional<T>) cache.get( klass.getName(), name,
-            ( k, n ) -> Optional.ofNullable( mapper.map( manager.getByName( klass, n ) ) ),
+        Optional<T> metadata = (Optional<T>) cache.get( this.getClass().getName(), klass.getName(),
+            ( k, n ) -> Optional.ofNullable( mapper.map( manager.getByName( klass, name ) ) ),
             CACHE_TTL, CACHE_CAPACITY );
         if ( metadata.isPresent() )
         {
