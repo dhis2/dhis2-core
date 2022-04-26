@@ -85,7 +85,6 @@ class TrackedEntityAttributeValueAuditTest extends TrackerTest
         throws IOException
     {
         TrackerImportParams trackerImportParams = fromJson( "tracker/te_program_with_tea_data.json" );
-        // trackerImportParams.setUser( currentUserService.getCurrentUser() );
         trackerImportParams.setUser( userService.getUser( ADMIN_USER_UID ) );
 
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );

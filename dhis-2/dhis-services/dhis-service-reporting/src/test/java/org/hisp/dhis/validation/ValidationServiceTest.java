@@ -258,11 +258,6 @@ class ValidationServiceTest extends DhisTest
         throws Exception
     {
         this.userService = injectUserService;
-        // CurrentUserService currentUserService = new MockCurrentUserService(
-        // allSources, null );
-        // setDependency( CurrentUserServiceTarget.class,
-        // CurrentUserServiceTarget::setCurrentUserService,
-        // currentUserService, validationService );
         User user = mockUser( true, "SUPERMAN12098", allSources, null );
         injectSecurityContext( user );
 

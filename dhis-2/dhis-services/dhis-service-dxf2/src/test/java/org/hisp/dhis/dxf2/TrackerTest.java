@@ -95,7 +95,6 @@ import com.google.common.collect.Sets;
  */
 public abstract class TrackerTest extends IntegrationTestBase
 {
-
     @Autowired
     protected IdentifiableObjectManager manager;
 
@@ -147,8 +146,6 @@ public abstract class TrackerTest extends IntegrationTestBase
         throws Exception
     {
         super.userService = this.userService;
-        // User user = preCreateInjectAdminUser();
-        // injectSecurityContext( user );
 
         // Tracker graph creation
         trackedEntityTypeA = createTrackedEntityType( 'A' );
@@ -381,7 +378,6 @@ public abstract class TrackerTest extends IntegrationTestBase
     {
         User user = createUserWithAuth( "testUser" );
         injectSecurityContext( user );
-        // currentUserService = new MockCurrentUserService( user );
     }
 
     protected ProgramStage createProgramStage( Program program, boolean publicAccess )

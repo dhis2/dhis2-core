@@ -122,7 +122,6 @@ class FollowupAnalysisControllerTest extends AbstractDataValueControllerTest
     @Test
     void testPerformFollowupAnalysis_OrgUnitFiltering()
     {
-        // User currentUser1 = currentUserService.getCurrentUser();
         String ouA = assertStatus( HttpStatus.CREATED, POST( "/organisationUnits/",
             "{'name':'A', 'shortName':'A', 'openingDate': '2020-01-01', 'parent': { 'id':'" + orgUnitId + "'}}" ) );
         String ouB = assertStatus( HttpStatus.CREATED, POST( "/organisationUnits/",

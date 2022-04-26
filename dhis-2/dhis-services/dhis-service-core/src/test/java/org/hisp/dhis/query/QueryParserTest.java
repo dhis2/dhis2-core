@@ -99,15 +99,12 @@ class QueryParserTest extends IntegrationTestBase
         OrganisationUnit orgUnitA = createOrganisationUnit( 'A' );
         User user = makeUser( "A" );
         user.addOrganisationUnit( orgUnitA );
-        // CurrentUserService currentUserService = new MockCurrentUserService(
-        // user );
         injectSecurityContext( user );
 
         this.organisationUnitService = new DefaultOrganisationUnitService( organisationUnitStore,
             identifiableObjectManager,
             organisationUnitLevelStore, currentUserService, configurationService, userSettingService, cacheProvider );
         organisationUnitService.addOrganisationUnit( orgUnitA );
-        // identifiableObjectManager.save( orgUnitA );
         queryParser = new DefaultJpaQueryParser( schemaService );
     }
 

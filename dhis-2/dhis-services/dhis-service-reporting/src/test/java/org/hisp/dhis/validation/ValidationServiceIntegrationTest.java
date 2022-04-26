@@ -113,11 +113,6 @@ class ValidationServiceIntegrationTest extends IntegrationTestBase
     public void setUpTest()
     {
         this.userService = injectUserService;
-        // CurrentUserService currentUserService = new MockCurrentUserService(
-        // Sets.newHashSet( orgUnitA ), null );
-        // setDependency( CurrentUserServiceTarget.class,
-        // CurrentUserServiceTarget::setCurrentUserService,
-        // currentUserService, validationService );
 
         periodTypeMonthly = new MonthlyPeriodType();
         dataElementA = createDataElement( 'A' );

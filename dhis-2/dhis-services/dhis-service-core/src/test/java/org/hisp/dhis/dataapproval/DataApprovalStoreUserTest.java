@@ -146,19 +146,8 @@ class DataApprovalStoreUserTest extends DhisTest
         organisationUnitService.updateOrganisationUnit( orgUnitC );
         organisationUnitService.updateOrganisationUnit( orgUnitD );
 
-        // currentUser = MockCurrentUserService.makeUser( true, Sets.newHashSet(
-        // orgUnitA ), Sets.newHashSet( orgUnitA ) );
-
         currentUser = mockUser( true, "username", newHashSet( orgUnitA ), newHashSet( orgUnitA ) );
         injectSecurityContext( currentUser );
-
-        // mockCurrentUserService = new MockCurrentUserService( true,
-        // Sets.newHashSet( orgUnitA ),
-        // Sets.newHashSet( orgUnitA ) );
-        // setDependency( CurrentUserServiceTarget.class,
-        // CurrentUserServiceTarget::setCurrentUserService,
-        // mockCurrentUserService, dataApprovalStore, dataApprovalLevelService
-        // );
     }
 
     @Override

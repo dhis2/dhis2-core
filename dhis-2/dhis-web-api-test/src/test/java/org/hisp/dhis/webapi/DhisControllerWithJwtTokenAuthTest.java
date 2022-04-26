@@ -101,8 +101,6 @@ public abstract class DhisControllerWithJwtTokenAuthTest extends DhisMockMvcCont
         TestUtils.executeStartupRoutines( webApplicationContext );
 
         H2SqlFunction.registerH2Functions( dataSource );
-        // dbmsManager.flushSession();
-        // dbmsManager.clearSession();
     }
 
     @Override

@@ -260,12 +260,6 @@ class DataApprovalAuditStoreTest extends DhisSpringTest
         assertEquals( 1, audits.size() );
         assertEquals( auditA, audits.get( 0 ) );
 
-        // CurrentUserService mockUserService = new MockCurrentUserService(
-        // Sets.newHashSet( sourceB ), null );
-        // setDependency( CurrentUserServiceTarget.class,
-        // CurrentUserServiceTarget::setCurrentUserService, mockUserService,
-        // dataApprovalAuditStore );
-
         User userB = mockUser( newHashSet( sourceB ), null );
         injectSecurityContext( userB );
 

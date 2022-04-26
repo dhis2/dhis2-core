@@ -124,7 +124,6 @@ class RelationshipTrackerConverterServiceTest extends DhisSpringTest
     protected void setUpTest()
         throws IOException
     {
-        // preCreateInjectAdminUserWithoutPersistence();
         userService = _userService;
         preCreateInjectAdminUser();
         dbmsManager.clearSession();

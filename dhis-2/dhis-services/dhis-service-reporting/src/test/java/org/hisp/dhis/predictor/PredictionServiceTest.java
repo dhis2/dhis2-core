@@ -317,12 +317,6 @@ class PredictionServiceTest extends IntegrationTestBase
         dataValueBatchHandler = batchHandlerFactory.createBatchHandler( DataValueBatchHandler.class ).init();
         Set<OrganisationUnit> units = newHashSet( sourceA, sourceB, sourceG );
 
-        // CurrentUserService mockCurrentUserService = new
-        // MockCurrentUserService( true, units, units );
-        // setDependency( CurrentUserServiceTarget.class,
-        // CurrentUserServiceTarget::setCurrentUserService,
-        // mockCurrentUserService, predictionService );
-
         User user = mockUser( true, "mockUser", units, units );
         injectSecurityContext( user );
     }
@@ -589,11 +583,6 @@ class PredictionServiceTest extends IntegrationTestBase
     {
         setupTestData();
         Set<OrganisationUnit> units = newHashSet( sourceA );
-        // CurrentUserService mockCurrentUserService = new
-        // MockCurrentUserService( true, units, units );
-        // setDependency( CurrentUserServiceTarget.class,
-        // CurrentUserServiceTarget::setCurrentUserService,
-        // mockCurrentUserService, predictionService );
 
         mockUser( true, "mockUser2", units, units );
         Predictor p = createPredictor( dataElementX, defaultCombo, "PredictSequential", expressionH, null,

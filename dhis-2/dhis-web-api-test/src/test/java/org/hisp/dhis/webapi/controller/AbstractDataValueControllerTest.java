@@ -78,18 +78,7 @@ abstract class AbstractDataValueControllerTest
         userService.updateUser( user );
 
         superUser = userService.getUser( superUser.getUid() );
-        String a = "a";
-
-        User currentUser1 = currentUserService.getCurrentUser();
-
         switchContextToUser( superUser );
-
-        // dbmsManager.flushSession();
-        // dbmsManager.clearSession();
-
-        User currentUser2 = currentUserService.getCurrentUser();
-
-        String b = "a";
     }
 
     /**

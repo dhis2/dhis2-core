@@ -77,14 +77,7 @@ class TrackedEntityInstanceAttributesAggregateAclTest extends TrackerTest
 
         nonSuperUser = createUserWithAuth( "testUser" );
         setUserAuthorityToNonSuper( nonSuperUser );
-        // currentUserService = new MockCurrentUserService( user );
         injectSecurityContext( nonSuperUser );
-        // ReflectionTestUtils.setField( trackedEntityInstanceAggregate,
-        // "currentUserService", currentUserService );
-        // ReflectionTestUtils.setField( trackedEntityInstanceService,
-        // "currentUserService", currentUserService );
-        // ReflectionTestUtils.setField( teiService, "currentUserService",
-        // currentUserService );
     }
 
     @Test

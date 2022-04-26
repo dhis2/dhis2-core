@@ -52,14 +52,4 @@ public class EventImporterUserService
         return usernameSupplier.get();
     }
 
-    // public String getCurrentUsername()
-    // {
-    // return CurrentUserUtil.getCurrentUsername();
-    // }
-
-    // public User getCurrentUser()
-    // {
-    // return currentUserService.getCurrentUser();
-    // }
-
 }

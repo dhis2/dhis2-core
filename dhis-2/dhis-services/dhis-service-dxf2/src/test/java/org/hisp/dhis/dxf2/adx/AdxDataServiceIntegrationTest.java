@@ -318,11 +318,6 @@ class AdxDataServiceIntegrationTest extends DhisTest
         user.setOrganisationUnits( Sets.newHashSet( ouA, ouB ) );
         userService.addUser( user );
         injectSecurityContext( user );
-        // CurrentUserService currentUserService = new MockCurrentUserService(
-        // user );
-        // setDependency( CurrentUserServiceTarget.class,
-        // CurrentUserServiceTarget::setCurrentUserService,
-        // currentUserService, dataValueSetService, organisationUnitService );
     }
 
     // --------------------------------------------------------------------------

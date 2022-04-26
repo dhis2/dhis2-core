@@ -166,14 +166,6 @@ class DataSetServiceTest extends DhisTest
         superUser = mockUser( true, "username", newHashSet( unitA ), newHashSet( unitA ), UserRole.AUTHORITY_ALL );
         injectSecurityContext( superUser );
 
-        // setDependency( CurrentUserServiceTarget.class,
-        // CurrentUserServiceTarget::setCurrentUserService,
-        // mockCurrentUserService, approvalService, approvalStore, levelService
-        // );
-        // currentUser.setFirstName( "John" );
-        // currentUser.setSurname( "Doe" );
-        //
-        // userService.addUser( currentUser );
     }
 
     @Override
@@ -440,7 +432,6 @@ class DataSetServiceTest extends DhisTest
         dataSetB.setTimelyDays( 15 );
         dataSetService.addDataSet( dataSetA );
         dataSetService.addDataSet( dataSetB );
-        // User user = currentUserService.getCurrentUser();
         // ---------------------------------------------------------------------
         // Expiry days
         // ---------------------------------------------------------------------

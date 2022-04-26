@@ -199,8 +199,6 @@ class TrackerSynchronizationTest extends DhisSpringTest
         currentSession = sessionFactory.getCurrentSession();
         User user = createUserWithAuth( "userUID0001" );
         currentSession.save( user );
-        // CurrentUserService currentUserService = new MockCurrentUserService(
-        // user );
         subject = new JacksonTrackedEntityInstanceService( teiService, trackedEntityAttributeService,
             _relationshipService, relationshipService, relationshipTypeService, trackedEntityAttributeValueService,
             manager, _userService, dbmsManager, enrollmentService, programInstanceService, currentUserService,

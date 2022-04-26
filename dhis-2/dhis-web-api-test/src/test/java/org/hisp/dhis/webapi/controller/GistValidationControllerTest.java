@@ -43,20 +43,6 @@ import org.springframework.http.HttpStatus;
  */
 class GistValidationControllerTest extends AbstractGistControllerTest
 {
-    // private User userA;
-    // private User userB;
-    // public static final String USER_A_USERNAME = "userA";
-    // public static final String USER_B_USERNAME = "userB";
-    // @BeforeEach
-    // final void setupTest()
-    // {
-    // userA = createUserWithAuth( USER_A_USERNAME );
-    // userB = createUserWithAuth( USER_B_USERNAME );
-    //
-    // //Default user is userA
-    // injectSecurityContext( userA );
-    // }
-
     @Test
     void testValidation_Filter_MisplacedArgument()
     {

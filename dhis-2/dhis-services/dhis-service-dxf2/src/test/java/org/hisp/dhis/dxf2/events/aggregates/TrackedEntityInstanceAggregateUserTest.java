@@ -58,13 +58,6 @@ class TrackedEntityInstanceAggregateUserTest extends TrackerTest
     @Override
     protected void mockCurrentUserService()
     {
-        // currentUserService = new MockCurrentUserService( null );
-        // ReflectionTestUtils.setField( trackedEntityInstanceAggregate,
-        // "currentUserService", currentUserService );
-        // ReflectionTestUtils.setField( trackedEntityInstanceService,
-        // "currentUserService", currentUserService );
-        // ReflectionTestUtils.setField( teiService, "currentUserService",
-        // currentUserService );
         User user = createUserWithAuth( "testUser" );
         user.addOrganisationUnit( organisationUnitA );
         userService.updateUser( user );
