@@ -81,8 +81,6 @@ public class RelationshipStoreTest
 
     private RelationshipType relationshipType;
 
-    private Relationship teiRelationship;
-
     private OrganisationUnit organisationUnit;
 
     @Override
@@ -99,7 +97,7 @@ public class RelationshipStoreTest
     @Test
     public void testGetByTrackedEntityInstance()
     {
-        addTeiToTeiRelationShip();
+        Relationship teiRelationship = addTeiToTeiRelationShip();
 
         List<Relationship> relationshipList = relationshipService
             .getRelationshipsByTrackedEntityInstance( trackedEntityInstanceA, true );
@@ -159,7 +157,7 @@ public class RelationshipStoreTest
     @Test
     public void testGetByRelationshipType()
     {
-        addTeiToTeiRelationShip();
+        Relationship teiRelationship = addTeiToTeiRelationShip();
 
         List<Relationship> relationshipList = relationshipService
             .getRelationshipsByRelationshipType( relationshipType );
@@ -171,7 +169,7 @@ public class RelationshipStoreTest
     @Test
     public void testGetByRelationship()
     {
-        addTeiToTeiRelationShip();
+        Relationship teiRelationship = addTeiToTeiRelationShip();
 
         Optional<Relationship> existing = relationshipService.getRelationshipByRelationship( teiRelationship );
 
@@ -184,7 +182,7 @@ public class RelationshipStoreTest
         return true;
     }
 
-    void addTeiToTeiRelationShip()
+    private Relationship addTeiToTeiRelationShip()
     {
         trackedEntityInstanceA = createTrackedEntityInstance( organisationUnit );
         trackedEntityInstanceB = createTrackedEntityInstance( organisationUnit );
@@ -192,7 +190,7 @@ public class RelationshipStoreTest
         trackedEntityInstanceService.addTrackedEntityInstance( trackedEntityInstanceA );
         trackedEntityInstanceService.addTrackedEntityInstance( trackedEntityInstanceB );
 
-        teiRelationship = new Relationship();
+        Relationship teiRelationship = new Relationship();
 
         RelationshipItem relationshipItemFrom = new RelationshipItem();
         RelationshipItem relationshipItemTo = new RelationshipItem();
@@ -204,6 +202,7 @@ public class RelationshipStoreTest
         teiRelationship.setTo( relationshipItemTo );
 
         relationshipService.addRelationship( teiRelationship );
+        return teiRelationship;
     }
 
     private Relationship addTeiToProgramStageInstanceRelationShip( TrackedEntityInstance entityInstance,

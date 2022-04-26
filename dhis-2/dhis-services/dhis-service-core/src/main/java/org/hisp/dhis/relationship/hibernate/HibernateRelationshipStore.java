@@ -109,49 +109,49 @@ public class HibernateRelationshipStore extends HibernateIdentifiableObjectStore
     }
 
     private <T extends IdentifiableObject> void setRelationshipItemCriteriaQueryExistsCondition( T entity,
-        CriteriaBuilder builder,
-        CriteriaQuery<Relationship> relationshipItemCriteriaQuery, Root<Relationship> root )
+        CriteriaBuilder builder, CriteriaQuery<Relationship> relationshipItemCriteriaQuery, Root<Relationship> root )
     {
-        String relationShipEntityType = getRelationShipEntityType( entity );
+        Subquery<RelationshipItem> fromSubQuery = relationshipItemCriteriaQuery.subquery( RelationshipItem.class );
+        Root<RelationshipItem> fromRoot = fromSubQuery.from( RelationshipItem.class );
 
-        Subquery<RelationshipItem> relationshipItemFromSubQuery = relationshipItemCriteriaQuery
-            .subquery( RelationshipItem.class );
-        Root<RelationshipItem> relationshipItemFromRoot = relationshipItemFromSubQuery.from( RelationshipItem.class );
+        String relationshipEntityType = getRelationshipEntityType( entity );
 
-        Predicate predicateFromEqualsId = builder.equal( root.get( "from" ), relationshipItemFromRoot.get( "id" ) );
-        Predicate predicateFromEqualsTei = builder.equal( relationshipItemFromRoot.get( relationShipEntityType ),
+        Predicate predicateFromEqualsId = builder.equal( root.get( "from" ), fromRoot.get( "id" ) );
+        Predicate predicateFromEqualsTei = builder.equal( fromRoot.get( relationshipEntityType ),
             entity.getId() );
 
-        relationshipItemFromSubQuery.where( predicateFromEqualsId, predicateFromEqualsTei );
+        fromSubQuery.where( predicateFromEqualsId, predicateFromEqualsTei );
 
-        relationshipItemFromSubQuery.select( relationshipItemFromRoot.get( "id" ) );
+        fromSubQuery.select( fromRoot.get( "id" ) );
 
-        Subquery<RelationshipItem> relationshipItemToSubQuery = relationshipItemCriteriaQuery
-            .subquery( RelationshipItem.class );
-        Root<RelationshipItem> relationshipItemToRoot = relationshipItemToSubQuery.from( RelationshipItem.class );
+        Subquery<RelationshipItem> toSubQuery = relationshipItemCriteriaQuery.subquery( RelationshipItem.class );
+        Root<RelationshipItem> toRoot = toSubQuery.from( RelationshipItem.class );
 
-        Predicate predicateToEqualsId = builder.equal( root.get( "to" ), relationshipItemToRoot.get( "id" ) );
-        Predicate predicateToEqualsTei = builder.equal( relationshipItemToRoot.get( relationShipEntityType ),
+        Predicate predicateToEqualsId = builder.equal( root.get( "to" ), toRoot.get( "id" ) );
+        Predicate predicateToEqualsTei = builder.equal( toRoot.get( relationshipEntityType ),
             entity.getId() );
 
-        relationshipItemToSubQuery.where( predicateToEqualsId, predicateToEqualsTei );
+        toSubQuery.where( predicateToEqualsId, predicateToEqualsTei );
 
-        relationshipItemToSubQuery.select( relationshipItemToRoot.get( "id" ) );
+        toSubQuery.select( toRoot.get( "id" ) );
 
-        relationshipItemCriteriaQuery.where( builder.or( builder.exists( relationshipItemFromSubQuery ),
-            builder.exists( relationshipItemToSubQuery ) ) );
+        relationshipItemCriteriaQuery
+            .where( builder.or( builder.exists( fromSubQuery ), builder.exists( toSubQuery ) ) );
 
         relationshipItemCriteriaQuery.select( root );
     }
 
-    private <T extends IdentifiableObject> String getRelationShipEntityType( T entity )
+    private <T extends IdentifiableObject> String getRelationshipEntityType( T entity )
     {
         if ( entity instanceof TrackedEntityInstance )
             return TRACKED_ENTITY_INSTANCE;
         else if ( entity instanceof ProgramInstance )
             return PROGRAM_INSTANCE;
-        else
+        else if ( entity instanceof ProgramStageInstance )
             return PROGRAM_STAGE_INSTANCE;
+        else
+            throw new IllegalStateException( entity.getClass()
+                .getSimpleName() + " not supported in relationship" );
     }
 
     @Override
