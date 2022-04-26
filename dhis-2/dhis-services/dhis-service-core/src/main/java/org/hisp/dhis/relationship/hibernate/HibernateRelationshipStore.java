@@ -32,13 +32,16 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import javax.persistence.NoResultException;
+import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import javax.persistence.criteria.Subquery;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.hibernate.SessionFactory;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
 import org.hisp.dhis.program.ProgramInstance;
@@ -61,10 +64,15 @@ import org.springframework.stereotype.Repository;
  * @author Abyot Asalefew
  */
 @Repository( "org.hisp.dhis.relationship.RelationshipStore" )
-public class HibernateRelationshipStore
-    extends HibernateIdentifiableObjectStore<Relationship>
+public class HibernateRelationshipStore extends HibernateIdentifiableObjectStore<Relationship>
     implements RelationshipStore
 {
+    private static final String TRACKED_ENTITY_INSTANCE = "trackedEntityInstance";
+
+    private static final String PROGRAM_INSTANCE = "programInstance";
+
+    private static final String PROGRAM_STAGE_INSTANCE = "programStageInstance";
+
     public HibernateRelationshipStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
     {
@@ -75,36 +83,117 @@ public class HibernateRelationshipStore
     public List<Relationship> getByTrackedEntityInstance( TrackedEntityInstance tei,
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter )
     {
-        CriteriaBuilder builder = getCriteriaBuilder();
+        TypedQuery<Relationship> relationshipTypedQuery = getRelationshipTypedQuery( tei,
+            pagingAndSortingCriteriaAdapter );
 
-        return getList( builder, newJpaParameters( pagingAndSortingCriteriaAdapter, builder )
-            .addPredicate( root -> builder.or(
-                builder.equal( root.join( "from" ).get( "trackedEntityInstance" ), tei ),
-                builder.equal( root.join( "to" ).get( "trackedEntityInstance" ), tei ) ) ) );
+        return getList( relationshipTypedQuery );
     }
 
     @Override
     public List<Relationship> getByProgramInstance( ProgramInstance pi,
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter )
     {
-        CriteriaBuilder builder = getCriteriaBuilder();
+        TypedQuery<Relationship> relationshipTypedQuery = getRelationshipTypedQuery( pi,
+            pagingAndSortingCriteriaAdapter );
 
-        return getList( builder, newJpaParameters( pagingAndSortingCriteriaAdapter, builder )
-            .addPredicate( root -> builder.or(
-                builder.equal( root.join( "from" ).get( "programInstance" ), pi ),
-                builder.equal( root.join( "to" ).get( "programInstance" ), pi ) ) ) );
+        return getList( relationshipTypedQuery );
     }
 
     @Override
     public List<Relationship> getByProgramStageInstance( ProgramStageInstance psi,
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter )
     {
+        TypedQuery<Relationship> relationshipTypedQuery = getRelationshipTypedQuery( psi,
+            pagingAndSortingCriteriaAdapter );
+
+        return getList( relationshipTypedQuery );
+    }
+
+    private <T extends IdentifiableObject> TypedQuery<Relationship> getRelationshipTypedQuery( T entity,
+        PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter )
+    {
         CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getList( builder, newJpaParameters( pagingAndSortingCriteriaAdapter, builder )
-            .addPredicate( root -> builder.or(
-                builder.equal( root.join( "from" ).get( "programStageInstance" ), psi ),
-                builder.equal( root.join( "to" ).get( "programStageInstance" ), psi ) ) ) );
+        CriteriaQuery<Relationship> relationshipItemCriteriaQuery = builder.createQuery( Relationship.class );
+        Root<Relationship> root = relationshipItemCriteriaQuery.from( Relationship.class );
+
+        setRelationshipItemCriteriaQueryExistsCondition( entity, builder, relationshipItemCriteriaQuery, root );
+
+        return getRelationshipTypedQuery( pagingAndSortingCriteriaAdapter,
+            builder, relationshipItemCriteriaQuery, root );
+    }
+
+    private <T extends IdentifiableObject> void setRelationshipItemCriteriaQueryExistsCondition( T entity,
+        CriteriaBuilder builder,
+        CriteriaQuery<Relationship> relationshipItemCriteriaQuery, Root<Relationship> root )
+    {
+        String relationShipEntityType = getRelationShipEntityType( entity );
+
+        Subquery<RelationshipItem> relationshipItemFromSubQuery = relationshipItemCriteriaQuery
+            .subquery( RelationshipItem.class );
+        Root<RelationshipItem> relationshipItemFromRoot = relationshipItemFromSubQuery.from( RelationshipItem.class );
+
+        Predicate predicateFromEqualsId = builder.equal( root.get( "from" ), relationshipItemFromRoot.get( "id" ) );
+        Predicate predicateFromEqualsTei = builder.equal( relationshipItemFromRoot.get( relationShipEntityType ),
+            entity.getId() );
+
+        relationshipItemFromSubQuery.where( predicateFromEqualsId, predicateFromEqualsTei );
+
+        relationshipItemFromSubQuery.select( relationshipItemFromRoot.get( "id" ) );
+
+        Subquery<RelationshipItem> relationshipItemToSubQuery = relationshipItemCriteriaQuery
+            .subquery( RelationshipItem.class );
+        Root<RelationshipItem> relationshipItemToRoot = relationshipItemToSubQuery.from( RelationshipItem.class );
+
+        Predicate predicateToEqualsId = builder.equal( root.get( "to" ), relationshipItemToRoot.get( "id" ) );
+        Predicate predicateToEqualsTei = builder.equal( relationshipItemToRoot.get( relationShipEntityType ),
+            entity.getId() );
+
+        relationshipItemToSubQuery.where( predicateToEqualsId, predicateToEqualsTei );
+
+        relationshipItemToSubQuery.select( relationshipItemToRoot.get( "id" ) );
+
+        relationshipItemCriteriaQuery.where( builder.or( builder.exists( relationshipItemFromSubQuery ),
+            builder.exists( relationshipItemToSubQuery ) ) );
+
+        relationshipItemCriteriaQuery.select( root );
+    }
+
+    private <T extends IdentifiableObject> String getRelationShipEntityType( T entity )
+    {
+        if ( entity instanceof TrackedEntityInstance )
+            return TRACKED_ENTITY_INSTANCE;
+        else if ( entity instanceof ProgramInstance )
+            return PROGRAM_INSTANCE;
+        else
+            return PROGRAM_STAGE_INSTANCE;
+    }
+
+    private TypedQuery<Relationship> getRelationshipTypedQuery(
+        PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter, CriteriaBuilder builder,
+        CriteriaQuery<Relationship> relationshipItemCriteriaQuery, Root<Relationship> root )
+    {
+        JpaQueryParameters<Relationship> jpaQueryParameters = newJpaParameters( pagingAndSortingCriteriaAdapter,
+            builder );
+
+        relationshipItemCriteriaQuery.orderBy( jpaQueryParameters.getOrders()
+            .stream()
+            .map( o -> o.apply( root ) )
+            .collect( Collectors.toList() ) );
+
+        TypedQuery<Relationship> relationshipTypedQuery = getSession().createQuery( relationshipItemCriteriaQuery );
+
+        if ( jpaQueryParameters.hasFirstResult() )
+        {
+            relationshipTypedQuery.setFirstResult( jpaQueryParameters.getFirstResult() );
+        }
+
+        if ( jpaQueryParameters.hasMaxResult() )
+        {
+            relationshipTypedQuery.setMaxResults( jpaQueryParameters.getMaxResults() );
+        }
+
+        return relationshipTypedQuery;
     }
 
     @Override
@@ -118,8 +207,7 @@ public class HibernateRelationshipStore
     }
 
     private JpaQueryParameters<Relationship> newJpaParameters(
-        PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
-        CriteriaBuilder criteriaBuilder )
+        PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter, CriteriaBuilder criteriaBuilder )
     {
 
         JpaQueryParameters<Relationship> jpaQueryParameters = newJpaParameters();
@@ -145,9 +233,8 @@ public class HibernateRelationshipStore
     private void addOrder( JpaQueryParameters<Relationship> jpaQueryParameters, OrderCriteria orderCriteria,
         CriteriaBuilder builder )
     {
-        jpaQueryParameters.addOrder(
-            relationshipRoot -> orderCriteria.getDirection().isAscending()
-                ? builder.asc( relationshipRoot.get( orderCriteria.getField() ) )
+        jpaQueryParameters.addOrder( relationshipRoot -> orderCriteria.getDirection()
+            .isAscending() ? builder.asc( relationshipRoot.get( orderCriteria.getField() ) )
                 : builder.desc( relationshipRoot.get( orderCriteria.getField() ) ) );
     }
 
@@ -159,14 +246,15 @@ public class HibernateRelationshipStore
 
         Root<Relationship> root = criteriaQuery.from( Relationship.class );
 
-        criteriaQuery.where( builder.and(
-            getFromOrToPredicate( "from", builder, root, relationship ),
+        criteriaQuery.where( builder.and( getFromOrToPredicate( "from", builder, root, relationship ),
             getFromOrToPredicate( "to", builder, root, relationship ),
             builder.equal( root.join( "relationshipType" ), relationship.getRelationshipType() ) ) );
 
         try
         {
-            return getSession().createQuery( criteriaQuery ).setMaxResults( 1 ).getSingleResult();
+            return getSession().createQuery( criteriaQuery )
+                .setMaxResults( 1 )
+                .getSingleResult();
         }
         catch ( NoResultException nre )
         {
@@ -201,6 +289,7 @@ public class HibernateRelationshipStore
             .getResultList();
 
         return c.stream().map( String::valueOf ).collect( Collectors.toList() );
+
     }
 
     @Override
@@ -212,12 +301,13 @@ public class HibernateRelationshipStore
 
         Root<Relationship> root = query.from( Relationship.class );
 
-        query.where(
-            criteriaBuilder.in( root.get( "uid" ) ).value( uids ) );
+        query.where( criteriaBuilder.in( root.get( "uid" ) )
+            .value( uids ) );
 
         try
         {
-            return getSession().createQuery( query ).getResultList();
+            return getSession().createQuery( query )
+                .getResultList();
         }
         catch ( NoResultException nre )
         {
@@ -228,34 +318,29 @@ public class HibernateRelationshipStore
     private Predicate bidirectionalCriteria( CriteriaBuilder criteriaBuilder, Root<Relationship> root,
         Pair<String, String> fromFieldValuePair, Pair<String, String> toFieldValuePair )
     {
-        return criteriaBuilder.and(
-            criteriaBuilder.equal(
-                root.join( "relationshipType" ).get( "bidirectional" ), true ),
+        return criteriaBuilder.and( criteriaBuilder.equal( root.join( "relationshipType" )
+            .get( "bidirectional" ), true ),
             criteriaBuilder.or(
-                criteriaBuilder.and(
-                    getRelatedEntityCriteria( criteriaBuilder, root, fromFieldValuePair, "from" ),
+                criteriaBuilder.and( getRelatedEntityCriteria( criteriaBuilder, root, fromFieldValuePair, "from" ),
                     getRelatedEntityCriteria( criteriaBuilder, root, toFieldValuePair, "to" ) ),
-                criteriaBuilder.and(
-                    getRelatedEntityCriteria( criteriaBuilder, root, fromFieldValuePair, "to" ),
+                criteriaBuilder.and( getRelatedEntityCriteria( criteriaBuilder, root, fromFieldValuePair, "to" ),
                     getRelatedEntityCriteria( criteriaBuilder, root, toFieldValuePair, "from" ) ) ) );
     }
 
     private Predicate getRelatedEntityCriteria( CriteriaBuilder criteriaBuilder, Root<Relationship> root,
         Pair<String, String> fromFieldValuePair, String from )
     {
-        return criteriaBuilder.equal(
-            root.join( from ).join( fromFieldValuePair.getKey() ).get( "uid" ),
-            fromFieldValuePair.getValue() );
+        return criteriaBuilder.equal( root.join( from )
+            .join( fromFieldValuePair.getKey() )
+            .get( "uid" ), fromFieldValuePair.getValue() );
     }
 
     private Predicate nonBidirectionalCriteria( CriteriaBuilder criteriaBuilder, Root<Relationship> root,
         Pair<String, String> fromFieldValuePair, Pair<String, String> toFieldValuePair )
     {
-        return criteriaBuilder.and(
-            criteriaBuilder.equal(
-                root.join( "relationshipType" ).get( "bidirectional" ), false ),
-            criteriaBuilder.and(
-                getRelatedEntityCriteria( criteriaBuilder, root, fromFieldValuePair, "from" ),
+        return criteriaBuilder.and( criteriaBuilder.equal( root.join( "relationshipType" )
+            .get( "bidirectional" ), false ),
+            criteriaBuilder.and( getRelatedEntityCriteria( criteriaBuilder, root, fromFieldValuePair, "from" ),
                 getRelatedEntityCriteria( criteriaBuilder, root, toFieldValuePair, "to" ) ) );
     }
 
@@ -285,18 +370,18 @@ public class HibernateRelationshipStore
 
         if ( relationshipItemDirection.getTrackedEntityInstance() != null )
         {
-            return builder.equal( root.join( direction ).get( "trackedEntityInstance" ),
-                getItem( direction, relationship ).getTrackedEntityInstance() );
+            return builder.equal( root.join( direction )
+                .get( "trackedEntityInstance" ), getItem( direction, relationship ).getTrackedEntityInstance() );
         }
         else if ( relationshipItemDirection.getProgramInstance() != null )
         {
-            return builder.equal( root.join( direction ).get( "programInstance" ),
-                getItem( direction, relationship ).getProgramInstance() );
+            return builder.equal( root.join( direction )
+                .get( "programInstance" ), getItem( direction, relationship ).getProgramInstance() );
         }
         else if ( relationshipItemDirection.getProgramStageInstance() != null )
         {
-            return builder.equal( root.join( direction ).get( "programStageInstance" ),
-                getItem( direction, relationship ).getProgramStageInstance() );
+            return builder.equal( root.join( direction )
+                .get( "programStageInstance" ), getItem( direction, relationship ).getProgramStageInstance() );
         }
         else
         {
