@@ -153,7 +153,7 @@ public class HibernateRelationshipStore extends HibernateIdentifiableObjectStore
         else if ( entity instanceof ProgramStageInstance )
             return PROGRAM_STAGE_INSTANCE;
         else
-            throw new IllegalStateException( entity.getClass()
+            throw new IllegalArgumentException( entity.getClass()
                 .getSimpleName() + " not supported in relationship" );
     }
 
