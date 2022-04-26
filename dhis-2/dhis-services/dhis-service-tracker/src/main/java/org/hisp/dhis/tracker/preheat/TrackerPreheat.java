@@ -613,7 +613,7 @@ public class TrackerPreheat
     {
         RelationshipType relationshipType = get( RelationshipType.class, relationship.getRelationshipType() );
 
-        if ( relationship.getUid() != null )
+        if ( relationship.getUid() != null && relationships.containsKey( relationship.getUid() ) )
         {
             return relationships.get( relationship.getUid() );
         }
