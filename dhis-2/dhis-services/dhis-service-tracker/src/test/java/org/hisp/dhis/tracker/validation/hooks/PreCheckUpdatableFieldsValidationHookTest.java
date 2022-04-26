@@ -195,7 +195,7 @@ class PreCheckUpdatableFieldsValidationHookTest
     {
         // given
         Event event = validEvent();
-        event.setProgramStage( "NewProgramStageId" );
+        event.setProgramStage( MetadataIdentifier.ofUid( "NewProgramStageId" ) );
 
         // when
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
@@ -248,7 +248,7 @@ class PreCheckUpdatableFieldsValidationHookTest
     {
         return Event.builder()
             .event( EVENT_ID )
-            .programStage( PROGRAM_STAGE_ID )
+            .programStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_ID ) )
             .enrollment( ENROLLMENT_ID )
             .build();
     }

@@ -108,7 +108,7 @@ public class EventCategoryOptionComboSupplier extends AbstractPreheatSupplier
             return program;
         }
 
-        if ( StringUtils.isBlank( e.getProgramStage() ) )
+        if ( e.getProgramStage().isBlank() )
         {
             return null;
         }

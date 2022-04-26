@@ -44,5 +44,7 @@ import org.mapstruct.Mapping;
 interface EventMapper extends DomainMapper<Event, org.hisp.dhis.tracker.domain.Event>
 {
     @Mapping( target = "program", source = "program", qualifiedByName = "programToMetadataIdentifier" )
+    @Mapping( target = "programStage", source = "programStage", qualifiedByName = "programStageToMetadataIdentifier" )
+    @Mapping( target = "orgUnit", source = "orgUnit", qualifiedByName = "orgUnitToMetadataIdentifier" )
     org.hisp.dhis.tracker.domain.Event from( Event event, @Context TrackerIdSchemeParams idSchemeParams );
 }

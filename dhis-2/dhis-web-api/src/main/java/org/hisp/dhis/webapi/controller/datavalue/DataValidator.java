@@ -148,10 +148,32 @@ public class DataValidator
     }
 
     /**
-     * Retrieves and verifies a category option combo.
+     * Retrieves and verifies a category option combination.
+     *
+     * @param uid the category option combination identifier.
+     * @return the {@link CategoryOptionCombo}.
+     * @throws IllegalQueryException if the validation fails.
+     */
+    public CategoryOptionCombo getAndValidateCategoryOptionCombo( String uid )
+    {
+        CategoryOptionCombo categoryOptionCombo = categoryService.getCategoryOptionCombo( uid );
+
+        if ( categoryOptionCombo == null )
+        {
+            throw new IllegalQueryException( new ErrorMessage( ErrorCode.E1103, uid ) );
+        }
+
+        return categoryOptionCombo;
+    }
+
+    /**
+     * Retrieves and verifies a category option combo. If not required, and if
+     * the given identifier is null, the default category option combo will be
+     * returned if an object with the given identifier does not exist.
      *
      * @param uid the category option combo identifier.
-     * @param requireCategoryOptionCombo flag used as part of the validation.
+     * @param requireCategoryOptionCombo whether an exception should be thrown
+     *        if the category option combo does not exist.
      * @return the {@link CategoryOptionCombo}.
      * @throws IllegalQueryException if the validation fails.
      */
@@ -239,7 +261,7 @@ public class DataValidator
      * @return the {@link Period}.
      * @throws IllegalQueryException if the validation fails.
      */
-    public Period getAndValidatePeriod( final String pe )
+    public Period getAndValidatePeriod( String pe )
     {
         final Period period = PeriodType.getPeriodFromIsoString( pe );
 

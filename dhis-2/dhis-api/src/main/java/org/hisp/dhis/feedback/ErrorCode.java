@@ -107,7 +107,7 @@ public enum ErrorCode
     E2029( "Data value is not a valid option of the data element option set: `{0}`" ),
     E2030( "Data value must match data element value type: `{0}`" ),
     E2031( "User does not have write access to category option combo: `{0}`" ),
-    E2032( "Data value does not exist" ),
+    E2032( "Data value not found or not accessible" ),
     E2033( "Follow-up must be specified" ),
     E2034( "Filter not supported: `{0}`" ),
     E2035( "Operator not supported: `{0}`" ),
@@ -307,6 +307,7 @@ public enum ErrorCode
     E7132( "An indicator expression caused division by zero operation" ),
     E7133( "Query cannot be executed, possibly because of invalid types or invalid operation" ),
     E7134( "Cannot retrieve total value for data elements with skip total category combination" ),
+    E7135( "Date time is not parsable: `{0}`" ),
 
     /* Event analytics */
     E7200( "At least one organisation unit must be specified" ),

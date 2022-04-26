@@ -66,13 +66,13 @@ public class Event
     private MetadataIdentifier program;
 
     @JsonProperty
-    private String programStage;
+    private MetadataIdentifier programStage;
 
     @JsonProperty
     private String enrollment;
 
     @JsonProperty
-    private String orgUnit;
+    private MetadataIdentifier orgUnit;
 
     @JsonProperty
     private String orgUnitName;

@@ -713,8 +713,8 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         String enrollmentUid = CodeGenerator.generateUid();
         Event event = Event.builder()
             .enrollment( enrollmentUid )
-            .orgUnit( ORG_UNIT_ID )
-            .programStage( PS_ID )
+            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
+            .programStage( MetadataIdentifier.ofUid( PS_ID ) )
             .program( MetadataIdentifier.ofUid( PROGRAM_ID ) )
             .build();
 
@@ -746,8 +746,8 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         String enrollmentUid = CodeGenerator.generateUid();
         Event event = Event.builder()
             .enrollment( enrollmentUid )
-            .orgUnit( ORG_UNIT_ID )
-            .programStage( PS_ID )
+            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
+            .programStage( MetadataIdentifier.ofUid( PS_ID ) )
             .program( MetadataIdentifier.ofUid( PROGRAM_ID ) )
             .build();
 
@@ -758,7 +758,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         ProgramStageInstance programStageInstance = getEvent();
         programStageInstance.setProgramInstance( programInstance );
         when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_ID ) ) ).thenReturn( program );
-        when( preheat.getOrganisationUnit( ORG_UNIT_ID ) ).thenReturn( organisationUnit );
+        when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) ) ).thenReturn( organisationUnit );
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
             .thenReturn( true );
         when( aclService.canDataWrite( user, program ) ).thenReturn( true );
@@ -775,8 +775,8 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
     {
         Event event = Event.builder()
             .enrollment( CodeGenerator.generateUid() )
-            .orgUnit( ORG_UNIT_ID )
-            .programStage( PS_ID )
+            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
+            .programStage( MetadataIdentifier.ofUid( PS_ID ) )
             .program( MetadataIdentifier.ofUid( PROGRAM_ID ) )
             .build();
 
@@ -785,7 +785,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         when( preheat.getProgramStage( event.getProgramStage() ) ).thenReturn( programStage );
         when( bundle.getProgramInstance( event.getEnrollment() ) ).thenReturn( getEnrollment( null ) );
         when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_ID ) ) ).thenReturn( program );
-        when( preheat.getOrganisationUnit( ORG_UNIT_ID ) ).thenReturn( organisationUnit );
+        when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) ) ).thenReturn( organisationUnit );
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
             .thenReturn( true );
         when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
@@ -803,8 +803,8 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
     {
         Event event = Event.builder()
             .enrollment( CodeGenerator.generateUid() )
-            .orgUnit( ORG_UNIT_ID )
-            .programStage( PS_ID )
+            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
+            .programStage( MetadataIdentifier.ofUid( PS_ID ) )
             .program( MetadataIdentifier.ofUid( PROGRAM_ID ) )
             .build();
 
@@ -813,7 +813,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         when( preheat.getProgramStage( event.getProgramStage() ) ).thenReturn( programStage );
         when( bundle.getProgramInstance( event.getEnrollment() ) ).thenReturn( getEnrollment( null ) );
         when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_ID ) ) ).thenReturn( program );
-        when( preheat.getOrganisationUnit( ORG_UNIT_ID ) ).thenReturn( organisationUnit );
+        when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) ) ).thenReturn( organisationUnit );
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
             .thenReturn( true );
         when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
@@ -832,8 +832,8 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         String enrollmentUid = CodeGenerator.generateUid();
         Event event = Event.builder()
             .enrollment( enrollmentUid )
-            .orgUnit( ORG_UNIT_ID )
-            .programStage( PS_ID )
+            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
+            .programStage( MetadataIdentifier.ofUid( PS_ID ) )
             .program( MetadataIdentifier.ofUid( PROGRAM_ID ) )
             .status( EventStatus.COMPLETED )
             .build();
@@ -865,8 +865,8 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         Event event = Event.builder()
             .event( eventUid )
             .enrollment( enrollmentUid )
-            .orgUnit( ORG_UNIT_ID )
-            .programStage( PS_ID )
+            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
+            .programStage( MetadataIdentifier.ofUid( PS_ID ) )
             .program( MetadataIdentifier.ofUid( PROGRAM_ID ) )
             .status( EventStatus.COMPLETED )
             .build();
@@ -904,8 +904,8 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         String enrollmentUid = CodeGenerator.generateUid();
         Event event = Event.builder()
             .enrollment( enrollmentUid )
-            .orgUnit( ORG_UNIT_ID )
-            .programStage( PS_ID )
+            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
+            .programStage( MetadataIdentifier.ofUid( PS_ID ) )
             .program( MetadataIdentifier.ofUid( PROGRAM_ID ) )
             .build();
 
@@ -936,8 +936,8 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         Event event = Event.builder()
             .event( CodeGenerator.generateUid() )
             .enrollment( CodeGenerator.generateUid() )
-            .orgUnit( ORG_UNIT_ID )
-            .programStage( PS_ID )
+            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
+            .programStage( MetadataIdentifier.ofUid( PS_ID ) )
             .program( MetadataIdentifier.ofUid( PROGRAM_ID ) )
             .build();
 
@@ -947,7 +947,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         when( preheat.getProgramStage( event.getProgramStage() ) ).thenReturn( programStage );
         when( bundle.getProgramInstance( event.getEnrollment() ) ).thenReturn( getEnrollment( null ) );
         when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_ID ) ) ).thenReturn( program );
-        when( preheat.getOrganisationUnit( ORG_UNIT_ID ) ).thenReturn( organisationUnit );
+        when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) ) ).thenReturn( organisationUnit );
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
             .thenReturn( false );
         when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
@@ -966,8 +966,8 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         Event event = Event.builder()
             .event( CodeGenerator.generateUid() )
             .enrollment( CodeGenerator.generateUid() )
-            .orgUnit( ORG_UNIT_ID )
-            .programStage( PS_ID )
+            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
+            .programStage( MetadataIdentifier.ofUid( PS_ID ) )
             .program( MetadataIdentifier.ofUid( PROGRAM_ID ) )
             .status( EventStatus.SCHEDULE )
             .build();
@@ -978,7 +978,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         when( preheat.getProgramStage( event.getProgramStage() ) ).thenReturn( programStage );
         when( bundle.getProgramInstance( event.getEnrollment() ) ).thenReturn( getEnrollment( null ) );
         when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_ID ) ) ).thenReturn( program );
-        when( preheat.getOrganisationUnit( ORG_UNIT_ID ) ).thenReturn( organisationUnit );
+        when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) ) ).thenReturn( organisationUnit );
         when( organisationUnitService.isInUserSearchHierarchyCached( user, organisationUnit ) )
             .thenReturn( false );
         when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
@@ -998,8 +998,8 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         Event event = Event.builder()
             .event( CodeGenerator.generateUid() )
             .enrollment( enrollmentUid )
-            .orgUnit( ORG_UNIT_ID )
-            .programStage( PS_ID )
+            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
+            .programStage( MetadataIdentifier.ofUid( PS_ID ) )
             .program( MetadataIdentifier.ofUid( PROGRAM_ID ) )
             .build();
 
@@ -1029,8 +1029,8 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         Event event = Event.builder()
             .event( CodeGenerator.generateUid() )
             .enrollment( enrollmentUid )
-            .orgUnit( ORG_UNIT_ID )
-            .programStage( PS_ID )
+            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
+            .programStage( MetadataIdentifier.ofUid( PS_ID ) )
             .program( MetadataIdentifier.ofUid( PROGRAM_ID ) )
             .status( EventStatus.COMPLETED )
             .build();

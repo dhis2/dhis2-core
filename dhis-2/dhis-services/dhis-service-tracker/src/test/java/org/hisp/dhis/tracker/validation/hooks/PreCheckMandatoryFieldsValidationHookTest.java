@@ -38,7 +38,6 @@ import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1008;
 import static org.hisp.dhis.tracker.validation.hooks.AssertValidationErrorReporter.hasTrackerError;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.common.CodeGenerator;
@@ -204,8 +203,8 @@ class PreCheckMandatoryFieldsValidationHookTest
     {
         Event event = Event.builder()
             .event( CodeGenerator.generateUid() )
-            .orgUnit( CodeGenerator.generateUid() )
-            .programStage( CodeGenerator.generateUid() )
+            .orgUnit( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
+            .programStage( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
             .program( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
             .build();
 
@@ -220,8 +219,8 @@ class PreCheckMandatoryFieldsValidationHookTest
     {
         Event event = Event.builder()
             .event( CodeGenerator.generateUid() )
-            .orgUnit( CodeGenerator.generateUid() )
-            .programStage( CodeGenerator.generateUid() )
+            .orgUnit( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
+            .programStage( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
             .program( MetadataIdentifier.ofUid( null ) )
             .build();
 
@@ -236,12 +235,13 @@ class PreCheckMandatoryFieldsValidationHookTest
     {
         Event event = Event.builder()
             .event( CodeGenerator.generateUid() )
-            .orgUnit( CodeGenerator.generateUid() )
-            .programStage( CodeGenerator.generateUid() )
+            .orgUnit( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
+            .programStage( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
             .build();
         ProgramStage programStage = new ProgramStage();
-        programStage.setUid( event.getProgramStage() );
-        when( preheat.getProgramStage( anyString() ) ).thenReturn( programStage );
+        programStage.setUid( event.getProgramStage().getIdentifier() );
+        when( preheat.getProgramStage( MetadataIdentifier.ofUid( programStage.getUid() ) ) )
+            .thenReturn( programStage );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
         validationHook.validateEvent( reporter, event );
@@ -256,8 +256,8 @@ class PreCheckMandatoryFieldsValidationHookTest
     {
         Event event = Event.builder()
             .event( CodeGenerator.generateUid() )
-            .orgUnit( CodeGenerator.generateUid() )
-            .programStage( null )
+            .orgUnit( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
+            .programStage( MetadataIdentifier.ofUid( null ) )
             .program( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
             .build();
 
@@ -272,8 +272,8 @@ class PreCheckMandatoryFieldsValidationHookTest
     {
         Event event = Event.builder()
             .event( CodeGenerator.generateUid() )
-            .orgUnit( null )
-            .programStage( CodeGenerator.generateUid() )
+            .orgUnit( MetadataIdentifier.ofUid( null ) )
+            .programStage( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
             .program( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
             .build();
 

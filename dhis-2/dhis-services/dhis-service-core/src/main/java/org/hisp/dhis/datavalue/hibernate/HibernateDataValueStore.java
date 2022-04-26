@@ -219,6 +219,11 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
             hql += "and ou.id in (:orgUnits) ";
         }
 
+        if ( params.hasCategoryOptionCombos() )
+        {
+            hql += "and co.id in (:categoryOptionCombos) ";
+        }
+
         if ( params.hasAttributeOptionCombos() )
         {
             hql += "and ao.id in (:attributeOptionCombos) ";
@@ -270,6 +275,11 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
         if ( !params.isIncludeDescendantsForOrganisationUnits() && !organisationUnits.isEmpty() )
         {
             query.setParameterList( "orgUnits", getIdentifiers( organisationUnits ) );
+        }
+
+        if ( params.hasCategoryOptionCombos() )
+        {
+            query.setParameterList( "categoryOptionCombos", getIdentifiers( params.getCategoryOptionCombos() ) );
         }
 
         if ( params.hasAttributeOptionCombos() )

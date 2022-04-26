@@ -39,8 +39,14 @@
       "program": {
         "idScheme": "UID"
       },
-      "programStage": "o68AuhbJDSz",
-      "orgUnit": "QfUVllTs6cS",
+      "programStage": {
+        "idScheme": "UID",
+        "identifier": "o68AuhbJDSz"
+      },
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "QfUVllTs6cS"
+      },
       "relationships": [],
       "occurredAt": "2019-08-01T00:00:00.000",
       "scheduledAt": "2019-08-19T13:59:13.688",

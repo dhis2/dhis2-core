@@ -124,7 +124,7 @@ public class EventExportTests
         setupEvents();
 
         String relationshipTypeId = new RelationshipTypeActions()
-            .createRelationshipType( "PROGRAM_STAGE_INSTANCE", withoutRegistrationProgram, "PROGRAM_STAGE_INSTANCE",
+            .createRelationshipType( "PROGRAM_STAGE_INSTANCE", withoutRegistrationProgramStage, "PROGRAM_STAGE_INSTANCE",
                 withRegistrationProgram, true );
 
         relationshipId = createRelationship( events.get( captureOu ), trackerEvents.get( captureOu ), relationshipTypeId );

@@ -40,8 +40,14 @@
         "idScheme": "UID",
         "identifier": "rT3rvcn2vid"
       },
-      "programStage": "o68AuhbJDSz",
-      "orgUnit": "QfUVllTs6cS",
+      "programStage": {
+        "idScheme": "UID",
+        "identifier": "o68AuhbJDSz"
+      },
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "QfUVllTs6cS"
+      },
       "relationships": [],
       "occurredAt": "2018-12-31T06:13:07.000",
       "followup": false,
@@ -56,8 +62,14 @@
       "program": {
         "idScheme": "UID"
       },
-      "programStage": "o68AuhbJDSz",
-      "orgUnit": "QfUVllTs6cS",
+      "programStage": {
+        "idScheme": "UID",
+        "identifier": "o68AuhbJDSz"
+      },
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "QfUVllTs6cS"
+      },
       "relationships": [],
       "occurredAt": "2020-08-01T00:00:00.000",
       "scheduledAt": "2020-08-19T13:59:13.688",

@@ -309,7 +309,7 @@ class EventTrackerConverterServiceTest extends DhisConvenienceTest
 
         Event event = converter.to( psi );
 
-        assertEquals( event.getEnrollment(), PROGRAM_INSTANCE_UID );
+        assertEquals( PROGRAM_INSTANCE_UID, event.getEnrollment() );
         assertEquals( event.getStoredBy(), user.getUsername() );
         event.getDataValues().forEach( e -> {
             assertEquals( DateUtils.fromInstant( e.getCreatedAt() ), psi.getCreated() );
@@ -321,9 +321,11 @@ class EventTrackerConverterServiceTest extends DhisConvenienceTest
     private void setUpMocks()
     {
         when( preheat.getUser() ).thenReturn( user );
-        when( preheat.get( ProgramStage.class, programStage.getUid() ) ).thenReturn( programStage );
+        when( preheat.get( ProgramStage.class, MetadataIdentifier.ofUid( programStage.getUid() ) ) )
+            .thenReturn( programStage );
         when( preheat.getProgram( MetadataIdentifier.ofUid( program.getUid() ) ) ).thenReturn( program );
-        when( preheat.get( OrganisationUnit.class, organisationUnit.getUid() ) ).thenReturn( organisationUnit );
+        when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( organisationUnit.getUid() ) ) )
+            .thenReturn( organisationUnit );
     }
 
     private Event event( DataValue dataValue )
@@ -335,9 +337,9 @@ class EventTrackerConverterServiceTest extends DhisConvenienceTest
     {
         Event event = new Event();
         event.setEvent( uid );
-        event.setProgramStage( PROGRAM_STAGE_UID );
+        event.setProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_UID ) );
         event.setProgram( MetadataIdentifier.ofUid( PROGRAM_UID ) );
-        event.setOrgUnit( ORGANISATION_UNIT_UID );
+        event.setOrgUnit( MetadataIdentifier.ofUid( ORGANISATION_UNIT_UID ) );
         event.setDataValues( Sets.newHashSet( dataValue ) );
         return event;
     }

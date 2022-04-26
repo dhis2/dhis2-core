@@ -40,9 +40,15 @@
         "idScheme": "UID",
         "identifier": "E8o1E9tAppy"
       },
-      "programStage": "OilWH8Cj6QU",
+      "programStage": {
+        "idScheme": "UID",
+        "identifier": "OilWH8Cj6QU"
+      },
       "enrollment": "MNWZ6hnuhSw",
-      "orgUnit": "QfUVllTs6cS",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "QfUVllTs6cS"
+      },
       "orgUnitName": "TA org_unit lvl2",
       "relationships": [],
       "occurredAt": "2019-08-01T00:00:00.000",

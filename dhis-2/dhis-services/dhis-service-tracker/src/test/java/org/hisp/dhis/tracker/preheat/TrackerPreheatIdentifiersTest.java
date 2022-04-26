@@ -50,6 +50,7 @@ import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -75,11 +76,16 @@ class TrackerPreheatIdentifiersTest extends TrackerTest
         List<Pair<String, TrackerIdSchemeParam>> data = buildDataSet( "PlKwabX2xRW", "COU1", "Country" );
         for ( Pair<String, TrackerIdSchemeParam> pair : data )
         {
-            Event event = new Event();
-            event.setOrgUnit( pair.getLeft() );
-            TrackerImportParams params = buildParams( event, builder().orgUnitIdScheme( pair.getRight() ).build() );
+            String id = pair.getLeft();
+            TrackerIdSchemeParam param = pair.getRight();
+            Event event = Event.builder()
+                .orgUnit( param.toMetadataIdentifier( id ) )
+                .build();
+            TrackerImportParams params = buildParams( event, builder().orgUnitIdScheme( param ).build() );
+
             TrackerPreheat preheat = trackerPreheatService.preheat( params );
-            assertPreheatedObjectExists( preheat, OrganisationUnit.class, pair.getRight(), pair.getLeft() );
+
+            assertPreheatedObjectExists( preheat, OrganisationUnit.class, param, id );
         }
     }
 
@@ -89,12 +95,16 @@ class TrackerPreheatIdentifiersTest extends TrackerTest
         List<Pair<String, TrackerIdSchemeParam>> data = buildDataSet( "NpsdDv6kKSO", "PRGA", "ProgramA" );
         for ( Pair<String, TrackerIdSchemeParam> pair : data )
         {
-            Event event = new Event();
-            event.setProgramStage( pair.getLeft() );
-            TrackerImportParams params = buildParams( event,
-                builder().programStageIdScheme( pair.getRight() ).build() );
+            String id = pair.getLeft();
+            TrackerIdSchemeParam param = pair.getRight();
+            Event event = Event.builder()
+                .programStage( param.toMetadataIdentifier( id ) )
+                .build();
+            TrackerImportParams params = buildParams( event, builder().programStageIdScheme( param ).build() );
+
             TrackerPreheat preheat = trackerPreheatService.preheat( params );
-            assertPreheatedObjectExists( preheat, ProgramStage.class, pair.getRight(), pair.getLeft() );
+
+            assertPreheatedObjectExists( preheat, ProgramStage.class, param, id );
         }
     }
 
@@ -105,7 +115,7 @@ class TrackerPreheatIdentifiersTest extends TrackerTest
         for ( Pair<String, TrackerIdSchemeParam> pair : data )
         {
             Event event = new Event();
-            event.setProgramStage( "NpsdDv6kKSO" );
+            event.setProgramStage( MetadataIdentifier.ofUid( "NpsdDv6kKSO" ) );
             DataValue dv1 = new DataValue();
             dv1.setDataElement( pair.getLeft() );
             dv1.setValue( "val1" );

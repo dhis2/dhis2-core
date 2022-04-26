@@ -54,6 +54,7 @@ import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.User;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.util.DateUtils;
@@ -118,12 +119,12 @@ public class EventTrackerConverterService
 
             if ( ou != null )
             {
-                event.setOrgUnit( ou.getUid() );
+                event.setOrgUnit( MetadataIdentifier.ofUid( ou.getUid() ) );
                 event.setOrgUnitName( ou.getName() );
             }
 
             event.setEnrollment( psi.getProgramInstance().getUid() );
-            event.setProgramStage( psi.getProgramStage().getUid() );
+            event.setProgramStage( MetadataIdentifier.ofUid( psi.getProgramStage().getUid() ) );
             event.setAttributeOptionCombo( psi.getAttributeOptionCombo().getUid() );
             event.setAttributeCategoryOptions( psi.getAttributeOptionCombo()
                 .getCategoryOptions().stream().map( CategoryOption::getUid ).collect( Collectors.joining( ";" ) ) );
@@ -205,7 +206,7 @@ public class EventTrackerConverterService
     {
         ProgramStage programStage = preheat.get( ProgramStage.class, event.getProgramStage() );
         Program program = preheat.getProgram( event.getProgram() );
-        OrganisationUnit organisationUnit = preheat.get( OrganisationUnit.class, event.getOrgUnit() );
+        OrganisationUnit organisationUnit = preheat.getOrganisationUnit( event.getOrgUnit() );
 
         Date now = new Date();
 

@@ -54,6 +54,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -164,7 +165,7 @@ public class TrackerPreheat
             TrackerIdSchemeParam optionComboIdScheme = this.getIdSchemes().getCategoryOptionComboIdScheme();
             this.cosToCOC.put( categoryOptionComboCacheKey( categoryCombo, categoryOptions ),
                 optionComboIdScheme.getIdentifier( categoryOptionCombo ) );
-            this.put( optionComboIdScheme, categoryOptionCombo );
+            this.put( categoryOptionCombo );
         }
         else
         {
@@ -340,8 +341,6 @@ public class TrackerPreheat
     /**
      * A list of Program Stage UID having 1 or more Events
      */
-    @Getter
-    @Setter
     private List<Pair<String, String>> programStageWithEvents = Lists.newArrayList();
 
     /**
@@ -485,6 +484,26 @@ public class TrackerPreheat
         }
 
         return this;
+    }
+
+    public TrackerPreheat put( DataElement dataElement )
+    {
+        return this.put( idSchemes.getDataElementIdScheme(), dataElement );
+    }
+
+    public TrackerPreheat put( Program program )
+    {
+        return this.put( idSchemes.getProgramIdScheme(), program );
+    }
+
+    public TrackerPreheat put( ProgramStage programStage )
+    {
+        return this.put( idSchemes.getProgramStageIdScheme(), programStage );
+    }
+
+    public TrackerPreheat put( CategoryOptionCombo categoryOptionCombo )
+    {
+        return this.put( idSchemes.getCategoryOptionComboIdScheme(), categoryOptionCombo );
     }
 
     public TrackedEntityInstance getTrackedEntity( String uid )
@@ -732,9 +751,19 @@ public class TrackerPreheat
             .findAny();
     }
 
+    public OrganisationUnit getOrganisationUnit( MetadataIdentifier id )
+    {
+        return get( OrganisationUnit.class, id );
+    }
+
     public OrganisationUnit getOrganisationUnit( String id )
     {
         return get( OrganisationUnit.class, id );
+    }
+
+    public ProgramStage getProgramStage( MetadataIdentifier id )
+    {
+        return get( ProgramStage.class, id );
     }
 
     public ProgramStage getProgramStage( String id )
@@ -760,6 +789,19 @@ public class TrackerPreheat
     public TrackedEntityAttribute getTrackedEntityAttribute( String id )
     {
         return get( TrackedEntityAttribute.class, id );
+    }
+
+    public TrackerPreheat addProgramStageWithEvents( String programStageUid, String enrollmentUid )
+    {
+        this.programStageWithEvents.add( Pair.of( programStageUid, enrollmentUid ) );
+        return this;
+    }
+
+    public boolean hasProgramStageWithEvents( MetadataIdentifier programStage, String enrollmentUid )
+    {
+        ProgramStage ps = this.getProgramStage( programStage );
+        ProgramInstance pi = this.getEnrollment( enrollmentUid );
+        return this.programStageWithEvents.contains( Pair.of( ps.getUid(), pi.getUid() ) );
     }
 
     @Override

@@ -85,7 +85,7 @@ public class PreCheckUpdatableFieldsValidationHook
         ProgramStage programStage = programStageInstance.getProgramStage();
         ProgramInstance programInstance = programStageInstance.getProgramInstance();
 
-        reporter.addErrorIf( () -> !event.getProgramStage().equals( programStage.getUid() ), event, E1128,
+        reporter.addErrorIf( () -> !event.getProgramStage().isEqualTo( programStage ), event, E1128,
             "programStage" );
         reporter.addErrorIf(
             () -> event.getEnrollment() != null && !event.getEnrollment().equals( programInstance.getUid() ),
