@@ -54,6 +54,12 @@ public class CustomDataEntryFormDto
     private String id;
 
     /**
+     * Data set identifier.
+     */
+    @JsonProperty
+    private String dataSetId;
+
+    /**
      * Form version.
      */
     @JsonProperty

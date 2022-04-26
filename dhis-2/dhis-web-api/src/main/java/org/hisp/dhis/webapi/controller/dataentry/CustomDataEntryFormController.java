@@ -63,6 +63,7 @@ public class CustomDataEntryFormController
 
         return new CustomDataEntryFormDto()
             .setId( dataSet.getDataEntryForm().getUid() )
+            .setDataSetId( dataSet.getUid() )
             .setVersion( dataSet.getVersion() )
             .setForm( dataSet.getDataEntryForm().getHtmlCode() )
             .setDisplayDensity( dataSet.getDataEntryForm().getStyle() );
