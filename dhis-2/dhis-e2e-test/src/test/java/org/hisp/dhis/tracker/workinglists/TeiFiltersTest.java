@@ -33,6 +33,7 @@ import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.helpers.file.JsonFileReader;
+import org.hisp.dhis.tracker.TrackerApiTest;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -46,7 +47,7 @@ import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class TeiFiltersTest
-    extends ApiTest
+    extends TrackerApiTest
 {
     private RestApiActions workingListActions;
 

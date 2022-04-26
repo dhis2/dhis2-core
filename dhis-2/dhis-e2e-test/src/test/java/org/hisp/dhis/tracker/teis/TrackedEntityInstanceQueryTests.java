@@ -37,6 +37,7 @@ import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.tracker.importer.TrackerActions;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
+import org.hisp.dhis.tracker.TrackerApiTest;
 import org.hisp.dhis.tracker.importer.databuilder.EnrollmentDataBuilder;
 import org.hisp.dhis.tracker.importer.databuilder.TeiDataBuilder;
 import org.hisp.dhis.utils.DataGenerator;
@@ -48,7 +49,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
-import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hisp.dhis.helpers.matchers.CustomMatchers.hasToStringContaining;
 
@@ -56,7 +57,7 @@ import static org.hisp.dhis.helpers.matchers.CustomMatchers.hasToStringContainin
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 class TrackedEntityInstanceQueryTests
-    extends ApiTest
+    extends TrackerApiTest
 {
     private TrackerActions trackerActions;
 
@@ -116,7 +117,7 @@ class TrackedEntityInstanceQueryTests
         trackedEntityInstanceQueryActions.get( String.format( "%s&%s", queryParamsBuilder.build(), attributesQueryParams ) )
             .validate()
             .statusCode( 200 )
-            .body( "height", equalTo( 1 ) )
+            .body( "height", greaterThanOrEqualTo( 1 ) )
             .body( "rows", hasItem(
                 hasToStringContaining( Arrays.asList( teiId, lastNameAttribute.getValue(), firstNameAttribute.getValue() ) ) ) );
     }

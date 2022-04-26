@@ -27,13 +27,14 @@
  */
 package org.hisp.dhis.actions;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.ImportSummary;
 
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Logger;
 
 import static org.awaitility.Awaitility.await;
 import static org.awaitility.Awaitility.with;
@@ -44,7 +45,7 @@ import static org.awaitility.Awaitility.with;
 public class SystemActions
     extends RestApiActions
 {
-    private Logger logger = Logger.getLogger( SystemActions.class.getName() );
+    private Logger logger = LogManager.getLogger( SystemActions.class.getName() );
 
     public SystemActions()
     {

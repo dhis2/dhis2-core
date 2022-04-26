@@ -28,6 +28,7 @@
 package org.hisp.dhis.helpers.extensions;
 
 
+import org.apache.logging.log4j.LogManager;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.TestRunStorage;
 import org.hisp.dhis.actions.LoginActions;
@@ -43,7 +44,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Consumer;
-import java.util.logging.Logger;
+import org.apache.logging.log4j.Logger;
 
 import static org.junit.jupiter.api.extension.ExtensionContext.Namespace.GLOBAL;
 
@@ -57,7 +58,7 @@ public class MetadataSetupExtension
 
     private static Map<String, String> createdData = new LinkedHashMap<>();
 
-    private static Logger logger = Logger.getLogger( MetadataSetupExtension.class.getName() );
+    private static Logger logger = LogManager.getLogger( MetadataSetupExtension.class.getName() );
 
     @Override
     public void beforeAll( ExtensionContext context )
