@@ -37,7 +37,7 @@ import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 public class vEventCount
     extends ProgramDoubleVariable
 {
-    public static String DEFAULT_COUNT_CONDITION = "when psistatus in ('ACTIVE', 'COMPLETED') then 1";
+    public static final String DEFAULT_COUNT_CONDITION = "when psistatus in ('ACTIVE', 'COMPLETED') then 1";
 
     @Override
     public Object getSql( CommonExpressionVisitor visitor )

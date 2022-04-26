@@ -122,7 +122,7 @@ public class EventQueryParams
     public static final ImmutableSet<FallbackCoordinateFieldType> FALLBACK_COORDINATE_FIELD_TYPES = ImmutableSet.of(
         OU_GEOMETRY, PSI_GEOMETRY );
 
-    public static final Set<EventStatus> DEFAULT_EVENT_STATUS = new LinkedHashSet<>( asList( ACTIVE, COMPLETED ) );
+    private static final Set<EventStatus> DEFAULT_EVENT_STATUS = new LinkedHashSet<>( asList( ACTIVE, COMPLETED ) );
 
     /**
      * The query items.
