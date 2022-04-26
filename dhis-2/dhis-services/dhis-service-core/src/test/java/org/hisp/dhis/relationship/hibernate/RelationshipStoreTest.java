@@ -91,7 +91,7 @@ class RelationshipStoreTest extends TransactionalIntegrationTest
 
     private RelationshipType relationshipType;
 
-    private Relationship relationship;
+    private Relationship teiRelationship;
 
     private OrganisationUnit organisationUnit;
 
@@ -102,37 +102,175 @@ class RelationshipStoreTest extends TransactionalIntegrationTest
         relationshipTypeService.addRelationshipType( relationshipType );
         organisationUnit = createOrganisationUnit( "testOU" );
         organisationUnitService.addOrganisationUnit( organisationUnit );
+    }
+
+    @Test
+    void testGetByTrackedEntityInstance()
+    {
+        addTeiToTeiRelationShip();
+
+        List<Relationship> relationshipList = relationshipService
+            .getRelationshipsByTrackedEntityInstance( trackedEntityInstanceA, true );
+
+        assertEquals( 1, relationshipList.size() );
+        assertTrue( relationshipList.contains( teiRelationship ) );
+    }
+
+    @Test
+    void testGetByProgramStageInstance()
+    {
+        Program programA = addProgram();
+
+        ProgramInstance programInstance = addProgramInstance( programA );
+
+        ProgramStage programStageA = addProgramStage( programA );
+
+        ProgramStageInstance programStageInstance = addProgramStageInstance( programInstance, programStageA );
+
+        trackedEntityInstanceA = createTrackedEntityInstance( organisationUnit );
+        trackedEntityInstanceService.addTrackedEntityInstance( trackedEntityInstanceA );
+
+        Relationship relationshipA = addTeiToProgramStageInstanceRelationShip( trackedEntityInstanceA,
+            programStageInstance );
+
+        List<Relationship> relationshipList = relationshipService
+            .getRelationshipsByProgramStageInstance( programStageInstance, true );
+
+        assertEquals( 1, relationshipList.size() );
+        assertTrue( relationshipList.contains( relationshipA ) );
+
+        assertTrue( relationshipService.getRelationshipByRelationship( relationshipA ).isPresent() );
+    }
+
+    @Test
+    void testGetByProgramInstance()
+    {
+        trackedEntityInstanceA = createTrackedEntityInstance( organisationUnit );
+        trackedEntityInstanceService.addTrackedEntityInstance( trackedEntityInstanceA );
+
+        Program programA = addProgram();
+
+        ProgramInstance programInstance = addProgramInstance( programA );
+
+        Relationship relationshipA = addTeiToProgramInstanceRelationShip( trackedEntityInstanceA,
+            programInstance );
+
+        List<Relationship> relationshipList = relationshipService
+            .getRelationshipsByProgramInstance( programInstance, true );
+
+        assertEquals( 1, relationshipList.size() );
+        assertTrue( relationshipList.contains( relationshipA ) );
+
+        assertTrue( relationshipService.getRelationshipByRelationship( relationshipA ).isPresent() );
+    }
+
+    @Test
+    void testGetByRelationshipType()
+    {
+        addTeiToTeiRelationShip();
+
+        List<Relationship> relationshipList = relationshipService
+            .getRelationshipsByRelationshipType( relationshipType );
+
+        assertEquals( 1, relationshipList.size() );
+        assertTrue( relationshipList.contains( teiRelationship ) );
+    }
+
+    @Test
+    void testGetByRelationship()
+    {
+        addTeiToTeiRelationShip();
+
+        Optional<Relationship> existing = relationshipService.getRelationshipByRelationship( teiRelationship );
+
+        assertTrue( existing.isPresent() );
+    }
+
+    void addTeiToTeiRelationShip()
+    {
         trackedEntityInstanceA = createTrackedEntityInstance( organisationUnit );
         trackedEntityInstanceB = createTrackedEntityInstance( organisationUnit );
+
         trackedEntityInstanceService.addTrackedEntityInstance( trackedEntityInstanceA );
         trackedEntityInstanceService.addTrackedEntityInstance( trackedEntityInstanceB );
-        relationship = new Relationship();
+
+        teiRelationship = new Relationship();
+
         RelationshipItem relationshipItemFrom = new RelationshipItem();
         RelationshipItem relationshipItemTo = new RelationshipItem();
         relationshipItemFrom.setTrackedEntityInstance( trackedEntityInstanceA );
         relationshipItemTo.setTrackedEntityInstance( trackedEntityInstanceB );
-        relationship.setRelationshipType( relationshipType );
-        relationship.setFrom( relationshipItemFrom );
-        relationship.setTo( relationshipItemTo );
-        relationship.setKey( RelationshipUtils.generateRelationshipKey( relationship ) );
-        relationship.setInvertedKey( RelationshipUtils.generateRelationshipInvertedKey( relationship ) );
-        relationshipService.addRelationship( relationship );
+
+        teiRelationship.setRelationshipType( relationshipType );
+        teiRelationship.setFrom( relationshipItemFrom );
+        teiRelationship.setTo( relationshipItemTo );
+        teiRelationship.setKey( RelationshipUtils.generateRelationshipKey( teiRelationship ) );
+        teiRelationship.setInvertedKey( RelationshipUtils.generateRelationshipInvertedKey( teiRelationship ) );
+
+        relationshipService.addRelationship( teiRelationship );
     }
 
-    @Test
-    void getByTrackedEntityInstance()
+    private Relationship addTeiToProgramStageInstanceRelationShip( TrackedEntityInstance entityInstance,
+        ProgramStageInstance programStageInstance )
     {
-        List<Relationship> relationshipList = relationshipService
-            .getRelationshipsByTrackedEntityInstance( trackedEntityInstanceA, true );
-        assertEquals( 1, relationshipList.size() );
-        assertTrue( relationshipList.contains( relationship ) );
+        RelationshipItem relationshipItemFrom = new RelationshipItem();
+        relationshipItemFrom.setTrackedEntityInstance( entityInstance );
+        RelationshipItem relationshipItemTo = new RelationshipItem();
+        relationshipItemTo.setProgramStageInstance( programStageInstance );
+
+        Relationship relationshipA = new Relationship();
+        relationshipA.setRelationshipType( relationshipType );
+        relationshipA.setFrom( relationshipItemFrom );
+        relationshipA.setTo( relationshipItemTo );
+        relationshipA.setKey( RelationshipUtils.generateRelationshipKey( relationshipA ) );
+        relationshipA.setInvertedKey( RelationshipUtils.generateRelationshipInvertedKey( relationshipA ) );
+
+        relationshipService.addRelationship( relationshipA );
+        return relationshipA;
     }
 
-    @Test
-    void getByProgramStageInstance()
+    private Relationship addTeiToProgramInstanceRelationShip( TrackedEntityInstance entityInstance,
+        ProgramInstance programInstance )
     {
-        Program programA = createProgram( 'A', new HashSet<>(), organisationUnit );
-        programService.addProgram( programA );
+        RelationshipItem relationshipItemFrom = new RelationshipItem();
+        relationshipItemFrom.setTrackedEntityInstance( entityInstance );
+        RelationshipItem relationshipItemTo = new RelationshipItem();
+        relationshipItemTo.setProgramInstance( programInstance );
+
+        Relationship relationshipA = new Relationship();
+        relationshipA.setRelationshipType( relationshipType );
+        relationshipA.setFrom( relationshipItemFrom );
+        relationshipA.setTo( relationshipItemTo );
+        relationshipA.setKey( RelationshipUtils.generateRelationshipKey( relationshipA ) );
+        relationshipA.setInvertedKey( RelationshipUtils.generateRelationshipInvertedKey( relationshipA ) );
+
+        relationshipService.addRelationship( relationshipA );
+        return relationshipA;
+    }
+
+    private ProgramStageInstance addProgramStageInstance( ProgramInstance programInstance, ProgramStage programStageA )
+    {
+        ProgramStageInstance programStageInstance = new ProgramStageInstance();
+        programStageInstance.setOrganisationUnit( organisationUnit );
+        programStageInstance.setProgramStage( programStageA );
+        programStageInstance.setProgramInstance( programInstance );
+        programStageInstance.setAutoFields();
+
+        programStageInstanceService.addProgramStageInstance( programStageInstance );
+        return programStageInstance;
+    }
+
+    private ProgramStage addProgramStage( Program programA )
+    {
+        ProgramStage programStageA = createProgramStage( 'S', programA );
+        programStageA.setProgram( programA );
+        programStageService.saveProgramStage( programStageA );
+        programA.getProgramStages().add( programStageA );
+        return programStageA;
+    }
+
+    private ProgramInstance addProgramInstance( Program programA )
+    {
         ProgramInstance programInstance = new ProgramInstance();
         programInstance.setProgram( programA );
         programInstance.setAutoFields();
@@ -140,47 +278,13 @@ class RelationshipStoreTest extends TransactionalIntegrationTest
         programInstance.setIncidentDate( new Date() );
         programInstance.setStatus( ProgramStatus.ACTIVE );
         programInstanceService.addProgramInstance( programInstance );
-        ProgramStage programStageA = createProgramStage( 'S', programA );
-        programStageA.setProgram( programA );
-        programStageService.saveProgramStage( programStageA );
-        programA.getProgramStages().add( programStageA );
-        ProgramStageInstance programStageInstance = new ProgramStageInstance();
-        programStageInstance.setOrganisationUnit( organisationUnit );
-        programStageInstance.setProgramStage( programStageA );
-        programStageInstance.setProgramInstance( programInstance );
-        programStageInstance.setAutoFields();
-        programStageInstanceService.addProgramStageInstance( programStageInstance );
-        RelationshipItem relationshipItemFrom = new RelationshipItem();
-        relationshipItemFrom.setTrackedEntityInstance( trackedEntityInstanceA );
-        RelationshipItem relationshipItemTo = new RelationshipItem();
-        relationshipItemTo.setProgramStageInstance( programStageInstance );
-        Relationship relationshipA = new Relationship();
-        relationshipA.setRelationshipType( relationshipType );
-        relationshipA.setFrom( relationshipItemFrom );
-        relationshipA.setTo( relationshipItemTo );
-        relationshipA.setKey( RelationshipUtils.generateRelationshipKey( relationshipA ) );
-        relationshipA.setInvertedKey( RelationshipUtils.generateRelationshipInvertedKey( relationshipA ) );
-        relationshipService.addRelationship( relationshipA );
-        List<Relationship> relationshipList = relationshipService
-            .getRelationshipsByProgramStageInstance( programStageInstance, true );
-        assertEquals( 1, relationshipList.size() );
-        assertTrue( relationshipList.contains( relationshipA ) );
-        assertTrue( relationshipService.getRelationshipByRelationship( relationshipA ).isPresent() );
+        return programInstance;
     }
 
-    @Test
-    void getByRelationshipType()
+    private Program addProgram()
     {
-        List<Relationship> relationshipList = relationshipService
-            .getRelationshipsByRelationshipType( relationshipType );
-        assertEquals( 1, relationshipList.size() );
-        assertTrue( relationshipList.contains( relationship ) );
-    }
-
-    @Test
-    void testGetByRelationship()
-    {
-        Optional<Relationship> existing = relationshipService.getRelationshipByRelationship( relationship );
-        assertTrue( existing.isPresent() );
+        Program programA = createProgram( 'A', new HashSet<>(), organisationUnit );
+        programService.addProgram( programA );
+        return programA;
     }
 }
