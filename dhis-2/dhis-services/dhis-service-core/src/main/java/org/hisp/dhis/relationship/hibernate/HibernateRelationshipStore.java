@@ -119,22 +119,18 @@ public class HibernateRelationshipStore extends HibernateIdentifiableObjectStore
 
         String relationshipEntityType = getRelationshipEntityType( entity );
 
-        Predicate predicateFromEqualsId = builder.equal( root.get( "from" ), fromRoot.get( "id" ) );
-        Predicate predicateFromEqualsTei = builder.equal( fromRoot.get( relationshipEntityType ),
-            entity.getId() );
-
-        fromSubQuery.where( predicateFromEqualsId, predicateFromEqualsTei );
+        fromSubQuery.where( builder.equal( root.get( "from" ), fromRoot.get( "id" ) ),
+            builder.equal( fromRoot.get( relationshipEntityType ),
+                entity.getId() ) );
 
         fromSubQuery.select( fromRoot.get( "id" ) );
 
         Subquery<RelationshipItem> toSubQuery = relationshipItemCriteriaQuery.subquery( RelationshipItem.class );
         Root<RelationshipItem> toRoot = toSubQuery.from( RelationshipItem.class );
 
-        Predicate predicateToEqualsId = builder.equal( root.get( "to" ), toRoot.get( "id" ) );
-        Predicate predicateToEqualsTei = builder.equal( toRoot.get( relationshipEntityType ),
-            entity.getId() );
-
-        toSubQuery.where( predicateToEqualsId, predicateToEqualsTei );
+        toSubQuery.where( builder.equal( root.get( "to" ), toRoot.get( "id" ) ),
+            builder.equal( toRoot.get( relationshipEntityType ),
+                entity.getId() ) );
 
         toSubQuery.select( toRoot.get( "id" ) );
 
