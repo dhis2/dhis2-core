@@ -103,11 +103,19 @@ public class DefaultQueryItemLocator
         return getDataElement( dimension, program, legendSet, type )
             .orElseGet( () -> getTrackedEntityAttribute( dimension, program, legendSet )
                 .orElseGet( () -> getProgramIndicator( dimension, program, legendSet )
+                    // if not DE, TEA or PI, we try to get as dynamic dimension
                     .orElseGet( () -> getDynamicDimension( dimension )
                         .orElseThrow(
                             () -> new IllegalQueryException( new ErrorMessage( ErrorCode.E7224, dimension ) ) ) ) ) );
     }
 
+    /**
+     * given a UID representing a dimension, tries to check if it exists, and if
+     * true, returns a QueryItem using the passed UID
+     *
+     * @param dimension an UID representing a dimension
+     * @return a query item wrapping the specified dimension.
+     */
     private Optional<QueryItem> getDynamicDimension( String dimension )
     {
         return Optional.ofNullable(
