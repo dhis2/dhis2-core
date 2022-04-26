@@ -2529,25 +2529,13 @@ public abstract class DhisConvenienceTest
         return user;
     }
 
-    // protected void injectSecurityContext( User user )
-    // {
-    //
-    // }
-
     protected void injectSecurityContext( User user )
     {
         if ( user == null )
         {
-
             clearSecurityContext();
             return;
         }
-
-        // switchCurrentUserTo(
-        // user.getUsername(),
-        // user.getPassword(),
-        // user.getAllAuthorities()
-        // .stream().map( SimpleGrantedAuthority::new ).collect( toList() ) );
 
         Authentication authentication = new UsernamePasswordAuthenticationToken( user, "", user.getAuthorities() );
         SecurityContext context = SecurityContextHolder.createEmptyContext();
@@ -2777,36 +2765,15 @@ public abstract class DhisConvenienceTest
 
         return user;
     }
-    //
-    // protected void preCreateInjectAdminUserWithoutPersistence2()
-    // {
-    // switchCurrentUserTo2( DEFAULT_USERNAME, DEFAULT_ADMIN_PASSWORD,
-    // singletonList( new SimpleGrantedAuthority( "ALL" ) ) );
-    // }
-    //
-    // protected void switchCurrentUserTo2( String username, String password,
-    // List<GrantedAuthority> authorities )
-    // {
-    // UserDetails user = new
-    // org.springframework.security.core.userdetails.User( username, password,
-    // authorities );
-    // Authentication authentication = new UsernamePasswordAuthenticationToken(
-    // user, "", authorities );
-    // SecurityContext context = SecurityContextHolder.createEmptyContext();
-    // context.setAuthentication( authentication );
-    // SecurityContextHolder.setContext( context );
-    // }
 
     protected User preCreateInjectAdminUserWithoutPersistence()
     {
         UserRole role = createUserRole( "Superuser_Test", "ALL" );
-        // role.setUid( "yrB6vc5Ip3r" );
         role.setUid( CodeGenerator.generateUid() );
 
         User user = new User();
         user.setFirstName( "Admin" );
         user.setSurname( "User" );
-        // user.setUsername( DEFAULT_USERNAME );
         user.setUsername( DEFAULT_USERNAME + "_test" );
         user.setPassword( DEFAULT_ADMIN_PASSWORD );
         user.getUserRoles().add( role );
@@ -2820,5 +2787,4 @@ public abstract class DhisConvenienceTest
 
         return user;
     }
-
 }

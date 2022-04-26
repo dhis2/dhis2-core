@@ -492,28 +492,18 @@ public class DefaultOrganisationUnitService
     @Transactional( readOnly = true )
     public boolean isInUserHierarchy( User user, OrganisationUnit organisationUnit )
     {
-        boolean userIsNull = user == null;
-        if ( userIsNull )
-        {
-            log.error( "user us null" );
-            throw new RuntimeException( "User is null" );
-        }
-
-        if ( userIsNull || user.getOrganisationUnits() == null || user.getOrganisationUnits().isEmpty() )
+        if ( user == null || user.getOrganisationUnits() == null || user.getOrganisationUnits().isEmpty() )
         {
             return false;
         }
 
-        boolean descendant = isDescendant( organisationUnit, user.getOrganisationUnits() );
-        return descendant;
+        return isDescendant( organisationUnit, user.getOrganisationUnits() );
     }
 
     @Override
     @Transactional
     public boolean isDescendant( OrganisationUnit organisationUnit, Set<OrganisationUnit> ancestors )
     {
-        OrganisationUnit unit = getOrganisationUnit( organisationUnit.getUid() );
-
         if ( ancestors == null || ancestors.isEmpty() )
         {
             return false;
@@ -524,8 +514,6 @@ public class DefaultOrganisationUnitService
         {
             if ( ancestor == null )
             {
-
-                log.info( "Ancestor is null" );
                 continue;
             }
 
@@ -533,9 +521,7 @@ public class DefaultOrganisationUnitService
             ancestorsUid.add( uid1 );
         }
 
-        // Set<String> ancestorsUid = ancestors.stream()
-        // .map( OrganisationUnit::getUid )
-        // .collect( Collectors.toSet() );
+        OrganisationUnit unit = getOrganisationUnit( organisationUnit.getUid() );
 
         while ( unit != null )
         {
@@ -939,7 +925,7 @@ public class DefaultOrganisationUnitService
 
         // Go through the list and remove the ones located outside radius
 
-        if ( objects != null && objects.size() > 0 )
+        if ( objects != null && !objects.isEmpty() )
         {
             Iterator<OrganisationUnit> iter = objects.iterator();
 
@@ -1057,7 +1043,7 @@ public class DefaultOrganisationUnitService
             FilterUtils.filter( unitsAtLevel,
                 new OrganisationUnitPolygonCoveringCoordinateFilter( longitude, latitude ) );
 
-            if ( unitsAtLevel.size() > 0 )
+            if ( !unitsAtLevel.isEmpty() )
             {
                 return unitsAtLevel;
             }
