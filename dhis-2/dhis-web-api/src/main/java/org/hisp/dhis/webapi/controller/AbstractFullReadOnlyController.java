@@ -648,8 +648,6 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     protected final void setTranslationParams( TranslateParams translateParams )
     {
         Locale dbLocale = getLocaleWithDefault( translateParams );
-        // UserContext.setUser( currentUserService.getCurrentUser() );
-        // UserContext.setUserSetting( UserSettingKey.DB_LOCALE, dbLocale );
         currentUserService.setUserSetting( UserSettingKey.DB_LOCALE, dbLocale );
     }
 

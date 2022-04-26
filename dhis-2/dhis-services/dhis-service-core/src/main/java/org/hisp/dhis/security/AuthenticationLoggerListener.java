@@ -101,7 +101,7 @@ public class AuthenticationLoggerListener
 
             if ( principal != null )
             {
-                User user = principal.getUser();
+                User user = principal.getDhis2User();
                 authName = user.getUsername();
             }
 
@@ -116,7 +116,7 @@ public class AuthenticationLoggerListener
 
             if ( principal != null )
             {
-                User user = principal.getUser();
+                User user = principal.getDhis2User();
                 authName = user.getUsername();
             }
         }

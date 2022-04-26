@@ -417,8 +417,8 @@ public class DefaultAclService implements AclService
 
         if ( schema == null || !schema.isShareable() )
             return false;
-        boolean b1 = canAccess( user, schema.getAuthorityByType( AuthorityType.CREATE_PUBLIC ) );
-        return b1;
+
+        return canAccess( user, schema.getAuthorityByType( AuthorityType.CREATE_PUBLIC ) );
     }
 
     @Override
@@ -685,9 +685,7 @@ public class DefaultAclService implements AclService
 
     private boolean canAccess( User user, Collection<String> anyAuthorities )
     {
-        boolean b1 = haveOverrideAuthority( user );
-        boolean b2 = anyAuthorities.isEmpty();
-        return b1 || b2 || haveAuthority( user, anyAuthorities );
+        return haveOverrideAuthority( user ) || anyAuthorities.isEmpty() || haveAuthority( user, anyAuthorities );
     }
 
     private boolean haveAuthority( User user, Collection<String> anyAuthorities )

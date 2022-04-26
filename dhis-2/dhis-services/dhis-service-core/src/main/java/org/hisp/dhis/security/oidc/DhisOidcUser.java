@@ -73,11 +73,6 @@ public class DhisOidcUser
         return oidcIdToken;
     }
 
-    public User getUser()
-    {
-        return user;
-    }
-
     @Override
     public String getUsername()
     {

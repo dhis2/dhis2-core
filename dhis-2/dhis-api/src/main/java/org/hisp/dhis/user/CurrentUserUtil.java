@@ -28,17 +28,19 @@
 package org.hisp.dhis.user;
 
 import java.io.Serializable;
-import java.util.Collection;
 import java.util.Map;
-import java.util.Set;
 
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 
 public class CurrentUserUtil
 {
+    private CurrentUserUtil()
+    {
+        throw new IllegalStateException( "Utility class" );
+    }
+
     public static String getCurrentUsername()
     {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -102,14 +104,12 @@ public class CurrentUserUtil
 
         if ( principal instanceof UserDetails )
         {
-            User principal1 = (User) authentication.getPrincipal();
-            Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
-            Set<String> allAuthorities = principal1.getAllAuthorities();
-            return principal1;
+            return (User) authentication.getPrincipal();
         }
         else if ( principal instanceof Dhis2User )
         {
             Dhis2User dhisOidcUser = (Dhis2User) authentication.getPrincipal();
+
             return dhisOidcUser.getDhis2User();
         }
         else
@@ -140,9 +140,7 @@ public class CurrentUserUtil
                     userSettings.remove( key );
                 }
             }
-
         }
-
     }
 
     public static <T> T getUserSetting( UserSettingKey key )

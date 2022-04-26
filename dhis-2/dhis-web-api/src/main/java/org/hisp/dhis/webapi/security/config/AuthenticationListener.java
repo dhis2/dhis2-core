@@ -86,7 +86,7 @@ public class AuthenticationListener
 
             if ( principal != null )
             {
-                username = principal.getUser().getUsername();
+                username = principal.getDhis2User().getUsername();
             }
 
             WebAuthenticationDetails tokenDetails = (WebAuthenticationDetails) authenticationToken.getDetails();
@@ -117,7 +117,7 @@ public class AuthenticationListener
         {
             OAuth2LoginAuthenticationToken authenticationToken = (OAuth2LoginAuthenticationToken) auth;
             DhisOidcUser principal = (DhisOidcUser) authenticationToken.getPrincipal();
-            username = principal.getUser().getUsername();
+            username = principal.getDhis2User().getUsername();
 
             WebAuthenticationDetails tokenDetails = (WebAuthenticationDetails) authenticationToken.getDetails();
             String remoteAddress = tokenDetails.getRemoteAddress();

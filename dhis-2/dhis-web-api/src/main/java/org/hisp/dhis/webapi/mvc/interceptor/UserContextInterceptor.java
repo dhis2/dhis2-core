@@ -40,8 +40,7 @@ import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingService;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
+import org.springframework.web.servlet.HandlerInterceptor;
 
 /**
  * This interceptor is ONLY responsible for setting the current user and its
@@ -52,9 +51,8 @@ import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
  * @author maikel arabori
  */
 @AllArgsConstructor
-public class UserContextInterceptor extends HandlerInterceptorAdapter implements InitializingBean
+public class UserContextInterceptor implements HandlerInterceptor
 {
-    private static UserContextInterceptor instance;
 
     private static final String PARAM_TRANSLATE = "translate";
 
@@ -63,17 +61,6 @@ public class UserContextInterceptor extends HandlerInterceptorAdapter implements
     private final CurrentUserService currentUserService;
 
     private final UserSettingService userSettingService;
-
-    public static UserContextInterceptor get()
-    {
-        return instance;
-    }
-
-    @Override
-    public void afterPropertiesSet()
-    {
-        instance = this;
-    }
 
     @Override
     public boolean preHandle( final HttpServletRequest request,

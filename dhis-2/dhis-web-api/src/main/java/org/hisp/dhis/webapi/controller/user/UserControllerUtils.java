@@ -133,7 +133,7 @@ public class UserControllerUtils
         boolean acceptConfigured = systemSettingManager
             .getBoolSetting( SettingKey.ACCEPTANCE_REQUIRED_FOR_APPROVAL );
 
-        int lowestUserOrgUnitLevel = getLowsetUserOrgUnitLevel( user );
+        int lowestUserOrgUnitLevel = getLowestUserOrgUnitLevel( user );
 
         CollectionNode levelNodes = new CollectionNode( "dataApprovalLevels", true );
 
@@ -167,7 +167,7 @@ public class UserControllerUtils
         return levelNodes;
     }
 
-    private int getLowsetUserOrgUnitLevel( User user )
+    private int getLowestUserOrgUnitLevel( User user )
     {
         Set<OrganisationUnit> userOrgUnits = user.getOrganisationUnits();
 

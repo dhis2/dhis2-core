@@ -1207,20 +1207,16 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
     private boolean sharingEnabled( User user )
     {
-
         boolean b = forceAcl();
+
         if ( b )
         {
             return b;
         }
         else
         {
-            User currentUser = CurrentUserUtil.getCurrentUser();
-            boolean contains1 = dbmsManager.contains( user );
-
             return (aclService.isClassShareable( clazz ) && !(user == null || user.isSuper()));
         }
-
     }
 
     private boolean dataSharingEnabled( User user )

@@ -240,8 +240,7 @@ public class User
     private transient UserCredentialsDto userCredentialsRaw;
 
     /**
-     * Organisation units for data input and data capture operations. TODO move
-     * to User.
+     * Organisation units for data input and data capture operations.
      */
     private Set<OrganisationUnit> organisationUnits = new HashSet<>();
 
@@ -276,15 +275,6 @@ public class User
             uuid = UUID.randomUUID();
         }
         this.setSecret();
-    }
-
-    /**
-     * Returns a concatenated String of the display names of all user authority
-     * groups for this user.
-     */
-    public String getUserRoleNames()
-    {
-        return IdentifiableObjectUtils.join( userRoles );
     }
 
     /**
@@ -357,7 +347,6 @@ public class User
      */
     public boolean isSuper()
     {
-
         return userRoles.stream().anyMatch( UserRole::isSuper );
     }
 
@@ -392,27 +381,6 @@ public class User
         }
 
         return authorities.containsAll( group.getAuthorities() );
-    }
-
-    /**
-     * Indicates whether this user can issue all of the user authority groups in
-     * the given collection.
-     *
-     * @param groups the collection of user authority groups.
-     * @param canGrantOwnUserRole indicates whether this users can grant its own
-     *        authority groups to others.
-     */
-    public boolean canIssueUserRoles( Collection<UserRole> groups, boolean canGrantOwnUserRole )
-    {
-        for ( UserRole group : groups )
-        {
-            if ( !canIssueUserRole( group, canGrantOwnUserRole ) )
-            {
-                return false;
-            }
-        }
-
-        return true;
     }
 
     /**
@@ -515,14 +483,6 @@ public class User
     public boolean hasLdapId()
     {
         return ldapId != null && !ldapId.isEmpty();
-    }
-
-    /**
-     * Indicates whether a password is set.
-     */
-    public boolean hasPassword()
-    {
-        return password != null;
     }
 
     // -------------------------------------------------------------------------
@@ -871,22 +831,6 @@ public class User
         organisationUnits.forEach( this::removeOrganisationUnit );
     }
 
-    public void updateOrganisationUnits( Set<OrganisationUnit> updates )
-    {
-        for ( OrganisationUnit unit : new HashSet<>( organisationUnits ) )
-        {
-            if ( !updates.contains( unit ) )
-            {
-                removeOrganisationUnit( unit );
-            }
-        }
-
-        for ( OrganisationUnit unit : updates )
-        {
-            addOrganisationUnit( unit );
-        }
-    }
-
     /**
      * Returns the concatenated first name and surname.
      */
@@ -894,25 +838,6 @@ public class User
     public String getName()
     {
         return firstName + " " + surname;
-    }
-
-    /**
-     * Checks whether the profile has been filled, which is defined as three
-     * not-null properties out of all optional properties.
-     */
-    public boolean isProfileFilled()
-    {
-        Object[] props = { jobTitle, introduction, gender, birthday,
-            nationality, employer, education, interests, languages };
-
-        int count = 0;
-
-        for ( Object prop : props )
-        {
-            count = prop != null ? (count + 1) : count;
-        }
-
-        return count > 3;
     }
 
     /**
@@ -952,16 +877,6 @@ public class User
     }
 
     /**
-     * Returns the first of the data view organisation units associated with the
-     * user. If none, returns the first of the data capture organisation units.
-     * If none, return nulls.
-     */
-    public OrganisationUnit getDataViewOrganisationUnitWithFallback()
-    {
-        return hasDataViewOrganisationUnit() ? getDataViewOrganisationUnit() : getOrganisationUnit();
-    }
-
-    /**
      * Returns the data view organisation units or organisation units if not
      * exist.
      */
@@ -983,21 +898,6 @@ public class User
     {
         return CollectionUtils.isEmpty( teiSearchOrganisationUnits ) ? null
             : teiSearchOrganisationUnits.iterator().next();
-    }
-
-    public boolean hasTeiSearchOrganisationUnitWithFallback()
-    {
-        return hasTeiSearchOrganisationUnit() || hasOrganisationUnit();
-    }
-
-    /**
-     * Returns the first of the tei search organisation units associated with
-     * the user. If none, returns the first of the data capture organisation
-     * units. If none, return nulls.
-     */
-    public OrganisationUnit getTeiSearchOrganisationUnitWithFallback()
-    {
-        return hasTeiSearchOrganisationUnit() ? getTeiSearchOrganisationUnit() : getOrganisationUnit();
     }
 
     /**
@@ -1512,8 +1412,11 @@ public class User
         this.userCredentialsRaw = user;
     }
 
+    /**
+     * This Map hold temporary user settings data.
+     */
     @JsonIgnore
-    private transient Map<String, Serializable> userSettings = new HashMap<>();
+    private final transient Map<String, Serializable> userSettings = new HashMap<>();
 
     @JsonIgnore
     public Map<String, Serializable> getUserSettings()

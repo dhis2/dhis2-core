@@ -29,8 +29,6 @@ package org.hisp.dhis.security;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.util.Set;
-
 import lombok.extern.slf4j.Slf4j;
 
 import org.hibernate.Hibernate;
@@ -116,9 +114,6 @@ public class DefaultUserDetailsService
         Hibernate.initialize( user.getCatDimensionConstraints() );
         Hibernate.initialize( user.getPreviousPasswords() );
         Hibernate.initialize( user.getApps() );
-
-        boolean aSuper = user.isSuper();
-        Set<String> allAuthorities = user.getAllAuthorities();
 
         sessionFactory.getCurrentSession().evict( user );
 
