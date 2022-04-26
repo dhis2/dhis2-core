@@ -85,7 +85,7 @@ public class DefaultsSupplier extends AbstractPreheatSupplier
     private <T extends IdentifiableObject> void preheatDefault( TrackerPreheat preheat, Class<T> klass,
         PreheatMapper<T> mapper, String name )
     {
-        Optional<T> metadata = (Optional<T>) cache.get( this.getClass().getName(), klass.getName(),
+        Optional<T> metadata = (Optional<T>) cache.get( DefaultsSupplier.class.getName(), klass.getName(),
             ( k, n ) -> Optional.ofNullable( mapper.map( manager.getByName( klass, name ) ) ),
             CACHE_TTL, CACHE_CAPACITY );
         metadata.ifPresent( t -> preheat.putDefault( klass, t ) );
