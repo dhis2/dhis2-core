@@ -31,12 +31,8 @@ import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataentryform.DataEntryFormService;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.dataset.FormType;
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.webdomain.dataentry.CustomDataEntryFormDto;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -58,11 +54,6 @@ public class CustomDataEntryFormController
     public CustomDataEntryFormDto getForm( @PathVariable String uid )
     {
         DataSet dataSet = idObjectManager.getAndValidate( DataSet.class, uid );
-
-        if ( dataSet.getFormType() != FormType.CUSTOM || !dataSet.hasDataEntryForm() )
-        {
-            throw new IllegalQueryException( new ErrorMessage( ErrorCode.E1114, uid ) );
-        }
 
         String form = dataEntryFormService.prepareDataEntryFormForEntry( dataSet );
 

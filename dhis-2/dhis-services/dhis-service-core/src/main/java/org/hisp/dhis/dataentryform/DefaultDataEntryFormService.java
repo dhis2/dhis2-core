@@ -42,11 +42,15 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.FormType;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.springframework.stereotype.Service;
@@ -172,14 +176,14 @@ public class DefaultDataEntryFormService
     {
         // TODO HTML encode names
 
+        if ( dataSet == null || dataSet.getFormType() != FormType.CUSTOM || !dataSet.hasDataEntryForm() )
+        {
+            throw new IllegalQueryException( new ErrorMessage( ErrorCode.E1114, dataSet.getUid() ) );
+        }
+
         DataEntryForm dataEntryForm = dataSet.getDataEntryForm();
 
         I18n i18n = i18nManager.getI18n();
-
-        if ( dataEntryForm == null || !dataEntryForm.hasForm() || dataSet == null )
-        {
-            return null;
-        }
 
         // ---------------------------------------------------------------------
         // Inline javascript/html to add to HTML before output
