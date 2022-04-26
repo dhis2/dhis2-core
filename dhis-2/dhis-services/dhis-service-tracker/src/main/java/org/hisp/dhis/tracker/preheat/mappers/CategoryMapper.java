@@ -25,48 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.config;
+package org.hisp.dhis.tracker.preheat.mappers;
 
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import org.hisp.dhis.category.Category;
+import org.mapstruct.BeanMapping;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.factory.Mappers;
 
-import org.hisp.dhis.tracker.preheat.supplier.*;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-
-import com.google.common.collect.ImmutableList;
-
-@Configuration( "trackerPreheatConfig" )
-public class TrackerPreheatConfig
+@Mapper( uses = DebugMapper.class )
+public interface CategoryMapper
+    extends PreheatMapper<Category>
 {
-    private final List<Class<? extends PreheatSupplier>> preheatOrder = ImmutableList.of(
-        ClassBasedSupplier.class,
-        DefaultsSupplier.class,
-        TrackedEntityProgramInstanceSupplier.class,
-        ProgramInstanceSupplier.class,
-        ProgramInstancesWithAtLeastOneEventSupplier.class,
-        ProgramStageInstanceProgramStageMapSupplier.class,
-        ProgramOrgUnitsSupplier.class,
-        ProgramOwnerSupplier.class,
-        PeriodTypeSupplier.class,
-        UniqueAttributesSupplier.class,
-        UserSupplier.class,
-        UsernameValueTypeSupplier.class,
-        FileResourceSupplier.class,
-        EventCategoryOptionComboSupplier.class,
-        OrgUnitValueTypeSupplier.class );
+    CategoryMapper INSTANCE = Mappers.getMapper( CategoryMapper.class );
 
-    @Bean( "preheatOrder" )
-    public List<String> getPreheatOrder()
-    {
-        return preheatOrder.stream().map( Class::getSimpleName )
-            .collect( Collectors.toList() );
-    }
-
-    @Bean( "preheatStrategies" )
-    public Map<String, String> getPreheatStrategies()
-    {
-        return new PreheatStrategyScanner().scanSupplierStrategies();
-    }
+    @BeanMapping( ignoreByDefault = true )
+    @Mapping( target = "id" )
+    @Mapping( target = "uid" )
+    @Mapping( target = "name" )
+    @Mapping( target = "code" )
+    @Mapping( target = "sharing" )
+    Category map( Category category );
 }

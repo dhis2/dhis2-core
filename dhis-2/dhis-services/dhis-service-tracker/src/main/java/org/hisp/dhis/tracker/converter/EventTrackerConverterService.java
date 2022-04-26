@@ -240,8 +240,7 @@ public class EventTrackerConverterService
         }
         else
         {
-            programStageInstance.setAttributeOptionCombo(
-                (CategoryOptionCombo) preheat.getDefaults().get( CategoryOptionCombo.class ) );
+            programStageInstance.setAttributeOptionCombo( preheat.getDefault( CategoryOptionCombo.class ) );
         }
 
         programStageInstance.setGeometry( event.getGeometry() );

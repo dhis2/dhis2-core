@@ -27,7 +27,11 @@
  */
 package org.hisp.dhis.tracker.importer.events;
 
-import com.google.gson.JsonObject;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+import java.util.stream.Stream;
+
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.UserActions;
 import org.hisp.dhis.actions.metadata.AttributeActions;
@@ -40,15 +44,11 @@ import org.hisp.dhis.tracker.TrackerNtiApiTest;
 import org.hisp.dhis.tracker.importer.databuilder.EventDataBuilder;
 import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.util.stream.Stream;
-
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -82,11 +82,11 @@ public class EventIdSchemeTests
     private static Stream<Arguments> provideIdSchemeArguments()
     {
         return Stream.of(
-            Arguments.arguments( "CODE", "code" ),
-            Arguments.arguments( "NAME", "name" ),
-            Arguments.arguments( "UID", "id" ),
-            Arguments.arguments( "AUTO", "id" ),
-            Arguments.arguments( "ATTRIBUTE:" + ATTRIBUTE_ID, "attributeValues.value[0]" ) );
+                Arguments.arguments( "CODE", "code" ),
+                Arguments.arguments( "NAME", "name" ),
+                Arguments.arguments( "UID", "id" ),
+                Arguments.arguments( "AUTO", "id" ),
+                Arguments.arguments( "ATTRIBUTE:" + ATTRIBUTE_ID, "attributeValues.value[0]" ) );
     }
 
     @BeforeAll
@@ -126,9 +126,18 @@ public class EventIdSchemeTests
             .body( "orgUnit", equalTo( ORG_UNIT_ID ) );
     }
 
+    private static Stream<Arguments> provideIdSchemeArgumentsImport()
+    {
+        return Stream.of(
+                Arguments.arguments( "CODE", "code" ),
+                Arguments.arguments( "NAME", "name" ),
+                Arguments.arguments( "UID", "id" ),
+                Arguments.arguments( "AUTO", "id" ));
+                // TODO("DHIS2-12760") fix import using attribute: Exception:Transaction rolled back because it has been marked as rollback-only
+                // Arguments.arguments( "ATTRIBUTE:" + ATTRIBUTE_ID, "attributeValues.value[0]" ) );
+    }
     @ParameterizedTest
-    @Disabled("DHIS2-12759, DHIS2-12760")
-    @MethodSource( "provideIdSchemeArguments" )
+    @MethodSource( "provideIdSchemeArgumentsImport" )
     public void eventsShouldBeImportedWithIdScheme( String scheme, String property )
     {
         String ouPropertyValue = orgUnitActions.get( ORG_UNIT_ID ).extractString( property );
