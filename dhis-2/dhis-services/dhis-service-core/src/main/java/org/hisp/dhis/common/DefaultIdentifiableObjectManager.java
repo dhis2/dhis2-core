@@ -299,7 +299,7 @@ public class DefaultIdentifiableObjectManager
 
         if ( object == null )
         {
-            throw new IllegalQueryException( new ErrorMessage( ErrorCode.E1112, type.getSimpleName(), uid ) );
+            throw new IllegalQueryException( new ErrorMessage( ErrorCode.E1113, type.getSimpleName(), uid ) );
         }
 
         return object;

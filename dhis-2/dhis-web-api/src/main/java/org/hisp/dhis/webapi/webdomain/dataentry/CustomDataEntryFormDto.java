@@ -66,14 +66,14 @@ public class CustomDataEntryFormDto
     private Integer version;
 
     /**
-     * Form content, may contain CSS, HTML and Javascript.
-     */
-    @JsonProperty
-    private String form;
-
-    /**
      * Form display density.
      */
     @JsonProperty
     private DisplayDensity displayDensity;
+
+    /**
+     * Form content, may contain CSS, HTML and Javascript.
+     */
+    @JsonProperty
+    private String form;
 }

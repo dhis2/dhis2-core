@@ -61,7 +61,7 @@ public class CustomDataEntryFormController
             .setId( dataSet.getDataEntryForm().getUid() )
             .setDataSetId( dataSet.getUid() )
             .setVersion( dataSet.getVersion() )
-            .setForm( form )
-            .setDisplayDensity( dataSet.getDataEntryForm().getStyle() );
+            .setDisplayDensity( dataSet.getDataEntryForm().getStyle() )
+            .setForm( form );
     }
 }
