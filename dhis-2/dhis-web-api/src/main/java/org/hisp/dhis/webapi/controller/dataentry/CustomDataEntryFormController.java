@@ -51,7 +51,7 @@ public class CustomDataEntryFormController
 {
     private final IdentifiableObjectManager idObjectManager;
 
-    @GetMapping( "/customDataEntryForms/{uid}" )
+    @GetMapping( "/customForms/{uid}" )
     public CustomDataEntryFormDto getForm( @PathVariable String uid )
     {
         DataSet dataSet = idObjectManager.getAndValidate( DataSet.class, uid );
