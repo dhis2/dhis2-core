@@ -175,14 +175,10 @@ class TrackedEntityInstanceServiceTest
         attributeService.addTrackedEntityAttribute( attrE );
         attributeService.addTrackedEntityAttribute( filtF );
         attributeService.addTrackedEntityAttribute( filtG );
+
         User user = createUserWithAuth( "testUser" );
         user.setTeiSearchOrganisationUnits( Sets.newHashSet( organisationUnit ) );
         injectSecurityContext( user );
-        // CurrentUserService currentUserService = new MockCurrentUserService(
-        // user );
-
-        // ReflectionTestUtils.setField( entityInstanceService,
-        // "currentUserService", currentUserService );
     }
 
     @Test

@@ -93,7 +93,6 @@ class OwnershipTest extends TrackerTest
         TrackerImportParams enrollmentParams = fromJson( "tracker/ownership_enrollment.json", superUser.getUid() );
         assertNoImportErrors( trackerImportService.importTracker( enrollmentParams ) );
 
-        // manager.flush();
         dbmsManager.clearSession();
     }
 

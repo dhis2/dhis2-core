@@ -32,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertLinesMatch;
 
 import java.util.List;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 
@@ -44,13 +45,13 @@ class GistCsvControllerTest extends AbstractGistControllerTest
 {
     private static final MediaType TEXT_CSV = new MediaType( "text", "csv" );
 
-    // @Test
-    // void testList()
-    // {
-    // assertUserCsv( GET(
-    // "/users/gist?fields=id,code,education,twitter,employer", Accept( TEXT_CSV
-    // ) ) );
-    // }
+    @Test
+    @Disabled( "TODO: 12098 org.opentest4j.AssertionFailedError: more actual lines than expected: 1" )
+    void testList()
+    {
+        assertUserCsv( GET(
+            "/users/gist?fields=id,code,education,twitter,employer", Accept( TEXT_CSV ) ) );
+    }
 
     @Test
     void testObject()

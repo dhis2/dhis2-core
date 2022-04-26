@@ -321,11 +321,6 @@ class EventPredictionServiceTest extends IntegrationTestBase
         setDependency( AnalyticsServiceTarget.class, AnalyticsServiceTarget::setAnalyticsService, mockAnalyticsSerivce,
             predictionService );
 
-        // CurrentUserService mockCurrentUserService = new
-        // MockCurrentUserService( true, orgUnitASet, orgUnitASet );
-        // setDependency( CurrentUserServiceTarget.class,
-        // CurrentUserServiceTarget::setCurrentUserService,
-        // mockCurrentUserService, predictionService );
         User user = mockUser( true, "mockUser", orgUnitASet, orgUnitASet );
         injectSecurityContext( user );
 

@@ -118,38 +118,6 @@ class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest
 
     private final static int F = 70;
 
-    // @Override
-    // protected void mockCurrentUserService()
-    // {
-    ////// User user = createUserWithAuth( "testUser" );
-    //// User user = mockUser( "testUser2",null);
-    //// user.addOrganisationUnit( organisationUnitA );
-    //// user.getTeiSearchOrganisationUnits().add( organisationUnitA );
-    //// user.getTeiSearchOrganisationUnits().add( organisationUnitB );
-    ////// makeUserSuper( user );
-    //// userService.updateUser( user );
-    //// dbmsManager.flushSession();
-    //// // currentUserService = new MockCurrentUserService( user );
-    //// injectSecurityContext( user );
-    // // ReflectionTestUtils.setField( trackedEntityInstanceAggregate,
-    // // "currentUserService", currentUserService );
-    // // ReflectionTestUtils.setField( trackedEntityInstanceService,
-    // // "currentUserService", currentUserService );
-    // // ReflectionTestUtils.setField( teiService, "currentUserService",
-    // // currentUserService );
-    // }
-    // @Override
-    // protected void mockCurrentUserService()
-    // {
-    // User user = createUserWithAuth( "testUser2" );
-    // user.addOrganisationUnit( organisationUnitA );
-    // user.getTeiSearchOrganisationUnits().add( organisationUnitA );
-    // user.getTeiSearchOrganisationUnits().add( organisationUnitB );
-    // userService.updateUser( user );
-    // injectSecurityContext( user );
-    // dbmsManager.clearSession();
-    // }
-
     @BeforeEach
     void setUp()
     {
@@ -164,10 +132,6 @@ class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest
             userService.updateUser( nonSuperUser );
 
             dbmsManager.clearSession();
-            // ReflectionTestUtils.setField( trackedEntityInstanceAggregate,
-            // "currentUserService", currentUserService );
-            User currentUser = currentUserService.getCurrentUser();
-            log.info( "Setting up" );
         } );
 
     }

@@ -358,26 +358,11 @@ class DataApprovalAuditServiceTest extends TransactionalIntegrationTest
             currentUserService, dataApprovalLevelService, dataApprovalAuditService, dataApprovalAuditStore );
     }
 
-    // -------------------------------------------------------------------------
-    // Test helper methods
-    // -------------------------------------------------------------------------
-    // private void setMockUserService( CurrentUserService mockUserService )
-    // {
-    // setDependency( CurrentUserServiceTarget.class,
-    // CurrentUserServiceTarget::setCurrentUserService, mockUserService,
-    // dataApprovalLevelService, dataApprovalAuditService,
-    // dataApprovalAuditStore );
-    // }
-
-    // -------------------------------------------------------------------------
-    // DataApprovalAudit
-    // -------------------------------------------------------------------------
     @Test
     void testDeleteDataApprovalAudits()
     {
         DataApprovalAuditQueryParams params = new DataApprovalAuditQueryParams();
         List<DataApprovalAudit> audits;
-        // setMockUserService( userA );
         injectSecurityContext( userA );
         dataApprovalAuditService.deleteDataApprovalAudits( sourceB );
         audits = dataApprovalAuditService.getDataApprovalAudits( params );
@@ -394,7 +379,6 @@ class DataApprovalAuditServiceTest extends TransactionalIntegrationTest
         DataApprovalAuditQueryParams params = new DataApprovalAuditQueryParams();
         List<DataApprovalAudit> audits;
         // Superuser can see all audits.
-        // setMockUserService( superUser );
         injectSecurityContext( superUser );
         audits = dataApprovalAuditStore.getDataApprovalAudits( params );
         assertEquals( 9, audits.size() );
@@ -409,7 +393,6 @@ class DataApprovalAuditServiceTest extends TransactionalIntegrationTest
         assertTrue( audits.contains( auditBC3 ) );
         // User A can see all options from sourceA or its children.
         injectSecurityContext( userA );
-        // setMockUserService( userA );
         audits = dataApprovalAuditService.getDataApprovalAudits( params );
         assertEquals( 9, audits.size() );
         assertTrue( audits.contains( auditAA1 ) );
@@ -422,7 +405,6 @@ class DataApprovalAuditServiceTest extends TransactionalIntegrationTest
         assertTrue( audits.contains( auditBB3 ) );
         assertTrue( audits.contains( auditBC3 ) );
         // User B can see all options from sourceB.
-        // setMockUserService( userB );
         injectSecurityContext( userB );
         audits = dataApprovalAuditService.getDataApprovalAudits( params );
         assertEquals( 6, audits.size() );
@@ -433,13 +415,11 @@ class DataApprovalAuditServiceTest extends TransactionalIntegrationTest
         assertTrue( audits.contains( auditBB3 ) );
         assertTrue( audits.contains( auditBC3 ) );
         // User C can see only level 3, optionA from sourceB.
-        // setMockUserService( userC );
         injectSecurityContext( userC );
         audits = dataApprovalAuditService.getDataApprovalAudits( params );
         assertEquals( 1, audits.size() );
         assertTrue( audits.contains( auditBA3 ) );
         // User D can see only level 3, optionB from sourceB.
-        // setMockUserService( userD );
         injectSecurityContext( userD );
         audits = dataApprovalAuditService.getDataApprovalAudits( params );
         assertEquals( 1, audits.size() );

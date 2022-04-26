@@ -204,15 +204,6 @@ class DeduplicationServiceMergeIntegrationTest extends IntegrationTestBase
     {
         User user = createUserWithAuth( "testUser", authorities );
         user.setOrganisationUnits( ou );
-
-        // MockCurrentUserService currentUserService = new
-        // MockCurrentUserService( user );
-        // ReflectionTestUtils.setField( potentialDuplicateStore,
-        // "currentUserService", currentUserService );
-        // ReflectionTestUtils.setField( deduplicationHelper,
-        // "currentUserService", currentUserService );
-        // ReflectionTestUtils.setField( deduplicationService,
-        // "currentUserService", currentUserService );
         return user;
     }
 }

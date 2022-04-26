@@ -292,11 +292,6 @@ class AnalyticsValidationServiceTest extends TransactionalIntegrationTest
         MockAnalyticsService mockAnalyticsSerivce = new MockAnalyticsService();
         mockAnalyticsSerivce.setDateGridMap( dateGridMap );
         runner.setAnalyticsService( mockAnalyticsSerivce );
-        // CurrentUserService currentUserService = new MockCurrentUserService(
-        // Sets.newHashSet( orgUnitA ), null );
-        // setDependency( CurrentUserServiceTarget.class,
-        // CurrentUserServiceTarget::setCurrentUserService,
-        // currentUserService, validationService );
 
         User user = mockUser( Sets.newHashSet( orgUnitA ), null );
         injectSecurityContext( user );

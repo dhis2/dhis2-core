@@ -88,13 +88,6 @@ class TrackerOwnershipManagerTest extends DhisSpringTest
         organisationUnitB = createOrganisationUnit( 'B' );
         organisationUnitService.addOrganisationUnit( organisationUnitB );
 
-        // CurrentUserService mockCurrentUserService = new
-        // MockCurrentUserService( false, newHashSet( organisationUnitA ),
-        // newHashSet( organisationUnitA ), "" );
-        // setDependency( CurrentUserServiceTarget.class,
-        // CurrentUserServiceTarget::setCurrentUserService,
-        // mockCurrentUserService, trackerOwnershipAccessManager );
-
         entityInstanceA1 = createTrackedEntityInstance( organisationUnitA );
         entityInstanceB1 = createTrackedEntityInstance( organisationUnitB );
         entityInstanceService.addTrackedEntityInstance( entityInstanceA1 );
@@ -103,16 +96,12 @@ class TrackerOwnershipManagerTest extends DhisSpringTest
         programA.setAccessLevel( AccessLevel.PROTECTED );
         programService.addProgram( programA );
 
-        // this.userA = mockUser( newHashSet( organisationUnitA ) ,null);
-
         userA = createUserWithAuth( "userA" );
         userA.addOrganisationUnit( organisationUnitA );
         userService.updateUser( userA );
         userB = createUserWithAuth( "userB" );
         userB.addOrganisationUnit( organisationUnitB );
         userService.updateUser( userB );
-        // userService.addUser( userA );
-        // userService.addUser( userB );
     }
 
     @Test

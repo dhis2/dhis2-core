@@ -546,15 +546,6 @@ class DataApprovalServiceCategoryOptionGroupTest extends IntegrationTestBase
     private void setUser( User user )
     {
         injectSecurityContext( user );
-        // if ( user != currentMockUserService )
-        // {
-        // // setDependency( CurrentUserServiceTarget.class,
-        // CurrentUserServiceTarget::setCurrentUserService,
-        // // user, dataApprovalService, dataApprovalStore,
-        // dataApprovalLevelService,
-        // // organisationUnitService, hibernateCategoryOptionGroupStore );
-        // currentMockUserService = user;
-        // }
     }
 
     private String getStatusString( DataApprovalStatus status )

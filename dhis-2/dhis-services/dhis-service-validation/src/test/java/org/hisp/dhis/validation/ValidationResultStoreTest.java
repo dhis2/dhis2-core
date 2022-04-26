@@ -182,30 +182,6 @@ class ValidationResultStoreTest extends TransactionalIntegrationTest
 
     private CategoryOptionGroupSet optionGroupSetB;
 
-    // -------------------------------------------------------------------------
-    // Set up/tear down helper methods
-    // -------------------------------------------------------------------------
-    // private CurrentUserService getMockCurrentUserService( String userName,
-    // boolean superUserFlag,
-    // OrganisationUnit orgUnit, String... auths )
-    // {
-    //// CurrentUserService mockCurrentUserService = new MockCurrentUserService(
-    // superUserFlag,
-    //// Sets.newHashSet( orgUnit ), Sets.newHashSet( orgUnit ), auths );
-    //
-    // User user = mockCurrentUserService.getCurrentUser();
-    // user.setFirstName( "Test" );
-    // user.setSurname( userName );
-    // user.setUsername( userName );
-    // for ( UserRole role : user.getUserRoles() )
-    // {
-    // role.setName( CodeGenerator.generateUid() );
-    // userService.addUserRole( role );
-    // }
-    // userService.addUser( user );
-    // return mockCurrentUserService;
-    // }
-
     private void setPrivateAccess( BaseIdentifiableObject object, UserGroup... userGroups )
     {
         object.getSharing().setOwner( userZ );
@@ -369,27 +345,22 @@ class ValidationResultStoreTest extends TransactionalIntegrationTest
         save( asList( validationResultAA, validationResultAB, validationResultAC, validationResultBA,
             validationResultBB, validationResultBC ) );
         // Superuser can see all unreported results.
-        // setMockUserService( superUserService );
         injectSecurityContext( superUser );
         assertEqualSets( asList( validationResultAA, validationResultAC, validationResultBA, validationResultBB,
             validationResultBC ), validationResultStore.getAllUnreportedValidationResults() );
         // User A can see all unreported results from sourceA or its children.
-        // setMockUserService( userA );
         injectSecurityContext( userA );
         assertEqualSets( asList( validationResultAA, validationResultAC, validationResultBA, validationResultBB,
             validationResultBC ), validationResultStore.getAllUnreportedValidationResults() );
         // User B can see all unreported results from sourceB.
-        // setMockUserService( userB );
         injectSecurityContext( userB );
         assertEqualSets( asList( validationResultBA, validationResultBB, validationResultBC ),
             validationResultStore.getAllUnreportedValidationResults() );
         // User C can see only optionA from sourceB.
-        // setMockUserService( userC );
         injectSecurityContext( userC );
         assertEqualSets( singletonList( validationResultBA ),
             validationResultStore.getAllUnreportedValidationResults() );
         // User D can see only optionB from sourceB.
-        // setMockUserService( userD );
         injectSecurityContext( userD );
         assertEqualSets( singletonList( validationResultBB ),
             validationResultStore.getAllUnreportedValidationResults() );

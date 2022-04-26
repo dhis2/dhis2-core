@@ -599,7 +599,6 @@ class EventImportTest extends TransactionalIntegrationTest
         event.setStatus( EventStatus.ACTIVE );
         assertEquals( ImportStatus.SUCCESS,
             eventService.updateEvent( event, false, ImportOptions.getDefaultImportOptions(), false ).getStatus() );
-        // cleanSession();
         dbmsManager.clearSession();
 
         ProgramStageInstance psi2 = programStageInstanceService.getProgramStageInstance( uid );

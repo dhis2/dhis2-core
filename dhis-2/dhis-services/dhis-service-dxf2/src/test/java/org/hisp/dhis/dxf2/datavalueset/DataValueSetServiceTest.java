@@ -324,22 +324,14 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
 
         this.user = mockUser( false, "A", null, Authorities.F_SKIP_DATA_IMPORT_AUDIT.getAuthority() );
         this.user.addOrganisationUnits( Sets.newHashSet( ouA, ouB ) );
-        // userService.addUser( this.user );
         userService.updateUser( this.user );
 
         clearSecurityContext();
-        // CurrentUserService currentUserService = new MockCurrentUserService(
-        // user );
-        // setDependency( CurrentUserServiceTarget.class,
-        // CurrentUserServiceTarget::setCurrentUserService,
-        // currentUserService, dataValueSetService );
         enableDataSharing( this.user, dsA, AccessStringHelper.DATA_READ_WRITE );
         enableDataSharing( this.user, categoryOptionA, AccessStringHelper.DATA_READ_WRITE );
         enableDataSharing( this.user, categoryOptionB, AccessStringHelper.DATA_READ_WRITE );
-        // _userService.addUser( user );
         userService.updateUser( this.user );
         injectSecurityContext( this.user );
-        // dbmsManager.clearSession();
 
         CompleteDataSetRegistration completeDataSetRegistration = new CompleteDataSetRegistration( dsA, peA, ouA,
             categoryOptionCombo, getDate( 2012, 1, 9 ), "userA", new Date(), "userA", true );

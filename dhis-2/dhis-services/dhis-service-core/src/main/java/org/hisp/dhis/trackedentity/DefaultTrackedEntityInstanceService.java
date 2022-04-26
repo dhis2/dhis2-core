@@ -118,7 +118,8 @@ public class DefaultTrackedEntityInstanceService
 
     private final TrackedEntityAttributeValueAuditService attributeValueAuditService;
 
-    // FIXME luciano using @Lazy here because we have circular dependencies:
+    // TODO: FIXME luciano using @Lazy here because we have circular
+    // dependencies:
     // TrackedEntityInstanceService --> TrackerOwnershipManager -->
     // TrackedEntityProgramOwnerService --> TrackedEntityInstanceService
     public DefaultTrackedEntityInstanceService( TrackedEntityInstanceStore trackedEntityInstanceStore,

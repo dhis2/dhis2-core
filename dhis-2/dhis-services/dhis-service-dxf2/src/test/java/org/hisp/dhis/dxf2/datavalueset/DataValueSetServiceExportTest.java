@@ -223,13 +223,6 @@ class DataValueSetServiceExportTest extends IntegrationTestBase
         dataValueService.addDataValue( new DataValue( deB, peA, ouB, cocA, cocA, "1" ) );
         dataValueService.addDataValue( new DataValue( deB, peA, ouB, cocB, cocB, "1" ) );
         // Flush session to make data values visible to JDBC query
-        // Service mocks
-
-        // CurrentUserService currentUserService = new MockCurrentUserService(
-        // user );
-        // setDependency( CurrentUserServiceTarget.class,
-        // CurrentUserServiceTarget::setCurrentUserService,
-        // currentUserService, dataValueSetService, organisationUnitService );
 
         dataSetService.updateDataSet( dsA );
         dataSetService.updateDataSet( dsB );

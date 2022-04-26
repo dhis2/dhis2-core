@@ -69,12 +69,6 @@ class DeduplicationServiceIntegrationTest extends IntegrationTestBase
         super.userService = this.userService;
         User user = createUserWithAuth( "testUser" );
         injectSecurityContext( user );
-        // MockCurrentUserService currentUserService = new
-        // MockCurrentUserService( user );
-        // ReflectionTestUtils.setField( potentialDuplicateStore,
-        // "currentUserService", currentUserService );
-        // ReflectionTestUtils.setField( deduplicationService,
-        // "currentUserService", currentUserService );
     }
 
     @Test
