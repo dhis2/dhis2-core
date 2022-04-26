@@ -2762,7 +2762,8 @@ public abstract class DhisConvenienceTest
 
         user.getUserRoles().forEach( userRole -> userService.addUserRole( userRole ) );
 
-//        userService.addUserRole( user.getUserRoles().stream().findFirst().get() );
+        // userService.addUserRole(
+        // user.getUserRoles().stream().findFirst().get() );
         userService.encodeAndSetPassword( user, user.getPassword() );
         userService.updateUser( user );
 
