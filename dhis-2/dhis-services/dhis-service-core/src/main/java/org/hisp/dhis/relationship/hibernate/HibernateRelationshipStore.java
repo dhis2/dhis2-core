@@ -348,15 +348,15 @@ public class HibernateRelationshipStore extends HibernateIdentifiableObjectStore
     {
         if ( relationshipItemKey.isTrackedEntity() )
         {
-            return Pair.of( "trackedEntityInstance", relationshipItemKey.getTrackedEntity() );
+            return Pair.of( TRACKED_ENTITY_INSTANCE, relationshipItemKey.getTrackedEntity() );
         }
         if ( relationshipItemKey.isEnrollment() )
         {
-            return Pair.of( "programInstance", relationshipItemKey.getEnrollment() );
+            return Pair.of( PROGRAM_INSTANCE, relationshipItemKey.getEnrollment() );
         }
         if ( relationshipItemKey.isEvent() )
         {
-            return Pair.of( "programStageInstance", relationshipItemKey.getEvent() );
+            return Pair.of( PROGRAM_STAGE_INSTANCE, relationshipItemKey.getEvent() );
         }
         throw new IllegalStateException(
             "Unable to determine relationshipType for relationshipItem: " + relationshipItemKey.asString() );
@@ -371,17 +371,17 @@ public class HibernateRelationshipStore extends HibernateIdentifiableObjectStore
         if ( relationshipItemDirection.getTrackedEntityInstance() != null )
         {
             return builder.equal( root.join( direction )
-                .get( "trackedEntityInstance" ), getItem( direction, relationship ).getTrackedEntityInstance() );
+                .get( TRACKED_ENTITY_INSTANCE ), getItem( direction, relationship ).getTrackedEntityInstance() );
         }
         else if ( relationshipItemDirection.getProgramInstance() != null )
         {
             return builder.equal( root.join( direction )
-                .get( "programInstance" ), getItem( direction, relationship ).getProgramInstance() );
+                .get( PROGRAM_INSTANCE ), getItem( direction, relationship ).getProgramInstance() );
         }
         else if ( relationshipItemDirection.getProgramStageInstance() != null )
         {
             return builder.equal( root.join( direction )
-                .get( "programStageInstance" ), getItem( direction, relationship ).getProgramStageInstance() );
+                .get( PROGRAM_STAGE_INSTANCE ), getItem( direction, relationship ).getProgramStageInstance() );
         }
         else
         {
