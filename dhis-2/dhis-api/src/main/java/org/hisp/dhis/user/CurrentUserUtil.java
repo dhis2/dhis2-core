@@ -27,16 +27,18 @@
  */
 package org.hisp.dhis.user;
 
+import static org.hisp.dhis.hibernate.HibernateProxyUtils.initializeAndUnproxy;
+
 import java.io.Serializable;
-import java.util.Collection;
 import java.util.Map;
-import java.util.Set;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 
+@Slf4j
 public class CurrentUserUtil
 {
     private CurrentUserUtil()
@@ -108,8 +110,8 @@ public class CurrentUserUtil
         if ( principal instanceof UserDetails )
         {
             User principal1 = (User) authentication.getPrincipal();
-            Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
-            Set<String> allAuthorities = principal1.getAllAuthorities();
+            initializeUser( principal1 );
+
             return principal1;
         }
         else if ( principal instanceof Dhis2User )
@@ -164,5 +166,61 @@ public class CurrentUserUtil
         }
 
         return (T) userSettings.get( key.getName() );
+    }
+
+    public static void initializeUser( User user )
+    {
+        initializeAndUnproxy( user );
+        initializeAndUnproxy( user.getOrganisationUnits() );
+        initializeAndUnproxy( user.getUserRoles() );
+        for ( UserRole userRole : user.getUserRoles() )
+        {
+            initializeAndUnproxy( userRole );
+            initializeAndUnproxy( userRole.getAuthorities() );
+        }
+        initializeAndUnproxy( user.getGroups() );
+        initializeAndUnproxy( user.getTeiSearchOrganisationUnits() );
+        initializeAndUnproxy( user.getDataViewOrganisationUnits() );
+        initializeAndUnproxy( user.getCogsDimensionConstraints() );
+        initializeAndUnproxy( user.getDimensionConstraints() );
+        initializeAndUnproxy( user.getCatDimensionConstraints() );
+        initializeAndUnproxy( user.getPreviousPasswords() );
+        initializeAndUnproxy( user.getApps() );
+
+        //
+        // Hibernate.initialize( user.getOrganisationUnits() );
+        // Hibernate.unproxy( user.getOrganisationUnits() );
+        //
+        // Hibernate.initialize( user.getUserRoles() );
+        // Hibernate.unproxy( user.getUserRoles() );
+        //
+        // for ( UserRole userRole : user.getUserRoles() )
+        // {
+        // Hibernate.initialize( userRole.getAuthorities() );
+        // Hibernate.unproxy( userRole.getAuthorities() );
+        // }
+        // Hibernate.initialize( user.getGroups() );
+        // Hibernate.unproxy( user.getGroups() );
+        //
+        // Hibernate.initialize( user.getTeiSearchOrganisationUnits() );
+        // Hibernate.unproxy( user.getTeiSearchOrganisationUnits() );
+        //
+        // Hibernate.initialize( user.getDataViewOrganisationUnits() );
+        // Hibernate.unproxy( user.getDataViewOrganisationUnits() );
+        //
+        // Hibernate.initialize( user.getCogsDimensionConstraints() );
+        // Hibernate.unproxy( user.getCogsDimensionConstraints() );
+        //
+        // Hibernate.initialize( user.getDimensionConstraints() );
+        // Hibernate.unproxy( user.getDimensionConstraints() );
+        //
+        // Hibernate.initialize( user.getCatDimensionConstraints() );
+        // Hibernate.unproxy( user.getCatDimensionConstraints() );
+        //
+        // Hibernate.initialize( user.getPreviousPasswords() );
+        // Hibernate.unproxy( user.getPreviousPasswords() );
+        //
+        // Hibernate.initialize( user.getApps() );
+        // Hibernate.unproxy( user.getApps() );
     }
 }

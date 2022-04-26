@@ -417,8 +417,8 @@ public class DefaultAclService implements AclService
 
         if ( schema == null || !schema.isShareable() )
             return false;
-        boolean b1 = canAccess( user, schema.getAuthorityByType( AuthorityType.CREATE_PUBLIC ) );
-        return b1;
+
+        return canAccess( user, schema.getAuthorityByType( AuthorityType.CREATE_PUBLIC ) );
     }
 
     @Override

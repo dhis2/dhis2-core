@@ -76,7 +76,15 @@ public class CurrentUserService
 
     public User getCurrentUser()
     {
-        return CurrentUserUtil.getCurrentUser();
+        User currentUser = CurrentUserUtil.getCurrentUser();
+        boolean contains = sessionFactory.getCurrentSession().contains( currentUser );
+        if ( contains )
+        {
+            log.info( "User is already in session" );
+            sessionFactory.getCurrentSession().evict( currentUser );
+        }
+
+        return currentUser;
     }
 
     @Transactional( readOnly = true )
@@ -109,13 +117,6 @@ public class CurrentUserService
         User currentUser = getCurrentUser();
 
         return getCurrentUserGroupsInfo( currentUser );
-        // return currentUserGroupInfoCache
-        // if ( currentUser == null )
-        // {
-        // return null;
-        //
-        // }
-        // .get( currentUser.getUsername(), this::getCurrentUserGroupsInfo );
     }
 
     @Transactional( readOnly = true )

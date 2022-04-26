@@ -86,16 +86,22 @@ public class UserRole
         user.getUserRoles().add( this );
     }
 
-    public void removeUser( User useer )
+    public void removeUser( User user )
     {
-        members.remove( useer );
-        useer.getUserRoles().remove( this );
+        members.remove( user );
+        user.getUserRoles().remove( this );
     }
 
     public boolean isSuper()
     {
-
-        return authorities != null && authorities.contains( AUTHORITY_ALL );
+        try
+        {
+            return authorities != null && authorities.contains( AUTHORITY_ALL );
+        }
+        catch ( RuntimeException e )
+        {
+            throw new RuntimeException( e );
+        }
     }
 
     public boolean hasCriticalAuthorities()
