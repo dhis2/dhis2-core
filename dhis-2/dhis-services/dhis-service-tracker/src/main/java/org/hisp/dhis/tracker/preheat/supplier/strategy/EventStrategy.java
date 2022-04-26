@@ -37,9 +37,9 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceStore;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.preheat.DetachUtils;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.mappers.ProgramStageInstanceMapper;
+import org.hisp.dhis.tracker.preheat.supplier.DetachUtils;
 import org.springframework.stereotype.Component;
 
 /**
