@@ -56,7 +56,7 @@ public class PreCheckMandatoryFieldsValidationHook
     {
         reporter.addErrorIf( () -> StringUtils.isEmpty( trackedEntity.getTrackedEntityType() ), trackedEntity, E1121,
             "trackedEntityType" );
-        reporter.addErrorIf( () -> StringUtils.isEmpty( trackedEntity.getOrgUnit() ), trackedEntity, E1121, ORG_UNIT );
+        reporter.addErrorIf( () -> trackedEntity.getOrgUnit().isBlank(), trackedEntity, E1121, ORG_UNIT );
     }
 
     @Override

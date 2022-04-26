@@ -51,6 +51,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
@@ -91,6 +92,7 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier
             allUniqueAttributesByTrackedEntity );
 
         List<UniqueAttributeValue> uniqueAttributeValuesFromDB = getAlreadyPresentInDbUniqueValues(
+            params.getIdSchemes(),
             allUniqueAttributesByTrackedEntity, uniqueTrackedEntityAttributes );
 
         List<UniqueAttributeValue> uniqueAttributeValues = Stream
@@ -139,7 +141,7 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier
         {
             TrackedEntity tei = new TrackedEntity();
             tei.setTrackedEntity( teiUid );
-            tei.setOrgUnit( trackedEntity.getOrganisationUnit().getUid() );
+            tei.setOrgUnit( params.getIdSchemes().toMetadataIdentifier( trackedEntity.getOrganisationUnit() ) );
             return tei;
         }
         else // TEI is not present. but we do not fail here.
@@ -214,7 +216,7 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier
     }
 
     private List<UniqueAttributeValue> getAlreadyPresentInDbUniqueValues(
-        Map<TrackedEntity, Set<Attribute>> allAttributesByTrackedEntity,
+        TrackerIdSchemeParams idSchemes, Map<TrackedEntity, Set<Attribute>> allAttributesByTrackedEntity,
         List<TrackedEntityAttribute> uniqueTrackedEntityAttributes )
     {
 
@@ -232,7 +234,7 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier
         return uniqueAttributeAlreadyPresentInDB
             .stream()
             .map( av -> new UniqueAttributeValue( av.getEntityInstance().getUid(), av.getAttribute().getUid(),
-                av.getValue(), av.getEntityInstance().getOrganisationUnit().getUid() ) )
+                av.getValue(), idSchemes.toMetadataIdentifier( av.getEntityInstance().getOrganisationUnit() ) ) )
             .collect( toList() );
     }
 
