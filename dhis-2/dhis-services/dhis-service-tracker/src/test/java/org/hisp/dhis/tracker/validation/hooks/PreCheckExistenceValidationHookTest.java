@@ -31,6 +31,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
 import static org.hisp.dhis.tracker.TrackerType.ENROLLMENT;
 import static org.hisp.dhis.tracker.TrackerType.EVENT;
+import static org.hisp.dhis.tracker.TrackerType.RELATIONSHIP;
 import static org.hisp.dhis.tracker.TrackerType.TRACKED_ENTITY;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1002;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1030;
@@ -42,6 +43,7 @@ import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1082;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1113;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1114;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4015;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4016;
 import static org.hisp.dhis.tracker.validation.hooks.AssertValidationErrorReporter.hasTrackerError;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -440,6 +442,8 @@ class PreCheckExistenceValidationHookTest
             .build();
 
         // when
+        when( bundle.getStrategy( rel ) ).thenReturn( TrackerImportStrategy.CREATE );
+
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
         validationHook.validateRelationship( reporter, rel );
 
@@ -449,12 +453,14 @@ class PreCheckExistenceValidationHookTest
     }
 
     @Test
-    void verifyRelationshipValidationFailsWhenUpdate()
+    void verifyRelationshipValidationSuccessWithWarningWhenUpdate()
     {
         // given
         Relationship rel = getPayloadRelationship();
 
         // when
+        when( bundle.getStrategy( rel ) ).thenReturn( TrackerImportStrategy.UPDATE );
+
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
         validationHook.validateRelationship( reporter, rel );
 
@@ -463,6 +469,40 @@ class PreCheckExistenceValidationHookTest
         assertTrue( reporter.hasWarningReport( r -> E4015.equals( r.getWarningCode() ) &&
             TrackerType.RELATIONSHIP.equals( r.getTrackerType() ) &&
             rel.getUid().equals( r.getUid() ) ) );
+    }
+
+    @Test
+    void verifyRelationshipValidationFailsWhenIsCreateAndRelationshipIsAlreadyPresent()
+    {
+        // given
+        Relationship rel = getPayloadRelationship();
+
+        // when
+        when( bundle.getStrategy( rel ) ).thenReturn( TrackerImportStrategy.CREATE );
+
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
+        validationHook.validateRelationship( reporter, rel );
+
+        // then
+        hasTrackerError( reporter, E4015, RELATIONSHIP, rel.getUid() );
+    }
+
+    @Test
+    void verifyRelationshipValidationFailsWhenIsDeleteAndRelationshipIsNotPresent()
+    {
+        // given
+        Relationship rel = Relationship.builder()
+            .relationship( NOT_PRESENT_RELATIONSHIP_UID )
+            .build();
+
+        // when
+        when( bundle.getStrategy( rel ) ).thenReturn( TrackerImportStrategy.DELETE );
+
+        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
+        validationHook.validateRelationship( reporter, rel );
+
+        // then
+        hasTrackerError( reporter, E4016, RELATIONSHIP, rel.getUid() );
     }
 
     private TrackedEntityInstance getSoftDeletedTei()
