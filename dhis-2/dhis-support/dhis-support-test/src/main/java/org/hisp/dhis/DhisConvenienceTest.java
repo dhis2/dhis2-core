@@ -2759,7 +2759,10 @@ public abstract class DhisConvenienceTest
         User user = preCreateInjectAdminUserWithoutPersistence();
 
         userService.addUser( user );
-        userService.addUserRole( user.getUserRoles().stream().findFirst().get() );
+
+        user.getUserRoles().forEach( userRole -> userService.addUserRole( userRole ) );
+
+//        userService.addUserRole( user.getUserRoles().stream().findFirst().get() );
         userService.encodeAndSetPassword( user, user.getPassword() );
         userService.updateUser( user );
 

@@ -383,6 +383,7 @@ public class DefaultDataSetService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public SetValuedMap<String, String> getDataSetOrganisationUnitsAssociations()
     {
         Set<String> uids = getUserDataWrite( currentUserService.getCurrentUser() ).stream()
