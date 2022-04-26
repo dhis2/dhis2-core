@@ -88,9 +88,6 @@ public class DefaultsSupplier extends AbstractPreheatSupplier
         Optional<T> metadata = (Optional<T>) cache.get( this.getClass().getName(), klass.getName(),
             ( k, n ) -> Optional.ofNullable( mapper.map( manager.getByName( klass, name ) ) ),
             CACHE_TTL, CACHE_CAPACITY );
-        if ( metadata.isPresent() )
-        {
-            preheat.putDefault( klass, metadata.get() );
-        }
+        metadata.ifPresent( t -> preheat.putDefault( klass, t ) );
     }
 }
