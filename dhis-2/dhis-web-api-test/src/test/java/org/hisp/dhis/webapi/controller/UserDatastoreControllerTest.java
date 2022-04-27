@@ -41,7 +41,6 @@ import org.springframework.http.HttpStatus;
  */
 class UserDatastoreControllerTest extends DhisControllerConvenienceTest
 {
-
     @Test
     void testDeleteKeys()
     {
