@@ -34,7 +34,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importReport;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.validateAndThrowErrors;
-import static org.springframework.beans.BeanUtils.copyProperties;
+import static org.hisp.dhis.user.User.populateUserCredentialsDtoFields;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 import static org.springframework.http.MediaType.TEXT_XML_VALUE;
@@ -89,11 +89,9 @@ import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentialsDto;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserInvitationStatus;
 import org.hisp.dhis.user.UserQueryParams;
-import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserSetting;
 import org.hisp.dhis.user.UserSettingKey;
@@ -321,25 +319,6 @@ public class UserController
         validateCreateUser( user, currentUser );
 
         return postObject( getObjectReport( createUser( user, currentUser ) ) );
-    }
-
-    private void populateUserCredentialsDtoFields( User user )
-    {
-        UserCredentialsDto userCredentialsRaw = user.getUserCredentialsRaw();
-        if ( userCredentialsRaw != null )
-        {
-            copyProperties( userCredentialsRaw, user, KEY_PASSWORD, "userRoles" );
-            if ( userCredentialsRaw.getPassword() != null )
-            {
-                user.setPassword( userCredentialsRaw.getPassword() );
-            }
-
-            Set<UserRole> userRoles = userCredentialsRaw.getUserRoles();
-            if ( userRoles != null )
-            {
-                user.setUserRoles( userRoles );
-            }
-        }
     }
 
     @PostMapping( value = INVITE_PATH, consumes = APPLICATION_JSON_VALUE )
