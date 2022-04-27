@@ -47,7 +47,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -96,13 +95,6 @@ import com.google.common.primitives.Primitives;
 @Slf4j
 public class JacksonPropertyIntrospector implements PropertyIntrospector
 {
-
-    /**
-     * A simple cache to remember which types do or do not have {@link Property}
-     * values so the inspection is not done over and over again.
-     */
-    private static final Map<Class<?>, Boolean> HAS_PROPERTIES = new ConcurrentHashMap<>();
-
     @Override
     public void introspect( Class<?> klass, Map<String, Property> properties )
     {
