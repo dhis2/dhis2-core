@@ -81,8 +81,6 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  * @author Jan Bernitt
  */
-// @Disabled( "TODO: fix this test 12098, issues with org unit service not
-// mockable" )
 class DataValueSetImportValidatorTest extends DhisSpringTest
 {
 
