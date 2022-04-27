@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.webapi.mvc.messageconverter;
 
+import static org.hisp.dhis.webapi.mvc.messageconverter.MessageConverterUtils.JSON_GZIP_SUPPORTED_MEDIA_TYPES;
+import static org.hisp.dhis.webapi.mvc.messageconverter.MessageConverterUtils.JSON_SUPPORTED_MEDIA_TYPES;
+import static org.hisp.dhis.webapi.mvc.messageconverter.MessageConverterUtils.JSON_ZIP_SUPPORTED_MEDIA_TYPES;
 import static org.hisp.dhis.webapi.mvc.messageconverter.MessageConverterUtils.getContentDispositionHeaderValue;
 import static org.hisp.dhis.webapi.mvc.messageconverter.MessageConverterUtils.getExtensibleAttachmentFilename;
 import static org.hisp.dhis.webapi.mvc.messageconverter.MessageConverterUtils.isAttachment;
@@ -45,26 +48,15 @@ import org.hisp.dhis.dxf2.metadata.MetadataExportService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
-import org.springframework.http.MediaType;
 import org.springframework.http.converter.AbstractHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
-
-import com.google.common.collect.ImmutableList;
 
 /**
  * @author Morten Olav Hansen
  */
 public class MetadataExportParamsMessageConverter extends AbstractHttpMessageConverter<MetadataExportParams>
 {
-    public static final ImmutableList<MediaType> GZIP_SUPPORTED_MEDIA_TYPES = ImmutableList.<MediaType> builder()
-        .add( new MediaType( "application", "json+gzip" ) )
-        .build();
-
-    public static final ImmutableList<MediaType> ZIP_SUPPORTED_MEDIA_TYPES = ImmutableList.<MediaType> builder()
-        .add( new MediaType( "application", "json+zip" ) )
-        .build();
-
     private final MetadataExportService metadataExportService;
 
     private final Compression compression;
@@ -77,13 +69,13 @@ public class MetadataExportParamsMessageConverter extends AbstractHttpMessageCon
         switch ( compression )
         {
         case NONE:
-            setSupportedMediaTypes( List.of( MediaType.APPLICATION_JSON ) );
+            setSupportedMediaTypes( JSON_SUPPORTED_MEDIA_TYPES );
             break;
         case GZIP:
-            setSupportedMediaTypes( GZIP_SUPPORTED_MEDIA_TYPES );
+            setSupportedMediaTypes( JSON_GZIP_SUPPORTED_MEDIA_TYPES );
             break;
         case ZIP:
-            setSupportedMediaTypes( ZIP_SUPPORTED_MEDIA_TYPES );
+            setSupportedMediaTypes( JSON_ZIP_SUPPORTED_MEDIA_TYPES );
         }
     }
 

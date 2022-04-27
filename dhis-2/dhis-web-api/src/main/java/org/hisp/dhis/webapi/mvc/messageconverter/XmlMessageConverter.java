@@ -27,6 +27,10 @@
  */
 package org.hisp.dhis.webapi.mvc.messageconverter;
 
+import static org.hisp.dhis.webapi.mvc.messageconverter.MessageConverterUtils.XML_GZIP_SUPPORTED_MEDIA_TYPES;
+import static org.hisp.dhis.webapi.mvc.messageconverter.MessageConverterUtils.XML_SUPPORTED_MEDIA_TYPES;
+import static org.hisp.dhis.webapi.mvc.messageconverter.MessageConverterUtils.XML_ZIP_SUPPORTED_MEDIA_TYPES;
+
 import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletRequest;
 
@@ -35,27 +39,12 @@ import org.hisp.dhis.node.NodeService;
 import org.hisp.dhis.webapi.security.config.WebMvcConfig;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
-
-import com.google.common.collect.ImmutableList;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class XmlMessageConverter extends AbstractRootNodeMessageConverter
 {
-    public static final ImmutableList<MediaType> SUPPORTED_MEDIA_TYPES = ImmutableList.<MediaType> builder()
-        .add( new MediaType( "application", "xml" ) )
-        .build();
-
-    public static final ImmutableList<MediaType> GZIP_SUPPORTED_MEDIA_TYPES = ImmutableList.<MediaType> builder()
-        .add( new MediaType( "application", "xml+gzip" ) )
-        .build();
-
-    public static final ImmutableList<MediaType> ZIP_SUPPORTED_MEDIA_TYPES = ImmutableList.<MediaType> builder()
-        .add( new MediaType( "application", "xml+zip" ) )
-        .build();
-
     @Override
     protected boolean supports( Class<?> clazz )
     {
@@ -86,13 +75,13 @@ public class XmlMessageConverter extends AbstractRootNodeMessageConverter
         switch ( getCompression() )
         {
         case NONE:
-            setSupportedMediaTypes( SUPPORTED_MEDIA_TYPES );
+            setSupportedMediaTypes( XML_SUPPORTED_MEDIA_TYPES );
             break;
         case GZIP:
-            setSupportedMediaTypes( GZIP_SUPPORTED_MEDIA_TYPES );
+            setSupportedMediaTypes( XML_GZIP_SUPPORTED_MEDIA_TYPES );
             break;
         case ZIP:
-            setSupportedMediaTypes( ZIP_SUPPORTED_MEDIA_TYPES );
+            setSupportedMediaTypes( XML_ZIP_SUPPORTED_MEDIA_TYPES );
         }
     }
 }

@@ -34,12 +34,39 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.springframework.http.MediaType;
+
+import com.google.common.collect.ImmutableList;
 
 /**
  * @author Morten Olav Hansen
  */
 public final class MessageConverterUtils
 {
+    public static final ImmutableList<MediaType> XML_SUPPORTED_MEDIA_TYPES = ImmutableList.<MediaType> builder()
+        .add( new MediaType( "application", "xml" ) )
+        .build();
+
+    public static final ImmutableList<MediaType> XML_GZIP_SUPPORTED_MEDIA_TYPES = ImmutableList.<MediaType> builder()
+        .add( new MediaType( "application", "xml+gzip" ) )
+        .build();
+
+    public static final ImmutableList<MediaType> XML_ZIP_SUPPORTED_MEDIA_TYPES = ImmutableList.<MediaType> builder()
+        .add( new MediaType( "application", "xml+zip" ) )
+        .build();
+
+    public static final ImmutableList<MediaType> JSON_SUPPORTED_MEDIA_TYPES = ImmutableList.<MediaType> builder()
+        .add( new MediaType( "application", "json" ) )
+        .build();
+
+    public static final ImmutableList<MediaType> JSON_GZIP_SUPPORTED_MEDIA_TYPES = ImmutableList.<MediaType> builder()
+        .add( new MediaType( "application", "json+gzip" ) )
+        .build();
+
+    public static final ImmutableList<MediaType> JSON_ZIP_SUPPORTED_MEDIA_TYPES = ImmutableList.<MediaType> builder()
+        .add( new MediaType( "application", "json+zip" ) )
+        .build();
+
     @Nonnull
     public static String getContentDispositionHeaderValue( @Nullable String extensibleFilename,
         @Nullable String compressionExtension )
