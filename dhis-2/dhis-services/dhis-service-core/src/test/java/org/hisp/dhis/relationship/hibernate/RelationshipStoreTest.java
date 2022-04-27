@@ -60,7 +60,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 class RelationshipStoreTest extends TransactionalIntegrationTest
 {
-
     @Autowired
     private RelationshipService relationshipService;
 
