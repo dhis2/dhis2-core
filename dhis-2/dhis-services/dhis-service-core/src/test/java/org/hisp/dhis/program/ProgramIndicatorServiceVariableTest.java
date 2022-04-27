@@ -39,6 +39,8 @@ import java.util.HashSet;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,6 +59,9 @@ public class ProgramIndicatorServiceVariableTest
 
     @Autowired
     private ProgramService programService;
+
+    @Autowired
+    private TrackedEntityAttributeService attributeService;
 
     private Program programA;
 
@@ -84,15 +89,23 @@ public class ProgramIndicatorServiceVariableTest
         piB = createProgramIndicator( 'B', programA, "70", null );
         piB.setAnalyticsType( AnalyticsType.ENROLLMENT );
         programA.getProgramIndicators().add( piB );
+
+        TrackedEntityAttribute teaA = createTrackedEntityAttribute( 'A' );
+        teaA.setUid( "TEAttribute" );
+        attributeService.addTrackedEntityAttribute( teaA );
     }
 
     private String getSql( String expression )
     {
+        piA.setExpression( expression );
+
         return programIndicatorService.getAnalyticsSql( expression, piA, startDate, endDate );
     }
 
     private String getSqlEnrollment( String expression )
     {
+        piB.setExpression( expression );
+
         return programIndicatorService.getAnalyticsSql( expression, piB, startDate, endDate );
     }
 
@@ -288,20 +301,28 @@ public class ProgramIndicatorServiceVariableTest
     @Test
     public void testValueCount()
     {
-        assertEquals( "nullif(cast(() as double),0)",
-            getSql( "V{value_count}" ) );
+        assertEquals( "0", getSql( "V{value_count}" ) );
+        assertEquals( "0", getSqlEnrollment( "V{value_count}" ) );
 
-        assertEquals( "nullif(cast(() as double),0)",
-            getSqlEnrollment( "V{value_count}" ) );
+        assertEquals(
+            "coalesce(\"TEAttribute\",'') + nullif(cast((case when \"TEAttribute\" is not null then 1 else 0 end) as double),0)",
+            getSql( "A{TEAttribute} + V{value_count}" ) );
+        assertEquals(
+            "coalesce(\"TEAttribute\",'') + nullif(cast((case when \"TEAttribute\" is not null then 1 else 0 end) as double),0)",
+            getSqlEnrollment( "A{TEAttribute} + V{value_count}" ) );
     }
 
     @Test
     public void testZeroPosValueCount()
     {
-        assertEquals( "nullif(cast(() as double),0)",
-            getSql( "V{zero_pos_value_count}" ) );
+        assertEquals( "0", getSql( "V{zero_pos_value_count}" ) );
+        assertEquals( "0", getSqlEnrollment( "V{zero_pos_value_count}" ) );
 
-        assertEquals( "nullif(cast(() as double),0)",
-            getSqlEnrollment( "V{zero_pos_value_count}" ) );
+        assertEquals(
+            "coalesce(\"TEAttribute\",'') + nullif(cast((case when \"TEAttribute\" >= 0 then 1 else 0 end) as double),0)",
+            getSql( "A{TEAttribute} + V{zero_pos_value_count}" ) );
+        assertEquals(
+            "coalesce(\"TEAttribute\",'') + nullif(cast((case when \"TEAttribute\" >= 0 then 1 else 0 end) as double),0)",
+            getSqlEnrollment( "A{TEAttribute} + V{zero_pos_value_count}" ) );
     }
 }

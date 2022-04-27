@@ -78,9 +78,28 @@ public class TypeReport implements ErrorReportContainer
         this.empty = empty;
     }
 
+    public final boolean isEmptySingleton()
+    {
+        return empty;
+    }
+
     // -----------------------------------------------------------------------------------
     // Utility Methods
     // -----------------------------------------------------------------------------------
+
+    public TypeReport mergeAllowEmpty( TypeReport other )
+    {
+        if ( isEmptySingleton() )
+        {
+            return other;
+        }
+        if ( other.isEmptySingleton() )
+        {
+            return this;
+        }
+        merge( other );
+        return this;
+    }
 
     public void merge( TypeReport other )
     {

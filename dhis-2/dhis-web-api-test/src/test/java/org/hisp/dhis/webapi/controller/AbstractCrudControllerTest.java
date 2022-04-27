@@ -39,6 +39,7 @@ import static org.junit.Assert.assertTrue;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.JsonArray;
 import org.hisp.dhis.webapi.json.JsonList;
@@ -521,6 +522,30 @@ public class AbstractCrudControllerTest extends DhisControllerConvenienceTest
             POST( "/userGroups/" + groupId + "/users", "{'additions': [{'id':'" + userId + "'}]}" ) );
 
         assertUserGroupHasOnlyUser( groupId, userId );
+    }
+
+    @Test
+    public void testMergeCollectionItemsJson()
+    {
+        String userId = getCurrentUser().getUid();
+        // first create an object which has a collection
+        String groupId = assertStatus( HttpStatus.CREATED, POST( "/userGroups/", "{'name':'testers'}" ) );
+        assertStatus( HttpStatus.NO_CONTENT,
+            POST( "/userGroups/" + groupId + "/users", "{'additions': [{'id':'" + userId + "'}]}" ) );
+        assertUserGroupHasOnlyUser( groupId, userId );
+
+        User testUser1 = createUser( "test1" );
+        User testUser2 = createUser( "test2" );
+
+        // Add 2 new users and remove existing user from the created group
+        assertStatus( HttpStatus.NO_CONTENT,
+            POST( "/userGroups/" + groupId + "/users",
+                "{'additions': [{'id':'" + testUser1.getUid() + "'},{'id':'" + testUser2.getUid() + "'}]" +
+                    ",'deletions':[{'id':'" + userId + "'}]}" ) );
+
+        JsonList<JsonUser> usersInGroup = GET( "/userGroups/{uid}/", groupId ).content()
+            .getList( "users", JsonUser.class );
+        assertEquals( 2, usersInGroup.size() );
     }
 
     @Test
