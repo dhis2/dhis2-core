@@ -1518,4 +1518,23 @@ public class User
     {
         return userSettings;
     }
+
+    public static void populateUserCredentialsDtoFields( User user )
+    {
+        UserCredentialsDto userCredentialsRaw = user.getUserCredentialsRaw();
+        if ( userCredentialsRaw != null )
+        {
+            copyProperties( userCredentialsRaw, user, "password", "userRoles", "secret", "previousPasswords" );
+            if ( userCredentialsRaw.getPassword() != null )
+            {
+                user.setPassword( userCredentialsRaw.getPassword() );
+            }
+
+            Set<UserRole> userRoles = userCredentialsRaw.getUserRoles();
+            if ( userRoles != null )
+            {
+                user.setUserRoles( userRoles );
+            }
+        }
+    }
 }
