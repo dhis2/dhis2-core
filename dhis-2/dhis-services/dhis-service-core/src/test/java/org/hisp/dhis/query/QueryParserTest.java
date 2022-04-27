@@ -48,6 +48,7 @@ import org.hisp.dhis.query.operators.NullOperator;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserSettingService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -92,18 +93,24 @@ class QueryParserTest extends IntegrationTestBase
         return true;
     }
 
+    @Autowired
+    private UserService _userService;
+
     @Override
     protected void setUpTest()
         throws Exception
     {
+        this.userService = _userService;
+
         OrganisationUnit orgUnitA = createOrganisationUnit( 'A' );
-        User user = makeUser( "A" );
+        User user = mockUser( "A" );
         user.addOrganisationUnit( orgUnitA );
         injectSecurityContext( user );
 
         this.organisationUnitService = new DefaultOrganisationUnitService( organisationUnitStore,
             identifiableObjectManager,
             organisationUnitLevelStore, currentUserService, configurationService, userSettingService, cacheProvider );
+
         organisationUnitService.addOrganisationUnit( orgUnitA );
         queryParser = new DefaultJpaQueryParser( schemaService );
     }

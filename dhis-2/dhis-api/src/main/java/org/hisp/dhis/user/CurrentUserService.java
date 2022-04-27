@@ -28,6 +28,7 @@
 package org.hisp.dhis.user;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.springframework.transaction.annotation.Propagation.REQUIRES_NEW;
 
 import java.io.Serializable;
 import java.util.HashSet;
@@ -35,6 +36,7 @@ import java.util.Set;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.hibernate.HibernateException;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
@@ -80,6 +82,7 @@ public class CurrentUserService
         return CurrentUserUtil.getCurrentUsername();
     }
 
+//    @Transactional( readOnly = true )
     public User getCurrentUser()
     {
         User currentUser = CurrentUserUtil.getCurrentUser();
@@ -87,6 +90,15 @@ public class CurrentUserService
         if ( contains )
         {
             log.info( "User is already in session" );
+//            sessionFactory.getCurrentSession().save( currentUser );
+            try
+            {
+                sessionFactory.getCurrentSession().flush(  );
+            }
+            catch ( Exception e )
+            {
+                log.info( "User is not in session" );
+            }
             sessionFactory.getCurrentSession().evict( currentUser );
         }
 
@@ -117,7 +129,7 @@ public class CurrentUserService
         return user != null && user.isAuthorized( auth );
     }
 
-    @Transactional( readOnly = true )
+//    @Transactional( readOnly = true, propagation = REQUIRES_NEW )
     public CurrentUserGroupInfo getCurrentUserGroupsInfo()
     {
         User currentUser = getCurrentUser();
@@ -130,7 +142,7 @@ public class CurrentUserService
             .get( currentUser.getUsername(), this::getCurrentUserGroupsInfo );
     }
 
-    @Transactional( readOnly = true )
+//    @Transactional( readOnly = true )
     public CurrentUserGroupInfo getCurrentUserGroupsInfo( User user )
     {
         if ( user == null )
@@ -167,7 +179,7 @@ public class CurrentUserService
             log.warn( "User is null, this should only happen at startup!" );
             return null;
         }
-        return userStore.getCurrentUserGroupInfo( currentUser.getId() );
+        return userStore.getCurrentUserGroupInfo( currentUser );
     }
 
     public void setUserSetting( UserSettingKey key, Serializable value )

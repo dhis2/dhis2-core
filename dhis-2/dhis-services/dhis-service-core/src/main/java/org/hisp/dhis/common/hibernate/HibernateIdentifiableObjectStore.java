@@ -977,12 +977,8 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     @Override
     public final List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder )
     {
-        User currentUser = currentUserService.getCurrentUser();
-        // boolean contains = sessionFactory.getCurrentSession().contains(
-        // currentUser );
-
         CurrentUserGroupInfo currentUserGroupsInfo = currentUserService.getCurrentUserGroupsInfo();
-        return getSharingPredicates( builder, currentUser,
+        return getSharingPredicates( builder, currentUserService.getCurrentUser(),
             currentUserGroupsInfo, AclService.LIKE_READ_METADATA );
     }
 
