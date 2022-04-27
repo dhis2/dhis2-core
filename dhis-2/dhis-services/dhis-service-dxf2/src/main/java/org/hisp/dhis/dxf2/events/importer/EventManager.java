@@ -330,11 +330,10 @@ public class EventManager
 
         ProgramStageInstance psi = workContext.getPersistedProgramStageInstanceMap().get( event.getUid() );
 
-        Map<String, EventDataValue> dataValueDBMap = Optional.ofNullable( psi ).map( p -> {
-            return p.getEventDataValues()
-                .stream()
-                .collect( Collectors.toMap( EventDataValue::getDataElement, Function.identity() ) );
-        } ).orElse( new HashMap<>() );
+        Map<String, EventDataValue> dataValueDBMap = Optional.ofNullable( psi ).map( p -> p.getEventDataValues()
+            .stream()
+            .collect( Collectors.toMap( EventDataValue::getDataElement, Function.identity() ) ) )
+            .orElse( new HashMap<>() );
 
         for ( DataValue dv : event.getDataValues() )
         {
