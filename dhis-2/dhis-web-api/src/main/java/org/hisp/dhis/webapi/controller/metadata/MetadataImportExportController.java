@@ -42,7 +42,6 @@ import java.util.Locale;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -236,15 +235,14 @@ public class MetadataImportExportController
         metadataExportService.validate( params );
 
         ObjectNode rootNode = metadataExportService.getMetadataAsObjectNode( params );
+
         return MetadataExportControllerUtils.createJsonNodeResponseEntity( rootNode, download );
     }
 
     @GetMapping
     public ResponseEntity<MetadataExportParams> getMetadata(
         @RequestParam( required = false, defaultValue = "false" ) boolean translate,
-        @RequestParam( required = false ) String locale,
-        HttpServletResponse response )
-        throws IOException
+        @RequestParam( required = false ) String locale )
     {
         if ( translate )
         {

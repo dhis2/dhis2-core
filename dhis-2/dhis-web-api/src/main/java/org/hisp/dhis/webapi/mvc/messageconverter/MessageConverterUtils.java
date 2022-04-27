@@ -43,6 +43,10 @@ import com.google.common.collect.ImmutableList;
  */
 public final class MessageConverterUtils
 {
+    private MessageConverterUtils()
+    {
+    }
+
     public static final ImmutableList<MediaType> XML_SUPPORTED_MEDIA_TYPES = ImmutableList.<MediaType> builder()
         .add( new MediaType( "application", "xml" ) )
         .build();
@@ -80,6 +84,10 @@ public final class MessageConverterUtils
         return (contentDispositionHeaderValue != null) && contentDispositionHeaderValue.contains( "attachment" );
     }
 
+    /**
+     * File name that will get a media type related suffix when included as an
+     * attachment file name.
+     */
     @Nullable
     public static String getExtensibleAttachmentFilename( @Nullable String contentDispositionHeaderValue,
         List<String> extensibleAttachmentFilenames )

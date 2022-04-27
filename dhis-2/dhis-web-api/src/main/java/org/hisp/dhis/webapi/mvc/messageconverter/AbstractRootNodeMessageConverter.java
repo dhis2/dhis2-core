@@ -32,10 +32,7 @@ import static org.hisp.dhis.webapi.mvc.messageconverter.MessageConverterUtils.ge
 import static org.hisp.dhis.webapi.mvc.messageconverter.MessageConverterUtils.isAttachment;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -59,13 +56,6 @@ import org.springframework.http.converter.HttpMessageNotWritableException;
  */
 public abstract class AbstractRootNodeMessageConverter extends AbstractHttpMessageConverter<RootNode>
 {
-    /**
-     * File name that will get a media type related suffix when included as an
-     * attachment file name.
-     */
-    private static final Set<String> EXTENSIBLE_ATTACHMENT_FILENAMES = Collections
-        .unmodifiableSet( new HashSet<>( Collections.singleton( "metadata" ) ) );
-
     private final NodeService nodeService;
 
     private final String contentType;
