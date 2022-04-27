@@ -692,35 +692,36 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
     @PostMapping( value = "/{uid}/{property}", consumes = APPLICATION_JSON_VALUE )
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void addCollectionItemsJson(
+    public WebMessage addCollectionItemsJson(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
         HttpServletRequest request )
         throws Exception
     {
-        addCollectionItems( pvProperty, getEntity( pvUid ).get( 0 ),
+        return addCollectionItems( pvProperty, getEntity( pvUid ).get( 0 ),
             renderService.fromJson( request.getInputStream(), IdentifiableObjects.class ) );
     }
 
     @PostMapping( value = "/{uid}/{property}", consumes = APPLICATION_XML_VALUE )
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void addCollectionItemsXml(
+    public WebMessage addCollectionItemsXml(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
         HttpServletRequest request )
         throws Exception
     {
-        addCollectionItems( pvProperty, getEntity( pvUid ).get( 0 ),
+        return addCollectionItems( pvProperty, getEntity( pvUid ).get( 0 ),
             renderService.fromXml( request.getInputStream(), IdentifiableObjects.class ) );
     }
 
-    private void addCollectionItems( String pvProperty, T object, IdentifiableObjects items )
+    private WebMessage addCollectionItems( String pvProperty, T object, IdentifiableObjects items )
         throws Exception
     {
         preUpdateItems( object, items );
-        collectionService.delCollectionItems( object, pvProperty, items.getDeletions() );
-        collectionService.addCollectionItems( object, pvProperty, items.getAdditions() );
+        TypeReport report = collectionService.mergeCollectionItems( object, pvProperty, items );
         postUpdateItems( object, items );
+        hibernateCacheManager.clearCache();
+        return typeReport( report );
     }
 
     @PutMapping( value = "/{uid}/{property}", consumes = APPLICATION_JSON_VALUE )
@@ -747,17 +748,20 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
             renderService.fromXml( request.getInputStream(), IdentifiableObjects.class ) );
     }
 
-    private void replaceCollectionItems( String pvProperty, T object, IdentifiableObjects items )
+    private WebMessage replaceCollectionItems( String pvProperty, T object, IdentifiableObjects items )
         throws Exception
     {
         preUpdateItems( object, items );
-        collectionService.replaceCollectionItems( object, pvProperty, items.getIdentifiableObjects() );
+        TypeReport report = collectionService.replaceCollectionItems( object, pvProperty,
+            items.getIdentifiableObjects() );
         postUpdateItems( object, items );
+        hibernateCacheManager.clearCache();
+        return typeReport( report );
     }
 
     @PostMapping( value = "/{uid}/{property}/{itemId}" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void addCollectionItem(
+    public WebMessage addCollectionItem(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
         @PathVariable( "itemId" ) String pvItemId,
@@ -775,8 +779,10 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         items.setAdditions( singletonList( new BaseIdentifiableObject( pvItemId, "", "" ) ) );
 
         preUpdateItems( object, items );
-        collectionService.addCollectionItems( object, pvProperty, items.getIdentifiableObjects() );
+        TypeReport report = collectionService.addCollectionItems( object, pvProperty, items.getIdentifiableObjects() );
         postUpdateItems( object, items );
+        hibernateCacheManager.clearCache();
+        return typeReport( report );
     }
 
     @DeleteMapping( value = "/{uid}/{property}", consumes = APPLICATION_JSON_VALUE )
@@ -803,12 +809,14 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
             renderService.fromXml( request.getInputStream(), IdentifiableObjects.class ) );
     }
 
-    private void deleteCollectionItems( String pvProperty, T object, IdentifiableObjects items )
+    private WebMessage deleteCollectionItems( String pvProperty, T object, IdentifiableObjects items )
         throws Exception
     {
         preUpdateItems( object, items );
-        collectionService.delCollectionItems( object, pvProperty, items.getIdentifiableObjects() );
+        TypeReport report = collectionService.delCollectionItems( object, pvProperty, items.getIdentifiableObjects() );
         postUpdateItems( object, items );
+        hibernateCacheManager.clearCache();
+        return typeReport( report );
     }
 
     @DeleteMapping( value = "/{uid}/{property}/{itemId}" )
