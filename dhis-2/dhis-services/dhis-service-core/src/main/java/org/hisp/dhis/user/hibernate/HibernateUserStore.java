@@ -58,8 +58,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.StatelessSession;
-import org.hibernate.Transaction;
 import org.hibernate.annotations.QueryHints;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
@@ -542,14 +540,14 @@ public class HibernateUserStore
         query.where( builder.equal( root.get( "id" ), user.getId() ) );
         query.select( builder.array( root.get( "uid" ), root.join( "groups", JoinType.LEFT ).get( "uid" ) ) );
 
-//        StatelessSession session = getStatelessSession();
+        // StatelessSession session = getStatelessSession();
         Session session = getSession();
-//        Transaction transaction = session.beginTransaction();
-//        transaction.begin();
+        // Transaction transaction = session.beginTransaction();
+        // transaction.begin();
 
         List<Object[]> results = session.createQuery( query ).getResultList();
 
-//        transaction.commit();
+        // transaction.commit();
 
         CurrentUserGroupInfo currentUserGroupInfo = new CurrentUserGroupInfo();
 

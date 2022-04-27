@@ -40,7 +40,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.hisp.dhis.IntegrationTestBase;
-import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.analytics.AnalyticsTableService;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;

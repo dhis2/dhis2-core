@@ -83,7 +83,7 @@ import com.google.common.collect.Sets;
 /**
  * @author Jim Grace
  */
-@Disabled("TODO: fix this test 12098 stale")
+@Disabled( "TODO: fix this test 12098 stale" )
 class DataApprovalServiceCategoryOptionGroupTest extends IntegrationTestBase
 {
 

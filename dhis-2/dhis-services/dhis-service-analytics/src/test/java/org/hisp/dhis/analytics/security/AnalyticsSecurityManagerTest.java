@@ -36,7 +36,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Set;
 
-import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.DataQueryParams;
