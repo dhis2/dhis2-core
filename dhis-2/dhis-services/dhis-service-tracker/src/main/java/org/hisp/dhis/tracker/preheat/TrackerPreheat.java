@@ -124,9 +124,7 @@ public class TrackerPreheat
     /**
      * Internal map of all default object (like category option combo, etc).
      */
-    @Getter
-    @Setter
-    private Map<Class<? extends IdentifiableObject>, IdentifiableObject> defaults = new HashMap<>();
+    private final Map<Class<? extends IdentifiableObject>, IdentifiableObject> defaults = new HashMap<>();
 
     /**
      * All periods available.
@@ -369,6 +367,26 @@ public class TrackerPreheat
     }
 
     /**
+     * Put a default metadata value (i.e. CategoryOption "default") into the
+     * preheat.
+     *
+     * @param defaultClass class of the default metadata
+     * @param metadata the default metadata
+     * @return the tracker preheat
+     */
+    public <T extends IdentifiableObject> TrackerPreheat putDefault( Class<T> defaultClass, T metadata )
+    {
+        if ( metadata == null )
+        {
+            return this;
+        }
+
+        defaults.put( defaultClass, metadata );
+
+        return this;
+    }
+
+    /**
      * Get a default value from the preheat
      *
      * @param defaultClass The type of object to retrieve
@@ -376,8 +394,7 @@ public class TrackerPreheat
      */
     public <T extends IdentifiableObject> T getDefault( Class<T> defaultClass )
     {
-        String uid = this.defaults.get( defaultClass ).getUid();
-        return this.get( defaultClass, uid );
+        return (T) this.defaults.get( defaultClass );
     }
 
     /**
@@ -613,6 +630,11 @@ public class TrackerPreheat
     {
         RelationshipType relationshipType = get( RelationshipType.class, relationship.getRelationshipType() );
 
+        if ( relationship.getUid() != null && relationships.containsKey( relationship.getUid() ) )
+        {
+            return relationships.get( relationship.getUid() );
+        }
+
         if ( Objects.nonNull( relationshipType ) )
         {
 
@@ -643,6 +665,8 @@ public class TrackerPreheat
         if ( Objects.nonNull( relationship ) )
         {
             RelationshipKey relationshipKey = getRelationshipKey( relationship );
+
+            relationships.put( relationship.getUid(), relationship );
 
             if ( relationship.getRelationshipType().isBidirectional() )
             {

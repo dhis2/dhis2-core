@@ -25,38 +25,40 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.preheat.supplier.strategy;
 
-import java.util.List;
+package org.hisp.dhis.tracker;
 
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentStore;
-import org.hisp.dhis.tracker.TrackerImportParams;
-import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.preheat.mappers.NoteMapper;
-import org.hisp.dhis.tracker.preheat.supplier.DetachUtils;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.ApiTest;
+import org.hisp.dhis.actions.LoginActions;
+import org.hisp.dhis.actions.RestApiActions;
+import org.hisp.dhis.actions.metadata.ProgramActions;
+import org.hisp.dhis.actions.tracker.EventActions;
+import org.hisp.dhis.actions.tracker.TEIActions;
+import org.hisp.dhis.actions.tracker.importer.TrackerActions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Tag;
 
 /**
- * @author Luciano Fiandesio
+ * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-@RequiredArgsConstructor
-@Component
-@StrategyFor( value = TrackedEntityComment.class, mapper = NoteMapper.class )
-public class NoteStrategy implements ClassBasedSupplierStrategy
+@Tag( "category:tracker" )
+public class TrackerApiTest
+    extends ApiTest
 {
-    @NonNull
-    private final TrackedEntityCommentStore trackedEntityCommentStore;
+    protected RestApiActions enrollmentActions;
+    protected EventActions eventActions;
+    protected TEIActions teiActions;
+    protected LoginActions loginActions;
+    protected ProgramActions programActions;
 
-    @Override
-    public void add( TrackerImportParams params, List<List<String>> splitList, TrackerPreheat preheat )
+    @BeforeAll
+    public void beforeTracker()
     {
-        splitList
-            .forEach( ids -> preheat.putNotes( DetachUtils.detach(
-                this.getClass().getAnnotation( StrategyFor.class ).mapper(), trackedEntityCommentStore.getByUid( ids,
-                    preheat.getUser() ) ) ) );
+        teiActions = new TEIActions();
+        loginActions = new LoginActions();
+        programActions = new ProgramActions();
+        eventActions = new EventActions();
+        enrollmentActions = new RestApiActions( "/enrollments" );
     }
+
 }

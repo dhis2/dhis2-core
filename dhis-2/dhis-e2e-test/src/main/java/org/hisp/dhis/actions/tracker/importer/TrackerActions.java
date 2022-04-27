@@ -28,6 +28,8 @@
 package org.hisp.dhis.actions.tracker.importer;
 
 import com.google.gson.JsonObject;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;
@@ -36,7 +38,6 @@ import org.hisp.dhis.helpers.QueryParamsBuilder;
 import java.io.File;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Logger;
 
 import static org.awaitility.Awaitility.with;
 import static org.hamcrest.Matchers.notNullValue;
@@ -47,7 +48,7 @@ import static org.hamcrest.Matchers.notNullValue;
 public class TrackerActions
     extends RestApiActions
 {
-    private Logger logger = Logger.getLogger( TrackerActions.class.getName() );
+    private Logger logger = LogManager.getLogger( TrackerActions.class.getName() );
 
     public TrackerActions()
     {

@@ -59,7 +59,6 @@ import org.hisp.dhis.dataset.comparator.SectionOrderComparator;
 import org.hisp.dhis.datavalue.AggregateAccessManager;
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.util.SectionUtils;
-import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.user.CurrentUserService;
@@ -115,13 +114,6 @@ public class LoadFormAction
     public void setCurrentUserService( CurrentUserService currentUserService )
     {
         this.currentUserService = currentUserService;
-    }
-
-    private I18n i18n;
-
-    public void setI18n( I18n i18n )
-    {
-        this.i18n = i18n;
     }
 
     @Autowired
@@ -301,7 +293,7 @@ public class LoadFormAction
         if ( formType.isCustom() && dataSet.hasDataEntryForm() )
         {
             dataEntryForm = dataSet.getDataEntryForm();
-            customDataEntryFormCode = dataEntryFormService.prepareDataEntryFormForEntry( dataEntryForm, dataSet, i18n );
+            customDataEntryFormCode = dataEntryFormService.prepareDataEntryFormForEntry( dataSet );
             return formType.toString();
         }
 

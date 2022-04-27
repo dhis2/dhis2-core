@@ -25,38 +25,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.preheat.supplier.strategy;
+package org.hisp.dhis.webapi.controller.dataentry;
 
-import java.util.List;
+import lombok.AllArgsConstructor;
 
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.dxf2.metadata.DataSetMetadataExportService;
+import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentStore;
-import org.hisp.dhis.tracker.TrackerImportParams;
-import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.preheat.mappers.NoteMapper;
-import org.hisp.dhis.tracker.preheat.supplier.DetachUtils;
-import org.springframework.stereotype.Component;
+import com.fasterxml.jackson.databind.JsonNode;
 
 /**
- * @author Luciano Fiandesio
+ * @author Lars Helge Overland
  */
-@RequiredArgsConstructor
-@Component
-@StrategyFor( value = TrackedEntityComment.class, mapper = NoteMapper.class )
-public class NoteStrategy implements ClassBasedSupplierStrategy
+@Controller
+@AllArgsConstructor
+@RequestMapping( "/dataEntry" )
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+public class DataSetMetadataExportController
 {
-    @NonNull
-    private final TrackedEntityCommentStore trackedEntityCommentStore;
+    private final DataSetMetadataExportService exportService;
 
-    @Override
-    public void add( TrackerImportParams params, List<List<String>> splitList, TrackerPreheat preheat )
+    @GetMapping( "/metadata" )
+    public ResponseEntity<JsonNode> getMetadata()
     {
-        splitList
-            .forEach( ids -> preheat.putNotes( DetachUtils.detach(
-                this.getClass().getAnnotation( StrategyFor.class ).mapper(), trackedEntityCommentStore.getByUid( ids,
-                    preheat.getUser() ) ) ) );
+        return ResponseEntity.ok( exportService.getDataSetMetadata() );
     }
 }
