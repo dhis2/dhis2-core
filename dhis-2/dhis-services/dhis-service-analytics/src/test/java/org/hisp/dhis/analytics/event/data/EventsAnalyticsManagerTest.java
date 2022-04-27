@@ -266,6 +266,39 @@ class EventsAnalyticsManagerTest extends EventAnalyticsTest
     }
 
     @Test
+    void verifyGetEventsWithScheduledDateTimeFieldParam()
+    {
+        mockEmptyRowSet();
+
+        subject.getEvents( createRequestParamsWithTimeField( "SCHEDULED_DATE" ), createGrid(), 100 );
+
+        verify( jdbcTemplate ).queryForRowSet( sql.capture() );
+
+        String expected = "ps.\"monthly\",ax.\"ou\"  from " + getTable( programA.getUid() )
+            + " as ax left join _dateperiodstructure as ps on cast(ax.\"duedate\" as date) = ps.\"dateperiod\" "
+            + "where (( ax.\"duedate\" >= '2000-01-01' and ax.\"duedate\" < '2000-04-01') )and ax.\"uidlevel1\" "
+            + "in ('ouabcdefghA') and pistatus in ('ACTIVE','COMPLETED') and psistatus in ('SCHEDULE') limit 101";
+
+        assertSql( expected, sql.getValue() );
+    }
+
+    @Test
+    void verifyGetEventsWithLastUpdatedTimeFieldParam()
+    {
+        mockEmptyRowSet();
+
+        subject.getEvents( createRequestParamsWithTimeField( "LAST_UPDATED" ), createGrid(), 100 );
+
+        verify( jdbcTemplate ).queryForRowSet( sql.capture() );
+
+        String expected = "ax.\"monthly\",ax.\"ou\"  from " + getTable( programA.getUid() ) + " as ax "
+            + "where (( ax.\"lastupdated\" >= '2000-01-01' and ax.\"lastupdated\" < '2000-04-01') )and ax.\"uidlevel1\" "
+            + "in ('ouabcdefghA') and pistatus in ('ACTIVE','COMPLETED') and psistatus in ('ACTIVE','COMPLETED','SCHEDULE') limit 101";
+
+        assertSql( expected, sql.getValue() );
+    }
+
+    @Test
     void verifyGetEventsWithMissingValueEqFilter()
     {
         String expected = "ax.\"fWIAEtYVEGk\" is null";

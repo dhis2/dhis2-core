@@ -27,9 +27,11 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
-import static java.util.Collections.singleton;
+import static java.util.Arrays.asList;
 import static org.hisp.dhis.analytics.EventOutputType.ENROLLMENT;
 import static org.hisp.dhis.analytics.TimeField.EVENT_DATE;
+import static org.hisp.dhis.analytics.TimeField.LAST_UPDATED;
+import static org.hisp.dhis.analytics.TimeField.SCHEDULED_DATE;
 import static org.hisp.dhis.analytics.event.data.JdbcEventAnalyticsManager.OPEN_IN;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.DATE_PERIOD_STRUCT_ALIAS;
@@ -42,6 +44,7 @@ import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 import static org.hisp.dhis.util.DateUtils.plusOneDay;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -65,7 +68,7 @@ class EventTimeFieldSqlRenderer extends TimeFieldSqlRenderer
     private final StatementBuilder statementBuilder;
 
     @Getter
-    private final Collection<TimeField> allowedTimeFields = singleton( TimeField.LAST_UPDATED );
+    private final Collection<TimeField> allowedTimeFields = new HashSet<>( asList( LAST_UPDATED, SCHEDULED_DATE ) );
 
     @Override
     protected String getSqlConditionForPeriods( EventQueryParams params )

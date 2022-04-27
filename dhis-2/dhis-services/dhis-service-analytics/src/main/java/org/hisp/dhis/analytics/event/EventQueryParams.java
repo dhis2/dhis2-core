@@ -38,6 +38,7 @@ import static org.hisp.dhis.common.FallbackCoordinateFieldType.OU_GEOMETRY;
 import static org.hisp.dhis.common.FallbackCoordinateFieldType.PSI_GEOMETRY;
 import static org.hisp.dhis.event.EventStatus.ACTIVE;
 import static org.hisp.dhis.event.EventStatus.COMPLETED;
+import static org.hisp.dhis.event.EventStatus.SCHEDULE;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -1082,6 +1083,27 @@ public class EventQueryParams
         if ( isNotEmpty( eventStatus ) )
         {
             return eventStatus;
+        }
+
+        if ( TimeField.fieldIsValid( timeField ) )
+        {
+            final Optional<TimeField> time = TimeField.of( timeField );
+
+            if ( time.isPresent() )
+            {
+                switch ( time.get() )
+                {
+                case SCHEDULED_DATE:
+                    return Set.of( SCHEDULE );
+                case LAST_UPDATED:
+                    final Set<EventStatus> statuses = new LinkedHashSet<>();
+                    statuses.addAll( DEFAULT_EVENT_STATUS );
+                    statuses.add( SCHEDULE );
+                    return statuses;
+                default:
+                    return DEFAULT_EVENT_STATUS;
+                }
+            }
         }
 
         return DEFAULT_EVENT_STATUS;
