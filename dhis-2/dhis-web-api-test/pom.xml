@@ -344,7 +344,7 @@
     <dependency>
       <groupId>com.nimbusds</groupId>
       <artifactId>nimbus-jose-jwt</artifactId>
-      <version>9.14</version>
+      <version>9.22</version>
       <scope>test</scope>
     </dependency>
 

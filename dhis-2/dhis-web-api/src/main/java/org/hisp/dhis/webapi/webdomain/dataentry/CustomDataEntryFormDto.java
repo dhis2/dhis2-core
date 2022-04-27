@@ -25,34 +25,55 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.metadata;
+package org.hisp.dhis.webapi.webdomain.dataentry;
 
-import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 
-import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.dxf2.metadata.DataSetMetadataExportService;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.hisp.dhis.common.DisplayDensity;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
+ * DTO which represents a custom data entry form.
+ *
  * @author Lars Helge Overland
  */
-@Controller
-@AllArgsConstructor
-@RequestMapping( "/dataEntry" )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class DataSetMetadataExportController
+@Getter
+@Setter
+@Accessors( chain = true )
+@NoArgsConstructor
+public class CustomDataEntryFormDto
 {
-    private final DataSetMetadataExportService exportService;
+    /**
+     * Form identifier.
+     */
+    @JsonProperty
+    private String id;
 
-    @GetMapping( "/metadata" )
-    public ResponseEntity<JsonNode> getMetadata()
-    {
-        return ResponseEntity.ok( exportService.getDataSetMetadata() );
-    }
+    /**
+     * Data set identifier.
+     */
+    @JsonProperty
+    private String dataSetId;
+
+    /**
+     * Form version.
+     */
+    @JsonProperty
+    private Integer version;
+
+    /**
+     * Form display density.
+     */
+    @JsonProperty
+    private DisplayDensity displayDensity;
+
+    /**
+     * Form content, may contain CSS, HTML and Javascript.
+     */
+    @JsonProperty
+    private String form;
 }
