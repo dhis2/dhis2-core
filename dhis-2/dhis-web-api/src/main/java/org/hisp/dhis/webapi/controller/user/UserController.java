@@ -760,8 +760,8 @@ public class UserController
 
         // current user may have been changed and detached and must become
         // managed again
-        // TODO: what is this doing? I don't understand how this is possible.
-        // 12098, handle update to current user if needed since now it's static
+        // 12098, handle update to current user if needed since now it's static?
+        // Do wee still need it?
         if ( currentUser != null && currentUser.getId() == user.getId() )
         {
             currentUser = currentUserService.getCurrentUser();

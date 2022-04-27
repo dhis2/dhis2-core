@@ -102,7 +102,6 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
     @Test
     void testPartialUpdateObject()
     {
-        // TODO: 12098 needs merge instead update
         assertStatus( HttpStatus.OK, PATCH( "/users/" + "M5zQapPyTZI" + "?importReportMode=ERRORS",
             "[{'op': 'add', 'path': '/surname', 'value': 'Peter'}]" ) );
         assertEquals( "Peter", GET( "/users/{id}", "M5zQapPyTZI" ).content().as( JsonUser.class ).getSurname() );
@@ -249,7 +248,6 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
     @Test
     void testPatchObject()
     {
-        // TODO: 12098 needs merge instead update
         String id = getCurrentUser().getUid();
         assertStatus( HttpStatus.OK, PATCH( "/users/" + id + "?importReportMode=ERRORS",
             "[{'op': 'add', 'path': '/firstName', 'value': 'Fancy Mike'}]" ) );

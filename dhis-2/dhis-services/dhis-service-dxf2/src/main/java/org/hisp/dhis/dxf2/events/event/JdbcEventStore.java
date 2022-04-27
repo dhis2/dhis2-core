@@ -1945,7 +1945,6 @@ public class JdbcEventStore implements EventStore
             String path = "ou.path LIKE '";
             for ( OrganisationUnit organisationUnit : organisationUnits )
             {
-                // todo: check why we loose session here 12098
                 OrganisationUnit unit = organisationUnitStore.getByUid( organisationUnit.getUid() );
 
                 if ( params.isOrganisationUnitMode( OrganisationUnitSelectionMode.DESCENDANTS ) )

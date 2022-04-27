@@ -423,9 +423,10 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
         }
         else
         {
-            // TODO: #12098 This is a hack to make sure that the translations
+            // 12098 This is a hack to make sure that the translations
             // are always returned in the correct language ???
             // setTranslationParams( null, new TranslateParams( false ) );
+            // Is it needed now?
         }
 
         try

@@ -54,7 +54,6 @@ import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -138,7 +137,6 @@ class DeduplicationServiceMergeIntegrationTest extends IntegrationTestBase
     }
 
     @Test
-    @Disabled( "TODO: 12098_BROKEN" )
     void shouldManualMergeWithUserGroupOfProgram()
         throws PotentialDuplicateConflictException,
         PotentialDuplicateForbiddenException

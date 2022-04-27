@@ -540,14 +540,8 @@ public class HibernateUserStore
         query.where( builder.equal( root.get( "id" ), user.getId() ) );
         query.select( builder.array( root.get( "uid" ), root.join( "groups", JoinType.LEFT ).get( "uid" ) ) );
 
-        // StatelessSession session = getStatelessSession();
         Session session = getSession();
-        // Transaction transaction = session.beginTransaction();
-        // transaction.begin();
-
         List<Object[]> results = session.createQuery( query ).getResultList();
-
-        // transaction.commit();
 
         CurrentUserGroupInfo currentUserGroupInfo = new CurrentUserGroupInfo();
 

@@ -31,7 +31,6 @@ import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -49,13 +48,10 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DateRange;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.dataapproval.DataApprovalService;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataInputPeriod;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.dataset.LockExceptionStore;
-import org.hisp.dhis.datavalue.AggregateAccessManager;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.datavalue.DataValue;
@@ -85,33 +81,28 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  * @author Jan Bernitt
  */
-@Disabled( "TODO: fix this test 12098, issues with org unit service not mockable" )
+// @Disabled( "TODO: fix this test 12098, issues with org unit service not
+// mockable" )
 class DataValueSetImportValidatorTest extends DhisSpringTest
 {
 
     @Autowired
     private AclService aclService;
 
-    private AggregateAccessManager accessManager;
-
-    private LockExceptionStore lockExceptionStore;
-
-    private DataApprovalService apprDovalService;
-
     @Autowired
     private DataValueService dataValueService;
 
-    private I18n i18n;
-
     @Autowired
     private DataValueSetImportValidator validator;
+
+    private I18n i18n;
 
     @BeforeEach
     void setUp()
     {
         i18n = mock( I18n.class );
-        // setupUserCanWriteCategoryOptions( true );
-
+        // // setupUserCanWriteCategoryOptions( true );
+        //
         when( i18n.getString( anyString() ) ).thenAnswer( invocation -> invocation.getArgument( 0, String.class ) );
     }
 
@@ -130,10 +121,11 @@ class DataValueSetImportValidatorTest extends DhisSpringTest
     }
 
     @Test
+    @Disabled( "TODO: fix this test, not mockable anymore 12098" )
     void testValidateDataSetIsAccessibleByUser()
     {
         // simulate that user does not have access:
-        when( aclService.canDataRead( any(), any() ) ).thenReturn( false );
+        // when( aclService.canDataRead( any(), any() ) ).thenReturn( false );
         DataValueSet dataValueSet = createEmptyDataValueSet();
         ImportContext context = createMinimalImportContext( null ).build();
         DataSetContext dataSetContext = createMinimalDataSetContext( dataValueSet ).build();
@@ -145,7 +137,7 @@ class DataValueSetImportValidatorTest extends DhisSpringTest
     @Test
     void testValidateDataSetExistsStrictDataElements()
     {
-        when( aclService.canDataRead( any(), any() ) ).thenReturn( true );
+        // when( aclService.canDataRead( any(), any() ) ).thenReturn( true );
         DataValueSet dataValueSet = new DataValueSet();
         ImportContext context = createMinimalImportContext( null ).strictDataElements( true ).build();
         DataSetContext dataSetContext = createMinimalDataSetContext( dataValueSet ).build();
@@ -156,7 +148,7 @@ class DataValueSetImportValidatorTest extends DhisSpringTest
     @Test
     void testValidateDataSetOrgUnitExists()
     {
-        when( aclService.canDataRead( any(), any() ) ).thenReturn( true );
+        // when( aclService.canDataRead( any(), any() ) ).thenReturn( true );
         DataValueSet dataValueSet = new DataValueSet();
         dataValueSet.setOrgUnit( CodeGenerator.generateUid() );
         ImportContext context = createMinimalImportContext( null ).build();
@@ -169,7 +161,7 @@ class DataValueSetImportValidatorTest extends DhisSpringTest
     @Test
     void testValidateDataSetAttrOptionComboExists()
     {
-        when( aclService.canDataRead( any(), any() ) ).thenReturn( true );
+        // when( aclService.canDataRead( any(), any() ) ).thenReturn( true );
         DataValueSet dataValueSet = new DataValueSet();
         dataValueSet.setAttributeOptionCombo( CodeGenerator.generateUid() );
         ImportContext context = createMinimalImportContext( null ).build();
@@ -244,13 +236,13 @@ class DataValueSetImportValidatorTest extends DhisSpringTest
     }
 
     @Test
+    @Disabled( "TODO: fix this test, not mockable anymore 12098" )
     void testValidateDataValueCategoryOptionComboAccess()
     {
         DataValue dataValue = createRandomDataValue();
         DataValueContext valueContext = createDataValueContext( dataValue ).build();
         DataSetContext dataSetContext = createMinimalDataSetContext().build();
         ImportContext context = createMinimalImportContext( valueContext ).build();
-        setupUserCanWriteCategoryOptions( false );
         assertTrue( validator.skipDataValue( dataValue, context, dataSetContext, valueContext ) );
         assertConflict( ErrorCode.E7614, "Category option combo: `<object1>` option not accessible: `<object2>`",
             context, dataValue.getCategoryOptionCombo(),
@@ -258,6 +250,7 @@ class DataValueSetImportValidatorTest extends DhisSpringTest
     }
 
     @Test
+    @Disabled( "TODO: fix this test, not mockable anymore 12098" )
     void testValidateDataValueAttrOptionComboAccess()
     {
         DataValue dataValue = createRandomDataValue();
@@ -266,7 +259,6 @@ class DataValueSetImportValidatorTest extends DhisSpringTest
         DataValueContext valueContext = createDataValueContext( dataValue ).build();
         DataSetContext dataSetContext = createMinimalDataSetContext().build();
         ImportContext context = createMinimalImportContext( valueContext ).build();
-        setupUserCanWriteCategoryOptions( false );
         assertTrue( validator.skipDataValue( dataValue, context, dataSetContext, valueContext ) );
         assertConflict( ErrorCode.E7616, "Attribute option combo: `<object1>` option not accessible: `<object2>`",
             context, dataValue.getAttributeOptionCombo(),
@@ -575,9 +567,6 @@ class DataValueSetImportValidatorTest extends DhisSpringTest
         DataSetContext dataSetContext = createMinimalDataSetContext( createEmptyDataValueSet() ).build();
         ImportContext context = createMinimalImportContext( valueContext ).forceDataInput( false )
             .strategy( ImportStrategy.DELETE ).build();
-        when( dataValueService.getDataValue( any( DataElement.class ), any( Period.class ),
-            any( OrganisationUnit.class ), any( CategoryOptionCombo.class ), any( CategoryOptionCombo.class ) ) )
-                .thenReturn( null );
         assertTrue( validator.skipDataValue( dataValue, context, dataSetContext, valueContext ) );
         assertConflict( ErrorCode.E7645,
             "No data value for file resource exist for the given combination for data element: `<object1>`", context,
@@ -676,8 +665,10 @@ class DataValueSetImportValidatorTest extends DhisSpringTest
         User currentUser = new User();
         currentUser.setUsername( "Guest" );
         currentUser.setUid( CodeGenerator.generateUid() );
+
         return ImportContext.builder().summary( new ImportSummary() ).strategy( ImportStrategy.CREATE )
-            .importOptions( new ImportOptions() ).currentUser( currentUser ).i18n( i18n )
+            .importOptions( new ImportOptions() )
+            .currentUser( currentUser ).i18n( i18n )
             .currentOrgUnits( valueContext == null ? null : singleton( valueContext.getOrgUnit() ) )
             .singularNameForType( DataValueSetImportValidatorTest::getSingularNameForType );
     }
@@ -733,10 +724,5 @@ class DataValueSetImportValidatorTest extends DhisSpringTest
         option.setUid( CodeGenerator.generateUid() );
         combo.setCategoryOptions( singleton( option ) );
         return combo;
-    }
-
-    private void setupUserCanWriteCategoryOptions( boolean canWrite )
-    {
-        when( aclService.canDataWrite( any( User.class ), any( CategoryOption.class ) ) ).thenReturn( canWrite );
     }
 }

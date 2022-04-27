@@ -953,10 +953,6 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
     @Disabled( "TODO: fix this test 12098" )
     void testImportDataValuesWithDataSetAllowsPeriods()
     {
-        // clearSecurityContext();
-
-        // injectSecurityContext( superUser );
-
         Date thisMonth = DateUtils.truncate( new Date(), Calendar.MONTH );
         dsA.setExpiryDays( 62 );
         dsA.setOpenFuturePeriods( 2 );

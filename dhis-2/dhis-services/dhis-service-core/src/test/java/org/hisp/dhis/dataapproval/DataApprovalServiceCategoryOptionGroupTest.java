@@ -74,7 +74,6 @@ import org.hisp.dhis.user.UserGroupAccessService;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -83,7 +82,6 @@ import com.google.common.collect.Sets;
 /**
  * @author Jim Grace
  */
-@Disabled( "TODO: fix this test 12098 stale" )
 class DataApprovalServiceCategoryOptionGroupTest extends IntegrationTestBase
 {
 

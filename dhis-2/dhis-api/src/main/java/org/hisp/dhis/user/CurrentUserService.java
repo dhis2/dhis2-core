@@ -80,22 +80,20 @@ public class CurrentUserService
         return CurrentUserUtil.getCurrentUsername();
     }
 
-    // @Transactional( readOnly = true )
     public User getCurrentUser()
     {
         User currentUser = CurrentUserUtil.getCurrentUser();
         boolean contains = sessionFactory.getCurrentSession().contains( currentUser );
         if ( contains )
         {
-            log.info( "User is already in session" );
-            // sessionFactory.getCurrentSession().save( currentUser );
+            log.info( "User in session, this should only happen in integration tests. 12098 hack" );
             try
             {
                 sessionFactory.getCurrentSession().flush();
             }
             catch ( Exception e )
             {
-                log.info( "User is not in session" );
+                log.warn( "Failed to flush session!", e );
             }
             sessionFactory.getCurrentSession().evict( currentUser );
         }
