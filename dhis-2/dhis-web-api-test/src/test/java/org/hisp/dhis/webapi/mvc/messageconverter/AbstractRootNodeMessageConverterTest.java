@@ -34,7 +34,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipInputStream;
 
@@ -83,51 +82,6 @@ class AbstractRootNodeMessageConverterTest
             .useConstructor( nodeService, "other/xzx", "xzx", Compression.GZIP ).defaultAnswer( CALLS_REAL_METHODS ) );
         converterZip = Mockito.mock( AbstractRootNodeMessageConverter.class, withSettings()
             .useConstructor( nodeService, "other/xzx", "xzx", Compression.ZIP ).defaultAnswer( CALLS_REAL_METHODS ) );
-    }
-
-    @Test
-    void isAttachmentNull()
-    {
-        Assertions.assertFalse( MessageConverterUtils.isAttachment( null ) );
-    }
-
-    @Test
-    void isAttachmentInline()
-    {
-        Assertions.assertFalse( MessageConverterUtils.isAttachment( "inline; filename=test.txt" ) );
-    }
-
-    @Test
-    void isAttachment()
-    {
-        Assertions.assertTrue( MessageConverterUtils.isAttachment( "attachment; filename=test.txt" ) );
-    }
-
-    @Test
-    void getExtensibleAttachmentFilenameNull()
-    {
-        Assertions.assertNull( MessageConverterUtils.getExtensibleAttachmentFilename( null, List.of() ) );
-    }
-
-    @Test
-    void getExtensibleAttachmentFilenameInline()
-    {
-        Assertions.assertNull(
-            MessageConverterUtils.getExtensibleAttachmentFilename( "inline; filename=metadata", List.of() ) );
-    }
-
-    @Test
-    void getExtensibleAttachmentFilename()
-    {
-        Assertions.assertEquals( "metadata",
-            MessageConverterUtils.getExtensibleAttachmentFilename( "attachment; filename=metadata", List.of() ) );
-    }
-
-    @Test
-    void getExtensibleAttachmentFilenameOther()
-    {
-        Assertions.assertNull(
-            MessageConverterUtils.getExtensibleAttachmentFilename( "attachment; filename=other", List.of() ) );
     }
 
     @Test
