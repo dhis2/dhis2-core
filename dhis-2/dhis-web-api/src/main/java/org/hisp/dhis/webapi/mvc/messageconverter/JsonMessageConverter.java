@@ -56,6 +56,7 @@ public class JsonMessageConverter extends AbstractRootNodeMessageConverter
     public JsonMessageConverter( @Autowired @Nonnull NodeService nodeService, Compression compression )
     {
         super( nodeService, "application/json", "json", compression );
+
         switch ( getCompression() )
         {
         case NONE:

@@ -240,7 +240,7 @@ public class MetadataImportExportController
     }
 
     @GetMapping
-    public void getMetadata(
+    public ResponseEntity<MetadataExportParams> getMetadata(
         @RequestParam( required = false, defaultValue = "false" ) boolean translate,
         @RequestParam( required = false ) String locale,
         HttpServletResponse response )
@@ -255,8 +255,7 @@ public class MetadataImportExportController
         MetadataExportParams params = metadataExportService.getParamsFromMap( contextService.getParameterValuesMap() );
         metadataExportService.validate( params );
 
-        response.setContentType( APPLICATION_JSON_VALUE );
-        metadataExportService.getMetadataAsObjectNodeStream( params, response.getOutputStream() );
+        return ResponseEntity.ok( params );
     }
 
     @ResponseBody
