@@ -363,7 +363,8 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     }
 
     @GetMapping( "/{uid}" )
-    public @ResponseBody ResponseEntity<ObjectNode> getObject(
+    @SuppressWarnings( "unchecked" )
+    public @ResponseBody ResponseEntity<?> getObject(
         @PathVariable( "uid" ) String pvUid,
         @RequestParam Map<String, String> rpParameters,
         @CurrentUser User currentUser,
@@ -387,7 +388,32 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
 
         cachePrivate( response );
 
-        return ResponseEntity.ok( getObjectInternal( pvUid, rpParameters, filters, fields, currentUser ) );
+        WebOptions options = new WebOptions( rpParameters );
+        List<T> entities = getEntity( pvUid, options );
+
+        if ( entities.isEmpty() )
+        {
+            throw new WebMessageException( notFound( getEntityClass(), pvUid ) );
+        }
+
+        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, new ArrayList<>(),
+            getPaginationData( options ), options.getRootJunction() );
+        query.setUser( currentUser );
+        query.setObjects( entities );
+        query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
+
+        entities = (List<T>) queryService.query( query );
+
+        handleLinksAndAccess( entities, fields, true );
+        handleAttributeValues( entities, fields );
+
+        for ( T entity : entities )
+        {
+            postProcessResponseEntity( entity, options, rpParameters );
+        }
+
+        return ResponseEntity.ok( new StreamingJsonRoot<>( null, null,
+            FieldFilterParams.of( entities, fields ) ) );
     }
 
     @GetMapping( "/{uid}/{property}" )

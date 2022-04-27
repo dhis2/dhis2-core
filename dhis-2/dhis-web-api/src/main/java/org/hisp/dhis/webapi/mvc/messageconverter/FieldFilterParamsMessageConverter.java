@@ -157,12 +157,19 @@ public class FieldFilterParamsMessageConverter extends AbstractHttpMessageConver
     {
         try ( JsonGenerator generator = jsonMapper.getFactory().createGenerator( outputStream ) )
         {
-            generator.writeStartObject();
-            generator.writeObjectField( "pager", jsonRoot.getPager() );
-            generator.writeArrayFieldStart( jsonRoot.getWrapperName() );
-            fieldFilterService.toObjectNodesStream( jsonRoot.getParams(), generator );
-            generator.writeEndArray();
-            generator.writeEndObject();
+            if ( jsonRoot.getPager() == null && jsonRoot.getWrapperName() == null )
+            {
+                fieldFilterService.toObjectNodesStream( jsonRoot.getParams(), generator );
+            }
+            else
+            {
+                generator.writeStartObject();
+                generator.writeObjectField( "pager", jsonRoot.getPager() );
+                generator.writeArrayFieldStart( jsonRoot.getWrapperName() );
+                fieldFilterService.toObjectNodesStream( jsonRoot.getParams(), generator );
+                generator.writeEndArray();
+                generator.writeEndObject();
+            }
         }
     }
 }
