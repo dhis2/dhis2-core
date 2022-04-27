@@ -105,7 +105,7 @@ class RelationshipStoreTest extends TransactionalIntegrationTest
     @Test
     void testGetByTrackedEntityInstance()
     {
-        Relationship teiRelationship = addTeiToTeiRelationShip();
+        Relationship teiRelationship = addTeiToTeiRelationship();
 
         List<Relationship> relationshipList = relationshipService
             .getRelationshipsByTrackedEntityInstance( trackedEntityInstanceA, true );
@@ -128,7 +128,7 @@ class RelationshipStoreTest extends TransactionalIntegrationTest
         trackedEntityInstanceA = createTrackedEntityInstance( organisationUnit );
         trackedEntityInstanceService.addTrackedEntityInstance( trackedEntityInstanceA );
 
-        Relationship relationshipA = addTeiToProgramStageInstanceRelationShip( trackedEntityInstanceA,
+        Relationship relationshipA = addTeiToProgramStageInstanceRelationship( trackedEntityInstanceA,
             programStageInstance );
 
         List<Relationship> relationshipList = relationshipService
@@ -150,7 +150,7 @@ class RelationshipStoreTest extends TransactionalIntegrationTest
 
         ProgramInstance programInstance = addProgramInstance( programA );
 
-        Relationship relationshipA = addTeiToProgramInstanceRelationShip( trackedEntityInstanceA,
+        Relationship relationshipA = addTeiToProgramInstanceRelationship( trackedEntityInstanceA,
             programInstance );
 
         List<Relationship> relationshipList = relationshipService
@@ -165,7 +165,7 @@ class RelationshipStoreTest extends TransactionalIntegrationTest
     @Test
     void testGetByRelationshipType()
     {
-        Relationship teiRelationship = addTeiToTeiRelationShip();
+        Relationship teiRelationship = addTeiToTeiRelationship();
 
         List<Relationship> relationshipList = relationshipService
             .getRelationshipsByRelationshipType( relationshipType );
@@ -177,14 +177,14 @@ class RelationshipStoreTest extends TransactionalIntegrationTest
     @Test
     void testGetByRelationship()
     {
-        Relationship teiRelationship = addTeiToTeiRelationShip();
+        Relationship teiRelationship = addTeiToTeiRelationship();
 
         Optional<Relationship> existing = relationshipService.getRelationshipByRelationship( teiRelationship );
 
         assertTrue( existing.isPresent() );
     }
 
-    private Relationship addTeiToTeiRelationShip()
+    private Relationship addTeiToTeiRelationship()
     {
         trackedEntityInstanceA = createTrackedEntityInstance( organisationUnit );
         trackedEntityInstanceB = createTrackedEntityInstance( organisationUnit );
@@ -209,7 +209,7 @@ class RelationshipStoreTest extends TransactionalIntegrationTest
         return teiRelationship;
     }
 
-    private Relationship addTeiToProgramStageInstanceRelationShip( TrackedEntityInstance entityInstance,
+    private Relationship addTeiToProgramStageInstanceRelationship( TrackedEntityInstance entityInstance,
         ProgramStageInstance programStageInstance )
     {
         RelationshipItem relationshipItemFrom = new RelationshipItem();
@@ -228,7 +228,7 @@ class RelationshipStoreTest extends TransactionalIntegrationTest
         return relationshipA;
     }
 
-    private Relationship addTeiToProgramInstanceRelationShip( TrackedEntityInstance entityInstance,
+    private Relationship addTeiToProgramInstanceRelationship( TrackedEntityInstance entityInstance,
         ProgramInstance programInstance )
     {
         RelationshipItem relationshipItemFrom = new RelationshipItem();
