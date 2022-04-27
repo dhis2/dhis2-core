@@ -27,18 +27,18 @@
  */
 package org.hisp.dhis.webapi.mvc.messageconverter;
 
+import static org.hisp.dhis.webapi.mvc.messageconverter.MessageConverterUtils.getContentDispositionHeaderValue;
+import static org.hisp.dhis.webapi.mvc.messageconverter.MessageConverterUtils.getExtensibleAttachmentFilename;
+import static org.hisp.dhis.webapi.mvc.messageconverter.MessageConverterUtils.isAttachment;
+
 import java.io.IOException;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;
@@ -57,13 +57,6 @@ import com.google.common.collect.ImmutableList;
  */
 public class MetadataExportParamsMessageConverter extends AbstractHttpMessageConverter<MetadataExportParams>
 {
-    private static final Set<String> EXTENSIBLE_ATTACHMENT_FILENAMES = Collections
-        .unmodifiableSet( new HashSet<>( Collections.singleton( "metadata" ) ) );
-
-    public static final ImmutableList<MediaType> SUPPORTED_MEDIA_TYPES = ImmutableList.<MediaType> builder()
-        .add( new MediaType( "application", "json" ) )
-        .build();
-
     public static final ImmutableList<MediaType> GZIP_SUPPORTED_MEDIA_TYPES = ImmutableList.<MediaType> builder()
         .add( new MediaType( "application", "json+gzip" ) )
         .build();
@@ -84,7 +77,7 @@ public class MetadataExportParamsMessageConverter extends AbstractHttpMessageCon
         switch ( compression )
         {
         case NONE:
-            setSupportedMediaTypes( SUPPORTED_MEDIA_TYPES );
+            setSupportedMediaTypes( List.of( MediaType.APPLICATION_JSON ) );
             break;
         case GZIP:
             setSupportedMediaTypes( GZIP_SUPPORTED_MEDIA_TYPES );
@@ -117,7 +110,8 @@ public class MetadataExportParamsMessageConverter extends AbstractHttpMessageCon
         final String contentDisposition = outputMessage.getHeaders()
             .getFirst( ContextUtils.HEADER_CONTENT_DISPOSITION );
         final boolean attachment = isAttachment( contentDisposition );
-        final String extensibleAttachmentFilename = getExtensibleAttachmentFilename( contentDisposition );
+        final String extensibleAttachmentFilename = getExtensibleAttachmentFilename(
+            contentDisposition, List.of( "metadata" ) );
 
         if ( Compression.GZIP == compression )
         {
@@ -157,25 +151,5 @@ public class MetadataExportParamsMessageConverter extends AbstractHttpMessageCon
             metadataExportService.getMetadataAsObjectNodeStream( params, outputMessage.getBody() );
             outputMessage.getBody().close();
         }
-    }
-
-    @Nonnull
-    protected String getContentDispositionHeaderValue( @Nullable String extensibleFilename,
-        @Nullable String compressionExtension )
-    {
-        final String suffix = (compressionExtension == null) ? "" : "." + compressionExtension;
-        return "attachment; filename=" + StringUtils.defaultString( extensibleFilename, "metadata.json" ) + suffix;
-    }
-
-    protected boolean isAttachment( @Nullable String contentDispositionHeaderValue )
-    {
-        return (contentDispositionHeaderValue != null) && contentDispositionHeaderValue.contains( "attachment" );
-    }
-
-    @Nullable
-    protected String getExtensibleAttachmentFilename( @Nullable String contentDispositionHeaderValue )
-    {
-        final String filename = ContextUtils.getAttachmentFileName( contentDispositionHeaderValue );
-        return (filename != null) && EXTENSIBLE_ATTACHMENT_FILENAMES.contains( filename ) ? filename : null;
     }
 }
