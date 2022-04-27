@@ -35,6 +35,7 @@ import static org.hisp.dhis.webapi.mvc.messageconverter.MessageConverterUtils.ge
 import static org.hisp.dhis.webapi.mvc.messageconverter.MessageConverterUtils.isAttachment;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.List;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
@@ -43,19 +44,23 @@ import java.util.zip.ZipOutputStream;
 import javax.annotation.Nonnull;
 
 import org.hisp.dhis.common.Compression;
-import org.hisp.dhis.fieldfiltering.FieldFilterParams;
+import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.hisp.dhis.webapi.webdomain.StreamingJsonRoot;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.converter.AbstractHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 /**
  * @author Morten Olav Hansen
  */
-public class FieldFilterParamsMessageConverter extends AbstractHttpMessageConverter<FieldFilterParams>
+public class FieldFilterParamsMessageConverter extends AbstractHttpMessageConverter<StreamingJsonRoot<?>>
 {
     private final FieldFilterService fieldFilterService;
 
@@ -82,11 +87,11 @@ public class FieldFilterParamsMessageConverter extends AbstractHttpMessageConver
     @Override
     protected boolean supports( Class<?> clazz )
     {
-        return FieldFilterParams.class.equals( clazz );
+        return StreamingJsonRoot.class.equals( clazz );
     }
 
     @Override
-    protected FieldFilterParams readInternal( Class<? extends FieldFilterParams> clazz,
+    protected StreamingJsonRoot<?> readInternal( Class<? extends StreamingJsonRoot<?>> clazz,
         HttpInputMessage inputMessage )
         throws IOException,
         HttpMessageNotReadableException
@@ -95,10 +100,12 @@ public class FieldFilterParamsMessageConverter extends AbstractHttpMessageConver
     }
 
     @Override
-    protected void writeInternal( @Nonnull FieldFilterParams params, HttpOutputMessage outputMessage )
+    protected void writeInternal( @Nonnull StreamingJsonRoot<?> jsonRoot, HttpOutputMessage outputMessage )
         throws IOException,
         HttpMessageNotWritableException
     {
+        ObjectMapper jsonMapper = JacksonObjectMapperConfig.staticJsonMapper();
+
         final String contentDisposition = outputMessage.getHeaders()
             .getFirst( ContextUtils.HEADER_CONTENT_DISPOSITION );
         final boolean attachment = isAttachment( contentDisposition );
@@ -115,7 +122,7 @@ public class FieldFilterParamsMessageConverter extends AbstractHttpMessageConver
             }
 
             GZIPOutputStream outputStream = new GZIPOutputStream( outputMessage.getBody() );
-            fieldFilterService.toObjectNodesStream( params, outputStream );
+            writeJsonRoot( jsonMapper, jsonRoot, outputStream );
             outputStream.close();
         }
         else if ( Compression.ZIP == compression )
@@ -129,7 +136,7 @@ public class FieldFilterParamsMessageConverter extends AbstractHttpMessageConver
 
             ZipOutputStream outputStream = new ZipOutputStream( outputMessage.getBody() );
             outputStream.putNextEntry( new ZipEntry( "metadata.json" ) );
-            fieldFilterService.toObjectNodesStream( params, outputStream );
+            writeJsonRoot( jsonMapper, jsonRoot, outputStream );
             outputStream.close();
         }
         else
@@ -140,8 +147,22 @@ public class FieldFilterParamsMessageConverter extends AbstractHttpMessageConver
                     getContentDispositionHeaderValue( extensibleAttachmentFilename, null ) );
             }
 
-            fieldFilterService.toObjectNodesStream( params, outputMessage.getBody() );
+            writeJsonRoot( jsonMapper, jsonRoot, outputMessage.getBody() );
             outputMessage.getBody().close();
+        }
+    }
+
+    private void writeJsonRoot( ObjectMapper jsonMapper, StreamingJsonRoot<?> jsonRoot, OutputStream outputStream )
+        throws IOException
+    {
+        try ( JsonGenerator generator = jsonMapper.getFactory().createGenerator( outputStream ) )
+        {
+            generator.writeStartObject();
+            generator.writeObjectField( "pager", jsonRoot.getPager() );
+            generator.writeArrayFieldStart( jsonRoot.getWrapperName() );
+            fieldFilterService.toObjectNodesStream( jsonRoot.getParams(), generator );
+            generator.writeEndArray();
+            generator.writeEndObject();
         }
     }
 }
