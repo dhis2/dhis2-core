@@ -23,13 +23,11 @@
             <groupId>org.hisp.dhis</groupId>
             <artifactId>dhis-web-commons</artifactId>
         </dependency>
-
         <dependency>
             <groupId>org.hisp.dhis</groupId>
             <artifactId>dhis-web-commons-resources</artifactId>
             <type>war</type>
         </dependency>
-
         <dependency>
             <groupId>org.hisp.dhis</groupId>
             <artifactId>dhis-web-api</artifactId>
@@ -39,21 +37,12 @@
             <artifactId>log4j-slf4j-impl</artifactId>
             <scope>compile</scope>
         </dependency>
-
         <dependency>
             <groupId>org.hisp.dhis</groupId>
             <artifactId>dhis-web-dataentry</artifactId>
             <version>${project.version}</version>
             <type>war</type>
         </dependency>
-
-        <dependency>
-            <groupId>org.hisp.dhis</groupId>
-            <artifactId>dhis-web-approval</artifactId>
-            <version>${project.version}</version>
-            <type>war</type>
-        </dependency>
-
         <dependency>
             <groupId>org.hisp.dhis</groupId>
             <artifactId>dhis-web-apps</artifactId>
