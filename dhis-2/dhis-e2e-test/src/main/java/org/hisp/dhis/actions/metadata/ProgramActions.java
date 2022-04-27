@@ -99,7 +99,7 @@ public class ProgramActions
         JsonObject body = new JsonObjectBuilder( buildProgram( "WITHOUT_REGISTRATION", null, orgUnitsIds ) ).build();
         ApiResponse response = post( body );
 
-        createProgramStage( response.extractUid(), "DEFAULT STAGE" );
+        createProgramStage( response.extractUid(), "DEFAULT STAGE" + response.extractUid() );
 
         return response;
     }

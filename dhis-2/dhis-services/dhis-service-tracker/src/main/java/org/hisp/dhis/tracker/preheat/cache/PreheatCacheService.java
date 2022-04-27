@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.preheat.cache;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.BiFunction;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
@@ -48,6 +49,24 @@ public interface PreheatCacheService
      *
      */
     Optional<IdentifiableObject> get( String cacheKey, String id );
+
+    /**
+     * Returns the metadata value cached in {@code cacheKey} mapped to
+     * {@code id}, obtaining that value from the {@code mappingFunction} if
+     * necessary. This method provides a simple substitute for the conventional
+     * "if cached, return; otherwise create, cache and return" pattern. If
+     * metadata value is null, the given mapping function is evaluated and
+     * inserted into this cache unless {@code null}.
+     *
+     * @param cacheKey the cacheKey for retrieving the cache
+     * @param id the identifier for retrieving the metadata value from the cache
+     * @param mappingFunction the function to compute a value.
+     * @return an optional containing current (existing or computed) value, or
+     *         Optional.empty() if the computed value is null
+     * @throws IllegalArgumentException if the specified mappingFunction is null
+     */
+    Optional<IdentifiableObject> get( String cacheKey, String id,
+        BiFunction<String, String, Optional<IdentifiableObject>> mappingFunction, int cacheTTL, long capacity );
 
     /**
      * Check whether a class type is part of the cache

@@ -154,26 +154,6 @@ public class SystemSettingsTests
     }
 
     @Test
-    @Disabled( "This test is broken and will only return 200 OK because the servlet redirects to the login page. //TODO: Remove" )
-    public void returnDefaultValueWhenUserIsNotLoggedIn()
-    {
-        prepareData();
-
-        // I need to log out
-        loginActions.removeAuthenticationHeader();
-
-        ApiResponse response = systemSettingActions.get(
-            APPLICATION_INTRO_KEY,
-            ContentType.TEXT.toString(),
-            ContentType.TEXT.toString(),
-            new QueryParamsBuilder() );
-
-        response
-            .validate()
-            .statusCode( 200 );
-    }
-
-    @Test
     public void returnDefaultValueWhenTranslationIsNotAvailable()
     {
         prepareData();

@@ -29,7 +29,9 @@ package org.hisp.dhis.helpers.file;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.logging.Logger;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import org.hisp.dhis.actions.IdGenerator;
 import org.hisp.dhis.utils.DataGenerator;
@@ -42,7 +44,7 @@ import com.google.gson.JsonParser;
  */
 public class FileReaderUtils
 {
-    private Logger logger = Logger.getLogger( FileReaderUtils.class.getName() );
+    private Logger logger = LogManager.getLogger( FileReaderUtils.class.getName() );
 
     public FileReader read( File file )
         throws Exception
@@ -63,7 +65,7 @@ public class FileReaderUtils
             return new XmlFileReader( file );
         }
 
-        logger.warning(
+        logger.warn(
             "Tried to read file " + file.getName() + ", but there is no reader implemented for this file type. " );
 
         return null;

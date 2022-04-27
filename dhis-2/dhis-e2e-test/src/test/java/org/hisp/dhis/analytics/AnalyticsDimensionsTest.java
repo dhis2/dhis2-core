@@ -44,6 +44,7 @@ import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.matchers.CustomMatchers;
 import org.hisp.dhis.helpers.matchers.Sorted;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -61,6 +62,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
+@Tag( "category:analytics" )
 public class AnalyticsDimensionsTest
     extends ApiTest
 {

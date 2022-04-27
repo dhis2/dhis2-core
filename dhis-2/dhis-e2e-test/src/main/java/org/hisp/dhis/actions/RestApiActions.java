@@ -45,6 +45,7 @@ import org.hisp.dhis.helpers.QueryParamsBuilder;
 import java.io.File;
 import java.util.List;
 
+
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.oneOf;
 
@@ -172,6 +173,11 @@ public class RestApiActions
         Response response = this.given().contentType( ContentType.TEXT ).when().get( resourceId + path );
 
         return new ApiResponse( response );
+    }
+
+    public ApiResponse get( QueryParamsBuilder queryParamsBuilder )
+    {
+        return this.get( "", queryParamsBuilder);
     }
 
     /**

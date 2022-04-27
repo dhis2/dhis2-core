@@ -28,8 +28,9 @@
 package org.hisp.dhis.helpers;
 
 import java.util.*;
-import java.util.logging.Logger;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.hisp.dhis.TestRunStorage;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.MaintenanceActions;
@@ -41,7 +42,7 @@ import org.hisp.dhis.dto.ApiResponse;
  */
 public class TestCleanUp
 {
-    private Logger logger = Logger.getLogger( TestCleanUp.class.getName() );
+    private Logger logger = LogManager.getLogger( TestCleanUp.class.getName() );
 
     private int deleteCount = 0;
 
@@ -135,7 +136,7 @@ public class TestCleanUp
             return true;
         }
 
-        logger.warning( String.format(
+        logger.warn( String.format(
             "Entity from resource %s with id %s was not deleted. Status code: %s",
             resource, id, response.statusCode() ) );
 
