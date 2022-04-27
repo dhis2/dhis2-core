@@ -34,6 +34,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipInputStream;
 
@@ -87,44 +88,46 @@ class AbstractRootNodeMessageConverterTest
     @Test
     void isAttachmentNull()
     {
-        Assertions.assertFalse( converter.isAttachment( null ) );
+        Assertions.assertFalse( MessageConverterUtils.isAttachment( null ) );
     }
 
     @Test
     void isAttachmentInline()
     {
-        Assertions.assertFalse( converter.isAttachment( "inline; filename=test.txt" ) );
+        Assertions.assertFalse( MessageConverterUtils.isAttachment( "inline; filename=test.txt" ) );
     }
 
     @Test
     void isAttachment()
     {
-        Assertions.assertTrue( converter.isAttachment( "attachment; filename=test.txt" ) );
+        Assertions.assertTrue( MessageConverterUtils.isAttachment( "attachment; filename=test.txt" ) );
     }
 
     @Test
     void getExtensibleAttachmentFilenameNull()
     {
-        Assertions.assertNull( converter.getExtensibleAttachmentFilename( null ) );
+        Assertions.assertNull( MessageConverterUtils.getExtensibleAttachmentFilename( null, List.of() ) );
     }
 
     @Test
     void getExtensibleAttachmentFilenameInline()
     {
-        Assertions.assertNull( converter.getExtensibleAttachmentFilename( "inline; filename=metadata" ) );
+        Assertions.assertNull(
+            MessageConverterUtils.getExtensibleAttachmentFilename( "inline; filename=metadata", List.of() ) );
     }
 
     @Test
     void getExtensibleAttachmentFilename()
     {
         Assertions.assertEquals( "metadata",
-            converter.getExtensibleAttachmentFilename( "attachment; filename=metadata" ) );
+            MessageConverterUtils.getExtensibleAttachmentFilename( "attachment; filename=metadata", List.of() ) );
     }
 
     @Test
     void getExtensibleAttachmentFilenameOther()
     {
-        Assertions.assertNull( converter.getExtensibleAttachmentFilename( "attachment; filename=other" ) );
+        Assertions.assertNull(
+            MessageConverterUtils.getExtensibleAttachmentFilename( "attachment; filename=other", List.of() ) );
     }
 
     @Test
