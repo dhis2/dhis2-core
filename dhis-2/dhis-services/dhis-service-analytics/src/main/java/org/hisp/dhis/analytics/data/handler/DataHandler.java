@@ -711,7 +711,7 @@ public class DataHandler
                         totalOfDayInPeriod += period.getDaysInPeriod();
                     }
 
-                    target += target * totalOfDayInPeriod;
+                    target = target * totalOfDayInPeriod;
                 }
             }
         }
