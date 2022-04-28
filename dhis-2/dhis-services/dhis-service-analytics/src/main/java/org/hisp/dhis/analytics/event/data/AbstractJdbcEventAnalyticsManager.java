@@ -897,12 +897,12 @@ public abstract class AbstractJdbcEventAnalyticsManager
     }
 
     /**
-     * Return SQL string based on Items and its params
+     * Return SQL string based on both query items and filters
      *
      * @param params a {@see EventQueryParams}
      * @param hlp a {@see SqlHelper}
      */
-    protected String getItemsAndItemFiltersSql( EventQueryParams params, SqlHelper hlp )
+    protected String getStatementForDimensionsAndFilters(EventQueryParams params, SqlHelper hlp )
     {
         if ( params.isEnhancedCondition() )
         {

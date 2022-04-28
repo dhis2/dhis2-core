@@ -286,7 +286,7 @@ public class JdbcEnrollmentAnalyticsManager
         // Query items and filters
         // ---------------------------------------------------------------------
 
-        sql += getItemsAndItemFiltersSql( params, hlp );
+        sql += getStatementForDimensionsAndFilters( params, hlp );
 
         // ---------------------------------------------------------------------
         // Filter expression

@@ -406,7 +406,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
         EventQueryParams queryParams = new EventQueryParams.Builder()
             .addItem( buildQueryItemWithGroupAndFilters( "item", UUID.randomUUID(), Collections.emptyList() ) )
             .build();
-        assertEquals( "", subject.getItemsAndItemFiltersSql( queryParams, new SqlHelper() ) );
+        assertEquals( "", subject.getStatementForDimensionsAndFilters( queryParams, new SqlHelper() ) );
     }
 
     @Test
@@ -418,7 +418,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
                 UUID.randomUUID(),
                 List.of( buildEqQueryFilter( "A" ) ) ) )
             .build();
-        String result = subject.getItemsAndItemFiltersSql( queryParams, new SqlHelper() );
+        String result = subject.getStatementForDimensionsAndFilters( queryParams, new SqlHelper() );
         assertEquals( "where ax.\"item\" = 'A' ", result );
     }
 
@@ -433,7 +433,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
                     buildEqQueryFilter( "A" ),
                     buildEqQueryFilter( "B" ) ) ) )
             .build();
-        String result = subject.getItemsAndItemFiltersSql( queryParams, new SqlHelper() );
+        String result = subject.getStatementForDimensionsAndFilters( queryParams, new SqlHelper() );
         assertEquals( "where ax.\"item\" = 'A'  and ax.\"item\" = 'B' ", result );
     }
 
@@ -450,7 +450,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
             .withEnhancedConditions( true )
             .build();
 
-        String result = subject.getItemsAndItemFiltersSql( queryParams, new SqlHelper() );
+        String result = subject.getStatementForDimensionsAndFilters( queryParams, new SqlHelper() );
         assertEquals( "where (ax.\"item\" = 'A'  and ax.\"item\" = 'B' )", result );
     }
 
@@ -472,7 +472,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
             .withEnhancedConditions( true )
             .build();
 
-        String result = subject.getItemsAndItemFiltersSql( queryParams, new SqlHelper() );
+        String result = subject.getStatementForDimensionsAndFilters( queryParams, new SqlHelper() );
         assertEquals( "where (ax.\"item1\" = 'A'  or ax.\"item2\" = 'B' )", result );
     }
 
@@ -501,7 +501,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
             .withEnhancedConditions( true )
             .build();
 
-        String result = subject.getItemsAndItemFiltersSql( queryParams, new SqlHelper() );
+        String result = subject.getStatementForDimensionsAndFilters( queryParams, new SqlHelper() );
         assertTrue( result.contains( "(ax.\"item1\" = 'A'  or ax.\"item2\" = 'B' )" ) );
         assertTrue( result.contains( "(ax.\"item3\" = 'C'  or ax.\"item4\" = 'D' )" ) );
     }

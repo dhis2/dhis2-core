@@ -492,7 +492,7 @@ public class JdbcEventAnalyticsManager
         // Query items and filters
         // ---------------------------------------------------------------------
 
-        sql += getItemsAndItemFiltersSql( params, hlp );
+        sql += getStatementForDimensionsAndFilters( params, hlp );
 
         // ---------------------------------------------------------------------
         // Filter expression
