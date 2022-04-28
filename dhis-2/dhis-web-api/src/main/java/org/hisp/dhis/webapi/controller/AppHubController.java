@@ -30,7 +30,6 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.List;
 
@@ -75,7 +74,6 @@ public class AppHubController
      */
     @GetMapping( produces = APPLICATION_JSON_VALUE )
     public List<WebApp> listAppHub()
-        throws IOException
     {
         return appHubService.getAppHub();
     }
