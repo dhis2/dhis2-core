@@ -11,6 +11,7 @@ pipeline {
 
     environment {
         MAVEN_OPTS = '-Xms1024m -Xmx4096m'
+        GITHUB_TOKEN = credentials('github-token')
     }
 
     stages {
