@@ -60,13 +60,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * @author Morten Olav Hansen
  */
-public class FieldFilterParamsMessageConverter extends AbstractHttpMessageConverter<StreamingJsonRoot<?>>
+public class StreamingJsonRootMessageConverter extends AbstractHttpMessageConverter<StreamingJsonRoot<?>>
 {
     private final FieldFilterService fieldFilterService;
 
     private final Compression compression;
 
-    public FieldFilterParamsMessageConverter( FieldFilterService fieldFilterService, Compression compression )
+    public StreamingJsonRootMessageConverter( FieldFilterService fieldFilterService, Compression compression )
     {
         this.fieldFilterService = fieldFilterService;
         this.compression = compression;
