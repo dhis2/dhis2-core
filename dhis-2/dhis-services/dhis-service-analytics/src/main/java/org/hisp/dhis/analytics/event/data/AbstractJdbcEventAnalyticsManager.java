@@ -902,7 +902,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
      * @param params a {@see EventQueryParams}
      * @param hlp a {@see SqlHelper}
      */
-    protected String getStatementForDimensionsAndFilters(EventQueryParams params, SqlHelper hlp )
+    protected String getStatementForDimensionsAndFilters( EventQueryParams params, SqlHelper hlp )
     {
         if ( params.isEnhancedCondition() )
         {
