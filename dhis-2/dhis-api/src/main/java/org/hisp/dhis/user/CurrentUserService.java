@@ -125,7 +125,6 @@ public class CurrentUserService
         return user != null && user.isAuthorized( auth );
     }
 
-    // @Transactional( readOnly = true, propagation = REQUIRES_NEW )
     public CurrentUserGroupInfo getCurrentUserGroupsInfo()
     {
         User currentUser = getCurrentUser();
@@ -138,7 +137,6 @@ public class CurrentUserService
             .get( currentUser.getUsername(), this::getCurrentUserGroupsInfo );
     }
 
-    // @Transactional( readOnly = true )
     public CurrentUserGroupInfo getCurrentUserGroupsInfo( User user )
     {
         if ( user == null )
