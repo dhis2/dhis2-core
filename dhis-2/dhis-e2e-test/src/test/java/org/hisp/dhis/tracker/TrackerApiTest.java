@@ -25,48 +25,40 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.workinglists;
 
-import java.io.File;
+package org.hisp.dhis.tracker;
 
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
-import org.hisp.dhis.dto.ApiResponse;
-import org.hisp.dhis.helpers.ResponseValidationHelper;
-import org.hisp.dhis.helpers.file.FileReaderUtils;
-import org.hisp.dhis.tracker.TrackerApiTest;
+import org.hisp.dhis.actions.metadata.ProgramActions;
+import org.hisp.dhis.actions.tracker.EventActions;
+import org.hisp.dhis.actions.tracker.TEIActions;
+import org.hisp.dhis.actions.tracker.importer.TrackerActions;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-
-import com.google.gson.JsonObject;
+import org.junit.jupiter.api.Tag;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class EventFiltersTest
-    extends TrackerApiTest
+@Tag( "category:tracker" )
+public class TrackerApiTest
+    extends ApiTest
 {
-    private RestApiActions eventFiltersActions;
-
-    private String pathToFile = "src/test/resources/tracker/workinglists/eventFilters.json";
+    protected RestApiActions enrollmentActions;
+    protected EventActions eventActions;
+    protected TEIActions teiActions;
+    protected LoginActions loginActions;
+    protected ProgramActions programActions;
 
     @BeforeAll
-    public void beforeAll()
+    public void beforeTracker()
     {
-        eventFiltersActions = new RestApiActions( "/eventFilters" );
-
-        loginActions.loginAsSuperUser();
+        teiActions = new TEIActions();
+        loginActions = new LoginActions();
+        programActions = new ProgramActions();
+        eventActions = new EventActions();
+        enrollmentActions = new RestApiActions( "/enrollments" );
     }
 
-    @Test
-    public void eventFilterCanBeSaved()
-        throws Exception
-    {
-        JsonObject body = new FileReaderUtils().readJsonAndGenerateData( new File( pathToFile ) );
-
-        ApiResponse response = eventFiltersActions.post( body );
-
-        ResponseValidationHelper.validateObjectCreation( response );
-    }
 }

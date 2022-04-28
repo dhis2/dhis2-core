@@ -49,10 +49,13 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.io.File;
-import java.time.Instant;
+import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 
-import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.hasItems;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
@@ -137,16 +140,22 @@ public class EnrollmentsTests
         String teiId = importTei();
         // act
 
+        String enrollmentDate = LocalDate.now().plus( 2, ChronoUnit.DAYS ).toString();
+
         JsonObject enrollment = new EnrollmentDataBuilder()
             .setTei( teiId )
-            .setEnrollmentDate( Instant.now().plus( 2, ChronoUnit.DAYS ).toString() )
-            .addEvent( new EventDataBuilder().setProgram( multipleEnrollmentsProgram ).setOu( Constants.ORG_UNIT_IDS[0] )
+            .setEnrollmentDate( enrollmentDate )
+            .addEvent( new EventDataBuilder()
+                .setProgram( multipleEnrollmentsProgram )
+                .setOu( Constants.ORG_UNIT_IDS[0] )
                 .setProgramStage( multipleEnrollmentsProgramStage ) )
+
             .array( multipleEnrollmentsProgram, Constants.ORG_UNIT_IDS[0] );
 
         // assert
         TrackerApiResponse response = trackerActions
             .postAndGetJobReport( enrollment, new QueryParamsBuilder().add( "async", "false" ) );
+
         if ( Boolean.parseBoolean( shouldAddFutureDays ) )
         {
             response.validateSuccessfulImport();
@@ -156,7 +165,8 @@ public class EnrollmentsTests
 
         response.validateErrorReport()
             .body( "errorCode", hasSize( 1 ) )
-            .body( "errorCode", hasItems( "E1020" ) );
+            .body( "errorCode", hasItems( "E1020" ) )
+            .body( "message", hasItems( containsString( enrollmentDate ) ) );
     }
 
     @Test

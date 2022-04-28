@@ -57,21 +57,6 @@
           ]
         }
       ],
-      "relationships": [
-        {
-          "relationshipType": "xLmPUYJX8Ks",
-          "from": {
-            "trackedEntity": {
-              "trackedEntity": "Kj6vYde4LHh"
-            }
-          },
-          "to": {
-            "trackedEntity": {
-              "trackedEntity": "Nav6inZRw1u"
-            }
-          }
-        }
-      ],
       "attributes": [
         {
           "displayName": "TA First name",

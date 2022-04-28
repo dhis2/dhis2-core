@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.tracker.importer;
 
+import com.epam.reportportal.annotations.attribute.Attribute;
+import com.epam.reportportal.annotations.attribute.Attributes;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.hisp.dhis.Constants;
@@ -41,6 +43,7 @@ import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.hisp.dhis.tracker.TrackerNtiApiTest;
 import org.hisp.dhis.tracker.importer.databuilder.TeiDataBuilder;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
@@ -52,6 +55,7 @@ import static org.hamcrest.Matchers.hasSize;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
+
 public class SideEffectsTests
     extends TrackerNtiApiTest
 {
