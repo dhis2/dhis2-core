@@ -135,7 +135,9 @@ public class MessageConversationController
     protected void postProcessResponseEntity( org.hisp.dhis.message.MessageConversation entity, WebOptions options,
         Map<String, String> parameters )
     {
-        if ( !messageService.hasAccessToManageFeedbackMessages( currentUserService.getCurrentUser() ) )
+        User currentUser = currentUserService.getCurrentUser();
+
+        if ( !messageService.hasAccessToManageFeedbackMessages( currentUser ) )
         {
             entity.setMessages( entity.getMessages().stream().filter( message -> !message.isInternal() ).collect(
                 Collectors.toList() ) );
@@ -145,7 +147,7 @@ public class MessageConversationController
 
         if ( markRead )
         {
-            entity.markRead( currentUserService.getCurrentUser() );
+            entity.markRead( currentUser );
             manager.update( entity );
         }
     }
