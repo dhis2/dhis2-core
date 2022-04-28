@@ -316,11 +316,6 @@ public class DefaultObjectBundleService implements ObjectBundleService
                 }
             }
 
-            boolean contains1 = dbmsManager.contains( persistedObject );
-            User currentUser = currentUserService.getCurrentUser();
-            boolean contains2 = dbmsManager.contains( currentUser );
-
-            // session.update( persistedObject );
             session.merge( persistedObject );
 
             bundle.getPreheat().replace( bundle.getPreheatIdentifier(), persistedObject );
