@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller.user;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+import static org.hisp.dhis.user.User.populateUserCredentialsDtoFields;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 import static org.springframework.http.CacheControl.noStore;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -224,6 +225,8 @@ public class MeController
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
 
         User user = renderService.fromJson( request.getInputStream(), User.class );
+        populateUserCredentialsDtoFields( user );
+
         merge( currentUser, user );
 
         if ( user.getWhatsApp() != null && !ValidationUtils.validateWhatsapp( user.getWhatsApp() ) )
