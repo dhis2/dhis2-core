@@ -30,31 +30,31 @@ package org.hisp.dhis.dxf2.metadata;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.RequiredArgsConstructor;
+
 import org.hibernate.Session;
 import org.hisp.dhis.category.CategoryDimension;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.BaseAnalyticalObject;
 import org.hisp.dhis.common.DataDimensionItem;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.preheat.PreheatService;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeDimension;
 import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramIndicatorDimension;
+import org.hisp.dhis.visualization.Visualization;
 import org.springframework.stereotype.Component;
 
-import com.google.common.base.Preconditions;
-
 @Component
+@RequiredArgsConstructor
 public class DefaultAnalyticalObjectImportHandler implements AnalyticalObjectImportHandler
 {
     private final PreheatService preheatService;
 
-    public DefaultAnalyticalObjectImportHandler( PreheatService preheatService )
-    {
-        Preconditions.checkNotNull( preheatService );
-        this.preheatService = preheatService;
-    }
+    private final IdentifiableObjectManager objectManager;
 
     @Override
     public void handleAnalyticalObject( Session session, Schema schema, BaseAnalyticalObject analyticalObject,
@@ -65,6 +65,51 @@ public class DefaultAnalyticalObjectImportHandler implements AnalyticalObjectImp
         handleDataElementDimensions( session, schema, analyticalObject, bundle );
         handleAttributeDimensions( session, schema, analyticalObject, bundle );
         handleProgramIndicatorDimensions( session, schema, analyticalObject, bundle );
+        handleVisualisationLegendSet( schema, analyticalObject, bundle );
+    }
+
+    /**
+     * When saving a {@link Visualization} if its property legendDefinitions has
+     * reference to a {@link LegendSet} then we need to make sure that LegendSet
+     * object existed in database.
+     *
+     * @param schema current analytic object {@link Schema}
+     * @param analyticalObject the analytic object to be processed
+     * @param bundle current {@link ObjectBundle}
+     */
+    private void handleVisualisationLegendSet( Schema schema, BaseAnalyticalObject analyticalObject,
+        ObjectBundle bundle )
+    {
+        if ( !schema.getKlass().isAssignableFrom( Visualization.class ) )
+        {
+            return;
+        }
+
+        Visualization visualization = (Visualization) analyticalObject;
+
+        if ( visualization.getLegendDefinitions() == null
+            || visualization.getLegendDefinitions().getLegendSet() == null )
+        {
+            return;
+        }
+
+        String legendSetId = visualization.getLegendDefinitions().getLegendSet().getUid();
+        LegendSet legendSet = bundle.getPreheat().get( bundle.getPreheatIdentifier(), LegendSet.class, legendSetId );
+        legendSet = legendSet != null ? legendSet : objectManager.get( LegendSet.class, legendSetId );
+
+        if ( legendSet == null )
+        {
+            preheatService.connectReferences( visualization.getLegendDefinitions().getLegendSet(), bundle.getPreheat(),
+                bundle.getPreheatIdentifier() );
+            objectManager.save( visualization.getLegendDefinitions().getLegendSet() );
+        }
+        else
+        {
+            visualization.getLegendDefinitions().setLegendSet( legendSet );
+        }
+
+        bundle.getPreheat().put( bundle.getPreheatIdentifier(), visualization.getLegendDefinitions().getLegendSet() );
+
     }
 
     private void handleDataDimensionItems( Session session, Schema schema, BaseAnalyticalObject analyticalObject,
