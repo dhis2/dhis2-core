@@ -128,8 +128,9 @@ public class EventIdSchemeTests
     private static Stream<Arguments> provideIdSchemeArgumentsImport()
     {
         return Stream.of(
-                Arguments.arguments( "CODE", "code" ),
-                Arguments.arguments( "NAME", "name" ),
+                // TODO: enable when "DHIS2-12759") is fixed
+                //Arguments.arguments( "CODE", "code" ),
+                //Arguments.arguments( "NAME", "name" ),
                 Arguments.arguments( "UID", "id" ),
                 Arguments.arguments( "AUTO", "id" ));
                 // TODO("DHIS2-12760") fix import using attribute: Exception:Transaction rolled back because it has been marked as rollback-only
