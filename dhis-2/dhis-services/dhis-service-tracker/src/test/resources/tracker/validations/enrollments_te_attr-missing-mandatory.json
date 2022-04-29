@@ -41,7 +41,10 @@
         "identifier": "E8o1E9tAppy"
       },
       "status": "ACTIVE",
-      "orgUnit": "QfUVllTs6cS",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "QfUVllTs6cS"
+      },
       "enrolledAt": "2019-08-19T00:00:00.000",
       "occurredAt": "2019-08-19T00:00:00.000",
       "followUp": false,
