@@ -197,7 +197,7 @@ class EnrollmentAnalyticsManagerTest extends
 
         if ( valueType == ValueType.NUMBER )
         {
-            subSelect = "coalesce(" + subSelect + ", double precision 'NaN') as fWIAEtYVEGk";
+            subSelect = "coalesce(" + subSelect + ", double precision 'NaN') as \"fWIAEtYVEGk\"";
         }
         String expected = "ax.\"monthly\",ax.\"ou\"," + subSelect + "  from " + getTable( programA.getUid() )
             + " as ax where ax.\"monthly\" in ('2000Q1') and (uidlevel1 = 'ouabcdefghA' ) " + "and ps = '"
@@ -262,7 +262,7 @@ class EnrollmentAnalyticsManagerTest extends
             + programStage.getUid() + "' order by executiondate desc limit 1 )";
 
         String expected = "ax.\"monthly\",ax.\"ou\"," + "coalesce(" + subSelect
-            + ", double precision 'NaN') as fWIAEtYVEGk" + "  from "
+            + ", double precision 'NaN') as \"fWIAEtYVEGk\"" + "  from "
             + getTable( programA.getUid() )
             + " as ax where ax.\"monthly\" in ('2000Q1') and (uidlevel1 = 'ouabcdefghA' ) "
             + "and ps = '" + programStage.getUid() + "' and " + subSelect + " > '10' limit 10001";
@@ -379,7 +379,7 @@ class EnrollmentAnalyticsManagerTest extends
 
         verify( jdbcTemplate ).queryForRowSet( sql.capture() );
 
-        String expected = "ax.\"monthly\",ax.\"ou\",(SELECT avg (" + piSubquery + ") FROM analytics_event_"
+        String expected = "ax.\"monthly\",ax.\"ou\",coalesce((SELECT avg (" + piSubquery + ") FROM analytics_event_"
             + programA.getUid().toLowerCase() + " as subax WHERE  "
             + "subax.tei in (select tei.uid from trackedentityinstance tei " +
             "LEFT JOIN relationshipitem ri on tei.trackedentityinstanceid = ri.trackedentityinstanceid  " +
@@ -387,7 +387,8 @@ class EnrollmentAnalyticsManagerTest extends
             "LEFT JOIN relationshipitem ri2 on r.to_relationshipitemid = ri2.relationshipitemid " +
             "LEFT JOIN relationshiptype rty on rty.relationshiptypeid = r.relationshiptypeid " +
             "LEFT JOIN trackedentityinstance tei on tei.trackedentityinstanceid = ri2.trackedentityinstanceid " +
-            "WHERE rty.relationshiptypeid = " + relationshipTypeA.getId() + " AND tei.uid = ax.tei )) as \""
+            "WHERE rty.relationshiptypeid = " + relationshipTypeA.getId()
+            + " AND tei.uid = ax.tei )), double precision 'NaN') as \""
             + programIndicatorA.getUid()
             + "\"  " + "from analytics_enrollment_" + programA.getUid()
             + " as ax where enrollmentdate >= '2015-01-01' and enrollmentdate < '2017-04-09' and (uidlevel1 = 'ouabcdefghA' ) limit 101";
@@ -419,7 +420,7 @@ class EnrollmentAnalyticsManagerTest extends
 
         verify( jdbcTemplate ).queryForRowSet( sql.capture() );
 
-        String expected = "ax.\"monthly\",ax.\"ou\",(SELECT avg (" + piSubquery + ") FROM analytics_event_"
+        String expected = "ax.\"monthly\",ax.\"ou\",coalesce((SELECT avg (" + piSubquery + ") FROM analytics_event_"
             + programA.getUid().toLowerCase() + " as subax WHERE "
             + " subax.tei in (select tei.uid from trackedentityinstance tei LEFT JOIN relationshipitem ri on tei.trackedentityinstanceid = ri.trackedentityinstanceid  "
             +
@@ -428,7 +429,8 @@ class EnrollmentAnalyticsManagerTest extends
             "LEFT JOIN relationshiptype rty on rty.relationshiptypeid = r.relationshiptypeid " +
             "LEFT JOIN programinstance pi on pi.programinstanceid = ri2.programinstanceid WHERE rty.relationshiptypeid "
             +
-            "= " + relationshipTypeA.getId() + " AND pi.uid = ax.pi ))" + " as \"" + programIndicatorA.getUid() + "\"  "
+            "= " + relationshipTypeA.getId() + " AND pi.uid = ax.pi )), double precision 'NaN')" + " as \""
+            + programIndicatorA.getUid() + "\"  "
             + "from analytics_enrollment_" + programA.getUid()
             + " as ax where enrollmentdate >= '2015-01-01' and enrollmentdate < '2017-04-09' and (uidlevel1 = 'ouabcdefghA' ) limit 101";
 
@@ -489,7 +491,7 @@ class EnrollmentAnalyticsManagerTest extends
 
         verify( jdbcTemplate ).queryForRowSet( sql.capture() );
 
-        String expected = "ax.\"monthly\",ax.\"ou\",(SELECT avg (" + piSubquery + ") FROM analytics_event_"
+        String expected = "ax.\"monthly\",ax.\"ou\",coalesce((SELECT avg (" + piSubquery + ") FROM analytics_event_"
             + programB.getUid().toLowerCase() + " as subax WHERE  "
             + "subax.tei in (select tei.uid from trackedentityinstance tei " +
             "LEFT JOIN relationshipitem ri on tei.trackedentityinstanceid = ri.trackedentityinstanceid  " +
@@ -497,7 +499,8 @@ class EnrollmentAnalyticsManagerTest extends
             "LEFT JOIN relationshipitem ri2 on r.to_relationshipitemid = ri2.relationshipitemid " +
             "LEFT JOIN relationshiptype rty on rty.relationshiptypeid = r.relationshiptypeid " +
             "LEFT JOIN trackedentityinstance tei on tei.trackedentityinstanceid = ri2.trackedentityinstanceid " +
-            "WHERE rty.relationshiptypeid = " + relationshipTypeA.getId() + " AND tei.uid = ax.tei )) as \""
+            "WHERE rty.relationshiptypeid = " + relationshipTypeA.getId()
+            + " AND tei.uid = ax.tei )), double precision 'NaN') as \""
             + programIndicatorA.getUid()
             + "\"  " + "from analytics_enrollment_" + programA.getUid()
             + " as ax where enrollmentdate >= '2015-01-01' and enrollmentdate < '2017-04-09' and (uidlevel1 = 'ouabcdefghA' ) limit 101";
@@ -611,7 +614,7 @@ class EnrollmentAnalyticsManagerTest extends
         item.setProgram( programA );
 
         // When
-        String columnSql = subject.getCoordinateColumn( item );
+        String columnSql = subject.getCoordinateColumn( item ).asSql();
 
         // Then
         String colName = quote( item.getItemName() );
@@ -639,7 +642,7 @@ class EnrollmentAnalyticsManagerTest extends
         item.setProgram( programA );
 
         // When
-        String columnSql = subject.getCoordinateColumn( item );
+        String columnSql = subject.getCoordinateColumn( item ).asSql();
 
         // Then
         String colName = quote( item.getItemName() );
@@ -665,7 +668,7 @@ class EnrollmentAnalyticsManagerTest extends
         item.setProgramStage( programStage );
 
         // When
-        String columnSql = subject.getCoordinateColumn( item );
+        String columnSql = subject.getCoordinateColumn( item ).asSql();
 
         // Then
         assertThat( columnSql, is( EMPTY ) );

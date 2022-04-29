@@ -47,6 +47,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.hibernate.exception.CreateAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
@@ -405,6 +406,32 @@ class IdentifiableObjectManagerTest extends TransactionalIntegrationTest
         assertFalse( cd.contains( dataElementB ) );
         assertTrue( cd.contains( dataElementC ) );
         assertTrue( cd.contains( dataElementD ) );
+    }
+
+    @Test
+    void getAndValidateByUidTest()
+    {
+        DataElement dataElementA = createDataElement( 'A' );
+        DataElement dataElementB = createDataElement( 'B' );
+        DataElement dataElementC = createDataElement( 'C' );
+        identifiableObjectManager.save( dataElementA );
+        identifiableObjectManager.save( dataElementB );
+        identifiableObjectManager.save( dataElementC );
+        List<DataElement> ab = identifiableObjectManager.getAndValidateByUid( DataElement.class,
+            Arrays.asList( dataElementA.getUid(), dataElementB.getUid() ) );
+        assertTrue( ab.contains( dataElementA ) );
+        assertTrue( ab.contains( dataElementB ) );
+        assertFalse( ab.contains( dataElementC ) );
+    }
+
+    @Test
+    void getAndValidateByUidExceptionTest()
+    {
+        DataElement dataElementA = createDataElement( 'A' );
+        identifiableObjectManager.save( dataElementA );
+        IllegalQueryException ex = assertThrows( IllegalQueryException.class, () -> identifiableObjectManager
+            .getAndValidateByUid( DataElement.class, Arrays.asList( dataElementA.getUid(), "xhjG82jHaky" ) ) );
+        assertEquals( ErrorCode.E1112, ex.getErrorCode() );
     }
 
     @Test

@@ -48,6 +48,7 @@ public enum ErrorCode
     E1107( "Object type `{0}` is not translatable." ),
     E1108( "Could not add item to collection: {0}" ),
     E1109( "Could not remove item from collection: {0}" ),
+    E1112( "Object(s) of type `{0}` not found or not accessible: `{1}`" ),
 
     /* Org unit merge */
     E1500( "At least two source orgs unit must be specified" ),
@@ -302,6 +303,7 @@ public enum ErrorCode
     E7132( "An indicator expression caused division by zero operation" ),
     E7133( "Query cannot be executed, possibly because of invalid types or invalid operation" ),
     E7134( "Cannot retrieve total value for data elements with skip total category combination" ),
+    E7135( "Date time is not parsable: `{0}`" ),
 
     /* Event analytics */
     E7200( "At least one organisation unit must be specified" ),

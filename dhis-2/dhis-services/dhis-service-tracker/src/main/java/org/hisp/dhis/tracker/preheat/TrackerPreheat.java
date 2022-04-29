@@ -570,6 +570,11 @@ public class TrackerPreheat
     {
         RelationshipType relationshipType = get( RelationshipType.class, relationship.getRelationshipType() );
 
+        if ( relationship.getUid() != null && relationships.containsKey( relationship.getUid() ) )
+        {
+            return relationships.get( relationship.getUid() );
+        }
+
         if ( Objects.nonNull( relationshipType ) )
         {
 
@@ -600,6 +605,8 @@ public class TrackerPreheat
         if ( Objects.nonNull( relationship ) )
         {
             RelationshipKey relationshipKey = getRelationshipKey( relationship );
+
+            relationships.put( relationship.getUid(), relationship );
 
             if ( relationship.getRelationshipType().isBidirectional() )
             {

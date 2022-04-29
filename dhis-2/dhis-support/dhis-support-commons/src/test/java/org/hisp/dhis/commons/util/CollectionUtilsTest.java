@@ -33,9 +33,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.List;
 import java.util.Set;
 
+import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.junit.jupiter.api.Test;
+
+import com.google.common.collect.Lists;
 
 class CollectionUtilsTest
 {
@@ -64,5 +67,16 @@ class CollectionUtilsTest
         Set<DataElement> dataElements = flatMapToSet( dataSets, DataSet::getDataElements );
 
         assertEquals( 3, dataElements.size() );
+    }
+
+    @Test
+    public void testDifference()
+    {
+        List<String> collection1 = Lists.newArrayList( "One", "Two", "Three" );
+        List<String> collection2 = Lists.newArrayList( "One", "Two", "Four" );
+        List<String> difference = CollectionUtils.difference( collection1, collection2 );
+
+        assertEquals( 1, difference.size() );
+        assertEquals( "Three", difference.get( 0 ) );
     }
 }

@@ -758,10 +758,10 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         throws Exception
     {
         preUpdateItems( object, items );
-        TypeReport deletions = collectionService.delCollectionItems( object, pvProperty, items.getDeletions() );
-        TypeReport additions = collectionService.addCollectionItems( object, pvProperty, items.getAdditions() );
+        TypeReport report = collectionService.mergeCollectionItems( object, pvProperty, items );
         postUpdateItems( object, items );
-        return typeReport( deletions.mergeAllowEmpty( additions ) );
+        hibernateCacheManager.clearCache();
+        return typeReport( report );
     }
 
     @PutMapping( value = "/{uid}/{property}", consumes = APPLICATION_JSON_VALUE )
@@ -797,6 +797,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         TypeReport report = collectionService.replaceCollectionItems( object, pvProperty,
             items.getIdentifiableObjects() );
         postUpdateItems( object, items );
+        hibernateCacheManager.clearCache();
         return typeReport( report );
     }
 
@@ -823,6 +824,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         preUpdateItems( object, items );
         TypeReport report = collectionService.addCollectionItems( object, pvProperty, items.getIdentifiableObjects() );
         postUpdateItems( object, items );
+        hibernateCacheManager.clearCache();
         return typeReport( report );
     }
 
@@ -858,6 +860,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         preUpdateItems( object, items );
         TypeReport report = collectionService.delCollectionItems( object, pvProperty, items.getIdentifiableObjects() );
         postUpdateItems( object, items );
+        hibernateCacheManager.clearCache();
         return typeReport( report );
     }
 
