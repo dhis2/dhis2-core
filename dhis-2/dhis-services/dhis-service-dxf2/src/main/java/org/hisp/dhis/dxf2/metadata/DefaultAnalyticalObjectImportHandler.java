@@ -65,7 +65,7 @@ public class DefaultAnalyticalObjectImportHandler implements AnalyticalObjectImp
         handleDataElementDimensions( session, schema, analyticalObject, bundle );
         handleAttributeDimensions( session, schema, analyticalObject, bundle );
         handleProgramIndicatorDimensions( session, schema, analyticalObject, bundle );
-        handleVisualisationLegendSet( schema, analyticalObject, bundle );
+        handleVisualizationLegendSet( schema, analyticalObject, bundle );
     }
 
     /**
@@ -77,7 +77,7 @@ public class DefaultAnalyticalObjectImportHandler implements AnalyticalObjectImp
      * @param analyticalObject the analytic object to be processed
      * @param bundle current {@link ObjectBundle}
      */
-    private void handleVisualisationLegendSet( Schema schema, BaseAnalyticalObject analyticalObject,
+    private void handleVisualizationLegendSet( Schema schema, BaseAnalyticalObject analyticalObject,
         ObjectBundle bundle )
     {
         if ( !schema.getKlass().isAssignableFrom( Visualization.class ) )
