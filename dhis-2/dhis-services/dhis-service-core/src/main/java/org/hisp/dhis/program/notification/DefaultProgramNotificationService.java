@@ -30,6 +30,7 @@ package org.hisp.dhis.program.notification;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.program.notification.NotificationTrigger.PROGRAM_RULE;
+import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLIER;
 
 import java.util.Collections;
 import java.util.Date;
@@ -140,7 +141,8 @@ public class DefaultProgramNotificationService
         List<ProgramNotificationTemplate> scheduledTemplates = progress.runStage( List.of(),
             this::getScheduledTemplates );
 
-        progress.startingStage( "Processing ProgramStageNotification messages", scheduledTemplates.size() );
+        progress.startingStage( "Processing ProgramStageNotification messages", scheduledTemplates.size(),
+            SKIP_ITEM_OUTLIER );
         AtomicInteger totalMessageCount = new AtomicInteger();
         progress.runStage( scheduledTemplates.stream(),
             template -> "Processing template " + template.getName(),
@@ -165,7 +167,7 @@ public class DefaultProgramNotificationService
                 .collect( toList() ) );
 
         progress.startingStage( "Processing ProgramStageNotification messages scheduled by program rules",
-            instancesWithTemplates.size() );
+            instancesWithTemplates.size(), SKIP_ITEM_OUTLIER );
         if ( instancesWithTemplates.isEmpty() )
         {
             progress.completedStage( "No instances with templates found." );
@@ -188,7 +190,7 @@ public class DefaultProgramNotificationService
             return Stream.concat( programInstanceBatches, programStageInstanceBatches ).collect( toList() );
         } );
 
-        progress.startingStage( "Sending message batches", batches.size() );
+        progress.startingStage( "Sending message batches", batches.size(), SKIP_ITEM_OUTLIER );
         progress.runStage( batches.stream(),
             batch -> format( "Sending batch with %d DHIS messages and %d program messages",
                 batch.dhisMessages.size(), batch.programMessages.size() ),

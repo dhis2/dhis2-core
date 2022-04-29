@@ -40,6 +40,7 @@ import static org.hisp.dhis.dataintegrity.DataIntegrityDetails.DataIntegrityIssu
 import static org.hisp.dhis.dataintegrity.DataIntegrityYamlReader.readDataIntegrityYaml;
 import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
 import static org.hisp.dhis.expression.ParseType.VALIDATION_RULE_EXPRESSION;
+import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -880,7 +881,7 @@ public class DefaultDataIntegrityService
         BiFunction<DataIntegrityCheck, RuntimeException, T> createErrorReport )
     {
         progress.startingProcess( "Data Integrity check" );
-        progress.startingStage( stageDesc, checks.size() );
+        progress.startingStage( stageDesc, checks.size(), SKIP_ITEM );
         progress.runStage( checks.stream().map( checksByName::get ).filter( Objects::nonNull ),
             DataIntegrityCheck::getDescription,
             check -> {

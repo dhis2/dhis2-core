@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.table;
 
 import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.getIndexName;
 import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.getIndexes;
+import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLIER;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
 import java.util.Collection;
@@ -151,7 +152,7 @@ public class DefaultAnalyticsTableService
         }
 
         List<AnalyticsIndex> indexes = getIndexes( partitions );
-        progress.startingStage( "Creating indexes " + tableType, indexes.size() );
+        progress.startingStage( "Creating indexes " + tableType, indexes.size(), SKIP_ITEM_OUTLIER );
         createIndexes( indexes, progress );
         clock.logTime( "Created indexes" );
 
@@ -286,7 +287,6 @@ public class DefaultAnalyticsTableService
     private void createIndexes( List<AnalyticsIndex> indexes, JobProgress progress )
     {
         AnalyticsTableType type = getAnalyticsTableType();
-        log.info( "No of analytics table indexes: " + indexes.size() );
         progress.runStageInParallel( getProcessNo(), indexes,
             index -> getIndexName( index, type ).replace( "\"", "" ),
             tableManager::createIndex );

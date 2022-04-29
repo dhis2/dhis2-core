@@ -28,6 +28,7 @@
 package org.hisp.dhis.dxf2.sync;
 
 import static java.lang.String.format;
+import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLIER;
 import static org.hisp.dhis.setting.SettingKey.SKIP_SYNCHRONIZATION_FOR_DATA_CHANGED_BEFORE;
 
 import java.util.Date;
@@ -144,13 +145,14 @@ public class TrackerSynchronization implements DataSynchronizationWithPaging
         msg += "Tracker programs data synchronization job has " + context.getPages()
             + " pages to synchronize. With page size: " + context.getPageSize();
 
-        progress.startingStage( msg, context.getPages() );
-        return progress.runStage( IntStream.range( 1, context.getPages() + 1 ).boxed(),
+        progress.startingStage( msg, context.getPages(), SKIP_ITEM_OUTLIER );
+        progress.runStage( IntStream.range( 1, context.getPages() + 1 ).boxed(),
             page -> format( "Synchronizing page %d with page size %d", page, context.getPageSize() ),
             page -> {
                 queryParams.setPage( page );
                 synchronizePage( queryParams, context );
             } );
+        return !progress.isSkipCurrentStage();
     }
 
     private void synchronizePage( TrackedEntityInstanceQueryParams queryParams,
