@@ -149,7 +149,7 @@ public class ControlledJobProgress implements JobProgress
     @Override
     public void failedProcess( String error )
     {
-        Process process = processes.getLast();
+        Process process = processes.peekLast();
         if ( process == null || process.getCompletedTime() != null )
         {
             return;
@@ -170,7 +170,7 @@ public class ControlledJobProgress implements JobProgress
     @Override
     public void failedProcess( Exception cause )
     {
-        Process process = processes.getLast();
+        Process process = processes.peekLast();
         if ( process == null || process.getCompletedTime() != null )
         {
             return;

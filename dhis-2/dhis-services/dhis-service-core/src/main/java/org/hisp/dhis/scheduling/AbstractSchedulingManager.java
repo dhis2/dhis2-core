@@ -276,7 +276,7 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
             // run the actual job
             jobService.getJob( type ).execute( configuration, progress );
 
-            Process process = progress.getProcesses().getLast();
+            Process process = progress.getProcesses().peekLast();
             if ( process != null && process.getStatus() != JobProgress.Status.RUNNING )
             {
                 progress.failedProcess( (String) null );
