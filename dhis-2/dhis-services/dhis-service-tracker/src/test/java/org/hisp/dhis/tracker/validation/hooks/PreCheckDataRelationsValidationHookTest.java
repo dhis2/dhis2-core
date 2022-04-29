@@ -120,7 +120,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     void verifyValidationSuccessForEnrollment()
     {
         OrganisationUnit orgUnit = organisationUnit( ORG_UNIT_ID );
-        when( preheat.getOrganisationUnit( ORG_UNIT_ID ) )
+        when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) ) )
             .thenReturn( orgUnit );
         TrackedEntityType teiType = trackedEntityType( TEI_TYPE_ID );
         when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_UID ) ) )
@@ -131,7 +131,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .thenReturn( trackedEntityInstance( TEI_TYPE_ID, teiType, orgUnit ) );
 
         Enrollment enrollment = Enrollment.builder()
-            .orgUnit( ORG_UNIT_ID )
+            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
             .program( MetadataIdentifier.ofUid( PROGRAM_UID ) )
             .enrollment( CodeGenerator.generateUid() )
             .trackedEntity( TEI_ID )
@@ -146,7 +146,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     void verifyValidationFailsWhenEnrollmentIsNotARegistration()
     {
         OrganisationUnit orgUnit = organisationUnit( ORG_UNIT_ID );
-        when( preheat.getOrganisationUnit( ORG_UNIT_ID ) )
+        when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) ) )
             .thenReturn( orgUnit );
         when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_UID ) ) )
             .thenReturn( programWithoutRegistration( PROGRAM_UID, orgUnit ) );
@@ -154,7 +154,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .thenReturn( Collections.singletonMap( PROGRAM_UID, Collections.singletonList( ORG_UNIT_ID ) ) );
 
         Enrollment enrollment = Enrollment.builder()
-            .orgUnit( ORG_UNIT_ID )
+            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
             .enrollment( CodeGenerator.generateUid() )
             .program( MetadataIdentifier.ofUid( PROGRAM_UID ) )
             .build();
@@ -168,7 +168,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     void verifyValidationFailsWhenEnrollmentAndProgramOrganisationUnitDontMatch()
     {
         OrganisationUnit orgUnit = organisationUnit( ORG_UNIT_ID );
-        when( preheat.getOrganisationUnit( ORG_UNIT_ID ) )
+        when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) ) )
             .thenReturn( orgUnit );
         OrganisationUnit anotherOrgUnit = organisationUnit( CodeGenerator.generateUid() );
         when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_UID ) ) )
@@ -180,7 +180,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         Enrollment enrollment = Enrollment.builder()
             .enrollment( CodeGenerator.generateUid() )
             .program( MetadataIdentifier.ofUid( PROGRAM_UID ) )
-            .orgUnit( ORG_UNIT_ID )
+            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
             .build();
 
         hook.validateEnrollment( reporter, enrollment );
@@ -192,7 +192,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     void verifyValidationFailsWhenEnrollmentAndProgramTeiTypeDontMatch()
     {
         OrganisationUnit orgUnit = organisationUnit( ORG_UNIT_ID );
-        when( preheat.getOrganisationUnit( ORG_UNIT_ID ) )
+        when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) ) )
             .thenReturn( orgUnit );
         when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_UID ) ) )
             .thenReturn( programWithRegistration( PROGRAM_UID, orgUnit, trackedEntityType( TEI_TYPE_ID ) ) );
@@ -205,7 +205,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         Enrollment enrollment = Enrollment.builder()
             .enrollment( CodeGenerator.generateUid() )
             .program( MetadataIdentifier.ofUid( PROGRAM_UID ) )
-            .orgUnit( ORG_UNIT_ID )
+            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
             .trackedEntity( TEI_ID )
             .build();
 
@@ -218,7 +218,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     void verifyValidationFailsWhenEnrollmentAndProgramTeiTypeDontMatchAndTEIIsInPayload()
     {
         OrganisationUnit orgUnit = organisationUnit( ORG_UNIT_ID );
-        when( preheat.getOrganisationUnit( ORG_UNIT_ID ) )
+        when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) ) )
             .thenReturn( orgUnit );
         when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_UID ) ) )
             .thenReturn( programWithRegistration( PROGRAM_UID, orgUnit, trackedEntityType( TEI_TYPE_ID ) ) );
@@ -235,7 +235,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         Enrollment enrollment = Enrollment.builder()
             .enrollment( CodeGenerator.generateUid() )
             .program( MetadataIdentifier.ofUid( PROGRAM_UID ) )
-            .orgUnit( ORG_UNIT_ID )
+            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
             .trackedEntity( TEI_ID )
             .build();
 
