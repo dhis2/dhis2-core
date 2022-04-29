@@ -149,29 +149,45 @@ public class ControlledJobProgress implements JobProgress
     @Override
     public void failedProcess( String error )
     {
+        Process process = processes.getLast();
+        if ( process == null || process.getCompletedTime() != null )
+        {
+            return;
+        }
         tracker.failedProcess( error );
-        if ( processes.getLast().getStatus() != Status.CANCELLED )
+        if ( process.getStatus() != Status.CANCELLED )
         {
             automaticAbort( false, error, null );
-            Process process = getOrAddLastIncompleteProcess();
             process.completeExceptionally( error, null );
             logError( process, null, error );
+        }
+        else
+        {
+            process.completeExceptionally( error, null );
         }
     }
 
     @Override
     public void failedProcess( Exception cause )
     {
-        cause = cancellationAsAbort( cause );
-        tracker.failedProcess( cause );
-        if ( processes.getLast().getStatus() != Status.CANCELLED )
+        Process process = processes.getLast();
+        if ( process == null || process.getCompletedTime() != null )
         {
+            return;
+        }
+        tracker.failedProcess( cause );
+        if ( process.getStatus() != Status.CANCELLED )
+        {
+            cause = cancellationAsAbort( cause );
             String message = getMessage( cause );
             automaticAbort( false, message, cause );
-            Process process = getOrAddLastIncompleteProcess();
             process.completeExceptionally( message, cause );
             sendErrorNotification( process, cause );
             logError( process, cause, message );
+        }
+        else
+        {
+            process.completeExceptionally( getMessage( cause ), cause );
         }
     }
 
