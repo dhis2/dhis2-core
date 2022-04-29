@@ -183,7 +183,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
         QueryItem item = new QueryItem( dio );
 
         // When
-        String column = subject.getCoordinateColumn( item );
+        String column = subject.getCoordinateColumn( item ).asSql();
 
         // Then
         String colName = quote( item.getItemName() );

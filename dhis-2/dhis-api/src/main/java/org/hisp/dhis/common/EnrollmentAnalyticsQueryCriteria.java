@@ -97,6 +97,12 @@ public class EnrollmentAnalyticsQueryCriteria extends AnalyticsPagingCriteria
 
     private IdScheme dataIdScheme;
 
+    /**
+     * Identifier scheme to use for metadata items the query response, can be
+     * identifier, code or attributes. ( options: UID | CODE | ATTRIBUTE:<ID> )
+     */
+    private IdScheme outputIdScheme;
+
     private Set<ProgramStatus> programStatus;
 
     private DisplayProperty displayProperty;

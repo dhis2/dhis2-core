@@ -44,6 +44,7 @@ import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.DATE_PERIOD_STRUCT_
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ORG_UNIT_STRUCT_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
 import static org.hisp.dhis.common.DimensionItemType.PROGRAM_INDICATOR;
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
@@ -51,6 +52,7 @@ import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.ENROLLMENT;
 import static org.hisp.dhis.system.util.MathUtils.getRounded;
 
+import java.text.ParseException;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -65,13 +67,14 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DateFormatUtils;
+import org.apache.commons.lang3.time.DateUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.ProgramIndicatorSubqueryBuilder;
-import org.hisp.dhis.analytics.util.AnalyticsSqlUtils;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionType;
@@ -313,57 +316,78 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
         for ( QueryItem queryItem : params.getItems() )
         {
-            if ( queryItem.isProgramIndicator() )
-            {
-                ProgramIndicator in = (ProgramIndicator) queryItem.getItem();
-
-                String asClause = " as " + quote( in.getUid() );
-
-                if ( queryItem.hasRelationshipType() )
-                {
-                    columns.add( programIndicatorSubqueryBuilder.getAggregateClauseForProgramIndicator( in,
-                        queryItem.getRelationshipType(), getAnalyticsType(), params.getEarliestStartDate(),
-                        params.getLatestEndDate() ) + asClause );
-                }
-                else
-                {
-                    columns.add( programIndicatorSubqueryBuilder.getAggregateClauseForProgramIndicator( in,
-                        getAnalyticsType(), params.getEarliestStartDate(), params.getLatestEndDate() ) + asClause );
-                }
-
-            }
-            else if ( ValueType.COORDINATE == queryItem.getValueType() )
-            {
-                columns.add( getCoordinateColumn( queryItem ) );
-            }
-            else if ( ValueType.ORGANISATION_UNIT == queryItem.getValueType() )
-            {
-                if ( queryItem.getItem().getUid().equals( params.getCoordinateField() ) )
-                {
-                    columns.add( getCoordinateColumn( queryItem, OU_GEOMETRY_COL_SUFFIX ) );
-                }
-                else
-                {
-                    columns.add( getColumn( queryItem, OU_NAME_COL_SUFFIX ) );
-                }
-            }
-            else if ( queryItem.getValueType() == ValueType.NUMBER && !isGroupByClause )
-            {
-                ColumnAndAlias columnAndAlias = getColumnAndAlias( queryItem, isAggregated, queryItem.getItemName() );
-
-                // If the alias is null, we use the default "item name" as
-                // alias.
-                columns.add( "coalesce(" + columnAndAlias.getColumn() + ", double precision 'NaN') as "
-                    + defaultIfNull( columnAndAlias.getAlias(), queryItem.getItemName() ) );
-            }
-            else
-            {
-                ColumnAndAlias columnAndAlias = getColumnAndAlias( queryItem, isGroupByClause, "" );
-                columns.add( columnAndAlias.asSql() );
-            }
+            columns.add( getColumnAndAlias( queryItem, params, isGroupByClause, isAggregated ).asSql() );
         }
 
         return columns;
+    }
+
+    private ColumnAndAlias getColumnAndAlias( QueryItem queryItem, EventQueryParams params, boolean isGroupByClause,
+        boolean isAggregated )
+    {
+        if ( queryItem.isProgramIndicator() )
+        {
+            ProgramIndicator in = (ProgramIndicator) queryItem.getItem();
+
+            String asClause = in.getUid();
+            String programIndicatorSubquery;
+
+            if ( queryItem.hasRelationshipType() )
+            {
+                programIndicatorSubquery = programIndicatorSubqueryBuilder.getAggregateClauseForProgramIndicator( in,
+                    queryItem.getRelationshipType(), getAnalyticsType(), params.getEarliestStartDate(),
+                    params.getLatestEndDate() );
+            }
+            else
+            {
+                programIndicatorSubquery = programIndicatorSubqueryBuilder.getAggregateClauseForProgramIndicator( in,
+                    getAnalyticsType(), params.getEarliestStartDate(), params.getLatestEndDate() );
+            }
+
+            if ( queryItem.getValueType() == ValueType.NUMBER )
+            {
+                return ColumnAndAlias.ofColumnAndAlias(
+                    coalesceAsDoubleNan( programIndicatorSubquery ),
+                    asClause );
+            }
+            else
+            {
+                return ColumnAndAlias.ofColumnAndAlias( programIndicatorSubquery, asClause );
+            }
+
+        }
+        else if ( ValueType.COORDINATE == queryItem.getValueType() )
+        {
+            return getCoordinateColumn( queryItem );
+        }
+        else if ( ValueType.ORGANISATION_UNIT == queryItem.getValueType() )
+        {
+            if ( queryItem.getItem().getUid().equals( params.getCoordinateField() ) )
+            {
+                return getCoordinateColumn( queryItem, OU_GEOMETRY_COL_SUFFIX );
+            }
+            else
+            {
+                return ColumnAndAlias.ofColumn( getColumn( queryItem, OU_NAME_COL_SUFFIX ) );
+            }
+        }
+        else if ( queryItem.getValueType() == ValueType.NUMBER && !isGroupByClause )
+        {
+            ColumnAndAlias columnAndAlias = getColumnAndAlias( queryItem, isAggregated, queryItem.getItemName() );
+
+            return ColumnAndAlias.ofColumnAndAlias(
+                coalesceAsDoubleNan( columnAndAlias.getColumn() ),
+                defaultIfNull( columnAndAlias.getAlias(), queryItem.getItemName() ) );
+        }
+        else
+        {
+            return getColumnAndAlias( queryItem, isGroupByClause, "" );
+        }
+    }
+
+    protected String coalesceAsDoubleNan( String column )
+    {
+        return "coalesce(" + column + ", double precision 'NaN')";
     }
 
     private ColumnAndAlias getColumnAndAlias( QueryItem queryItem, boolean isGroupByClause, String aliasIfMissing )
@@ -378,7 +402,6 @@ public abstract class AbstractJdbcEventAnalyticsManager
                     .filter( QueryItem::hasRepeatableStageParams )
                     .map( QueryItem::getRepeatableStageParams )
                     .map( RepeatableStageParams::getDimension )
-                    .map( AnalyticsSqlUtils::quote )
                     .orElse( aliasIfMissing ) );
         }
         return ColumnAndAlias.ofColumn( column );
@@ -487,11 +510,14 @@ public abstract class AbstractJdbcEventAnalyticsManager
             {
                 for ( QueryItem queryItem : params.getItems() )
                 {
-                    /*
-                     * String columnName = getColumnAndAlias( queryItem, false,
-                     * getIdentifier( queryItem ) ) .getUnquotedAlias();
-                     */
-                    String itemName = rowSet.getString( queryItem.getItemName() );
+
+                    ColumnAndAlias columnAndAlias = getColumnAndAlias( queryItem, params, false, true );
+                    String alias = columnAndAlias.getAlias();
+                    if ( StringUtils.isEmpty( alias ) )
+                    {
+                        alias = queryItem.getItemName();
+                    }
+                    String itemName = rowSet.getString( alias );
                     String itemValue = params.isCollapseDataDimensions()
                         ? QueryItemHelper.getCollapsedDataItemValue( queryItem, itemName )
                         : itemName;
@@ -630,12 +656,15 @@ public abstract class AbstractJdbcEventAnalyticsManager
      * @param item the {@link QueryItem}
      * @return the column select statement for the given item
      */
-    protected String getCoordinateColumn( final QueryItem item )
+    protected ColumnAndAlias getCoordinateColumn( final QueryItem item )
     {
-        final String colName = quote( item.getItemName() );
+        final String colName = item.getItemName();
 
-        return "'[' || round(ST_X(" + colName + ")::numeric, 6) || ',' || round(ST_Y(" + colName
-            + ")::numeric, 6) || ']' as " + colName;
+        return ColumnAndAlias
+            .ofColumnAndAlias(
+                "'[' || round(ST_X(" + quote( colName ) + ")::numeric, 6) || ',' || round(ST_Y(" + quote( colName )
+                    + ")::numeric, 6) || ']'",
+                colName );
     }
 
     /**
@@ -646,9 +675,9 @@ public abstract class AbstractJdbcEventAnalyticsManager
      * @param suffix the suffix to append to the item id
      * @return the column select statement for the given item
      */
-    protected String getCoordinateColumn( final QueryItem item, final String suffix )
+    protected ColumnAndAlias getCoordinateColumn( final QueryItem item, final String suffix )
     {
-        final String colName = quote( item.getItemId() + suffix );
+        final String colName = item.getItemId() + suffix;
 
         String stCentroidFunction = "";
 
@@ -657,8 +686,10 @@ public abstract class AbstractJdbcEventAnalyticsManager
             stCentroidFunction = "ST_Centroid";
         }
 
-        return "'[' || round(ST_X(" + stCentroidFunction + "(" + colName + "))::numeric, 6) || ',' || round(ST_Y("
-            + stCentroidFunction + "(" + colName + "))::numeric, 6) || ']' as " + colName;
+        return ColumnAndAlias.ofColumnAndAlias(
+            "'[' || round(ST_X(" + stCentroidFunction + "(" + quote( colName ) + "))::numeric, 6) || ',' || round(ST_Y("
+                + stCentroidFunction + "(" + quote( colName ) + "))::numeric, 6) || ']'",
+            colName );
     }
 
     /**
@@ -705,17 +736,40 @@ public abstract class AbstractJdbcEventAnalyticsManager
         }
     }
 
+    private String getFilter( String filter, QueryItem item )
+    {
+        try
+        {
+            if ( item.getValueType() == ValueType.DATETIME )
+            {
+                return DateFormatUtils.format(
+                    DateUtils.parseDate( filter,
+                        // known formats
+                        "yyyy-MM-dd'T'HH.mm",
+                        "yyyy-MM-dd'T'HH.mm.ss" ),
+                    // postgres format
+                    "yyyy-MM-dd HH:mm:ss" );
+            }
+        }
+        catch ( ParseException pe )
+        {
+            throwIllegalQueryEx( ErrorCode.E7135, filter );
+        }
+        return filter;
+    }
+
     /**
-     * Returns the filter value for the given query item.
+     * Returns the queryFilter value for the given query item.
      *
-     * @param filter the {@link QueryFilter}.
+     * @param queryFilter the {@link QueryFilter}.
      * @param item the {@link QueryItem}.
      */
-    protected String getSqlFilter( QueryFilter filter, QueryItem item )
+    protected String getSqlFilter( QueryFilter queryFilter, QueryItem item )
     {
-        String encodedFilter = statementBuilder.encode( filter.getFilter(), false );
+        String filter = getFilter( queryFilter.getFilter(), item );
+        String encodedFilter = statementBuilder.encode( filter, false );
 
-        return item.getSqlFilter( filter, encodedFilter );
+        return item.getSqlFilter( queryFilter, encodedFilter );
     }
 
     /**

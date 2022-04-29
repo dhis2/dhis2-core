@@ -27,16 +27,21 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
+import java.util.Optional;
+
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.analytics.util.AnalyticsSqlUtils;
 
 @Getter
 @AllArgsConstructor( access = AccessLevel.PRIVATE )
 class ColumnAndAlias
 {
+
+    public static final ColumnAndAlias EMPTY = ColumnAndAlias.ofColumn( "" );
 
     private final String column;
 
@@ -56,11 +61,18 @@ class ColumnAndAlias
     {
         if ( StringUtils.isNotEmpty( alias ) )
         {
-            return String.join( " as ", column, alias );
+            return String.join( " as ", column, getQuotedAlias() );
         }
         else
         {
             return column;
         }
+    }
+
+    public String getQuotedAlias()
+    {
+        return Optional.ofNullable( alias )
+            .map( AnalyticsSqlUtils::quote )
+            .orElse( null );
     }
 }

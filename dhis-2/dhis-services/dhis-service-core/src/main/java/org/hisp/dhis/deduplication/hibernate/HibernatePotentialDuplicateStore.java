@@ -70,7 +70,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceStore;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAudit;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditStore;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -85,21 +85,21 @@ public class HibernatePotentialDuplicateStore
 
     private final TrackedEntityInstanceStore trackedEntityInstanceStore;
 
-    private final TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService;
+    private final TrackedEntityAttributeValueAuditStore trackedEntityAttributeValueAuditStore;
 
     private final DhisConfigurationProvider config;
 
     public HibernatePotentialDuplicateStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService,
         TrackedEntityInstanceStore trackedEntityInstanceStore, AuditManager auditManager,
-        TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService,
+        TrackedEntityAttributeValueAuditStore trackedEntityAttributeValueAuditStore,
         DhisConfigurationProvider config )
     {
         super( sessionFactory, jdbcTemplate, publisher, PotentialDuplicate.class, currentUserService,
             aclService, false );
         this.trackedEntityInstanceStore = trackedEntityInstanceStore;
         this.auditManager = auditManager;
-        this.trackedEntityAttributeValueAuditService = trackedEntityAttributeValueAuditService;
+        this.trackedEntityAttributeValueAuditStore = trackedEntityAttributeValueAuditStore;
         this.config = config;
     }
 
@@ -248,8 +248,8 @@ public class HibernatePotentialDuplicateStore
 
         if ( config.isEnabled( CHANGELOG_TRACKER ) )
         {
-            trackedEntityAttributeValueAuditService.addTrackedEntityAttributeValueAudit( deleteTeavAudit );
-            trackedEntityAttributeValueAuditService.addTrackedEntityAttributeValueAudit( updatedTeavAudit );
+            trackedEntityAttributeValueAuditStore.addTrackedEntityAttributeValueAudit( deleteTeavAudit );
+            trackedEntityAttributeValueAuditStore.addTrackedEntityAttributeValueAudit( updatedTeavAudit );
         }
     }
 

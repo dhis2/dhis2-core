@@ -192,6 +192,7 @@ public class EventDataQueryRequest
         queryRequest.paging = this.paging;
         queryRequest.totalPages = this.totalPages;
         queryRequest.endpointItem = this.endpointItem;
+        queryRequest.outputIdScheme = outputIdScheme;
         return request;
     }
 
@@ -330,6 +331,7 @@ public class EventDataQueryRequest
                 .coordinatesOnly( criteria.isCoordinatesOnly() )
                 .includeMetadataDetails( criteria.isIncludeMetadataDetails() )
                 .dataIdScheme( criteria.getDataIdScheme() )
+                .outputIdScheme( criteria.getOutputIdScheme() )
                 .programStatus( criteria.getProgramStatus() )
                 .page( criteria.getPage() )
                 .pageSize( criteria.getPageSize() )

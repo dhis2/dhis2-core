@@ -371,7 +371,7 @@ public class JdbcEnrollmentAnalyticsManager
      * @throws NullPointerException if item is null
      */
     @Override
-    protected String getCoordinateColumn( final QueryItem item )
+    protected ColumnAndAlias getCoordinateColumn( final QueryItem item )
     {
         return getCoordinateColumn( item, null );
     }
@@ -388,7 +388,7 @@ public class JdbcEnrollmentAnalyticsManager
      * @throws NullPointerException if item is null
      */
     @Override
-    protected String getCoordinateColumn( final QueryItem item, final String suffix )
+    protected ColumnAndAlias getCoordinateColumn( final QueryItem item, final String suffix )
     {
         if ( item.getProgram() != null )
         {
@@ -412,16 +412,16 @@ public class JdbcEnrollmentAnalyticsManager
 
             }
 
-            return "(select '[' || round(ST_X(" + stCentroidFunction + "(" + colName
+            return ColumnAndAlias.ofColumn( "(select '[' || round(ST_X(" + stCentroidFunction + "(" + colName
                 + "))::numeric, 6) || ',' || round(ST_Y("
                 + stCentroidFunction + "(" + colName + "))::numeric, 6) || ']' as " + colName
                 + " from " + eventTableName
                 + " where " + eventTableName + ".pi = " + ANALYTICS_TBL_ALIAS + ".pi " +
                 "and " + colName + " is not null " + psCondition + ORDER_BY_EXECUTION_DATE +
-                createOrderTypeAndOffset( item.getProgramStageOffset() ) + " " + LIMIT_1 + " )";
+                createOrderTypeAndOffset( item.getProgramStageOffset() ) + " " + LIMIT_1 + " )" );
         }
 
-        return EMPTY;
+        return ColumnAndAlias.EMPTY;
     }
 
     /**
