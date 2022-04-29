@@ -61,7 +61,10 @@
         "identifier": "BFcipDERJnf"
       },
       "status": "ACTIVE",
-      "orgUnit": "h4w96yEMlzO",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "h4w96yEMlzO"
+      },
       "orgUnitName": "Mbokie CHP",
       "enrolledAt": "2019-03-28T12:05:00.000",
       "occurredAt": "2019-03-28T12:05:00.000",

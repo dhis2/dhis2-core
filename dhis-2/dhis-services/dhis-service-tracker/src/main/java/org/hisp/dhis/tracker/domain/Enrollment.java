@@ -76,7 +76,7 @@ public class Enrollment
     private EnrollmentStatus status;
 
     @JsonProperty
-    private String orgUnit;
+    private MetadataIdentifier orgUnit;
 
     @JsonProperty
     private String orgUnitName;
