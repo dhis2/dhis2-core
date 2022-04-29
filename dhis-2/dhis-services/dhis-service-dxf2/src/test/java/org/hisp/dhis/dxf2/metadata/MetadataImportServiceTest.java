@@ -1134,6 +1134,22 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
         assertEquals( "Cl00ghs775c", eventReport.getProgramIndicatorDimensions().get( 0 ).getUid() );
     }
 
+    @Test
+    void testImportVisualizationWithLegendSet()
+        throws IOException
+    {
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/favorites/metadata_with_visualization_and_legendSet.json" ).getInputStream(),
+            RenderFormat.JSON );
+        MetadataImportParams params = createParams( ImportStrategy.CREATE, metadata );
+        ImportReport report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus() );
+
+        Visualization visualization = manager.get( Visualization.class, "gyYXi0rXAIc" );
+        assertNotNull( visualization.getLegendDefinitions().getLegendSet() );
+        assertEquals( "CGWUjDCWaMA", visualization.getLegendDefinitions().getLegendSet().getUid() );
+    }
+
     private MetadataImportParams createParams( ImportStrategy importStrategy,
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata )
     {
