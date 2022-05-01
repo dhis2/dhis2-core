@@ -45,6 +45,7 @@ import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.OrgUnit;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
+import org.hisp.dhis.tracker.TrackerApiTest;
 import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -58,7 +59,7 @@ import com.google.gson.JsonObject;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class EventImportIdSchemeTests
-    extends ApiTest
+    extends TrackerApiTest
 {
     private static String OU_NAME = "TA EventsImportIdSchemeTests ou name " + DataGenerator.randomString();
 
@@ -71,10 +72,6 @@ public class EventImportIdSchemeTests
     private static String ATTRIBUTE_ID;
 
     private OrgUnitActions orgUnitActions;
-
-    private ProgramActions programActions;
-
-    private EventActions eventActions;
 
     private AttributeActions attributeActions;
 
@@ -93,11 +90,9 @@ public class EventImportIdSchemeTests
     public void beforeAll()
     {
         orgUnitActions = new OrgUnitActions();
-        eventActions = new EventActions();
-        programActions = new ProgramActions();
         attributeActions = new AttributeActions();
 
-        new LoginActions().loginAsSuperUser();
+        loginActions.loginAsSuperUser();
 
         setupData();
     }

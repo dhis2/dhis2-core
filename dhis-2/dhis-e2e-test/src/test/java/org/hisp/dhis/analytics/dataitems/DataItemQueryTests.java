@@ -25,7 +25,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataitems;
+package org.hisp.dhis.analytics.dataitems;
+
+import org.hisp.dhis.ApiTest;
+import org.hisp.dhis.Constants;
+import org.hisp.dhis.actions.LoginActions;
+import org.hisp.dhis.actions.dataitem.DataItemActions;
+import org.hisp.dhis.dto.ApiResponse;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import static java.lang.String.format;
 import static org.hamcrest.CoreMatchers.anyOf;
@@ -38,25 +47,19 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
 
-import org.hisp.dhis.ApiTest;
-import org.hisp.dhis.Constants;
-import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.actions.dataitem.DataItemActions;
-import org.hisp.dhis.dto.ApiResponse;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-
 /**
  * Test cases related to GET "dataItems" endpoint. The tests and assertions are
  * based on the file "setup/metadata.json" => "programIndicators",
  * "dataElements".
- *
+ * <p>
  * The test cases using default pagination will imply "paging=true", which is
  * the default when "paging" is omitted.
  *
  * @author maikel arabori
  */
-public class DataItemQueryTests extends ApiTest
+@Tag( "category:analytics" )
+public class DataItemQueryTests
+    extends ApiTest
 {
     private static final int OK = 200;
 

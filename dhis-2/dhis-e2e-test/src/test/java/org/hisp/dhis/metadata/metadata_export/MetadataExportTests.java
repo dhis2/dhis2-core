@@ -39,6 +39,7 @@ import org.hisp.dhis.actions.metadata.MetadataActions;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -70,10 +71,7 @@ public class MetadataExportTests
     @Test
     public void shouldNotExportAllMetadataWithoutAuthority()
     {
-        String username = ("user_tests_" + DataGenerator.randomString()).toLowerCase();
-        userActions.addUserFull( "firstNameA", "lastNameB", username, userWithoutAccessPassword,
-            "NONE" );
-        loginActions.loginAsUser( username, userWithoutAccessPassword );
+        loginActions.loginAsUser( userWithoutAccessUsername, userWithoutAccessPassword );
 
         metadataActions.get().validate()
             .statusCode( 409 )
@@ -86,9 +84,7 @@ public class MetadataExportTests
     public void shouldNotExportUserMetadataWithoutAuthority()
     {
 
-        userActions.addUserFull( "firstNameA", "lastNameB", "usernamea", userWithoutAccessPassword,
-            "NONE" );
-        loginActions.loginAsUser( "usernamea", userWithoutAccessPassword );
+        loginActions.loginAsUser( userWithoutAccessUsername, userWithoutAccessPassword );
 
         metadataActions.get( "", new QueryParamsBuilder().add( "users=true" ) )
             .validate()

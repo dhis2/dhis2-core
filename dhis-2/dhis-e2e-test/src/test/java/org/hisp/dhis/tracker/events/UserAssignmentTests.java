@@ -44,6 +44,7 @@ import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.ResponseValidationHelper;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
+import org.hisp.dhis.tracker.TrackerApiTest;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -55,15 +56,11 @@ import com.google.gson.JsonObject;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class UserAssignmentTests
-    extends ApiTest
+    extends TrackerApiTest
 {
     private MetadataActions metadataActions;
 
     private LoginActions loginActions;
-
-    private ProgramActions programActions;
-
-    private EventActions eventActions;
 
     private String userAssignmentProperty = "enableUserAssignment";
 
@@ -73,8 +70,6 @@ public class UserAssignmentTests
     public void beforeAll()
     {
         metadataActions = new MetadataActions();
-        programActions = new ProgramActions();
-        eventActions = new EventActions();
         loginActions = new LoginActions();
 
         loginActions.loginAsSuperUser();

@@ -68,7 +68,7 @@ public class RelationshipTypeActions
         {
         case "PROGRAM_STAGE_INSTANCE":
             builder
-                .addObject( "program", new JsonObjectBuilder().addProperty( "id", id ) );
+                .addObject( "programStage", new JsonObjectBuilder().addProperty( "id", id ) );
             break;
 
         case "TRACKED_ENTITY_INSTANCE":
