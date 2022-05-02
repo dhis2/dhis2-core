@@ -39,7 +39,6 @@ import org.mapstruct.Mapper;
 @Mapper( uses = {
     AttributeMapper.class,
     DataValueMapper.class,
-    ProgramOwnerMapper.class,
     NoteMapper.class,
     InstantMapper.class,
     UserMapper.class,
