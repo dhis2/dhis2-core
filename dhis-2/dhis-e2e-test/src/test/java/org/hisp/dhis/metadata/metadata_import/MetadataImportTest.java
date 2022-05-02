@@ -80,13 +80,11 @@ public class MetadataImportTest
     public void shouldUpdateExistingMetadata( String importStrategy, String expected )
     {
         // arrange
-        JsonObject exported = metadataActions.get().getBody();
-
         QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
         queryParamsBuilder.addAll( "async=false", "importReportMode=FULL", "importStrategy=" + importStrategy );
 
         // act
-        ApiResponse response = metadataActions.post( exported, queryParamsBuilder );
+        ApiResponse response = metadataActions.postFile( new File("src/test/resources/setup/metadata.json"), queryParamsBuilder );
 
         // assert
         response.validate()
