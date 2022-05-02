@@ -430,6 +430,46 @@ public class RelationshipsTests
         createdRelationships = response.extractImportedRelationships();
     }
 
+    @Test
+    @Disabled("It will be enabled when soft deletion is implemented for relationships")
+    public void shouldReturnErrorWhenUpdatingSoftDeletedEvent() throws Exception {
+        String trackedEntity_1 = importTei();
+        String trackedEntity_2 = importTei();
+
+        JsonObject relationships = new RelationshipDataBuilder()
+                .buildBidirectionalRelationship( trackedEntity_1, trackedEntity_2 )
+                .array();
+
+        // Create Relationship
+        TrackerApiResponse response = trackerActions
+                .postAndGetJobReport( relationships )
+                .validateSuccessfulImport();
+
+        String relationshipId = response.extractImportedRelationships().get(0);
+
+        JsonObject relationshipsToDelete = new RelationshipDataBuilder()
+                .setRelationshipId( relationshipId )
+                .array();
+
+        // Delete Relationship
+        TrackerApiResponse deleteResponse = trackerActions.postAndGetJobReport( relationshipsToDelete,
+                new QueryParamsBuilder().add( "importStrategy=DELETE" ) );
+
+        deleteResponse.validateSuccessfulImport();
+
+        JsonObject relationshipsToImportAgain = new RelationshipDataBuilder()
+                .setRelationshipId(relationshipId)
+                .buildBidirectionalRelationship( trackedEntity_1, trackedEntity_2 )
+                .array();
+
+        // Update Relationship
+        TrackerApiResponse responseImportAgain = trackerActions.postAndGetJobReport( relationshipsToImportAgain );
+
+        responseImportAgain
+                .validateErrorReport()
+                .body( "errorCode", Matchers.hasItem( "E4017" ) );
+    }
+
     private ApiResponse getEntityInRelationship( String toOrFromInstance, String id )
     {
         String queryParams = "?fields=relationships";

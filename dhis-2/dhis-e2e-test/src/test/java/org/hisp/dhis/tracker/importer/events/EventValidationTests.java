@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.importer.events;
 
 import com.google.gson.JsonObject;
 import joptsimple.internal.Strings;
+import org.hamcrest.Matchers;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.UserActions;
 import org.hisp.dhis.actions.metadata.OrgUnitActions;
@@ -210,6 +211,39 @@ public class EventValidationTests
         trackerActions.postAndGetJobReport( object )
             .validateErrorReport()
             .body( "errorCode", hasItem( "E1116" ) );
+    }
+
+    @Test
+    public void shouldReturnErrorWhenUpdatingSoftDeletedEvent()
+    {
+        JsonObject events = new EventDataBuilder().array( OU_ID, eventProgramId, null );
+
+        // Create Event
+        TrackerApiResponse response = trackerActions.postAndGetJobReport( events );
+
+        response.validateSuccessfulImport();
+
+        String eventId = response.extractImportedEvents().get( 0 );
+        JsonObject eventsToDelete = new EventDataBuilder()
+                .setId( eventId )
+                .array();
+
+        // Delete Event
+        TrackerApiResponse deleteResponse = trackerActions.postAndGetJobReport( eventsToDelete,
+                new QueryParamsBuilder().add( "importStrategy=DELETE" ) );
+
+        deleteResponse.validateSuccessfulImport();
+
+        JsonObject eventsToImportAgain = new EventDataBuilder()
+                .setId( eventId )
+                .array( OU_ID, eventProgramId, null );
+
+        // Update Event
+        TrackerApiResponse responseImportAgain = trackerActions.postAndGetJobReport( eventsToImportAgain );
+
+        responseImportAgain
+                .validateErrorReport()
+                .body( "errorCode", Matchers.hasItem( "E1082" ) );
     }
 
     private void setupData()
