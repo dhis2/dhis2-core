@@ -50,12 +50,12 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PrimaryKeyObject;
 import org.hisp.dhis.common.UserContext;
-import org.hisp.dhis.commons.jackson.domain.JsonRoot;
 import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
+import org.hisp.dhis.fieldfiltering.FieldFilterParams;
 import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
 import org.hisp.dhis.node.Preset;
 import org.hisp.dhis.query.Order;
@@ -78,6 +78,7 @@ import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.LinkService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.utils.PaginationUtils;
+import org.hisp.dhis.webapi.webdomain.StreamingJsonRoot;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -177,7 +178,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     // --------------------------------------------------------------------------
 
     @GetMapping
-    public @ResponseBody ResponseEntity<JsonRoot> getObjectList(
+    public @ResponseBody ResponseEntity<StreamingJsonRoot<T>> getObjectList(
         @RequestParam Map<String, String> rpParameters, OrderParams orderParams,
         HttpServletResponse response, @CurrentUser User currentUser )
         throws QueryParserException
@@ -233,19 +234,10 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
         handleLinksAndAccess( entities, fields, false );
         linkService.generatePagerLinks( pager, getEntityClass() );
 
-        List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes( entities, fields );
-        JsonRoot jsonRoot = new JsonRoot();
-
-        if ( pager != null )
-        {
-            jsonRoot.setProperty( "pager", pager );
-        }
-
-        jsonRoot.setProperty( getSchema().getCollectionName(), objectNodes );
-
         cachePrivate( response );
 
-        return ResponseEntity.ok( jsonRoot );
+        return ResponseEntity.ok( new StreamingJsonRoot<>( pager, getSchema().getCollectionName(),
+            FieldFilterParams.of( entities, fields ) ) );
     }
 
     @GetMapping( produces = { "text/csv", "application/text" } )
