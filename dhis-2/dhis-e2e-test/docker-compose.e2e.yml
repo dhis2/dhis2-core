@@ -6,4 +6,5 @@ services:
     image: "${IMAGE_NAME}"
     environment:
       RP_UUID: ${RP_UUID}
-    command: ./wait-for-it.sh web:8080 -t 0 -- mvn test --batch-mode --no-transfer-progress -Dinstance.url=http://web:8080/api -Dtest.cleanup=false -Duser.default.username=admin -Duser.default.password=district -Drp.enable=true
+    command: ./wait-for-it.sh web:8080 -t 0 -- mvn test --batch-mode --no-transfer-progress -Dinstance.url=http://web:8080/api -Dtest.cleanup=false -Duser.default.username=admin -Duser.default.password=district -Drp.enable=true -Drp.attributes=version:2.38;
+
