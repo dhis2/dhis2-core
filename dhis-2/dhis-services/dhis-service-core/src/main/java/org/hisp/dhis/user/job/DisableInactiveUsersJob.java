@@ -29,6 +29,7 @@ package org.hisp.dhis.user.job;
 
 import static java.lang.String.format;
 import static java.time.ZoneId.systemDefault;
+import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_STAGE;
 
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
@@ -77,7 +78,7 @@ public class DisableInactiveUsersJob implements Job
         LocalDate since = today.minusMonths( parameters.getInactiveMonths() );
         Date nMonthsAgo = Date.from( since.atStartOfDay( systemDefault() ).toInstant() );
 
-        progress.startingStage( "Disabling inactive users" );
+        progress.startingStage( "Disabling inactive users", SKIP_STAGE );
         progress.runStage( 0,
             count -> format( "Disabled %d users with %d months of inactivity", count, parameters.getInactiveMonths() ),
             () -> userService.disableUsersInactiveSince( nMonthsAgo ) );

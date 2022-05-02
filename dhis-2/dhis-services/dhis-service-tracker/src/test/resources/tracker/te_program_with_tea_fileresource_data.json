@@ -89,7 +89,10 @@
         "identifier": "hJUBNVQWl4e"
       },
       "status": "ACTIVE",
-      "orgUnit": "cNEZTkdAvmg",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "cNEZTkdAvmg"
+      },
       "orgUnitName": "Country",
       "enrolledAt": "2020-02-20T00:00:00.000",
       "occurredAt": "2020-02-20T00:00:00.000",

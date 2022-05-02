@@ -67,6 +67,8 @@ public class ControlledJobProgress implements JobProgress
 
     private final AtomicBoolean abortAfterFailure = new AtomicBoolean();
 
+    private final AtomicBoolean skipCurrentStage = new AtomicBoolean();
+
     private final Deque<Process> processes = new ConcurrentLinkedDeque<>();
 
     private final AtomicReference<Process> incompleteProcess = new AtomicReference<>();
@@ -112,6 +114,12 @@ public class ControlledJobProgress implements JobProgress
     public boolean isCancellationRequested()
     {
         return cancellationRequested.get();
+    }
+
+    @Override
+    public boolean isSkipCurrentStage()
+    {
+        return skipCurrentStage.get() || isCancellationRequested();
     }
 
     @Override
@@ -168,14 +176,15 @@ public class ControlledJobProgress implements JobProgress
     }
 
     @Override
-    public void startingStage( String description, int workItems )
+    public void startingStage( String description, int workItems, FailurePolicy onFailure )
     {
         if ( isCancellationRequested() )
         {
             throw new CancellationException();
         }
+        skipCurrentStage.set( false );
         tracker.startingStage( description, workItems );
-        Stage stage = addStageRecord( getOrAddLastIncompleteProcess(), description, workItems );
+        Stage stage = addStageRecord( getOrAddLastIncompleteProcess(), description, workItems, onFailure );
         logInfo( stage, "started", description );
     }
 
@@ -192,9 +201,12 @@ public class ControlledJobProgress implements JobProgress
     public void failedStage( String error )
     {
         tracker.failedStage( error );
-        automaticAbort( error, null );
         Stage stage = getOrAddLastIncompleteStage();
         stage.completeExceptionally( error, null );
+        if ( stage.getOnFailure() != FailurePolicy.SKIP_STAGE )
+        {
+            automaticAbort( error, null );
+        }
         logError( stage, null, error );
     }
 
@@ -204,18 +216,21 @@ public class ControlledJobProgress implements JobProgress
         cause = cancellationAsAbort( cause );
         tracker.failedStage( cause );
         String message = getMessage( cause );
-        automaticAbort( message, cause );
         Stage stage = getOrAddLastIncompleteStage();
         stage.completeExceptionally( message, cause );
-        sendErrorNotification( stage, cause );
+        if ( stage.getOnFailure() != FailurePolicy.SKIP_STAGE )
+        {
+            automaticAbort( message, cause );
+            sendErrorNotification( stage, cause );
+        }
         logError( stage, cause, message );
     }
 
     @Override
-    public void startingWorkItem( String description )
+    public void startingWorkItem( String description, FailurePolicy onFailure )
     {
-        tracker.startingWorkItem( description );
-        Item item = addItemRecord( getOrAddLastIncompleteStage(), description );
+        tracker.startingWorkItem( description, onFailure );
+        Item item = addItemRecord( getOrAddLastIncompleteStage(), description, onFailure );
         logDebug( item, "started", description );
     }
 
@@ -232,9 +247,12 @@ public class ControlledJobProgress implements JobProgress
     public void failedWorkItem( String error )
     {
         tracker.failedWorkItem( error );
-        automaticAbort( error, null );
         Item item = getOrAddLastIncompleteItem();
         item.completeExceptionally( error, null );
+        if ( !isSkipped( item ) )
+        {
+            automaticAbort( error, null );
+        }
         logError( item, null, error );
     }
 
@@ -243,11 +261,27 @@ public class ControlledJobProgress implements JobProgress
     {
         tracker.failedWorkItem( cause );
         String message = getMessage( cause );
-        automaticAbort( message, cause );
         Item item = getOrAddLastIncompleteItem();
         item.completeExceptionally( message, cause );
-        sendErrorNotification( item, cause );
+        if ( !isSkipped( item ) )
+        {
+            automaticAbort( message, cause );
+            sendErrorNotification( item, cause );
+        }
         logError( item, cause, message );
+    }
+
+    private boolean isSkipped( Item item )
+    {
+        FailurePolicy onFailure = item.getOnFailure();
+        if ( onFailure == FailurePolicy.SKIP_STAGE )
+        {
+            skipCurrentStage.set( true );
+            return true;
+        }
+        return onFailure == FailurePolicy.SKIP_ITEM
+            || onFailure == FailurePolicy.SKIP_ITEM_OUTLIER
+                && incompleteStage.get().getItems().stream().anyMatch( i -> i.status == Status.SUCCESS );
     }
 
     private void automaticAbort( String error, Exception cause )
@@ -299,13 +333,14 @@ public class ControlledJobProgress implements JobProgress
         Stage stage = incompleteStage.get();
         return stage != null && !stage.isComplete()
             ? stage
-            : addStageRecord( getOrAddLastIncompleteProcess(), null, -1 );
+            : addStageRecord( getOrAddLastIncompleteProcess(), null, -1, FailurePolicy.PARENT );
     }
 
-    private Stage addStageRecord( Process process, String description, int totalItems )
+    private Stage addStageRecord( Process process, String description, int totalItems, FailurePolicy onFailure )
     {
         Deque<Stage> stages = process.getStages();
-        Stage stage = new Stage( description, totalItems );
+        Stage stage = new Stage( description, totalItems,
+            onFailure == FailurePolicy.PARENT ? FailurePolicy.FAIL : onFailure );
         stages.addLast( stage );
         incompleteStage.set( stage );
         return stage;
@@ -316,13 +351,14 @@ public class ControlledJobProgress implements JobProgress
         Item item = incompleteItem.get();
         return item != null && !item.isComplete()
             ? item
-            : addItemRecord( getOrAddLastIncompleteStage(), null );
+            : addItemRecord( getOrAddLastIncompleteStage(), null, FailurePolicy.PARENT );
     }
 
-    private Item addItemRecord( Stage stage, String description )
+    private Item addItemRecord( Stage stage, String description, FailurePolicy onFailure )
     {
         Deque<Item> items = stage.getItems();
-        Item item = new Item( description );
+        Item item = new Item( description,
+            onFailure == FailurePolicy.PARENT ? stage.getOnFailure() : onFailure );
         items.addLast( item );
         incompleteItem.set( item );
         return item;
@@ -330,9 +366,10 @@ public class ControlledJobProgress implements JobProgress
 
     private Exception cancellationAsAbort( Exception cause )
     {
-        return cause instanceof CancellationException && abortAfterFailure.get()
-            ? new RuntimeException( "processing aborted: " + getMessage( cause ) )
-            : cause;
+        return cause instanceof CancellationException
+            && (abortAfterFailure.get() || skipCurrentStage.get())
+                ? new RuntimeException( "processing aborted: " + getMessage( cause ) )
+                : cause;
     }
 
     private void sendErrorNotification( Node node, Exception cause )

@@ -40,6 +40,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -120,6 +121,17 @@ public interface JobProgress
      */
     boolean isCancellationRequested();
 
+    /**
+     * Note that this indication resets to false once another stage is started.
+     *
+     * @return true, if the currently running stage should be skipped. By
+     *         default, this is only the case if cancellation was requested.
+     */
+    default boolean isSkipCurrentStage()
+    {
+        return isCancellationRequested();
+    }
+
     /*
      * Tracking API:
      */
@@ -157,15 +169,26 @@ public interface JobProgress
      *
      * @param description describes the work done
      * @param workItems number of work items in the stage, -1 if unknown
+     * @param onFailure what to do should the stage or one of its items fail
      * @throws CancellationException in case cancellation has been requested
      *         before this stage had started
      */
-    void startingStage( String description, int workItems )
+    void startingStage( String description, int workItems, FailurePolicy onFailure )
         throws CancellationException;
+
+    default void startingStage( String description, int workItems )
+    {
+        startingStage( description, workItems, FailurePolicy.PARENT );
+    }
+
+    default void startingStage( String description, FailurePolicy onFailure )
+    {
+        startingStage( description, 0, onFailure );
+    }
 
     default void startingStage( String description )
     {
-        startingStage( description, 0 );
+        startingStage( description, FailurePolicy.PARENT );
     }
 
     void completedStage( String summary );
@@ -177,7 +200,12 @@ public interface JobProgress
         failedStage( getMessage( cause ) );
     }
 
-    void startingWorkItem( String description );
+    default void startingWorkItem( String description )
+    {
+        startingWorkItem( description, FailurePolicy.PARENT );
+    }
+
+    void startingWorkItem( String description, FailurePolicy onFailure );
 
     default void startingWorkItem( int i )
     {
@@ -201,13 +229,12 @@ public interface JobProgress
      * Runs {@link Runnable} work items as sequence.
      *
      * @param items the work items to run in the sequence to run them
-     * @return true if all items were processed successful, otherwise false
      *
      * @see #runStage(Collection, Function, Consumer)
      */
-    default boolean runStage( Collection<Runnable> items )
+    default void runStage( Collection<Runnable> items )
     {
-        return runStage( items, item -> null, Runnable::run );
+        runStage( items, item -> null, Runnable::run );
     }
 
     /**
@@ -216,13 +243,12 @@ public interface JobProgress
      * @param items the work items to run in the sequence to run them with the
      *        keys used as item description. Items are processed in map
      *        iteration order.
-     * @return true if all items were processed successful, otherwise false
      *
      * @see #runStage(Collection, Function, Consumer)
      */
-    default boolean runStage( Map<String, Runnable> items )
+    default void runStage( Map<String, Runnable> items )
     {
-        return runStage( items.entrySet(), Entry::getKey, entry -> entry.getValue().run() );
+        runStage( items.entrySet(), Entry::getKey, entry -> entry.getValue().run() );
     }
 
     /**
@@ -234,13 +260,12 @@ public interface JobProgress
      *        return {@code null}
      * @param work function to execute the work of a single work item input
      * @param <T> type of work item input
-     * @return true if all items were processed successful, otherwise false
      *
      * @see #runStage(Collection, Function, Consumer)
      */
-    default <T> boolean runStage( Collection<T> items, Function<T, String> description, Consumer<T> work )
+    default <T> void runStage( Collection<T> items, Function<T, String> description, Consumer<T> work )
     {
-        return runStage( items.stream(), description, work );
+        runStage( items.stream(), description, work );
     }
 
     /**
@@ -249,17 +274,16 @@ public interface JobProgress
      *
      * @see #runStage(Stream, Function, Consumer,BiFunction)
      */
-    default <T> boolean runStage( Stream<T> items, Function<T, String> description, Consumer<T> work )
+    default <T> void runStage( Stream<T> items, Function<T, String> description, Consumer<T> work )
     {
-        return runStage( items, description, work, ( success, failed ) -> null );
+        runStage( items, description, work,
+            ( success, failed ) -> format( "%d successful and %d failed items", success, failed ) );
     }
 
     /**
      * Run work items as sequence using a {@link Stream} of work item inputs and
      * an execution work {@link Consumer} function.
      * <p>
-     * The entire stage only is considered failed in case a failing work item
-     * caused a change of the cancellation requested status.
      *
      * @param items stream of inputs to execute a work item
      * @param description function to extract a description for a work item, may
@@ -268,14 +292,13 @@ public interface JobProgress
      * @param summary accepts number of successful and failed items to compute a
      *        summary, may return {@code null}
      * @param <T> type of work item input
-     * @return true if all items were processed successful, otherwise false
      */
-    default <T> boolean runStage( Stream<T> items, Function<T, String> description, Consumer<T> work,
+    default <T> void runStage( Stream<T> items, Function<T, String> description, Consumer<T> work,
         BiFunction<Integer, Integer, String> summary )
     {
-        return runStage( items, description, null, item -> {
+        runStage( items, description, null, item -> {
             work.accept( item );
-            return null;
+            return item;
         }, summary );
     }
 
@@ -283,8 +306,6 @@ public interface JobProgress
      * Run work items as sequence using a {@link Stream} of work item inputs and
      * an execution work {@link Consumer} function.
      * <p>
-     * The entire stage only is considered failed in case a failing work item
-     * caused a change of the cancellation requested status.
      *
      * @param items stream of inputs to execute a work item
      * @param description function to extract a description for a work item, may
@@ -295,9 +316,8 @@ public interface JobProgress
      * @param summary accepts number of successful and failed items to compute a
      *        summary, may return {@code null}
      * @param <T> type of work item input
-     * @return true if all items were processed successful, otherwise false
      */
-    default <T, R> boolean runStage( Stream<T> items, Function<T, String> description, Function<R, String> result,
+    default <T, R> void runStage( Stream<T> items, Function<T, String> description, Function<R, String> result,
         Function<T, R> work, BiFunction<Integer, Integer, String> summary )
     {
         int i = 0;
@@ -305,11 +325,10 @@ public interface JobProgress
         for ( Iterator<T> it = items.iterator(); it.hasNext(); )
         {
             T item = it.next();
-            if ( isCancellationRequested() )
+            // check for async cancel
+            if ( autoSkipStage( summary, i - failed, failed ) )
             {
-                failedStage( new CancellationException(
-                    format( "cancelled after %d successful and %d failed items", i - failed, failed ) ) );
-                return false; // ends the stage immediately
+                return; // ends the stage immediately
             }
             String desc = description.apply( item );
             if ( desc == null )
@@ -329,18 +348,46 @@ public interface JobProgress
             catch ( RuntimeException ex )
             {
                 failed++;
-                boolean cancellationRequestedBefore = isCancellationRequested();
                 failedWorkItem( ex );
-                if ( !cancellationRequestedBefore && isCancellationRequested() )
+                if ( autoSkipStage( summary, i - failed, failed ) )
                 {
-                    failedStage(
-                        new CancellationException( "cancelled as failing item caused request for cancellation" ) );
-                    return false;
+                    return; // ends the stage immediately
                 }
             }
         }
         completedStage( summary.apply( i - failed, failed ) );
-        return true;
+    }
+
+    /**
+     * Automatically complete a stage as failed based on the
+     * {@link #isSkipCurrentStage()} state.
+     *
+     * This completes the stage either with a {@link CancellationException} in
+     * case {@link #isCancellationRequested()} is true, or with just a summary
+     * text if it is false.
+     *
+     * @param summary optional callback to produce a summary
+     * @param success number of successful items
+     * @param failed number of failed items
+     * @return true, if stage is/was skipped (complected as failed), false
+     *         otherwise
+     */
+    default boolean autoSkipStage( BiFunction<Integer, Integer, String> summary, int success, int failed )
+    {
+        if ( isSkipCurrentStage() )
+        {
+            String text = summary == null ? "" : summary.apply( success, failed );
+            if ( isCancellationRequested() )
+            {
+                failedStage( new CancellationException( "skipped stage, failing item caused abort. " + text ) );
+            }
+            else
+            {
+                failedStage( "skipped stage. " + text );
+            }
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -428,20 +475,22 @@ public interface JobProgress
      *        return {@code null}
      * @param work function to execute the work of a single work item input
      * @param <T> type of work item input
-     * @return true if all items were processed successful, otherwise false
      */
-    default <T> boolean runStageInParallel( int parallelism, Collection<T> items, Function<T, String> description,
+    default <T> void runStageInParallel( int parallelism, Collection<T> items, Function<T, String> description,
         Consumer<T> work )
     {
         if ( parallelism <= 1 )
         {
-            return runStage( items, description, work );
+            runStage( items, description, work );
+            return;
         }
         int cores = Runtime.getRuntime().availableProcessors();
         boolean useCustomPool = parallelism >= cores;
+        AtomicInteger success = new AtomicInteger();
+        AtomicInteger failed = new AtomicInteger();
 
         Callable<Boolean> task = () -> items.parallelStream().map( item -> {
-            if ( isCancellationRequested() )
+            if ( isSkipCurrentStage() )
             {
                 return false;
             }
@@ -450,11 +499,13 @@ public interface JobProgress
             {
                 work.accept( item );
                 completedWorkItem( null );
+                success.incrementAndGet();
                 return true;
             }
             catch ( Exception ex )
             {
                 failedWorkItem( ex );
+                failed.incrementAndGet();
                 return false;
             }
         } ).reduce( Boolean::logicalAnd ).orElse( false );
@@ -471,15 +522,12 @@ public interface JobProgress
             {
                 completedStage( null );
             }
-            else if ( isCancellationRequested() )
-            {
-                failedStage( new CancellationException( "cancelled parallel processing" ) );
-            }
             else
             {
-                failedStage( (String) null );
+                autoSkipStage(
+                    ( s, f ) -> format( "parallel processing aborted after %d successful and %d failed items", s, f ),
+                    success.get(), failed.get() );
             }
-            return allSuccessful;
         }
         catch ( InterruptedException ex )
         {
@@ -497,7 +545,6 @@ public interface JobProgress
                 pool.shutdown();
             }
         }
-        return false;
     }
 
     /*
@@ -510,6 +557,49 @@ public interface JobProgress
         SUCCESS,
         ERROR,
         CANCELLED
+    }
+
+    /**
+     * How to behave when an item or stage fails. By default, a failure means
+     * the process is aborted. Using a {@link FailurePolicy} allows to customise
+     * this behaviour on a stage or item basis.
+     *
+     * The implementation of {@link FailurePolicy} is done by affecting
+     * {@link #isSkipCurrentStage()} and {@link #isCancellationRequested()}
+     * acordingly after the failure occured and has been tracked using one of
+     * the {@link #failedStage(String)} or {@link #failedWorkItem(String)}
+     * methods.
+     */
+    enum FailurePolicy
+    {
+        /**
+         * Default used to "inherit" the behaviour from the node level above. If
+         * the root is not specified the behaviour is {@link #FAIL}.
+         */
+        PARENT,
+        /**
+         * Fail and abort processing as soon as possible. This is the effective
+         * default.
+         */
+        FAIL,
+        /**
+         * When an item or stage fails the entire stage is skipped/ignored
+         * unconditionally. This means no further items are processed in the
+         * stage.
+         */
+        SKIP_STAGE,
+        /**
+         * When an item fails it is simply skipped/ignored unconditionally.
+         */
+        SKIP_ITEM,
+        /**
+         * Same as {@link #SKIP_ITEM} but only if there has been a successfully
+         * completed item before. Otherwise, behaves like {@link #FAIL}.
+         *
+         * This option is useful to only skip when it has been proven that the
+         * processing in general works but some items just have issues.
+         */
+        SKIP_ITEM_OUTLIER
     }
 
     @Getter
@@ -613,6 +703,9 @@ public interface JobProgress
         private final int totalItems;
 
         @JsonProperty
+        private final FailurePolicy onFailure;
+
+        @JsonProperty
         private final Deque<Item> items = new ConcurrentLinkedDeque<>();
     }
 
@@ -624,6 +717,9 @@ public interface JobProgress
 
         @JsonProperty
         private final String description;
+
+        @JsonProperty
+        private final FailurePolicy onFailure;
     }
 
     static String getMessage( Exception cause )

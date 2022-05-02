@@ -29,6 +29,7 @@ package org.hisp.dhis.sms.scheduling;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.String.format;
+import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLIER;
 
 import java.util.Date;
 import java.util.List;
@@ -106,7 +107,7 @@ public class SendScheduledMessageJob implements Job
 
         if ( outboundSmsList != null && !outboundSmsList.isEmpty() )
         {
-            progress.startingStage( "Sending SMS messages", outboundSmsList.size() );
+            progress.startingStage( "Sending SMS messages", outboundSmsList.size(), SKIP_ITEM_OUTLIER );
             progress.runStage( outboundSmsList,
                 outboundSms -> format( "Sending message `%1.20s...` to %d recipients",
                     outboundSms.getMessage(), outboundSms.getRecipients().size() ),

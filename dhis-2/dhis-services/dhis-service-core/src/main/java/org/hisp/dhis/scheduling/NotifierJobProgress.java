@@ -88,7 +88,7 @@ public class NotifierJobProgress implements JobProgress
     }
 
     @Override
-    public void startingStage( String description, int workItems )
+    public void startingStage( String description, int workItems, FailurePolicy onFailure )
     {
         stageItems = workItems;
         stageItem = 0;
@@ -117,7 +117,7 @@ public class NotifierJobProgress implements JobProgress
     }
 
     @Override
-    public void startingWorkItem( String description )
+    public void startingWorkItem( String description, FailurePolicy onFailure )
     {
         if ( isNotEmpty( description ) )
         {

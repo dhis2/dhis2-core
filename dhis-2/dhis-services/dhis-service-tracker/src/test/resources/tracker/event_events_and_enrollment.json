@@ -80,7 +80,10 @@
         "identifier": "BFcipDERJwr"
       },
       "status": "ACTIVE",
-      "orgUnit": "PlKwabX2xRW",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "PlKwabX2xRW"
+      },
       "orgUnitName": "Mbokie CHP",
       "enrolledAt": "2021-03-28T12:05:00.000",
       "occurredAt": "2021-03-28T12:05:00.000",
@@ -100,7 +103,10 @@
         "identifier": "BFcipDERJwr"
       },
       "status": "COMPLETED",
-      "orgUnit": "PlKwabX2xRW",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "PlKwabX2xRW"
+      },
       "orgUnitName": "Mbokie CHP",
       "enrolledAt": "2021-03-28T12:05:00.000",
       "occurredAt": "2021-03-28T12:05:00.000",
