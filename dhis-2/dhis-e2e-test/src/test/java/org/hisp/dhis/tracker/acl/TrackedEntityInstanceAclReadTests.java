@@ -36,7 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.apache.commons.collections.ListUtils;
+import org.apache.commons.collections4.ListUtils;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
@@ -50,6 +50,7 @@ import org.hisp.dhis.dto.OrgUnit;
 import org.hisp.dhis.dto.UserGroup;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.models.User;
+import org.hisp.dhis.tracker.TrackerApiTest;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -63,7 +64,7 @@ import com.google.gson.JsonObject;
  * @author Stian Sandvold
  */
 public class TrackedEntityInstanceAclReadTests
-    extends ApiTest
+    extends TrackerApiTest
 {
     private static final String _DATAREAD = "..r.*";
 
@@ -71,15 +72,12 @@ public class TrackedEntityInstanceAclReadTests
 
     private UserActions userActions;
 
-    private TEIActions teiActions;
-
     private static final List<User> users = new ArrayList<>();
 
     @BeforeAll
     public void before()
         throws Exception
     {
-        teiActions = new TEIActions();
         metadataActions = new MetadataActions();
         userActions = new UserActions();
 

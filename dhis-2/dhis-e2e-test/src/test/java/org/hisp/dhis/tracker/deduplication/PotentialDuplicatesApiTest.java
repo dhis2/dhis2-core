@@ -38,6 +38,7 @@ import org.hisp.dhis.actions.UserRoleActions;
 import org.hisp.dhis.actions.tracker.PotentialDuplicatesActions;
 import org.hisp.dhis.actions.tracker.importer.TrackerActions;
 import org.hisp.dhis.dto.TrackerApiResponse;
+import org.hisp.dhis.tracker.TrackerApiTest;
 import org.hisp.dhis.tracker.importer.databuilder.TeiDataBuilder;
 import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.AfterEach;
@@ -47,7 +48,7 @@ import org.junit.jupiter.api.BeforeEach;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class PotentialDuplicatesApiTest
-    extends ApiTest
+    extends TrackerApiTest
 {
     protected static final String TRACKER_PROGRAM_ID = Constants.TRACKER_PROGRAM_ID;
 
@@ -61,8 +62,6 @@ public class PotentialDuplicatesApiTest
 
     protected TrackerActions trackerActions;
 
-    protected LoginActions loginActions;
-
     protected PotentialDuplicatesActions potentialDuplicatesActions;
 
     @BeforeEach
@@ -70,7 +69,6 @@ public class PotentialDuplicatesApiTest
     {
         trackerActions = new TrackerActions();
         userActions = new UserActions();
-        loginActions = new LoginActions();
         potentialDuplicatesActions = new PotentialDuplicatesActions();
     }
 
