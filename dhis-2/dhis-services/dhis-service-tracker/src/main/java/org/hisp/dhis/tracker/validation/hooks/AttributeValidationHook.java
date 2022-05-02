@@ -129,7 +129,7 @@ public abstract class AttributeValidationHook extends AbstractTrackerDtoValidati
         for ( UniqueAttributeValue uniqueAttributeValue : uniqueAttributeValues )
         {
             boolean isTeaUniqueInOrgUnitScope = !trackedEntityAttribute.getOrgunitScope()
-                || Objects.equals( organisationUnit.getUid(), uniqueAttributeValue.getOrgUnit() );
+                || uniqueAttributeValue.getOrgUnit().isEqualTo( organisationUnit );
 
             boolean isTheSameTea = Objects.equals( uniqueAttributeValue.getAttributeUid(),
                 trackedEntityAttribute.getUid() );
