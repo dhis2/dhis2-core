@@ -29,6 +29,7 @@ package org.hisp.dhis.pushanalysis;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.stream.Collectors.joining;
+import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLIER;
 
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
@@ -235,7 +236,8 @@ public class DefaultPushAnalysisService implements PushAnalysisService
         // Generating reports
         // ----------------------------------------------------------------------
         String name = pushAnalysis.getName();
-        progress.startingStage( "Generating and sending reports for PushAnalysis " + name, receivingUsers.size() );
+        progress.startingStage( "Generating and sending reports for PushAnalysis " + name,
+            receivingUsers.size(), SKIP_ITEM_OUTLIER );
         progress.runStage( receivingUsers,
             user -> "Generating and sending PushAnalysis " + name + " for user '" + user.getUsername() + "'.",
             user -> {

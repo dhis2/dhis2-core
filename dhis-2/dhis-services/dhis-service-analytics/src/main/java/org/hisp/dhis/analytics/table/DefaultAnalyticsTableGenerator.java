@@ -28,6 +28,7 @@
 package org.hisp.dhis.analytics.table;
 
 import static org.hisp.dhis.commons.collection.CollectionUtils.emptyIfNull;
+import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_STAGE;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
 import java.util.Date;
@@ -114,7 +115,7 @@ public class DefaultAnalyticsTableGenerator
         progress.startingStage( "Updating settings" );
         progress.runStage( () -> updateLastSuccessfulSystemSettings( params, clock ) );
 
-        progress.startingStage( "Invalidate analytics caches" );
+        progress.startingStage( "Invalidate analytics caches", SKIP_STAGE );
         progress.runStage( analyticsCache::invalidateAll );
         progress.completedProcess( "Analytics tables updated" );
     }

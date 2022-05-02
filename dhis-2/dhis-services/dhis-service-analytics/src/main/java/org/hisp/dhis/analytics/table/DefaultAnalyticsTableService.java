@@ -151,7 +151,7 @@ public class DefaultAnalyticsTableService
         }
 
         List<AnalyticsIndex> indexes = getIndexes( partitions );
-        progress.startingStage( "Creating indexes " + tableType, indexes.size() );
+        progress.startingStage( "Creating indexes " + tableType, indexes.size(), SKIP_ITEM_OUTLIER );
         createIndexes( indexes, progress );
         clock.logTime( "Created indexes" );
 
@@ -286,8 +286,6 @@ public class DefaultAnalyticsTableService
     private void createIndexes( List<AnalyticsIndex> indexes, JobProgress progress )
     {
         AnalyticsTableType type = getAnalyticsTableType();
-
-        log.debug( "No of analytics table indexes: " + indexes.size() );
 
         progress.runStageInParallel( getProcessNo(), indexes,
             index -> getIndexName( index, type ).replace( "\"", "" ),

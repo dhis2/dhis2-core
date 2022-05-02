@@ -28,6 +28,7 @@
 package org.hisp.dhis.validation;
 
 import static org.hisp.dhis.expression.ParseType.VALIDATION_RULE_EXPRESSION;
+import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_STAGE;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -145,7 +146,7 @@ public class DefaultValidationService implements ValidationService, CurrentUserS
 
         if ( context.isPersistResults() )
         {
-            progress.startingStage( "Persisting Results" );
+            progress.startingStage( "Persisting Results", SKIP_STAGE );
             progress.runStage( () -> validationResultService.saveValidationResults( context.getValidationResults() ) );
         }
 
