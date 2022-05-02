@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.db.migration.v39;
 
+import static org.hisp.dhis.db.migration.helper.UniqueValueUtils.copyUniqueValue;
+
 import org.flywaydb.core.api.migration.BaseJavaMigration;
 import org.flywaydb.core.api.migration.Context;
-
-import static org.hisp.dhis.db.migration.helper.UniqueValueUtils.copyUniqueValue;
 
 /**
  * Initialises the {@code shortname} column with a unique name based on the
