@@ -30,12 +30,15 @@ package org.hisp.dhis.relationship.hibernate;
 import java.util.List;
 
 import javax.persistence.NoResultException;
+import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import javax.persistence.criteria.Subquery;
 
 import org.hibernate.SessionFactory;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
@@ -54,10 +57,15 @@ import org.springframework.stereotype.Repository;
  * @author Abyot Asalefew
  */
 @Repository( "org.hisp.dhis.relationship.RelationshipStore" )
-public class HibernateRelationshipStore
-    extends HibernateIdentifiableObjectStore<Relationship>
+public class HibernateRelationshipStore extends HibernateIdentifiableObjectStore<Relationship>
     implements RelationshipStore
 {
+    private static final String TRACKED_ENTITY_INSTANCE = "trackedEntityInstance";
+
+    private static final String PROGRAM_INSTANCE = "programInstance";
+
+    private static final String PROGRAM_STAGE_INSTANCE = "programStageInstance";
+
     public HibernateRelationshipStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
     {
@@ -67,34 +75,79 @@ public class HibernateRelationshipStore
     @Override
     public List<Relationship> getByTrackedEntityInstance( TrackedEntityInstance tei )
     {
-        CriteriaBuilder builder = getCriteriaBuilder();
+        TypedQuery<Relationship> relationshipTypedQuery = getRelationshipTypedQuery( tei );
 
-        return getList( builder, newJpaParameters()
-            .addPredicate( root -> builder.or(
-                builder.equal( root.join( "from" ).get( "trackedEntityInstance" ), tei ),
-                builder.equal( root.join( "to" ).get( "trackedEntityInstance" ), tei ) ) ) );
+        return getList( relationshipTypedQuery );
     }
 
     @Override
     public List<Relationship> getByProgramInstance( ProgramInstance pi )
     {
-        CriteriaBuilder builder = getCriteriaBuilder();
+        TypedQuery<Relationship> relationshipTypedQuery = getRelationshipTypedQuery( pi );
 
-        return getList( builder, newJpaParameters()
-            .addPredicate( root -> builder.or(
-                builder.equal( root.join( "from" ).get( "programInstance" ), pi ),
-                builder.equal( root.join( "to" ).get( "programInstance" ), pi ) ) ) );
+        return getList( relationshipTypedQuery );
     }
 
     @Override
     public List<Relationship> getByProgramStageInstance( ProgramStageInstance psi )
     {
+        TypedQuery<Relationship> relationshipTypedQuery = getRelationshipTypedQuery( psi );
+
+        return getList( relationshipTypedQuery );
+    }
+
+    private <T extends IdentifiableObject> TypedQuery<Relationship> getRelationshipTypedQuery( T entity )
+    {
         CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getList( builder, newJpaParameters()
-            .addPredicate( root -> builder.or(
-                builder.equal( root.join( "from" ).get( "programStageInstance" ), psi ),
-                builder.equal( root.join( "to" ).get( "programStageInstance" ), psi ) ) ) );
+        CriteriaQuery<Relationship> relationshipItemCriteriaQuery = builder.createQuery( Relationship.class );
+        Root<Relationship> root = relationshipItemCriteriaQuery.from( Relationship.class );
+
+        setRelationshipItemCriteriaQueryExistsCondition( entity, builder, relationshipItemCriteriaQuery, root );
+
+        return getSession().createQuery( relationshipItemCriteriaQuery );
+    }
+
+    private <T extends IdentifiableObject> void setRelationshipItemCriteriaQueryExistsCondition( T entity,
+        CriteriaBuilder builder, CriteriaQuery<Relationship> relationshipItemCriteriaQuery, Root<Relationship> root )
+    {
+        Subquery<RelationshipItem> fromSubQuery = relationshipItemCriteriaQuery.subquery( RelationshipItem.class );
+        Root<RelationshipItem> fromRoot = fromSubQuery.from( RelationshipItem.class );
+
+        String relationshipEntityType = getRelationshipEntityType( entity );
+
+        fromSubQuery.where( builder.equal( root.get( "from" ), fromRoot.get( "id" ) ),
+            builder.equal( fromRoot.get( relationshipEntityType ),
+                entity.getId() ) );
+
+        fromSubQuery.select( fromRoot.get( "id" ) );
+
+        Subquery<RelationshipItem> toSubQuery = relationshipItemCriteriaQuery.subquery( RelationshipItem.class );
+        Root<RelationshipItem> toRoot = toSubQuery.from( RelationshipItem.class );
+
+        toSubQuery.where( builder.equal( root.get( "to" ), toRoot.get( "id" ) ),
+            builder.equal( toRoot.get( relationshipEntityType ),
+                entity.getId() ) );
+
+        toSubQuery.select( toRoot.get( "id" ) );
+
+        relationshipItemCriteriaQuery
+            .where( builder.or( builder.exists( fromSubQuery ), builder.exists( toSubQuery ) ) );
+
+        relationshipItemCriteriaQuery.select( root );
+    }
+
+    private <T extends IdentifiableObject> String getRelationshipEntityType( T entity )
+    {
+        if ( entity instanceof TrackedEntityInstance )
+            return TRACKED_ENTITY_INSTANCE;
+        else if ( entity instanceof ProgramInstance )
+            return PROGRAM_INSTANCE;
+        else if ( entity instanceof ProgramStageInstance )
+            return PROGRAM_STAGE_INSTANCE;
+        else
+            throw new IllegalArgumentException( entity.getClass()
+                .getSimpleName() + " not supported in relationship" );
     }
 
     @Override
@@ -115,14 +168,15 @@ public class HibernateRelationshipStore
 
         Root<Relationship> root = criteriaQuery.from( Relationship.class );
 
-        criteriaQuery.where( builder.and(
-            getFromOrToPredicate( "from", builder, root, relationship ),
+        criteriaQuery.where( builder.and( getFromOrToPredicate( "from", builder, root, relationship ),
             getFromOrToPredicate( "to", builder, root, relationship ),
             builder.equal( root.join( "relationshipType" ), relationship.getRelationshipType() ) ) );
 
         try
         {
-            return getSession().createQuery( criteriaQuery ).setMaxResults( 1 ).getSingleResult();
+            return getSession().createQuery( criteriaQuery )
+                .setMaxResults( 1 )
+                .getSingleResult();
         }
         catch ( NoResultException nre )
         {
@@ -139,18 +193,18 @@ public class HibernateRelationshipStore
 
         if ( relationshipItemDirection.getTrackedEntityInstance() != null )
         {
-            return builder.equal( root.join( direction ).get( "trackedEntityInstance" ),
-                getItem( direction, relationship ).getTrackedEntityInstance() );
+            return builder.equal( root.join( direction )
+                .get( TRACKED_ENTITY_INSTANCE ), getItem( direction, relationship ).getTrackedEntityInstance() );
         }
         else if ( relationshipItemDirection.getProgramInstance() != null )
         {
-            return builder.equal( root.join( direction ).get( "programInstance" ),
-                getItem( direction, relationship ).getProgramInstance() );
+            return builder.equal( root.join( direction )
+                .get( PROGRAM_INSTANCE ), getItem( direction, relationship ).getProgramInstance() );
         }
         else if ( relationshipItemDirection.getProgramStageInstance() != null )
         {
-            return builder.equal( root.join( direction ).get( "programStageInstance" ),
-                getItem( direction, relationship ).getProgramStageInstance() );
+            return builder.equal( root.join( direction )
+                .get( PROGRAM_STAGE_INSTANCE ), getItem( direction, relationship ).getProgramStageInstance() );
         }
         else
         {
