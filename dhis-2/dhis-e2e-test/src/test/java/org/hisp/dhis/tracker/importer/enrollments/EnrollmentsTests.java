@@ -67,6 +67,8 @@ public class EnrollmentsTests
     extends
     TrackerNtiApiTest
 {
+    private static final String OU_ID = Constants.ORG_UNIT_IDS[0];
+
     private String multipleEnrollmentsProgram;
 
     private String multipleEnrollmentsProgramStage;
@@ -262,5 +264,45 @@ public class EnrollmentsTests
 
         assertThat( enrollmentResponse.getBody(),
             matchesJSON( enrollmentPayload.get( "enrollments" ).getAsJsonArray().get( 0 ).getAsJsonObject() ) );
+    }
+
+    @Test
+    public void shouldReturnErrorWhenUpdatingSoftDeletedEnrollment() throws Exception {
+        String teiId = importTei();
+        JsonObject enrollments = new EnrollmentDataBuilder()
+                .setTei(teiId)
+                .setOu(OU_ID)
+                .setProgram(multipleEnrollmentsProgram)
+                .array();
+
+        // Create Enrollment
+        TrackerApiResponse response = trackerActions.postAndGetJobReport( enrollments );
+
+        response.validateSuccessfulImport();
+
+        String enrollmentId = response.extractImportedEnrollments().get( 0 );
+        JsonObject enrollmentsToDelete = new EnrollmentDataBuilder()
+                .setId( enrollmentId )
+                .array();
+
+        // Delete Enrollment
+        TrackerApiResponse deleteResponse = trackerActions.postAndGetJobReport( enrollmentsToDelete,
+                new QueryParamsBuilder().add( "importStrategy=DELETE" ) );
+
+        deleteResponse.validateSuccessfulImport();
+
+        JsonObject enrollmentsToImportAgain = new EnrollmentDataBuilder()
+                .setId( enrollmentId )
+                .setTei( teiId )
+                .setOu( OU_ID )
+                .setProgram( multipleEnrollmentsProgram )
+                .array();
+
+        // Update Enrollment
+        TrackerApiResponse responseImportAgain = trackerActions.postAndGetJobReport( enrollmentsToImportAgain );
+
+        responseImportAgain
+                .validateErrorReport()
+                .body( "errorCode", Matchers.hasItem( "E1113" ) );
     }
 }
