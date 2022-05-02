@@ -52,7 +52,10 @@
       "occurredAt": "2018-12-31T06:13:07.000",
       "followup": false,
       "deleted": false,
-      "attributeOptionCombo": "OOlvX50cXC0",
+      "attributeOptionCombo": {
+        "idScheme": "UID",
+        "identifier": "OOlvX50cXC0"
+      },
       "dataValues": [],
       "notes": []
     },
@@ -75,7 +78,10 @@
       "scheduledAt": "2020-08-19T13:59:13.688",
       "followup": false,
       "deleted": false,
-      "attributeOptionCombo": "OOlvX50cXC0",
+      "attributeOptionCombo": {
+        "idScheme": "UID",
+        "identifier": "OOlvX50cXC0"
+      },
       "dataValues": [],
       "notes": []
     }

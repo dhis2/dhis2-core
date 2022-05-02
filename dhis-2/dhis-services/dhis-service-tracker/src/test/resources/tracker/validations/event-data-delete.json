@@ -45,6 +45,9 @@
       "relationships": [],
       "followup": false,
       "deleted": false,
+      "attributeOptionCombo": {
+        "idScheme": "UID"
+      },
       "dataValues": [],
       "notes": []
     }
