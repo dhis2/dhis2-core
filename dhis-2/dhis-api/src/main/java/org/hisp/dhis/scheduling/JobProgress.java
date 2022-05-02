@@ -642,16 +642,22 @@ public interface JobProgress
         public void complete( String summary )
         {
             this.summary = summary;
-            this.status = Status.SUCCESS;
             this.completedTime = new Date();
+            if ( status == Status.RUNNING )
+            {
+                this.status = Status.SUCCESS;
+            }
         }
 
         public void completeExceptionally( String error, Exception cause )
         {
             this.error = error;
             this.cause = cause;
-            this.status = cause instanceof CancellationException ? Status.CANCELLED : Status.ERROR;
             this.completedTime = new Date();
+            if ( status == Status.RUNNING )
+            {
+                this.status = cause instanceof CancellationException ? Status.CANCELLED : Status.ERROR;
+            }
         }
     }
 
