@@ -70,7 +70,7 @@ public class TrackedEntity
     private Instant updatedAtClient;
 
     @JsonProperty
-    private String orgUnit;
+    private MetadataIdentifier orgUnit;
 
     @JsonProperty
     private boolean inactive;

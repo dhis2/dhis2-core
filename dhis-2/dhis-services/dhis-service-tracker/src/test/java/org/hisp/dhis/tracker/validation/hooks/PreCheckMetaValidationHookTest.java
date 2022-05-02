@@ -113,7 +113,8 @@ class PreCheckMetaValidationHookTest
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         // when
-        when( preheat.getOrganisationUnit( ORG_UNIT_UID ) ).thenReturn( new OrganisationUnit() );
+        when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_UID ) ) )
+            .thenReturn( new OrganisationUnit() );
         when( preheat.getTrackedEntityType( TRACKED_ENTITY_TYPE_UID ) ).thenReturn( new TrackedEntityType() );
 
         validatorToTest.validateTrackedEntity( reporter, tei );
@@ -148,7 +149,8 @@ class PreCheckMetaValidationHookTest
         ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
 
         // when
-        when( preheat.getOrganisationUnit( ORG_UNIT_UID ) ).thenReturn( new OrganisationUnit() );
+        when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_UID ) ) )
+            .thenReturn( new OrganisationUnit() );
 
         validatorToTest.validateTrackedEntity( reporter, tei );
 
@@ -368,7 +370,7 @@ class PreCheckMetaValidationHookTest
     {
         return TrackedEntity.builder()
             .trackedEntity( TRACKED_ENTITY_UID )
-            .orgUnit( ORG_UNIT_UID )
+            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_UID ) )
             .trackedEntityType( TRACKED_ENTITY_TYPE_UID )
             .build();
     }
