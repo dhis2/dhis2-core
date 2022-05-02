@@ -68,7 +68,7 @@ public class ExpressionParams
      * description. The actual date doesn't matter; a date was chosen that is
      * likely to not be confused with real data.
      */
-    private static final List<Period> SAMPLE_PERIODS = List.of( PeriodType.getPeriodFromIsoString( "19990101" ) );
+    private static final List<Period> SAMPLE_PERIODS = List.of( PeriodType.getPeriodFromIsoString( "20000101" ) );
 
     /**
      * The expression to parse
