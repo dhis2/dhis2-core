@@ -283,7 +283,8 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
             }
             if ( configuration.getLastExecutedStatus() == RUNNING )
             {
-                boolean wasSuccessfulRun = process == null || process.getStatus() == JobProgress.Status.SUCCESS;
+                boolean wasSuccessfulRun = progress.getProcesses().stream()
+                    .allMatch( p -> p.getStatus() == JobProgress.Status.SUCCESS );
                 configuration.setLastExecutedStatus( wasSuccessfulRun ? JobStatus.COMPLETED : JobStatus.FAILED );
             }
         }
