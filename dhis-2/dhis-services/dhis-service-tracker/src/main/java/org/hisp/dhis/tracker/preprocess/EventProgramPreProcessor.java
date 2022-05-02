@@ -125,9 +125,8 @@ public class EventProgramPreProcessor
         for ( Event e : events )
         {
             Program program = preheat.getProgram( e.getProgram() );
-            String aoc = preheat.getCategoryOptionComboIdentifier( program.getCategoryCombo(),
-                e.getAttributeCategoryOptions() );
-            e.setAttributeOptionCombo( aoc );
+            e.setAttributeOptionCombo( preheat.getCategoryOptionComboIdentifier( program.getCategoryCombo(),
+                e.getAttributeCategoryOptions() ) );
         }
     }
 }

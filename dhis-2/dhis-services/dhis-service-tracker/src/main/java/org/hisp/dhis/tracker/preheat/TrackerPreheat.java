@@ -219,14 +219,14 @@ public class TrackerPreheat
      *
      * Category option identifiers needs to match the idScheme used when storing
      * the category option combo using {@link #putCategoryOptionCombo}. Category
-     * option combo identifiers will be in the idScheme defined by the user on
+     * option combo identifier will be in the idScheme defined by the user on
      * import.
      *
      * @param categoryCombo category combo
      * @param categoryOptions semicolon separated list of category options
      * @return category option combo identifier
      */
-    public String getCategoryOptionComboIdentifier( CategoryCombo categoryCombo, String categoryOptions )
+    public MetadataIdentifier getCategoryOptionComboIdentifier( CategoryCombo categoryCombo, String categoryOptions )
     {
         CategoryOptionCombo categoryOptionCombo = this.getCategoryOptionCombo(
             this.cosToCOC.get( categoryOptionComboCacheKey( categoryCombo, categoryOptions ) ) );
@@ -234,7 +234,7 @@ public class TrackerPreheat
         {
             return null;
         }
-        return idSchemes.getCategoryOptionComboIdScheme().getIdentifier( categoryOptionCombo );
+        return idSchemes.toMetadataIdentifier( categoryOptionCombo );
     }
 
     private Pair<String, Set<String>> categoryOptionComboCacheKey( CategoryCombo categoryCombo,

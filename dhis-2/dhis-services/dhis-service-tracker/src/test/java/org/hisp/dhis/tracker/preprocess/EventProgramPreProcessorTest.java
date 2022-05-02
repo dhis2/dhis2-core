@@ -232,7 +232,7 @@ class EventProgramPreProcessorTest
         when( preheat.getProgram( event.getProgram() ) ).thenReturn( program );
         CategoryOptionCombo categoryOptionCombo = createCategoryOptionCombo( 'A' );
         when( preheat.getCategoryOptionComboIdentifier( categoryCombo, "123;235" ) )
-            .thenReturn( categoryOptionCombo.getCode() );
+            .thenReturn( identifierParams.toMetadataIdentifier( categoryOptionCombo ) );
 
         TrackerBundle bundle = TrackerBundle.builder()
             .events( Collections.singletonList( event ) )
@@ -269,7 +269,7 @@ class EventProgramPreProcessorTest
 
         preprocessor.process( bundle );
 
-        assertNull( bundle.getEvents().get( 0 ).getAttributeOptionCombo() );
+        assertNull( bundle.getEvents().get( 0 ).getAttributeOptionComboNew() );
         assertEquals( "123;235", bundle.getEvents().get( 0 ).getAttributeCategoryOptions() );
     }
 
@@ -314,7 +314,7 @@ class EventProgramPreProcessorTest
         program.setCategoryCombo( categoryCombo );
         Event event = completeTrackerEvent();
         event.setProgram( MetadataIdentifier.ofUid( program.getUid() ) );
-        event.setAttributeOptionCombo( "9871" );
+        event.setAttributeOptionCombo( MetadataIdentifier.ofCode( "9871" ) );
         event.setAttributeCategoryOptions( "123;235" );
         when( preheat.getProgram( event.getProgram() ) ).thenReturn( program );
 
@@ -343,7 +343,7 @@ class EventProgramPreProcessorTest
         program.setCategoryCombo( categoryCombo );
         Event event = completeTrackerEvent();
         event.setProgram( MetadataIdentifier.ofUid( program.getUid() ) );
-        event.setAttributeOptionCombo( "9871" );
+        event.setAttributeOptionCombo( MetadataIdentifier.ofCode( "9871" ) );
         when( preheat.getProgram( event.getProgram() ) ).thenReturn( program );
 
         TrackerBundle bundle = TrackerBundle.builder()
@@ -475,9 +475,10 @@ class EventProgramPreProcessorTest
 
     private Event completeTrackerEvent()
     {
-        Event event = new Event();
-        event.setProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_WITH_REGISTRATION ) );
-        event.setProgram( MetadataIdentifier.ofUid( PROGRAM_WITH_REGISTRATION ) );
-        return event;
+        return Event.builder()
+            .programStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_WITH_REGISTRATION ) )
+            .program( MetadataIdentifier.ofUid( PROGRAM_WITH_REGISTRATION ) )
+            .attributeOptionCombo( MetadataIdentifier.ofUid( null ) )
+            .build();
     }
 }

@@ -157,11 +157,16 @@ class TrackerPreheatIdentifiersTest extends TrackerTest
         List<Pair<String, TrackerIdSchemeParam>> data = buildDataSet( "XXXvX50cXC0", "COCA", "COCAname" );
         for ( Pair<String, TrackerIdSchemeParam> pair : data )
         {
-            Event event = new Event();
-            event.setAttributeOptionCombo( pair.getLeft() );
-            TrackerImportParams params = buildParams( event,
-                builder().categoryOptionComboIdScheme( pair.getRight() ).build() );
+            String id = pair.getLeft();
+            TrackerIdSchemeParam param = pair.getRight();
+            Event event = Event.builder()
+                .attributeOptionCombo( param.toMetadataIdentifier( id ) )
+                .build();
+
+            TrackerImportParams params = buildParams( event, builder().categoryOptionComboIdScheme( param ).build() );
+
             TrackerPreheat preheat = trackerPreheatService.preheat( params );
+
             assertPreheatedObjectExists( preheat, CategoryOptionCombo.class, pair.getRight(), pair.getLeft() );
         }
     }

@@ -109,7 +109,7 @@ public class Event
     private Instant updatedAtClient;
 
     @JsonProperty
-    private String attributeOptionCombo;
+    private MetadataIdentifier attributeOptionCombo;
 
     @JsonProperty
     private String attributeCategoryOptions;
@@ -157,4 +157,19 @@ public class Event
     {
         return TrackerType.EVENT;
     }
+
+    public String getAttributeOptionCombo()
+    {
+        if ( this.attributeOptionCombo == null )
+        {
+            return "";
+        }
+        return this.attributeOptionCombo.getIdentifierOrAttributeValue();
+    }
+
+    public MetadataIdentifier getAttributeOptionComboNew()
+    {
+        return this.attributeOptionCombo;
+    }
+
 }

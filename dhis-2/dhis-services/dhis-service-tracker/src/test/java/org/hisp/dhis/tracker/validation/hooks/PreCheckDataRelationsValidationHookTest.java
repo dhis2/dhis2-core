@@ -533,7 +533,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         when( preheat.getCategoryOptionCombo( aoc.getUid() ) ).thenReturn( aoc );
 
         Event event = eventBuilder()
-            .attributeOptionCombo( aoc.getUid() )
+            .attributeOptionCombo( MetadataIdentifier.ofUid( aoc.getUid() ) )
             .build();
 
         hook.validateEvent( reporter, event );
@@ -553,7 +553,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         when( preheat.getCategoryOptionCombo( defaultAOC.getUid() ) ).thenReturn( defaultAOC );
 
         Event event = eventBuilder()
-            .attributeOptionCombo( defaultAOC.getUid() )
+            .attributeOptionCombo( MetadataIdentifier.ofUid( defaultAOC.getUid() ) )
             .build();
 
         hook.validateEvent( reporter, event );
@@ -572,7 +572,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         when( preheat.getCategoryOptionCombo( UNKNOWN_AOC_ID ) ).thenReturn( null );
 
         Event event = eventBuilder()
-            .attributeOptionCombo( UNKNOWN_AOC_ID )
+            .attributeOptionCombo( MetadataIdentifier.ofUid( UNKNOWN_AOC_ID ) )
             .build();
 
         hook.validateEvent( reporter, event );
@@ -592,7 +592,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         when( preheat.getCategoryOptionCombo( UNKNOWN_AOC_ID ) ).thenReturn( null );
 
         Event event = eventBuilder()
-            .attributeOptionCombo( UNKNOWN_AOC_ID )
+            .attributeOptionCombo( MetadataIdentifier.ofUid( UNKNOWN_AOC_ID ) )
             .build();
 
         hook.validateEvent( reporter, event );
@@ -612,7 +612,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         when( preheat.getCategoryOptionCombo( aoc.getUid() ) ).thenReturn( aoc );
 
         Event event = eventBuilder()
-            .attributeOptionCombo( aoc.getUid() )
+            .attributeOptionCombo( MetadataIdentifier.ofUid( aoc.getUid() ) )
             .build();
 
         hook.validateEvent( reporter, event );
@@ -634,7 +634,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         when( preheat.getCategoryOptionCombo( defaultAOC.getUid() ) ).thenReturn( defaultAOC );
 
         Event event = eventBuilder()
-            .attributeOptionCombo( defaultAOC.getUid() )
+            .attributeOptionCombo( MetadataIdentifier.ofUid( defaultAOC.getUid() ) )
             .build();
 
         hook.validateEvent( reporter, event );
@@ -654,7 +654,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         when( preheat.getCategoryOptionCombo( aoc.getUid() ) ).thenReturn( aoc );
 
         Event event = eventBuilder()
-            .attributeOptionCombo( aoc.getUid() )
+            .attributeOptionCombo( MetadataIdentifier.ofUid( aoc.getUid() ) )
             .build();
 
         hook.validateEvent( reporter, event );
@@ -681,7 +681,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         when( preheat.getCategoryOption( defaultCO.getUid() ) ).thenReturn( defaultCO );
 
         Event event = eventBuilder()
-            .attributeOptionCombo( defaultAOC.getUid() )
+            .attributeOptionCombo( MetadataIdentifier.ofUid( defaultAOC.getUid() ) )
             .attributeCategoryOptions( defaultCO.getUid() )
             .build();
 
@@ -704,7 +704,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         when( preheat.getCategoryOptionCombo( aoc.getUid() ) ).thenReturn( aoc );
 
         Event event = eventBuilder()
-            .attributeOptionCombo( aoc.getUid() )
+            .attributeOptionCombo( MetadataIdentifier.ofUid( aoc.getUid() ) )
             .attributeCategoryOptions( co.getUid() )
             .build();
 
@@ -728,7 +728,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         when( preheat.getCategoryOptionCombo( UNKNOWN_AOC_ID ) ).thenReturn( null );
 
         Event event = eventBuilder()
-            .attributeOptionCombo( UNKNOWN_AOC_ID )
+            .attributeOptionCombo( MetadataIdentifier.ofUid( UNKNOWN_AOC_ID ) )
             .attributeCategoryOptions( co.getUid() )
             .build();
 
@@ -753,7 +753,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         when( preheat.getCategoryOptionCombo( defaultAOC.getUid() ) ).thenReturn( defaultAOC );
 
         Event event = eventBuilder()
-            .attributeOptionCombo( defaultAOC.getUid() )
+            .attributeOptionCombo( MetadataIdentifier.ofUid( defaultAOC.getUid() ) )
             .attributeCategoryOptions( co.getUid() )
             .build();
 
@@ -778,7 +778,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         when( preheat.getCategoryOption( UNKNOWN_CO_ID ) ).thenReturn( null );
 
         Event event = eventBuilder()
-            .attributeOptionCombo( aoc.getUid() )
+            .attributeOptionCombo( MetadataIdentifier.ofUid( aoc.getUid() ) )
             .attributeCategoryOptions( UNKNOWN_CO_ID )
             .build();
 
@@ -808,7 +808,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         when( preheat.getCategoryOptionCombo( UNKNOWN_AOC_ID ) ).thenReturn( null );
 
         Event event = eventBuilder()
-            .attributeOptionCombo( UNKNOWN_AOC_ID )
+            .attributeOptionCombo( MetadataIdentifier.ofUid( UNKNOWN_AOC_ID ) )
             .attributeCategoryOptions( UNKNOWN_CO_ID1 + ";" + co.getUid() + ";" + UNKNOWN_CO_ID2 )
             .build();
 
@@ -837,7 +837,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         when( preheat.getCategoryOption( eventCO.getUid() ) ).thenReturn( eventCO );
 
         Event event = eventBuilder()
-            .attributeOptionCombo( aoc.getUid() )
+            .attributeOptionCombo( MetadataIdentifier.ofUid( aoc.getUid() ) )
             .attributeCategoryOptions( eventCO.getUid() )
             .build();
 
@@ -865,7 +865,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         when( preheat.getCategoryOptionCombo( aoc2.getUid() ) ).thenReturn( aoc2 );
 
         Event event = eventBuilder()
-            .attributeOptionCombo( aoc2.getUid() )
+            .attributeOptionCombo( MetadataIdentifier.ofUid( aoc2.getUid() ) )
             .attributeCategoryOptions( co1.getUid() )
             .build();
 
@@ -891,7 +891,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         when( preheat.getCategoryOption( co1.getUid() ) ).thenReturn( co1 );
 
         Event event = eventBuilder()
-            .attributeOptionCombo( aoc.getUid() )
+            .attributeOptionCombo( MetadataIdentifier.ofUid( aoc.getUid() ) )
             .attributeCategoryOptions( co1.getUid() )
             .build();
 

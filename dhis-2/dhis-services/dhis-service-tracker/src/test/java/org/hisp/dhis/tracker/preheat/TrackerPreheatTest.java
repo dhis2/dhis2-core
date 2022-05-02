@@ -130,7 +130,7 @@ class TrackerPreheatTest extends DhisConvenienceTest
         preheat.putCategoryOptionCombo( categoryCombo, options, aoc );
 
         assertTrue( preheat.containsCategoryOptionCombo( categoryCombo, options ) );
-        assertEquals( identifiers.getCategoryOptionComboIdScheme().getIdentifier( aoc ),
+        assertEquals( identifiers.toMetadataIdentifier( aoc ),
             preheat.getCategoryOptionComboIdentifier( categoryCombo, optionsString ) );
         assertEquals( aoc, preheat.getCategoryOptionCombo( aoc.getUid() ),
             "option combo should also be stored in the preheat map" );
@@ -154,9 +154,9 @@ class TrackerPreheatTest extends DhisConvenienceTest
 
         preheat.putCategoryOptionCombo( categoryCombo, options, aoc );
 
-        assertEquals( identifiers.getCategoryOptionComboIdScheme().getIdentifier( aoc ),
+        assertEquals( identifiers.toMetadataIdentifier( aoc ),
             preheat.getCategoryOptionComboIdentifier( categoryCombo, option1.getUid() + ";" + option2.getUid() ) );
-        assertEquals( identifiers.getCategoryOptionComboIdScheme().getIdentifier( aoc ),
+        assertEquals( identifiers.toMetadataIdentifier( aoc ),
             preheat.getCategoryOptionComboIdentifier( categoryCombo, option2.getUid() + ";" + option1.getUid() ) );
     }
 
