@@ -77,7 +77,7 @@ import org.springframework.mock.web.MockHttpServletResponse;
 class ContextUtilsTest extends DhisWebSpringTest
 {
 
-    //
+    // //
     @Autowired
     private ContextUtils contextUtils;
 
