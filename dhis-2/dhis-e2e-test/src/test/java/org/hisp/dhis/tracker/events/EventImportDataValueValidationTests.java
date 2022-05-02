@@ -34,14 +34,10 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import java.io.File;
 
 import org.hamcrest.Matchers;
-import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.IdGenerator;
-import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.metadata.DataElementActions;
 import org.hisp.dhis.actions.metadata.MetadataActions;
-import org.hisp.dhis.actions.metadata.ProgramActions;
-import org.hisp.dhis.actions.tracker.EventActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;

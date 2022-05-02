@@ -29,8 +29,6 @@ package org.hisp.dhis.tracker.workinglists;
 
 import java.io.File;
 
-import org.hisp.dhis.ApiTest;
-import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.ResponseValidationHelper;

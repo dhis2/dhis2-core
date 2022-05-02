@@ -27,7 +27,12 @@
  */
 package org.hisp.dhis.tracker.importer.events;
 
-import com.google.gson.JsonObject;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+import java.io.File;
+
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.metadata.MetadataActions;
 import org.hisp.dhis.actions.metadata.ProgramActions;
@@ -42,11 +47,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import java.io.File;
-
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -110,7 +111,8 @@ public class UserAssignmentTests
         programActions.programStageActions.enableUserAssignment( programStageId, true );
         createEvents( programId, programStageId, loggedInUser );
 
-        JsonObject eventBody = trackerActions.get( "/events?program=" + programId + "&assignedUserMode=CURRENT&ouMode=ACCESSIBLE" )
+        JsonObject eventBody = trackerActions
+            .get( "/events?program=" + programId + "&assignedUserMode=CURRENT&ouMode=ACCESSIBLE" )
             .validateStatus( 200 )
             .extractJsonObject( "instances[0]" );
 

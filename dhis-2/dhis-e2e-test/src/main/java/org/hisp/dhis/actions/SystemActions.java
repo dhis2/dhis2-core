@@ -27,17 +27,17 @@
  */
 package org.hisp.dhis.actions;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.hisp.dhis.dto.ApiResponse;
-import org.hisp.dhis.dto.ImportSummary;
+import static org.awaitility.Awaitility.await;
+import static org.awaitility.Awaitility.with;
 
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
-import static org.awaitility.Awaitility.await;
-import static org.awaitility.Awaitility.with;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.dto.ImportSummary;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>

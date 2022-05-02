@@ -27,7 +27,17 @@
  */
 package org.hisp.dhis.tracker.importer.tei;
 
-import com.google.gson.JsonObject;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
+
+import java.io.File;
+import java.util.stream.Stream;
+
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;
@@ -42,16 +52,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.io.File;
-import java.util.stream.Stream;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -106,7 +107,8 @@ public class TeiImportTests
         throws Exception
     {
         JsonObject teiBody = new FileReaderUtils()
-            .readJsonAndGenerateData( new File( "src/test/resources/tracker/importer/teis/teiWithEnrollmentAndAttributes.json" ) );
+            .readJsonAndGenerateData(
+                new File( "src/test/resources/tracker/importer/teis/teiWithEnrollmentAndAttributes.json" ) );
 
         // act
         TrackerApiResponse response = trackerActions.postAndGetJobReport( teiBody );
@@ -137,7 +139,8 @@ public class TeiImportTests
 
         JsonObjectBuilder.jsonObject( teiPayload )
             .addArray( "relationships",
-                new RelationshipDataBuilder().buildTrackedEntityRelationship( "Kj6vYde4LHh", "Nav6inZRw1u", "xLmPUYJX8Ks" ) );
+                new RelationshipDataBuilder().buildTrackedEntityRelationship( "Kj6vYde4LHh", "Nav6inZRw1u",
+                    "xLmPUYJX8Ks" ) );
 
         // act
         TrackerApiResponse response = trackerActions.postAndGetJobReport( teiPayload );
@@ -165,11 +168,10 @@ public class TeiImportTests
             Arguments.of( "kZeSYCgaHTk", "TEXT_ATTRIBUTE_VALUE", "TEXT" ),
             Arguments.of( "aIga5mPOFOJ", "TA_MALE", "TEXT with optionSet" ),
             Arguments.of( "ypGAwVRNtVY", "10", "NUMBER" ),
-            Arguments.of( "x5yfLot5VCM", "2010-10-01", "DATE" )
-        );
+            Arguments.of( "x5yfLot5VCM", "2010-10-01", "DATE" ) );
     }
 
-    @MethodSource()
+    @MethodSource( )
     @ParameterizedTest( name = "update tei with attribute value type {2}" )
     public void shouldImportTeiAttributes( String teaId, String attributeValue, String attValueType )
     {

@@ -71,7 +71,6 @@ public class OrgUnitsTest
         String userName = (DataGenerator.randomString()).toLowerCase();
         String psw = "!XPTOqwerty1";
 
-
         userActions.addUserFull( "firstNameA", "lastNameB", userName, psw,
             "NONE" );
         loginActions.loginAsUser( userName, psw );

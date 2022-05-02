@@ -81,25 +81,30 @@ public class TrackerExportTests
     {
         loginActions.loginAsSuperUser();
 
-        TrackerApiResponse response = trackerActions.postAndGetJobReport(new File( "src/test/resources/tracker/importer/teis/teisWithEnrollmentsAndEvents.json"));
+        TrackerApiResponse response = trackerActions.postAndGetJobReport(
+            new File( "src/test/resources/tracker/importer/teis/teisWithEnrollmentsAndEvents.json" ) );
 
         teiId = response.validateSuccessfulImport().extractImportedTeis().get( 0 );
         enrollmentId = response.extractImportedEnrollments().get( 0 );
-        relationshipId = importRelationshipBetweenTeis( teiId, response.extractImportedTeis().get( 1 ) ).extractImportedRelationships().get( 0 );
+        relationshipId = importRelationshipBetweenTeis( teiId, response.extractImportedTeis().get( 1 ) )
+            .extractImportedRelationships().get( 0 );
         eventId = response.extractImportedEvents().get( 0 );
     }
 
     private Stream<Arguments> shouldReturnRequestedFields()
     {
         return Stream.of(
-            Arguments.of( "/trackedEntities/" + teiId, "enrollments[createdAt],relationships[from[trackedEntity[trackedEntity]],to[trackedEntity[trackedEntity]]]", "enrollments.createdAt,relationships.from.trackedEntity.trackedEntity,relationships.to.trackedEntity.trackedEntity"),
-            Arguments.of( "/trackedEntities/" + teiId, "trackedEntity,enrollments", null),
-            Arguments.of( "/enrollments/" + enrollmentId, "program,status,enrolledAt", null),
+            Arguments.of( "/trackedEntities/" + teiId,
+                "enrollments[createdAt],relationships[from[trackedEntity[trackedEntity]],to[trackedEntity[trackedEntity]]]",
+                "enrollments.createdAt,relationships.from.trackedEntity.trackedEntity,relationships.to.trackedEntity.trackedEntity" ),
+            Arguments.of( "/trackedEntities/" + teiId, "trackedEntity,enrollments", null ),
+            Arguments.of( "/enrollments/" + enrollmentId, "program,status,enrolledAt", null ),
             Arguments.of( "/trackedEntities/" + teiId, "*",
-                "trackedEntity,trackedEntityType,createdAt,updatedAt,orgUnit,inactive,deleted,potentialDuplicate,updatedBy,attributes", null ),
+                "trackedEntity,trackedEntityType,createdAt,updatedAt,orgUnit,inactive,deleted,potentialDuplicate,updatedBy,attributes",
+                null ),
             Arguments.of( "/events/" + eventId, "enrollment,createdAt", null ),
-            Arguments.of( "/relationships/" + relationshipId, "from,to[trackedEntity[trackedEntity]]", "from,to.trackedEntity.trackedEntity" )
-         );
+            Arguments.of( "/relationships/" + relationshipId, "from,to[trackedEntity[trackedEntity]]",
+                "from,to.trackedEntity.trackedEntity" ) );
     }
 
     @MethodSource
@@ -136,7 +141,8 @@ public class TrackerExportTests
             .add( "trackedEntity", "Kj6vYde4LHh" )
             .add( "orgUnit", "O6uvpzGd5pu" ) );
 
-        JSONAssert.assertEquals( trackedEntity.getBody().toString(), trackedEntities.extractJsonObject( "instances[0]" ).toString(),
+        JSONAssert.assertEquals( trackedEntity.getBody().toString(),
+            trackedEntities.extractJsonObject( "instances[0]" ).toString(),
             false );
 
     }
@@ -176,7 +182,8 @@ public class TrackerExportTests
             .validate()
             .statusCode( 200 )
             .body( "instances.findAll { it.trackedEntity == 'Kj6vYde4LHh' }.size()", is( 1 ) )
-            .body( "instances.attributes.flatten().findAll { it.attribute == 'kZeSYCgaHTk' }.value", everyItem( is( "Bravo" ) ) );
+            .body( "instances.attributes.flatten().findAll { it.attribute == 'kZeSYCgaHTk' }.value",
+                everyItem( is( "Bravo" ) ) );
     }
 
     Stream<Arguments> shouldReturnTeisMatchingAttributeCriteria()
@@ -191,7 +198,8 @@ public class TrackerExportTests
 
     @MethodSource( )
     @ParameterizedTest
-    public void shouldReturnTeisMatchingAttributeCriteria( String operator, String searchCriteria, Matcher everyItemMatcher )
+    public void shouldReturnTeisMatchingAttributeCriteria( String operator, String searchCriteria,
+        Matcher everyItemMatcher )
     {
         QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder()
             .add( "orgUnit", "O6uvpzGd5pu" )
@@ -201,18 +209,22 @@ public class TrackerExportTests
         trackerActions.getTrackedEntities( queryParamsBuilder )
             .validate().statusCode( 200 )
             .body( "instances", hasSize( greaterThanOrEqualTo( 1 ) ) )
-            .body( "instances.attributes.flatten().findAll { it.attribute == 'kZeSYCgaHTk' }.value", everyItem( everyItemMatcher ) );
+            .body( "instances.attributes.flatten().findAll { it.attribute == 'kZeSYCgaHTk' }.value",
+                everyItem( everyItemMatcher ) );
     }
 
     @Test
     public void shouldReturnSingleTeiGivenFilterWhileSkippingPaging()
     {
 
-        trackerActions.get( "trackedEntities?skipPaging=true&orgUnit=O6uvpzGd5pu&program=f1AyMswryyQ&filter=kZeSYCgaHTk:in:Bravo" )
+        trackerActions
+            .get(
+                "trackedEntities?skipPaging=true&orgUnit=O6uvpzGd5pu&program=f1AyMswryyQ&filter=kZeSYCgaHTk:in:Bravo" )
             .validate()
             .statusCode( 200 )
             .body( "instances.findAll { it.trackedEntity == 'Kj6vYde4LHh' }.size()", is( 1 ) )
-            .body( "instances.attributes.flatten().findAll { it.attribute == 'kZeSYCgaHTk' }.value", everyItem( is( "Bravo" ) ) );
+            .body( "instances.attributes.flatten().findAll { it.attribute == 'kZeSYCgaHTk' }.value",
+                everyItem( is( "Bravo" ) ) );
     }
 
     @Test
