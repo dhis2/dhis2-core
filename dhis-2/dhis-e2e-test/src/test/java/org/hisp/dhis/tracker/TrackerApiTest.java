@@ -25,42 +25,40 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.metadata.collection;
 
-import java.util.Collection;
+package org.hisp.dhis.tracker;
 
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.IdentifiableObjects;
-import org.hisp.dhis.feedback.TypeReport;
+import org.hisp.dhis.ApiTest;
+import org.hisp.dhis.actions.LoginActions;
+import org.hisp.dhis.actions.RestApiActions;
+import org.hisp.dhis.actions.metadata.ProgramActions;
+import org.hisp.dhis.actions.tracker.EventActions;
+import org.hisp.dhis.actions.tracker.TEIActions;
+import org.hisp.dhis.actions.tracker.importer.TrackerActions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Tag;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public interface CollectionService
+@Tag( "category:tracker" )
+public class TrackerApiTest
+    extends ApiTest
 {
-    TypeReport addCollectionItems( IdentifiableObject object, String propertyName,
-        Collection<? extends IdentifiableObject> objects )
-        throws Exception;
+    protected RestApiActions enrollmentActions;
+    protected EventActions eventActions;
+    protected TEIActions teiActions;
+    protected LoginActions loginActions;
+    protected ProgramActions programActions;
 
-    TypeReport delCollectionItems( IdentifiableObject object, String propertyName,
-        Collection<? extends IdentifiableObject> objects )
-        throws Exception;
+    @BeforeAll
+    public void beforeTracker()
+    {
+        teiActions = new TEIActions();
+        loginActions = new LoginActions();
+        programActions = new ProgramActions();
+        eventActions = new EventActions();
+        enrollmentActions = new RestApiActions( "/enrollments" );
+    }
 
-    TypeReport replaceCollectionItems( IdentifiableObject object, String propertyName,
-        Collection<? extends IdentifiableObject> objects )
-        throws Exception;
-
-    /**
-     * Perform addition and deletion of given {@link IdentifiableObjects} to
-     * given {@link IdentifiableObject} in one transaction.
-     *
-     * @param object {@link IdentifiableObject} to be updated
-     * @param propertyName property name of the given {@link IdentifiableObject}
-     *        which will be updated.
-     * @param items {@link IdentifiableObjects} contains additions and deletions
-     *        items.
-     * @return {@link TypeReport}
-     */
-    TypeReport mergeCollectionItems( IdentifiableObject object, String propertyName, IdentifiableObjects items )
-        throws Exception;
 }

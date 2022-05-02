@@ -1,0 +1,75 @@
+{
+    "id": "ctZIHTIIlYS",
+    "name": "TA Tracker program filter",
+    "program": {
+        "id": "f1AyMswryyQ"
+    },
+    "sharing": {
+        "public": "rw------",
+        "userGroups": {
+            "OPVIvvXzNTw": {
+                "access": "rw------",
+                "id": "OPVIvvXzNTw"
+            }
+        }
+    },
+    "entityQueryCriteria": {
+        "enrollmentStatus": "COMPLETED",
+        "followUp": true,
+        "ouMode": "ACCESSIBLE",
+        "displayColumnOrder": [ "eventDate", "dueDate", "program", "invalid"],
+        "assignedUserMode": "ANY",
+        "programStage":"a3kGcGDCuk6",
+        "trackedEntityType":"Q9GufDoplCL",
+        "lastUpdatedDate": {
+            "period": "TODAY",
+            "startBuffer": -5,
+            "endBuffer": 5,
+            "type": "RELATIVE"
+        },
+        "enrollmentCreatedDate": {
+            "period": "TODAY",
+            "startBuffer": -5,
+            "endBuffer": 5,
+            "type": "RELATIVE"
+        },
+        "enrollmentIncidentDate": {
+            "endDate": "2019-03-20T00:00:00.000",
+            "type": "ABSOLUTE",
+            "startDate": "2014-05-01T00:00:00.000"
+        },
+        "trackedEntityInstances": ["a3kGcGDCuk7", "a3kGcGDCuk8"],
+        "order": "createdAt:desc;orgUnit:asc",
+        "attributeValueFilters": [
+            {
+                "attribute": "dIVt4l5vIOa",
+                "sw": "a",
+                "ew": "e"
+            },
+            {
+                "attribute": "kZeSYCgaHTk",
+                "like": "abc"
+            },
+            {
+                "attribute": "x5yfLot5VCM",
+                "dateFilter": {
+                    "startDate": "2014-05-01T00:00:00.000",
+                    "endDate": "2019-03-20T00:00:00.000",
+                    "type": "ABSOLUTE"
+                }
+            },
+            {
+                "attribute": "ypGAwVRNtVY",
+                "le": "20",
+                "ge": "10"
+            },
+            {
+                "attribute": "aIga5mPOFOJ",
+                "in":  [
+                    "MALE",
+                    "FEMALE"
+                ]
+            }
+        ]
+    }
+}

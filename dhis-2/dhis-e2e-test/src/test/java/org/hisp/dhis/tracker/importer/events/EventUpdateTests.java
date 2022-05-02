@@ -50,7 +50,7 @@ public class EventUpdateTests
     @BeforeAll
     public void beforeAll() throws Exception {
         loginActions.loginAsSuperUser();
-        eventId = importTeiWithEnrollmentAndEvent().extractImportedEvents().get( 0 );
+        eventId = importTeisWithEnrollmentAndEvent().extractImportedEvents().get( 0 );
     }
 
     @Test
