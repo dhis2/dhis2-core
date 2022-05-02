@@ -188,7 +188,7 @@ public class EventManager
             processingManager.getPostInsertProcessorFactory().process( workContext, savedEvents );
 
             Date today = new Date();
-            savedEvents.forEach( e -> logTrackedEntityDataValueHistory( e, workContext, today ) );
+            savedEvents.forEach( e -> auditTrackedEntityDataValueHistory( e, workContext, today ) );
             incrementSummaryTotals( events, importSummaries, CREATE );
 
         }
@@ -259,7 +259,7 @@ public class EventManager
             processingManager.getPostUpdateProcessorFactory().process( workContext, savedEvents );
 
             Date today = new Date();
-            savedEvents.forEach( e -> logTrackedEntityDataValueHistory( e, workContext, today ) );
+            savedEvents.forEach( e -> auditTrackedEntityDataValueHistory( e, workContext, today ) );
 
             incrementSummaryTotals( events, importSummaries, UPDATE );
 
@@ -315,7 +315,7 @@ public class EventManager
             processingManager.getPostDeleteProcessorFactory().process( workContext, deletedEvents );
 
             Date today = new Date();
-            deletedEvents.forEach( e -> logTrackedEntityDataValueHistory( e, workContext, today ) );
+            deletedEvents.forEach( e -> auditTrackedEntityDataValueHistory( e, workContext, today ) );
 
             incrementSummaryTotals( events, importSummaries, DELETE );
 
@@ -324,7 +324,7 @@ public class EventManager
         return importSummaries;
     }
 
-    private void logTrackedEntityDataValueHistory( Event event, WorkContext workContext, Date today )
+    private void auditTrackedEntityDataValueHistory( Event event, WorkContext workContext, Date today )
     {
         String persistedDataValue = null;
 
@@ -356,10 +356,10 @@ public class EventManager
                 auditType = AuditType.DELETE;
                 persistedDataValue = eventDataValue.getValue();
             }
-            else if ( !dv.getValue().equals( persistedDataValue ) )
+            else if ( !dv.getValue().equals( eventDataValue.getValue() ) )
             {
-                persistedDataValue = dv.getValue();
                 auditType = AuditType.UPDATE;
+                persistedDataValue = dv.getValue();
             }
 
             TrackedEntityDataValueAudit audit = new TrackedEntityDataValueAudit();
