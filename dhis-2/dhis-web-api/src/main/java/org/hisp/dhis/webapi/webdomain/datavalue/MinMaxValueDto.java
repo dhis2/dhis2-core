@@ -27,9 +27,6 @@
  */
 package org.hisp.dhis.webapi.webdomain.datavalue;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -38,7 +35,7 @@ import lombok.experimental.Accessors;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * DTO which represents data values and min-max values for a data entry form.
+ * DTO which represents a min-max value.
  *
  * @author Lars Helge Overland
  */
@@ -46,10 +43,23 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Setter
 @Accessors( chain = true )
 @NoArgsConstructor
-public class DataValuesDto
+public class MinMaxValueDto
 {
     @JsonProperty
-    private List<DataValueDto> dataValues = new ArrayList<>();
+    private String dataElement;
 
-    private List<MinMaxValueDto> minMaxValues = new ArrayList<>();
+    @JsonProperty
+    private String period;
+
+    @JsonProperty
+    private String orgUnit;
+
+    @JsonProperty
+    private String categoryOptionCombo;
+
+    @JsonProperty
+    private Integer minValue;
+
+    @JsonProperty
+    private Integer maxValue;
 }

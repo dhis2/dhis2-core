@@ -81,6 +81,7 @@ public class DataValueController
         List<DataValue> dataValues = dataValueService.getDataValues( exportParams );
 
         return new DataValuesDto()
-            .setDataValues( mapToList( dataValues, DataValueDtoMapper::toDto ) );
+            .setDataValues( mapToList( dataValues, DataValueDtoMapper::toDto ) )
+            .setMinMaxValues( null );
     }
 }
