@@ -60,7 +60,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @RequiredArgsConstructor
 @RequestMapping( "/dataEntry" )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class DataValueController
+public class DataSetValueController
 {
     private final DataValueService dataValueService;
 
