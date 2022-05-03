@@ -138,8 +138,8 @@ public class QueryFilter
         {
             return "'%" +
                 encodedFilter
-                    .replaceAll( "_", "\\\\_" )
-                    .replaceAll( "%", "\\\\%" )
+                    .replace( "_", "\\_" )
+                    .replace( "%", "\\%" )
                 + "%'";
         }
         else if ( EQ == operator || NE == operator || NEQ == operator || IEQ == operator || NIEQ == operator )
