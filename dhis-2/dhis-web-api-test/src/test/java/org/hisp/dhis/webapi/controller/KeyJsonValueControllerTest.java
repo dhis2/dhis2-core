@@ -45,6 +45,7 @@ import org.hisp.dhis.keyjsonvalue.KeyJsonValue;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValueService;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonKeyJsonValue;
+import org.joda.time.LocalDate;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -112,6 +113,15 @@ public class KeyJsonValueControllerTest extends DhisControllerConvenienceTest
     {
         assertEquals( "Namespace not found: 'missing'",
             GET( "/dataStore/missing" ).error( HttpStatus.NOT_FOUND ).getMessage() );
+    }
+
+    @Test
+    public void testGetKeysInNamespace_LastUpdatedFilter()
+    {
+        assertStatus( HttpStatus.CREATED, POST( "/dataStore/pets/cat", "{'answer': 42}" ) );
+        assertStatus( HttpStatus.CREATED, POST( "/dataStore/pets/dog", "{'answer': true}" ) );
+        assertTrue( GET( "/dataStore/pets?lastUpdated=" + (LocalDate.now().getYear() + 1) ).content().stringValues()
+            .isEmpty() );
     }
 
     @Test

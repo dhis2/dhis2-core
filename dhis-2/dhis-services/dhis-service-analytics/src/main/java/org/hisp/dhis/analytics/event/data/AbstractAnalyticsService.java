@@ -28,7 +28,11 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.*;
+import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.DIMENSIONS;
+import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ITEMS;
+import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_HIERARCHY;
+import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_NAME_HIERARCHY;
+import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.PAGER;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
@@ -45,11 +49,20 @@ import java.util.List;
 import java.util.Map;
 
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
+import org.hisp.dhis.analytics.data.handler.SchemaIdResponseMapper;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryValidator;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.calendar.Calendar;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.MetadataItem;
+import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.User;
@@ -65,13 +78,18 @@ public abstract class AbstractAnalyticsService
 
     final EventQueryValidator queryValidator;
 
-    public AbstractAnalyticsService( AnalyticsSecurityManager securityManager, EventQueryValidator queryValidator )
+    final SchemaIdResponseMapper schemaIdResponseMapper;
+
+    public AbstractAnalyticsService( AnalyticsSecurityManager securityManager, EventQueryValidator queryValidator,
+        SchemaIdResponseMapper schemaIdResponseMapper )
     {
         checkNotNull( securityManager );
         checkNotNull( queryValidator );
+        checkNotNull( schemaIdResponseMapper );
 
         this.securityManager = securityManager;
         this.queryValidator = queryValidator;
+        this.schemaIdResponseMapper = schemaIdResponseMapper;
     }
 
     protected Grid getGrid( EventQueryParams params )
@@ -145,6 +163,8 @@ public abstract class AbstractAnalyticsService
             substituteData( grid );
         }
 
+        maybeApplyIdScheme( params, grid );
+
         // ---------------------------------------------------------------------
         // Paging
         // ---------------------------------------------------------------------
@@ -157,6 +177,26 @@ public abstract class AbstractAnalyticsService
         }
 
         return grid;
+    }
+
+    /**
+     * Substitutes the meta data of the grid with the identifier scheme meta
+     * data property indicated in the query. This happens only when a custom ID
+     * Schema is set.
+     *
+     * @param params the {@link EventQueryParams}.
+     * @param grid the grid.
+     */
+    void maybeApplyIdScheme( EventQueryParams params, Grid grid )
+    {
+        if ( !params.isSkipMeta() )
+        {
+            if ( params.hasCustomIdSchemaSet() )
+            {
+                // Apply all schemas set/mapped to the grid.
+                grid.substituteMetaData( schemaIdResponseMapper.getSchemeIdResponseMap( params ) );
+            }
+        }
     }
 
     protected abstract Grid createGridWithHeaders( EventQueryParams params );

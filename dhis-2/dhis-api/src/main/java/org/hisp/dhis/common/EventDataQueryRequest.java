@@ -171,6 +171,7 @@ public class EventDataQueryRequest
         queryRequest.page = this.page;
         queryRequest.pageSize = this.pageSize;
         queryRequest.paging = this.paging;
+        queryRequest.outputIdScheme = outputIdScheme;
         return request;
     }
 
@@ -244,6 +245,7 @@ public class EventDataQueryRequest
                 .coordinatesOnly( criteria.isCoordinatesOnly() )
                 .includeMetadataDetails( criteria.isIncludeMetadataDetails() )
                 .dataIdScheme( criteria.getDataIdScheme() )
+                .outputIdScheme( criteria.getOutputIdScheme() )
                 .programStatus( criteria.getProgramStatus() )
                 .page( criteria.getPage() )
                 .pageSize( criteria.getPageSize() )

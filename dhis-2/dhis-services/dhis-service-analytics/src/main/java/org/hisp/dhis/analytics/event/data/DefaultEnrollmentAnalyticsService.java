@@ -33,6 +33,7 @@ import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.common.ValueType.TEXT;
 
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
+import org.hisp.dhis.analytics.data.handler.SchemaIdResponseMapper;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -76,16 +77,20 @@ public class DefaultEnrollmentAnalyticsService
 
     private final EventQueryPlanner queryPlanner;
 
+    private final SchemaIdResponseMapper schemaIdResponseMapper;
+
     public DefaultEnrollmentAnalyticsService( EnrollmentAnalyticsManager enrollmentAnalyticsManager,
-        AnalyticsSecurityManager securityManager, EventQueryPlanner queryPlanner, EventQueryValidator queryValidator )
+        AnalyticsSecurityManager securityManager, EventQueryPlanner queryPlanner, EventQueryValidator queryValidator,
+        SchemaIdResponseMapper schemaIdResponseMapper )
     {
-        super( securityManager, queryValidator );
+        super( securityManager, queryValidator, schemaIdResponseMapper );
 
         checkNotNull( enrollmentAnalyticsManager );
         checkNotNull( queryPlanner );
 
         this.enrollmentAnalyticsManager = enrollmentAnalyticsManager;
         this.queryPlanner = queryPlanner;
+        this.schemaIdResponseMapper = schemaIdResponseMapper;
     }
 
     // -------------------------------------------------------------------------

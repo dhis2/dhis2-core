@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,8 +33,10 @@ import static org.hisp.dhis.dxf2.events.aggregates.ThreadPoolManager.getPool;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -68,6 +70,7 @@ import org.hisp.dhis.user.User;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 
 /**
@@ -160,22 +163,33 @@ public class TrackedEntityInstanceAggregate
     public List<TrackedEntityInstance> find( List<Long> ids, TrackedEntityInstanceParams params,
         TrackedEntityInstanceQueryParams queryParams )
     {
-        final User user = currentUserService.getCurrentUser();
+        final Optional<User> user = Optional.ofNullable( currentUserService.getCurrentUser() );
 
-        if ( userGroupUIDCache.get( user.getUid() ) == null && !CollectionUtils.isEmpty( user.getGroups() ) )
-        {
-            userGroupUIDCache.put( user.getUid(),
-                user.getGroups().stream().map( group -> group.getUid() ).collect( Collectors.toList() ) );
-        }
+        user.ifPresent( u -> {
+            if ( !userGroupUIDCache.containsKey( user.get().getUid() ) ||
+                (userGroupUIDCache.get( user.get().getUid() ).isEmpty()
+                    && !CollectionUtils.isEmpty( user.get().getGroups() )) )
+            {
+                userGroupUIDCache.put( user.get().getUid(),
+                    user.get().getGroups().stream().map( BaseIdentifiableObject::getUid )
+                        .collect( Collectors.toList() ) );
+            }
+        } );
 
         /*
          * Create a context with information which will be used to fetch the
-         * entities
+         * entities. Use a superUser context if the user is null.
          */
-        AggregateContext ctx = securityCache.get( user.getUid() )
+        AggregateContext ctx = user.map( u -> getCachedAggregateContext( u )
             .toBuilder()
-            .userId( user.getId() )
-            .superUser( user.isSuper() )
+            .userId( u.getId() )
+            .superUser( u.isSuper() ) )
+            .orElse( new AggregateContext.AggregateContextBuilder()
+                .superUser( true )
+                .trackedEntityTypes( Collections.emptyList() )
+                .programs( Collections.emptyList() )
+                .programStages( Collections.emptyList() )
+                .relationshipTypes( Collections.emptyList() ) )
             .params( params )
             .queryParams( queryParams )
             .build();
@@ -220,7 +234,8 @@ public class TrackedEntityInstanceAggregate
          * Async fetch Owned Tei mapped to the provided program attributes by
          * TrackedEntityInstance id
          */
-        final CompletableFuture<Multimap<String, String>> ownedTeiAsync = supplyAsync(
+        final CompletableFuture<Multimap<String, String>> ownedTeiAsync = conditionalAsyncFetch(
+            user.isPresent(),
             () -> trackedEntityInstanceStore.getOwnedTeis( ids, ctx ), getPool() );
 
         /*
@@ -239,7 +254,7 @@ public class TrackedEntityInstanceAggregate
 
                 Stream<String> teiUidStream = teis.keySet().parallelStream();
 
-                if ( queryParams.hasProgram() )
+                if ( user.isPresent() && queryParams.hasProgram() )
                 {
                     teiUidStream = teiUidStream.filter( ownedTeis::containsKey );
                 }
@@ -258,6 +273,23 @@ public class TrackedEntityInstanceAggregate
                 } ).collect( Collectors.toList() );
             }, getPool() ).join();
 
+    }
+
+    private AggregateContext getCachedAggregateContext( User user )
+    {
+        if ( securityCache.containsKey( user.getUid() ) )
+        {
+            return securityCache.get( user.getUid() );
+        }
+        else
+        {
+            List<String> strings = Lists.newArrayList();
+            if ( userGroupUIDCache.containsKey( user.getUid() ) )
+            {
+                strings = userGroupUIDCache.get( user.getUid() );
+            }
+            return getSecurityContext( user.getUid(), strings );
+        }
     }
 
     /**
