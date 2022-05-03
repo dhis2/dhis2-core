@@ -132,40 +132,6 @@ class TranslationServiceTest extends DhisSpringTest
         assertEquals( translatedValue, option.getDisplayFormName() );
     }
 
-    // @Test
-    // void testFormNameTranslationForRelationShip()
-    // {
-    // RelationshipType relationshipType = createRelationshipType( 'A' );
-    // OrganisationUnit organisationUnit = createOrganisationUnit( 'A' );
-    // TrackedEntityAttribute attribute = createTrackedEntityAttribute( 'A' );
-    // manager.save( relationshipType );
-    // manager.save( organisationUnit );
-    // manager.save( attribute );
-    // TrackedEntityInstance trackedEntityInstance =
-    // createTrackedEntityInstance( 'A', organisationUnit, attribute );
-    // manager.save( trackedEntityInstance );
-    // Relationship relationship = new Relationship();
-    // RelationshipItem from = new RelationshipItem();
-    // from.setTrackedEntityInstance( trackedEntityInstance );
-    // RelationshipItem to = new RelationshipItem();
-    // to.setTrackedEntityInstance( trackedEntityInstance );
-    // relationship.setFrom( from );
-    // relationship.setTo( to );
-    // relationship.setRelationshipType( relationshipType );
-    // relationship.setKey( RelationshipUtils.generateRelationshipKey(
-    // relationship ) );
-    // relationship.setInvertedKey(
-    // RelationshipUtils.generateRelationshipInvertedKey( relationship ) );
-    // manager.save( relationship );
-    // String translatedValue = "RelationShip FormName Translated";
-    // Set<Translation> translations = new HashSet<>(
-    // relationship.getTranslations() );
-    // translations.add( new Translation( locale.getLanguage(), "FORM_NAME",
-    // translatedValue ) );
-    // manager.updateTranslations( relationship, translations );
-    // assertEquals( translatedValue, relationship.getDisplayFormName() );
-    // }
-
     @Test
     void testFormNameTranslationForProgramStageSection()
     {
