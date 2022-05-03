@@ -153,7 +153,7 @@ public class MessageConversationController
     }
 
     @Override
-    public ResponseEntity<ObjectNode> getObject( @PathVariable String uid, Map<String, String> rpParameters,
+    public ResponseEntity<?> getObject( @PathVariable String uid, Map<String, String> rpParameters,
         @CurrentUser User currentUser, HttpServletRequest request,
         HttpServletResponse response )
         throws Exception
