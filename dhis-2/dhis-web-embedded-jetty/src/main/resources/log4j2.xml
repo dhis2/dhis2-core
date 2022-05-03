@@ -1,16 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="WARN">
     <Appenders>
-        <RollingFile name="fileLogger" fileName="dhis.log" filePattern="dhis.log.%i">
-            <PatternLayout>
-                <pattern>* %-5p %d{ISO8601} %m (%F [%t])%n %X{sessionId} %X{xRequestID}</pattern>
-            </PatternLayout>
-            <Policies>
-                <SizeBasedTriggeringPolicy size="25 MB"/>
-            </Policies>
-            <DefaultRolloverStrategy max="3"/>
-        </RollingFile>
-
         <Console name="console" target="SYSTEM_OUT" follow="true">
             <PatternLayout
                     pattern="%d{HH:mm:ss.SSS} %highlight{${LOG_LEVEL_PATTERN:-%5p}}{FATAL=red blink, ERROR=red, WARN=yellow bold, INFO=green, DEBUG=green bold, TRACE=blue} [%15.15t] %style{%-40.40C{1.}}{cyan} : %m%n%throwable"/>

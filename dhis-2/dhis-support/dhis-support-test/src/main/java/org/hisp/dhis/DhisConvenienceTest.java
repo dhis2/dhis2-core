@@ -1282,6 +1282,7 @@ public abstract class DhisConvenienceTest
         predictor.setOutput( output );
         predictor.setOutputCombo( combo );
         predictor.setName( "Predictor" + uniqueCharacter );
+        predictor.setShortName( "Predictor" + uniqueCharacter );
         predictor.setDescription( "Description" + uniqueCharacter );
         predictor.setGenerator( generator );
         predictor.setSampleSkipTest( skipTest );

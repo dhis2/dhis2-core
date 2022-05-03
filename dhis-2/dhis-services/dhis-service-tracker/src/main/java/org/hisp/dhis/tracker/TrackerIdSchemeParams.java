@@ -33,6 +33,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
@@ -121,6 +122,20 @@ public class TrackerIdSchemeParams
             return idScheme;
         }
 
+    }
+
+    /**
+     * Creates metadata identifier for given {@code orgUnit} using
+     * {@link #orgUnitIdScheme}. For more details refer to
+     * {@link TrackerIdSchemeParam#toMetadataIdentifier(IdentifiableObject)}
+     *
+     * @param orgUnit to create metadata identifier for
+     * @return metadata identifier representing metadata using the
+     *         orgUnitIdScheme
+     */
+    public MetadataIdentifier toMetadataIdentifier( OrganisationUnit orgUnit )
+    {
+        return orgUnitIdScheme.toMetadataIdentifier( orgUnit );
     }
 
     /**

@@ -255,7 +255,7 @@ public class PreCheckSecurityOwnershipValidationHook
         }
         else
         {
-            checkNotNull( enrollment.getOrgUnit(), ORGANISATION_UNIT_CANT_BE_NULL );
+            checkNotNull( enrollment.getOrgUnit().getIdentifierOrAttributeValue(), ORGANISATION_UNIT_CANT_BE_NULL );
             enrollmentOrgUnit = reporter.getBundle().getPreheat().getOrganisationUnit( enrollment.getOrgUnit() );
         }
 

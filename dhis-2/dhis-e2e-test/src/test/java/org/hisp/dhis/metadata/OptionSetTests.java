@@ -27,7 +27,12 @@
  */
 package org.hisp.dhis.metadata;
 
-import com.google.gson.JsonObject;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.Matchers.emptyArray;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
+
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.metadata.OptionActions;
@@ -38,11 +43,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.Matchers.emptyArray;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>

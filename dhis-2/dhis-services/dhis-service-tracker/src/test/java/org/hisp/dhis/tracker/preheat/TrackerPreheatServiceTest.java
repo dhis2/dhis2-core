@@ -49,6 +49,7 @@ import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerIdentifierCollector;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerTest;
+import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -132,7 +133,10 @@ class TrackerPreheatServiceTest extends TrackerTest
                         .build() )
                 .build() )
             .trackedEntities( Lists.newArrayList(
-                TrackedEntity.builder().trackedEntity( "TEI12345678" ).orgUnit( "OU123456789" ).build() ) )
+                TrackedEntity.builder()
+                    .trackedEntity( "TEI12345678" )
+                    .orgUnit( MetadataIdentifier.ofCode( "OU123456789" ) )
+                    .build() ) )
             .build();
         assertFalse( params.getTrackedEntities().isEmpty() );
         assertTrue( params.getEnrollments().isEmpty() );

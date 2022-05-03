@@ -27,7 +27,18 @@
  */
 package org.hisp.dhis.tracker.importer.enrollments;
 
-import com.google.gson.JsonObject;
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.hasItems;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
+
+import java.io.File;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.Constants;
@@ -48,17 +59,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import java.io.File;
-import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
-
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.hasItems;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -67,6 +68,8 @@ public class EnrollmentsTests
     extends
     TrackerNtiApiTest
 {
+    private static final String OU_ID = Constants.ORG_UNIT_IDS[0];
+
     private String multipleEnrollmentsProgram;
 
     private String multipleEnrollmentsProgramStage;
@@ -74,7 +77,8 @@ public class EnrollmentsTests
     @BeforeAll
     public void beforeAll()
     {
-        multipleEnrollmentsProgram = programActions.createTrackerProgram( Constants.TRACKED_ENTITY_TYPE, Constants.ORG_UNIT_IDS )
+        multipleEnrollmentsProgram = programActions
+            .createTrackerProgram( Constants.TRACKED_ENTITY_TYPE, Constants.ORG_UNIT_IDS )
             .extractUid();
 
         JsonObject object = programActions.get( multipleEnrollmentsProgram ).getBodyAsJsonBuilder()
@@ -84,7 +88,8 @@ public class EnrollmentsTests
         programActions.update( multipleEnrollmentsProgram, object ).validateStatus( 200 );
 
         multipleEnrollmentsProgramStage = programActions
-            .createProgramStage( multipleEnrollmentsProgram, "Enrollment tests program stage " + DataGenerator.randomString() );
+            .createProgramStage( multipleEnrollmentsProgram,
+                "Enrollment tests program stage " + DataGenerator.randomString() );
 
     }
 
@@ -178,7 +183,8 @@ public class EnrollmentsTests
             .extractImportedEnrollments().get( 0 );
 
         JsonObject payload = trackerActions.getEnrollment( enrollmentId ).getBodyAsJsonBuilder()
-            .addOrAppendToArray( "notes", new JsonObjectBuilder().addProperty( "value", DataGenerator.randomString() ).build() )
+            .addOrAppendToArray( "notes",
+                new JsonObjectBuilder().addProperty( "value", DataGenerator.randomString() ).build() )
             .wrapIntoArray( "enrollments" );
 
         trackerActions.postAndGetJobReport( payload )
@@ -262,5 +268,47 @@ public class EnrollmentsTests
 
         assertThat( enrollmentResponse.getBody(),
             matchesJSON( enrollmentPayload.get( "enrollments" ).getAsJsonArray().get( 0 ).getAsJsonObject() ) );
+    }
+
+    @Test
+    public void shouldReturnErrorWhenUpdatingSoftDeletedEnrollment()
+        throws Exception
+    {
+        String teiId = importTei();
+        JsonObject enrollments = new EnrollmentDataBuilder()
+            .setTei( teiId )
+            .setOu( OU_ID )
+            .setProgram( multipleEnrollmentsProgram )
+            .array();
+
+        // Create Enrollment
+        TrackerApiResponse response = trackerActions.postAndGetJobReport( enrollments );
+
+        response.validateSuccessfulImport();
+
+        String enrollmentId = response.extractImportedEnrollments().get( 0 );
+        JsonObject enrollmentsToDelete = new EnrollmentDataBuilder()
+            .setId( enrollmentId )
+            .array();
+
+        // Delete Enrollment
+        TrackerApiResponse deleteResponse = trackerActions.postAndGetJobReport( enrollmentsToDelete,
+            new QueryParamsBuilder().add( "importStrategy=DELETE" ) );
+
+        deleteResponse.validateSuccessfulImport();
+
+        JsonObject enrollmentsToImportAgain = new EnrollmentDataBuilder()
+            .setId( enrollmentId )
+            .setTei( teiId )
+            .setOu( OU_ID )
+            .setProgram( multipleEnrollmentsProgram )
+            .array();
+
+        // Update Enrollment
+        TrackerApiResponse responseImportAgain = trackerActions.postAndGetJobReport( enrollmentsToImportAgain );
+
+        responseImportAgain
+            .validateErrorReport()
+            .body( "errorCode", Matchers.hasItem( "E1113" ) );
     }
 }

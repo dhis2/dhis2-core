@@ -38,19 +38,16 @@
       "createdAtClient": "2020-02-20T10:09:21.844",
       "updatedAt": "2020-02-20T12:09:21.844",
       "updatedAtClient": "2020-02-20T11:09:21.844",
-      "orgUnit": "uoNW0E3xXUy",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "uoNW0E3xXUy"
+      },
       "inactive": false,
       "deleted": false,
       "potentialDuplicate": false,
       "relationships": [],
       "attributes": [],
-      "enrollments": [],
-      "programOwners": [
-        {
-          "trackedEntity": "EEFkxTWB55Y",
-          "program": "hJUBNVQWl4e"
-        }
-      ]
+      "enrollments": []
     }
   ],
   "enrollments": [],

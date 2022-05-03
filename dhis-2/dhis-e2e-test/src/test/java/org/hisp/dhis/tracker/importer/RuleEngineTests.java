@@ -27,7 +27,12 @@
  */
 package org.hisp.dhis.tracker.importer;
 
-import com.google.gson.JsonObject;
+import static org.hamcrest.Matchers.*;
+
+import java.io.File;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+
 import org.hamcrest.Matchers;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.MessageConversationsActions;
@@ -49,11 +54,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
-import java.io.File;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-
-import static org.hamcrest.Matchers.*;
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>

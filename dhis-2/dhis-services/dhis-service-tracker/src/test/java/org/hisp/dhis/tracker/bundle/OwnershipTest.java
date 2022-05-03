@@ -101,7 +101,9 @@ class OwnershipTest extends TrackerTest
         throws IOException
     {
         TrackerImportParams enrollmentParams = fromJson( "tracker/ownership_enrollment.json", nonSuperUser.getUid() );
+
         List<TrackedEntityInstance> teis = manager.getAll( TrackedEntityInstance.class );
+
         assertEquals( 1, teis.size() );
         TrackedEntityInstance tei = teis.get( 0 );
         assertNotNull( tei.getProgramOwners() );
@@ -113,7 +115,7 @@ class OwnershipTest extends TrackerTest
         assertNotNull( tepo.getOrganisationUnit() );
         assertTrue(
             enrollmentParams.getEnrollments().get( 0 ).getProgram().isEqualTo( tepo.getProgram() ) );
-        assertEquals( enrollmentParams.getEnrollments().get( 0 ).getOrgUnit(), tepo.getOrganisationUnit().getUid() );
+        assertTrue( enrollmentParams.getEnrollments().get( 0 ).getOrgUnit().isEqualTo( tepo.getOrganisationUnit() ) );
         assertEquals( enrollmentParams.getEnrollments().get( 0 ).getTrackedEntity(),
             tepo.getEntityInstance().getUid() );
     }

@@ -27,7 +27,8 @@
  */
 package org.hisp.dhis.metadata.programs;
 
-import com.google.gson.JsonObject;
+import static org.hamcrest.Matchers.*;
+
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
@@ -38,7 +39,7 @@ import org.hisp.dhis.helpers.ResponseValidationHelper;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import static org.hamcrest.Matchers.*;
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>

@@ -35,7 +35,10 @@
       "trackedEntity": "EEFkxTWB55Y",
       "trackedEntityType": "KrYIdvLxkMb",
       "createdAtClient": "2020-02-20T12:09:21.844",
-      "orgUnit": "cNEZTkdAvmg",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "cNEZTkdAvmg"
+      },
       "inactive": false,
       "deleted": false,
       "potentialDuplicate": false,
@@ -63,13 +66,7 @@
           "value": "2020-02-20"
         }
       ],
-      "enrollments": [],
-      "programOwners": [
-        {
-          "trackedEntity": "EEFkxTWB55Y",
-          "program": "hJUBNVQWl4e"
-        }
-      ]
+      "enrollments": []
     }
   ],
   "enrollments": [
@@ -82,7 +79,10 @@
         "identifier": "hJUBNVQWl4e"
       },
       "status": "ACTIVE",
-      "orgUnit": "cNEZTkdAvmg",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "cNEZTkdAvmg"
+      },
       "orgUnitName": "Country",
       "enrolledAt": "2020-02-20T00:00:00.000",
       "occurredAt": "2020-02-20T00:00:00.000",
