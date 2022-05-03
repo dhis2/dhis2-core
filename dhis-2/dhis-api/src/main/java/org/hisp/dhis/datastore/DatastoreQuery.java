@@ -395,11 +395,11 @@ public final class DatastoreQuery
             {
                 addNonEmptyTo( flat, parentPath, field );
             }
-            else if ( next == '[' )
+            else if ( next == '[' || next == '(' )
             {
                 parentPath += field + ".";
             }
-            else if ( next == ']' )
+            else if ( next == ']' || next == ')' )
             {
                 addNonEmptyTo( flat, parentPath, field );
                 parentPath = parentPath.substring( 0, parentPath.lastIndexOf( '.', parentPath.length() - 2 ) + 1 );
@@ -441,9 +441,9 @@ public final class DatastoreQuery
     {
         if ( !field.isEmpty() )
         {
-            int aliasStart = field.indexOf( '(' );
+            int aliasStart = field.indexOf( "~hoist(" );
             String name = aliasStart > 0 ? field.substring( 0, aliasStart ) : field;
-            String alias = aliasStart > 0 ? field.substring( aliasStart + 1, field.length() - 1 ) : null;
+            String alias = aliasStart > 0 ? field.substring( aliasStart + 7, field.length() - 1 ) : null;
             fields.add( new Field( parent + name, alias ) );
         }
     }
@@ -473,7 +473,7 @@ public final class DatastoreQuery
      */
     private static int findAliasEnd( String fields, int start )
     {
-        if ( start >= fields.length() || fields.charAt( start ) != '(' )
+        if ( start >= fields.length() || fields.charAt( start ) != '~' )
         {
             return start;
         }
