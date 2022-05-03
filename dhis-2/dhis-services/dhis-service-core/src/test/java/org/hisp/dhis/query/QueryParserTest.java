@@ -103,7 +103,7 @@ class QueryParserTest extends IntegrationTestBase
         this.userService = _userService;
 
         OrganisationUnit orgUnitA = createOrganisationUnit( 'A' );
-        User user = mockUser( "A" );
+        User user = createAndAddUser( "A" );
         user.addOrganisationUnit( orgUnitA );
         injectSecurityContext( user );
 

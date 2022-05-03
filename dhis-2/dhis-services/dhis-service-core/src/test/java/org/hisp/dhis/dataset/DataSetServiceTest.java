@@ -163,7 +163,8 @@ class DataSetServiceTest extends DhisTest
         organisationUnitService.addOrganisationUnit( unitF );
         attributeOptionCombo = categoryService.getDefaultCategoryOptionCombo();
 
-        superUser = mockUser( true, "username", newHashSet( unitA ), newHashSet( unitA ), UserRole.AUTHORITY_ALL );
+        superUser = createAndAddUser( true, "username", newHashSet( unitA ), newHashSet( unitA ),
+            UserRole.AUTHORITY_ALL );
         injectSecurityContext( superUser );
 
     }
@@ -525,7 +526,7 @@ class DataSetServiceTest extends DhisTest
     @Test
     void testDataSharingDataSet()
     {
-        User user = mockUser( false, "usernameA", null );
+        User user = createAndAddUser( false, "usernameA", null );
         injectSecurityContext( user );
         DataSet dataSet = createDataSet( 'A', new MonthlyPeriodType() );
         UserAccess userAccess = new UserAccess();

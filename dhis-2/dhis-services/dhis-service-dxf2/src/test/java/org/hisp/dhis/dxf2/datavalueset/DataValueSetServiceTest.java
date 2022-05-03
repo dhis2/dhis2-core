@@ -322,7 +322,7 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
         periodService.addPeriod( peC );
         dataSetService.addDataSet( dsA );
 
-        this.user = mockUser( false, "A", null, Authorities.F_SKIP_DATA_IMPORT_AUDIT.getAuthority() );
+        this.user = createAndAddUser( false, "A", null, Authorities.F_SKIP_DATA_IMPORT_AUDIT.getAuthority() );
         this.user.addOrganisationUnits( Sets.newHashSet( ouA, ouB ) );
         userService.updateUser( this.user );
 

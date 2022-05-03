@@ -257,7 +257,7 @@ class ValidationServiceTest extends DhisTest
         throws Exception
     {
         this.userService = injectUserService;
-        User user = mockUser( true, "SUPERUSER", allSources, null );
+        User user = createAndAddUser( true, "SUPERUSER", allSources, null );
         injectSecurityContext( user );
 
         ptWeekly = new WeeklyPeriodType();

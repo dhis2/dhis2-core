@@ -317,7 +317,7 @@ class PredictionServiceTest extends IntegrationTestBase
         dataValueBatchHandler = batchHandlerFactory.createBatchHandler( DataValueBatchHandler.class ).init();
         Set<OrganisationUnit> units = newHashSet( sourceA, sourceB, sourceG );
 
-        User user = mockUser( true, "mockUser", units, units );
+        User user = createAndAddUser( true, "mockUser", units, units );
         injectSecurityContext( user );
     }
 
@@ -584,7 +584,7 @@ class PredictionServiceTest extends IntegrationTestBase
         setupTestData();
         Set<OrganisationUnit> units = newHashSet( sourceA );
 
-        mockUser( true, "mockUser2", units, units );
+        createAndAddUser( true, "mockUser2", units, units );
         Predictor p = createPredictor( dataElementX, defaultCombo, "PredictSequential", expressionH, null,
             periodTypeMonthly, orgUnitLevel1, 3, 1, 0 );
         predictionService.predict( p, monthStart( 2001, 7 ), monthStart( 2001, 12 ), summary );

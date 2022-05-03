@@ -123,7 +123,7 @@ class ValidationServiceIntegrationTest extends IntegrationTestBase
         organisationUnitService.addOrganisationUnit( orgUnitA );
         defaultCombo = categoryService.getDefaultCategoryOptionCombo();
 
-        User user = mockUser( true, "SUPERUSER", Sets.newHashSet( orgUnitA ), null );
+        User user = createAndAddUser( true, "SUPERUSER", Sets.newHashSet( orgUnitA ), null );
         injectSecurityContext( user );
     }
 

@@ -260,7 +260,7 @@ class DataApprovalAuditStoreTest extends DhisSpringTest
         assertEquals( 1, audits.size() );
         assertEquals( auditA, audits.get( 0 ) );
 
-        User userB = mockUser( newHashSet( sourceB ), null );
+        User userB = createAndAddUser( newHashSet( sourceB ), null );
         injectSecurityContext( userB );
 
         params = new DataApprovalAuditQueryParams();

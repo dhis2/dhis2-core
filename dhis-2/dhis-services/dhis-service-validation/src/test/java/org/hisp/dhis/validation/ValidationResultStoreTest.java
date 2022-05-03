@@ -224,11 +224,11 @@ class ValidationResultStoreTest extends TransactionalIntegrationTest
         organisationUnitService.addOrganisationUnit( sourceA );
         organisationUnitService.addOrganisationUnit( sourceB );
         organisationUnitService.addOrganisationUnit( sourceC );
-        superUser = mockUser( true, "SuperUser", sourceA, UserRole.AUTHORITY_ALL );
-        userA = mockUser( "UserA", sourceA );
-        userB = mockUser( "UserB", sourceB );
-        userC = mockUser( "UserC", sourceB );
-        userD = mockUser( "UserD", sourceB );
+        superUser = createAndAddUser( true, "SuperUser", sourceA, UserRole.AUTHORITY_ALL );
+        userA = createAndAddUser( "UserA", sourceA );
+        userB = createAndAddUser( "UserB", sourceB );
+        userC = createAndAddUser( "UserC", sourceB );
+        userD = createAndAddUser( "UserD", sourceB );
         userZ = makeUser( "Z" );
         userService.addUser( userZ );
         UserGroup userGroupC = createUserGroup( 'A', Sets.newHashSet( userC ) );

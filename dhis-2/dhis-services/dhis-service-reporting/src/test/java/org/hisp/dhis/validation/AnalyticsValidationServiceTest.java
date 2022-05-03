@@ -293,7 +293,7 @@ class AnalyticsValidationServiceTest extends TransactionalIntegrationTest
         mockAnalyticsSerivce.setDateGridMap( dateGridMap );
         runner.setAnalyticsService( mockAnalyticsSerivce );
 
-        User user = mockUser( Sets.newHashSet( orgUnitA ), null );
+        User user = createAndAddUser( Sets.newHashSet( orgUnitA ), null );
         injectSecurityContext( user );
     }
 

@@ -330,30 +330,34 @@ class DataApprovalServiceCategoryOptionGroupTest extends IntegrationTestBase
         userA = makeUser( "A" );
         userService.addUser( userA );
         dateA = new Date();
-        superUser = mockUser( true, "SuperUser", global, AUTHORITY_ALL );
-        globalConsultant = mockUser( "GlobalConsultant", global, AUTH_APPROVE, AUTH_ACCEPT_LOWER_LEVELS,
+        superUser = createAndAddUser( true, "SuperUser", global, AUTHORITY_ALL );
+        globalConsultant = createAndAddUser( "GlobalConsultant", global, AUTH_APPROVE, AUTH_ACCEPT_LOWER_LEVELS,
             AUTH_APPROVE_LOWER_LEVELS );
-        globalUser = mockUser( "GlobalUser", global, AUTH_APPROVE, AUTH_ACCEPT_LOWER_LEVELS );
-        globalApproveOnly = mockUser( "GlobalApproveOnly", global, AUTH_APPROVE );
-        globalAcceptOnly = mockUser( "GlobalAcceptOnly", global, AUTH_ACCEPT_LOWER_LEVELS );
-        globalReadAll = mockUser( "GlobalReadEverything", global, AUTH_VIEW_UNAPPROVED_DATA );
-        globalAgencyAUser = mockUser( "GlobalAgencyAUser", global, AUTH_APPROVE, AUTH_ACCEPT_LOWER_LEVELS );
-        globalAgencyBUser = mockUser( "GlobalAgencyBUser", global, AUTH_APPROVE, AUTH_ACCEPT_LOWER_LEVELS );
-        brazilInteragencyUser = mockUser( "BrazilInteragencyUser", brazil, AUTH_APPROVE, AUTH_ACCEPT_LOWER_LEVELS );
-        chinaInteragencyUser = mockUser( "ChinaInteragencyUser", china, AUTH_APPROVE, AUTH_ACCEPT_LOWER_LEVELS );
-        chinaInteragencyApproveOnly = mockUser( "ChinaInteragencyApproveOnly", china, AUTH_APPROVE );
-        chinalInteragencyAcceptOnly = mockUser( "ChinalInteragencyAcceptOnly", china, AUTH_ACCEPT_LOWER_LEVELS );
-        indiaInteragencyUser = mockUser( "IndiaInteragencyUser", india, AUTH_APPROVE, AUTH_ACCEPT_LOWER_LEVELS );
-        brazilAgencyAUser = mockUser( "BrazilAgencyAUser", brazil, AUTH_APPROVE, AUTH_ACCEPT_LOWER_LEVELS );
-        chinaAgencyAUser = mockUser( "ChinaAgencyAUser", china, AUTH_APPROVE, AUTH_ACCEPT_LOWER_LEVELS );
-        chinaAgencyAApproveOnly = mockUser( "ChinaAgencyAApproveOnly", china, AUTH_APPROVE );
-        chinaAgencyAAcceptOnly = mockUser( "ChinaAgencyAAcceptOnly", china, AUTH_ACCEPT_LOWER_LEVELS );
-        chinaAgencyBUser = mockUser( "ChinaAgencyBUser", china, AUTH_APPROVE, AUTH_ACCEPT_LOWER_LEVELS );
-        indiaAgencyAUser = mockUser( "IndiaAgencyAUser", india, AUTH_APPROVE, AUTH_ACCEPT_LOWER_LEVELS );
-        brazilPartner1User = mockUser( "BrazilPartner1User", brazil, AUTH_APPROVE );
-        chinaPartner1User = mockUser( "ChinaPartner1User", china, AUTH_APPROVE );
-        chinaPartner2User = mockUser( "ChinaPartner2User", china, AUTH_APPROVE );
-        indiaPartner1User = mockUser( "IndiaPartner1User", india, AUTH_APPROVE );
+        globalUser = createAndAddUser( "GlobalUser", global, AUTH_APPROVE, AUTH_ACCEPT_LOWER_LEVELS );
+        globalApproveOnly = createAndAddUser( "GlobalApproveOnly", global, AUTH_APPROVE );
+        globalAcceptOnly = createAndAddUser( "GlobalAcceptOnly", global, AUTH_ACCEPT_LOWER_LEVELS );
+        globalReadAll = createAndAddUser( "GlobalReadEverything", global, AUTH_VIEW_UNAPPROVED_DATA );
+        globalAgencyAUser = createAndAddUser( "GlobalAgencyAUser", global, AUTH_APPROVE, AUTH_ACCEPT_LOWER_LEVELS );
+        globalAgencyBUser = createAndAddUser( "GlobalAgencyBUser", global, AUTH_APPROVE, AUTH_ACCEPT_LOWER_LEVELS );
+        brazilInteragencyUser = createAndAddUser( "BrazilInteragencyUser", brazil, AUTH_APPROVE,
+            AUTH_ACCEPT_LOWER_LEVELS );
+        chinaInteragencyUser = createAndAddUser( "ChinaInteragencyUser", china, AUTH_APPROVE,
+            AUTH_ACCEPT_LOWER_LEVELS );
+        chinaInteragencyApproveOnly = createAndAddUser( "ChinaInteragencyApproveOnly", china, AUTH_APPROVE );
+        chinalInteragencyAcceptOnly = createAndAddUser( "ChinalInteragencyAcceptOnly", china,
+            AUTH_ACCEPT_LOWER_LEVELS );
+        indiaInteragencyUser = createAndAddUser( "IndiaInteragencyUser", india, AUTH_APPROVE,
+            AUTH_ACCEPT_LOWER_LEVELS );
+        brazilAgencyAUser = createAndAddUser( "BrazilAgencyAUser", brazil, AUTH_APPROVE, AUTH_ACCEPT_LOWER_LEVELS );
+        chinaAgencyAUser = createAndAddUser( "ChinaAgencyAUser", china, AUTH_APPROVE, AUTH_ACCEPT_LOWER_LEVELS );
+        chinaAgencyAApproveOnly = createAndAddUser( "ChinaAgencyAApproveOnly", china, AUTH_APPROVE );
+        chinaAgencyAAcceptOnly = createAndAddUser( "ChinaAgencyAAcceptOnly", china, AUTH_ACCEPT_LOWER_LEVELS );
+        chinaAgencyBUser = createAndAddUser( "ChinaAgencyBUser", china, AUTH_APPROVE, AUTH_ACCEPT_LOWER_LEVELS );
+        indiaAgencyAUser = createAndAddUser( "IndiaAgencyAUser", india, AUTH_APPROVE, AUTH_ACCEPT_LOWER_LEVELS );
+        brazilPartner1User = createAndAddUser( "BrazilPartner1User", brazil, AUTH_APPROVE );
+        chinaPartner1User = createAndAddUser( "ChinaPartner1User", china, AUTH_APPROVE );
+        chinaPartner2User = createAndAddUser( "ChinaPartner2User", china, AUTH_APPROVE );
+        indiaPartner1User = createAndAddUser( "IndiaPartner1User", india, AUTH_APPROVE );
         currentMockUserService = null;
         UserGroup globalUsers = getUserGroup( "GlobalUsers",
             userSet( globalUser, globalApproveOnly, globalAcceptOnly, globalConsultant, globalReadAll ) );

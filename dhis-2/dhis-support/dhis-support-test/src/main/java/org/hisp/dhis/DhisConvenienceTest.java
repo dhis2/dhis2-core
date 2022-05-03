@@ -2708,28 +2708,29 @@ public abstract class DhisConvenienceTest
         return user;
     }
 
-    protected User mockUser( String userName )
+    protected User createAndAddUser( String userName )
     {
-        return mockUser( false, userName, null );
+        return createAndAddUser( false, userName, null );
     }
 
-    protected User mockUser( Set<OrganisationUnit> organisationUnits,
+    protected User createAndAddUser( Set<OrganisationUnit> organisationUnits,
         Set<OrganisationUnit> dataViewOrganisationUnits, String... auths )
     {
-        return mockUser( false, CodeGenerator.generateUid(), organisationUnits, dataViewOrganisationUnits, auths );
+        return createAndAddUser( false, CodeGenerator.generateUid(), organisationUnits, dataViewOrganisationUnits,
+            auths );
     }
 
-    protected User mockUser( String userName, OrganisationUnit orgUnit, String... auths )
+    protected User createAndAddUser( String userName, OrganisationUnit orgUnit, String... auths )
     {
-        return mockUser( false, userName, orgUnit, auths );
+        return createAndAddUser( false, userName, orgUnit, auths );
     }
 
-    protected User mockUser( boolean superUserFlag, String userName, OrganisationUnit orgUnit, String... auths )
+    protected User createAndAddUser( boolean superUserFlag, String userName, OrganisationUnit orgUnit, String... auths )
     {
-        return mockUser( superUserFlag, userName, orgUnit, null, auths );
+        return createAndAddUser( superUserFlag, userName, orgUnit, null, auths );
     }
 
-    protected User mockUser( boolean superUserFlag, String userName, OrganisationUnit orgUnit,
+    protected User createAndAddUser( boolean superUserFlag, String userName, OrganisationUnit orgUnit,
         OrganisationUnit dataViewOrganisationUnits, String... auths )
     {
         User user = _createUserAndRole( superUserFlag, userName, newHashSet( orgUnit ),
@@ -2741,7 +2742,7 @@ public abstract class DhisConvenienceTest
         return user;
     }
 
-    protected User mockUser( boolean superUserFlag, String userName, Set<OrganisationUnit> orgUnits,
+    protected User createAndAddUser( boolean superUserFlag, String userName, Set<OrganisationUnit> orgUnits,
         Set<OrganisationUnit> dataViewOrgUnits, String... auths )
     {
         User user = _createUserAndRole( superUserFlag, userName, (orgUnits),

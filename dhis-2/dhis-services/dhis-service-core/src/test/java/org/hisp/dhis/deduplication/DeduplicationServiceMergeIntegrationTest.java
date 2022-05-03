@@ -143,7 +143,7 @@ class DeduplicationServiceMergeIntegrationTest extends IntegrationTestBase
     {
         OrganisationUnit ou = createOrganisationUnit( "OU_A" );
         organisationUnitService.addOrganisationUnit( ou );
-        User user = mockUser( true, "userB", ou, "F_TRACKED_ENTITY_MERGE" );
+        User user = createAndAddUser( true, "userB", ou, "F_TRACKED_ENTITY_MERGE" );
         injectSecurityContext( user );
         Sharing sharing = getUserSharing( user, AccessStringHelper.FULL );
         TrackedEntityType trackedEntityType = createTrackedEntityType( 'A' );

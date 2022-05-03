@@ -541,8 +541,8 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
 
         assertUserGroupHasOnlyUser( groupId, userId );
 
-        User testUser1 = mockUser( "test1" );
-        User testUser2 = mockUser( "test2" );
+        User testUser1 = createAndAddUser( "test1" );
+        User testUser2 = createAndAddUser( "test2" );
 
         // Add 2 new users and remove existing user from the created group
         assertStatus( HttpStatus.OK,

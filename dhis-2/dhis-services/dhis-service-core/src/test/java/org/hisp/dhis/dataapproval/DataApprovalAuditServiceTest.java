@@ -246,12 +246,13 @@ class DataApprovalAuditServiceTest extends TransactionalIntegrationTest
         sourceB = createOrganisationUnit( 'B', sourceA );
         organisationUnitService.addOrganisationUnit( sourceA );
         organisationUnitService.addOrganisationUnit( sourceB );
-        superUser = mockUser( true, "SuperUser", newHashSet( sourceA ), newHashSet( sourceA ), UserRole.AUTHORITY_ALL );
-        userA = mockUser( false, "UserA", sourceA, sourceA );
-        userB = mockUser( false, "UserB", sourceB, sourceB );
-        userC = mockUser( false, "UserC", sourceB, sourceB );
-        userD = mockUser( false, "UserD", sourceB, sourceB );
-        userZ = mockUser( "Z" );
+        superUser = createAndAddUser( true, "SuperUser", newHashSet( sourceA ), newHashSet( sourceA ),
+            UserRole.AUTHORITY_ALL );
+        userA = createAndAddUser( false, "UserA", sourceA, sourceA );
+        userB = createAndAddUser( false, "UserB", sourceB, sourceB );
+        userC = createAndAddUser( false, "UserC", sourceB, sourceB );
+        userD = createAndAddUser( false, "UserD", sourceB, sourceB );
+        userZ = createAndAddUser( "Z" );
         UserGroup userGroupC = getUserGroup( "UserGroupA", Sets.newHashSet( userC ) );
         UserGroup userGroupD = getUserGroup( "UserGroupB", Sets.newHashSet( userD ) );
         userC.getGroups().add( userGroupC );

@@ -146,7 +146,7 @@ class DataApprovalStoreUserTest extends DhisTest
         organisationUnitService.updateOrganisationUnit( orgUnitC );
         organisationUnitService.updateOrganisationUnit( orgUnitD );
 
-        currentUser = mockUser( true, "username", newHashSet( orgUnitA ), newHashSet( orgUnitA ) );
+        currentUser = createAndAddUser( true, "username", newHashSet( orgUnitA ), newHashSet( orgUnitA ) );
         injectSecurityContext( currentUser );
     }
 
