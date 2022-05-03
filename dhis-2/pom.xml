@@ -183,7 +183,7 @@
 
         <!-- Logging-->
         <log4j.version>2.17.2</log4j.version>
-        <slf4j.version>1.7.32</slf4j.version>
+        <slf4j.version>1.7.36</slf4j.version>
 
         <!-- Test -->
         <junit.version>5.8.2</junit.version>
