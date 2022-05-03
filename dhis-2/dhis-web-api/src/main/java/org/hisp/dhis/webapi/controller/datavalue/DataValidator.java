@@ -255,7 +255,7 @@ public class DataValidator
      */
     public OrganisationUnit getAndValidateOrganisationUnit( String uid )
     {
-        final OrganisationUnit organisationUnit = idObjectManager.getAndValidate(
+        OrganisationUnit organisationUnit = idObjectManager.getAndValidate(
             OrganisationUnit.class, ErrorCode.E1102, uid );
 
         boolean isInHierarchy = organisationUnitService.isInUserHierarchyCached( organisationUnit );
