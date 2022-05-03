@@ -84,10 +84,16 @@ public enum DateUnitType
 
     public static Optional<DateUnitTypeWithPattern> find( String isoString )
     {
+        System.out.println( "IsoString -> " + isoString );
+        System.out.println( "DateUnitType values" );
+
         for ( DateUnitType type : DateUnitType.values() )
         {
+            System.out.println( "DateUnitType -> " + type.getName() );
             for ( Pattern pattern : type.getPatterns() )
             {
+                System.out.println( "Pattern -> " + pattern.toString() );
+
                 if ( pattern.matcher( isoString ).matches() )
                 {
                     return Optional.of( DateUnitTypeWithPattern.of( type, pattern ) );
