@@ -32,11 +32,11 @@ import org.hisp.dhis.parser.expression.ProgramExpressionParams;
 import org.hisp.dhis.program.AnalyticsType;
 
 /**
- * Program indicator variable: event date (also used for execution date)
+ * Program indicator variable: scheduled date
  *
- * @author Jim Grace
+ * @author Dusan Bernat
  */
-public class vEventDate
+public class vScheduledDate
     extends ProgramDateVariable
 {
     @Override
@@ -47,13 +47,13 @@ public class vEventDate
         if ( AnalyticsType.ENROLLMENT == params.getProgramIndicator().getAnalyticsType() )
         {
             String sqlStatement = visitor.getStatementBuilder().getProgramIndicatorEventColumnSql(
-                null, "executiondate", params.getReportingStartDate(), params.getReportingEndDate(),
+                null, "duedate", params.getReportingStartDate(), params.getReportingEndDate(),
                 params.getProgramIndicator() );
 
             return insertIntoWhereProgramStageInstanceFilter( sqlStatement );
         }
 
-        return "executiondate";
+        return "duedate";
     }
 
     private String insertIntoWhereProgramStageInstanceFilter( String sqlStatement )
@@ -66,7 +66,7 @@ public class vEventDate
         }
 
         return sqlStatement.substring( 0, index )
-            + " and upper(psistatus) IN ('COMPLETED', 'ACTIVE') "
+            + " and upper(psistatus) = 'SCHEDULE' "
             + sqlStatement.substring( index );
     }
 }

@@ -40,6 +40,6 @@ public class vScheduledEventCount
     @Override
     public Object getSql( CommonExpressionVisitor visitor )
     {
-        return " case when UPPER(psistatus) = 'SCHEDULE' then 1 end ";
+        return " case when upper(psistatus) = 'SCHEDULE' then 1 end ";
     }
 }
