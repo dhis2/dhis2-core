@@ -27,7 +27,8 @@
  */
 package org.hisp.dhis.tracker.importer.tei;
 
-import com.google.gson.JsonObject;
+import static org.hamcrest.Matchers.*;
+
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.metadata.ProgramActions;
 import org.hisp.dhis.actions.metadata.TrackedEntityAttributeActions;
@@ -42,7 +43,7 @@ import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import static org.hamcrest.Matchers.*;
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -211,6 +212,44 @@ public class TeiValidationTests
     }
 
     @Test
+    public void shouldReturnErrorWhenUpdatingSoftDeletedTEI()
+    {
+        JsonObject trackedEntities = new TeiDataBuilder()
+            .setTeiType( Constants.TRACKED_ENTITY_TYPE )
+            .setOu( Constants.ORG_UNIT_IDS[0] )
+            .array();
+
+        // create TEI
+        TrackerApiResponse response = trackerActions.postAndGetJobReport( trackedEntities );
+
+        response.validateSuccessfulImport();
+
+        String teiId = response.extractImportedTeis().get( 0 );
+        JsonObject trackedEntitiesToDelete = new TeiDataBuilder()
+            .setId( teiId )
+            .array();
+
+        // delete TEI
+        TrackerApiResponse deleteResponse = trackerActions.postAndGetJobReport( trackedEntitiesToDelete,
+            new QueryParamsBuilder().add( "importStrategy=DELETE" ) );
+
+        deleteResponse.validateSuccessfulImport();
+
+        JsonObject trackedEntitiesToImportAgain = new TeiDataBuilder()
+            .setId( teiId )
+            .setTeiType( Constants.TRACKED_ENTITY_TYPE )
+            .setOu( Constants.ORG_UNIT_IDS[0] )
+            .array();
+
+        // Update TEI
+        TrackerApiResponse responseImportAgain = trackerActions.postAndGetJobReport( trackedEntitiesToImportAgain );
+
+        responseImportAgain
+            .validateErrorReport()
+            .body( "errorCode", hasItem( "E1114" ) );
+    }
+
+    @Test
     public void shouldNotReturnErrorWhenAttributeWithOptionSetIsPresent()
     {
         JsonObject trackedEntities = buildTeiWithMandatoryAndOptionSetAttribute().array();
@@ -236,8 +275,9 @@ public class TeiValidationTests
     private TeiDataBuilder buildTeiWithEnrollmentAndMandatoryAttributes()
     {
         return buildTeiWithMandatoryAttribute()
-            .addEnrollment( new EnrollmentDataBuilder().addAttribute( mandatoryProgramAttribute, DataGenerator.randomString() )
-                .setProgram( program ).setOu( Constants.ORG_UNIT_IDS[0] ) );
+            .addEnrollment(
+                new EnrollmentDataBuilder().addAttribute( mandatoryProgramAttribute, DataGenerator.randomString() )
+                    .setProgram( program ).setOu( Constants.ORG_UNIT_IDS[0] ) );
     }
 
     private void setupData()

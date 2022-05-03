@@ -35,7 +35,10 @@
       "trackedEntity": "Kj6vYde4LHh",
       "trackedEntityType": "bPJ0FMtcnEh",
       "updatedAt": "2019-08-19T13:59:13.706",
-      "orgUnit": "QfUVllTs6cS",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "QfUVllTs6cS"
+      },
       "inactive": false,
       "deleted": false,
       "potentialDuplicate": false,
@@ -52,13 +55,7 @@
           "value": "AddressX"
         }
       ],
-      "enrollments": [],
-      "programOwners": [
-        {
-          "trackedEntity": "Kj6vYde4LHh",
-          "program": "E8o1E9tAppy"
-        }
-      ]
+      "enrollments": []
     }
   ],
   "enrollments": [],

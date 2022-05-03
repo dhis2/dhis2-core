@@ -25,7 +25,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.tracker;
 
 import org.hisp.dhis.ApiTest;
@@ -34,7 +33,6 @@ import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.metadata.ProgramActions;
 import org.hisp.dhis.actions.tracker.EventActions;
 import org.hisp.dhis.actions.tracker.TEIActions;
-import org.hisp.dhis.actions.tracker.importer.TrackerActions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
 
@@ -46,9 +44,13 @@ public class TrackerApiTest
     extends ApiTest
 {
     protected RestApiActions enrollmentActions;
+
     protected EventActions eventActions;
+
     protected TEIActions teiActions;
+
     protected LoginActions loginActions;
+
     protected ProgramActions programActions;
 
     @BeforeAll

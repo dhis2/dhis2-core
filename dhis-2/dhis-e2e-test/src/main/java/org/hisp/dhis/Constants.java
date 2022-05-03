@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis;
 
-import org.hisp.dhis.dto.Program;
-
 import java.util.Arrays;
+
+import org.hisp.dhis.dto.Program;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -58,7 +58,14 @@ public class Constants
         .setUid( "f1AyMswryyQ" )
         .setProgramStages( Arrays.asList( "PaOOjwLVW23", "nlXNK4b7LVr" ) );
 
-    public static String TRACKER_PROGRAM_ID = "f1AyMswryyQ"; // todo: remove and use TRACKER_PROGRAM with associated program stages to avoid GET /programs/id/programStages calls
+    public static String TRACKER_PROGRAM_ID = "f1AyMswryyQ"; // todo: remove and
+                                                             // use
+                                                             // TRACKER_PROGRAM
+                                                             // with associated
+                                                             // program stages
+                                                             // to avoid GET
+                                                             // /programs/id/programStages
+                                                             // calls
 
     public static String ANOTHER_TRACKER_PROGRAM_ID = "f1AyMswryyX";
 

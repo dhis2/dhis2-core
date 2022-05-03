@@ -27,7 +27,12 @@
  */
 package org.hisp.dhis.tracker.importer;
 
-import com.google.gson.JsonObject;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.Matchers.hasSize;
+
+import java.io.File;
+import java.util.function.Consumer;
+
 import org.hamcrest.Matchers;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.dto.ApiResponse;
@@ -42,11 +47,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import java.io.File;
-import java.util.function.Consumer;
-
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.Matchers.hasSize;
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -119,7 +120,8 @@ public class ImportStrategyTests
     {
         // arrange
         JsonObject body = new TeiDataBuilder()
-            .buildWithEnrollmentAndEvent( Constants.TRACKED_ENTITY_TYPE, Constants.ORG_UNIT_IDS[0], Constants.TRACKER_PROGRAM_ID,
+            .buildWithEnrollmentAndEvent( Constants.TRACKED_ENTITY_TYPE, Constants.ORG_UNIT_IDS[0],
+                Constants.TRACKER_PROGRAM_ID,
                 "PaOOjwLVW23" );
 
         TrackerApiResponse response = trackerActions.postAndGetJobReport( body ).validateSuccessfulImport();
@@ -171,4 +173,3 @@ public class ImportStrategyTests
             .accept( new JsonObjectBuilder().addProperty( "trackedEntity", teiId ).wrapIntoArray( "trackedEntities" ) );
     }
 }
-

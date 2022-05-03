@@ -897,12 +897,12 @@ public abstract class AbstractJdbcEventAnalyticsManager
     }
 
     /**
-     * Return SQL string bnased on Items a its params
+     * Return SQL string based on both query items and filters
      *
      * @param params a {@see EventQueryParams}
      * @param hlp a {@see SqlHelper}
      */
-    protected String getItemsSql( EventQueryParams params, SqlHelper hlp )
+    protected String getStatementForDimensionsAndFilters( EventQueryParams params, SqlHelper hlp )
     {
         if ( params.isEnhancedCondition() )
         {
@@ -913,8 +913,8 @@ public abstract class AbstractJdbcEventAnalyticsManager
         // those referring to non-repeatable stages
         // Only for enrollments, for events all query items are treated as
         // non-repeatable
-        Map<Boolean, List<QueryItem>> itemsByRepeatableFlag = params.getItems()
-            .stream()
+        Map<Boolean, List<QueryItem>> itemsByRepeatableFlag = Stream.concat(
+            params.getItems().stream(), params.getItemFilters().stream() )
             .filter( QueryItem::hasFilter )
             .collect( groupingBy(
                 queryItem -> queryItem.hasRepeatableStageParams() && params.getEndpointItem() == ENROLLMENT ) );
@@ -959,8 +959,8 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
     private String getItemsSqlForEnhancedConditions( EventQueryParams params, SqlHelper hlp )
     {
-        Map<UUID, String> sqlConditionByGroup = params.getItems()
-            .stream()
+        Map<UUID, String> sqlConditionByGroup = Stream.concat(
+            params.getItems().stream(), params.getItemFilters().stream() )
             .filter( QueryItem::hasFilter )
             .collect(
                 groupingBy( QueryItem::getGroupUUID, mapping( queryItem -> toSql( queryItem, params ), OR_JOINER ) ) );

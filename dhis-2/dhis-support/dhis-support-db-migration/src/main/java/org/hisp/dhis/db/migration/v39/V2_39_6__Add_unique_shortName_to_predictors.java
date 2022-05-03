@@ -25,16 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.imports;
+package org.hisp.dhis.db.migration.v39;
 
-import org.hisp.dhis.tracker.TrackerIdSchemeParams;
-import org.hisp.dhis.webapi.controller.tracker.view.ProgramOwner;
-import org.mapstruct.Context;
-import org.mapstruct.Mapper;
+import static org.hisp.dhis.db.migration.helper.UniqueValueUtils.copyUniqueValue;
 
-@Mapper
-public interface ProgramOwnerMapper extends DomainMapper<ProgramOwner, org.hisp.dhis.tracker.domain.ProgramOwner>
+import org.flywaydb.core.api.migration.BaseJavaMigration;
+import org.flywaydb.core.api.migration.Context;
+
+/**
+ * Initialises the {@code shortname} column with a unique name based on the
+ * {@code name} column for {@link org.hisp.dhis.predictor.Predictor}s.
+ *
+ * @author Jan Bernitt
+ */
+public class V2_39_6__Add_unique_shortName_to_predictors extends BaseJavaMigration
 {
-    org.hisp.dhis.tracker.domain.ProgramOwner from( ProgramOwner programOwner,
-        @Context TrackerIdSchemeParams idSchemeParams );
+    @Override
+    public void migrate( Context context )
+        throws Exception
+    {
+        copyUniqueValue( context, "predictor", "predictorid", "name", "shortname", 50 );
+    }
 }

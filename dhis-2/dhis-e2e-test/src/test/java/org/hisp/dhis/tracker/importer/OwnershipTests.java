@@ -25,10 +25,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.tracker.importer;
 
-import com.google.gson.JsonObject;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.everyItem;
+import static org.hamcrest.CoreMatchers.hasItems;
+import static org.hamcrest.Matchers.hasSize;
+
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.UserActions;
 import org.hisp.dhis.actions.metadata.ProgramActions;
@@ -42,10 +45,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.everyItem;
-import static org.hamcrest.CoreMatchers.hasItems;
-import static org.hamcrest.Matchers.hasSize;
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -190,7 +190,8 @@ public class OwnershipTests
 
         loginActions.loginAsUser( username, userPassword );
 
-        trackerActions.postAndGetJobReport( enrollment, new QueryParamsBuilder().add( "importStrategy=" + importStrategy ) )
+        trackerActions
+            .postAndGetJobReport( enrollment, new QueryParamsBuilder().add( "importStrategy=" + importStrategy ) )
             .validateErrorReport()
             .body( "errorCode", hasItems( "E1102" ) );
     }
@@ -204,7 +205,8 @@ public class OwnershipTests
             .body( "enrollments", hasSize( 0 ) );
 
         trackerActions
-            .postAndGetJobReport( new EnrollmentDataBuilder().array( protectedProgram, captureOu, teiInSearchScope, "ACTIVE" ) )
+            .postAndGetJobReport(
+                new EnrollmentDataBuilder().array( protectedProgram, captureOu, teiInSearchScope, "ACTIVE" ) )
             .validateErrorReport()
             .body( "errorCode", hasItems( "E1102" ) );
     }

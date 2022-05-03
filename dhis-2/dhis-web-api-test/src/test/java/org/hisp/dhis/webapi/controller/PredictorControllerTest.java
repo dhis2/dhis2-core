@@ -105,7 +105,8 @@ class PredictorControllerTest extends DhisControllerConvenienceTest
                     + "'categoryCombo': {'id': '" + ccId + "'}}" ) );
         return assertStatus( HttpStatus.CREATED,
             POST( "/predictors/",
-                "{'name':'Pred1'," + "'output': {'id':'" + deId + "'}, " + "'generator': {'expression': '1 != 1'},"
+                "{'name':'Pred1','shortName':'Pred1'," + "'output': {'id':'" + deId + "'}, "
+                    + "'generator': {'expression': '1 != 1'},"
                     + "'periodType': 'Monthly'," + "'sequentialSampleCount':4," + "'annualSampleCount':3,"
                     + "'organisationUnitLevels': []," + "'organisationUnitDescendants': 'SELECTED'" + " }" ) );
     }

@@ -21,3 +21,6 @@ jobs:
 
       - name: Check formatting in web
         run: mvn speedy-spotless:check --threads 2C --batch-mode --no-transfer-progress -q -f ./dhis-2/dhis-web/pom.xml
+
+      - name: Check formatting in e2e tests
+        run: mvn speedy-spotless:check --batch-mode --no-transfer-progress -q -f ./dhis-2/dhis-e2e-test/pom.xml
