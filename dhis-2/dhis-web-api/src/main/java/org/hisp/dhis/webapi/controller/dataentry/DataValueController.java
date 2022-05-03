@@ -40,6 +40,8 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
+import org.hisp.dhis.minmax.MinMaxDataElement;
+import org.hisp.dhis.minmax.MinMaxDataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.webapi.controller.datavalue.DataValidator;
@@ -62,6 +64,8 @@ public class DataValueController
 {
     private final DataValueService dataValueService;
 
+    private final MinMaxDataElementService minMaxValueService;
+
     private final DataValidator dataValidator;
 
     @GetMapping( "/dataValues" )
@@ -80,8 +84,10 @@ public class DataValueController
 
         List<DataValue> dataValues = dataValueService.getDataValues( exportParams );
 
+        List<MinMaxDataElement> minMaxValues = minMaxValueService.getMinMaxDataElements( ou, ds.getDataElements() );
+
         return new DataValuesDto()
             .setDataValues( mapToList( dataValues, DataValueDtoMapper::toDto ) )
-            .setMinMaxValues( null );
+            .setMinMaxValues( mapToList( minMaxValues, DataValueDtoMapper::toDto ) );
     }
 }

@@ -49,9 +49,6 @@ public class MinMaxValueDto
     private String dataElement;
 
     @JsonProperty
-    private String period;
-
-    @JsonProperty
     private String orgUnit;
 
     @JsonProperty
